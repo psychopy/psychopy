@@ -44,6 +44,7 @@ Then::
   sudo easy_install -Z ipython
   sudo easy_install -Z sphinx
   sudo easy_install -Z nose
+  sudo easy_install cython
 
 If you get build errors trying to easy_install::
 
@@ -58,6 +59,18 @@ manual installs
 ===================
 Install avbin for movies
 labjack (you might prefer to use my fork of that at https://github.com/peircej/LabJackPython so that each file installs under site-packages/labjack)
+
+
+compiled libs
+==================
+
+#hdf5 (needed for pytables or you get errors about symbols not found)
+cd hdf5-1.8.9
+CFLAGS='-arch i386' LDFLAGS='-arch i386' ./configure --prefix=/usr/local/ make
+sudo make install
+
+#ioHub also requires
+# greenlet, gevent, msgpack, pyYAML
 
 
 System python

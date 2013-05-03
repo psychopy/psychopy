@@ -7,10 +7,10 @@
 import sys, os, glob, copy
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
-# other calls to pyglet or pyglet submodules, otherwise it may not get picked up 
+# other calls to pyglet or pyglet submodules, otherwise it may not get picked up
 # by the pyglet GL engine and have no effect.
 import pyglet
-pyglet.options['debug_gl'] = False 
+pyglet.options['debug_gl'] = False
 
 #on windows try to load avbin now (other libs can interfere)
 if sys.platform=='win32':
@@ -29,8 +29,11 @@ import colors
 import psychopy.event
 #misc must only be imported *after* event or MovieStim breaks on win32 (JWP has no idea why!)
 import psychopy.misc
-import Image
 import makeMovies
+try:
+    from PIL import Image
+except ImportError:
+    import Image
 
 if sys.platform=='win32' and not haveAvbin:
     logging.error("""avbin.dll failed to load. Try importing psychopy.visual as the first
@@ -4012,7 +4015,7 @@ class MovieStim(_BaseVisualStim):
         if log and self.autoLog:
             self.win.logOnFlip("Set %s movie=%s" %(self.name, filename),
                 level=logging.EXP,obj=self)
-        
+
     def pause(self, log=True):
         """Pause the current point in the movie (sound will stop, current frame
         will not advance).  If play() is called again both will restart.
@@ -4062,7 +4065,7 @@ class MovieStim(_BaseVisualStim):
             self.play()
         elif self.status == FINISHED and not self.loop:
             return
-            
+
         if win==None: win=self.win
         self._selectWindow(win)
 
@@ -4124,7 +4127,7 @@ class MovieStim(_BaseVisualStim):
         _BaseVisualStim.setAutoDraw(self, val, log=log)
     def __del__(self):
         self._clearTextures()
-        
+
 class TextStim(_BaseVisualStim):
     """Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
     """
@@ -5834,7 +5837,7 @@ class RatingScale:
 
         A text version of the item will be displayed, but the value returned by
         getResponse() will be of type you gave it::
-        
+
             var = 3.14
             myRatingScale = visual.RatingScale(myWin,
                                 choices=['cherry', 'apple', True, var, 'pie'])
@@ -7374,10 +7377,11 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
                     notSqr=True
                 elif _nImageResizes<reportNImageResizes:
                     logging.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(tex, powerOf2, powerOf2))
+                    _nImageResizes+=1
+                    im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
                 elif _nImageResizes==reportNImageResizes:
                     logging.warning("Multiple images have needed resizing - I'll stop bothering you!")
-                _nImageResizes+=1
-                im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
+                    im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
 
         #is it Luminance or RGB?
         if im.mode=='L':
@@ -7394,6 +7398,9 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
             intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # much faster to avoid division 2/255
         else:
             intensity = numpy.array(im)
+        if wasLum and intensity.shape!=im.size:
+            intensity.shape=im.size
+            print intensity.min(), intensity.max()
 
     if pixFormat==GL.GL_RGB and wasLum and dataType==GL.GL_FLOAT:
         #keep as float32 -1:1

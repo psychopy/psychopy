@@ -1409,27 +1409,38 @@ class CoderFrame(wx.Frame):
             self.demosMenu.AppendSubMenu(submenu, folderName)
 
             #find the files in the folder
-            demoList = glob.glob(os.path.join(folder,'*.py'))
+            if folderName == 'iohub':
+                # look for sub- and sub-sub-directories that contain 'run.py'
+                demoList = glob.glob(os.path.join(folder, '*', 'run.py'))
+                demoList += glob.glob(os.path.join(folder, '*', '*', 'run.py'))
+                demoList += glob.glob(os.path.join(folder, '*', '*', 'ioMouse.py'))
+            else:
+                demoList = glob.glob(os.path.join(folder, '*.py'))
             demoList.sort(key=str.lower)
             demoIDs = map(lambda _makeID: wx.NewId(), range(len(demoList)))
 
             for n in range(len(demoList)):
                 self.demos[demoIDs[n]] = demoList[n]
             for thisID in demoIDs:
-                junk, shortname = os.path.split(self.demos[thisID])
-                if shortname.startswith('_'): continue#remove any 'private' files
+                if folderName == 'iohub':
+                    idx = -2  # get shortname from directory name
+                else:
+                    idx = -1  # get shortname from file name
+                shortname = self.demos[thisID].split(os.path.sep)[idx]
+                if shortname.startswith('_'):
+                    continue  # remove any 'private' files
                 submenu.Append(thisID, shortname)
                 wx.EVT_MENU(self, thisID, self.loadDemo)
         #also add simple demos to root
         self.demosMenu.AppendSeparator()
         for filename in glob.glob(os.path.join(self.paths['demos'],'coder','*.py')):
             junk, shortname = os.path.split(filename)
-            if shortname.startswith('_'): continue#remove any 'private' files
+            if shortname.startswith('_'):
+                continue  # remove any 'private' files
             thisID = wx.NewId()
             self.demosMenu.Append(thisID, shortname)
             self.demos[thisID] = filename
             wx.EVT_MENU(self, thisID, self.loadDemo)
-
 
         #---_help---#000000#FFFFFF--------------------------------------------------
         self.helpMenu = wx.Menu()
