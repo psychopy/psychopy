@@ -80,7 +80,7 @@ class Mouse(MouseDevice):
                 event_array[3]=Computer._getNextEventID()
                 
                 display_index=self._display_device.getIndex()                
-                x,y=self._display_device.pixel2DisplayCoord(event_array[15],event_array[16],display_index)  
+                x,y=self._display_device._pixel2DisplayCoord(event_array[15],event_array[16],display_index)  
                 event_array[15]=x
                 event_array[16]=y
                 
