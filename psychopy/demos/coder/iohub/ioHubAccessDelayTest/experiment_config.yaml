@@ -17,56 +17,6 @@ session_defaults:
         contacts: [Select, Yes, No ]
         eye_color: Unknown
 session_variable_order: [ name, code, comments, participant_age, participant_gender, glasses, contacts, eye_color ]
-directories:
-    - experiment:
-        root:
-        type: [r,]
-        file_types:
-            - .yaml
-    - results:
-        root: D:/results/iohub_experiments/<code>
-        type: [w,]
-        file_types:
-            - .hdf5                
-        directories:
-            - session:
-                root: <session_defaults.code>
-                type: [w,]
-                file_types: 
-                    - .xls
-                    - .edf    
-    - resources:
-        root: resources
-        directories:
-            - condition_files:
-                root: condition_files
-                type: [r,]
-                file_types: 
-                    - .xls                
-            - images:
-                root: images
-                type: [r,]
-                file_types: 
-                    - .png
-                    - .jpeg
-            - audio:
-                root: audio
-                type: [r,]
-                file_types: 
-                    - .wav
-                    - .mp4
-        
-    
-#    resources:
-#        condition_files: [[CONDITION_FILES], [xls]]
-#        images: [[IMAGE_FILES],[png]]
-#        audio: [[AUDIO_FILES],[flac, mp3]]
-#        video: [[VIDEO_FILES],[avi, mp4, mkv]]
-#    results:
-#        data_store: [[IOHUB_DATA],[hdf5]]
-#        sessions:
-#            session_defaults.code: [[LOGS,SYS_INFO,USER_FILES,NATIVE_DEVICE_DATA],[]]
-
 event_buffer_length: 2048
 process_affinity: []
 remaining_processes_affinity: []
