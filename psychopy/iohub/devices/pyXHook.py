@@ -112,6 +112,7 @@ class HookManager(threading.Thread):
         self.pressedMouseButtons=0
 
         self.create_runtime_keysym_maps()
+		self.scroll_y=0
         
     def run(self):
         # Check if the extension is present
@@ -369,7 +370,7 @@ class HookManager(threading.Thread):
         elif event.type == X.KeyRelease:
             ioHubEventID =EventConstants.KEYBOARD_RELEASE
 
-        
+
         return [[0,
                 0,
                 0, #device id (not currently used)
@@ -434,7 +435,6 @@ class HookManager(threading.Thread):
         ioHubEventID=0
         event_state=[]
         event_detail=[]
-        scroll_y=0
         dy=0
         
         if event.type == 6:
@@ -451,11 +451,11 @@ class HookManager(threading.Thread):
             
             if event.detail == 4 and event.type==4:
                 ioHubEventID=EventConstants.MOUSE_SCROLL 
-                scroll_y+=1
+                self.scroll_y+=1
                 dy=1
             elif event.detail == 5 and event.type==4:
                 ioHubEventID=EventConstants.MOUSE_SCROLL           
-                scroll_y-=1
+                self.scroll_y-=1
                 dy=-1
                 
         if event.state&1 == 1:
@@ -518,7 +518,7 @@ class HookManager(threading.Thread):
             0, #scroll_dx not supported
             0, #scroll_x
             dy,
-            scroll_y, 
+            self.scroll_y, 
             int(storewm["handle"], base=16)],]
       # TO DO: Implement multimonitor location based on mouse location support.
         # Currently always uses monitor index 0
