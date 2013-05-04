@@ -217,7 +217,7 @@ class MouseDevice(Device):
                 print2err(" mouse.setPos did not update mouse pos")
                 return self._position
                 
-            px,py=display.displayCoord2Pixel(pos[0],pos[1],display_index)
+            px,py=display._displayCoord2Pixel(pos[0],pos[1],display_index)
 
             result=self._validateMousePosition((px,py),display_index)
             
@@ -245,7 +245,7 @@ class MouseDevice(Device):
         return self._position
             
     def getDisplayIndexForMousePosition(self,system_mouse_pos):
-        return self._display_device.getDisplayIndexForNativePixelPosition(system_mouse_pos)
+        return self._display_device._getDisplayIndexForNativePixelPosition(system_mouse_pos)
 
     def _validateMousePosition(self, pixel_pos,display_index):
         left,top,right,bottom=self._display_device.getBounds()

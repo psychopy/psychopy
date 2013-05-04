@@ -56,6 +56,20 @@ if sys.platform == 'win32':
 else:
     def win32MessagePump():
         pass
+
+########################
+#
+# Resursive updating of values from one dict into another if the key foes not key exist.
+# Supported nexted dicts and uses deep copy when setting values in thge target dict.
+    
+import copy
+def updateDict(add_to,add_from):
+    for key,value in add_from.iteritems():
+        if key not in add_to:
+            add_to[key]=copy.deepcopy(value)
+        elif isinstance(value,dict) and isinstance(add_to[key],dict):
+            updateDict(add_to[key],value)                   
+
         
 ########################
 #

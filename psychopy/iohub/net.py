@@ -17,7 +17,7 @@ import struct
 MAX_PACKET_SIZE=64*1024
 
 class SocketConnection(object):
-    def __init__(self,local_host=None,local_port=None,remote_host=None,remote_port=None,rcvBufferLength=1492, broadcast=False, blocking=0, timeout=0,coder=None):
+    def __init__(self,local_host=None,local_port=None,remote_host=None,remote_port=None,rcvBufferLength=1492, broadcast=False, blocking=0, timeout=0):
         self._local_port= local_port
         self._local_host = local_host
         self._remote_host= remote_host
@@ -26,9 +26,12 @@ class SocketConnection(object):
         self.lastAddress=None
         self.sock=None
         self.initSocket()
-        self.coder=None
-        self.feed=None
-        self.configCoder(coder)
+        self.coder=msgpack
+        self.packer=msgpack.Packer()
+        self.unpacker=msgpack.Unpacker(use_list=True)
+        self.pack=self.packer.pack
+        self.feed=self.unpacker.feed
+        self.unpack=self.unpacker.unpack
 
     def initSocket(self,broadcast=False,blocking=0, timeout=0):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -42,18 +45,6 @@ class SocketConnection(object):
 
         self.sock.settimeout(timeout)
         self.sock.setblocking(blocking)
-
-    def configCoder(self,coder):
-        if coder:
-            if coder =='msgpack':
-                self.coder=msgpack
-                self.packer=msgpack.Packer()
-                self.unpacker=msgpack.Unpacker(use_list=True)
-                self.pack=self.packer.pack
-                self.feed=self.unpacker.feed
-                self.unpack=self.unpacker.unpack
-            else:
-                raise Exception ("Unknown coder type: %s. Must be 'msgpack'"%(str(coder),))
 
     def sendTo(self,data,address=None):
         if address is None:
@@ -90,7 +81,7 @@ class SocketConnection(object):
 
 class UDPClientConnection(SocketConnection):
     def __init__(self,remote_host='127.0.0.1',remote_port=9000,rcvBufferLength = MAX_PACKET_SIZE,broadcast=False,blocking=1, timeout=1, coder=None):
-        SocketConnection.__init__(self,remote_host=remote_host,remote_port=remote_port,rcvBufferLength=rcvBufferLength,broadcast=broadcast,blocking=blocking, timeout=timeout,coder=coder)
+        SocketConnection.__init__(self,remote_host=remote_host,remote_port=remote_port,rcvBufferLength=rcvBufferLength,broadcast=broadcast,blocking=blocking, timeout=timeout)
     def initSocket(self,**kwargs):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, MAX_PACKET_SIZE)

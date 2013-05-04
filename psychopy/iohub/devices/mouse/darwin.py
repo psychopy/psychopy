@@ -175,7 +175,7 @@ class Mouse(MouseDevice):
                         px,py=nx,ny
                         self._nativeSetMousePos(px,py)   
             
-                    px,py=self._display_device.pixel2DisplayCoord(px,py,display_index)                          
+                    px,py=self._display_device._pixel2DisplayCoord(px,py,display_index)                          
                     self._lastPosition=self._position
                     self._position=px,py
                     self._last_display_index=self._display_index

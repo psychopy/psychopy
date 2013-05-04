@@ -17,7 +17,7 @@ except ImportError:
 
 import psychopy.iohub  as iohub   
 from psychopy.iohub.server import ioServer, Computer
-from psychopy.iohub.util import printExceptionDetailsToStdErr, print2err, MonotonicClock
+from psychopy.iohub.util import updateDict,printExceptionDetailsToStdErr, print2err, MonotonicClock
 
 def run(rootScriptPathDir,configFilePath):
     import tempfile
@@ -32,6 +32,8 @@ def run(rootScriptPathDir,configFilePath):
     else:
         ioHubConfig=load(file(configFilePath,'r'), Loader=Loader)
 
+    hub_defaults_config=load(file(os.path.join(iohub.IO_HUB_DIRECTORY,'default_config.yaml'),'r'), Loader=Loader)
+    updateDict(ioHubConfig,hub_defaults_config)
 
     try:
         s = ioServer(rootScriptPathDir, ioHubConfig)
