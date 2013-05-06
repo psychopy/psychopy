@@ -7,7 +7,7 @@ Created on Thu Apr 11 18:52:59 2013
 
 from ctypes import cdll
 from . import MouseDevice
-from ... import print2err
+from ... import print2err,MouseConstants
 from .. import Computer
 
 currentSec=Computer.getTime
@@ -89,7 +89,15 @@ class Mouse(MouseDevice):
 
                 self._last_display_index=self._display_index
                 self._display_index=display_index
-                
+
+             	bstate=event_array[-10]
+             	bnum=event_array[-9]
+
+            	if bnum is not MouseConstants.MOUSE_BUTTON_NONE:
+                	self.activeButtons[bnum]= int(bstate==True)    
+           
+           		self._scrollPositionY= event_array[-2]
+
                 self._addNativeEventToBuffer(event_array)
                 
                 self._last_callback_time=logged_time
