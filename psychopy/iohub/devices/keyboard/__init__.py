@@ -49,7 +49,15 @@ class ioHubKeyboardDevice(Device):
         self._report_auto_repeats=kwargs.get('report_auto_repeat_press_events',False)
         Device.__init__(self,*args,**kwargs)
 
+    def clearEvents(self):
+        cEvents=self._getCharEvents()
+        [self._addNativeEventToBuffer(e) for e in cEvents]
+        Device.clearEvents(self)
 
+    def _handleEvent(self,e):
+        Device._handleEvent(self,e)
+        cEvents=self._getCharEvents()
+        [self._addNativeEventToBuffer(e) for e in cEvents]
 
     def _getCharEvents(self):
         '''
@@ -115,30 +123,6 @@ class ioHubKeyboardDevice(Device):
                 charEvents.append(charEvent)
         return charEvents
 
-    def clearEvents(self):
-        """
-        Clears any DeviceEvents that have occurred since the last call to the devices getEvents()
-        with clearEvents = True, or the devices clearEvents() methods.
-
-        Args:
-            None
-            
-        Return: 
-            None
-            
-        Note that calling the ioHub Server Process level getEvents() or clearEvents() methods
-        via the ioHubClientConnection class does *not* effect device level event buffers.
-        """
-        cEvents=self._getCharEvents()
-        [self._addNativeEventToBuffer(e) for e in cEvents]
-        Device.clearEvents(self)
-
-    def _handleEvent(self,e):
-        Device._handleEvent(self,e)
-        cEvents=self._getCharEvents()
-        [self._addNativeEventToBuffer(e) for e in cEvents]
-
-
 if Computer.system == 'win32':
     from win32 import Keyboard
 elif Computer.system == 'linux2':
@@ -181,28 +165,35 @@ class KeyboardInputEvent(DeviceEvent):
     def __init__(self,*args,**kwargs):
         #: The scan code for the keyboard event.
         #: This represents the physical key id on the keyboard layout.
+        #: The Linux and Windows ioHub interface provide's scan codes; the OS X implementation does not.
         #: int value
         self.scan_code=0
         
-        #: The translated key ID, based on the keyboard local settings of the OS.
+        #: The keyboard independent, but OS dependent, representation of the key pressed.
         #: int value.
         self.key_id=0
         
-        #: The unicode utf-8 encoded int value for teh char.
+        #: The utf-8 coe point for the key present, if it has one and can be determined. 0 otherwise.
+        #: This value is, in most cases, calulated by taking the event.key value, 
+        #: determining if it is a unicode utf-8 encoded char, and if so, calling the
+        #: Python built in function unichr(event.key).
         #: int value between 0 and 2**16.
         self.ucode=''
 
         #: A string representation of what key was pressed. For standard character
         #: ascii keys (a-z,A-Z,0-9, some punctuation values), and 
         #: unicode utf-8 encoded characters that have been successfully detected,
-        #: *key* will be the
-        #: the actual key value pressed. For other keys, like the *up arrow key*
-        #: or key modifiers like the left or right *shift key*, a string representation
-        #: of the key press is given, for example 'UP', 'SHIFT_LEFT', and 'SHIFT_RIGHT' for
-        #: the examples given here. 
+        #: *key* will be the the actual key value pressed as a unicode character. 
+        #: For other keys, like the *up arrow key* or key modifiers like the 
+        #: left or right *shift key*, then a string representation
+        #: of the key press is given, for example 'UP', 'SHIFT_LEFT', and 'SHIFT_RIGHT'.
+        #: In the case of the lattr, ucode will generally be 0.
         self.key=''
         
-        #: Logical & of all modifier keys pressed just before the event was created.
+        #: List of the modifiers that were active when the key was pressed, provide in
+        #: online events as a list of the modifier constant labels specified in 
+        #: iohub.ModifierConstants
+        #: list: Empty if no modifiers are pressed, otherwise each elemnt is the string name of a modifier constant.
         self.modifiers=0
 
         #: The id or handle of the window that had focus when the key was pressed.
@@ -244,10 +235,16 @@ class KeyboardKeyEvent(KeyboardInputEvent):
 
 class KeyboardPressEvent(KeyboardKeyEvent):
     """
-    A KeyboardPressEvent is generated when a key on a monitored keyboard is pressed down.
-    The event is created prior to the keyboard key being released. If a key is held down for
-    an extended period of time, multiple KeyboardPressEvent events may be generated depending
-    on your OS and the OS's settings for key repeat event creation. 
+    A KeyboardPressEvent is generated when a key is pressed down.
+    The event is created prior to the keyboard key being released. 
+    If a key is held down for an extended period of time, multiple 
+    KeyboardPressEvent events may be generated depending
+    on your OS and the OS's settings for key repeat event creation.
+    
+    If auto repeat key events are not desired at all, then the keyboard configuration
+    setting 'report_auto_repeat_press_events' can be used to disable these 
+    events by having the ioHub Server filter the unwanted events out. By default
+    this keyboard configuartion parameter is set to True.
     
     Event Type ID: EventConstants.KEYBOARD_PRESS
     
@@ -263,7 +260,7 @@ class KeyboardPressEvent(KeyboardKeyEvent):
 
 class KeyboardReleaseEvent(KeyboardKeyEvent):
     """
-    A KeyboardReleaseEvent is generated when a key on a monitored keyboard is released.
+    A KeyboardReleaseEvent is generated when a key the keyboard is released.
     
     Event Type ID: EventConstants.KEYBOARD_RELEASE
     
@@ -282,8 +279,18 @@ class KeyboardCharEvent(KeyboardReleaseEvent):
     released. The KeyboardKeyEvent includes information about the key that was
     released, as well as a refernce to the KeyboardPressEvent that is associated
     with the KeyboardReleaseEvent. Any auto-repeat functionality that may be 
-    created by the OS keyboard driver is ignored.
+    created by the OS keyboard driver is ignored regardless of the keyboard
+    device 'report_auto_repeat_press_events' configuration setting.
     
+    ..note: A KeyboardCharEvent and the associated KeyboardReleaseEvent for it have
+            the same event.time value, as should be expected. The cuurent event sorting
+            process result in the KeyboardCharEvent occuring right before the 
+            KeyboardReleaseEvent in an event list that has both together. While this
+            is 'technically' valid since both events have the same event.time,
+            it would be more intuitive and logical if the KeyboardReleaseEvent
+            occurred just before the KeyboardCharEvent in an event list. This will be
+            addressed at a later date.
+            
     Event Type ID: EventConstants.KEYBOARD_CHAR
     
     Event Type String: 'KEYBOARD_CHAR'
@@ -302,17 +309,17 @@ class KeyboardCharEvent(KeyboardReleaseEvent):
         """
         
         #: The pressEvent attribute of the KeyboardCharEvent contains a reference
-        #: to the associated keyboard key press event for the release event
+        #: to the associated KeyboardPressEvent
         #: that the KeyboardCharEvent is based on. The press event is the *first*
         #: press of the key registered with the ioHub Server before the key is
-        #: released, so any key auto repeat functionality of your OS settings are ignored.
+        #: released, so any key auto repeat key events are always ignored.
         #: KeyboardPressEvent class type.        
         self.press_event=None
         
-        #: The ioHub time deifference between the press and release events which
-        #: constitute the KeyboardCharEvent.
+        #: The ioHub time difference between the KeyboardReleaseEvent and 
+        #: KeyboardPressEvent events that have formed the KeyboardCharEvent.
         #: float type. seconds.msec-usec format
-        self.duration=0
+        self.duration=None
         
         KeyboardReleaseEvent.__init__(self,*args,**kwargs)
 

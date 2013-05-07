@@ -19,7 +19,7 @@ import json
 import signal
 
 try:
-    from yaml import load
+    from yaml import load, dump
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
 #    print "*** Using Python based YAML Parsing"
@@ -36,7 +36,7 @@ from . import IO_HUB_DIRECTORY,isIterable
 from .devices import Computer, DeviceEvent,import_device
 from .devices.experiment import MessageEvent,LogEvent
 from .constants import DeviceConstants,EventConstants
-from .util import updateDict, MessageDialog, print2err,printExceptionDetailsToStdErr,ioHubError,win32MessagePump, ioHubConnectionException, ioHubServerError
+from .util import updateDict,MessageDialog, print2err,printExceptionDetailsToStdErr,ioHubError,win32MessagePump, ioHubConnectionException, ioHubServerError
 from .net import UDPClientConnection
 
 currentSec= Computer.currentSec
@@ -110,7 +110,7 @@ class ioHubDeviceView(object):
     the ioHub Process.
 
     The ioHubDeviceView provides methods to access events at a device level 
-    as well as other methods allowing interaction with the defice being accessed.
+    as well as other methods allowing interaction with the device being accessed.
 
     Each ioHubDeviceView instance created when the ioHubConnection has connected
     to the ioHub Process queries the ioHub Process for the current list of public
@@ -196,14 +196,14 @@ class ioHubDeviceView(object):
 
 class ioHubDevices(object):
     """
-    ioHubDevices is a PsychopY Process side class that contains one attribute 
+    ioHubDevices is a PsychoPy Process side class that contains one attribute 
     (dynamically created) for each device that is created in the ioHub.
-    These devices are each of type ioHubDeviceView. The attribute name for the 
-    device is the user name given for the device by the user in the iohub_config.yaml
-    'name' property that is provided for each device.
+    These devices are each of type ioHubDeviceView. The name attribute for the 
+    device is user-generated in the iohub_config.yaml
+    (the 'name' property provided for each device).
     
     Each ioHubDeviceView itself has a list of methods that can be called 
-    (matching the list of public methods for the ioHub process side Device 
+    (matching the list of public methods for the ioHub Process side Device 
     in the ioHub.devices module), however here, each method call results in an 
     IPC call to the ioHub Server for the device, which interprets the requested 
     device method, and returns the result to the PsychoPy Process.
@@ -217,10 +217,10 @@ class ioHubDevices(object):
 
 class ioHubConnection(object):
     """
-    ioHubConnection is responsible for for creating the ioHub Server Process, 
-    sending requests to the ioHub Server Process, and reading the ioHub Server 
-    Process reply. This class can also tell the ioHub Server when to
-    shutdown and disconnect.
+    ioHubConnection is responsible for creating, 
+    sending requests to, and reading replies from the ioHub 
+    Process. This class can also shut down and disconnect the
+    ioHub Process.
     
     The ioHubConnection class is also used as the interface to any ioHub Device
     instances that have been created so that events from the device can be
@@ -230,7 +230,7 @@ class ioHubConnection(object):
     the PsychoPy Process represention of the ioHub Device as the values.
     
     For example, to print the available methods for each device registered with
-    the ioHub Server, assuming *hub* refers to the ioHubConnection instance::
+    the ioHub Process, assuming *hub* refers to the ioHubConnection instance::
         
         for device_name,device_access in hub.deviceByLabel.iteritems():
             print 'Device Name: ',device_name
@@ -290,6 +290,7 @@ class ioHubConnection(object):
         	getRetraceInterval
         	getRuntimeInfo
         	isReportingEvents
+        	
         --------------
         Device Name:  experiment
         Device Interface:
@@ -311,7 +312,7 @@ class ioHubConnection(object):
         --------------      
         
     Using the .devices attribute is handy if you know the name of the device to be
-    accessed and you are sure it is actually enabled on the ioHub Server Process.
+    accessed and you are sure it is actually enabled on the ioHub Process.
     The following is an example of accessing a device using the .devices attribute::
     
         # get the Mouse device, named mouse
@@ -369,7 +370,7 @@ class ioHubConnection(object):
         """
         Returns the ioHubDeviceView that has a matching name (based on the 
         device : name property specified in the ioHub_config.yaml for the 
-        experiment). If no device is found matching the name, None is returned
+        experiment). If no device with the given name is found, None is returned.
         Example, accessing a Keyboard device that was named 'kb' ::
 
             keyboard = self.getDevice('kb')
@@ -426,27 +427,27 @@ class ioHubConnection(object):
         
     def getEvents(self,device_label=None,as_type ='namedtuple'):
         """
-        Retrieve any events that have been collected by the ioHub Server from 
+        Retrieve any events that have been collected by the ioHub Process from 
         monitored devices since the last call to getEvents() or clearEvents().
 
         By default all events for all monitored devices are returned, 
         with each event being represented as a namedtuple of all event attributes.
         
         When events are retrieved from an event buffer, they are removed from 
-        the buffer as well.
+        that buffer as well.
 
         If events are only needed from one device instead of all devices, 
-        providing a valid device name as the device_label agruement will
+        providing a valid device name as the device_label argument will
         result in only events from that device being returned.
         
         Events can be received in one of several object types by providing the
-        optional as_type property to the emthod. Valid values for
+        optional as_type property to the method. Valid values for
         as_type are the following str values:
 			
 		* 'list': Each event is sent from the ioHub Process as a list of ordered attributes. This is the most efficient for data transmission, but not for human readability or usability. However, if you do want events to be kept in list form, set as_type = 'list'.
 		* 'astuple': Each event is converted to a namedtuple object. Event attributes are accessed using natural naming style (dot name style), or by the index of the event attribute for the event type. The namedtuple class definition is created once for each Event type at the start of the experiment, so memory overhead is almost the same as the event value list, and conversion from the event list to the namedtuple is very fast. This is the default, and normally most useful, event representation type.
 		* 'dict': Each event converted to a dict object, keys equaling the event attribute names, values being, well the attribute values for the event.
-		* 'object': Each event is converted into an instance of the ioHub Server Process DeviceEvent subclass based on the event's type. This conversion process can take a bit of time if the number of events returned is large, and currently there is no real benefit converting events into DeviceEvent Class instances vs. the default namedtuple object type. Therefore it is rarely suggested that this option be used.
+		* 'object': Each event is converted into an instance of the ioHub DeviceEvent subclass based on the event's type. This conversion process can take a bit of time if the number of events returned is large, and currently there is no real benefit converting events into DeviceEvent Class instances vs. the default namedtuple object type. Therefore this option should be used rarely.
                 
         Args:
             device_label (str): Indicates what device to retrieve events for. If None ( the default ) returns device events from all devices.            
@@ -490,20 +491,22 @@ class ioHubConnection(object):
         
     def clearEvents(self,device_label=None):
         """
-        Clears all events from the ioHub Server so they are not sent the next time
-        getEvents() is called.
+        Clears events from the ioHub Process's Global Event Buffer (by default) so 
+        that uneeded events are not sent to the PsychoPy Process the next time
+        iohub.getEvents() is called.
         
         If device_label is None ( the default ), then all events in the ioHub
-        *Global Event Buffer* are cleared. When the *Global Event Buffer* is 
-        cleared, no *Device Event Buffer* is effected.
+        *Global Event Buffer* are cleared, which leaves the *Device Event Buffers*
+        unaffected.
         
         If device_label is a str giving a valid device name, then events 
-        that were received from that device instance are returned and 
-        *Device Event Buffer* for that device is cleared on the ioHub Server.
-        The *Global Event Buffer* is not effected in this case.
-                
-        To clear all events from both the ioHub *Global Event Buffer* and 
-        all *Device Event Buffer's*, set the device_label arguement to 'all'.
+        that were received from that device are returned and the
+        *Device Event Buffer* for that device is cleared on the ioHub Server, 
+        but the *Global Event Buffer* is not affected.
+        
+        .. note::
+            To clear all events from both the ioHub *Global Event Buffer* and 
+            all *Device Event Buffer's*, set the device_label argument to 'all'.
         
         Args:
             device_label (str): name of the device to clear events from, or None (the default) to clear all events from the "Global Event Buffer", or 'all', to clear events from both the *Global Event Buffer* and all device level *Device Event Buffer's*.
@@ -526,23 +529,23 @@ class ioHubConnection(object):
 
     def wait(self,delay,check_hub_interval=0.02):
         """
-        Pause the experiment script execution for a duration equal to sec.msec, 
-        as set by the delay arguement. time.sleep() is used to make the wait
+        Pause the experiment script execution for a duration equal to the
+        delay (in sec.msec format). time.sleep() is used to make the wait
         operation give time up to the operating system.
         
-        During the wait period, events are received from the ioHub Server 
+        During the wait period, events are received from the ioHub Process 
         by calling getEvents() every 'check_hub_interval' sec.msec. 
         Any events that are gathered during the delay period will be handed 
         to the experiment script the next time getEvents() is called, 
         unless clearEvents() is called prior to getEvents().
 
-        This is done foor two reasons: 
+        This is done for two reasons: 
 		
-		* The ioHub Server and Device level event buffers do not reach their specified limits and start descarding old events when new events arrive.
+		* The ioHub Process and ioHub Device buffers do not reach their specified limits and start descarding old events when new events arrive.
 		* So that a very large build up of events does not occur on the ioHub Process, resulting in a very large number of events being returned if getEvents() is called after a long wait period. If a large number of events needs to be returned by the ioHub, that will result in multiple UDP packets being sent to the PsychoPy Process to return all the events. This would slow event retrieval down for that request unnecessarily. 
 
         Calling clearEvents('all') after any long delays between calls to getEvents()
-        or clearEvents() will clear events from the ioHub Server as well. If you know
+        or clearEvents() will clear events from the ioHub Process as well. If you know
         that during a period of time the experiment does not need online event
         information, call clearEvents() at the end of that period so events that 
         did occur are not uncessarily sent to the PsychoPy Process. 
@@ -587,7 +590,11 @@ class ioHubConnection(object):
     def sendMessageEvent(self,text,prefix='',offset=0.0,sec_time=None):
         """
         Create and send an Experiment MessageEvent to the ioHub Server Process 
-        for storage with the rest of the event data being recorded.
+        for storage with the rest of the event data being recorded in the ioDataStore.
+        
+        .. note::
+            MessageEvents can be thought of as DeviceEvents from the virtual PsychoPy
+            Process "Device".
 
         Args:
             text (str): The text message for the message event. Can be up to 128 characters in length.
@@ -606,13 +613,11 @@ class ioHubConnection(object):
                 
     def initializeConditionVariableTable(self, condition_variable_provider):
         """
-        This method is used when your experiment is using the 
-        iohub.util.ExperimentVariableProvider to create a condition variable table
-        in the ioHub Server DataStore (in the class_table_mapping group) 
-        that matches the variables defined in the condition_variable_provider
-        instance passed into the method. Each Dependant or Independent Variable
-        defined by the condition_variable_provider instance results in a column
-        created in the associated DataStore condition variable table for the experiment.
+        Create a condition variable table in the ioDataStore (in the class_table_mapping
+        group) when utilizing the iohub.util.ExperimentVariableProvider class in the
+        experiment handling script. Each Dependent and Independent variable defined by the
+        condition_variable_provider instance results in a column created in the ioDataStore
+        for the experiment.
         
         Column names match the condition variable names defined for the ExperimentVariableProvider.
 
@@ -627,10 +632,10 @@ class ioHubConnection(object):
 
     def addRowToConditionVariableTable(self,data):
         """
-        This method is used when your experiment is using the 
-        iohub.util.ExperimentVariableProvider. It adds a row to the condition
-        variable table for the current experiment ( created by calling the 
-        initializeConditionVariableTable() method ). Each row in a condition
+        Add a row to the condition variable table for the current
+        experiment (created by calling the initializeConditionVariableTable() method)
+        when using iohub.util.ExperimentVariableProvider class in the
+        experiment handling script. Each row in a condition
         variable table contains the state of all the Dependent and Independent 
         Variables that were defined for the ExperimentVariableProvider.
         
@@ -654,7 +659,7 @@ class ioHubConnection(object):
         normal usage pattern is to call enableHighPriority() at the start of a 
         trial and disableHighPriority() is called at the end of a trial. 
         
-        Improvement in timing and execution speed depend on computer load,
+        Improvements in timing and execution speed depend on computer load,
         hardware configuration, as well as the OS being used.
         
         This method is not supported on OS X at this time.
@@ -673,7 +678,7 @@ class ioHubConnection(object):
         
         In general enableHighPriority() would be called at start of a trial 
         where time critial processing is important, disableHighPriority() would be
-        called at the end of the trial or time critical period.
+        called at the end of thlaunchHubProcesse trial or time critical period.
 
         This method is not supported on OS X at this time.
 
@@ -709,7 +714,7 @@ class ioHubConnection(object):
         A Process's Affinity determines which CPU's or CPU cores a process can
         run on. By default the ioHub Process can run on any CPU or CPU core.
 
-        The processor_list arguement must be a list of 'processor' id's; integers in
+        The processor_list argument must be a list of 'processor' id's; integers in
         the range of 0 to Computer.processingUnitCount-1, representing the 
         processing unit indexes that the ioHub Server should be allowed to run on.
         If processor_list is given as an empty list, the ioHub Process will be
@@ -728,17 +733,17 @@ class ioHubConnection(object):
 
     def addDeviceToMonitor(self,device_class, device_config={}):
         """
-        Adds a device to the ioHub Server Process for event monitoring after the
-        ioHub Server has been started. Normally all devices should be specified
+        Adds a device to the ioHub Process for event monitoring after the
+        ioHub Process has been started. Normally all devices should be specified
         to the function or class that is having the ioHubConnection class instance
-        created, and therefore the ioHUb Server Process started. This is due to the
+        created, and therefore the ioHub Process started. This is due to the
         fact that 'adding' a device to be monitored can take several, to tens, 
         or even a couple hundred msec to perform on the ioHub server (depending on the
         device type). When this is occurring, events from existing devices can not
         be monitored.
         
         Therefore it is best to define all devices the experiment will use during
-        runtime at the time the ioHub Server is being created. If a device does
+        runtime at the time the ioHub Process is being created. If a device does
         need to be added during the experiment runtime, using this method will do so.
         
         Args:
@@ -773,8 +778,8 @@ class ioHubConnection(object):
         
     def shutdown(self):
         """
-        Tells the ioHub Server Process to close all devices, the ioDataStore, 
-        and the connection monitor between the psychoPy and ioHub Server. Then
+        Tells the ioHub Process to close all ioHub Devices, the ioDataStore, 
+        and the connection monitor between the PsychoPy and ioHub Processes. Then
         exit the Server Process itself.
         
         Args:
@@ -787,7 +792,7 @@ class ioHubConnection(object):
 
     def quit(self):
         """
-        Same as the shutdown() method, but has same name as psychopy 
+        Same as the shutdown() method, but has same name as PsychoPy 
         core.quit() so maybe easier to remember.
         """
         self.shutdown()
@@ -796,14 +801,14 @@ class ioHubConnection(object):
 
     def _startServer(self,ioHubConfig=None, ioHubConfigAbsPath=None):
         """
-        Starts the ioHub Server Process, storing it's process id, and creating the experiment side device representation
+        Starts the ioHub Process, storing it's process id, and creating the experiment side device representation
         for IPC access to public device methods.
         """
         experiment_info=None
         session_info=None
         
         rootScriptPath = os.path.dirname(sys.argv[0])
-        
+
         hub_defaults_config=load(file(os.path.join(IO_HUB_DIRECTORY,'default_config.yaml'),'r'), Loader=Loader)
 
 
@@ -829,11 +834,10 @@ class ioHubConnection(object):
             print2err("ERROR: Both a ioHubConfig dict object AND a path to an ioHubConfig file can not be provided.")
             sys.exit(1)
 
-            if ioHubConfig:
-                updateDict(ioHubConfig,hub_defaults_config)
-        
+        if ioHubConfig:
+            updateDict(ioHubConfig,hub_defaults_config)
+
         if ioHubConfig and ioHubConfigAbsPath is None:
-                
                 if isinstance(ioHubConfig.get('monitor_devices'),dict):
                     #short hand device spec is being used. Convert dict of 
                     #devices in a list of device dicts.
@@ -846,6 +850,9 @@ class ioHubConnection(object):
                 tfile.write(json.dumps(ioHubConfig))
                 ioHubConfigAbsPath=os.path.abspath(tfile.name)               
                 tfile.close()
+
+            
+        self.udp_client=UDPClientConnection(remote_port=ioHubConfig.get('udp_port',9000))
 
         run_script=os.path.join(IO_HUB_DIRECTORY,'launchHubProcess.py')
         subprocessArgList=[sys.executable,run_script,"%.6f"%Computer.globalClock.getLastResetTime(),rootScriptPath,ioHubConfigAbsPath]
@@ -874,12 +881,9 @@ class ioHubConnection(object):
                         pass  # not sure if this is *always* the right thing to do
             except:
                 printExceptionDetailsToStdErr()
-        
-        # maybe just "if sys.platform..." instead, always try it?
+
         if sys.platform == 'darwin':
             self._osxKillAndFreePort()
-
-        self.udp_client=UDPClientConnection(remote_port=ioHubConfig.get('udp_port',9000))
 
         # start subprocess, get pid, and get psutil process object for affinity and process priority setting
         self._server_process = subprocess.Popen(subprocessArgList,stdout=subprocess.PIPE)
@@ -1082,7 +1086,7 @@ class ioHubConnection(object):
         
     def _sendToHubServer(self,ioHubMessage):
         """
-        General purpose message sending routine,  used to send a message from 
+        General purpose message sending routine, used to send a message from 
         the PsychoPy Process to the ioHub Process, and then wait for the reply
         from the ioHub Process before returning.
 
@@ -1317,7 +1321,6 @@ class ioHubConnection(object):
                 # could verify same userID as current user, probably not needed
                 os.kill(int(PID), signal.SIGKILL)        
                 print 'Called  os.kill(int(PID), signal.SIGKILL): ', PID, userID 
-            
     def __del__(self):
         try:
             self._shutDownServer()
@@ -1327,25 +1330,25 @@ class ioHubConnection(object):
 
 #quickConnect
 
-def quickStartHubServer(**kwargs):
+def launchHubServer(**kwargs):
     """   
-    The quickStartHubServer function can be used to start the ioHub Process
-    without the need to create an experiment or iohub configuration file. 
+    The launchHubServer function can be used to start the ioHub Process
+    without the need to create experiment or iohub (.yaml) configuration files. 
     
-    All values passed to the quickStartHubServer method must be kwarg inputs.
+    All values passed to the launchHubServer method must be kwarg inputs.
     
-    Valid keyword args that the quickStartHubServer function will process are:
+    Valid keyword args that the launchHubServer function will process are:
         
     * experiment_code: The label being used for the experiment being run.
     * session_code: A unique session code for the current run of the experiment.
     * psychopy_monitor_name: The name of the PsychoPy Monitor settings file that should be used to define physical characteristics of the ioHub Display device being created.
-    * Any valid ioHub Device class names: Each class name would be given as a kwarg label, and the value of the kwarg must be a dict object containing the Device Configuration Settings that need to be changed from their defaults. 
+    * Any valid ioHub Device class names: Each class name would be given as a kwarg label, and the value of the kwarg must be a dict object containing the Device Configuration Settings that need to be changed from ioHub Device type defaults. 
     
-    Device class name kwarg value dictionaries must be property formated and contain valid
+    Device class name kwarg value dictionaries must be properly formatted and contain valid
     configuration settings for the device in question.For details on Device Configuration
-    Settings please see the Configuartion Files and Dictionary Section of the documentation.
+    Settings please see the Configuration Files and Dictionary Section of the documentation.
            
-    If experiment_code is not provided, regardless of the session_code state, 
+    If experiment_code is not provided, regardless of the session_code, 
     then the ioHub DataStore will not be enabled for the experiment session and
     no events will be saved by the ioHub Process. Events will still be sent to 
     the PsychoPy Process when request ofcourse.
@@ -1370,19 +1373,19 @@ def quickStartHubServer(**kwargs):
         
         # -*- coding: utf-8 -*-       
         #
-        ## Testing the iohub.client.quickStartHubServer function.
+        ## Testing the iohub.client.launchHubServer function.
         #
         
-        from iohub.client import quickStartHubServer
+        from iohub.client import launchHubServer
         from iohub.util import FullScreenWindow
         
         # End of common script header code for these examples.
 
     The first example can be used to create and connect to the ioHub Process, 
-    with the ioHub DataStore disabled, using only default device configuration
+    with the ioDataStore disabled, using only default device configuration
     settings::        
 
-        io=quickStartHubServer()
+        io=launchHubServer()
         
         keyboard=io.devices.keyboard
         
@@ -1400,7 +1403,7 @@ def quickStartHubServer(**kwargs):
     set by psychopy_monitor_name (assuming it is a valid psychopy monitor configuration).
     The ioHub DataStore is still disabled.::       
 
-        io=quickStartHubServer(psychopy_monitor_name='testMonitor')
+        io=launchHubServer(psychopy_monitor_name='testMonitor')
         
         display=io.devices.display
         
@@ -1420,7 +1423,7 @@ def quickStartHubServer(**kwargs):
         sess_code='S_{0}'.format(long(time.mktime(time.localtime())))
         print 'Current Session Code will be: ', sess_code
         
-        io=quickStartHubServer(psychopy_monitor_name=psychopy_mon_name, experiment_code=exp_code, session_code=sess_code)
+        io=launchHubServer(psychopy_monitor_name=psychopy_mon_name, experiment_code=exp_code, session_code=sess_code)
         
         display=io.devices.display
         
@@ -1442,7 +1445,7 @@ def quickStartHubServer(**kwargs):
 
         psychopy_mon_name='testMonitor'
         exp_code='gap_endo_que'
-        io=quickStartHubServer(psychopy_monitor_name=psychopy_mon_name, experiment_code=exp_code)
+        io=launchHubServer(psychopy_monitor_name=psychopy_mon_name, experiment_code=exp_code)
         
         display=io.devices.display
         
@@ -1460,7 +1463,7 @@ def quickStartHubServer(**kwargs):
         io.quit()  
         
         
-    The source code for all the above little examples is in the examples/manual/quickStartHubServer folder.
+    The source code for all the above little examples is in the examples/manual/launchHubServer folder.
     """
     experiment_code=kwargs.get('experiment_code',-1)
     if experiment_code != -1:
@@ -1525,7 +1528,7 @@ def quickStartHubServer(**kwargs):
     
     if experiment_code and session_code:    
         # Enable saving of all keyboard and mouse events to the 'ioDataStore'
-        ioConfig['data_store']=dict(experiment_info=dict(code=experiment_code),
+        ioConfig['data_store']=dict(enable=True,experiment_info=dict(code=experiment_code),
                                             session_info=dict(code=session_code))
     
     # Start the ioHub Server
@@ -1542,8 +1545,8 @@ class ioHubExperimentRuntime(object):
     """    
     The ioHubExperimentRuntime class brings together several aspects of the ioHub
     Event Monitoring Framework, making it simplier to define and manage experiments
-    that use multiple ioHub Device types, particularly when there are more complicated
-    devices such as the Eye Tracker or Analog Input Device in use.
+    that use multiple ioHub Device types, particularly when using more complicated
+    devices such as the Eye Tracker or Analog Input Device.
     
     Other benefits of using the ioHubExperimentRuntime class include:
 
@@ -1552,7 +1555,7 @@ class ioHubExperimentRuntime(object):
     * Optional support for the presentation of an Experiment Information Dialog at the start of each experiment session, based on the experiment settings specified in one of the associated configuration files.
     * Optional support for the presentation of a Session Variable Input Dialog at the start of each experiment session, based on the session settings specified in one of the associated configuration files. This includes the ability to collect input for custom experimenter defined session level fields that is stored in the ioHub DataStore for later retrieval and association with the event data collected during the experiment session.
     * Runtime access to the experiment, session, and device level configuration settings being used by the experiment in the form of python dictionary objects.
-    * Automatic closure of the ioHub Process and the PsychoPy Package at the end of the experiment session, even when an unhandled exception occurs within your experiment scripting.
+    * Automatic closure of the ioHub Process and the PsychoPy Process at the end of the experiment session, even when an unhandled exception occurs within your experiment scripting.
 
     The ioHubExperimentRuntime class is used to define the main Python script that
     will be run during each session of the experiment being run. In addition
@@ -1562,7 +1565,7 @@ class ioHubExperimentRuntime(object):
     #. experiment_config.yaml : This file contains configuration details about the experiment itself, the experiment sessions that will be run to collect data from each participant of the experiment, and allows for process affinities to be set for the Experiment Process, ioHub Process, as well as all other processing on the computer. For details on defining an experiment_config.yaml file for use with the ioHubExperimentRuntime class, please see the Configuration Files section of the documentation.
     #. iohub_config.yaml : This file contains configuration details about each device that is being used by the experiment, as well as the ioHub DataStore. For details on defining an iohub_config.yaml file for use with the ioHubExperimentRuntime class, please see the Configuration Files section of the documentation.
 
-    By separating experiment and session meta data definition, as well as device
+    By separating experiment and session meta data definitions, as well as device
     configuration details, from the experiment paradigm logic contained within the
     ioHubExperimentRuntime class extension created, the ioHub Event Framework
     makes it possible to modify or switch between different implementations of an
@@ -1650,7 +1653,7 @@ class ioHubExperimentRuntime(object):
         Any sys_argv are equal to the sys.argv received by the script when it was started.
 
         Args: 
-            sys_argv (list): The list of arguements passed to the script when it was started with Python.
+            sys_argv (list): The list of arguments passed to the script when it was started with Python.
             
         Returns:
             User defined.
@@ -1818,6 +1821,39 @@ class ioHubExperimentRuntime(object):
         print repr(traceback.format_tb(exc_traceback))
         print "*** tb_lineno:", exc_traceback.tb_lineno
 
+    @staticmethod
+    def mergeConfigurationFiles(base_config_file_path,update_from_config_file_path,merged_save_to_path):
+        """
+        Merges two iohub configuration files into one and saves it to a file 
+        using the path/file name in merged_save_to_path.
+        """        
+        base_config=load(file(base_config_file_path,'r'), Loader=Loader)
+        update_from_config=load(file(update_from_config_file_path,'r'), Loader=Loader)
+
+
+        def merge(update, base):
+            if isinstance(update,dict) and isinstance(base,dict):
+                for k,v in base.iteritems():
+                    if k not in update:
+                        update[k] = v
+                    else:
+                        if isinstance(update[k],list):
+                            if isinstance(v,list):
+                                v.extend(update[k])
+                                update[k]=v
+                            else:
+                                update[k].insert(0,v)
+                        else:
+                            update[k] = merge(update[k],v)
+            return update
+            
+        import copy        
+        merged=merge(copy.deepcopy(update_from_config),base_config)        
+        dump(merged,file(merged_save_to_path,'w'), Dumper=Dumper)
+
+        return merged
+
+        
     def _initalizeConfiguration(self):
         global _currentSessionInfo
         """
@@ -2104,6 +2140,7 @@ class PathMapping(object):
                             if not hasattr(self,ft):
                                 setattr(self,ft,newPath)
                         setattr(root,subdir,newPath)
+
 
             buildOutPath(self.structure,pathSettings)
 

@@ -34,7 +34,6 @@ def run(rootScriptPathDir,configFilePath):
 
     hub_defaults_config=load(file(os.path.join(iohub.IO_HUB_DIRECTORY,'default_config.yaml'),'r'), Loader=Loader)
     updateDict(ioHubConfig,hub_defaults_config)
-
     try:
         s = ioServer(rootScriptPathDir, ioHubConfig)
     except Exception,e:

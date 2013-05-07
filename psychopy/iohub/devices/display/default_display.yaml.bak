@@ -1,0 +1,27 @@
+Display: &DisplaySettings
+    name: display
+    reporting_unit_type: pix
+    origin: center
+    device_number: 0
+    physical_dimensions:
+        width: 500
+        height: 281
+        unit_type: mm
+    default_eye_distance:
+        surface_center: 500
+        unit_type: mm
+    psychopy_monitor_name: default
+    override_using_psycho_settings: False
+    monitor_event_types: None
+    save_events: False
+    stream_events: False
+    event_buffer_length: 0
+    device_number: 0
+    model_name: N/A
+    model_number: N/A
+    manufacturer_name: N/A
+    serial_number: N/A
+    manufacture_date: DD-MM-YYYY
+    software_version: N/A
+    hardware_version: N/A
+    firmware_version: N/A

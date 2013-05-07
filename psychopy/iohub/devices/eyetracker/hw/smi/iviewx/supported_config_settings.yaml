@@ -75,10 +75,6 @@ eyetracker.hw.smi.iviewx.EyeTracker:
             IOHUB_INT:
                 min: 1
                 max: 9999
-    default_native_data_file_name: 
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 16
     runtime_settings:
         # The sampling rate setting in the iViewX implementation is used only to
         # compare the sampling rate read from the device to ensure it matches

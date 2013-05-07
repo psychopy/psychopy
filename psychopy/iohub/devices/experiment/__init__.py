@@ -17,16 +17,24 @@ currentSec=Computer.currentSec
 
 class Experiment(Device):
     """
-    The Experiment class represents a *virtual* device ( the 
-    Experiment / PsychoPy Process that is running the experiment script ), and is unique
-    in that it is the *client* of the ioHub Server, but can also generate events
-    itself that are registered with the ioHub Server. Currently the Experiment
-    supports the creation of general purpose MessageEvent's, which can effectively
-    hold any string up to 128 characters in length. Experiment Message events can be
-    sent to the ioHub Server at any time, and are useful for creating stimulus onset or offset
-    notifications, or other experiment events of interest that should be associated 
+    The Experiment class represents a *virtual* device ( the Python run-time
+    within the PsychoPy Process ), and is unique in that it is the *client* of
+    the ioHub Event Monitoring Framework, but can also generate events
+    itself that are registered with the ioHub process. 
+    
+    The Experiment Device supports the creation of general purpose MessageEvent's, 
+    which can effectively hold any string up to 128 characters in length. 
+    Experiment Message events can be sent to the ioHub Server at any time, 
+    and are useful for creating stimulus onset or offset notifications, or 
+    other experiment events of interest that should be associated 
     with events from other devices for post hoc analysis of the experiments event steam using
     the ioDataStore.
+    
+    The Experiment Device also support LogEvents, which result in the log text sent in the event
+    being saved in both the PsychoPy logging module file(s) that have been defined, as well
+    as in the ioHub DataStore. The ioHub Process itself actually uses the LogEvent 
+    type to log status and debugging related information to the DataStore and your log files
+    if the log level accepts DEBUG messages.
     """
     EVENT_CLASS_NAMES=['MessageEvent','LogEvent']
     
@@ -224,7 +232,8 @@ class LogEvent(DeviceEvent):
         #: The log level to set the log event at. If psychopy is available, 
         #: valid log levels match the *predefined* logging levels. Otherwise
         #: the following log levels are available (which match the predefined
-        #: psychopy 2.76)::
+        #: psychopy 2.76 logging settings):
+        #:
         #:      * CRITICAL = 50
         #:      * FATAL = CRITICAL
         #:      * ERROR = 40
@@ -235,6 +244,7 @@ class LogEvent(DeviceEvent):
         #:      * INFO = 20
         #:      * DEBUG = 10
         #:      * NOTSET = 0      
+        #:
         #: The int defined value can be used, or a string version of the 
         #: log level name, for example specifying "WARNING" is equal to
         #: specifying a log level of LogEvent.WARNING or 30.

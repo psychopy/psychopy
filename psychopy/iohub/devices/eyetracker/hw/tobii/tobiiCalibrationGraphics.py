@@ -38,7 +38,7 @@ class TobiiPsychopyCalibrationGraphics(object):
 
     TEXT_POS=[0,0]
     TEXT_COLOR=[0,0,0]
-    TEXT_HEIGHT=48
+    TEXT_HEIGHT=36
     
     def __init__(self, eyetrackerInterface, targetForegroundColor=None, 
                  targetBackgroundColor=None, screenColor=None, 

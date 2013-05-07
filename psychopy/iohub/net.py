@@ -26,6 +26,7 @@ class SocketConnection(object):
         self.lastAddress=None
         self.sock=None
         self.initSocket()
+
         self.coder=msgpack
         self.packer=msgpack.Packer()
         self.unpacker=msgpack.Unpacker(use_list=True)
@@ -80,7 +81,7 @@ class SocketConnection(object):
 
 
 class UDPClientConnection(SocketConnection):
-    def __init__(self,remote_host='127.0.0.1',remote_port=9000,rcvBufferLength = MAX_PACKET_SIZE,broadcast=False,blocking=1, timeout=1, coder=None):
+    def __init__(self,remote_host='127.0.0.1',remote_port=9000,rcvBufferLength = MAX_PACKET_SIZE,broadcast=False,blocking=1, timeout=1):
         SocketConnection.__init__(self,remote_host=remote_host,remote_port=remote_port,rcvBufferLength=rcvBufferLength,broadcast=broadcast,blocking=blocking, timeout=timeout)
     def initSocket(self,**kwargs):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

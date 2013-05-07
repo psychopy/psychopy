@@ -38,9 +38,6 @@ class EyeTracker(EyeTrackerDevice):
         
         eyetracker.hw.tobii.EyeTracker
         
-    See the configuration options section of the Tobii Common Eye Tracker 
-    Interface documentation for a full description and listing of all valid
-    configuration settings for this device. 
     """
     _tobii=None
 
@@ -79,6 +76,12 @@ class EyeTracker(EyeTrackerDevice):
         """
         Current eye tracker time in the eye tracker's native time base. 
         The Tobii system uses a usec timebase.
+        
+        Args: 
+            None
+            
+        Returns:
+            float: current native eye tracker time. (in usec for the Tobii)
         """
         if self._tobii:
             return self._tobii.getCurrentEyeTrackerTime()
@@ -87,6 +90,12 @@ class EyeTracker(EyeTrackerDevice):
     def trackerSec(self):
         """
         Current eye tracker time, normalized to sec.msec format.
+
+        Args: 
+            None
+            
+        Returns:
+            float: current native eye tracker time in sec.msec-usec format.
         """
         if self._tobii:
             return self._tobii.getCurrentEyeTrackerTime()*self.DEVICE_TIMEBASE_TO_SEC
@@ -98,6 +107,12 @@ class EyeTracker(EyeTrackerDevice):
         connection is established when the Tobii EyeTracker class is created, 
         and remains active until the program ends, or a error occurs resulting
         in the loss of the tracker connection.
+
+        Args:
+            enable (bool): True = enable the connection, False = disable the connection.
+
+        Return:
+            bool: indicates the current connection state to the eye tracking hardware.
         """
         if self._tobii:
             return self._tobii.getTrackerDetails().get('status',False)=='OK'
@@ -109,6 +124,13 @@ class EyeTracker(EyeTrackerDevice):
         and if the tracker state is valid. Returns True if the tracker can be 
         put into Record mode, etc and False if there is an error with the tracker
         or tracker connection with the experiment PC.
+
+        Args:
+            None
+            
+        Return:
+            bool:  True = the eye tracking hardware is connected. False otherwise.
+
         """
         if self._tobii:
             return self._tobii.getTrackerDetails().get('status',False)=='OK'
@@ -124,7 +146,8 @@ class EyeTracker(EyeTrackerDevice):
 
     def sendCommand(self, key, value=None):
         """
-        Currently the sendCommand method is not supported by the Tobii eye tracker interface.
+        The sendCommand method is not supported by the Tobii Common Eye Tracker
+        Interface.
         """
         
 #        TODO: The Tobii has several custom commands that can be sent to set or get
@@ -221,6 +244,12 @@ class EyeTracker(EyeTrackerDevice):
         called, the eye tracker will simple continue recording and the method call
         is a no-op. Likewise if the system has already stopped recording and 
         setRecordingState(False) is called again.
+
+        Args:
+            recording (bool): if True, the eye tracker will start recordng data.; false = stop recording data.
+           
+        Return:
+            bool: the current recording state of the eye tracking device
         """
         if self._tobii and recording is True and not self.isRecordingEnabled():
             #ioHub.print2err("Starting Tracking... ")
@@ -244,8 +273,12 @@ class EyeTracker(EyeTrackerDevice):
         """
         isRecordingEnabled returns the recording state from the eye tracking 
         device.
-        True == the device is recording data
-        False == Recording is not occurring
+
+        Args:
+           None
+  
+        Return:
+            bool: True == the device is recording data; False == Recording is not occurring
         """
         if self._tobii:      
             return self._tobii._isRecording
@@ -255,6 +288,16 @@ class EyeTracker(EyeTrackerDevice):
         """
         Returns the latest sample retrieved from the Tobii device. The Tobii
         system always using the BinocularSample Event type.
+
+        Args: 
+            None
+
+        Returns:
+            None: If the eye tracker is not currently recording data.
+
+            EyeSample: If the eye tracker is recording in a monocular tracking mode, the latest sample event of this event type is returned.
+
+            BinocularEyeSample:  If the eye tracker is recording in a binocular tracking mode, the latest sample event of this event type is returned.
         """
         return self._latest_sample
 
@@ -278,6 +321,24 @@ class EyeTracker(EyeTrackerDevice):
         
         The above remarks are true for any eye tracker in general.
         
+        The getLastGazePosition method returns the most recent eye gaze position
+        retieved from the eye tracker device. This is the position on the 
+        calibrated 2D surface that the eye tracker is reporting as the current
+        eye position. The units are in the units in use by the Display device. 
+        
+        If binocular recording is being performed, the average position of both
+        eyes is returned. 
+        
+        If no samples have been received from the eye tracker, or the 
+        eye tracker is not currently recording data, None is returned.
+
+        Args: 
+            None
+
+        Returns:
+            None: If the eye tracker is not currently recording data or no eye samples have been received.
+
+            tuple: Latest (gaze_x,gaze_y) position of the eye(s)
         """
         return self._latest_gaze_position
     
