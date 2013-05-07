@@ -62,10 +62,11 @@ else:
                                       '_elementtree', 'pyexpat',#these 2 are needed by xml, which is needed by openpyxl
                                       'ioLabs','hid',#'pypsignifit', #psignifit is not available on py2.7
                                       'pp','ppauto','ppcommon','pptransport','ppworker',#annoying non-standard structure of pp
-                                      'pyo',
+                                      'pyo','greenlet',
                                       ],
                                       excludes=['PyQt4'],#matplotlib will fetch this if posss and we don't need it
-                                      frameworks = ["libavbin.dylib","/usr/lib/libxml2.2.dylib"],
+                                      frameworks = ["libavbin.dylib","/usr/lib/libxml2.2.dylib", #"libyaml.dylib",
+                                                    "libevent.dylib"],
                                       resources=resources,
                                       argv_emulation=True,
                                       site_packages=True,
@@ -78,7 +79,8 @@ else:
                                         #'PIL','Image',
                                         'objc','Quartz','AppKit','QTKit','Cocoa','Foundation','CoreFoundation',
                                         'pyolib',
-                                        'pandas','tables',
+                                        'pandas','tables',#'cython',
+                                        'msgpack','yaml','gevent',#for ioHub
                                         ],
                                       iconfile='psychopy/app/Resources/psychopy.icns',
                                       plist=dict(
