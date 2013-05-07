@@ -77,8 +77,8 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         # Update Instruction Text and display on screen.
         # Send Message to ioHub DataStore with Exp. Start Screen display time.
         #
-        instructions="Press Any Key to Start Experiment."
-        instructions_text_stim.setText(instructions)        
+        instuction_text="Press Any Key to Start Experiment."
+        instructions_text_stim.setText(instuction_text)        
         instructions_text_stim.draw()
         flip_time=window.flip()
         self.hub.sendMessageEvent(text="EXPERIMENT_START",sec_time=flip_time)
@@ -112,7 +112,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             # Update the instuction screen text...
             #            
             instuction_text="Press Space Key To Start Trial %d"%t
-            instructions_text_stim.setText(instructions)        
+            instructions_text_stim.setText(instuction_text)        
             instructions_text_stim.draw()
             flip_time=window.flip()
             self.hub.sendMessageEvent(text="EXPERIMENT_START",sec_time=flip_time)
@@ -122,8 +122,8 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             # wait until a space key 'press' event occurs after the instructions are displayed
             self.hub.clearEvents('all')
             while not start_trial:
-                for event in kb.getEvents():
-                    if event.key == ' ' and event.type == EventConstants.KEYBOARD_PRESS:
+                for event in kb.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS):
+                    if event.key == ' ':
                         start_trial=True
                         break
                 self.hub.wait(0.2)
@@ -144,11 +144,11 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             # Loop until we get a keyboard event
             #
             run_trial=True
-            while run_trial:
+            while run_trial is True:
                 # Get the latest gaze position in dispolay coord space..
                 #
                 gpos=tracker.getLastGazePosition()
-                if gpos:
+                if isinstance(gpos,(tuple,list)):
                     # If we have a gaze position from the tracker, draw the 
                     # background image and then the gaze_cursor.
                     #
@@ -168,7 +168,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                 # Send a message to the ioHub Process / DataStore indicating 
                 # the time the image was drawn and current position of gaze spot.
                 #
-                if gpos:
+                if isinstance(gpos,(tuple,list)):
                     self.hub.sendMessageEvent("IMAGE_UPDATE %s %.3f %.3f"%(iname,gpos[0],gpos[1]),sec_time=flip_time)
                 else:
                     self.hub.sendMessageEvent("IMAGE_UPDATE %s [NO GAZE]"%(iname),sec_time=flip_time)
@@ -176,8 +176,8 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                 # Check any new keyboard char events for a space key.
                 # If one is found, set the trial end variable.
                 #
-                for key in kb.getEvents():
-                    if event.key == ' ' and event.type == EventConstants.KEYBOARD_CHAR:
+                for event in kb.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS):
+                    if event.key == ' ':
                         run_trial=False
                         break
             
@@ -190,6 +190,23 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             tracker.setRecordingState(False)
             self.hub.clearEvents('all')
             
+        # Disconnect the eye tracking device.
+        #
+        tracker.setConnectionState(False)
+
+        # Update the instuction screen text...
+        #            
+        instuction_text="Press Any Key to Exit Demo"
+        instructions_text_stim.setText(instuction_text)        
+        instructions_text_stim.draw()
+        flip_time=window.flip()
+        self.hub.sendMessageEvent(text="SHOW_DONE_TEXT",sec_time=flip_time)
+     
+        # wait until any key is pressed
+        self.hub.clearEvents('all')
+        while not kb.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS):
+            self.hub.wait(0.2)
+            
         # So the experiment is done, all trials have been run.
         # Clear the screen and show an 'experiment  done' message using the 
         # instructionScreen state. What for the trigger to exit that state.
@@ -197,16 +214,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         #
         flip_time=window.flip()
         self.hub.sendMessageEvent(text='EXPERIMENT_COMPLETE',sec_time=flip_time)
-
-        # A key was pressed so exit program.
-        # Wait 250 msec before ending the experiment.
-        # 
-        self.hub.wait(0.250)
-
-        # Disconnect the eye tracking device.
-        #
-        tracker.setConnectionState(False)
-
         ### End of experiment logic
 
 

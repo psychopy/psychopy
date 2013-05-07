@@ -1,7 +1,0 @@
-global_event_buffer: 2048
-upd_port: 9000
-data_store:
-    enable: False
-    filename: events
-    multiple_experiments: True
-    flush_interval: 32

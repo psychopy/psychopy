@@ -26,7 +26,7 @@ Experiment:
     #    
     enable: True
 
-    # saveEvents: *If* the ioHubDataStore is enabled for the experiment, then
+    # save_events: *If* the ioHubDataStore is enabled for the experiment, then
     #   indicate if events for this device should be saved to the
     #   data_collection/keyboard event group in the hdf5 event file.
     #   True = Save events for this device to the ioDataStore.
@@ -34,7 +34,7 @@ Experiment:
     #    
     save_events: True
 
-    # streamEvents: Indicate if events from this device should be made available
+    # stream_events: Indicate if events from this device should be made available
     #   during experiment runtime to the PsychoPy Process.
     #   True = Send events for this device to  the PsychoPy Process in real-time.
     #   False = Do *not* send events for this device to the PsychoPy Process in real-time.
