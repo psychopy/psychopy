@@ -17,7 +17,7 @@ from psychopy.iohub import launchHubServer,EventConstants
 #   Display device will use pixel units and display index 0 of a multimonitor setup.
 #   The returned 'io' variable gives access to the ioHub Process.
 #
-io=launchHubServer(experiment_code='kb_evts',psychopy_monitor_name='default')
+io=launchHubServer(experiment_code='key_evts',psychopy_monitor_name='default')
 
 # Devices that have been created on the ioHub Process and will be monitored
 # for events during the experiment can be accessed via the io.devices.* attribute.
@@ -147,7 +147,7 @@ while QUIT_EXP is False:
             keypress_duration_stim.setText("%.6f"%(event.duration))
         event_type_stim.setText(EventConstants.getName(event.type))
     
-        if event.key=='Q' and ('CONTROL_LEFT' in event.modifiers or 'CONTROL_LEFT' in event.modifiers):
+        if event.key.lower()=='q' and ('CONTROL_LEFT' in event.modifiers or 'CONTROL_LEFT' in event.modifiers):
             QUIT_EXP=True
             break
 

@@ -36,3 +36,7 @@ psychopy/tests/*htmlcov*
 /.ropeproject/history
 /.ropeproject/objectdb
 /.spyderproject
+
+*.hdf5
+*.iohpid
+*.paths

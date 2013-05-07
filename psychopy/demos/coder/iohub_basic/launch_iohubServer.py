@@ -24,7 +24,8 @@ def testWithNoKwargs():
     # Get the default keyboard device created.
     keyboard=io.devices.keyboard
     
-    print "Press any Key to Exit Example....."
+    print
+    print "** PRESS A KEY TO CONTINUE....."
 
     # Check for new events every 1/4 second.
     # By using the io.wait() fucntion, the ioHub Process is checked for 
