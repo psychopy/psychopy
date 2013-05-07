@@ -896,7 +896,7 @@ class Device(ioObject):
         contents. 
 
         Args:
-            eventTypeID (int): If specified, provides the ioHub DeviceEvent ID for which events should be returned for.  Events that have occurred but do not match the event ID specified are ignored. Event type ID's can be accessed via the EventConstants class; all available event types are class atttributes of EventConstants.
+            event_type_id (int): If specified, provides the ioHub DeviceEvent ID for which events should be returned for.  Events that have occurred but do not match the event ID specified are ignored. Event type ID's can be accessed via the EventConstants class; all available event types are class atttributes of EventConstants.
             
             clearEvents (int): Can be used to indicate if the events being returned should also be removed from the device event buffer. True (the defualt) indicates to remove events being returned. False results in events being left in the device event buffer. 
         

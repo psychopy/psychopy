@@ -1483,6 +1483,13 @@ def launchHubServer(**kwargs):
     if psychopy_monitor_name:
         del kwargs['psychopy_monitor_name']
 
+    datastore_name=kwargs.get('datastore_name',None)
+    if datastore_name is not None:
+        del kwargs['datastore_name']
+    else:
+        datastore_name = None
+
+
     device_dict=kwargs
     
     device_list=[]
@@ -1527,16 +1534,18 @@ def launchHubServer(**kwargs):
     ioConfig=dict(monitor_devices=device_list)
     
     if experiment_code and session_code:    
-        # Enable saving of all keyboard and mouse events to the 'ioDataStore'
-        ioConfig['data_store']=dict(enable=True,experiment_info=dict(code=experiment_code),
+        # Enable saving of all device events to the 'ioDataStore'
+        # datastore name is equal to experiment code given unless the 
+        # datastore_name kwarg is provided, inwhich case it is used.
+        # ** This avoids different experiments running in the same directory
+        # using the same datastore file name.
+        if datastore_name is None:
+            datastore_name=experiment_code
+        ioConfig['data_store']=dict(enable=True,filename=datastore_name,experiment_info=dict(code=experiment_code),
                                             session_info=dict(code=session_code))
     
     # Start the ioHub Server
     return ioHubConnection(ioConfig)
-
-
-
-
         
 ### ioHubExperimentRuntime ####
 
