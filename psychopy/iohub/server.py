@@ -33,7 +33,6 @@ currentSec= Computer.currentSec
 import json
 import msgpack
     
-#noinspection PyBroadException,PyBroadException
 class udpServer(DatagramServer):
     def __init__(self,ioHubServer,address,coder='msgpack'):
         self.iohub=ioHubServer

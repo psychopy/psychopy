@@ -9,6 +9,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com>
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+from __future__ import division
 
 import sys
 import copy
@@ -32,10 +33,6 @@ class EyeTracker(EyeTrackerDevice):
     class in the iohub_config.yaml device settings file:
         
         eyetracker.hw.smi.iviewx.EyeTracker
-        
-    See the configuration options section of the iViewX Common Eye Tracker 
-    Interface documentation for a full description and listing of all 
-    valid configuration settings for this device.
     """
     # >>> Overwritten class attributes
     DEVICE_TIMEBASE_TO_SEC=0.000001
@@ -52,9 +49,6 @@ class EyeTracker(EyeTrackerDevice):
     # <<<
 
     def __init__(self, *args,**kwargs):
-        """
-        """
-
         EyeTrackerDevice.__init__(self,*args,**kwargs)
         try:             
             self._ioKeyboard=None
@@ -675,8 +669,12 @@ class EyeTracker(EyeTrackerDevice):
             try:
                 poll_time=Computer.getTime()
                 tracker_time=self.trackerSec()
+                native_tracker_time=self.trackerTime()
                 confidence_interval=poll_time-self._last_poll_time
                
+                #print2err('-------------iview poll-------------')
+                #print2err('poll_time, confidence_interval: ',(poll_time,confidence_interval))
+                #print2err('tracker_time_sec, native_tracker_time: ',(tracker_time,native_tracker_time))
                 DEVICE_TIMEBASE_TO_SEC=EyeTracker.DEVICE_TIMEBASE_TO_SEC
     
                 nSamples=[]
@@ -716,7 +714,12 @@ class EyeTracker(EyeTrackerDevice):
                         event_timestamp=sample.timestamp*DEVICE_TIMEBASE_TO_SEC
                         event_delay=tracker_time-event_timestamp
                         iohub_time=poll_time-event_delay
-                        
+                        #print2err('SAMPLE: ')
+                        #print2err('\tevent time: ',(sample.timestamp,event_timestamp))
+                        #print2err('\tevent_delay: ',event_delay)
+                        #print2err('\tiohub_time: ',iohub_time)
+
+ 
                         plane_number=sample.planeNumber
                         
                         left_eye_data=sample.leftEye
@@ -732,17 +735,22 @@ class EyeTracker(EyeTrackerDevice):
                         left_gazeY=left_eye_data.gazeY
                         right_gazeY=right_eye_data.gazeY
   
+ 
+                        #print2err('\tright_gazeX,right_gazeY: ',(right_gazeX,right_gazeY))
+                        #print2err('\tleft_gazeX,left_gazeY: ',(left_gazeX,left_gazeY))
+
                         right_gazeX,right_gazeY=self._eyeTrackerToDisplayCoords((right_gazeX,right_gazeY))
                         left_gazeX,left_gazeY=self._eyeTrackerToDisplayCoords((left_gazeX,left_gazeY))
                       
+                        #print2err('\t2display_coors-> right_gazeX,right_gazeY: ',(right_gazeX,right_gazeY))
+                        #print2err('\t2display_coors-> left_gazeX,left_gazeY: ',(left_gazeX,left_gazeY))
                         left_eyePositionX=left_eye_data.eyePositionX
                         right_eyePositionX=right_eye_data.eyePositionX
                         left_eyePositionY=left_eye_data.eyePositionY
                         right_eyePositionY=right_eye_data.eyePositionY
                         left_eyePositionZ=left_eye_data.eyePositionZ
                         right_eyePositionZ=right_eye_data.eyePositionZ
-                        # TODO: Translate gaze position into ioHUb Display coords.
-    
+   
                         binocSample=[
                                      0,
                                      0,
@@ -815,8 +823,10 @@ class EyeTracker(EyeTrackerDevice):
                         if ic == 2:
                              g[0]= g[0]/2.0
                              g[1]= g[1]/2.0
-        
-                        self._latest_gaze_position=g
+                             
+                        if ic > 0:
+                            self._latest_gaze_position=g
+                            
                         self._addNativeEventToBuffer(binocSample)
     
                 # process any fixation events we got.....

@@ -40,7 +40,7 @@ Display:
     stream_events: False
     auto_report_events: False    
     event_buffer_length: 0    
-    monitor_event_types: None
+    monitor_event_types:
     model_name:
         IOHUB_STRING:
             min_length: 1

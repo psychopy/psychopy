@@ -118,7 +118,7 @@ class ioHubpyTablesFile():
             pass
 
         try:
-            self.TABLES['GAMEPAD_STATE_CHANGE']=self.emrtFile.root.data_collection.events.gamepad.GamePadStateChangeEvent
+            self.TABLES['GAMEPAD_STATE_CHANGE']=self.emrtFile.root.data_collection.events.gamepad.GamepadStateChangeEvent
         except:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass

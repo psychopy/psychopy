@@ -9,6 +9,7 @@ import pylabjack
 
 class AnalogInput(AnalogInputDevice):
     """
+    The Labjack Implementation for the ioHub AnalogInput Device type.
     """
     _SUPPORTED_MODELS = dict()
     _SUPPORTED_MODELS['U6'] = pylabjack.u6.U6

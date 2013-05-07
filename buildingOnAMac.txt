@@ -186,11 +186,6 @@ instead (or as well as) of
 
 To build a 32-bit ffmpeg dylib
 --------------------------------
-For each codec, download the source and do:
-	CFLAGS='-arch i386' LDFLAGS='-arch i386' configure --disable-static --enable-shared
-	make
-	sudo make install
-Then for ffmpeg source do:
-	configure --disable-static --enable-shared --disable-outdev=sdl --enable-runtime-cpudetect --disable-indev=jack --enable-zlib  --enable-libx264 --enable-libxvid --enable-libvorbis --cc="clang -m32" --enable-gpl
-	make
-	sudo make install
+configure --disable-static --enable-shared --disable-outdev=sdl --enable-runtime-cpudetect --disable-indev=jack --enable-zlib  --enable-libx264 --cc="clang -m32" --enable-gpl
+make
+sudo make install

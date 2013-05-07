@@ -1,0 +1,125 @@
+eyetracker.hw.smi.iviewx.EyeTracker:
+    # Indicates if the device should actually be loaded at experiment runtime.
+    enable: True
+
+    # The variable name of the device that will be used to access the ioHub Device class
+    # during experiment run-time, via the devices.[name] attribute of the ioHub
+    # connection or experiment runtime class.
+    name: tracker
+
+    # Should eye tracker events be saved to the ioHub DataStore file when the device
+    # is recording data ?
+    save_events: True
+
+    # Should eye tracker events be sent to the Experiment process when the device
+    # is recording data ?
+    stream_events: True
+
+    # The iViewX implementation fo the ioHub eye tracker interface uses the polling method to
+    # check for new events received from the iViewX device. device_timer.interval
+    # specifies the sec.msec time between device polls. 0.001 = 1 msec, so the device will
+    # be polled at a maxximum rate of 1000 Hz. This polling rate is a 'target' value,
+    # and may not always be achieved depending on your computer specifications and the
+    # number and type of other devices being used.
+    device_timer:
+        interval: 0.002
+
+        # How many eye events (including samples) should be saved in the ioHub event buffer before
+    # old eye events start being replaced my new events when the event buffer reaches
+    # the maximum event length of the buffer defined here.
+    event_buffer_length: 1024
+
+    # The iViewX implementation of the common eye tracker interface supports the
+    # following event types:
+    # MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent  
+    # If you would like to exclude certain events from being saved or streamed during runtime, 
+    # remove them from the list below.
+    monitor_event_types: [ MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
+
+    calibration:
+        type: FIVE_POINTS
+
+        auto_pace: True
+
+        pacing_speed: SLOW
+
+        screen_background_color: 20
+
+        target_type: CIRCLE_TARGET
+
+        target_attributes:
+            target_size: 10
+            target_color: 239
+
+        # Should a Window showing the validation accuracy as a gaze point 
+        # overlay be displayed following a validation procedure?
+        show_validation_accuracy_window: False
+        
+    # The iViewX network settings specify the pyViewX computer IIP and port and the
+    # iViewX Apllication / Server Computer IP and port. By default the configuration
+    # is set to the popular single PC configuration for the system.
+    network_settings:
+        send_ip_address: 127.0.0.1
+
+        # Port being used by iView X SDK for sending data to iView X 
+        send_port: 4444
+
+        # IP address of local computer
+        receive_ip_address: 127.0.0.1
+
+        # port being used by iView X SDK for receiving data from iView X
+        receive_port: 5555	            
+
+        # The iViewX supports saving a native eye tracker data file, the 
+    # default_native_data_file_name value is used to set the default name for
+    # the file that will be saved, not including  the file type extension.
+    default_native_data_file_name: et_data
+
+    runtime_settings:
+        # The sampling rate setting in the iViewX implementation is used only to
+        # compare the sampling rate read from the device to ensure it matches
+        # the rate specified here. 
+        # It is not possible to 'set' the sampling rate via the SMI API however. 
+        sampling_rate: 60
+
+        # The SMI supports enabling or disabling sample filtering. Use the
+        # Sample stream type 'FILTER_ALL' with a filter level of either
+        # FILTER_OFF or FILTER_ON
+        sample_filtering:
+            FILTER_ALL: FILTER_OFF
+
+            # The iViewX supports the following track_eyes values:  
+        # LEFT_EYE, RIGHT_EYE, BINOCULAR, BINOCULAR_AVERAGED
+        track_eyes: BINOCULAR_AVERAGED
+
+        # VOG settings allow you to specify some eye tracker parameters related to
+        # the image processing or data collection procedure used by the eye tracker
+        # device. 
+        vog_settings:
+            # The iViewX supports one pupil_measure_types parameter that is used
+            # for any eyes being tracked. PUPIL_AREA, PUPIL_DIAMETER are
+            # valid pupil measure types for the iViewX.
+            # PUPIL_DIAMETER_MM, PUPIL_DIAMETER,
+            pupil_measure_types: PUPIL_DIAMETER
+
+            # The model_name setting allows the definition of the eye tracker model being used.
+    # For the iViewX implementation, valid values are:
+    # RED, REDm, HiSpeed, MRI, HED, ETG, or Custom
+    model_name: REDm
+
+    # manufacturer_name is used to store the name of the maker of the eye tracking
+    # device. This is for informational purposes only.
+    manufacturer_name: SensoMotoric Instruments GmbH
+
+    # The below parameters are not used by the SMI iViewX Common Eye Tracker
+    # Interface implementation, however they can be completed for FYI purposes
+    # at this time. Some of these properties will also be filled in at runtime by
+    # the eye tracker interface once a connection as been made to the hardware.
+    device_number: 0
+    auto_report_events: False
+    model_number: N/A
+    serial_number: N/A
+    manufacture_date: DD-MM-YYYY
+    software_version: N/A
+    hardware_version: N/A
+    firmware_version: N/A

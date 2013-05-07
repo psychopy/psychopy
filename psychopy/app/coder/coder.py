@@ -1408,21 +1408,25 @@ class CoderFrame(wx.Frame):
             submenu = wx.Menu()
             self.demosMenu.AppendSubMenu(submenu, folderName)
 
-            #find the files in the folder (search two levels deep)
-            demoList = glob.glob(os.path.join(folder, '*.py'))
-            demoList += glob.glob(os.path.join(folder, '*', '*.py'))
-            demoList += glob.glob(os.path.join(folder, '*', '*', '*.py'))
-
+            #find the files in the folder
+            if folderName == 'iohub':
+                # look for sub- and sub-sub-directories that contain 'run.py'
+                demoList = glob.glob(os.path.join(folder, '*', 'run.py'))
+                demoList += glob.glob(os.path.join(folder, '*', '*', 'run.py'))
+                demoList += glob.glob(os.path.join(folder, '*', '*', 'ioMouse.py'))
+            else:
+                demoList = glob.glob(os.path.join(folder, '*.py'))
             demoList.sort(key=str.lower)
             demoIDs = map(lambda _makeID: wx.NewId(), range(len(demoList)))
 
             for n in range(len(demoList)):
                 self.demos[demoIDs[n]] = demoList[n]
             for thisID in demoIDs:
-                shortname = self.demos[thisID].split(os.path.sep)[-1]
-                if shortname == "run.py":
-                    # file is just "run" so get shortname from directory name instead
-                    shortname = self.demos[thisID].split(os.path.sep)[-2]
+                if folderName == 'iohub':
+                    idx = -2  # get shortname from directory name
+                else:
+                    idx = -1  # get shortname from file name
+                shortname = self.demos[thisID].split(os.path.sep)[idx]
                 if shortname.startswith('_'):
                     continue  # remove any 'private' files
                 submenu.Append(thisID, shortname)

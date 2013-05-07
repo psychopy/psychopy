@@ -52,10 +52,10 @@ if sys.platform not in SUPPORTED_SYS_NAMES:
     sys.exit(1)
 
 import constants
-from constants import EventConstants, DeviceConstants, KeyboardConstants, MouseConstants
+from constants import EventConstants, DeviceConstants, KeyboardConstants, MouseConstants,EyeTrackerConstants
 
 import client
-from client import ioHubConnection, quickStartHubServer, ioHubExperimentRuntime
+from client import ioHubConnection, launchHubServer, ioHubExperimentRuntime
 
 import devices
 from devices import Computer, import_device, DeviceEvent, Device

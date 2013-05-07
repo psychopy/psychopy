@@ -110,9 +110,8 @@ class HookManager(threading.Thread):
                                  3:'MOUSE_BUTTON_RIGHT'
                                 }
         self.pressedMouseButtons=0
-
-        self.create_runtime_keysym_maps()
         self.scroll_y=0
+        self.create_runtime_keysym_maps()
 
     def run(self):
         # Check if the extension is present
@@ -370,7 +369,7 @@ class HookManager(threading.Thread):
         elif event.type == X.KeyRelease:
             ioHubEventID =EventConstants.KEYBOARD_RELEASE
 
-
+        
         return [[0,
                 0,
                 0, #device id (not currently used)

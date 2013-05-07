@@ -141,40 +141,36 @@ class ioObject(object):
 class Computer(object):
     """
     The Computer class does not actually extend the ioHub.devices.Device class.
-    However it is conseptually convienient to think of the Computer class as a type of
-    Device. 
+    However it is sometimes conceptually convenient to think of the Computer class as a type of
+    ioHub Device.
     
-    The Computer class contains the ioHub global clock instance used to access 
-    the ioHub time from either the PsychoPy or ioHub Process as. This clock
-    is used as the universal timebase for all event times reported by ioHub,
-    regardless of the Device or DeviceEvent type. 
+    The Computer class manages the ioHub global clock used to synchronize event times
+    from all ioHub Devices and ioHub DeviceEvents. This universal timebase can be accessed
+    by both the PsychoPy and ioHub Processes.
     
-    .. note:: Changes have been made and committed to both the psychoPy and ioHub 
-        projects that will allow both packages to use the same time base. For PsychoPy
-        this is used for the psychopy.core.getTime() and the default psychopy.logging.defaultClock object.
-        This means that a psychoPy script can use eith psychopy.core.getTime or 
-        iohub.devices.Computer.getTime to get the time for either process. This makes
-        syncronizing times of PsychoPy experiment based events and the times 
-        provided with ioHub events very easy; no syncronization is needed by the
-        user stript at all, it has already been done for you!
+    .. note:: As of May, 2013 both PsychoPy and ioHub packages implement the
+        same timebase. PsychoPy users accustomed to accessing the timebase with
+        psychopy.core.getTime() or the default psychopy.logging.defaultClock object
+        can also access the timebase with iohub.devices.Computer.getTime. All methods
+        access the same timebase without any user-controlled synchronization!
     
-    The Computer Class contains methods allowing the Experiment and ioHub 
-    Process affinities to be set to particular processing units of the computer
+    The Computer class contains methods to allocate the ioHub and PsychoPy
+    Process affinities to particular processing units of the computer
     if desired. The operating system priority of either process can also be
     increased.
     
-    .. note:: Currently Process Affinity and Priority manipulation is not supported on OS X.
+    .. note:: Setting process affinities and manipulating process priority is not 
+        currently supported on OS X.
     
-    The Computer class also has methods providing information on the
-    current Computer memory and CPU usage. If the psutil Process object is available,
-    process level memory, cpu, thread count, disk, and network utilization, can be
-    accessed via the psutil process object. 
+    The Computer class also has methods to monitor current Computer memory 
+    and CPU usage. The psutil Process object (if available) can access
+    process level memory, CPU, thread count, disk, and network utilization. 
 
-    The Computer class only contains static or class level methods, so an instance 
-    of the Computer class does **not** need to be created. The Computer device can 
-    either be accessed using the Computer class alone, either via the ioHub package 
-    using 'iohub.devices.Computer', or using the 'self.devices.computer'
-    attribute of the ioHubExperimentRuntime class if it is being used.    
+    The Computer class contains only static or class level methods, so an instance 
+    of the Computer class does **not** need to be explicitly created. The Computer 
+    device can be accessed via the Computer class alone (using 'iohub.devices.Computer') 
+    or using the 'self.devices.computer' attribute of the ioHubExperimentRuntime
+    class.
     """
     _nextEventID=1
     
@@ -319,9 +315,10 @@ class Computer(object):
             None
         """
         if _psutil_available is False:
+            print2err("Computer.disableRealTimePriority is not supported on OS X")
             return False
 
-        return Computer.disableHighPriority()
+        Computer.disableHighPriority()
 
     @staticmethod
     def disableHighPriority():
@@ -341,6 +338,7 @@ class Computer(object):
         """
         
         if _psutil_available is False:
+            print2err("Computer.disableHighPriority is not supported on OS X")
             return False
         try:
             if Computer.inHighPriorityMode is True:
@@ -350,12 +348,10 @@ class Computer(object):
                     Computer.inHighPriorityMode=False
                 elif Computer.system=='linux2' and Computer._process_original_nice_value > 0:
                     Computer.currentProcess.set_nice(Computer._process_original_nice_value)
-                    Computer.inHighPriorityMode=False       
-            return True
+                    Computer.inHighPriorityMode=False
         except psutil.AccessDenied:
             print2err("WARNING: Could not disable increased priority for process {0}".format(Computer.currentProcessID))
-        return False
-        
+
     @staticmethod
     def getProcessingUnitCount():
         """
@@ -874,9 +870,20 @@ class Device(ioObject):
     def getConfiguration(self):
         """
         Retrieve the configuration settings information used to create the device instance. 
+        This will be a combination of the default settings for the device 
+        (found in iohub.devices.<device_name>.default_,defice_name>.yaml, plus any
+        device settings specified by the experiment author within an 
+        iohub_config.yaml file if the ioHubExperimentRuntime is being used
+        to define the experiment logic, or if using the iohub.launchHubProcess()
+        function in the experriment script, as device settings in dictionary form.
         
-        :returns: The configuration settings used when the device was originally created by the ioHub Process. 
-        :rtype: dict
+        Changing any values in the returned dictionary has no effect on the device state.
+        
+        Args:
+            None
+            
+        Returns:
+            (dict): The dictionary of the device configuration settings used to create the device.
         """
         return self._configuration
 
@@ -885,17 +892,18 @@ class Device(ioObject):
         Retrieve any DeviceEvents that have occurred since the last call to the
         device's getEvents() or clearEvents() methods.
 
-        Note that calling the global ioHub Process level getEvents() or clearEvents() methods
-        via the ioHubClientConnection class does *not* effect device level event buffers.
+        Note that calling getEvents() at a device level does not change the Global Event Buffer's
+        contents. 
 
-        :param eventTypeID: Specifies a specific event type to return from the device. Events that have occurred but do not match the event ID specified are ignored. Event type ID's can be accessed via the EventConstants class; all available event types are class atttributes of EventConstants.
-        :type eventTypeID: int 
-        :param clearEvents: If True, clear the device event buffer before returning any events. If False, events are not removed from the device event buffer. Default is True.
-        :type clearEvents: bool 
-        :param asType: The object type to return events as. Valid values are 'namedtuple' (default), 'dict', 'list', or 'object'.
-        :type asType: str 
-        :returns:  New events that the ioHub has received since the last getEvents() or clearEvents() call to the device. Events are ordered by the ioHub time for each event. The event object type is determined by the asType parameter to the method; by default a namedtuple object is returned for each event. 
-        :rtype: list of event objects
+        Args:
+            eventTypeID (int): If specified, provides the ioHub DeviceEvent ID for which events should be returned for.  Events that have occurred but do not match the event ID specified are ignored. Event type ID's can be accessed via the EventConstants class; all available event types are class atttributes of EventConstants.
+            
+            clearEvents (int): Can be used to indicate if the events being returned should also be removed from the device event buffer. True (the defualt) indicates to remove events being returned. False results in events being left in the device event buffer. 
+        
+            asType (str): Optional kwarg giving the object type to return events as. Valid values are 'namedtuple' (the default), 'dict', 'list', or 'object'.
+
+        Returns:   
+            (list): New events that the ioHub has received since the last getEvents() or clearEvents() call to the device. Events are ordered by the ioHub time of each event, older event at index 0. The event object type is determined by the asType parameter passed to the method. By default a namedtuple object is returned for each event. 
         """
         if len(args)==1:
             eventTypeID=args[0]
@@ -924,33 +932,44 @@ class Device(ioObject):
 
     def clearEvents(self):
         """
-        Clears any DeviceEvents that have occurred since the last call to the device's getEvents()
-        with clearEvents = True, or the device's clearEvents() methods.
+        Clears any DeviceEvents that have occurred since the last call to the device's getEvents(),
+        or clearEvents() methods.
             
-        Note that calling the global ioHub Process level getEvents() or clearEvents() methods
-        via the ioHubClientConnection class does *not* effect device level event buffers.
+        Note that calling clearEvents() atthe device level only clears the 
+        given device's event buffer. The ioHub Process's Global Event Buffer is unchanged.
+        
+        Args: 
+            None
+        
+        Returns:
+            None
         """
         self._iohub_event_buffer.clear()
 
     def enableEventReporting(self,enabled=True):
         """
-        Sets whether a Device should report events and provide them to the PsychoPy Process
-        and / or save them to the ioHub DataStore.
+        Specifies if the device should be reporting events to the ioHub Process
+        (enabled=True) or whether the device should stop reporting events to the
+        ioHub Process (enabled=False).
+        
             
-        :param enabled:  True (default) == monitor and report device events as they occur. False == Do not report any events for the device until reporting is enabled. 
-        :type enabled: bool 
-        :returns: Current reporting state. 
-        :rtype: bool
+        Args:
+            enabled (bool):  True (default) == Start to report device events to the ioHub Process. False == Stop Reporting Events to the ioHub Process. Most Device types automatically start sending events to the ioHUb Process, however some devices like the EyeTracker and AnlogInput device's do not. The setting to control this behavour is 'auto_report_events'
+        
+        Returns:
+            bool: The current reporting state. 
         """
         self._is_reporting_events=enabled
         return self._is_reporting_events
 
     def isReportingEvents(self):
         """
-        Returns whether a Device is currently reporting events or whether the device is ignoring any events that occur.
-
-        :returns: Current reporting state. 
-        :rtype: bool
+        Returns whether a Device is currently reporting events to the ioHub Process.
+        
+        Args: None
+        
+        Returns:
+            (bool): Current reporting state.
         """
         return self._is_reporting_events
 
@@ -992,13 +1011,13 @@ class Device(ioObject):
         """
         The _poll method is used when an ioHub Device needs to periodically
         check for new events received from the native device / device API.
-        Normally this means that the native device interface is using some form
-        data buffer or que to place new device events in until the ioHub Device 
+        Normally this means that the native device interface is using some
+        data buffer or queue for new device events until the ioHub Device 
         reads them.
 
         The ioHub Device can *poll* and check for any new events that
         are available, retrieve the new events, and process them 
-        to create ioHub Events as necessery. Each subclass of ioHub.devives.Device
+        to create ioHub Events as necessary. Each subclass of ioHub.devives.Device
         that wishes to use event polling **must** override the _poll method
         in the Device classes implementation. The configuration section of the
         iohub_config.yaml for the device **must** also contain the device_timer: interval
@@ -1009,16 +1028,15 @@ class Device(ioObject):
             the form of an ordered list, where the number of elements in the 
             list equals the number of public attributes of the event, and the order
             of the element values matches the order that the values would be provided
-            to the constructor of the associated DeviceEvent class. This is done so that
-            internal event representation overhead (both in terms of creation 
-            time and memory footprint) is kept to a minimum. The list event format
+            to the constructor of the associated DeviceEvent class. This list format
+            keeps internal event representation overhead (both in terms of creation 
+            time and memory footprint) to a minimum. The list event format
             also allows for the most compact representation of the event object
-            when being transfered between the ioHub and Experiment processes.
+            when being transferred between the ioHub and Experiment processes.
             
-            Experiment Processes side ioHub logic converts these list event 
-            representations to one of several other object formats for use within
-            the experiment script when the events are received by the Experiment
-            Process ( namedtuple [default], dict, or the correct ioHub.devices.DeviceEvent subclass. ) 
+            The ioHub Process can convert these list event representations to 
+            one of several, user-friendly object formats ( namedtuple [default], dict, or the correct
+            ioHub.devices.DeviceEvent subclass. ) for use within the experiment script.
         
         If an ioHub Device uses polling to check for new device events, the ioHub
         device configuration must include the following property in the devices
@@ -1039,23 +1057,22 @@ class Device(ioObject):
         to check for any new events received by the device hardware interface. The
         correct or optimal value for device_timer.interval depends on the device
         type and the expected rate of device events. For devices that receive events
-        rapidly, for example at an average rate of 500 Hz or more, or in cases where 
-        the ioHub is responsible for time stamping the evnt when it is received because
-        the device hardware does not provide event time stamps itself, then 
-        device_timer.interval should be set to 0.001 (1 msec). 
+        rapidly, for example at an average rate of 500 Hz or more, or for devices
+        that do not provide native event time stamps (and the ioHub Process must
+        time stamp the event) the device_timer.interval should be set to 0.001 (1 msec). 
         
         For devices that receive events at lower rates and have native time stamps
         that are being converted to the ioHub time base, a slower polling rate is
         usually acceptable. A general suggestion would be to set the device_timer.interval
         to be equal to two to four times the expected average event input rate in Hz,
-        but not exceeding a device_timer.interval 0.001 seconds (a polling rate of 1000 hz).
+        but not exceeding a device_timer.interval 0.001 seconds (a polling rate of 1000 Hz).
         For example, if a device sends events at an average rate of 60 Hz, 
         or once every 16.667 msec, then the polling rate could be set to the
         equivelent of a 120 - 240 Hz. Expressed in sec.msec format,
         as is required for the device_timer.interval setting, this would equal about
         0.008 to 0.004 seconds.
         
-        Ofcourse it would be ideal if every device that polled for events was polling
+        Of course it would be ideal if every device that polled for events was polling
         at 1000 to 2000 Hz, or 0.001 to 0.0005 msec, however if too many devices
         are requested to poll at such high rates, all will suffer in terms of the 
         actual polling rate achieved. In devices with slow event output rates, 
@@ -1073,25 +1090,26 @@ class Device(ioObject):
 
     def _handleNativeEvent(self,*args,**kwargs):
         """
-        The _handleEvent method can be used by the native device interface that
-        the ioHub Device class implements to register new native device events
+        The _handleEvent method can be used by the native device interface (implemented 
+        by the ioHub Device class) to register new native device events
         by calling this method of the ioHub Device class. 
         
         When a native device interface uses the _handleNativeEvent method it is 
-        employing an event callback approach to notify the ioHub Server when new
+        employing an event callback approach to notify the ioHub Process when new
         native device events are available. This is in contrast to devices that use
         a polling method to check for new native device events, which would implement
         the _poll() method instead of this method.
         
         Generally speaking this method is called by the native device interface
-        once for each new event that is available for the ioHub server. However,
-        if there is good reason too, there is no reason why a single call to this
+        once for each new event that is available for the ioHub Process. However,
+        with good cause, there is no reason why a single call to this
         method could not handle multiple new native device events. 
 
-        If using _handleNativeEvent, be sure to remove the device_timer 
-        property from the devices configuration section of the ioHub_config.yaml.
+        .. note::         
+            If using _handleNativeEvent, be sure to remove the device_timer 
+            property from the devices configuration section of the iohub_config.yaml.
 
-        Any arguements or kwargs passed to this method are determined by the ioHub
+        Any arguments or kwargs passed to this method are determined by the ioHub
         Device implementation and should contain all the information needed to create
         an ioHub Device Event.
         
@@ -1116,7 +1134,7 @@ class Device(ioObject):
 
     def _getIOHubEventObject(self,native_event_data):
         """
-        The _getIOHubEventObject method is called by the ioHub Server to convert 
+        The _getIOHubEventObject method is called by the ioHub Process to convert 
         new native device event objects that have been received to the appropriate 
         ioHub Event type representation. 
         
@@ -1124,8 +1142,8 @@ class Device(ioObject):
         new events, then this method simply should return what it is passed, and is the
         default implmentation for the method.
         
-        If the ioHub Device has been implemented to use the evnt callback method
-        to register new native device events with the ioHub Server, then this method should be
+        If the ioHub Device has been implemented to use the event callback method
+        to register new native device events with the ioHub Process, then this method should be
         overwritten by the Device subclass to convert the native event data into
         an appropriate ioHub Event representation. See the implementation of the 
         Keyboard or Mouse device classes for an example of such an implementation.
@@ -1155,9 +1173,9 @@ class DeviceEvent(ioObject):
     """
     The DeviceEvent class is the base class for all ioHub DeviceEvent types.
 
-    Any ioHub DeviceEvent class (i.e MouseMoveEvent,MouseScrollEvent, MouseButtonPressEvent,
-    KeyboardPressEvent, KeyboardReleaseEvent, etc) also include the methods and attributes of
-    the DeviceEvent class.
+    Any ioHub DeviceEvent class (i.e MouseMoveEvent, MouseScrollEvent, MouseButtonPressEvent,
+    KeyboardPressEvent, KeyboardReleaseEvent, etc.) also has access to the 
+    methods and attributes of the DeviceEvent class.
     """
     EVENT_EXPERIMENT_ID_INDEX=0
     EVENT_SESSION_ID_INDEX=1
@@ -1302,17 +1320,17 @@ class DeviceEvent(ioObject):
         #: regardless of device type. Time is calculated differently depending
         #: on the device and perhaps event type.
         #: Time is what should be used when comparing times of events across
-        #: different devices. Time is in sec.msec-usec.
+        #: different devices or with times given py psychopy.core.getTime(). Time is in sec.msec-usec.
         self.time=None
 
         #: This property attempts to give a sense of the amount to which
         #: the event time may be off relative to the true time the event
-        #: occurred. confidence_interval is calculated differently depending
+        #: may have become available to te ioHub Process. 
+        #: confidence_interval is calculated differently depending
         #: on the device and perhaps event types. In general though, the
-        #: smaller the confidence_interval, the more likely it is that the
-        #: calculated time of the event is correct. For devices where
-        #: a realistic confidence_interval can not be calculated,
-        #: for example if the event device delay is unknown, then a value
+        #: smaller the confidence_interval, the more accurate the
+        #: calculated time of the event will be. For devices where
+        #: a meaningful confidence_interval can not be calculated, a value
         #: of 0.0 is used. Valid confidence_interval values are
         #: in sec.msec-usec and will range from 0.000001 sec.msec-usec
         #: and higher.
@@ -1322,8 +1340,11 @@ class DeviceEvent(ioObject):
         #: real world event occurred to when the ioHub received the event for
         #: processing. This is often called the real-time end-to-end delay
         #: of an event. If the delay for an event can not be reasonably estimated
-        #: or is not known, a delay of 0.0 is set. Delays are in sec.msec-usec
+        #: or is not known at all, a delay of 0.0 is set. Delays are in sec.msec-usec
         #: and valid values will range from 0.000001 sec.msec-usec and higher.
+        #: the delay of an event is suptracted from the initially determined ioHub
+        #: time for the eventso that the event.time attribute reports the actual
+        #: event time as accurately as possible.
         self.delay=None
 
         self.filter_id=None
