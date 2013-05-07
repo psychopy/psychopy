@@ -854,7 +854,7 @@ class ioHubConnection(object):
             
         self.udp_client=UDPClientConnection(remote_port=ioHubConfig.get('udp_port',9000))
 
-        run_script=os.path.join(IO_HUB_DIRECTORY,'server.py')
+        run_script=os.path.join(IO_HUB_DIRECTORY,'launchHubProcess.py')
         subprocessArgList=[sys.executable,run_script,"%.6f"%Computer.globalClock.getLastResetTime(),rootScriptPath,ioHubConfigAbsPath]
 
         # check for existing ioHub Process based on process if saved to file
