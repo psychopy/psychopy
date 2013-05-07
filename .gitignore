@@ -40,3 +40,4 @@ psychopy/tests/*htmlcov*
 *.hdf5
 *.iohpid
 *.paths
+*.EDF
