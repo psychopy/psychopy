@@ -385,6 +385,7 @@ class EyeTracker(EyeTrackerDevice):
             genv._unregisterEventMonitors() 
             genv.window.close()
             genv.clearAllEventBuffers()
+            return EyeTrackerConstants.EYETRACKER_OK
 
         except Exception,e:
             return createErrorResult("IOHUB_DEVICE_EXCEPTION",
@@ -668,7 +669,7 @@ class EyeTracker(EyeTrackerDevice):
                                 ic+=1
                             if ic == 2:
                                 g[i]=g[i]/2.0
-
+                        
                         self._latest_gaze_position=g
                         self._addNativeEventToBuffer(binocSample)
 
@@ -728,7 +729,7 @@ class EyeTracker(EyeTrackerDevice):
                                     0
                                     ]
                        #EyeTracker._eventArrayLengths['MONOC_EYE_SAMPLE']=len(monoSample)
-                        self._latest_gaze_position=gaze
+                        self._latest_gaze_position=(gaze[0],gaze[1])
                         self._latest_sample=monoSample
                         self._addNativeEventToBuffer(monoSample)
 

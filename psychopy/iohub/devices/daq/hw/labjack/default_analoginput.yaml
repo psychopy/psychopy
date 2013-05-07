@@ -53,20 +53,20 @@ daq.hw.labjack.AnalogInput:
     #    
     enable: True
 
-    # saveEvents: *If* the ioHubDataStore is enabled for the experiment, then
+    # save_events: *If* the ioHubDataStore is enabled for the experiment, then
     #   indicate if events for this device should be saved to the
     #   data_collection/keyboard event group in the hdf5 event file.
     #   True = Save events for this device to the ioDataStore.
     #   False = Do not save events for this device in the ioDataStore.
     #    
-    saveEvents: True
+    save_events: True
 
-    # streamEvents: Indicate if events from this device should be made available
+    # stream_events: Indicate if events from this device should be made available
     #   during experiment runtime to the PsychoPy Process.
     #   True = Send events for this device to  the PsychoPy Process in real-time.
     #   False = Do *not* send events for this device to the PsychoPy Process in real-time.
     #    
-    streamEvents: True
+    stream_events: True
 
     # auto_report_events: Indicate if events from this device should start being
     #   processed by the ioHub as soon as the device is loaded at the start of an experiment,
