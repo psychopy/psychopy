@@ -516,10 +516,42 @@ def lms2rgb(lms_Nx3, conversionMatrix=None):
             [-0.03976551, -0.14253782, 1.18230333]#B
             ])
         logging.warning('This monitor has not been color-calibrated. Using default LMS conversion matrix.')
-    else: cones_to_rgb=conversionMatrix
+    else:
+        cones_to_rgb=conversionMatrix
 
     rgb = numpy.dot(cones_to_rgb, lms_3xN)
     return numpy.transpose(rgb)#return in the shape we received it
+
+def rgb2lms(rgb_Nx3, conversionMatrix=None):
+    """Convert from RGB to cone space (LMS)
+
+    Requires a conversion matrix, which will be generated from generic
+    Sony Trinitron phosphors if not supplied (note that you will not get
+    an accurate representation of the color space unless you supply a
+    conversion matrix)
+
+    usage::
+
+        lms_Nx3 = rgb2lms(rgb_Nx3(el,az,radius), conversionMatrix)
+
+    """
+
+    rgb_3xN = numpy.transpose(rgb_Nx3)#its easier to use in the other orientation!
+
+    if conversionMatrix==None:
+        cones_to_rgb = numpy.asarray([ \
+            #L        M        S
+            [ 4.97068857, -4.14354132, 0.17285275],#R
+            [-0.90913894, 2.15671326, -0.24757432],#G
+            [-0.03976551, -0.14253782, 1.18230333]#B
+            ])
+        logging.warning('This monitor has not been color-calibrated. Using default LMS conversion matrix.')
+    else:
+        cones_to_rgb=conversionMatrix
+    rgb_to_cones = numpy.linalg.inv(cones_to_rgb)
+
+    lms = numpy.dot(rgb_to_cones, rgb_3xN)
+    return numpy.transpose(lms)#return in the shape we received it
 
 def hsv2rgb(hsv_Nx3):
     """Convert from HSV color space to RGB gun values
