@@ -1,0 +1,42 @@
+monitor_devices:
+    - eyetracker.hw.lc_technologies.eyegaze.EyeTracker:
+        # Indicates if the device should actually be loaded at experiment runtime.
+        enable: True
+        # The variable name of the device that will be used to access the ioHub Device class
+        # during experiment run-time, via the devices.[name] attribute of the ioHub
+        # connection or experiment runtime class.
+        name: tracker
+        # Should eye tracker events be saved to the ioHub DataStore file when the device
+        # is recording data ?
+        save_events: True
+        # Should eye tracker events be sent to the Experiment process when the device
+        # is recording data ?
+        stream_events: True
+        # The EyeGaze EyeTracker class uses the polling method to
+        # check for new events received from the EyeTracker device. device_timer.interval
+        # specifies the sec.msec time between device polls. 0.004 = 4 msec, so the device will
+        # be polled at a maxximum rate of 250 Hz. This polling rate is a 'target' value,
+        # and may not always be achieved depending on your computer specifications and the
+        # number and type of other devices being used. This can be checked by reviewing the
+        # confidence_interval column of any of the eye event tables saved to the DataStore
+        device_timer:
+            interval: 0.002
+        # How many eye events (including samples) should be saved in the ioHub event buffer before
+        # old eye events start being replaced my new events when the event buffer reaches
+        # the maximum event length of the buffer defined here.
+        event_buffer_length: 512
+        # Tell Eyegaze whether to display the full 640x480 camera image in a separate window.
+        display_camera_image: True
+        # Tell Eyegaze where to display the camera image window on the scrren.
+        # Options are UPPER_RIGHT or UPPER_LEFT
+        camera_image_screen_position: UPPER_RIGHT
+        # connection_type: Possible values for the EyeGaze are one of three config lists:
+        # [LOCAL, SOCKET, SERIAL]
+        # If type != LOCAL, a 'parameter' setting must also be provided.
+        host_connection:
+            type: LOCAL       
+        # The EyeGaze implementation of the common eye tracker interface supports the
+        # following event types. If you would like to exclude certain events from being
+        # saved or streamed during runtime, remove them from the list below.
+        monitor_event_types: [ MonocularEyeSampleEvent, BinocularEyeSampleEvent]
+
