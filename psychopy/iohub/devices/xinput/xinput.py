@@ -16,7 +16,7 @@ contributors, please see credits section of documentation.
 from xinput_h import *
 from math import sqrt
 import ctypes,ctypes.wintypes
-from ctypes.wintypes import WORD, BYTE, SHORT, DWORD, pointer
+from ctypes.wintypes import DWORD, pointer
 from .. import Computer
 
 #

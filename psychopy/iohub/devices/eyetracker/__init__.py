@@ -15,41 +15,38 @@ from .. import Device,ioDeviceError
 from ...constants import DeviceConstants,EyeTrackerConstants
 import hw
 
-#noinspection PyUnusedLocal,PyTypeChecker
+
 class EyeTrackerDevice(Device):
     """
-    The EyeTrackerDevice class is the main class for the common eye tracker 
-    interface API built into ioHub.
+    The EyeTrackerDevice class is the main class for the ioHub Common
+    Eye Tracker interface.
 
-    The common eye tracker interface class is implemented for different
-    eye tracker models by creating a subclass of the EyeTrackerDevice class
-    and implementing the common eye tracker API components that can be supported
-    by the given eye tracking hardware. It is these sub classes of the
-    EyeTrackerDevice that are used to define which implementation of the 
-    common eye tracker interface is to be used during an experiment,
-    based on which eye tracker hardware you plan on using.
-
-    Not every eye tracker implementation of the Common Eye Tracker Interface
-    will support all of the interface functionality, however a core set of minimum
-    functionality is expected to be supported by all implementation. 
+    The Common Eye Tracker Interface--a set of common functions and methods
+    such that the same experiment script and data analyses can be shared,
+    used, and compared regardless of the actual eye tracker used--works by
+    extending the EyeTrackerDevice class to configure device monitoring and
+    data access to individual eye tracker manufacturers and models.
     
-    Methods in the EyeTrackerDevice class are broken down into several categories
-    within the EyeTracker class:
+    Not every EyeTrackerDevice subclass will support all of the umbrella functionality
+    within the Common Eye Tracker Interface, but a core set of critical functions are 
+    supported by all eye tracker models to date. Any Common Eye Tracker Interface
+    method not supported by the configured Eye Tracker hardware returns a constant
+    (EyeTrackerConstants.FUNCTIONALITY_NOT_SUPPORTED).
+    
+    Methods in the EyeTrackerDevice class are broken down into several categories:
 
-    #. Eye Tracker Initialization / State Setting.
-    #. Ability to Define the Graphics Layer for the Eye Tracker to Use During Calibration / System Setup.
+    #. Initializing the Eye Tracker / Setting the Device State.
+    #. Defining the Graphics Layer for Calibration / System Setup.
     #. Starting and Stopping of Data Recording.
-    #. Sending Synchronization messages or codes to the Eye Tracker.
+    #. Sending Messages or Codes to Synchronize the ioHub with the Eye Tracker.
     #. Accessing Eye Tracker Data During Recording.
-    #. Accessing the Eye Tracker Timebase.
-    #. Synchronizing the ioHub time base with the Eye Tracker time base, so Eye Tracker events can be provided with local time stamps when that is appropriate.
+    #. Accessing the Eye Tracker native time base.
+    #. Synchronizing the ioHub time base with the Eye Tracker time base
 
     .. note:: 
 
-        Only **one** instance of EyeTracker can be created within an experiment. Attempting to create > 1
-        instance will raise an exception. To get the current instance of the EyeTracker you can call the
-        class method EyeTracker.getInstance(); this is useful as it saves needing to pass an eyeTracker
-        instance variable around your code.
+        Only **one** instance of EyeTracker can be created within an experiment. 
+        Attempting to create > 1 instance will raise an exception.
     """
 
     # Used to hold the EyeTracker subclass instance to ensure only one instance of
@@ -57,7 +54,7 @@ class EyeTrackerDevice(Device):
     # all eye tracking hardware.
     _INSTANCE=None
     
-    # the multiplier needed to convert device times to sec.msec times.
+    #: The multiplier needed to convert a device's native time base to sec.msec-usec times.
     DEVICE_TIMEBASE_TO_SEC=1.0
 
     # Used by pyEyeTrackerDevice implementations to store relationships between an eye
@@ -97,7 +94,7 @@ class EyeTrackerDevice(Device):
         
     def trackerTime(self):
         """
-        trackerTime returns the current time eye tracker reported by the 
+        trackerTime returns the current time reported by the 
         eye tracker device. The time base is implementation dependent. 
         
         Args:
@@ -124,19 +121,21 @@ class EyeTrackerDevice(Device):
    
     def setConnectionState(self,enable):
         """
-        setConnectionState is used to connect ( setConnectionState(True) ) 
-        or disable ( setConnectionState(False) ) the connection of the ioHub 
-        to the eyetracker hardware.
+        setConnectionState either connects ( setConnectionState(True) ) 
+        or disables ( setConnectionState(False) ) active communication
+        between the ioHub and the Eye Tracker.
         
-        Note that a connection to the eye tracking hardware is automatically
-        openned when the ioHub Server process is started. So there is no need to
-        call this method at the start of your experiment. Doing so will have no
-        effect on the connection state.
+        .. note::
+            A connection to the Eye Tracker is automatically established
+            when the ioHub Process is initialized (based on the device settings
+            in the iohub_config.yaml), so there is no need to
+            explicitly call this method in the experiment script.
         
-        When an eye tracker device is connected to the ioHub it is **not** also recording
-        eye data and sending the data to the ioHub Server. To start actual eye data
-        recording, use the setRecordingState(bool) or device type independent
-        enableEventReporting(bool) methods to start and stop eye data recording.
+        .. note::
+            Connecting an Eye Tracker to the ioHub does **not** necessarily collect and send
+            eye sample data to the ioHub Process. To start actual data collection,
+            use the Eye Tracker method setRecordingState(bool) or the ioHub Device method (device type
+            independent) enableEventRecording(bool).
 
         Args:
             enable (bool): True = enable the connection, False = disable the connection.
@@ -149,8 +148,8 @@ class EyeTrackerDevice(Device):
             
     def isConnected(self):
         """
-        isConnected returns whether the EyeTrackerDevice is connected to the
-        eye tracker hardware or not. An eye tracker muct be connected to the ioHub 
+        isConnected returns whether the ioHub EyeTracker Device is connected to the
+        eye tracker hardware or not. An eye tracker must be connected to the ioHub 
         for any of the Common Eye Tracker Interface functionality to work.
         
         Args:
@@ -164,19 +163,18 @@ class EyeTrackerDevice(Device):
     def sendCommand(self, key, value=None):
         """
         The sendCommand method allows arbitrary *commands* or *requests* to be
-        issued to the eye tracker device. Valid values for the arguements of this 
-        method are completely implementation specific, so please refer to the 
+        issued to the eye tracker device. Valid values for the arguments of this 
+        method are completely implementation-specific, so please refer to the 
         eye tracker implentation page for the eye tracker being used for a list of 
-        valid key and value combinations (if any). 
+        valid key and value combinations (if any).
         
         In general, eye tracker implementations should **not** need to support 
         this method unless there is critical eye tracker functionality that is 
-        not accessable using the other methods in the EyeTrackerDevice class.
+        not accessible using the other methods in the EyeTrackerDevice class.
         
         Args:
             key (str): the command or function name that should be run.
             value (object): the (optional) value associated with the key. 
-
 
         Return:
             object: the result of the command call
@@ -205,10 +203,12 @@ class EyeTrackerDevice(Device):
         timing precision (variability) should be provided in the eye tracker's 
         implementation notes.
         
-        Note that if using the ioDataStore to save the eye tracker data, the use of 
-        this method is quite optional, and instead Experiment Device Message Events
-        should be used instead, as they are stored in the ioDataSTore along with all event
-        information for post hoc use.
+        .. note::
+            If using the ioDataStore to save the eye tracker data, the use of 
+            this method is quite optional, as Experiment Device Message Events
+            will likely be preferred. ioHub Message Events are stored in the ioDataStore,
+            alongside all other device data collected via the ioHub, and not 
+            in the native eye tracker data.
 
         Args:
            message_contents (str): 
@@ -235,12 +235,20 @@ class EyeTrackerDevice(Device):
     
     def runSetupProcedure(self, starting_state=EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE):
         """
-        The runSetupProcedure allows the eye tracker interface to perform 
-        such things as participant placement validation, camera setup, calibration,
-        and validation type activities. The details of what this method does exactly
-        is implementation specific. This is a blocking call for the experiment process
-        and will not return until the necessary steps have been done so that the
-        eye tracker is ready to start collecting eye data when the method returns.
+        The runSetupProcedure is a generic method for performing Eye Tracker-specific
+        online configurations, such as:
+        
+        #. Participant placement validation
+        #. Camera setup
+        #. Calibration and validation
+        
+        The details of this method are implementation-specific. 
+        
+        .. note::
+            This is a blocking call for the PsychoPy Process
+            and will not return to the experiment script until the necessary steps 
+            have been completed so that the eye tracker is ready to start collecting 
+            eye sample data when the method returns.
         
         Args: 
             None
@@ -288,7 +296,8 @@ class EyeTrackerDevice(Device):
     def setRecordingState(self,recording):
         """
         The setRecordingState method is used to start or stop the recording 
-        and transmition of eye data from the eye tracking device.
+        and transmition of eye data from the eye tracking device to the ioHub
+        Process.
         
         Args:
             recording (bool): if True, the eye tracker will start recordng data.; false = stop recording data.
@@ -310,7 +319,7 @@ class EyeTrackerDevice(Device):
     def isRecordingEnabled(self):
         """
         The isRecordingEnabled method indicates if the eye tracker device is currently
-        recording data or not. 
+        recording data. 
    
         Args:
            None
@@ -329,8 +338,9 @@ class EyeTrackerDevice(Device):
         
     def getLastSample(self):
         """
-        The getLastSample method returns the most recent ioHub sample event available.
-        The eye tracker must be recording data for a sample event to be returned, otherwise None is returned.
+        The getLastSample method returns the most recent eye sample received from the Eye Tracker.
+        The Eye Tracker must be in a recording state for a sample event to be returned, 
+        otherwise None is returned.
 
         Args: 
             None
@@ -350,9 +360,9 @@ class EyeTrackerDevice(Device):
     def getLastGazePosition(self):
         """
         The getLastGazePosition method returns the most recent eye gaze position
-        retieved from the eye tracker device. This is the position on the 
+        received from the Eye Tracker. This is the position on the 
         calibrated 2D surface that the eye tracker is reporting as the current
-        eye position. The units are in the units in use by the Display device. 
+        eye position. The units are in the units in use by the ioHub Display device. 
         
         If binocular recording is being performed, the average position of both
         eyes is returned. 
@@ -375,9 +385,9 @@ class EyeTrackerDevice(Device):
 
     def _eyeTrackerToDisplayCoords(self,eyetracker_point):
         """
-        The _eyeTrackerToDisplayCoords method must be used by an eye trackers implementation
-        of the Common Eye Tracker Interface to convert eye trackers coordinate space
-        to the ioHub.devices.Display coordinate space being used. 
+        The _eyeTrackerToDisplayCoords method is required for implementation
+        of the Common Eye Tracker Interface in order to convert the native Eye Tracker coordinate space
+        to the ioHub.devices.Display coordinate space being used in the PsychoPy experiment. 
         Any screen based coordinates that exist in the data provided to the ioHub 
         by the device implementation must use this method to
         convert the x,y eye tracker point to the correct coordinate space.

@@ -21,13 +21,21 @@ class EyeTrackerEvent(DeviceEvent):
 
 class MonocularEyeSampleEvent(EyeTrackerEvent):
     """
-    A MonocularEyeSampleEvent represents the eye position and eye attribute data collected from one frame or reading
-    of an eye tracker device that is recoding from only one eye, or is recording from both eyes and averaging the
-    binocular data. The eye sample class contains a large number of attributes to try and accommodate for
-    the different field types different eye trackers report at a sample level. therefore it will not be
-    uncommon for a given eye tracker implementation to provide a NOT_SUPPORTED_FIELD value for many attributes.
+    A MonocularEyeSampleEvent represents the eye position and eye attribute data
+    collected from one frame or reading of an eye tracker device that is recoding
+    from only one eye, or is recording from both eyes and averaging the
+    binocular data. The eye sample class contains a large number of attributes 
+    to try and accommodate for the different field types different eye trackers
+    report at a sample level. Therefore it will not be uncommon for a given 
+    eye tracker implementation to provide a NOT_SUPPORTED_FIELD value 
+    for many attributes.
 
-    Please refer to the implementation specific documentation for the eye tracker of interest for more details.
+    Please refer to the implementation specific documentation for the eye tracker
+    of interest for more details.
+    
+    Event Type ID: EventConstants.MONOCULAR_EYE_SAMPLE
+    
+    Event Type String: 'MONOCULAR_EYE_SAMPLE'    
     """
     _newDataTypes = [
         ('eye', 'u1'),      # The eye type that the sample is from. Valid values are:
@@ -127,9 +135,12 @@ class MonocularEyeSampleEvent(EyeTrackerEvent):
     __slots__=[e[0] for e in _newDataTypes]
     def __init__(self, *args, **kwargs):
         #: The eye type that the sample is from. Valid values are:
-        #: EyeTrackerConstants.LEFT_EYE
-        #: EyeTrackerConstants.RIGHT_EYE
-        #: EyeTrackerConstants.BINOCULAR_AVERAGED
+        #: 
+        #: * EyeTrackerConstants.LEFT_EYE
+        #: * EyeTrackerConstants.RIGHT_EYE
+        #: * EyeTrackerConstants.BINOCULAR_AVERAGED
+        #: * EyeTrackerConstants.UNKNOWN_MONOCULAR
+        #: * EyeTrackerConstants.SIMULATED_MONOCULAR      
         self.eye=None   
         
         #: The calibrated horizontal eye position on the calibration plane.
@@ -140,7 +151,7 @@ class MonocularEyeSampleEvent(EyeTrackerEvent):
         #: This value is specified in Display Coordinate Type Units.
         self.gaze_y=None
 
-        #: The calculated point of gaze in depth. Generally  This can only be
+        #: The calculated point of gaze in depth. Generally this can only be
         #: provided if binocular reporting is being performed.
         self.gaze_z=None
         
@@ -169,16 +180,16 @@ class MonocularEyeSampleEvent(EyeTrackerEvent):
         self.angle_y=None
 
         #: The non-calibrated x position of the calculated eye 'center'
-        #: on the camera sensor image,
-        #: factoring in any corneal reflection adjustments.
+        #: on the camera sensor image, factoring in any corneal reflection 
+        #: or other low level adjustments.
         #: This is typically reported in some arbitrary unit space that
         #: often has sub-pixel resolution due to image processing techniques
         #: being applied.
         self.raw_x=None
 
         #: The non-calibrated y position of the calculated eye 'center'
-        #: on the camera sensor image,
-        #: factoring in any corneal reflection adjustments.
+        #: on the camera sensor image, factoring in any corneal reflection 
+        #: or other low level adjustments.
         #: This is typically reported in some arbitrary unit space that
         #: often has sub-pixel resolution due to image processing techniques
         #: being applied.
@@ -190,12 +201,17 @@ class MonocularEyeSampleEvent(EyeTrackerEvent):
 
         #: The type of pupil size or shape information provided in the pupil_measure1
         #: attribute. Several possible pupil_measure types available:
-        #: EyeTrackerConstants.PUPIL_AREA
-        #: EyeTrackerConstants.PUPIL_DIAMETER
-        #: EyeTrackerConstants.PUPIL_WIDTH
-        #: EyeTrackerConstants.PUPIL_HEIGHT
-        #: EyeTrackerConstants.PUPIL_MAJOR_AXIS
-        #: EyeTrackerConstants.PUPIL_MINOR_AXIS
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
         self.pupil_measure1_type=None
 
         #: A second measure related to pupil size or diameter. The attribute
@@ -204,12 +220,17 @@ class MonocularEyeSampleEvent(EyeTrackerEvent):
 
         #: The type of pupil size or shape information provided in the pupil_measure2
         #: attribute. Several possible pupil_measure types available:
-        #: EyeTrackerConstants.PUPIL_AREA
-        #: EyeTrackerConstants.PUPIL_DIAMETER
-        #: EyeTrackerConstants.PUPIL_WIDTH
-        #: EyeTrackerConstants.PUPIL_HEIGHT
-        #: EyeTrackerConstants.PUPIL_MAJOR_AXIS
-        #: EyeTrackerConstants.PUPIL_MINOR_AXIS
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
         self.pupil_measure2_type=None
 
         #: Horizontal pixels per visual degree for this eye position
@@ -298,6 +319,233 @@ class BinocularEyeSampleEvent(EyeTrackerEvent):
 
     __slots__=[e[0] for e in _newDataTypes]
     def __init__(self,*args,**kwargs):
+        
+        #: The calibrated horizontal left eye position on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.left_gaze_x=None
+
+        #: The calibrated vertical left eye position on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.left_gaze_y=None
+
+        #: The calculated point of gaze in depth. Generally this can only be
+        #: provided if binocular reporting is being performed.
+        self.left_gaze_z=None
+        
+        #: The x left eye position in an eye trackers 3D coordinate space.
+        #: Generally this field is only available by systems that are also
+        #: calculating eye data using a 3D model of eye position relative to
+        #: the eye camera(s) for example.
+        self.left_eye_cam_x=None 
+
+        #: The y left eye position in an eye trackers 3D coordinate space.
+        #: Generally this field is only available by systems that are also
+        #: calculating eye data using a 3D model of eye position relative to
+        #: the eye camera(s) for example.
+        self.left_eye_cam_y=None
+
+        #: The z left eye position in an eye trackers 3D coordinate space.
+        #: Generally this field is only available by systems that are also
+        #: calculating eye data using a 3D model of eye position relative to
+        #: the eye camera(s) for example.
+        self.left_eye_cam_z=None
+
+        #: The horizontal angle of left eye the relative to the head.
+        self.left_angle_x=None
+
+        #: The vertical angle of left eye the relative to the head.
+        self.left_angle_y=None
+
+        #: The non-calibrated x position of the calculated left eye 'center'
+        #: on the camera sensor image,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.left_raw_x=None
+
+        #: The non-calibrated y position of the calculated left eye 'center'
+        #: on the camera sensor image,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.left_raw_y=None
+
+        #: A measure related to left pupil size or diameter. The attribute
+        #: pupil_measure1_type defines what type the measure represents.
+        self.left_pupil_measure1=None
+
+        #: The type of left pupil size or shape information provided in the pupil_measure1
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
+        self.left_pupil_measure1_type=None
+
+        #: A second measure related to left pupil size or diameter. The attribute
+        #: pupil_measure2_type defines what type the measure represents.
+        self.left_pupil_measure2=None
+
+        #: The type of left pupil size or shape information provided in the pupil_measure2
+        #: attribute. Several possible pupil_measure types available:
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
+        self.left_pupil_measure2_type=None
+
+        #: Horizontal pixels per visual degree for this left eye position
+        #: as reported by the eye tracker.
+        self.left_ppd_x=None
+
+        #: Vertical pixels per visual degree for this left eye position
+        #: as reported by the eye tracker.
+        self.left_ppd_y=None
+
+        #: Horizontal velocity of the left eye at the time of the sample;
+        #: as reported by the eye tracker.
+        self.left_velocity_x=None
+
+        #: Vertical velocity of the left eye at the time of the sample;
+        #: as reported by the eye tracker.
+        self.left_velocity_y=None
+
+        #: 2D Velocity of the left eye at the time of the sample;
+        #: as reported by the eye tracker.
+        self.left_velocity_xy=None 
+
+        #: The calibrated horizontal right eye position on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.right_gaze_x=None
+
+        #: The calibrated vertical right eye position on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.right_gaze_y=None
+
+        #: The calculated point of gaze in depth. Generally this can only be
+        #: provided if binocular reporting is being performed.
+        self.right_gaze_z=None
+        
+        #: The x right eye position in an eye trackers 3D coordinate space.
+        #: Generally this field is only available by systems that are also
+        #: calculating eye data using a 3D model of eye position relative to
+        #: the eye camera(s) for example.
+        self.right_eye_cam_x=None 
+
+        #: The y right eye position in an eye trackers 3D coordinate space.
+        #: Generally this field is only available by systems that are also
+        #: calculating eye data using a 3D model of eye position relative to
+        #: the eye camera(s) for example.
+        self.right_eye_cam_y=None
+
+        #: The z right eye position in an eye trackers 3D coordinate space.
+        #: Generally this field is only available by systems that are also
+        #: calculating eye data using a 3D model of eye position relative to
+        #: the eye camera(s) for example.
+        self.right_eye_cam_z=None
+
+        #: The horizontal angle of right eye the relative to the head.
+        self.right_angle_x=None
+
+        #: The vertical angle of right eye the relative to the head.
+        self.right_angle_y=None
+
+        #: The non-calibrated x position of the calculated right eye 'center'
+        #: on the camera sensor image,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.right_raw_x=None
+
+        #: The non-calibrated y position of the calculated right eye 'center'
+        #: on the camera sensor image,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.right_raw_y=None
+
+        #: A measure related to right pupil size or diameter. The attribute
+        #: pupil_measure1_type defines what type the measure represents.
+        self.right_pupil_measure1=None
+
+        #: The type of right pupil size or shape information provided in the pupil_measure1
+        #: attribute. Several possible pupil_measure types available:
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
+        self.right_pupil_measure1_type=None
+
+        #: A second measure related to right pupil size or diameter. The attribute
+        #: pupil_measure2_type defines what type the measure represents.
+        self.right_pupil_measure2=None
+
+        #: The type of right pupil size or shape information provided in the pupil_measure2
+        #: attribute. Several possible pupil_measure types available:
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
+        self.right_pupil_measure2_type=None
+
+        #: Horizontal pixels per visual degree for this right eye position
+        #: as reported by the eye tracker.
+        self.right_ppd_x=None
+
+        #: Vertical pixels per visual degree for this right eye position
+        #: as reported by the eye tracker.
+        self.right_ppd_y=None
+
+        #: Horizontal velocity of the right eye at the time of the sample;
+        #: as reported by the eye tracker.
+        self.right_velocity_x=None
+
+        #: Vertical velocity of the right eye at the time of the sample;
+        #: as reported by the eye tracker.
+        self.right_velocity_y=None
+
+        #: 2D Velocity of the right eye at the time of the sample;
+        #: as reported by the eye tracker.
+        self.right_velocity_xy=None 
+
+        #: An available status byte for the eye tracker sample.
+        #: Meaning is completely tracker dependent.        
+        self.status=None
 
         DeviceEvent.__init__(self,*args,**kwargs)
 
@@ -394,6 +642,111 @@ class FixationStartEvent(EyeTrackerEvent):
 
     __slots__=[e[0] for e in _newDataTypes]
     def __init__(self, *args, **kwargs):
+        
+        #: The eye type that the event is from. Valid values are:
+        #: EyeTrackerConstants.LEFT_EYE
+        #: EyeTrackerConstants.RIGHT_EYE
+        #: EyeTrackerConstants.UNKNOWN_MONOCULAR
+        #: EyeTrackerConstants.SIMULATED_MONOCULAR      
+        self.eye=None   
+        
+        #: The calibrated horizontal eye position at the start of the eye event 
+        #: on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.gaze_x=None
+
+        #: The calibrated vertical eye position at the start of the eye event on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.gaze_y=None
+
+        #: The calculated point of gaze in depth at the start of the eye event. Generally this can only be
+        #: provided if binocular reporting is being performed.
+        self.gaze_z=None
+        
+        #: The horizontal angle of eye the relative to the head at the start of the eye event.
+        self.angle_x=None
+
+        #: The vertical angle of eye the relative to the head at the start of the eye event.
+        self.angle_y=None
+
+        #: The non-calibrated x position of the calculated eye 'center'
+        #: on the camera sensor image at the start of the eye event,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.raw_x=None
+
+        #: The non-calibrated y position of the calculated eye 'center'
+        #: on the camera sensor image at the start of the eye event,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.raw_y=None
+
+        #: A measure related to pupil size or diameter at the start of the eye event. 
+        #: The attribute pupil_measure1_type defines what type the measure represents.
+        self.pupil_measure1=None
+
+        #: The type of pupil size or shape information provided in the pupil_measure1
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
+        self.pupil_measure1_type=None
+
+        #: A second measure related to pupil size or diameter at the start of the eye event. 
+        #: The attribute pupil_measure2_type defines what type the measure represents.
+        self.pupil_measure2=None
+
+        #: The type of pupil size or shape information provided in the pupil_measure2
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
+        self.pupil_measure2_type=None
+
+        #: Horizontal pixels per visual degree for this eye position at the start of the eye event
+        #: as reported by the eye tracker.
+        self.ppd_x=None
+
+        #: Vertical pixels per visual degree for this eye position at the start of the eye event
+        #: as reported by the eye tracker.
+        self.ppd_y=None
+
+        #: Horizontal velocity of the eye at the start of the eye event;
+        #: as reported by the eye tracker.
+        self.velocity_x=None
+
+        #: Vertical velocity of the eye at the start of the eye event;
+        #: as reported by the eye tracker.
+        self.velocity_y=None
+
+        #: 2D Velocity of the eye at the start of the eye event;
+        #: as reported by the eye tracker.
+        self.velocity_xy=None 
+
+        #: An available status byte for the eye tracker event.
+        #: Meaning or use is completely tracker dependent.        
+        self.status=None
+
         DeviceEvent.__init__(self, *args, **kwargs)
 
        
@@ -462,6 +815,302 @@ class FixationEndEvent(EyeTrackerEvent):
 
     __slots__=[e[0] for e in _newDataTypes]
     def __init__(self,*args,**kwargs):
+
+        #: The eye type that the event is from. Valid values are:
+        #: EyeTrackerConstants.LEFT_EYE
+        #: EyeTrackerConstants.RIGHT_EYE
+        #: EyeTrackerConstants.UNKNOWN_MONOCULAR
+        #: EyeTrackerConstants.SIMULATED_MONOCULAR      
+        self.eye=None   
+
+        #: The calculated duration of the Eye event in sec.msec-usec
+        #: format.
+        self.duration=None
+        
+        #: The calibrated horizontal eye position at the start of the eye event 
+        #: on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.start_gaze_x=None
+
+        #: The calibrated vertical eye position at the start of the eye event on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.start_gaze_y=None
+
+        #: The calculated point of gaze in depth at the start of the eye event. Generally this can only be
+        #: provided if binocular reporting is being performed.
+        self.start_gaze_z=None
+        
+        #: The horizontal angle of eye the relative to the head at the start of the eye event.
+        self.start_angle_x=None
+
+        #: The vertical angle of eye the relative to the head at the start of the eye event.
+        self.start_angle_y=None
+
+        #: The non-calibrated x position of the calculated eye 'center'
+        #: on the camera sensor image at the start of the eye event,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.start_raw_x=None
+
+        #: The non-calibrated y position of the calculated eye 'center'
+        #: on the camera sensor image at the start of the eye event,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.start_raw_y=None
+
+        #: A measure related to pupil size or diameter at the start of the eye event. 
+        #: The attribute pupil_measure1_type defines what type the measure represents.
+        self.start_pupil_measure1=None
+
+        #: The type of pupil size or shape information provided in the pupil_measure1
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
+        self.start_pupil_measure1_type=None
+
+        #: A second measure related to pupil size or diameter at the start of the eye event. 
+        #: The attribute pupil_measure2_type defines what type the measure represents.
+        self.start_pupil_measure2=None
+
+        #: The type of pupil size or shape information provided in the pupil_measure2
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
+        self.start_pupil_measure2_type=None
+
+        #: Horizontal pixels per visual degree for this eye position at the start of the eye event
+        #: as reported by the eye tracker.
+        self.start_ppd_x=None
+
+        #: Vertical pixels per visual degree for this eye position at the start of the eye event
+        #: as reported by the eye tracker.
+        self.start_ppd_y=None
+
+        #: Horizontal velocity of the eye at the start of the eye event;
+        #: as reported by the eye tracker.
+        self.start_velocity_x=None
+
+        #: Vertical velocity of the eye at the start of the eye event;
+        #: as reported by the eye tracker.
+        self.start_velocity_y=None
+
+        #: 2D Velocity of the eye at the start of the eye event;
+        #: as reported by the eye tracker.
+        self.start_velocity_xy=None 
+
+        #: The calibrated horizontal eye position at the end of the eye event 
+        #: on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.end_gaze_x=None
+
+        #: The calibrated vertical eye position at the end of the eye event on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.end_gaze_y=None
+
+        #: The calculated point of gaze in depth at the end of the eye event. Generally this can only be
+        #: provided if binocular reporting is being performed.
+        self.end_gaze_z=None
+        
+        #: The horizontal angle of eye the relative to the head at the end of the eye event.
+        self.end_angle_x=None
+
+        #: The vertical angle of eye the relative to the head at the end of the eye event.
+        self.end_angle_y=None
+
+        #: The non-calibrated x position of the calculated eye 'center'
+        #: on the camera sensor image at the end of the eye event,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.end_raw_x=None
+
+        #: The non-calibrated y position of the calculated eye 'center'
+        #: on the camera sensor image at the end of the eye event,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.end_raw_y=None
+
+        #: A measure related to pupil size or diameter at the end of the eye event. 
+        #: The attribute pupil_measure1_type defines what type the measure represents.
+        self.end_pupil_measure1=None
+
+        #: The type of pupil size or shape information provided in the pupil_measure1
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
+        self.end_pupil_measure1_type=None
+
+        #: A second measure related to pupil size or diameter at the end of the eye event. 
+        #: The attribute pupil_measure2_type defines what type the measure represents.
+        self.end_pupil_measure2=None
+
+        #: The type of pupil size or shape information provided in the pupil_measure2
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
+        self.end_pupil_measure2_type=None
+
+        #: Horizontal pixels per visual degree for this eye position at the end of the eye event
+        #: as reported by the eye tracker.
+        self.end_ppd_x=None
+
+        #: Vertical pixels per visual degree for this eye position at the end of the eye event
+        #: as reported by the eye tracker.
+        self.end_ppd_y=None
+
+        #: Horizontal velocity of the eye at the end of the eye event;
+        #: as reported by the eye tracker.
+        self.end_velocity_x=None
+
+        #: Vertical velocity of the eye at the end of the eye event;
+        #: as reported by the eye tracker.
+        self.end_velocity_y=None
+
+        #: 2D Velocity of the eye at the end of the eye event;
+        #: as reported by the eye tracker.
+        self.end_velocity_xy=None 
+
+        #: Average calibrated horizontal eye position during the eye event 
+        #: on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.average_gaze_x=None
+
+        #: Average calibrated vertical eye position during the eye event on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.average_gaze_y=None
+
+        #: Average calculated point of gaze in depth during the eye event. Generally this can only be
+        #: provided if binocular reporting is being performed.
+        self.average_gaze_z=None
+        
+        #: Average horizontal angle of eye the relative to the head during the eye event.
+        self.average_angle_x=None
+
+        #: Average vertical angle of eye the relative to the head during the eye event.
+        self.average_angle_y=None
+
+        #: Average non-calibrated x position of the calculated eye 'center'
+        #: on the camera sensor image during the eye event,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.average_raw_x=None
+
+        #: The average non-calibrated y position of the calculated eye 'center'
+        #: on the camera sensor image during the eye event,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.average_raw_y=None
+
+        #: A measure related to average pupil size or diameter during the eye event. 
+        #: The attribute pupil_measure1_type defines what type the measure represents.
+        self.average_pupil_measure1=None
+
+        #: The type of pupil size or shape information provided in the pupil_measure1
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
+        self.average_pupil_measure1_type=None
+
+        #: A second measure related to average pupil size or diameter during the eye event. 
+        #: The attribute pupil_measure2_type defines what type the measure represents.
+        self.average_pupil_measure2=None
+
+        #: The type of pupil size or shape information provided in the pupil_measure2
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
+        self.average_pupil_measure2_type=None
+
+        #: Average Horizontal pixels per visual degree for this eye position during the eye event
+        #: as reported by the eye tracker.
+        self.average_ppd_x=None
+
+        #: Average Vertical pixels per visual degree for this eye position during the eye event
+        #: as reported by the eye tracker.
+        self.average_ppd_y=None
+
+        #: Average Horizontal velocity of the eye during the eye event;
+        #: as reported by the eye tracker.
+        self.average_velocity_x=None
+
+        #: Average Vertical velocity of the eye during the eye event;
+        #: as reported by the eye tracker.
+        self.average_velocity_y=None
+
+        #: Average 2D Velocity of the eye at the during the eye event;
+        #: as reported by the eye tracker.
+        self.average_velocity_xy=None 
+
+
+        #: An available status byte for the eye tracker event.
+        #: Meaning or use is completely tracker dependent.        
+        self.status=None
+
         DeviceEvent.__init__(self,*args,**kwargs)
  
 
@@ -530,6 +1179,241 @@ class SaccadeEndEvent(EyeTrackerEvent):
 
     __slots__=[e[0] for e in _newDataTypes]
     def __init__(self,*args,**kwargs):
+
+        #: The eye type that the event is from. Valid values are:
+        #: EyeTrackerConstants.LEFT_EYE
+        #: EyeTrackerConstants.RIGHT_EYE
+        #: EyeTrackerConstants.UNKNOWN_MONOCULAR
+        #: EyeTrackerConstants.SIMULATED_MONOCULAR      
+        self.eye=None   
+
+        #: The calculated duration of the Eye event in sec.msec-usec
+        #: format.
+        self.duration=None
+        
+        #: The amplitude of the Saccade in the horizonatal direction.
+        #: Usually specified in visual degrees.
+        self.amplitude_x
+
+        #: The amplitude of the Saccade in the vertical direction.
+        #: Usually specified in visual degrees.
+        self.amplitude_y
+        
+        
+        #: The angle of the Saccade based on the start and end gaze positions.
+        #: Usually specified in degrees.
+        self.angle
+
+        #: The calibrated horizontal eye position at the start of the eye event 
+        #: on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.start_gaze_x=None
+
+        #: The calibrated vertical eye position at the start of the eye event on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.start_gaze_y=None
+
+        #: The calculated point of gaze in depth at the start of the eye event. Generally this can only be
+        #: provided if binocular reporting is being performed.
+        self.start_gaze_z=None
+        
+        #: The horizontal angle of eye the relative to the head at the start of the eye event.
+        self.start_angle_x=None
+
+        #: The vertical angle of eye the relative to the head at the start of the eye event.
+        self.start_angle_y=None
+
+        #: The non-calibrated x position of the calculated eye 'center'
+        #: on the camera sensor image at the start of the eye event,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.start_raw_x=None
+
+        #: The non-calibrated y position of the calculated eye 'center'
+        #: on the camera sensor image at the start of the eye event,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.start_raw_y=None
+
+        #: A measure related to pupil size or diameter at the start of the eye event. 
+        #: The attribute pupil_measure1_type defines what type the measure represents.
+        self.start_pupil_measure1=None
+
+        #: The type of pupil size or shape information provided in the pupil_measure1
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
+        self.start_pupil_measure1_type=None
+
+        #: A second measure related to pupil size or diameter at the start of the eye event. 
+        #: The attribute pupil_measure2_type defines what type the measure represents.
+        self.start_pupil_measure2=None
+
+        #: The type of pupil size or shape information provided in the pupil_measure2
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
+        self.start_pupil_measure2_type=None
+
+        #: Horizontal pixels per visual degree for this eye position at the start of the eye event
+        #: as reported by the eye tracker.
+        self.start_ppd_x=None
+
+        #: Vertical pixels per visual degree for this eye position at the start of the eye event
+        #: as reported by the eye tracker.
+        self.start_ppd_y=None
+
+        #: Horizontal velocity of the eye at the start of the eye event;
+        #: as reported by the eye tracker.
+        self.start_velocity_x=None
+
+        #: Vertical velocity of the eye at the start of the eye event;
+        #: as reported by the eye tracker.
+        self.start_velocity_y=None
+
+        #: The calibrated horizontal eye position at the end of the eye event 
+        #: on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.end_gaze_x=None
+
+        #: The calibrated vertical eye position at the end of the eye event on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.end_gaze_y=None
+
+        #: The calculated point of gaze in depth at the end of the eye event. Generally this can only be
+        #: provided if binocular reporting is being performed.
+        self.end_gaze_z=None
+        
+        #: The horizontal angle of eye the relative to the head at the end of the eye event.
+        self.end_angle_x=None
+
+        #: The vertical angle of eye the relative to the head at the end of the eye event.
+        self.end_angle_y=None
+
+        #: The non-calibrated x position of the calculated eye 'center'
+        #: on the camera sensor image at the end of the eye event,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.end_raw_x=None
+
+        #: The non-calibrated y position of the calculated eye 'center'
+        #: on the camera sensor image at the end of the eye event,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.end_raw_y=None
+
+        #: A measure related to pupil size or diameter at the end of the eye event. 
+        #: The attribute pupil_measure1_type defines what type the measure represents.
+        self.end_pupil_measure1=None
+
+        #: The type of pupil size or shape information provided in the pupil_measure1
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
+        self.end_pupil_measure1_type=None
+
+        #: A second measure related to pupil size or diameter at the end of the eye event. 
+        #: The attribute pupil_measure2_type defines what type the measure represents.
+        self.end_pupil_measure2=None
+
+        #: The type of pupil size or shape information provided in the pupil_measure2
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_AREA
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        #: * EyeTrackerConstants.PUPIL_AREA_MM
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        #: * EyeTrackerConstants.PUPIL_WIDTH
+        #: * EyeTrackerConstants.PUPIL_HEIGHT
+        #: * EyeTrackerConstants.PUPIL_WIDTH_MM
+        #: * EyeTrackerConstants.PUPIL_HEIGHT_MM
+        #: * EyeTrackerConstants.PUPIL_MAJOR_AXIS
+        #: * EyeTrackerConstants.PUPIL_MINOR_AXIS
+        self.end_pupil_measure2_type=None
+
+        #: Horizontal pixels per visual degree for this eye position at the end of the eye event
+        #: as reported by the eye tracker.
+        self.end_ppd_x=None
+
+        #: Vertical pixels per visual degree for this eye position at the end of the eye event
+        #: as reported by the eye tracker.
+        self.end_ppd_y=None
+
+        #: Horizontal velocity of the eye at the end of the eye event;
+        #: as reported by the eye tracker.
+        self.end_velocity_x=None
+
+        #: Vertical velocity of the eye at the end of the eye event;
+        #: as reported by the eye tracker.
+        self.end_velocity_y=None
+
+        #: 2D Velocity of the eye at the end of the eye event;
+        #: as reported by the eye tracker.
+        self.end_velocity_xy=None 
+
+        #: Average Horizontal velocity of the eye during the eye event;
+        #: as reported by the eye tracker.
+        self.average_velocity_x=None
+
+        #: Average Vertical velocity of the eye during the eye event;
+        #: as reported by the eye tracker.
+        self.average_velocity_y=None
+
+        #: Average 2D Velocity of the eye at the during the eye event;
+        #: as reported by the eye tracker.
+        self.average_velocity_xy=None 
+
+        #: Peak Horizontal velocity of the eye during the eye event;
+        #: as reported by the eye tracker.
+        self.peak_velocity_x=None
+
+        #: Peak Vertical velocity of the eye during the eye event;
+        #: as reported by the eye tracker.
+        self.peak_velocity_y=None
+
+        #: Peak 2D Velocity of the eye at the during the eye event;
+        #: as reported by the eye tracker.
+        self.peak_velocity_xy=None 
+
+        #: An available status byte for the eye tracker event.
+        #: Meaning or use is completely tracker dependent.        
+        self.status=None
+
         DeviceEvent.__init__(self,*args,**kwargs)
 
 
@@ -554,6 +1438,18 @@ class BlinkStartEvent(EyeTrackerEvent):
     IOHUB_DATA_TABLE=EVENT_TYPE_STRING
 
     def __init__(self,*args,**kwargs):
+
+        #: The eye type that the event is from. Valid values are:
+        #: EyeTrackerConstants.LEFT_EYE
+        #: EyeTrackerConstants.RIGHT_EYE
+        #: EyeTrackerConstants.UNKNOWN_MONOCULAR
+        #: EyeTrackerConstants.SIMULATED_MONOCULAR      
+        self.eye=None   
+
+        #: An available status byte for the eye tracker event.
+        #: Meaning or use is completely tracker dependent.        
+        self.status=None
+
         DeviceEvent.__init__(self,*args,**kwargs)
 
 class BlinkEndEvent(EyeTrackerEvent):
@@ -577,4 +1473,20 @@ class BlinkEndEvent(EyeTrackerEvent):
 
     __slots__=[e[0] for e in _newDataTypes]
     def __init__(self,*args,**kwargs):
+
+        #: The eye type that the event is from. Valid values are:
+        #: EyeTrackerConstants.LEFT_EYE
+        #: EyeTrackerConstants.RIGHT_EYE
+        #: EyeTrackerConstants.UNKNOWN_MONOCULAR
+        #: EyeTrackerConstants.SIMULATED_MONOCULAR      
+        self.eye=None   
+        
+        #: The calculated duration of the Eye event in sec.msec-usec
+        #: format.
+        self.duration=None
+        
+        #: An available status byte for the eye tracker event.
+        #: Meaning or use is completely tracker dependent.        
+        self.status=None
+
         DeviceEvent.__init__(self,*args,**kwargs)

@@ -26,8 +26,23 @@ currentSec=Computer.currentSec
 class MouseDevice(Device):
     """
     The Mouse class represents a standard USB or PS2 mouse device that has up to 
-    three buttons and an optional scroll wheel (1D on Windows and Linux, 2D on OSX). Mouse position data is 
-    mapped to the coordinate space defined in the ioHub configuration file for the Display.
+    three buttons and an optional scroll wheel (1D on Windows and Linux, 2D on OSX). 
+    
+    Mouse position data is mapped to the coordinate space defined in the ioHub 
+    configuration file for the Display index specified. If the mouse is on a 
+    display other than the PsychoPy full screen window Display, then positional
+    data is returned using the OS desktop pixel bounds for the given display.
+    
+    ..note:: The Mouse device only supports multiple monitor computer setups
+            on Windows at this time. Other OS's are supported if only a single
+            monitor is attached to the computer, or if the primary monitor
+            (monitor index 0) is used for the Full Screen PsychoPy Window.
+            
+            Essentially, the consideration of the monitor the mouse is currently 
+            over is assumed to be index 0 on Linux and OSX and the
+            logic for translating Mouse position information assumes that 
+            only one monitor is present at this time.
+            
     """
     EVENT_CLASS_NAMES=['MouseInputEvent','MouseButtonEvent','MouseScrollEvent',
                        'MouseMoveEvent', 'MouseDragEvent','MouseButtonPressEvent','MouseButtonReleaseEvent',
@@ -57,31 +72,43 @@ class MouseDevice(Device):
         
     def getSystemCursorVisibility(self):
         """
-        Returns whether the system cursor is visible on the currently active Window.
+        Returns whether the system cursor is visible when within the physical 
+        Display represented by the ioHub Display Device.
         
         Args: 
             None
             
         Returns: 
-            bool: True if system cursor is visible on currently active Window. False otherwise.
+            bool: True if system cursor is visible when within the ioHub Display Device being used. False otherwise.
         """
         return self._nativeGetSystemCursorVisibility()
  
     def setSystemCursorVisibility(self,v):
         """
-        Set whether the system cursor is visible on the currently active Window.
+        Sets whether the system cursor is visible when within the physical 
+        Display represented by the ioHub Display Device.
         
         Args:
-            v (bool): True = make system cursor visible. False = Hide system cursor
+            v (bool): True = Make system cursor visible. False = Hide system cursor
         
         Returns:
-            (bool): True if system cursor is visible on currently active Window. False otherwise.
+            (bool): True if system cursor is visible. False otherwise.
 
         """
         self._nativeSetSystemCursorVisibility(v)
         return self.getSystemCursorVisibility()
 
     def getCurrentButtonStates(self):
+        """
+        Returns a list of three booleans, representing the current state of the
+        MOUSE_BUTTON_LEFT, MOUSE_BUTTON_MIDDLE, MOUSE_BUTTON_RIGHT ioHub Mouse Device.
+        
+        Args: 
+            None
+
+        Returns:
+            (left_pressed, middle_pressed, right_pressed): Each element is True if the associated mouse button is pressed, False otherwise.
+        """
         return (self.activeButtons[MouseConstants.MOUSE_BUTTON_LEFT]!=0,
                 self.activeButtons[MouseConstants.MOUSE_BUTTON_MIDDLE]!=0,
                 self.activeButtons[MouseConstants.MOUSE_BUTTON_RIGHT]!=0)
@@ -114,7 +141,7 @@ class MouseDevice(Device):
         coordinate units, with 0,0 being the center of the screen.
 
         Args: 
-            return_display_index: if True, the display index that is associated with the mouse position will also be returned.
+            return_display_index: If True, the display index that is associated with the mouse position will also be returned.
             
         Returns:
             tuple: If return_display_index is false (default), return (x,y) position of mouse. If return_display_index is True return ( (x,y), display_index). 
@@ -144,9 +171,11 @@ class MouseDevice(Device):
         and the amount the mouse position changed the last time it was updated (dx,dy).
         Mouse Position and Delta are in display coordinate units.
 
-        Args: None
+        Args: 
+            None
 		
-        Return (tuple): ( (x,y), (dx,dy) ) position of mouse, change in mouse position, both in Display coordinate space.
+        Returns: 
+            tuple: ( (x,y), (dx,dy) ) position of mouse, change in mouse position, both in Display coordinate space.
         """
         try:
             cpos=self._position
@@ -169,10 +198,15 @@ class MouseDevice(Device):
         Returns the current vertical scroll value for the mouse. The vertical scroll value changes when the
         scroll wheel on a mouse is moved up or down. The vertical scroll value is in an arbitrary value space
         ranging for -32648 to +32648. Scroll position is initialize to 0 when the experiment starts.
-        Args: None
-        Returns (int): current vertical scroll value.
+        
+        Args: 
+            None
+
+        Returns:
+            int: current vertical scroll value.
         """
         return self._scrollPositionY
+
 
     def setScroll(self,s):
         """
@@ -181,9 +215,12 @@ class MouseDevice(Device):
         arbitrary value space ranging for -32648 to +32648. Scroll position is initialize to 0 when
         the experiment starts. This method allows you to change the scroll value to anywhere in the
         valid value range.
-        Args (int): The scroll position you want to set the vertical scroll to. Should be a number between -32648 to +32648.
+        
+        Args (int): 
+            The scroll position you want to set the vertical scroll to. Should be a number between -32648 to +32648.
                     
-        Returns (int): current vertical scroll value.
+        Returns:
+            int: current vertical scroll value.
         """
         if isinstance(s, (int, long, float, complex)):
             self._scrollPositionY=s
@@ -202,8 +239,9 @@ class MouseDevice(Device):
              
              updateSystemMousePosition (bool): True = the OS mouse position will also be updated, False = it will not.
         
-        Return:
+        Returns:
             tuple: new (x,y) position of mouse in Display coordinate space.
+
         """
         if isinstance(pos[0], (int, long, float, complex)) and isinstance(pos[1], (int, long, float, complex)):
             display=self._display_device
@@ -333,7 +371,9 @@ class MouseInputEvent(DeviceEvent):
 
     __slots__=[e[0] for e in _newDataTypes]
     def __init__(self,*args,**kwargs):
-        # The id of the display that the mouse was over when the event occurred.
+        
+        #: The id of the display that the mouse was over when the event occurred.
+        #: Only supported on Windows at this time. Always 0 on other OS's.
         self.display_id=None        
         
         #: 1 if button is pressed, 0 if button is released
@@ -344,28 +384,30 @@ class MouseInputEvent(DeviceEvent):
         #: representing left, right, and middle buttons of the mouse.
         self.button_id=None
 
-        #: 'All' currently pressed button id's
+        #: 'All' currently pressed button id's logically OR'ed together.
         self.pressed_buttons=None
 
-        #: x position of the position when the event occurred; in display coordinate space
+        #: x position of the Mouse when the event occurred; in display coordinate space.
         self.x_position=None
 
-        #: y position of the position when the event occurred; in display coordinate space
+        #: y position of the Mouse when the event occurred; in display coordinate space.
         self.y_position=None
         
-        #: horizontal scroll wheel position change when the event occurred
+        #: Horizontal scroll wheel position change when the event occurred.
+        #: OS X Only. Always 0 on other OS's.
         self.scroll_dx=None
 
-        #: horizontal scroll wheel absolute position when the event occurred
+        #: Horizontal scroll wheel absolute position when the event occurred.
+        #: OS X Only. Always 0 on other OS's.
         self.scroll_x=None
 
-        #: vertical scroll wheel position change when the event occurred
+        #: Vertical scroll wheel position change when the event occurred.
         self.scroll_dy=None
 
-        #: vertical scroll wheel absolute position when the event occurred
+        #: Vertical scroll wheel absolute position when the event occurred.
         self.scroll_y=None
         
-        #: window ID that the mouse was over when the event occurred
+        #: Window handle reference that the mouse was over when the event occurred
         #: (window does not need to have focus)
         self.window_id=None
 
@@ -373,11 +415,12 @@ class MouseInputEvent(DeviceEvent):
 
 class MouseMoveEvent(MouseInputEvent):
     """
-    MouseMoveEvents occur when the mouse position changes. Mouse position is
+    MouseMoveEvent's occur when the mouse position changes. Mouse position is
     mapped to the coordinate space defined in the ioHub configuration file 
     for the Display.
     
     Event Type ID: EventConstants.MOUSE_MOVE
+    
     Event Type String: 'MOUSE_MOVE'
     """
     EVENT_TYPE_STRING='MOUSE_MOVE'
@@ -394,6 +437,7 @@ class MouseDragEvent(MouseMoveEvent):
     in the ioHub configuration file for the Display.
     
     Event Type ID: EventConstants.MOUSE_DRAG
+    
     Event Type String: 'MOUSE_DRAG'
     """
     EVENT_TYPE_STRING='MOUSE_DRAG'
@@ -408,11 +452,13 @@ class MouseScrollEvent(MouseInputEvent):
     MouseScrollEvent's are generated when the scroll wheel on the 
     Mouse Device (if it has one) is moved. Vertical scrolling is supported
     on all operating systems, horizontal scrolling is only supported on OS X.
+    
     Each MouseScrollEvent provides the number of units the wheel was turned 
     in each supported dimension, as well as the absolute scroll value for 
     of each supported dimension.
 
     Event Type ID: EventConstants.MOUSE_SCROLL
+    
     Event Type String: 'MOUSE_SCROLL'
     """
     EVENT_TYPE_STRING='MOUSE_SCROLL'
@@ -446,41 +492,41 @@ class MouseButtonPressEvent(MouseButtonEvent):
     """
     MouseButtonPressEvent's are created when a button on the mouse is pressed. 
     The button_state of the event will equal MouseConstants.MOUSE_BUTTON_STATE_PRESSED,
-    and the button that was pressed (button_id) will be MouseConstants.MOUSE_BUTTON_ID_LEFT,
-    MouseConstants.MOUSE_BUTTON_ID_RIGHT, or MouseConstants.MOUSE_BUTTON_ID_MIDDLE, 
+    and the button that was pressed (button_id) will be MouseConstants.MOUSE_BUTTON_LEFT,
+    MouseConstants.MOUSE_BUTTON_RIGHT, or MouseConstants.MOUSE_BUTTON_MIDDLE, 
     assuming you have a 3 button mouse.
 
     To get the current state of all three buttons on the Mouse Device, 
     the pressed_buttons attribute can be read, which tracks the state of all three
     mouse buttons as an int that is equal to the sum of any pressed button id's 
-    ( MouseConstants.MOUSE_BUTTON_ID_LEFT,  MouseConstants.MOUSE_BUTTON_ID_RIGHT, or
-    MouseConstants.MOUSE_BUTTON_ID_MIDDLE ).
+    ( MouseConstants.MOUSE_BUTTON_LEFT,  MouseConstants.MOUSE_BUTTON_RIGHT, or
+    MouseConstants.MOUSE_BUTTON_MIDDLE ).
 
     To tell if a given mouse button was depressed when the event occurred, regardless of which
     button triggered the event, you can use the following::
 
-        isButtonPressed = event.pressed_buttons & MouseConstants.MOUSE_BUTTON_ID_xxx == MouseConstants.MOUSE_BUTTON_ID_xxx
+        isButtonPressed = event.pressed_buttons & MouseConstants.MOUSE_BUTTON_xxx == MouseConstants.MOUSE_BUTTON_xxx
 
     where xxx is LEFT, RIGHT, or MIDDLE.
 
     For example, if at the time of the event both the left and right mouse buttons
     were in a pressed state::
 
-        buttonToCheck=MouseConstants.MOUSE_BUTTON_ID_RIGHT
+        buttonToCheck=MouseConstants.MOUSE_BUTTON_RIGHT
         isButtonPressed = event.pressed_buttons & buttonToCheck == buttonToCheck
 
         print isButtonPressed
 
         >> True
 
-        buttonToCheck=MouseConstants.MOUSE_BUTTON_ID_LEFT
+        buttonToCheck=MouseConstants.MOUSE_BUTTON_LEFT
         isButtonPressed = event.pressed_buttons & buttonToCheck == buttonToCheck
 
         print isButtonPressed
 
         >> True
 
-        buttonToCheck=MouseConstants.MOUSE_BUTTON_ID_MIDDLE
+        buttonToCheck=MouseConstants.MOUSE_BUTTON_MIDDLE
         isButtonPressed = event.pressed_buttons & buttonToCheck == buttonToCheck
 
         print isButtonPressed
@@ -488,6 +534,7 @@ class MouseButtonPressEvent(MouseButtonEvent):
         >> False
 
     Event Type ID: EventConstants.MOUSE_BUTTON_PRESS
+    
     Event Type String: 'MOUSE_BUTTON_PRESS'    
     """
     EVENT_TYPE_STRING='MOUSE_BUTTON_PRESS'
@@ -500,12 +547,14 @@ class MouseButtonPressEvent(MouseButtonEvent):
 class MouseButtonReleaseEvent(MouseButtonEvent):
     """
     MouseButtonUpEvent's are created when a button on the mouse is released. 
+    
     The button_state of the event will equal MouseConstants.MOUSE_BUTTON_STATE_RELEASED,
-    and the button that was pressed (button_id) will be MouseConstants.MOUSE_BUTTON_ID_LEFT,
-    MouseConstants.MOUSE_BUTTON_ID_RIGHT, or MouseConstants.MOUSE_BUTTON_ID_MIDDLE, 
+    and the button that was pressed (button_id) will be MouseConstants.MOUSE_BUTTON_LEFT,
+    MouseConstants.MOUSE_BUTTON_RIGHT, or MouseConstants.MOUSE_BUTTON_MIDDLE, 
     assuming you have a 3 button mouse.
 
     Event Type ID: EventConstants.MOUSE_BUTTON_RELEASE
+    
     Event Type String: 'MOUSE_BUTTON_RELEASE'    
     """
     EVENT_TYPE_STRING='MOUSE_BUTTON_RELEASE'
@@ -518,12 +567,13 @@ class MouseButtonReleaseEvent(MouseButtonEvent):
 class MouseMultiClickEvent(MouseButtonEvent):
     """
     MouseMultiClickEvent's are created when you rapidly press and release a 
-    mouse button twice. This event may never get triggered if your OS does not support it.
-    The button that was multi clicked (button_id) will be MouseConstants.MOUSE_BUTTON_ID_LEFT,
-    MouseConstants.MOUSE_BUTTON_ID_RIGHT, or MouseConstants.MOUSE_BUTTON_ID_MIDDLE, 
-    assuming you have a 3 button mouse.
+    mouse button two or more times. This event may never get triggered if your 
+    OS does not support it. The button that was multi clicked (button_id) 
+    will be MouseConstants.MOUSE_BUTTON_LEFT, MouseConstants.MOUSE_BUTTON_RIGHT, 
+    or MouseConstants.MOUSE_BUTTON_MIDDLE, assuming you have a 3 button mouse.
 
     Event Type ID: EventConstants.MOUSE_MULTI_CLICK
+    
     Event Type String: 'MOUSE_MULTI_CLICK'    
     """
     EVENT_TYPE_STRING='MOUSE_MULTI_CLICK'

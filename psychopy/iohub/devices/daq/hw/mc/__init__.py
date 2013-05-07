@@ -22,6 +22,7 @@ currentSec=Computer.currentSec
 
 class AnalogInput(AnalogInputDevice):
     """
+    The Measurement Computing Implementation for the ioHub AnalogInput Device type.
     """
     _DAQ_GAIN_OPTIONS=dict()
     _DAQ_GAIN_OPTIONS['BIP10VOLTS']=BIP10VOLTS
@@ -57,8 +58,6 @@ class AnalogInput(AnalogInputDevice):
                                              '_a2d_resolution']
 
     def __init__(self,*args,**kwargs):
-        """
-        """
         AnalogInputDevice.__init__(self,*args,**kwargs)
 
         self.channel_sampling_rate=c_long(self.channel_sampling_rate)

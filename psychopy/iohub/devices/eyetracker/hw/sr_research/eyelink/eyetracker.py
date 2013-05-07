@@ -44,14 +44,6 @@ class EyeTracker(EyeTrackerDevice):
     class in the iohub_config.yaml device settings file:
         
         eyetracker.hw.sr_research.eyelink
-        
-    See the configuration options section of the EyeLink Common Eye Tracker 
-    Interface documentation for a full description and listing of all 
-    valid configuration settings for this device.
-
-    The EyeLink implementation of the ioHub Common Eye Tracker Interface is 
-    currently supported under Windows XP and Windows 7. Linux and OSX support 
-    is likely also available, however it has not been tested at this time.
     """
 
     # >>> Constants:
@@ -204,6 +196,12 @@ class EyeTracker(EyeTrackerDevice):
         
         If the eye tracker is currently recording eye data and sending it to the
         ioHub server, the recording will be stopped prior to closing the connection.
+
+        Args:
+            enable (bool): True = enable the connection, False = disable the connection.
+
+        Return:
+            bool: indicates the current connection state to the eye tracking hardware.
         """
         try:
             tracker_config=self.getConfiguration()
@@ -256,6 +254,12 @@ class EyeTracker(EyeTrackerDevice):
         The ioHub must be connected to the eye tracker device for it to be able to receive
         events from the eye tracking system. Eye tracking events are received when 
         isConnected() == True and when isRecordingEnabled() == True.
+
+        Args:
+            None
+            
+        Return:
+            bool:  True = the eye tracking hardware is connected. False otherwise.
         """
         try:
             return self._eyelink.isConnected() != 0
@@ -389,11 +393,17 @@ class EyeTracker(EyeTrackerDevice):
                     starting_state=starting_state,
                     error=e)            
 
-    def isRecordingEnabled(self,*args,**kwargs):
+    def isRecordingEnabled(self):
         """
         isRecordingEnabled returns True if the eye tracking device is currently connected and
         sending eye event data to the ioHub server. If the eye tracker is not recording, or is not
         connected to the ioHub server, False will be returned.
+
+        Args:
+           None
+  
+        Return:
+            bool: True == the device is recording data; False == Recording is not occurring
         """
         try:
             return self._eyelink.isRecording()  == 0
@@ -421,6 +431,12 @@ class EyeTracker(EyeTrackerDevice):
         the recording of eye data by the eye tracker and the sending of any eye 
         data to the ioHub Server. The eye tracker must be connected to the ioHub Server
         by using the setConnectionState(True) method for recording to be possible.
+
+        Args:
+            recording (bool): if True, the eye tracker will start recordng data.; false = stop recording data.
+           
+        Return:
+            bool: the current recording state of the eye tracking device
         """
         try:
             if not isinstance(recording,bool):
@@ -464,6 +480,16 @@ class EyeTracker(EyeTrackerDevice):
         from the iViewX system. Any position fields are in Display 
         device coordinate space. If the eye tracker is not recording or is not 
         connected, then None is returned.        
+
+        Args: 
+            None
+
+        Returns:
+            None: If the eye tracker is not currently recording data.
+
+            EyeSample: If the eye tracker is recording in a monocular tracking mode, the latest sample event of this event type is returned.
+
+            BinocularEyeSample:  If the eye tracker is recording in a binocular tracking mode, the latest sample event of this event type is returned.
         """
         try:
             return self._latest_sample
@@ -479,6 +505,24 @@ class EyeTracker(EyeTrackerDevice):
         In the case of binocular recording, and if both eyes are successfully being tracked,
         then the average of the two eye positions is returned.
         If the eye tracker is not recording or is not connected, then None is returned.
+        The getLastGazePosition method returns the most recent eye gaze position
+        retieved from the eye tracker device. This is the position on the 
+        calibrated 2D surface that the eye tracker is reporting as the current
+        eye position. The units are in the units in use by the Display device. 
+        
+        If binocular recording is being performed, the average position of both
+        eyes is returned. 
+        
+        If no samples have been received from the eye tracker, or the 
+        eye tracker is not currently recording data, None is returned.
+
+        Args: 
+            None
+
+        Returns:
+            None: If the eye tracker is not currently recording data or no eye samples have been received.
+
+            tuple: Latest (gaze_x,gaze_y) position of the eye(s)
         """
         try:
             return self._latest_gaze_position

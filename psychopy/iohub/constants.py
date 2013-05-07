@@ -7,7 +7,6 @@ Created on Thu Nov 08 15:13:55 2012
 """
 
 try:
-    from .util import print2err
     
     class Constants(object):
         UNDEFINED=0
@@ -19,14 +18,42 @@ try:
     
         @classmethod
         def getName(cls,id):
+            """
+            Return the constant's name given a valid constant id.
+            
+            Args:
+                id (int): The constant's id value to look-up the string name for.
+                
+            Returns:
+                str: The name for the given constant id.
+            """
             return cls._names.get(id,cls._names[cls.UNDEFINED])
      
         @classmethod
         def getID(cls,name):
+            """
+            Return the constant's id given a valid constant name string.
+            
+            Args:
+                name (str): The constant's name value to look-up the int id for.
+                
+            Returns:
+                int: The id for the given constant name.
+            """
             return cls._names.get(name,None)
     
         @classmethod
         def getClass(cls,id):
+            """
+            Return the constant's ioHub CLass Name given constant id. 
+            If no class is associated with the specified constant value, None is returned.
+            
+            Args:
+                id (int): The constant's id value to look-up the string name for.
+                
+            Returns:
+                class: The ioHub class associated with the constant id provided.
+            """
             return cls._classes.get(id,None)
     
         @classmethod
@@ -41,6 +68,30 @@ try:
             cls._initialized=True
      
     class EventConstants(Constants):
+        """
+        EventConstants provides access to the ioHub Device Event type constants, 
+        with methods to convert between the different associated constant value 
+        types for a given event type:
+            
+        * int constant
+        * str constant
+        * event class associated with a constant
+        
+        The EventConstants class is initialized when ioHub is started. All
+        constants and methods available are class level attributes and methods.
+        Therefore do not ever create an instance of a Constants class; simply
+        access it directly, such as::
+            
+            int_kb_press_constant=iohub.EventConstants.KEYBOARD_PRESS
+            str_kb_press_constant=iohub.EventConstants.getName(int_kb_press_constant)
+            iohub_kb_press_class=iohub.EventConstants.getClass(int_kb_press_constant)
+            
+            print 'Keyboard Press Event Type ID Constant: ',int_kb_press_constant
+            print 'Keyboard Press Event  Type String Name Constant: ',str_kb_press_constant
+            print 'Keyboard Press Event  Type ioHub Class: ',iohub_kb_press_class
+            
+        """        
+
         KEYBOARD_INPUT=20
         KEYBOARD_KEY=21
         KEYBOARD_PRESS=22
@@ -75,6 +126,76 @@ try:
     
         MESSAGE=151
         LOG=152
+
+        def __init__(self):
+            # just so Sphinx will doc the class attributes. ;(
+
+            #: Constant for a Keyboard Press Event.
+            KEYBOARD_PRESS=22
+
+            #: Constant for a Keyboard Release Event.
+            KEYBOARD_RELEASE=23
+
+            #: Constant for a Keyboard Char Event.
+            KEYBOARD_CHAR=24
+        
+            #: Constant for a Mouse Button Press Event.
+            MOUSE_BUTTON_PRESS=32
+
+            #: Constant for a Mouse Button Release Event.
+            MOUSE_BUTTON_RELEASE=33
+
+            #: Constant for a Mouse Double Click Event.
+            #: Deprecated for MOUSE_MULTI_CLICK in 0.6RC1
+            MOUSE_DOUBLE_CLICK=34
+
+            #: Constant for a Mouse Multiple Click Event.
+            MOUSE_MULTI_CLICK=34
+
+            #: Constant for a Mouse Scroll Wheel Event.
+            MOUSE_SCROLL=35
+
+            #: Constant for a Mouse Move Event.
+            MOUSE_MOVE=36
+
+            #: Constant for a Mouse Drag Event.
+            MOUSE_DRAG=37
+            
+            #: Constant for an Eye Tracker Monocular Sample Event.
+            MONOCULAR_EYE_SAMPLE=51
+
+            #: Constant for an Eye Tracker Binocular Sample Event.
+            BINOCULAR_EYE_SAMPLE=52
+
+            #: Constant for an Eye Tracker Fixation Start Event.
+            FIXATION_START=53
+
+            #: Constant for an Eye Tracker Fixation End Event.
+            FIXATION_END=54
+
+            #: Constant for an Eye Tracker Saccade Start Event.
+            SACCADE_START=55
+
+            #: Constant for an Eye Tracker Saccade End Event.
+            SACCADE_END=56
+
+            #: Constant for an Eye Tracker Blink Start Event.
+            BLINK_START=57
+
+            #: Constant for an Eye Tracker Blink End Event.
+            BLINK_END=58
+        
+            #: Constant for a Gamepad Event.
+            GAMEPAD_STATE_CHANGE=81
+        
+            #: Constant for an Eight Channel Analog Input Sample Event.
+            MULTI_CHANNEL_ANALOG_INPUT=122
+        
+            #: Constant for an Experiment Message Event.
+            MESSAGE=151
+
+            #: Constant for an Experiment Log Event.
+            LOG=152
         
         @classmethod
         def addClassMappings(cls,device_class,device_event_ids,event_classes):
@@ -100,39 +221,90 @@ try:
     EventConstants.initialize()
     
     class DeviceConstants(Constants):
+        """
+        DeviceConstants provides access to the ioHub Device type constants, with
+        methods to convert between the different associated constant value 
+        types for a given device type::
+            
+        * int constant
+        * str constant
+        * device class associated with a constant
+        
+        The DeviceConstants class is initialized when ioHub is started. All
+        constants and methods available are class level attributes and methods.
+        Therefore do nit ever create an instance of a Constants class; simply
+        access it directly, such as::
+            
+            int_kb_dev_constant=iohub.DeviceConstants.KEYBOARD
+            str_kb_dev_constant=iohub.DeviceConstants.getName(int_kb_dev_constant)
+            iohub_kb_dev_class=iohub.DeviceConstants.getClass(int_kb_dev_constant)
+            
+            print 'Keyboard Device Type ID Constant: ',int_kb_dev_constant
+            print 'Keyboard Device Type String Name Constant: ',str_kb_dev_constant
+            print 'Keyboard Device Type ioHub Class: ',iohub_kb_dev_class
+            
+        """        
+        
         OTHER = 1
         KEYBOARD = 20
         MOUSE = 30
-    #    KB_MOUSE_COMBO = 25
         EYETRACKER = 50
         XINPUT= 70
         GAMEPAD=80
-    #    PARALLEL_PORT = 102
-    #    SERIAL=104
         ANALOGINPUT = 120
-    #    MBED=130
         EXPERIMENT = 150
         DISPLAY = 190
         COMPUTER = 200
-    #    FILTER = 210
-    #    STAMPE_FILTER=219
+
+        def __init__(self):
+            # just so Sphinx will doc the class attributes. ;(
+            
+            #: Constant for a Device Type not currently categoried.
+            OTHER = 1
+            
+            #: Constant for a Keyboard Device.
+            KEYBOARD = 20
+
+            #: Constant for a Mouse Device.
+            MOUSE = 30
+
+            #: Constant for an EyeTracker Device.
+            EYETRACKER = 50
+
+            XINPUT= 70
+
+            #: Constant for Gamepad Device.
+            GAMEPAD=80
+
+            #: Constant for an AnalogInput Device.
+            ANALOGINPUT = 120
+
+            #: Constant for an Experiment Device.
+            EXPERIMENT = 150
+
+            #: Constant for a Display Device.
+            DISPLAY = 190
+
+            #: Constant for a Computer Device.
+            COMPUTER = 200
     
+            
         @classmethod
         def addClassMapping(cls,device_class):
             if cls._classes is None:
                 cls._classes={}
-    
             
             device_constant_string=device_class.__name__.upper()
             device_id=getattr(cls,device_constant_string)
-            #import iohub
-            #iohub.print2err("Adding Device Class Mapping: ",device_constant_string, " = ",device_id)
             cls._classes[device_id]=device_class
             cls._classes[device_class]=device_id
     
     DeviceConstants.initialize()
     
     class MouseConstants(Constants):
+        """
+        MouseConstants provides access to ioHub Mouse Device specific constants.
+        """    
         MOUSE_BUTTON_NONE=0
         MOUSE_BUTTON_LEFT=1
         MOUSE_BUTTON_RIGHT=2
@@ -148,7 +320,30 @@ try:
         MOUSE_BUTTON_STATE_PRESSED=11 # event has a  button pressed state
         MOUSE_BUTTON_STATE_DOUBLE_CLICK=12 # a button double click event
         MOUSE_BUTTON_STATE_MULTI_CLICK=12 # a button double click event
-    
+
+        def __init__(self):
+            # just so Sphinx will doc the class attributes. ;(
+
+            #: Constant representing that no Mouse buttons are pressed.
+            MOUSE_BUTTON_NONE=0
+
+            #: Constant representing that the left Mouse button is pressed.
+            MOUSE_BUTTON_LEFT=1
+
+            #: Constant representing that the right Mouse button is pressed.
+            MOUSE_BUTTON_RIGHT=2
+
+            #: Constant representing that the middle Mouse button is pressed.
+            MOUSE_BUTTON_MIDDLE=4
+        
+            #: Constant representing a mouse button is in a released state.
+            MOUSE_BUTTON_STATE_RELEASED=10 
+
+            #: Constant representing a mouse button is in a pressed state.
+            MOUSE_BUTTON_STATE_PRESSED=11 
+
+            #: Constant representing a mouse is in a multiple click state.
+            MOUSE_BUTTON_STATE_MULTI_CLICK=12             
     MouseConstants.initialize()
     
     import sys    
@@ -773,6 +968,11 @@ try:
     
     class EyeTrackerConstants(Constants):
         
+        #
+        ## Sample Filtering related constants
+        #
+        
+        # Sample Filter Levels        
         FILTER_LEVEL_OFF=0
         FILTER_OFF=0
         FILTER_LEVEL_1=1
@@ -782,12 +982,16 @@ try:
         FILTER_LEVEL_5=5
         FILTER_ON=9
     
+        # Sample Filter Types        
         FILTER_FILE=10
         FILTER_NET=11
         FILTER_SERIAL=12
         FILTER_ANALOG=13
         FILTER_ALL=14
     
+        #
+        ## Eye Type Constants
+        #
         LEFT_EYE=21
         RIGHT_EYE=22
         UNKNOWN_MONOCULAR=24
@@ -797,6 +1001,11 @@ try:
         SIMULATED_MONOCULAR=27
         SIMULATED_BINOCULAR=28
     
+        #
+        ## Calibration / Validation Related Constants
+        #
+        
+        # Target Point Count
         NO_POINTS=40
         ONE_POINT=41
         TWO_POINTS=42
@@ -810,7 +1019,33 @@ try:
         SIXTEEN_POINTS=56
         TWENTYFIVE_POINTS=65
         CUSTOM_POINTS=69
+
+        # Pattern Dimensionality Types
+        CALIBRATION_HORZ_1D=130
+        CALIBRATION_VERT_1D=131
+        CALIBRATION_2D=132
+        CALIBRATION_3D=133
+
+        # Target Pacing Types
+        AUTO_CALIBRATION_PACING=90
+        MANUAL_CALIBRATION_PACING=91
+            
+        # Target Shape Types
+        CIRCLE_TARGET=121
+        CROSSHAIR_TARGET=122
+        IMAGE_TARGET=123
+        MOVIE_TARGET=124
         
+        # System Setup Method Initial State Constants
+        DEFAULT_SETUP_PROCEDURE=100
+        TRACKER_FEEDBACK_STATE=101
+        CALIBRATION_STATE=102
+        VALIDATION_STATE=103
+        DRIFT_CORRECTION_STATE=104
+
+        #
+        ## Pupil Measure Type Constants
+        #
         PUPIL_AREA = 70
         PUPIL_DIAMETER = 71
         PUPIL_WIDTH = 72
@@ -825,32 +1060,23 @@ try:
         PUPIL_MINOR_AXIS_MM = 81
         PUPIL_RADIUS_MM = 82
     
-        AUTO_CALIBRATION_PACING=90
-        MANUAL_CALIBRATION_PACING=91
-    
-        DEFAULT_SETUP_PROCEDURE=100
-        TRACKER_FEEDBACK_STATE=101
-        CALIBRATION_STATE=102
-        VALIDATION_STATE=103
-        DRIFT_CORRECTION_STATE=104
-        
-        CIRCLE_TARGET=121
-        CROSSHAIR_TARGET=122
-        IMAGE_TARGET=123
-        MOVIE_TARGET=124
-    
-        CALIBRATION_HORZ_1D=130
-        CALIBRATION_VERT_1D=131
-        CALIBRATION_2D=132
-        CALIBRATION_3D=133
-    
+            
+        #
+        ## Video Based Eye Tracking Method Constants
+        #
         PUPIL_CR_TRACKING=140
         PUPIL_ONLY_TRACKING=141
     
+        #
+        ## Video Based Pupil Center Calculation Algorithm Constants
+        #
         ELLIPSE_FIT=146
         CIRCLE_FIT = 147
         CENTROID_FIT = 148
     
+        #
+        ## Eye Tracker Interface Return Code Constants
+        #
         EYETRACKER_OK=200
         # EYETRACKER_ERROR deprecated for EYETRACKER_UNDEFINED_ERROR
         EYETRACKER_ERROR=201
@@ -898,6 +1124,170 @@ try:
         XInputBatteryLevelConstants._keys.remove(XInputBatteryLevelConstants.getID('UNDEFINED'))
     except:
         pass
+
+    class XInputCapabilitiesConstants(Constants):
+        UNDEFINED=9999999
+        # Device Type        
+        XBOX360_GAMEPAD=0x01
+        OTHER_XINPUT_GAMEPAD=0x0
+        
+        #subtype
+        XINPUT_GAMEPAD=0x08 # is defined as 0x01 in xinput.h, redining so no conflicts
+        XINPUT_UNKNOWN_SUBTYPE=0x06
+        
+#        # Note:
+#        # Older XUSB Windows drivers report incomplete capabilities information, 
+#        # particularly for wireless devices. The latest XUSB Windows driver provides 
+#        # full support for wired and wireless devices, and more complete and accurate 
+#        # capabilties flags.
+#        XINPUT_CAPS_VOICE_SUPPORTED = 0x0004 # Device has an integrated voice device.
+#        
+#        #XINPUT_CAPS_FFB_SUPPORTED =     # Device supports force feedback functionality.
+#                                        # Note that these force-feedback features 
+#                                        # beyond rumble are not currently supported 
+#                                        # through XINPUT on Windows.
+#        
+#        #XINPUT_CAPS_WIRELESS =          # Device is wireless.
+#        
+#        #XINPUT_CAPS_PMD_SUPPORTED =     # Device supports plug-in modules. 
+#                                        # Note that plug-in modules like the text 
+#                                        # input device (TID) are not supported 
+#                                        # currently through XINPUT on Windows.
+#        
+#        #XINPUT_CAPS_NO_NAVIGATION =     # Device lacks menu navigation buttons 
+#                                        # (START, BACK, DPAD).
+#        
+#        #
+#        # XINPUT_GAMEPAD struct - wButtons masks
+#        #
+#        XINPUT_GAMEPAD_DPAD_UP = 0x0001
+#        XINPUT_GAMEPAD_DPAD_DOWN = 0x0002
+#        XINPUT_GAMEPAD_DPAD_LEFT = 0x0004
+#        XINPUT_GAMEPAD_DPAD_RIGHT = 0x0008
+#        XINPUT_GAMEPAD_START = 0x0010
+#        XINPUT_GAMEPAD_BACK = 0x0020
+#        XINPUT_GAMEPAD_LEFT_THUMB = 0x0040
+#        XINPUT_GAMEPAD_RIGHT_THUMB = 0x0080
+#        XINPUT_GAMEPAD_LEFT_SHOULDER = 0x0100
+#        XINPUT_GAMEPAD_RIGHT_SHOULDER = 0x0200
+#        XINPUT_GAMEPAD_A = 0x1000
+#        XINPUT_GAMEPAD_B = 0x2000
+#        XINPUT_GAMEPAD_X = 0x4000
+#        XINPUT_GAMEPAD_Y = 0x8000
+#        
+#        #
+#        # Gamepad thresholds
+#        #
+#        XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE = 7849
+#        XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE = 8689
+#        XINPUT_GAMEPAD_TRIGGER_THRESHOLD = 30
+#        
+#        #
+#        # Flags to pass to XInputGetCapabilities
+#        #
+#        XINPUT_FLAG_GAMEPAD = 0x00000001
+#        
+#        
+#        if XINPUT_USE_9_1_0 is False:
+#            #
+#            # Devices that support batteries
+#            #
+#            BATTERY_DEVTYPE_GAMEPAD = 0x00
+#            BATTERY_DEVTYPE_HEADSET = 0x01
+#            
+#            # BatteryTypes
+#            BATTERY_TYPE_DISCONNECTED = 0x00       # The device is not connected. 
+#            BATTERY_TYPE_WIRED = 0x01              # The device is a wired device and does not 
+#                                                   # have a battery. 
+#            BATTERY_TYPE_ALKALINE = 0x02           # The device has an alkaline battery. 
+#            BATTERY_TYPE_NIMH = 0x03	               # The device has a nickel metal hydride battery. 
+#            BATTERY_TYPE_UNKNOWN = 0xFF            # The device has an unknown battery type. 
+#            
+#            # BatteryLevels
+#            BATTERY_LEVEL_EMPTY = 0x00
+#            BATTERY_LEVEL_LOW = 0x01
+#            BATTERY_LEVEL_MEDIUM = 0x02
+#            BATTERY_LEVEL_FULL = 0x03
+#        
+#            #
+#            # Multiple Controller Support 
+#            #
+#            XINPUT_USER_0=DWORD(0)
+#            XINPUT_USER_1=DWORD(1)
+#            XINPUT_USER_2=DWORD(2)
+#            XINPUT_USER_3=DWORD(3)
+#            XUSER_MAX_COUNT=4
+#            XINPUT_USERS=(XINPUT_USER_0,XINPUT_USER_1,XINPUT_USER_2,XINPUT_USER_3)
+#            XUSER_INDEX_ANY = 0x000000FF
+#            
+#            XINPUT_GAMEPAD_TL_LIT=DWORD(0)
+#            XINPUT_GAMEPAD_TR_LIT=DWORD(1)
+#            XINPUT_GAMEPAD_BR_LIT=DWORD(2)
+#            XINPUT_GAMEPAD_BL_LIT=DWORD(3)
+#                
+#            #
+#            # Codes returned for the gamepad keystroke
+#            #
+#        
+#            VK_PAD_A = 0x5800
+#            VK_PAD_B = 0x5801
+#            VK_PAD_X = 0x5802
+#            VK_PAD_Y = 0x5803
+#            VK_PAD_RSHOULDER = 0x5804
+#            VK_PAD_LSHOULDER = 0x5805
+#            VK_PAD_LTRIGGER = 0x5806
+#            VK_PAD_RTRIGGER  =  0x5807
+#            
+#            VK_PAD_DPAD_UP = 0x5810
+#            VK_PAD_DPAD_DOWN = 0x5811
+#            VK_PAD_DPAD_LEFT = 0x5812
+#            VK_PAD_DPAD_RIGHT = 0x5813
+#            VK_PAD_START = 0x5814
+#            VK_PAD_BACK = 0x5815
+#            VK_PAD_LTHUMB_PRESS = 0x5816
+#            VK_PAD_RTHUMB_PRESS = 0x5817
+#            
+#            VK_PAD_LTHUMB_UP = 0x5820
+#            VK_PAD_LTHUMB_DOWN = 0x5821
+#            VK_PAD_LTHUMB_RIGHT = 0x5822
+#            VK_PAD_LTHUMB_LEFT = 0x5823
+#            VK_PAD_LTHUMB_UPLEFT = 0x5824
+#            VK_PAD_LTHUMB_UPRIGHT = 0x5825
+#            VK_PAD_LTHUMB_DOWNRIGHT = 0x5826
+#            VK_PAD_LTHUMB_DOWNLEFT = 0x5827
+#            
+#            VK_PAD_RTHUMB_UP = 0x5830
+#            VK_PAD_RTHUMB_DOWN = 0x5831
+#            VK_PAD_RTHUMB_RIGHT = 0x5832
+#            VK_PAD_RTHUMB_LEFT = 0x5833
+#            VK_PAD_RTHUMB_UPLEFT = 0x5834
+#            VK_PAD_RTHUMB_UPRIGHT = 0x5835
+#            VK_PAD_RTHUMB_DOWNRIGHT = 0x5836
+#            VK_PAD_RTHUMB_DOWNLEFT = 0x5837
+#        
+#            # 
+#            # Flags used in XINPUT_KEYSTROKE
+#            #
+#            XINPUT_KEYSTROKE_KEYDOWN = 0x0001       # The key was pressed. 
+#            XINPUT_KEYSTROKE_KEYUP  = 0x0002         # The key was released. 
+#            XINPUT_KEYSTROKE_REPEAT = 0x0004         # A repeat of a held key. 
+#        
+#        #
+#        # Return Values
+#        #
+#        
+#        ERROR_SUCCESS = 0
+#        ERROR_DEVICE_NOT_CONNECTED = 0x048F
+#        
+#        if XINPUT_USE_9_1_0 is False:
+#            ERROR_EMPTY = 2 # made this up, need to confirm .... # 
+
+
+    XInputCapabilitiesConstants.initialize()
+    try:
+        XInputCapabilitiesConstants._keys.remove(XInputCapabilitiesConstants.getID('UNDEFINED'))
+    except:
+        pass
     
     class XInputGamePadConstants(Constants):
         DPAD_UP = 0x0001
@@ -914,10 +1304,11 @@ try:
         B = 0x2000
         X = 0x4000
         Y = 0x8000
-    
+   
         _batteryTypes=XInputBatteryTypeConstants()
         _batteryLevels=XInputBatteryLevelConstants()
-        
+        _capabilities=XInputCapabilitiesConstants()
+             
     XInputGamePadConstants.initialize()
     try:
         XInputGamePadConstants._keys.remove(XInputGamePadConstants.getID('UNDEFINED'))

@@ -1,0 +1,30 @@
+data_store: {enable: true}
+monitor_devices:
+- Display:
+    default_eye_distance: {surface_center: 500, unit_type: mm}
+    device_number: 1
+    name: display
+    physical_dimensions: {height: 340, unit_type: mm, width: 590}
+    psychopy_monitor_name: default
+    reporting_unit_type: pix
+- Keyboard: {name: kb}
+- Mouse: {name: mouse}
+- Experiment: {name: experimentRuntime}
+- eyetracker.hw.tobii.EyeTracker:
+    calibration:
+      auto_pace: false
+      pacing_speed: 1.5
+      randomize: true
+      screen_background_color: [128, 128, 128]
+      target_attributes:
+        inner_color: [0, 0, 0]
+        inner_diameter: 5
+        outer_color: [255, 255, 255]
+        outer_diameter: 35
+      target_type: CIRCLE_TARGET
+      type: FIVE_POINTS
+    enable: true
+    model_name: null
+    name: tracker
+    runtime_settings: {sampling_rate: 60}
+    serial_number: null
