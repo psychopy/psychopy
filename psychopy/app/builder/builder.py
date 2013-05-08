@@ -29,6 +29,7 @@ routineFlowColor=wx.Color(200,150,150, 255)
 darkgrey=wx.Color(65,65,65, 255)
 white=wx.Color(255,255,255, 255)
 darkblue=wx.Color(30,30,150, 255)
+codeSyntaxOkay=wx.Color(220,250,220, 255)  # light green
 
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
@@ -2118,38 +2119,25 @@ class _BaseParamsDlg(wx.Dialog):
             # ... but skip the check if end of line is colon ord(58)=':'
             self._setNameColor(self._testCompile(codeBox))
         event.Skip()
-    def _testCompile(self, ctrl):
-        """checks code.val for legal python syntax, sets field bg color, returns status
+    def _testCompile(self, ctrl, mode='exec'):
+        """checks whether code.val is legal python syntax, returns error status
 
-        method: writes code to a file, try to py_compile it. not intended for
-        high-freq repeated checking, ok for CPU but hits the disk every time.
+        mode = 'exec' (statement or expr) or 'eval' (expr only)
         """
-        # better to use a StringIO.StringIO() than a tmp file, but couldnt work it out
-        # definitely don't want eval() or exec()
-        tmpDir = mkdtemp(prefix='psychopy-check-code-syntax')
-        tmpFile = os.path.join(tmpDir, 'tmp')
         if hasattr(ctrl,'GetText'):
             val = ctrl.GetText()
-        elif hasattr(ctrl, 'GetValue'): #e.g. TextCtrl
+        elif hasattr(ctrl, 'GetValue'):  #e.g. TextCtrl
             val = ctrl.GetValue()
         else:
             raise ValueError, 'Unknown type of ctrl in _testCompile: %s' %(type(ctrl))
-        f = codecs.open(tmpFile, 'w', 'utf-8')
-        f.write(val)
-        f.close()
-        #f=StringIO.StringIO(self.params[param].val) # tried to avoid a tmp file, no go
         try:
-            py_compile.compile(tmpFile, doraise=True)
-            syntaxCheck = True # syntax fine
+            compile(val, '', mode)
+            syntaxOk = True
             ctrl.setStatus('OK')
-        except: # hopefully SyntaxError, but can't check for it; checking messes with things
-#            ctrl.SetBackgroundColour(wx.Color(250,210,210, 255)) # red, bad
+        except SyntaxError:
             ctrl.setStatus('error')
-            syntaxCheck = False # syntax error
-        # clean up tmp files:
-        shutil.rmtree(tmpDir, ignore_errors=True)
-
-        return syntaxCheck
+            syntaxOk = False
+        return syntaxOk
 
     def checkCodeSyntax(self, event=None):
         """Checks syntax for whole code component by code box, sets box bg-color.
@@ -2159,20 +2147,19 @@ class _BaseParamsDlg(wx.Dialog):
         elif hasattr(event,'GetText'):
             codeBox = event #we were given the control itself, not an event
         else:
-            print 'checkCodeSyntax received unexpected event object (%s). Should be a wx.Event or a CodeBox' %type(event)
-            logging.error('checkCodeSyntax received unexpected event object (%s). Should be a wx.Event or a CodeBox' %type(event))
+            raise ValueError('checkCodeSyntax received unexpected event object (%s). Should be a wx.Event or a CodeBox' %type(event))
         text = codeBox.GetText()
         if not text.strip(): # if basically empty
-            codeBox.SetBackgroundColour(wx.Color(255,255,255, 255)) # white
+            codeBox.SetBackgroundColour(white)
             return # skip test
         goodSyntax = self._testCompile(codeBox) # test syntax
         self._setNameColor(goodSyntax)
     def _setNameColor(self, goodSyntax):
         if goodSyntax:
-            self.paramCtrls['name'].valueCtrl.SetBackgroundColour(wx.Color(220,250,220, 255)) # name green, good
+            self.paramCtrls['name'].valueCtrl.SetBackgroundColour(codeSyntaxOkay)
             self.nameOKlabel.SetLabel("")
         else:
-            self.paramCtrls['name'].valueCtrl.SetBackgroundColour(wx.Color(255,255,255, 255)) # name white
+            self.paramCtrls['name'].valueCtrl.SetBackgroundColour(white)
             self.nameOKlabel.SetLabel('syntax error')
 
     def getParams(self):
