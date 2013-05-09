@@ -181,7 +181,6 @@ class Window:
         self.winHandle=None #this will get overridden once the window is created
         self.useFBO = False #override during setupPyglet if needed
 
-        self._defDepth=0.0
         self._toLog=[]
         self._toCall=[]
 
@@ -519,10 +518,7 @@ class Window:
 
         #reset returned buffer for next frame
         if clearBuffer:
-            GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-        else:
-            GL.glClear(GL.GL_DEPTH_BUFFER_BIT)#always clear the depth bit
-        self._defDepth=0.0#gets gradually updated through frame
+            GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
         #waitBlanking
         if self.waitBlanking:
@@ -568,7 +564,6 @@ class Window:
         #
         if self.waitBlanking is True:
             return now
-
 
     def update(self):
         """Deprecated: use Window.flip() instead
@@ -640,8 +635,7 @@ class Window:
         taking the time to flip the window.
         """
         #reset returned buffer for next frame
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-        self._defDepth=0.0#gets gradually updated through frame
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
     def getMovieFrame(self, buffer='front'):
         """
@@ -1090,7 +1084,7 @@ class Window:
 #            else:
 #                self._haveShaders=False
 
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT|GL.GL_DEPTH_BUFFER_BIT)
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT   )
 
         #identify gfx card vendor
         self.glVendor=GL.gl_info.get_vendor().lower()
@@ -1107,12 +1101,6 @@ class Window:
         GL.glGenFramebuffersEXT(1, ctypes.byref(self.frameBuffer))
         GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
 
-        # Setup depthbuffer
-        self.depthBuffer=GL.GLuint()
-        GL.glGenRenderbuffersEXT(1, ctypes.byref(self.depthBuffer))
-        GL.glBindRenderbufferEXT (GL.GL_RENDERBUFFER_EXT,self.depthBuffer)
-        GL.glRenderbufferStorageEXT (GL.GL_RENDERBUFFER_EXT, GL.GL_DEPTH_COMPONENT, int(self.size[0]), int(self.size[1]))
-
         # Create texture to render to
         self.frameTexture=GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self.frameTexture))
@@ -1125,8 +1113,6 @@ class Window:
         #attach texture to the frame buffer
         GL.glFramebufferTexture2DEXT (GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT,
                                       GL.GL_TEXTURE_2D, self.frameTexture, 0)
-        GL.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_DEPTH_ATTACHMENT_EXT,
-                                        GL.GL_RENDERBUFFER_EXT, self.depthBuffer)
 
         status = GL.glCheckFramebufferStatusEXT (GL.GL_FRAMEBUFFER_EXT)
         if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
@@ -1134,8 +1120,7 @@ class Window:
             return
         GL.glDisable(GL.GL_TEXTURE_2D)
         #clear the buffer (otherwise the texture memory can contain junk)
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
     def setMouseVisible(self,visibility):
         """Sets the visibility of the mouse cursor.
