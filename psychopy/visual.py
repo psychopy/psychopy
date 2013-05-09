@@ -70,14 +70,9 @@ try:
 except:
     havePygame=False
 
-#check for advanced drawing abilities
-#actually FBO isn't working yet so disable
-try:
-    #import OpenGL.GL.EXT.framebuffer_object as FB
-    #for pyglet these functions are under .gl like everything else
-    haveFB=False
-except:
-    haveFB=False
+#do we want to use the frameBufferObject (if available an needed)?
+global useFBO
+useFBO = True
 
 try:
     from matplotlib import nxutils
@@ -183,7 +178,8 @@ class Window:
         self.name=name
         self.size = numpy.array(size, numpy.int)
         self.pos = pos
-        self.winHandle=None#this will get overridden once the window is created
+        self.winHandle=None #this will get overridden once the window is created
+        self.useFBO = False #override during setupPyglet if needed
 
         self._defDepth=0.0
         self._toLog=[]
@@ -290,7 +286,7 @@ class Window:
             self.setColor(color, colorSpace=colorSpace)
 
         #check whether FBOs are supported
-        if blendMode=='add' and not haveFB:
+        if blendMode=='add' and not self.useFBO:
             logging.warning("""User requested a blendmode of "add" but framebuffer objects not available. You need PyOpenGL3.0+ to use this blend mode""")
             self.blendMode='average' #resort to the simpler blending without float rendering
         else: self.blendMode=blendMode
@@ -451,15 +447,18 @@ class Window:
         for thisStim in self._toDraw:
             thisStim.draw()
 
-        if haveFB:
+        if self.useFBO:
+            GL.glUseProgram(0)
             #need blit the frambuffer object to the actual back buffer
 
-            FB.glBindFramebufferEXT(FB.GL_FRAMEBUFFER_EXT, 0)#unbind the framebuffer as the render target
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)#unbind the framebuffer as the render target
 
             #before flipping need to copy the renderBuffer to the frameBuffer
             GL.glActiveTexture(GL.GL_TEXTURE0)
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, self.frameTexture)
+            GL.glColor3f(1.0, 1.0, 1.0)#glColor multiplies with texture
+            #draw the quad for the screen
             GL.glBegin( GL.GL_QUADS )
             GL.glTexCoord2f( 0.0, 0.0 ) ; GL.glVertex2f( -1.0,-1.0 )
             GL.glTexCoord2f( 0.0, 1.0 ) ; GL.glVertex2f( -1.0, 1.0 )
@@ -485,8 +484,6 @@ class Window:
             if pyglet.version<'1.2': #for pyglet 1.1.4 you needed to call media.dispatch for movie updating
                 pyglet.media.dispatch_events()#for sounds to be processed
             self.winHandle.flip()
-            #self.winHandle.clear()
-            GL.glLoadIdentity()
         else:
             if pygame.display.get_init():
                 pygame.display.flip()
@@ -494,15 +491,24 @@ class Window:
             else:
                 core.quit()#we've unitialised pygame so quit
 
+        if self.useFBO:
+            #set rendering back to the framebuffer object
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0) #ubind the frame texture
+            #bind the FBO the frameBuffer
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+
         #rescale/reposition view of the window
         if self.viewScale != None:
             GL.glMatrixMode(GL.GL_PROJECTION)
             GL.glLoadIdentity()
             GL.glOrtho(-1,1,-1,1,-1,1)
             GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
+        else:
+            GL.glLoadIdentity()#still worth loading identity
         if self.viewPos != None:
             GL.glMatrixMode(GL.GL_MODELVIEW)
-#            GL.glLoadIdentity()
             if self.viewScale==None: scale=[1,1]
             else: scale=self.viewScale
             norm_rf_pos_x = self.viewPos[0]/scale[0]
@@ -511,13 +517,11 @@ class Window:
         if self.viewOri != None:
             GL.glRotatef( self.viewOri, 0.0, 0.0, -1.0)
 
-        if haveFB:
-            #set rendering back to the framebuffer object
-            FB.glBindFramebufferEXT(FB.GL_FRAMEBUFFER_EXT, self.frameBuffer)
-
         #reset returned buffer for next frame
-        if clearBuffer: GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-        else: GL.glClear(GL.GL_DEPTH_BUFFER_BIT)#always clear the depth bit
+        if clearBuffer:
+            GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+        else:
+            GL.glClear(GL.GL_DEPTH_BUFFER_BIT)#always clear the depth bit
         self._defDepth=0.0#gets gradually updated through frame
 
         #waitBlanking
@@ -963,8 +967,10 @@ class Window:
                                               style=style
                                           )
         #provide warning if stereo buffers are requested but unavailable
-        if self.stereo and not GL.gl_info.have_extension(GL.GL_STEREO):
+        if self.stereo and not GL.gl_info.have_extension('GL_STEREO'):
             logging.warning('A stereo window was requested but the graphics card does not appear to support GL_STEREO')
+        if GL.gl_info.have_extension('GL_EXT_framebuffer_object') and useFBO:
+            self.useFBO=True
         #add these methods to the pyglet window
         self.winHandle.setGamma = psychopy.gamma.setGamma
         self.winHandle.setGammaRamp = psychopy.gamma.setGammaRamp
@@ -1092,21 +1098,24 @@ class Window:
         if sys.platform=='darwin':
             platform_specific.syncSwapBuffers(1)
 
-        if haveFB:
+        if self.useFBO:
             self._setupFrameBuffer()
 
     def _setupFrameBuffer(self):
         # Setup framebuffer
-        self.frameBuffer = FB.glGenFramebuffersEXT(1)
+        self.frameBuffer=GL.GLuint()
+        GL.glGenFramebuffersEXT(1, ctypes.byref(self.frameBuffer))
+        GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
 
-        FB.glBindFramebufferEXT(FB.GL_FRAMEBUFFER_EXT, self.frameBuffer)
         # Setup depthbuffer
-        self.depthBuffer = FB.glGenRenderbuffersEXT(1)
-        FB.glBindRenderbufferEXT (FB.GL_RENDERBUFFER_EXT,self.depthBuffer)
-        FB.glRenderbufferStorageEXT (FB.GL_RENDERBUFFER_EXT, GL.GL_DEPTH_COMPONENT, int(self.size[0]), int(self.size[1]))
+        self.depthBuffer=GL.GLuint()
+        GL.glGenRenderbuffersEXT(1, ctypes.byref(self.depthBuffer))
+        GL.glBindRenderbufferEXT (GL.GL_RENDERBUFFER_EXT,self.depthBuffer)
+        GL.glRenderbufferStorageEXT (GL.GL_RENDERBUFFER_EXT, GL.GL_DEPTH_COMPONENT, int(self.size[0]), int(self.size[1]))
 
         # Create texture to render to
-        self.frameTexture = GL.glGenTextures (1)
+        self.frameTexture=GL.GLuint()
+        GL.glGenTextures(1, ctypes.byref(self.frameTexture))
         GL.glBindTexture (GL.GL_TEXTURE_2D, self.frameTexture)
         GL.glTexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
         GL.glTexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
@@ -1114,16 +1123,19 @@ class Window:
                          GL.GL_RGBA, GL.GL_FLOAT, None)
 
         #attach texture to the frame buffer
-        FB.glFramebufferTexture2DEXT (FB.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT,
+        GL.glFramebufferTexture2DEXT (GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT,
                                       GL.GL_TEXTURE_2D, self.frameTexture, 0)
-        FB.glFramebufferRenderbufferEXT(FB.GL_FRAMEBUFFER_EXT, GL.GL_DEPTH_ATTACHMENT_EXT,
-                                        FB.GL_RENDERBUFFER_EXT, self.depthBuffer)
+        GL.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_DEPTH_ATTACHMENT_EXT,
+                                        GL.GL_RENDERBUFFER_EXT, self.depthBuffer)
 
-        status = FB.glCheckFramebufferStatusEXT (FB.GL_FRAMEBUFFER_EXT)
-        if status != FB.GL_FRAMEBUFFER_COMPLETE_EXT:
-            logging.warning("Error in framebuffer activation")
+        status = GL.glCheckFramebufferStatusEXT (GL.GL_FRAMEBUFFER_EXT)
+        if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
+            logging.error("Error in framebuffer activation")
             return
         GL.glDisable(GL.GL_TEXTURE_2D)
+        #clear the buffer (otherwise the texture memory can contain junk)
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+
 
     def setMouseVisible(self,visibility):
         """Sets the visibility of the mouse cursor.
