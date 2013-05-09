@@ -8,7 +8,7 @@ from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 import wx.aui, wx.stc
 import sys, os, glob, copy, shutil, traceback
 import keyword
-import py_compile, codecs
+import re
 import numpy
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
@@ -30,6 +30,9 @@ darkgrey=wx.Color(65,65,65, 255)
 white=wx.Color(255,255,255, 255)
 darkblue=wx.Color(30,30,150, 255)
 codeSyntaxOkay=wx.Color(220,250,220, 255)  # light green
+
+# regular expression to check for unescaped '$' to indicate code:
+_unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
@@ -1842,6 +1845,16 @@ class _BaseParamsDlg(wx.Dialog):
         self.codeFieldNameFromID = {}
         self.codeIDFromFieldName = {}
 
+        # for switching font to signal code:
+        self.codeFaceName = 'Courier New'  # get another monospace if not available
+        # need font size for STCs:
+        if wx.Platform == '__WXMSW__':
+            self.faceSize = 10
+        elif wx.Platform == '__WXMAC__':
+            self.faceSize = 14
+        else:
+            self.faceSize = 12
+
         #create a header row of titles
         if not suppressTitles:
             size=wx.Size(1.5*self.dpi,-1)
@@ -1869,7 +1882,7 @@ class _BaseParamsDlg(wx.Dialog):
             remaining.remove('name')
             if 'name' in self.order:
                 self.order.remove('name')
-#            self.currRow+=1
+            #self.currRow+=1
         #add start/stop info
         if 'startType' in remaining:
             remaining = self.addStartStopCtrls(remaining=remaining)
@@ -1967,6 +1980,14 @@ class _BaseParamsDlg(wx.Dialog):
         remaining.remove('stopType')
         remaining.remove('stopVal')
         remaining.remove('durationEstim')
+
+        # use monospace font to signal code:
+        self.defaultFontFaceName = self.startValCtrl.GetFont().GetFaceName()
+        self.checkCodeWanted(self.startValCtrl)
+        self.startValCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
+        self.checkCodeWanted(self.stopValCtrl)
+        self.stopValCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
+
         return remaining
 
     def addParam(self,fieldName, advanced=False):
@@ -2006,6 +2027,26 @@ class _BaseParamsDlg(wx.Dialog):
             ctrls.valueCtrl.Bind(wx.EVT_KEY_DOWN, self.onTextEventCode)
         elif fieldName=='Monitor':
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.openMonitorCenter)
+
+        # use monospace font to signal code:
+        if fieldName != 'name':
+            font = ctrls.valueCtrl.GetFont()
+            self.defaultFontFaceName = font.GetFaceName()
+            _font = ctrls.valueCtrl.GetFont()
+            try:
+                _font.SetFaceName(self.codeFaceName)  # see what happens
+            except:
+                self.codeFaceName = self.app.prefs.coder['codeFont']
+            if self.params[fieldName].valType == 'code':
+                font.SetFaceName(self.codeFaceName)
+                ctrls.valueCtrl.SetFont(font)
+            elif self.params[fieldName].valType == 'str':
+                ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
+                try:
+                    self.checkCodeWanted(ctrls.valueCtrl)
+                except:
+                    pass
+
         #increment row number
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
@@ -2161,6 +2202,38 @@ class _BaseParamsDlg(wx.Dialog):
         else:
             self.paramCtrls['name'].valueCtrl.SetBackgroundColour(white)
             self.nameOKlabel.SetLabel('syntax error')
+
+    def checkCodeWanted(self, event=None):
+        """check whether a $ is present (if so, set the display font)
+        """
+        if hasattr(event, 'GetEventObject'):
+            strBox = event.GetEventObject()
+        elif hasattr(event, 'GetValue'):
+            strBox = event  # we were given the control itself, not an event
+        else:
+            raise ValueError('checkCodeWanted received unexpected event object (%s).')
+        try:
+            val = strBox.GetValue()
+            stc = False
+        except:
+            val = strBox.GetText()
+            stc = True  # might be StyledTextCtrl
+
+        # set display font based on presence of $ (without \$)?
+        font = strBox.GetFont()
+        if _unescapedDollarSign_re.search(val):
+            facename = self.codeFaceName
+        else:
+            facename = self.defaultFontFaceName
+        if stc:
+            strBox.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
+                                "face:%s,size:%d" % (facename, self.faceSize))
+        else:
+            font.SetFaceName(facename)
+            strBox.SetFont(font)
+
+        if hasattr(event, 'Skip'):
+            event.Skip()
 
     def getParams(self):
         """retrieves data from any fields in self.paramCtrls
