@@ -72,7 +72,7 @@ except:
 
 #do we want to use the frameBufferObject (if available an needed)?
 global useFBO
-useFBO = True
+useFBO = False
 
 try:
     from matplotlib import nxutils
