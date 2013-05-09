@@ -2624,7 +2624,17 @@ class GratingStim(_BaseVisualStim):
         GL.glVertex2f(R,T)
         GL.glEnd()
 
+        #disable mask
+        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
         GL.glDisable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+        #main texture
+        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+        #we're done!
         GL.glEndList()
 
 
