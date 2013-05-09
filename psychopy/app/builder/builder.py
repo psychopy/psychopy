@@ -1650,7 +1650,7 @@ class ParamCtrls:
         if type(param.val)==numpy.ndarray:
             initial=param.val.tolist() #convert numpy arrays to lists
         labelLength = wx.Size(self.dpi*2,self.dpi*2/3)#was 8*until v0.91.4
-        if param.valType == 'code' and label not in ['name', 'Experiment info']:
+        if param.valType == 'code' and label.lower() not in ['name', 'experiment info']:
             displayLabel = label+' $'
         else:
             displayLabel = label
