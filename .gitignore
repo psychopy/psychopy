@@ -41,3 +41,6 @@ psychopy/tests/*htmlcov*
 *.iohpid
 *.paths
 *.EDF
+/iohub_docs/*.bat
+_build
+/iohub_docs/*.txt
