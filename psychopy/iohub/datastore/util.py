@@ -15,7 +15,8 @@ import os
 from collections import namedtuple
 import json
 
-from psychopy import iohub
+from psychopy import gui, iohub
+from psychopy.iohub import FileDialog
 
 global _hubFiles
 
@@ -25,15 +26,94 @@ except:
     _hubFiles=[]
  
 def openHubFile(filepath,filename,mode):
+    """
+    Open an HDF5 DataStore file and register it so that it is closed even on interpreter crash.
+    """
     global _hubFiles
     hubFile=openFile(os.path.join(filepath,filename), mode)
     _hubFiles.append(hubFile)
-    return hubFile       
+    return hubFile      
+ 
+def displayDataFileSelectionDialog(starting_dir=None):
+    """
+    Shows a FileDialog and lets you select a .hdf5 file to open for processing.
+    """
+    
+    fdlg=FileDialog(message="Select a ioHub DataStore File", 
+                    defaultDir=starting_dir,fileTypes=FileDialog.IODATA_FILES,display_index=0)
+                    
+    status,filePathList=fdlg.show()
+    
+    if status != FileDialog.OK_RESULT:
+        print " Data File Selection Cancelled."
+        return None
+            
+    return filePathList[0]
+    
+def displayEventTableSelectionDialog(title, list_label, list_values, default=u'Select'):
+    if default not in list_values:
+        list_values.insert(0,default)
+    else:
+        list_values.remove(list_values)
+        list_values.insert(0,default)
+        
+    selection_dict=dict(list_label=list_values)   
+    dlg_info=dict(selection_dict)
+    infoDlg = gui.DlgFromDict(dictionary=dlg_info, title=title)
+    if not infoDlg.OK:
+        return None 
+
+    while dlg_info.values()[0] ==default and infoDlg.OK:
+            dlg_info=dict(selection_dict)
+            infoDlg = gui.DlgFromDict(dictionary=dlg_info, title=title)
+   
+    if not infoDlg.OK:
+        return None
+        
+    return dlg_info.values()[0]
 ########### Experiment / Experiment Session Based Data Access #################
 
 class ExperimentDataAccessUtility(object):
-
+    """
+    The ExperimentDataAccessUtility  provides a simple, high level, way to access
+    data saved in an ioHub DataStore HDF5 file. Data access is done by providing
+    information at an experiment and session level, as well as specifying the 
+    ioHub Event types you want to retieve data for.      
+    
+    An instance of the ExperimentDataAccessUtility class is created by providing
+    the location and name of the file to read, as well as any session code
+    filtering you want applied to the retieved datasets. 
+    
+    Args:
+        hdfFilePath (str): The path of the directory the DataStore HDF5 file is in.
+        
+        hdfFileName (str): The name of the DataStore HDF5 file.
+        
+        experimentCode (str): If multi-experiment support is enabled for the DataStore file, this arguement can be used to specify what experiment data to load based on the experiment_code given. NOTE: Multi-experiment data file support is not well tested and should not be used at this point. 
+        
+        sessionCodes (str or list): The experiment session code to filter data by. If a list of codes is given, then all codes in the list will be used.
+    
+    Returns:
+        object: the created instance of the ExperimentDataAccessUtility, ready to get your data!
+    """
     def __init__(self, hdfFilePath, hdfFileName, experimentCode=None,sessionCodes=[],mode='r'):
+        """
+        An instance of the ExperimentDataAccessUtility class is created by providing
+        the location and name of the file to read, as well as any session code
+        filtering you want applied to the retieved datasets. 
+        
+        Args:
+            hdfFilePath (str): The path of the directory the DataStore HDF5 file is in.
+            
+            hdfFileName (str): The name of the DataStore HDF5 file.
+            
+            experimentCode (str): If multi-experiment support is enabled for the DataStore file, this arguement can be used to specify what experiment data to load based on the experiment_code given. NOTE: Multi-experiment data file support is not well tested and should not be used at this point. 
+            
+            sessionCodes (str or list): The experiment session code to filter data by. If a list of codes is given, then all codes in the list will be used.
+
+        Returns:
+            object: the created instance of the ExperimentDataAccessUtility, ready to get your data!
+        """        
         self.hdfFilePath=hdfFilePath
         self.hdfFileName=hdfFileName
         self.mode=mode
@@ -55,6 +135,14 @@ class ExperimentDataAccessUtility(object):
         self.getExperimentMetaData()
 
     def printTableStructure(self,tableName):
+        """
+        Print to stdout the current structure and content statistics of the specified DataStore table.
+        To print out the complete structure of the DataStore file, including the name of all available tables,
+        see the printHubFileStructure method.
+        
+        Args:
+            tableName (str): The DataStore table name to print metadata information out for.
+        """
         if self.hdfFile:
             hubFile=self.hdfFile
             for group in hubFile.walkGroups("/"):
@@ -72,10 +160,18 @@ class ExperimentDataAccessUtility(object):
                         return
 
     def printHubFileStructure(self):
+        """
+        Print to stdout the current global structure of the loaded DataStore File.
+        """
         if self.hdfFile:
             print self.hdfFile
     
     def getExperimentMetaData(self):
+        """
+        Returns the the metadata for the experiment the datStore file is for. 
+        
+        **Docstr TBC.**
+        """
         if self.hdfFile:
             expcols=self.hdfFile.root.data_collection.experiment_meta_data.colnames
             if 'sessions' not in expcols:
@@ -90,6 +186,11 @@ class ExperimentDataAccessUtility(object):
             return experiments
 
     def getSessionMetaData(self,sessions=None):
+        """
+        Returns the the metadata associated with the experiment session codes in use. 
+        
+        **Docstr TBC.**
+        """
         if self.hdfFile:
             if sessions == None:
                 sessions=[]
@@ -104,7 +205,18 @@ class ExperimentDataAccessUtility(object):
                     sessions.append(SessionMetaDataInstance(*rcpy))
             return sessions
 
+    def getTableForPath(self,path):
+        """
+        Given a valid table path within the DataStore file, return the accociated table.
+        """
+        self.hdfFile.getNode(path)
+        
     def getEventTable(self,event_type):
+        """
+        Returns the DataStore table that contains events of the specified type. 
+        
+        **Docstr TBC.**
+        """
         if self.hdfFile:
             klassTables=self.hdfFile.root.class_table_mapping
             deviceEventTable=None
@@ -137,8 +249,43 @@ class ExperimentDataAccessUtility(object):
             tablePathString=result[0][3]
             return self.hdfFile.getNode(tablePathString)
         return None
+                
+    def getEventMappingInformation(self):
+        """
+        Returns details on how ioHub Event Types are mapped to tables within
+        the given DataStore file.
+        """
+        if self.hdfFile:
+            eventMappings=dict()
+            class_2_table=self.hdfFile.root.class_table_mapping 
+            EventTableMapping=namedtuple('EventTableMapping',self.hdfFile.root.class_table_mapping.colnames)
+            for row in class_2_table[:]:
+                eventMappings[row['class_id']]=EventTableMapping(*row)           
+            return eventMappings
+        return None
         
+    def getEventsByType(self):
+        """
+        Returns a dict of all event tables within the DataStore file that have
+        atleast one event instance saved. Keys are Event Type constants, 
+        as specified by Psychopy.iohub.EventConstants.        
+        Each value is a row iterator for events of that type.
+        """
+        eventTableMappings=self.getEventMappingInformation()
+        if eventTableMappings:
+            events_by_type=dict()
+            for event_type_id,event_mapping_info in eventTableMappings.iteritems():
+                try:
+                    events_by_type[event_type_id]= self.hdfFile.getNode(event_mapping_info.table_path).where("type == %d"%(event_type_id)).next()   
+                except StopIteration:
+                    pass
+            return events_by_type
+        return None
+
     def getConditionVariableNames(self):
+        """
+        **Docstr TBC.**
+        """
         cv_group=self.hdfFile.root.data_collection.condition_variables
         ecv="EXP_CV_%d"%(self._experimentID,)
         if ecv in cv_group._v_leaves:
@@ -147,6 +294,9 @@ class ExperimentDataAccessUtility(object):
         return None
 
     def getConditionVariables(self,filter=None):
+        """
+        **Docstr TBC.**
+        """
         if filter is None:
             session_ids=[]
             for s in self.getExperimentMetaData()[0].sessions:
@@ -172,6 +322,10 @@ class ExperimentDataAccessUtility(object):
         return cvrows
      
     def getValuesForVariables(self,cv, value, cvNames):
+        """
+        **Docstr TBC.**
+        """
+        
         if isinstance(value,(list,tuple)):
             resolvedValues=[]
             for v in value:
@@ -196,6 +350,19 @@ class ExperimentDataAccessUtility(object):
             raise ExperimentDataAccessException("Unhandled value type !: {0} is not a valid type for value {1}".format(type(value),value))
             
     def getEventAttributeValues(self,event_type_id,event_attribute_names,filter_id=None, conditionVariablesFilter=None, startConditions=None,endConditions=None):
+        """
+        **Docstr TBC.**
+        
+        Args:
+            event_type_id
+            event_attribute_names
+            conditionVariablesFilter
+            startConditions
+            endConditions
+            
+        Returns:
+            Values for the specified event type and event attribute columns which match the provided experiment condition variable filter, starting condition filer, and ending condition filter criteria.
+        """
         if self.hdfFile:
             klassTables=self.hdfFile.root.class_table_mapping
 
@@ -298,9 +465,21 @@ class ExperimentDataAccessUtility(object):
             return None
 
     def getEventIterator(self,event_type):
+        """
+        **Docstr TBC.**
+        
+        Args:
+            event_type
+            
+        Returns:
+            (interator): An interator providing access to each matching event  as a numpy recarray.
+        """
         return self.getEventTable(event_type).iterrows()
         
     def close(self):
+        """
+        Close the ExperimentDataAccessUtility and associated DataStore File.
+        """
         global _hubFiles
         if self.hdfFile in _hubFiles:
             _hubFiles.remove(self.hdfFile)
