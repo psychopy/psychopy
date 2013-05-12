@@ -16,18 +16,9 @@ import os,sys
 from operator import itemgetter
 from collections import deque
 
-from psychopy.iohub.util import OrderedDict,print2err, printExceptionDetailsToStdErr, ioHubError, createErrorResult,convertCamelToSnake
-from psychopy.iohub.constants import DeviceConstants,EventConstants
-from psychopy.iohub.devices import Computer, DeviceEvent, import_device        
+from psychopy.iohub import OrderedDict,print2err, printExceptionDetailsToStdErr, ioHubError, createErrorResult,convertCamelToSnake, DeviceConstants,EventConstants,Computer, DeviceEvent, import_device, IO_HUB_DIRECTORY, load, dump, Loader, Dumper
 from psychopy.iohub.devices.deviceConfigValidation import validateDeviceConfiguration
 from psychopy.iohub.net import MAX_PACKET_SIZE
-from psychopy.iohub import IO_HUB_DIRECTORY
-from yaml import load
-try:
-    from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError:
-    from yaml import Loader, Dumper
-        
 currentSec= Computer.currentSec
 
 import json

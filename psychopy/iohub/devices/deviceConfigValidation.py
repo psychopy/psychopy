@@ -12,14 +12,7 @@ Created on Thu Mar 14 16:32:33 2013
 import socket
 import os
 
-
-from yaml import load
-try:
-    from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError:
-    from yaml import Loader, Dumper
-
-from psychopy.iohub.util import module_directory
+from psychopy.iohub import module_directory, load, dump, Loader, Dumper
 
 
 class ValidationError(Exception):

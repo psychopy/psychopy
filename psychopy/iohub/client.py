@@ -18,13 +18,6 @@ from collections import deque
 import json
 import signal
 
-try:
-    from yaml import load, dump
-    from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError:
-#    print "*** Using Python based YAML Parsing"
-    from yaml import Loader, Dumper
-
 from psychopy import  core as core, gui
 import psychopy.logging as psycho_logging
     
@@ -32,11 +25,12 @@ if sys.platform != 'darwin':
     import psutil
     _psutil_available=True
 
-from . import IO_HUB_DIRECTORY,isIterable
+from . import IO_HUB_DIRECTORY,isIterable, load, dump, Loader, Dumper, updateDict
+from . import MessageDialog, win32MessagePump
+from . import print2err,printExceptionDetailsToStdErr,ioHubError,ioHubServerError,ioHubConnectionException
 from .devices import Computer, DeviceEvent,import_device
 from .devices.experiment import MessageEvent,LogEvent
 from .constants import DeviceConstants,EventConstants
-from .util import updateDict,MessageDialog, print2err,printExceptionDetailsToStdErr,ioHubError,win32MessagePump, ioHubConnectionException, ioHubServerError
 from .net import UDPClientConnection
 
 currentSec= Computer.currentSec
