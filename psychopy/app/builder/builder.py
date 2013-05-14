@@ -8,6 +8,7 @@ from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 import wx.aui, wx.stc
 import sys, os, glob, copy, shutil, traceback
 import keyword
+import codecs
 import re
 import numpy
 import experiment, components
