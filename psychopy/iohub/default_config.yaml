@@ -1,0 +1,7 @@
+global_event_buffer: 2048
+udp_port: 9034
+data_store:
+    enable: False
+    filename: events
+    multiple_experiments: False
+    flush_interval: 32

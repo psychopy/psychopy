@@ -1,7 +1,7 @@
 PsychoPy Experiment file format (.psyexp)
 ============================================
 
-The file format used to save experiments constructed in PsychoPy builder was created especially for the purpose, but is an open format, using a basic xml form, that may be of use to other similar software. Indeed the builder itself could be used to generate experiments on different backends (such as Vision Egg, PsychToolbox or PyEPL). The xml format of the file makes it extremely platform independent, as well as moderately(?!) easy to read by a humans.
+The file format used to save experiments constructed in PsychoPy builder was created especially for the purpose, but is an open format, using a basic xml form, that may be of use to other similar software. Indeed the builder itself could be used to generate experiments on different backends (such as Vision Egg, PsychToolbox or PyEPL). The xml format of the file makes it extremely platform independent, as well as moderately(?!) easy to read by a humans. There was a further suggestion to generate an XSD (or similar) `schema against which psyexp files could be validated <https://groups.google.com/forum/?fromgroups=#!topic/psychopy-dev/j3XkZEYj_PQ>`_. That is a low priority but welcome addition if you wanted to work on it(!)
 
 The simplest way to understand the file format is probably simply to create an experiment, save it and open the file in an xml-aware editor/viewer (e.g. change the file extension from .psyexp to .xml and then open it in firefox). An example (from the stroop demo) is shown below.
 

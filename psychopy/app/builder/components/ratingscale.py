@@ -124,7 +124,7 @@ class RatingScaleComponent(BaseComponent):
         if self.params['customize_everything'].val.strip() != '':
             # clean it up a little, remove win=*, leading / trailing typos
             self.params['customize_everything'].val = re.sub(r"[\\s,]*win=[^,]*,", '', self.params['customize_everything'].val)
-            init_str += ', ' + self.params['customize_everything'].val.lstrip().lstrip('(').lstrip(',').strip().strip(')').strip(',')
+            init_str += ', ' + self.params['customize_everything'].val.lstrip('(, ').strip('), ')
         else:
             init_str += ", escapeKeys=['escape']"
             # size:
@@ -135,15 +135,14 @@ class RatingScaleComponent(BaseComponent):
             # position: x -> (x,x); x,y -> (x,y)
             try:
                 s = str(self.params['pos'].val)
-                s = s.lstrip().lstrip('(').lstrip('[').strip().strip(')').strip(']')
+                s = s.lstrip('([ ').strip(')] ')
                 pos = map(float, s.split(',')) * 2
-                init_str += ",\n    pos=%s" % pos[0:2]
+                init_str += ", pos=%s" % pos[0:2]
             except:
                 pass # pos = None
 
             # type of scale:
-            choices = str(self.params['categoryChoices'].val).strip().strip(',').lstrip().lstrip(',')
-            scaleDescription = str(self.params['scaleDescription'].val)
+            choices = unicode(self.params['categoryChoices'].val).strip(', ').lstrip(', ')
             if self.params['visualAnalogScale'].val:
                 if self.params['lowAnchorText'].val == '': self.params['lowAnchorText'].val = '0%'
                 if self.params['highAnchorText'].val == '': self.params['highAnchorText'].val = '100%'
@@ -151,12 +150,12 @@ class RatingScaleComponent(BaseComponent):
                 init_str += "', highAnchorText='"+self.params['highAnchorText'].val+"'"
                 init_str += ",\n    precision=100, markerStyle='glow', showValue=False, markerExpansion=0"
             elif len(choices):
-                if choices.find(',') > -1:
+                if ',' in choices:
                     ch_list = choices.split(',')
                 else:
                     ch_list = choices.split(' ')
-                ch_list = [c.strip().strip(',').lstrip().lstrip(',') for c in ch_list]
-                init_str += ', choices=' + str(ch_list)
+                ch_list = [c.strip().strip(', ').lstrip(', ') for c in ch_list]
+                init_str += ', choices=' + unicode(ch_list)
                 if self.params['choiceLabelsAboveLine'].val:
                     init_str += ', labels=False'
             else:
@@ -181,8 +180,8 @@ class RatingScaleComponent(BaseComponent):
                         if len(self.params['high'].val):
                             init_str += ", highAnchorText='"+self.params['high'].val+"'"
 
-            if not len(choices) and len(str(scaleDescription)):
-                init_str += ", scale='" + str(scaleDescription) +"'"
+            if not len(choices) and len(unicode(self.params['scaleDescription'])):
+                init_str += ", scale=%s" % self.params['scaleDescription']
             if self.params['singleClick'].val:
                 init_str += ", singleClick=True"
             if self.params['disappear'].val:

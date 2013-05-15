@@ -10,7 +10,7 @@
 # Author: Jeremy Gray, Oct 2012
 
 from pyglet.gl import gl_info
-from psychopy import info, data, visual, gui, core, __version__, web, preferences, event
+from psychopy import info, data, visual, gui, core, __version__, web, prefs, event
 import os, sys, time
 import wx
 import numpy as np

@@ -29,7 +29,8 @@ messages, (which PsychoPy doesn't use) using the commands::
 #of log entries for later writing (don't want files written while drawing)
 
 from os import path
-import sys, time, codecs, weakref
+import sys, codecs, weakref
+import clock
 
 _packagePath = path.split(__file__)[0]
 
@@ -89,20 +90,9 @@ def addLevel(level, levelName):
     _levelNames[level] = levelName
     _levelNames[levelName] = level
 
-class _Clock:
-    #identical to core.Clock - but we can't import core into log for recurrent import issues
-    def __init__(self):
-        self.timeAtLastReset=getTime()#this is sub-millisec timer in python
-    def getTime(self):
-        return getTime()-self.timeAtLastReset
-    def reset(self, newT=0.0):
-        self.timeAtLastReset=getTime()+newT
-if sys.platform == 'win32':
-    getTime = time.clock
-else:
-    getTime = time.time
+
 global defaultClock
-defaultClock = _Clock()
+defaultClock = clock.monotonicClock
 
 def setDefaultClock(clock):
     """Set the default clock to be used to reference all logging times. Must be a

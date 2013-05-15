@@ -1,0 +1,20 @@
+daq.hw.labjack.AnalogInput:
+    name: ain
+    model_name: U6
+    manufacturer_name: LabJack Corporation
+    serial_number: N/A
+    channel_sampling_rate: 1000
+    resolution_index: 1
+    settling_factor: 1
+    monitor_event_types: [MultiChannelAnalogInputEvent,]
+    save_events: True
+    stream_events: True
+    auto_report_events: False
+    event_buffer_length: 1024
+    input_channel_count: 8
+    model_number: N/A
+    manufacture_date: DD-MM-YYYY
+    software_version: N/A
+    hardware_version: N/A
+    firmware_version: N/A
+    device_number: 0

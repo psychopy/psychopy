@@ -11,8 +11,13 @@ very heavily based on his code).
 """
 from psychopy import logging
 import string, time, tempfile, os, glob, random
-import Image, ImageChops
-from GifImagePlugin import getheader, getdata #part of PIL
+try:
+    from PIL import Image, ImageChops
+    from PIL.GifImagePlugin import getheader, getdata #part of PIL
+except ImportError:
+    import Image, ImageChops
+    from GifImagePlugin import getheader, getdata #part of PIL
+
 try:
     import pymedia.video.vcodec as vcodec
     havePyMedia=True

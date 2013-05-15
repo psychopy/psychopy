@@ -1,0 +1,22 @@
+daq.hw.mc.AnalogInput:
+    name: ain
+    device_number: 0
+    channel_sampling_rate: 1000
+    model_name: USB-1208FS
+    input_channel_count: 8
+    gain: BIP10VOLTS
+    options: 0
+    monitor_event_types: [ MultiChannelAnalogInputEvent,]
+    event_buffer_length: 1024
+    save_events: True
+    stream_events: True
+    auto_report_events: False
+    device_timer:
+        interval: 0.004
+    manufacturer_name: Measurement Computing Corporation
+    model_number: N/A
+    serial_number: N/A
+    manufacture_date: DD-MM-YYYY
+    software_version: N/A
+    hardware_version: N/A
+    firmware_version: N/A

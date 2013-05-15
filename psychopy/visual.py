@@ -5,6 +5,13 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, os, glob, copy
+
+# Ensure setting pyglet.options['debug_gl'] to False is done prior to any
+# other calls to pyglet or pyglet submodules, otherwise it may not get picked up
+# by the pyglet GL engine and have no effect.
+import pyglet
+pyglet.options['debug_gl'] = False
+
 #on windows try to load avbin now (other libs can interfere)
 if sys.platform=='win32':
     #make sure we also check in SysWOW64 if on 64-bit windows
@@ -22,8 +29,11 @@ import colors
 import psychopy.event
 #misc must only be imported *after* event or MovieStim breaks on win32 (JWP has no idea why!)
 import psychopy.misc
-import Image
 import makeMovies
+try:
+    from PIL import Image
+except ImportError:
+    import Image
 
 if sys.platform=='win32' and not haveAvbin:
     logging.error("""avbin.dll failed to load. Try importing psychopy.visual as the first
@@ -34,6 +44,8 @@ from numpy import sin, cos, pi
 
 from core import rush
 
+global currWindow
+currWindow=None
 reportNDroppedFrames=5#stop raising warning after this
 reportNImageResizes=5
 global _nImageResizes
@@ -41,8 +53,6 @@ _nImageResizes=0
 
 #shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 import ctypes
-import pyglet
-pyglet.options['debug_gl'] = False#must be done before importing pyglet.gl or pyglet.window
 GL = pyglet.gl
 
 import psychopy.gamma
@@ -87,6 +97,7 @@ from psychopy.constants import *
 
 #keep track of windows that have been opened
 openWindows=[]
+psychopy.event.visualOpenWindows = openWindows  # can provide a default window for mouse
 
 class Window(object):
     """Used to set up a context in which to draw objects,
@@ -337,13 +348,17 @@ class Window(object):
             self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
         else:
             self._refreshThreshold = (1.0/60)*1.2#guess its a flat panel
-
+        global currWindow
+        currWindow=self
         openWindows.append(self)
-
     def setRecordFrameIntervals(self, value=True):
-        """To provide accurate measures of frame intervals, to determine whether frames
-        are being dropped. Set this to False while the screen is not being updated
-        e.g. during event.waitkeys() and set to True during critical parts of the script
+        """To provide accurate measures of frame intervals, to determine whether
+        frames are being dropped. The intervals are the times between calls to `.flip()`.
+        Set to `True` only during the time-critical parts of the script.
+        Set this to `False` while the screen is not being
+        updated, i.e., during any slow, non-frame-time-critical sections of your code,
+        including inter-trial-intervals, `event.waitkeys()`, `core.wait()`, or
+        `image.setImage()`.
 
         see also:
             Window.saveFrameIntervals()
@@ -441,6 +456,7 @@ class Window(object):
         win.flip(clearBuffer=True)#results in a clear screen after flipping
         win.flip(clearBuffer=False)#the screen is not cleared (so represent the previous screen)
         """
+        global currWindow
         for thisStim in self._toDraw:
             thisStim.draw()
 
@@ -466,14 +482,17 @@ class Window(object):
 
         if self.winType =="pyglet":
             #make sure this is current context
-            self.winHandle.switch_to()
+            if currWindow!=self:
+                self.winHandle.switch_to()
+                currWindow=self
 
             GL.glTranslatef(0.0,0.0,-5.0)
 
             for dispatcher in self._eventDispatchers:
-                dispatcher._dispatch_events()
+                dispatcher.dispatch_events()
             self.winHandle.dispatch_events()#this might need to be done even more often than once per frame?
-            pyglet.media.dispatch_events()#for sounds to be processed
+            if pyglet.version<'1.2': #for pyglet 1.1.4 you needed to call media.dispatch for movie updating
+                pyglet.media.dispatch_events()#for sounds to be processed
             self.winHandle.flip()
             #self.winHandle.clear()
             GL.glLoadIdentity()
@@ -854,12 +873,13 @@ class Window(object):
     def setRGB(self, newRGB):
         """Deprecated: As of v1.61.00 please use `setColor()` instead
         """
-        global GL
+        global GL, currWindow
         if type(newRGB) in [int, float]:
             self.rgb=[newRGB, newRGB, newRGB]
         else:
             self.rgb=newRGB
-        if self.winType=='pyglet': self.winHandle.switch_to()
+        if self.winType=='pyglet' and currWindow!=self:
+            self.winHandle.switch_to()
         GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)
 
     def setScale(self, units, font='dummyFont', prevScale=(1.0,1.0)):
@@ -1377,6 +1397,12 @@ class _BaseVisualStim:
                 self.setIm(self._imName, log=False)
             self.setMask(self._maskName, log=False)
             self.needUpdate=True
+    def _selectWindow(self, win):
+        global currWindow
+        #don't call switch if it's already the curr window
+        if win!=currWindow and win.winType=='pyglet':
+            win.winHandle.switch_to()
+            currWindow = win
 
     def _updateList(self):
         """
@@ -1789,7 +1815,7 @@ class DotStim(_BaseVisualStim):
         again.
         """
         if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
+        self._selectWindow(win)
 
         self._update_dotsXY()
 
@@ -2034,6 +2060,12 @@ class SimpleImageStim:
     def _updateImageStr(self):
         self._imStr=self.imArray.tostring()
         self._needStrUpdate=False
+    def _selectWindow(self, win):
+        global currWindow
+        #don't call switch if it's already the curr window
+        if win!=currWindow and win.winType=='pyglet':
+            win.winHandle.switch_to()
+            currWindow = win
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -2041,9 +2073,8 @@ class SimpleImageStim:
         stimulus to appear on that frame and then update the screen
         again.
         """
-        #set the window to draw to
         if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
+        self._selectWindow(win)
         #push the projection matrix and set to orthorgaphic
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glPushMatrix()
@@ -2445,8 +2476,9 @@ class GratingStim(_BaseVisualStim):
                 level=logging.EXP,obj=self)
     def setMask(self,value, log=True):
         self._maskName = value
-        createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self,
-        res=self.texRes, maskParams=self.maskParams)
+        createTexture(value, id=self.maskID, stim=self,
+            pixFormat=GL.GL_ALPHA,
+            res=self.texRes, maskParams=self.maskParams)
         if log and self.autoLog:
             self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
                 level=logging.EXP,obj=self)
@@ -2458,9 +2490,8 @@ class GratingStim(_BaseVisualStim):
         stimulus to appear on that frame and then update the screen
         again.
         """
-        #set the window to draw to
         if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
+        self._selectWindow(win)
 
         #do scaling
         GL.glPushMatrix()#push before the list, pop after
@@ -2843,9 +2874,8 @@ class RadialStim(GratingStim):
 
         If win is specified then override the normal window of this stimulus.
         """
-        #set the window to draw to
         if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
+        self._selectWindow(win)
 
         #do scaling
         GL.glPushMatrix()#push before the list, pop after
@@ -3318,6 +3348,12 @@ class ElementArrayStim:
         self._calcSizesRendered()
         self._calcXYsRendered()
 
+    def _selectWindow(self, win):
+        global currWindow
+        #don't call switch if it's already the curr window
+        if win!=currWindow and win.winType=='pyglet':
+            win.winHandle.switch_to()
+            currWindow = win
 
     def setXYs(self,value=None, operation='', log=True):
         """Set the xy values of the element centres (relative to the centre of the field).
@@ -3639,9 +3675,8 @@ class ElementArrayStim:
         stimulus to appear on that frame and then update the screen
         again.
         """
-        #set the window to draw to
         if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
+        self._selectWindow(win)
 
         if self.needVertexUpdate:
             self.updateElementVertices()
@@ -3913,6 +3948,9 @@ class MovieStim(_BaseVisualStim):
         self._player._on_eos=self._onEos
         self.filename=filename
         self.duration=None
+        self.loop = loop
+        if loop and pyglet.version>='1.2':
+            logging.error("looping of movies is not currently supported for pyglet>=1.2 only for version 1.1.4")
         self.loadMovie( self.filename )
         self.format=self._movie.video_format
         self.pos=pos
@@ -3923,7 +3961,6 @@ class MovieStim(_BaseVisualStim):
         self.colorSpace=colorSpace
         self.setColor(color, colorSpace=colorSpace, log=False)
         self.opacity = float(opacity)
-        self.loop = loop
         self.status=NOT_STARTED
 
         #size
@@ -4028,17 +4065,24 @@ class MovieStim(_BaseVisualStim):
         This method should be called on every frame that the movie is meant to
         appear"""
 
-        if self.status in [NOT_STARTED, FINISHED]:#haven't started yet, so start
+        if self.status == PLAYING and not self._player.playing:
+            self.status = FINISHED
+        if self.status==NOT_STARTED or (self.status==FINISHED and self.loop):
             self.play()
-        #set the window to draw to
+        elif self.status == FINISHED and not self.loop:
+            return
+
         if win==None: win=self.win
-        win.winHandle.switch_to()
+        self._selectWindow(win)
 
         #make sure that textures are on and GL_TEXTURE0 is active
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
-
+        if pyglet.version>='1.2': #for pyglet 1.1.4 this was done via media.dispatch_events
+            self._player.update_texture()
         frameTexture = self._player.get_texture()
+        if frameTexture==None:
+            return
 
         desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, 1)  #Contrast=1
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2],self.opacity)
@@ -4087,6 +4131,8 @@ class MovieStim(_BaseVisualStim):
             self.pause(log=False)
         #add to drawing list and update status
         _BaseVisualStim.setAutoDraw(self, val, log=log)
+    def __del__(self):
+        self._clearTextures()
 
 class TextStim(_BaseVisualStim):
     """Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
@@ -4622,9 +4668,8 @@ class TextStim(_BaseVisualStim):
 
         If win is specified then override the normal window of this stimulus.
         """
-        #set the window to draw to
         if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
+        self._selectWindow(win)
 
         GL.glPushMatrix()
         GL.glLoadIdentity()#for PyOpenGL this is necessary despite pop/PushMatrix, (not for pyglet)
@@ -4906,9 +4951,8 @@ class ShapeStim(_BaseVisualStim):
         again.
         """
         if self.needVertexUpdate: self._calcVerticesRendered()
-
         if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
+        self._selectWindow(win)
 
         nVerts = self.vertices.shape[0]
 
@@ -5329,9 +5373,11 @@ class ImageStim(_BaseVisualStim):
         self.needUpdate=0
         GL.glNewList(self._listID,GL.GL_COMPILE)
         #setup the shaderprogram
-        GL.glUseProgram(self.win._progSignedTexMask)
-        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "texture"), 0) #set the texture to be texture unit 0
-        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
+        if self.isLumImage:
+            GL.glUseProgram(self.win._progSignedTexMask)
+            GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "texture"), 0) #set the texture to be texture unit 0
+            GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
+
         #mask
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.maskID)
@@ -5467,7 +5513,7 @@ class ImageStim(_BaseVisualStim):
         GL.glDeleteTextures(1, self.maskID)
     def draw(self, win=None):
         if win==None: win=self.win
-        if win.winType=='pyglet': win.winHandle.switch_to()
+        self._selectWindow(win)
 
         #do scaling
         GL.glPushMatrix()#push before the list, pop after
@@ -5490,7 +5536,8 @@ class ImageStim(_BaseVisualStim):
         """
         self._imName = value
 
-        createTexture(value, id=self.texID, pixFormat=GL.GL_RGB, stim=self,
+        self.isLumImage = createTexture(value, id=self.texID, stim=self,
+            pixFormat=GL.GL_RGB, dataType=GL.GL_UNSIGNED_BYTE,
             maskParams=self.maskParams, forcePOW2=False)
         #if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize==None:
@@ -5502,7 +5549,9 @@ class ImageStim(_BaseVisualStim):
         """Change the image to be used as an alpha-mask for the image
         """
         self._maskName = value
-        createTexture(value, id=self.maskID, pixFormat=GL.GL_ALPHA, stim=self,
+        createTexture(value, id=self.maskID,
+            pixFormat=GL.GL_ALPHA,dataType=GL.GL_UNSIGNED_BYTE,
+            stim=self,
             res=self.texRes, maskParams=self.maskParams)
         if log and self.autoLog:
             self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
@@ -5720,16 +5769,14 @@ class BufferImageStim(GratingStim):
         if log and self.autoLog:
             self.win.logOnFlip("Set %s tex=%s" %(self.name, tex),
                 level=logging.EXP,obj=self)
-    def draw(self):
+    def draw(self, win=None):
         """
         Draws the BufferImage on the screen, similar to :class:`~psychopy.visual.ImageStim` `.draw()`.
         Allows dynamic position, size, rotation, mirroring, and opacity.
         Limitations / bugs: not sure what happens with shaders & self._updateList()
         """
-        # this is copy & pasted from old GratingStim, then had stuff taken out for speed
-
-        if self.win.winType=='pyglet':
-            self.win.winHandle.switch_to()
+        if win==None: win=self.win
+        self._selectWindow(win)
 
         GL.glPushMatrix() # preserve state
         #GL.glLoadIdentity()
@@ -5748,20 +5795,25 @@ class BufferImageStim(GratingStim):
 class RatingScale:
     """A class for getting numeric or categorical ratings, e.g., a 1-to-7 scale.
 
-    Returns a re-usable rating-scale object having a .draw() method, with a
-    customizable visual appearance. Tries to provide useful default values.
+    Returns a re-usable rating-scale object having a .draw() method, with
+    customizable visual appearance and full data options, including RT and history.
 
-    The .draw() method displays the rating scale only (not the item to be rated),
-    handles the subject's response, and updates the display. When the subject
-    responds, .noResponse goes False (i.e., there is a response). You can then
-    call .getRating() to obtain the rating, .getRT() to get the decision time, or
-    .reset() to restore the scale (for re-use). The experimenter has to handle
-    the item to be rated, i.e., draw() it in the same window each frame. A
-    RatingScale instance has no idea what else is on the screen. The subject can
+    The .draw() method displays the rating scale, handles the subject's responses,
+    and updates the display. When the subject makes a final response, .noResponse
+    goes False (i.e., there is a response). You can then call .getRating() to
+    obtain the final rating, .getRT() to get the decision time, or .getHistory()
+    to obtain all intermediate values (rating, RT), up to an including the final
+    one. This feature can be used to obtain continuous ratings using a single
+    RatingScale object.
+
+    The experimenter has to draw the item to be rated, i.e., draw() it in the same
+    window each frame. A RatingScale instance has no idea what else is on the screen.
+
+    The subject can
     use the arrow keys (left, right) to move the marker in small increments (e.g.,
     1/100th of a tick-mark if precision = 100).
 
-    Auto-rescaling happens if the low-anchor is 0 and high-anchor is a multiple
+    Auto-rescaling happens if the low-anchor is 0 and the high-anchor is a multiple
     of 10, just to reduce visual clutter.
 
     **Example 1**:
@@ -5776,10 +5828,7 @@ class RatingScale:
                 myWin.flip()
             rating = myRatingScale.getRating()
             decisionTime = myRatingScale.getRT()
-
-        You can equivalently specify the while condition using .status::
-
-            while myRatingScale.status != FINISHED:
+            choiceHistory = myRatingScale.getHistory()
 
     **Example 2**:
 
@@ -5795,16 +5844,16 @@ class RatingScale:
         Non-numeric choices (categorical, unordered)::
 
             myRatingScale = visual.RatingScale(myWin, choices=['agree', 'disagree'])
-            myRatingScale = visual.RatingScale(myWin,
-                                choices=['cherry', 'apple', True, 3.14, 'pie'])
 
-        str(item) will be displayed, but the value returned by
+        A text version of the item will be displayed, but the value returned by
         getResponse() will be of type you gave it::
 
-            myRatingScale = visual.RatingScale(myWin, choices=[True, False])
+            var = 3.14
+            myRatingScale = visual.RatingScale(myWin,
+                                choices=['cherry', 'apple', True, var, 'pie'])
 
-        So if you give boolean values and the subject chooses False,
-        getResponse() will return False (bool) and not 'False' (str).
+        So if you the subject chooses True,
+        getResponse() will return True (bool) and not u'True' (unicode).
 
     See Coder Demos -> stimuli -> ratingScale.py for examples. As another example,
     fMRI_launchScan.py uses a rating scale for the experimenter to choose between
@@ -5813,8 +5862,9 @@ class RatingScale:
     The Builder RatingScale component gives a restricted set of options, but also
     allows full control over a RatingScale (via 'customizeEverything').
 
-    :Author:
-        2010 Jeremy Gray, with various updates.
+    :Authors:
+        2010 Jeremy Gray, with on-going updates
+        2012 Henrik Singmann: tickMarks, labels, ticksAboveLine
     """
     def __init__(self,
                 win,
@@ -5837,6 +5887,7 @@ class RatingScale:
                 acceptKeys='return',
                 acceptPreText='key, click',
                 acceptText='accept?',
+                acceptSize=1.0,
                 leftKeys='left',
                 rightKeys='right',
                 lineColor='White',
@@ -5926,6 +5977,8 @@ class RatingScale:
             text to display before any value has been selected
         acceptText :
             text to display in the 'accept' button after a value has been selected
+        acceptSize :
+            width of the accept box relative to the default (e.g., 2 is twice as wide)
         leftKeys :
             a key or list of keys that mean "move leftwards", default = ['left']
         rightKeys :
@@ -6001,9 +6054,6 @@ class RatingScale:
             whether logging should be done automatically
         """
 
-        ### MAYBE SOMEDAY ?
-        # - radio-button-like display for categorical choices
-
         logging.exp('RatingScale %s: init()' % name)
         self.win = win
         self.name = name
@@ -6014,26 +6064,26 @@ class RatingScale:
         self.savedWinUnits = self.win.units
         self.win.units = 'norm'
 
-        # Generally make things well-behaved if the requested value(s) would be trouble:
+        # make things well-behaved if the requested value(s) would be trouble:
         self._initFirst(showAccept, mouseOnly, singleClick, acceptKeys,
-                        markerStart, low, high, precision, choices,
-                        lowAnchorText, highAnchorText, scale, showScale, showAnchors,
+                        markerStart, low, high, precision, choices, lowAnchorText,
+                        highAnchorText, scale, showScale, showAnchors,
                         tickMarks, labels, ticksAboveLine)
         self._initMisc(minTime, maxTime)
 
         # Set scale & position, key-bindings:
         self._initPosScale(pos, displaySizeFactor, stretchHoriz)
-        self._initKeyBindings(self.acceptKeys, skipKeys, escapeKeys, leftKeys, rightKeys, allowSkip)
+        self._initKeys(self.acceptKeys, skipKeys, escapeKeys, leftKeys, rightKeys, allowSkip)
 
         # Construct the visual elements:
-        self._initLine(lineColor=lineColor, tickMarks = tickMarks)
-        self._initMarker(customMarker, markerExpansion, markerColor, markerStyle, self.tickSize)
-        self._initTextElements(win, self.lowAnchorText, self.highAnchorText, self.scale,
-                            textColor, textFont, textSizeFactor, showValue, tickMarks)
-        self._initAcceptBox(self.showAccept, acceptPreText, acceptText, self.markerColor,
-                            self.textSizeSmall, textSizeFactor, self.textFont)
+        self._initLine(tickMarkValues=tickMarks, lineColor=lineColor)
+        self._initMarker(customMarker, markerExpansion, markerColor, markerStyle)
+        self._initTextElements(win, self.lowAnchorText, self.highAnchorText,
+            self.scale, textColor, textFont, textSizeFactor, showValue, tickMarks)
+        self._initAcceptBox(self.showAccept, acceptPreText, acceptText, acceptSize,
+            self.markerColor, self.textSizeSmall, textSizeFactor, self.textFont)
 
-        # List-ify the requested visual elements; self.marker is handled separately
+        # List-ify the visual elements; self.marker is handled separately
         self.visualDisplayElements = []
         if self.showScale:   self.visualDisplayElements += [self.scaleDescription]
         if self.showAnchors: self.visualDisplayElements += [self.lowAnchor, self.highAnchor]
@@ -6041,12 +6091,12 @@ class RatingScale:
         if self.labelTexts:
             for text in self.labels:
                 self.visualDisplayElements.append(text)
-        self.visualDisplayElements += [self.line] # last b/c win xp had display issues for me in a VM
+        self.visualDisplayElements += [self.line]  # last b/c win xp had display issues
 
         # Final touches:
         self.origScaleDescription = self.scaleDescription.text
-        self.reset() # sets .status
-        self.win.units = self.savedWinUnits # restore
+        self.reset()  # sets .status, among other things
+        self.win.units = self.savedWinUnits
 
     def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys,
                    markerStart, low, high, precision, choices,
@@ -6156,17 +6206,17 @@ class RatingScale:
             self.precision = 100
             self.fmtStr = "%.2f"
 
-        self.myClock = core.Clock() # for decision time
+        self.clock = core.Clock() # for decision time
         try:
-            self.minimumTime = float(minTime)
+            self.minTime = float(minTime)
         except ValueError:
-            self.minimumTime = 1.0
-        self.minimumTime = max(self.minimumTime, 0.)
+            self.minTime = 1.0
+        self.minTime = max(self.minTime, 0.)
         try:
-            self.maximumTime = float(maxTime)
+            self.maxTime = float(maxTime)
         except ValueError:
-            self.maximumTime = 0.0
-        self.timedOut = False
+            self.maxTime = 0.0
+        self.allowTimeOut = bool(self.minTime < self.maxTime)
 
         self.myMouse = event.Mouse(win=self.win, visible=True)
         # Mouse-click-able 'accept' button pulsates (cycles its brightness over frames):
@@ -6214,7 +6264,7 @@ class RatingScale:
         if not 0.06 < self.displaySizeFactor < 3:
             logging.warning("RatingScale %s: unusual displaySizeFactor" % self.name)
 
-    def _initKeyBindings(self, acceptKeys, skipKeys, escapeKeys, leftKeys, rightKeys, allowSkip):
+    def _initKeys(self, acceptKeys, skipKeys, escapeKeys, leftKeys, rightKeys, allowSkip):
         # keys for accepting the currently selected response:
         if self.mouseOnly:
             self.acceptKeys = [ ] # no valid keys, so must use mouse
@@ -6254,7 +6304,10 @@ class RatingScale:
         else:
             self.enableRespKeys = False
 
-    def _initLine(self, tickMarks, lineColor='White'):
+        self.allKeys = (self.rightKeys + self.leftKeys + self.acceptKeys +
+                        self.escapeKeys + self.skipKeys + self.respKeys)
+
+    def _initLine(self, tickMarkValues=None, lineColor='White'):
         """define a ShapeStim to be a graphical line, with tick marks.
 
         ### Notes (JRG Aug 2010)
@@ -6297,91 +6350,78 @@ class RatingScale:
         ### Notes (HS November 2012)
         To allow for labels at the ticks, the positions of the tick marks are saved in self.tickPositions.
         If tickMarks, those positions are used instead of the automatic positions.
-
         """
 
         self.lineColor = lineColor
-        self.lineColorSpace = 'rgb'
-
-
         self.tickSize = 0.04 # vertical height of each tick, norm units
-        if self.ticksAboveLine:
-            tickSide = 1
-        else:
-            tickSide = -1
-
-        self.tickMarks = float(self.high - self.low)
-
-        # visually remap 10 ticks onto 1 tick in some conditions (= cosmetic only):
+        self.tickMarks = float(self.high - self.low)  # num tick marks to display, can get autorescaled
         self.autoRescaleFactor = 1
-        if (self.low == 0 and self.tickMarks > 20 and int(self.tickMarks) % 10 == 0):
-            self.autoRescaleFactor = 10
-            self.tickMarks /= self.autoRescaleFactor
-        if tickMarks:
-            tmpTicks = (numpy.asarray(tickMarks, dtype=numpy.float32) - self.low) / (self.high - self.low)
 
+        if tickMarkValues:
+            tickTmp = numpy.asarray(tickMarkValues, dtype=numpy.float32)
+            tickMarkPositions = (tickTmp - self.low) / self.tickMarks
+        else:
+            # visually remap 10 ticks onto 1 tick in some conditions (= cosmetic):
+            if (self.low == 0 and self.tickMarks > 20 and int(self.tickMarks) % 10 == 0):
+                self.autoRescaleFactor = 10
+                self.tickMarks /= self.autoRescaleFactor
+            tickMarkPositions = numpy.linspace(0, 1, self.tickMarks + 1)
+        self.scaledPrecision = float(self.precision * self.autoRescaleFactor)
+
+        # how far a left or right key will move the marker, in tick units:
+        self.keyIncrement = 1. / self.autoRescaleFactor / self.precision
+        self.hStretchTotal = self.stretchHoriz * self.displaySizeFactor
 
         # ends of the rating line, in norm units:
-        self.lineLeftEnd  = self.offsetHoriz - 0.5 * self.stretchHoriz * self.displaySizeFactor
-        self.lineRightEnd = self.offsetHoriz + 0.5 * self.stretchHoriz * self.displaySizeFactor
+        self.lineLeftEnd  = self.offsetHoriz - 0.5 * self.hStretchTotal
+        self.lineRightEnd = self.offsetHoriz + 0.5 * self.hStretchTotal
 
         # space around the line within which to accept mouse input:
         pad = 0.06 * self.displaySizeFactor
-        self.nearLine = numpy.asarray([
+        self.nearLine = [
             (self.lineLeftEnd - pad, -2 * pad + self.offsetVert),
             (self.lineLeftEnd - pad, 2 * pad + self.offsetVert),
             (self.lineRightEnd + pad, 2 * pad + self.offsetVert),
-            (self.lineRightEnd + pad, -2 * pad + self.offsetVert) ])
+            (self.lineRightEnd + pad, -2 * pad + self.offsetVert) ]
 
         # vertices for ShapeStim:
-        self.tickPositions = [] #empty list for obtaining horizontal position of tick marks
-        vertices = [[self.lineLeftEnd, self.offsetVert]] # first vertex
-        if not(tickMarks):
-            for t in range(int(self.tickMarks) + 1):
-                vertices.append([self.offsetHoriz + self.stretchHoriz * self.displaySizeFactor *
-                        (-0.5 + t / self.tickMarks), tickSide * self.tickSize * self.displaySizeFactor + self.offsetVert])
-                vertices.append([self.offsetHoriz + self.stretchHoriz * self.displaySizeFactor *
-                        (-0.5 + t / self.tickMarks), self.offsetVert])
-                if t < self.tickMarks: # extend the line to the next tick mark, t + 1
-                    vertices.append([self.offsetHoriz + self.stretchHoriz * self.displaySizeFactor *
-                                     (-0.5 + (t + 1) / self.tickMarks), self.offsetVert])
-                self.tickPositions.append(self.offsetHoriz + self.stretchHoriz * self.displaySizeFactor * (-0.5 + t / self.tickMarks))
-        else:
-            lineLength = self.lineRightEnd - self.lineLeftEnd
-
-            for c, t in enumerate(tmpTicks):
-                vertices.append([self.lineLeftEnd + lineLength * t, tickSide * self.tickSize * self.displaySizeFactor + self.offsetVert])
-                vertices.append([self.lineLeftEnd + lineLength * t, self.offsetVert])
-                if c < (len(tmpTicks) - 1):
-                    vertices.append([self.lineLeftEnd + lineLength * tmpTicks[c+1], self.offsetVert])
-                self.tickPositions.append(self.lineLeftEnd + lineLength * t)
-        vertices.append([self.lineRightEnd, self.offsetVert])
-        vertices.append([self.lineLeftEnd, self.offsetVert])
+        self.tickPositions = []  # list to hold horizontal positions
+        vertices = [(self.lineLeftEnd, self.offsetVert)]  # first vertex
+        vertExcursion = self.tickSize * self.displaySizeFactor
+        if not self.ticksAboveLine:
+            vertExcursion *= -1  # flip ticks to display below the line
+        lineLength = self.lineRightEnd - self.lineLeftEnd
+        for count, tick in enumerate(tickMarkPositions):
+            horizTmp = self.lineLeftEnd + lineLength * tick
+            vertices += [(horizTmp, self.offsetVert + vertExcursion),
+                         (horizTmp, self.offsetVert)]
+            if count < len(tickMarkPositions) - 1:
+                tickRelPos = lineLength * tickMarkPositions[count + 1]
+                nextHorizTmp = self.lineLeftEnd + tickRelPos
+                vertices.append([nextHorizTmp, self.offsetVert])
+            self.tickPositions.append(horizTmp)
+        vertices += [(self.lineRightEnd, self.offsetVert),
+                     (self.lineLeftEnd, self.offsetVert)]
 
         # create the line:
-        self.line = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=4,
-                              lineColor=self.lineColor, lineColorSpace=self.lineColorSpace,
-                              name=self.name+'.line')
+        self.line = ShapeStim(win=self.win, units='norm', vertices=vertices,
+            lineWidth=4, lineColor=self.lineColor, name=self.name+'.line')
 
-    def _initMarker(self, customMarker, markerExpansion, markerColor, markerStyle, tickSize):
+    def _initMarker(self, customMarker, expansion, markerColor, style):
         """define a GratingStim or ShapeStim to be used as the indicator
         """
         # preparatory stuff:
-        self.markerStyle = markerStyle
+        self.markerStyle = style
         if customMarker and not 'draw' in dir(customMarker):
             logging.warning("RatingScale: the requested customMarker has no draw method; reverting to default")
             self.markerStyle = 'triangle'
             customMarker = None
-
         self.markerSize = 8. * self.displaySizeFactor
         self.markerOffsetVert = 0.
-        self.markerExpansion = float(markerExpansion) * 0.6
+        if isinstance(markerColor, basestring):
+            markerColor = markerColor.replace(' ', '')
 
-        self.markerColor = markerColor
-        if markerColor and isinstance(markerColor, basestring):
-            markerColor = markerColor.replace(' ','')
-
-        # decide how to define self.marker:
+        # define self.marker:
         if customMarker:
             self.marker = customMarker
             if markerColor == None:
@@ -6396,57 +6436,40 @@ class RatingScale:
                 if not hasattr(self.marker, 'name'):
                     self.marker.name = 'customMarker'
         elif self.markerStyle == 'triangle':
-            vertices = [[-1 * tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3],
-                    [ tickSize * self.displaySizeFactor * 1.8, tickSize * self.displaySizeFactor * 3], [0, -0.005]]
-            if markerColor == None:
+            scaledTickSize = self.tickSize * self.displaySizeFactor
+            vert = [[-1 * scaledTickSize * 1.8, scaledTickSize * 3],
+                    [ scaledTickSize * 1.8, scaledTickSize * 3], [0, -0.005]]
+            if markerColor == None or not _isValidColor(markerColor):
                 markerColor = 'DarkBlue'
-            try:
-                self.marker = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=0.1,
-                                        lineColor=markerColor, fillColor=markerColor, fillColorSpace='rgb',
-                                        name=self.name+'.markerTri', autoLog=False)
-            except AttributeError: # bad markerColor, presumably
-                self.marker = ShapeStim(win=self.win, units='norm', vertices=vertices, lineWidth=0.1,
-                                        lineColor='DarkBlue', fillColor='DarkBlue', fillColorSpace='rgb',
-                                        name=self.name+'.markerTri', autoLog=False)
-                markerColor = 'DarkBlue'
-            self.markerExpansion = 0
+            self.marker = ShapeStim(win=self.win, units='norm', vertices=vert,
+                lineWidth=0.1, lineColor=markerColor, fillColor=markerColor,
+                name=self.name+'.markerTri', autoLog=False)
         elif self.markerStyle == 'glow':
-            if markerColor == None:
+            if markerColor == None or not _isValidColor(markerColor):
                 markerColor = 'White'
-            try:
-                self.marker = PatchStim(win=self.win, tex='sin', mask='gauss', color=markerColor,
-                                        colorSpace='rgb', opacity = 0.85, autoLog=False,
-                                        name=self.name+'.markerGlow')
-            except AttributeError: # bad markerColor, presumably
-                self.marker = PatchStim(win=self.win, tex='sin', mask='gauss', color='White',
-                                        colorSpace='rgb', opacity = 0.85, autoLog=False,
-                                        name=self.name+'.markerGlow')
-                markerColor = 'White'
-            self.markerBaseSize = tickSize * self.markerSize
+            self.marker = PatchStim(win=self.win, tex='sin', mask='gauss',
+                color=markerColor, opacity = 0.85, autoLog=False,
+                name=self.name+'.markerGlow')
+            self.markerBaseSize = self.tickSize * self.markerSize
             self.markerOffsetVert = .02
+            self.markerExpansion = float(expansion) * 0.6
             if self.markerExpansion == 0:
                 self.markerBaseSize *= self.markerSize * 0.7
                 if self.markerSize > 1.2:
                     self.markerBaseSize *= .7
                 self.marker.setSize(self.markerBaseSize/2.)
         else: # self.markerStyle == 'circle':
-            if markerColor == None:
+            if markerColor == None or not _isValidColor(markerColor):
                 markerColor = 'DarkRed'
             x,y = self.win.size
             windowRatio = float(y)/x
-            self.markerSizeVert = 3.2 * tickSize * self.displaySizeFactor
-            size = [3.2 * tickSize * self.displaySizeFactor * windowRatio, self.markerSizeVert]
+            self.markerSizeVert = 3.2 * self.tickSize * self.displaySizeFactor
+            size = [self.markerSizeVert * windowRatio, self.markerSizeVert]
             self.markerOffsetVert = self.markerSizeVert / 2.
-            try:
-                self.marker = PatchStim(win=self.win, tex=None, units='norm', size=size,
-                                        mask='circle', color=markerColor, colorSpace='rgb',
-                                        name=self.name+'.markerCir', autoLog=False)
-            except AttributeError: # bad markerColor, presumably
-                self.marker = PatchStim(win=self.win, tex=None, units='norm', size=size,
-                                        mask='circle', color='DarkRed', colorSpace='rgb',
-                                        name=self.name+'.markerCir', autoLog=False)
-                markerColor = 'DarkRed'
-            self.markerBaseSize = tickSize
+            self.marker = Circle(self.win, size=size, units='norm',
+                lineColor=markerColor, fillColor=markerColor,
+                name=self.name+'.markerCir', autoLog=False)
+            self.markerBaseSize = self.tickSize
         self.markerColor = markerColor
 
     def _initTextElements(self, win, lowAnchorText, highAnchorText, scale, textColor,
@@ -6455,8 +6478,7 @@ class RatingScale:
         """
         # text appearance (size, color, font, visibility):
         self.showValue = bool(showValue) # hide if False
-        self.textColor = textColor
-        self.textColorSpace = 'rgb'
+        self.textColor = textColor  # rgb
         self.textFont = textFont
         if not type(textSizeFactor) in [float, int]:
             textSizeFactor = 1.0
@@ -6476,56 +6498,48 @@ class RatingScale:
         self.highAnchorText = highText
         if not scale:
             scale = ' '
-        if scale == '<default>': # set the default
-            scale = lowText + unicode(' = not at all . . . extremely = ') + highText
+        elif scale == '<default>': # set the default
+            scale = lowText + u' = not at all . . . extremely = ' + highText
 
         # create the TextStim:
+        vertPosTmp = -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert
         self.scaleDescription = TextStim(win=self.win, height=self.textSizeSmall,
-            color=self.textColor, colorSpace=self.textColorSpace,
             pos=[self.offsetHoriz, 0.22 * self.displaySizeFactor + self.offsetVert],
-            wrapWidth=2 * self.stretchHoriz * self.displaySizeFactor,
-            name=self.name+'.scale')
+            color=self.textColor, wrapWidth=2 * self.hStretchTotal, name=self.name+'.scale')
         self.scaleDescription.setFont(textFont)
-        self.lowAnchor = TextStim(win=self.win,
-            pos=[self.offsetHoriz - 0.5 * self.stretchHoriz * self.displaySizeFactor,
-                 -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert],
-            height=self.textSizeSmall,
-            color=self.textColor, colorSpace=self.textColorSpace,
-            name=self.name+'.lowAnchor')
+        self.lowAnchor = TextStim(win=self.win, height=self.textSizeSmall,
+            pos=[self.offsetHoriz - 0.5 * self.hStretchTotal, vertPosTmp],
+            color=self.textColor, name=self.name+'.lowAnchor')
         self.lowAnchor.setFont(textFont)
         self.lowAnchor.setText(lowText)
-        self.highAnchor = TextStim(win=self.win,
-            pos=[self.offsetHoriz + 0.5 * self.stretchHoriz * self.displaySizeFactor,
-                 -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert],
-            height=self.textSizeSmall,
-            color=self.textColor, colorSpace=self.textColorSpace,
-            name=self.name+'.highAnchor')
+        self.highAnchor = TextStim(win=self.win, height=self.textSizeSmall,
+            pos=[self.offsetHoriz + 0.5 * self.hStretchTotal, vertPosTmp],
+            color=self.textColor, name=self.name+'.highAnchor')
         self.highAnchor.setFont(textFont)
         self.highAnchor.setText(highText)
         self.labels = []
         if self.labelTexts:
             for c, lab in enumerate(self.labelTexts):
-                self.labels.append(TextStim(win = self.win, text = unicode(lab),
-                    pos = [self.tickPositions[c], -2 * self.textSizeSmall * self.displaySizeFactor + self.offsetVert],
-                    height=self.textSizeSmall,
-                    color=self.textColor, colorSpace=self.textColorSpace,
-                    name=self.name+'.tickLabel.'+unicode(lab), font = textFont))
+                self.labels.append(TextStim(win=self.win, text=unicode(lab), font=textFont,
+                    pos=[self.tickPositions[c], vertPosTmp], height=self.textSizeSmall,
+                    color=self.textColor, name=self.name+'.tickLabel.'+unicode(lab)))
         self.setDescription(scale) # do after having set the relevant things
-    def setDescription(self, scale):
-        """Method to set the description that appears above the line, (e.g., "1=not at all...extremely=7")
-        The text will not be visible if `showScale` is False. This can be useful
-        if re-using the same RatingScale object to get ratings of different dimentions.
-        While its possible to just assign to rs.scaleDescription.text, its better
-        to do rs.setDescription() which records the appropriate change in the log file.
-        """
-        self.scaleDescription.setText(scale)
-        if self.showScale:
-            logging.exp('RatingScale %s: setting scale="%s"' % (self.name, self.scaleDescription.text))
-        else:
-            logging.exp('RatingScale %s: no scale description; low=%s, high=%s' %
-                        (self.name, self.lowAnchor.text, self.highAnchor.text))
+    def setDescription(self, scale=None):
+        """Method to set the text description that appears above the rating line.
 
-    def _initAcceptBox(self, showAccept, acceptPreText, acceptText,
+        Useful when using the same RatingScale object to rate several dimensions.
+        setDescription(None) will reset the description to its initial state.
+        set to a space character (' ') to make the description invisible.
+        The description will not be visible if `showScale` is False.
+        """
+        if scale is None:
+            scale = self.origScaleDescription
+        self.scaleDescription.setText(scale)
+        logging.exp('RatingScale %s: setDescription="%s"' % (self.name, self.scaleDescription.text))
+        if not self.showScale:
+            logging.exp('RatingScale %s: description set but showScale is False' % self.name)
+
+    def _initAcceptBox(self, showAccept, acceptPreText, acceptText, acceptSize,
                        markerColor, textSizeSmall, textSizeFactor, textFont):
         """creates a ShapeStim for self.acceptBox (mouse-click-able 'accept'  button)
         and a TextStim for self.accept (container for the text shown inside the box)
@@ -6542,10 +6556,12 @@ class RatingScale:
             boxVert = [0.2, 0.37]
 
         # define self.acceptBox:
-        self.acceptBoxtop  = acceptBoxtop  = self.offsetVert - boxVert[0] * self.displaySizeFactor * textSizeFactor
-        self.acceptBoxbot  = acceptBoxbot  = self.offsetVert - boxVert[1] * self.displaySizeFactor * textSizeFactor
-        self.acceptBoxleft = acceptBoxleft = self.offsetHoriz - 0.2 * self.displaySizeFactor * textSizeFactor
-        self.acceptBoxright = acceptBoxright = self.offsetHoriz + 0.2 * self.displaySizeFactor * textSizeFactor
+        sizeFactor = self.displaySizeFactor * textSizeFactor
+        leftRightAdjust = 0.2 * max(0.1, acceptSize) * sizeFactor
+        self.acceptBoxtop = acceptBoxtop = self.offsetVert - boxVert[0] * sizeFactor
+        self.acceptBoxbot = acceptBoxbot = self.offsetVert - boxVert[1] * sizeFactor
+        self.acceptBoxleft = acceptBoxleft = self.offsetHoriz - leftRightAdjust
+        self.acceptBoxright = acceptBoxright = self.offsetHoriz + leftRightAdjust
 
         # define a rectangle with rounded corners; for square corners, set delta2 to 0
         delta = 0.025 * self.displaySizeFactor
@@ -6559,14 +6575,11 @@ class RatingScale:
             [acceptBoxright-3*delta2,acceptBoxbot+delta2], [acceptBoxright-delta,acceptBoxbot],
             [acceptBoxleft+delta,acceptBoxbot], [acceptBoxleft+3*delta2,acceptBoxbot+delta2],
             [acceptBoxleft+delta2,acceptBoxbot+3*delta2], [acceptBoxleft,acceptBoxbot+delta] ]
-        if not sys.platform.startswith('linux'):
-            self.acceptBox = ShapeStim(win=self.win, vertices=acceptBoxVertices,
-                            fillColor=self.acceptFillColor, lineColor=self.acceptLineColor,
-                            name=self.name+'.accept')
-        else: # interpolation looks bad on linux, as of Aug 2010
-            self.acceptBox = ShapeStim(win=self.win, vertices=acceptBoxVertices,
-                            fillColor=self.acceptFillColor, lineColor=self.acceptLineColor,
-                            interpolate=False, name=self.name+'.accept')
+        # interpolation looks bad on linux, as of Aug 2010
+        interpolate = bool(not sys.platform.startswith('linux'))
+        self.acceptBox = ShapeStim(win=self.win, vertices=acceptBoxVertices,
+            fillColor=self.acceptFillColor, lineColor=self.acceptLineColor,
+            interpolate=interpolate, name=self.name+'.accept')
 
         # text to display inside accept button before a marker has been placed:
         if self.low > 0 and self.high < 10 and not self.mouseOnly:
@@ -6579,9 +6592,8 @@ class RatingScale:
 
         # create the TextStim:
         self.accept = TextStim(win=self.win, text=self.keyClick, font=self.textFont,
-                            pos=[self.offsetHoriz, (acceptBoxtop + acceptBoxbot) / 2.],
-                            italic=True, height=textSizeSmall, color=self.textColor,
-                            colorSpace=self.textColorSpace, autoLog=False)
+            pos=[self.offsetHoriz, (acceptBoxtop + acceptBoxbot) / 2.],
+            italic=True, height=textSizeSmall, color=self.textColor, autoLog=False)
         self.accept.setFont(textFont)
 
         self.acceptTextColor = markerColor
@@ -6591,24 +6603,23 @@ class RatingScale:
     def _getMarkerFromPos(self, mouseX):
         """Convert mouseX into units of tick marks, 0 .. high-low, fractional if precision > 1
         """
-        mouseX = min(max(mouseX, self.lineLeftEnd), self.lineRightEnd)
-        markerPos = (mouseX - self.offsetHoriz) * self.tickMarks / (self.stretchHoriz *
-            self.displaySizeFactor) + self.tickMarks/2. # mouseX==0 -> mid-point of tick scale
-        markerPos = (round(markerPos * self.precision * self.autoRescaleFactor) /
-            float(self.precision * self.autoRescaleFactor) )  # scale to 0..tickMarks
-        return markerPos # 0 .. high-low
-    def _getMarkerFromTick(self, value):
+        value = min(max(mouseX, self.lineLeftEnd), self.lineRightEnd)
+        # map mouseX==0 -> mid-point of tick scale:
+        _tickStretch = self.tickMarks / self.hStretchTotal
+        markerPos = (value - self.offsetHoriz) * _tickStretch + self.tickMarks/2.
+        return round(markerPos * self.scaledPrecision) / self.scaledPrecision
+
+    def _getMarkerFromTick(self, tick):
         """Convert a requested tick value into a position on the internal scale.
         Accounts for non-zero low end, autoRescale, and precision.
-        The return value is assured to be on the scale.
         """
-        # on the line:
-        value = max(min(self.high, value), self.low)
-        # with requested precision:
-        value = (round(value * self.precision * self.autoRescaleFactor) /
-                    float(self.precision * self.autoRescaleFactor) )
+        # ensure its on the line:
+        value = max(min(self.high, tick), self.low)
+        # set requested precision:
+        value = round(value * self.scaledPrecision) / self.scaledPrecision
         return (value - self.low) * self.autoRescaleFactor
-    def setMarkerPos(self, value):
+
+    def setMarkerPos(self, tick):
         """Method to allow the experimenter to set the marker's position on the
         scale (in units of tick marks). This method can also set the index within
         a list of choices (which start at 0). No range checking is done.
@@ -6621,30 +6632,36 @@ class RatingScale:
         To work from a screen coordinate, such as the X position of a mouse click::
             rs.setMarkerPos(rs._getMarkerFromPos(mouseX))
         """
-        self.markerPlacedAt = value
+        self.markerPlacedAt = tick
         self.markerPlaced = True # only needed first time, which this ensures
+
     def draw(self):
-        """
-        Update the visual display, check for response (key, mouse, skip).
+        """Update the visual display, check for response (key, mouse, skip).
 
         sets response flags as appropriate (`self.noResponse`, `self.timedOut`).
         `draw()` only draws the rating scale, not the item to be rated
         """
-        self.win.units = 'norm' # orig = saved during init, restored at end of .draw()
+        self.win.units = 'norm'  # original units do get restored
         if self.firstDraw:
             self.firstDraw = False
-            self.myClock.reset()
+            self.clock.reset()
             self.status = STARTED
-            self.history = [(None, 0.0)]
+            self.history = [(self.markerStart, 0.0)]  # this will grow
+            self.beyondMinTime = False  # has minTime elapsed?
+            self.timedOut = False
 
-        # timed out?
-        if self.maximumTime > self.minimumTime and self.myClock.getTime() > self.maximumTime:
-            self.noResponse = False
+        if not self.beyondMinTime:
+            self.beyondMinTime = bool(self.clock.getTime() > self.minTime)
+        # beyond maxTime = timed out? max < min means never allow time-out
+        if self.allowTimeOut and not self.timedOut and self.maxTime < self.clock.getTime():
+            # only do this stuff once
             self.timedOut = True
-            self.history.append((self.getRating(), self.getRT()))  # RT when timed-out
+            self.noResponse = False
+            # getRT() returns a value because noResponse==False
+            self.history.append((self.getRating(), self.getRT()))
             logging.data('RatingScale %s: rating=%s (no response, timed out after %.3fs)' %
-                         (self.name, unicode(self.getRating()), self.maximumTime) )
-            logging.data('RatingScale %s: rating RT=%.3fs' % (self.name, self.getRT()) ) # getRT() should not be None here, cuz timedout
+                         (self.name, unicode(self.getRating()), self.maxTime) )
+            logging.data('RatingScale %s: rating RT=%.3fs' % (self.name, self.getRT()) )
 
         # 'disappear' == draw nothing if subj is done:
         if self.noResponse == False and self.disappear:
@@ -6655,45 +6672,50 @@ class RatingScale:
         for visualElement in self.visualDisplayElements:
             visualElement.draw()
 
-        # if the subject is done but the scale is still being drawn:
+        # draw a fixed marker if the scale is being drawn after a response:
         if self.noResponse == False:
             # fix the marker position on the line
             if not self.markerPosFixed:
-                self.marker.setPos((0, -.012), '+') # drop it onto the line
-                self.markerPosFixed = True # flag to park it there
+                try:
+                    self.marker.setFillColor('DarkGray')
+                except AttributeError:
+                    try:
+                        self.marker.setColor('DarkGray')
+                    except:
+                        pass
+                self.marker.setPos((0, -.012), '+')  # drop it onto the line
+                self.markerPosFixed = True  # flag to park it there
             self.marker.draw()
             if self.showAccept:
-                self.acceptBox.setFillColor(self.acceptFillColor)
-                self.acceptBox.setLineColor(self.acceptLineColor)
-                self.acceptBox.draw()
+                self.acceptBox.draw()  # hides the text
             self.win.units = self.savedWinUnits
-            return # makes the marker unresponsive
+            return  # makes the marker unresponsive
 
         mouseX, mouseY = self.myMouse.getPos() # norm units
 
-        # draw the marker:
+        # draw a dynamic marker:
         if self.markerPlaced or self.singleClick:
-            # expansion fun & games with 'glow':
-            if self.markerStyle == 'glow':
+            # expansion for 'glow', based on proportion of total line
+            proportion = self.markerPlacedAt / self.tickMarks
+            if self.markerStyle == 'glow' and self.markerExpansion:
                 if self.markerExpansion > 0:
-                    self.marker.setSize(self.markerBaseSize + 0.1 * self.markerExpansion *
-                                        self.markerPlacedAt / self.tickMarks)
-                    self.marker.setOpacity(0.2 + self.markerPlacedAt / self.tickMarks)
-                elif self.markerExpansion < 0:
-                    self.marker.setSize(self.markerBaseSize - 0.1 * self.markerExpansion *
-                                        (self.tickMarks - self.markerPlacedAt) / self.tickMarks)
-                    self.marker.setOpacity(1.2 - self.markerPlacedAt / self.tickMarks)
+                    newSize = 0.1 * self.markerExpansion * proportion
+                    newOpacity = 0.2 + proportion
+                else:  # self.markerExpansion < 0:
+                    newSize = - 0.1 * self.markerExpansion * (1 - proportion)
+                    newOpacity = 1.2 - proportion
+                self.marker.setSize(self.markerBaseSize + newSize)
+                self.marker.setOpacity(min(1, max(0, newOpacity)))
             # update position:
             if self.singleClick and pointInPolygon(mouseX, mouseY, self.nearLine):
-                #self.markerPlacedAt = self._getMarkerFromPos(mouseX)
                 self.setMarkerPos(self._getMarkerFromPos(mouseX))
             elif not hasattr(self, 'markerPlacedAt'):
                 self.markerPlacedAt = False
-            # set the marker's screen position based on its tick coordinate (== markerPlacedAt)
+            # set the marker's screen position based on tick (== markerPlacedAt)
             if self.markerPlacedAt is not False:
-                self.marker.setPos([self.offsetHoriz + self.displaySizeFactor * self.stretchHoriz *
-                                (-0.5 + self.markerPlacedAt / self.tickMarks),
-                                self.offsetVert + self.markerOffsetVert])
+                x = self.offsetHoriz + self.hStretchTotal * (-0.5 + proportion)
+                y = self.offsetVert + self.markerOffsetVert
+                self.marker.setPos((x, y))
                 self.marker.draw()
             if self.showAccept:
                 self.frame = (self.frame + 1) % 100
@@ -6704,68 +6726,73 @@ class RatingScale:
                     if self.choices:
                         val = unicode(self.choices[int(self.markerPlacedAt)])
                     else:
-                        val = self.fmtStr % ((self.markerPlacedAt + self.low) * self.autoRescaleFactor )
+                        valTmp = self.markerPlacedAt + self.low
+                        val = self.fmtStr % (valTmp * self.autoRescaleFactor)
                     self.accept.setText(val)
                 elif self.markerPlacedAt is not False:
                     self.accept.setText(self.acceptText)
 
         # handle key responses:
         if not self.mouseOnly:
-            for key in event.getKeys():
+            for key in event.getKeys(self.allKeys):
                 if key in self.escapeKeys:
                     core.quit()
                 if key in self.skipKeys:
                     self.markerPlacedAt = None
                     self.noResponse = False
-                if self.enableRespKeys and key in self.respKeys: # place the marker at the corresponding tick
+                elif self.enableRespKeys and key in self.respKeys:
+                    # place the marker at the corresponding tick (from key)
                     self.markerPlaced = True
                     self.markerPlacedAt = self._getMarkerFromTick(int(key))
-                    self.marker.setPos([self.displaySizeFactor *
-                                        (-0.5 + self.markerPlacedAt / self.tickMarks), 0])
-                    if self.singleClick and self.myClock.getTime() > self.minimumTime:
+                    proportion = self.markerPlacedAt / self.tickMarks
+                    self.marker.setPos([self.displaySizeFactor * (-0.5 + proportion), 0])
+                    if self.singleClick and self.beyondMinTime:
                         self.noResponse = False
                         self.marker.setPos((0, self.offsetVert), '+')
                         logging.data('RatingScale %s: (key single-click) rating=%s' %
                                      (self.name, unicode(self.getRating())) )
-                if key in self.leftKeys:
-                    if self.markerPlaced and self.markerPlacedAt > 0:
-                        self.markerPlacedAt = max(0, self.markerPlacedAt - 1. / self.autoRescaleFactor / self.precision)
-                if key in self.rightKeys:
-                    if self.markerPlaced and self.markerPlacedAt < self.tickMarks:
-                        self.markerPlacedAt = min(self.tickMarks, self.markerPlacedAt +
-                                                  1. / self.autoRescaleFactor / self.precision)
-                if (self.markerPlaced and key in self.acceptKeys and self.myClock.getTime() > self.minimumTime):
+                if not self.markerPlaced:
+                    continue
+                elif key in self.leftKeys:
+                    leftwards = self.markerPlacedAt - self.keyIncrement
+                    self.markerPlacedAt = max(0, leftwards)
+                elif key in self.rightKeys:
+                    rightwards = self.markerPlacedAt + self.keyIncrement
+                    self.markerPlacedAt = min(self.tickMarks, rightwards)
+                elif key in self.acceptKeys and self.beyondMinTime:
                     self.noResponse = False
                     self.history.append((self.getRating(), self.getRT()))  # RT when accept pressed
                     logging.data('RatingScale %s: (key response) rating=%s' %
                                      (self.name, unicode(self.getRating())) )
 
-        # handle mouse:
-        if self.myMouse.getPressed()[0]: # if mouse (left click) is pressed...
+        # handle mouse left-click:
+        if self.myMouse.getPressed()[0]:
             #mouseX, mouseY = self.myMouse.getPos() # done above
-            if pointInPolygon(mouseX, mouseY, self.nearLine): # if near the line, place the marker there:
+            # if click near the line, place the marker there:
+            if pointInPolygon(mouseX, mouseY, self.nearLine):
                 self.markerPlaced = True
                 self.markerPlacedAt = self._getMarkerFromPos(mouseX)
-                if (self.singleClick and self.myClock.getTime() > self.minimumTime):
+                if self.singleClick and self.beyondMinTime:
                     self.noResponse = False
                     logging.data('RatingScale %s: (mouse single-click) rating=%s' %
                                  (self.name, unicode(self.getRating())) )
-            # if in accept box, and a value has been selected, and enough time has elapsed:
-            if self.showAccept:
-                if (self.markerPlaced and self.myClock.getTime() > self.minimumTime and
-                        self.acceptBox.contains(mouseX, mouseY)):
-                    self.noResponse = False # accept the currently marked value
-                    self.history.append((self.getRating(), self.getRT()))  # RT when accept pressed
-                    logging.data('RatingScale %s: (mouse response) rating=%s' %
-                                (self.name, unicode(self.getRating())) )
+            # if click in accept box and conditions are met, accept the response:
+            elif (self.showAccept and self.markerPlaced and self.beyondMinTime and
+                    self.acceptBox.contains(mouseX, mouseY)):
+                self.noResponse = False  # accept the currently marked value
+                self.history.append((self.getRating(), self.getRT()))
+                logging.data('RatingScale %s: (mouse response) rating=%s' %
+                            (self.name, unicode(self.getRating())) )
 
-        # decision time = time from the first .draw() to when 'accept' was pressed:
+        # decision time = secs from first .draw() to when first 'accept' value:
         if not self.noResponse and self.decisionTime == 0:
-            self.decisionTime = self.myClock.getTime()
+            self.decisionTime = self.clock.getTime()
             logging.data('RatingScale %s: rating RT=%.3f' % (self.name, self.decisionTime))
-            # only set this once: at the time 'accept' is indicated by subject
             # minimum time is enforced during key and mouse handling
             self.status = FINISHED
+            if self.showAccept:
+                self.acceptBox.setFillColor(self.acceptFillColor)
+                self.acceptBox.setLineColor(self.acceptLineColor)
 
         # build up response history:
         tmpRating = self.getRating()
@@ -6790,7 +6817,7 @@ class RatingScale:
         if self.markerStart != None:
             self.markerPlaced = True
             self.markerPlacedAt = self.markerStart - self.low # __init__ assures this is valid
-        self.firstDraw = True # triggers self.myClock.reset() at start of draw()
+        self.firstDraw = True # triggers self.clock.reset() at start of draw()
         self.decisionTime = 0
         self.markerPosFixed = False
         self.frame = 0 # a counter used only to 'pulse' the 'accept' box
@@ -6831,10 +6858,10 @@ class RatingScale:
         for continuous usage).
         """
         if self.status != FINISHED:
-            return self.myClock.getTime()
+            return self.clock.getTime()
         if self.noResponse:
             if self.timedOut:
-                return self.maximumTime
+                return self.maxTime
             return None
         return self.decisionTime
 
@@ -6843,7 +6870,7 @@ class RatingScale:
         the final accepted choice, as a list of (rating, time) tuples. The history
         can be retrieved at any time, allowing for continuous ratings to be
         obtained in real-time. Both numerical and categorical choices are stored
-        automatically in the history. The history will always start with `(None, 0.0)`.
+        automatically in the history.
         """
         return self.history
 
@@ -7163,13 +7190,27 @@ def makeRadialMatrix(matrixSize):
     rad = numpy.sqrt(xx**2 + yy**2)
     return rad
 
-def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=True):
+def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=True, dataType=None):
     """
-    id is the texture ID
-    pixFormat = GL.GL_ALPHA, GL.GL_RGB
-    useShaders is a bool
-    interpolate is a bool (determines whether texture will use GL_LINEAR or GL_NEAREST
-    res is the resolution of the texture (unless a bitmap image is used)
+    :params:
+
+        id:
+            is the texture ID
+
+        pixFormat:
+            GL.GL_ALPHA, GL.GL_RGB
+
+        useShaders:
+            bool
+
+        interpolate:
+            bool (determines whether texture will use GL_LINEAR or GL_NEAREST
+
+        res:
+            the resolution of the texture (unless a bitmap image is used)
+
+        dataType:
+            None, GL.GL_UNSIGNED_BYTE, GL_FLOAT. Only affects image files (numpy arrays will be float)
 
     For grating stimuli (anything that needs multiple cycles) forcePOW2 should
     be set to be True. Otherwise the wrapping of the texture will not work.
@@ -7181,8 +7222,15 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
     """
     global _nImageResizes
     notSqr=False #most of the options will be creating a sqr texture
+    wasImage=False #change this if image loading works
     useShaders = stim._useShaders
     interpolate = stim.interpolate
+    if dataType==None:
+        if useShaders and pixFormat==GL.GL_RGB:
+            dataType = GL.GL_FLOAT
+        else:
+            dataType = GL.GL_UNSIGNED_BYTE
+
     if type(tex) == numpy.ndarray:
         #handle a numpy array
         #for now this needs to be an NxN intensity array
@@ -7242,18 +7290,21 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
         rad=makeRadialMatrix(res)
         intensity = (rad<=1)*2-1
         fromFile=0
+        wasLum=True
     elif tex == "gauss":
         rad=makeRadialMatrix(res)
         sigma = 1/3.0;
         intensity = numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )*2-1 #3sd.s by the edge of the stimulus
         fromFile=0
+        wasLum=True
     elif tex == "radRamp":#a radial ramp
         rad=makeRadialMatrix(res)
         intensity = 1-2*rad
         intensity = numpy.where(rad<-1, intensity, -1)#clip off the corners (circular)
         fromFile=0
-
+        wasLum=True
     elif tex == "raisedCos": # A raised cosine
+        wasLum=True
         hamming_len = 1000 # This affects the 'granularity' of the raised cos
 
         # If no user input was provided:
@@ -7332,6 +7383,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
                 raise AttributeError, "Couldn't make sense of requested image."#ensure we quit
         # at this point we have a valid im
         stim.origSize=im.size
+        wasImage=True
         #is it 1D?
         if im.size[0]==1 or im.size[1]==1:
             logging.error("Only 2D textures are supported at the moment")
@@ -7343,33 +7395,38 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
                     notSqr=True
                 elif _nImageResizes<reportNImageResizes:
                     logging.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(tex, powerOf2, powerOf2))
+                    _nImageResizes+=1
+                    im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
                 elif _nImageResizes==reportNImageResizes:
                     logging.warning("Multiple images have needed resizing - I'll stop bothering you!")
-                _nImageResizes+=1
-                im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
+                    im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
 
         #is it Luminance or RGB?
         if im.mode=='L':
             wasLum = True
-            intensity= numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # 2/255-1.0 == get to range -1:1
         elif pixFormat==GL.GL_ALPHA:#we have RGB and need Lum
             wasLum = True
             im = im.convert("L")#force to intensity (in case it was rgb)
-            intensity= numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # much faster to avoid division 2/255
         elif pixFormat==GL.GL_RGB:#we have RGB and keep it that way
             #texture = im.tostring("raw", "RGB", 0, -1)
             im = im.convert("RGBA")#force to rgb (in case it was CMYK or L)
-            intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1
             wasLum=False
+        if dataType==GL.GL_FLOAT:
+            #convert from ubyte to float
+            intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # much faster to avoid division 2/255
+        else:
+            intensity = numpy.array(im)
+        if wasLum and intensity.shape!=im.size:
+            intensity.shape=im.size
+            print intensity.min(), intensity.max()
 
-    if pixFormat==GL.GL_RGB and wasLum and useShaders:
+    if pixFormat==GL.GL_RGB and wasLum and dataType==GL.GL_FLOAT:
         #keep as float32 -1:1
         if sys.platform!='darwin' and stim.win.glVendor.startswith('nvidia'):
             #nvidia under win/linux might not support 32bit float
             internalFormat = GL.GL_RGB16F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
         else:#we've got a mac or an ATI card and can handle 32bit float textures
             internalFormat = GL.GL_RGB32F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
-        dataType = GL.GL_FLOAT
         data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
         data[:,:,0] = intensity#R
         data[:,:,1] = intensity#G
@@ -7377,7 +7434,6 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
     elif pixFormat==GL.GL_RGB and wasLum:#and not using shaders
         #scale by rgb and convert to ubyte
         internalFormat = GL.GL_RGB
-        dataType = GL.GL_UNSIGNED_BYTE
         if stim.colorSpace in ['rgb', 'dkl', 'lms','hsv']:
             rgb=stim.rgb
         else:
@@ -7389,23 +7445,18 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
         data[:,:,2] = intensity*rgb[2]  + stim.rgbPedestal[2]#B
         #convert to ubyte
         data = psychopy.misc.float_uint8(stim.contrast*data)
-    elif pixFormat==GL.GL_RGB and useShaders:#not wasLum
+    elif pixFormat==GL.GL_RGB and dataType==GL.GL_FLOAT:#not wasLum
         internalFormat = GL.GL_RGB32F_ARB
-        dataType = GL.GL_FLOAT
         data = intensity
     elif pixFormat==GL.GL_RGB:# not wasLum, not useShaders  - an RGB bitmap with no shader options
         internalFormat = GL.GL_RGB
-        dataType = GL.GL_UNSIGNED_BYTE
-        data = psychopy.misc.float_uint8(intensity)
-    elif pixFormat==GL.GL_ALPHA and useShaders:# a mask with no shader options
+        data = intensity #psychopy.misc.float_uint8(intensity)
+    elif pixFormat==GL.GL_ALPHA:
         internalFormat = GL.GL_ALPHA
-        dataType = GL.GL_UNSIGNED_BYTE
-        data = psychopy.misc.float_uint8(intensity)
-    elif pixFormat==GL.GL_ALPHA:# not wasLum, not useShaders  - a mask with no shader options
-        internalFormat = GL.GL_ALPHA
-        dataType = GL.GL_UNSIGNED_BYTE
-        #can't use float_uint8 - do it manually
-        data = numpy.around(255*stim.opacity*(0.5+0.5*intensity)).astype(numpy.uint8)
+        if wasImage:
+            data = intensity
+        else:
+            data = psychopy.misc.float_uint8(intensity)
     #check for RGBA textures
     if len(intensity.shape)>2 and intensity.shape[2] == 4:
         if pixFormat==GL.GL_RGB: pixFormat=GL.GL_RGBA
@@ -7413,7 +7464,6 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
         elif internalFormat==GL.GL_RGB32F_ARB: internalFormat=GL.GL_RGBA32F_ARB
 
     texture = data.ctypes#serialise
-
     #bind the texture in openGL
     GL.glEnable(GL.GL_TEXTURE_2D)
     GL.glBindTexture(GL.GL_TEXTURE_2D, id)#bind that name to the target
@@ -7438,8 +7488,8 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
         GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                         data.shape[1],data.shape[0], 0, # [JRG] for non-square, want data.shape[1], data.shape[0]
                         pixFormat, dataType, texture)
-
     GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
+    return wasLum
 
 def pointInPolygon(x, y, poly):
     """Determine if a point (`x`, `y`) is inside a polygon, using the ray casting method.
@@ -7527,6 +7577,18 @@ def _setTexIfNoShaders(obj):
     """
     if hasattr(obj, 'setTex') and hasattr(obj, '_texName') and not obj._useShaders:
         obj.setTex(obj._texName)
+
+def _isValidColor(color):
+    """check color validity (equivalent to existing checks in _setColor)
+    """
+    try:
+        color = float(color)
+        return True
+    except:
+        if isinstance(color, basestring):
+            return (color.lower() in colors.colors255.keys()
+                    or color[0]=='#' or color[0:2]=='0x')
+        return type(color) in [tuple, list, numpy.ndarray] or color==None
 
 def _setColor(self, color, colorSpace=None, operation='',
                 rgbAttrib='rgb', #or 'fillRGB' etc

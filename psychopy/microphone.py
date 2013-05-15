@@ -5,21 +5,23 @@
 # Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-# Author: Jeremy R. Gray, March 2012
+# Author: Jeremy R. Gray, March 2012, March 2013
 
 from __future__ import division
 import os, sys, shutil, time
 import threading, urllib2, json
 import tempfile, glob
-from psychopy import core, logging
-from psychopy import sound
-from psychopy.constants import NOT_STARTED, PSYCHOPY_USERAGENT
+import numpy as np
+from scipy.io import wavfile
+from psychopy import core, logging, sound
+from psychopy.constants import *
 # import pyo is done within switchOn to better encapsulate it, because it can be very slow
 # idea: don't want to delay up to 3 sec when importing microphone
 # downside: to make this work requires some trickiness with globals
 
 global haveMic
 haveMic = False # goes True in switchOn, if can import pyo
+
 
 class AudioCapture(object):
     """Capture a sound sample from the default sound input, and save to a file.
@@ -71,29 +73,23 @@ class AudioCapture(object):
         a namespace scoping issue, which using globals seemed to fix; see pyo mailing
         list, 7 April 2012. This draws heavily on Olivier Belanger's solution.
         """
-        def __init__(self, file, sec=0, sampletype=0):
+        def __init__(self):
             self.running = False
-            if file:
-                inputter = Input(chnl=0, mul=1)
-                self.recorder = Record(inputter,
-                               file,
-                               chnls=2,
-                               fileformat=0,
-                               sampletype=sampletype,
-                               buffering=4)
-                self.clean = Clean_objects(sec, self.recorder)
-        def run(self, file, sec, sampletype):
-            self.__init__(file, sec, sampletype)
+        def run(self, filename, sec, sampletype=0, buffering=16, chnl=0):
             self.running = True
-            self.clean.start() # controls recording onset (now) and offset (later)
-            threading.Timer(sec, self._stop).start() # set running flag False
+            inputter = Input(chnl=chnl, mul=1)  # chnl from pyo.pa_get_input_devices()
+            self.recorder = Record(inputter, filename, chnls=2, fileformat=0,
+                                sampletype=sampletype, buffering=buffering)
+            Clean_objects(sec, self.recorder).start()  # handles recording offset
+            threading.Timer(sec, self._stop).start()  # set running flag False
         def stop(self):
             self.recorder.stop()
             self._stop()
         def _stop(self):
             self.running = False
 
-    def __init__(self, name='mic', file='', saveDir='', sampletype=0):
+    def __init__(self, name='mic', filename='', saveDir='', sampletype=0,
+                 buffering=16, chnl=0):
         """
         :Parameters:
             name :
@@ -107,10 +103,12 @@ class AudioCapture(object):
             sampletype : bit depth
                 pyo recording option: 0=16 bits int, 1=24 bits int; 2=32 bits int
         """
+        if not haveMic:
+            raise MicrophoneError('Need to call microphone.switchOn() before AudioCapture or AdvancedCapture')
         self.name = name
         self.saveDir = saveDir
-        if file:
-            self.wavOutFilename = file
+        if filename:
+            self.wavOutFilename = filename
         else:
             self.wavOutFilename = os.path.join(self.saveDir, name + '.wav')
         if not self.saveDir:
@@ -134,11 +132,9 @@ class AudioCapture(object):
             self.loggingId += ' ' + self.name
 
         # the recorder object needs to persist, or else get bus errors:
-        self.recorder = self._Recorder(None)
-        self.sampletype = sampletype # pass through .run()
+        self.recorder = self._Recorder()
+        self.options = {'sampletype': sampletype, 'buffering': buffering, 'chnl': chnl}
 
-    def __del__(self):
-        pass
     def stop(self):
         """Interrupt a recording that is in progress; close & keep the file.
 
@@ -158,35 +154,38 @@ class AudioCapture(object):
     def reset(self):
         """Restores to fresh state, ready to record again"""
         logging.exp('%s: resetting at %.3f' % (self.loggingId, core.getTime()))
-        self.__del__()
         self.__init__(name=self.name, saveDir=self.saveDir)
-    def record(self, sec, file='', block=True):
+    def record(self, sec, filename='', block=True):
         """Capture sound input for duration <sec>, save to a file.
 
         Return the path/name to the new file. Uses onset time (epoch) as
         a meaningful identifier for filename and log.
         """
+        return self._record(sec, filename=filename, block=block)
+    def _record(self, sec, filename='', block=True):
         while self.recorder.running:
             pass
         self.duration = float(sec)
-        self.onset = core.getTime() # note: report onset time in log, and use in filename
-        logging.data('%s: Record: onset %.3f, capture %.3fs' %
-                     (self.loggingId, self.onset, self.duration) )
+        self.onset = core.getTime()  # for duration estimation, high precision
+        self.fileOnset = core.getAbsTime()  # for log and filename, 1 sec precision
+        logging.data('%s: Record: onset %d, capture %.3fs' %
+                     (self.loggingId, self.fileOnset, self.duration) )
         if not file:
-            onsettime = '-%.3f' % self.onset
+            onsettime = '-%d' % self.fileOnset
             self.savedFile = onsettime.join(os.path.splitext(self.wavOutFilename))
         else:
-            self.savedFile = os.path.abspath(file).strip('.wav') + '.wav'
+            self.savedFile = os.path.abspath(filename).strip('.wav') + '.wav'
 
         t0 = core.getTime()
-        self.recorder.run(self.savedFile, self.duration, self.sampletype)
-        self.rate = sound.pyoSndServer.getSamplingRate()
+        self.recorder.run(self.savedFile, self.duration, **self.options)
 
+        self.rate = sound.pyoSndServer.getSamplingRate()
         if block:
-            core.wait(self.duration - .0008) # .0008 fudge factor for better reporting
-                # actual timing is done by Clean_objects
+            core.wait(self.duration, 0)
             logging.exp('%s: Record: stop. %.3f, capture %.3fs (est)' %
                      (self.loggingId, core.getTime(), core.getTime() - t0) )
+            while self.recorder.running:
+                core.wait(.001, 0)
         else:
             logging.exp('%s: Record: return immediately, no blocking' %
                      (self.loggingId) )
@@ -261,10 +260,209 @@ class AudioCapture(object):
 
         return os.path.abspath(newFile)
 
+class AdvAudioCapture(AudioCapture):
+    """Class extends AudioCapture, plays a marker sound as a "start" indicator.
+
+    Has method for retrieving the marker onset time from the file, to allow
+    calculation of vocal RT (or other sound-based RT).
+
+    See Coder demo > input > latencyFromTone.py
+    """
+    def __init__(self, name='advMic', filename='', saveDir='', sampletype=0,
+                 buffering=16, chnl=0):
+        AudioCapture.__init__(self, name=name, filename=filename, saveDir=saveDir,
+                sampletype=sampletype, buffering=buffering, chnl=chnl)
+        self.setMarker()
+
+    def record(self, sec, filename=''):
+        """Starts recording and plays an onset marker tone just prior
+        to returning. The idea is that the start of the tone in the
+        recording indicates when this method returned, to enable you to sync
+        a known recording onset with other events.
+        """
+        self.filename = self._record(sec, filename='', block=False)
+        self.playMarker()
+        return self.filename
+
+    def setFile(self, filename):
+        """Sets the name of the file to work with, e.g., for getting onset time.
+        """
+        self.filename = filename
+    def setMarker(self, tone=19000, secs=0.015, volume=0.03):
+        """Sets the onset marker, where `tone` is either in hz or a custom sound.
+
+        The default tone (19000 Hz) is recommended for auto-detection, as being
+        easier to isolate from speech sounds (and so reliable to detect). The default duration
+        and volume are appropriate for a quiet setting such as a lab testing
+        room. A louder volume, longer duration, or both may give better results
+        when recording loud sounds or in noisy environments, and will be
+        auto-detected just fine (even more easily). If the hardware microphone
+        in use is not physically near the speaker hardware, a louder volume is
+        likely to be required.
+
+        Custom sounds cannot be auto-detected, but are supported anyway for
+        presentation purposes. E.g., a recording of someone saying "go" or
+        "stop" could be passed as the onset marker.
+        """
+        if hasattr(tone, 'play'):
+            self.marker_hz = 0
+            self.marker = tone
+            logging.exp('custom sound set as marker; getMarkerOnset() will not be able to auto-detect onset')
+        else:
+            self.marker_hz = float(tone)
+            sampleRate = sound.pyoSndServer.getSamplingRate()
+            if sampleRate < 2 * self.marker_hz:
+                # NyquistError
+                logging.warning("Recording rate (%i Hz) too slow for %i Hz-based marker detection." % (int(sampleRate), self.marker_hz))
+            logging.exp('non-default Hz set as recording onset marker: %.1f' % self.marker_hz)
+            self.marker = sound.Sound(self.marker_hz, secs, volume=volume)
+    def playMarker(self):
+        """Plays the current marker sound. This is automatically called at the
+        start of recording, but can be called anytime to insert a marker.
+        """
+        self.marker.play()
+
+    def getMarkerInfo(self):
+        """Returns (hz, duration, volume) of the marker sound.
+        Custom markers always return 0 hz (regardless of the sound).
+        """
+        return self.marker_hz, self.marker.getDuration(), self.marker.getVolume()
+
+    def getMarkerOnset(self, chunk=128, secs=0.5, filename=''):
+        """Return (onset, offset) time of the first marker within the first `secs` of the saved recording.
+
+        Has approx ~1.33ms resolution at 48000Hz, chunk=64. Larger chunks can
+        speed up processing times, at a sacrifice of some resolution, e.g., to
+        pre-process long recordings with multiple markers.
+
+        If given a filename, it will first set that file as the one to work with,
+        and then try to detect the onset marker.
+        """
+        def thresh2SD(data, mult=2, thr=None):
+            """Return index of first value in abs(data) exceeding 2 * std(data),
+            or length of the data + 1 if nothing > threshold
+
+            Return threshold so can re-use the same threshold later
+            """
+            # this algorithm could use improvement
+            data = abs(data)
+            if not thr:
+                thr = mult * np.std(data)
+            val = data[(data > thr)]
+            if not len(val):
+                return len(data)+1, thr
+            first = val[0]
+            for i, v in enumerate(data):
+                if v == first:
+                    return i, thr
+
+        while self.recorder.running:
+            core.wait(0.10, 0)
+        # read from self.filename:
+        if filename:
+            self.setFile(filename)
+        data, sampleRate = readWavFile(self.filename)
+        if self.marker_hz == 0:
+            raise ValueError("Custom marker sounds cannot be auto-detected.")
+        if sampleRate < 2 * self.marker_hz:
+            # NyquistError
+            raise ValueError("Recording rate (%i Hz) too slow for %i Hz-based marker detection." % (int(sampleRate), self.marker_hz))
+
+        # extract onset:
+        chunk = max(16, chunk)  # trades-off against size of bandpass filter
+          # precision in time-domain (= smaller chunks) requires wider freq
+        bandSize = 150 * 2 ** (8 - int(np.log2(chunk)))  # {16: 2400, 32: 1200, 64: 600, 128: 300}
+        dataToUse = data[:int(sampleRate * secs)]  # only look at first secs
+        lo = max(0, self.marker_hz - bandSize)  # for bandpass filter
+        hi = self.marker_hz + bandSize
+        dftProfile = getDftBins(dataToUse, sampleRate, lo, hi, chunk)
+        onsetChunks, thr = thresh2SD(dftProfile)  # leading edge of startMarker in chunks
+        onsetSecs = onsetChunks * chunk / sampleRate  # in secs
+
+        # extract offset:
+        start = onsetChunks - 4
+        stop = int(onsetChunks+self.marker.getDuration()*sampleRate/chunk) + 4
+        backwards = dftProfile[max(start,0):min(stop, len(dftProfile))]
+        offChunks, _ = thresh2SD(backwards[::-1], thr=thr)
+        offSecs = (start + len(backwards) - offChunks) * chunk / sampleRate  # in secs
+
+        return onsetSecs, offSecs
+
+def readWavFile(filename):
+    """Return (data, sampleRate) as read from a wav file
+    """
+    try:
+        sampleRate, data = wavfile.read(filename)
+    except:
+        if os.path.exists(filename) and os.path.isfile(filename):
+            core.wait(0.01, 0)
+        try:
+            sampleRate, data = wavfile.read(filename)
+        except:
+            raise SoundFileError('Failed to open wav sound file "%s"' % filename)
+    if len(data.shape) == 2 and data.shape[1] == 2:
+        data = data.transpose()
+        data = data[0]  # left channel only? depends on how the file was made
+    return data, sampleRate
+def getDftBins(data=[], sampleRate=None, low=100, high=8000, chunk=64):
+    """Get DFT (discrete Fourier transform) of `data`, doing so in time-domain
+    bins of `chunk` samples.
+
+    e.g., for getting FFT magnitudes in a ms-by-ms manner.
+
+    If given a sampleRate, the data are bandpass filtered (low, high).
+    """
+    # good to reshape & vectorize data rather than use a python loop
+    bins = []
+    i = chunk
+    if sampleRate:
+        _, freq = getDft(data[:chunk], sampleRate)  # just to get freq vector
+        band = (freq > low) & (freq < high)  # band (frequency range)
+    while i <= len(data):
+        magn = getDft(data[i-chunk:i])
+        if sampleRate:
+            bins.append(np.std(magn[band]))  # filtered by frequency
+        else:
+            bins.append(np.std(magn))  # unfiltered
+        i += chunk
+    return np.array(bins)
+def getDft(data, sampleRate=None, wantPhase=False):
+    """Compute and return magnitudes of numpy.fft.fft() of the data.
+
+    If given a sample rate (samples/sec), will return (magn, freq).
+    If wantPhase is True, phase in radians is also returned (magn, freq, phase).
+    data should have power-of-2 samples, or will be truncated.
+    """
+    # www.vibrationdata.com/Shock_and_Vibration_Signal_Analysis.pdf and .../python/fft.py
+    # truncate to power-of-2 slice; zero-padding to round up is ok too
+    samples = 2 ** int(np.log2(len(data)))
+    samplesHalf = samples // 2
+    dataSlice = data[:samples]
+
+    # get magn & phase from the DFT:
+    dft = np.fft.fft(dataSlice)
+    dftHalf = dft[:samplesHalf] / samples
+    magn = abs(dftHalf) * 2
+    magn[0] /= 2.
+    if wantPhase:
+        phase = np.arctan2(dftHalf.real, dftHalf.imag)  # in radians
+    if sampleRate:
+        deltaf = sampleRate / samplesHalf / 2.
+        freq = np.linspace(0, samplesHalf * deltaf, samplesHalf, endpoint=False)
+        if wantPhase:
+            return magn, freq, phase
+        return magn, freq
+    else:
+        if wantPhase:
+            return magn, phase
+        return magn
+
 class SoundFormatNotSupported(StandardError):
     """Class to report an unsupported sound format"""
 class SoundFileError(StandardError):
     """Class to report sound file failed to load"""
+class MicrophoneError(StandardError):
+    """Class to report a microphone error"""
 
 class _GSQueryThread(threading.Thread):
     """Internal thread class to send a sound file to google, stash the response.
@@ -645,7 +843,7 @@ def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
 def switchOff():
     """(No longer needed as of v1.76.00; retained for backwards compatibility.)
     """
-    logging.exp("microphone.switchOff() is deprecated; no longer needed.")
+    logging.debug("microphone.switchOff() is deprecated; no longer needed.")
     return
 
 if __name__ == '__main__':
@@ -655,9 +853,12 @@ if __name__ == '__main__':
     switchOn(48000) # import pyo, create a server
 
     mic = AudioCapture()
+    save = bool('--nosave' in sys.argv)
+    if save:
+        del sys.argv[sys.argv.index('--nosave')]
     if len(sys.argv) > 1: # stability test using argv[1] iterations
         for i in xrange(int(sys.argv[1])):
-            print i, mic.record(2)
+            print i, mic.record(0.1)
             mic.resample(8000, keep=False) # removes orig file
             os.remove(mic.savedFile) # removes downsampled file
     else: # two interactive record + playback tests
@@ -678,5 +879,6 @@ if __name__ == '__main__':
             print '\nend.', mic.savedFile
         finally:
             # delete the file even if Ctrl-C
-            try: os.unlink(mic.savedFile)
-            except: pass
+            if not save:
+                try: os.unlink(mic.savedFile)
+                except: pass
