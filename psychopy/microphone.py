@@ -62,7 +62,7 @@ class AudioCapture(object):
         Never needed by end-users; only used internally in __init__:
             self.recorder = _Recorder(None) # instantiate, global
         Then in record(), do:
-            self.recorder.run(file, sec)
+            self.recorder.run(filename, sec)
         This sets recording parameters, starts recording.
         To stop a recording that is in progress, do
             self.stop()
@@ -94,7 +94,7 @@ class AudioCapture(object):
         :Parameters:
             name :
                 Stem for the output file, also used in logging.
-            file :
+            filename :
                 optional file name to use; default = 'name-onsetTimeEpoch.wav'
             saveDir :
                 Directory to use for output .wav files.
@@ -168,10 +168,11 @@ class AudioCapture(object):
         self.duration = float(sec)
         self.onset = core.getTime()  # for duration estimation, high precision
         self.fileOnset = core.getAbsTime()  # for log and filename, 1 sec precision
+        ms = "%.3f" % (core.getTime() - int(core.getTime()))
         logging.data('%s: Record: onset %d, capture %.3fs' %
                      (self.loggingId, self.fileOnset, self.duration) )
-        if not file:
-            onsettime = '-%d' % self.fileOnset
+        if not filename:
+            onsettime = '-%d' % self.fileOnset + ms[1:]
             self.savedFile = onsettime.join(os.path.splitext(self.wavOutFilename))
         else:
             self.savedFile = os.path.abspath(filename).strip('.wav') + '.wav'
@@ -202,7 +203,7 @@ class AudioCapture(object):
             raise ValueError(msg)
 
         # play this file:
-        sound.Sound(self.savedFile).play()
+        sound.Sound(self.savedFile, name=self.name+'.current_recording').play()
         if block:
             core.wait(self.duration) # set during record()
 
@@ -274,13 +275,13 @@ class AdvAudioCapture(AudioCapture):
                 sampletype=sampletype, buffering=buffering, chnl=chnl)
         self.setMarker()
 
-    def record(self, sec, filename=''):
+    def record(self, sec, filename='', block=False):
         """Starts recording and plays an onset marker tone just prior
         to returning. The idea is that the start of the tone in the
         recording indicates when this method returned, to enable you to sync
         a known recording onset with other events.
         """
-        self.filename = self._record(sec, filename='', block=False)
+        self.filename = self._record(sec, filename=filename, block=block)
         self.playMarker()
         return self.filename
 
@@ -315,7 +316,7 @@ class AdvAudioCapture(AudioCapture):
                 # NyquistError
                 logging.warning("Recording rate (%i Hz) too slow for %i Hz-based marker detection." % (int(sampleRate), self.marker_hz))
             logging.exp('non-default Hz set as recording onset marker: %.1f' % self.marker_hz)
-            self.marker = sound.Sound(self.marker_hz, secs, volume=volume)
+            self.marker = sound.Sound(self.marker_hz, secs, volume=volume, name=self.name+'.marker_tone')
     def playMarker(self):
         """Plays the current marker sound. This is automatically called at the
         start of recording, but can be called anytime to insert a marker.
@@ -844,7 +845,6 @@ def switchOff():
     """(No longer needed as of v1.76.00; retained for backwards compatibility.)
     """
     logging.debug("microphone.switchOff() is deprecated; no longer needed.")
-    return
 
 if __name__ == '__main__':
     print ('\nMicrophone command-line testing\n')
@@ -852,7 +852,7 @@ if __name__ == '__main__':
     logging.console.setLevel(logging.DEBUG)
     switchOn(48000) # import pyo, create a server
 
-    mic = AudioCapture()
+    mic = AdvAudioCapture()
     save = bool('--nosave' in sys.argv)
     if save:
         del sys.argv[sys.argv.index('--nosave')]
