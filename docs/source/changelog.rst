@@ -23,6 +23,7 @@ PsychoPy 1.77.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * ADDED: preview of ioHub for faster (asynchronous) polling of hardware including mouse, keyboard, eyetrackers and other devices
+* ADDED: in Builder components dialog boxes, text that will be interpreted as code is displayed in monospace font
 * ADDED: :class:`AdvancedMicrophone` class to add and retrieve a high-frequency tone to indicate the start of recording (e.g., to allow accurate vocal RT estimation), with demo (Jeremy Gray)
 * CHANGED: microphone default file names include milliseconds (to avoid two files with the same name)
 * IMPROVED: substantially (~40%) faster loading of RGB images from disk (by using byte format rather than float). May also allow storing of more images on graphics card than previously
