@@ -861,6 +861,42 @@ class Flow(list):
             else:
                 del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
 
+    def _dubiousConstantUpdates(self, component):
+        """Return a list of fields in component that are set to be constant but
+        seem intended to be dynamic. Some code fields are constant, and some
+        denoted as code by $ are constant.
+        """
+        warnings = []
+        keywords = self.exp.namespace.nonUserBuilder[:] + ['expInfo']
+        ignore = set(keywords).difference(set(['random', 'rand']))
+        for key in component.params:
+            field = component.params[key]
+            if not hasattr(field, 'val') or not isinstance(field.val, basestring):
+                continue  # continue == no problem, no warning
+            if not (field.allowedUpdates and type(field.allowedUpdates) == list and
+                len(field.allowedUpdates) and field.updates == 'constant'):
+                continue
+            # only non-empty, possibly-code, and 'constant' updating at this point
+            if field.valType == 'str':
+                if not bool(_unescapedDollarSign_re.search(field.val)):
+                    continue
+                code = getCodeFromParamStr(field.val)
+            elif field.valType == 'code':
+                code = field.val
+            else:
+                continue
+            # get var names in the code; no names == constant
+            try:
+                names = compile(code,'','eval').co_names
+            except SyntaxError:
+                continue
+            # ignore reserved words:
+            if not set(names).difference(ignore):
+                continue
+            warnings.append( (field, key) )
+        if warnings:
+            return warnings
+        return [(None, None)]
     def writeCode(self, script):
         # pre-screen and warn about some conditions in component values:
         trailingWhitespace = []
@@ -880,7 +916,7 @@ class Flow(list):
                         trailingWhitespace.append((field.val, key, component, entry))
                         field.val = field.val.strip()
                 # detect 'constant update' fields that seem intended to be dynamic:
-                for field, key in _dubiousConstantUpdates(component):
+                for field, key in self._dubiousConstantUpdates(component):
                     if field:
                         constWarnings.append((field.val, key, component, entry))
         if trailingWhitespace:
@@ -1158,11 +1194,6 @@ class NameSpace():
     - column headers in condition files
     - abbreviating parameter names (e.g. rgb=thisTrial.rgb)
 
-    TO DO (throughout app):
-        conditions on import
-        how to rename routines? seems like: make a contextual menu with 'remove', which calls DlgRoutineProperties
-        staircase resists being reclassified as trialhandler
-
     :Author:
         2011 Jeremy Gray
     """
@@ -1191,7 +1222,8 @@ class NameSpace():
             'iterkeys', 'round', 'memoryview', 'issubclass', 'property', 'zip',
             'itervalues', 'keys', 'pop', 'popitem', 'setdefault', 'update',
             'values', 'viewitems', 'viewkeys', 'viewvalues', 'coerce',
-             '__builtins__', '__doc__', '__file__', '__name__', '__package__']
+            '__builtins__', '__doc__', '__file__', '__name__', '__package__',
+            'None', 'True', 'False']
         # these are based on a partial test, known to be incomplete:
         self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event',
             'gui', 'sound', 'misc', 'logging', 'microphone',
@@ -1204,6 +1236,7 @@ class NameSpace():
             'theseKeys', 'win', 'x', 'y', 'level', 'component', 'thisComponent']
         # user-entered, from Builder dialog or conditions file:
         self.user = []
+        self.nonUserBuilder = self.numpy + self.keywords + self.psychopy
 
     def __str__(self, numpy_count_only=True):
         vars = self.user + self.builder + self.psychopy
@@ -1371,38 +1404,4 @@ def getCodeFromParamStr(val):
     tmp2 = re.sub(r"([^\\])(\$)+", r"\1", tmp)  # remove all nonescaped $, squash $$$$$
     return re.sub(r"[\\]\$", '$', tmp2)  # remove \ from all \$
 
-def _dubiousConstantUpdates(component):
-    """Return a list of fields in component that are set to be constant but seem
-    intended to be dynamic. Many code fields will actually be constant, and some
-    denoted as code by $ will be constant. The classification is not 100% correct.
-    """
-    warnings = []
-    ignore = set(['None', 'expInfo'])  # treat these as constant
-    for key in component.params:
-        field = component.params[key]
-        if not hasattr(field, 'val') or not isinstance(field.val, basestring):
-            continue  # continue == no problem, no warning
-        if not (field.allowedUpdates and type(field.allowedUpdates) == list and
-            len(field.allowedUpdates) and field.updates == 'constant'):
-            continue
-        # only non-empty, possibly-code, and 'constant' updating at this point
-        if field.valType == 'str':
-            if not bool(_unescapedDollarSign_re.search(field.val)):
-                continue
-            code = getCodeFromParamStr(field.val)
-        elif field.valType == 'code':
-            code = field.val
-        else:
-            continue
-        # get var names in the code; no names == constant
-        try:
-            names = compile(code,'','eval').co_names
-        except SyntaxError:
-            continue
-        # treat expInfo as constant because its used that way:
-        if not set(names).difference(ignore):
-            continue
-        warnings.append( (field, key) )
-    if warnings:
-        return warnings
-    return [(None, None)]
+
