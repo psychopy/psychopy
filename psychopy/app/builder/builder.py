@@ -4258,7 +4258,7 @@ class BuilderFrame(wx.Frame):
             if not self.amp_manager.failed:
                 if self.exp.settings.params["saveSignal"].val:
                     from obci.acquisition import acquisition_control
-                    mx_address = self.amp_manager.get_mx_address()
+                    mx_address = self.amp_manager.mx_address
                     acquisition_control.finish_saving([(mx_address[0], int(mx_address[1]))])
             else:
                 logging.error("Failed amplifier scenario (expect incomplete data)")

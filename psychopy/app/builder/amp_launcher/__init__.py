@@ -117,7 +117,7 @@ class AmpLauncherDialog(wx.Dialog):
         self.amp_info = None
         self.old_index = None
         self.amp_manager = None
-        self.connection = obci_connection.OBCIConnection(("192.168.0.102", 12012))
+        self.connection = obci_connection.OBCIConnection(("127.0.0.1", 12012))
         self.retriever = retriever_instance or AmpListRetriever(self.connection)
         self.retriever_thread = threading.Thread(group=None, target=self.init_info, name="retriever-thread")
         self.init_panels()
@@ -202,6 +202,7 @@ class AmpLauncherDialog(wx.Dialog):
     def start_amplifier(self):
         amp_config_dict = self.amp_config.get_config()
         amp_config_dict.update(self.get_persistent_config())
+        amp_config_dict["data_file_name"] = self.data_file_name
         manager = amp_manager.AmplifierManager(self.start_handler, amp_config_dict)
         manager.start_experiment()
         return manager
