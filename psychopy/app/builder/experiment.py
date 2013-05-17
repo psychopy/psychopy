@@ -897,7 +897,7 @@ class Flow(list):
         if warnings:
             return warnings
         return [(None, None)]
-    def writeCode(self, script):
+    def _prescreenValues(self):
         # pre-screen and warn about some conditions in component values:
         trailingWhitespace = []
         constWarnings = []
@@ -936,6 +936,8 @@ class Flow(list):
             print 'Note: Dynamic code seems intended but updating is "constant":\n ',
             print '\n  '.join(list(set(warnings)))  # non-redundant, order unknown
 
+    def writeCode(self, script):
+        self._prescreenValues()
         # writeStartCode and writeInitCode:
         for entry in self:  #NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine=entry
