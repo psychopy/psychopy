@@ -862,23 +862,42 @@ class Flow(list):
                 del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
 
     def writeCode(self, script):
-        # detect all 'constant update' fields that seem intended to be dynamic:
+        # pre-screen and warn about some conditions in component values:
+        trailingWhitespace = []
         constWarnings = []
         for entry in self:  #NB each entry is a routine or LoopInitiator/Terminator
-            if type(entry) == Routine:
-                self._currentRoutine=entry
-                for component in self._currentRoutine:
-                    for field, key in _dubiousConstantUpdates(component):
-                        if field:
-                            constWarnings.append((field, key, component, entry))
+            if type(entry) != Routine:
+                continue
+            for component in entry:
+                # detect and strip trailing whitespace (can cause problems):
+                for key in component.params:
+                    field = component.params[key]
+                    if field.label.lower() == 'text' or not field.valType in ['str', 'code']:
+                        continue  # no problem, no warning
+                    if field.val != field.val.strip():
+                        trailingWhitespace.append((field.val, key, component, entry))
+                    field.val = field.val.strip()
+                # detect 'constant update' fields that seem intended to be dynamic:
+                for field, key in _dubiousConstantUpdates(component):
+                    if field:
+                        constWarnings.append((field.val, key, component, entry))
+        if trailingWhitespace:
+            warnings = []
+            msg = '"%s", in Routine %s (%s: %s)'
+            for field, key, component, routine in trailingWhitespace:
+                warnings.append( msg % (field, routine.params['name'],
+                                component.params['name'], key.capitalize()) )
+            print 'Note: Trailing white-space removed:\n ',
+            print '\n  '.join(list(set(warnings)))  # non-redundant, order unknown
         if constWarnings:
             warnings = []
             msg = '"%s", in Routine %s (%s: %s)'
             for field, key, component, routine in constWarnings:
-                warnings.append( msg % (field.val, routine.params['name'],
+                warnings.append( msg % (field, routine.params['name'],
                                 component.params['name'], key.capitalize()) )
             print 'Note: Dynamic code seems intended but updating is "constant":\n ',
             print '\n  '.join(list(set(warnings)))  # non-redundant, order unknown
+
         # writeStartCode and writeInitCode:
         for entry in self:  #NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine=entry
