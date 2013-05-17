@@ -872,11 +872,13 @@ class Flow(list):
                 # detect and strip trailing whitespace (can cause problems):
                 for key in component.params:
                     field = component.params[key]
-                    if field.label.lower() == 'text' or not field.valType in ['str', 'code']:
+                    if not hasattr(field, 'label'):
                         continue  # no problem, no warning
+                    if field.label.lower() == 'text' or not field.valType in ['str', 'code']:
+                        continue
                     if field.val != field.val.strip():
                         trailingWhitespace.append((field.val, key, component, entry))
-                    field.val = field.val.strip()
+                        field.val = field.val.strip()
                 # detect 'constant update' fields that seem intended to be dynamic:
                 for field, key in _dubiousConstantUpdates(component):
                     if field:
@@ -1375,6 +1377,7 @@ def _dubiousConstantUpdates(component):
     denoted as code by $ will be constant. The classification is not 100% correct.
     """
     warnings = []
+    ignore = set(['None', 'expInfo'])  # treat these as constant
     for key in component.params:
         field = component.params[key]
         if not hasattr(field, 'val') or not isinstance(field.val, basestring):
@@ -1397,7 +1400,7 @@ def _dubiousConstantUpdates(component):
         except SyntaxError:
             continue
         # treat expInfo as constant because its used that way:
-        if not names or names == ('expInfo',):
+        if not set(names).difference(ignore):
             continue
         warnings.append( (field, key) )
     if warnings:
