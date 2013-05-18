@@ -615,7 +615,6 @@ class Speech2Text(object):
     def __init__(self, file,
                  lang='en-US',
                  timeout=10,
-                 samplingrate=16000,
                  flac_exe='C:\\Program Files\\FLAC\\flac.exe',
                  pro_filter=2,
                  quiet=True):
@@ -650,6 +649,9 @@ class Speech2Text(object):
         self.timeout = timeout
         useragent = PSYCHOPY_USERAGENT
         host = "www.google.com/speech-api/v1/recognize"
+        __, samplingrate = readWavFile(file)
+        if samplingrate not in [16000, 8000]:
+            raise SoundFormatNotSupported('Speech2Text must be 16000 or 8000 Hz')
         if sys.platform == 'win32':
             FLAC_PATH = flac_exe
         else:
@@ -675,7 +677,7 @@ class Speech2Text(object):
             flac_cmd = [FLAC_PATH, "-8", "-f", "--totally-silent", "-o", tmp, file]
             _, se = core.shellCall(flac_cmd, stderr=True)
             if se: logging.warn(se)
-            while not os.path.isfile(tmp): # just try again
+            if not os.path.isfile(tmp): # just try again
                 # ~2% incidence when recording for 1s, 650+ trials
                 # never got two in a row; core.wait() does not help
                 logging.warn('Failed to convert to tmp.flac; trying again')

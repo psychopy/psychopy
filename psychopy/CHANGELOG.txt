@@ -13,6 +13,7 @@ PsychoPy 1.77
 PsychoPy 1.77.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* ADDED: color-word speech-recognition demo (coder > input > speech_recognition.py)
 * ADDED: preview of ioHub for faster (asynchronous) polling of hardware including mouse, keyboard, eyetrackers and other devices
 * ADDED: in Builder components dialog boxes, text that will be interpreted as code is displayed in monospace font
 * ADDED: AdvancedMicrophone class to add and retrieve a high-frequency tone to indicate the start of recording (e.g., to allow accurate vocal RT estimation), with demo (Jeremy Gray)
