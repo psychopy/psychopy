@@ -1035,7 +1035,7 @@ class Routine(list):
         return 'Routine'
     def getComponentFromName(self, name):
         for comp in self:
-            if comp.params['name']==name:
+            if comp.params['name'].val==name:
                 return comp
         return None
     def getMaxTime(self):
