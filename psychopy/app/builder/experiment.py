@@ -510,7 +510,7 @@ class Param:
                 else: # str wanted
                     return repr(re.sub(r"[\\]\$", '$', self.val)) # remove \ from all \$
             return repr(self.val)
-        elif self.valType == 'code':
+        elif self.valType in ['code', 'extendedCode']:
             if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
                 return "%s" %(self.val[1:])#a $ in a code parameter is unecessary so remove it
             elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"):
