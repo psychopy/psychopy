@@ -80,10 +80,14 @@ except:
     haveFB=False
 
 try:
-    from matplotlib import nxutils
-    haveNxutils = True
+    import matplotlib
+    if matplotlib.__version__ > '1.2':
+        from matplotlib.path import Path as mpl_Path
+    else:
+        from matplotlib import nxutils
+    haveMatplotlib = True
 except:
-    haveNxutils = False
+    haveMatplotlib = False
 
 global DEBUG; DEBUG=False
 
@@ -7482,9 +7486,6 @@ def pointInPolygon(x, y, poly):
 
     Returns True (inside) or False (outside). Used by :class:`~psychopy.visual.ShapeStim` `.contains()`
     """
-    # looks powerful but has a C dependency: http://pypi.python.org/pypi/Shapely
-    # see also https://github.com/jraedler/Polygon2/
-
     if hasattr(poly, '_verticesRendered') and hasattr(poly, '_posRendered'):
         poly = poly._verticesRendered + poly._posRendered
     nVert = len(poly)
@@ -7493,15 +7494,15 @@ def pointInPolygon(x, y, poly):
         logging.warning(msg)
         return False
 
-    # faster if have matplotlib.nxutils:
-    if haveNxutils:
-        try:
-            return bool(nxutils.pnpoly(x, y, poly))
-            # has failed with matplotlib 1.2.0-r1
-            #   transform = transform.frozen()
-            # AttributeError: 'numpy.float64' object has no attribute 'frozen'
-        except:
-            pass
+    # faster if have matplotlib tools:
+    if haveMatplotlib:
+        if matplotlib.__version__ > '1.2':
+            return mpl_Path(poly).contains_point([x,y])
+        else:
+            try:
+                return bool(nxutils.pnpoly(x, y, poly))
+            except:
+                pass
 
     # fall through to pure python:
     # as adapted from http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
@@ -7536,13 +7537,18 @@ def polygonsOverlap(poly1, poly2):
     if hasattr(poly2, '_verticesRendered') and hasattr(poly2, '_posRendered'):
         poly2 = poly2._verticesRendered + poly2._posRendered
 
-    # faster if have matplotlib.nxutils:
-    if haveNxutils:
-        try: # has failed with matplotlib 1.2.0-r1
-            if any(nxutils.points_inside_poly(poly1, poly2)):
+    # faster if have matplotlib tools:
+    if haveMatplotlib:
+        if matplotlib.__version__ > '1.2':
+            if any(mpl_Path(poly1).contains_points(poly2)):
                 return True
-            return any(nxutils.points_inside_poly(poly2, poly1))
-        except: pass
+            return any(mpl_Path(poly2).contains_points(poly1))
+        else:
+            try: # deprecated in matplotlib 1.2
+                if any(nxutils.points_inside_poly(poly1, poly2)):
+                    return True
+                return any(nxutils.points_inside_poly(poly2, poly1))
+            except: pass
 
     # fall through to pure python:
     for p1 in poly1:
