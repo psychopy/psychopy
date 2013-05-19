@@ -70,4 +70,3 @@ def shellCall(shellCmd, stdin='', stderr=False):
         return stdoutData.strip(), stderrData.strip()
     else:
         return stdoutData.strip()
-

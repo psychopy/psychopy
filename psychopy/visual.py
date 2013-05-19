@@ -1178,8 +1178,10 @@ class Window:
             self.flip()
             if len(self.frameIntervals)>=10 and numpy.std(self.frameIntervals[-10:])<(threshold/1000.0):
                 rate = 1.0/numpy.mean(self.frameIntervals[-10:])
-                if self.screen==None:scrStr=""
-                else: scrStr = " (%i)" %self.screen
+                if self.screen==None:
+                    scrStr=""
+                else:
+                    scrStr = " (%i)" %self.screen
                 logging.debug('Screen%s actual frame rate measured at %.2f' %(scrStr,rate))
                 self.setRecordFrameIntervals(recordFrmIntsOrig)
                 self.frameIntervals=[]

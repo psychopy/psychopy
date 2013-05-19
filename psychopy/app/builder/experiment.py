@@ -117,7 +117,6 @@ class Experiment:
             self.routines[routineName]=Routine(routineName, exp=self)#create a deafult routine with this name
         else:
             self.routines[routineName]=routine
-
     def writeScript(self, expPath=None):
         """Write a PsychoPy script for the experiment
         """
@@ -355,7 +354,18 @@ class Experiment:
                 self.namespace.add(comp_good_name)
                 component.params['name'].val = comp_good_name
                 routine.append(component)
-
+        # for each component that uses a Static for updates, we need to set that
+        for thisRoutine in self.routines.values():
+            for thisComp in thisRoutine:
+                for thisParamName in thisComp.params:
+                    thisParam = thisComp.params[thisParamName]
+                    if thisParamName=='advancedParams':
+                        continue#advanced isn't a normal param
+                    elif "during:" in thisParam.updates:
+                        updates = thisParam.updates.split(': ')[1] #remove the part that says 'during'
+                        routine, static =  updates.split('.')
+                        self.routines[routine].getComponentFromName(static).addComponentUpdate(
+                            routine, thisComp.params['name'], thisParamName)
         #fetch flow settings
         flowNode=root.find('Flow')
         loops={}
@@ -482,6 +492,7 @@ class Param:
         self.updates=updates
         self.allowedUpdates=allowedUpdates
         self.allowedVals=allowedVals
+        self.staticUpdater = None
     def __str__(self):
         if self.valType == 'num':
             try:
@@ -987,6 +998,21 @@ class Routine(list):
     def removeComponent(self,component):
         """Remove a component from the end of the routine"""
         self.remove(component)
+        #check if the component was using any Static Components for updates
+        for thisParamName, thisParam in component.params.items():
+            if 'during:' in thisParam.updates:
+                updates = thisParam.updates.split(': ')[1] #remove the part that says 'during'
+                routine, static =  updates.split('.')
+                self.exp.routines[routine].getComponentFromName(static).remComponentUpdate(
+                    routine, component.params['name'], thisParamName)
+    def getStatics(self):
+        """Return a list of Static components
+        """
+        statics=[]
+        for comp in self:
+            if comp.type=='Static':
+                statics.append(comp)
+        return statics
     def writeStartCode(self,buff):
         # few components will have this
         for thisCompon in self:
@@ -1000,7 +1026,6 @@ class Routine(list):
         buff.writeIndented('%s = core.Clock()\n' %(self._clockName))
         for thisCompon in self:
             thisCompon.writeInitCode(buff)
-
     def writeMainCode(self,buff):
         """This defines the code for the frames of a single routine
         """
@@ -1044,7 +1069,13 @@ class Routine(list):
 
         #write the code for each component during frame
         buff.writeIndentedLines('# update/draw components on each frame\n')
+        #just 'normal' components
         for event in self:
+            if event.type=='Static':
+                continue #we'll do those later
+            event.writeFrameCode(buff)
+        #update static component code last
+        for event in self.getStatics():
             event.writeFrameCode(buff)
 
         #are we done yet?
