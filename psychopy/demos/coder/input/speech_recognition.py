@@ -4,13 +4,14 @@
 
 Records 2.5s of speech, displays the word(s) spoken, and sets a color.
 Can be used to show subjects how loudly and clearly they need to talk.
-Requires an internet connection, or you get "<urlopen error [Errno 8] ...>"
 """
 __author__ = 'Jeremy Gray'
 
 import os
-from psychopy import visual, core, event, colors
+from psychopy import visual, core, event, colors, web
 from psychopy.microphone import switchOn, AudioCapture, Speech2Text
+
+web.requireInternetAccess()  # needed to access google's speech API
 
 def display(items):
     [item.draw() for item in items]

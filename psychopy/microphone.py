@@ -13,7 +13,7 @@ import threading, urllib2, json
 import tempfile, glob
 import numpy as np
 from scipy.io import wavfile
-from psychopy import core, logging, sound
+from psychopy import core, logging, sound, web
 from psychopy.constants import *
 # import pyo is done within switchOn to better encapsulate it, because it can be very slow
 # idea: don't want to delay up to 3 sec when importing microphone
@@ -709,6 +709,7 @@ class Speech2Text(object):
               'maxresults=%d' % results
         header = {'Content-Type' : 'audio/%s; rate=%d' % (filetype, samplingrate),
                   'User-Agent': useragent}
+        web.requireInternetAccess()  # needed to access google's speech API
         try:
             self.request = urllib2.Request(url, audio, header)
         except: # try again before accepting defeat
@@ -788,6 +789,7 @@ class BatchSpeech2Text(list):
             fileList = f
         else:
             fileList = list(files)
+        web.requireInternetAccess()  # needed to access google's speech API
         for i, file in enumerate(fileList):
             gs = Speech2Text(file)
             self.append( (file, gs.getThread()) ) # tuple

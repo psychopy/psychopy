@@ -28,19 +28,41 @@ SELECTOR_FOR_TEST_UPLOAD = 'http://upload.psychopy.org/test/up.php'
 BASIC_AUTH_CREDENTIALS = 'psychopy:open-sourc-ami'
 
 
-def haveInternetAccess():
-    """Detect active internet connection or fail quickly"""
+class NoInternetAccessError(StandardError):
+    """An internet connection is required but not available
+    """
+global haveInternet
+haveInternet = None  # gets set True or False when you check
 
-    # try to connect to a high-availability site
-    sites = ["http://www.google.com/", "http://www.opendns.com/"]
-    for wait in [0.3, 0.7]:  # try to be quick first
-        for site in sites:
-            try:
-                urllib2.urlopen(site, timeout=wait)
-                return True  # one success is good enough
-            except urllib2.URLError:
-                pass
-    return False
+def haveInternetAccess(forceCheck=False):
+    """Detect active internet connection or fail quickly.
+
+    If forceCheck is False, will rely on a cached value if possible.
+    """
+    global haveInternet
+    if forceCheck or haveInternet not in [True, False]:
+        # try to connect to a high-availability site
+        sites = ["http://www.google.com/", "http://www.opendns.com/"]
+        for wait in [0.3, 0.7]:  # try to be quick first
+            for site in sites:
+                try:
+                    urllib2.urlopen(site, timeout=wait)
+                    haveInternet = True  # cache
+                    return True  # one success is good enough
+                except urllib2.URLError:
+                    pass
+        else:
+            haveInternet = False
+    return haveInternet
+
+def requireInternetAccess(forceCheck=False):
+    """Checks for access to the internet, raise error if no access.
+    """
+    if not haveInternetAccess(forceCheck=forceCheck):
+        msg = 'Internet access required but not detected.'
+        logging.error(msg)
+        raise NoInternetAccessError(msg)
+    return True
 
 def testProxy(handler, URL=None):
     """
@@ -370,6 +392,9 @@ def upload(selector, filename, basicAuth=None, host=None, https=False):
 
     Author: Jeremy R. Gray, 2012
     """
+    
+    requireInternetAccess()  # needed to upload over http
+
     fields = [('name', 'PsychoPy_upload'), ('type', 'file')]
     if not selector:
         logging.error('upload: need a selector, http://<host>/path/to/up.php')
