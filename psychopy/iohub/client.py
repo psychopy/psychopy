@@ -1522,7 +1522,7 @@ def launchHubServer(**kwargs):
     
     # Add remaining defined devices to the device list.
     for class_name,device_config in device_dict.iteritems():
-        device_list.append(dict(class_name=device_config))
+        device_list.append({class_name:device_config})
 
     # Create an ioHub configuration dictionary.
     ioConfig=dict(monitor_devices=device_list)
@@ -1961,11 +1961,13 @@ class ioHubExperimentRuntime(object):
 
             self.hub._sendSessionInfo(tempdict)
 
-            # create necessary paths based on yaml settings,
-            self.paths=PathMapping(self.configFilePath,self.configuration.get('paths',None))
-    
-            self.paths.saveToJson()
-        
+            # Create ConditionVariableProvider if needed....
+            print "** SHOULD READ condition_variable_source settings from exp_config.yaml,"
+            print "** And prompt for ConditionVariable file and load settings as"
+            print "** specified by the config. ConditionVariableProvider instance"
+            print "** should be created using self.conditionVariables attribute of"
+            print "** iohubExperimentRuntime class"
+
 
             self._setInitialProcessAffinities(ioHubInfo)
 
@@ -2063,113 +2065,6 @@ class ioHubExperimentRuntime(object):
             pass
         self.hub=None
         self.devices=None
-    
-class PathDir(object):
-    def __init__(self, physicalAbsPath, fileFilter=None):
-        self._extensions=None
-        self._fileTypes=None
-        self._path=physicalAbsPath
-
-        if fileFilter is not None:
-            if len(fileFilter)==2:
-                self._fileTypes,self._extensions=fileFilter
-
-        if self._fileTypes:
-            for ft in self._fileTypes:
-                if ft in PathMapping._FILE_TYPES:
-                    if ft not in PathMapping._fileTypeToPath:
-                        PathMapping._fileTypeToPath[ft]=self
-    
-    def getPath(self):
-        return self._path
-    
-    def getExtensions(self):    
-        return self._extensions
-
-    def getFileTypes(self):    
-        return self._fileTypes
-    
-class PathMapping(object):
-    _FILE_TYPES=dict(CONDITION_FILES='CONDITION_FILES',
-                    IMAGE_FILES='IMAGE_FILES',
-                    AUDIO_FILES='AUDIO_FILES',
-                    VIDEO_FILES='VIDEO_FILES',
-                    IOHUB_DATA='IOHUB_DATA',
-                    LOGS='LOGS',
-                    SYS_INFO='SYS_INFO',
-                    USER_FILES='USER_FILES',
-                    NATIVE_DEVICE_DATA='NATIVE_DEVICE_DATA',)
-    _fileTypeToPath={}
-    def __init__(self, top, pathSettings):
-        self.experimentSourceDir=os.path.abspath(top)
-        self.pythonPath=sys.path
-        self.workingDir=os.getcwdu()
-
-        self.structure=PathDir(os.path.abspath(top))
-
-        # build the structure
-
-        if pathSettings is None:
-            self._fileTypeToPath['*']=self.structure
-            self._fileTypeToPath['SYS_INFO']=self.structure
-            self._fileTypeToPath['IOHUB_DATA']=self.structure
-            self._fileTypeToPath['NATIVE_DEVICE_DATA']=self.structure
-            self.SYS_INFO=self.structure
-            self.IOHUB_DATA=self.structure
-        else:
-            def buildOutPath(root,pathDict):
-
-                for subdir,info in pathDict.iteritems():
-                    isSubjectDir=False
-                    if subdir == 'session_defaults.code':
-                        subdir=_currentSessionInfo['code']
-                        isSubjectDir=True
-
-                    newDir=os.path.join(root._path,subdir)
-                    if os.path.exists(newDir):
-                        if isSubjectDir:
-                            #TODO Show dialog asking if they want subject dir to be removed / overwritten.
-                            print "#TODO Show dialog asking if they want subject dir to be removed / overwritten."
-                    else:
-                        os.makedirs(newDir)
-
-                    if isinstance(info,dict):
-                        newPath=PathDir(newDir)
-                        setattr(root,subdir,newPath)
-                        buildOutPath(newPath,info)
-                    else:
-                        newPath=PathDir(newDir,info)
-                        for ft in newPath._fileTypes:
-                            if not hasattr(self,ft):
-                                setattr(self,ft,newPath)
-                        setattr(root,subdir,newPath)
-
-
-            buildOutPath(self.structure,pathSettings)
-
-    def getPathForFile(self,fileName=None,fileExtension=None,fileType=None):
-        if fileExtension in self._fileTypeToPath:
-            return self._fileTypeToPath[fileExtension]
-        if fileType in self._fileTypeToPath:
-            return self._fileTypeToPath[fileType]
-        if isinstance(fileName,(str,unicode)):
-            i=fileName.rfind('.')
-            if i > 0:
-                ext = fileName.strip()[i+1:]
-                if ext in self._fileTypeToPath:
-                    return self._fileTypeToPath[ext]
-        return self._fileTypeToPath['*']
-
-    def saveToJson(self):
-        mappings={}
-        for v in self._FILE_TYPES.values():
-            if v in self._fileTypeToPath:
-                mappings[v]=self._fileTypeToPath[v]._path
-
-        f=open(os.path.join(self.experimentSourceDir,'exp.paths'),'w')
-        f.write(json.dumps(mappings))
-        f.flush()
-        f.close()
        
 class ioHubExperimentRuntimeError(Exception):
     """Base class for exceptions raised by ioHubExperimentRuntime class."""

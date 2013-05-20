@@ -91,7 +91,7 @@ def _onPygletKey(symbol, modifiers, emulated=False):
     """
 
     global useText
-    keyTime=psychopy.core.getTime() #capture when the key was pressed
+    keyTime=psychopy.clock.getTime() #capture when the key was pressed
     if emulated:
         thisKey = unicode(symbol)
         keySource = 'EmulatedKey'
@@ -114,15 +114,15 @@ def _onPygletMousePress(x,y, button, modifiers):
     global mouseButtons, mouseClick, mouseTimes
     if button == pyglet.window.mouse.LEFT:
         mouseButtons[0]=1
-        mouseTimes[0]= psychopy.core.getTime()-mouseClick[0].getLastResetTime()
+        mouseTimes[0]= psychopy.clock.getTime()-mouseClick[0].getLastResetTime()
         label='Left'
     if button == pyglet.window.mouse.MIDDLE:
         mouseButtons[1]=1
-        mouseTimes[1]= psychopy.core.getTime()-mouseClick[1].getLastResetTime()
+        mouseTimes[1]= psychopy.clock.getTime()-mouseClick[1].getLastResetTime()
         label='Middle'
     if button == pyglet.window.mouse.RIGHT:
         mouseButtons[2]=1
-        mouseTimes[2]= psychopy.core.getTime()-mouseClick[2].getLastResetTime()
+        mouseTimes[2]= psychopy.clock.getTime()-mouseClick[2].getLastResetTime()
         label='Right'
     logging.data("Mouse: %s button down, pos=(%i,%i)" %(label, x,y))
 
