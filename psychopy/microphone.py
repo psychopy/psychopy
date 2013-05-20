@@ -22,6 +22,9 @@ from psychopy.constants import *
 global haveMic
 haveMic = False # goes True in switchOn, if can import pyo
 
+global FLAC_PATH
+FLAC_PATH = None  # set on first call to _getFlacPath(); used for Speech2Text
+
 
 class AudioCapture(object):
     """Capture a sound sample from the default sound input, and save to a file.
@@ -472,7 +475,7 @@ class _GSQueryThread(threading.Thread):
         threading.Thread.__init__(self, None, 'GoogleSpeechQuery', None)
 
         # request is a previously established urllib2.request() obj, namely:
-        # request = urllib2.Request(url, audio, header) at end of GoogleSpeech.__init__
+        # request = urllib2.Request(url, audio, header) at end of Speech2Text.__init__
         self.request = request
 
         # set vars and flags:
@@ -589,39 +592,31 @@ class Speech2Text(object):
 
         :Example:
 
-            See Coder demos / input / say_rgb.py -- be sure to read the text at the top of the file.
-            The demo works better when run from the command-line than from the Coder.
-
-        :Error handling:
-
-            If there is an error during http connection, it is handled as a lack of
-            response. The connection was probably lost if you get: `WARNING <urlopen error [Errno 8] nodename nor servname provided, or not known>`
+            See Coder demos / input / speech_recognition.py
 
         :Known limitations:
 
-            a) Availability is subject to the whims of google. Any changes google
+            Availability is subject to the whims of google. Any changes google
             makes along the way could either cause complete failure (disruptive),
             or could cause slightly different results to be obtained (without it being
             readily obvious that something had changed). For this reason,
             its probably a good idea to re-run speech samples through `Speech2Text` at the end of
             a study; see `BatchSpeech2Text()`.
 
-            b) Only tested with: Win XP-sp2,
-            Mac 10.6.8 (python 2.6, 2.7).
-
         :Author: Jeremy R. Gray, with thanks to Lefteris Zafiris for his help
             and excellent command-line perl script at https://github.com/zaf/asterisk-speech-recog (GPLv2)
     """
-    def __init__(self, file,
+    def __init__(self, filename,
                  lang='en-US',
                  timeout=10,
+                 samplingrate=16000,
                  flac_exe='C:\\Program Files\\FLAC\\flac.exe',
                  pro_filter=2,
                  quiet=True):
         """
             :Parameters:
 
-                `file` : <required>
+                `filename` : <required>
                     name of the speech file (.flac, .wav, or .spx) to process. wav files will be
                     converted to flac, and for this to work you need to have flac (as an
                     executable). spx format is speex-with-headerbyte (for google).
@@ -633,6 +628,7 @@ class Speech2Text(object):
                     the sampling rate of the speech clip in Hz, either 16000 or 8000. You can
                     record at a higher rate, and then down-sample to 16000 for speech
                     recognition. `file` is the down-sampled file, not the original.
+                    the sampling rate is auto-detected for .wav files.
                 `flac_exe` :
                     **Windows only**: path to binary for converting wav to flac;
                     must be a string with **two back-slashes where you want one** to appear
@@ -642,57 +638,55 @@ class Speech2Text(object):
                     profanity filter level; default 2 (e.g., f***)
                 `quiet` :
                     no reporting intermediate details; default `True` (non-verbose)
-
         """
         # set up some key parameters:
         results = 5 # how many words wanted
         self.timeout = timeout
         useragent = PSYCHOPY_USERAGENT
         host = "www.google.com/speech-api/v1/recognize"
-        __, samplingrate = readWavFile(file)
-        if samplingrate not in [16000, 8000]:
-            raise SoundFormatNotSupported('Speech2Text must be 16000 or 8000 Hz')
-        if sys.platform == 'win32':
-            FLAC_PATH = flac_exe
-        else:
-            # best not to do every time
-            FLAC_PATH, _ = core.shellCall(['/usr/bin/which', 'flac'], stderr=True)
+        flac_path = _getFlacPath(flac_exe)
 
         # determine file type, convert wav to flac if needed:
-        ext = os.path.splitext(file)[1]
-        if not os.path.isfile(file):
+        ext = os.path.splitext(filename)[1]
+        if not os.path.isfile(filename):
             raise IOError("Cannot find file: %s" % file)
         if ext not in ['.flac', '.spx', '.wav']:
             raise SoundFormatNotSupported("Unsupported filetype: %s\n" % ext)
-        self.file = file
+        if ext == '.wav':
+            __, samplingrate = readWavFile(filename)
+        if samplingrate not in [16000, 8000]:
+            raise SoundFormatNotSupported('Speech2Text sample rate must be 16000 or 8000 Hz')
+        self.filename = filename
         if ext == ".flac":
             filetype = "x-flac"
         elif ext == ".spx":
             filetype = "x-speex-with-header-byte"
         elif ext == ".wav": # convert to .flac
-            if not os.path.isfile(FLAC_PATH):
-                sys.exit("failed to find flac")
+            if not os.path.isfile(flac_path):
+                msg = "failed to find flac binary, tried '%s'" % flac_path
+                logging.error(msg)
+                raise MicrophoneError(msg)
             filetype = "x-flac"
-            tmp = 'tmp_guess%.6f' % core.getTime()+'.flac'
-            flac_cmd = [FLAC_PATH, "-8", "-f", "--totally-silent", "-o", tmp, file]
-            _, se = core.shellCall(flac_cmd, stderr=True)
+            tmp = tempfile.NamedTemporaryFile()
+            flac_cmd = [flac_path, "-8", "-f", "--totally-silent", "-o", tmp.name, filename]
+            __, se = core.shellCall(flac_cmd, stderr=True)
             if se: logging.warn(se)
-            if not os.path.isfile(tmp): # just try again
+            if not os.path.isfile(tmp.name): # just try again
                 # ~2% incidence when recording for 1s, 650+ trials
                 # never got two in a row; core.wait() does not help
                 logging.warn('Failed to convert to tmp.flac; trying again')
-                _, se = core.shellCall(flac_cmd, stderr=True)
+                __, se = core.shellCall(flac_cmd, stderr=True)
                 if se: logging.warn(se)
-            file = tmp # note to self: ugly & confusing to switch up like this
-        logging.info("Loading: %s as %s, audio/%s" % (self.file, lang, filetype))
+            filename = tmp.name
+        logging.info("Loading: %s as %s, audio/%s" % (self.filename, lang, filetype))
         try:
             c = 0 # occasional error; core.wait(.1) is not always enough; better slow than fail
-            while not os.path.isfile(file) and c < 10:
+            while not os.path.isfile(filename) and c < 10:
                 core.wait(.1, hogCPUperiod=0)
                 c += 1
-            audio = open(file, 'r+b').read()
+            audio = open(filename, 'r+b').read()
         except:
-            msg = "Can't read file %s from %s.\n" % (file, self.file)
+            msg = "Can't read file %s from %s.\n" % (filename, self.filename)
             logging.error(msg)
             raise SoundFileError(msg)
         finally:
@@ -713,11 +707,9 @@ class Speech2Text(object):
         try:
             self.request = urllib2.Request(url, audio, header)
         except: # try again before accepting defeat
-            logging.info("https request failed. %s, %s. trying again..." % (file, self.file))
+            logging.info("https request failed. %s, %s. trying again..." % (filename, self.filename))
             core.wait(0.2, hogCPUperiod=0)
             self.request = urllib2.Request(url, audio, header)
-    def _removeThread(self, gsqthread):
-        del core.runningThreads[core.runningThreads.index(gsqthread)]
     def getThread(self):
         """Send a query to google using a new thread, no blocking or timeout.
 
@@ -728,11 +720,8 @@ class Speech2Text(object):
         """
         gsqthread = _GSQueryThread(self.request)
         gsqthread.start()
-        core.runningThreads.append(gsqthread)
-        # this is the right idea, but need to .cancel() it when a response has come:
-        #threading.Timer(self.timeout, self._removeThread, (gsqthread,)).start()
         logging.info("Sending speech-recognition https request to google")
-        gsqthread.file = self.file
+        gsqthread.file = self.filename
         while not gsqthread.running:
             core.wait(0.001) # can return too quickly if thread is slow to start
         return gsqthread # word and time data will eventually be in the namespace
@@ -790,17 +779,32 @@ class BatchSpeech2Text(list):
         else:
             fileList = list(files)
         web.requireInternetAccess()  # needed to access google's speech API
-        for i, file in enumerate(fileList):
-            gs = Speech2Text(file)
-            self.append( (file, gs.getThread()) ) # tuple
+        for i, filename in enumerate(fileList):
+            gs = Speech2Text(filename)
+            self.append( (filename, gs.getThread()) ) # tuple
             if verbose:
-                print i, file
+                logging.info("%i %s" % (i, filename))
             while self._activeCount() >= maxThreads:
                 core.wait(.1, hogCPUPeriod=0) # idle at max count
     def _activeCount(self):
         # self is a list of (name, thread) tuples; count active threads
         count = len([f for f,t in self if t.running and t.elapsed() <= self.timeout] )
         return count
+
+def _getFlacPath(flac_exe=''):
+    """Return full path to flac binary, using a cached value if possible.
+    """
+    global FLAC_PATH
+    if FLAC_PATH is None:
+        if sys.platform == 'win32':
+            if os.path.isfile(flac_exe):
+                FLAC_PATH = flac_exe
+            else:
+                FLAC_PATH = core.shellCall(['where', '/r', 'C:\\', 'flac'])
+        else:
+            FLAC_PATH = core.shellCall(['/usr/bin/which', 'flac'])
+        logging.info('set FLAC_PATH to %s' % FLAC_PATH)
+    return FLAC_PATH
 
 def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
     """You need to switch on the microphone before use, which can take several seconds.
