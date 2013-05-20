@@ -22,9 +22,16 @@ PsychoPy 1.77
 PsychoPy 1.77.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* ADDED: preview of ioHub for faster (asynchronous) polling of hardware including mouse, keyboard, eyetrackers and other devices
-* ADDED: :class:`AdvancedMicrophone` class to add and retrieve a high-frequency tone to indicate the start of recording (e.g., to allow accurate vocal RT estimation), with demo (Jeremy Gray)
+* ADDED: preview of Sol Simpson's **ioHub** for faster (asynchronous) polling of hardware including mouse, keyboard, eyetrackers and other devices. See iohub demos for example usage. This provides many advantages over previous event polling:
+    - asynchronous process allows constant polling (not tied to refresh rates) in a way that won't impact the rendering of your stimuli. It even runs on a separate CPU core if possible.
+    - provides up/down/duration for key presses
+    - provides unicode character (rather than simply key name for keyboard)
+    - provides a unified API for eyetracker classes
+    - provides async access to the parallel port
+    - provides an alternative data output format (using hdf5) particularly useful for high-output streaming data (e.g. eye-trackers)
+    
 * IMPROVED: substantially (~40%) faster loading of RGB images from disk (by using byte format rather than float). May also allow storing of more images on graphics card than previously
+* ADDED: :class:`AdvancedMicrophone` class to add and retrieve a high-frequency tone to indicate the start of recording (e.g., to allow accurate vocal RT estimation), with demo (Jeremy Gray)
 * ADDED: :class:`MovieStim` now updates its `status` attribute to FINISHED, in line with other stimuli
 * ADDED: support for pyglet version 1.2 alpha (but 1.1.4 is still recommended - it appears to render faster)
 * REFACTORED: parallel port support. Support for Windows via inpout32/inpout64 and Linux via pyparallel added.  Existing API maintained for single port usage, but new PParallel classes added to provide more flexibility when dealing with multiple ports. see :ref:`parallel` (Thanks Mark Hymers)
