@@ -428,20 +428,6 @@ class ioServer(object):
         # start UDP service
         self.udpService=udpServer(self,':%d'%config.get('udp_port',9000))
 
-        from .. import iohub
-        # read temp paths file
-        iohub.data_paths=None
-        try:
-            expJsonPath=os.path.join(rootScriptPathDir,'exp.paths')
-            f=open(expJsonPath,'r')
-            iohub.data_paths=json.loads(f.read())
-            f.flush()
-            f.close()
-            os.remove(expJsonPath)
-        except:
-            pass
-
-
         try:
             # initial dataStore setup
             if 'data_store' in config:
@@ -457,10 +443,7 @@ class ioServer(object):
                 if experiment_datastore_config.get('enable', True):
                     #print2err("Creating ioDataStore....")
 
-                    if iohub.data_paths is None:
-                        resultsFilePath=rootScriptPathDir
-                    else:
-                        resultsFilePath=iohub.data_paths[u'IOHUB_DATA']
+                    resultsFilePath=rootScriptPathDir
                     self.createDataStoreFile(experiment_datastore_config.get('filename','events')+'.hdf5',resultsFilePath,'a',experiment_datastore_config)
 
                     #print2err("Created ioDataStore.")
@@ -707,8 +690,8 @@ class ioServer(object):
          
         dconfigPath=os.path.join(IO_HUB_DIRECTORY,device_module_path[iohub_submod_path_length:].replace('.',os.path.sep),"default_%s.yaml"%(device_class_name.lower()))
 
-#        print2err("dconfigPath: {0}, device_module_path: {1}\n".format(dconfigPath,device_module_path))
-#        print2err("Loading Device Defaults file:\n\tdevice_class: {0}\n\tdeviceConfigFile:{1}\n".format(device_class_name,dconfigPath))
+        #print2err("dconfigPath: {0}, device_module_path: {1}\n".format(dconfigPath,device_module_path))
+        #print2err("Loading Device Defaults file:\n\tdevice_class: {0}\n\tdeviceConfigFile:{1}\n".format(device_class_name,dconfigPath))
         self.log("Loading Device Defaults file: %s"%(device_class_name,))
 
         _dclass,default_device_config=load(file(dconfigPath,'r'), Loader=Loader).popitem()

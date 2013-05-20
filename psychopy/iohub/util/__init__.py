@@ -13,6 +13,22 @@ getTime = monotonicClock.getTime
 
 # Path Update / Location functions
 
+def normjoin(*path_parts):
+    """
+    normjoin combines the following Python os.path functions in the following
+    call order:
+        * join
+        * normcase
+        * normpath
+        
+    Args:
+        *path_parts (tuple): The tuple of path parts to pass to os.path.join.
+        
+    Returns:
+        
+    """
+    return os.path.normpath(os.path.normcase(os.path.join(*path_parts)))
+    
 def addDirectoryToPythonPath(path_from_iohub_root,leaf_folder=''):
     dir_path=os.path.join(psychopy.iohub.IO_HUB_DIRECTORY,path_from_iohub_root,sys.platform,"python{0}{1}".format(*sys.version_info[0:2]),leaf_folder)
     if os.path.isdir(dir_path) and dir_path not in sys.path:

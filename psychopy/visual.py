@@ -2078,6 +2078,8 @@ class SimpleImageStim:
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
 
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
+        
         if self._needStrUpdate: self._updateImageStr()
         #unbind any textures
         GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
@@ -2169,12 +2171,12 @@ class SimpleImageStim:
         self.size = im.size
         #set correct formats for bytes/floats
         if im.mode=='RGBA':
-            self.imArray = numpy.array(im).astype(numpy.float32)/255
-            self.internalFormat = GL.GL_RGBA
+              self.imArray = numpy.array(im).astype(numpy.ubyte)
+              self.internalFormat = GL.GL_RGBA
         else:
-            self.imArray = numpy.array(im.convert("RGB")).astype(numpy.float32)/255
-            self.internalFormat = GL.GL_RGB
-        self.dataType = GL.GL_FLOAT
+             self.imArray = numpy.array(im.convert("RGB")).astype(numpy.ubyte)
+             self.internalFormat = GL.GL_RGB
+        self.dataType = GL.GL_UNSIGNED_BYTE
         self._needStrUpdate = True
 
         if log and self.autoLog:
