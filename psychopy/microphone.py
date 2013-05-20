@@ -13,7 +13,7 @@ import threading, urllib2, json
 import tempfile, glob
 import numpy as np
 from scipy.io import wavfile
-from psychopy import core, logging, sound
+from psychopy import core, logging, sound, web
 from psychopy.constants import *
 # import pyo is done within switchOn to better encapsulate it, because it can be very slow
 # idea: don't want to delay up to 3 sec when importing microphone
@@ -62,7 +62,7 @@ class AudioCapture(object):
         Never needed by end-users; only used internally in __init__:
             self.recorder = _Recorder(None) # instantiate, global
         Then in record(), do:
-            self.recorder.run(file, sec)
+            self.recorder.run(filename, sec)
         This sets recording parameters, starts recording.
         To stop a recording that is in progress, do
             self.stop()
@@ -94,7 +94,7 @@ class AudioCapture(object):
         :Parameters:
             name :
                 Stem for the output file, also used in logging.
-            file :
+            filename :
                 optional file name to use; default = 'name-onsetTimeEpoch.wav'
             saveDir :
                 Directory to use for output .wav files.
@@ -168,10 +168,11 @@ class AudioCapture(object):
         self.duration = float(sec)
         self.onset = core.getTime()  # for duration estimation, high precision
         self.fileOnset = core.getAbsTime()  # for log and filename, 1 sec precision
+        ms = "%.3f" % (core.getTime() - int(core.getTime()))
         logging.data('%s: Record: onset %d, capture %.3fs' %
                      (self.loggingId, self.fileOnset, self.duration) )
-        if not file:
-            onsettime = '-%d' % self.fileOnset
+        if not filename:
+            onsettime = '-%d' % self.fileOnset + ms[1:]
             self.savedFile = onsettime.join(os.path.splitext(self.wavOutFilename))
         else:
             self.savedFile = os.path.abspath(filename).strip('.wav') + '.wav'
@@ -202,7 +203,7 @@ class AudioCapture(object):
             raise ValueError(msg)
 
         # play this file:
-        sound.Sound(self.savedFile).play()
+        sound.Sound(self.savedFile, name=self.name+'.current_recording').play()
         if block:
             core.wait(self.duration) # set during record()
 
@@ -274,13 +275,13 @@ class AdvAudioCapture(AudioCapture):
                 sampletype=sampletype, buffering=buffering, chnl=chnl)
         self.setMarker()
 
-    def record(self, sec, filename=''):
+    def record(self, sec, filename='', block=False):
         """Starts recording and plays an onset marker tone just prior
         to returning. The idea is that the start of the tone in the
         recording indicates when this method returned, to enable you to sync
         a known recording onset with other events.
         """
-        self.filename = self._record(sec, filename='', block=False)
+        self.filename = self._record(sec, filename=filename, block=block)
         self.playMarker()
         return self.filename
 
@@ -315,7 +316,7 @@ class AdvAudioCapture(AudioCapture):
                 # NyquistError
                 logging.warning("Recording rate (%i Hz) too slow for %i Hz-based marker detection." % (int(sampleRate), self.marker_hz))
             logging.exp('non-default Hz set as recording onset marker: %.1f' % self.marker_hz)
-            self.marker = sound.Sound(self.marker_hz, secs, volume=volume)
+            self.marker = sound.Sound(self.marker_hz, secs, volume=volume, name=self.name+'.marker_tone')
     def playMarker(self):
         """Plays the current marker sound. This is automatically called at the
         start of recording, but can be called anytime to insert a marker.
@@ -614,7 +615,6 @@ class Speech2Text(object):
     def __init__(self, file,
                  lang='en-US',
                  timeout=10,
-                 samplingrate=16000,
                  flac_exe='C:\\Program Files\\FLAC\\flac.exe',
                  pro_filter=2,
                  quiet=True):
@@ -649,6 +649,9 @@ class Speech2Text(object):
         self.timeout = timeout
         useragent = PSYCHOPY_USERAGENT
         host = "www.google.com/speech-api/v1/recognize"
+        __, samplingrate = readWavFile(file)
+        if samplingrate not in [16000, 8000]:
+            raise SoundFormatNotSupported('Speech2Text must be 16000 or 8000 Hz')
         if sys.platform == 'win32':
             FLAC_PATH = flac_exe
         else:
@@ -674,7 +677,7 @@ class Speech2Text(object):
             flac_cmd = [FLAC_PATH, "-8", "-f", "--totally-silent", "-o", tmp, file]
             _, se = core.shellCall(flac_cmd, stderr=True)
             if se: logging.warn(se)
-            while not os.path.isfile(tmp): # just try again
+            if not os.path.isfile(tmp): # just try again
                 # ~2% incidence when recording for 1s, 650+ trials
                 # never got two in a row; core.wait() does not help
                 logging.warn('Failed to convert to tmp.flac; trying again')
@@ -706,6 +709,7 @@ class Speech2Text(object):
               'maxresults=%d' % results
         header = {'Content-Type' : 'audio/%s; rate=%d' % (filetype, samplingrate),
                   'User-Agent': useragent}
+        web.requireInternetAccess()  # needed to access google's speech API
         try:
             self.request = urllib2.Request(url, audio, header)
         except: # try again before accepting defeat
@@ -785,6 +789,7 @@ class BatchSpeech2Text(list):
             fileList = f
         else:
             fileList = list(files)
+        web.requireInternetAccess()  # needed to access google's speech API
         for i, file in enumerate(fileList):
             gs = Speech2Text(file)
             self.append( (file, gs.getThread()) ) # tuple
@@ -844,7 +849,6 @@ def switchOff():
     """(No longer needed as of v1.76.00; retained for backwards compatibility.)
     """
     logging.debug("microphone.switchOff() is deprecated; no longer needed.")
-    return
 
 if __name__ == '__main__':
     print ('\nMicrophone command-line testing\n')
@@ -852,7 +856,7 @@ if __name__ == '__main__':
     logging.console.setLevel(logging.DEBUG)
     switchOn(48000) # import pyo, create a server
 
-    mic = AudioCapture()
+    mic = AdvAudioCapture()
     save = bool('--nosave' in sys.argv)
     if save:
         del sys.argv[sys.argv.index('--nosave')]

@@ -8,7 +8,8 @@ from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 import wx.aui, wx.stc
 import sys, os, glob, copy, shutil, traceback
 import keyword
-import py_compile, codecs
+import codecs
+import re
 import numpy
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
@@ -29,6 +30,10 @@ routineFlowColor=wx.Color(200,150,150, 255)
 darkgrey=wx.Color(65,65,65, 255)
 white=wx.Color(255,255,255, 255)
 darkblue=wx.Color(30,30,150, 255)
+codeSyntaxOkay=wx.Color(220,250,220, 255)  # light green
+
+# regular expression to check for unescaped '$' to indicate code:
+_unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
@@ -1649,7 +1654,7 @@ class ParamCtrls:
         if type(param.val)==numpy.ndarray:
             initial=param.val.tolist() #convert numpy arrays to lists
         labelLength = wx.Size(self.dpi*2,self.dpi*2/3)#was 8*until v0.91.4
-        if param.valType == 'code' and label not in ['name', 'Experiment info']:
+        if param.valType == 'code' and label.lower() not in ['name', 'experiment info']:
             displayLabel = label+' $'
         else:
             displayLabel = label
@@ -1841,6 +1846,16 @@ class _BaseParamsDlg(wx.Dialog):
         self.codeFieldNameFromID = {}
         self.codeIDFromFieldName = {}
 
+        # for switching font to signal code:
+        self.codeFaceName = 'Courier New'  # get another monospace if not available
+        # need font size for STCs:
+        if wx.Platform == '__WXMSW__':
+            self.faceSize = 10
+        elif wx.Platform == '__WXMAC__':
+            self.faceSize = 14
+        else:
+            self.faceSize = 12
+
         #create a header row of titles
         if not suppressTitles:
             size=wx.Size(1.5*self.dpi,-1)
@@ -1868,7 +1883,7 @@ class _BaseParamsDlg(wx.Dialog):
             remaining.remove('name')
             if 'name' in self.order:
                 self.order.remove('name')
-#            self.currRow+=1
+            #self.currRow+=1
         #add start/stop info
         if 'startType' in remaining:
             remaining = self.addStartStopCtrls(remaining=remaining)
@@ -1966,6 +1981,14 @@ class _BaseParamsDlg(wx.Dialog):
         remaining.remove('stopType')
         remaining.remove('stopVal')
         remaining.remove('durationEstim')
+
+        # use monospace font to signal code:
+        self.defaultFontFaceName = self.startValCtrl.GetFont().GetFaceName()
+        self.checkCodeWanted(self.startValCtrl)
+        self.startValCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
+        self.checkCodeWanted(self.stopValCtrl)
+        self.stopValCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
+
         return remaining
 
     def addParam(self,fieldName, advanced=False):
@@ -2005,6 +2028,26 @@ class _BaseParamsDlg(wx.Dialog):
             ctrls.valueCtrl.Bind(wx.EVT_KEY_DOWN, self.onTextEventCode)
         elif fieldName=='Monitor':
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.openMonitorCenter)
+
+        # use monospace font to signal code:
+        if fieldName != 'name':
+            font = ctrls.valueCtrl.GetFont()
+            self.defaultFontFaceName = font.GetFaceName()
+            _font = ctrls.valueCtrl.GetFont()
+            try:
+                _font.SetFaceName(self.codeFaceName)  # see what happens
+            except:
+                self.codeFaceName = self.app.prefs.coder['codeFont']
+            if self.params[fieldName].valType == 'code':
+                font.SetFaceName(self.codeFaceName)
+                ctrls.valueCtrl.SetFont(font)
+            elif self.params[fieldName].valType == 'str':
+                ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
+                try:
+                    self.checkCodeWanted(ctrls.valueCtrl)
+                except:
+                    pass
+
         #increment row number
         if advanced: self.advCurrRow+=1
         else:self.currRow+=1
@@ -2118,38 +2161,25 @@ class _BaseParamsDlg(wx.Dialog):
             # ... but skip the check if end of line is colon ord(58)=':'
             self._setNameColor(self._testCompile(codeBox))
         event.Skip()
-    def _testCompile(self, ctrl):
-        """checks code.val for legal python syntax, sets field bg color, returns status
+    def _testCompile(self, ctrl, mode='exec'):
+        """checks whether code.val is legal python syntax, returns error status
 
-        method: writes code to a file, try to py_compile it. not intended for
-        high-freq repeated checking, ok for CPU but hits the disk every time.
+        mode = 'exec' (statement or expr) or 'eval' (expr only)
         """
-        # better to use a StringIO.StringIO() than a tmp file, but couldnt work it out
-        # definitely don't want eval() or exec()
-        tmpDir = mkdtemp(prefix='psychopy-check-code-syntax')
-        tmpFile = os.path.join(tmpDir, 'tmp')
         if hasattr(ctrl,'GetText'):
             val = ctrl.GetText()
-        elif hasattr(ctrl, 'GetValue'): #e.g. TextCtrl
+        elif hasattr(ctrl, 'GetValue'):  #e.g. TextCtrl
             val = ctrl.GetValue()
         else:
             raise ValueError, 'Unknown type of ctrl in _testCompile: %s' %(type(ctrl))
-        f = codecs.open(tmpFile, 'w', 'utf-8')
-        f.write(val)
-        f.close()
-        #f=StringIO.StringIO(self.params[param].val) # tried to avoid a tmp file, no go
         try:
-            py_compile.compile(tmpFile, doraise=True)
-            syntaxCheck = True # syntax fine
+            compile(val, '', mode)
+            syntaxOk = True
             ctrl.setStatus('OK')
-        except: # hopefully SyntaxError, but can't check for it; checking messes with things
-#            ctrl.SetBackgroundColour(wx.Color(250,210,210, 255)) # red, bad
+        except SyntaxError:
             ctrl.setStatus('error')
-            syntaxCheck = False # syntax error
-        # clean up tmp files:
-        shutil.rmtree(tmpDir, ignore_errors=True)
-
-        return syntaxCheck
+            syntaxOk = False
+        return syntaxOk
 
     def checkCodeSyntax(self, event=None):
         """Checks syntax for whole code component by code box, sets box bg-color.
@@ -2159,21 +2189,52 @@ class _BaseParamsDlg(wx.Dialog):
         elif hasattr(event,'GetText'):
             codeBox = event #we were given the control itself, not an event
         else:
-            print 'checkCodeSyntax received unexpected event object (%s). Should be a wx.Event or a CodeBox' %type(event)
-            logging.error('checkCodeSyntax received unexpected event object (%s). Should be a wx.Event or a CodeBox' %type(event))
+            raise ValueError('checkCodeSyntax received unexpected event object (%s). Should be a wx.Event or a CodeBox' %type(event))
         text = codeBox.GetText()
         if not text.strip(): # if basically empty
-            codeBox.SetBackgroundColour(wx.Color(255,255,255, 255)) # white
+            codeBox.SetBackgroundColour(white)
             return # skip test
         goodSyntax = self._testCompile(codeBox) # test syntax
         self._setNameColor(goodSyntax)
     def _setNameColor(self, goodSyntax):
         if goodSyntax:
-            self.paramCtrls['name'].valueCtrl.SetBackgroundColour(wx.Color(220,250,220, 255)) # name green, good
+            self.paramCtrls['name'].valueCtrl.SetBackgroundColour(codeSyntaxOkay)
             self.nameOKlabel.SetLabel("")
         else:
-            self.paramCtrls['name'].valueCtrl.SetBackgroundColour(wx.Color(255,255,255, 255)) # name white
+            self.paramCtrls['name'].valueCtrl.SetBackgroundColour(white)
             self.nameOKlabel.SetLabel('syntax error')
+
+    def checkCodeWanted(self, event=None):
+        """check whether a $ is present (if so, set the display font)
+        """
+        if hasattr(event, 'GetEventObject'):
+            strBox = event.GetEventObject()
+        elif hasattr(event, 'GetValue'):
+            strBox = event  # we were given the control itself, not an event
+        else:
+            raise ValueError('checkCodeWanted received unexpected event object (%s).')
+        try:
+            val = strBox.GetValue()
+            stc = False
+        except:
+            val = strBox.GetText()
+            stc = True  # might be StyledTextCtrl
+
+        # set display font based on presence of $ (without \$)?
+        font = strBox.GetFont()
+        if _unescapedDollarSign_re.search(val):
+            facename = self.codeFaceName
+        else:
+            facename = self.defaultFontFaceName
+        if stc:
+            strBox.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
+                                "face:%s,size:%d" % (facename, self.faceSize))
+        else:
+            font.SetFaceName(facename)
+            strBox.SetFont(font)
+
+        if hasattr(event, 'Skip'):
+            event.Skip()
 
     def getParams(self):
         """retrieves data from any fields in self.paramCtrls

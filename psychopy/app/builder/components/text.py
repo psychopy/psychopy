@@ -75,7 +75,5 @@ class TextComponent(VisualComponent):
             buff.writeIndented("    flipHoriz=%s," % bool(flip == 'horiz') )
         elif flip == 'vert':
             buff.writeIndented("    flipVert=%s," % bool(flip == 'vert') )
-        elif '$' in flip and self.params['flip'].updates == 'constant':
-            print 'Warning: %s Flip appears to be variable, but updates are constant' % self.params['name']
         depth=-self.getPosInRoutine()
         buff.writeIndented("    depth=%.1f)\n" %(depth))
