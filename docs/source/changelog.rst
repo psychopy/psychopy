@@ -32,9 +32,13 @@ PsychoPy 1.77.00
     
 * IMPROVED: substantially (~40%) faster loading of RGB images from disk (by using byte format rather than float). May also allow storing of more images on graphics card than previously
 * ADDED: :class:`AdvancedMicrophone` class to add and retrieve a high-frequency tone to indicate the start of recording (e.g., to allow accurate vocal RT estimation), with demo (Jeremy Gray)
-* ADDED: :class:`MovieStim` now updates its `status` attribute to FINISHED, in line with other stimuli
-* ADDED: support for pyglet version 1.2 alpha (but 1.1.4 is still recommended - it appears to render faster)
 * REFACTORED: parallel port support. Support for Windows via inpout32/inpout64 and Linux via pyparallel added.  Existing API maintained for single port usage, but new PParallel classes added to provide more flexibility when dealing with multiple ports. see :ref:`parallel` (Thanks Mark Hymers)
+* ADDED: :class:`MovieStim` now updates its `status` attribute to FINISHED, in line with other stimuli
+* CHANGED: microphone default file names include milliseconds (to avoid two files with the same name)
+* ADDED: color-word speech-recognition demo (coder > input > speech_recognition.py)
+* ADDED: in Builder components dialog boxes, text that will be interpreted as code is displayed in monospace font
+* ADDED: remove and warn about trailing whitespace in Builder component values (but not Text fields)
+* ADDED: support for pyglet version 1.2 alpha (but 1.1.4 is still recommended - it appears to render faster)
 * ADDED: more sound.SoundPyo methods (get & set duration, volume, looping)
 * FIXED: event.Mouse() can obtain a default visual.Window(), if one has already been created
 * ADDED: Builder components generate a compile-time warning if a field's value looks dynamic but its updating is constant (Jeremy Gray)
