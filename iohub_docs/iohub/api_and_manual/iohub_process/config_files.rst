@@ -215,12 +215,12 @@ Example Configurations
 In YAML file Format
 =====================
 
-An example of a experiment_config.yaml file::
+An example of a experiment_config.yaml file:
 
 .. literalinclude:: ./example_experiment_config.yaml
     :language: yaml
 
-An example of an iohub_config.yaml file::
+An example of an iohub_config.yaml file:
 
 .. literalinclude:: ./example_iohub_config.yaml
     :language: yaml
