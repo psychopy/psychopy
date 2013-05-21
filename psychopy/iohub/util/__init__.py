@@ -163,9 +163,9 @@ class NumPyRingBuffer(object):
     
     The class supports simple slice type access to the buffer contents
     with the following restrictions / considerations:
-        #. Negative indexing is not supported.
-        #. The user of the class must factor in the actual number of data elements that have been added to the buffer, until the buffer becomes full.
-
+    
+    #. Negative indexing is not supported.
+ 
     Items area dded to the ring buffer using the classes append method.
     
     The current number of elements in the buffer can be retrieved using the 
@@ -188,11 +188,27 @@ class NumPyRingBuffer(object):
     needing to create a new NumPyRingBuffer object, call the clear() method
     of the class.
     
-    Example:
+    Example::
+    
+        ring_buffer=NumPyRingBuffer(10)
+        
+        for i in xrange(25):
+            ring_buffer.append(i)
+            print '-------'
+            print 'Ring Buffer Stats:'
+            print '\tWindow size: ',len(ring_buffer)
+            print '\tMin Value: ',ring_buffer.min()
+            print '\tMax Value: ',ring_buffer.max()
+            print '\tMean Value: ',ring_buffer.mean()
+            print '\tStandard Deviation: ',ring_buffer.std()
+            print '\tFirst 3 Elements: ',ring_buffer[:3]
+            print '\tLast 3 Elements: ',ring_buffer[-3:]
+        
         
         
     """
     def __init__(self, max_size, dtype=numpy.float32):
+        self._dtype=dtype
         self._npa=numpy.empty(max_size*2,dtype=dtype)
         self.max_size=max_size
         self._index=0
@@ -218,8 +234,8 @@ class NumPyRingBuffer(object):
         """
         Return the numpy array being used by the RingBuffer, the length of 
         which will be equal to the number of elements added to the list, or
-        the last max_size elements added to the list. Elements are in first in, 
-        last out order 
+        the last max_size elements added to the list. Elements are in order
+        of addition to the ring buffer.
         
         :param None:
         :returns numpy.array: The array of data elements that make up the Ring Buffer.
@@ -252,8 +268,14 @@ class NumPyRingBuffer(object):
                     self._npa[i%self.max_size]=v
                     self._npa[(i%self.max_size)+self.max_size]=v
                 elif isinstance(i,slice):
-                    start=i.start+self._index
-                    stop=i.stop+self._index            
+                    istart=indexs.start
+                    if istart is None:
+                        istart=0
+                    istop=indexs.stop
+                    if indexs.stop is None:
+                        istop=0
+                    start=istart+self._index
+                    stop=istop+self._index            
                     self._npa[slice(start%self.max_size,stop%self.max_size,i.step)]=v
                     self._npa[slice((start%self.max_size)+self.max_size,(stop%self.max_size)+self.max_size,i.step)]=v
         elif isinstance(indexs, (int,long)):
@@ -261,10 +283,31 @@ class NumPyRingBuffer(object):
             self._npa[i%self.max_size]=v
             self._npa[(i%self.max_size)+self.max_size]=v
         elif isinstance(indexs,slice):
-            start=indexs.start+self._index
-            stop=indexs.stop+self._index            
+            istart=indexs.start
+            if istart is None:
+                istart=0
+            istop=indexs.stop
+            if indexs.stop is None:
+                istop=0
+            start=istart+self._index
+            stop=istop+self._index  
             self._npa[slice(start%self.max_size,stop%self.max_size,indexs.step)]=v
             self._npa[slice((start%self.max_size)+self.max_size,(stop%self.max_size)+self.max_size,indexs.step)]=v
+        else:
+            raise TypeError()
+
+    def __getitem__(self, indexs):
+        current_array=self.getElements()
+        if isinstance(indexs,(list,tuple)):
+            rarray=[]
+            for i in indexs:
+                if isinstance(i, (int,long)):
+                    rarray.append(current_array[i])
+                elif isinstance(i,slice):          
+                    rarray.extend(current_array[i])
+            return numpy.asarray(rarray,dtype=self._dtype)
+        elif isinstance(indexs, (int,long,slice)):
+            return current_array[indexs]
         else:
             raise TypeError()
     
@@ -274,8 +317,9 @@ class NumPyRingBuffer(object):
         return getattr(self._npa[self._index%self.max_size:(self._index%self.max_size)+self.max_size],a)
     
     def __len__(self):
-        return self.getLength()
-        
+        if self.isFull():
+            return self.max_size
+        return self._index
         
 ###############################################################################
 #
