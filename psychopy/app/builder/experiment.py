@@ -361,7 +361,7 @@ class Experiment:
                     thisParam = thisComp.params[thisParamName]
                     if thisParamName=='advancedParams':
                         continue#advanced isn't a normal param
-                    elif "during:" in thisParam.updates:
+                    elif thisParam.updates and "during:" in thisParam.updates:
                         updates = thisParam.updates.split(': ')[1] #remove the part that says 'during'
                         routine, static =  updates.split('.')
                         self.routines[routine].getComponentFromName(static).addComponentUpdate(
@@ -1000,7 +1000,7 @@ class Routine(list):
         self.remove(component)
         #check if the component was using any Static Components for updates
         for thisParamName, thisParam in component.params.items():
-            if 'during:' in thisParam.updates:
+            if hasattr(thisParam,'updates') and thisParam.updates and 'during:' in thisParam.updates:
                 updates = thisParam.updates.split(': ')[1] #remove the part that says 'during'
                 routine, static =  updates.split('.')
                 self.exp.routines[routine].getComponentFromName(static).remComponentUpdate(
