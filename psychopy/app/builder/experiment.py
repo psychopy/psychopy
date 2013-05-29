@@ -98,6 +98,7 @@ class Experiment:
         self.psychopyLibs=['visual','core','data','event','logging']
         self.settings=components.getAllComponents()['SettingsComponent'](parentName='', exp=self)
         self.resourcePool=components.getAllComponents()['ResourcePoolComponent'](parentName='', exp=self)
+        print self.resourcePool.params["resources"].val
         self._doc=None#this will be the xml.dom.minidom.doc object for saving
         self.namespace = NameSpace(self) # manage variable names
     def requirePsychopyLibs(self, libs=[]):
@@ -421,7 +422,7 @@ class Experiment:
             elif elementNode.tag=="Routine":
                 self.flow.append(self.routines[elementNode.get('name')])
             
-            self.load_resource_pool(root)
+        self.load_resource_pool(root)
 
         if modified_names:
             logging.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names))
