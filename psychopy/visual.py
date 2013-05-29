@@ -558,7 +558,7 @@ class Window(object):
                        logging.warning("Multiple dropped frames have occurred - I'll stop bothering you about them!")
                        
         # Emit logging entries if requested
-        self.doFlipLogging(now + logging.defaultClock.timeAtLastReset)
+        self.doFlipLogging(now + logging.defaultClock.getLastResetTime())
         
 		#function calls
         for callEntry in self._toCall:
