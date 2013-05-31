@@ -14,10 +14,10 @@ before_install:
   - sudo apt-key adv --recv-keys --keyserver pgp.mit.edu 2649A5A9
   - sudo apt-get update -qq
   - sudo apt-cache policy           # What is actually available?
+  - sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
   - sudo apt-get install -qq python-pyglet python-pygame python-opengl
   - sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
-  - sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-pyo
-  - sudo apt-get install -qq python-tables
+  - sudo apt-get install -qq python-configobj python-imaging python-openpyxl
 install:
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install -q coveralls; fi
 script:
