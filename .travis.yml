@@ -17,6 +17,7 @@ before_install:
   - sudo apt-get install -qq python-pyglet python-pygame python-opengl
   - sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
   - sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-pyo
+  - sudo apt-get install -qq python-tables
 install:
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install -q coveralls; fi
 script:
