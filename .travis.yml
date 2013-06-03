@@ -1,0 +1,26 @@
+# vim ft=yaml
+# travis-ci.org and coveralls definition for PsychoPy tests
+language: python
+python:
+  - "2.7"
+virtualenv:
+  system_site_packages: true
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install lsb-release
+  - source /etc/lsb-release
+  - echo ${DISTRIB_CODENAME}
+  - wget -O- http://neuro.debian.net/lists/${DISTRIB_CODENAME}.us-nh.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
+  - sudo apt-key adv --recv-keys --keyserver pgp.mit.edu 2649A5A9
+  - sudo apt-get update -qq
+  - sudo apt-cache policy           # What is actually available?
+  - sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
+  - sudo apt-get install -qq python-pyglet python-pygame python-opengl
+  - sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
+  - sudo apt-get install -qq python-configobj python-imaging python-openpyxl
+install:
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install -q coveralls; fi
+script:
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then xvfb-run -s "-screen 0 1024x768x24 -ac +extension GLX +render -noreset" coverage run --rcfile=.travis_coveragerc psychopy/tests/runPytest.py -v; else { echo "TODO while avoiding duplication"; exit 1; } fi
+after_success:
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi
