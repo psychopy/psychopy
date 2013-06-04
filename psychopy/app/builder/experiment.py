@@ -912,7 +912,7 @@ class Flow(list):
                         continue  # no problem, no warning
                     if field.label.lower() == 'text' or not field.valType in ['str', 'code']:
                         continue
-                    if field.val != field.val.strip():
+                    if type(field.val) == basestring and field.val != field.val.strip():
                         trailingWhitespace.append((field.val, key, component, entry))
                         field.val = field.val.strip()
                 # detect 'constant update' fields that seem intended to be dynamic:

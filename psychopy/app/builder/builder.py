@@ -2030,7 +2030,7 @@ class _BaseParamsDlg(wx.Dialog):
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.openMonitorCenter)
 
         # use monospace font to signal code:
-        if fieldName != 'name':
+        if fieldName != 'name' and hasattr(ctrls.valueCtrl, 'GetFont'):
             font = ctrls.valueCtrl.GetFont()
             self.defaultFontFaceName = font.GetFaceName()
             _font = ctrls.valueCtrl.GetFont()
