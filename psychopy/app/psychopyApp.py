@@ -6,11 +6,13 @@
 
 import sys, psychopy
 import copy
-if '-v' in sys.argv or '--version' in sys.argv:
-    print 'PsychoPy2, version %s (c)Jonathan Peirce, 2013, GNU GPL license' %psychopy.__version__
-    sys.exit()
-if '-h' in sys.argv or '--help' in sys.argv:
-    print """Starts the PsychoPy2 application.
+
+if __name__=='__main__':
+    if '-v' in sys.argv or '--version' in sys.argv:
+        print 'PsychoPy2, version %s (c)Jonathan Peirce, 2013, GNU GPL license' %psychopy.__version__
+        sys.exit()
+    if '-h' in sys.argv or '--help' in sys.argv:
+        print """Starts the PsychoPy2 application.
 
 Usage:  python PsychoPy.py [options] [file]
 
@@ -33,7 +35,7 @@ Options:
     --nosplash       suppresses splash screen
 
 """
-    sys.exit()
+        sys.exit()
 
 # Ensure 2.8 version of wx
 if not hasattr(sys, 'frozen'):
