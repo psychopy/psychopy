@@ -17,7 +17,7 @@ before_install:
   - sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
   - sudo apt-get install -qq python-pyglet python-pygame python-opengl
   - sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
-  - sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-mock python-wxgtk2.8 libavbin0
+  - sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-mock python-wxgtk2.8 libavbin0 python-pyo
 install:
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install -q coveralls; fi
 script:
