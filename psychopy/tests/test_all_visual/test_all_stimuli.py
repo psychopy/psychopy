@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import sys, os, copy
 from psychopy import visual, misc, monitors, filters, prefs
 from psychopy.tests import utils
