@@ -106,6 +106,7 @@ class _baseVisualTest:
         #compare with a LIBERAL criterion (fonts do differ)
         utils.compareScreenshot('text2_%s.png' %(self.contextName), win, crit=20)
 
+    @pytest.mark.needs_sound
     def test_mov(self):
         win = self.win
         if self.win.winType=='pygame':
