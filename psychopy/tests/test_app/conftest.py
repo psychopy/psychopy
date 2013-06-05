@@ -10,7 +10,7 @@ def pytest_configure(config):
     # print "D: CREATING APP"
     PsychoPyApp._called_from_test = True
     PsychoPyApp._app = PsychoPyApp(interactive=False)
-    print "D: CREATED APP"
+    # print "D: CREATED APP"
     #del PsychoPyApp._called_from_test
 
 def pytest_unconfigure(config):
