@@ -11,13 +11,13 @@ before_install:
   - source /etc/lsb-release
   - echo ${DISTRIB_CODENAME}
   - wget -O- http://neuro.debian.net/lists/${DISTRIB_CODENAME}.us-nh.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
-  - sudo apt-key adv --recv-keys --keyserver pgp.mit.edu 2649A5A9
-  - sudo apt-get update -qq
+  - travis_retry sudo apt-key adv --recv-keys --keyserver pgp.mit.edu 2649A5A9
+  - travis_retry sudo apt-get update -qq
   - sudo apt-cache policy           # What is actually available?
-  - sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
-  - sudo apt-get install -qq python-pyglet python-pygame python-opengl
-  - sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
-  - sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-mock python-wxgtk2.8 libavbin0 python-pyo
+  - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
+  - travis_retry sudo apt-get install -qq python-pyglet python-pygame python-opengl
+  - travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
+  - travis_retry sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-mock python-wxgtk2.8 libavbin0 python-pyo
 install:
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install -q coveralls; fi
 script:
