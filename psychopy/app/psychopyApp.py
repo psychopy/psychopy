@@ -6,11 +6,13 @@
 
 import sys, psychopy
 import copy
-if '-v' in sys.argv or '--version' in sys.argv:
-    print 'PsychoPy2, version %s (c)Jonathan Peirce, 2013, GNU GPL license' %psychopy.__version__
-    sys.exit()
-if '-h' in sys.argv or '--help' in sys.argv:
-    print """Starts the PsychoPy2 application.
+
+if __name__=='__main__':
+    if '-v' in sys.argv or '--version' in sys.argv:
+        print 'PsychoPy2, version %s (c)Jonathan Peirce, 2013, GNU GPL license' %psychopy.__version__
+        sys.exit()
+    if '-h' in sys.argv or '--help' in sys.argv:
+        print """Starts the PsychoPy2 application.
 
 Usage:  python PsychoPy.py [options] [file]
 
@@ -33,7 +35,7 @@ Options:
     --nosplash       suppresses splash screen
 
 """
-    sys.exit()
+        sys.exit()
 
 # Ensure 2.8 version of wx
 if not hasattr(sys, 'frozen'):
@@ -100,11 +102,18 @@ class MenuFrame(wx.Frame):
         self.Show()
 
 class PsychoPyApp(wx.App):
-    def __init__(self, arg=0, showSplash=True):
+    def __init__(self, arg=0, **kwargs):
         wx.App.__init__(self, arg)
-        self.onInit(showSplash)
+        self.onInit(**kwargs)
 
-    def onInit(self, showSplash=True):
+    def onInit(self, showSplash=True, interactive=True):
+        """
+        :Parameters:
+
+          interactive: bool
+            Either invoke dialogs.  Might need to be set to False
+            for the purpose of testing.
+        """
         self.version=psychopy.__version__
         self.SetAppName('PsychoPy2')
         #set default paths and prefs
@@ -135,6 +144,7 @@ class PsychoPyApp(wx.App):
         self.quitting=False
         #check compatibility with last run version (before opening windows)
         self.firstRun = False
+
         if '--firstrun' in sys.argv:
             del sys.argv[sys.argv.index('--firstrun')]
             self.firstRun = True
@@ -143,7 +153,8 @@ class PsychoPyApp(wx.App):
             self.firstRun = True
         else:
             last=self.prefs.appData['lastVersion']
-        if self.firstRun:
+
+        if self.firstRun and interactive:
             self.firstrunWizard()
 
         #setup links for URLs
@@ -211,11 +222,11 @@ class PsychoPyApp(wx.App):
             connectThread.start()
 
         ok, msg = compatibility.checkCompatibility(last, self.version, self.prefs, fix=True)
-        if not ok and not self.firstRun:  #tell the user what has changed
+        if not ok and not self.firstRun and interactive:  #tell the user what has changed
             dlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title="Compatibility information")
             dlg.ShowModal()
 
-        if self.prefs.app['showStartupTips']:
+        if self.prefs.app['showStartupTips'] and interactive:
             tipIndex = self.prefs.appData['tipIndex']
             tp = wx.CreateFileTipProvider(os.path.join(self.prefs.paths['resources'],"tips.txt"), tipIndex)
             showTip = wx.ShowTip(None, tp)
@@ -223,6 +234,7 @@ class PsychoPyApp(wx.App):
             self.prefs.saveAppData()
             self.prefs.app['showStartupTips'] = showTip
             self.prefs.saveUserPrefs()
+
         if self.prefs.connections['checkForUpdates']:
             self.Bind(wx.EVT_IDLE, self.checkUpdates)
         else:
@@ -441,5 +453,5 @@ if __name__=='__main__':
     if '--no-splash' in sys.argv:
         showSplash = False
         del sys.argv[sys.argv.index('--no-splash')]
-    app = PsychoPyApp(0, showSplash)
+    app = PsychoPyApp(0, showSplash=showSplash)
     app.MainLoop()
