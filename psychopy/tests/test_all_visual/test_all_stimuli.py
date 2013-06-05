@@ -196,9 +196,10 @@ class _baseVisualTest:
             "dots._signalDots failed to change after dots.setCoherence()"
         assert not numpy.alltrue(prevPosRend==dots._fieldPosRendered), \
             "dots._fieldPosRendered failed to change after dots.setPos()"
+
     def test_element_array(self):
         win = self.win
-        if not win._haveShaders:
+        if not win._haveShaders or utils._under_xvfb:
             pytest.skip("ElementArray requires shaders, which aren't available")
         #using init
         thetas = numpy.arange(0,360,10)
@@ -225,8 +226,8 @@ class _baseVisualTest:
         grating.setOri(90)
         grating.setColor('black')
         grating.draw()
-        # TODO: figure out why not working
-        utils.skip_under_xvfb()             # skip late so we smoke test the code
+        if utils._under_xvfb:
+            pytest.xfail("not clear why fails under Xvfb") # skip late so we smoke test t
         utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win)
         #aperture should automatically disable on exit
     def test_rating_scale(self):
@@ -237,9 +238,8 @@ class _baseVisualTest:
                         lowAnchorText=' ', highAnchorText=' ', scale=' ',
                         markerStyle='glow', markerStart=0.7, markerColor='darkBlue')
         rs.draw()
-        if self.win.winType=='pyglet':
-            # TODO: figure out why not working
-            utils.skip_under_xvfb()             # skip late so we smoke test the code
+        if self.win.winType=='pyglet' and utils._under_xvfb:
+            pytest.xfail("not clear why fails under Xvfb") # skip late so we smoke test the code
         utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=30.0)
         win.flip()#AFTER compare screenshot
     def test_refresh_rate(self):
