@@ -21,6 +21,7 @@ PsychoPy 1.77.00
     - provides async access to the parallel port
     - provides an alternative data output format (using hdf5) particularly useful for high-output streaming data (e.g. eye-trackers)
     
+* DEPRECATED: opensslwrap will soon be replaced by pyFileSec, a much-improved version of the same package (= file-oriented encryption)
 * IMPROVED: substantially (~40%) faster loading of RGB images from disk (by using byte format rather than float). May also allow storing of more images on graphics card than previously
 * ADDED: `AdvancedMicrophone` class to add and retrieve a high-frequency tone to indicate the start of recording (e.g., to allow accurate vocal RT estimation), with demo (Jeremy Gray)
 * REFACTORED: parallel port support. Support for Windows via inpout32/inpout64 and Linux via pyparallel added.  Existing API maintained for single port usage, but new PParallel classes added to provide more flexibility when dealing with multiple ports. see `parallel` (Thanks Mark Hymers)
