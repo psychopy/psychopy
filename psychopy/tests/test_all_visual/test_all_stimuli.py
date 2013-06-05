@@ -146,7 +146,7 @@ class _baseVisualTest:
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
-        utils.compareScreenshot('wedge1_%s.png' %(self.contextName), win, crit=10.0)
+        utils.compareScreenshot('wedge1_%s.png' %(self.contextName), win, crit=10.5)
         win.flip()#AFTER compare screenshot
 
         #using .set()
