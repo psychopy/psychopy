@@ -15,4 +15,6 @@ def pytest_configure(config):
 
 def pytest_unconfigure(config):
     # print "D: KILLING THE APP"
-    PsychoPyApp._app.quit() # this currently uses sys.exit() which ends testing :-(
+    #PsychoPyApp._app.quit() # this currently uses sys.exit() which ends testing :-(
+    #
+    pass
