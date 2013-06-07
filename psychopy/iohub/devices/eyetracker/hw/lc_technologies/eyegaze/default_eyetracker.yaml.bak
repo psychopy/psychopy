@@ -1,0 +1,107 @@
+eyetracker.hw.lc_technologies.eyegaze.EyeTracker:
+    # Indicates if the device should actually be loaded at experiment runtime.
+    enable: True
+
+    # The variable name of the device that will be used to access the ioHub Device class
+    # during experiment run-time, via the devices.[name] attribute of the ioHub
+    # connection or experiment runtime class.
+    name: tracker
+
+    # Should eye tracker events be saved to the ioHub DataStore file when the device
+    # is recording data ?
+    save_events: True
+
+    # Should eye tracker events be sent to the Experiment process when the device
+    # is recording data ?
+    stream_events: True
+
+    # The EyeGaze EyeTracker class uses the polling method to
+    # check for new events received from the EyeTracker device. device_timer.interval
+    # specifies the sec.msec time between device polls. 0.004 = 4 msec, so the device will
+    # be polled at a maxximum rate of 250 Hz. This polling rate is a 'target' value,
+    # and may not always be achieved depending on your computer specifications and the
+    # number and type of other devices being used. This can be checked by reviewing the
+    # confidence_interval column of any of the eye event tables saved to the DataStore
+    device_timer:
+        interval: 0.004
+
+    # How many eye events (including samples) should be saved in the ioHub event buffer before
+    # old eye events start being replaced my new events when the event buffer reaches
+    # the maximum event length of the buffer defined here.
+    event_buffer_length: 256
+
+    # Tell Eyegaze whether to display the full 640x480 camera image in a separate window.
+    display_camera_image: False
+
+    # Tell Eyegaze where to display the camera image window on the scrren.
+    # Options are UPPER_RIGHT or UPPER_LEFT
+    camera_image_screen_position: UPPER_RIGHT
+
+    host_connection:
+        type: LOCAL       
+
+    # The EyeGaze supports saving a native eye tracker text data file, 
+    # the default_native_data_file_name value is used to set the default name for the file
+    # that will be saved. NOTE: Especially on single PC configurations, having EyeGaze save a 
+    # data file is kind of redundent since the ioHub is saving all events from all devices
+    # by default anyhow. If you do not want to have the EyeGaze EyeTracker save
+    # a data file, then leave this preference empty.
+    default_native_data_file_name: ''
+    
+    # The EyeGaze implementation of the common eye tracker interface supports the
+    # following event types. If you would like to exclude certain events from being
+    # saved or streamed during runtime, remove them from the list below.
+    monitor_event_types: [ MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
+    
+    # The model_name setting specifies the eye tracker model being used.
+    # TODO: Determine how EyeGaze can use the property, both foro filtering possible
+    # eye tracker instances that could be connected to, and for being set when the device
+    # starts up based on the actual model name being used.
+    model_name: EYEGAZE_MODEL
+
+    # manufacturer_name is used to store the name of the maker of the eye tracking
+    # device. This is for informational purposes only.
+    manufacturer_name: LC Technologies, Inc.
+
+    # The EyeGaze EyeTracker supports the following track_eyes values:  
+    # LEFT_EYE, RIGHT_EYE, BINOCULAR, BINOCULAR_AVERAGED. Not all models
+    # support all modes.
+    track_eyes: BINOCULAR
+    runtime_settings:
+        # EyeGaze supports a couple different tracking speeds
+        # depending on the model being used. Specify a rate (in Hz)
+        # you know the model being used supports.
+        sampling_rate: ''
+        # Sample filtering defines the native eye tracker filtering level to be 
+        # applied to the sample event data before it is sent to the specified data stream.
+        # The sample_filtering preference can contain multiple key : value entries if 
+        # the tracker implementation supports it, where each key is a sample stream type,
+        # and each value is the accociated filter level for that sample data stream.
+        # ** TODO: EYEGAZE EyeTracker support for online filtering TBD. **
+        # 'possible' types are: FILTER_ALL, FILTER_FILE, FILTER_ONLINE, FILETER_ANALOG, FILTER_NET
+        # 'possible' filter levels are: FILTER_LEVEL_OFF, FILTER_LEVEL_1, ... , FILTER_LEVEL_5
+        # Note that if FILTER_ALL is specified, then other sample data stream values are
+        # ignored.
+        sample_filtering:
+            FILTER_ALL: FILTER_LEVEL_OFF
+
+        # VOG settings allow you to specify some eye tracker parameters related to
+        # the image processing or data collection procedure used by the eye tracker
+        # device. 
+        vog_settings:
+            # TODO: Determine EyeGaze support for pupil measures (1 or 2 at once, and what types).
+            pupil_measure_types: PUPIL_AREA
+            # TODO: Determine what other vog settings can be supported for the EyeGaze.
+
+    # The below parameters are not used by the EyeGaze eye tracker
+    # implementation, so they can be left as is, or filled out for FYI only..
+    device_number: 0
+    model_number: N/A
+    serial_number: N/A
+    manufacture_date: DD-MM-YYYY
+    software_version: N/A
+    hardware_version: N/A
+    firmware_version: N/A
+
+    # The below settings CAN NOT BE CHANGED!
+    auto_report_events: False

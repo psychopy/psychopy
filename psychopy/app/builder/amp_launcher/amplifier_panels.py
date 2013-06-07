@@ -35,7 +35,8 @@ class ChannelsPanel(wx.Panel):
     def fill(self, channels):
         self.channel_grid.BeginBatch()
         pos = 0
-        self.channel_grid.DeleteRows(0, self.grid_rows)
+        if self.grid_rows > 0:
+            self.channel_grid.DeleteRows(0, self.grid_rows)
         for channel_entry in channels:
             self.channel_grid.InsertRows(pos)
             self.channel_grid.SetRowLabelValue(pos, str(pos + 1))
@@ -289,6 +290,19 @@ class AmpConfigPanel(wx.Panel):
 
     def get_additional_params(self):
         return self.amp_entry.get_additional_params()
+    
+    def get_config(self):
+        return {
+            "additional_params": self.get_additional_params(),
+            "exec_file": self.get_exec_file(),
+            "params": {
+                "sampling_rate": self.get_param("sampling_rate")
+            },
+            "active_channels": self.get_active_channels(),
+            "channel_names": self.get_channel_names(),
+            "launch_file": self.get_launch_file(),
+            "server_address": self.get_server()
+        }
 
     def get_server(self):
         return self.amp_entry and self.amp_entry.get_server()

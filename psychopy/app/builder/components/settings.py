@@ -250,7 +250,7 @@ class SettingsComponent:
             buff.writeIndented("tagWriter = TagsFileWriter(filename + \".psychopy.tag\")\n")
             buff.writeIndented("for tag in contrib.obci.TagOnFlip.tags:\n")
             buff.writeIndented("    tagWriter.tag_received(tag)\n")
-            buff.writeIndented("tagWriter.finish_saving(logging.defaultClock.timeAtLastReset)\n\n")
+            buff.writeIndented("tagWriter.finish_saving(logging.defaultClock.getLastResetTime())\n\n")
 
         buff.writeIndented("win.close()\n")
         buff.writeIndented("core.quit()\n")

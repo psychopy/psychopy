@@ -16,13 +16,25 @@ Changelog
 
 :blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
-PsychoPy 1.76
+PsychoPy 1.77
 ------------------------------
 
-PsychoPy 1.76.01
+PsychoPy 1.77.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* ADDED: preview of ioHub for faster (asynchronous) polling of hardware including mouse, keyboard, eyetrackers and other devices
+* ADDED: :class:`AdvancedMicrophone` class to add and retrieve a high-frequency tone to indicate the start of recording (e.g., to allow accurate vocal RT estimation), with demo (Jeremy Gray)
+* IMPROVED: substantially (~40%) faster loading of RGB images from disk (by using byte format rather than float). May also allow storing of more images on graphics card than previously
+* ADDED: :class:`MovieStim` now updates its `status` attribute to FINISHED, in line with other stimuli
+* ADDED: support for pyglet version 1.2 alpha (but 1.1.4 is still recommended - it appears to render faster)
 * REFACTORED: parallel port support. Support for Windows via inpout32/inpout64 and Linux via pyparallel added.  Existing API maintained for single port usage, but new PParallel classes added to provide more flexibility when dealing with multiple ports. see :ref:`parallel` (Thanks Mark Hymers)
+* ADDED: more sound.SoundPyo methods (get & set duration, volume, looping)
+* FIXED: event.Mouse() can obtain a default visual.Window(), if one has already been created
+* ADDED: Builder components generate a compile-time warning if a field's value looks dynamic but its updating is constant (Jeremy Gray)
+* ADDED: better simulated scanner-noise in launchScan (just for fun)
+
+PsychoPy 1.76
+------------------------------
 
 PsychoPy 1.76.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -35,7 +47,7 @@ The compatibility changes in this release below are likely to affect very few us
 * FIXED: a scaling bug in RatingScale descriptions (Giuseppe Pagnoni)
 * ADDED: support for mirror-image text, and mirror-image BufferImageStim (Jeremy Gray)
 * ADDED: support for lower latency sound with the pyo library. For now pygame remains the default but this can be changed by setting the order in preferences>general>audio
-* CHANGED: PsychoPy Standalone is now being built using python 2.7.3 (rather than 2.6). Under OSX psignifit has been removed from this distribution, as have the libraries to create .mov files using Window.saveMovieFrames(). If you need those features then install the 1.75 Standalone and then update to 1.76 using the auto-update system.
+* :blue:`CHANGED: PsychoPy Standalone is now being built using python 2.7.3 (rather than 2.6). Under OSX psignifit has been removed from this distribution, as have the libraries to create .mov files using Window.saveMovieFrames(). If you need those features then install the 1.75 Standalone and then update to 1.76 using the auto-update system.`
 * ADDED: sound objects (either pygame or pyo) now support autologging
 * FIXED: a bug in the generation of the LMS color space conversion matrix. It seems nobody was actually using this for real, but if you were contact Jon for details!
 * CHANGED: various changes to RatingScale (thanks Henrik Singman):

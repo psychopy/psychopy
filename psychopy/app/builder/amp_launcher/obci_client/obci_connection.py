@@ -131,6 +131,7 @@ class ObciBaseClient(object):
         self.msg_factory = OBCIMessageTool(msg_templates=templates)
         self.socket = self.context.socket(zmq.REQ)
         self.socket.connect(address)
+        self.socket.RCVTIMEO = 7000
         self.open = True
 
     def close(self):

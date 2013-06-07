@@ -6,6 +6,7 @@ import wx, copy
 from os import path
 from psychopy.app.builder.experiment import Param
 from psychopy.constants import *
+from psychopy.app.builder import ecg
 
 class BaseComponent(object):
     """A template for components, defining the methods to be overridden"""
@@ -60,14 +61,8 @@ class BaseComponent(object):
     def writeStartTestCode(self,buff):
         """Test whether we need to start
         """
-        if self.params['startType'].val=='time (s)':
-            if not self.params['startVal'].val.strip():
-                self.params['startVal'].val = '0.0'
-            buff.writeIndented("if t >= %(startVal)s and %(name)s.status == NOT_STARTED:\n" %(self.params))
-        elif self.params['startType'].val=='frame N':
-            buff.writeIndented("if frameN >= %(startVal)s and %(name)s.status == NOT_STARTED:\n" %(self.params))
-        elif self.params['startType'].val=='condition':
-            buff.writeIndented("if (%(startVal)s) and %(name)s.status == NOT_STARTED:\n" %(self.params))
+        if self.params['startType'].val in ecg.START_TEST:
+            ecg.START_TEST[self.params['startType'].val](self, buff)
         else:
             raise "Not a known startType (%(startType)s) for %(name)s" %(self.params)
         buff.setIndentLevel(+1,relative=True)
@@ -77,22 +72,24 @@ class BaseComponent(object):
     def writeStopTestCode(self,buff):
         """Test whether we need to stop
         """
-        if self.params['stopType'].val=='time (s)':
-            buff.writeIndented("elif %(name)s.status == STARTED and t >= %(stopVal)s:\n" %(self.params))
+        if self.params['stopType'].val in ecg.STOP_TEST:
+            ecg.STOP_TEST[self.params['stopType'].val](self, buff)
+        #if self.params['stopType'].val=='time (s)':
+        #    buff.writeIndented("elif %(name)s.status == STARTED and t >= %(stopVal)s:\n" %(self.params))
         #duration in time (s)
-        elif self.params['stopType'].val=='duration (s)' and self.params['startType'].val=='time (s)':
-            buff.writeIndented("elif %(name)s.status == STARTED and t >= (%(startVal)s + %(stopVal)s):\n" %(self.params))
-        elif self.params['stopType'].val=='duration (s)':#start at frame and end with duratio (need to use approximate)
-            buff.writeIndented("elif %(name)s.status == STARTED and t >= (%(name)s.tStart + %(stopVal)s):\n" %(self.params))
+        #elif self.params['stopType'].val=='duration (s)' and self.params['startType'].val=='time (s)':
+        #    buff.writeIndented("elif %(name)s.status == STARTED and t >= (%(startVal)s + %(stopVal)s):\n" %(self.params))
+        #elif self.params['stopType'].val=='duration (s)':#start at frame and end with duratio (need to use approximate)
+        #    buff.writeIndented("elif %(name)s.status == STARTED and t >= (%(name)s.tStart + %(stopVal)s):\n" %(self.params))
         #duration in frames
-        elif self.params['stopType'].val=='duration (frames)':
-            buff.writeIndented("elif %(name)s.status == STARTED and frameN >= (%(name)s.frameNStart + %(stopVal)s):\n" %(self.params))
+        #elif self.params['stopType'].val=='duration (frames)':
+        #    buff.writeIndented("elif %(name)s.status == STARTED and frameN >= (%(name)s.frameNStart + %(stopVal)s):\n" %(self.params))
         #stop frame number
-        elif self.params['stopType'].val=='frame N':
-            buff.writeIndented("elif %(name)s.status == STARTED and frameN >= %(stopVal)s:\n" %(self.params))
+        #elif self.params['stopType'].val=='frame N':
+        #    buff.writeIndented("elif %(name)s.status == STARTED and frameN >= %(stopVal)s:\n" %(self.params))
         #end according to a condition
-        elif self.params['stopType'].val=='condition':
-            buff.writeIndented("elif %(name)s.status == STARTED and (%(stopVal)s):\n" %(self.params))
+        #elif self.params['stopType'].val=='condition':
+        #    buff.writeIndented("elif %(name)s.status == STARTED and (%(stopVal)s):\n" %(self.params))
         else:
             raise "Didn't write any stop line for startType=%(startType)s, stopType=%(stopType)s" %(self.params)
         buff.setIndentLevel(+1,relative=True)

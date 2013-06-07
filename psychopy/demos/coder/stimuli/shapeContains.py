@@ -4,7 +4,7 @@ inherited by Polygon(), Circle(), and Rect()
 from psychopy import visual, event
 
 win = visual.Window(size=(500,500), monitor='testMonitor', units='norm')
-mouse = event.Mouse(win=win)
+mouse = event.Mouse()
 instr = visual.TextStim(win, text='click the shape to quit\nscroll to adjust circle', pos=(0,-.7), opacity=0.5)
 msg = visual.TextStim(win, text=' ', pos=(0,-.4))
 

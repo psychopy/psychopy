@@ -44,6 +44,7 @@ Then::
   sudo easy_install -Z ipython
   sudo easy_install -Z sphinx
   sudo easy_install -Z nose
+  sudo easy_install cython
 
 If you get build errors trying to easy_install::
 
@@ -58,6 +59,18 @@ manual installs
 ===================
 Install avbin for movies
 labjack (you might prefer to use my fork of that at https://github.com/peircej/LabJackPython so that each file installs under site-packages/labjack)
+
+
+compiled libs
+==================
+
+#hdf5 (needed for pytables or you get errors about symbols not found)
+cd hdf5-1.8.9
+CFLAGS='-arch i386' LDFLAGS='-arch i386' ./configure --prefix=/usr/local/ make
+sudo make install
+
+#ioHub also requires
+# greenlet, gevent, msgpack, pyYAML
 
 
 System python
@@ -173,6 +186,11 @@ instead (or as well as) of
 
 To build a 32-bit ffmpeg dylib
 --------------------------------
-configure --disable-static --enable-shared --disable-outdev=sdl --enable-runtime-cpudetect --disable-indev=jack --enable-zlib  --enable-libx264 --cc="clang -m32" --enable-gpl
-make
-sudo make install
+For each codec, download the source and do:
+	CFLAGS='-arch i386' LDFLAGS='-arch i386' configure --disable-static --enable-shared
+	make
+	sudo make install
+Then for ffmpeg source do:
+	configure --disable-static --enable-shared --disable-outdev=sdl --enable-runtime-cpudetect --disable-indev=jack --enable-zlib  --enable-libx264 --enable-libxvid --enable-libvorbis --cc="clang -m32" --enable-gpl
+	make
+	sudo make install

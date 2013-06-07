@@ -3,7 +3,7 @@ Created on 22-08-2012
 
 @author: Piotr Iwaniuk
 '''
-from psychopy.app.builder.amp_launcher.obci_connection import OBCIConnection
+from psychopy.app.builder.amp_launcher.obci_client.obci_connection import OBCIConnection
 import os.path
 from wx.lib import newevent
 

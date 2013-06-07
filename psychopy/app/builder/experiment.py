@@ -421,7 +421,7 @@ class Experiment:
             elif elementNode.tag=="Routine":
                 self.flow.append(self.routines[elementNode.get('name')])
             
-            self.load_resource_pool(root)
+        self.load_resource_pool(root)
 
         if modified_names:
             logging.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names))
@@ -917,12 +917,29 @@ class Flow(list):
                 del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
 
     def writeCode(self, script):
-        #initialise
-        # very few components need writeStartCode:
+        # detect all 'constant update' fields that seem intended to be dynamic:
+        constWarnings = []
+        for entry in self:  #NB each entry is a routine or LoopInitiator/Terminator
+            if type(entry) == Routine:
+                self._currentRoutine=entry
+                for component in self._currentRoutine:
+                    for field, key in _dubiousConstantUpdates(component):
+                        if field:
+                            constWarnings.append((field, key, component, entry))
+        if constWarnings:
+            warnings = []
+            msg = '"%s", in Routine %s (%s: %s)'
+            for field, key, component, routine in constWarnings:
+                warnings.append( msg % (field.val, routine.params['name'],
+                                component.params['name'], key.capitalize()) )
+            print 'Note: Dynamic code seems intended but updating is "constant":\n ',
+            print '\n  '.join(list(set(warnings)))  # non-redundant, order unknown
+        # writeStartCode and writeInitCode:
         for entry in self:  #NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine=entry
+            # very few components need writeStartCode:
             if hasattr(entry, 'writeStartCode'):
-                entry.writeStartCode(script) # used by microphone comp to create a .wav directory once
+                entry.writeStartCode(script)
         for entry in self: #NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine=entry
             entry.writeInitCode(script)
@@ -1029,8 +1046,8 @@ class Routine(list):
 
         #are we done yet?
         buff.writeIndentedLines('\n# check if all components have finished\n')
-        buff.writeIndentedLines('if not continueRoutine:  # a component has requested that we end\n')
-        buff.writeIndentedLines('    routineTimer.reset()  # this is the new t0 for non-slip Routines\n')
+        buff.writeIndentedLines('if not continueRoutine:  # a component has requested a forced-end of Routine\n')
+        buff.writeIndentedLines('    routineTimer.reset()  # if we abort early the non-slip timer needs reset\n')
         buff.writeIndentedLines('    break\n')
         buff.writeIndentedLines('continueRoutine = False  # will revert to True if at least one component still running\n')
         buff.writeIndentedLines('for thisComponent in %sComponents:\n' %self.name)
@@ -1047,6 +1064,9 @@ class Routine(list):
         buff.writeIndentedLines('\n# refresh the screen\n')
         buff.writeIndented("if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen\n")
         buff.writeIndented('    win.flip()\n')
+        if not useNonSlip:
+            buff.writeIndented("else:  # this Routine was not non-slip safe so reset non-slip timer\n")
+            buff.writeIndented('    routineTimer.reset()\n')
 
         #that's done decrement indent to end loop
         buff.setIndentLevel(-1,True)
@@ -1380,3 +1400,42 @@ def _XMLremoveWhitespaceNodes(parent):
             parent.removeChild(child)
         else:
             removeWhitespaceNodes(child)
+
+def _dubiousConstantUpdates(component):
+    """Return a list of fields in component that are set to be constant but seem
+    intended to be dynamic. Many code fields will actually be constant, and some
+    denoted as code by $ will be constant. The classification is not 100% correct.
+    """
+    def _isConst(string):
+        # guess at whether an expression is constant or intended to be dynamic
+        try:
+            val = eval(string)  # any leading $ already removed
+            return True  # constant (or string contains var(s) in the current namespace hmm)
+        except NameError, KeyError:
+            return False  # guess: probably contains variables --> dynamic
+        except:
+            return False  # parsing failed, so assume its dynamic
+    def allAreConstant(string):
+        # parse single items or comma-sep'd lists to see if all items are constant
+        items = string.lstrip('$[(').strip('])').split(',')
+        return all([_isConst(s) for s in items])
+
+    warnings = []
+    for key in component.params:
+        field = component.params[key]
+        if (not hasattr(field, 'val') or not isinstance(field.val, basestring) or
+            not field.val.strip() or not field.valType in ['code', 'str']):
+            continue  # continue == no problem, no warning
+        if not (field.allowedUpdates and type(field.allowedUpdates) == list and
+            len(field.allowedUpdates) and field.updates == 'constant'):
+            continue
+        # only non-empty, possibly-code, and 'constant' updating at this point
+        if field.valType == 'str' and not bool(re.search(r"^\$|[^\\]\$", field.val)):  # "$" without "\$"
+            continue
+        # special case: treat expInfo as constant because its used that way
+        if allAreConstant(field.val) or 'expInfo[' in field.val:  # $1 and $[1,1,1] are code but not dynamic
+            continue
+        warnings.append( (field, key) )
+    if warnings:
+        return warnings
+    return [(None, None)]

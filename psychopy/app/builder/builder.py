@@ -20,7 +20,7 @@ from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re,\
 #from psychopy.constants import *
 from psychopy.errors import DataImportError
 from psychopy.app.builder import amp_launcher, resource_pool, validators,\
-    sketchpad, data_editor
+    sketchpad, data_editor, start_stop
 import json
 import subprocess
 import threading
@@ -1934,71 +1934,74 @@ class _BaseParamsDlg(wx.Dialog):
         """Add controls for startType, startVal, stopType, stopVal
         remaining refers to
         """
-        parent=self
+        #parent=self
 
         ##Start point
-        startTypeParam = self.params['startType']
         startValParam = self.params['startVal']
+        startTypeParam = self.params['startType']
+        startEstimParam = self.params['startEstim']
         #create label
         label = wx.StaticText(self,-1,'Start', style=wx.ALIGN_CENTER)
-        labelEstim = wx.StaticText(self,-1,'Expected start (s)', style=wx.ALIGN_CENTER)
-        labelEstim.SetForegroundColour('gray')
+        ###labelEstim = wx.StaticText(self,-1,'Expected start (s)', style=wx.ALIGN_CENTER)
+        ###labelEstim.SetForegroundColour('gray')
         #the method to be used to interpret this start/stop
-        self.startTypeCtrl = wx.Choice(parent, choices=startTypeParam.allowedVals)
-        self.startTypeCtrl.SetStringSelection(startTypeParam.val)
+        ###self.startTypeCtrl = wx.Choice(parent, choices=startTypeParam.allowedVals)
+        ###self.startTypeCtrl.SetStringSelection(startTypeParam.val)
         #the value to be used as the start/stop
-        self.startValCtrl = wx.TextCtrl(parent,-1,unicode(startValParam.val))
+        startValues = {"value": startValParam.val, "type": startTypeParam.val, "estimation": startEstimParam.val}
+        self.startValCtrl = start_stop.StartPanel(self, value=startValues) ###wx.TextCtrl(parent,-1,unicode(startValParam.val))
         self.startValCtrl.SetToolTipString(self.params['startVal'].hint)
         #the value to estimate start/stop if not numeric
-        self.startEstimCtrl = wx.TextCtrl(parent,-1,unicode(self.params['startEstim'].val))
-        self.startEstimCtrl.SetToolTipString(self.params['startEstim'].hint)
+        ###self.startEstimCtrl = wx.TextCtrl(parent,-1,unicode(self.params['startEstim'].val))
+        ###self.startEstimCtrl.SetToolTipString(self.params['startEstim'].hint)
         #add the controls to a new line
-        startSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
-        startSizer.Add(self.startTypeCtrl)
-        startSizer.Add(self.startValCtrl, 1,flag=wx.EXPAND)
-        startEstimSizer=wx.BoxSizer(orient=wx.HORIZONTAL)
-        startEstimSizer.Add(labelEstim)
-        startEstimSizer.Add(self.startEstimCtrl)
-        startAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
-        startAllCrtlSizer.Add(startSizer,flag=wx.EXPAND)
-        startAllCrtlSizer.Add(startEstimSizer, flag=wx.ALIGN_RIGHT)
+        ###startSizer.Add(self.startTypeCtrl)
+        ###startEstimSizer=wx.BoxSizer(orient=wx.HORIZONTAL)
+        ###startEstimSizer.Add(labelEstim)
+        ###startEstimSizer.Add(self.startEstimCtrl)
+        ###startAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
+        ###startAllCrtlSizer.Add(startSizer,flag=wx.EXPAND)
+        ###startAllCrtlSizer.Add(startEstimSizer, flag=wx.ALIGN_RIGHT)
         self.ctrlSizer.Add(label, (self.currRow[self.ctrlSizer], 0), (1, 1), wx.ALIGN_RIGHT)
         #add our new row
-        self.ctrlSizer.Add(startAllCrtlSizer, (self.currRow[self.ctrlSizer], 1), (1, 1), flag=wx.EXPAND)
+        self.ctrlSizer.Add(self.startValCtrl, (self.currRow[self.ctrlSizer], 1), (1, 1), flag=wx.EXPAND)
         self.currRow[self.ctrlSizer] += 1
         remaining.remove('startType')
         remaining.remove('startVal')
         remaining.remove('startEstim')
 
         ##Stop point
-        stopTypeParam = self.params['stopType']
+        ###stopTypeParam = self.params['stopType']
         stopValParam = self.params['stopVal']
+        stopTypeParam = self.params['stopType']
+        stopEstimParam = self.params['durationEstim']
         #create label
         label = wx.StaticText(self,-1,'Stop', style=wx.ALIGN_CENTER)
-        labelEstim = wx.StaticText(self,-1,'Expected duration (s)', style=wx.ALIGN_CENTER)
-        labelEstim.SetForegroundColour('gray')
+        ###labelEstim = wx.StaticText(self,-1,'Expected duration (s)', style=wx.ALIGN_CENTER)
+        ###labelEstim.SetForegroundColour('gray')
         #the method to be used to interpret this start/stop
-        self.stopTypeCtrl = wx.Choice(parent, choices=stopTypeParam.allowedVals)
-        self.stopTypeCtrl.SetStringSelection(stopTypeParam.val)
+        ###self.stopTypeCtrl = wx.Choice(parent, choices=stopTypeParam.allowedVals)
+        ###self.stopTypeCtrl.SetStringSelection(stopTypeParam.val)
         #the value to be used as the start/stop
-        self.stopValCtrl = wx.TextCtrl(parent,-1,unicode(stopValParam.val))
+        stopValues = {"value": stopValParam.val, "type": stopTypeParam.val, "estimation": stopEstimParam.val}
+        self.stopValCtrl = start_stop.StopPanel(self, value=stopValues) ###wx.TextCtrl(parent,-1,unicode(stopValParam.val))
         self.stopValCtrl.SetToolTipString(self.params['stopVal'].hint)
         #the value to estimate start/stop if not numeric
-        self.durationEstimCtrl = wx.TextCtrl(parent,-1,unicode(self.params['durationEstim'].val))
-        self.durationEstimCtrl.SetToolTipString(self.params['durationEstim'].hint)
+        ###self.durationEstimCtrl = wx.TextCtrl(parent,-1,unicode(self.params['durationEstim'].val))
+        ###self.durationEstimCtrl.SetToolTipString(self.params['durationEstim'].hint)
         #add the controls to a new line
         stopSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
-        stopSizer.Add(self.stopTypeCtrl)
+        ###stopSizer.Add(self.stopTypeCtrl)
         stopSizer.Add(self.stopValCtrl, 1,flag=wx.EXPAND)
-        stopEstimSizer=wx.BoxSizer(orient=wx.HORIZONTAL)
-        stopEstimSizer.Add(labelEstim)
-        stopEstimSizer.Add(self.durationEstimCtrl)
-        stopAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
-        stopAllCrtlSizer.Add(stopSizer,flag=wx.EXPAND)
-        stopAllCrtlSizer.Add(stopEstimSizer, flag=wx.ALIGN_RIGHT)
+        ###stopEstimSizer=wx.BoxSizer(orient=wx.HORIZONTAL)
+        ###stopEstimSizer.Add(labelEstim)
+        ###stopEstimSizer.Add(self.durationEstimCtrl)
+        ##3stopAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
+        ###stopAllCrtlSizer.Add(stopSizer,flag=wx.EXPAND)
+        ###stopAllCrtlSizer.Add(stopEstimSizer, flag=wx.ALIGN_RIGHT)
         self.ctrlSizer.Add(label, (self.currRow[self.ctrlSizer], 0), (1, 1), wx.ALIGN_RIGHT)
         #add our new row
-        self.ctrlSizer.Add(stopAllCrtlSizer, (self.currRow[self.ctrlSizer], 1), (1, 1), flag=wx.EXPAND)
+        self.ctrlSizer.Add(stopSizer, (self.currRow[self.ctrlSizer], 1), (1, 1), flag=wx.EXPAND)
         self.currRow[self.ctrlSizer] += 1
         remaining.remove('stopType')
         remaining.remove('stopVal')
@@ -2145,6 +2148,7 @@ class _BaseParamsDlg(wx.Dialog):
         if self.nameOKlabel: self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.border = wx.BoxSizer(wx.VERTICAL)
+        
         self.border.Add(self.mainSizer, flag=wx.ALL|wx.EXPAND, border=8)
         self.SetSizerAndFit(self.border)
 
@@ -2258,17 +2262,17 @@ class _BaseParamsDlg(wx.Dialog):
             if fieldName=='advancedParams':
                 pass
             elif fieldName=='startType':
-                param.val = self.startTypeCtrl.GetStringSelection()
+                param.val = self.startValCtrl.GetValue()["type"]
             elif fieldName=='stopType':
-                param.val = self.stopTypeCtrl.GetStringSelection()
+                param.val = self.stopValCtrl.GetValue()["type"]
             elif fieldName=='startVal':
-                param.val = self.startValCtrl.GetValue()
+                param.val = self.startValCtrl.GetValue()["value"]
             elif fieldName=='stopVal':
-                param.val = self.stopValCtrl.GetValue()
+                param.val = self.stopValCtrl.GetValue()["value"]
             elif fieldName=='startEstim':
-                param.val = self.startEstimCtrl.GetValue()
+                param.val = self.startValCtrl.GetValue()["estimation"]
             elif fieldName=='durationEstim':
-                param.val = self.durationEstimCtrl.GetValue()
+                param.val = self.stopValCtrl.GetValue()["estimation"]
             else:
                 ctrls = self.paramCtrls[fieldName]#the various dlg ctrls for this param
                 param.val = ctrls.getValue()
@@ -4235,7 +4239,7 @@ class BuilderFrame(wx.Frame):
         self.stdoutFrame.write((" Running: %s " % (fullPath)).center(72, "#") + "\n")
         self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
         
-        mx_address = self.amp_manager.get_mx_address()
+        mx_address = self.amp_manager.mx_address
         command = [sys.executable, '-u', fullPath, expInfoString, mx_address[0], mx_address[1]]
         self.expMonitorThread = threading.Thread(group=None, target=self.monitorExperiment, name="experiment-monitor-thread")
         self.expProcess = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -4255,16 +4259,15 @@ class BuilderFrame(wx.Frame):
         """The script/exp has finished running
         """
         if self.amp_manager:
-            if self.amp_manager.is_ok():
+            if not self.amp_manager.failed:
                 if self.exp.settings.params["saveSignal"].val:
                     from obci.acquisition import acquisition_control
-                    mx_address = self.amp_manager.get_mx_address()
+                    mx_address = self.amp_manager.mx_address
                     acquisition_control.finish_saving([(mx_address[0], int(mx_address[1]))])
             else:
                 logging.error("Failed amplifier scenario (expect incomplete data)")
-            self.amp_manager.get_experiment_contact().kill_experiment()
+            self.amp_manager.stop_experiment()
             self.amp_manager.interrupt_monitor()
-            self.amp_manager.get_experiment_contact().close()
             self.amp_manager = None
         
         self.toolbar.EnableTool(self.IDs.tbRun,True)
@@ -4347,6 +4350,9 @@ class BuilderFrame(wx.Frame):
         self.routinePanel.createNewRoutine()
 
     def generateScript(self, experimentPath):
+        if self.app.prefs.app['debugMode']:
+            return self.exp.writeScript(expPath=experimentPath)
+            # getting the track-back is very helpful when debugging the app
         try:
             script = self.exp.writeScript(expPath=experimentPath)
         except CodeGenerationException as e:

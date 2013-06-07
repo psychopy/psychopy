@@ -21,7 +21,7 @@ grating = visual.PatchStim(myWin,pos=(0.5,0),
                            color=[1.0,0.5,-1.0],
                            size=(1.0,1.0), sf=(3,0),
                            autoLog=False)#this stim changes too much for autologging to be useful
-myMouse = event.Mouse(win=myWin)
+myMouse = event.Mouse()  #  will use myWin by default
 message = visual.TextStim(myWin,pos=(-0.95,-0.9),alignHoriz='left',height=0.08,
     text='left-drag=SF, right-drag=pos, scroll=ori',
     autoLog=False)
