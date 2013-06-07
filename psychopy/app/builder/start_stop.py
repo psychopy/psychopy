@@ -9,49 +9,49 @@ class VariantPanel(wx.Panel):
     def __init__(self, parent, variants=[("NONE", "none", None)], value=None):
         super(VariantPanel, self).__init__(parent)
         self.variants = list(variants)
-        self.label_indices = dict([(v[0], i) for i, v in enumerate(variants)])
-        self.init_controls()
+        self.labelIndices = dict([(v[0], i) for i, v in enumerate(variants)])
+        self.initControls()
         self.SetValue(value)
         
-    def init_controls(self):
-        self.variant_field = wx.Choice(self, choices=[c[1] for c in self.variants])
-        self.value_field = None
-        self.init_sizer()
-        self.init_events()
-        self.update_variant(0)
+    def initControls(self):
+        self.variantField = wx.Choice(self, choices=[c[1] for c in self.variants])
+        self.valueField = None
+        self.initSizer()
+        self.initEvents()
+        self.updateVariant(0)
     
-    def init_sizer(self):
+    def initSizer(self):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.variant_field, flag=wx.EXPAND | wx.ALL, border=3)
+        sizer.Add(self.variantField, flag=wx.EXPAND | wx.ALL, border=3)
         self.SetSizer(sizer)
     
-    def init_events(self):
-        self.Bind(wx.EVT_CHOICE, self.on_choice, self.variant_field)
+    def initEvents(self):
+        self.Bind(wx.EVT_CHOICE, self.onChoice, self.variantField)
     
-    def update_variant(self, selection):
-        if self.value_field is not None:
-            self.GetSizer().Remove(self.value_field)
-            self.value_field.Destroy()
-            self.value_field = None
-        value_class = self.variants[selection][2]
-        if value_class is not None:
-            self.value_field = value_class(self)
-            self.GetSizer().Add(self.value_field, flag=wx.EXPAND | wx.ALL, border=3, proportion=1)
+    def updateVariant(self, selection):
+        if self.valueField is not None:
+            self.GetSizer().Remove(self.valueField)
+            self.valueField.Destroy()
+            self.valueField = None
+        valueClass = self.variants[selection][2]
+        if valueClass is not None:
+            self.valueField = valueClass(self)
+            self.GetSizer().Add(self.valueField, flag=wx.EXPAND | wx.ALL, border=3, proportion=1)
             self.GetSizer().Layout()
             
-    def on_choice(self, event):
-        self.update_variant(event.GetSelection())
+    def onChoice(self, event):
+        self.updateVariant(event.GetSelection())
     
     def SetValue(self, value):
         if value is None:
-            self.variant_field.SetSelection(wx.NOT_FOUND)
-            self.value_field.SetValue("")
+            self.variantField.SetSelection(wx.NOT_FOUND)
+            self.valueField.SetValue("")
         else:
-            self.variant_field.SetSelection(self.label_indices[value["type"]])
-            self.value_field.SetValue(str(value["value"]))
+            self.variantField.SetSelection(self.labelIndices[value["type"]])
+            self.valueField.SetValue(str(value["value"]))
     
     def GetValue(self):
-        return {"type": self.variants[self.variant_field.GetSelection()][0], "value": self.value_field.GetValue()}
+        return {"type": self.variants[self.variantField.GetSelection()][0], "value": self.valueField.GetValue()}
 
 
 class StartVariantPanel(VariantPanel):
@@ -72,33 +72,33 @@ class StartVariantPanel(VariantPanel):
 class StartPanel(wx.Panel):
     def __init__(self, parent, value=None):
         super(StartPanel, self).__init__(parent)
-        self.init_controls()
+        self.initControls()
         self.SetValue(value)
     
-    def init_controls(self):
-        self.value_field = StartVariantPanel(self)
-        self.estimation_label = wx.StaticText(self, label="expected start (s)")
-        self.estimation_field = wx.TextCtrl(self)
-        self.init_sizer()
+    def initControls(self):
+        self.valueField = StartVariantPanel(self)
+        self.estimationLabel = wx.StaticText(self, label="expected start (s)")
+        self.estimationField = wx.TextCtrl(self)
+        self.initSizer()
     
-    def init_sizer(self):
+    def initSizer(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
-        estimation_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.value_field, flag=wx.EXPAND | wx.ALL, border=3, proportion=1)
-        sizer.Add(estimation_sizer, flag=wx.EXPAND | wx.ALL, border=3, proportion=1)
-        estimation_sizer.Add(self.estimation_label, flag=wx.EXPAND | wx.ALL, border=3)
-        estimation_sizer.Add(self.estimation_field, flag=wx.EXPAND | wx.ALL, border=3, proportion=1)
+        estimationSizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(self.valueField, flag=wx.EXPAND | wx.ALL, border=3, proportion=1)
+        sizer.Add(estimationSizer, flag=wx.EXPAND | wx.ALL, border=3, proportion=1)
+        estimationSizer.Add(self.estimationLabel, flag=wx.EXPAND | wx.ALL, border=3)
+        estimationSizer.Add(self.estimationField, flag=wx.EXPAND | wx.ALL, border=3, proportion=1)
         self.SetSizer(sizer)
     
     def GetValue(self):
-        value = self.value_field.GetValue()
-        value["estimation"] = self.estimation_field.GetValue()
+        value = self.valueField.GetValue()
+        value["estimation"] = self.estimationField.GetValue()
         return value
     
     def SetValue(self, value):
         self.value = value
-        self.value_field.SetValue(value)
-        self.estimation_field.SetValue(value["estimation"])
+        self.valueField.SetValue(value)
+        self.estimationField.SetValue(value["estimation"])
 
 
 class StopVariantPanel(VariantPanel):
@@ -121,33 +121,33 @@ class StopVariantPanel(VariantPanel):
 class StopPanel(wx.Panel):
     def __init__(self, parent, value=None):
         super(StopPanel, self).__init__(parent)
-        self.init_controls()
+        self.initControls()
         self.SetValue(value)
     
-    def init_controls(self):
-        self.value_field = StopVariantPanel(self)
-        self.estimation_label = wx.StaticText(self, label="expected duration (s)")
-        self.estimation_field = wx.TextCtrl(self)
-        self.init_sizer()
+    def initControls(self):
+        self.valueField = StopVariantPanel(self)
+        self.estimationLabel = wx.StaticText(self, label="expected duration (s)")
+        self.estimationField = wx.TextCtrl(self)
+        self.initSizer()
     
-    def init_sizer(self):
+    def initSizer(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
-        estimation_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.value_field, flag=wx.EXPAND | wx.ALL, border=3, proportion=1)
-        sizer.Add(estimation_sizer, flag=wx.EXPAND | wx.ALL, border=3, proportion=1)
-        estimation_sizer.Add(self.estimation_label, flag=wx.EXPAND | wx.ALL, border=3)
-        estimation_sizer.Add(self.estimation_field, flag=wx.EXPAND | wx.ALL, border=3, proportion=1)
+        estimationSizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(self.valueField, flag=wx.EXPAND | wx.ALL, border=3, proportion=1)
+        sizer.Add(estimationSizer, flag=wx.EXPAND | wx.ALL, border=3, proportion=1)
+        estimationSizer.Add(self.estimationLabel, flag=wx.EXPAND | wx.ALL, border=3)
+        estimationSizer.Add(self.estimationField, flag=wx.EXPAND | wx.ALL, border=3, proportion=1)
         self.SetSizer(sizer)
     
     def GetValue(self):
-        value = self.value_field.GetValue()
-        value["estimation"] = self.estimation_field.GetValue()
+        value = self.valueField.GetValue()
+        value["estimation"] = self.estimationField.GetValue()
         return value
     
     def SetValue(self, value):
         self.value = value
-        self.value_field.SetValue(value)
-        self.estimation_field.SetValue(value["estimation"])
+        self.valueField.SetValue(value)
+        self.estimationField.SetValue(value["estimation"])
 
 
 if __name__ == "__main__":
