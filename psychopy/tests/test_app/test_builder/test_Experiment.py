@@ -22,8 +22,6 @@ import locale
 #   but should not do so from a load-save-load because only the first
 #   load should change things
 
-exp = psychopy.app.builder.experiment.Experiment() # create once, not every test
-
 def _filterout_legal(lines):
     return [l
             for l in lines
@@ -45,12 +43,14 @@ def _diff_file(a, b):
     diff = _diff(open(a).readlines(), open(b).readlines())
     return list(diff)
 
-
 class TestExpt():
-    def setup(self):
-        # something to test:
-        self.exp = exp
 
+    @classmethod
+    def setup_class(cls):
+        # print "D: CREATING THE EXP"
+        cls.exp = psychopy.app.builder.experiment.Experiment() # create once, not every test
+
+    def setup(self):
         # dirs and files:
         self.here = path.abspath(path.dirname(__file__))
         self.known_diffs_file   = path.join(self.here, 'known_py_diffs.txt')
@@ -93,13 +93,13 @@ class TestExpt():
         psyexp_file = file+'newXML.psyexp'
 
         # go from psyexp file on disk to internal builder representation:
-        exp.loadFromXML(file)
-        exp.saveToXML(psyexp_file)
-        assert len(exp.namespace.user) # should populate the namespace
-        assert not exp.namespace.getCollisions() # ... without duplicates
+        self.exp.loadFromXML(file)
+        self.exp.saveToXML(psyexp_file)
+        assert len(self.exp.namespace.user) # should populate the namespace
+        assert not self.exp.namespace.getCollisions() # ... without duplicates
 
         # generate a script, like 'lastrun.py':
-        buff = exp.writeScript() # is a StringIO object
+        buff = self.exp.writeScript() # is a StringIO object
         script = buff.getvalue()
         assert len(script) > 1500 # default empty script is ~2200 chars
 
@@ -173,7 +173,7 @@ class TestExpt():
         self.new_diff_file = self.tmp_diffs_file
 
         # make temp copies of all builder demos:
-        for root, dirs, files in os.walk(path.join(exp.prefsPaths['demos'], 'builder')):
+        for root, dirs, files in os.walk(path.join(self.exp.prefsPaths['demos'], 'builder')):
             for f in files:
                 if (f.endswith('.psyexp') or
                     f.endswith('.xlsx') or
@@ -230,7 +230,7 @@ class TestExpt():
 
         os.chdir(self.tmp_dir)
 
-        file = path.join(exp.prefsPaths['tests'], 'data', 'ghost_stroop.psyexp')
+        file = path.join(self.exp.prefsPaths['tests'], 'data', 'ghost_stroop.psyexp')
         f = codecs.open(file, 'r', 'utf-8')
         text = f.read()
         f.close()
@@ -248,9 +248,9 @@ class TestExpt():
         f.write(text)
         f.close()
 
-        exp.loadFromXML(file) # reload the edited file
+        self.exp.loadFromXML(file) # reload the edited file
         lastrun = path.join(self.tmp_dir, 'ghost_stroop_lastrun.py')
-        script = exp.writeScript(expPath=file)
+        script = self.exp.writeScript(expPath=file)
 
         # reposition its window out from under splashscreen (can't do easily from .psyexp):
         text = script.getvalue().replace('fullscr=False,','pos=(40,40), fullscr=False,')
@@ -264,9 +264,9 @@ class TestExpt():
 
     def test_Exp_AddRoutine(self):
         exp = self.exp
-        exp.addRoutine('instructions')
-        #exp.routines['instructions'].AddComponent(
-        #exp.Add
+        self.exp.addRoutine('instructions')
+        #self.exp.routines['instructions'].AddComponent(
+        #self.exp.Add
 
     def test_Exp_NameSpace(self):
         namespace = self.exp.namespace
