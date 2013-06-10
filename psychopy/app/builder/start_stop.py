@@ -3,22 +3,24 @@ Module with component start and stop controls.
 '''
 
 import wx
+from Xlib.protocol.rq import ValueField
 
 
 class VariantPanel(wx.Panel):
     def __init__(self, parent, variants=[("NONE", "none", None)], value=None):
         super(VariantPanel, self).__init__(parent)
+        self.valueHint = ""
         self.variants = list(variants)
+        self.variant = None
         self.labelIndices = dict([(v[0], i) for i, v in enumerate(variants)])
         self.initControls()
         self.SetValue(value)
         
     def initControls(self):
         self.variantField = wx.Choice(self, choices=[c[1] for c in self.variants])
-        self.valueField = None
+        self.valueFields = {}
         self.initSizer()
         self.initEvents()
-        self.updateVariant(0)
     
     def initSizer(self):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -29,29 +31,39 @@ class VariantPanel(wx.Panel):
         self.Bind(wx.EVT_CHOICE, self.onChoice, self.variantField)
     
     def updateVariant(self, selection):
-        if self.valueField is not None:
-            self.GetSizer().Remove(self.valueField)
-            self.valueField.Destroy()
-            self.valueField = None
-        valueClass = self.variants[selection][2]
-        if valueClass is not None:
-            self.valueField = valueClass(self)
-            self.GetSizer().Add(self.valueField, flag=wx.EXPAND | wx.ALL, border=3, proportion=1)
-            self.GetSizer().Layout()
+        if self.variant in self.valueFields:
+            self.valueFields[self.variant].Hide()
+        self.variant = selection
+        if self.variant not in self.valueFields:
+            valueClass = self.variants[selection][2]
+            if valueClass is not None:
+                self.valueFields[self.variant] = valueClass(self)
+                self.valueFields[self.variant].SetToolTipString(self.valueHint)
+                self.GetSizer().Add(self.valueFields[self.variant], flag=wx.EXPAND | wx.ALL, border=3, proportion=1)
+                self.GetSizer().Layout()
+        if self.variant in self.valueFields:
+            self.valueFields[self.variant].Show()
             
     def onChoice(self, event):
         self.updateVariant(event.GetSelection())
     
     def SetValue(self, value):
         if value is None:
-            self.variantField.SetSelection(wx.NOT_FOUND)
-            self.valueField.SetValue("")
+            self.updateVariant(0)
+            self.variantField.SetSelection(0)
         else:
-            self.variantField.SetSelection(self.labelIndices[value["type"]])
-            self.valueField.SetValue(str(value["value"]))
+            self.updateVariant(self.labelIndices[value["type"]])
+            self.variantField.SetSelection(self.variant)
+            self.valueFields[self.variant].SetValue(str(value["value"]))
     
     def GetValue(self):
-        return {"type": self.variants[self.variantField.GetSelection()][0], "value": self.valueField.GetValue()}
+        return {"type": self.variants[self.variant][0], "value": self.valueFields[self.variant].GetValue()}
+    
+    def setToolTips(self, hints):
+        self.valueHint = hints['value']
+        for field in self.valueFields.values():
+            field.SetToolTipString(self.valueHint)
+        self.variantField.SetToolTipString(hints['type'])
 
 
 class StartVariantPanel(VariantPanel):
@@ -72,13 +84,13 @@ class StartVariantPanel(VariantPanel):
 class StartPanel(wx.Panel):
     def __init__(self, parent, value=None):
         super(StartPanel, self).__init__(parent)
+        self.value = value
         self.initControls()
-        self.SetValue(value)
     
     def initControls(self):
-        self.valueField = StartVariantPanel(self)
+        self.valueField = StartVariantPanel(self, value=self.value)
         self.estimationLabel = wx.StaticText(self, label="expected start (s)")
-        self.estimationField = wx.TextCtrl(self)
+        self.estimationField = wx.TextCtrl(self, value=self.value['estimation'])
         self.initSizer()
     
     def initSizer(self):
@@ -99,6 +111,10 @@ class StartPanel(wx.Panel):
         self.value = value
         self.valueField.SetValue(value)
         self.estimationField.SetValue(value["estimation"])
+
+    def setToolTips(self, hints):
+        self.valueField.setToolTips(hints)
+        self.estimationField.SetToolTipString(hints['estimation'])
 
 
 class StopVariantPanel(VariantPanel):
@@ -148,16 +164,7 @@ class StopPanel(wx.Panel):
         self.value = value
         self.valueField.SetValue(value)
         self.estimationField.SetValue(value["estimation"])
-
-
-if __name__ == "__main__":
-    app = wx.App()
-    mainWindow = wx.Dialog(None, title="ZUPA ZUPA ZUPA")
     
-    mainSizer = wx.BoxSizer()
-    mainSizer.Add(StartPanel(mainWindow), flag=wx.EXPAND | wx.ALL, border=8, proportion=1)
-    mainWindow.SetSizer(mainSizer)
-    
-    mainWindow.Show()
-    app.SetTopWindow(mainWindow)
-    app.MainLoop()
+    def setToolTips(self, hints):
+        self.valueField.setToolTips(hints)
+        self.estimationField.SetToolTipString(hints['estimation'])

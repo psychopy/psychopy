@@ -1934,34 +1934,15 @@ class _BaseParamsDlg(wx.Dialog):
         """Add controls for startType, startVal, stopType, stopVal
         remaining refers to
         """
-        #parent=self
-
         ##Start point
         startValParam = self.params['startVal']
         startTypeParam = self.params['startType']
         startEstimParam = self.params['startEstim']
-        #create label
         label = wx.StaticText(self,-1,'Start', style=wx.ALIGN_CENTER)
-        ###labelEstim = wx.StaticText(self,-1,'Expected start (s)', style=wx.ALIGN_CENTER)
-        ###labelEstim.SetForegroundColour('gray')
-        #the method to be used to interpret this start/stop
-        ###self.startTypeCtrl = wx.Choice(parent, choices=startTypeParam.allowedVals)
-        ###self.startTypeCtrl.SetStringSelection(startTypeParam.val)
-        #the value to be used as the start/stop
         startValues = {"value": startValParam.val, "type": startTypeParam.val, "estimation": startEstimParam.val}
         self.startValCtrl = start_stop.StartPanel(self, value=startValues) ###wx.TextCtrl(parent,-1,unicode(startValParam.val))
-        self.startValCtrl.SetToolTipString(self.params['startVal'].hint)
-        #the value to estimate start/stop if not numeric
-        ###self.startEstimCtrl = wx.TextCtrl(parent,-1,unicode(self.params['startEstim'].val))
-        ###self.startEstimCtrl.SetToolTipString(self.params['startEstim'].hint)
-        #add the controls to a new line
-        ###startSizer.Add(self.startTypeCtrl)
-        ###startEstimSizer=wx.BoxSizer(orient=wx.HORIZONTAL)
-        ###startEstimSizer.Add(labelEstim)
-        ###startEstimSizer.Add(self.startEstimCtrl)
-        ###startAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
-        ###startAllCrtlSizer.Add(startSizer,flag=wx.EXPAND)
-        ###startAllCrtlSizer.Add(startEstimSizer, flag=wx.ALIGN_RIGHT)
+        startHints = {"value": startValParam.hint, "type": startTypeParam.hint, "estimation": startEstimParam.hint}
+        self.startValCtrl.setToolTips(startHints)
         self.ctrlSizer.Add(label, (self.currRow[self.ctrlSizer], 0), (1, 1), wx.ALIGN_RIGHT)
         #add our new row
         self.ctrlSizer.Add(self.startValCtrl, (self.currRow[self.ctrlSizer], 1), (1, 1), flag=wx.EXPAND)
@@ -1969,45 +1950,23 @@ class _BaseParamsDlg(wx.Dialog):
         remaining.remove('startType')
         remaining.remove('startVal')
         remaining.remove('startEstim')
-
         ##Stop point
-        ###stopTypeParam = self.params['stopType']
         stopValParam = self.params['stopVal']
         stopTypeParam = self.params['stopType']
         stopEstimParam = self.params['durationEstim']
-        #create label
         label = wx.StaticText(self,-1,'Stop', style=wx.ALIGN_CENTER)
-        ###labelEstim = wx.StaticText(self,-1,'Expected duration (s)', style=wx.ALIGN_CENTER)
-        ###labelEstim.SetForegroundColour('gray')
-        #the method to be used to interpret this start/stop
-        ###self.stopTypeCtrl = wx.Choice(parent, choices=stopTypeParam.allowedVals)
-        ###self.stopTypeCtrl.SetStringSelection(stopTypeParam.val)
-        #the value to be used as the start/stop
         stopValues = {"value": stopValParam.val, "type": stopTypeParam.val, "estimation": stopEstimParam.val}
         self.stopValCtrl = start_stop.StopPanel(self, value=stopValues) ###wx.TextCtrl(parent,-1,unicode(stopValParam.val))
-        self.stopValCtrl.SetToolTipString(self.params['stopVal'].hint)
-        #the value to estimate start/stop if not numeric
-        ###self.durationEstimCtrl = wx.TextCtrl(parent,-1,unicode(self.params['durationEstim'].val))
-        ###self.durationEstimCtrl.SetToolTipString(self.params['durationEstim'].hint)
-        #add the controls to a new line
-        stopSizer = wx.BoxSizer(orient=wx.HORIZONTAL)
-        ###stopSizer.Add(self.stopTypeCtrl)
-        stopSizer.Add(self.stopValCtrl, 1,flag=wx.EXPAND)
-        ###stopEstimSizer=wx.BoxSizer(orient=wx.HORIZONTAL)
-        ###stopEstimSizer.Add(labelEstim)
-        ###stopEstimSizer.Add(self.durationEstimCtrl)
-        ##3stopAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
-        ###stopAllCrtlSizer.Add(stopSizer,flag=wx.EXPAND)
-        ###stopAllCrtlSizer.Add(stopEstimSizer, flag=wx.ALIGN_RIGHT)
+        stopHints = {"value": stopValParam.hint, "type": stopTypeParam.hint, "estimation": stopEstimParam.hint}
+        self.stopValCtrl.setToolTips(stopHints)
         self.ctrlSizer.Add(label, (self.currRow[self.ctrlSizer], 0), (1, 1), wx.ALIGN_RIGHT)
         #add our new row
-        self.ctrlSizer.Add(stopSizer, (self.currRow[self.ctrlSizer], 1), (1, 1), flag=wx.EXPAND)
+        self.ctrlSizer.Add(self.stopValCtrl, (self.currRow[self.ctrlSizer], 1), (1, 1), flag=wx.EXPAND)
         self.currRow[self.ctrlSizer] += 1
         remaining.remove('stopType')
         remaining.remove('stopVal')
         remaining.remove('durationEstim')
         return remaining
-
 
     def browserHandler(self, value_ctrl):
         def handler(event):
