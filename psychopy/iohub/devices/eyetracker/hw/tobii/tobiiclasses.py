@@ -15,23 +15,47 @@ import exceptions
 import time
 import collections
 import copy
+import sys
 
 import numpy as np
+from psychopy.iohub import Computer, OrderedDict, print2err, printExceptionDetailsToStdErr
+from psychopy.iohub.devices import ioDeviceError
+getTime=Computer.getTime
 
+_USING_PYTHON_2_7=True
 try:
-    import tobii
-    import tobii.sdk
-    import tobii.sdk.mainloop
-    import tobii.sdk.browsing
-    import tobii.sdk.eyetracker
-    from tobii.sdk.time.clock import Clock
-    from tobii.sdk.time import sync
+    majorv,minorv=sys.version_info[0:2]
+    if majorv == 2 and minorv == 6:
+        _USING_PYTHON_2_7=False
+        #import tobii
+        print 'Importing Tobii Python 2.6 SDK'
+        import tobii.sdk as TobiiPy
+        #import TobiiPy.mainloop
+        from tobii.sdk.mainloop import Mainloop as TobiiPyMainloop
+        from tobii.sdk.mainloop import MainloopThread as TobiiPyMainloopThread
+        #import TobiiPy.browsing
+        from tobii.sdk.browsing import EyetrackerBrowser as TobiiPyEyetrackerBrowser
+        from tobii.sdk.eyetracker import EyeTracker as TobiiPyEyeTracker
+        from tobii.sdk.time.clock import Clock as TobiiPyClock
+        from tobii.sdk.time.sync import SyncManager as TobiiPySyncManager
+        from tobii.sdk.types import Point2D, Point3D
+    else:
+        #import tobii
+        import tobii.eye_tracking_io as TobiiPy
+        print 'Importing Tobii Python 2.7 SDK'
+        #import TobiiPy.mainloop
+        from tobii.eye_tracking_io.mainloop import Mainloop as TobiiPyMainloop
+        from tobii.eye_tracking_io.mainloop import MainloopThread as TobiiPyMainloopThread
+        #import TobiiPy.browsing
+        from tobii.eye_tracking_io.browsing import EyetrackerBrowser as TobiiPyEyetrackerBrowser
+        from tobii.eye_tracking_io.eyetracker import Eyetracker as TobiiPyEyeTracker
+        from tobii.eye_tracking_io.time.clock import Clock as TobiiPyClock
+        from tobii.eye_tracking_io.time.sync import SyncManager as TobiiPySyncManager
+        from tobii.eye_tracking_io.time.sync import State as TobiiPySyncState
+        from tobii.eye_tracking_io.types import Point2D, Point3D
 except:
     # This only happens when it is Sphinx auto-doc loading the file
-    pass
-
-from ..... import OrderedDict, print2err
-from .... import Computer,ioDeviceError
+    printExceptionDetailsToStdErr()
 
 # Tobii Tracker Browser / Detection Services
 
@@ -46,17 +70,17 @@ class BrowserEvent(object):
 class TrackerFoundEvent(BrowserEvent):
     event_type=BrowserEvent._event_types['TRACKER_FOUND']
     def __init__(self,info):
-        BrowserEvent.__init__(self,tobii.sdk.browsing.EyetrackerBrowser.FOUND,info)
+        BrowserEvent.__init__(self,TobiiPyEyetrackerBrowser.FOUND,info)
 
 class TrackerUpdatedEvent(BrowserEvent):
     event_type=BrowserEvent._event_types['TRACKER_UPDATE']
     def __init__(self,info):
-        BrowserEvent.__init__(self,tobii.sdk.browsing.EyetrackerBrowser.UPDATED,info)
+        BrowserEvent.__init__(self,TobiiPyEyetrackerBrowser.UPDATED,info)
 
 class TrackerRemovedEvent(BrowserEvent):
     event_type=BrowserEvent._event_types['TRACKER_REMOVED']
     def __init__(self,info):
-        BrowserEvent.__init__(self,tobii.sdk.browsing.EyetrackerBrowser.REMOVED,info)
+        BrowserEvent.__init__(self,TobiiPyEyetrackerBrowser.REMOVED,info)
 
 class EyeTrackerEvent(object):
     _event_types=dict(TRACKER_EVENT=0,EYE_TRACKER_CREATED=1)
@@ -88,11 +112,11 @@ class TobiiTrackerBrowser(object):
     @classmethod
     def start(cls):
         if TobiiTrackerBrowser._mainloop is None:
-            tobii.sdk.init()
-            TobiiTrackerBrowser._mainloop = tobii.sdk.mainloop.MainloopThread()
+            TobiiPy.init()
+            TobiiTrackerBrowser._mainloop = TobiiPyMainloopThread()
             TobiiTrackerBrowser._mainloop.start()
             TobiiTrackerBrowser._event_queue=Queue.Queue()
-            TobiiTrackerBrowser._browser = tobii.sdk.browsing.EyetrackerBrowser(TobiiTrackerBrowser._mainloop, TobiiTrackerBrowser.on_eyetracker_browser_event)
+            TobiiTrackerBrowser._browser = TobiiPyEyetrackerBrowser(TobiiTrackerBrowser._mainloop, TobiiTrackerBrowser.on_eyetracker_browser_event)
             cls._active=True
             
     @classmethod       
@@ -138,22 +162,22 @@ class TobiiTrackerBrowser(object):
 
     @classmethod
     def on_eyetracker_browser_event(cls, event_type, event_name, eyetracker_info):
-        if event_type == tobii.sdk.browsing.EyetrackerBrowser.FOUND:
+        if event_type == TobiiPyEyetrackerBrowser.FOUND:
             TobiiTrackerBrowser._detectedTrackers[eyetracker_info.product_id] = eyetracker_info
             TobiiTrackerBrowser._event_queue.put(TrackerFoundEvent(eyetracker_info))            
             return False
 
-        if event_type == tobii.sdk.browsing.EyetrackerBrowser.UPDATED:
+        if event_type == TobiiPyEyetrackerBrowser.UPDATED:
             TobiiTrackerBrowser._detectedTrackers[eyetracker_info.product_id] = eyetracker_info
             TobiiTrackerBrowser._event_queue.put(TrackerUpdatedEvent(eyetracker_info))            
             return False
         
-        if tobii.sdk.browsing.EyetrackerBrowser.REMOVED:
+        if TobiiPyEyetrackerBrowser.REMOVED:
             del TobiiTrackerBrowser._detectedTrackers[eyetracker_info.product_id]
             TobiiTrackerBrowser._event_queue.put(TrackerRemovedEvent(eyetracker_info))            
             return False
 
-        raise ioDeviceError(cls,"TobiiTrackerBrowser.on_eyetracker_browser_event received unhandled event type",event_type,eyetracker_info)
+        raise ioDeviceError(device=cls,msg="TobiiTrackerBrowser.on_eyetracker_browser_event received unhandled event type {0} for Tobii device with info: {1}".format(event_type,eyetracker_info))
         
     @classmethod
     def getTrackerDetails(cls,tracker_product_id):
@@ -193,8 +217,8 @@ class TobiiTrackerBrowser(object):
         if matching_tracker_infos:
             return matching_tracker_infos[0]
             
-        started_browsing_time=Computer.getTime()        
-        while(Computer.getTime()-started_browsing_time < timeout):
+        started_browsing_time=getTime()        
+        while(getTime()-started_browsing_time < timeout):
             try:
                 tb_event=TobiiTrackerBrowser.getNextEvent(timeout=0.05)
                 if tb_event is None:
@@ -220,7 +244,8 @@ class TobiiTracker(object):
                          eye_location_norm=[np.NaN,np.NaN,np.NaN],
                          eye_location_mm=[np.NaN,np.NaN,np.NaN],
                          validity_code=np.NaN,                           
-                         status='UNKNOWN')    
+                         status='UNKNOWN',
+                         trigger_signal=None)    
     def __init__(self, eyetracker_info=None, product_id=None, model=None, mainloop=None, create_sync_manager=True):
         self._eyetracker_info=eyetracker_info
         self._requested_product_id=product_id
@@ -252,22 +277,27 @@ class TobiiTracker(object):
             if TobiiTrackerBrowser.isActive():                       
                 self._mainloop=TobiiTrackerBrowser.getMainLoop()
             else:
-                tobii.sdk.init()
-                self._mainloop = tobii.sdk.mainloop.MainloopThread()
+                TobiiPy.init()
+                self._mainloop = TobiiPyMainloopThread()
                 self._mainloop.start()
 
         self._queue=Queue.Queue()
         
-        tobii.sdk.eyetracker.Eyetracker.create_async(self._mainloop,self._eyetracker_info,self.on_eyetracker_created)
+        TobiiPyEyeTracker.create_async(self._mainloop,self._eyetracker_info,self.on_eyetracker_created)
     
-        stime=Computer.getTime()
-        while Computer.getTime()-stime<10.0:
+        stime=getTime()
+        while getTime()-stime<10.0:
             try:            
                 event=self._queue.get(block=True,timeout=.1)
                 if isinstance(event,TobiiTrackerCreatedEvent):
                     self._eyetracker=event.tracker_object
                     self._eyetracker.events.OnFramerateChanged += self.on_external_framerate_change
-                    self._eyetracker.events.OnHeadMovementBoxChanged += self.on_head_box_change
+                    if hasattr(self._eyetracker.events,'OnHeadMovementBoxChanged'):
+                        self._eyetracker.events.OnHeadMovementBoxChanged += self.on_head_box_change
+                    elif hasattr(self._eyetracker.events,'OnTrackBoxChanged'):
+                        self._eyetracker.events.OnTrackBoxChanged += self.on_head_box_change
+                    else:
+                        print 'WARNING: TobiiClasses could not set callback hook for "self.on_head_box_change".'
                     self._eyetracker.events.OnXConfigurationChanged += self.on_x_series_physical_config_change
                     
                     break
@@ -280,11 +310,11 @@ class TobiiTracker(object):
             
         if create_sync_manager:
             self._eyetracker.events.OnError += self.on_eyetracker_error
-            self._tobiiClock = Clock()
+            self._tobiiClock = TobiiPyClock()
             self._getTobiiClockResolution=self._tobiiClock.get_resolution
             self._getTobiiClockTime=self._tobiiClock.get_time
             self._syncTimeEventDeque=collections.deque(maxlen=32)
-            self._sync_manager = sync.SyncManager(self._tobiiClock,
+            self._sync_manager = TobiiPySyncManager(self._tobiiClock,
                                          self._eyetracker_info,
                                          self._mainloop,
                                          self.on_sync_error,
@@ -330,7 +360,11 @@ class TobiiTracker(object):
         eyes[RIGHT]['validity_code']=eye_data_event.RightValidity
         eyes[LEFT]['tracker_time_usec']=eye_data_event.Timestamp
         eyes[RIGHT]['tracker_time_usec']=eye_data_event.Timestamp
-        
+        if hasattr(eye_data_event,'TrigSignal'):
+            eyes[LEFT]['trigger_signal']=eye_data_event.TrigSignal
+            eyes[RIGHT]['trigger_signal']=eye_data_event.TrigSignal
+            
+       
         #print "*** lastEyeData.RightGazePoint2D: ",lastEyeData.RightGazePoint2D.__dict__
         if eye_data_event.LeftValidity >=2 and eye_data_event.RightValidity >=2:
             # no eye signal                            
@@ -354,7 +388,7 @@ class TobiiTracker(object):
             eyes[LEFT]['eye_location_mm'][0]=eye_data_event.LeftEyePosition3D.x
             eyes[LEFT]['eye_location_mm'][1]=eye_data_event.LeftEyePosition3D.y
             eyes[LEFT]['eye_location_mm'][2]=eye_data_event.LeftEyePosition3D.z
-            
+                        
         elif eye_data_event.LeftValidity >=2 and eye_data_event.RightValidity <2:
             # right eye only available
             eyes[RIGHT]['status']="Available"
@@ -452,6 +486,11 @@ class TobiiTracker(object):
             tprops[tp]=ta
         tprops['factory_info_string']=str(eyetracker_info.factory_info)
         return tprops
+    
+    def getTrackerInfo(self):
+        if hasattr(self._eyetracker,'GetUnitInfo'):
+            return self._eyetracker.GetUnitInfo()
+        return None
         
     def startTracking(self,et_data_rx_callback=None):
         if et_data_rx_callback:
@@ -472,8 +511,22 @@ class TobiiTracker(object):
     def setName(self,name):
         self._eyetracker.SetUnitName(name)
 
-    def getSamplingRate(self):
-        return self._eyetracker.GetFramerate()
+    def getLowBlinkMode(self):
+        try:
+            return self._eyetracker.GetLowblinkMode()
+        except:
+            pass
+        return None
+
+    def setLowBlinkMode(self,enable):
+        if hasattr(self._eyetracker,'SetLowblinkMode'):
+            try:
+                if isinstance(enable,bool) or enable == 0 or enable == 1:
+                    self._eyetracker.SetLowblinkMode(enable)
+                return self._eyetracker.GetLowblinkMode()
+            except:
+                pass
+        return None
         
     def setSamplingRate(self,rate):
         if rate in self._eyetracker.EnumerateFramerates():
@@ -483,20 +536,53 @@ class TobiiTracker(object):
         
     def getAvailableSamplingRates(self):
         return self._eyetracker.EnumerateFramerates()
-    
-    def getHeadBox(self):
-        hb=self._eyetracker.GetHeadMovementBox()
-        return np.asarray([
-                        (hb.Point1.x,hb.Point1.y,hb.Point1.z),
-                        (hb.Point2.x,hb.Point2.y,hb.Point2.z),
-                        (hb.Point3.x,hb.Point3.y,hb.Point3.z),
-                        (hb.Point4.x,hb.Point4.y,hb.Point4.z),
-                        (hb.Point5.x,hb.Point5.y,hb.Point5.z),
-                        (hb.Point6.x,hb.Point6.y,hb.Point6.z),
-                        (hb.Point7.x,hb.Point7.y,hb.Point7.z),
-                        (hb.Point8.x,hb.Point8.y,hb.Point8.z)
-                        ])
 
+    def getSamplingRate(self):
+        return self._eyetracker.GetFramerate()
+    
+    def getIlluminationMode(self):
+        try:
+            return self._eyetracker.getIlluminationMode()
+        except:
+            pass
+        return None
+        
+    def getAvailableIlluminationModes(self):
+        try:
+            return self._eyetracker.EnumerateIlluminationModes()
+        except:
+            return []
+
+    def setIlluminationMode(self,imode):
+        imodes=self.getAvailableIlluminationModes()
+        if len(imodes)>0:
+            if imode in imodes:
+                self._eyetracker.SetIlluminationMode(imode)
+                return imode
+            return self._eyetracker.getIlluminationMode()
+        else:
+            print 'WARNING: setIlluminationMode is not supported by either your Tobii model, or the version of the Tobii SDK being used.'
+            
+    def getHeadBox(self):
+        hb=None
+        if hasattr(self._eyetracker,'GetTrackBox'): 
+            hb=self._eyetracker.GetTrackBox()
+        elif hasattr(self._eyetracker,'GetHeadMovementBox'):
+            hb=self._eyetracker.GetHeadMovementBox()
+        
+        if hb:        
+            return np.asarray([
+                            (hb.Point1.x,hb.Point1.y,hb.Point1.z),
+                            (hb.Point2.x,hb.Point2.y,hb.Point2.z),
+                            (hb.Point3.x,hb.Point3.y,hb.Point3.z),
+                            (hb.Point4.x,hb.Point4.y,hb.Point4.z),
+                            (hb.Point5.x,hb.Point5.y,hb.Point5.z),
+                            (hb.Point6.x,hb.Point6.y,hb.Point6.z),
+                            (hb.Point7.x,hb.Point7.y,hb.Point7.z),
+                            (hb.Point8.x,hb.Point8.y,hb.Point8.z)
+                            ])
+        return None
+        
     def setXSeriesPhysicalPlacement(self, upperLeft, upperRight, lowerLeft):
         if self.getTrackerDetails()['generation'] == 'X':        
             self._eyetracker.SetXConfiguration(upperLeft, 
@@ -599,9 +685,30 @@ if __name__ == '__main__':
     print ''
     print 'Tracker Name: ',tobii_tracker.getName()
     print 'Set Tracker Name (to "tracker [time]") ...'
-    tobii_tracker.setName('tracker %.6f'%Computer.getTime())
+    tobii_tracker.setName('tracker %.6f'%getTime())
     print 'Tracker Name now: ',tobii_tracker.getName()
 
+    print ''
+    print 'Tracker Low Blink Mode: ',tobii_tracker.getLowBlinkMode()
+
+    print ''
+    print 'Tracker Low Blink Mode: ',tobii_tracker.getAvailableIlluminationModes()
+
+    print ''
+    imodes=tobii_tracker.getAvailableIlluminationModes()
+    print 'Valid Tracker Illumination Modes: ',imodes
+    if imodes:
+        cimode=tobii_tracker.getIlluminationMode()
+        print 'Current Illumination Mode: ',cimode
+        print 'Setting Illumination Mode to ',imodes[0]
+        tobii_tracker.setIlluminationMode(imodes[0])
+        print 'Current Illumination Mode Now: ',tobii_tracker.getIlluminationMode()
+        print 'Setting Illumination Mode back to ',cimode
+        tobii_tracker.setIlluminationMode(cimode)
+        print 'Current Illumination Mode Now: ',tobii_tracker.getIlluminationMode()
+    else:
+        print "NOTE: Illumination Mode API features are not supported."
+        
     print ''
     print 'Tracker Head Movement Box: ',tobii_tracker.getHeadBox()
 
@@ -630,22 +737,27 @@ if __name__ == '__main__':
     print 'Tobii Time Info (20 sec):'    
     # give some time for events
     
-    
-    stime=Computer.getTime()
-    while Computer.getTime()-stime<20.0:
+    last_times=None
+    first_call_times=None
+    stime=getTime()
+    while getTime()-stime<20.0:
         print '\tgetTobiiTimeResolution: ',tobii_tracker.getTobiiTimeResolution()
-        iohub_t=int(Computer.getTime()*1000000.0)
+        iohub_t=int(getTime()*1000000.0)
         tobii_local_t=tobii_tracker.getCurrentLocalTobiiTime()
         tobii_remote_t=tobii_tracker.getCurrentEyeTrackerTime()
         tlocal_iohub_dt=tobii_local_t-iohub_t
         tremote_iohub_dt=tobii_remote_t-iohub_t
         tlocal_tremote_dt=tobii_remote_t-tobii_local_t
         
-        print '\tioHub Time (in usec): ',iohub_t
-        print '\tgetCurrentLocalTobiiTime (iohub dt): ',tobii_local_t, tlocal_iohub_dt
-        print '\tgetCurrentEyeTrackerTime (iohub dt): ',tobii_remote_t,tremote_iohub_dt
-        print '\tTobii Remote vs Local Time dt: ',tlocal_tremote_dt
-        print '\t---'        
+        if last_times:
+            print '\tioHub Time in usec (dt): ',iohub_t,iohub_t-last_times[0]
+            print '\tgetCurrentLocalTobiiTime (dt): ',tobii_local_t, tobii_local_t-last_times[1]
+            print '\tgetCurrentEyeTrackerTime (dt): ',tobii_remote_t, tobii_remote_t-last_times[2]
+            print '\tioHub, tobii local, tobii remote Elapsed times:',iohub_t-first_call_times[0],tobii_local_t-first_call_times[1],tobii_remote_t-first_call_times[2]
+            print '\t---'        
+        else:
+            first_call_times=(iohub_t,tobii_local_t,tobii_remote_t)
+        last_times=(iohub_t,tobii_local_t,tobii_remote_t)
         time.sleep(0.2)
         
     print ''
@@ -653,8 +765,8 @@ if __name__ == '__main__':
 
     tobii_tracker.startTracking()
 
-    stime=Computer.getTime()
-    while Computer.getTime()-stime<20.0:
+    stime=getTime()
+    while getTime()-stime<20.0:
         time.sleep(0.01)
         
     tobii_tracker.stopTracking()
@@ -663,6 +775,7 @@ if __name__ == '__main__':
     
     print ""
     print "TESTS COMPLETE."
+
 #
 ##########################################################        
 

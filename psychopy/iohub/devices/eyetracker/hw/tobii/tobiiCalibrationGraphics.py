@@ -20,6 +20,7 @@ from ..... import print2err,printExceptionDetailsToStdErr,convertCamelToSnake
 from .... import Computer,DeviceEvent
 from .....constants import EventConstants
 from .....util import FullScreenWindow
+from . tobiiclasses import Point2D
 
 currentTime=Computer.getTime
 
@@ -147,10 +148,10 @@ class TobiiPsychopyCalibrationGraphics(object):
         event=copy.deepcopy(ioe)
         event_type_index=DeviceEvent.EVENT_TYPE_ID_INDEX
         if event[event_type_index] == EventConstants.KEYBOARD_CHAR:
-            if event[-5] == ' ':
+            if event[-5] == u' ':
                 self._msg_queue.put("SPACE_KEY_ACTION")
                 self.clearAllEventBuffers()
-            if event[-5] == 'ESCAPE':
+            if event[-5] == u'ESCAPE':
                 self._msg_queue.put("QUIT")
                 self.clearAllEventBuffers()
 
@@ -211,7 +212,6 @@ class TobiiPsychopyCalibrationGraphics(object):
         Result:
             bool: True if calibration was successful. False if not, in which case exit the application.            
         """
-        import tobii
 
         self._lastCalibrationOK=False
         self._lastCalibrationReturnCode=0
@@ -253,8 +253,11 @@ class TobiiPsychopyCalibrationGraphics(object):
             
         cal_target_list.insert(0,self.CALIBRATION_POINT_LIST[0])
         cal_target_list.append(self.CALIBRATION_POINT_LIST[-1])
-        
+                
         self._tobii.StartCalibration(self.on_start_calibration)   
+
+        if hasattr(self._tobii,'ClearCalibration'):
+            self._tobii.ClearCalibration()
 
         i=0
         for pt in cal_target_list:
@@ -285,7 +288,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             if quit_calibration_notified:
                 break
             
-            pt2D=tobii.sdk.types.Point2D(pt[0],pt[1])
+            pt2D=Point2D(pt[0],pt[1])
             self._tobii.AddCalibrationPoint(pt2D,self.on_add_calibration_point)
             time.sleep(0.5)            
             self.clearCalibrationWindow()
@@ -317,14 +320,25 @@ class TobiiPsychopyCalibrationGraphics(object):
             cal_data_dict={}
 
             import math
-            
+                
             if self._lastCalibration:
                 for cal_point_result in self._lastCalibration.plot_data:
                     left_eye_data=cal_point_result.left.map_point
-                    left_eye_data=(left_eye_data.x*self.width,left_eye_data.y*self.height),cal_point_result.left.validity
                     
+                    lval=None
+                    if hasattr(cal_point_result.left,'validity'):
+                        lval=cal_point_result.left.validity
+                    elif hasattr(cal_point_result.left,'status'):
+                        lval=cal_point_result.left.quality
+                    left_eye_data=(left_eye_data.x*self.width,left_eye_data.y*self.height),lval
+                    
+                    rval=None
+                    if hasattr(cal_point_result.right,'validity'):
+                        rval=cal_point_result.right.validity
+                    elif hasattr(cal_point_result.right,'status'):
+                        rval=cal_point_result.right.status
                     right_eye_data=cal_point_result.right.map_point
-                    right_eye_data=(right_eye_data.x*self.width,right_eye_data.y*self.height),cal_point_result.right.validity
+                    right_eye_data=(right_eye_data.x*self.width,right_eye_data.y*self.height),rval
                     
                     target_pos=cal_point_result.true_point.x*self.width,cal_point_result.true_point.y*self.height
                     
