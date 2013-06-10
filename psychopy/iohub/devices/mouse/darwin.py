@@ -11,7 +11,7 @@ from AppKit import NSEvent
 
 from . import MouseDevice
 from ... import print2err,printExceptionDetailsToStdErr
-from ...devices import Computer
+from ...devices import Computer, Keyboard
 from ...constants import EventConstants,MouseConstants
 
 currentSec=Computer.getTime
@@ -61,6 +61,7 @@ class Mouse(MouseDevice):
                         0,  # Wheel Absolute x 
                         0,  # Wheel dy
                         0,  # Wheel Absolute y 
+                        0,  # modifiers
                         0 ] # event.Window]            
 
     
@@ -238,7 +239,8 @@ class Mouse(MouseDevice):
                     ioe[18]=int(self._scrollPositionX) 
                     ioe[19]=int(scroll_dy)
                     ioe[20]=int(self._scrollPositionY) 
-                    ioe[21]=window_handle
+                    ioe[21]=Keyboard._modifier_value   
+                    ioe[22]=window_handle
                     
                     self._addNativeEventToBuffer(copy(ioe))
                     

@@ -17,6 +17,7 @@ import subprocess
 from collections import deque
 import json
 import signal
+from weakref import proxy
 
 from psychopy import  core as core, gui
 import psychopy.logging as psycho_logging
@@ -319,12 +320,15 @@ class ioHubConnection(object):
         # >> current mouse position:  [-211.0, 371.0]
         
     """
+    ACTIVE_CONNECTION=None
     _replyDictionary=dict()
     def __init__(self,ioHubConfig=None,ioHubConfigAbsPath=None):        
         if ioHubConfig:
             if not isinstance(ioHubConfig,dict):
                 raise ioHubError("The provided ioHub Configuration is not a dictionary.", ioHubConfig)
-            
+        
+        if ioHubConnection.ACTIVE_CONNECTION is not None:
+            raise AttributeError("An existing ioHubConnection is already open. Use ioHubConnection.getActiveConnection() to access it; or use ioHubConnection.quit() to close it.")
         # udp port setup
         self.udp_client = None
 
@@ -936,7 +940,7 @@ class ioHubConnection(object):
                 sys.exit(1)
 
         #print '* IOHUB SERVER ONLINE *'        
-
+        ioHubConnection.ACTIVE_CONNECTION=proxy(self)
         # save ioHub ProcessID to file so next time it is started, it can be checked and killed if necessary
 
         try:
@@ -1287,6 +1291,7 @@ class ioHubConnection(object):
                     Computer.ioHubServerProcess.kill()
                 printExceptionDetailsToStdErr()
             finally:
+                ioHubConnection.ACTIVE_CONNECTION=None
                 self._server_process=None
                 Computer.ioHubServerProcessID=None
                 Computer.ioHubServerProcess=None
@@ -1318,6 +1323,7 @@ class ioHubConnection(object):
     def __del__(self):
         try:
             self._shutDownServer()
+            ioHubConnection.ACTIVE_CONNECTION=None
         except:
             pass
 
@@ -1960,14 +1966,6 @@ class ioHubExperimentRuntime(object):
             _currentSessionInfo=self.experimentSessionDefaults
 
             self.hub._sendSessionInfo(tempdict)
-
-            # Create ConditionVariableProvider if needed....
-            print "** SHOULD READ condition_variable_source settings from exp_config.yaml,"
-            print "** And prompt for ConditionVariable file and load settings as"
-            print "** specified by the config. ConditionVariableProvider instance"
-            print "** should be created using self.conditionVariables attribute of"
-            print "** iohubExperimentRuntime class"
-
 
             self._setInitialProcessAffinities(ioHubInfo)
 

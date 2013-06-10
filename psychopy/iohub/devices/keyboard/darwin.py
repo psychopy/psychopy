@@ -62,7 +62,7 @@ class Keyboard(ioHubKeyboardDevice):
                         None,# mods
                         0 ] # event.Window]
     
-    __slots__=['_loop_source','_tap','_device_loop','_CGEventTapEnable','_loop_mode','_last_general_mod_states','_ring_buffer', '_mods_sum']
+    __slots__=['_loop_source','_tap','_device_loop','_CGEventTapEnable','_loop_mode','_last_general_mod_states','_ring_buffer']
 
     def __init__(self,*args,**kwargs):
         ioHubKeyboardDevice.__init__(self,*args,**kwargs['dconfig'])
@@ -75,8 +75,7 @@ class Keyboard(ioHubKeyboardDevice):
         self._loop_source=None
         self._tap=None
         self._device_loop=None
-        self._loop_mode=None   
-        self._mods_sum=0         
+        self._loop_mode=None        
 
         self._tap = Qz.CGEventTapCreate(
             Qz.kCGSessionEventTap,
@@ -103,7 +102,7 @@ class Keyboard(ioHubKeyboardDevice):
         flags=Qz.CGEventGetFlags(event)
         key_name=None
         ioe_type=None
-        self._mods_sum,mod_str_list=Keyboard._checkForLeftRightModifiers(flags)
+        ioHubKeyboardDevice._modifier_value,mod_str_list=Keyboard._checkForLeftRightModifiers(flags)
         mod_presses=[]
         mod_releases=[]
         for mod_name, mod_state in self._modifier_states.iteritems():
@@ -304,7 +303,7 @@ class Keyboard(ioHubKeyboardDevice):
                         ioe[13]=key_code #key_code
                         ioe[14]=ucode
                         ioe[15]=key_name.encode('utf-8') 
-                        ioe[16]=self._mods_sum
+                        ioe[16]=ioHubKeyboardDevice._modifier_value
                         ioe[17]=window_number
                         
                         self._addNativeEventToBuffer(copy(ioe))
