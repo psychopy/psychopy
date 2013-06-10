@@ -40,15 +40,19 @@ class ioHubKeyboardDevice(Device):
 
     DEVICE_TYPE_ID=DeviceConstants.KEYBOARD
     DEVICE_TYPE_STRING='KEYBOARD'
-    __slots__=['_key_states','_lastProcessedEventID','_modifier_states','_modifier_value','_report_auto_repeats']
+    _modifier_value=0
+    __slots__=['_key_states','_lastProcessedEventID','_modifier_states','_report_auto_repeats']
     def __init__(self,*args,**kwargs):
         self._key_states=dict()
         self._lastProcessedEventID=0
         self._modifier_states=dict(zip(ModifierKeyCodes._mod_names,[False]*len(ModifierKeyCodes._mod_names)))
-        self._modifier_value=0
         self._report_auto_repeats=kwargs.get('report_auto_repeat_press_events',False)
         Device.__init__(self,*args,**kwargs)
 
+    @classmethod
+    def getModifierState(cls):
+        return cls._modifier_value
+        
     def clearEvents(self):
         cEvents=self._getCharEvents()
         [self._addNativeEventToBuffer(e) for e in cEvents]
@@ -144,15 +148,15 @@ class KeyboardInputEvent(DeviceEvent):
 
     # TODO: Determine real maximum key name string and modifiers string
     # lengths and set appropriately.
-    _newDataTypes = [ ('auto_repeated',N.uint16),  # the scan code for the key that was pressed.
-                                            # Represents the physical key id on the keyboard layout
+    _newDataTypes = [ ('auto_repeated',N.uint16), # 0 if the original, first press event for the key.
+                                                  # > 0 = the number if times the key has repeated.
 
                     ('scan_code',N.uint32),  # the scan code for the key that was pressed.
                                             # Represents the physical key id on the keyboard layout
 
                     ('key_id',N.uint32),  # The scancode translated into a keyboard layout independent, but still OS dependent, code representing the key that was pressed
 
-                    ('ucode',N.uint32),      # the translated key ID, should be keyboard layout independent,
+                    ('ucode',N.uint32),      # the translated key ID, should be keyboard layout and os independent,
                                            # based on the keyboard local settings of the OS.
 
                     ('key',N.str,12),       # a string representation of what key was pressed.

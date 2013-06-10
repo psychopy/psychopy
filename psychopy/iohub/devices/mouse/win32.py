@@ -9,7 +9,7 @@ import ctypes
 from . import MouseDevice
 from ...constants import EventConstants,MouseConstants
 from ... import print2err
-from .. import Computer
+from .. import Computer,Keyboard
 
 currentSec=Computer.getTime
 
@@ -207,7 +207,8 @@ class Mouse(MouseDevice):
             0, #scroll_dx not supported
             0, #scroll_x not supported   
             event.Wheel,
-            event.WheelAbsolute,                      
+            event.WheelAbsolute,  
+            Keyboard._modifier_value,                   
             event.Window]    
         return r
 
