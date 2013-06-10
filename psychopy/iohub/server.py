@@ -47,7 +47,14 @@ class udpServer(DatagramServer):
         request = self.unpack()   
         request_type= request.pop(0)
         
-        if request_type == 'GET_EVENTS':
+        if request_type == 'PING':
+                clienttime=request.pop(0)
+                msg_id=request.pop(0)
+                payload=request.pop(0)
+                ctime=currentSec()
+                self.sendResponse(["PING_BACK",ctime,msg_id,payload,replyTo],replyTo)
+                return True
+        elif request_type == 'GET_EVENTS':
             return self.handleGetEvents(replyTo)
         elif request_type == 'EXP_DEVICE':
             return self.handleExperimentDeviceRequest(request,replyTo)

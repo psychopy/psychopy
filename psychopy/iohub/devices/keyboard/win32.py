@@ -95,17 +95,18 @@ class Keyboard(ioHubKeyboardDevice):
             
             modKeyName=Keyboard._win32_modifier_mapping.get(keyID,None)
             if modKeyName:
+                mod_value=KeyboardConstants._modifierCodes.getID(modKeyName)
                 if  keyID == win32_vk.VK_CAPITAL and etype==EventConstants.KEYBOARD_PRESS:
                     if self._keyboard_state[keyID] > 0:
                         self._keyboard_state[keyID]=0
-                        self._modifier_value-=KeyboardConstants._modifierCodes.getID(modKeyName)
+                        ioHubKeyboardDevice._modifier_value-=mod_value
                     else:
                         self._keyboard_state[keyID] = 0x01
-                        self._modifier_value+=KeyboardConstants._modifierCodes.getID(modKeyName)
+                        ioHubKeyboardDevice._modifier_value+=mod_value
                         
                 elif etype==EventConstants.KEYBOARD_PRESS and self._keyboard_state[keyID]==0:
                     self._keyboard_state[keyID] = 0x80
-                    self._modifier_value+=KeyboardConstants._modifierCodes.getID(modKeyName)
+                    ioHubKeyboardDevice._modifier_value+=mod_value
     
                     #print2err("SETTING MOD KEY ELEMENT: ",keyID,' state: ',pyHook.GetKeyState(keyID))
                     
@@ -121,7 +122,7 @@ class Keyboard(ioHubKeyboardDevice):
                         
                 elif etype==EventConstants.KEYBOARD_RELEASE and keyID != win32_vk.VK_CAPITAL:
                     if self._keyboard_state[keyID]!=0 and keyID != win32_vk.VK_CAPITAL:
-                        self._modifier_value-=KeyboardConstants._modifierCodes.getID(modKeyName)
+                        ioHubKeyboardDevice._modifier_value-=mod_value
                         self._keyboard_state[keyID] = 0
                         #print2err("clearing MOD KEY ELEMENT: ",keyID,' state: ',pyHook.GetKeyState(keyID))
     
@@ -134,13 +135,12 @@ class Keyboard(ioHubKeyboardDevice):
                         elif modKeyName.find('ALT')>=0 and self._keyboard_state[win32_vk.VK_LMENU]==0 and self._keyboard_state[win32_vk.VK_RMENU]==0:
                             self._keyboard_state[win32_vk.VK_MENU] = 0
                             #print2err("CLEAR  VK_MENU: ",keyID)
-            
             #
             # End Tracking Modifiers that are pressed
             #
-            if self._modifier_value is None:
-                self._modifier_value=0
-            event.Modifiers=self._modifier_value
+            if ioHubKeyboardDevice._modifier_value is None:
+                ioHubKeyboardDevice._modifier_value=0
+            event.Modifiers=ioHubKeyboardDevice._modifier_value
     
             # From MSDN: http://msdn.microsoft.com/en-us/library/windows/desktop/ms644939(v=vs.85).aspx
             # The time is a long integer that specifies the elapsed time, in milliseconds, from the time the system was started to the time the message was 
