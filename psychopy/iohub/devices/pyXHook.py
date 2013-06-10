@@ -518,6 +518,7 @@ class HookManager(threading.Thread):
             0, #scroll_x
             dy,
             self.scroll_y,
+            0, #mod state, filled in when event received by iohub
             int(storewm["handle"], base=16)],]
       # TO DO: Implement multimonitor location based on mouse location support.
         # Currently always uses monitor index 0

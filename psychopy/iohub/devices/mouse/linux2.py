@@ -7,8 +7,8 @@ Created on Thu Apr 11 18:52:59 2013
 
 from ctypes import cdll
 from . import MouseDevice
-from ... import print2err,MouseConstants
-from .. import Computer
+from ... import print2err,MouseConstants,printExceptionDetailsToStdErr
+from .. import Computer,Keyboard
 
 currentSec=Computer.getTime
 
@@ -83,20 +83,20 @@ class Mouse(MouseDevice):
                 x,y=self._display_device._pixel2DisplayCoord(event_array[15],event_array[16],display_index)  
                 event_array[15]=x
                 event_array[16]=y
-                
+                event_array[-2]=Keyboard._modifier_value
                 self._lastPosition=self._position
                 self._position=x,y
 
                 self._last_display_index=self._display_index
                 self._display_index=display_index
 
-             	bstate=event_array[-10]
-             	bnum=event_array[-9]
+             	bstate=event_array[-11]
+             	bnum=event_array[-10]
 
             	if bnum is not MouseConstants.MOUSE_BUTTON_NONE:
                 	self.activeButtons[bnum]= int(bstate==True)    
            
-           		self._scrollPositionY= event_array[-2]
+           		self._scrollPositionY= event_array[-3]
 
                 self._addNativeEventToBuffer(event_array)
                 
