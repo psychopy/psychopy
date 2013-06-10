@@ -257,7 +257,6 @@ class PsychoPyApp(wx.App):
                 # before psychopy shuts down, ensure wizard will be triggered again:
                 del self.prefs.appData['lastVersion']
                 self.prefs.saveAppData()
-                sys.exit()
     def benchmarkWizard(self, evt=None):
         self._wizard('--benchmark')
     def checkUpdates(self, evt):

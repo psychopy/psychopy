@@ -100,7 +100,6 @@ class ConfigWizard(object):
             # user ends up in browser:
             url='file://' + self.reportPath
             wx.LaunchDefaultBrowser(url)
-            sys.exit('Fatal configuration problem.')
         if not dlg.OK:
             return  # no configuration tests run
 
