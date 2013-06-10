@@ -33,6 +33,7 @@ from .devices import Computer, DeviceEvent,import_device
 from .devices.experiment import MessageEvent,LogEvent
 from .constants import DeviceConstants,EventConstants
 from .net import UDPClientConnection
+from . import _DATA_STORE_AVAILABLE
 
 currentSec= Computer.currentSec
 
@@ -1482,12 +1483,14 @@ def launchHubServer(**kwargs):
     psychopy_monitor_name=kwargs.get('psychopy_monitor_name',None)
     if psychopy_monitor_name:
         del kwargs['psychopy_monitor_name']
-
-    datastore_name=kwargs.get('datastore_name',None)
-    if datastore_name is not None:
-        del kwargs['datastore_name']
-    else:
-        datastore_name = None
+        
+    datastore_name=None
+    if _DATA_STORE_AVAILABLE is True:        
+        datastore_name=kwargs.get('datastore_name',None)
+        if datastore_name is not None:
+            del kwargs['datastore_name']
+        else:
+            datastore_name = None
 
 
     device_dict=kwargs
@@ -1533,7 +1536,7 @@ def launchHubServer(**kwargs):
     # Create an ioHub configuration dictionary.
     ioConfig=dict(monitor_devices=device_list)
     
-    if experiment_code and session_code:    
+    if _DATA_STORE_AVAILABLE is True and experiment_code and session_code:    
         # Enable saving of all device events to the 'ioDataStore'
         # datastore name is equal to experiment code given unless the 
         # datastore_name kwarg is provided, inwhich case it is used.
