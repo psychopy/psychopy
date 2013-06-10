@@ -11,6 +11,11 @@ tab delimited file.
 import sys,os
 import psychopy
 from psychopy.core import getTime
+import psychopy.iohub
+if psychopy.iohub._DATA_STORE_AVAILABLE is False:
+    raise ImportError("DataStore module could not be imported. (Likely that pyTables hdf5dll could not be found). Exiting demo...")
+    sys.exit(1)
+    
 from psychopy.iohub.datastore.util import displayDataFileSelectionDialog,displayEventTableSelectionDialog, ExperimentDataAccessUtility
     
 def writeOutputFileHeader(output_file, session_metadata_columns,log_entry_names):

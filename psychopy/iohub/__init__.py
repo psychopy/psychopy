@@ -74,12 +74,19 @@ if sys.platform not in SUPPORTED_SYS_NAMES:
 import constants
 from constants import EventConstants, DeviceConstants, KeyboardConstants, MouseConstants,EyeTrackerConstants
 
-import client
-from client import ioHubConnection, launchHubServer, ioHubExperimentRuntime
-
 import devices
 from devices import Computer, import_device, DeviceEvent, Device
 
-import datastore
+_DATA_STORE_AVAILABLE=False
+try:
+    import datastore
+    _DATA_STORE_AVAILABLE=True
+except Exception, e:
+    print2err("WARNING: ioHub DataStore could not be loaded. DataStore functionality will be disabled. Error: ")
+    printExceptionDetailsToStdErr()
+    
+import client
+from client import ioHubConnection, launchHubServer, ioHubExperimentRuntime
 
+    
 import server

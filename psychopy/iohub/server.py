@@ -15,7 +15,7 @@ from gevent import Greenlet
 import os,sys
 from operator import itemgetter
 from collections import deque
-
+import psychopy.iohub
 from psychopy.iohub import OrderedDict,print2err, printExceptionDetailsToStdErr, ioHubError, createErrorResult,convertCamelToSnake, DeviceConstants,EventConstants,Computer, DeviceEvent, import_device, IO_HUB_DIRECTORY, load, dump, Loader, Dumper
 from psychopy.iohub.devices.deviceConfigValidation import validateDeviceConfiguration
 from psychopy.iohub.net import MAX_PACKET_SIZE
@@ -437,7 +437,7 @@ class ioServer(object):
 
         try:
             # initial dataStore setup
-            if 'data_store' in config:
+            if 'data_store' in config and psychopy.iohub._DATA_STORE_AVAILABLE:
                 experiment_datastore_config=config.get('data_store')
                 default_datastore_config_path=os.path.join(IO_HUB_DIRECTORY,'datastore','default_datastore.yaml')
                 #print2err('default_datastore_config_path: ',default_datastore_config_path)
@@ -526,18 +526,19 @@ class ioServer(object):
 
 
         # Update DataStore Structure if required.
-        try:            
-            if self.emrt_file is not None:
-                self.emrt_file.updateDataStoreStructure(device_instance,event_classes)
-        except:
-            print2err("Error while updating datastore for device addition:",device_instance,device_event_ids)
-            printExceptionDetailsToStdErr()
+        if psychopy.iohub._DATA_STORE_AVAILABLE:        
+            try:            
+                if self.emrt_file is not None:
+                    self.emrt_file.updateDataStoreStructure(device_instance,event_classes)
+            except:
+                print2err("Error while updating datastore for device addition:",device_instance,device_event_ids)
+                printExceptionDetailsToStdErr()
 
 
         self.log("Adding ioServer and DataStore event listeners......")
 
         # add event listeners for saving events
-        if self.emrt_file is not None:
+        if psychopy.iohub._DATA_STORE_AVAILABLE and self.emrt_file is not None:
             if device_config['save_events']:
                 device_instance._addEventListener(self.emrt_file,device_event_ids)
                 self.log("DataStore listener for device added: device: %s eventIDs: %s"%(device_instance.__class__.__name__,device_event_ids))
@@ -788,9 +789,10 @@ class ioServer(object):
             printExceptionDetailsToStdErr()
             
     def createDataStoreFile(self,fileName,folderPath,fmode,ioHubsettings):
-        from datastore import ioHubpyTablesFile
-        self.closeDataStoreFile()                
-        self.emrt_file=ioHubpyTablesFile(fileName,folderPath,fmode,ioHubsettings)                
+        if psychopy.iohub._DATA_STORE_AVAILABLE:
+            from datastore import ioHubpyTablesFile
+            self.closeDataStoreFile()                
+            self.emrt_file=ioHubpyTablesFile(fileName,folderPath,fmode,ioHubsettings)                
 
     def closeDataStoreFile(self):
         if self.emrt_file:
