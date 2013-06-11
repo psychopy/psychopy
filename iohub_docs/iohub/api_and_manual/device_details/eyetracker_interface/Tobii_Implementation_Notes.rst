@@ -18,8 +18,8 @@ Tobii EyeTracker Class
 * Tobii IS-1
     
 .. note::    
-    Python 2.6 must be used to use the Tobii eye tracker until a Python 2.7 compatible 
-    version of the Tobii Python package is supported.
+    The Common Eye Tracker Interface for Tobii can be used with Python 2.6 if the Tobii Analytics SDK 3.0 RC 1 32 bit package. To use Python 2.7, the 
+    Tobii Analytics SDK 3.0 (released May, 2013) 32-bit version must be installed and used.
 
 .. autoclass:: psychopy.iohub.devices.eyetracker.hw.tobii.EyeTracker
     :exclude-members: ALL_EVENT_CLASSES, CLASS_ATTRIBUTE_NAMES, DEVICE_BUFFER_LENGTH_INDEX, DEVICE_CLASS_NAME_INDEX, DEVICE_MAX_ATTRIBUTE_INDEX, DEVICE_TIMEBASE_TO_SEC, DEVICE_TYPE_ID, DEVICE_TYPE_ID_INDEX, DEVICE_TYPE_STRING, DEVICE_USER_LABEL_INDEX, NUMPY_DTYPE, e, DEVICE_FIRMWARE_VERSION_INDEX, DEVICE_HARDWARE_VERSION_INDEX,DEVICE_MANUFACTURER_NAME_INDEX,DEVICE_MODEL_NAME_INDEX, DEVICE_MODEL_NUMBER_INDEX, DEVICE_NUMBER_INDEX, DEVICE_SERIAL_NUMBER_INDEX, DEVICE_SOFTWARE_VERSION_INDEX, EVENT_CLASS_NAMES
@@ -29,13 +29,18 @@ Installing other Necessary Tobii Software
 ##################################################
 
 The ioHub Common Eye Tracker Interface implementation for Tobii uses the Python 2.6
-package that is provided by Tobii as part of their 32-bit Tobii Analytics SDK 3.0 RC 1 package. 
+package that is provided by Tobii as part of their 32-bit Tobii Analytics SDK 3.0 RC 1 package; 
+or the  Python 2.7 package that is provided by Tobii as part of their 32-bit Tobii Analytics SDK 3.0
+(released May, 2013).
 
 Please ensure that the Following files and folder are in your Python Path and system PATH.
 This is often most easily done by copying these file and folder to your Python 2.6
 site-packages folder, located at something like C:\Python26\Lib\site-packages.
 
-Required files / folder from the Tobii Analytics SDK 3.0 RC 1 package:
+Python 2.6 Support
+==================
+
+Required files / folder from the Tobii Analytics SDK 3.0 RC 1 package for use with Python 2.6:
 
     *  The directory named 'tobii' found in the Python files area of the 32-bit Tobii Analytics SDK 3.0 RC 1 package.
     *  tobiisdk.dll
@@ -46,6 +51,22 @@ Again, the one directory and 3 files listed above must be in a directory in your
 Python 2.6 Python Path, as well as in your system PATH environment variable setting.
 You do not need to change your system environment variables if you place these
 four items in your Python 2.6 site-packages directory.
+
+Python 2.7 Support
+==================
+
+Required files / folder from the Tobii Analytics SDK 3.0 package for use with Python 2.7:
+
+    *  The directory named 'tobii' found in the Python27\Modules files area of the 32-bit Tobii Analytics SDK 3.0.
+    *  tetio.dll
+    *  _tetiopy27.pyd
+    *  tetio_boost_python-vc90-mt-1_51.dll
+    *  tetio_boost_python-vc90-mt-gd-1_51.dll
+
+Again, the one directory and 4 files listed above must be in a directory in your
+Python 2.7 Python Path, as well as in your system PATH environment variable setting.
+You do not need to change your system environment variables if you place these
+five items in your Python 2.7 site-packages directory.
 
 
 Default Tobii EyeTracker Device Settings
