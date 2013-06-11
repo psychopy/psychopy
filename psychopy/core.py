@@ -27,7 +27,7 @@ def getTime():
     Version Notes: Note that prior to PsychoPy 1.77.00 the behaviour of getTime()
     was platform dependent (on OSX and linux it was equivalent to :func:`psychopy.core.getAbsTime`
     whereas on windows it returned time since loading of the module, as now)"""
-    return monotonicClock.getTime
+    return monotonicClock.getTime()
 
 try:
     import pyglet
