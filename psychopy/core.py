@@ -13,17 +13,21 @@ import subprocess, shlex
 
 runningThreads=[] # just for backwards compatibility?
 
-# Set getTime in core to == the monolithicClock instance created in the clockModule.
-# The logging module sets the defaultClock to == clock.monolithicClock,
+# Set getTime in core to == the monotonicClock instance created in the clockModule.
+# The logging module sets the defaultClock to == clock.monotonicClock,
 # so by default the core.getTime() and logging.defaultClock.getTime()
 # functions return the 'same' timebase.
 #
-# This way 'all' OSs have a core.getTime() timebase that starts at 0.0 when the experiment 
-# is launched, instead of it being this way on Windows only (which was also a 
+# This way 'all' OSs have a core.getTime() timebase that starts at 0.0 when the experiment
+# is launched, instead of it being this way on Windows only (which was also a
 # descripancy between OS's when win32 was using time.clock).
-global getTime
-getTime=monotonicClock.getTime
-#getAbsTime=clock.getAbsTime  # imported
+def getTime():
+    """Get the current time since psychopy.core was loaded.
+
+    Version Notes: Note that prior to PsychoPy 1.77.00 the behaviour of getTime()
+    was platform dependent (on OSX and linux it was equivalent to :func:`psychopy.core.getAbsTime`
+    whereas on windows it returned time since loading of the module, as now)"""
+    return monotonicClock.getTime
 
 try:
     import pyglet
