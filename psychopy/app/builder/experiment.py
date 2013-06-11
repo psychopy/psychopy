@@ -504,8 +504,10 @@ class Param:
                 return "%s" %(self.val[1:])#a $ in a code parameter is unecessary so remove it
             elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"):
                 return "%s" %(self.val[1:])#the user actually wanted just the $
-            else:#provide the code
-                return "%s" %(self.val)
+            elif (type(self.val) in [str, unicode]):
+                return "%s" %(self.val[1:])#the user actually wanted just the $
+            else: #if the value was a tuple it needs converting to a string first
+                return "%s" %(repr(self.val))
         elif self.valType == 'bool':
             return "%s" %(self.val)
         else:

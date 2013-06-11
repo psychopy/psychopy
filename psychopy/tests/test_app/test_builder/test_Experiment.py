@@ -301,7 +301,7 @@ class Test_ExptComponents():
     """
     def test_all_components(self):
         for compName, compClass in allComponents.items():
-            if compName == 'SettingsComponent':
+            if compName in ['SettingsComponent']:
                 continue
             print "testing with:", compName
             thisComp = compClass(exp=self.exp, parentName='testRoutine', name=compName)
@@ -320,17 +320,18 @@ class Test_ExptComponents():
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
         self.exp.addRoutine('testRoutine')
         self.testRoutine = self.exp.routines['testRoutine']
+        self.exp.flow.addRoutine(self.testRoutine, 0)
 
     def teardown(self):
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
-    def _send_OK_after(self):
-        #this is supposed to help with sending button clicks but not working
-        def clickOK():
-            clickEvent = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
-            self.builder.ProcessEvent(clickEvent)
-            print "D: tried click"
-        wx.CallAfter(clickOK)
+#    def _send_OK_after(self):
+#        #this is supposed to help with sending button clicks but not working
+#        def clickOK():
+#            clickEvent = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
+#            self.builder.ProcessEvent(clickEvent)
+#            print "D: tried click"
+#        wx.CallAfter(clickOK)
 
     def _checkCompileWith(self, thisComp):
         """Adds the component to the current Routine and makes sure it still
