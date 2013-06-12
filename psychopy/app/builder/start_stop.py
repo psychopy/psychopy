@@ -3,7 +3,6 @@ Module with component start and stop controls.
 '''
 
 import wx
-from Xlib.protocol.rq import ValueField
 
 
 class VariantPanel(wx.Panel):
