@@ -63,7 +63,7 @@ class ResourcePoolDialog(wx.Frame):
         toolbar.Realize()
 
     def add_to_pool(self, file_name):
-        added_file = open(file_name)
+        added_file = open(file_name, "rb")
         encoded_data = StringIO()
         base64.encode(added_file, encoded_data)
         short_name = os.path.split(file_name)[1]
