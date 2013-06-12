@@ -644,11 +644,13 @@ class Window:
     def getMovieFrame(self, buffer='front'):
         """
         Capture the current Window as an image.
-        This can be done at any time (usually after a .update() command).
+        This can be done at any time (usually after a .flip() command).
 
         Frames are stored in memory until a .saveMovieFrames(filename) command
         is issued. You can issue getMovieFrame() as often
         as you like and then save them all in one go when finished.
+        
+        The back buffer will return the frame that hasn't yet been 'flipped' to be visible on screen but has the advantage that the mouse and any other overlapping windows won't get in the way. The default front buffer is to be called immediately after a win.flip() and gives a complete copy of the screen at the window's coordinates.
         """
         im = self._getFrame(buffer=buffer)
         self.movieFrames.append(im)
@@ -685,12 +687,14 @@ class Window:
 
             filename: name of file, including path (required)
                 The extension at the end of the file determines the type of file(s)
-                created. If an image type is given the multiple static frames are created.
+                created. If an image type (e.g. .png) is given, then multiple static frames are created.
                 If it is .gif then an animated GIF image is created (although you will get higher
                 quality GIF by saving PNG files and then combining them in dedicated
-                image manipulation software (e.g. GIMP). On windows and linux `.mpeg` files
+                image manipulation software, such as GIMP). On Windows and Linux `.mpeg` files
                 can be created if `pymedia` is installed. On OS X `.mov` files can be created
                 if the pyobjc-frameworks-QTKit is installed.
+                
+                Unfortunately the libs used for movie generation can be flaky and poor quality. As for animated GIFs, better results can be achieved by saving as individual .png frames and then combining them into a movie using software like ffmpeg.
 
             mpgCodec: the code to be used **by pymedia** if the filename ends in .mpg
 

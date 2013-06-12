@@ -35,7 +35,7 @@ captureTime = myClock.getTime() - t0
 
 instr_buffer = visual.TextStim(win, text='This is a BufferImageStim', pos=(0,.7))
 drawTimeBuffer = [] # accumulate draw times of the screenshot / BufferImageStim
-or frameCounter in xrange(200):
+for frameCounter in xrange(200):
     t3 = myClock.getTime()
     screenshot.draw()  # draw the BufferImageStim, fast
     drawTimeBuffer.append(myClock.getTime() - t3)

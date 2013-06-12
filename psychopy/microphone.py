@@ -78,10 +78,10 @@ class AudioCapture(object):
         """
         def __init__(self):
             self.running = False
-        def run(self, filename, sec, sampletype=0, buffering=16, chnl=0):
+        def run(self, filename, sec, sampletype=0, buffering=16, chnl=0, chnls=2):
             self.running = True
             inputter = Input(chnl=chnl, mul=1)  # chnl from pyo.pa_get_input_devices()
-            self.recorder = Record(inputter, filename, chnls=2, fileformat=0,
+            self.recorder = Record(inputter, filename, chnls=chnls, fileformat=0,
                                 sampletype=sampletype, buffering=buffering)
             Clean_objects(sec, self.recorder).start()  # handles recording offset
             threading.Timer(sec, self._stop).start()  # set running flag False
@@ -318,7 +318,7 @@ class AdvAudioCapture(AudioCapture):
             if sampleRate < 2 * self.marker_hz:
                 # NyquistError
                 logging.warning("Recording rate (%i Hz) too slow for %i Hz-based marker detection." % (int(sampleRate), self.marker_hz))
-            logging.exp('non-default Hz set as recording onset marker: %.1f' % self.marker_hz)
+            logging.exp('frequency of recording onset marker: %.1f' % self.marker_hz)
             self.marker = sound.Sound(self.marker_hz, secs, volume=volume, name=self.name+'.marker_tone')
     def playMarker(self):
         """Plays the current marker sound. This is automatically called at the
@@ -860,14 +860,15 @@ if __name__ == '__main__':
     logging.console.setLevel(logging.DEBUG)
     switchOn(48000) # import pyo, create a server
 
-    mic = AdvAudioCapture()
-    save = bool('--nosave' in sys.argv)
+    mic = AudioCapture()
+    save = bool('--save' in sys.argv)
     if save:
-        del sys.argv[sys.argv.index('--nosave')]
+        del sys.argv[sys.argv.index('--save')]
     if len(sys.argv) > 1: # stability test using argv[1] iterations
         for i in xrange(int(sys.argv[1])):
-            print i, mic.record(0.1)
-            mic.resample(8000, keep=False) # removes orig file
+            mic = AudioCapture()
+            print i, mic.record(1, block=True)
+            mic.resample(16000, keep=True)
             os.remove(mic.savedFile) # removes downsampled file
     else: # two interactive record + playback tests
         raw_input('testing record and playback, press <return> to start: ')

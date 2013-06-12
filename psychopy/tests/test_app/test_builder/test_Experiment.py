@@ -1,3 +1,4 @@
+from psychopy.app import psychopyApp
 import psychopy.app.builder.experiment
 from os import path
 import os, shutil, glob, sys
@@ -5,11 +6,11 @@ import py_compile
 import difflib
 from tempfile import mkdtemp
 import codecs
-from psychopy.core import shellCall
-from psychopy.tests import utils
+from psychopy import core, tests
 import pytest
 import locale
-
+import wx
+import threading
 #from psychopy.info import _getSha1hexDigest as sha1hex
 
 # Jeremy Gray March 2011
@@ -21,6 +22,8 @@ import locale
 # - namespace.makeValid() can change var names from the orig demos,
 #   but should not do so from a load-save-load because only the first
 #   load should change things
+
+allComponents = psychopy.app.builder.experiment.getComponents()
 
 def _filterout_legal(lines):
     return [l
@@ -240,8 +243,8 @@ class TestExpt():
                         os.path.join(self.tmp_dir,'ghost_trialTypes.xlsx'))
 
         # edit the file, to have a consistent font:
-        text = text.replace("'Arial'","'"+utils.TESTS_FONT+"'")
-        #text = text.replace("Arial",utils.TESTS_FONT) # fails
+        text = text.replace("'Arial'","'"+tests.utils.TESTS_FONT+"'")
+        #text = text.replace("Arial",tests.utils.TESTS_FONT) # fails
 
         file = path.join(self.tmp_dir, 'ghost_stroop.psyexp')
         f = codecs.open(file, 'w', 'utf-8')
@@ -259,7 +262,7 @@ class TestExpt():
         f.close()
 
         # run:
-        stdout, stderr = shellCall('python '+lastrun, stderr=True)
+        stdout, stderr = core.shellCall('python '+lastrun, stderr=True)
         assert not len(stderr), stderr # print stderr if it's greater than zero
 
     def test_Exp_AddRoutine(self):
@@ -291,3 +294,65 @@ class TestExpt():
         assert namespace.makeLoopIndex('trials') == 'thisTrial'
         assert namespace.makeLoopIndex('trials_2') == 'thisTrial_2'
         assert namespace.makeLoopIndex('stimuli') == 'thisStimulus'
+
+class Test_ExptComponents():
+    """This test fetches all standard components and checks that, with default
+    settings, they can be added to a Routine and result in a script that compiles
+    """
+    def test_all_components(self):
+        for compName, compClass in allComponents.items():
+            if compName in ['SettingsComponent']:
+                continue
+            print "testing with:", compName
+            thisComp = compClass(exp=self.exp, parentName='testRoutine', name=compName)
+            self._checkCompileWith(thisComp)
+
+    @classmethod
+    def setup_class(cls):
+        app = psychopyApp._app #this was created already
+        app.newBuilderFrame()
+        cls.builder = app.builderFrames[-1] # the most recent builder frame created
+        cls.exp = cls.builder.exp
+
+    def setup(self):
+        # dirs and files:
+        self.here = path.abspath(path.dirname(__file__))
+        self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
+        self.exp.addRoutine('testRoutine')
+        self.testRoutine = self.exp.routines['testRoutine']
+        self.exp.flow.addRoutine(self.testRoutine, 0)
+
+    def teardown(self):
+        shutil.rmtree(self.tmp_dir, ignore_errors=True)
+
+#    def _send_OK_after(self):
+#        #this is supposed to help with sending button clicks but not working
+#        def clickOK():
+#            clickEvent = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
+#            self.builder.ProcessEvent(clickEvent)
+#            print "D: tried click"
+#        wx.CallAfter(clickOK)
+
+    def _checkCompileWith(self, thisComp):
+        """Adds the component to the current Routine and makes sure it still
+        compiles
+        """
+        filename = thisComp.params['name'].val+'.py'
+        filepath = path.join(self.tmp_dir, filename)
+
+        self.testRoutine.addComponent(thisComp)
+        #make sure the mouse code compiles
+
+        # generate a script, similar to 'lastrun.py':
+        buff = self.exp.writeScript() # is a StringIO object
+        script = buff.getvalue()
+        assert len(script) > 1500 # default empty script is ~2200 chars
+
+        # save the script:
+        f = codecs.open(filepath, 'w', 'utf-8')
+        f.write(script)
+        f.close()
+
+        # compile the temp file to .pyc, catching error msgs (including no file at all):
+        py_compile.compile(filepath, doraise=True)
+        return filepath + 'c'
