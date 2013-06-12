@@ -421,7 +421,7 @@ class Experiment:
             elif elementNode.tag=="Routine":
                 self.flow.append(self.routines[elementNode.get('name')])
             
-            self.load_resource_pool(root)
+        self.load_resource_pool(root)
 
         if modified_names:
             logging.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names))

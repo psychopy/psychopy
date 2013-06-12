@@ -7,6 +7,7 @@ import time
 import wx
 from _base import BaseComponent
 from StringIO import StringIO
+from psychopy.app.builder.experiment import Param
 
 class Resource(object):
     def __init__(self, date=None, description="", content=""):
@@ -28,10 +29,11 @@ class Resource(object):
 
 
 class ResourcePoolComponent(BaseComponent):
-    def __init__(self, exp, parentName, name="pool", resources={}):
-        from psychopy.app.builder.experiment import Param
+    def __init__(self, exp, parentName, name="pool", resources=None):
         super(ResourcePoolComponent, self).__init__(exp, parentName, name)
         del self.params["name"]
+        if resources is None:
+            resources = {}
         self.params["resources"] = Param(resources, "resources")
 
     def add_resource(self, name, date=None, description="", content=""):
