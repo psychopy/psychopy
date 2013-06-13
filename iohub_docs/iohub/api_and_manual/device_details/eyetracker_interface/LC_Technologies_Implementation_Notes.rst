@@ -9,14 +9,8 @@ LC EyeGaze EyeTracker Implementation
 * All LC EyeGaze Eye Tracking Systems should work.
 * testing has been doing using a monocular, head fixed, model running in single computer mode only.
 
-.. note:: Please see the outstanding issues section at the bottom of this page regarding 
-    an important unresolved issue related to Eyegaze Sample time stamp conversion to ioHub time.
-    Although gaze data appears to be spatially accurate, the sample event time stamps are unusable
-    due to large errors in the current native device to ioHub time base conversions.
-
-
 .. autoclass:: psychopy.iohub.devices.eyetracker.hw.lc_technologies.eyegaze.EyeTracker
-    :exclude-members: ALL_EVENT_CLASSES, CLASS_ATTRIBUTE_NAMES, DEVICE_BUFFER_LENGTH_INDEX, DEVICE_CLASS_NAME_INDEX, DEVICE_MAX_ATTRIBUTE_INDEX, DEVICE_TIMEBASE_TO_SEC, DEVICE_TYPE_ID, DEVICE_TYPE_ID_INDEX, DEVICE_TYPE_STRING, DEVICE_USER_LABEL_INDEX, NUMPY_DTYPE, e, DEVICE_FIRMWARE_VERSION_INDEX, DEVICE_HARDWARE_VERSION_INDEX,DEVICE_MANUFACTURER_NAME_INDEX,DEVICE_MODEL_NAME_INDEX, DEVICE_MODEL_NUMBER_INDEX, DEVICE_NUMBER_INDEX, DEVICE_SERIAL_NUMBER_INDEX, DEVICE_SOFTWARE_VERSION_INDEX, EVENT_CLASS_NAMES, EYELINK, EYELINK_1000, EYELINK_II    
+    :exclude-members: ALL_EVENT_CLASSES, CLASS_ATTRIBUTE_NAMES, DEVICE_BUFFER_LENGTH_INDEX, DEVICE_CLASS_NAME_INDEX, DEVICE_MAX_ATTRIBUTE_INDEX, DEVICE_TIMEBASE_TO_SEC, DEVICE_TYPE_ID, DEVICE_TYPE_ID_INDEX, DEVICE_TYPE_STRING, DEVICE_USER_LABEL_INDEX, NUMPY_DTYPE, e, DEVICE_FIRMWARE_VERSION_INDEX, DEVICE_HARDWARE_VERSION_INDEX,DEVICE_MANUFACTURER_NAME_INDEX,DEVICE_MODEL_NAME_INDEX, DEVICE_MODEL_NUMBER_INDEX, DEVICE_NUMBER_INDEX, DEVICE_SERIAL_NUMBER_INDEX, DEVICE_SOFTWARE_VERSION_INDEX, EVENT_CLASS_NAMES   
     :member-order: bysource
 
 Installing other Necessary LC EyeGaze Software
@@ -88,13 +82,12 @@ with each event type:
 General Considerations
 #######################
 
-**Last Updated:** May 5th, 2013
+**Last Updated:** June 13, 2013
 
 Known Issues:              
 ==============
 
-    #. Sample delay times are not being calculated correctly; therefore the sample time stamps themselves are not being correctly converted to ioHub time. Waiting for help from EyeGaze support contact to resolve this issue. Until resolved, time stamps of sample data are not going to be accurate at all.
-    #. The eyetracker.runSetupProcedure() should be called 'before' creating the PsychoPy full screen window, otherwise the calibration screen may be blocked by the PsychoPy Window. This means that calibration can only be done at the start of the experiment.
+    #. The eyetracker.runSetupProcedure() should be called _before_ creating the PsychoPy full screen window, otherwise the calibration screen may be blocked by the PsychoPy Window. This means that calibration can only be done at the start of the experiment.
 
 Limitations:
 ==============

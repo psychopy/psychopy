@@ -27,26 +27,18 @@ try:
     majorv,minorv=sys.version_info[0:2]
     if majorv == 2 and minorv == 6:
         _USING_PYTHON_2_7=False
-        #import tobii
-        print 'Importing Tobii Python 2.6 SDK'
         import tobii.sdk as TobiiPy
-        #import TobiiPy.mainloop
         from tobii.sdk.mainloop import Mainloop as TobiiPyMainloop
         from tobii.sdk.mainloop import MainloopThread as TobiiPyMainloopThread
-        #import TobiiPy.browsing
         from tobii.sdk.browsing import EyetrackerBrowser as TobiiPyEyetrackerBrowser
         from tobii.sdk.eyetracker import EyeTracker as TobiiPyEyeTracker
         from tobii.sdk.time.clock import Clock as TobiiPyClock
         from tobii.sdk.time.sync import SyncManager as TobiiPySyncManager
         from tobii.sdk.types import Point2D, Point3D
     else:
-        #import tobii
         import tobii.eye_tracking_io as TobiiPy
-        print 'Importing Tobii Python 2.7 SDK'
-        #import TobiiPy.mainloop
         from tobii.eye_tracking_io.mainloop import Mainloop as TobiiPyMainloop
         from tobii.eye_tracking_io.mainloop import MainloopThread as TobiiPyMainloopThread
-        #import TobiiPy.browsing
         from tobii.eye_tracking_io.browsing import EyetrackerBrowser as TobiiPyEyetrackerBrowser
         from tobii.eye_tracking_io.eyetracker import Eyetracker as TobiiPyEyeTracker
         from tobii.eye_tracking_io.time.clock import Clock as TobiiPyClock

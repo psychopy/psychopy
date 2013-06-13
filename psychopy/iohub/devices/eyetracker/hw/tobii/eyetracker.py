@@ -449,9 +449,13 @@ class EyeTracker(EyeTrackerDevice):
                          left_gaze_x,
                          left_gaze_y,
                          EyeTrackerConstants.UNDEFINED, # Left Eye Angle z
-                         eye_data_event.LeftEyePosition3D.x,
-                         eye_data_event.LeftEyePosition3D.y,
-                         eye_data_event.LeftEyePosition3D.z,
+
+#                         eye_data_event.LeftEyePosition3D.x,
+#                         eye_data_event.LeftEyePosition3D.y,
+#                         eye_data_event.LeftEyePosition3D.z,
+                         eye_data_event.LeftEyePosition3DRelative.x,
+                         eye_data_event.LeftEyePosition3DRelative.y,
+                         eye_data_event.LeftEyePosition3DRelative.z,
                          EyeTrackerConstants.UNDEFINED, # Left Eye Angle x
                          EyeTrackerConstants.UNDEFINED, # Left Eye Angle y
                          EyeTrackerConstants.UNDEFINED, # Left Camera Sensor position x
@@ -468,9 +472,9 @@ class EyeTracker(EyeTrackerDevice):
                          right_gaze_x,
                          right_gaze_y,
                          EyeTrackerConstants.UNDEFINED, # Right Eye Angle z 
-                         eye_data_event.RightEyePosition3D.x,
-                         eye_data_event.RightEyePosition3D.y,
-                         eye_data_event.RightEyePosition3D.z,
+                         eye_data_event.RightEyePosition3DRelative.x,
+                         eye_data_event.RightEyePosition3DRelative.y,
+                         eye_data_event.RightEyePosition3DRelative.z,
                          EyeTrackerConstants.UNDEFINED, # Right Eye Angle x
                          EyeTrackerConstants.UNDEFINED, # Right Eye Angle y
                          EyeTrackerConstants.UNDEFINED, #Right Camera Sensor position x
