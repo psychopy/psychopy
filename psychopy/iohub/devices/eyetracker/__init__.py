@@ -86,7 +86,7 @@ class EyeTrackerDevice(Device):
         self._latest_gaze_position=EyeTrackerConstants.FUNCTIONALITY_NOT_SUPPORTED                                        
 
         # stores the eye tracker runtime related configuration settings from the ioHub .yaml config file
-        self._runtime_settings=kwargs['dconfig']['runtime_settings']                                          
+        self._runtime_settings=kwargs['dconfig'].get('runtime_settings',None)                                          
     
         #TODO: Add support for message ID to Message text lookup table in ioDataStore
         # data table that can be used by ET systems that support sending int codes,
