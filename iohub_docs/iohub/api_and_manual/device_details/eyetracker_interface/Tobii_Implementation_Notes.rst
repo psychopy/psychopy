@@ -96,16 +96,16 @@ supported:
             #. confidence_interval
             #. left_gaze_x:             maps to Tobii eye sample field LeftGazePoint2D.x
             #. left_gaze_y:             maps to LeftGazePoint2D.y
-            #. left_eye_cam_x:          maps to LeftEyePosition3D.x
-            #. left_eye_cam_y:          maps to LeftEyePosition3D.y
-            #. left_eye_cam_z:          maps to LeftEyePosition3D.z
+            #. left_eye_cam_x:          maps to LeftEyePosition3DRelative.x
+            #. left_eye_cam_y:          maps to LeftEyePosition3DRelative.y
+            #. left_eye_cam_z:          maps to LeftEyePosition3DRelative.z
             #. left_pupil_measure_1:    maps to LeftPupil
             #. left_pupil_measure1_type: PUPIL_DIAMETER_MM
             #. right_gaze_x:            maps to Tobii eye sample field RightGazePoint2D.x
             #. right_gaze_y:            maps to RightGazePoint2D.y
-            #. right_eye_cam_x:         maps to RightEyePosition3D.x
-            #. right_eye_cam_y:         maps to RightEyePosition3D.y
-            #. right_eye_cam_z:         maps to RightEyePosition3D.z
+            #. right_eye_cam_x:         maps to RightEyePosition3DRelative.x
+            #. right_eye_cam_y:         maps to RightEyePosition3DRelative.y
+            #. right_eye_cam_z:         maps to RightEyePosition3DRelative.z
             #. right_pupil_measure_1:   maps to RightPupil
             #. right_pupil_measure1_type: PUPIL_DIAMETER_MM
             #. status:                  both left and right eye validity codes are encoded as LeftValidity*10+RightValidity
