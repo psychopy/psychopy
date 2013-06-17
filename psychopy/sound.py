@@ -105,7 +105,7 @@ class _SoundBase:
         self._snd=None
         self.setSound(value=value, secs=secs, octave=octave)
 
-    def setSound(self, value, secs=0.5, octave=4, log=True):
+    def setSound(self, value, secs=0.5, octave=4, hamming=True, log=True):
         """Set the sound to be played.
 
         Often this is not needed by the user - it is called implicitly during
@@ -135,13 +135,13 @@ class _SoundBase:
 
         if type(value) in [str, unicode]:
             #try to open the file
-            OK = self._fromNoteName(value,secs,octave)
+            OK = self._fromNoteName(value,secs,octave, hamming=hamming)
             #or use as a note name
             if not OK: self._fromFile(value)
 
         elif type(value)==float:
             #we've been asked for a particular Hz
-            self._fromFreq(value, secs)
+            self._fromFreq(value, secs, hamming=hamming)
 
         elif type(value) in [list,numpy.ndarray]:
             #create a sound from the input array/list
@@ -182,7 +182,7 @@ class _SoundBase:
         pass #should be overridden
     def _fromFile(self, fileName):
         pass #should be overridden
-    def _fromNoteName(self, name, secs, octave):
+    def _fromNoteName(self, name, secs, octave, hamming=True):
         #get a mixer.Sound object from an note name
         A=440.0
         thisNote=capitalize(name)
@@ -211,13 +211,20 @@ class _SoundBase:
 
         thisOctave = octave-4
         thisFreq = A * 2.0**(stepsFromA[thisNote]/12.0) * 2.0**thisOctave
-        self._fromFreq(thisFreq, secs)
+        self._fromFreq(thisFreq, secs, hamming=hamming)
 
-    def _fromFreq(self, thisFreq, secs):
+    def _fromFreq(self, thisFreq, secs, hamming=True):
         nSamples = int(secs*self.sampleRate)
         outArr = numpy.arange(0.0,1.0, 1.0/nSamples)
         outArr *= 2*numpy.pi*thisFreq*secs
         outArr = numpy.sin(outArr)
+        # apodize the sound over 8ms or 15 samples (smoother onset, offset):
+        if hamming and nSamples > 30:
+            hwSize = min(self.sampleRate // 125, nSamples // 15)
+            hammingWindow = numpy.hamming(2 * hwSize + 1)
+            outArr[:hwSize] *= hammingWindow[:hwSize]
+            outArr[-hwSize:] *= hammingWindow[hwSize + 1:]
+            outArr[-hwSize:] *= hammingWindow[hwSize + 1:]  # can sound better
         self._fromArray(outArr)
 
     def _fromArray(self, thisArray):
@@ -351,7 +358,8 @@ class SoundPyo(_SoundBase):
     """Create a sound object, from one of MANY ways.
     """
     def __init__(self, value="C", secs=0.5, octave=4, stereo=True, volume=1.0,
-                 loop=False, sampleRate=44100, bits=16, name='', autoLog=True):
+                 loop=False, sampleRate=44100, bits=16, hamming=True,
+                 name='', autoLog=True):
         """
         value: can be a number, string or an array.
 
@@ -366,6 +374,10 @@ class SoundPyo(_SoundBase):
             -----------------------------
             Or by giving an Nx2 numpy array of floats (-1:1) you
             can specify the sound yourself as a waveform
+
+            By default, a Hamming window (8ms duration) will be applied to the
+            generated tone, so that onset and offset are smoother (to avoid
+            clicking). To disable the Hamming window, set `hamming=False`.
 
         secs: is only relevant if the value is a note name or
             a frequency value
@@ -388,6 +400,9 @@ class SoundPyo(_SoundBase):
             ignored and the previous setting will be used
 
         bits: has no effect for the pyo backend
+
+        hamming: whether to apply a Hamming window for generated tones. Has no
+            effect on sounds from files.
         """
         global pyoSndServer
         if pyoSndServer==None:
@@ -404,7 +419,7 @@ class SoundPyo(_SoundBase):
         self._snd=None
         self.volume = min(1.0, max(0.0, volume))
         self.loop = bool(loop)
-        self.setSound(value=value, secs=secs, octave=octave)
+        self.setSound(value=value, secs=secs, octave=octave, hamming=hamming)
         self.needsUpdate = False
 
     def play(self, fromStart=True, log=True):
