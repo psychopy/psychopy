@@ -92,7 +92,7 @@ class AudioCapture(object):
             self.running = False
 
     def __init__(self, name='mic', filename='', saveDir='', sampletype=0,
-                 buffering=16, chnl=0):
+                 buffering=16, chnl=0, stereo=True):
         """
         :Parameters:
             name :
@@ -105,6 +105,9 @@ class AudioCapture(object):
                 If no saveDir, then return abspath(file)
             sampletype : bit depth
                 pyo recording option: 0=16 bits int, 1=24 bits int; 2=32 bits int
+            buffering : pyo argument
+            chnl : which audio input channel to record (default=0)
+            stereo : how many channels to record (default True, stereo; False = mono)
         """
         if not haveMic:
             raise MicrophoneError('Need to call microphone.switchOn() before AudioCapture or AdvancedCapture')
@@ -136,7 +139,8 @@ class AudioCapture(object):
 
         # the recorder object needs to persist, or else get bus errors:
         self.recorder = self._Recorder()
-        self.options = {'sampletype': sampletype, 'buffering': buffering, 'chnl': chnl}
+        self.options = {'sampletype': sampletype, 'buffering': buffering,
+                        'chnl': chnl, 'chnls': 1 + int(stereo==True)}
 
     def stop(self):
         """Interrupt a recording that is in progress; close & keep the file.
@@ -273,9 +277,9 @@ class AdvAudioCapture(AudioCapture):
     See Coder demo > input > latencyFromTone.py
     """
     def __init__(self, name='advMic', filename='', saveDir='', sampletype=0,
-                 buffering=16, chnl=0):
+                 buffering=16, chnl=0, chnls=2):
         AudioCapture.__init__(self, name=name, filename=filename, saveDir=saveDir,
-                sampletype=sampletype, buffering=buffering, chnl=chnl)
+                sampletype=sampletype, buffering=buffering, chnl=chnl, chnls=chnls)
         self.setMarker()
 
     def record(self, sec, filename='', block=False):
