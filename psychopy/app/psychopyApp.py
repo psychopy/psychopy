@@ -102,6 +102,7 @@ class MenuFrame(wx.Frame):
 class PsychoPyApp(wx.App):
     def __init__(self, arg=0, showSplash=True):
         wx.App.__init__(self, arg)
+        self.launched_obci = False
         self.onInit(showSplash)
 
     def onInit(self, showSplash=True):
@@ -205,6 +206,22 @@ class PsychoPyApp(wx.App):
         self.allFrames=[]#these are ordered and the order is updated with self.onNewTopWindow
         if mainFrame in ['both', 'coder']: self.showCoder(fileList=scripts)
         if mainFrame in ['both', 'builder']: self.showBuilder(fileList=exps)
+        
+        
+        # TODO: in Windows start OBCI server
+        if sys.platform in ['win32', 'win64']:
+            # detect obci installation
+            if splash: splash.SetText("  Loading OBCI server..."+uidRootFlag)
+            try:
+                import obci
+                obci_path = os.path.abspath(os.path.dirname(obci.__file__))
+                os.environ['OBCI_INSTALL_DIR'] = obci_path
+                obci_script = os.path.join(obci_path, 'control/launcher/obci')
+                print 'Launching OBCI'
+                os.system(' '.join(['bash', obci_script, 'srv']))
+                self.launched_obci = True
+            except Exception:
+                print "OBCI not installed"
 
         #send anonymous info to www.psychopy.org/usage.php
         #please don't disable this - it's important for PsychoPy's development
