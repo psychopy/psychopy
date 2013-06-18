@@ -1,3 +1,10 @@
+psychopy-openbci (1.77.0.0.2-1) UNRELEASED; urgency=low
+
+  * Added launching obci at startup.
+  * Minor fixes.
+
+ -- Karol Auguštin <karol@augustin.pl>  Tue, 18 Jun 2013 14:43:50 +0200
+
 psychopy-openbci (1.77.0.0.1-1) unstable; urgency=low
 
   * New upstream release.
