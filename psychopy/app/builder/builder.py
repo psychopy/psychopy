@@ -3554,7 +3554,8 @@ class BuilderFrame(wx.Frame):
         self.fileHistory = wx.FileHistory(maxFiles=10)
         self.recentFilesMenu = wx.Menu()
         self.fileHistory.UseMenu(self.recentFilesMenu)
-        for filename in self.appData['fileHistory']: self.fileHistory.AddFileToHistory(filename)
+        for filename in self.appData['fileHistory']:
+            self.fileHistory.AddFileToHistory(filename)
         self.Bind(
             wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9
             )
@@ -3727,6 +3728,7 @@ class BuilderFrame(wx.Frame):
             #update the views
             self.updateAllViews()#if frozen effect will be visible on thaw
         self.updateReadme()
+        self.fileHistory.AddFileToHistory(filename)
 
     def fileSave(self,event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
@@ -3737,9 +3739,11 @@ class BuilderFrame(wx.Frame):
             if not self.fileSaveAs(filename):
                 return False #the user cancelled during saveAs
         else:
+            self.fileHistory.AddFileToHistory(filename)
             self.exp.saveToXML(filename)
         self.setIsModified(False)
         return True
+
     def fileSaveAs(self,event=None, filename=None):
         """
         """
@@ -3795,6 +3799,7 @@ class BuilderFrame(wx.Frame):
             pass
         self.updateWindowTitle()
         return returnVal
+
     def getShortFilename(self):
         """returns the filename without path or extension
         """
@@ -3828,13 +3833,15 @@ class BuilderFrame(wx.Frame):
             self.readmeFrame.Show(value)
     def toggleReadme(self, evt=None):
         self.readmeFrame.toggleVisible()
+
     def OnFileHistory(self, evt=None):
         # get the file based on the menu ID
         fileNum = evt.GetId() - wx.ID_FILE1
         path = self.fileHistory.GetHistoryFile(fileNum)
-        self.setCurrentDoc(path)#load the file
+        self.fileOpen(filename=path)
         # add it back to the history so it will be moved up the list
         self.fileHistory.AddFileToHistory(path)
+
     def checkSave(self):
         """Check whether we need to save before quitting
         """
