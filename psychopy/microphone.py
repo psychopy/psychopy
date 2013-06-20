@@ -92,7 +92,7 @@ class AudioCapture(object):
             self.running = False
 
     def __init__(self, name='mic', filename='', saveDir='', sampletype=0,
-                 buffering=16, chnl=0):
+                 buffering=16, chnl=0, stereo=True):
         """
         :Parameters:
             name :
@@ -105,6 +105,9 @@ class AudioCapture(object):
                 If no saveDir, then return abspath(file)
             sampletype : bit depth
                 pyo recording option: 0=16 bits int, 1=24 bits int; 2=32 bits int
+            buffering : pyo argument
+            chnl : which audio input channel to record (default=0)
+            stereo : how many channels to record (default True, stereo; False = mono)
         """
         if not haveMic:
             raise MicrophoneError('Need to call microphone.switchOn() before AudioCapture or AdvancedCapture')
@@ -136,7 +139,8 @@ class AudioCapture(object):
 
         # the recorder object needs to persist, or else get bus errors:
         self.recorder = self._Recorder()
-        self.options = {'sampletype': sampletype, 'buffering': buffering, 'chnl': chnl}
+        self.options = {'sampletype': sampletype, 'buffering': buffering,
+                        'chnl': chnl, 'chnls': 1 + int(stereo==True)}
 
     def stop(self):
         """Interrupt a recording that is in progress; close & keep the file.
@@ -273,9 +277,9 @@ class AdvAudioCapture(AudioCapture):
     See Coder demo > input > latencyFromTone.py
     """
     def __init__(self, name='advMic', filename='', saveDir='', sampletype=0,
-                 buffering=16, chnl=0):
+                 buffering=16, chnl=0, stereo=True):
         AudioCapture.__init__(self, name=name, filename=filename, saveDir=saveDir,
-                sampletype=sampletype, buffering=buffering, chnl=chnl)
+                sampletype=sampletype, buffering=buffering, chnl=chnl, stereo=stereo)
         self.setMarker()
 
     def record(self, sec, filename='', block=False):
@@ -284,14 +288,15 @@ class AdvAudioCapture(AudioCapture):
         recording indicates when this method returned, to enable you to sync
         a known recording onset with other events.
         """
-        self.filename = self._record(sec, filename=filename, block=block)
         self.playMarker()
+        self.filename = self._record(sec, filename=filename, block=block)
         return self.filename
 
     def setFile(self, filename):
         """Sets the name of the file to work with, e.g., for getting onset time.
         """
         self.filename = filename
+
     def setMarker(self, tone=19000, secs=0.015, volume=0.03):
         """Sets the onset marker, where `tone` is either in hz or a custom sound.
 
@@ -320,6 +325,7 @@ class AdvAudioCapture(AudioCapture):
                 logging.warning("Recording rate (%i Hz) too slow for %i Hz-based marker detection." % (int(sampleRate), self.marker_hz))
             logging.exp('frequency of recording onset marker: %.1f' % self.marker_hz)
             self.marker = sound.Sound(self.marker_hz, secs, volume=volume, name=self.name+'.marker_tone')
+
     def playMarker(self):
         """Plays the current marker sound. This is automatically called at the
         start of recording, but can be called anytime to insert a marker.
@@ -392,6 +398,23 @@ class AdvAudioCapture(AudioCapture):
 
         return onsetSecs, offSecs
 
+    def loudness(self):
+        """Return the RMS loudness of the saved recording.
+        """
+        # used cached value unless the file has changed, based on mod time:
+        try:
+            mtime = os.path.getmtime(self.savedFile)
+        except:
+            if not os.path.isfile(self.savedFile):
+                logging.error('no savedFile')
+                return None
+            else:
+                raise
+        if not hasattr(self, 'rms') or self.mtime != mtime:
+            self.rms = getRMS(self.savedFile)  # ~3ms for 2s file
+            self.mtime = mtime
+        return self.rms
+
 def readWavFile(filename):
     """Return (data, sampleRate) as read from a wav file
     """
@@ -408,6 +431,7 @@ def readWavFile(filename):
         data = data.transpose()
         data = data[0]  # left channel only? depends on how the file was made
     return data, sampleRate
+
 def getDftBins(data=[], sampleRate=None, low=100, high=8000, chunk=64):
     """Get DFT (discrete Fourier transform) of `data`, doing so in time-domain
     bins of `chunk` samples.
@@ -430,6 +454,7 @@ def getDftBins(data=[], sampleRate=None, low=100, high=8000, chunk=64):
             bins.append(np.std(magn))  # unfiltered
         i += chunk
     return np.array(bins)
+
 def getDft(data, sampleRate=None, wantPhase=False):
     """Compute and return magnitudes of numpy.fft.fft() of the data.
 
@@ -460,6 +485,30 @@ def getDft(data, sampleRate=None, wantPhase=False):
         if wantPhase:
             return magn, phase
         return magn
+
+def getRMS(data):
+    """Compute and return the audio power ("loudness").
+
+    Identical to std() if the mean is 0; .wav data should have a mean of 0.
+    Returns an array if given stereo data (RMS computed within-channel).
+
+    `data` can be an array (1D, 2D) or filename; .wav format only.
+    data from .wav files will be normalized to -1..+1 before RMS is computed.
+    """
+    def _rms(data):
+        """Audio loudness / power, as rms; ~2x faster than std()"""
+        if len(data.shape) > 1:
+            return np.sqrt(np.mean(data ** 2, axis=1))
+        return np.sqrt(np.mean(data ** 2))
+    if isinstance(data, basestring):
+        if not os.path.isfile(data):
+            raise ValueError('getRMS: could not find file %s' % data)
+        fs, data = wavfile.read(data)
+        data_tr = np.transpose(data)
+        data = data_tr / 32768.
+    elif not isinstance(data, np.ndarray):
+        data = np.array(data, astype=np.float)
+    return _rms(data)
 
 class SoundFormatNotSupported(StandardError):
     """Class to report an unsupported sound format"""
@@ -860,7 +909,7 @@ if __name__ == '__main__':
     logging.console.setLevel(logging.DEBUG)
     switchOn(48000) # import pyo, create a server
 
-    mic = AudioCapture()
+    mic = AdvAudioCapture()
     save = bool('--save' in sys.argv)
     if save:
         del sys.argv[sys.argv.index('--save')]
@@ -886,6 +935,9 @@ if __name__ == '__main__':
             sys.stdout.flush()
             mic.playback()
             print '\nend.', mic.savedFile
+            for i in range(3):
+                t0 = time.time()
+                print mic.loudness(), time.time() - t0
         finally:
             # delete the file even if Ctrl-C
             if not save:

@@ -218,13 +218,8 @@ class _SoundBase:
         outArr = numpy.arange(0.0,1.0, 1.0/nSamples)
         outArr *= 2*numpy.pi*thisFreq*secs
         outArr = numpy.sin(outArr)
-        # apodize the sound over 8ms or 15 samples (smoother onset, offset):
         if hamming and nSamples > 30:
-            hwSize = min(self.sampleRate // 125, nSamples // 15)
-            hammingWindow = numpy.hamming(2 * hwSize + 1)
-            outArr[:hwSize] *= hammingWindow[:hwSize]
-            outArr[-hwSize:] *= hammingWindow[hwSize + 1:]
-            outArr[-hwSize:] *= hammingWindow[hwSize + 1:]  # can sound better
+            outArr = apodize(outArr, self.sampleRate)
         self._fromArray(outArr)
 
     def _fromArray(self, thisArray):
@@ -650,10 +645,20 @@ def initPyo(rate=44100, stereo=True, buffer=128):
         core.quit()
     logging.debug('pyo sound server started')
     logging.flush()
-    
+
 def setaudioLib(api):
     """DEPRECATED: please use preferences>general>audioLib to determine which audio lib to use"""
     raise
+
+def apodize(soundArray, sampleRate):
+    """Apply a Hamming window (5ms) to reduce a sound's 'click' onset / offset
+    """
+    hwSize = min(sampleRate // 200, len(soundArray) // 15)
+    hammingWindow = numpy.hamming(2 * hwSize + 1)
+    soundArray[:hwSize] *= hammingWindow[:hwSize]
+    for i in range(2):
+        soundArray[-hwSize:] *= hammingWindow[hwSize + 1:]
+    return soundArray
 
 #initialise it and keep track
 if audioLib is None:
@@ -664,4 +669,3 @@ elif audioLib=='pyo':
 elif audioLib=='pygame':
     init=initPygame
     Sound=SoundPygame
-
