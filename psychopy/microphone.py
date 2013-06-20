@@ -277,9 +277,9 @@ class AdvAudioCapture(AudioCapture):
     See Coder demo > input > latencyFromTone.py
     """
     def __init__(self, name='advMic', filename='', saveDir='', sampletype=0,
-                 buffering=16, chnl=0, chnls=2):
+                 buffering=16, chnl=0, stereo=True):
         AudioCapture.__init__(self, name=name, filename=filename, saveDir=saveDir,
-                sampletype=sampletype, buffering=buffering, chnl=chnl, chnls=chnls)
+                sampletype=sampletype, buffering=buffering, chnl=chnl, stereo=stereo)
         self.setMarker()
 
     def record(self, sec, filename='', block=False):
@@ -288,14 +288,15 @@ class AdvAudioCapture(AudioCapture):
         recording indicates when this method returned, to enable you to sync
         a known recording onset with other events.
         """
-        self.filename = self._record(sec, filename=filename, block=block)
         self.playMarker()
+        self.filename = self._record(sec, filename=filename, block=block)
         return self.filename
 
     def setFile(self, filename):
         """Sets the name of the file to work with, e.g., for getting onset time.
         """
         self.filename = filename
+
     def setMarker(self, tone=19000, secs=0.015, volume=0.03):
         """Sets the onset marker, where `tone` is either in hz or a custom sound.
 
@@ -324,6 +325,7 @@ class AdvAudioCapture(AudioCapture):
                 logging.warning("Recording rate (%i Hz) too slow for %i Hz-based marker detection." % (int(sampleRate), self.marker_hz))
             logging.exp('frequency of recording onset marker: %.1f' % self.marker_hz)
             self.marker = sound.Sound(self.marker_hz, secs, volume=volume, name=self.name+'.marker_tone')
+
     def playMarker(self):
         """Plays the current marker sound. This is automatically called at the
         start of recording, but can be called anytime to insert a marker.
@@ -429,6 +431,7 @@ def readWavFile(filename):
         data = data.transpose()
         data = data[0]  # left channel only? depends on how the file was made
     return data, sampleRate
+
 def getDftBins(data=[], sampleRate=None, low=100, high=8000, chunk=64):
     """Get DFT (discrete Fourier transform) of `data`, doing so in time-domain
     bins of `chunk` samples.
@@ -451,6 +454,7 @@ def getDftBins(data=[], sampleRate=None, low=100, high=8000, chunk=64):
             bins.append(np.std(magn))  # unfiltered
         i += chunk
     return np.array(bins)
+
 def getDft(data, sampleRate=None, wantPhase=False):
     """Compute and return magnitudes of numpy.fft.fft() of the data.
 
@@ -905,7 +909,7 @@ if __name__ == '__main__':
     logging.console.setLevel(logging.DEBUG)
     switchOn(48000) # import pyo, create a server
 
-    mic = AudioCapture()
+    mic = AdvAudioCapture()
     save = bool('--save' in sys.argv)
     if save:
         del sys.argv[sys.argv.index('--save')]
@@ -931,6 +935,9 @@ if __name__ == '__main__':
             sys.stdout.flush()
             mic.playback()
             print '\nend.', mic.savedFile
+            for i in range(3):
+                t0 = time.time()
+                print mic.loudness(), time.time() - t0
         finally:
             # delete the file even if Ctrl-C
             if not save:
