@@ -396,6 +396,23 @@ class AdvAudioCapture(AudioCapture):
 
         return onsetSecs, offSecs
 
+    def loudness(self):
+        """Return the RMS loudness of the saved recording.
+        """
+        # used cached value unless the file has changed, based on mod time:
+        try:
+            mtime = os.path.getmtime(self.savedFile)
+        except:
+            if not os.path.isfile(self.savedFile):
+                logging.error('no savedFile')
+                return None
+            else:
+                raise
+        if not hasattr(self, 'rms') or self.mtime != mtime:
+            self.rms = getRMS(self.savedFile)  # ~3ms for 2s file
+            self.mtime = mtime
+        return self.rms
+
 def readWavFile(filename):
     """Return (data, sampleRate) as read from a wav file
     """
@@ -464,6 +481,30 @@ def getDft(data, sampleRate=None, wantPhase=False):
         if wantPhase:
             return magn, phase
         return magn
+
+def getRMS(data):
+    """Compute and return the audio power ("loudness").
+
+    Identical to std() if the mean is 0; .wav data should have a mean of 0.
+    Returns an array if given stereo data (RMS computed within-channel).
+
+    `data` can be an array (1D, 2D) or filename; .wav format only.
+    data from .wav files will be normalized to -1..+1 before RMS is computed.
+    """
+    def _rms(data):
+        """Audio loudness / power, as rms; ~2x faster than std()"""
+        if len(data.shape) > 1:
+            return np.sqrt(np.mean(data ** 2, axis=1))
+        return np.sqrt(np.mean(data ** 2))
+    if isinstance(data, basestring):
+        if not os.path.isfile(data):
+            raise ValueError('getRMS: could not find file %s' % data)
+        fs, data = wavfile.read(data)
+        data_tr = np.transpose(data)
+        data = data_tr / 32768.
+    elif not isinstance(data, np.ndarray):
+        data = np.array(data, astype=np.float)
+    return _rms(data)
 
 class SoundFormatNotSupported(StandardError):
     """Class to report an unsupported sound format"""
