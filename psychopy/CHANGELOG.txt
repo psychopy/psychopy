@@ -10,6 +10,15 @@ Changelog
 PsychoPy 1.77
 ------------------------------
 
+PsychoPy 1.77.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Standalone package changes:
+    - pytables downgraded to 2.3.5 on Win32 (to be compatible with WinXP)
+    - pyo upgraded to 0.6.6 on OSX and Win32
+* FIXED: The recent files list in Builder now contains recent files! (Thanks Piotr Iwaniuk)
+* FIXED: Timing issue with LC Tech eye-tracker in iohub
+
 PsychoPy 1.77.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
