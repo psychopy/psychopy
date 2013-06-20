@@ -649,7 +649,7 @@ class Window:
         Frames are stored in memory until a .saveMovieFrames(filename) command
         is issued. You can issue getMovieFrame() as often
         as you like and then save them all in one go when finished.
-        
+
         The back buffer will return the frame that hasn't yet been 'flipped' to be visible on screen but has the advantage that the mouse and any other overlapping windows won't get in the way. The default front buffer is to be called immediately after a win.flip() and gives a complete copy of the screen at the window's coordinates.
         """
         im = self._getFrame(buffer=buffer)
@@ -693,7 +693,7 @@ class Window:
                 image manipulation software, such as GIMP). On Windows and Linux `.mpeg` files
                 can be created if `pymedia` is installed. On OS X `.mov` files can be created
                 if the pyobjc-frameworks-QTKit is installed.
-                
+
                 Unfortunately the libs used for movie generation can be flaky and poor quality. As for animated GIFs, better results can be achieved by saving as individual .png frames and then combining them into a movie using software like ffmpeg.
 
             mpgCodec: the code to be used **by pymedia** if the filename ends in .mpg
@@ -2084,7 +2084,7 @@ class SimpleImageStim:
         GL.glLoadIdentity()
 
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
-        
+
         if self._needStrUpdate: self._updateImageStr()
         #unbind any textures
         GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
@@ -5626,7 +5626,7 @@ class BufferImageStim(GratingStim):
         - 2010 Jeremy Gray
     """
     def __init__(self, win, buffer='back', rect=(-1, 1, 1, -1), sqPower2=False,
-        stim=(), interpolate=True, flipHoriz=False, flipVert=False,
+        stim=(), interpolate=True, flipHoriz=False, flipVert=False, mask='None', pos=(0,0),
         name='', autoLog=True):
         """
         :Parameters:
@@ -5685,7 +5685,9 @@ class BufferImageStim(GratingStim):
             region = win._getRegionOfFrame(buffer=buffer, rect=rect, squarePower2=True)
 
         # turn the RGBA region into a GratingStim()-like object:
-        GratingStim.__init__(self, win, tex=region, units='pix',
+        if win.units in ['norm']:
+            pos *= win.size/2.
+        GratingStim.__init__(self, win, tex=region, units='pix', mask=mask, pos=pos,
                              interpolate=interpolate, name=name, autoLog=autoLog)
         # May 2012: GratingStim is ~3x faster to initialize than ImageStim, looks the same in the demo
         # but subclassing ImageStim seems more intuitive; maybe setTex gets called multiple times?
@@ -7783,7 +7785,3 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     msfree = 1000. * float(numpy.average(freeTimes))
 
     return msPFavg, msPFstd, msPFmed #, msdrawAvg, msdrawSD, msfree
-
-
-
-
