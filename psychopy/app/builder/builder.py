@@ -3571,7 +3571,7 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
         self.fileMenu.Enable(wx.ID_SAVE, False)
         wx.EVT_MENU(self, wx.ID_SAVEAS,  self.fileSaveAs)
-        wx.EVT_MENU(self, wx.ID_CLOSE,  self.closeFrame)
+        wx.EVT_MENU(self, wx.ID_CLOSE,  self.commandCloseFrame)
         item = self.fileMenu.Append(wx.ID_PREFERENCES, text = "&Preferences")
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         #-------------quit
@@ -3665,20 +3665,27 @@ class BuilderFrame(wx.Frame):
 
         self.SetMenuBar(menuBar)
 
-    def closeFrame(self, event=None, checkSave=True):
 
-        if self.app.coder==None and sys.platform!='darwin':
-            if not self.app.quitting:
-                self.app.quit()
-                return#app.quit() will have closed the frame already
-        okToClose = self.fileClose(updateViews=False)#close file first (check for save) but no need to update view
-        if not okToClose:
-            return 0
+    def commandCloseFrame(self, event):
+        self.Close()
+
+    def closeFrame(self, event):
+        if event.CanVeto():
+            okToClose = self.fileClose(updateViews=False)#close file first (check for save) but no need to update view
         else:
-            self.app.allFrames.remove(self)
-            self.app.builderFrames.remove(self)
-            self.Destroy()#close window
-            return 1#indicates all was successful (including check for save)
+            okToClose = True
+
+        if not okToClose:
+            event.Veto()
+        else:
+            # is it the last frame?
+            if len(wx.GetApp().allFrames) == 1 and sys.platform != 'darwin' and not wx.GetApp().quitting:
+                wx.GetApp().quit()
+            else:
+                self.app.allFrames.remove(self)
+                self.app.builderFrames.remove(self)
+                self.Destroy() # required
+
     def quit(self, event=None):
         """quit the app"""
         self.app.quit()
@@ -3846,14 +3853,18 @@ class BuilderFrame(wx.Frame):
         """Check whether we need to save before quitting
         """
         if hasattr(self, 'isModified') and self.isModified:
-            dlg = dialogs.MessageDialog(self,'Experiment has changed. Save before quitting?', type='Warning')
+            message = 'Experiment %s has changed. Save before quitting?' % self.filename
+            dlg = dialogs.MessageDialog(self, message, type='Warning')
             resp = dlg.ShowModal()
-            dlg.Destroy()
-            if resp  == wx.ID_CANCEL: return False #return, don't quit
+            if resp == wx.ID_CANCEL:
+                return False #return, don't quit
             elif resp == wx.ID_YES:
-                if not self.fileSave(): return False #user might cancel during save
-            elif resp == wx.ID_NO: pass #don't save just quit
-        return 1
+                if not self.fileSave():
+                    return False #user might cancel during save
+            elif resp == wx.ID_NO:
+                pass #don't save just quit
+        return True
+    
     def fileClose(self, event=None, checkSave=True, updateViews=True):
         """This is typically only called when the user x"""
         if checkSave:
