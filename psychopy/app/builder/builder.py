@@ -3853,7 +3853,8 @@ class BuilderFrame(wx.Frame):
         """Check whether we need to save before quitting
         """
         if hasattr(self, 'isModified') and self.isModified:
-            dlg = dialogs.MessageDialog(self, 'Experiment has changed. Save before quitting?', type='Warning')
+            message = 'Experiment %s has changed. Save before quitting?' % self.filename
+            dlg = dialogs.MessageDialog(self, message, type='Warning')
             resp = dlg.ShowModal()
             if resp == wx.ID_CANCEL:
                 return False #return, don't quit
