@@ -370,10 +370,11 @@ class PsychoPyApp(wx.App):
         self.quitting=True
         #see whether any files need saving
         for frame in self.allFrames:
-            try:#will fail if the frame has been shut somehow elsewhere
-                ok=frame.checkSave()
+            try: #will fail if the frame has been shut somehow elsewhere
+                ok = frame.checkSave()
             except:
-                ok=False
+                ok = False
+                logging.debug("PsychopyApp: exception when saving")
             if not ok:
                 logging.debug('PsychoPyApp: User cancelled shutdown')
                 return#user cancelled quit
@@ -391,9 +392,8 @@ class PsychoPyApp(wx.App):
         #update app data while closing each frame
         self.prefs.appData['builder']['prevFiles']=[]#start with an empty list to be appended by each frame
         self.prefs.appData['coder']['prevFiles']=[]
-        for frame in copy.copy(self.allFrames):
-            if frame==None: continue
-            frame.closeFrame(checkSave=False)#should update (but not save) prefs.appData
+        for frame in list(self.allFrames):
+            frame.Close(force=True)
             self.prefs.saveAppData()#must do this before destroying the frame?
         if sys.platform=='darwin':
             self.menuFrame.Destroy()
