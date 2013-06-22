@@ -48,7 +48,9 @@ message = visual.TextStim(window,pos=(0.0,-(display_resolution[1]/2-140)),alignH
 
 last_wheelPosY=0
 
-# Run the example until the 'q' or 'ESCAPE' key is pressed
+io.clearEvents('all')
+
+# Run the example until a keyboard event is received.
 #
 while True:
     # Get the current mouse position
@@ -98,10 +100,8 @@ while True:
     # returned (KeyboardPressEvent, KeyboardReleaseEvent, KeyboardCharEvent),
     # and used in this evaluation.
     #
-    for event in keyboard.getEvents():
-        # Check if we should quit
-        # Note that the keyboard events in iohub are case-sensitive (shift-q means "Q")
-        if event.key in ['ESCAPE','q']:
+    if keyboard.getEvents():
+        # Check if we should quit. Any kb event will end the demo.
             io.quit()
             core.quit()
 
