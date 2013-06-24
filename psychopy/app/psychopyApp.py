@@ -6,6 +6,7 @@
 
 import sys, psychopy
 import copy
+import subprocess
 
 if __name__=='__main__':
     if '-v' in sys.argv or '--version' in sys.argv:
@@ -226,9 +227,9 @@ class PsychoPyApp(wx.App):
                 import obci
                 obci_path = os.path.abspath(os.path.dirname(obci.__file__))
                 os.environ['OBCI_INSTALL_DIR'] = obci_path
-                obci_script = os.path.join(obci_path, 'control/launcher/obci')
+                obci_script = os.path.join(obci_path, 'control/launcher/obci_script.py')
                 print 'Launching OBCI'
-                os.system(' '.join(['bash', obci_script, 'srv']))
+                subprocess.Popen(['python', obci_script, "srv"]).wait()
                 self.launched_obci = True
             except Exception:
                 print "OBCI not installed"
