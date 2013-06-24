@@ -11,7 +11,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 """
 from .. import Computer, Device
 from ... import printExceptionDetailsToStdErr,print2err
-from ...constants import EventConstants, DeviceConstants, MouseConstants
+from ...constants import EventConstants, DeviceConstants, MouseConstants,KeyboardConstants
 import numpy as N
 from collections import namedtuple
 
@@ -363,11 +363,11 @@ class MouseInputEvent(DeviceEvent):
                      ('scroll_dy', N.int8),  # vertical scroll wheel position change when the event occurred
                      ('scroll_y', N.int16),  # vertical scroll wheel abs. position when the event occurred
 
+                     ('modifiers',N.uint32),  # indicates what modifier keys were active when the mouse event occurred.
+
                      ('window_id',N.uint64)      # window ID that the mouse was over when the event occurred
                                                 # (window does not need to have focus)
                     ]
-    # TODO: Determine real maximum key name string and modifiers string
-    # lengths and set appropriately.
 
     __slots__=[e[0] for e in _newDataTypes]
     def __init__(self,*args,**kwargs):
@@ -407,11 +407,33 @@ class MouseInputEvent(DeviceEvent):
         #: Vertical scroll wheel absolute position when the event occurred.
         self.scroll_y=None
         
+        #: List of the modifiers that were active when the mouse event occurred,
+        #: provided in online events as a list of the modifier constant labels  
+        #: specified in iohub.ModifierConstants
+        #: list: Empty if no modifiers are pressed, otherwise each elemnt is the string name of a modifier constant.
+        self.modifiers=0
+
         #: Window handle reference that the mouse was over when the event occurred
         #: (window does not need to have focus)
         self.window_id=None
 
         DeviceEvent.__init__(self,*args,**kwargs)
+
+    @classmethod
+    def _convertFields(cls,event_value_list):
+        modifier_value_index=cls.CLASS_ATTRIBUTE_NAMES.index('modifiers')
+        event_value_list[modifier_value_index]=KeyboardConstants._modifierCodes2Labels(event_value_list[modifier_value_index])
+        
+    @classmethod
+    def createEventAsDict(cls,values):
+        cls._convertFields(values)
+        return dict(zip(cls.CLASS_ATTRIBUTE_NAMES,values))
+
+    #noinspection PyUnresolvedReferences
+    @classmethod
+    def createEventAsNamedTuple(cls,valueList):
+        cls._convertFields(valueList)
+        return cls.namedTupleClass(*valueList)
 
 class MouseMoveEvent(MouseInputEvent):
     """

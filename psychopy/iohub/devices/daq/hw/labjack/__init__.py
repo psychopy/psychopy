@@ -232,7 +232,7 @@ class LabJackDataReader(threading.Thread):
                 total = self.request_count * self.labjack_device.packetsPerRequest * self.labjack_device.streamSamplesPerPacket
                 total -= self.missed_count
                 run_time = self.stream_stop_time-self.stream_start_time_post
-                print2err("%s samples / %s seconds = %s Hz" % ( total, run_time, float(total)/run_time ))
+                #print2err("%s samples / %s seconds = %s Hz" % ( total, run_time, float(total)/run_time ))
             self.iohub_device=None
             self.labjack_device=None
         except:

@@ -70,20 +70,19 @@ try:
 except:
     havePygame=False
 
-#check for advanced drawing abilities
-#actually FBO isn't working yet so disable
-try:
-    #import OpenGL.GL.EXT.framebuffer_object as FB
-    #for pyglet these functions are under .gl like everything else
-    haveFB=False
-except:
-    haveFB=False
+#do we want to use the frameBufferObject (if available an needed)?
+global useFBO
+useFBO = False
 
 try:
-    from matplotlib import nxutils
-    haveNxutils = True
+    import matplotlib
+    if matplotlib.__version__ > '1.2':
+        from matplotlib.path import Path as mpl_Path
+    else:
+        from matplotlib import nxutils
+    haveMatplotlib = True
 except:
-    haveNxutils = False
+    haveMatplotlib = False
 
 global DEBUG; DEBUG=False
 
@@ -183,9 +182,9 @@ class Window(object):
         self.name=name
         self.size = numpy.array(size, numpy.int)
         self.pos = pos
-        self.winHandle=None#this will get overridden once the window is created
+        self.winHandle=None #this will get overridden once the window is created
+        self.useFBO = False #override during setupPyglet if needed
 
-        self._defDepth=0.0
         self._toLog=[]
         self._toCall=[]
 
@@ -290,7 +289,7 @@ class Window(object):
             self.setColor(color, colorSpace=colorSpace)
 
         #check whether FBOs are supported
-        if blendMode=='add' and not haveFB:
+        if blendMode=='add' and not self.useFBO:
             logging.warning("""User requested a blendmode of "add" but framebuffer objects not available. You need PyOpenGL3.0+ to use this blend mode""")
             self.blendMode='average' #resort to the simpler blending without float rendering
         else: self.blendMode=blendMode
@@ -460,15 +459,18 @@ class Window(object):
         for thisStim in self._toDraw:
             thisStim.draw()
 
-        if haveFB:
+        if self.useFBO:
+            GL.glUseProgram(0)
             #need blit the frambuffer object to the actual back buffer
 
-            FB.glBindFramebufferEXT(FB.GL_FRAMEBUFFER_EXT, 0)#unbind the framebuffer as the render target
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)#unbind the framebuffer as the render target
 
             #before flipping need to copy the renderBuffer to the frameBuffer
             GL.glActiveTexture(GL.GL_TEXTURE0)
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, self.frameTexture)
+            GL.glColor3f(1.0, 1.0, 1.0)#glColor multiplies with texture
+            #draw the quad for the screen
             GL.glBegin( GL.GL_QUADS )
             GL.glTexCoord2f( 0.0, 0.0 ) ; GL.glVertex2f( -1.0,-1.0 )
             GL.glTexCoord2f( 0.0, 1.0 ) ; GL.glVertex2f( -1.0, 1.0 )
@@ -494,8 +496,6 @@ class Window(object):
             if pyglet.version<'1.2': #for pyglet 1.1.4 you needed to call media.dispatch for movie updating
                 pyglet.media.dispatch_events()#for sounds to be processed
             self.winHandle.flip()
-            #self.winHandle.clear()
-            GL.glLoadIdentity()
         else:
             if pygame.display.get_init():
                 pygame.display.flip()
@@ -503,15 +503,24 @@ class Window(object):
             else:
                 core.quit()#we've unitialised pygame so quit
 
+        if self.useFBO:
+            #set rendering back to the framebuffer object
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0) #ubind the frame texture
+            #bind the FBO the frameBuffer
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+
         #rescale/reposition view of the window
         if self.viewScale != None:
             GL.glMatrixMode(GL.GL_PROJECTION)
             GL.glLoadIdentity()
             GL.glOrtho(-1,1,-1,1,-1,1)
             GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
+        else:
+            GL.glLoadIdentity()#still worth loading identity
         if self.viewPos != None:
             GL.glMatrixMode(GL.GL_MODELVIEW)
-#            GL.glLoadIdentity()
             if self.viewScale==None: scale=[1,1]
             else: scale=self.viewScale
             norm_rf_pos_x = self.viewPos[0]/scale[0]
@@ -520,14 +529,9 @@ class Window(object):
         if self.viewOri != None:
             GL.glRotatef( self.viewOri, 0.0, 0.0, -1.0)
 
-        if haveFB:
-            #set rendering back to the framebuffer object
-            FB.glBindFramebufferEXT(FB.GL_FRAMEBUFFER_EXT, self.frameBuffer)
-
         #reset returned buffer for next frame
-        if clearBuffer: GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-        else: GL.glClear(GL.GL_DEPTH_BUFFER_BIT)#always clear the depth bit
-        self._defDepth=0.0#gets gradually updated through frame
+        if clearBuffer:
+            GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
         #waitBlanking
         if self.waitBlanking:
@@ -642,17 +646,18 @@ class Window(object):
         taking the time to flip the window.
         """
         #reset returned buffer for next frame
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-        self._defDepth=0.0#gets gradually updated through frame
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
     def getMovieFrame(self, buffer='front'):
         """
         Capture the current Window as an image.
-        This can be done at any time (usually after a .update() command).
+        This can be done at any time (usually after a .flip() command).
 
         Frames are stored in memory until a .saveMovieFrames(filename) command
         is issued. You can issue getMovieFrame() as often
         as you like and then save them all in one go when finished.
+
+        The back buffer will return the frame that hasn't yet been 'flipped' to be visible on screen but has the advantage that the mouse and any other overlapping windows won't get in the way. The default front buffer is to be called immediately after a win.flip() and gives a complete copy of the screen at the window's coordinates.
         """
         im = self._getFrame(buffer=buffer)
         self.movieFrames.append(im)
@@ -689,12 +694,14 @@ class Window(object):
 
             filename: name of file, including path (required)
                 The extension at the end of the file determines the type of file(s)
-                created. If an image type is given the multiple static frames are created.
+                created. If an image type (e.g. .png) is given, then multiple static frames are created.
                 If it is .gif then an animated GIF image is created (although you will get higher
                 quality GIF by saving PNG files and then combining them in dedicated
-                image manipulation software (e.g. GIMP). On windows and linux `.mpeg` files
+                image manipulation software, such as GIMP). On Windows and Linux `.mpeg` files
                 can be created if `pymedia` is installed. On OS X `.mov` files can be created
                 if the pyobjc-frameworks-QTKit is installed.
+
+                Unfortunately the libs used for movie generation can be flaky and poor quality. As for animated GIFs, better results can be achieved by saving as individual .png frames and then combining them into a movie using software like ffmpeg.
 
             mpgCodec: the code to be used **by pymedia** if the filename ends in .mpg
 
@@ -969,8 +976,10 @@ class Window(object):
                                               style=style
                                           )
         #provide warning if stereo buffers are requested but unavailable
-        if self.stereo and not GL.gl_info.have_extension(GL.GL_STEREO):
+        if self.stereo and not GL.gl_info.have_extension('GL_STEREO'):
             logging.warning('A stereo window was requested but the graphics card does not appear to support GL_STEREO')
+        if GL.gl_info.have_extension('GL_EXT_framebuffer_object') and useFBO:
+            self.useFBO=True
         #add these methods to the pyglet window
         self.winHandle.setGamma = psychopy.gamma.setGamma
         self.winHandle.setGammaRamp = psychopy.gamma.setGammaRamp
@@ -1090,7 +1099,7 @@ class Window(object):
 #            else:
 #                self._haveShaders=False
 
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT|GL.GL_DEPTH_BUFFER_BIT)
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT   )
 
         #identify gfx card vendor
         self.glVendor=GL.gl_info.get_vendor().lower()
@@ -1098,21 +1107,18 @@ class Window(object):
         if sys.platform=='darwin':
             platform_specific.syncSwapBuffers(1)
 
-        if haveFB:
+        if self.useFBO:
             self._setupFrameBuffer()
 
     def _setupFrameBuffer(self):
         # Setup framebuffer
-        self.frameBuffer = FB.glGenFramebuffersEXT(1)
-
-        FB.glBindFramebufferEXT(FB.GL_FRAMEBUFFER_EXT, self.frameBuffer)
-        # Setup depthbuffer
-        self.depthBuffer = FB.glGenRenderbuffersEXT(1)
-        FB.glBindRenderbufferEXT (FB.GL_RENDERBUFFER_EXT,self.depthBuffer)
-        FB.glRenderbufferStorageEXT (FB.GL_RENDERBUFFER_EXT, GL.GL_DEPTH_COMPONENT, int(self.size[0]), int(self.size[1]))
+        self.frameBuffer=GL.GLuint()
+        GL.glGenFramebuffersEXT(1, ctypes.byref(self.frameBuffer))
+        GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
 
         # Create texture to render to
-        self.frameTexture = GL.glGenTextures (1)
+        self.frameTexture=GL.GLuint()
+        GL.glGenTextures(1, ctypes.byref(self.frameTexture))
         GL.glBindTexture (GL.GL_TEXTURE_2D, self.frameTexture)
         GL.glTexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
         GL.glTexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
@@ -1120,16 +1126,16 @@ class Window(object):
                          GL.GL_RGBA, GL.GL_FLOAT, None)
 
         #attach texture to the frame buffer
-        FB.glFramebufferTexture2DEXT (FB.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT,
+        GL.glFramebufferTexture2DEXT (GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT,
                                       GL.GL_TEXTURE_2D, self.frameTexture, 0)
-        FB.glFramebufferRenderbufferEXT(FB.GL_FRAMEBUFFER_EXT, GL.GL_DEPTH_ATTACHMENT_EXT,
-                                        FB.GL_RENDERBUFFER_EXT, self.depthBuffer)
 
-        status = FB.glCheckFramebufferStatusEXT (FB.GL_FRAMEBUFFER_EXT)
-        if status != FB.GL_FRAMEBUFFER_COMPLETE_EXT:
-            logging.warning("Error in framebuffer activation")
+        status = GL.glCheckFramebufferStatusEXT (GL.GL_FRAMEBUFFER_EXT)
+        if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
+            logging.error("Error in framebuffer activation")
             return
         GL.glDisable(GL.GL_TEXTURE_2D)
+        #clear the buffer (otherwise the texture memory can contain junk)
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
     def setMouseVisible(self,visibility):
         """Sets the visibility of the mouse cursor.
@@ -2084,6 +2090,8 @@ class SimpleImageStim:
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
 
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
+
         if self._needStrUpdate: self._updateImageStr()
         #unbind any textures
         GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
@@ -2175,12 +2183,12 @@ class SimpleImageStim:
         self.size = im.size
         #set correct formats for bytes/floats
         if im.mode=='RGBA':
-            self.imArray = numpy.array(im).astype(numpy.float32)/255
-            self.internalFormat = GL.GL_RGBA
+              self.imArray = numpy.array(im).astype(numpy.ubyte)
+              self.internalFormat = GL.GL_RGBA
         else:
-            self.imArray = numpy.array(im.convert("RGB")).astype(numpy.float32)/255
-            self.internalFormat = GL.GL_RGB
-        self.dataType = GL.GL_FLOAT
+             self.imArray = numpy.array(im.convert("RGB")).astype(numpy.ubyte)
+             self.internalFormat = GL.GL_RGB
+        self.dataType = GL.GL_UNSIGNED_BYTE
         self._needStrUpdate = True
 
         if log and self.autoLog:
@@ -2630,7 +2638,17 @@ class GratingStim(_BaseVisualStim):
         GL.glVertex2f(R,T)
         GL.glEnd()
 
+        #disable mask
+        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
         GL.glDisable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+        #main texture
+        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+        #we're done!
         GL.glEndList()
 
 
@@ -5619,7 +5637,7 @@ class BufferImageStim(GratingStim):
         - 2010 Jeremy Gray
     """
     def __init__(self, win, buffer='back', rect=(-1, 1, 1, -1), sqPower2=False,
-        stim=(), interpolate=True, flipHoriz=False, flipVert=False,
+        stim=(), interpolate=True, flipHoriz=False, flipVert=False, mask='None', pos=(0,0),
         name='', autoLog=True):
         """
         :Parameters:
@@ -5678,7 +5696,9 @@ class BufferImageStim(GratingStim):
             region = win._getRegionOfFrame(buffer=buffer, rect=rect, squarePower2=True)
 
         # turn the RGBA region into a GratingStim()-like object:
-        GratingStim.__init__(self, win, tex=region, units='pix',
+        if win.units in ['norm']:
+            pos *= win.size/2.
+        GratingStim.__init__(self, win, tex=region, units='pix', mask=mask, pos=pos,
                              interpolate=interpolate, name=name, autoLog=autoLog)
         # May 2012: GratingStim is ~3x faster to initialize than ImageStim, looks the same in the demo
         # but subclassing ImageStim seems more intuitive; maybe setTex gets called multiple times?
@@ -7503,9 +7523,6 @@ def pointInPolygon(x, y, poly):
 
     Returns True (inside) or False (outside). Used by :class:`~psychopy.visual.ShapeStim` `.contains()`
     """
-    # looks powerful but has a C dependency: http://pypi.python.org/pypi/Shapely
-    # see also https://github.com/jraedler/Polygon2/
-
     if hasattr(poly, '_verticesRendered') and hasattr(poly, '_posRendered'):
         poly = poly._verticesRendered + poly._posRendered
     nVert = len(poly)
@@ -7514,15 +7531,15 @@ def pointInPolygon(x, y, poly):
         logging.warning(msg)
         return False
 
-    # faster if have matplotlib.nxutils:
-    if haveNxutils:
-        try:
-            return bool(nxutils.pnpoly(x, y, poly))
-            # has failed with matplotlib 1.2.0-r1
-            #   transform = transform.frozen()
-            # AttributeError: 'numpy.float64' object has no attribute 'frozen'
-        except:
-            pass
+    # faster if have matplotlib tools:
+    if haveMatplotlib:
+        if matplotlib.__version__ > '1.2':
+            return mpl_Path(poly).contains_point([x,y])
+        else:
+            try:
+                return bool(nxutils.pnpoly(x, y, poly))
+            except:
+                pass
 
     # fall through to pure python:
     # as adapted from http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
@@ -7557,13 +7574,18 @@ def polygonsOverlap(poly1, poly2):
     if hasattr(poly2, '_verticesRendered') and hasattr(poly2, '_posRendered'):
         poly2 = poly2._verticesRendered + poly2._posRendered
 
-    # faster if have matplotlib.nxutils:
-    if haveNxutils:
-        try: # has failed with matplotlib 1.2.0-r1
-            if any(nxutils.points_inside_poly(poly1, poly2)):
+    # faster if have matplotlib tools:
+    if haveMatplotlib:
+        if matplotlib.__version__ > '1.2':
+            if any(mpl_Path(poly1).contains_points(poly2)):
                 return True
-            return any(nxutils.points_inside_poly(poly2, poly1))
-        except: pass
+            return any(mpl_Path(poly2).contains_points(poly1))
+        else:
+            try: # deprecated in matplotlib 1.2
+                if any(nxutils.points_inside_poly(poly1, poly2)):
+                    return True
+                return any(nxutils.points_inside_poly(poly2, poly1))
+            except: pass
 
     # fall through to pure python:
     for p1 in poly1:
@@ -7588,7 +7610,7 @@ def _isValidColor(color):
         color = float(color)
         return True
     except:
-        if isinstance(color, basestring):
+        if isinstance(color, basestring) and len(color):
             return (color.lower() in colors.colors255.keys()
                     or color[0]=='#' or color[0:2]=='0x')
         return type(color) in [tuple, list, numpy.ndarray] or color==None
@@ -7785,7 +7807,3 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     msfree = 1000. * float(numpy.average(freeTimes))
 
     return msPFavg, msPFstd, msPFmed #, msdrawAvg, msdrawSD, msfree
-
-
-
-

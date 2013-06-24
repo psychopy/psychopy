@@ -17,3 +17,5 @@ move /Y dist\* ..\dist\
 
 rem reinsert my dev .pth file
 ECHO F|xcopy /I /Y ..\psychopy.pth C:\Python27\Lib\site-packages\psychopy.pth
+rem uninstall psychopy from site-packages
+pip uninstall psychopy -y

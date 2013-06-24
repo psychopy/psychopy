@@ -69,7 +69,7 @@ def test_getCRSPhotometers():
 
     # This allows us to test our logic even when pycrsltd is missing
     faked = type("MockColorCAL",(object,),{})
-    with mock.patch("psychopy.hardware.crs.ColorCAL",faked):
+    with mock.patch("psychopy.hardware.crs.ColorCAL", faked, create=True):
         photoms = list(hw.getAllPhotometers())
         assert faked in photoms
 
