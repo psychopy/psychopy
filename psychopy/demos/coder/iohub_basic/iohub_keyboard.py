@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-keyboard.run.py
+iohub_keyboard.py
 
 Displays event information from ioHub Keyboard Events. 
 
 Inital Version: May 6th, 2013, Sol Simpson
+Updated June 22nd: Added demo timeout. SS
 """
-from psychopy import visual
+from psychopy import core, visual
 from psychopy.iohub import launchHubServer,EventConstants 
 
 
@@ -121,7 +122,9 @@ STIM_LIST=[title_label,key_text_label,ucode_label,modifiers_label,keypress_durat
 io.clearEvents('all')
         
 QUIT_EXP=False
-# Loop until we get a CTRL+q, event 
+start_time=core.getTime()
+
+# Loop until we get a CTRL+q event or until 120 seconds has passed 
 #
 while QUIT_EXP is False:
     
@@ -140,6 +143,7 @@ while QUIT_EXP is False:
     # recent event in the list of a given event type is what you will see.
     #    
     for event in keyboard.getEvents():
+        print 'KB EVT: ',  event, '\n'
         key_text_stim.setText(event.key)
         ucode_stim.setText('{0:#06x} = {1}'.format(event.ucode,unichr(event.ucode)))
         modifiers_stim.setText(str(event.modifiers))
@@ -147,9 +151,10 @@ while QUIT_EXP is False:
             keypress_duration_stim.setText("%.6f"%(event.duration))
         event_type_stim.setText(EventConstants.getName(event.type))
     
-        if event.key.lower()=='q' and ('CONTROL_LEFT' in event.modifiers or 'CONTROL_LEFT' in event.modifiers):
+        if flip_time-start_time >= 120.0 or (event.key.lower()=='q' and ('CONTROL_LEFT' in event.modifiers or 'CONTROL_LEFT' in event.modifiers)):
             QUIT_EXP=True
             break
+
 
     # Send a message to the iohub with the message text that a flip 
     # occurred and what the mouse position was. Since we know the 
