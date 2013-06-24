@@ -80,6 +80,17 @@ Section "PsychoPy" SEC01
   SectionIn RO
   SetShellVarContext all
   SetOutPath "$INSTDIR"
+  
+  MessageBox MB_YESNO "Install Visual C++ Redist?" /SD IDYES IDNO endVCRedist
+    File "bundled\vcredist_x86.exe"
+    ExecWait "$INSTDIR\bundled\vcredist_x86.exe /q"
+  endVCRedist:
+  
+  MessageBox MB_YESNO "Install ZeroMQ?" /SD IDYES IDNO endZMQ
+    File "bundled\ZeroMQ-x86.exe"
+    ExecWait "$INSTDIR\bundled\ZeroMQ-x86.exe /S"
+  endZMQ:
+  
   SetOverwrite on
   ;AppDir is the path to the psychopy app folder
   Var /GLOBAL AppDir
