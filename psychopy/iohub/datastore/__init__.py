@@ -38,10 +38,10 @@ cores in your machine or, when your machine has many of them (e.g. > 4),
 perhaps one less than this.  < S. Simpson Note: These are 'not' GIL bound
 threads and therefore actually improve performance > """
 
-DATA_FILE_TITLE="ioHub Experiment Data File"
-FILE_VERSION = '0.7.0 Beta'
+DATA_FILE_TITLE="ioHub DataStore - Experiment Data File."
+FILE_VERSION = '0.7.0'
 SCHEMA_AUTHORS='Sol Simpson'
-SCHEMA_MODIFIED_DATE='April 24th, 2013'
+SCHEMA_MODIFIED_DATE='May 6th, 2013'
 
         
 class ioHubpyTablesFile():
@@ -82,7 +82,7 @@ class ioHubpyTablesFile():
             if event_cls.IOHUB_DATA_TABLE:
                 event_table_label=event_cls.IOHUB_DATA_TABLE
                 if event_table_label not in self.TABLES:
-                    self.TABLES[event_table_label]=self.emrtFile.createTable(self._eventGroupMappings[event_table_label],eventTableLabel2ClassName(event_table_label),event_cls.NUMPY_DTYPE, title="%s %s Data"%(device_instance.__class__.__name__,eventTableLabel2ClassName(event_table_label)),filters=dfilter.copy())
+                    self.TABLES[event_table_label]=self.emrtFile.createTable(self._eventGroupMappings[event_table_label],eventTableLabel2ClassName(event_table_label),event_cls.NUMPY_DTYPE, title="%s Data"%(device_instance.__class__.__name__,),filters=dfilter.copy())
                     self.flush()
     
                 self.addClassMapping(event_cls,self.TABLES[event_table_label])
@@ -197,28 +197,30 @@ class ioHubpyTablesFile():
         
         #CREATE GROUPS
 
-        self.emrtFile.createGroup(self.emrtFile.root, 'analysis', title='Data Analysis Files, notebooks, scripts and saved results tables.')
-        self.emrtFile.createGroup(self.emrtFile.root, 'data_collection', title='Data Collected from Experiment Sessions')
+        #self.emrtFile.createGroup(self.emrtFile.root, 'analysis', title='Data Analysis Files, notebooks, scripts and saved results tables.')
+
+        self.TABLES['CLASS_TABLE_MAPPINGS']=self.emrtFile.createTable(self.emrtFile.root,'class_table_mapping', ClassTableMappings, title='Mapping of ioHub DeviceEvent Classes to ioHub DataStore Tables.')
+
+        self.emrtFile.createGroup(self.emrtFile.root, 'data_collection', title='Data Collected using the ioHub Event Framework.')
         self.flush()
 
-        self.emrtFile.createGroup(self.emrtFile.root.data_collection, 'events', title='Events that occurred and were saved during the experiments.')
+        self.emrtFile.createGroup(self.emrtFile.root.data_collection, 'events', title='All Events that were Saved During Experiment Sessions.')
 
-        self.emrtFile.createGroup(self.emrtFile.root.data_collection, 'condition_variables', title='Experiment DV and IVs used during and experiment session, or calculated and stored. In general, each row represents one trial of an experiment session.')
+        self.emrtFile.createGroup(self.emrtFile.root.data_collection, 'condition_variables', title="Tables created to Hold Experiment DV and IV's Values Saved During an Experiment Session.")
         self.flush()
 
-        self.TABLES['CLASS_TABLE_MAPPINGS']=self.emrtFile.createTable(self.emrtFile.root,'class_table_mapping', ClassTableMappings, title='Mapping of ioObjects Classes to ioHub tables')
         
-        self.TABLES['EXPERIMENT_METADETA']=self.emrtFile.createTable(self.emrtFile.root.data_collection,'experiment_meta_data', ExperimentMetaData, title='Different Experiments Paradigms that have been run')
-        self.TABLES['SESSION_METADETA']=self.emrtFile.createTable(self.emrtFile.root.data_collection,'session_meta_data', SessionMetaData, title='Session run for the various experiments.')
+        self.TABLES['EXPERIMENT_METADETA']=self.emrtFile.createTable(self.emrtFile.root.data_collection,'experiment_meta_data', ExperimentMetaData, title='Information About Experiments Saved to This ioHub DataStore File.')
+        self.TABLES['SESSION_METADETA']=self.emrtFile.createTable(self.emrtFile.root.data_collection,'session_meta_data', SessionMetaData, title='Information About Sessions Saved to This ioHub DataStore File.')
         self.flush()
 
 
-        self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'experiment', title='Experiment Generated Events')
-        self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'keyboard', title='Keyboard Created Events')
-        self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'mouse', title='Mouse Device Created Events')
-        self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'gamepad', title='GamePad Created Events')
-        self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'analog_input', title='AnalogInput Device Created Events')
-        self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'eyetracker', title='Eye Tracker Generated Events')
+        self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'experiment', title='Experiment Device Events.')
+        self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'keyboard', title='Keyboard Device Events.')
+        self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'mouse', title='Mouse Device Events.')
+        self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'gamepad', title='GamePad Device Events.')
+        self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'analog_input', title='AnalogInput Device Events.')
+        self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'eyetracker', title='EyeTracker Device Events.')
         self.flush()
 
         self._buildEventGroupMappingDict()
@@ -303,7 +305,7 @@ class ioHubpyTablesFile():
             self.TABLES['EXP_CV']=experimentConditionVariableTable
         except NoSuchNodeError, nsne:
             try:
-                experimentConditionVariableTable=self.emrtFile.createTable(self.emrtFile.root.data_collection.condition_variables,expCondTableName,self._EXP_COND_DTYPE,title='Condition Variables for Experiment id %d'%(experiment_id))
+                experimentConditionVariableTable=self.emrtFile.createTable(self.emrtFile.root.data_collection.condition_variables,expCondTableName,self._EXP_COND_DTYPE,title='Condition Variable Values for Experiment ID %d'%(experiment_id))
                 self.TABLES['EXP_CV']=experimentConditionVariableTable
                 self.emrtFile.flush()
             except:

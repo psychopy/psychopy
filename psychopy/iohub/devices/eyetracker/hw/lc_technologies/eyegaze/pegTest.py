@@ -62,9 +62,10 @@ if __name__ == '__main__':
     # For the example, collect 1000+ samples of data
     samples_rx=0
     rec_start=timeit.default_timer()
-    while samples_rx < 1000:
+    MAX_SAMPLES=100
+    while samples_rx < MAX_SAMPLES:
         # This is the 'doing something else' part in the example.
-        time.sleep(0.01)
+        time.sleep(0.005)
         
         # we'll use async. mode, getting avail samples 
         # and then 'do something else'.
@@ -73,11 +74,15 @@ if __name__ == '__main__':
              # assume monocular for this example only. ;)
              sample_data0=eyegaze_control.pstEgData[0]
              stime=sample_data0.dGazeTimeSec
+             current_time=(pEyeGaze.lct_TimerRead(None)/1000000.0) - pEyeGaze.EgGetApplicationStartTimeSec()
+             delay=current_time-stime
              gaze_x=sample_data0.iIGaze
              gaze_y=sample_data0.iJGaze
-             print 'Sample Time: {0}\tX: {1}\tY: {2}'.format(stime,gaze_x,gaze_y)
+             print 'Sample Time: {0}\t{1}\t{2}\tX: {3}\tY: {4}\ti: {5}'.format(stime,current_time,delay,gaze_x,gaze_y,samples_rx)
              samples_rx+=1
-        
+             if samples_rx > MAX_SAMPLES:
+                 break
+             
     rec_end=timeit.default_timer()
     
     # stop recording

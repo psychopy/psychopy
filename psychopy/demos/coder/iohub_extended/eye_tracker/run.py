@@ -60,8 +60,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         #
         display_coord_type=display.getCoordinateType()
         image_cache=dict()
-        image_names=['./images/party.png','./images/desert.png','./images/jellyfish.png',
-                     './images/lighthouse.png','./images/swimming.png']
+        image_names=['./images/canal.jpg','./images/fall.jpg','./images/party.jpg','./images/swimming.jpg','./images/lake.jpg']
 
         for iname in image_names:
             image_cache[iname]=visual.ImageStim(window, image=iname, 

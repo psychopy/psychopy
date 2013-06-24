@@ -15,19 +15,10 @@ from gevent import Greenlet
 import os,sys
 from operator import itemgetter
 from collections import deque
-
-from psychopy.iohub.util import OrderedDict,print2err, printExceptionDetailsToStdErr, ioHubError, createErrorResult,convertCamelToSnake
-from psychopy.iohub.constants import DeviceConstants,EventConstants
-from psychopy.iohub.devices import Computer, DeviceEvent, import_device        
+import psychopy.iohub
+from psychopy.iohub import OrderedDict,print2err, printExceptionDetailsToStdErr, ioHubError, createErrorResult,convertCamelToSnake, DeviceConstants,EventConstants,Computer, DeviceEvent, import_device, IO_HUB_DIRECTORY, load, dump, Loader, Dumper
 from psychopy.iohub.devices.deviceConfigValidation import validateDeviceConfiguration
 from psychopy.iohub.net import MAX_PACKET_SIZE
-from psychopy.iohub import IO_HUB_DIRECTORY
-from yaml import load
-try:
-    from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError:
-    from yaml import Loader, Dumper
-        
 currentSec= Computer.currentSec
 
 import json
@@ -56,7 +47,14 @@ class udpServer(DatagramServer):
         request = self.unpack()   
         request_type= request.pop(0)
         
-        if request_type == 'GET_EVENTS':
+        if request_type == 'PING':
+                clienttime=request.pop(0)
+                msg_id=request.pop(0)
+                payload=request.pop(0)
+                ctime=currentSec()
+                self.sendResponse(["PING_BACK",ctime,msg_id,payload,replyTo],replyTo)
+                return True
+        elif request_type == 'GET_EVENTS':
             return self.handleGetEvents(replyTo)
         elif request_type == 'EXP_DEVICE':
             return self.handleExperimentDeviceRequest(request,replyTo)
@@ -437,23 +435,9 @@ class ioServer(object):
         # start UDP service
         self.udpService=udpServer(self,':%d'%config.get('udp_port',9000))
 
-        from .. import iohub
-        # read temp paths file
-        iohub.data_paths=None
-        try:
-            expJsonPath=os.path.join(rootScriptPathDir,'exp.paths')
-            f=open(expJsonPath,'r')
-            iohub.data_paths=json.loads(f.read())
-            f.flush()
-            f.close()
-            os.remove(expJsonPath)
-        except:
-            pass
-
-
         try:
             # initial dataStore setup
-            if 'data_store' in config:
+            if 'data_store' in config and psychopy.iohub._DATA_STORE_AVAILABLE:
                 experiment_datastore_config=config.get('data_store')
                 default_datastore_config_path=os.path.join(IO_HUB_DIRECTORY,'datastore','default_datastore.yaml')
                 #print2err('default_datastore_config_path: ',default_datastore_config_path)
@@ -466,10 +450,7 @@ class ioServer(object):
                 if experiment_datastore_config.get('enable', True):
                     #print2err("Creating ioDataStore....")
 
-                    if iohub.data_paths is None:
-                        resultsFilePath=rootScriptPathDir
-                    else:
-                        resultsFilePath=iohub.data_paths[u'IOHUB_DATA']
+                    resultsFilePath=rootScriptPathDir
                     self.createDataStoreFile(experiment_datastore_config.get('filename','events')+'.hdf5',resultsFilePath,'a',experiment_datastore_config)
 
                     #print2err("Created ioDataStore.")
@@ -545,18 +526,19 @@ class ioServer(object):
 
 
         # Update DataStore Structure if required.
-        try:            
-            if self.emrt_file is not None:
-                self.emrt_file.updateDataStoreStructure(device_instance,event_classes)
-        except:
-            print2err("Error while updating datastore for device addition:",device_instance,device_event_ids)
-            printExceptionDetailsToStdErr()
+        if psychopy.iohub._DATA_STORE_AVAILABLE:        
+            try:            
+                if self.emrt_file is not None:
+                    self.emrt_file.updateDataStoreStructure(device_instance,event_classes)
+            except:
+                print2err("Error while updating datastore for device addition:",device_instance,device_event_ids)
+                printExceptionDetailsToStdErr()
 
 
         self.log("Adding ioServer and DataStore event listeners......")
 
         # add event listeners for saving events
-        if self.emrt_file is not None:
+        if psychopy.iohub._DATA_STORE_AVAILABLE and self.emrt_file is not None:
             if device_config['save_events']:
                 device_instance._addEventListener(self.emrt_file,device_event_ids)
                 self.log("DataStore listener for device added: device: %s eventIDs: %s"%(device_instance.__class__.__name__,device_event_ids))
@@ -716,8 +698,8 @@ class ioServer(object):
          
         dconfigPath=os.path.join(IO_HUB_DIRECTORY,device_module_path[iohub_submod_path_length:].replace('.',os.path.sep),"default_%s.yaml"%(device_class_name.lower()))
 
-#        print2err("dconfigPath: {0}, device_module_path: {1}\n".format(dconfigPath,device_module_path))
-#        print2err("Loading Device Defaults file:\n\tdevice_class: {0}\n\tdeviceConfigFile:{1}\n".format(device_class_name,dconfigPath))
+        #print2err("dconfigPath: {0}, device_module_path: {1}\n".format(dconfigPath,device_module_path))
+        #print2err("Loading Device Defaults file:\n\tdevice_class: {0}\n\tdeviceConfigFile:{1}\n".format(device_class_name,dconfigPath))
         self.log("Loading Device Defaults file: %s"%(device_class_name,))
 
         _dclass,default_device_config=load(file(dconfigPath,'r'), Loader=Loader).popitem()
@@ -807,9 +789,10 @@ class ioServer(object):
             printExceptionDetailsToStdErr()
             
     def createDataStoreFile(self,fileName,folderPath,fmode,ioHubsettings):
-        from datastore import ioHubpyTablesFile
-        self.closeDataStoreFile()                
-        self.emrt_file=ioHubpyTablesFile(fileName,folderPath,fmode,ioHubsettings)                
+        if psychopy.iohub._DATA_STORE_AVAILABLE:
+            from datastore import ioHubpyTablesFile
+            self.closeDataStoreFile()                
+            self.emrt_file=ioHubpyTablesFile(fileName,folderPath,fmode,ioHubsettings)                
 
     def closeDataStoreFile(self):
         if self.emrt_file:
