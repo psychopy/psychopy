@@ -4,8 +4,8 @@ Module with experiment code generation routines
 
 def timeStartTest(component, codeBuffer):
     #if startVal is an empty string then set to be 0.0
-    if isinstance(self.params['startVal'].val, basestring) and not self.params['startVal'].val.strip():
-        self.params['startVal'].val = '0.0'
+    if isinstance(component.params['startVal'].val, basestring) and not component.params['startVal'].val.strip():
+        component.params['startVal'].val = '0.0'
     codeBuffer.writeIndented("if t >= %(startVal)s and %(name)s.status == NOT_STARTED:\n" % (component.params))
 
 def frameNStartTest(component, codeBuffer):

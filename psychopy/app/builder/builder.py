@@ -2249,6 +2249,9 @@ class _BaseParamsDlg(wx.Dialog):
             raise ValueError('checkCodeWanted received unexpected event object (%s).')
         try:
             val = strBox.GetValue()
+            if isinstance(val, dict):
+                strBox = strBox.valueField.valueFields[strBox.valueField.variant]
+                val = strBox.GetValue()
             stc = False
         except:
             val = strBox.GetText()
