@@ -35,6 +35,14 @@ if sys.platform=='win32':
         os.renames(oldMonitorFolder, monitorFolder)
 else:
     monitorFolder = join(os.environ['HOME'], '.psychopy2' , 'monitors')
+# HACK! On system where `monitorFolder` contains special characters, for
+# example because the Windows profile name does, `monitorFolder` must be
+# decoded to Unicode to prevent errors later on. However, this is not a proper
+# fix, since *everything* should be decoded to Unicode, and not just this
+# specific pathname. Right now, errors will still occur if `monitorFolder` is
+# combined with `str`-type objects that contain non-ASCII characters.
+if isinstance(monitorFolder, str):
+    monitorFolder = monitorFolder.decode(sys.getfilesystemencoding())
 
 if not os.path.isdir(monitorFolder):
     os.makedirs(monitorFolder)
