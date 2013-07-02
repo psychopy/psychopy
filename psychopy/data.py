@@ -886,14 +886,24 @@ class TrialHandler(_BaseTrialHandler):
         return self.thisTrial
 
     def getFutureTrial(self, n=1):
-        """Returns the condition for n trials into the future without advancing
-        the trials.
+        """Returns the condition for n trials into the future, without advancing
+        the trials. Returns 'None' if attempting to go beyond the last trial.
         """
-        if n>self.nRemaining:
+        # check that we don't go out of bounds for either positive or negative offsets:
+        if n>self.nRemaining or self.thisN+n < 0:
             return None
         seqs = numpy.array(self.sequenceIndices).transpose().flat
         condIndex=seqs[self.thisN+n]
         return self.trialList[condIndex]
+
+    def getEarlierTrial(self, n=-1):
+        """Returns the condition information from n trials previously. Useful 
+        for comparisons in n-back tasks. Returns 'None' if trying to access a trial
+        prior to the first.
+        """
+        # treat positive offset values as equivalent to negative ones:
+        if n > 0: n = n * -1
+        return self.getFutureTrial(n)
 
     def _createOutputArray(self,stimOut,dataOut,delim=None,
                           matrixOnly=False):
