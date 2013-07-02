@@ -1851,6 +1851,7 @@ class DotStim(_BaseVisualStim):
             self.element.setDepth(initialDepth)#reset depth before going to next frame
         GL.glPopMatrix()
 
+
     def _newDotsXY(self, nDots):
         """Returns a uniform spread of dots, according to the fieldShape and fieldSize
 
@@ -1875,6 +1876,175 @@ class DotStim(_BaseVisualStim):
 
         """Find dead dots, update positions, get new positions for dead and out-of-bounds
         """
+        def _wrapPoint(width,height,point,motionDir):
+            """
+            The user shouldn't call this - its gets done within _wrap() which is within draw()
+            """
+    
+            """Get new positions for out-of-bounds dot
+            """        
+            #assume fieldshape is centered on 0,0.
+            #width of rectangle or ellipse
+            #height of rectangle or ellipse
+            #point (x,y)
+            #motionDir is vector (x,y)
+            #take line going from current location back towards center of fieldshape
+            #get closest intersection with sides of fieldshape
+            #take line segment extending from that intersection to current point
+            #add it to the opposite point. The opposite point is the other intersection of the line with the fieldshape
+            def _intersectLineWithEllipse(point1,point2,a,b):
+                """Calculate intersection points of a line (passing through points 1 and 2) with an ellipse centred on origin with 
+                   a: major axis radius
+                   b: minor axis radius
+            
+                examples::
+                    p1=[0,0]; p2=[4,4]; r=4
+                    _intersectLineWithEllipse(p1,p2,r,r) #circle with radius 4. Intersections will be x1=-2.83 y1=-2.83  x2=2.83  y2=2.83
+                """
+                # http://www.mombu.com/programming/delphi/t-calculate-ellipse-line-intersection-653276.html
+                point1 = numpy.array(point1)*1.0 
+                point2 = numpy.array(point2)*1.0
+                #calculate m and n of line if line defined by y = mx+n
+                dx = point2[0]-point1[0]
+                dy = point2[1]-point1[1]
+                if dx==0: #vertical line
+                    #x2/a2 + y2/b2 = 1
+                    #y = sqrt(  b*b*(1.0 - (x*x)/(a*a)) )
+
+                    x2=x1=point1[0]
+                    if abs(x1) > a:
+                       numIntersections =0
+                    elif abs(x1)==a:
+                       numIntersections =1
+                    else:
+                        numIntersections=2
+                        ySquared = b*b*(1.0 - (x1*x1)/(a*a))
+                        if ySquared < 0:
+                            print 'point1=',point1,' point2=', point2, ' a=',a,' b=',b
+                            raise Exception("Have miscomputed intersections of vertical line with ellipse")
+                        y1 =  numpy.sqrt( ySquared )
+                        y2 = -y1   #  -y1
+                else: #not a vertical line so can use y = mx + n 
+                    m = dy/dx
+                    n = point1[1] - m*point1[0]
+                    result = 0
+                    discriminant = (a*b)**2 * (b**2 - n**2 + (a*m)**2)
+                    if discriminant < 0:
+                        numIntersetions=0;
+                        
+                    discriminant = numpy.sqrt(discriminant);
+                    p = -a*a*m*n;
+                    q = b**2 + (a*m)**2
+                    if discriminant == 0:
+                        numIntersections = 1
+                        x1 = p/q;
+                        y1 = m*x1 + n
+                    else:
+                        numIntersections = 2
+                        x1 = (p - discriminant)/q;
+                        x2 = (p + discriminant)/q;
+                        y1 = m*x1 + n
+                        y2 = m*x2 + n
+                    
+                #return two points and boolean variable numIntersections
+                return (x1,y1,x2,y2,numIntersections)
+                
+            def intersectLineWithLine(A1,B1,C1,A2,B2,C2):
+                #A*x + B*y = C
+                delta = A1*B2 - A2*B1;
+                parallel = False
+                if delta == 0: 
+                    parallel= True #raise Exception("Lines are parallel")
+                    x=y=0
+                else:
+                    x = (B2*C1 - B1*C2)/delta
+                    y = (A1*C2 - A2*C1)/delta
+                return (x,y,parallel)
+            
+            def generalEquationLineThruTwoPoints(p1, p2):
+                #p1 point 1 on the line
+                #p2 point 2 on the line
+                #return coefficients A,B,C for Ax+By=C
+                #assign the two points as (d,e) and (f,g)
+                d=p1[0]; e=p1[1]
+                f=p2[0]; g=p2[1]
+                if d==f and e==g: #points are identical!
+                    raise Exception("Two points that supposedly define a line are actually identical!")
+                else: 
+                    if f==d: #vertical line, equation of line is x=d
+                        A=1; B=0; C=d
+                    elif e==g: #horizontal line
+                        A=0; B=1; C=g
+                    else:
+                          m = (g-e) / ((f-d)*1.0)
+                          #y = mx+b
+                          #e = md + b
+                          #b = e-md
+                          b = e - m*d
+                          #y - mx = b
+                          #-mx + 1y = b
+                          #A=-m, B=1, C=b
+                          A= -m; B= 1; C=b
+                #A,B,C now define the line going from point in direction of motion
+                return A,B,C
+
+            point = numpy.array( point )
+            motionDir = numpy.array( motionDir )
+            point2 = point + motionDir  #get a second point on the line of the instantaneous motion trajectory
+            locatnDistAndWallIndex = list(); #intersectn = list()
+
+            if self.fieldShape=='sqr' or self.fieldShape=='square':
+                sidesOfRect = list()
+                #represent lines as Ax + By = C . For each side, add corresponding  A,B,C to the list
+                sidesOfRect.append([0,1,height/2.]) #top
+                sidesOfRect.append([0,1,-height/2.]) #bottom
+                sidesOfRect.append([1,0,-width/2.]) #left
+                sidesOfRect.append([1,0,width/2.]) #right
+                if (numpy.abs(point[0]) <= width/2.) and (numpy.abs(point[1]) <= height/2.):
+                    errMsg = str(point[0]) + ',' + str(point[1]) + ' is not outside of region with width =' + str(width) + ' and height=' + str(height) + ' so should not be asking to wrap it'
+                    raise Exception(errMsg)
+
+                #calculate coefficients of line Ax + By = C extending through point that needs to be wrapped
+                A,B,C = generalEquationLineThruTwoPoints(point, point2) #get coefficients for general equation of the line
+                
+                #for each side, intersect with line and find closest intersection point among all sides
+                #also find the second-closest intersection point, that is the other end where the point needs to be wrapped around to
+                for i in range(len(sidesOfRect)):
+                    line = sidesOfRect[i]
+                    x,y,parallel = intersectLineWithLine(A,B,C,line[0],line[1],line[2])
+                    if not parallel:
+                        #calculate distance from intersection to point
+                        dist = numpy.sqrt( (point[1]-y)**2 + (point[0]-x)**2 )
+                        #test that the intersection is actually on the field sides and not on their extensions. The extensions don't count, you always want to wrap back to an actual wall
+                        intersectnOnBoundary = True
+                        if (numpy.abs(x) - width/2.0 > 1e-10) or (numpy.abs(y) - height/2.0 > 1e-10): # floating point calculations will give an error on the order  of 10e-16 so might be off by that much
+                            intersectnOnBoundary = False            
+                        if intersectnOnBoundary:
+                            locatnDistAndWallIndex.append( (x,y,dist) ) #also add the index in so that after sorting, know which side was which
+                numIntersections = len(locatnDistAndWallIndex)
+            elif self.fieldShape=='circle': #circle will be ellipse if width != height
+                x1,y1,x2,y2,numIntersections = _intersectLineWithEllipse(point,point2,width/2.,height/2.)  # intersectLineWithCircle(point,point2,width/2.)
+                if numIntersections>0:
+                    dist1 = numpy.sqrt( (point[1]-y1)**2 + (point[0]-x1)**2 )   #distance of point from first intersection         
+                    dist2 = numpy.sqrt( (point[1]-y2)**2 + (point[0]-x2)**2 )   #distance of point from second intersection
+                    locatnDistAndWallIndex.append ( (x1,y1,dist1) )
+                    locatnDistAndWallIndex.append ( (x2,y2,dist2) )
+            else: raise Exception('Unexpected field shape')
+
+            if numIntersections < 1:
+                raise Exception("Retracing last step of dot does not take it back into field. Where did this dot come from??")
+                
+            locatnDistAndWallIndex = sorted(locatnDistAndWallIndex,key= lambda dist: dist[2]) #sort intersections by column 2 (distance) so that know which is closest
+            #second-closest intersection is the one that need to wrap to
+            overSpillDist = locatnDistAndWallIndex[0][2] #distance to nearest intersection
+            #add vector scaled by distance to second-farthest
+            normedMotionDir = motionDir/numpy.sqrt( (motionDir[0])**2 + (motionDir[1])**2 ) #make it length one
+            normedMotionDir *= overSpillDist #make it length of overspillDist
+            #add to second-closest intersection 
+            newLocation = locatnDistAndWallIndex[ 1 ][0:2] + normedMotionDir            
+            return newLocation   
+            #####################################end wrapPoint
+
         #renew dead dots
         if self.dotLife>0:#if less than zero ignore it
             self._dotsLife -= 1 #decrement. Then dots to be reborn will be negative
@@ -1913,19 +2083,28 @@ class DotStim(_BaseVisualStim):
             dead = dead+(~self._signalDots)#just create new ones
 
         #handle boundaries of the field
+        #how to exclude dead dots?
+        outOfBounds=numpy.zeros(0,dtype=bool) #indices of dots that go out of bounds
         if self.fieldShape in  [None, 'square', 'sqr']:
-            dead = dead+(numpy.abs(self._dotsXY[:,0])>(self.fieldSize[0]/2.0))+(numpy.abs
-                                                                                  (self
-                                                                                   ._dotsXY[:,1])>(self.fieldSize[1]/2.0))
+            outOfBounds = (numpy.abs(self._dotsXY[:,0])>(self.fieldSize[0]/2.0))+(numpy.abs(self._dotsXY[:,1])>(self.fieldSize[1]/2.0))
         elif self.fieldShape == 'circle':
             #transform to a normalised circle (radius = 1 all around) then to polar coords to check
-            normXY = self._dotsXY/(self.fieldSize/2.0)#the normalised XY position (where radius should be <1)
-            dead = dead + (numpy.hypot(normXY[:,0],normXY[:,1])>1) #add out-of-bounds to those that need replacing
+            normXY = self._dotsXY/(self.fieldSize/2.0)#the normalised XY position (where radius should be <=1)
+            #dead = dead+ (numpy.hypot(normXY[:,0],normXY[:,1])>1) #add out-of-bounds to those that need replacing
+            outOfBounds = (numpy.hypot(normXY[:,0],normXY[:,1])>1) #add out-of-bounds to those that need replacing
+
+        #handle out of bounds dots. Default behavior is to wrap to other side
+        if sum(outOfBounds):
+                #wrap all outOfBounds points
+                for i in (numpy.where(outOfBounds)[0]): #this is not vectorized- does each point one-by-one. I don't know that there's a way to vectorize it.
+                    motionDir = [self.speed*numpy.cos(self._dotsDir[i]), self.speed*numpy.sin(self._dotsDir[i])]
+                    newLocatn = _wrapPoint(self.fieldSize[0],self.fieldSize[1],self._dotsXY[i,:],motionDir)
+                    self._dotsXY[i,:] = newLocatn
 
         #update any dead dots
         if sum(dead):
             self._dotsXY[dead,:] = self._newDotsXY(sum(dead))
-
+                
         #update the pixel XY coordinates
         self._calcDotsXYRendered()
 
