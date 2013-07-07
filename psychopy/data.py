@@ -846,13 +846,13 @@ class TrialHandler(_BaseTrialHandler):
         If the trials have ended this method will raise a StopIteration error.
         This can be handled with code such as::
 
-            trials = TrialHandler(.......)
+            trials = data.TrialHandler(.......)
             for eachTrial in trials:#automatically stops when done
                 #do stuff
 
         or::
 
-            trials = TrialHandler(.......)
+            trials = data.TrialHandler(.......)
             while True: #ie forever
                 try:
                     thisTrial = trials.next()
@@ -1593,13 +1593,13 @@ class StairHandler(_BaseTrialHandler):
         If the trials have ended, calling this method will raise a StopIteration error.
         This can be handled with code such as::
 
-            staircase = StairHandler(.......)
+            staircase = data.StairHandler(.......)
             for eachTrial in staircase:#automatically stops when done
                 #do stuff
 
         or::
 
-            staircase = StairHandler(.......)
+            staircase = data.StairHandler(.......)
             while True: #ie forever
                 try:
                     thisTrial = staircase.next()
@@ -2120,13 +2120,13 @@ class QuestHandler(StairHandler):
         If the trials have ended, calling this method will raise a StopIteration error.
         This can be handled with code such as::
 
-            staircase = QuestHandler(.......)
+            staircase = data.QuestHandler(.......)
             for eachTrial in staircase:#automatically stops when done
                 #do stuff
 
         or::
 
-            staircase = QuestHandler(.......)
+            staircase = data.QuestHandler(.......)
             while True: #ie forever
                 try:
                     thisTrial = staircase.next()
@@ -2203,7 +2203,7 @@ class MultiStairHandler(_BaseTrialHandler):
                 {'label':'low', 'startVal': 0.1, 'ori':90},
                 {'label':'high','startVal': 0.8, 'ori':90},
                 ]
-            stairs = MultiStairHandler(conditions=conditions, nTrials=50)
+            stairs = data.MultiStairHandler(conditions=conditions, nTrials=50)
 
             for thisIntensity, thisCondition in stairs:
                 thisOri = thisCondition['ori']
@@ -2301,13 +2301,13 @@ class MultiStairHandler(_BaseTrialHandler):
 
         This can be handled with code such as::
 
-            staircase = MultiStairHandler(.......)
+            staircase = data.MultiStairHandler(.......)
             for eachTrial in staircase:#automatically stops when done
                 #do stuff here for the trial
 
         or::
 
-            staircase = MultiStairHandler(.......)
+            staircase = data.MultiStairHandler(.......)
             while True: #ie forever
                 try:
                     thisTrial = staircase.next()
