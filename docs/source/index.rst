@@ -4,16 +4,15 @@ PsychoPy is an open-source application to allow the presentation of stimuli and 
 News
 ====================
 
-**Latest version**: 1.77.00 was released June 2013. See complete :doc:`changelog`
+**Latest version**: 1.77.00 was released June 2013, with various performance improvements. See complete :doc:`changelog`
 
 **Upcoming Workshops**:
 
+    * Sol Simpson and Jon Peirce are running a `Python for eye-tracking workshop at ECEM <http://ecem2013.eye-movements.org/workshops/program>`_
+    
     * Jon Peirce is running a 1/2-day `PsychoPy workshop at ECVP <http://www.ecvp.uni-bremen.de/node/46>`_
     
-    * Sol Simpson and Jon Peirce is running a `Python for eye-tracking workshop at ECEM <http://ecem2013.eye-movements.org/workshops/program>`_
-    
-
-**Video tutorial**: You can now see a `youtube PsychoPy tutorial <http://www.youtube.com/watch?v=VV6qhuQgsiI>`_ showing you how to build a simple experiment in the Builder interface
+    * Jon Peirce will be running the 3-day :ref:`Python for Neuroscience workshop <P4N>` again in April 2014 at Nottingham
 
 .. title:: Home
 
