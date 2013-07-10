@@ -398,7 +398,7 @@ class AdvAudioCapture(AudioCapture):
 
         return onsetSecs, offSecs
 
-    def loudness(self):
+    def getLoudness(self):
         """Return the RMS loudness of the saved recording.
         """
         # used cached value unless the file has changed, based on mod time:
@@ -850,7 +850,9 @@ def _getFlacPath(flac_exe=''):
     return FLAC_PATH
 
 def flac2wav(path, keep=True, flac_exe=''):
-    """Uncompress .flac to .wav file, or all files in path.
+    """Uncompress: convert .flac file (on disk) to .wav format (new file).
+
+    If `path` is a directory name, convert all .flac files in the directory.
 
     `keep` to retain the original .flac file(s), default `True`.
     """
@@ -883,7 +885,9 @@ def flac2wav(path, keep=True, flac_exe=''):
         return wav_files
 
 def wav2flac(path, keep=True, flac_exe=''):
-    """Compress .wav to .flac file, or all files in path.
+    """Lossless compression: convert .wav file (on disk) to .flac format.
+
+    If `path` is a directory name, convert all .wav files in the directory.
 
     `keep` to retain the original .wav file(s), default `True`.
     """
