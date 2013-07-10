@@ -659,7 +659,7 @@ class Speech2Text(object):
                  lang='en-US',
                  timeout=10,
                  samplingrate=16000,
-                 flac_exe='C:\\Program Files\\FLAC\\flac.exe',
+                 flac_exe='',
                  pro_filter=2,
                  quiet=True):
         """
@@ -696,9 +696,9 @@ class Speech2Text(object):
         flac_path = _getFlacPath(flac_exe)
 
         # determine file type, convert wav to flac if needed:
-        ext = os.path.splitext(filename)[1]
         if not os.path.isfile(filename):
             raise IOError("Cannot find file: %s" % file)
+        ext = os.path.splitext(filename)[1]
         if ext not in ['.flac', '.spx', '.wav']:
             raise SoundFormatNotSupported("Unsupported filetype: %s\n" % ext)
         if ext == '.wav':
@@ -711,22 +711,8 @@ class Speech2Text(object):
         elif ext == ".spx":
             filetype = "x-speex-with-header-byte"
         elif ext == ".wav": # convert to .flac
-            if not os.path.isfile(flac_path):
-                msg = "failed to find flac binary, tried '%s'" % flac_path
-                logging.error(msg)
-                raise MicrophoneError(msg)
             filetype = "x-flac"
-            tmp = tempfile.NamedTemporaryFile()
-            flac_cmd = [flac_path, "-8", "-f", "--totally-silent", "-o", tmp.name, filename]
-            __, se = core.shellCall(flac_cmd, stderr=True)
-            if se: logging.warn(se)
-            if not os.path.isfile(tmp.name): # just try again
-                # ~2% incidence when recording for 1s, 650+ trials
-                # never got two in a row; core.wait() does not help
-                logging.warn('Failed to convert to tmp.flac; trying again')
-                __, se = core.shellCall(flac_cmd, stderr=True)
-                if se: logging.warn(se)
-            filename = tmp.name
+            filename = wav2flac(filename)
         logging.info("Loading: %s as %s, audio/%s" % (self.filename, lang, filetype))
         try:
             c = 0 # occasional error; core.wait(.1) is not always enough; better slow than fail
@@ -739,8 +725,9 @@ class Speech2Text(object):
             logging.error(msg)
             raise SoundFileError(msg)
         finally:
-            try: os.remove(tmp)
-            except: pass
+            if ext == '.wav' and filename.endswith('.flac'):
+                try: os.remove(filename)
+                except: pass
 
         # urllib2 makes no attempt to validate the server certificate. here's an idea:
         # http://thejosephturner.com/blog/2011/03/19/https-certificate-verification-in-python-with-urllib2/
@@ -846,14 +833,89 @@ def _getFlacPath(flac_exe=''):
     global FLAC_PATH
     if FLAC_PATH is None:
         if sys.platform == 'win32':
+            if flac_exe == '':
+                flac_exe = 'C:\\Program Files\\FLAC\\flac.exe'  # best guess
             if os.path.isfile(flac_exe):
                 FLAC_PATH = flac_exe
             else:
+                # `where` is very slow, seconds
                 FLAC_PATH = core.shellCall(['where', '/r', 'C:\\', 'flac'])
         else:
             FLAC_PATH = core.shellCall(['/usr/bin/which', 'flac'])
         logging.info('set FLAC_PATH to %s' % FLAC_PATH)
+    if not os.path.isfile(FLAC_PATH):
+        msg = "failed to find flac binary, tried '%s'" % flac_path
+        logging.error(msg)
+        raise MicrophoneError(msg)
     return FLAC_PATH
+
+def flac2wav(path, keep=True, flac_exe=''):
+    """Uncompress .flac to .wav file, or all files in path.
+
+    `keep` to retain the original .flac file(s), default `True`.
+    """
+    flac_path = _getFlacPath(flac_exe)
+    flac_files = []
+    if path.endswith('.flac'):
+        flac_files = [path]
+    elif type(path) == str and os.path.isdir(path):
+        flac_files = glob.glob(os.path.join(path, '*.flac'))
+    if len(flac_files) == 0:
+        logging.warn('failed to find .flac file(s) from %s' % path)
+        return None
+    wav_files = []
+    for flacfile in flac_files:
+        wavfile = flacfile.strip('.flac') + '.wav'
+        with open(flacfile, 'wb') as tmp:
+            flac_cmd = [flac_path, "-d", "--totally-silent", "-f", "-o", wavfile, flacfile]
+            __, se = core.shellCall(flac_cmd, stderr=True)
+            if se: logging.warn(se)
+            if not os.path.isfile(flacfile): # just try again
+                logging.warn('Failed to convert to .wav; trying again')
+                __, se = core.shellCall(flac_cmd, stderr=True)
+                if se: logging.warn(se)
+            if not keep:
+                os.unlink(flacfile)
+            wav_files.append(wavfile)
+    if len(wav_files) == 1:
+        return wav_files[0]
+    else:
+        return wav_files
+
+def wav2flac(path, keep=True, flac_exe=''):
+    """Compress .wav to .flac file, or all files in path.
+
+    `keep` to retain the original .wav file(s), default `True`.
+    """
+    flac_path = _getFlacPath(flac_exe)
+    wav_files = []
+    if path.endswith('.wav'):
+        wav_files = [path]
+    elif type(path) == str and os.path.isdir(path):
+        wav_files = glob.glob(os.path.join(path, '*.wav'))
+    if len(wav_files) == 0:
+        logging.warn('failed to find .wav file(s) from %s' % path)
+        return None
+    flac_files = []
+    for wavfile in wav_files:
+        flacfile = wavfile.strip('.wav') + '.flac'
+        with open(flacfile, 'wb') as tmp:
+            flac_cmd = [flac_path, "-8", "-f", "--totally-silent", "-o", flacfile, wavfile]
+            __, se = core.shellCall(flac_cmd, stderr=True)
+            if se: logging.warn(se)
+            if not os.path.isfile(flacfile): # just try again
+                # ~2% incidence when recording for 1s, 650+ trials
+                # never got two in a row; core.wait() does not help
+                logging.warn('Failed to convert to .flac; trying again')
+                __, se = core.shellCall(flac_cmd, stderr=True)
+                if se: logging.warn(se)
+            if not keep:
+                os.unlink(wavfile)
+            flac_files.append(flacfile)
+    if len(wav_files) == 1:
+        return flac_files[0]
+    else:
+        return flac_files
 
 def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
     """You need to switch on the microphone before use, which can take several seconds.
