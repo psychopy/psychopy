@@ -18,7 +18,7 @@ class MicrophoneComponent(BaseComponent):
     def __init__(self, exp, parentName, name='mic_1',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=2.0, startEstim='', durationEstim='',
-                 advanced=True, stereo=False
+                 stereo=False
                 ):
         self.type='Microphone'
         self.url="http://www.psychopy.org/builder/components/microphone.html"
@@ -45,26 +45,18 @@ class MicrophoneComponent(BaseComponent):
             hint="(Optional) expected start (s), purely for representing in the timeline")
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
             hint="(Optional) expected duration (s), purely for representing in the timeline")
-        self.params['advanced']=Param(advanced, valType='bool', hint="Use advanced recording features, for RT, loudness, etc",
-            label="Advanced")
-        self.params['stereo']=Param(stereo, valType='bool', hint="Record two channels (stereo) or one channel (mono, smaller file)",
+        self.params['stereo']=Param(stereo, valType='bool',
+            hint="Record two channels (stereo) or one (mono, smaller file)",
             label="Stereo")
-        #self.params['rate']=Param(rate, valType='str', hint="Sampling rate (Hz)",
-        #    label="rate")
     def writeStartCode(self,buff):
         # filename should have date_time, so filename_wav should be unique
         buff.writeIndented("wavDirName = filename + '_wav'\n")
         buff.writeIndented("if not os.path.isdir(wavDirName):\n" +
                            "    os.makedirs(wavDirName)  # to hold .wav files\n")
     def writeRoutineStartCode(self,buff):
-        inits = components.getInitVals(self.params) #replaces variable params with sensible defaults
-
-        if self.params['advanced'].val:
-            capture = 'AdvAudioCapture'
-        else:
-            capture = 'AudioCapture'
-        buff.writeIndented("%s = microphone.%s(name='%s', saveDir=wavDirName, stereo=%s)\n" %(
-            inits['name'], capture, inits['name'], inits['stereo']))
+        inits = components.getInitVals(self.params)
+        buff.writeIndented("%s = microphone.AdvAudioCapture(name='%s', saveDir=wavDirName, stereo=%s)\n" %(
+            inits['name'], inits['name'], inits['stereo']))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame"""
         duration = "%s" % self.params['stopVal']  # type is code
