@@ -5669,7 +5669,7 @@ class BufferImageStim(GratingStim):
         # depends on: window._getRegionOfFrame
 
         _clock = core.Clock()
-        if len(list(stim)) > 0: # draw all stim to the back buffer
+        if stim: # draw all stim to the back buffer
             win.clearBuffer()
             logging.debug('BufferImageStim.__init__: clearing back buffer')
             buffer = 'back'
@@ -5690,19 +5690,17 @@ class BufferImageStim(GratingStim):
             if not sqPower2:
                 logging.debug('BufferImageStim.__init__: defaulting to square power-of-2 sized image (%s)' % glversion )
             region = win._getRegionOfFrame(buffer=buffer, rect=rect, squarePower2=True)
+        if stim:
+            win.clearBuffer()
 
         # turn the RGBA region into a GratingStim()-like object:
         if win.units in ['norm']:
             pos *= win.size/2.
         GratingStim.__init__(self, win, tex=region, units='pix', mask=mask, pos=pos,
                              interpolate=interpolate, name=name, autoLog=autoLog)
-        # May 2012: GratingStim is ~3x faster to initialize than ImageStim, looks the same in the demo
-        # but subclassing ImageStim seems more intuitive; maybe setTex gets called multiple times?
-        #ImageStim.__init__(self, win, image=region, units='pix', interpolate=interpolate, name=name, autoLog=autoLog)
 
         # to improve drawing speed, move these out of draw:
         self.desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
-
         self.thisScale = 2.0/numpy.array(self.win.size)
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
