@@ -5342,6 +5342,7 @@ class ImageStim(_BaseVisualStim):
         self.maskParams= maskParams
 
         self.texRes=texRes
+        self.isLumImage = None
         self.setImage(image, log=False)
         self.setMask(mask, log=False)
 
@@ -5543,6 +5544,7 @@ class ImageStim(_BaseVisualStim):
         """
         self._imName = value
 
+        wasLumImage = self.isLumImage
         self.isLumImage = createTexture(value, id=self.texID, stim=self,
             pixFormat=GL.GL_RGB, dataType=GL.GL_UNSIGNED_BYTE,
             maskParams=self.maskParams, forcePOW2=False)
@@ -5552,6 +5554,9 @@ class ImageStim(_BaseVisualStim):
         if log and self.autoLog:
             self.win.logOnFlip("Set %s image=%s" %(self.name, value),
                 level=logging.EXP,obj=self)
+        #if we switched to/from lum image then need to update shader rule
+        if wasLumImage != self.isLumImage:
+            self.needUpdate=True
     def setMask(self,value, log=True):
         """Change the image to be used as an alpha-mask for the image
         """
