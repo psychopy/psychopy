@@ -16,6 +16,19 @@ Changelog
 
 :blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
+PsychoPy 1.78
+------------------------------
+
+PsychoPy 1.78.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ADDED: option to preload during Builder scripts using Static Component, which uses :class:`~psychopy.core.StaticPeriod` class
+* ADDED: TrialHander can now fetch previous trials as well as future ones (thanks Mike MacAskill)
+* ADDED: BufferImageStim accepts mask and pos params (thanks Jeremy)
+* ADDED: generated Sounds (not sound files) now use a Hanning window to get rid of sharp onset/offset noises (thanks Jeremy)
+* FIXED: having a monitors folder with a unicode character in the path doesn't break the app (thanks Sebastiaan Mathot)
+* FIXED: reduced number of queries when closing down and provides filenames of changed files in msg (thanks Piot Iwaniuk)
+
 PsychoPy 1.77
 ------------------------------
 

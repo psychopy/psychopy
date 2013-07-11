@@ -2,6 +2,6 @@
 ======================================================
 
 .. automodule:: psychopy.core
-    :members: getTime, getAbsTime, wait, Clock, CountdownTimer, MonotonicClock
+    :members: getTime, getAbsTime, wait, Clock, CountdownTimer, MonotonicClock, StaticPeriod
     
     

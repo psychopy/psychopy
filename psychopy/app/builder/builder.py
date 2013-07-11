@@ -3797,10 +3797,17 @@ class BuilderFrame(wx.Frame):
             if not self.fileClose(updateViews=False): return False #close the existing (and prompt for save if necess)
         self.filename='untitled.psyexp'
         self.exp = experiment.Experiment(prefs=self.app.prefs)
-        default_routine = 'trial'
-        self.exp.addRoutine(default_routine) #create the trial routine as an example
-        self.exp.flow.addRoutine(self.exp.routines[default_routine], pos=1)#add it to flow
-        self.exp.namespace.add(default_routine, self.exp.namespace.user) # add it to user's namespace
+        defaultName = 'trial'
+        self.exp.addRoutine(defaultName) #create the trial routine as an example
+        self.exp.flow.addRoutine(self.exp.routines[defaultName], pos=1)#add it to flow
+        self.exp.namespace.add(defaultName, self.exp.namespace.user) # add it to user's namespace
+        routine = self.exp.routines[defaultName]
+        #add an ISI component by default
+        components = self.componentButtons.components
+        ISI = components['StaticComponent'](self.exp, parentName=defaultName, name='ISI',
+                startType='time (s)', startVal=0.0,
+                stopType='duration (s)', stopVal=0.5)
+        routine.addComponent(ISI)
         self.resetUndoStack()
         self.setIsModified(False)
         self.updateAllViews()
