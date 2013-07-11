@@ -95,7 +95,7 @@ class Experiment:
         #this can be checked by the builder that this is an experiment and a compatible version
         self.psychopyVersion=__version__ #imported from components
         self.psychopyLibs=['visual','core','data','event','logging','sound']
-        self.settings=getAllComponents()['SettingsComponent'](parentName='', exp=self)
+        self.settings=getComponents(fetchIcons=False)['SettingsComponent'](parentName='', exp=self)
         self._doc=None#this will be the xml.dom.minidom.doc object for saving
         self.namespace = NameSpace(self) # manage variable names
     def requirePsychopyLibs(self, libs=[]):

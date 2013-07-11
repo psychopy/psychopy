@@ -18,7 +18,7 @@ import sys
 import numpy as np
 import psychopy
 import psychopy.logging as logging
-from psychopy.core import getTime, MonotonicClock, Clock, CountdownTimer, wait
+from psychopy.core import getTime, MonotonicClock, Clock, CountdownTimer, wait, StaticPeriod
 from psychopy.clock import monotonicClock
 import gc
 
@@ -50,10 +50,10 @@ def printExceptionDetails():
         pprint.pprint(traceback.format_tb(exc_traceback), indent=1, width=80, depth=None)
    
 def testDelayDurationAccuracy(sample_size=100):
-    # test with sample_size randomly selected durations between 0.05 and 1.0 msec 
-    durations=np.zeros((3,sample_size))        
+    # test with sample_size randomly selected durations between 0.05 and 1.0 msec
+    durations=np.zeros((3,sample_size))
     durations[0,:]=(np.random.random_integers(50,1000,sample_size)*0.001)
-    
+
     for t in xrange(sample_size):
         cdur=durations[0][t]
         start_times=py_time(),getTime()
@@ -64,29 +64,29 @@ def testDelayDurationAccuracy(sample_size=100):
             end_times=py_time(),getTime()
         durations[1][t]=end_times[0]-start_times[0]
         durations[2][t]=end_times[1]-start_times[1]
-        
+
     clockDurVsExpected=durations[1]-durations[0]
-    clockDurVsQpc=durations[1]-durations[2]        
+    clockDurVsQpc=durations[1]-durations[2]
 
     printf("## %s vs. psychopy getTime() Duration Difference Test:\n"%(py_timer_name))
     printf(">> Actual Vs. Expected %s Duration Diffs (msec.usec):"%(py_timer_name))
     printf("\tmin:\t\t%.3f"%(clockDurVsExpected.min()*1000.0))
     printf("\tmax:\t\t%.3f"%(clockDurVsExpected.max()*1000.0))
     printf("\tmean:\t\t%.3f"%(clockDurVsExpected.mean()*1000.0))
-    printf("\tstd:\t\t%.3f"%(clockDurVsExpected.std()*1000.0))          
+    printf("\tstd:\t\t%.3f"%(clockDurVsExpected.std()*1000.0))
     printf(">> %s vs getTime Duration Diffs (msec.usec):"%(py_timer_name))
     printf("\tmin:\t\t%.3f"%(clockDurVsQpc.min()*1000.0))
     printf("\tmax:\t\t%.3f"%(clockDurVsQpc.max()*1000.0))
     printf("\tmean:\t\t%.3f"%(clockDurVsQpc.mean()*1000.0))
-    printf("\tstd:\t\t%.3f"%(clockDurVsQpc.std()*1000.0))  
+    printf("\tstd:\t\t%.3f"%(clockDurVsQpc.std()*1000.0))
 
-    # check that the differences between time.clock and psychopy.getTime 
+    # check that the differences between time.clock and psychopy.getTime
     # (which is using Win QPC) are within these limits:
     #
     # fabs(min) or max diff:    < 50 usec
     # mean diff:                < 10 usec
     # std of diff:              < 5 usec
-    try:        
+    try:
         assert np.fabs(clockDurVsQpc.min())<0.00005
         assert clockDurVsQpc.max()<0.00005
         assert np.fabs(clockDurVsQpc.mean())<0.00001
@@ -325,7 +325,17 @@ def testLoggingDefaultClock():
         printExceptionDetails()
 
     printf("-------------------------------------\n")
-        
+
+def testStaticPeriod():
+    static = StaticPeriod()
+    static.start(0.1)
+    wait(0.05)
+    assert static.complete()==1
+    static.start(0.1)
+    wait(0.11)
+    assert static.complete()==0
+
+
 if __name__ == '__main__':
     testMonotonicClock()
     testClock()
