@@ -845,6 +845,7 @@ class FlowPanel(wx.ScrolledWindow):
         else:
             dc.DrawPolygon([[size,0],[0,size],[-size,0]], pos[0],pos[1]-4*size)#points down
         dc.SetIdBounds(tmpId,wx.Rect(pos[0]-size,pos[1]-size,2*size,2*size))
+
     def drawFlowRoutine(self,dc,routine,id,pos=[0,0], draw=True):
         """Draw a box to show a routine on the timeline
         draw=False is for a dry-run, esp to compute and return size information without drawing or setting a pdc ID
@@ -867,7 +868,7 @@ class FlowPanel(wx.ScrolledWindow):
             fontSizeDelta = (8,4,0)[self.appData['flowSize']]
             font.SetPointSize(1000/self.dpi-fontSizeDelta)
 
-        maxTime,nonSlip=routine.getMaxTime()
+        maxTime, nonSlip, onlyStaticComps = routine.getMaxTime()
         if nonSlip:
             rgbFill=nonSlipFill
             rgbEdge=nonSlipEdge
@@ -1172,16 +1173,23 @@ class RoutineCanvas(wx.ScrolledWindow):
         #draw any Static Components fist (below the grid)
         for thisComp in self.routine:
             if thisComp.type=='Static':
-                self.drawStatic(self.pdc, thisComp, self.yPosTop, yPosBottom)
+                bottom = max(yPosBottom,self.GetSize()[1])
+                self.drawStatic(self.pdc, thisComp, self.yPosTop, bottom)
 
         self.SetVirtualSize((self.maxWidth, yPos+50))#the 50 allows space for labels below the time axis
         self.pdc.EndDrawing()
         self.Refresh()#refresh the visible window after drawing (using OnPaint)
-
+    def getMaxTime(self):
+        """Return the max time to be drawn in the window
+        """        
+        maxTime, nonSlip, onlyStaticComps = self.routine.getMaxTime()
+        if onlyStaticComps:
+            maxTime= maxTime+0.5
+        return maxTime
     def drawTimeGrid(self, dc, yPosTop, yPosBottom, labelAbove=True):
         """Draws the grid of lines and labels the time axes
         """
-        tMax=self.routine.getMaxTime()[0]*1.1
+        tMax=self.getMaxTime()*1.1
         xScale = self.getSecsPerPixel()
         xSt=self.timeXposStart
         xEnd=self.timeXposEnd
@@ -1325,7 +1333,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.frame.addToUndoStack("EDIT `%s`" %component.params['name'].val)
 
     def getSecsPerPixel(self):
-        return float(self.routine.getMaxTime()[0])/(self.timeXposEnd-self.timeXposStart)
+        return float(self.getMaxTime())/(self.timeXposEnd-self.timeXposStart)
 
 class RoutinesNotebook(wx.aui.AuiNotebook):
     """A notebook that stores one or more routines

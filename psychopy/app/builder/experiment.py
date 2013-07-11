@@ -1036,7 +1036,7 @@ class Routine(list):
         buff.writeIndented('%s.reset()  # clock \n' %(self._clockName))
         buff.writeIndented('frameN = -1\n')
         #can we use non-slip timing?
-        maxTime, useNonSlip = self.getMaxTime()
+        maxTime, useNonSlip, onlyStaticComps = self.getMaxTime()
         if useNonSlip:
             buff.writeIndented('routineTimer.add(%f)\n' %(maxTime))
 
@@ -1133,6 +1133,7 @@ class Routine(list):
         """
         maxTime=0
         nonSlipSafe = True # if possible
+        onlyStaticComps = True
         for n, component in enumerate(self):
             if component.params.has_key('startType'):
                 start, duration, nonSlip = component.getStartAndDuration()
@@ -1147,12 +1148,14 @@ class Routine(list):
                 except:
                     thisT=0
                 maxTime=max(maxTime,thisT)
+                #update onlyStaticComps if needed
+                if component.type != 'Static':
+                    onlyStaticComps = False
         if maxTime==0:#if there are no components
             maxTime=10
             nonSlipSafe=False
-        return maxTime, nonSlipSafe
-
-
+        return maxTime, nonSlipSafe, onlyStaticComps
+        
 class ExpFile(list):
     """An ExpFile is similar to a Routine except that it generates its code
     from the Flow of a separate, complete psyexp file.
@@ -1204,7 +1207,8 @@ class ExpFile(list):
         there are no components or they have code-based times then will default
         to 10secs
         """
-        #todo
+        pass
+        #todo?: currently only Routines perform this action
 
 class NameSpace():
     """class for managing variable names in builder-constructed experiments.

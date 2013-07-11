@@ -162,9 +162,9 @@ class SettingsComponent:
                                 "microphone.switchOn()\n")
 
         buff.writeIndented("# store frame rate of monitor if we can measure it successfully\n")
-        buff.writeIndented("info['frameRate']=win._getActualFrameRate()\n")
-        buff.writeIndented("if info['frameRate']!=None:\n")
-        buff.writeIndented("    frameDur = 1.0/round(info['frameRate'])\n")
+        buff.writeIndented("expInfo['frameRate']=win._getActualFrameRate()\n")
+        buff.writeIndented("if expInfo['frameRate']!=None:\n")
+        buff.writeIndented("    frameDur = 1.0/round(expInfo['frameRate'])\n")
         buff.writeIndented("else:\n")
         buff.writeIndented("    frameDur = 1.0/60.0 # couldn't get a reliable measure so guess\n")
 
