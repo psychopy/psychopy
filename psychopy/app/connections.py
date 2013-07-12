@@ -309,7 +309,7 @@ class InstallUpdateDialog(wx.Dialog):
             v=self.latest['version']
 
         #open page
-        URL = "http://psychopy.googlecode.com/files/PsychoPy-%s.zip" %(v)
+        URL = "https://sourceforge.net/projects/psychpy/files/PsychoPy-%s.zip" %(v)
         page = urllib2.urlopen(URL)
         #download in chunks so that we can monitor progress and abort mid-way through
         chunk=4096; read = 0
