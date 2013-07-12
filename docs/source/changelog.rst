@@ -22,18 +22,29 @@ PsychoPy 1.78
 PsychoPy 1.78.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+(not yet released)
+
 * ADDED: option to preload during Builder scripts using Static Component, which uses :class:`~psychopy.core.StaticPeriod` class
 * ADDED: TrialHander can now fetch previous trials as well as future ones (thanks Mike MacAskill)
 * ADDED: BufferImageStim accepts mask and pos params (thanks Jeremy)
 * ADDED: generated Sounds (not sound files) now use a Hanning window to get rid of sharp onset/offset noises (thanks Jeremy)
-* FIXED: having a monitors folder with a unicode character in the path doesn't break the app (thanks Sebastiaan Mathot)
 * FIXED: reduced number of queries when closing down and provides filenames of changed files in msg (thanks Piot Iwaniuk)
 
 PsychoPy 1.77
 ------------------------------
 
+PsychoPy 1.77.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+released July 2013
+
+* FIXED: problem with Builder Images appearing grey unless they were 'constant'. This is a bug that was introduced in 1.77.00 with the faster loading of images.
+* FIXED: having a monitors folder with a unicode character in the path doesn't break the app (thanks Sebastiaan Mathot)
+
 PsychoPy 1.77.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+released June 2013
 
 * Standalone package changes:
     - fixed pytables version on Win32 (to be compatible with WinXP)
@@ -43,6 +54,8 @@ PsychoPy 1.77.01
 
 PsychoPy 1.77.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+released June 2013
 
 * ADDED: preview of Sol Simpson's **ioHub** for faster (asynchronous) polling of hardware including mouse, keyboard, eyetrackers and other devices. See iohub demos for example usage. This provides many advantages over previous event polling:
     - asynchronous process allows constant polling (not tied to refresh rates) in a way that won't impact the rendering of your stimuli. It even runs on a separate CPU core if possible.
