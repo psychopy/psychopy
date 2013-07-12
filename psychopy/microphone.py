@@ -415,6 +415,18 @@ class AdvAudioCapture(AudioCapture):
             self.mtime = mtime
         return self.rms
 
+    def compress(self, keep=False):
+        """Compress using FLAC (lossless compression).
+        """
+        if os.path.isfile(self.savedFile) and self.savedFile.endswith('.wav'):
+            self.savedFile = wav2flac(self.savedFile, keep=keep)
+
+    def uncompress(self, keep=False):
+        """Uncompress from FLAC to .wav format.
+        """
+        if os.path.isfile(self.savedFile) and self.savedFile.endswith('.flac'):
+            self.savedFile = flac2wav(self.savedFile, keep=keep)
+
 def readWavFile(filename):
     """Return (data, sampleRate) as read from a wav file
     """

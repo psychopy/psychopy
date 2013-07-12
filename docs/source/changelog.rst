@@ -25,7 +25,9 @@ PsychoPy 1.78.00
 * ADDED: option to preload during Builder scripts using Static Component, which uses :class:`~psychopy.core.StaticPeriod` class
 * ADDED: TrialHander can now fetch previous trials as well as future ones (thanks Mike MacAskill)
 * ADDED: BufferImageStim accepts mask and pos params (thanks Jeremy)
-* ADDED: generated Sounds (not sound files) now use a Hanning window to get rid of sharp onset/offset noises (thanks Jeremy)
+* ADDED: generated Sounds (not sound files) now use a Hamming window to get rid of sharp onset/offset noises (thanks Jeremy)
+* ADDED: microphone component able to play & identify a marker tone (for vocal RT), compute loudness, compression (Jeremy)
+* ADDED: sound files: lossless compress / uncompress (requires flac executable installed separately) (Jeremy)
 * FIXED: having a monitors folder with a unicode character in the path doesn't break the app (thanks Sebastiaan Mathot)
 * FIXED: reduced number of queries when closing down and provides filenames of changed files in msg (thanks Piot Iwaniuk)
 
@@ -51,7 +53,7 @@ PsychoPy 1.77.00
     - provides a unified API for eyetracker classes
     - provides async access to the parallel port
     - provides an alternative data output format (using hdf5) particularly useful for high-output streaming data (e.g. eye-trackers)
-    
+
 * DEPRECATED: opensslwrap will soon be replaced by pyFileSec, a much-improved version of the same package (= file-oriented encryption)
 * IMPROVED: substantially (~40%) faster loading of RGB images from disk (by using byte format rather than float). May also allow storing of more images on graphics card than previously
 * ADDED: :class:`AdvancedMicrophone` class to add and retrieve a high-frequency tone to indicate the start of recording (e.g., to allow accurate vocal RT estimation), with demo (Jeremy Gray)
@@ -305,7 +307,7 @@ PsychoPy 1.72.00
     - ShapeStim now has a size parameter that scales the locations of vertices
     - new classes; Rect, Line, Circle, Polygon
 
-* FIXED: error with DotStim when fieldSize was a tuple and fieldShape was 'sqr' 
+* FIXED: error with DotStim when fieldSize was a tuple and fieldShape was 'sqr'
 * FIXED: calibration plots in Monitor Center now resize and quit as expected
 * FIXED: conditions files can now have lists of numbers [0,0]
 * FIXED: buglet with flushing mouse events (thanks Sebastiaan Mathot)
