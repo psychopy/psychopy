@@ -154,4 +154,8 @@ class MouseComponent(BaseComponent):
         elif store != 'never' and currLoop!=None:
             buff.writeIndented("# save %(name)s data\n" %(self.params))
             for property in ['x','y','leftButton','midButton','rightButton','time']:
-                buff.writeIndented("%s.addData('%s.%s', %s.%s)\n" %(currLoop.params['name'], name,property,name,property))
+                if store=='every frame':
+                    buff.writeIndented("%s.addData('%s.%s', %s.%s)\n" %(currLoop.params['name'], name,property,name,property))
+                else:
+                    #we only had one click so don't return a list
+                    buff.writeIndented("%s.addData('%s.%s', %s.%s[0])\n" %(currLoop.params['name'], name,property,name,property))
