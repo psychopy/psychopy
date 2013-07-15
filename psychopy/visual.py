@@ -6612,7 +6612,7 @@ class RatingScale:
         interpolate = bool(not sys.platform.startswith('linux'))
         self.acceptBox = ShapeStim(win=self.win, vertices=acceptBoxVertices,
             fillColor=self.acceptFillColor, lineColor=self.acceptLineColor,
-            interpolate=interpolate, name=self.name+'.accept')
+            interpolate=interpolate, name=self.name+'.accept', autoLog=False)
 
         # text to display inside accept button before a marker has been placed:
         if self.low > 0 and self.high < 10 and not self.mouseOnly:
@@ -6716,10 +6716,10 @@ class RatingScale:
             # fix the marker position on the line
             if not self.markerPosFixed:
                 try:
-                    self.marker.setFillColor('DarkGray')
+                    self.marker.setFillColor('DarkGray', log=False)
                 except AttributeError:
                     try:
-                        self.marker.setColor('DarkGray')
+                        self.marker.setColor('DarkGray', log=False)
                     except:
                         pass
                 self.marker.setPos((0, -.012), '+')  # drop it onto the line
@@ -6758,9 +6758,9 @@ class RatingScale:
                 self.marker.draw()
             if self.showAccept:
                 self.frame = (self.frame + 1) % 100
-                self.acceptBox.setFillColor(self.pulseColor[self.frame])
-                self.acceptBox.setLineColor(self.pulseColor[self.frame])
-                self.accept.setColor(self.acceptTextColor)
+                self.acceptBox.setFillColor(self.pulseColor[self.frame], log=False)
+                self.acceptBox.setLineColor(self.pulseColor[self.frame], log=False)
+                self.accept.setColor(self.acceptTextColor, log=False)
                 if self.showValue and self.markerPlacedAt is not False:
                     if self.choices:
                         val = unicode(self.choices[int(self.markerPlacedAt)])
@@ -6830,8 +6830,8 @@ class RatingScale:
             # minimum time is enforced during key and mouse handling
             self.status = FINISHED
             if self.showAccept:
-                self.acceptBox.setFillColor(self.acceptFillColor)
-                self.acceptBox.setLineColor(self.acceptLineColor)
+                self.acceptBox.setFillColor(self.acceptFillColor, log=False)
+                self.acceptBox.setLineColor(self.acceptLineColor, log=False)
 
         # build up response history:
         tmpRating = self.getRating()
