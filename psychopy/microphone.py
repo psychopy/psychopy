@@ -1015,7 +1015,8 @@ if __name__ == '__main__':
             print '\nend.', mic.savedFile
             for i in range(3):
                 t0 = time.time()
-                print mic.loudness(), time.time() - t0
+                print mic.getLoudness(), time.time() - t0
+            mic.compress()
         finally:
             # delete the file even if Ctrl-C
             if not save:
