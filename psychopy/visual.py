@@ -5866,7 +5866,7 @@ class RatingScale:
             myRatingScale = visual.RatingScale(myWin,
                                 choices=['cherry', 'apple', True, var, 'pie'])
 
-        So if you the subject chooses True,
+        So if the subject chooses True,
         getResponse() will return True (bool) and not u'True' (unicode).
 
     See Coder Demos -> stimuli -> ratingScale.py for examples. As another example,
@@ -5930,19 +5930,19 @@ class RatingScale:
         win :
             A :class:`~psychopy.visual.Window` object (required)
         scale :
-            string, explanation of the numbers to display to the subject, shown above the line;
-            default = '<low>=not at all, <high>=extremely'
-            to suppress all text above the line, set `showScale=False`,
-            if `labels` is not `False` and `choices` or `tickMarks` exists,
+            explanation of the numbers to display to the subject, shown above the line;
+            string, default = '<low>=not at all, <high>=extremely'.
+            To suppress all text above the line, set `showScale=False`.
+            If `labels` is not `False` and `choices` or `tickMarks` exists,
             `scale` defaults to `False`.
         choices :
             a list of items which the subject can choose among;
-            (takes precedence over `low`, `high`, `lowAnchorText`, `highAnchorText`, `showScale`,
-            `tickMarks`)
+            takes precedence over `low`, `high`, `lowAnchorText`, `highAnchorText`,
+            `showScale`, `tickMarks`, `precision`.
         low :
             lowest numeric rating / low anchor (integer, default = 1)
         high :
-            highest numeric rating / high anchor (integer, default = 7; at least low+1)
+            highest numeric rating / high anchor (integer, default = 7; at least `low + 1`)
         lowAnchorText :
             text to dsiplay for the low end of the scale (default = numeric low value)
         highAnchorText :
@@ -5950,43 +5950,45 @@ class RatingScale:
         tickMarks :
             list of positions at which tick marks should be placed
             (low and high need to be included if tick marks should be at the edges of the scale).
-            If None (the default), tick marks are placed automatically equally spaced,
-            one per integer value (auto-rescaling by a factor of 10 can happen to reduce visual clutter)
+            If `None` (the default), tick marks are automatically equally spaced,
+            one per integer value; auto-rescaling (by a factor of 10) can happen to reduce visual clutter.
         labels :
             text to be placed at each tick mark as placed by tickMarks and controls where labels
             of choices are displayed. Default is `None`.
             If `None` and `choices`:  choices will be plotted at ticks and
             `showAnchors=False`, but `scale` can be used for plotting above the line.
             If `None` and  `tickMarks`: `tickMarks` will be used and `showAnchors=False`.
-            If False, no labels are plotted at ticj marks (i.e., restores old behavior of `choices`).
+            If `False`, no labels are plotted at tick marks.
         precision :
             portions of a tick to accept as input [1, 10, 100], default = 1 tick (no fractional parts)
 
-            .. note:: `leftKeys` / `rightKeys` will move the marker by one portion of a tick.
+            .. note:: pressing a key in `leftKeys` or `rightKeys` will move the marker by one portion of a tick.
+
+            .. note:: precision is incompatible with `choices`.
 
         textSizeFactor :
-            control the size of text elements of the scale.
-            for larger than default text (expand) set > 1; for smaller, set < 1
+            the size of text elements of the scale.
+            For larger than default text (expand) set > 1; for smaller, set < 1.
         textColor :
             color to use for anchor and scale text (assumed to be RGB), default = 'LightGray'
         textFont :
             name of the font to use, default = 'Helvetica Bold'
         showValue :
-            show the subject their currently selected number, default = True
+            show the subject their currently selected number, default = `True`
         showScale :
-            show the `scale` text (the text above the line), default = True
-            if False, will not show any text above the line
+            show the `scale` text (the text above the line), default = `True`.
+            If `False`, will not show any text above the line.
         showAnchors :
-            show the two end points of the scale (low, high), default = True
+            show the two end points of the scale (`low`, `high`), default = `True`
         showAccept :
-            show the button to click to accept the current value by using the mouse, default = True
+            show the button to click to accept the current value by using the mouse, default = `True`
 
             .. note::
-                If showAccept is False and acceptKeys is empty, acceptKeys is reset to ['return']
+                If showAccept is False and acceptKeys is empty, `acceptKeys` is reset to `['return']`
                 to give the subject a way to respond.
 
         acceptKeys :
-            a key or list of keys that mean "accept the current response", default = ['return']
+            a key or list of keys that are used to mean "accept the current response", default = `['return']`
         acceptPreText :
             text to display before any value has been selected
         acceptText :
@@ -5994,39 +5996,42 @@ class RatingScale:
         acceptSize :
             width of the accept box relative to the default (e.g., 2 is twice as wide)
         leftKeys :
-            a key or list of keys that mean "move leftwards", default = ['left']
+            a key or list of keys that mean "move leftwards", default = `['left']`
         rightKeys :
-            a key or list of keys that mean "move rightwards", default = ['right']
+            a key or list of keys that mean "move rightwards", default = `['right']`
         lineColor :
             color to use for the scale line, default = 'White'
         ticksAboveLine :
             should the tick marks be displayed above the line (the default) or below
         markerStyle :
-            'triangle' (DarkBlue), 'circle' (DarkRed), or 'glow' (White)
+            'triangle' (DarkBlue), 'circle' (DarkRed), 'glow' (White, expanding),
+            or 'slider' (translucent Black, looks best with `precision=100`)
         markerColor :
-            None = use defaults; or any legal RGB colorname, e.g., '#123456', 'DarkRed'
+            `None` = use defaults; or any legal RGB colorname, e.g., '#123456', 'DarkRed'
         markerStart :
-            False, or the value in [low..high] to be pre-selected upon initial display
+            `False`, or the value in [`low`..`high`] to be pre-selected upon initial display
         markerExpansion :
             how much the glow marker expands when moving to the right; 0=none, negative shrinks; try 10 or -10
         customMarker :
             allows for a user-defined marker; must have a `.draw()` method, such as a
             :class:`~psychopy.visual.TextStim()` or :class:`~psychopy.visual.GratingStim()`
         escapeKeys :
-            keys that will quit the experiment, calling `core.quit()`. default = [ ] (none).
+            keys that will quit the experiment if pressed by the subject (by calling
+            `core.quit()`). default = `[ ]` (no escape keys).
 
-            .. note:: in the Builder, the default is ['escape'] (to be consistent with other Builder conventions)
+            .. note:: in the Builder, the default is `['escape']` (to be consistent
+            with other Builder conventions)
 
         allowSkip :
-            if True, the subject can skip an item by pressing a key in `skipKeys`, default = True
+            if True, the subject can skip an item by pressing a key in `skipKeys`, default = `True`
         skipKeys :
-            list of keys the subject can use to skip a response, default = ['tab']
+            list of keys the subject can use to skip a response, default = `['tab']`
 
             .. note::
                 to require a response to every item, use `allowSkip=False`
 
         mouseOnly :
-            require the subject use the mouse only (no keyboard), default = False.
+            require the subject use the mouse only (no keyboard), default = `False`.
             can be used to avoid competing with other objects for keyboard input.
 
             .. note::
@@ -6037,28 +6042,28 @@ class RatingScale:
                 `mouseOnly=True` is helpful if there will be something else
                 on the screen expecting keyboard input
         singleClick :
-            enable a mouse click to both indicate and accept the rating, default = False.
-            note that the 'accept' box is visible, but clicking it has no effect,
-            its just to display the value. a legal key press will also count as a singleClick.
+            enable a mouse click to both indicate and accept the rating, default = `False`.
+            Note that the 'accept' box is visible, but clicking it has no effect,
+            its just to display the value. A legal key press will also count as a singleClick.
         pos : tuple (x, y)
             where to position the rating scale (x, y) in terms of the window's units (pix, norm);
-            default (0.0, -0.4) in norm units
+            default `(0.0, -0.4)` in norm units
         displaySizeFactor :
             how much to expand or contract the overall rating scale display
             (not just the line length)
         stretchHoriz:
-            multiplicative factor for stretching (or compressing) the scale
+            how much to stretch (or compress) the scale
             horizontally (3 -> use the whole window);
-            like displaySizeFactor, but only in the horizontal direction
+            acts like `displaySizeFactor`, but only in the horizontal direction
         minTime :
             number of seconds that must elapse before a reponse can be accepted,
-            default = 1.0s
+            default = `1.0`.
         maxTime :
             number of seconds after which a reponse cannot be made accepted.
             if `maxTime` <= `minTime`, there's unlimited time.
-            default = 0.0s (wait forever)
+            default = `0.0` (wait forever).
         disappear :
-            if True, the rating scale will be hidden after a value is accepted;
+            if `True`, the rating scale will be hidden after a value is accepted;
             useful when showing multiple scales. The default is to remain on-screen.
 
         name : string
@@ -6123,6 +6128,9 @@ class RatingScale:
         self.mouseOnly = bool(mouseOnly)
         self.singleClick = bool(singleClick)
         self.acceptKeys = acceptKeys
+        if choices and precision != 1:
+            precision = 1  # a fractional choice is undefined
+            logging.exp('RatingScale: precision is incompatible with choices')
         self.precision = precision
         self.showAnchors = bool(showAnchors)
         self.labelTexts = None
@@ -6458,6 +6466,17 @@ class RatingScale:
             self.marker = ShapeStim(win=self.win, units='norm', vertices=vert,
                 lineWidth=0.1, lineColor=markerColor, fillColor=markerColor,
                 name=self.name+'.markerTri', autoLog=False)
+        elif self.markerStyle == 'slider':
+            scaledTickSize = self.tickSize * self.displaySizeFactor
+            vert = [[-1 * scaledTickSize * 1.8, scaledTickSize],
+                    [ scaledTickSize * 1.8, scaledTickSize],
+                    [ scaledTickSize * 1.8, -1 * scaledTickSize],
+                    [-1 * scaledTickSize * 1.8, -1 * scaledTickSize]]
+            if markerColor == None or not _isValidColor(markerColor):
+                markerColor = 'black'
+            self.marker = ShapeStim(win=self.win, units='norm', vertices=vert,
+                lineWidth=0.1, lineColor=markerColor, fillColor=markerColor,
+                name=self.name+'.markerSlider', opacity=0.8, autoLog=False)
         elif self.markerStyle == 'glow':
             if markerColor == None or not _isValidColor(markerColor):
                 markerColor = 'White'
@@ -6542,8 +6561,8 @@ class RatingScale:
         """Method to set the text description that appears above the rating line.
 
         Useful when using the same RatingScale object to rate several dimensions.
-        setDescription(None) will reset the description to its initial state.
-        set to a space character (' ') to make the description invisible.
+        `setDescription(None)` will reset the description to its initial state.
+        Set to a space character (' ') to make the description invisible.
         The description will not be visible if `showScale` is False.
         """
         if scale is None:
@@ -6640,11 +6659,17 @@ class RatingScale:
 
         Assuming you have defined rs = RatingScale(...), you can specify a tick
         position directly::
+
             rs.setMarkerPos(2)
+
         or do range checking, precision management, and auto-rescaling::
+
             rs.setMarkerPos(rs._getMarkerFromTick(2))
+
         To work from a screen coordinate, such as the X position of a mouse click::
+
             rs.setMarkerPos(rs._getMarkerFromPos(mouseX))
+
         """
         self.markerPlacedAt = tick
         self.markerPlaced = True # only needed first time, which this ensures
