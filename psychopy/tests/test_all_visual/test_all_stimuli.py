@@ -32,12 +32,12 @@ class _baseVisualTest:
         stims.append(visual.ShapeStim(win))
         stims.append(visual.TextStim(win))
         for stim in stims:
-            assert stim.status==visual.NOT_STARTED
+            assert stim._status==visual.NOT_STARTED
             stim.setAutoDraw(True)
-            assert stim.status==visual.STARTED
+            assert stim._status==visual.STARTED
             stim.setAutoDraw(False)
-            assert stim.status==visual.FINISHED
-            assert stim.status==visual.STOPPED
+            assert stim._status==visual.FINISHED
+            assert stim._status==visual.STOPPED
     def test_gabor(self):
         win = self.win
         #using init
@@ -53,7 +53,7 @@ class _baseVisualTest:
         gabor.setOri(45)
         gabor.setSize(0.2*self.scaleFactor, '-')
         gabor.setColor([45,30,0.3], colorSpace='dkl')
-        gabor.setSF(0.2/self.scaleFactor, '+')
+        gabor.sf += 0.2/self.scaleFactor
         gabor.setPos([-0.5*self.scaleFactor,0.5*self.scaleFactor],'+')
         gabor.setContrast(0.8)
         gabor.setOpacity(0.8)
