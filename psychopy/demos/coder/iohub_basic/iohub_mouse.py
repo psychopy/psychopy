@@ -5,6 +5,7 @@ fetching and processing events from hardware; mice, keyboards, eyetrackers).
 
 Inital Version: May 6th, 2013, Sol Simpson
 Abbrieviated: May 2013, Jon Peirce
+Updated July, 2013, Sol, Added timeouts
 """
 import sys
 
@@ -41,15 +42,20 @@ grating = visual.PatchStim(window,pos=(300,0),
                     color=[1.0,0.5,-1.0],
                     size=(150.0,150.0), sf=(0.01,0.0),
                     autoLog=False)
-message = visual.TextStim(window,pos=(0.0,-(display_resolution[1]/2-140)),alignHoriz='center',
+message = visual.TextStim(window,pos=(0.0,-(display_resolution[1]/3)),alignHoriz='center',
                     alignVert='center',height=40,
                     text='move=mv-spot, left-drag=SF, right-drag=mv-grating, scroll=ori',
+                    autoLog=False,wrapWidth=display_resolution[0]*.9)
+message2 = visual.TextStim(window,pos=(0.0,-(display_resolution[1]/4)),alignHoriz='center',
+                    alignVert='center',height=40,
+                    text='Press Any Key to Quit.',
                     autoLog=False,wrapWidth=display_resolution[0]*.9)
 
 last_wheelPosY=0
 
 io.clearEvents('all')
 
+demo_timeout_start=core.getTime()
 # Run the example until a keyboard event is received.
 #
 while True:
@@ -93,17 +99,24 @@ while True:
     fixSpot.draw()
     grating.draw()
     message.draw()
-    window.flip()#redraw the buffer
+    message2.draw()
+    flip_time=window.flip()#redraw the buffer
 
-    # Handle key presses each frame. Since no event type is being given
-    # to the getEvents() method, all KeyboardEvent types will be
-    # returned (KeyboardPressEvent, KeyboardReleaseEvent, KeyboardCharEvent),
-    # and used in this evaluation.
-    #
-    if keyboard.getEvents():
-        # Check if we should quit. Any kb event will end the demo.
-            io.quit()
-            core.quit()
+    # Check for keyboard orand mouse events.
+    # If 15 seconds passes without receiving any kb or mouse event,
+    # then exit the demo
+    kb_events=keyboard.getEvents()
+    mouse_events=mouse.getEvents()
+    if kb_events:
+        # timeout immediately on any keyboard event
+        demo_timeout_start=-100.0 
+    elif mouse_events:
+        demo_timeout_start=mouse_events[-1].time
+
+    if flip_time-demo_timeout_start>15.0:
+        print "Ending Demo Due to 15 Seconds of Inactivity."
+        io.quit()
+        core.quit()
 
     # Clear out events that were not accessed this frame.
     io.clearEvents()
