@@ -9,7 +9,6 @@ from collections import Iterable
 
 from exception_tools import ioHubConnectionException, ioHubServerError, printExceptionDetailsToStdErr, print2err, createErrorResult, ioHubError
 from psychopy.clock import MonotonicClock, monotonicClock
-getTime = monotonicClock.getTime
 
 # Path Update / Location functions
 

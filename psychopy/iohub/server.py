@@ -43,11 +43,13 @@ class udpServer(DatagramServer):
         if self._running is False:
             return False
         
-        self.feed(request[:-2])
+        self.feed(request)
         request = self.unpack()   
         request_type= request.pop(0)
-        
-        if request_type == 'PING':
+        if request_type == 'SYNC_REQ':
+            self.sendResponse(['SYNC_REPLY',currentSec()],replyTo)  
+            return True        
+        elif request_type == 'PING':
                 clienttime=request.pop(0)
                 msg_id=request.pop(0)
                 payload=request.pop(0)
@@ -272,7 +274,7 @@ class udpServer(DatagramServer):
         packet_data=None
         try:
             max_size=MAX_PACKET_SIZE/2-20
-            packet_data=self.pack(data)+'\r\n'
+            packet_data=self.pack(data)
             packet_data_length=len(packet_data)
             if packet_data_length>= max_size:
                 num_packets=len(packet_data)/max_size+1
@@ -307,7 +309,7 @@ class udpServer(DatagramServer):
                                    first_data_element=str(first_data_element),
                                    packet_data_length=packet_data_length,
                                    max_packet_size=max_size)
-            packet_data=self.pack(data)+'\r\n'
+            packet_data=self.pack(data)
             packet_data_length=len(packet_data)            
             self.socket.sendto(packet_data,address)
             
@@ -339,7 +341,7 @@ class udpServer(DatagramServer):
 
     def initializeConditionVariableTable(self, experiment_id, session_id, numpy_dtype):
         if self.iohub.emrt_file:
-            output=[('session_id','u4'),('index_id','u4')]
+            output=[]
             for a in numpy_dtype:
                 if isinstance(a[1],(str,unicode)):
                     output.append(tuple(a))
@@ -404,9 +406,10 @@ class DeviceMonitor(Greenlet):
             self.device._poll()
             i=self.sleep_interval-(ctime()-stime)
             if i > 0.0:
-                gevent.sleep(i)    
+                gevent.sleep(i)
+            else:
+                gevent.sleep(0.0)
 
-        
 class ioServer(object):
     eventBuffer=None
     deviceDict={}
@@ -471,6 +474,23 @@ class ioServer(object):
             printExceptionDetailsToStdErr()
             raise ioHubError("Error during device creation ....")
 
+
+        # Add PubSub device listeners to other event types
+        try:
+            for d in self.devices:
+                if d.__class__.__name__ == "EventPublisher":
+                    monitored_event_ids=d._event_listeners.keys()
+                    for eid in monitored_event_ids:
+                        event_device_class=EventConstants.getClass(eid).PARENT_DEVICE
+                        for ed in self.devices:
+                            if ed.__class__ == event_device_class:
+                                ed._addEventListener(d,[eid,])
+                                break
+                            
+        except Exception, e:
+            print2err("Error PubSub Device listener association ....")
+            printExceptionDetailsToStdErr()
+            raise e
 
         # initial time offset
         #print2err("-- ioServer Init Complete -- ")
@@ -747,28 +767,28 @@ class ioServer(object):
                 dPoller=DeviceMonitor(deviceInstance,interval)
                 self.deviceMonitors.append(dPoller)
 
-            eventIDs=[]
+            monitoringEventIDs=[]
             monitor_events_list=device_config.get('monitor_event_types',[])
             if isinstance(monitor_events_list,(list,tuple)):
                 for event_class_name in monitor_events_list:
-                    eventIDs.append(getattr(EventConstants,convertCamelToSnake(event_class_name[:-5],False)))
-            
-            self.log("{0} Instance Event IDs To Monitor: {1}".format(device_class_name,eventIDs))
+                    event_id = getattr(EventConstants,convertCamelToSnake(event_class_name[:-5],False))
+                    monitoringEventIDs.append(event_id)
+            self.log("{0} Instance Event IDs To Monitor: {1}".format(device_class_name,monitoringEventIDs))
             #ioHub.print2err("{0} Instance Event IDs To Monitor: {1}".format(device_class_name,eventIDs))
 
             # add event listeners for streaming events
             if device_config.get('stream_events') is True:
                 self.log("Online event access is being enabled for: %s"%device_class_name)
                 # add listener for global event queue
-                deviceInstance._addEventListener(self,eventIDs)
+                deviceInstance._addEventListener(self,monitoringEventIDs)
                 #ioHub.print2err("ioServer event stream listener added: device=%s eventIDs=%s"%(device_class_name,eventIDs))
-                self.log("Standard event stream listener added for ioServer for event ids %s"%(str(eventIDs),))
+                self.log("Standard event stream listener added for ioServer for event ids %s"%(str(monitoringEventIDs),))
                 # add listener for device event queue
-                deviceInstance._addEventListener(deviceInstance,eventIDs)
+                deviceInstance._addEventListener(deviceInstance,monitoringEventIDs)
                 #  ioHub.print2err("%s event stream listener added: eventIDs=%s"%(device_class_name,eventIDs))
-                self.log("Standard event stream listener added for class %s for event ids %s"%(device_class_name,str(eventIDs)))
+                self.log("Standard event stream listener added for class %s for event ids %s"%(device_class_name,str(monitoringEventIDs)))
 
-            return deviceInstance,device_config,eventIDs,event_classes
+            return deviceInstance,device_config,monitoringEventIDs,event_classes
 
 
     def log(self,text,level=None):
@@ -825,7 +845,6 @@ class ioServer(object):
                 print2err("--------------------------------------")
 
     def _handleEvent(self,event):
-        #ioHub.print2err("ioServer Handle event: ",event)
         self.eventBuffer.append(event)
 
     def clearEventBuffer(self):
