@@ -307,6 +307,9 @@ def isValidList(config_param_name,value,constraints):
             return value
 
         valid_values=constraints.get('valid_values',[])
+        
+        if len(valid_values)==0:
+            return value
             
         if not isinstance(value,(list,tuple)):         
             if value not in valid_values:

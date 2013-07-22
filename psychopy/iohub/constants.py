@@ -121,7 +121,7 @@ try:
     
         GAMEPAD_STATE_CHANGE=81
         GAMEPAD_DISCONNECT=82
-    
+        
         MULTI_CHANNEL_ANALOG_INPUT=122
     
         MESSAGE=151
@@ -187,7 +187,7 @@ try:
         
             #: Constant for a Gamepad Event.
             GAMEPAD_STATE_CHANGE=81
-        
+
             #: Constant for an Eight Channel Analog Input Sample Event.
             MULTI_CHANNEL_ANALOG_INPUT=122
         
@@ -216,6 +216,7 @@ try:
                         break
                 
                 if event_id not in cls._classes.keys():
+                        from psychopy.iohub import print2err
                         print2err("\t*** ERROR ADDING EVENT CLASSS MAPPING: Could not find class: ",event_constant_string, " = ",event_id)
     
     EventConstants.initialize()
@@ -249,6 +250,10 @@ try:
         KEYBOARD = 20
         MOUSE = 30
         EYETRACKER = 50
+        NETWORK=60
+        EVENTPUBLISHER=61
+        REMOTEEVENTSUBSCRIBER=62
+        
         XINPUT= 70
         GAMEPAD=80
         ANALOGINPUT = 120
@@ -270,6 +275,12 @@ try:
 
             #: Constant for an EyeTracker Device.
             EYETRACKER = 50
+
+            #: Constant for a Network Device
+            EVENTPUBLISHER=61
+            
+            #: Constant for a Network Device
+            REMOTEEVENTSUBSCRIBER=62
 
             XINPUT= 70
 
