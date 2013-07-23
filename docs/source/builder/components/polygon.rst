@@ -23,6 +23,14 @@ nVertices : integer
 
     The number of vertices for your shape (2 gives a line, 3 gives a triangle,... a large number results in a circle/ellipse)
     
+fill settings:
+
+    Control the color inside the shape. If you set this to `None` then you will have a transparent shape (the line will remain)
+    
+line settings:
+
+    Control color and width of the line. The line width is always specified in pixels - it does not honour the `units` parameter.
+    
 size : [w,h]
     See note above
     
