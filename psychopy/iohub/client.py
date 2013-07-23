@@ -567,7 +567,7 @@ class ioHubConnection(object):
         Args:
             delay (float/double): The sec.msec period that the PsychoPy Process should wait before returning from the function call.
 			
-            check_hub_interval (float/double): The sec.msec interval after which a call to getEvents() will be made by the wait() function. Any returned events are stored in a local buffer. This is repeated every check_hub_interval sec.msec until the delay time has passed. Default is every 0.02 sec ( 20.0 msec ).
+			check_hub_interval (float/double): The sec.msec interval after which a call to getEvents() will be made by the wait() function. Any returned events are stored in a local buffer. This is repeated every check_hub_interval sec.msec until the delay time has passed. Default is every 0.02 sec ( 20.0 msec ).
 
         Returns:
             float/double: The actual duration of the delay in sec.msec format.

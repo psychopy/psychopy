@@ -1346,8 +1346,6 @@ class EyeTracker(EyeTrackerDevice):
 
     def _eyelinkSetLinkAndFileContents(self):
         try:
-            print2err("Online EyeLink Event settings should be based on the monitored event types of the ioHub device.")
-            print2err("Recordnig link data should only be enabled if ioHub device is saving to data store or streaming events to psychopy.")
             eyelink = self._eyelink
     
             eyelink_hw_ver, eyelink_sw_ver = self._eyeLinkHardwareAndSoftwareVersion()
