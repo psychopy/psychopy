@@ -853,10 +853,10 @@ def _getFlacPath(flac_exe=''):
                 # `where` is very slow, seconds
                 FLAC_PATH = core.shellCall(['where', '/r', 'C:\\', 'flac'])
         else:
-            FLAC_PATH = core.shellCall(['/usr/bin/which', 'flac'])
+            FLAC_PATH = core.shellCall(['which', 'flac'])
         logging.info('set FLAC_PATH to %s' % FLAC_PATH)
     if not os.path.isfile(FLAC_PATH):
-        msg = "failed to find flac binary, tried '%s'" % flac_path
+        msg = "could not find flac binary, tried '%s'; download & install from https://xiph.org/flac/download.html" % flac_path
         logging.error(msg)
         raise MicrophoneError(msg)
     return FLAC_PATH

@@ -2,6 +2,9 @@
 
 """Demo to illustrate speech recognition using microphone.Speech2Text
 
+Requires flac, which does not come with PsychoPy. You can get it free,
+download & install from https://xiph.org/flac/download.html
+
 Records 2.5s of speech, displays the word(s) spoken, and sets a color.
 Can be used to show subjects how loudly and clearly they need to talk.
 """
