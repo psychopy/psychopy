@@ -48,7 +48,7 @@ while not (event.getKeys(['escape', 'q']) or word.text in ['exit']):
 
     if guess.word:
         word.setText(guess.word)
-    color = guess.word.replace(' ', '')
+    color = guess.word.replace(' ', '').lower()  # Green -> green
     if not color in colors.colors:
         color = -0.7
     word.setColor(color)

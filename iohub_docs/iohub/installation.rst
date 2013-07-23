@@ -31,6 +31,8 @@ the ioHub dependency installation list and installation of ioHub itself:
     #. Psychopy 1.74.03 or higher and all of it's dependencies. See the `PsychoPy installation <http://www.psychopy.org/installation.html>`_ page for details. 
 
     #. For the NumPy package, please ensure 1.6.2 or greater is installed.
+    
+    #. For the gevent package, please ensure 1.0 or greater is installed.
 
 Dependency Installation List 
 +++++++++++++++++++++++++++++

@@ -16,6 +16,11 @@ You can see `details of contributions on Ohloh.net <https://www.ohloh.net/p/Psyc
 
 PsychoPy also stands on top of a large number of other developers' work. It wouldn't be possible to write this package without the preceding work of those that wrote the :ref:`dependencies`
 
+Support
+-----------
+
+Software projects aren't just about code. A great deal of work is done by the community in terms of supporting each other. Jeremy Gray, Mike MacAskill, Jared Roberts and Jonas Lindelov particularly stand out in doing a fantastic job of answering other users' questions. You can see the most active posters on the users list here: https://groups.google.com/forum/#!aboutgroup/psychopy-users
+
 Funding
 ----------------
 
