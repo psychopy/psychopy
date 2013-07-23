@@ -5053,7 +5053,10 @@ class Polygon(ShapeStim):
             ) * self.radius
             for e in xrange(self.edges)
         ]
-
+    def setEdges(self,edges):
+        "Set the number of edges to a new value"
+        self.edges=edges
+        self._calcVertices()
     def setRadius(self, radius, log=True):
         """Changes the radius of the Polygon. Parameter should be
 
@@ -5065,7 +5068,7 @@ class Polygon(ShapeStim):
             self.win.logOnFlip("Set %s radius=%s" %(self.name, radius),
                 level=logging.EXP,obj=self)
 class Circle(Polygon):
-    """Creates a Circle with a given radius as a special case of a `~psychopy.visual.ShapeStim`
+    """Creates a Circle with a given radius as a special case of a :class:`~psychopy.visual.ShapeStim`
 
     (New in version 1.72.00)
     """
@@ -5103,7 +5106,7 @@ class Circle(Polygon):
                 level=logging.EXP,obj=self)
 
 class Rect(ShapeStim):
-    """Creates a rectangle of given width and height as a special case of a `~psychopy.visual.ShapeStim`
+    """Creates a rectangle of given width and height as a special case of a :class:`~psychopy.visual.ShapeStim`
 
     (New in version 1.72.00)
     """
@@ -5164,7 +5167,7 @@ class Line(ShapeStim):
     """
     def __init__(self, win, start=(-.5, -.5), end=(.5, .5), **kwargs):
         """
-        Line accepts all input parameters, that `~psychopy.visual.ShapeStim` accepts, except
+        Line accepts all input parameters, that :class:`~psychopy.visual.ShapeStim` accepts, except
         for vertices, closeShape and fillColor.
 
         The methods `contains` and `overlaps` are inherited from `~psychopy.visual.ShapeStim`,
