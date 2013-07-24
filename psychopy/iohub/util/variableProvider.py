@@ -3,9 +3,8 @@ __author__ = 'Sol'
 import numpy as np
 import sys
 import json
-from psychopy.clock import monotonicClock
+from psychopy.core import getTime
 from . import OrderedDict,  printExceptionDetailsToStdErr, print2err
-getTime=monotonicClock.getTime 
 #### Experiment Variable (IV and DV) Condition Management
 #
 class ConditionSetProvider(object):
@@ -150,6 +149,7 @@ class ExperimentVariableProvider(object):
         # create a 2D numpy ndarray representing spreadsheet data
         # we add one column to start of table, 'ROW_ID'
         color_column_indexes=[]
+        string_column_indexes=[]
         for i,cname in enumerate(self.variableNames):
             cname=str(cname)
             rtype=row_types[i]
@@ -167,9 +167,11 @@ class ExperimentVariableProvider(object):
                     except:
                         print2err("*** ERROR HANDLING COLOR COLUMN: ",cname,". Setting to 64 char string.")
                         printExceptionDetailsToStdErr()
-                        np_dtype.append((cname,'S',64))
+                        np_dtype.append((cname,'S',1))
+                        string_column_indexes.append(i)
                 else:
-                    np_dtype.append((cname,'S',64))
+                    np_dtype.append((cname,'S',1))
+                    string_column_indexes.append(i)
             elif rtype==2:
                 # need to check between floats and ints
                 if is_integer(rvalue):
@@ -188,9 +190,16 @@ class ExperimentVariableProvider(object):
                 rowValues[i]=tuple(json.loads(rowValues[i]))
             temp_rows.append(tuple(rowValues))
 
+        max_str_lens=[0,]*len(string_column_indexes)
+        for r in temp_rows:
+            for i,s in enumerate(string_column_indexes):
+                max_str_lens[i]=max(max_str_lens[i],len(r[s]))
+        for i,s in enumerate(string_column_indexes):
+            np_dtype[s]=(np_dtype[s][0],np_dtype[s][1],max_str_lens[i])
+            
         self._numpyConditionVariableDescriptor=np_dtype
 
-        self.data=np.array(temp_rows,dtype=np_dtype)
+        self.data=np.asarray(temp_rows,dtype=np_dtype)
 
         # break trial variable arrays into blocks.
         tempBlockDict=OrderedDict()

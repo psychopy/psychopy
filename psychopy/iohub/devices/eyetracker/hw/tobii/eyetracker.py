@@ -430,8 +430,10 @@ class EyeTracker(EyeTrackerDevice):
     
             if left_gaze_x != -1 and left_gaze_y != -1:
                 left_gaze_x,left_gaze_y=self._eyeTrackerToDisplayCoords((left_gaze_x,left_gaze_y))
+
             if right_gaze_x != -1 and right_gaze_y != -1:
                 right_gaze_x,right_gaze_y=self._eyeTrackerToDisplayCoords((right_gaze_x,right_gaze_y))
+
             # TO DO: Set CI to be equal to current time error stated in Tobii Sync manager
             confidenceInterval=0.0 
             binocSample=[

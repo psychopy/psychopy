@@ -361,6 +361,7 @@ class ioHubConnection(object):
         
         self._experimentMetaData=None
         self._sessionMetaData=None
+        self._iohub_server_config=None
         
         self._shutdown_attempted=False
         self._startServer(ioHubConfig, ioHubConfigAbsPath)
@@ -423,6 +424,20 @@ class ioHubConnection(object):
             dict: Experiment metadata saved to the ioHub DataStore. None if the ioHub DataStore is not enabled.
         """
         return self._experimentMetaData
+
+    def getHubServerConfig(self):
+        """
+        Returns a dict containing the ioHub Server configuration that is being
+        used for the current ioHub experiment.
+        
+        Args:
+            None
+            
+        Returns:
+            dict: ioHub Server configuration.
+        """
+        
+        return self._iohub_server_config        
         
     def getEvents(self,device_label=None,as_type ='namedtuple'):
         """
@@ -644,6 +659,9 @@ class ioHubConnection(object):
         Returns:
             None
         """
+        for i,d in enumerate(data):
+            if isinstance(d,unicode):
+                data[i]=d.encode('utf-8')
         r=self._sendToHubServer(('RPC','addRowToConditionVariableTable',(self.experimentSessionID,data)))
         return r[2]
 
@@ -850,7 +868,8 @@ class ioHubConnection(object):
                 ioHubConfigAbsPath=os.path.abspath(tfile.name)               
                 tfile.close()
 
-            
+        self._iohub_server_config=ioHubConfig
+        
         self.udp_client=UDPClientConnection(remote_port=ioHubConfig.get('udp_port',9000))
 
         run_script=os.path.join(IO_HUB_DIRECTORY,'launchHubProcess.py')
@@ -2066,7 +2085,7 @@ class ioHubExperimentRuntime(object):
             pass
         self.hub=None
         self.devices=None
-       
+
 class ioHubExperimentRuntimeError(Exception):
     """Base class for exceptions raised by ioHubExperimentRuntime class."""
     pass        

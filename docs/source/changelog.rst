@@ -25,6 +25,7 @@ PsychoPy 1.78.00
 (not yet released)
 
 * ADDED: option to preload during Builder scripts using Static Component, which uses :class:`~psychopy.core.StaticPeriod` class
+* ADDED: Polygon Component to Builder for drawing regular polygons (including simple lines)
 * ADDED: TrialHander can now fetch previous trials as well as future ones (thanks Mike MacAskill)
 * ADDED: BufferImageStim accepts mask and pos params (thanks Jeremy)
 * ADDED: generated Sounds (not sound files) now use a Hamming window to get rid of sharp onset/offset noises (thanks Jeremy)
