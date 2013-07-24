@@ -7433,7 +7433,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
                     im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
 
         #is it Luminance or RGB?
-        if im.mode=='L':
+        if im.mode=='L' and pixFormat==GL.GL_ALPHA:
             wasLum = True
         elif pixFormat==GL.GL_ALPHA:#we have RGB and need Lum
             wasLum = True
@@ -7449,7 +7449,6 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
             intensity = numpy.array(im)
         if wasLum and intensity.shape!=im.size:
             intensity.shape=im.size
-            print intensity.min(), intensity.max()
 
     if pixFormat==GL.GL_RGB and wasLum and dataType==GL.GL_FLOAT:
         #keep as float32 -1:1

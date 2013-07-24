@@ -38,6 +38,12 @@ class _baseVisualTest:
             stim.setAutoDraw(False)
             assert stim.status==visual.FINISHED
             assert stim.status==visual.STOPPED
+    def test_greyscaleImage(self):
+        win = self.win
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'greyscale.jpg')
+        imageStim = visual.ImageStim(win, fileName)
+        imageStim.draw()
+        utils.compareScreenshot('greyscale_%s.png' %(self.contextName), win)
     def test_gabor(self):
         win = self.win
         #using init
