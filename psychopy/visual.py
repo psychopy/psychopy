@@ -7684,7 +7684,13 @@ def _setColor(self, color, colorSpace=None, operation='',
 
     #at this point we have a numpy array of 3 vals (actually we haven't checked that there are 3)
     #check if colorSpace is given and use self.colorSpace if not
-    if colorSpace==None: colorSpace=getattr(self,colorSpaceAttrib)
+    if colorSpace==None:
+        colorSpace=getattr(self,colorSpaceAttrib)
+        #using previous color space - if we got this far in the _stColor function
+        #then we haven't been given a color name - we don't know what color space to use.
+        if colorSpace == 'named':
+            logging.error("If you setColor with a numeric color value then you need to specify a color space, e.g. setColor([1,1,-1],'rgb'), unless you used a numeric value previously in which case PsychoPy will reuse that color space.)")
+            return
     #check whether combining sensible colorSpaces (e.g. can't add things to hex or named colors)
     if operation!='' and getattr(self,colorSpaceAttrib) in ['named','hex']:
             raise AttributeError("setColor() cannot combine ('%s') colors within 'named' or 'hex' color spaces"\
@@ -7696,14 +7702,17 @@ def _setColor(self, color, colorSpace=None, operation='',
         exec('self.%s %s= color' %(colorAttrib, operation))#if no operation then just assign
     #get window (for color conversions)
     if colorSpace in ['dkl','lms']: #only needed for these spaces
-        if hasattr(self,'dkl_rgb'): win=self #self is probably a Window
-        elif hasattr(self, 'win'): win=self.win #self is probably a Stimulus
+        if hasattr(self,'dkl_rgb'):
+            win=self #self is probably a Window
+        elif hasattr(self, 'win'):
+            win=self.win #self is probably a Stimulus
         else:
             win=None
             logging.error("_setColor() is being applied to something that has no known Window object")
     #convert new self.color to rgb space
     newColor=getattr(self, colorAttrib)
-    if colorSpace in ['rgb','rgb255']: setattr(self,rgbAttrib, newColor)
+    if colorSpace in ['rgb','rgb255']:
+        setattr(self,rgbAttrib, newColor)
     elif colorSpace=='dkl':
         if numpy.all(win.dkl_rgb==numpy.ones([3,3])):
             dkl_rgb=None
@@ -7722,7 +7731,8 @@ def _setColor(self, color, colorSpace=None, operation='',
         setattr(self,rgbAttrib, colors.lms2rgb(newColor, lms_rgb) )
     elif colorSpace=='hsv':
         setattr(self,rgbAttrib, colors.hsv2rgb(numpy.asarray(newColor)) )
-    else: logging.error('Unknown colorSpace: %s' %colorSpace)
+    else:
+        logging.error('Unknown colorSpace: %s' %colorSpace)
     setattr(self,colorSpaceAttrib, colorSpace)#store name of colorSpace for future ref and for drawing
     #if needed, set the texture too
     _setTexIfNoShaders(self)
