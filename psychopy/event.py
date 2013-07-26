@@ -210,7 +210,14 @@ def getKeys(keyList=None, timeStamped=False):
     elif havePyglet:
         #for each (pyglet) window, dispatch its events before checking event buffer
         wins = pyglet.window.get_platform().get_default_display().get_windows()
-        for win in wins: win.dispatch_events()#pump events on pyglet windows
+        for win in wins:
+            try:
+                win.dispatch_events()#pump events on pyglet windows
+            except ValueError as e:
+                # Pressing special keys, such as 'volume-up', results in a
+                # ValueError. This appears to be a bug in pyglet, and may be
+                # specific to certain systems and versions of Python.
+                logging.error(u'Failed to handle keypress')
 
         global _keyBuffer
         if len(_keyBuffer)>0:

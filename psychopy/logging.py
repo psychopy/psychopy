@@ -227,7 +227,8 @@ class _Logger:
                         #convert the entry into a formatted string
                         formatted[thisEntry]= self.format %thisEntry.__dict__
                     target.write(formatted[thisEntry]+'\n')
-            target.stream.flush()
+            if hasattr(target.stream, 'flush'):
+                target.stream.flush()
         #finished processing entries - move them to self.flushed
         self.flushed.extend(self.toFlush)
         self.toFlush=[]#a new empty list
