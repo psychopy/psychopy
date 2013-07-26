@@ -39,6 +39,8 @@
     #choice of audio library
     audioLib = list(default=list('pygame', 'pyo'))
     audioDriver = list(default=list('Primary Sound','ASIO','Audigy'))
+    # path to flac (lossless audio compression) on this operating system
+    flac = string(default='')
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]

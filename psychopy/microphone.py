@@ -13,7 +13,7 @@ import threading, urllib2, json
 import tempfile, glob
 import numpy as np
 from scipy.io import wavfile
-from psychopy import core, logging, sound, web
+from psychopy import core, logging, sound, web, prefs
 from psychopy.constants import *
 # import pyo is done within switchOn to better encapsulate it, because it can be very slow
 # idea: don't want to delay up to 3 sec when importing microphone
@@ -22,8 +22,9 @@ from psychopy.constants import *
 global haveMic
 haveMic = False # goes True in switchOn, if can import pyo
 
+# flac is used for audio compression; user needs to install it
 global FLAC_PATH
-FLAC_PATH = None  # set on first call to _getFlacPath(); used for Speech2Text
+FLAC_PATH = None  # set on first call to _getFlacPath()
 
 
 class AudioCapture(object):
@@ -625,6 +626,12 @@ class Speech2Text(object):
         there could still be some downtime.) Presumably, confidential
         or otherwise sensitive voice data should not be sent to google.
 
+        :Note:
+
+            Requires that flac is installed (free download from  https://xiph.org/flac/download.html).
+            If you download and install flac, but get an error that flac is missing,
+            try setting the full path to flac in preferences -> general -> flac.
+
         :Usage:
 
         a) Always import and make an object; no data are available yet::
@@ -671,7 +678,6 @@ class Speech2Text(object):
                  lang='en-US',
                  timeout=10,
                  samplingrate=16000,
-                 flac_exe='',
                  pro_filter=2,
                  quiet=True):
         """
@@ -690,11 +696,6 @@ class Speech2Text(object):
                     record at a higher rate, and then down-sample to 16000 for speech
                     recognition. `file` is the down-sampled file, not the original.
                     the sampling rate is auto-detected for .wav files.
-                `flac_exe` :
-                    **Windows only**: path to binary for converting wav to flac;
-                    must be a string with **two back-slashes where you want one** to appear
-                    (this does not display correctly above, in the web documentation auto-build);
-                    default is 'C:\\\\\\\\Program Files\\\\\\\\FLAC\\\\\\\\flac.exe'
                 `pro_filter` :
                     profanity filter level; default 2 (e.g., f***)
                 `quiet` :
@@ -705,7 +706,7 @@ class Speech2Text(object):
         self.timeout = timeout
         useragent = PSYCHOPY_USERAGENT
         host = "www.google.com/speech-api/v1/recognize"
-        flac_path = _getFlacPath(flac_exe)
+        flac_path = _getFlacPath()
 
         # determine file type, convert wav to flac if needed:
         if not os.path.isfile(filename):
@@ -839,36 +840,32 @@ class BatchSpeech2Text(list):
         count = len([f for f,t in self if t.running and t.elapsed() <= self.timeout] )
         return count
 
-def _getFlacPath(flac_exe=''):
-    """Return full path to flac binary, using a cached value if possible.
+def _getFlacPath():
+    """Return a path to flac binary. Log flac version (if flac was found).
     """
     global FLAC_PATH
     if FLAC_PATH is None:
-        if sys.platform == 'win32':
-            if flac_exe == '':
-                flac_exe = 'C:\\Program Files\\FLAC\\flac.exe'  # best guess
-            if os.path.isfile(flac_exe):
-                FLAC_PATH = flac_exe
-            else:
-                # `where` is very slow, seconds
-                FLAC_PATH = core.shellCall(['where', '/r', 'C:\\', 'flac'])
+        if prefs.general['flac']:
+            FLAC_PATH = prefs.general['flac']
         else:
-            FLAC_PATH = core.shellCall(['/usr/bin/which', 'flac'])
-        logging.info('set FLAC_PATH to %s' % FLAC_PATH)
-    if not os.path.isfile(FLAC_PATH):
-        msg = "failed to find flac binary, tried '%s'" % flac_path
-        logging.error(msg)
-        raise MicrophoneError(msg)
+            FLAC_PATH = 'flac'
+        try:
+            version = core.shellCall([FLAC_PATH, '-v'], stderr=True)
+        except:
+            msg = "flac not installed (or wrong path in prefs); download from https://xiph.org/flac/download.html"
+            logging.error(msg)
+            raise MicrophoneError(msg)
+        logging.info('Using ' + ' '.join(version))
     return FLAC_PATH
 
-def flac2wav(path, keep=True, flac_exe=''):
+def flac2wav(path, keep=True):
     """Uncompress: convert .flac file (on disk) to .wav format (new file).
 
     If `path` is a directory name, convert all .flac files in the directory.
 
     `keep` to retain the original .flac file(s), default `True`.
     """
-    flac_path = _getFlacPath(flac_exe)
+    flac_path = _getFlacPath()
     flac_files = []
     if path.endswith('.flac'):
         flac_files = [path]
@@ -896,14 +893,14 @@ def flac2wav(path, keep=True, flac_exe=''):
     else:
         return wav_files
 
-def wav2flac(path, keep=True, flac_exe=''):
+def wav2flac(path, keep=True):
     """Lossless compression: convert .wav file (on disk) to .flac format.
 
     If `path` is a directory name, convert all .wav files in the directory.
 
     `keep` to retain the original .wav file(s), default `True`.
     """
-    flac_path = _getFlacPath(flac_exe)
+    flac_path = _getFlacPath()
     wav_files = []
     if path.endswith('.wav'):
         wav_files = [path]
