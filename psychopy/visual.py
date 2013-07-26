@@ -86,13 +86,8 @@ except:
 
 global DEBUG; DEBUG=False
 
-#symbols for MovieStim
+#symbols for MovieStim: PLAYING, STARTED, PAUSED, NOT_STARTED, FINISHED
 from psychopy.constants import *
-#PLAYING=1
-#STARTED=1
-#PAUSED=2
-#NOT_STARTED=0
-#FINISHED=-1
 
 #keep track of windows that have been opened
 openWindows=[]
@@ -2189,6 +2184,7 @@ class SimpleImageStim:
         if log and self.autoLog:
             self.win.logOnFlip("Set %s image=%s" %(self.name, filename),
                 level=logging.EXP,obj=self)
+
 class GratingStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in either dimension
     One of the main stimuli for PsychoPy.
@@ -2662,7 +2658,6 @@ class GratingStim(_BaseVisualStim):
     def _calcCyclesPerStim(self):
         if self.units in ['norm', 'height']: self._cycles=self.sf#this is the only form of sf that is not size dependent
         else: self._cycles=self.sf*self.size
-
 
 class PatchStim(GratingStim):
     def __init__(self, *args, **kwargs):
@@ -5067,6 +5062,7 @@ class Polygon(ShapeStim):
         if log and self.autoLog:
             self.win.logOnFlip("Set %s radius=%s" %(self.name, radius),
                 level=logging.EXP,obj=self)
+
 class Circle(Polygon):
     """Creates a Circle with a given radius as a special case of a :class:`~psychopy.visual.ShapeStim`
 
@@ -5589,6 +5585,7 @@ class ImageStim(_BaseVisualStim):
         #set it
         self._calcSizeRendered()
         self.needUpdate=True
+
 class BufferImageStim(GratingStim):
     """
     Take a "screen-shot" (full or partial), save to a ImageStim()-like RBGA object.
@@ -7606,7 +7603,6 @@ def polygonsOverlap(poly1, poly2):
             return True
     return False
 
-
 def _setTexIfNoShaders(obj):
     """Useful decorator for classes that need to update Texture after other properties
     """
@@ -7744,6 +7740,7 @@ def _setColor(self, color, colorSpace=None, operation='',
         else:
             self.logOnFlip("Set Window %s=%s (%s)" %(colorAttrib,newColor,colorSpace),
                 level=logging.EXP,obj=self)
+
 def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """Assesses the monitor refresh rate (average, median, SD) under current conditions, over at least 60 frames.
 
