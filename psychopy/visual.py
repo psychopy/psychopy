@@ -3961,7 +3961,6 @@ class MovieStim(_BaseVisualStim):
             logging.error("looping of movies is not currently supported for pyglet>=1.2 only for version 1.1.4")
         self.loadMovie( self.filename )
         self.format=self._movie.video_format
-        self.pos=pos
         self.pos = numpy.asarray(pos, float)
         self.depth=depth
         self.flipVert = flipVert
@@ -3972,16 +3971,28 @@ class MovieStim(_BaseVisualStim):
         self.status=NOT_STARTED
 
         #size
-        if size == None: self.size= numpy.array([self.format.width,
-                                                 self.format.height] , float)
-
-        elif type(size) in [tuple,list]: self.size = numpy.array(size,float)
-        else: self.size = numpy.array((size,size),float)
+        if size == None:
+            self.size = numpy.array([self.format.width, self.format.height], float)
+        elif type(size) in [tuple, list]:
+            self.size = numpy.array(size,float)
+        else:
+            self.size = numpy.array((size,size), float)
 
         self.ori = ori
-
         self._calcPosRendered()
         self._calcSizeRendered()
+
+        # enable self.contains() (norm or pix units only, ignores ori):
+        L, B = (self._posRendered - self._sizeRendered / 2)  # pix
+        R, T = (self._posRendered + self._sizeRendered / 2)
+        if self.win.units in ['norm']:
+            x, y = self.win.size / 2
+            L /= x
+            R /= x
+            T /= y
+            B /= y
+        self.needVertexUpdate = False
+        self._verticesRendered = numpy.array([[L, T], [R, T], [R, B], [L, B]])
 
         #check for pyglet
         if win.winType!='pyglet':
