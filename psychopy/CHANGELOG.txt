@@ -12,6 +12,8 @@ PsychoPy 1.78.00
 
 (not yet released)
 
+* ADDED: microphone compress() audio recordings; requires flac download (not packaged with PsychoPy)
+* ADDED: new preference `flac` = system path for flac, e.g. c:/Program Files (x86)/FLAC/flac.exe (not always needed)
 * ADDED: option to preload during Builder scripts using Static Component, which uses StaticPeriod class
 * ADDED: Polygon Component to Builder for drawing regular polygons (including simple lines)
 * ADDED: TrialHander can now fetch previous trials as well as future ones (thanks Mike MacAskill)
