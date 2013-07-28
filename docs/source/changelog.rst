@@ -24,6 +24,7 @@ PsychoPy 1.78.00
 
 (not yet released)
 
+* FIXED: movieStim.contains() and .overlaps() can work, requires that the visual.Window has units of pix
 * ADDED: microphone compress() audio recordings; requires flac download (not packaged with PsychoPy)
 * ADDED: new preference `flac` = system path for flac, e.g. c:/Program Files (x86)/FLAC/flac.exe (not always needed)
 * ADDED: option to preload during Builder scripts using Static Component, which uses :class:`~psychopy.core.StaticPeriod` class

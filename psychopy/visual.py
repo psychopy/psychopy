@@ -1504,7 +1504,7 @@ class _BaseVisualStim:
         return pointInPolygon(x, y, self)
 
     def _getPolyAsRendered(self):
-        """return a list of vertices as rendered; used by overlaps(), centroid()
+        """return a list of vertices as rendered; used by overlaps()
         """
         oriRadians = numpy.radians(self.ori)
         sinOri = numpy.sin(-oriRadians)
@@ -3877,6 +3877,9 @@ class MovieStim(_BaseVisualStim):
         mov.draw() #draw the current frame (automagically determined)
 
     See MovieStim.py for demo.
+
+    mov.contains() and mov.overlaps() will work only if the containing
+    visual.Window() has units='pix'.
     """
     def __init__(self, win,
                  filename = "",
@@ -3982,22 +3985,23 @@ class MovieStim(_BaseVisualStim):
         self._calcPosRendered()
         self._calcSizeRendered()
 
-        # enable self.contains() (norm or pix units only, ignores ori):
-        L, B = (self._posRendered - self._sizeRendered / 2)  # pix
-        R, T = (self._posRendered + self._sizeRendered / 2)
-        if self.win.units in ['norm']:
-            x, y = self.win.size / 2
-            L /= x
-            R /= x
-            T /= y
-            B /= y
-        self.needVertexUpdate = False
-        self._verticesRendered = numpy.array([[L, T], [R, T], [R, B], [L, B]])
+        # enable self.contains(), overlaps(); currently win must have pix units:
+        self._calcVertices()
 
         #check for pyglet
         if win.winType!='pyglet':
             logging.Error('Movie stimuli can only be used with a pyglet window')
             core.quit()
+    def _calcVertices(self):
+        R, T = self._sizeRendered / 2  # pix
+        L, B = -R, -T
+        self.needVertexUpdate = True
+        self._vertices = numpy.array([[L, T], [R, T], [R, B], [L, B]])
+        self.needVertexUpdate = True
+    def _calcVerticesRendered(self):
+        self.needVertexUpdate = False
+        self._verticesRendered = self._vertices
+        self._posRendered = self.pos
     def setMovie(self, filename, log=True):
         """See `~MovieStim.loadMovie` (the functions are identical).
         This form is provided for syntactic consistency with other visual stimuli.
