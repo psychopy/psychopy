@@ -1504,7 +1504,7 @@ class _BaseVisualStim:
         return pointInPolygon(x, y, self)
 
     def _getPolyAsRendered(self):
-        """return a list of vertices as rendered; used by overlaps(), centroid()
+        """return a list of vertices as rendered; used by overlaps()
         """
         oriRadians = numpy.radians(self.ori)
         sinOri = numpy.sin(-oriRadians)
@@ -3877,6 +3877,9 @@ class MovieStim(_BaseVisualStim):
         mov.draw() #draw the current frame (automagically determined)
 
     See MovieStim.py for demo.
+
+    mov.contains() and mov.overlaps() will work only if the containing
+    visual.Window() has units='pix'.
     """
     def __init__(self, win,
                  filename = "",
@@ -3961,7 +3964,6 @@ class MovieStim(_BaseVisualStim):
             logging.error("looping of movies is not currently supported for pyglet>=1.2 only for version 1.1.4")
         self.loadMovie( self.filename )
         self.format=self._movie.video_format
-        self.pos=pos
         self.pos = numpy.asarray(pos, float)
         self.depth=depth
         self.flipVert = flipVert
@@ -3972,21 +3974,34 @@ class MovieStim(_BaseVisualStim):
         self.status=NOT_STARTED
 
         #size
-        if size == None: self.size= numpy.array([self.format.width,
-                                                 self.format.height] , float)
-
-        elif type(size) in [tuple,list]: self.size = numpy.array(size,float)
-        else: self.size = numpy.array((size,size),float)
+        if size == None:
+            self.size = numpy.array([self.format.width, self.format.height], float)
+        elif type(size) in [tuple, list]:
+            self.size = numpy.array(size,float)
+        else:
+            self.size = numpy.array((size,size), float)
 
         self.ori = ori
-
         self._calcPosRendered()
         self._calcSizeRendered()
+
+        # enable self.contains(), overlaps(); currently win must have pix units:
+        self._calcVertices()
 
         #check for pyglet
         if win.winType!='pyglet':
             logging.Error('Movie stimuli can only be used with a pyglet window')
             core.quit()
+    def _calcVertices(self):
+        R, T = self._sizeRendered / 2  # pix
+        L, B = -R, -T
+        self.needVertexUpdate = True
+        self._vertices = numpy.array([[L, T], [R, T], [R, B], [L, B]])
+        self.needVertexUpdate = True
+    def _calcVerticesRendered(self):
+        self.needVertexUpdate = False
+        self._verticesRendered = self._vertices
+        self._posRendered = self.pos
     def setMovie(self, filename, log=True):
         """See `~MovieStim.loadMovie` (the functions are identical).
         This form is provided for syntactic consistency with other visual stimuli.
