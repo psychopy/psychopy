@@ -32,12 +32,12 @@ class _baseVisualTest:
         stims.append(visual.ShapeStim(win))
         stims.append(visual.TextStim(win))
         for stim in stims:
-            assert stim._status==visual.NOT_STARTED
+            assert stim.status==visual.NOT_STARTED
             stim.setAutoDraw(True)
-            assert stim._status==visual.STARTED
+            assert stim.status==visual.STARTED
             stim.setAutoDraw(False)
-            assert stim._status==visual.FINISHED
-            assert stim._status==visual.STOPPED
+            assert stim.status==visual.FINISHED
+            assert stim.status==visual.STOPPED
     def test_gabor(self):
         win = self.win
         #using init

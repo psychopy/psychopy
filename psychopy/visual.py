@@ -1150,8 +1150,8 @@ class Window:
         GL.glFramebufferTexture2DEXT (GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT,
                                       GL.GL_TEXTURE_2D, self.frameTexture, 0)
 
-        _status = GL.glCheckFramebuffer_statusEXT (GL.GL_FRAMEBUFFER_EXT)
-        if _status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
+        status = GL.glCheckFramebufferStatusEXT (GL.GL_FRAMEBUFFER_EXT)
+        if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
             logging.error("Error in framebuffer activation")
             return
         GL.glDisable(GL.GL_TEXTURE_2D)
@@ -1226,7 +1226,7 @@ class _BaseVisualStim(object):
         self.win = win
         self.name = name
         self.autoLog = autoLog
-        self._status = NOT_STARTED
+        self.status = NOT_STARTED
         #unit conversions
         if units != None and len(units):
             self.units = units
@@ -1339,12 +1339,12 @@ class _BaseVisualStim(object):
             else:
                 toDraw.append(self)
                 toDrawDepths.append(self.depth)
-            self._status = STARTED
+            self.status = STARTED
         elif value == False:
             #remove from autodraw lists
             toDrawDepths.pop(toDraw.index(self))  #remove from depths
             toDraw.remove(self)  #remove from draw list
-            self._status = STOPPED
+            self.status = STOPPED
 
     @AttributeSetter
     def pos(self, value):
@@ -3583,7 +3583,7 @@ class ElementArrayStim:
         """DEPRECATED (as of v1.74.00). Please use setColors() instead
         """
         self.setColors(value,operation, log=log)
-    def setColors(self, color, colorSpace=None, operation='', log=True):
+    Qs(self, color, colorSpace=None, operation='', log=True):
         """Set the color of the stimulus. See :ref:`colorspaces` for further information
         about the various ways to specify colors and their various implications.
 
@@ -3996,7 +3996,7 @@ class MovieStim(_BaseVisualStim):
         self.colorSpace=colorSpace
         self.setColor(color, colorSpace=colorSpace, log=False)
         self.opacity = float(opacity)
-        self._status=NOT_STARTED
+        self.status=NOT_STARTED
 
         #size
         if size == None: self.size= numpy.array([self.format.width,
@@ -4049,7 +4049,7 @@ class MovieStim(_BaseVisualStim):
         self.duration = self._movie.duration
         while self._player.source!=self._movie:
             self._player.next()
-        self._status=NOT_STARTED
+        self.status=NOT_STARTED
         self._player.pause()#start 'playing' on the next draw command
         self.filename=filename
         if log and self.autoLog:
@@ -4061,7 +4061,7 @@ class MovieStim(_BaseVisualStim):
         will not advance).  If play() is called again both will restart.
         """
         self._player.pause()
-        self._status=PAUSED
+        self.status=PAUSED
         if log and self.autoLog:
             self.win.logOnFlip("Set %s paused" %(self.name),
                 level=logging.EXP,obj=self)
@@ -4071,7 +4071,7 @@ class MovieStim(_BaseVisualStim):
         be loaded again. Use pause() if you may need to restart the movie.
         """
         self._player.stop()
-        self._status=STOPPED
+        self.status=STOPPED
         if log and self.autoLog:
             self.win.logOnFlip("Set %s stopped" %(self.name),
                 level=logging.EXP,obj=self)
@@ -4079,7 +4079,7 @@ class MovieStim(_BaseVisualStim):
         """Continue a paused movie from current position
         """
         self._player.play()
-        self._status=PLAYING
+        self.status=PLAYING
         if log and self.autoLog:
             self.win.logOnFlip("Set %s playing" %(self.name),
                 level=logging.EXP,obj=self)
@@ -4099,11 +4099,11 @@ class MovieStim(_BaseVisualStim):
         This method should be called on every frame that the movie is meant to
         appear"""
 
-        if self._status == PLAYING and not self._player.playing:
-            self._status = FINISHED
-        if self._status==NOT_STARTED or (self._status==FINISHED and self.loop):
+        if self.status == PLAYING and not self._player.playing:
+            self.status = FINISHED
+        if self.status==NOT_STARTED or (self.status==FINISHED and self.loop):
             self.play()
-        elif self._status == FINISHED and not self.loop:
+        elif self.status == FINISHED and not self.loop:
             return
 
         if win==None: win=self.win
@@ -4145,9 +4145,9 @@ class MovieStim(_BaseVisualStim):
         if self.loop:
             self.loadMovie(self.filename)
             self.play()
-            self._status=PLAYING
+            self.status=PLAYING
         else:
-            self._status=FINISHED
+            self.status=FINISHED
         if self.autoLog:
             self.win.logOnFlip("Set %s finished" %(self.name),
                 level=logging.EXP,obj=self)
@@ -4163,7 +4163,7 @@ class MovieStim(_BaseVisualStim):
             self.play(log=False)  # set to play in case stopped
         else:
             self.pause(log=False)
-        #add to drawing list and update _status
+        #add to drawing list and update status
         _BaseVisualStim.setAutoDraw(self, val, log=log)
     def __del__(self):
         self._clearTextures()
@@ -5600,7 +5600,7 @@ class BufferImageStim(GratingStim):
 
     Checks for OpenGL 2.1+, or uses square-power-of-2 images.
 
-    _status: seems to work on Mac, but limitations:
+    status: seems to work on Mac, but limitations:
     - Screen units are not properly sorted out, would be better to allow pix too
     - Not tested on Windows, Linux, FreeBSD
 
@@ -6104,7 +6104,7 @@ class RatingScale:
 
         # Final touches:
         self.origScaleDescription = self.scaleDescription.text
-        self.reset()  # sets ._status, among other things
+        self.reset()  # sets .status, among other things
         self.win.units = self.savedWinUnits
 
     def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys,
@@ -6654,7 +6654,7 @@ class RatingScale:
         if self.firstDraw:
             self.firstDraw = False
             self.clock.reset()
-            self._status = STARTED
+            self.status = STARTED
             self.history = [(self.markerStart, 0.0)]  # this will grow
             self.beyondMinTime = False  # has minTime elapsed?
             self.timedOut = False
@@ -6798,7 +6798,7 @@ class RatingScale:
             self.decisionTime = self.clock.getTime()
             logging.data('RatingScale %s: rating RT=%.3f' % (self.name, self.decisionTime))
             # minimum time is enforced during key and mouse handling
-            self._status = FINISHED
+            self.status = FINISHED
             if self.showAccept:
                 self.acceptBox.setFillColor(self.acceptFillColor)
                 self.acceptBox.setLineColor(self.acceptLineColor)
@@ -6814,7 +6814,7 @@ class RatingScale:
     def reset(self):
         """Restores the rating-scale to its post-creation state.
 
-        The history is cleared, and the _status is set to NOT_STARTED. Does not
+        The history is cleared, and the status is set to NOT_STARTED. Does not
         restore the scale text description (such reset is needed between
         items when rating multiple items)
         """
@@ -6836,7 +6836,7 @@ class RatingScale:
             self.accept.setColor('#444444','rgb') # greyed out
             self.accept.setText(self.keyClick)
         logging.exp('RatingScale %s: reset()' % self.name)
-        self._status = NOT_STARTED
+        self.status = NOT_STARTED
         self.history = None
 
     def getRating(self):
@@ -6845,7 +6845,7 @@ class RatingScale:
         if not available. Returns the currently indicated rating even if it has
         not been accepted yet (and so might change until accept is pressed).
         """
-        if self.noResponse and self._status == FINISHED:
+        if self.noResponse and self.status == FINISHED:
             return False
         if not type(self.markerPlacedAt) in [float, int]:
             return None # eg, if skipped a response
@@ -6866,7 +6866,7 @@ class RatingScale:
         Returns the time elapsed so far if no rating has been accepted yet (e.g.,
         for continuous usage).
         """
-        if self._status != FINISHED:
+        if self.status != FINISHED:
             return self.clock.getTime()
         if self.noResponse:
             if self.timedOut:
@@ -6990,14 +6990,14 @@ class Aperture:
         """
         GL.glEnable(GL.GL_STENCIL_TEST)
         self.enabled=True#by default
-        self._status=STARTED
+        self.status=STARTED
     def disable(self):
         """Disable the Aperture. Any subsequent drawing operations will not be
         affected by the aperture until re-enabled.
         """
         GL.glDisable(GL.GL_STENCIL_TEST)
         self.enabled=False
-        self._status=STOPPED
+        self.status=STOPPED
     def __del__(self):
         self.disable()
 
@@ -7524,7 +7524,7 @@ def pointInPolygon(x, y, poly):
     # via http://www.ariel.com.au/a/python-point-int-poly.html
 
     inside = False
-    # trace (horizontal?) rays, flip inside _status if cross an edge:
+    # trace (horizontal?) rays, flip inside status if cross an edge:
     p1x, p1y = poly[-1]
     for p2x, p2y in poly:
         if y > min(p1y, p2y) and y <= max(p1y, p2y) and x <= max(p1x, p2x):
