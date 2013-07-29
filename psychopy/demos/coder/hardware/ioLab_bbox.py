@@ -3,8 +3,7 @@
 """Demo program to illustrate using ioLabs button box
 
 To run this test the ioLab library needs to be installed (it is included with
-the Standalone distributions of PsychoPy).
-
+the Standalone distributions of PsychoPy; otherwise try "pip install ioLabs").
 """
 
 __author__ = 'Jonathan Roberts'
@@ -34,17 +33,15 @@ class BBox(ioLabs.USBBox):
         self.commands.add_callback(ioLabs.REPORT.KEYDN,key_press)
 
     def makeBitPattern(self,buttonList):
-        if buttonList == None:
-            return(0)
-        elif type(buttonList) == int:
-            return(2**buttonList)
+        bits = 0  # None
+        if type(buttonList) == int:
+            bits = 2**buttonList
         elif type(buttonList) in (list,tuple):
-            bits = 0
             for btn in buttonList:
                 bits = bits + 2**(btn)
-            return(ubyte(bits))
-        else:
-            print 'invalid button list - must be None, an integer or a list of integers'
+        elif buttonList:
+            raise ValueError('invalid button list - must be None, an integer or a list of integers')
+        return(ubyte(bits))
         
     def enableButtons(self,buttonList=[0,1,2,3,4,5,6,7],voice=False):
         '''enable the specified buttons
@@ -84,15 +81,14 @@ myWin = visual.Window((1024,768), fullscr=False, winType='pyglet')
 # create a trial clock and instructions and fixation stimulus
 trialClock = core.Clock()
 instructions = visual.TextStim(myWin,
-                                                text = '6 trials:\nhit the left lighted button when you see the word "left".\nhit the right lighted button when you see the word "right".\nhit space to start...',
-                                                wrapWidth = 1.8, height =.08)
+    text = '6 trials:\nhit the left lighted button when you see the word "left".\nhit the right lighted button when you see the word "right".\nhit space to start...',
+    wrapWidth = 1.8, height =.08)
 fixation = visual.TextStim(myWin,text = '+')
 target = visual.TextStim(myWin,text = 'to be filled it during trial loop')
 
 # set up the button box
 myBBox = BBox()
 
-#
 buttons = [1,6]
 labeledResponse = {1:'left', 6:'right'}
 stims = ['left']*3+['right']*3 # make a list of stims with 3 'lefts' and 3 'rights'
