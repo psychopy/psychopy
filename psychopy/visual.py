@@ -1514,14 +1514,11 @@ class _BaseVisualStim(object):
         """
         if op==None: op=''
         #format the input value as float vectors
-        if type(val) in [tuple,list]:
-            val=numpy.asarray(val,float)
+        if type(val) in [tuple, list, numpy.ndarray]:
+            val = val2array(val)
 
-        if op=='':#this routine can handle single value inputs (e.g. size) for multi out (e.g. h,w)
-            exec('self.'+attrib+'*=0') #set all values in array to 0
-            exec('self.'+attrib+'+=val') #then add the value to array
-        else:
-            exec('self.'+attrib+op+'=val')
+        # Handle operations
+        _setWithOperation(self, attrib, val, op)
 
         if log and self.autoLog:
             self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
@@ -1840,12 +1837,7 @@ class DotStim(_BaseVisualStim):
             val=numpy.array(val,float)
 
         #change the attribute as requested
-        if op=='':
-            #note: this routine can handle single value inputs (e.g. size) for multi out (e.g. h,w)
-            exec('self.'+attrib+'*=0') #set all values in array to 0
-            exec('self.'+attrib+'+=val') #then add the value to array
-        else:
-            exec('self.'+attrib+op+'=val')
+        _setWithOperation(self, attrib, val, op)
 
         #update the actual coherence for the requested coherence and nDots
         if attrib in ['nDots','coherence']:
@@ -2209,11 +2201,7 @@ class SimpleImageStim:
         if type(val) in (tuple, list):
             val=numpy.array(val, float)
 
-        if op=='':#this routine can handle single value inputs (e.g. size) for multi out (e.g. h,w)
-            exec('self.'+attrib+'*=0') #set all values in array to 0
-            exec('self.'+attrib+'+=val') #then add the value to array
-        else:
-            exec('self.'+attrib+op+'=val')
+        _setWithOperation(self, attrib, val, op)
 
         if log and self.autoLog:
             self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
@@ -3432,9 +3420,8 @@ class ElementArrayStim:
             #check shape
             if not (value.shape in [(),(2,),(self.nElements,2)]):
                 raise ValueError("New value for setXYs should be either None or Nx2")
-            if operation=='':
-                self.xys=value
-            else: exec('self.xys'+operation+'=value')
+            #set value
+            _setWithOperation(self, 'xys', value, operation)
         self.needVertexUpdate=True
         if log and self.autoLog:
             self.win.logOnFlip("Set %s XYs=%s" %(self.name, type(value)),
@@ -3454,9 +3441,10 @@ class ElementArrayStim:
             pass #is already Nx1
         else:
             raise ValueError("New value for setOris should be either Nx1 or a single value")
-        if operation=='':
-            self.oris=value
-        else: exec('self.oris'+operation+'=value')
+
+        #set value
+        _setWithOperation(self, 'oris', value, operation)
+
         self.needVertexUpdate=True
         if log and self.autoLog:
             self.win.logOnFlip("Set %s oris=%s" %(self.name, type(value)),
@@ -3491,9 +3479,8 @@ class ElementArrayStim:
         else:
             raise ValueError("New value for setSfs should be either Nx1, Nx2 or a single value")
 
-        if operation=='':
-            self.sfs=value
-        else: exec('self.sfs'+operation+'=value')
+        # Set value and log
+        _setWithOperation(self, 'sfs', value, operation)
         if log and self.autoLog:
             self.win.logOnFlip("Set %s sfs=%s" %(self.name, type(value)),
                 level=logging.EXP,obj=self)
@@ -3514,11 +3501,9 @@ class ElementArrayStim:
         else:
             raise ValueError("New value for setOpacities should be either Nx1 or a single value")
 
-        if operation=='':
-            self.opacities=value
-        else: exec('self.opacities'+operation+'=value')
+        #set value and log
+        _setWithOperation(self, 'opacities', value, operation)
         self.needColorUpdate =True
-
         if log and self.autoLog:
             self.win.logOnFlip("Set %s opacities=%s" %(self.name, type(value)),
                 level=logging.EXP,obj=self)
@@ -3544,9 +3529,8 @@ class ElementArrayStim:
         else:
             raise ValueError("New value for setSizes should be either Nx1, Nx2 or a single value")
 
-        if operation=='':
-            self.sizes=value
-        else: exec('self.sizes'+operation+'=value')
+        #set value and log
+        _setWithOperation(self, 'sizes', value, operation)
         self._calcSizesRendered()
         self.needVertexUpdate=True
         self.needTexCoordUpdate=True
@@ -3577,9 +3561,8 @@ class ElementArrayStim:
         else:
             raise ValueError("New value for setPhases should be either Nx1, Nx2 or a single value")
 
-        if operation=='':
-            self.phases=value
-        else: exec('self.phases'+operation+'=value')
+        #set value and log
+        _setWithOperation(self, 'phases', value, operation)
         self.needTexCoordUpdate=True
 
         if log and self.autoLog:
@@ -3659,10 +3642,10 @@ class ElementArrayStim:
         else:
             raise ValueError("New value for setContrs should be either Nx1 or a single value")
 
-        if operation=='':
-            self.contrs=value
-        else: exec('self.contrs'+operation+'=value')
+        #set value and log
+        _setWithOperation(self, 'contrs', value, operation)
         self.needColorUpdate=True
+
         if log and self.autoLog:
             self.win.logOnFlip("Set %s contrs=%s" %(self.name, type(value)),
                 level=logging.EXP,obj=self)
@@ -3676,11 +3659,10 @@ class ElementArrayStim:
         if value.shape != (2,):
             raise ValueError("New value for setFieldPos should be [x,y]")
 
-        if operation=='':
-            self.fieldPos=value
-        else:
-            exec('self.fieldPos'+operation+'=value')
+        #set value and log
+        _setWithOperation(self, 'fieldPos', value, operation)
         self._calcFieldCoordsRendered()
+
         if log and self.autoLog:
             self.win.logOnFlip("Set %s fieldPos=%s" %(self.name, type(value)),
                 level=logging.EXP,obj=self)
@@ -3700,10 +3682,8 @@ class ElementArrayStim:
         if value.shape not in [(2,),(1,)]:
             raise ValueError("New value for setFieldSize should be [x,y] or a single value")
 
-        if operation=='':
-            self.fieldSize=value
-        else:
-            exec('self.fieldSize'+operation+'=value')
+        #set value and log
+        _setWithOperation(self, 'fieldSize', value, operation)
         self.setXYs(log=False)#to reflect new settings, overriding individual xys
 
         if log and self.autoLog:
@@ -4972,10 +4952,10 @@ class ShapeStim(_BaseVisualStim):
             or (len(value.shape)==2 and value.shape[1]==2)
             ):
                 raise ValueError("New value for setXYs should be 2x1 or Nx2")
-        if operation=='':
-            self.vertices=value
-        else: exec('self.vertices'+operation+'=value')
+        #set value and log
+        _setWithOperation(self, 'vertices', value, operation)
         self.needVertexUpdate=True
+
         if log and self.autoLog:
             self.win.logOnFlip("Set %s vertices=%s" %(self.name, value),
                 level=logging.EXP,obj=self)
@@ -7667,7 +7647,10 @@ def _setColor(self, color, colorSpace=None, operation='',
             raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
                 %(operation, self.colorSpace, colorSpace))
     else:#OK to update current color
-        exec('self.%s %s= color' %(colorAttrib, operation))#if no operation then just assign
+        if hasattr(self, 'color'):
+            _setWithOperation(self, colorAttrib, color, operation)
+        else:
+            setattr(self, colorAttrib, color)
     #get window (for color conversions)
     if colorSpace in ['dkl','lms']: #only needed for these spaces
         if hasattr(self,'dkl_rgb'): win=self #self is probably a Window
@@ -7708,6 +7691,24 @@ def _setColor(self, color, colorSpace=None, operation='',
         else:
             self.logOnFlip("Set Window %s=%s (%s)" %(colorAttrib,newColor,colorSpace),
                 level=logging.EXP,obj=self)
+
+def _setWithOperation(self, attrib, value, operation):
+    """ Sets an object property (scalar or numpy array) with an operation
+    History: introduced to avoid exec-calls"""
+    if operation == '':
+        newValue = getattr(self, attrib) * 0 + value  # Preserves dimensions, if array
+    elif operation == '+':
+        newValue = getattr(self, attrib) + value
+    elif operation == '*':
+        newValue = getattr(self, attrib) * value
+    elif operation == '-':
+        newValue = getattr(self, attrib) - value
+    elif operation == '/':
+        newValue = getattr(self, attrib) / value
+    else:
+        raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
+    setattr(self, attrib, newValue)
+
 def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """Assesses the monitor refresh rate (average, median, SD) under current conditions, over at least 60 frames.
 
