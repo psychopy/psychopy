@@ -108,7 +108,7 @@ else:
 
 from variableProvider import ExperimentVariableProvider
 
-from visualUtil import FullScreenWindow, SinusoidalMotion
+from visualUtil import SinusoidalMotion
 from visualUtil import TimeTrigger,DeviceEventTrigger
 from visualUtil import ScreenState,ClearScreen,InstructionScreen,ImageScreen
 
@@ -361,7 +361,7 @@ def rotate2D(pts,origin,ang=pi/4):
 
 from variableProvider import ExperimentVariableProvider
 
-from visualUtil import FullScreenWindow, SinusoidalMotion
+from visualUtil import SinusoidalMotion
 from visualUtil import TimeTrigger,DeviceEventTrigger
 from visualUtil import ScreenState,ClearScreen,InstructionScreen,ImageScreen
 from dialogs import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
