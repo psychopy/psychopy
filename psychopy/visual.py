@@ -2326,6 +2326,7 @@ class GratingStim(_BaseVisualStim):
                  interpolate=False,
                  name='',
                  autoLog=True,
+                 autoDraw=False,
                  maskParams=None):
         """
         :Parameters:
@@ -2425,6 +2426,8 @@ class GratingStim(_BaseVisualStim):
         self.mask = mask
         self.contrast = float(contrast)
         self.opacity = float(opacity)
+        self.autoLog = autoLog
+        self.autoDraw = autoDraw
 
         #fix scaling to window coords
         self._calcPosRendered()
