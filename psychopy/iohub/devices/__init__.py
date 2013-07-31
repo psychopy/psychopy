@@ -926,7 +926,7 @@ class Device(ioObject):
                 self.clearEvents()
 
         if len(currentEvents)>0:
-            sorted(currentEvents, key=itemgetter(DeviceEvent.EVENT_HUB_TIME_INDEX))
+            currentEvents=sorted(currentEvents, key=itemgetter(DeviceEvent.EVENT_HUB_TIME_INDEX))
         return currentEvents
 
 
