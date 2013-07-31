@@ -127,7 +127,7 @@ class udpServer(DatagramServer):
             self.iohub.eventBuffer.clear()
 
             if len(currentEvents)>0:
-                sorted(currentEvents, key=itemgetter(DeviceEvent.EVENT_HUB_TIME_INDEX))
+                currentEvents=sorted(currentEvents, key=itemgetter(DeviceEvent.EVENT_HUB_TIME_INDEX))
                 self.sendResponse(('GET_EVENTS_RESULT',currentEvents),replyTo)
             else:
                 self.sendResponse(('GET_EVENTS_RESULT', None),replyTo)
