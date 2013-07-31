@@ -366,6 +366,10 @@ class ioHubConnection(object):
         self._shutdown_attempted=False
         self._startServer(ioHubConfig, ioHubConfigAbsPath)
 
+    @classmethod
+    def getActiveConnection(cls):
+        return cls.ACTIVE_CONNECTION
+        
     def getDevice(self,deviceName):
         """
         Returns the ioHubDeviceView that has a matching name (based on the 
