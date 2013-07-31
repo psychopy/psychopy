@@ -1237,11 +1237,10 @@ class _BaseVisualStim(object):
 
     @AttributeSetter
     def opacity(self, value):
-        """Set the opacity of the stimulus.
-        :parameters:
-            newOpacity: float between 0 (transparent) and 1 (opaque).
-
-            operation: one of '+','-','*','/', or '' for no operation (simply replace value)
+        """
+        Float. Operations supported.
+            Set the opacity of the stimulus.
+            Should be between 1.0 (opaque) and 0.0 (transparent).
         """
         self.__dict__['opacity'] = value
 
@@ -1255,15 +1254,15 @@ class _BaseVisualStim(object):
 
     @AttributeSetter
     def contrast(self, value):
-        """"
-        Set the contrast of the stimulus.
+        """
+        Float between -1 (negative) and 1 (unchanged).. Operations supported.
+            Set the contrast of the stimulus, i.e. scales how far the stimulus
+            deviates from the middle grey. (This is a multiplier for the values
+            given in the color description of the stimulus)
 
-        :Parameters:
-
-        newContrast : float
-            The contrast of the stimulus::
-
-                # 0.0 to 1.0 decreases contrast #Here
+             Operations supported.
+            Setting contrast outside this range may produce strange results.::
+                # 0.0 to 1.0 decreases contrast
                 # 1.0 means unchanged
 
                 # 0.0 to -1.0 inverts with decreased contrast
@@ -1271,10 +1270,6 @@ class _BaseVisualStim(object):
 
                 # >1.0 increases contrast. (See warning below)
                 # <-1.0 inverts with increased contrast (See warning below)
-
-            WARNING. Setting contrast below -1 or above 1 will produce strange results if this forces the stimulus to blacker-than-black or whiter-than-white.
-
-        operation : one of '+','-','*','/', or '' for no operation (simply replace value)
         """
         self.__dict__['contrast'] = value
 
@@ -1296,7 +1291,10 @@ class _BaseVisualStim(object):
 
     @AttributeSetter
     def useShaders(self, value):
-        """Set this stimulus to use shaders if possible."""
+        """
+        True/False (default is *True*, if shaders are supported by the system)
+            Set whether shaders are used to render stimuli.
+        """
         #NB TextStim overrides this function, so changes here may need changing there too
         self.__dict__['useShaders'] = value
         if value == True and self.win._haveShaders == False:
@@ -1312,17 +1310,19 @@ class _BaseVisualStim(object):
 
     @AttributeSetter
     def ori(self, value):
-        """Set the stimulus orientation in degrees"""
+        """
+        Scalar. Operations supported.
+            Set the stimulus orientation in degrees.
+        """
         self.__dict__['ori'] = value
 
     @AttributeSetter
     def autoDraw(self, value):
-        """Add or remove a stimulus from the list of stimuli that will be
-        automatically drawn on each flip. You do NOT need to call this on every frame flip!
-
-        :parameters:
-            - value: True/False
-                True to add the stimulus to the draw list, False to remove it
+        """
+        True or False.
+            Add or remove a stimulus from the list of stimuli that will be
+            automatically drawn on each flip. You do NOT need to call this on every frame flip!
+            True to add the stimulus to the draw list, False to remove it.
         """
         toDraw = self.win._toDraw
         toDrawDepths = self.win._toDrawDepths
@@ -1348,12 +1348,31 @@ class _BaseVisualStim(object):
 
     @AttributeSetter
     def pos(self, value):
-        """Set the stimulus position in the specified (or inherited) `units`"""
+        """
+        x,y-pair. Operations supported.
+            Set the stimulus position in the `units` inherited from the stimulus.
+            Either list [x, y], tuple (x, y) or numpy.ndarray ([x, y]) with two elements.
+
+            Example::
+                stim.pos = (0.5, 0)  # Slightly to the right
+                stim.pos += (0.5, -1)  # Move right and up. Is now (1.0, -1.0)
+                stim.pos *= 0.2  # Move towards the center. Is now (0.2, -0.2)
+        """
         self.__dict__['pos'] = val2array(value, False, False)
         self._calcPosRendered()
 
     @AttributeSetter
     def size(self, value):
+        """
+        x,y-pair, scalar or None (resets to default). Supports operations.
+            Units are inherited from the stimulus.
+            Sizes can be negative and can extend beyond the window.
+
+            Example::
+                stim.size = 0.8  # Set size to (xsize, ysize) = (0.8, 0.8), quadratic.
+                print stim.size  # Outputs array([0.8, 0.8])
+                stim.size += (0,5, -0.5)  # make wider and flatter. Is now (1.3, 0.3)
+        """
         value = val2array(value)  # Check correct user input
         # None --> set to default
         if value == None:
@@ -1377,16 +1396,19 @@ class _BaseVisualStim(object):
 
     @AttributeSetter
     def autoLog(self, value):
-        """Turn on (or off) autoLogging for this stimulus.
-        When autologging is enabled it can be overridden for an individual set()
-        operation using the log=False argument.
-
-        :parameters:
-            - val: True (default) or False
-
+        """
+        True or False.
+            Turn on (or off) autoLogging for this stimulus. This logs every
+            parameter change and other significant events.
         """
         self.__dict__['autoLog'] = value
 
+    @AttributeSetter
+    def depth(self, value):
+        """
+        Depricated. Depth is now controlled simply by drawing order.
+        """
+        self.__dict__['depth'] = value
     def draw(self):
         raise NotImplementedError('Stimulus classes must overide _BaseVisualStim.draw')
     def setPos(self, newPos, operation='', log=True):
@@ -2310,59 +2332,17 @@ class GratingStim(_BaseVisualStim):
 
             win :
                 a :class:`~psychopy.visual.Window` object (required)
-            tex :
-                The texture forming the image
-
-                + **'sin'**,'sqr', 'saw', 'tri', None
-                + or the name of an image file (most formats supported)
-                + or a numpy array (1xN or NxN) ranging -1:1
-
-            mask :
-                The alpha mask (forming the shape of the image)
-
-                + **None**, 'circle', 'gauss', 'raisedCos'
-                + or the name of an image file (most formats supported)
-                + or a numpy array (1xN or NxN) ranging -1:1
 
             units : **None**, 'norm', 'cm', 'deg' or 'pix'
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used.
                 See :ref:`units` for explanation of other options.
 
-            pos :
-                a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
-                The origin is the screen centre, the units are determined
-                by units (see above). Stimuli can be position beyond the
-                window!
-
             size :
-                a tuple (0.5,0.5) or a list [0.5,0.5] for the x and y
-                OR a single value (which will be applied to x and y).
-                Units are specified by 'units' (see above).
-                Sizes can be negative and can extend beyond the window.
-
                 .. note::
 
                     If the mask is Gaussian ('gauss'), then the 'size' parameter refers to
                     the stimulus at 3 standard deviations on each side of the
                     centre (ie. sd=size/6)
-
-            sf:
-                a tuple (1.0,1.0) or a list [1.0,1.0] for the x and y
-                OR a single value (which will be applied to x and y).
-                Where `units` == 'deg' or 'cm' units are in cycles per deg/cm.
-                If `units` == 'norm' then sf units are in cycles per stimulus (so scale with stimulus size).
-                If texture is an image loaded from a file then sf defaults to 1/stim size to give one cycle of the image.
-
-            ori:
-                orientation of stimulus in degrees
-
-            phase:
-                a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y
-                OR a single value (which will be applied to x and y).
-                Phase of the stimulus in each direction.
-                **NB** phase has modulus 1 (rather than 360 or 2*pi)
-                This is a little unconventional but has the nice effect
-                that setting phase=t*n drifts a stimulus at n Hz
 
             texRes:
                 resolution of the texture (if not loading from an image file)
@@ -2381,18 +2361,6 @@ class GratingStim(_BaseVisualStim):
             colorSpace:
                 the color space controlling the interpretation of the `color`
                 See :ref:`colorspaces`
-
-            contrast: float (default= *1.0* )
-                How far the stimulus deviates from the middle grey.
-                Contrast can vary -1:1 (this is a multiplier for the
-                values given in the color description of the stimulus).
-
-            opacity: float (default= *1.0* )
-                1.0 is opaque, 0.0 is transparent
-
-            depth:
-                The depth argument is deprecated and may be removed in future versions.
-                Depth is controlled simply by drawing order.
 
             name : string
                 The name of the object to be using during logged messages about
@@ -2469,6 +2437,16 @@ class GratingStim(_BaseVisualStim):
 
     @AttributeSetter
     def sf(self, value):
+        """
+        sf:
+            x-y pair or scalar
+            Where `units` == 'deg' or 'cm' units are in cycles per deg/cm.
+            If `units` == 'norm' then sf units are in cycles per stimulus (so scale with stimulus size).
+            If texture is an image loaded from a file then sf defaults to 1/stim size to give one cycle of the image.
+
+            Spatial frequency.
+        """
+
         # Recode phase to numpy array
         if value == None:
             """Set the sf to default (e.g. to the 1.0/size of the loaded image etc)"""
@@ -2487,6 +2465,15 @@ class GratingStim(_BaseVisualStim):
 
     @AttributeSetter
     def phase(self, value):
+        """
+        phase:
+            x-y pair or scalar
+
+            Phase of the stimulus in each direction.
+            **NB** phase has modulus 1 (rather than 360 or 2*pi)
+            This is a little unconventional but has the nice effect
+            that setting phase=t*n drifts a stimulus at n Hz
+        """
         # Recode phase to numpy array
         value = val2array(value)
         self.__dict__['phase'] = value
@@ -2494,6 +2481,14 @@ class GratingStim(_BaseVisualStim):
 
     @AttributeSetter
     def tex(self, value):
+        """
+        tex :
+            + **'sin'**,'sqr', 'saw', 'tri', None (resets to default)
+            + or the name of an image file (most formats supported)
+            + or a numpy array (1xN or NxN) ranging -1:1
+
+            The texture forming the image
+        """
         createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self,
             res=self.texRes, maskParams=self.maskParams)
         #if user requested size=None then update the size for new stim here
@@ -2503,6 +2498,14 @@ class GratingStim(_BaseVisualStim):
 
     @AttributeSetter
     def mask(self, value):
+        """
+        mask :
+            + 'circle', 'gauss', 'raisedCos', **None** (resets to default)
+            + or the name of an image file (most formats supported)
+            + or a numpy array (1xN or NxN) ranging -1:1
+
+            The alpha mask (forming the shape of the image)
+        """
         createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self,
             res=self.texRes, maskParams=self.maskParams)
         self.__dict__['mask'] = value
@@ -3583,7 +3586,7 @@ class ElementArrayStim:
         """DEPRECATED (as of v1.74.00). Please use setColors() instead
         """
         self.setColors(value,operation, log=log)
-    Qs(self, color, colorSpace=None, operation='', log=True):
+    def setColors(self, color, colorSpace=None, operation='', log=True):
         """Set the color of the stimulus. See :ref:`colorspaces` for further information
         about the various ways to specify colors and their various implications.
 
