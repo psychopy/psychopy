@@ -86,13 +86,8 @@ except:
 
 global DEBUG; DEBUG=False
 
-#symbols for MovieStim
+#symbols for MovieStim: PLAYING, STARTED, PAUSED, NOT_STARTED, FINISHED
 from psychopy.constants import *
-#PLAYING=1
-#STARTED=1
-#PAUSED=2
-#NOT_STARTED=0
-#FINISHED=-1
 
 #keep track of windows that have been opened
 openWindows=[]
@@ -1509,7 +1504,7 @@ class _BaseVisualStim:
         return pointInPolygon(x, y, self)
 
     def _getPolyAsRendered(self):
-        """return a list of vertices as rendered; used by overlaps(), centroid()
+        """return a list of vertices as rendered; used by overlaps()
         """
         oriRadians = numpy.radians(self.ori)
         sinOri = numpy.sin(-oriRadians)
@@ -2189,6 +2184,7 @@ class SimpleImageStim:
         if log and self.autoLog:
             self.win.logOnFlip("Set %s image=%s" %(self.name, filename),
                 level=logging.EXP,obj=self)
+
 class GratingStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in either dimension
     One of the main stimuli for PsychoPy.
@@ -2662,7 +2658,6 @@ class GratingStim(_BaseVisualStim):
     def _calcCyclesPerStim(self):
         if self.units in ['norm', 'height']: self._cycles=self.sf#this is the only form of sf that is not size dependent
         else: self._cycles=self.sf*self.size
-
 
 class PatchStim(GratingStim):
     def __init__(self, *args, **kwargs):
@@ -3882,6 +3877,9 @@ class MovieStim(_BaseVisualStim):
         mov.draw() #draw the current frame (automagically determined)
 
     See MovieStim.py for demo.
+
+    mov.contains() and mov.overlaps() will work only if the containing
+    visual.Window() has units='pix'.
     """
     def __init__(self, win,
                  filename = "",
@@ -3966,7 +3964,6 @@ class MovieStim(_BaseVisualStim):
             logging.error("looping of movies is not currently supported for pyglet>=1.2 only for version 1.1.4")
         self.loadMovie( self.filename )
         self.format=self._movie.video_format
-        self.pos=pos
         self.pos = numpy.asarray(pos, float)
         self.depth=depth
         self.flipVert = flipVert
@@ -3977,21 +3974,34 @@ class MovieStim(_BaseVisualStim):
         self.status=NOT_STARTED
 
         #size
-        if size == None: self.size= numpy.array([self.format.width,
-                                                 self.format.height] , float)
-
-        elif type(size) in [tuple,list]: self.size = numpy.array(size,float)
-        else: self.size = numpy.array((size,size),float)
+        if size == None:
+            self.size = numpy.array([self.format.width, self.format.height], float)
+        elif type(size) in [tuple, list]:
+            self.size = numpy.array(size,float)
+        else:
+            self.size = numpy.array((size,size), float)
 
         self.ori = ori
-
         self._calcPosRendered()
         self._calcSizeRendered()
+
+        # enable self.contains(), overlaps(); currently win must have pix units:
+        self._calcVertices()
 
         #check for pyglet
         if win.winType!='pyglet':
             logging.Error('Movie stimuli can only be used with a pyglet window')
             core.quit()
+    def _calcVertices(self):
+        R, T = self._sizeRendered / 2  # pix
+        L, B = -R, -T
+        self.needVertexUpdate = True
+        self._vertices = numpy.array([[L, T], [R, T], [R, B], [L, B]])
+        self.needVertexUpdate = True
+    def _calcVerticesRendered(self):
+        self.needVertexUpdate = False
+        self._verticesRendered = self._vertices
+        self._posRendered = self.pos
     def setMovie(self, filename, log=True):
         """See `~MovieStim.loadMovie` (the functions are identical).
         This form is provided for syntactic consistency with other visual stimuli.
@@ -5053,7 +5063,10 @@ class Polygon(ShapeStim):
             ) * self.radius
             for e in xrange(self.edges)
         ]
-
+    def setEdges(self,edges):
+        "Set the number of edges to a new value"
+        self.edges=edges
+        self._calcVertices()
     def setRadius(self, radius, log=True):
         """Changes the radius of the Polygon. Parameter should be
 
@@ -5064,8 +5077,9 @@ class Polygon(ShapeStim):
         if log and self.autoLog:
             self.win.logOnFlip("Set %s radius=%s" %(self.name, radius),
                 level=logging.EXP,obj=self)
+
 class Circle(Polygon):
-    """Creates a Circle with a given radius as a special case of a `~psychopy.visual.ShapeStim`
+    """Creates a Circle with a given radius as a special case of a :class:`~psychopy.visual.ShapeStim`
 
     (New in version 1.72.00)
     """
@@ -5103,7 +5117,7 @@ class Circle(Polygon):
                 level=logging.EXP,obj=self)
 
 class Rect(ShapeStim):
-    """Creates a rectangle of given width and height as a special case of a `~psychopy.visual.ShapeStim`
+    """Creates a rectangle of given width and height as a special case of a :class:`~psychopy.visual.ShapeStim`
 
     (New in version 1.72.00)
     """
@@ -5164,7 +5178,7 @@ class Line(ShapeStim):
     """
     def __init__(self, win, start=(-.5, -.5), end=(.5, .5), **kwargs):
         """
-        Line accepts all input parameters, that `~psychopy.visual.ShapeStim` accepts, except
+        Line accepts all input parameters, that :class:`~psychopy.visual.ShapeStim` accepts, except
         for vertices, closeShape and fillColor.
 
         The methods `contains` and `overlaps` are inherited from `~psychopy.visual.ShapeStim`,
@@ -5586,6 +5600,7 @@ class ImageStim(_BaseVisualStim):
         #set it
         self._calcSizeRendered()
         self.needUpdate=True
+
 class BufferImageStim(GratingStim):
     """
     Take a "screen-shot" (full or partial), save to a ImageStim()-like RBGA object.
@@ -7433,7 +7448,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
                     im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
 
         #is it Luminance or RGB?
-        if im.mode=='L':
+        if im.mode=='L' and pixFormat==GL.GL_ALPHA:
             wasLum = True
         elif pixFormat==GL.GL_ALPHA:#we have RGB and need Lum
             wasLum = True
@@ -7449,7 +7464,6 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
             intensity = numpy.array(im)
         if wasLum and intensity.shape!=im.size:
             intensity.shape=im.size
-            print intensity.min(), intensity.max()
 
     if pixFormat==GL.GL_RGB and wasLum and dataType==GL.GL_FLOAT:
         #keep as float32 -1:1
@@ -7604,7 +7618,6 @@ def polygonsOverlap(poly1, poly2):
             return True
     return False
 
-
 def _setTexIfNoShaders(obj):
     """Useful decorator for classes that need to update Texture after other properties
     """
@@ -7682,7 +7695,13 @@ def _setColor(self, color, colorSpace=None, operation='',
 
     #at this point we have a numpy array of 3 vals (actually we haven't checked that there are 3)
     #check if colorSpace is given and use self.colorSpace if not
-    if colorSpace==None: colorSpace=getattr(self,colorSpaceAttrib)
+    if colorSpace==None:
+        colorSpace=getattr(self,colorSpaceAttrib)
+        #using previous color space - if we got this far in the _stColor function
+        #then we haven't been given a color name - we don't know what color space to use.
+        if colorSpace == 'named':
+            logging.error("If you setColor with a numeric color value then you need to specify a color space, e.g. setColor([1,1,-1],'rgb'), unless you used a numeric value previously in which case PsychoPy will reuse that color space.)")
+            return
     #check whether combining sensible colorSpaces (e.g. can't add things to hex or named colors)
     if operation!='' and getattr(self,colorSpaceAttrib) in ['named','hex']:
             raise AttributeError("setColor() cannot combine ('%s') colors within 'named' or 'hex' color spaces"\
@@ -7694,14 +7713,17 @@ def _setColor(self, color, colorSpace=None, operation='',
         exec('self.%s %s= color' %(colorAttrib, operation))#if no operation then just assign
     #get window (for color conversions)
     if colorSpace in ['dkl','lms']: #only needed for these spaces
-        if hasattr(self,'dkl_rgb'): win=self #self is probably a Window
-        elif hasattr(self, 'win'): win=self.win #self is probably a Stimulus
+        if hasattr(self,'dkl_rgb'):
+            win=self #self is probably a Window
+        elif hasattr(self, 'win'):
+            win=self.win #self is probably a Stimulus
         else:
             win=None
             logging.error("_setColor() is being applied to something that has no known Window object")
     #convert new self.color to rgb space
     newColor=getattr(self, colorAttrib)
-    if colorSpace in ['rgb','rgb255']: setattr(self,rgbAttrib, newColor)
+    if colorSpace in ['rgb','rgb255']:
+        setattr(self,rgbAttrib, newColor)
     elif colorSpace=='dkl':
         if numpy.all(win.dkl_rgb==numpy.ones([3,3])):
             dkl_rgb=None
@@ -7720,7 +7742,8 @@ def _setColor(self, color, colorSpace=None, operation='',
         setattr(self,rgbAttrib, colors.lms2rgb(newColor, lms_rgb) )
     elif colorSpace=='hsv':
         setattr(self,rgbAttrib, colors.hsv2rgb(numpy.asarray(newColor)) )
-    else: logging.error('Unknown colorSpace: %s' %colorSpace)
+    else:
+        logging.error('Unknown colorSpace: %s' %colorSpace)
     setattr(self,colorSpaceAttrib, colorSpace)#store name of colorSpace for future ref and for drawing
     #if needed, set the texture too
     _setTexIfNoShaders(self)
@@ -7732,6 +7755,7 @@ def _setColor(self, color, colorSpace=None, operation='',
         else:
             self.logOnFlip("Set Window %s=%s (%s)" %(colorAttrib,newColor,colorSpace),
                 level=logging.EXP,obj=self)
+
 def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """Assesses the monitor refresh rate (average, median, SD) under current conditions, over at least 60 frames.
 

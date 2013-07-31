@@ -291,6 +291,14 @@ class PsychoPyApp(wx.App):
     #    self.shell.Raise()
     #    self.SetTopWindow(self.shell)
     #    self.shell.SetFocus()
+    def openIPythonNotebook(self, event=None):
+        """Note that right now this is bad because it ceases all activity in the
+        main wx loop and the app has to be quit. We need it to run from a separate
+        process? The necessary depends (zmq and tornado) were included from v1.78
+        onwards in the standalone
+        """
+        import IPython.frontend.html.notebook.notebookapp
+        instance = IPython.frontend.html.notebook.notebookapp.launch_new_instance()
     def openUpdater(self, event=None):
         from psychopy.app import connections
         dlg = connections.InstallUpdateDialog(parent=None, ID=-1, app=self)
