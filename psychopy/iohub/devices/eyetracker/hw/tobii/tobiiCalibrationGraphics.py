@@ -19,7 +19,6 @@ import copy
 from ..... import print2err,printExceptionDetailsToStdErr,convertCamelToSnake
 from .... import Computer,DeviceEvent
 from .....constants import EventConstants
-from .....util import FullScreenWindow
 from . tobiiclasses import Point2D
 
 currentTime=Computer.getTime
@@ -108,7 +107,13 @@ class TobiiPsychopyCalibrationGraphics(object):
 #                                                                         (x,y),
 #                                                                         (x,y)]
 
-        self.window = FullScreenWindow(self._eyetrackerinterface._display_device)
+        display=self._eyetrackerinterface._display_device
+        self.window=visual.Window(display.getPixelResolution(),monitor=display.getPsychopyMonitorName(),
+                            units=display.getCoordinateType(),
+                            fullscr=True,
+                            allowGUI=False,
+                            screen=display.getIndex()
+                            )
         self.window.setColor(self.WINDOW_BACKGROUND_COLOR,'rgb255')        
         self.window.flip(clearBuffer=True)
         

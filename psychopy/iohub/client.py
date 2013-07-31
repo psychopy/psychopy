@@ -397,6 +397,9 @@ class ioHubConnection(object):
         """
         return self.deviceByLabel.get(deviceName,None)
 
+    def getSessionID(self):
+        return self.experimentSessionID
+        
     def getSessionMetaData(self):
         """
         Returns a dict representing the experiment session data that is being
@@ -411,6 +414,9 @@ class ioHubConnection(object):
             dict: Experiment Session metadata saved to the ioHub DataStore. None if the ioHub DataStore is not enabled.
         """
         return self._sessionMetaData
+
+    def getExperimentID(self):
+        return self.experimentID
 
     def getExperimentMetaData(self):
         """
@@ -601,7 +607,7 @@ class ioHubConnection(object):
                 
         return Computer.currentTime()-stime
 
-    def sendMessageEvent(self,text,prefix='',offset=0.0,sec_time=None):
+    def sendMessageEvent(self,text,category='',offset=0.0,sec_time=None):
         """
         Create and send an Experiment MessageEvent to the ioHub Server Process 
         for storage with the rest of the event data being recorded in the ioDataStore.
@@ -613,7 +619,7 @@ class ioHubConnection(object):
         Args:
             text (str): The text message for the message event. Can be up to 128 characters in length.
           
-            prefix (str): A 0 - 3 character prefix for the message that can be used to sort or group messages by 'types' during post hoc analysis.
+            category (str): A 0 - 32 character grouping code for the message that can be used to sort or group messages by 'types' during post hoc analysis.
                         
             offset (float): The sec.msec offset to apply to the time stamp of the message event. If you send the event before or after the time the event actually occurred, and you know what the offset value is, you can provide it here and it will be applied to the ioHub time stamp for the MessageEvent.
                           
@@ -622,7 +628,7 @@ class ioHubConnection(object):
         Returns:
             bool: True
         """
-        self._sendToHubServer(('EXP_DEVICE','EVENT_TX',[MessageEvent._createAsList(text,prefix=prefix,msg_offset=offset,sec_time=sec_time),]))
+        self._sendToHubServer(('EXP_DEVICE','EVENT_TX',[MessageEvent._createAsList(text,category=category,msg_offset=offset,sec_time=sec_time),]))
         return True
                 
     def initializeConditionVariableTable(self, condition_variable_provider):
@@ -1397,7 +1403,6 @@ def launchHubServer(**kwargs):
         #
         
         from iohub.client import launchHubServer
-        from iohub.util import FullScreenWindow
         
         # End of common script header code for these examples.
 

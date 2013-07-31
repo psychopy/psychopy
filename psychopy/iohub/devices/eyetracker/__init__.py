@@ -382,7 +382,14 @@ class EyeTrackerDevice(Device):
         """
         return self._latest_gaze_position
 
-
+    def getPosition(self):
+        """
+        The getPosition method is the same as the getLastGazePosition method,
+        provided as a consistent cross device method to access the current screen
+        position reported by a device. See getLastGazePosition for further details.
+        """
+        return self._latest_gaze_position
+        
     def _eyeTrackerToDisplayCoords(self,eyetracker_point):
         """
         The _eyeTrackerToDisplayCoords method is required for implementation
