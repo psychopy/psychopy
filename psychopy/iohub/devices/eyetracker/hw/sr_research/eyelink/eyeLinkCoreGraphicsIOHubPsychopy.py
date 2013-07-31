@@ -25,7 +25,7 @@ import copy
 from ..... import DeviceEvent, Computer
 from ......constants import EventConstants, KeyboardConstants #, #DeviceConstants, EyeTrackerConstants
 from ...... import convertCamelToSnake, print2err
-from ......util import FullScreenWindow, OrderedDict
+from ......util import OrderedDict
 
 import pylink
 from pylink import EyeLinkCustomDisplay
@@ -116,8 +116,13 @@ class EyeLinkCoreGraphicsIOHubPsychopy(EyeLinkCustomDisplay):
         EyeLinkCoreGraphicsIOHubPsychopy.CALIBRATION_POINT_INNER_RADIUS=targetInnerDiameter/2.0,targetInnerDiameter/2.0
  
         self.tracker.setOfflineMode();           
-
-        self.window = FullScreenWindow(self._eyetrackerinterface._display_device)
+        display=self._eyetrackerinterface._display_device
+        self.window=visual.Window(display.getPixelResolution(),monitor=display.getPsychopyMonitorName(),
+                            units=display.getCoordinateType(),
+                            fullscr=True,
+                            allowGUI=False,
+                            screen=not display.getIndex()
+                            )
         self.window.setColor(color=self.WINDOW_BACKGROUND_COLOR,colorSpace='rgb255')        
         self.window.flip(clearBuffer=True)
         

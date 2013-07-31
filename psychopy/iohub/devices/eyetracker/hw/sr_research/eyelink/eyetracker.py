@@ -22,7 +22,6 @@ EyeLink is also a registered trademark of SR Research Ltd, Ontario, Canada.
 
 import os
 import numpy as np
-from gevent import sleep
 import pylink
 
 from ...... import print2err,printExceptionDetailsToStdErr, createErrorResult
@@ -218,7 +217,7 @@ class EyeTracker(EyeTrackerDevice):
                         self._eyelink.dummy_open()     
                     else:
                         self._eyelink.open(host_pc_ip_address)
-                        sleep(0.001)
+
                         pylink.flushGetkeyQueue()
                         self._eyelink.setOfflineMode()
                     return EyeTrackerConstants.EYETRACKER_OK
@@ -461,7 +460,6 @@ class EyeTracker(EyeTrackerDevice):
             elif recording is False and self.isRecordingEnabled():
                 self._eyelink.stopRecording()
                 EyeTrackerDevice.enableEventReporting(self,False)
-                sleep(0.05)
 
                 self._latest_sample=None
                 self._latest_gaze_position=None
@@ -1085,7 +1083,6 @@ class EyeTracker(EyeTrackerDevice):
 
     def _setRuntimeSettings(self,runtimeSettings):
         for pkey,v in runtimeSettings.iteritems():
-            sleep(0.001)
 
             if pkey == 'sample_filtering':
                 all_filters=dict()                
@@ -1101,7 +1098,6 @@ class EyeTracker(EyeTrackerDevice):
                 self._setEyesToTrack(v)
             elif pkey == 'vog_settings':
                 for vog_key,vog_val in v.iteritems():
-                    sleep(0.001)
                     if vog_key == 'pupil_measure_types':
                         self._eyelink.sendCommand("pupil_size_diameter = %s"%(vog_val.split('_')[1]))
                     elif vog_key == 'pupil_center_algorithm':
@@ -1155,7 +1151,6 @@ class EyeTracker(EyeTrackerDevice):
             srate=self._getSamplingRate()
     
             self._eyelink.sendCommand("lock_active_eye = NO")
-            sleep(0.001)
             if track_eyes == "BOTH":
                 if self._eyelink.getTrackerVersion() == 3:
                     if srate>=1000:
@@ -1316,8 +1311,6 @@ class EyeTracker(EyeTrackerDevice):
             h=b-t
             eyelink.sendCommand("screen_pixel_coords %.2f %.2f %.2f %.2f" %(0,0,w,h))
             eyelink.sendMessage("DISPLAY_COORDS  %.2f %.2f %.2f %.2f" %(0,0,w,h))
-    
-            sleep(0.001)
             
             #bug in pylink makes this not work; must use default setting of 10
             #eyelink.sendCommand("screen_write_prescale = 100")
@@ -1359,9 +1352,6 @@ class EyeTracker(EyeTrackerDevice):
             else:
                 eyelink.sendCommand("file_sample_data = GAZE, GAZERES, HREF , PUPIL , AREA ,STATUS, BUTTON, INPUT")
     
-            sleep(0.001)
-    
-    
             # set link data
             eyelink.sendCommand("link_event_filter = LEFT, RIGHT, FIXATION, SACCADE , BLINK, BUTTON, MESSAGE, INPUT")
             eyelink.sendCommand("link_event_data = GAZE, GAZERES, HREF , AREA, VELOCITY, STATUS")
@@ -1391,7 +1381,7 @@ class EyeTracker(EyeTrackerDevice):
             printExceptionDetailsToStdErr()
             return EyeTrackerConstants.EYETRACKER_ERROR
 
-    def _readResultFromTracker(self,cmd,timeout=200):
+    def _readResultFromTracker(self,cmd,timeout=2):
         try:
             self._eyelink.readRequest(cmd)
     
@@ -1401,7 +1391,6 @@ class EyeTracker(EyeTrackerDevice):
                 rv = self._eyelink.readReply()
                 if rv and len(rv) >0:
                     return rv
-                sleep(0.001)
             return None
         except Exception:
             print2err("EYELINK Error during _readResultFromTracker:")
@@ -1410,7 +1399,6 @@ class EyeTracker(EyeTrackerDevice):
 
     def _setPupilDetection(self,pmode):
         try:
-            sleep(0.001)
             if(pmode.upper() == "ELLIPSE_FIT"):
                 self._eyelink.sendCommand("use_ellipse_fitter = YES")
             elif(pmode.upper() == "CENTROID_FIT"):
@@ -1446,7 +1434,6 @@ class EyeTracker(EyeTrackerDevice):
             else:
                 print2err("EYELINK Error during _setEyeTrackingMode: Unknown Trackiong Mode: ",r)
                 return EyeTrackerConstants.EYETRACKER_ERROR
-            sleep(0.001)
             if r == 0:                
                 self._eyelink.sendCommand("force_corneal_reflection = OFF")
             self._eyelink.sendCommand("corneal_mode %d"%(r))
