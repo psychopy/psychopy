@@ -50,13 +50,13 @@ class _baseVisualTest:
         win.flip()#AFTER compare screenshot
 
         #using .set()
-        gabor.setOri(45)
-        gabor.setSize(0.2*self.scaleFactor, '-')
+        gabor.ori = 45
+        gabor.size -= 0.2*self.scaleFactor
         gabor.setColor([45,30,0.3], colorSpace='dkl')
         gabor.sf += 0.2/self.scaleFactor
-        gabor.setPos([-0.5*self.scaleFactor,0.5*self.scaleFactor],'+')
-        gabor.setContrast(0.8)
-        gabor.setOpacity(0.8)
+        gabor.pos += [-0.5*self.scaleFactor, 0.5*self.scaleFactor]
+        gabor.contrast = 0.8
+        gabor.opacity = 0.8
         gabor.draw()
         utils.compareScreenshot('gabor2_%s.png' %(self.contextName), win)
     #def testMaskMatrix(self):
@@ -223,7 +223,7 @@ class _baseVisualTest:
         aperture.disable()
         grating.draw()
         aperture.enable()
-        grating.setOri(90)
+        grating.ori = 90
         grating.setColor('black')
         grating.draw()
         if utils._under_xvfb:
