@@ -1238,7 +1238,7 @@ class _BaseVisualStim(object):
     @AttributeSetter
     def opacity(self, value):
         """
-        Float. Operations supported.
+        Float. :ref:`operations <attrib-operations>` supported.
             Set the opacity of the stimulus.
             Should be between 1.0 (opaque) and 0.0 (transparent).
         """
@@ -1255,12 +1255,11 @@ class _BaseVisualStim(object):
     @AttributeSetter
     def contrast(self, value):
         """
-        Float between -1 (negative) and 1 (unchanged).. Operations supported.
+        Float between -1 (negative) and 1 (unchanged). :ref:`operations <attrib-operations>` supported.
             Set the contrast of the stimulus, i.e. scales how far the stimulus
             deviates from the middle grey. (This is a multiplier for the values
             given in the color description of the stimulus)
 
-             Operations supported.
             Setting contrast outside this range may produce strange results.::
                 # 0.0 to 1.0 decreases contrast
                 # 1.0 means unchanged
@@ -1311,7 +1310,7 @@ class _BaseVisualStim(object):
     @AttributeSetter
     def ori(self, value):
         """
-        Scalar. Operations supported.
+        :ref:`scalar <attrib-scalar>`. :ref:`operations <attrib-operations>` supported.
             Set the stimulus orientation in degrees.
         """
         self.__dict__['ori'] = value
@@ -1349,7 +1348,7 @@ class _BaseVisualStim(object):
     @AttributeSetter
     def pos(self, value):
         """
-        x,y-pair. Operations supported.
+        :ref:`x,y-pair <attrib-xy>`. :ref:`operations <attrib-operations>` supported.
             Set the stimulus position in the `units` inherited from the stimulus.
             Either list [x, y], tuple (x, y) or numpy.ndarray ([x, y]) with two elements.
 
@@ -1365,7 +1364,7 @@ class _BaseVisualStim(object):
     @AttributeSetter
     def size(self, value):
         """
-        x,y-pair, scalar or None (resets to default). Supports operations.
+        :ref:`x,y-pair <attrib-xy>`, :ref:`scalar <attrib-scalar>` or None (resets to default). Supports :ref:`operations <attrib-operations>`.
             Units are inherited from the stimulus.
             Sizes can be negative and can extend beyond the window.
 
@@ -2431,7 +2430,7 @@ class GratingStim(_BaseVisualStim):
     @AttributeSetter
     def sf(self, value):
         """
-        x-y pair or scalar
+        :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>`
         Where `units` == 'deg' or 'cm' units are in cycles per deg/cm.
         If `units` == 'norm' then sf units are in cycles per stimulus (so scale with stimulus size).
         If texture is an image loaded from a file then sf defaults to 1/stim size to give one cycle of the image.
@@ -2458,7 +2457,7 @@ class GratingStim(_BaseVisualStim):
     @AttributeSetter
     def phase(self, value):
         """
-        x-y pair or scalar
+        :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>`
 
         Phase of the stimulus in each direction.
         **NB** phase has modulus 1 (rather than 360 or 2*pi)
