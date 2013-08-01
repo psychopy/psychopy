@@ -1354,6 +1354,7 @@ class _BaseVisualStim(object):
             Either list [x, y], tuple (x, y) or numpy.ndarray ([x, y]) with two elements.
 
             Example::
+
                 stim.pos = (0.5, 0)  # Slightly to the right
                 stim.pos += (0.5, -1)  # Move right and up. Is now (1.0, -1.0)
                 stim.pos *= 0.2  # Move towards the center. Is now (0.2, -0.2)
@@ -1369,6 +1370,7 @@ class _BaseVisualStim(object):
             Sizes can be negative and can extend beyond the window.
 
             Example::
+
                 stim.size = 0.8  # Set size to (xsize, ysize) = (0.8, 0.8), quadratic.
                 print stim.size  # Outputs array([0.8, 0.8])
                 stim.size += (0,5, -0.5)  # make wider and flatter. Is now (1.3, 0.3)
@@ -2429,13 +2431,12 @@ class GratingStim(_BaseVisualStim):
     @AttributeSetter
     def sf(self, value):
         """
-        sf:
-            x-y pair or scalar
-            Where `units` == 'deg' or 'cm' units are in cycles per deg/cm.
-            If `units` == 'norm' then sf units are in cycles per stimulus (so scale with stimulus size).
-            If texture is an image loaded from a file then sf defaults to 1/stim size to give one cycle of the image.
+        x-y pair or scalar
+        Where `units` == 'deg' or 'cm' units are in cycles per deg/cm.
+        If `units` == 'norm' then sf units are in cycles per stimulus (so scale with stimulus size).
+        If texture is an image loaded from a file then sf defaults to 1/stim size to give one cycle of the image.
 
-            Spatial frequency.
+        Spatial frequency.
         """
 
         # Recode phase to numpy array
@@ -2457,13 +2458,12 @@ class GratingStim(_BaseVisualStim):
     @AttributeSetter
     def phase(self, value):
         """
-        phase:
-            x-y pair or scalar
+        x-y pair or scalar
 
-            Phase of the stimulus in each direction.
-            **NB** phase has modulus 1 (rather than 360 or 2*pi)
-            This is a little unconventional but has the nice effect
-            that setting phase=t*n drifts a stimulus at n Hz
+        Phase of the stimulus in each direction.
+        **NB** phase has modulus 1 (rather than 360 or 2*pi)
+        This is a little unconventional but has the nice effect
+        that setting phase=t*n drifts a stimulus at n Hz
         """
         # Recode phase to numpy array
         value = val2array(value)
@@ -2473,12 +2473,11 @@ class GratingStim(_BaseVisualStim):
     @AttributeSetter
     def tex(self, value):
         """
-        tex :
-            + **'sin'**,'sqr', 'saw', 'tri', None (resets to default)
-            + or the name of an image file (most formats supported)
-            + or a numpy array (1xN or NxN) ranging -1:1
+        + **'sin'**,'sqr', 'saw', 'tri', None (resets to default)
+        + or the name of an image file (most formats supported)
+        + or a numpy array (1xN or NxN) ranging -1:1
 
-            The texture forming the image
+        The texture forming the image
         """
         createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self,
             res=self.texRes, maskParams=self.maskParams)
@@ -2490,10 +2489,9 @@ class GratingStim(_BaseVisualStim):
     @AttributeSetter
     def mask(self, value):
         """
-        mask :
-            + 'circle', 'gauss', 'raisedCos', **None** (resets to default)
-            + or the name of an image file (most formats supported)
-            + or a numpy array (1xN or NxN) ranging -1:1
+        + 'circle', 'gauss', 'raisedCos', **None** (resets to default)
+        + or the name of an image file (most formats supported)
+        + or a numpy array (1xN or NxN) ranging -1:1
 
             The alpha mask (forming the shape of the image)
         """
