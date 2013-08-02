@@ -7692,16 +7692,22 @@ def _setColor(self, color, colorSpace=None, operation='',
 def _setWithOperation(self, attrib, value, operation):
     """ Sets an object property (scalar or numpy array) with an operation
     History: introduced to avoid exec-calls"""
+    # Note: ordered according to typical call frequency for best average timing.
+    oldValue = getattr(self, attrib)
     if operation == '':
-        newValue = getattr(self, attrib) * 0 + value  # Preserves dimensions, if array
+        newValue = oldValue * 0 + value  # Preserves dimensions, if array
     elif operation == '+':
-        newValue = getattr(self, attrib) + value
+        newValue = oldValue + value
     elif operation == '*':
-        newValue = getattr(self, attrib) * value
+        newValue = oldValue * value
     elif operation == '-':
-        newValue = getattr(self, attrib) - value
+        newValue = oldValue - value
     elif operation == '/':
-        newValue = getattr(self, attrib) / value
+        newValue = oldValue / value
+    elif operation == '**':
+        newValue = oldValue ** value
+    elif operation == '%':
+        newValue = oldValue % value
     else:
         raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
     setattr(self, attrib, newValue)
