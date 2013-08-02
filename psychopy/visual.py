@@ -101,7 +101,7 @@ def val2array(value, withNone=True, withScalar=True, length=2):
 
     withNone: True/False. should 'None' be passed?
     withScalar: True/False. is a scalar an accepted input? Will be converted to array of this scalar
-    elements: False/2/3. Number of elements input should have or be converted to. Might be False (do not accept arrays or convert to such)"""
+    length: False/2/3. Number of elements input should have or be converted to. Might be False (do not accept arrays or convert to such)"""
 
     if type(value) in (int, float):
         if withScalar:
