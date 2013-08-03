@@ -1407,16 +1407,16 @@ class _BaseVisualStim(object):
     @AttributeSetter
     def depth(self, value):
         """
-        Depricated. Depth is now controlled simply by drawing order.
+        Deprecated. Depth is now controlled simply by drawing order.
         """
         self.__dict__['depth'] = value
     def draw(self):
         raise NotImplementedError('Stimulus classes must overide _BaseVisualStim.draw')
     def setPos(self, newPos, operation='', log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self._set('pos', val=newPos, op=operation, log=log)
     def setDepth(self, newDepth, operation='', log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self._set('depth', newDepth, operation, log)
     def setSize(self, newSize, operation='', units=None, log=True):
         """Set the stimulus size [X,Y] in the specified (or inherited) `units`
@@ -1424,13 +1424,13 @@ class _BaseVisualStim(object):
         if units==None: units=self.units#need to change this to create several units from one
         self._set('size', newSize, op=operation, log=log)
     def setOri(self, newOri, operation='', log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self._set('ori',val=newOri, op=operation, log=log)
     def setOpacity(self, newOpacity, operation='', log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self._set('opacity', newOpacity, operation, log=log)
     def setContrast(self, newContrast, operation='', log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self._set('contrast', newContrast, operation, log=log)
     def setDKL(self, newDKL, operation=''):
         """DEPRECATED since v1.60.05: Please use setColor
@@ -1526,7 +1526,7 @@ class _BaseVisualStim(object):
                 level=logging.EXP,obj=self)
 
     def setUseShaders(self, value=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self.useShaders = value
     def _selectWindow(self, win):
         global currWindow
@@ -1558,10 +1558,10 @@ class _BaseVisualStim(object):
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
     def setAutoDraw(self, value, log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self.autoDraw = value
     def setAutoLog(self, value=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self.autoLog = value
     def contains(self, x, y=None):
         """Determines if a point x,y is inside the extent of the stimulus.
