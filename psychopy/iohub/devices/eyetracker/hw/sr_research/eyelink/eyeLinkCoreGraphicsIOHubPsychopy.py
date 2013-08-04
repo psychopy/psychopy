@@ -121,7 +121,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(EyeLinkCustomDisplay):
                             units=display.getCoordinateType(),
                             fullscr=True,
                             allowGUI=False,
-                            screen=not display.getIndex()
+                            screen=display.getIndex()
                             )
         self.window.setColor(color=self.WINDOW_BACKGROUND_COLOR,colorSpace='rgb255')        
         self.window.flip(clearBuffer=True)
