@@ -1161,20 +1161,18 @@ class RoutineCanvas(wx.ScrolledWindow):
             else:
                 rowComponents.append(component)
 
-        #draw time grid
-        yPosBottom = self.yPosTop+len(rowComponents)*self.componentStep
+        # draw static, time grid, normal (row) comp:
         yPos = self.yPosTop
-        self.drawTimeGrid(self.pdc,self.yPosTop,yPosBottom)
+        yPosBottom = yPos + len(rowComponents) * self.componentStep
+        # draw any Static Components first (below the grid)
+        for component in staticCompons:
+            bottom = max(yPosBottom,self.GetSize()[1])
+            self.drawStatic(self.pdc, component, yPos, bottom)
+        self.drawTimeGrid(self.pdc,yPos,yPosBottom)
         #normal components, one per row
         for component in rowComponents:
             self.drawComponent(self.pdc, component, yPos)
             yPos+=self.componentStep
-
-        #draw any Static Components fist (below the grid)
-        for thisComp in self.routine:
-            if thisComp.type=='Static':
-                bottom = max(yPosBottom,self.GetSize()[1])
-                self.drawStatic(self.pdc, thisComp, self.yPosTop, bottom)
 
         self.SetVirtualSize((self.maxWidth, yPos+50))#the 50 allows space for labels below the time axis
         self.pdc.EndDrawing()
@@ -1247,17 +1245,16 @@ class RoutineCanvas(wx.ScrolledWindow):
             if w>10000: w=10000#limit width to 10000 pixels!
             if w<2: w=2#make sure at least one pixel shows
             h = yPosBottom-yPosTop
-            #add name label
-            name = component.params['name'].val
+            # name label, position:
+            name = component.params['name'].val  # "ISI"
             nameW, nameH = self.GetFullTextExtent(name)[0:2]
-            #draw text
             x = xSt+w/2
             staticLabelTop = (0, 50, 60)[self.drawSize]
             y = staticLabelTop - nameH * 3
-            dc.DrawText(name, x, y)
             fullRect = wx.Rect(x-20,y,nameW, nameH)
-            #draw the rectangle
+            #draw the rectangle, draw text on top:
             dc.DrawRectangle(xSt, yPosTop-nameH*4, w, h+nameH*5)
+            dc.DrawText(name, x-nameW/2, y)
             fullRect.Union(wx.Rect(xSt, yPosTop, w, h))#update bounds to include time bar
         dc.SetIdBounds(id,fullRect)
     def drawComponent(self, dc, component, yPos):
