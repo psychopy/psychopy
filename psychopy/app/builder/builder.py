@@ -1181,7 +1181,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.Refresh()#refresh the visible window after drawing (using OnPaint)
     def getMaxTime(self):
         """Return the max time to be drawn in the window
-        """        
+        """
         maxTime, nonSlip, onlyStaticComps = self.routine.getMaxTime()
         if onlyStaticComps:
             maxTime= maxTime+0.5
@@ -1194,7 +1194,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         xSt=self.timeXposStart
         xEnd=self.timeXposEnd
 
-#        dc.SetId(wx.NewId())
+        #dc.SetId(wx.NewId())
         dc.SetPen(wx.Pen(wx.Color(0, 0, 0, 150)))
         #draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt,y1=yPosTop,
@@ -1252,7 +1252,8 @@ class RoutineCanvas(wx.ScrolledWindow):
             nameW, nameH = self.GetFullTextExtent(name)[0:2]
             #draw text
             x = xSt+w/2
-            y = yPosTop-nameH*3
+            staticLabelTop = (0, 50, 60)[self.drawSize]
+            y = staticLabelTop - nameH * 3
             dc.DrawText(name, x, y)
             fullRect = wx.Rect(x-20,y,nameW, nameH)
             #draw the rectangle
@@ -3972,7 +3973,7 @@ class BuilderFrame(wx.Frame):
             elif resp == wx.ID_NO:
                 pass #don't save just quit
         return True
-    
+
     def fileClose(self, event=None, checkSave=True, updateViews=True):
         """This is typically only called when the user x"""
         if checkSave:
