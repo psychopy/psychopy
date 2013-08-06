@@ -1243,7 +1243,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0), style=wx.TRANSPARENT))
             dc.SetBrush(wx.Brush(staticTimeColor))
             xSt = self.timeXposStart + startTime/xScale
-            w = (duration)/xScale+1.85 # +1.85 to compensate for border alpha=0 in dc.SetPen
+            w = (duration)/xScale + 1  # +1 to compensate for border alpha=0 in dc.SetPen
             if w>10000: w=10000#limit width to 10000 pixels!
             if w<2: w=2#make sure at least one pixel shows
             h = yPosBottom-yPosTop
