@@ -897,7 +897,7 @@ class TrialHandler(_BaseTrialHandler):
         return self.trialList[condIndex]
 
     def getEarlierTrial(self, n=-1):
-        """Returns the condition information from n trials previously. Useful 
+        """Returns the condition information from n trials previously. Useful
         for comparisons in n-back tasks. Returns 'None' if trying to access a trial
         prior to the first.
         """
@@ -1534,7 +1534,7 @@ class StairHandler(_BaseTrialHandler):
                     reversal=True
                 else:#direction is 'down' or 'start'
                     reversal=False
-                    self.currentDirection='down'
+                self.currentDirection='down'
             else:
                 #got it wrong
                 self._intensityInc()
