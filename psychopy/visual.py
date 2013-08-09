@@ -373,7 +373,7 @@ class Window:
         self.waitBlanking = waitBlanking
 
         self._refreshThreshold=1/1.0#initial val needed by flip()
-        self._monitorFrameRate = self._getActualFrameRate()#over several frames with no drawing
+        self._monitorFrameRate = self.getActualFrameRate()#over several frames with no drawing
         if self._monitorFrameRate != None:
             self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
         else:
@@ -1171,19 +1171,22 @@ class Window:
         if self.winType=='pygame':wasVisible = pygame.mouse.set_visible(visibility)
         elif self.winType=='pyglet':self.winHandle.set_mouse_visible(visibility)
         self.mouseVisible = visibility
-    def _getActualFrameRate(self,nMaxFrames=100,nWarmUpFrames=10, threshold=1):
+    def getActualFrameRate(self,nIdentical=10,nMaxFrames=100,nWarmUpFrames=10,threshold=1):
         """Measures the actual fps for the screen.
 
-        This is done by waiting (for a max of nMaxFrames) until 10 frames in a
-        row have identical frame times (std dev below 1ms).
+        This is done by waiting (for a max of nMaxFrames) until [nIdentical] frames in a
+        row have identical frame times (std dev below [threshold] ms).
 
-        If there are no 10 consecutive identical frames a warning is logged and
+        If there is no such sequence of identical frames a warning is logged and
         `None` will be returned.
 
         :parameters:
+            nIdentical:
+                the number of consecutive frames that will be evaluated.
+                Higher --> greater precision. Lower --> faster.
 
             nMaxFrames:
-                the maxmimum number of frames to wait for a matching set of 10
+                the maxmimum number of frames to wait for a matching set of nIdentical
 
             nWarmUpFrames:
                 the number of frames to display before starting the test (this is
@@ -1195,6 +1198,8 @@ class Window:
                 a match
 
         """
+        if nIdentical > nMaxFrames:
+            raise ValueError('nIdentical must be equal to or less than nMaxFrames')
         recordFrmIntsOrig = self.recordFrameIntervals
         #run warm-ups
         self.setRecordFrameIntervals(False)
@@ -1204,8 +1209,8 @@ class Window:
         self.setRecordFrameIntervals(True)
         for frameN in range(nMaxFrames):
             self.flip()
-            if len(self.frameIntervals)>=10 and numpy.std(self.frameIntervals[-10:])<(threshold/1000.0):
-                rate = 1.0/numpy.mean(self.frameIntervals[-10:])
+            if len(self.frameIntervals)>=nIdentical and numpy.std(self.frameIntervals[-nIdentical:])<(threshold/1000.0):
+                rate = 1.0/numpy.mean(self.frameIntervals[-nIdentical:])
                 if self.screen==None:scrStr=""
                 else: scrStr = " (%i)" %self.screen
                 logging.debug('Screen%s actual frame rate measured at %.2f' %(scrStr,rate))
