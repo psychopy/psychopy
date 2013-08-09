@@ -1,8 +1,9 @@
 import sys, glob, collections
 from itertools import imap,chain
 from psychopy import logging
-__all__=['forp','cedrus','minolta','pr', 'crs', 'ioLabs']
+__all__=['forp','cedrus','minolta','pr', 'crs', 'iolab']
 
+import iolab
 
 def getSerialPorts():
     """Finds the names of all (virtual) serial ports present on the system
