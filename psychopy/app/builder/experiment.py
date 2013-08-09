@@ -880,7 +880,11 @@ class Flow(list):
         denoted as code by $ are constant.
         """
         warnings = []
-        keywords = self.exp.namespace.nonUserBuilder[:] + ['expInfo']
+        # treat expInfo as likely to be constant; also treat its keys as constant
+        # because its handy to make a short-cut in code: exec(key+'=expInfo[key]')
+        e = eval(self.exp.settings.params['Experiment info'].val)  # dict
+        expInfo = e.keys()
+        keywords = self.exp.namespace.nonUserBuilder[:] + ['expInfo'] + expInfo
         ignore = set(keywords).difference(set(['random', 'rand']))
         for key in component.params:
             field = component.params[key]
@@ -1155,7 +1159,7 @@ class Routine(list):
             maxTime=10
             nonSlipSafe=False
         return maxTime, nonSlipSafe, onlyStaticComps
-        
+
 class ExpFile(list):
     """An ExpFile is similar to a Routine except that it generates its code
     from the Flow of a separate, complete psyexp file.
@@ -1442,5 +1446,3 @@ def getCodeFromParamStr(val):
     tmp = re.sub(r"^(\$)+", '', val)  # remove leading $, if any
     tmp2 = re.sub(r"([^\\])(\$)+", r"\1", tmp)  # remove all nonescaped $, squash $$$$$
     return re.sub(r"[\\]\$", '$', tmp2)  # remove \ from all \$
-
-
