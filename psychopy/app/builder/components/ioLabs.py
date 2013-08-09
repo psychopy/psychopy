@@ -7,6 +7,8 @@ from os import path
 
 from psychopy.app.builder.experiment import CodeGenerationException, _valid_var_re
 
+__author__ = 'Jeremy Gray'
+
 thisFolder = path.abspath(path.dirname(__file__))  # abs path to the folder containing this path
 iconFile = path.join(thisFolder, 'ioLabs.png')
 tooltip = 'ioLabs ButtonBox: check and record response buttons on ioLab Systems ButtonBox'
@@ -29,8 +31,8 @@ class ioLabsButtonBoxComponent(BaseComponent):
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim=''):
-        self.type = 'ButtonBox'
-        self.url = "http://www.psychopy.org/builder/components/buttonbox.html"
+        self.type = 'ioLabsButtonBox'
+        self.url = "http://www.psychopy.org/builder/components/ioLabs.html"
         self.exp = exp  # so we can access the experiment
         self.exp.requirePsychopyLibs(['hardware'])
         self.parentName = parentName
