@@ -19,6 +19,13 @@ Changelog
 PsychoPy 1.78
 ------------------------------
 
+PsychoPy 1.78.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(in repository)
+
+* FIXED: gui choice boxes now handle unicode in their options as well as ASCII strings (thanks Anne Peschel)
+
 PsychoPy 1.78.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

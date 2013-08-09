@@ -90,7 +90,7 @@ class Dlg(wx.Dialog):
             inputLength = wx.Size(max(50, 5*len(unicode(initial))+16), 25)
             inputBox = wx.TextCtrl(self,-1,unicode(initial),size=inputLength)
         else:
-            inputBox = wx.Choice(self, -1, choices=[str(option) for option in list(choices)])
+            inputBox = wx.Choice(self, -1, choices=[unicode(option) for option in list(choices)])
             # Somewhat dirty hack that allows us to treat the choice just like
             # an input box when retrieving the data
             inputBox.GetValue = inputBox.GetStringSelection
@@ -243,11 +243,11 @@ def fileSaveDlg(initFilePath="", initFileName="",
             #"pickled files (*.pickle, *.pkl)|*.pickle" \
             #"shelved files (*.shelf)|*.shelf"
     try:
-        dlg = wx.FileDialog(None,prompt, 
+        dlg = wx.FileDialog(None,prompt,
                           initFilePath, initFileName, allowed, wx.SAVE)
     except:
         tmpApp = wx.PySimpleApp()
-        dlg = wx.FileDialog(None,prompt, 
+        dlg = wx.FileDialog(None,prompt,
                           initFilePath, initFileName, allowed, wx.SAVE)
     if dlg.ShowModal() == OK:
         #get names of images and their directory
