@@ -45,11 +45,13 @@ class ButtonBox(ioLabs.USBBox):
         All times are reported in units of seconds.
         """
         ioLabs.USBBox.__init__(self)
-        self.events = []
-        self._baseclock = core.Clock()  # for basetime, not RT time
-        self._lastReset = 0.0  # time on baseclock at which the bbox clock was reset
         logging.debug('init iolabs bbox')
-        self.standby()
+        self.events = []
+        self.status = None  # helps Builder
+        self._lastReset = 0.0  # time on baseclock at which the bbox clock was reset
+        self._baseclock = core.Clock()  # for basetime, not RT time
+        self.resetClock(log=True)  # internal clock on the bbox; log=False is faster
+        logging.exp('button box resetClock(log=True) took %.4fs' % self._baseclock.getTime())
 
         self.commands.add_callback(REPORT.KEYDN, self._onKeyDown)
         self.commands.add_callback(REPORT.KEYUP, self._onKeyUp)
@@ -83,19 +85,21 @@ class ButtonBox(ioLabs.USBBox):
         """
         self.buttons.enabled = 0x00  # 8 bit pattern 0=disabled 1=enabled
         self.leds.state = 0xFF  # leds == port2 == lights, 8 bits 0=on 1=off
+        return self
 
-    def resetClock(self):
-        """Reset the clock on the bbox internal clock, e.g., start of a trial.
+    def resetClock(self, log=True):
+        """Reset the clock on the bbox internal clock, e.g., at the start of a trial.
         """
         # better / faster than self.reset_clock() (no wait for report):
         self.commands.resrtc()
         self._lastReset = self._baseclock.getTime()
-        logging.exp('reset bbox internal clock at basetime = %.3f' % self._lastReset)
+        if log:
+            logging.exp('reset bbox internal clock at basetime = %.3f' % self._lastReset)
 
-    def getTime(self, log=False):
+    def _getTime(self, log=False):
         """Return the time on the bbox internal clock, relative to last reset.
 
-        Status: not working
+        Status: rtcget() not working
 
         `log=True` will log the bbox time and elapsed CPU (python) time.
         """
@@ -110,9 +114,8 @@ class ButtonBox(ioLabs.USBBox):
     def getBaseTime(self):
         """Return the time since init (using the CPU clock, not ioLab bbox).
 
-        (Aim is to provide a similar API as for a Cedrus box.
-        Could let both clocks run for a long time to assess relative drift;
-        see getTime(log=True).)
+        Aim is to provide a similar API as for a Cedrus box.
+        Could let both clocks run for a long time to assess relative drift.
         """
         return self._baseclock.getTime()
 
@@ -127,6 +130,8 @@ class ButtonBox(ioLabs.USBBox):
 
         Set voice=True to enable the voiceKey - gets reported as button 64
         '''
+        if not (buttonList is None or all([b in range(8) for b in buttonList])):
+            raise ValueError('buttonList needs to be a list of 0..7, or None')
         self.buttons.enabled = _list2bits(buttonList)
         self.int0.enabled = int(voice)
 
@@ -178,13 +183,11 @@ class ButtonBox(ioLabs.USBBox):
         if downOnly is False:
             raise NotImplementedError()
         self.process_received_reports()
-        if self.events:
-            evts = []
-            for evt in self.events:
-                if not downOnly or evt.direction == PRESSED:
-                    evts.append(evt)
-            return evts
-        return None
+        evts = []
+        for evt in self.events:
+            if evt.direction == PRESSED or not downOnly:
+                evts.append(evt)
+        return evts
 
     def clearEvents(self):
         '''Discard all button / voice key events.
@@ -194,7 +197,6 @@ class ButtonBox(ioLabs.USBBox):
         logging.debug('bbox clear events')
 
 
-ubyte_zero = ubyte(0)
 pow2 = [2**i for i in range(8)]
 
 def _list2bits(arg):
@@ -204,7 +206,7 @@ def _list2bits(arg):
     elif hasattr(arg, '__iter__'):
         return ubyte(sum([pow2[btn] for btn in arg]))
     else:  # None
-        return ubyte_zero
+        return ubyte(0)
 
 def _bits2list(bits):
     # inverse of _list2bits: return 8 bits as converted to a buttonList
