@@ -2690,6 +2690,11 @@ class GratingStim(_BaseVisualStim):
         else:
             self._cycles = self.sf * self.size
 
+    def contains(self, *args, **kwargs):
+        raise NotImplementedError("GratingStim do not have a contains() method")
+    def overlaps(self, *args, **kwargs):
+        raise NotImplementedError("GratingStim do not have an overlaps() method")
+
 class PatchStim(GratingStim):
     def __init__(self, *args, **kwargs):
         """
@@ -4001,7 +4006,6 @@ class MovieStim(_BaseVisualStim):
     def _calcVertices(self):
         R, T = self._sizeRendered / 2  # pix
         L, B = -R, -T
-        self.needVertexUpdate = True
         self._vertices = numpy.array([[L, T], [R, T], [R, B], [L, B]])
         self.needVertexUpdate = True
     def _calcVerticesRendered(self):

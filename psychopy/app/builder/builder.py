@@ -1161,27 +1161,25 @@ class RoutineCanvas(wx.ScrolledWindow):
             else:
                 rowComponents.append(component)
 
-        #draw time grid
-        yPosBottom = self.yPosTop+len(rowComponents)*self.componentStep
+        # draw static, time grid, normal (row) comp:
         yPos = self.yPosTop
-        self.drawTimeGrid(self.pdc,self.yPosTop,yPosBottom)
+        yPosBottom = yPos + len(rowComponents) * self.componentStep
+        # draw any Static Components first (below the grid)
+        for component in staticCompons:
+            bottom = max(yPosBottom,self.GetSize()[1])
+            self.drawStatic(self.pdc, component, yPos, bottom)
+        self.drawTimeGrid(self.pdc,yPos,yPosBottom)
         #normal components, one per row
         for component in rowComponents:
             self.drawComponent(self.pdc, component, yPos)
             yPos+=self.componentStep
-
-        #draw any Static Components fist (below the grid)
-        for thisComp in self.routine:
-            if thisComp.type=='Static':
-                bottom = max(yPosBottom,self.GetSize()[1])
-                self.drawStatic(self.pdc, thisComp, self.yPosTop, bottom)
 
         self.SetVirtualSize((self.maxWidth, yPos+50))#the 50 allows space for labels below the time axis
         self.pdc.EndDrawing()
         self.Refresh()#refresh the visible window after drawing (using OnPaint)
     def getMaxTime(self):
         """Return the max time to be drawn in the window
-        """        
+        """
         maxTime, nonSlip, onlyStaticComps = self.routine.getMaxTime()
         if onlyStaticComps:
             maxTime= maxTime+0.5
@@ -1194,7 +1192,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         xSt=self.timeXposStart
         xEnd=self.timeXposEnd
 
-#        dc.SetId(wx.NewId())
+        #dc.SetId(wx.NewId())
         dc.SetPen(wx.Pen(wx.Color(0, 0, 0, 150)))
         #draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt,y1=yPosTop,
@@ -1243,20 +1241,20 @@ class RoutineCanvas(wx.ScrolledWindow):
             dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0), style=wx.TRANSPARENT))
             dc.SetBrush(wx.Brush(staticTimeColor))
             xSt = self.timeXposStart + startTime/xScale
-            w = (duration)/xScale+1.85 # +1.85 to compensate for border alpha=0 in dc.SetPen
+            w = (duration)/xScale + 1  # +1 to compensate for border alpha=0 in dc.SetPen
             if w>10000: w=10000#limit width to 10000 pixels!
             if w<2: w=2#make sure at least one pixel shows
             h = yPosBottom-yPosTop
-            #add name label
-            name = component.params['name'].val
+            # name label, position:
+            name = component.params['name'].val  # "ISI"
             nameW, nameH = self.GetFullTextExtent(name)[0:2]
-            #draw text
             x = xSt+w/2
-            y = yPosTop-nameH*3
-            dc.DrawText(name, x, y)
+            staticLabelTop = (0, 50, 60)[self.drawSize]
+            y = staticLabelTop - nameH * 3
             fullRect = wx.Rect(x-20,y,nameW, nameH)
-            #draw the rectangle
+            #draw the rectangle, draw text on top:
             dc.DrawRectangle(xSt, yPosTop-nameH*4, w, h+nameH*5)
+            dc.DrawText(name, x-nameW/2, y)
             fullRect.Union(wx.Rect(xSt, yPosTop, w, h))#update bounds to include time bar
         dc.SetIdBounds(id,fullRect)
     def drawComponent(self, dc, component, yPos):
@@ -3972,7 +3970,7 @@ class BuilderFrame(wx.Frame):
             elif resp == wx.ID_NO:
                 pass #don't save just quit
         return True
-    
+
     def fileClose(self, event=None, checkSave=True, updateViews=True):
         """This is typically only called when the user x"""
         if checkSave:
