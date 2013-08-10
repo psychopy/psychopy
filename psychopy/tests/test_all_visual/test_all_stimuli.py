@@ -3,6 +3,8 @@ from psychopy import visual, misc, monitors, filters, prefs
 from psychopy.tests import utils
 import numpy
 import pytest
+import shutil
+from tempfile import mkdtemp
 
 """Each test class creates a context subclasses _baseVisualTest to run a series
 of tests on a single graphics context (e.g. pyglet with shaders)
@@ -11,6 +13,37 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
 
+class Test_Window:
+    """Some tests just for the window - we don't really care about what's drawn inside it
+    """
+    def setup_class(self):
+        self.temp_dir = mkdtemp(prefix='psychopy-tests-test_window')
+        self.win = visual.Window([128,128], pos=[50,50], allowGUI=False)
+    def teardown_class(self):
+        shutil.rmtree(self.temp_dir)
+    def test_captureMovieFrames(self):
+        stim = visual.GratingStim(self.win, dkl=[0,0,1])
+        stim.setAutoDraw(True)
+        for frameN in range(3):
+            stim.setPhase(0.3,'+')
+            self.win.flip()
+            self.win.getMovieFrame()
+        self.win.saveMovieFrames(os.path.join(self.temp_dir, 'junkFrames.png'))
+        self.win.saveMovieFrames(os.path.join(self.temp_dir, 'junkFrames.gif'))
+        region = self.win._getRegionOfFrame()
+    def test_multiFlip(self):
+        self.win.setRecordFrameIntervals(False) #does a reset
+        self.win.setRecordFrameIntervals(True)
+        self.win.multiFlip(3)
+        self.win.multiFlip(3,clearBuffer=False)
+        self.win.saveFrameIntervals(os.path.join(self.temp_dir, 'junkFrameInts'))
+        fps = self.win.fps()
+    def test_callonFlip(self):
+        def assertThisIs2(val):
+            assert val==2 
+        self.win.callOnFlip(assertThisIs2, 2)
+        self.win.flip()
+        
 class _baseVisualTest:
     #this class allows others to be created that inherit all the tests for
     #a different window config
@@ -54,7 +87,13 @@ class _baseVisualTest:
         gabor.draw()
         utils.compareScreenshot('gabor1_%s.png' %(self.contextName), win)
         win.flip()#AFTER compare screenshot
-
+        
+        #did buffer image also work?
+        #bufferImgStim = visual.BufferImageStim(self.win, stim=[gabor])
+        #bufferImgStim.draw()
+        #utils.compareScreenshot('gabor1_%s.png' %(self.contextName), win)
+        #win.flip()
+        
         #using .set()
         gabor.ori = 45
         gabor.size -= 0.2*self.scaleFactor
@@ -65,6 +104,8 @@ class _baseVisualTest:
         gabor.opacity = 0.8
         gabor.draw()
         utils.compareScreenshot('gabor2_%s.png' %(self.contextName), win)
+        win.flip()
+        
     #def testMaskMatrix(self):
     #    #aims to draw the exact same stimulus as in testGabor, but using filters
     #    win=self.win
@@ -86,6 +127,8 @@ class _baseVisualTest:
     #    utils.compareScreenshot('gabor1_%s.png' %(contextName), win)
     def test_text(self):
         win = self.win
+        if self.win.winType=='pygame':
+            pytest.skip("Text is different on pygame")
         #set font
         fontFile = os.path.join(prefs.paths['resources'], 'DejaVuSerif.ttf')
         #using init
@@ -128,7 +171,6 @@ class _baseVisualTest:
         for frameN in range(10):
             mov.draw()
             win.flip()
-
     def test_shape(self):
         win = self.win
 
@@ -147,6 +189,8 @@ class _baseVisualTest:
         shape.draw()
         utils.compareScreenshot('shape2_%s.png' %(self.contextName), win, crit=12.0)
     def test_radial(self):
+        if self.win.winType=='pygame':
+            pytest.skip("RadialStim dodgy on pygame")
         win = self.win
         #using init
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
@@ -156,6 +200,10 @@ class _baseVisualTest:
         win.flip()#AFTER compare screenshot
 
         #using .set()
+        wedge.setMask('gauss')
+        wedge.setSize(3*self.scaleFactor)
+        wedge.setAngularCycles(3)
+        wedge.setRadialCycles(3)
         wedge.setOri(180)
         wedge.setContrast(0.8)
         wedge.setOpacity(0.8)
@@ -237,6 +285,8 @@ class _baseVisualTest:
         utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win)
         #aperture should automatically disable on exit
     def test_rating_scale(self):
+        if self.win.winType=='pygame':
+            pytest.skip("RatingScale not available on pygame")
         # try to avoid text; avoid default / 'triangle' because it does not display on win XP
         win = self.win
         win.flip()
@@ -256,6 +306,7 @@ class _baseVisualTest:
         utils.skip_under_xvfb()             # skip late so we smoke test the code
         assert (1000/150.0 < msPFavg < 1000/40.0), \
             "Your frame period is %.1fms which suggests you aren't syncing to the frame" %msPFavg
+
 
 #create different subclasses for each context/backend
 class TestPygletNorm(_baseVisualTest):
@@ -316,23 +367,23 @@ class TestPygletDeg(_baseVisualTest):
             units='deg')
         self.contextName='deg'
         self.scaleFactor=2#applied to size/pos values
-#class TestPygameNorm(_baseVisualTest):
-#    @classmethod
-#    def setup_class(self):
-#        self.win = visual.Window([128,128], winType='pygame', allowStencil=True)
-#        self.contextName='norm'
-#        self.scaleFactor=1#applied to size/pos values
-#class TestPygamePix(_baseVisualTest):
-#    @classmethod
-#    def setup_class(self):
-#        mon = monitors.Monitor('testMonitor')
-#        mon.setDistance(57.0)
-#        mon.setWidth(40.0)
-#        mon.setSizePix([1024,768])
-#        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
-#            units='pix')
-#        self.contextName='pix'
-#        self.scaleFactor=60#applied to size/pos values
+class TestPygameNorm(_baseVisualTest):
+    @classmethod
+    def setup_class(self):
+        self.win = visual.Window([128,128], winType='pygame', allowStencil=True)
+        self.contextName='norm'
+        self.scaleFactor=1#applied to size/pos values
+class TestPygamePix(_baseVisualTest):
+    @classmethod
+    def setup_class(self):
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(57.0)
+        mon.setWidth(40.0)
+        mon.setSizePix([1024,768])
+        self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
+            units='pix')
+        self.contextName='pix'
+        self.scaleFactor=60#applied to size/pos values
 #class TestPygameCm(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):
@@ -355,4 +406,11 @@ class TestPygletDeg(_baseVisualTest):
 #            units='deg')
 #        self.contextName='deg'
 #        self.scaleFactor=2#applied to size/pos values
+#
 
+if __name__ == '__main__':
+    cls = TestPygamePix()
+    cls.setup_class()
+    cls.test_gabor()
+    cls.teardown_class()
+   
