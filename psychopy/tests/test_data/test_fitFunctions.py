@@ -3,7 +3,7 @@ import numpy
 from scipy import special
 from pytest import raises
 
-PLOTTING=True#turn this on to check it all looks right too
+PLOTTING=False#turn this on to check it all looks right too
 if PLOTTING:
     import pylab
 
@@ -41,7 +41,7 @@ def test_fitNakaRushton():
         pylab.plot([0,thresh],[0.75,0.75],'--b')#horiz
         pylab.plot([thresh,thresh],[0.,0.75],'--b')#vert
         pylab.title('Fitting Naka-Rushton')
-    
+
 def test_fitCumNorm():
     #the data are actually from a cum norm so this should be exact
     fit = data.FitCumNormal(contrasts, responses, display=0, expectedMin=0.5)
