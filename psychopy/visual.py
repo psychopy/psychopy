@@ -2046,8 +2046,6 @@ class SimpleImageStim:
                  name='', autoLog=True):
         """
         :Parameters:
-
-
             win :
                 a :class:`~psychopy.visual.Window` object (required)
             image :
@@ -5343,18 +5341,11 @@ class ImageStim(_BaseVisualStim):
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 
-        self.ori = float(ori)
-        self.contrast = float(contrast)
-        self.opacity = float(opacity)
         self.interpolate=interpolate
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
 
         self._origSize=None#if an image texture is loaded this will be updated
-
-        self.colorSpace=colorSpace
-        self.setColor(color, colorSpace=colorSpace, log=False)
-        self.rgbPedestal=[0,0,0]#does an rgb pedestal make sense for an image?
 
         #initialise textures for stimulus
         self._texID = GL.GLuint()
@@ -5369,6 +5360,14 @@ class ImageStim(_BaseVisualStim):
         self.isLumImage = None
         self.setImage(image, log=False)
         self.setMask(mask, log=False)
+
+        #color and contrast etc
+        self.ori = float(ori)
+        self.contrast = float(contrast)
+        self.opacity = float(opacity)
+        self.colorSpace=colorSpace
+        self.setColor(color, colorSpace=colorSpace, log=False)
+        self.rgbPedestal=[0,0,0]#does an rgb pedestal make sense for an image?
 
         #size
         self._requestedSize=size
@@ -5564,7 +5563,7 @@ class ImageStim(_BaseVisualStim):
         self._imName = value
 
         wasLumImage = self.isLumImage
-        self.isLumImage = createTexture(value, id=self.texID, stim=self,
+        self.isLumImage = createTexture(value, id=self._texID, stim=self,
             pixFormat=GL.GL_RGB, dataType=GL.GL_UNSIGNED_BYTE,
             maskParams=self.maskParams, forcePOW2=False)
         #if user requested size=None then update the size for new stim here
@@ -7748,7 +7747,9 @@ def _setColor(self, color, colorSpace=None, operation='',
 def _setWithOperation(self, attrib, value, operation):
     """ Sets an object property (scalar or numpy array) with an operation
     History: introduced to avoid exec-calls"""
-    if operation == '':
+    if not hasattr(self,attrib):
+        newValue = value
+    elif operation == '':
         newValue = getattr(self, attrib) * 0 + value  # Preserves dimensions, if array
     elif operation == '+':
         newValue = getattr(self, attrib) + value
