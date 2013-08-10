@@ -371,12 +371,13 @@ class PsychoPyApp(wx.App):
         self.prefs.appData['builder']['prevFiles']=[]#start with an empty list to be appended by each frame
         self.prefs.appData['coder']['prevFiles']=[]
         for frame in list(self.allFrames):
-            frame.Close(force=True)
-            self.prefs.saveAppData()#must do this before destroying the frame?
-        if sys.platform=='darwin':
-            self.menuFrame.Destroy()
-
-        sys.exit()#really force a quit
+            try:
+                frame.Close(force=True)
+                self.prefs.saveAppData()#must do this before destroying the frame?
+            except:
+                pass #we don't care if this fails - we're quitting anyway
+        self.Exit()
+        #sys.exit()#really force a quit
 
     def showPrefs(self, event):
         from psychopy.app.preferencesDlg import PreferencesDlg
