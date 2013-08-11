@@ -197,7 +197,7 @@ class _baseVisualTest:
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
         if sys.platform.startswith('linux'):
-            thresh = 50 #this is essentially like an xfail!
+            thresh = 80 #this is essentially like an xfail!
         else:
             thresh = 10
         utils.compareScreenshot('wedge1_%s.png' %(self.contextName), win, crit=thresh)
