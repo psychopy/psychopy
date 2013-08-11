@@ -25,14 +25,13 @@ PsychoPy 1.78.01
 (in repository)
 
 * FIXED: gui choice boxes now handle unicode in their options as well as ASCII strings (thanks Anne Peschel)
-* ADDED: Builder component for ioLab Systems button-box; refactor PsychoPy's ioLabs code (Jeremy)
 
 PsychoPy 1.78.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Released Aug 2013
 
-* ADDED: option to preload during Builder scripts using Static Component, which uses :class:`~psychopy.core.StaticPeriod` class
+* ADDED: option to preload during Builder scripts using :ref:`static`, which uses :class:`~psychopy.core.StaticPeriod` class
 * ADDED: Polygon Component to Builder for drawing regular polygons (including simple lines)
 * ADDED: TrialHander can now fetch previous trials as well as future ones (thanks Mike MacAskill)
 * ADDED: BufferImageStim accepts mask and pos params (thanks Jeremy)

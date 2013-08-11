@@ -2129,8 +2129,9 @@ class CoderFrame(wx.Frame):
             self.prefs['showOutput']=True
             self.paneManager.GetPane('Shelf').Show()
             #will we actually redirect the output?
-            sys.stdout = self.outputWindow
-            sys.stderr = self.outputWindow
+            if not self.app.testMode:#don't if we're doing py.tests or we lose the output
+                sys.stdout = self.outputWindow
+                sys.stderr = self.outputWindow
         else:
             #show the pane
             self.prefs['showOutput']=False
