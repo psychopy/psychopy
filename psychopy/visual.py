@@ -368,7 +368,7 @@ class Window:
         self.waitBlanking = waitBlanking
 
         self._refreshThreshold=1/1.0#initial val needed by flip()
-        self._monitorFrameRate = self._getActualFrameRate()#over several frames with no drawing
+        self._monitorFrameRate = self.getActualFrameRate()#over several frames with no drawing
         if self._monitorFrameRate != None:
             self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
         else:
@@ -1166,19 +1166,22 @@ class Window:
         if self.winType=='pygame':wasVisible = pygame.mouse.set_visible(visibility)
         elif self.winType=='pyglet':self.winHandle.set_mouse_visible(visibility)
         self.mouseVisible = visibility
-    def _getActualFrameRate(self,nMaxFrames=100,nWarmUpFrames=10, threshold=1):
+    def getActualFrameRate(self,nIdentical=10,nMaxFrames=100,nWarmUpFrames=10,threshold=1):
         """Measures the actual fps for the screen.
 
-        This is done by waiting (for a max of nMaxFrames) until 10 frames in a
-        row have identical frame times (std dev below 1ms).
+        This is done by waiting (for a max of nMaxFrames) until [nIdentical] frames in a
+        row have identical frame times (std dev below [threshold] ms).
 
-        If there are no 10 consecutive identical frames a warning is logged and
+        If there is no such sequence of identical frames a warning is logged and
         `None` will be returned.
 
         :parameters:
+            nIdentical:
+                the number of consecutive frames that will be evaluated.
+                Higher --> greater precision. Lower --> faster.
 
             nMaxFrames:
-                the maxmimum number of frames to wait for a matching set of 10
+                the maxmimum number of frames to wait for a matching set of nIdentical
 
             nWarmUpFrames:
                 the number of frames to display before starting the test (this is
@@ -1190,6 +1193,8 @@ class Window:
                 a match
 
         """
+        if nIdentical > nMaxFrames:
+            raise ValueError('nIdentical must be equal to or less than nMaxFrames')
         recordFrmIntsOrig = self.recordFrameIntervals
         #run warm-ups
         self.setRecordFrameIntervals(False)
@@ -1199,12 +1204,10 @@ class Window:
         self.setRecordFrameIntervals(True)
         for frameN in range(nMaxFrames):
             self.flip()
-            if len(self.frameIntervals)>=10 and numpy.std(self.frameIntervals[-10:])<(threshold/1000.0):
-                rate = 1.0/numpy.mean(self.frameIntervals[-10:])
-                if self.screen==None:
-                    scrStr=""
-                else:
-                    scrStr = " (%i)" %self.screen
+            if len(self.frameIntervals)>=nIdentical and numpy.std(self.frameIntervals[-nIdentical:])<(threshold/1000.0):
+                rate = 1.0/numpy.mean(self.frameIntervals[-nIdentical:])
+                if self.screen==None:scrStr=""
+                else: scrStr = " (%i)" %self.screen
                 logging.debug('Screen%s actual frame rate measured at %.2f' %(scrStr,rate))
                 self.setRecordFrameIntervals(recordFrmIntsOrig)
                 self.frameIntervals=[]
@@ -1404,16 +1407,16 @@ class _BaseVisualStim(object):
     @AttributeSetter
     def depth(self, value):
         """
-        Depricated. Depth is now controlled simply by drawing order.
+        Deprecated. Depth is now controlled simply by drawing order.
         """
         self.__dict__['depth'] = value
     def draw(self):
         raise NotImplementedError('Stimulus classes must overide _BaseVisualStim.draw')
     def setPos(self, newPos, operation='', log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self._set('pos', val=newPos, op=operation, log=log)
     def setDepth(self, newDepth, operation='', log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self._set('depth', newDepth, operation, log)
     def setSize(self, newSize, operation='', units=None, log=True):
         """Set the stimulus size [X,Y] in the specified (or inherited) `units`
@@ -1421,13 +1424,13 @@ class _BaseVisualStim(object):
         if units==None: units=self.units#need to change this to create several units from one
         self._set('size', newSize, op=operation, log=log)
     def setOri(self, newOri, operation='', log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self._set('ori',val=newOri, op=operation, log=log)
     def setOpacity(self, newOpacity, operation='', log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self._set('opacity', newOpacity, operation, log=log)
     def setContrast(self, newContrast, operation='', log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self._set('contrast', newContrast, operation, log=log)
     def setDKL(self, newDKL, operation=''):
         """DEPRECATED since v1.60.05: Please use setColor
@@ -1523,7 +1526,7 @@ class _BaseVisualStim(object):
                 level=logging.EXP,obj=self)
 
     def setUseShaders(self, value=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self.useShaders = value
     def _selectWindow(self, win):
         global currWindow
@@ -1555,10 +1558,10 @@ class _BaseVisualStim(object):
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
     def setAutoDraw(self, value, log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self.autoDraw = value
     def setAutoLog(self, value=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self.autoLog = value
     def contains(self, x, y=None):
         """Determines if a point x,y is inside the extent of the stimulus.
@@ -7759,6 +7762,10 @@ def _setWithOperation(self, attrib, value, operation):
         newValue = getattr(self, attrib) - value
     elif operation == '/':
         newValue = getattr(self, attrib) / value
+    elif operation == '**':
+        newValue = getattr(self, attrib) ** value
+    elif operation == '%':
+        newValue = getattr(self, attrib) % value
     else:
         raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
     setattr(self, attrib, newValue)
