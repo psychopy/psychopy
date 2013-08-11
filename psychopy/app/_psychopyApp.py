@@ -80,9 +80,9 @@ class PsychoPyApp(wx.App):
         """
         :Parameters:
 
-          interactive: bool
-            Either invoke dialogs.  Might need to be set to False
-            for the purpose of testing.
+          testMode: bool
+            If set to True then startup wizard won't appear and stdout/stderr
+            won't be redirected to the Coder
         """
         self.version=psychopy.__version__
         self.SetAppName('PsychoPy2')
@@ -197,7 +197,7 @@ class PsychoPyApp(wx.App):
             dlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title="Compatibility information")
             dlg.ShowModal()
 
-        if self.prefs.app['showStartupTips'] and interactive:
+        if self.prefs.app['showStartupTips'] and not self.testMode:
             tipIndex = self.prefs.appData['tipIndex']
             tp = wx.CreateFileTipProvider(os.path.join(self.prefs.paths['resources'],"tips.txt"), tipIndex)
             showTip = wx.ShowTip(None, tp)
