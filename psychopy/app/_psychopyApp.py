@@ -76,7 +76,7 @@ class PsychoPyApp(wx.App):
         wx.App.__init__(self, arg)
         self.onInit(**kwargs)
 
-    def onInit(self, showSplash=True, interactive=True):
+    def onInit(self, showSplash=True, testMode=False):
         """
         :Parameters:
 
@@ -90,6 +90,7 @@ class PsychoPyApp(wx.App):
         self.prefs = psychopy.prefs
         if self.prefs.app['debugMode']:
             logging.console.setLevel(logging.DEBUG)
+        self.testMode = testMode #indicates whether we're running for testing purposes
 
         if showSplash:
             #show splash screen
@@ -124,7 +125,7 @@ class PsychoPyApp(wx.App):
         else:
             last=self.prefs.appData['lastVersion']
 
-        if self.firstRun and interactive:
+        if self.firstRun and not self.testMode:
             self.firstrunWizard()
 
         #setup links for URLs

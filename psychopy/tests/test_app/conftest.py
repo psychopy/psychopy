@@ -9,7 +9,7 @@ from psychopy.app import psychopyApp
 def pytest_configure(config):
     #print "D: CREATING APP"
     psychopyApp._called_from_test = True
-    psychopyApp._app = psychopyApp.PsychoPyApp(interactive=False, showSplash=False)
+    psychopyApp._app = psychopyApp.PsychoPyApp(testMode=True, showSplash=False)
     #print "D: CREATED APP"
     #del PsychoPyApp._called_from_test
 
