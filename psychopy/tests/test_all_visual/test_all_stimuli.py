@@ -196,7 +196,7 @@ class _baseVisualTest:
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
-        if platform.startswith('linux'):
+        if sys.platform.startswith('linux'):
             thresh = 50 #this is essentially like an xfail!
         else:
             thresh = 10
