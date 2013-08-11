@@ -18,9 +18,9 @@ _valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
 _nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
 
 # used when writing scripts and in namespace:
-_numpy_imports = ['sin', 'cos', 'tan', 'log', 'log10', 'pi', 'average', 'sqrt', 'std',
+_numpyImports = ['sin', 'cos', 'tan', 'log', 'log10', 'pi', 'average', 'sqrt', 'std',
                   'deg2rad', 'rad2deg', 'linspace', 'asarray']
-_numpy_random_imports = ['random', 'randint', 'normal', 'shuffle']
+_numpyRandomImports = ['random', 'randint', 'normal', 'shuffle']
 
 """
 Exception thrown by a component when it is unable to generate its code.
@@ -141,8 +141,8 @@ class Experiment:
                     "from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
                     "from psychopy.constants import *  # things like STARTED, FINISHED\n" +
                     "import numpy as np  # whole numpy lib is available, prepend 'np.'\n" +
-                    "from numpy import %s\n" % ', '.join(_numpy_imports) +
-                    "from numpy.random import %s\n" % ', '.join(_numpy_random_imports) +
+                    "from numpy import %s\n" % ', '.join(_numpyImports) +
+                    "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
                     "import os  # handy system and path functions\n")
         if self.prefsApp['locale']:
             # if locale is set explicitly as a pref, add it to the script:
@@ -1245,7 +1245,7 @@ class NameSpace():
         self.exp = exp
         #deepcopy fails if you pre-compile regular expressions and stash here
 
-        self.numpy = _numpy_imports + _numpy_random_imports + ['np']
+        self.numpy = _numpyImports + _numpyRandomImports + ['np']
         self.keywords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif',
             'with', 'assert', 'else', 'if', 'pass', 'yield', 'break', 'except',
             'import', 'print', 'class', 'exec', 'in', 'raise', 'continue', 'or',
@@ -1370,18 +1370,14 @@ class NameSpace():
             if n in sublist:
                 del sublist[sublist.index(n)]
 
-    def makeValid(self, name, prefix='var', add_to_space=None):
+    def makeValid(self, name, prefix='var'):
         """given a string, return a valid and unique variable name.
         replace bad characters with underscore, add an integer suffix until its unique
 
-        >>> makeValid('t')
-        't_1'
         >>> makeValid('Z Z Z')
         'Z_Z_Z'
         >>> makeValid('a')
         'a'
-        >>> makeValid('a')
-        'a_1'
         >>> makeValid('a')
         'a_2'
         >>> makeValid('123')
@@ -1397,39 +1393,37 @@ class NameSpace():
         name = _nonalphanumeric_re.sub('_', name) # replace all bad chars with _
 
         # try to make it unique; success depends on accuracy of self.exists():
-        i = 2
-        if self.exists(name) and name.find('_') > -1: # maybe it already has _\d+? if so, increment from there
+        i = 2  # skip _1 so that user can rename the first one to be _1 if desired
+        if self.exists(name) and '_' in name: # maybe it already has _\d+? if so, increment from there
             basename, count = name.rsplit('_', 1)
             try:
-                i = int(count)
+                i = int(count) + 1
                 name = basename
             except:
                 pass
-        name_orig = name + '_'
+        nameStem = name + '_'
         while self.exists(name): # brute-force a unique name
-            name = name_orig + str(i)
+            name = nameStem + str(i)
             i += 1
-        if add_to_space:
-            self.add(name, add_to_space)
         return name
 
     def makeLoopIndex(self, name):
         """return a valid, readable loop-index name: 'this' + (plural->singular).capitalize() [+ (_\d+)]"""
-        try: new_name = str(name)
-        except: new_name = name
+        try: newName = str(name)
+        except: newName = name
         prefix = 'this'
         irregular = {'stimuli': 'stimulus', 'mice': 'mouse', 'people': 'person'}
         for plural, singular in irregular.items():
             nn = re.compile(plural, re.IGNORECASE)
-            new_name = nn.sub(singular, new_name)
-        if new_name.endswith('s') and not new_name.lower() in irregular.values():
-            new_name = new_name[:-1] # trim last 's'
+            newName = nn.sub(singular, newName)
+        if newName.endswith('s') and not newName.lower() in irregular.values():
+            newName = newName[:-1] # trim last 's'
         else: # might end in s_2, so delete that s; leave S
-            match = re.match(r"^(.*)s(_\d+)$", new_name)
-            if match: new_name = match.group(1) + match.group(2)
-        new_name = prefix + new_name[0].capitalize() + new_name[1:] # retain CamelCase
-        new_name = self.makeValid(new_name)
-        return new_name
+            match = re.match(r"^(.*)s(_\d+)$", newName)
+            if match: newName = match.group(1) + match.group(2)
+        newName = prefix + newName[0].capitalize() + newName[1:] # retain CamelCase
+        newName = self.makeValid(newName)
+        return newName
 
 def _XMLremoveWhitespaceNodes(parent):
     """Remove all text nodes from an xml document (likely to be whitespace)
