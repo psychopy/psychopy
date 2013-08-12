@@ -5718,31 +5718,15 @@ class BufferImageStim(GratingStim):
         self.flipVert = flipVert
 
         logging.exp('BufferImageStim %s: took %.1fms to initialize' % (name, 1000 * _clock.getTime()))
-
-    def setFlipHoriz(self, newVal=True, log=True):
-        """If set to True then the image will be flipped horiztonally (left-to-right).
-        Note that this is relative to the original image, not relative to the current state.
+    @AttributeSetter
+    def tex(self, value):
+        """For BufferImageStim this method is not called by the user
         """
-        self.flipHoriz = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipHoriz=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
-    def setFlipVert(self, newVal=True, log=True):
-        """If set to True then the image will be flipped vertically (top-to-bottom).
-        Note that this is relative to the original image, not relative to the current state.
-        """
-        set.flipVert = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
-    def setTex(self, tex, interpolate=True, log=True):
-        """(This is not typically called directly.)"""
-        # setTex is called only once
-        self.tex = tex
+        self.__dict__['tex'] = tex = value
         id = self._texID
         pixFormat = GL.GL_RGB
         useShaders = self.useShaders
-        self.interpolate = interpolate
+        interpolate = self.interpolate
 
         im = tex.transpose(Image.FLIP_TOP_BOTTOM)
         self._origSize=im.size
@@ -5791,7 +5775,27 @@ class BufferImageStim(GratingStim):
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                             data.shape[1], data.shape[0], 0,
                             pixFormat, dataType, texture)
-
+    def setFlipHoriz(self, newVal=True, log=True):
+        """If set to True then the image will be flipped horiztonally (left-to-right).
+        Note that this is relative to the original image, not relative to the current state.
+        """
+        self.flipHoriz = newVal
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s flipHoriz=%s" % (self.name, newVal),
+                level=logging.EXP, obj=self)
+    def setFlipVert(self, newVal=True, log=True):
+        """If set to True then the image will be flipped vertically (top-to-bottom).
+        Note that this is relative to the original image, not relative to the current state.
+        """
+        set.flipVert = newVal
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
+                level=logging.EXP, obj=self)
+    def setTex(self, tex, interpolate=True, log=True):
+        """(This is not typically called directly.)"""
+        # setTex is called only once
+        self.interpolate = interpolate #set interp to new value
+        self.tex = tex #cal the setter for tex
         if log and self.autoLog:
             self.win.logOnFlip("Set %s tex=%s" %(self.name, tex),
                 level=logging.EXP,obj=self)
