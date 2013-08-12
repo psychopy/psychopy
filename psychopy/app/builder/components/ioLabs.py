@@ -94,13 +94,14 @@ class ioLabsButtonBoxComponent(BaseComponent):
 
     def writeStartCode(self, buff):
         # avoid duplicates; ok for init but not safe to do in routine, frame, etc
-        line = ("# connect to ioLabs bbox, turn lights off\n" +
-                "hardware.iolab.ButtonBox().standby()\n")
-        if not line in buff.getvalue():
-            buff.writeIndentedLines(line)
+        lines = ("# connect to ioLabs bbox, turn lights off\n" +
+                "from psychopy.hardware import iolab\n" +
+                "iolab.ButtonBox().standby()\n")
+        if not lines in buff.getvalue():
+            buff.writeIndentedLines(lines)
 
     def writeInitCode(self, buff):
-        lines = "%(name)s = hardware.iolab.ButtonBox()\n"
+        lines = "%(name)s = iolab.ButtonBox()\n"
         if not lines % self.params in buff.getvalue():  # avoid duplicates
             buff.writeIndentedLines(lines % self.params)
 
