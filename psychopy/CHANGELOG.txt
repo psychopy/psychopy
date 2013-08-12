@@ -16,6 +16,7 @@ PsychoPy 1.78.01
 (in repository)
 
 * FIXED: gui choice boxes now handle unicode in their options as well as ASCII strings (thanks Anne Peschel)
+* ADDED: Builder component for ioLab Systems button-box; refactor PsychoPy's ioLabs code (Jeremy)
 
 PsychoPy 1.78.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

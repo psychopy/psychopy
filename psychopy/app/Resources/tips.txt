@@ -44,3 +44,4 @@ Beware the Ides of March
 In Builder you can control what appears in the 'Experiment Info' dialog box in the Experiment Settings
 If you like PsychoPy spread the word
 You can use the Benchmark wizard (from the Builder Tools menu) to see how your hardware compares with other platforms, see http://upload.psychopy.org/benchmark/report.html
+Sometimes the correct response on a given trial is not to respond at all, such as in a go/no-go task. To score such responses properly, enter 'None' as the correct answer (no quotes) in the Builder dialog box.
