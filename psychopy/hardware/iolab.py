@@ -5,6 +5,9 @@
 """This provides a basic ButtonBox class, and imports the `ioLab python library
     <http://github.com/ioLab/python-ioLabs>`_.
 """
+#  This file can't be named ioLabs.py, otherwise "import ioLabs" doesn't work.
+#  And iolabs.py (lowercase) did not solve it either, something is case insensitive somewhere
+
 
 from __future__ import division
 from numpy import ubyte
