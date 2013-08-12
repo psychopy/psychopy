@@ -15,10 +15,10 @@ import sys
 import copy
 
 
-from ...... import print2err, convertCamelToSnake, createErrorResult
+from ...... import print2err, convertCamelToSnake, createErrorResult,printExceptionDetailsToStdErr
 from ......constants import EventConstants, EyeTrackerConstants
 from ..... import Computer
-from .... import EyeTrackerDevice
+from .... import EyeTrackerDevice   
 from ....eye_events import *
 
 import pyViewX
@@ -326,7 +326,6 @@ class EyeTracker(EyeTrackerDevice):
                 self._showTrackingMonitor()
             else:    
                 self._last_setup_result=EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT
-                
             self._unregisterKeyboardMonitor()
             return self._last_setup_result
         except Exception,e:
@@ -714,11 +713,6 @@ class EyeTracker(EyeTrackerDevice):
                         event_timestamp=sample.timestamp*DEVICE_TIMEBASE_TO_SEC
                         event_delay=tracker_time-event_timestamp
                         iohub_time=poll_time-event_delay
-                        #print2err('SAMPLE: ')
-                        #print2err('\tevent time: ',(sample.timestamp,event_timestamp))
-                        #print2err('\tevent_delay: ',event_delay)
-                        #print2err('\tiohub_time: ',iohub_time)
-
  
                         plane_number=sample.planeNumber
                         
@@ -727,6 +721,7 @@ class EyeTracker(EyeTrackerDevice):
     
                         left_pupil_measure=left_eye_data.diam
                         right_pupil_measure=right_eye_data.diam
+
                         # TODO: ensure corrrect pupil measure type is being saved with pupl data to datastore.                    
                         pupil_measure_type=EyeTrackerConstants.PUPIL_DIAMETER
                         
@@ -734,17 +729,10 @@ class EyeTracker(EyeTrackerDevice):
                         right_gazeX=right_eye_data.gazeX
                         left_gazeY=left_eye_data.gazeY
                         right_gazeY=right_eye_data.gazeY
-  
- 
-                        #print2err('\tleft_pupil,right_pupil: ',(left_pupil_measure,right_pupil_measure))
-                        #print2err('\tright_gazeX,right_gazeY: ',(right_gazeX,right_gazeY))
-                        #print2err('\tleft_gazeX,left_gazeY: ',(left_gazeX,left_gazeY))
-
+   
                         right_gazeX,right_gazeY=self._eyeTrackerToDisplayCoords((right_gazeX,right_gazeY))
                         left_gazeX,left_gazeY=self._eyeTrackerToDisplayCoords((left_gazeX,left_gazeY))
-                      
-                        #print2err('\tright2display_coors-> right_gazeX,right_gazeY: ',(right_gazeX,right_gazeY))
-                        #print2err('\t2leftdisplay_coors-> left_gazeX,left_gazeY: ',(left_gazeX,left_gazeY))
+                
                         left_eyePositionX=left_eye_data.eyePositionX
                         right_eyePositionX=right_eye_data.eyePositionX
                         left_eyePositionY=left_eye_data.eyePositionY
@@ -808,22 +796,28 @@ class EyeTracker(EyeTrackerDevice):
     
                         self._latest_sample=binocSample
             
+            
                         ic=0
-                        g=[0.0,0.0]  
-                        if right_pupil_measure>0.0:
-                            g[0]=right_gazeX
-                            g[1]=right_gazeY
+                        EyeTracker._gx=0.0
+                        EyeTracker._gy=0.0  
+                        if right_pupil_measure>0.0 and right_eye_data.gazeX != 0.0 and  right_eye_data.gazeY != 0.0:
+                            EyeTracker._gx=EyeTracker._gx+right_gazeX
+                            EyeTracker._gy=EyeTracker._gy+right_gazeY
                             ic+=1
-                        if left_pupil_measure>0.0:
-                            g[0]=+left_gazeX
-                            g[1]=+left_gazeY
+
+                        if left_pupil_measure>0.0 and left_eye_data.gazeX != 0.0 and  left_eye_data.gazeY != 0.0:
+                            EyeTracker._gx=EyeTracker._gx+left_gazeX
+                            EyeTracker._gy=EyeTracker._gy+left_gazeY
                             ic+=1
+                            
                         if ic == 2:
-                             g[0]= g[0]/2.0
-                             g[1]= g[1]/2.0
-                             
+                            EyeTracker._gx= EyeTracker._gx/2.0
+                            EyeTracker._gy= EyeTracker._gy/2.0
+
                         if ic > 0:
-                            self._latest_gaze_position=g
+                            self._latest_gaze_position=(EyeTracker._gx,EyeTracker._gy)
+                        else:
+                            self._latest_gaze_position=None
                             
                         self._addNativeEventToBuffer(binocSample)
     
@@ -969,8 +963,6 @@ class EyeTracker(EyeTrackerDevice):
                              ]
                         
                         self._addNativeEventToBuffer(fee)
-    
-#                print2err("pyViewX done poll ",confidence_interval)
                 self._last_poll_time=poll_time
                 return True
             
@@ -989,16 +981,8 @@ class EyeTracker(EyeTrackerDevice):
             gaze_y=gaze_y/dh
             left,top,right,bottom=self._display_device.getCoordBounds()
             w,h=right-left,top-bottom            
-            x,y=left+w*gaze_x,bottom+h*(1.0-gaze_y)  
+            x,y=left+w*gaze_x,bottom+h*(1.0-gaze_y) 
             return x,y
-#            cl,ct,cr,cb=self._display_device.getCoordBounds()
-#            cw,ch=cr-cl,ct-cb
-#            
-#            dl,dt,dr,db=self._display_device.getBounds()
-#            dw,dh=dr-dl,db-dt
-#
-#            gxn,gyn=eyetracker_point[0]/dw,eyetracker_point[1]/dh                        
-#            return cl+cw*gxn,cb+ch*(1.0-gyn)   
         except Exception,e:
             return createErrorResult("IOHUB_DEVICE_EXCEPTION",
                     error_message="An unhandled exception occurred on the ioHub Server Process.",

@@ -897,7 +897,7 @@ class TrialHandler(_BaseTrialHandler):
         return self.trialList[condIndex]
 
     def getEarlierTrial(self, n=-1):
-        """Returns the condition information from n trials previously. Useful 
+        """Returns the condition information from n trials previously. Useful
         for comparisons in n-back tasks. Returns 'None' if trying to access a trial
         prior to the first.
         """
@@ -1534,7 +1534,7 @@ class StairHandler(_BaseTrialHandler):
                     reversal=True
                 else:#direction is 'down' or 'start'
                     reversal=False
-                    self.currentDirection='down'
+                self.currentDirection='down'
             else:
                 #got it wrong
                 self._intensityInc()
@@ -2554,129 +2554,16 @@ class DataHandler(dict):
         self.isNumeric[thisType]=False
 
 class FitFunction:
-    """Deprecated - use the specific functions; FitWeibull, FitLogistic...
+    """Deprecated: - use the specific functions; FitWeibull, FitLogistic...
     """
-
     def __init__(self, fnName, xx, yy, sems=1.0, guess=None, display=1,
                  expectedMin=0.5):
-        self.fnName = fnName
-        self.xx = numpy.asarray(xx)
-        self.yy = numpy.asarray(yy)
-        self.sems = numpy.asarray(sems)
-        self.params = guess
-        self.display=display
-        # for holding error calculations:
-        self.ssq=0
-        self.rms=0
-        self.chi=0
-
-        if fnName[-4:] in ['2AFC', 'TAFC']:
-            self.expectedMin = 0.5
-        elif fnName[-2:] =='YN':
-            self.expectedMin=0.0
-        else:
-            self.expectedMin=expectedMin
-
-        #do the calculations:
-        self._doFit()
-
-    def _doFit(self):
-        #get some useful variables to help choose starting fit vals
-        xMin = min(self.xx); xMax = max(self.xx)
-        xRange=xMax-xMin; xMean= (xMax+xMin)/2.0
-        if self.fnName in ['weibullTAFC','weibullYN']:
-            if self.params==None: guess=[xMean, xRange/5.0]
-            else: guess= numpy.asarray(self.params,'d')
-        elif self.fnName in ['cumNorm','erf']:
-            if self.params==None: guess=[xMean, xRange/5.0]#c50, xScale (slope)
-            else: guess= numpy.asarray(self.params,'d')
-        elif self.fnName in ['logisticTAFC','logistYN', 'logistic']:
-            if self.params==None: guess=[xMin, 5.0/xRange]#x0, xRate
-            else: guess= numpy.asarray(self.params,'d')
-        elif self.fnName in ['nakaRush', 'nakaRushton', 'NR']:
-            if self.params==None: guess=[xMean, 2.0]#x50, expon
-            else: guess= numpy.asarray(self.params,'d')
-
-        self.params = optimize.fmin_cg(self._getErr, guess, None, (self.xx,self.yy,self.sems),disp=self.display)
-        self.ssq = self._getErr(self.params, self.xx, self.yy, 1.0)
-        self.chi = self._getErr(self.params, self.xx, self.yy, self.sems)
-        self.rms = self.ssq/len(self.xx)
-
-    def _getErr(self, params, xx,yy,sems):
-        mod = self.eval(xx, params)
-        err = sum((yy-mod)**2/sems)
-        return err
-
-    def eval(self, xx=None, params=None):
-        if xx==None: xx=self.xx
-        if params==None: params=self.params
-        if self.fnName in ['weibullTAFC', 'weibull2AFC']:
-            alpha = params[0];
-            if alpha<=0: alpha=0.001
-            beta = params[1]
-            xx = numpy.asarray(xx)
-            yy =  1.0 - 0.5*numpy.exp( - (xx/alpha)**beta )
-        elif self.fnName == 'weibullYN':
-            alpha = params[0];
-            if alpha<=0: alpha=0.001
-            beta = params[1]
-            xx = numpy.asarray(xx)
-            yy =  1.0 - numpy.exp( - (xx/alpha)**beta )
-        elif self.fnName in ['nakaRush', 'nakaRushton', 'NR']:
-            c50 = params[0]
-            if c50<=0: c50=0.001
-            n = params[1]
-            if n<=0: n=0.001
-            xx = numpy.asarray(xx)
-            yy = rMax*(xx**n/(xx**n+c50**n))
-        elif self.fnName in [ 'erf', 'cumNorm']:
-            xShift = params[0]
-            xScale = params[1]
-            if xScale<=0: xScale=0.001
-            xx = numpy.asarray(xx)
-            yy = special.erf(xx*xScale - xShift)*0.5+0.5#numpy.special.erf() goes from -1:1
-        elif self.fnName in [ 'logisticYN', 'logistYN']:
-            x0 = params[0]
-            xRate = params[1]
-            if xRate<=0: xRate=0.001
-            xx = numpy.asarray(xx)
-            yy = 1.0/(1+(1.0/x0-1)*numpy.exp(-xRate*xx))
-        return yy
-
-    def inverse(self, yy, params=None):
-        """Returns fitted xx for any given yy value(s).
-
-        If params is specified this will override the current model params.
-        """
-        yy = numpy.asarray(yy)
-        if params==None: params=self.params
-        if self.fnName== 'weibullTAFC':
-            alpha = params[0]
-            beta = params[1]
-            xx = alpha * (-numpy.log(2.0 * (1.0-yy))) **(1.0/beta)
-        elif self.fnName== 'weibullYN':
-            alpha = params[0]
-            beta = params[1]
-            xx = alpha * (-numpy.log(1.0-yy))**(1.0/beta)
-        elif self.fnName in [ 'erf', 'cumNorm']:
-            xShift = params[0]
-            xScale = params[1]
-            xx = (special.erfinv(yy*2.0-1.0)+xShift)/xScale
-        elif self.fnName in [ 'logisticYN', 'logistYN']:
-            x0 = params[0]
-            xRate = params[1]
-            xx = -numpy.log( (1/yy-1)/(1/x0-1) )/xRate
-        elif self.fnName in ['nakaRush', 'nakaRushton', 'NR']:
-            c50 = params[0]
-            n = params[1]
-            xx = c50/(1/yy-1)
-        return xx
+        raise "FitFunction is now fully DEPRECATED: use FitLogistic, FitWeibull etc instead"
 
 class _baseFunctionFit:
     """Not needed by most users except as a superclass for developping your own functions
 
-    You must overide the eval and inverse methods and a good idea to overide the _initialGuess
-    method aswell.
+    Derived classes must have _eval and _inverse methods with @staticmethods
     """
 
     def __init__(self, xx, yy, sems=1.0, guess=None, display=1,
@@ -2685,57 +2572,49 @@ class _baseFunctionFit:
         self.yy = numpy.asarray(yy)
         self.sems = numpy.asarray(sems)
         self.expectedMin = expectedMin
-        self.display=display
         # for holding error calculations:
         self.ssq=0
         self.rms=0
         self.chi=0
-        #initialise parameters
-        if guess==None:
-            self.params = self._initialGuess()
-        else:
-            self.params = guess
-
         #do the calculations:
         self._doFit()
 
     def _doFit(self):
+        """The Fit class that derives this needs to specify its _evalFunction
+        """
         #get some useful variables to help choose starting fit vals
-        self.params = optimize.fmin_powell(self._getErr, self.params, (self.xx,self.yy,self.sems),disp=self.display)
-#        self.params = optimize.fmin_bfgs(self._getErr, self.params, None, (self.xx,self.yy,self.sems),disp=self.display)
+        #self.params = optimize.fmin_powell(self._getErr, self.params, (self.xx,self.yy,self.sems),disp=self.display)
+        #self.params = optimize.fmin_bfgs(self._getErr, self.params, None, (self.xx,self.yy,self.sems),disp=self.display)
+        global _chance
+        _chance = self.expectedMin
+        self.params, self.covar = optimize.curve_fit(self._eval, self.xx, self.yy)
         self.ssq = self._getErr(self.params, self.xx, self.yy, 1.0)
         self.chi = self._getErr(self.params, self.xx, self.yy, self.sems)
         self.rms = self.ssq/len(self.xx)
-
-    def _initialGuess(self):
-        xMin = min(self.xx); xMax = max(self.xx)
-        xRange=xMax-xMin; xMean= (xMax+xMin)/2.0
-        guess=[xMean, xRange/5.0]
-        return guess
-
     def _getErr(self, params, xx,yy,sems):
         mod = self.eval(xx, params)
         err = sum((yy-mod)**2/sems)
         return err
-
-    def eval(self, xx=None, params=None):
-        """Returns fitted yy for any given xx value(s).
-        Uses the original xx values (from which fit was calculated)
-        if none given.
-
-        If params is specified this will override the current model params."""
-        yy=xx
-        return yy
-
-    def inverse(self, yy, params=None):
-        """Returns fitted xx for any given yy value(s).
-
-        If params is specified this will override the current model params.
+    def eval(self, xx, params=None):
+        """Evaluate xx for the current parameters of the model, or for arbitrary params
+        if these are given.
         """
-        #define the inverse for your function here
-        xx=yy
+        if params==None:
+            params = self.params
+        global _chance
+        _chance=self.expectedMin
+        #_eval is a static method - must be done this way because the curve_fit
+        #function doesn't want to have any `self` object as first arg
+        yy = self._eval(xx, *params)
+        return yy
+    def inverse(self, yy, params=None):
+        """Evaluate yy for the current parameters of the model, or for arbitrary params
+        if these are given.
+        """
+        if params==None:
+            params=self.params #so the user can set params for this particular inv
+        xx = self._inverse(yy, *params)
         return xx
-
 
 class FitWeibull(_baseFunctionFit):
     """Fit a Weibull function (either 2AFC or YN)
@@ -2751,20 +2630,19 @@ class FitWeibull(_baseFunctionFit):
     with ``fit.eval(x)``, retrieve the inverse of the function with
     ``fit.inverse(y)`` or retrieve the parameters from ``fit.params``
     (a list with ``[alpha, beta]``)"""
-    def eval(self, xx=None, params=None):
-        if params==None:  params=self.params #so the user can set params for this particular eval
-        alpha = params[0];
-        if alpha<=0: alpha=0.001
-        beta = params[1]
+    #static mathods have no `self` and this is important for optimise.curve_fit
+    @staticmethod
+    def _eval(xx, alpha, beta):
+        global _chance
         xx = numpy.asarray(xx)
-        yy =  self.expectedMin + (1.0-self.expectedMin)*(1-numpy.exp( -(xx/alpha)**(beta) ))
+        yy =  _chance + (1.0-_chance)*(1-numpy.exp( -(xx/alpha)**(beta) ))
         return yy
-    def inverse(self, yy, params=None):
-        if params==None: params=self.params #so the user can set params for this particular inv
-        alpha = params[0]
-        beta = params[1]
-        xx = alpha * (-numpy.log((1.0-yy)/(1-self.expectedMin))) **(1.0/beta)
+    @staticmethod
+    def _inverse(yy, alpha, beta):
+        global _chance
+        xx = alpha * (-numpy.log((1.0-yy)/(1-_chance))) **(1.0/beta)
         return xx
+
 class FitNakaRushton(_baseFunctionFit):
     """Fit a Naka-Rushton function
     of the form::
@@ -2779,55 +2657,22 @@ class FitNakaRushton(_baseFunctionFit):
     Note that this differs from most of the other functions in
     not using a value for the expected minimum. Rather, it fits this
     as one of the parameters of the model."""
-    def __init__(self, xx, yy, sems=1.0, guess=None, display=1):
-        self.xx = numpy.asarray(xx)
-        self.yy = numpy.asarray(yy)
-        self.sems = numpy.asarray(sems)
-        self.display=display
-        # for holding error calculations:
-        self.ssq=0
-        self.rms=0
-        self.chi=0
-        #initialise parameters
-        if guess==None:
-            self.params = self._initialGuess()
-        else:
-            self.params = guess
-
-        #do the calculations:
-        self._doFit()
-    def _initialGuess(self):
-        xMin = min(self.xx); xMax = max(self.xx)
-        xRange=xMax-xMin; xMean= (xMax+xMin)/2.0
-        guess=[xMean, 2.0, min(self.yy), max(self.yy)-min(self.yy)]
-        return guess
-    def eval(self, xx=None, params=None):
-        if params==None:  params=self.params #so the user can set params for this particular eval
-        c50 = params[0]
-        n = params[1]
-        rMin = params[2]
-        rMax = params[3]
-        #all params should be >0
+    #static mathods have no `self` and this is important for optimise.curve_fit
+    @staticmethod
+    def _eval(xx, c50, n, rMin, rMax):
+        xx = numpy.asarray(xx)
         if c50<=0: c50=0.001
         if n<=0: n=0.001
         if rMax<=0: n=0.001
         if rMin<=0: n=0.001
-
-        xx = numpy.asarray(xx)
         yy = rMin + (rMax-rMin)*(xx**n/(xx**n+c50**n))
-        #yy = (xx**n/(xx**n+c50**n))
         return yy
-
-    def inverse(self, yy, params=None):
-        if params==None: params=self.params #so the user can set params for this particular inv
-        yy=numpy.asarray(yy)
-        c50 = params[0]
-        n = params[1]
-        rMin = params[2]
-        rMax = params[3]
-
+    @staticmethod
+    def _inverse(yy, c50, n, rMin, rMax):
         yScaled = (yy-rMin)/(rMax-rMin) #remove baseline and scale
-        xx = (yScaled*c50**n/(1-yScaled))**(1/n)
+        #do we need to shift while fitting?
+        yScaled[yScaled<0]=0
+        xx = (yScaled*(c50)**n/(1-yScaled))**(1/n)
         return xx
 
 class FitLogistic(_baseFunctionFit):
@@ -2845,21 +2690,19 @@ class FitLogistic(_baseFunctionFit):
     ``fit.inverse(y)`` or retrieve the parameters from ``fit.params``
     (a list with ``[PSE, JND]``)
     """
-    def eval(self, xx=None, params=None):
-        if params==None:  params=self.params #so the user can set params for this particular eval
-        PSE = params[0]
-        JND = params[1]
-        chance = self.expectedMin
+    #static mathods have no `self` and this is important for optimise.curve_fit
+    @staticmethod
+    def _eval(xx, PSE, JND):
+        global _chance
+        chance = _chance
         xx = numpy.asarray(xx)
         yy = chance + (1-chance)/(1+numpy.exp((PSE-xx)*JND))
         return yy
-    def inverse(self, yy, params=None):
-        if params==None: params=self.params #so the user can set params for this particular inv
-        PSE = params[0]
-        JND = params[1]
-        chance = self.expectedMin
+    @staticmethod
+    def _inverse(yy, PSE, JND):
+        global _chance
         yy = numpy.asarray(yy)
-        xx = PSE - numpy.log((1-chance)/(yy-chance) - 1)/JND
+        xx = PSE - numpy.log((1-_chance)/(yy-_chance) - 1)/JND
         return xx
 
 class FitCumNormal(_baseFunctionFit):
@@ -2884,25 +2727,20 @@ class FitCumNormal(_baseFunctionFit):
     1.74.00 the parameters became the [centre,sd] of the normal distribution.
 
     """
-    def eval(self, xx=None, params=None):
-        if params==None:  params=self.params #so the user can set params for this particular eval
-        xShift = params[0]
-        sd = params[1]
-        chance = self.expectedMin
-        #if xScale<=0: xScale=0.001
+    #static mathods have no `self` and this is important for optimise.curve_fit
+    @staticmethod
+    def _eval(xx, xShift, sd):
+        global _chance
         xx = numpy.asarray(xx)
-        yy = chance + (1-chance)*(special.erf((xx-xShift)/sd)/2.0+0.5)#NB numpy.special.erf() goes from -1:1
+        yy = _chance + (1-_chance)*(special.erf((xx-xShift)/sd)/2.0+0.5)#NB numpy.special.erf() goes from -1:1
         return yy
-    def inverse(self, yy, params=None):
-        if params==None: params=self.params #so the user can set params for this particular inv
-        xShift = params[0]
-        sd = params[1]
-        chance = self.expectedMin
+    @staticmethod
+    def _inverse(yy, xShift, sd):
+        global _chance
+        yy = numpy.asarray(yy)
         #xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale#NB numpy.special.erfinv() goes from -1:1
-        xx = xShift+sd*special.erfinv(( (yy-chance)/(1-chance) - 0.5 )*2)
+        xx = xShift+sd*special.erfinv(( (yy-_chance)/(1-_chance) - 0.5 )*2)
         return xx
-
-
 
 ########################## End psychopy.data classes ##########################
 

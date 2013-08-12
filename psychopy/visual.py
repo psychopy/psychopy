@@ -97,10 +97,15 @@ def val2array(value, withNone=True, withScalar=True, length=2):
     withNone: True/False. should 'None' be passed?
     withScalar: True/False. is a scalar an accepted input? Will be converted to array of this scalar
     elements: False/2/3. Number of elements input should have or be converted to. Might be False (do not accept arrays or convert to such)"""
-
-    if type(value) in (int, float):
+    if value is None:
+        if withNone:
+            return None
+        else:
+            raise ValueError('Invalid parameter. None is not accepted as value.')
+    value = numpy.asarray(value, float)
+    if numpy.product(value.shape)==1:
         if withScalar:
-            return numpy.repeat(float(value), length)  # e.g. 5 becomes array([5.0, 5.0, 5.0]) for length=3
+            return numpy.repeat(value, length)  # e.g. 5 becomes array([5.0, 5.0, 5.0]) for length=3
         else:
             raise ValueError('Invalid parameter. Single numbers are not accepted. Should be tuple/list/array of length ' + str(length))
     elif type(value) in (tuple, list, numpy.ndarray):
@@ -108,11 +113,6 @@ def val2array(value, withNone=True, withScalar=True, length=2):
             return numpy.array(value, float)
         else:
             raise ValueError('Invalid parameter. Should be length ' + str(length) + 'but got length ' + str(len(value)))
-    elif value is None:
-        if withNone:
-            return None
-        else:
-            raise ValueError('Invalid parameter. None is not accepted as value.')
     else:
         raise ValueError('Invalid parameter.')
 
@@ -368,7 +368,7 @@ class Window:
         self.waitBlanking = waitBlanking
 
         self._refreshThreshold=1/1.0#initial val needed by flip()
-        self._monitorFrameRate = self._getActualFrameRate()#over several frames with no drawing
+        self._monitorFrameRate = self.getActualFrameRate()#over several frames with no drawing
         if self._monitorFrameRate != None:
             self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
         else:
@@ -1166,19 +1166,22 @@ class Window:
         if self.winType=='pygame':wasVisible = pygame.mouse.set_visible(visibility)
         elif self.winType=='pyglet':self.winHandle.set_mouse_visible(visibility)
         self.mouseVisible = visibility
-    def _getActualFrameRate(self,nMaxFrames=100,nWarmUpFrames=10, threshold=1):
+    def getActualFrameRate(self,nIdentical=10,nMaxFrames=100,nWarmUpFrames=10,threshold=1):
         """Measures the actual fps for the screen.
 
-        This is done by waiting (for a max of nMaxFrames) until 10 frames in a
-        row have identical frame times (std dev below 1ms).
+        This is done by waiting (for a max of nMaxFrames) until [nIdentical] frames in a
+        row have identical frame times (std dev below [threshold] ms).
 
-        If there are no 10 consecutive identical frames a warning is logged and
+        If there is no such sequence of identical frames a warning is logged and
         `None` will be returned.
 
         :parameters:
+            nIdentical:
+                the number of consecutive frames that will be evaluated.
+                Higher --> greater precision. Lower --> faster.
 
             nMaxFrames:
-                the maxmimum number of frames to wait for a matching set of 10
+                the maxmimum number of frames to wait for a matching set of nIdentical
 
             nWarmUpFrames:
                 the number of frames to display before starting the test (this is
@@ -1190,6 +1193,8 @@ class Window:
                 a match
 
         """
+        if nIdentical > nMaxFrames:
+            raise ValueError('nIdentical must be equal to or less than nMaxFrames')
         recordFrmIntsOrig = self.recordFrameIntervals
         #run warm-ups
         self.setRecordFrameIntervals(False)
@@ -1199,12 +1204,10 @@ class Window:
         self.setRecordFrameIntervals(True)
         for frameN in range(nMaxFrames):
             self.flip()
-            if len(self.frameIntervals)>=10 and numpy.std(self.frameIntervals[-10:])<(threshold/1000.0):
-                rate = 1.0/numpy.mean(self.frameIntervals[-10:])
-                if self.screen==None:
-                    scrStr=""
-                else:
-                    scrStr = " (%i)" %self.screen
+            if len(self.frameIntervals)>=nIdentical and numpy.std(self.frameIntervals[-nIdentical:])<(threshold/1000.0):
+                rate = 1.0/numpy.mean(self.frameIntervals[-nIdentical:])
+                if self.screen==None:scrStr=""
+                else: scrStr = " (%i)" %self.screen
                 logging.debug('Screen%s actual frame rate measured at %.2f' %(scrStr,rate))
                 self.setRecordFrameIntervals(recordFrmIntsOrig)
                 self.frameIntervals=[]
@@ -1404,16 +1407,16 @@ class _BaseVisualStim(object):
     @AttributeSetter
     def depth(self, value):
         """
-        Depricated. Depth is now controlled simply by drawing order.
+        Deprecated. Depth is now controlled simply by drawing order.
         """
         self.__dict__['depth'] = value
     def draw(self):
         raise NotImplementedError('Stimulus classes must overide _BaseVisualStim.draw')
     def setPos(self, newPos, operation='', log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self._set('pos', val=newPos, op=operation, log=log)
     def setDepth(self, newDepth, operation='', log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self._set('depth', newDepth, operation, log)
     def setSize(self, newSize, operation='', units=None, log=True):
         """Set the stimulus size [X,Y] in the specified (or inherited) `units`
@@ -1421,13 +1424,13 @@ class _BaseVisualStim(object):
         if units==None: units=self.units#need to change this to create several units from one
         self._set('size', newSize, op=operation, log=log)
     def setOri(self, newOri, operation='', log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self._set('ori',val=newOri, op=operation, log=log)
     def setOpacity(self, newOpacity, operation='', log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self._set('opacity', newOpacity, operation, log=log)
     def setContrast(self, newContrast, operation='', log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self._set('contrast', newContrast, operation, log=log)
     def setDKL(self, newDKL, operation=''):
         """DEPRECATED since v1.60.05: Please use setColor
@@ -1523,7 +1526,7 @@ class _BaseVisualStim(object):
                 level=logging.EXP,obj=self)
 
     def setUseShaders(self, value=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self.useShaders = value
     def _selectWindow(self, win):
         global currWindow
@@ -1555,10 +1558,10 @@ class _BaseVisualStim(object):
         elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
     def setAutoDraw(self, value, log=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self.autoDraw = value
     def setAutoLog(self, value=True):
-        """ Depricated. Use 'stim.attribute = value' syntax instead"""
+        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self.autoLog = value
     def contains(self, x, y=None):
         """Determines if a point x,y is inside the extent of the stimulus.
@@ -2046,8 +2049,6 @@ class SimpleImageStim:
                  name='', autoLog=True):
         """
         :Parameters:
-
-
             win :
                 a :class:`~psychopy.visual.Window` object (required)
             image :
@@ -2689,6 +2690,11 @@ class GratingStim(_BaseVisualStim):
             self._cycles = self.sf  #this is the only form of sf that is not size dependent
         else:
             self._cycles = self.sf * self.size
+
+    def contains(self, *args, **kwargs):
+        raise NotImplementedError("GratingStim do not have a contains() method")
+    def overlaps(self, *args, **kwargs):
+        raise NotImplementedError("GratingStim do not have an overlaps() method")
 
 class PatchStim(GratingStim):
     def __init__(self, *args, **kwargs):
@@ -4001,7 +4007,6 @@ class MovieStim(_BaseVisualStim):
     def _calcVertices(self):
         R, T = self._sizeRendered / 2  # pix
         L, B = -R, -T
-        self.needVertexUpdate = True
         self._vertices = numpy.array([[L, T], [R, T], [R, B], [L, B]])
         self.needVertexUpdate = True
     def _calcVerticesRendered(self):
@@ -5063,12 +5068,12 @@ class Polygon(ShapeStim):
 
     def _calcVertices(self):
         d = numpy.pi*2/ self.edges
-        self.vertices = [
+        self.vertices = numpy.asarray([
             numpy.asarray(
                 (numpy.sin(e*d), numpy.cos(e*d))
             ) * self.radius
             for e in xrange(self.edges)
-        ]
+        ])
     def setEdges(self,edges):
         "Set the number of edges to a new value"
         self.edges=edges
@@ -5339,18 +5344,11 @@ class ImageStim(_BaseVisualStim):
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 
-        self.ori = float(ori)
-        self.contrast = float(contrast)
-        self.opacity = float(opacity)
         self.interpolate=interpolate
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
 
         self._origSize=None#if an image texture is loaded this will be updated
-
-        self.colorSpace=colorSpace
-        self.setColor(color, colorSpace=colorSpace, log=False)
-        self.rgbPedestal=[0,0,0]#does an rgb pedestal make sense for an image?
 
         #initialise textures for stimulus
         self._texID = GL.GLuint()
@@ -5365,6 +5363,14 @@ class ImageStim(_BaseVisualStim):
         self.isLumImage = None
         self.setImage(image, log=False)
         self.setMask(mask, log=False)
+
+        #color and contrast etc
+        self.ori = float(ori)
+        self.contrast = float(contrast)
+        self.opacity = float(opacity)
+        self.colorSpace=colorSpace
+        self.setColor(color, colorSpace=colorSpace, log=False)
+        self.rgbPedestal=[0,0,0]#does an rgb pedestal make sense for an image?
 
         #size
         self._requestedSize=size
@@ -5560,7 +5566,7 @@ class ImageStim(_BaseVisualStim):
         self._imName = value
 
         wasLumImage = self.isLumImage
-        self.isLumImage = createTexture(value, id=self.texID, stim=self,
+        self.isLumImage = createTexture(value, id=self._texID, stim=self,
             pixFormat=GL.GL_RGB, dataType=GL.GL_UNSIGNED_BYTE,
             maskParams=self.maskParams, forcePOW2=False)
         #if user requested size=None then update the size for new stim here
@@ -7744,7 +7750,9 @@ def _setColor(self, color, colorSpace=None, operation='',
 def _setWithOperation(self, attrib, value, operation):
     """ Sets an object property (scalar or numpy array) with an operation
     History: introduced to avoid exec-calls"""
-    if operation == '':
+    if not hasattr(self,attrib):
+        newValue = value
+    elif operation == '':
         newValue = getattr(self, attrib) * 0 + value  # Preserves dimensions, if array
     elif operation == '+':
         newValue = getattr(self, attrib) + value
@@ -7754,6 +7762,10 @@ def _setWithOperation(self, attrib, value, operation):
         newValue = getattr(self, attrib) - value
     elif operation == '/':
         newValue = getattr(self, attrib) / value
+    elif operation == '**':
+        newValue = getattr(self, attrib) ** value
+    elif operation == '%':
+        newValue = getattr(self, attrib) % value
     else:
         raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
     setattr(self, attrib, newValue)

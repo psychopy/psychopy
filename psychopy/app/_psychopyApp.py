@@ -76,13 +76,13 @@ class PsychoPyApp(wx.App):
         wx.App.__init__(self, arg)
         self.onInit(**kwargs)
 
-    def onInit(self, showSplash=True, interactive=True):
+    def onInit(self, showSplash=True, testMode=False):
         """
         :Parameters:
 
-          interactive: bool
-            Either invoke dialogs.  Might need to be set to False
-            for the purpose of testing.
+          testMode: bool
+            If set to True then startup wizard won't appear and stdout/stderr
+            won't be redirected to the Coder
         """
         self.version=psychopy.__version__
         self.SetAppName('PsychoPy2')
@@ -90,6 +90,7 @@ class PsychoPyApp(wx.App):
         self.prefs = psychopy.prefs
         if self.prefs.app['debugMode']:
             logging.console.setLevel(logging.DEBUG)
+        self.testMode = testMode #indicates whether we're running for testing purposes
 
         if showSplash:
             #show splash screen
@@ -124,7 +125,7 @@ class PsychoPyApp(wx.App):
         else:
             last=self.prefs.appData['lastVersion']
 
-        if self.firstRun and interactive:
+        if self.firstRun and not self.testMode:
             self.firstrunWizard()
 
         #setup links for URLs
@@ -196,7 +197,7 @@ class PsychoPyApp(wx.App):
             dlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title="Compatibility information")
             dlg.ShowModal()
 
-        if self.prefs.app['showStartupTips'] and interactive:
+        if self.prefs.app['showStartupTips'] and not self.testMode:
             tipIndex = self.prefs.appData['tipIndex']
             tp = wx.CreateFileTipProvider(os.path.join(self.prefs.paths['resources'],"tips.txt"), tipIndex)
             showTip = wx.ShowTip(None, tp)
@@ -371,12 +372,13 @@ class PsychoPyApp(wx.App):
         self.prefs.appData['builder']['prevFiles']=[]#start with an empty list to be appended by each frame
         self.prefs.appData['coder']['prevFiles']=[]
         for frame in list(self.allFrames):
-            frame.Close(force=True)
-            self.prefs.saveAppData()#must do this before destroying the frame?
-        if sys.platform=='darwin':
-            self.menuFrame.Destroy()
-
-        sys.exit()#really force a quit
+            try:
+                frame.Close(force=True)
+                self.prefs.saveAppData()#must do this before destroying the frame?
+            except:
+                pass #we don't care if this fails - we're quitting anyway
+        self.Exit()
+        #sys.exit()#really force a quit
 
     def showPrefs(self, event):
         from psychopy.app.preferencesDlg import PreferencesDlg
