@@ -5166,12 +5166,12 @@ class Rect(ShapeStim):
         ShapeStim.__init__(self, win, **kwargs)
 
     def _calcVertices(self):
-        self.vertices = [
+        self.vertices = numpy.array([
             (-self.width*.5,  self.height*.5),
             ( self.width*.5,  self.height*.5),
             ( self.width*.5, -self.height*.5),
             (-self.width*.5, -self.height*.5)
-        ]
+        ])
 
     def setWidth(self, width, log=True):
         """Changes the width of the Rectangle"""

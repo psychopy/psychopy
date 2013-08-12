@@ -171,6 +171,35 @@ class _baseVisualTest:
         for frameN in range(10):
             mov.draw()
             win.flip()
+    def test_rect(self):
+        win = self.win
+        rect = visual.Rect(win)
+        rect.draw()
+        rect.setLineColor('blue')
+        rect.setPos([1,1])
+        rect.setOri(30)
+        rect.setFillColor('pink')
+        rect.draw()
+    def test_circle(self):
+        win = self.win
+        circle = visual.Circle(win)
+        circle.setFillColor('red')
+        circle.draw()
+        circle.setLineColor('blue')
+        circle.setFillColor(None)
+        circle.setPos([0.5,-0.5])
+        circle.setOri(30)
+        circle.draw()
+    def text_line(self):
+        win = self.win
+        line = visual.Line(win)
+    def test_Polygon(self):
+        win = self.win
+        cols = ['red','green','purple','orange','blue']
+        for n, col in enumerate(cols):
+            poly = visual.Polygon(win, edges=n+5, lineColor=col)
+            poly.draw()
+        win.flip()
     def test_shape(self):
         win = self.win
 
