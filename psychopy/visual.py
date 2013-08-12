@@ -7752,7 +7752,11 @@ def _setColor(self, color, colorSpace=None, operation='',
     #if needed, set the texture too
     _setTexIfNoShaders(self)
 
-    if log:
+    if hasattr(self, 'autoLog'):
+        autoLog = self.autoLog
+    else:
+        autoLog = False
+    if autoLog and log:
         if hasattr(self,'win'):
             self.win.logOnFlip("Set %s.%s=%s (%s)" %(self.name,colorAttrib,newColor,colorSpace),
                 level=logging.EXP,obj=self)
