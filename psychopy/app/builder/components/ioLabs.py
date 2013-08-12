@@ -118,8 +118,8 @@ class ioLabsButtonBoxComponent(BaseComponent):
         if self.params['lights'].val:
             lines += '%(name)s.setLights(%(name)s.active)\n'
         if self.params['store'].val != 'nothing' or self.params['storeCorrect'].val:
-            lines += ("%(name)s.btns == []  # responses stored in .btns and .rt\n" +
-                  "%(name)s.rt == []\n")
+            lines += ("%(name)s.btns = []  # responses stored in .btns and .rt\n" +
+                  "%(name)s.rt = []\n")
         buff.writeIndentedLines(lines % self.params)
 
     def writeFrameCode(self,buff):
@@ -141,8 +141,7 @@ class ioLabsButtonBoxComponent(BaseComponent):
         # this is not the same as keyboard components, which have to handle their own allowedKeys
         lines += "# buttonbox checking is just starting\n"
         if store != 'nothing':
-            lines += ("%(name)s.clock.reset()  # set software clock to 0.000\n" +
-                      "%(name)s.resetClock()  # set bbox hardware internal clock to 0.000; ms accuracy\n")
+            lines += ("%(name)s.resetClock()  # set bbox hardware internal clock to 0.000; ms accuracy\n")
         buff.writeIndentedLines(lines % self.params)
         buff.setIndentLevel(-1, relative=True)  # to get out of the if statement
         #test for stop (only if there was some setting for duration or stop)

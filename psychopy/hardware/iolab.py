@@ -53,7 +53,7 @@ class ButtonBox(ioLabs.USBBox):
         self.status = None  # helps Builder
         self._lastReset = 0.0  # time on baseclock at which the bbox clock was reset
         self._baseclock = core.Clock()  # for basetime, not RT time
-        self.resetClock(log=True)  # internal clock on the bbox; log=False is faster
+        self.resetClock(log=True)  # internal clock on the bbox
         logging.exp('button box resetClock(log=True) took %.4fs' % self._baseclock.getTime())
 
         self.commands.add_callback(REPORT.KEYDN, self._onKeyDown)
@@ -92,6 +92,8 @@ class ButtonBox(ioLabs.USBBox):
 
     def resetClock(self, log=True):
         """Reset the clock on the bbox internal clock, e.g., at the start of a trial.
+
+        ~1ms for me; logging is much faster than the reset
         """
         # better / faster than self.reset_clock() (no wait for report):
         self.commands.resrtc()
