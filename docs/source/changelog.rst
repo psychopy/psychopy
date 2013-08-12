@@ -25,6 +25,7 @@ PsychoPy 1.78.01
 (in repository)
 
 * FIXED: gui choice boxes now handle unicode in their options as well as ASCII strings (thanks Anne Peschel)
+* ADDED: Builder component for ioLab Systems button-box; refactor PsychoPy's ioLabs code (Jeremy)
 
 PsychoPy 1.78.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,10 +39,11 @@ Released Aug 2013
 * ADDED: generated Sounds (not sound files) now use a Hamming window to get rid of sharp onset/offset noises (thanks Jeremy)
 * ADDED: microphone component able to play & identify a marker tone (for vocal RT), compute loudness, compression (Jeremy)
 * ADDED: sound files: lossless compress / uncompress (requires flac executable installed separately) (Jeremy)
-* FIXED: movieStim.contains() and .overlaps() can work, requires that the visual.Window has units of pix
 * ADDED: microphone compress() audio recordings; requires flac download (not packaged with PsychoPy)
 * ADDED: new preference `flac` = system path for flac, e.g. c:/Program Files (x86)/FLAC/flac.exe (not always needed)
+* FIXED: greyscale images were being distorted during display since 1.77.00
 * FIXED: reduced number of queries when closing down and provides filenames of changed files in msg (thanks Piot Iwaniuk)
+* FIXED: movieStim.contains() and .overlaps() can work, requires that the visual.Window has units of pix
 
 PsychoPy 1.77
 ------------------------------

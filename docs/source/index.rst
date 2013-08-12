@@ -9,12 +9,10 @@ News
 **Cutting edge version**: 1.78.00 was released Aug 2013. Adds 'Static Component' to allow pre-loading of images, and Shape Component for standard geometric shapes
 
 **Upcoming Workshops**:
-
-    * Sol Simpson and Jon Peirce are running a `Python for eye-tracking workshop at ECEM <http://ecem2013.eye-movements.org/workshops/program>`_
     
     * Jon Peirce is running a 1/2-day `PsychoPy workshop at ECVP <http://www.ecvp.uni-bremen.de/node/46>`_
     
-    * Jon Peirce will be running the 3-day :ref:`Python for Neuroscience workshop <P4N>` again in April 2014 at Nottingham
+    * We'll be running a multi-day :ref:`Python for Neuroscience workshop <P4N>` again in April 2014 at Nottingham University. I'm hoping we'll be able to run Novice and Intermediate streams this year (last year was novice-only), with contributing experienced users from all over the world (last year was just Jon) 
 
 .. title:: Home
 
