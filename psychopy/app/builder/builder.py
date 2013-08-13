@@ -1893,9 +1893,9 @@ class _BaseParamsDlg(wx.Dialog):
     def __init__(self,frame,title,params,order,
             helpUrl=None, suppressTitles=True,
             showAdvanced=False,
-            pos=wx.DefaultPosition, size=wx.DefaultSize,
+            size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL,editing=False):
-        wx.Dialog.__init__(self, frame,-1,title,pos,size,style)
+        wx.Dialog.__init__(self, frame,-1,title,size=size,style=style)
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
@@ -2218,6 +2218,9 @@ class _BaseParamsDlg(wx.Dialog):
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.border.Add(self.mainSizer, flag=wx.ALL|wx.EXPAND, border=8)
         self.SetSizerAndFit(self.border)
+        #move the psoition to be v near the top of screen and to the right of the left-most edge of builder
+        builderPos = self.frame.GetPosition()
+        self.SetPosition((builderPos[0]+200,20))
 
         #do show and process return
         retVal = self.ShowModal()
@@ -2797,14 +2800,12 @@ class DlgLoopProperties(_BaseParamsDlg):
 
 class DlgComponentProperties(_BaseParamsDlg):
     def __init__(self,frame,title,params,order,
-            helpUrl=None, suppressTitles=True,
-            pos=wx.DefaultPosition, size=wx.DefaultSize,
+            helpUrl=None, suppressTitles=True,size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT,
             editing=False):
         style=style|wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self,frame,title,params,order,
-                                helpUrl=helpUrl,
-                                pos=pos,size=size,style=style,
+                                helpUrl=helpUrl,size=size,style=style,
                                 editing=editing)
         self.frame=frame
         self.app=frame.app
