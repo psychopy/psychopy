@@ -16,16 +16,21 @@ Changelog
 
 :blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
+PsychoPy 1.79
+------------------------------
+
+* NEW: attributes for stimuli can now be updated using e.g. `stim.pos = newPos` rather than using `stim.setPos(newPos)` to make things more like standard Python (thanks Jonas Lindeløv)
+* ADDED: Builder component for ioLab Systems button-box; refactor PsychoPy's ioLabs code (Jeremy)
+
 PsychoPy 1.78
 ------------------------------
 
 PsychoPy 1.78.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(in repository)
+Released Aug 2013
 
 * FIXED: gui choice boxes now handle unicode in their options as well as ASCII strings (thanks Anne Peschel)
-* ADDED: Builder component for ioLab Systems button-box; refactor PsychoPy's ioLabs code (Jeremy)
 * FIXED: Scaling bug for SMI eye-tracker in binocular mode (thanks Sol)
 * FIXED: Builder Code Components that were showing up in unreadable, single-line boxes
 * IMPROVED: All Builder Dialogs now appear close to the top of the screen (so they don't shoot off the bottom in most screens)
