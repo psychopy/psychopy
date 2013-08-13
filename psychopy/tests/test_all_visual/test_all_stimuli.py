@@ -171,6 +171,35 @@ class _baseVisualTest:
         for frameN in range(10):
             mov.draw()
             win.flip()
+    def test_rect(self):
+        win = self.win
+        rect = visual.Rect(win)
+        rect.draw()
+        rect.setLineColor('blue')
+        rect.setPos([1,1])
+        rect.setOri(30)
+        rect.setFillColor('pink')
+        rect.draw()
+    def test_circle(self):
+        win = self.win
+        circle = visual.Circle(win)
+        circle.setFillColor('red')
+        circle.draw()
+        circle.setLineColor('blue')
+        circle.setFillColor(None)
+        circle.setPos([0.5,-0.5])
+        circle.setOri(30)
+        circle.draw()
+    def text_line(self):
+        win = self.win
+        line = visual.Line(win)
+    def test_Polygon(self):
+        win = self.win
+        cols = ['red','green','purple','orange','blue']
+        for n, col in enumerate(cols):
+            poly = visual.Polygon(win, edges=n+5, lineColor=col)
+            poly.draw()
+        win.flip()
     def test_shape(self):
         win = self.win
 
@@ -180,14 +209,14 @@ class _baseVisualTest:
             closeShape=True, pos=[0, 0], ori=0.0, opacity=1.0, depth=0, interpolate=True)
         shape.draw()
         #NB shape rendering can differ a little, depending on aliasing
-        utils.compareScreenshot('shape1_%s.png' %(self.contextName), win, crit=12.0)
+        utils.compareScreenshot('shape1_%s.png' %(self.contextName), win, crit=12.5)
         win.flip()
 
         # Using .set()
         shape.setContrast(0.8)
         shape.setOpacity(0.8)
         shape.draw()
-        utils.compareScreenshot('shape2_%s.png' %(self.contextName), win, crit=12.0)
+        utils.compareScreenshot('shape2_%s.png' %(self.contextName), win, crit=12.5)
     def test_radial(self):
         if self.win.winType=='pygame':
             pytest.skip("RadialStim dodgy on pygame")
@@ -196,10 +225,7 @@ class _baseVisualTest:
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
-        if sys.platform.startswith('linux'):
-            thresh = 80 #this is essentially like an xfail!
-        else:
-            thresh = 10
+        thresh = 10
         utils.compareScreenshot('wedge1_%s.png' %(self.contextName), win, crit=thresh)
         win.flip()#AFTER compare screenshot
 
@@ -413,7 +439,7 @@ class TestPygamePix(_baseVisualTest):
 #
 
 if __name__ == '__main__':
-    cls = TestPygamePix()
+    cls = TestPygletCm()
     cls.setup_class()
-    cls.test_gabor()
+    cls.test_radial()
     cls.teardown_class()

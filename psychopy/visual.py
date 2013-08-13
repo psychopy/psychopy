@@ -2883,6 +2883,73 @@ class RadialStim(GratingStim):
             self._listID = GL.glGenLists(1)
             self._updateList()#ie refresh display list
 
+    @AttributeSetter
+    def mask(self, value):
+        """
+        + 'circle', 'gauss', 'raisedCos', **None** (resets to default)
+        + or the name of an image file (most formats supported)
+        + or a numpy array (1xN or NxN) ranging -1:1
+
+            The alpha mask (forming the shape of the image)
+        """
+        self.__dict__['mask'] = value
+        res = self.texRes#resolution of texture - 128 is bearable
+        step = 1.0/res
+        rad = numpy.arange(0,1+step,step)
+        if type(self.mask) == numpy.ndarray:
+            #handle a numpy array
+            intensity = 255*self.mask.astype(float)
+            res = len(intensity)
+            fromFile=0
+        elif type(self.mask) == list:
+            #handle a numpy array
+            intensity = 255*numpy.array(self.mask, float)
+            res = len(intensity)
+            fromFile=0
+        elif self.mask == "circle":
+            intensity = 255.0*(rad<=1)
+            fromFile=0
+        elif self.mask == "gauss":
+            sigma = 1/3.0;
+            intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
+            fromFile=0
+        elif self.mask == "radRamp":#a radial ramp
+            intensity = 255.0-255.0*rad
+            intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
+            fromFile=0
+        elif self.mask in [None,"none","None"]:
+            res=4
+            intensity = 255.0*numpy.ones(res,float)
+            fromFile=0
+        else:#might be a filename of a tiff
+            try:
+                im = Image.open(self.mask)
+                im = im.transpose(Image.FLIP_TOP_BOTTOM)
+                im = im.resize([max(im.size), max(im.size)],Image.BILINEAR)#make it square
+            except IOError, (details):
+                logging.error("couldn't load mask...%s: %s" %(value,details))
+                return
+            res = im.size[0]
+            im = im.convert("L")#force to intensity (in case it was rgb)
+            intensity = numpy.asarray(im)
+
+        data = intensity.astype(numpy.uint8)
+        mask = data.tostring()#serialise
+
+        #do the openGL binding
+        if self.interpolate: smoothing=GL.GL_LINEAR
+        else: smoothing=GL.GL_NEAREST
+        GL.glBindTexture(GL.GL_TEXTURE_1D, self._maskID)
+        GL.glTexImage1D(GL.GL_TEXTURE_1D, 0, GL.GL_ALPHA,
+                        res, 0,
+                        GL.GL_ALPHA, GL.GL_UNSIGNED_BYTE, mask)
+        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
+        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MAG_FILTER,smoothing)     #linear smoothing if texture is stretched
+        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MIN_FILTER,smoothing)
+        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)
+        GL.glEnable(GL.GL_TEXTURE_1D)
+
+        self._needUpdate = True
     def setSize(self, value, operation='', log=True):
         self._set('size', value, operation, log=log)
         self._calcSizeRendered()
@@ -3123,64 +3190,6 @@ class RadialStim(GratingStim):
         """Change the alpha-mask for the stimulus
         """
         self.mask = value
-        res = self.texRes#resolution of texture - 128 is bearable
-        step = 1.0/res
-        rad = numpy.arange(0,1+step,step)
-        if type(self.mask) == numpy.ndarray:
-            #handle a numpy array
-            intensity = 255*self.mask.astype(float)
-            res = len(intensity)
-            fromFile=0
-        elif type(self.mask) == list:
-            #handle a numpy array
-            intensity = 255*numpy.array(self.mask, float)
-            res = len(intensity)
-            fromFile=0
-        elif self.mask == "circle":
-            intensity = 255.0*(rad<=1)
-            fromFile=0
-        elif self.mask == "gauss":
-            sigma = 1/3.0;
-            intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
-            fromFile=0
-        elif self.mask == "radRamp":#a radial ramp
-            intensity = 255.0-255.0*rad
-            intensity = numpy.where(rad<1, intensity, 0)#half wave rectify
-            fromFile=0
-        elif self.mask in [None,"none","None"]:
-            res=4
-            intensity = 255.0*numpy.ones(res,float)
-            fromFile=0
-        else:#might be a filename of a tiff
-            try:
-                im = Image.open(self.mask)
-                im = im.transpose(Image.FLIP_TOP_BOTTOM)
-                im = im.resize([max(im.size), max(im.size)],Image.BILINEAR)#make it square
-            except IOError, (details):
-                logging.error("couldn't load mask...%s: %s" %(value,details))
-                return
-            res = im.size[0]
-            im = im.convert("L")#force to intensity (in case it was rgb)
-            intensity = numpy.asarray(im)
-
-        data = intensity.astype(numpy.uint8)
-        mask = data.tostring()#serialise
-
-        #do the openGL binding
-        if self.interpolate: smoothing=GL.GL_LINEAR
-        else: smoothing=GL.GL_NEAREST
-        GL.glBindTexture(GL.GL_TEXTURE_1D, self._maskID)
-        GL.glTexImage1D(GL.GL_TEXTURE_1D, 0, GL.GL_ALPHA,
-                        res, 0,
-                        GL.GL_ALPHA, GL.GL_UNSIGNED_BYTE, mask)
-        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MAG_FILTER,smoothing)     #linear smoothing if texture is stretched
-        GL.glTexParameteri(GL.GL_TEXTURE_1D,GL.GL_TEXTURE_MIN_FILTER,smoothing)
-        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)
-        GL.glEnable(GL.GL_TEXTURE_1D)
-
-        self._needUpdate = True
-
         if log and self.autoLog:
             self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
                 level=logging.EXP,obj=self)
@@ -5157,12 +5166,12 @@ class Rect(ShapeStim):
         ShapeStim.__init__(self, win, **kwargs)
 
     def _calcVertices(self):
-        self.vertices = [
+        self.vertices = numpy.array([
             (-self.width*.5,  self.height*.5),
             ( self.width*.5,  self.height*.5),
             ( self.width*.5, -self.height*.5),
             (-self.width*.5, -self.height*.5)
-        ]
+        ])
 
     def setWidth(self, width, log=True):
         """Changes the width of the Rectangle"""
@@ -5709,31 +5718,15 @@ class BufferImageStim(GratingStim):
         self.flipVert = flipVert
 
         logging.exp('BufferImageStim %s: took %.1fms to initialize' % (name, 1000 * _clock.getTime()))
-
-    def setFlipHoriz(self, newVal=True, log=True):
-        """If set to True then the image will be flipped horiztonally (left-to-right).
-        Note that this is relative to the original image, not relative to the current state.
+    @AttributeSetter
+    def tex(self, value):
+        """For BufferImageStim this method is not called by the user
         """
-        self.flipHoriz = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipHoriz=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
-    def setFlipVert(self, newVal=True, log=True):
-        """If set to True then the image will be flipped vertically (top-to-bottom).
-        Note that this is relative to the original image, not relative to the current state.
-        """
-        set.flipVert = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
-    def setTex(self, tex, interpolate=True, log=True):
-        """(This is not typically called directly.)"""
-        # setTex is called only once
-        self.tex = tex
+        self.__dict__['tex'] = tex = value
         id = self._texID
         pixFormat = GL.GL_RGB
         useShaders = self.useShaders
-        self.interpolate = interpolate
+        interpolate = self.interpolate
 
         im = tex.transpose(Image.FLIP_TOP_BOTTOM)
         self._origSize=im.size
@@ -5782,7 +5775,27 @@ class BufferImageStim(GratingStim):
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                             data.shape[1], data.shape[0], 0,
                             pixFormat, dataType, texture)
-
+    def setFlipHoriz(self, newVal=True, log=True):
+        """If set to True then the image will be flipped horiztonally (left-to-right).
+        Note that this is relative to the original image, not relative to the current state.
+        """
+        self.flipHoriz = newVal
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s flipHoriz=%s" % (self.name, newVal),
+                level=logging.EXP, obj=self)
+    def setFlipVert(self, newVal=True, log=True):
+        """If set to True then the image will be flipped vertically (top-to-bottom).
+        Note that this is relative to the original image, not relative to the current state.
+        """
+        set.flipVert = newVal
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
+                level=logging.EXP, obj=self)
+    def setTex(self, tex, interpolate=True, log=True):
+        """(This is not typically called directly.)"""
+        # setTex is called only once
+        self.interpolate = interpolate #set interp to new value
+        self.tex = tex #cal the setter for tex
         if log and self.autoLog:
             self.win.logOnFlip("Set %s tex=%s" %(self.name, tex),
                 level=logging.EXP,obj=self)
@@ -7739,7 +7752,11 @@ def _setColor(self, color, colorSpace=None, operation='',
     #if needed, set the texture too
     _setTexIfNoShaders(self)
 
-    if log:
+    if hasattr(self, 'autoLog'):
+        autoLog = self.autoLog
+    else:
+        autoLog = False
+    if autoLog and log:
         if hasattr(self,'win'):
             self.win.logOnFlip("Set %s.%s=%s (%s)" %(self.name,colorAttrib,newColor,colorSpace),
                 level=logging.EXP,obj=self)
