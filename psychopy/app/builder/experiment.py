@@ -269,6 +269,10 @@ class Experiment:
             params['stopType'].val =unicode('time (s)')
             params['stopVal'].val = unicode(times[1])
             return #times doesn't need to update its type or 'updates' rule
+        elif name in ['Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment']:
+            params[name].val = paramNode.get('val')
+            params[name].valType = 'extendedCode' #changed in 1.78.00
+            return #so that we don't update valTyp again below
         elif 'val' in paramNode.keys():
             if paramNode.get('val')=='window units':#changed this value in 1.70.00
                 params[name].val = 'from exp settings'

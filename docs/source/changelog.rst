@@ -26,6 +26,9 @@ PsychoPy 1.78.01
 
 * FIXED: gui choice boxes now handle unicode in their options as well as ASCII strings (thanks Anne Peschel)
 * ADDED: Builder component for ioLab Systems button-box; refactor PsychoPy's ioLabs code (Jeremy)
+* FIXED: Scaling bug for SMI eye-tracker in binocular mode (thanks Sol)
+* FIXED: Builder Code Components that were showing up in unreadable, single-line boxes
+* IMPROVED: All Builder Dialogs now appear close to the top of the screen (so they don't shoot off the bottom in most screens)
 
 PsychoPy 1.78.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
