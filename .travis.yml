@@ -11,7 +11,7 @@ before_install:
   - source /etc/lsb-release
   - echo ${DISTRIB_CODENAME}
   - wget -O- http://neuro.debian.net/lists/${DISTRIB_CODENAME}.us-nh.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
-  - travis_retry sudo apt-key adv --recv-keys --keyserver pgp.mit.edu 2649A5A9
+  - wget -q -O- http://neuro.debian.net/_static/neuro.debian.net.asc | sudo apt-key add -
   - travis_retry sudo apt-get update -qq
   - sudo apt-cache policy           # What is actually available?
   - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
