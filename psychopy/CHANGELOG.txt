@@ -16,6 +16,10 @@ PsychoPy 1.78.01
 (in repository)
 
 * FIXED: gui choice boxes now handle unicode in their options as well as ASCII strings (thanks Anne Peschel)
+* ADDED: Builder component for ioLab Systems button-box; refactor PsychoPy's ioLabs code (Jeremy)
+* FIXED: Scaling bug for SMI eye-tracker in binocular mode (thanks Sol)
+* FIXED: Builder Code Components that were showing up in unreadable, single-line boxes
+* IMPROVED: All Builder Dialogs now appear close to the top of the screen (so they don't shoot off the bottom in most screens)
 
 PsychoPy 1.78.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -31,9 +35,10 @@ Released Aug 2013
 * ADDED: sound files: lossless compress / uncompress (requires flac executable installed separately) (Jeremy)
 * ADDED: microphone compress() audio recordings; requires flac download (not packaged with PsychoPy)
 * ADDED: new preference `flac` = system path for flac, e.g. c:/Program Files (x86)/FLAC/flac.exe (not always needed)
-* FIXED: handling of greyscale-mode images in ImageStim/Image Component which was causing garbled image presentations
+* FIXED: greyscale images were being distorted during display since 1.77.00
 * FIXED: movieStim.contains() and .overlaps() can work, requires that the visual.Window has units of pix
 * FIXED: reduced number of queries when closing down and provides filenames of changed files in msg (thanks Piot Iwaniuk)
+
 
 PsychoPy 1.77
 ------------------------------
