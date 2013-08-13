@@ -634,9 +634,12 @@ class FlowPanel(wx.ScrolledWindow):
         elif 'conditionsFile' in component.params.keys():
             conditionsFile = component.params['conditionsFile'].val
             if conditionsFile and conditionsFile not in ['None','']:
-                _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
-                for fname in fieldNames:
-                    self.frame.exp.namespace.remove(fname)
+                try:
+                    _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
+                    for fname in fieldNames:
+                        self.frame.exp.namespace.remove(fname)
+                except:
+                    logging.debug("Condtions file %s couldn't be found so names not removed from namespace")
             self.frame.exp.namespace.remove(component.params['name'].val)
         #perform the actual removal
         flow.removeComponent(component, id=compID)
@@ -2458,7 +2461,6 @@ class DlgLoopProperties(_BaseParamsDlg):
         elif loop.type=='QuestHandler':
             pass # what to do for quest?
         self.params['name']=self.currentHandler.params['name']
-
         self.makeGlobalCtrls()
         self.makeStaircaseCtrls()
         self.makeConstantsCtrls()#the controls for Method of Constants
