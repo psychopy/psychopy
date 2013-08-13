@@ -2662,7 +2662,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         if ctrlType=='staircase':
             self.currentHandler = self.stairHandler
             toShow = self.staircaseCtrls
-        elif ctrlType=='interleaved staircase':
+        elif ctrlType=='interleaved staircases':
             self.currentHandler = self.multiStairHandler
             toShow = self.multiStairCtrls
         else:

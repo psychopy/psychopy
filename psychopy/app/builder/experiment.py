@@ -759,18 +759,16 @@ class MultiStairHandler:
     def writeInitCode(self,buff):
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
-        if self.params['N reversals'].val in ["", None, 'None']:
-            self.params['N reversals'].val='0'
         #write the code
         buff.writeIndentedLines("\n# set up handler to look after randomisation of trials etc\n")
         buff.writeIndentedLines("conditions = data.importConditions(%s)" %self.params['conditionsFile'])
-        buff.writeIndented("%(name)s = data.MultiStairHandler(startVal=%(start value)s, extraInfo=expInfo,\n" %(self.params))
+        buff.writeIndented("%(name)s = data.MultiStairHandler(stairType=%(stairType)s, name='%(name)s,'\n" %(self.params))
         buff.writeIndented("    nTrials=%(nReps)s,\n" %self.params)
         buff.writeIndented("    conditions=conditions,\n")
         buff.writeIndented("    originPath=%s" %repr(self.exp.expPath))
-        buff.write(", name='%(name)s')\n"%self.params)
+        buff.write(")\n"%self.params)
         buff.writeIndented("thisExp.addLoop(%(name)s)  # add the loop to the experiment\n" %self.params)
-        buff.writeIndented("# initialise values for first condition\n" %repr(self.exp.expPath))
+        buff.writeIndented("# initialise values for first condition\n")
         buff.writeIndented("level = %s._nextIntensity  # initialise some vals\n" %(self.thisName))
         buff.writeIndented("condition = %s.currentStaircase.condition\n" %(self.thisName))
     def writeLoopStartCode(self,buff):
