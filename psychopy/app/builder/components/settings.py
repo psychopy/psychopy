@@ -127,6 +127,9 @@ class SettingsComponent:
         buff.writeIndented("    savePickle=%(Save psydat file)s, saveWideText=%(Save wide csv file)s,\n" %self.params)
         buff.writeIndented("    dataFileName=filename)\n")
 
+    def writeWindowCode(self,buff):
+        """ setup the window code
+        """
         buff.writeIndentedLines("\n# Setup the Window\n")
         #get parameters for the Window
         fullScr = self.params['Full-screen window'].val
@@ -136,8 +139,7 @@ class SettingsComponent:
            for thisComp in thisRoutine: #a single routine is a list of components
                if thisComp.type=='Aperture': allowStencil = True
                if thisComp.type=='RatingScale': allowGUI = True # to have a mouse; BUT might not want it shown in other routines
-
-
+               
         requestedScreenNumber = int(self.params['Screen'].val)
         if requestedScreenNumber > wx.Display.GetCount():
             logging.warn("Requested screen can't be found. Writing script using first available screen.")
