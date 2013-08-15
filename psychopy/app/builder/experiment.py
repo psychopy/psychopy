@@ -120,6 +120,7 @@ class Experiment:
     def writeScript(self, expPath=None):
         """Write a PsychoPy script for the experiment
         """
+        self.flow._prescreenValues()
         self.expPath = expPath
         script = IndentingBuffer(u'') #a string buffer object
 
@@ -150,9 +151,10 @@ class Experiment:
             script.write("import locale\n" +
                      "locale.setlocale(locale.LC_ALL, '%s')\n" % localeValue)
         script.write("\n")
-        self.settings.writeStartCode(script) #present info dlg, make logfile, Window
-        #delegate rest of the code-writing to Flow
-        self.flow.writeCode(script)
+        self.settings.writeStartCode(script) #present info dlg, make logfile
+        self.flow.writeStartCode(script) #writes any components with a writeStartCode()
+        self.settings.writeWindowCode(script)#create our visual.Window()
+        self.flow.writeCode(script) #write the rest of the code for the components
         self.settings.writeEndCode(script) #close log file
 
         return script
@@ -954,15 +956,20 @@ class Flow(list):
                                 component.params['name'], key.capitalize()) )
             print 'Note: Dynamic code seems intended but updating is "constant":\n ',
             print '\n  '.join(list(set(warnings)))  # non-redundant, order unknown
-
-    def writeCode(self, script):
-        self._prescreenValues()
-        # writeStartCode and writeInitCode:
+    def writeStartCode(self, script):
+        """Write the code that comes before the Window is created
+        """
+        script.writeIndentedLines("\n# Start Code - component code to be run before the window creation\n")
         for entry in self:  #NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine=entry
             # very few components need writeStartCode:
             if hasattr(entry, 'writeStartCode'):
                 entry.writeStartCode(script)
+
+    def writeCode(self, script):
+        """Write the rest of the code
+        """
+        # writeStartCode and writeInitCode:
         for entry in self: #NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine=entry
             entry.writeInitCode(script)
