@@ -2838,7 +2838,7 @@ class DlgComponentProperties(_BaseParamsDlg):
 
 class DlgExperimentProperties(_BaseParamsDlg):
     def __init__(self,frame,title,params,order,suppressTitles=False,
-            pos=wx.DefaultPosition, size=wx.DefaultSize,helpUrl=None,
+            size=wx.DefaultSize,helpUrl=None,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
         style=style|wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self,frame,'Experiment Settings',params,order,
@@ -2902,6 +2902,11 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.mainSizer.Add(self.ctrlSizer)
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
+        
+        #move the psoition to be v near the top of screen and to the right of the left-most edge of builder
+        builderPos = self.frame.GetPosition()
+        self.SetPosition((builderPos[0]+200,20))
+        
         #do show and process return
         retVal = self.ShowModal()
         if retVal== wx.ID_OK: self.OK=True
