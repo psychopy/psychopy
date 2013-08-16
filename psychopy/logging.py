@@ -168,7 +168,7 @@ class _Logger:
     self.targets is a list of dicts {'stream':stream, 'level':level}
 
     """
-    def __init__(self, format="%(t).4f\t%(levelname)s\t%(message)s"):
+    def __init__(self, format="%(t).4f \t%(levelname)s \t%(message)s"):
         """The string-formatted elements %(xxxx)f can be used, where
         each xxxx is an attribute of the LogEntry.
         e.g. t, t_ms, level, levelname, message
@@ -304,4 +304,3 @@ def log(msg, level, t=None, obj=None):
     Log the msg, at a  given level on the root logger
     """
     root.log(msg, level=level, t=t, obj=obj)
-
