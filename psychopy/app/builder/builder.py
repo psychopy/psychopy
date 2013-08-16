@@ -2842,7 +2842,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
         style=style|wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self,frame,'Experiment Settings',params,order,
-                                pos=pos,size=size,style=style,helpUrl=helpUrl)
+                                size=size,style=style,helpUrl=helpUrl)
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
