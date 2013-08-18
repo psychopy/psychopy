@@ -2383,7 +2383,6 @@ class GratingStim(_BaseVisualStim):
         self.__dict__['size'] = 1
         self.__dict__['sf'] = 1
         self.__dict__['tex'] = tex
-        self.__dict__['color'] = val2array(color, length=3)
 
         #initialise textures and masks for stimulus
         self._texID = GL.GLuint()
@@ -5374,40 +5373,38 @@ class ImageStim(_BaseVisualStim):
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 
-        self.interpolate=interpolate
-        self.flipHoriz = flipHoriz
-        self.flipVert = flipVert
-
-        self._origSize=None#if an image texture is loaded this will be updated
-
         #initialise textures for stimulus
         self._texID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._texID))
         self._maskID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._maskID))
+        self.maskParams= maskParams
+        self.texRes=texRes
+
+        # Other stuff
+        self._imName = image
+        self.isLumImage = None
+        self.interpolate=interpolate
+        self.flipHoriz = flipHoriz
+        self.flipVert = flipVert
+        self._requestedSize=size
+        self._origSize=None#if an image texture is loaded this will be updated
+        self.size = val2array(size)
+        self.pos = numpy.array(pos,float)
+        self.ori = float(ori)
+        self.depth=depth
 
         # Set the maskParams (defaults to None):
-        self.maskParams= maskParams
-
-        self.texRes=texRes
-        self.isLumImage = None
         self.setImage(image, log=False)
         self.setMask(mask, log=False)
 
         #color and contrast etc
-        self.ori = float(ori)
         self.contrast = float(contrast)
         self.opacity = float(opacity)
         self.colorSpace=colorSpace
         self.setColor(color, colorSpace=colorSpace, log=False)
         self.rgbPedestal=[0,0,0]#does an rgb pedestal make sense for an image?
 
-        #size
-        self._requestedSize=size
-        self.size = val2array(size)
-        self.pos = numpy.array(pos,float)
-
-        self.depth=depth
         #fix scaling to window coords
         self._calcSizeRendered()
         self._calcPosRendered()
