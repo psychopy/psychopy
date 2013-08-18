@@ -7716,7 +7716,7 @@ def _setColor(self, color, colorSpace=None, operation='',
             raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
                 %(operation, self.colorSpace, colorSpace))
     else:#OK to update current color
-        if hasattr(self, 'color'):
+        if hasattr(self, colorAttrib) and getattr(self, colorAttrib) is not None:
             _setWithOperation(self, colorAttrib, color, operation, True)
         else:
             self.__dict__[colorAttrib] = color
@@ -7777,9 +7777,7 @@ def _setWithOperation(self, attrib, value, operation, stealth=False):
     # Handle cases where attribute is not defined yet.
     try:
         oldValue = getattr(self, attrib)
-    except AttributeError:
-        newValue = value
-    else:
+
         # Calculate new value using operation
         if operation == '':
             newValue = oldValue * 0 + value  # Preserves dimensions, if array
@@ -7797,6 +7795,8 @@ def _setWithOperation(self, attrib, value, operation, stealth=False):
             newValue = oldValue % value
         else:
             raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
+    except AttributeError:
+        newValue = value
     finally:
         # Set new value, with or without callback
         if stealth:
