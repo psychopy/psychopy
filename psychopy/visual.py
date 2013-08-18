@@ -7717,7 +7717,7 @@ def _setColor(self, color, colorSpace=None, operation='',
                 %(operation, self.colorSpace, colorSpace))
     else:#OK to update current color
         if hasattr(self, 'color'):
-            _setWithOperation(self, colorAttrib, color, operation)
+            _setWithOperation(self, colorAttrib, color, operation, True)
         else:
             self.__dict__[colorAttrib] = color
     #get window (for color conversions)
@@ -7769,9 +7769,11 @@ def _setColor(self, color, colorSpace=None, operation='',
             self.logOnFlip("Set Window %s=%s (%s)" %(colorAttrib,newColor,colorSpace),
                 level=logging.EXP,obj=self)
 
-def _setWithOperation(self, attrib, value, operation):
-    """ Sets an object property (scalar or numpy array) with an operation
-    History: introduced to avoid exec-calls"""
+def _setWithOperation(self, attrib, value, operation, stealth=False):
+    """ Sets an object property (scalar or numpy array) with an operation.
+    if stealth is True, then use self.__dict[key] = value. Else use setattr().
+    History: introduced in version 1.79 to avoid exec-calls"""
+    # Calculate new value using operation
     if not hasattr(self,attrib):
         newValue = value
     elif operation == '':
@@ -7790,7 +7792,12 @@ def _setWithOperation(self, attrib, value, operation):
         newValue = getattr(self, attrib) % value
     else:
         raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
-    setattr(self, attrib, newValue)
+
+    # Set new value, with or without callback
+    if stealth:
+        self.__dict__[attrib] = newValue
+    else:
+        setattr(self, attrib, newValue)
 
 def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """Assesses the monitor refresh rate (average, median, SD) under current conditions, over at least 60 frames.
