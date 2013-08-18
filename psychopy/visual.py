@@ -7666,11 +7666,6 @@ def _setColor(self, color, colorSpace=None, operation='',
     #rgb is calculated from converting color
     #rgbAttrib is the attribute name that rgb is stored under, e.g. lineRGB for self.lineRGB
     #colorSpace and takes name from colorAttrib+space e.g. self.lineRGBSpace=colorSpace
-    try:
-        color=float(color)
-        isScalar=True
-    except:
-        isScalar=False
 
     if colorSpaceAttrib==None:
         colorSpaceAttrib = colorAttrib+'Space'
