@@ -7773,34 +7773,36 @@ def _setWithOperation(self, attrib, value, operation, stealth=False):
     """ Sets an object property (scalar or numpy array) with an operation.
     if stealth is True, then use self.__dict[key] = value. Else use setattr().
     History: introduced in version 1.79 to avoid exec-calls"""
-    # Calculate new value using operation
-    if not hasattr(self,attrib):
+
+    # Handle cases where attribute is not defined yet.
+    try:
+        oldValue = getattr(self, attrib)
+    except AttributeError:
         newValue = value
     else:
-        oldValue = getattr(self, attrib)
-
-    if operation == '':
-        newValue = oldValue * 0 + value  # Preserves dimensions, if array
-    elif operation == '+':
-        newValue = oldValue + value
-    elif operation == '*':
-        newValue = oldValue * value
-    elif operation == '-':
-        newValue = oldValue - value
-    elif operation == '/':
-        newValue = oldValue / value
-    elif operation == '**':
-        newValue = oldValue ** value
-    elif operation == '%':
-        newValue = oldValue % value
-    else:
-        raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
-
-    # Set new value, with or without callback
-    if stealth:
-        self.__dict__[attrib] = newValue
-    else:
-        setattr(self, attrib, newValue)
+        # Calculate new value using operation
+        if operation == '':
+            newValue = oldValue * 0 + value  # Preserves dimensions, if array
+        elif operation == '+':
+            newValue = oldValue + value
+        elif operation == '*':
+            newValue = oldValue * value
+        elif operation == '-':
+            newValue = oldValue - value
+        elif operation == '/':
+            newValue = oldValue / value
+        elif operation == '**':
+            newValue = oldValue ** value
+        elif operation == '%':
+            newValue = oldValue % value
+        else:
+            raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
+    finally:
+        # Set new value, with or without callback
+        if stealth:
+            self.__dict__[attrib] = newValue
+        else:
+            setattr(self, attrib, newValue)
 
 def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """Assesses the monitor refresh rate (average, median, SD) under current conditions, over at least 60 frames.
