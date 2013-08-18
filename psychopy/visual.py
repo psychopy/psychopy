@@ -1453,11 +1453,8 @@ class _BaseVisualStim(object):
         """ IN PROGRESS, not implemented yet. Use .setColor() for now """
         _setColor(self,
                   color,
-                  colorSpace=None,
-                  operation='',
                   rgbAttrib='rgb', #or 'fillRGB' etc
-                  colorAttrib='color',
-                  log=True)
+                  colorAttrib='color')
 
 
     def setColor(self, color, colorSpace=None, operation='', log=True):
@@ -4932,6 +4929,17 @@ class ShapeStim(_BaseVisualStim):
         self.setSize(size, log=False)
         self.setVertices(vertices, log=False)
         self._calcVerticesRendered()
+
+    @AttributeSetter
+    def fillColor(self, color):
+        _setColor(self, color,
+            rgbAttrib='fillRGB',#the name for this rgb value
+            colorAttrib='fillColor')#the name for this color
+    @AttributeSetter
+    def lineColor(self, color):
+        _setColor(self, color,
+            rgbAttrib='lineRGB',#the name for this rgb value
+            colorAttrib='lineColor')#the name for this color
     def setColor(self, color, colorSpace=None, operation=''):
         """For ShapeStim use :meth:`~ShapeStim.setLineColor` or
         :meth:`~ShapeStim.setFillColor`
@@ -7716,10 +7724,7 @@ def _setColor(self, color, colorSpace=None, operation='',
             raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
                 %(operation, self.colorSpace, colorSpace))
     else:#OK to update current color
-        if hasattr(self, colorAttrib) and getattr(self, colorAttrib) is not None:
-            _setWithOperation(self, colorAttrib, color, operation, True)
-        else:
-            self.__dict__[colorAttrib] = color
+        _setWithOperation(self, colorAttrib, color, operation, True)
     #get window (for color conversions)
     if colorSpace in ['dkl','lms']: #only needed for these spaces
         if hasattr(self,'dkl_rgb'):
@@ -7796,7 +7801,14 @@ def _setWithOperation(self, attrib, value, operation, stealth=False):
         else:
             raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
     except AttributeError:
+        # attribute is not set yet. Do it now in a non-updating manner
         newValue = value
+    except TypeError:
+        # Attribute is "None" or unset and decorated. This is a sign that we are just initing
+        if oldValue is None or isinstance(oldValue, AttributeSetter):
+            newValue = value
+        else:
+            raise TypeError
     finally:
         # Set new value, with or without callback
         if stealth:
