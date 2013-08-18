@@ -1448,6 +1448,18 @@ class _BaseVisualStim(object):
         self._set('rgb', newRGB, operation)
         _setTexIfNoShaders(self)
 
+    @AttributeSetter
+    def color(self, color):
+        """ IN PROGRESS, not implemented yet. Use .setColor() for now """
+        _setColor(self,
+                  color,
+                  colorSpace=None,
+                  operation='',
+                  rgbAttrib='rgb', #or 'fillRGB' etc
+                  colorAttrib='color',
+                  log=True)
+
+
     def setColor(self, color, colorSpace=None, operation='', log=True):
         """Set the color of the stimulus. See :ref:`colorspaces` for further information
         about the various ways to specify colors and their various implications.
@@ -2374,6 +2386,7 @@ class GratingStim(_BaseVisualStim):
         self.__dict__['size'] = 1
         self.__dict__['sf'] = 1
         self.__dict__['tex'] = tex
+        self.__dict__['color'] = val2array(color, length=3)
 
         #initialise textures and masks for stimulus
         self._texID = GL.GLuint()
@@ -7680,19 +7693,14 @@ def _setColor(self, color, colorSpace=None, operation='',
 #                    pass#this will be handled with AttributeError below
         #we got a string, but it isn't in the list of named colors and doesn't work as a hex
         raise AttributeError("PsychoPy can't interpret the color string '%s'" %color)
-    elif isScalar:
-        color = numpy.asarray([color,color,color],float)
-    elif type(color) in [tuple,list]:
-        color = numpy.asarray(color,float)
-    elif type(color) ==numpy.ndarray:
-        pass
-    elif color==None:
-        setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
-        setattr(self,colorAttrib,None) #e.g. self.color='#000000'
-        setattr(self,colorSpaceAttrib,None)#e.g. self.colorSpace='hex'
-        _setTexIfNoShaders(self)
     else:
-        raise AttributeError("PsychoPy can't interpret the color %s (type=%s)" %(color, type(color)))
+        color = val2array(color, length=3)
+
+        if color==None:
+            setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
+            setattr(self,colorAttrib,None) #e.g. self.color='#000000'
+            setattr(self,colorSpaceAttrib,None)#e.g. self.colorSpace='hex'
+            _setTexIfNoShaders(self)
 
     #at this point we have a numpy array of 3 vals (actually we haven't checked that there are 3)
     #check if colorSpace is given and use self.colorSpace if not
