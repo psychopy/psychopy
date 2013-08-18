@@ -7675,14 +7675,14 @@ def _setColor(self, color, colorSpace=None, operation='',
         if color.lower() in colors.colors255.keys():
             #set rgb, color and colorSpace
             setattr(self,rgbAttrib,numpy.array(colors.colors255[color.lower()], float))
-            setattr(self,colorSpaceAttrib,'named')#e.g. self.colorSpace='named'
-            setattr(self,colorAttrib,color) #e.g. self.color='red'
+            setattr(self,colorSpaceAttrib,'named')#e.g. 3rSpace='named'
+            self.__dict__[colorAttrib] = color  #e.g. self.color='red'
             _setTexIfNoShaders(self)
             return
         elif color[0]=='#' or color[0:2]=='0x':
             setattr(self,rgbAttrib,numpy.array(colors.hex2rgb255(color)))#e.g. self.rgb=[0,0,0]
-            setattr(self,colorAttrib,color) #e.g. self.color='#000000'
             setattr(self,colorSpaceAttrib,'hex')#e.g. self.colorSpace='hex'
+            self.__dict__[colorAttrib] = color  #e.g. Qr='#000000'
             _setTexIfNoShaders(self)
             return
         #we got a string, but it isn't in the list of named colors and doesn't work as a hex
@@ -7695,8 +7695,8 @@ def _setColor(self, color, colorSpace=None, operation='',
 
         if color==None:
             setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
-            setattr(self,colorAttrib,None) #e.g. self.color='#000000'
             setattr(self,colorSpaceAttrib,None)#e.g. self.colorSpace='hex'
+            self.__dict__[colorAttrib] = None  #e.g. self.color='#000000'
             _setTexIfNoShaders(self)
 
     #at this point we have a numpy array of 3 vals (actually we haven't checked that there are 3)
@@ -7719,7 +7719,7 @@ def _setColor(self, color, colorSpace=None, operation='',
         if hasattr(self, 'color'):
             _setWithOperation(self, colorAttrib, color, operation)
         else:
-            setattr(self, colorAttrib, color)
+            self.__dict__[colorAttrib] = color
     #get window (for color conversions)
     if colorSpace in ['dkl','lms']: #only needed for these spaces
         if hasattr(self,'dkl_rgb'):
