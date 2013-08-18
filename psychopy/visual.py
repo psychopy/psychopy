@@ -7670,6 +7670,7 @@ def _setColor(self, color, colorSpace=None, operation='',
     if colorSpaceAttrib==None:
         colorSpaceAttrib = colorAttrib+'Space'
 
+    # Handle strings and returns immediately as operations, colorspace etc. does not apply here.
     if type(color) in [str, unicode, numpy.string_]:
         if color.lower() in colors.colors255.keys():
             #set rgb, color and colorSpace
@@ -7684,10 +7685,11 @@ def _setColor(self, color, colorSpace=None, operation='',
             setattr(self,colorSpaceAttrib,'hex')#e.g. self.colorSpace='hex'
             _setTexIfNoShaders(self)
             return
-#                except:
-#                    pass#this will be handled with AttributeError below
         #we got a string, but it isn't in the list of named colors and doesn't work as a hex
-        raise AttributeError("PsychoPy can't interpret the color string '%s'" %color)
+        else:
+            raise AttributeError("PsychoPy can't interpret the color string '%s'" %color)
+
+    # If it wasn't a strin, do check and conversion of scalars, sequences and other stuff.
     else:
         color = val2array(color, length=3)
 
