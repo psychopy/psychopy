@@ -7776,20 +7776,23 @@ def _setWithOperation(self, attrib, value, operation, stealth=False):
     # Calculate new value using operation
     if not hasattr(self,attrib):
         newValue = value
-    elif operation == '':
-        newValue = getattr(self, attrib) * 0 + value  # Preserves dimensions, if array
+    else:
+        oldValue = getattr(self, attrib)
+
+    if operation == '':
+        newValue = oldValue * 0 + value  # Preserves dimensions, if array
     elif operation == '+':
-        newValue = getattr(self, attrib) + value
+        newValue = oldValue + value
     elif operation == '*':
-        newValue = getattr(self, attrib) * value
+        newValue = oldValue * value
     elif operation == '-':
-        newValue = getattr(self, attrib) - value
+        newValue = oldValue - value
     elif operation == '/':
-        newValue = getattr(self, attrib) / value
+        newValue = oldValue / value
     elif operation == '**':
-        newValue = getattr(self, attrib) ** value
+        newValue = oldValue ** value
     elif operation == '%':
-        newValue = getattr(self, attrib) % value
+        newValue = oldValue % value
     else:
         raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
 
