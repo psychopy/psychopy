@@ -1235,6 +1235,17 @@ class _BaseVisualStim(object):
             self._winScale=self.units
         else: self._winScale='pix' #set the window to have pixels coords
 
+    # Might seem simple at first, but this ensures that "name" attribute
+    # appears in docs and that name setting and updating is logged.
+    @AttributeSetter
+    def name(self, value):
+        """
+        String
+
+            The name of the object to be using during logged messages about this stim
+        """
+        self.__dict__['name'] = value
+
     @AttributeSetter
     def opacity(self, value):
         """
@@ -1754,11 +1765,6 @@ class DotStim(_BaseVisualStim):
                 This can be any object that has a ``.draw()`` method and a
                 ``.setPos([x,y])`` method (e.g. a GratingStim, TextStim...)!!
                 See `ElementArrayStim` for a faster implementation of this idea.
-
-            name : string
-                The name of the object to be using during logged messages about
-                this stimulus
-
             """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         self.nDots = nDots
@@ -2326,10 +2332,6 @@ class GratingStim(_BaseVisualStim):
             texRes:
                 resolution of the texture (if not loading from an image file)
 
-            name : string
-                The name of the object to be using during logged messages about
-                this stim
-
             maskParams: Various types of input. Default to None.
                 This is used to pass additional parameters to the mask if those
                 are needed.
@@ -2778,9 +2780,6 @@ class RadialStim(GratingStim):
             depth:
                 The depth argument is deprecated and may be removed in future versions.
                 Depth is controlled simply by drawing order.
-            name : string
-                The name of the object to be using during logged messages about
-                this stim
         """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
@@ -3908,9 +3907,6 @@ class MovieStim(_BaseVisualStim):
                 If True then the movie will be top-bottom flipped
             flipHoriz : True or *False*
                 If True then the movie will be right-left flipped
-            name : string
-                The name of the object to be using during logged messages about
-                this stim
             loop : bool, optional
                 Whether to start the movie over from the beginning if draw is
                 called and the movie is done.
@@ -4179,9 +4175,6 @@ class TextStim(_BaseVisualStim):
                 Mirror-reverse the text in the left-right direction
             flipVert : boolean
                 Mirror-reverse the text in the up-down direction
-            name : string
-                The name of the object to be using during logged messages about
-                this stim
         """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
 
@@ -4754,10 +4747,6 @@ class ShapeStim(_BaseVisualStim):
 
             interpolate : True or False
                 If True the edge of the line will be antialiased.
-
-            name : string
-                The name of the object to be using during logged messages about
-                this stim
                 """
 
         # Initialize inheritance and remove unwanted methods
@@ -5205,10 +5194,6 @@ class ImageStim(_BaseVisualStim):
             texRes:
                 Sets the resolution of the mask (this is independent of the image resolution)
 
-            name : string
-                The name of the object to be using during logged messages about
-                this stim
-
             maskParams: Various types of input. Default to None.
                 This is used to pass additional parameters to the mask if those
                 are needed.
@@ -5541,8 +5526,6 @@ class BufferImageStim(GratingStim):
                 horizontally flip (mirror) the captured image, default = False
             flipVert :
                 vertically flip (mirror) the captured image; default = False
-            name : string
-                The name of the object to be using in log messages about this stim
         """
         # depends on: window._getRegionOfFrame
 
