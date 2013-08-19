@@ -5,14 +5,16 @@
 
 # load the base prefs common to all platforms as a single string:
 baseSpec = open('baseNoArch.spec').read()
-warning = '\n# !! This file is auto-generated and will be overwritten!!\n#Edit baseNoArch.spec instead.'
+warning = '''\n\n# !! This file is auto-generated and will be overwritten!!
+# Edit baseNoArch.spec (all platforms) or generateSpec.py (platform-specific) instead.'''
 
 # Darwin:
 darwinSpec = baseSpec.replace('psychopy prefs for ALL PLATFORMS', 'psychopy prefs for Darwin.' + warning)
+darwinSpec = darwinSpec.replace("list('portaudio')", "list('coreaudio', 'portaudio')")
 darwinSpec = darwinSpec.replace("allowModuleImports = boolean(default='True')", '')
 darwinSpec = darwinSpec.replace("default='Helvetica'", "default='Monaco'")
 # Note: Darwin key-binding prefs should be given as Ctrl+O here, displayed as Cmd+O to user
-f = open('Darwin.spec', 'wb+')
+f = open('Darwin.spec', 'wb')
 f.write(darwinSpec)
 f.close()
 
@@ -21,21 +23,22 @@ linuxSpec = baseSpec.replace('psychopy prefs for ALL PLATFORMS', 'psychopy prefs
 linuxSpec = linuxSpec.replace('integer(6,24, default=14)','integer(6,24, default=12)')
 linuxSpec = linuxSpec.replace("default='Helvetica'", "default='Ubuntu Mono, DejaVu Sans Mono'")
 linuxSpec = linuxSpec.replace("allowModuleImports = boolean(default='True')", '')
-f = open('Linux.spec', 'wb+')
+f = open('Linux.spec', 'wb')
 f.write(linuxSpec)
 f.close()
 
 freeBSDSpec = linuxSpec.replace('psychopy prefs for Linux.', 'psychopy prefs for FreeBSD.')
 freeBSDSpec = freeBSDSpec.replace("default='Ubuntu Mono, DejaVu Sans Mono'", "default='Palatino Linotype'")
-f = open('FreeBSD.spec', 'wb+')
+f = open('FreeBSD.spec', 'wb')
 f.write(freeBSDSpec)
 f.close()
 
 # Windows:
 winSpec = baseSpec.replace('psychopy prefs for ALL PLATFORMS', 'psychopy prefs for Windows.'+ warning)
+winSpec = winSpec.replace("list('portaudio')", "list('Primary Sound','ASIO','Audigy')")
 winSpec = winSpec.replace("default='Helvetica'", "default='Lucida Console'")
 winSpec = winSpec.replace('integer(6,24, default=14)','integer(6,24, default=10)')
 winSpec = winSpec.replace('Ctrl+Q', 'Alt+F4')
-f = open('Windows.spec', 'wb+')
+f = open('Windows.spec', 'wb')
 f.write(winSpec)
 f.close()
