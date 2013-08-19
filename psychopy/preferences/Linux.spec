@@ -50,23 +50,21 @@
     largeIcons = boolean(default='True')
     # what windows to display when PsychoPy starts
     defaultView = option('last', 'builder', 'coder', 'both', default='last')
-    # reset preferences to defaults on next restart of PsychoPy
-    resetPrefs = boolean(default='False')
-    # save any unsaved preferences before closing the window
+    # will reset site & key prefs to defaults immediately
+    resetSitePrefs = boolean(default='False')
+    # save any unsaved prefences before closing the window
     autoSavePrefs = boolean(default='False')
     # enable features for debugging PsychoPy itself, including unit-tests
     debugMode = boolean(default='False')
-    # locale to use, e.g. en_US, en_US.UTF-8, ja_JP, etc; leave blank for default system locale
-    locale = string(default='')
 
 # Settings for the Coder window
 [coder]
     # a list of font names; the first one found on the system will be used
-    codeFont = string(default='Arial')
+    codeFont = string(default='Ubuntu Mono, DejaVu Sans Mono')
     # a list of font names; the first one found on the system will be used
-    commentFont = string(default='Comic Sans MS')
+    commentFont = string(default='Ubuntu Mono, DejaVu Sans Mono')
     # a list of font names; the first one found on the system will be used
-    outputFont = string(default='Courier New')
+    outputFont = string(default='Ubuntu Mono, DejaVu Sans Mono')
     # Font size (in pts) takes an integer between 6 and 24
     codeFontSize = integer(6,24, default=12)
     # Font size (in pts) takes an integer between 6 and 24
@@ -84,13 +82,14 @@
     # if False will create scripts with an 'easier' but more cluttered namespace
     unclutteredNamespace = boolean(default=False)
     # folder names for custom components; expects a comma-separated list
-    componentsFolders = list(default=list('/usr/share/pyshared/psychopy/app/builder/components'))
+    componentsFolders = list(default=list('/Users/Shared/PsychoPy2/components'))
     # a list of components to hide (eg, because you never use them)
     hiddenComponents = list(default=list('PatchComponent'))
     # where the Builder demos are located on this computer (after unpacking)
     unpackedDemosDir = string(default='')
     # name of the folder where subject data should be saved (relative to the script)
     savedDataFolder = string(default='data')
+    topFlow = boolean(default=False)
     # Panels arrangement: topFlow = Flow on top, Components on left
     topFlow = boolean(default=False)
     alwaysShowReadme = boolean(default=True)
@@ -98,7 +97,7 @@
 
 # Settings for connections
 [connections]
-    # the http proxy for usage stats and auto-updating; format is host:port
+    # the http proxy for usage stats and auto-updating; format is 000.000.000.000:0000
     proxy = string(default="")
     # override the above proxy settings with values found in the environment (if possible)
     autoProxy = boolean(default=True)
@@ -106,8 +105,6 @@
     allowUsageStats = boolean(default=True)
     # allow PsychoPy to check for new features and bug fixes
     checkForUpdates = boolean(default=True)
-    # max time to wait for a connection response
-    timeout = float(default=20)
 
 # KeyBindings; new key bindings only take effect on restart; Ctrl not available on Mac (use Cmd)
 [keyBindings]
@@ -119,8 +116,6 @@
     save = string(default='Ctrl+S')
     # save a Builder or Coder file under a new name
     saveAs = string(default='Ctrl+Shift+S')
-    # Coder: print the file
-    print = string(default='Ctrl+P')
     # close the Builder or Coder window
     close = string(default='Ctrl+W')
     # end the application (PsychoPy)
@@ -187,8 +182,8 @@
     # decrease display size in Flow
     smallerFlow = string(default='Ctrl+-')
     # increase display size of Routines
-    largerRoutine = string(default='Ctrl++') # good in ubuntu virtual machine (on mac book pro...)
+    largerRoutine = string(default='Ctrl+Shift+=') # on mac book pro this is good
     # decrease display size of Routines
-    smallerRoutine = string(default='Ctrl+_')
+    smallerRoutine = string(default='Ctrl+Shift+-')
     #show or hide the readme (info) for this experiment if possible
     toggleReadme = string(default='Ctrl+I')
