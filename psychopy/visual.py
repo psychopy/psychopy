@@ -1421,6 +1421,49 @@ class _BaseVisualStim(object):
 
     @AttributeSetter
     def color(self, value):
+        """
+        String: color name or hex.
+
+        Scalar or sequence for rgb, dkl or other :ref:`colorspaces`. :ref:`operations <attrib-operations>` supported for these.
+
+            OBS: when color is specified using numbers, it is interpreted with
+            respect to the stimulus' current colorSpace.
+
+            Can be specified in one of many ways. If a string is given then it
+            is interpreted as the name of the color. Any of the standard html/X11
+            `color names <http://www.w3schools.com/html/html_colornames.asp>`
+            can be used. e.g.::
+
+                myStim.color = 'white'
+                myStim.color = 'RoyalBlue'  #(the case is actually ignored)
+
+            A hex value can be provided, also formatted as with web colors. This can be
+            provided as a string that begins with # (not using python's usual 0x000000 format)::
+
+                myStim.color = '#DDA0DD'  #DDA0DD is hexadecimal for plum
+
+            You can also provide a triplet of values, which refer to the coordinates
+            in one of the :ref:`colorspaces`. If no color space is specified then the color
+            space most recently used for this stimulus is used again.::
+
+                myStim.color = [1.0,-1.0,-1.0]  #if colorSpace='rgb': a red color in rgb space
+                myStim.color = [0.0,45.0,1.0] #if colorSpace='dkl': DKL space with elev=0, azimuth=45
+                myStim.color = [0,0,255] #if colorSpace='rgb255': a blue stimulus using rgb255 space
+
+            Lastly, a single number can be provided, x, which is equivalent to providing
+            [x,x,x].::
+
+                myStim.color = 255  #if colorSpace='rgb255': all guns o max
+
+            :ref:`Operations <attrib-operations>` work just like with x-y pairs,
+            but has a different meaning here. For colors specified as a triplet
+            of values (or single intensity value) the new value will perform
+            this operation on the previous color. Assuming that colorSpace='rgb'::
+
+                thisStim.color += [1,1,1]  #increment all guns by 1 value
+                thisStim.color *= -1  #multiply the color by -1 (which in this space inverts the contrast)
+                thisStim.color *= [0.5, 0, 1]  #decrease red, remove green, keep blue
+        """
         _setColor(self, value, rgbAttrib='rgb', colorAttrib='color')
 
     @AttributeSetter
@@ -1472,58 +1515,20 @@ class _BaseVisualStim(object):
         self._set('rgb', newRGB, operation)
         _setTexIfNoShaders(self)
     def setColor(self, color, colorSpace=None, operation='', log=True):
-        """Set the color of the window.
-
-        NB This command sets the color that the blank screen will have on the next
-        clear operation. As a result it effectively takes TWO `flip()` operations to become
-        visible (the first uses the color to create the new screen, the second presents
-        that screen to the viewer).
-
-        See :ref:`colorspaces` for further information about the ways to specify colors and their various implications.
+        """
+        Set the color of the stimulus.
+        OBS: can be set using stim.color = value syntax instead.
 
         :Parameters:
 
         color :
-            Can be specified in one of many ways. If a string is given then it
-            is interpreted as the name of the color. Any of the standard html/X11
-            `color names <http://www.w3schools.com/html/html_colornames.asp>`
-            can be used. e.g.::
-
-                myStim.setColor('white')
-                myStim.setColor('RoyalBlue')#(the case is actually ignored)
-
-            A hex value can be provided, also formatted as with web colors. This can be
-            provided as a string that begins with # (not using python's usual 0x000000 format)::
-
-                myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
-
-            You can also provide a triplet of values, which refer to the coordinates
-            in one of the :ref:`colorspaces`. If no color space is specified then the color
-            space most recently used for this stimulus is used again.
-
-                myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
-                myStim.setColor([0.0,45.0,1.0], 'dkl') #DKL space with elev=0, azimuth=45
-                myStim.setColor([0,0,255], 'rgb255') #a blue stimulus using rgb255 space
-
-            Lastly, a single number can be provided, x, which is equivalent to providing
-            [x,x,x].
-
-                myStim.setColor(255, 'rgb255') #all guns o max
+            see documentation for color.
 
         colorSpace : string or None
-
-            defining which of the :ref:`colorspaces` to use. For strings and hex
-            values this is not needed. If None the default colorSpace for the stimulus is
-            used (defined during initialisation).
+            see documentation for colorSpace
 
         operation : one of '+','-','*','/', or '' for no operation (simply replace value)
-
-            for colors specified as a triplet of values (or single intensity value)
-            the new value will perform this operation on the previous color
-
-                thisStim.setColor([1,1,1],'rgb255','+')#increment all guns by 1 value
-                thisStim.setColor(-1, 'rgb', '*') #multiply the color by -1 (which in this space inverts the contrast)
-                thisStim.setColor([10,0,0], 'dkl', '+')#raise the elevation from the isoluminant plane by 10 deg
+            see documentation for color.
         """
         _setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='rgb', #or 'fillRGB' etc
@@ -1752,35 +1757,6 @@ class DotStim(_BaseVisualStim):
                 random position every frame. For 'direction' noise dots follow a
                 random, but constant direction. For 'walk' noise dots vary their
                 direction every frame, but keep a constant speed.
-
-            color:
-
-                Could be a:
-
-                    - web name for a color (e.g. 'FireBrick');
-                    - hex value (e.g. '#FF0047');
-                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
-
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
-
-            colorSpace:
-
-                The color space controlling the interpretation of the `color`
-                See :ref:`colorspaces`
-
-            opacity : float (default= *1.0* )
-                1.0 is opaque, 0.0 is transparent
-
-            contrast: float (default= *1.0* )
-                How far the stimulus deviates from the middle grey.
-                Contrast can vary -1:1 (this is a multiplier for the
-                values given in the color description of the stimulus).
-
-            depth:
-
-                The depth argument is deprecated and may be removed in future versions.
-                Depth is controlled simply by drawing order.
 
             element : *None* or a visual stimulus object
                 This can be any object that has a ``.draw()`` method and a
@@ -2355,30 +2331,8 @@ class GratingStim(_BaseVisualStim):
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used.
                 See :ref:`units` for explanation of other options.
 
-            size :
-                .. note::
-
-                    If the mask is Gaussian ('gauss'), then the 'size' parameter refers to
-                    the stimulus at 3 standard deviations on each side of the
-                    centre (ie. sd=size/6)
-
             texRes:
                 resolution of the texture (if not loading from an image file)
-
-            color:
-
-                Could be a:
-
-                    - web name for a color (e.g. 'FireBrick');
-                    - hex value (e.g. '#FF0047');
-                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
-
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
-
-            colorSpace:
-                the color space controlling the interpretation of the `color`
-                See :ref:`colorspaces`
 
             name : string
                 The name of the object to be using during logged messages about
@@ -3958,36 +3912,10 @@ class MovieStim(_BaseVisualStim):
             units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used.
                 See :ref:`units` for explanation of other options.
-            pos :
-                position of the centre of the movie, given in the units specified
             flipVert : True or *False*
                 If True then the movie will be top-bottom flipped
             flipHoriz : True or *False*
                 If True then the movie will be right-left flipped
-            ori :
-                Orientation of the stimulus in degrees
-            size :
-                Size of the stimulus in units given. If not specified then the movie will take its
-                original dimensions.
-            color:
-                Modified the weight of the colors in the movie. E,g, color="red"
-                will only display the red parts of the movie and make all other
-                things black. white (color=(1,1,1)) is the original colors.
-
-                Could be a:
-
-                    - web name for a color (e.g. 'FireBrick');
-                    - hex value (e.g. '#FF0047');
-                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
-
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
-
-            colorSpace:
-                the color space controlling the interpretation of the `color`
-                See :ref:`colorspaces`
-            opacity :
-                the movie can be made transparent by reducing this
             name : string
                 The name of the object to be using during logged messages about
                 this stim
@@ -4236,33 +4164,9 @@ class TextStim(_BaseVisualStim):
                 Required - the stimulus must know where to draw itself
             text:
                 The text to be rendered
-            pos:
-                Position on the screen
-            color:
-
-                Could be a:
-
-                    - web name for a color (e.g. 'FireBrick');
-                    - hex value (e.g. '#FF0047');
-                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
-
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
-
-            colorSpace:
-                the color space controlling the interpretation of the `color`
-                See :ref:`colorspaces`
-            contrast: float (default= *1.0* )
-                How far the stimulus deviates from the middle grey.
-                Contrast can vary -1:1 (this is a multiplier for the
-                values given in the color description of the stimulus).
-            opacity: float (default= *1.0* )
-                How transparent the object will be (0 for transparent, 1 for opaque)
             units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used.
                 See :ref:`units` for explanation of other options.
-            ori:
-                Orientation of the text
             height:
                 Height of the characters (including the ascent of the letter and the descent)
             antialias:
@@ -4286,9 +4190,6 @@ class TextStim(_BaseVisualStim):
             name : string
                 The name of the object to be using during logged messages about
                 this stim
-            depth:
-                The depth argument is deprecated and may be removed in future versions.
-                Depth is controlled simply by drawing order.
         """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
 
@@ -4850,32 +4751,6 @@ class ShapeStim(_BaseVisualStim):
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used.
                 See :ref:`units` for explanation of other options.
 
-            lineColor :
-
-                Could be a:
-
-                    - web name for a color (e.g. 'FireBrick');
-                    - hex value (e.g. '#FF0047');
-                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
-
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
-
-            lineColorSpace:
-                The color space controlling the interpretation of the `lineColor`.
-                See :ref:`colorspaces`
-
-            fillColor :
-
-                Could be a:
-
-                    - web name for a color (e.g. 'FireBrick');
-                    - hex value (e.g. '#FF0047');
-                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
-
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
-
             lineWidth : int (or float?)
                 specifying the line width in **pixels**
 
@@ -4884,29 +4759,6 @@ class ShapeStim(_BaseVisualStim):
 
             closeShape : True or False
                 Do you want the last vertex to be automatically connected to the first?
-
-            pos : tuple, list or 2x1 array
-                the position of the anchor for the stimulus (relative to which the vertices are drawn)
-
-            size : float, int, tuple, list or 2x1 array
-                Scales the ShapeStim up or down. Size is independent of the units, i.e.
-                setting the size to 1.5 will make the stimulus to be 1.5 times it's original size
-                as defined by the vertices. Use a 2-tuple to scale asymmetrically.
-
-            ori : float or int
-                the shape can be rotated around the anchor
-
-            opacity : float (default= *1.0* )
-                1.0 is opaque, 0.0 is transparent
-
-            contrast: float (default= *1.0* )
-                How far the stimulus deviates from the middle grey.
-                Contrast can vary -1:1 (this is a multiplier for the
-                values given in the color description of the stimulus).
-
-            depth:
-                The depth argument is deprecated and may be removed in future versions.
-                Depth is controlled simply by drawing order.
 
             interpolate : True or False
                 If True the edge of the line will be antialiased.
@@ -5358,56 +5210,8 @@ class ImageStim(_BaseVisualStim):
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used.
                 See :ref:`units` for explanation of other options.
 
-            pos :
-                a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
-                The origin is the screen centre, the units are determined
-                by units (see above). Stimuli can be position beyond the
-                window!
-
-            size :
-                a tuple (0.5,0.5) or a list [0.5,0.5] for the x and y
-                OR a single value (which will be applied to x and y).
-                Units are specified by 'units' (see above).
-                Sizes can be negative and can extend beyond the window.
-
-                .. note::
-
-                    If the mask is Gaussian ('gauss'), then the 'size' parameter refers to
-                    the stimulus at 3 standard deviations on each side of the
-                    centre (ie. sd=size/6)
-
-            ori:
-                orientation of stimulus in degrees
-
-            color:
-
-                Could be a:
-
-                    - web name for a color (e.g. 'FireBrick');
-                    - hex value (e.g. '#FF0047');
-                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
-
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
-
-            colorSpace:
-                the color space controlling the interpretation of the `color`
-                See :ref:`colorspaces`
-
-            contrast: float (default= *1.0* )
-                How far the stimulus deviates from the middle grey.
-                Contrast can vary -1:1 (this is a multiplier for the
-                values given in the color description of the stimulus).
-
-            opacity: float (default= *1.0* )
-                1.0 is opaque, 0.0 is transparent
-
             texRes:
                 Sets the resolution of the mask (this is independent of the image resolution)
-
-            depth:
-                The depth argument is deprecated and may be removed in future versions.
-                Depth is controlled simply by drawing order.
 
             name : string
                 The name of the object to be using during logged messages about
