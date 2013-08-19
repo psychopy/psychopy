@@ -4,14 +4,6 @@
 # Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-def inspect():
-    import traceback
-    for line in traceback.extract_stack():
-        print ''
-        print line[0], line[1], line[2]
-        print '   ', line[3]
-    print '-----------------'
-
 import sys, os, glob, copy
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
