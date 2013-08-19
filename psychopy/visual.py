@@ -4,6 +4,14 @@
 # Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+def inspect():
+    import traceback
+    for line in traceback.extract_stack():
+        print ''
+        print line[0], line[1], line[2]
+        print '   ', line[3]
+    print '-----------------'
+
 import sys, os, glob, copy
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -1410,6 +1418,22 @@ class _BaseVisualStim(object):
         Deprecated. Depth is now controlled simply by drawing order.
         """
         self.__dict__['depth'] = value
+
+    @AttributeSetter
+    def color(self, value):
+        _setColor(self, value, rgbAttrib='rgb', colorAttrib='color')
+
+    @AttributeSetter
+    def colorSpace(self, value):
+        """
+        String or None
+
+            defining which of the :ref:`colorspaces` to use. For strings and hex
+            values this is not needed. If None the default colorSpace for the stimulus is
+            used (defined during initialisation).
+        """
+        self.__dict__['colorSpace'] = value
+
     def draw(self):
         raise NotImplementedError('Stimulus classes must overide _BaseVisualStim.draw')
     def setPos(self, newPos, operation='', log=True):
@@ -1447,19 +1471,15 @@ class _BaseVisualStim(object):
         """
         self._set('rgb', newRGB, operation)
         _setTexIfNoShaders(self)
-
-    @AttributeSetter
-    def color(self, color):
-        """ IN PROGRESS, not implemented yet. Use .setColor() for now """
-        _setColor(self,
-                  color,
-                  rgbAttrib='rgb', #or 'fillRGB' etc
-                  colorAttrib='color')
-
-
     def setColor(self, color, colorSpace=None, operation='', log=True):
-        """Set the color of the stimulus. See :ref:`colorspaces` for further information
-        about the various ways to specify colors and their various implications.
+        """Set the color of the window.
+
+        NB This command sets the color that the blank screen will have on the next
+        clear operation. As a result it effectively takes TWO `flip()` operations to become
+        visible (the first uses the color to create the new screen, the second presents
+        that screen to the viewer).
+
+        See :ref:`colorspaces` for further information about the ways to specify colors and their various implications.
 
         :Parameters:
 
@@ -1479,14 +1499,14 @@ class _BaseVisualStim(object):
 
             You can also provide a triplet of values, which refer to the coordinates
             in one of the :ref:`colorspaces`. If no color space is specified then the color
-            space most recently used for this stimulus is used again.::
+            space most recently used for this stimulus is used again.
 
                 myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
                 myStim.setColor([0.0,45.0,1.0], 'dkl') #DKL space with elev=0, azimuth=45
                 myStim.setColor([0,0,255], 'rgb255') #a blue stimulus using rgb255 space
 
             Lastly, a single number can be provided, x, which is equivalent to providing
-            [x,x,x].::
+            [x,x,x].
 
                 myStim.setColor(255, 'rgb255') #all guns o max
 
@@ -1499,7 +1519,7 @@ class _BaseVisualStim(object):
         operation : one of '+','-','*','/', or '' for no operation (simply replace value)
 
             for colors specified as a triplet of values (or single intensity value)
-            the new value will perform this operation on the previous color::
+            the new value will perform this operation on the previous color
 
                 thisStim.setColor([1,1,1],'rgb255','+')#increment all guns by 1 value
                 thisStim.setColor(-1, 'rgb', '*') #multiply the color by -1 (which in this space inverts the contrast)
@@ -2395,8 +2415,7 @@ class GratingStim(_BaseVisualStim):
 
         #NB Pedestal isn't currently being used during rendering - this is a place-holder
         self.rgbPedestal = val2array(rgbPedestal, False, length=3)
-
-        self.colorSpace = colorSpace
+        self.__dict__['colorSpace'] = colorSpace  # No need to invoke decorator for color updating. It is done just below.
         if rgb != None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
             self.setColor(rgb, colorSpace='rgb', log=False)
@@ -4897,8 +4916,11 @@ class ShapeStim(_BaseVisualStim):
                 this stim
                 """
 
-
+        # Initialize inheritance and remove unwanted methods
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        self.__dict__['setColor'] = None
+        self.__dict__['color'] = None
+        self.__dict__['colorSpace'] = None
 
         self.contrast = float(contrast)
         self.opacity = float(opacity)
@@ -4907,21 +4929,24 @@ class ShapeStim(_BaseVisualStim):
         self.lineWidth=lineWidth
         self.interpolate=interpolate
 
+        # Color stuff
         self.useShaders=False#since we don't ned to combine textures with colors
-        self.lineColorSpace=lineColorSpace
+        self.__dict__['lineColorSpace'] = lineColorSpace
+        self.__dict__['fillColorSpace'] = fillColorSpace
+
         if lineRGB!=None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
             self.setLineColor(lineRGB, colorSpace='rgb')
         else:
             self.setLineColor(lineColor, colorSpace=lineColorSpace)
 
-        self.fillColorSpace=fillColorSpace
         if fillRGB!=None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
             self.setFillColor(fillRGB, colorSpace='rgb')
         else:
             self.setFillColor(fillColor, colorSpace=fillColorSpace)
 
+        # Other stuff
         self.depth=depth
         self.ori = numpy.array(ori,float)
         self.size = numpy.array([0.0,0.0])
@@ -4931,19 +4956,46 @@ class ShapeStim(_BaseVisualStim):
 
     @AttributeSetter
     def fillColor(self, color):
-        _setColor(self, color,
-            rgbAttrib='fillRGB',#the name for this rgb value
-            colorAttrib='fillColor')#the name for this color
+        """
+        Sets the color of the shape fill. See :meth:`psychopy.visual.GratingStim.color`
+        for further details of how to use this function.
+
+        Note that shapes where some vertices point inwards will usually not
+        'fill' correctly.
+        """
+        _setColor(self, color, rgbAttrib='fillRGB', colorAttrib='fillColor')
+
     @AttributeSetter
     def lineColor(self, color):
-        _setColor(self, color,
-            rgbAttrib='lineRGB',#the name for this rgb value
-            colorAttrib='lineColor')#the name for this color
-    def setColor(self, color, colorSpace=None, operation=''):
-        """For ShapeStim use :meth:`~ShapeStim.setLineColor` or
-        :meth:`~ShapeStim.setFillColor`
+        _setColor(self, color, rgbAttrib='lineRGB', colorAttrib='lineColor')
+
+    @AttributeSetter
+    def fillColorSpace(self, value):
         """
-        raise AttributeError, 'ShapeStim does not support setColor method. Please use setFillColor or setLineColor instead'
+        Sets color space for fill color. See documentation for lineColorSpace
+        """
+        self.__dict__['fillColorSpace'] = value
+
+    @AttributeSetter
+    def lineColorSpace(self, value):
+        """
+        String or None
+            defining which of the :ref:`colorspaces` to use. For strings and hex
+            values this is not needed. If None the default colorSpace for the stimulus is
+            used
+
+            Example::
+                stim.lineColor = (1, 0, 0)  # lines are red in the default 'rgb' colorSpace
+                stim.lineColorSpace = 'rgb255'  # lines are now almost-black
+                stim.lineColor = (128, 255, 128) # lines are pale blue
+        """
+        self.__dict__['lineColorSpace'] = value
+
+    #def setColor(self, color, colorSpace=None, operation=''):
+    #    """For ShapeStim use :meth:`~ShapeStim.setLineColor` or
+    #    :meth:`~ShapeStim.setFillColor`
+    #    """
+    #    raise AttributeError, 'ShapeStim does not support setColor method. Please use setFillColor or setLineColor instead'
     def setLineRGB(self, value, operation=''):
         """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.setLineColor`
         """
@@ -5401,7 +5453,7 @@ class ImageStim(_BaseVisualStim):
         #color and contrast etc
         self.contrast = float(contrast)
         self.opacity = float(opacity)
-        self.colorSpace=colorSpace
+        self.__dict__['colorSpace'] = colorSpace  #omit decorator
         self.setColor(color, colorSpace=colorSpace, log=False)
         self.rgbPedestal=[0,0,0]#does an rgb pedestal make sense for an image?
 
@@ -7680,13 +7732,13 @@ def _setColor(self, color, colorSpace=None, operation='',
         if color.lower() in colors.colors255.keys():
             #set rgb, color and colorSpace
             setattr(self,rgbAttrib,numpy.array(colors.colors255[color.lower()], float))
-            setattr(self,colorSpaceAttrib,'named')#e.g. 3rSpace='named'
+            self.__dict__[colorSpaceAttrib] = 'named'  #e.g. 3rSpace='named'
             self.__dict__[colorAttrib] = color  #e.g. self.color='red'
             _setTexIfNoShaders(self)
             return
         elif color[0]=='#' or color[0:2]=='0x':
             setattr(self,rgbAttrib,numpy.array(colors.hex2rgb255(color)))#e.g. self.rgb=[0,0,0]
-            setattr(self,colorSpaceAttrib,'hex')#e.g. self.colorSpace='hex'
+            self.__dict__[colorSpaceAttrib] = 'hex'  #e.g. self.colorSpace='hex'
             self.__dict__[colorAttrib] = color  #e.g. Qr='#000000'
             _setTexIfNoShaders(self)
             return
@@ -7700,7 +7752,7 @@ def _setColor(self, color, colorSpace=None, operation='',
 
         if color==None:
             setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
-            setattr(self,colorSpaceAttrib,None)#e.g. self.colorSpace='hex'
+            self.__dict__[colorSpaceAttrib] = None  #e.g. self.colorSpace='hex'
             self.__dict__[colorAttrib] = None  #e.g. self.color='#000000'
             _setTexIfNoShaders(self)
 
@@ -7755,7 +7807,7 @@ def _setColor(self, color, colorSpace=None, operation='',
         setattr(self,rgbAttrib, colors.hsv2rgb(numpy.asarray(newColor)) )
     else:
         logging.error('Unknown colorSpace: %s' %colorSpace)
-    setattr(self,colorSpaceAttrib, colorSpace)#store name of colorSpace for future ref and for drawing
+    self.__dict__[colorSpaceAttrib] = colorSpace  #store name of colorSpace for future ref and for drawing
     #if needed, set the texture too
     _setTexIfNoShaders(self)
 
