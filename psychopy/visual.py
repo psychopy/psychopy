@@ -1227,13 +1227,7 @@ class _BaseVisualStim(object):
         self.name = name
         self.autoLog = autoLog
         self.status = NOT_STARTED
-        #unit conversions
-        if units != None and len(units):
-            self.units = units
-        else: self.units = win.units
-        if self.units in ['norm', 'height']:
-            self._winScale=self.units
-        else: self._winScale='pix' #set the window to have pixels coords
+        self.units = units
 
     # Might seem simple at first, but this ensures that "name" attribute
     # appears in docs and that name setting and updating is logged.
@@ -1245,6 +1239,24 @@ class _BaseVisualStim(object):
             The name of the object to be using during logged messages about this stim
         """
         self.__dict__['name'] = value
+
+    @AttributeSetter
+    def units(self, value):
+        """
+        **None**, 'norm', 'cm', 'deg' or 'pix'
+
+            If None then the current units of the :class:`~psychopy.visual.Window` will be used.
+            See :ref:`units` for explanation of other options.
+        """
+        if value != None and len(value):
+            self.__dict__['units'] = value
+        else:
+            self.__dict__['units'] = self.win.units
+
+        if self.units in ['norm', 'height']:
+            self._winScale=self.units
+        else:
+            self._winScale='pix' #set the window to have pixels coords
 
     @AttributeSetter
     def opacity(self, value):
@@ -1731,9 +1743,6 @@ class DotStim(_BaseVisualStim):
 
             win :
                 a :class:`~psychopy.visual.Window` object (required)
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'
-                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-                See :ref:`units` for explanation of other options.
             nDots : int
                 number of dots to be generated
             fieldPos : (x,y) or [x,y]
@@ -2325,10 +2334,6 @@ class GratingStim(_BaseVisualStim):
             win :
                 a :class:`~psychopy.visual.Window` object (required)
 
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'
-                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-                See :ref:`units` for explanation of other options.
-
             texRes:
                 resolution of the texture (if not loading from an image file)
 
@@ -2735,9 +2740,6 @@ class RadialStim(GratingStim):
             mask : **none** or 'gauss'
                 Unlike the mask in the GratingStim, this is a 1-D mask dictating the behaviour
                 from the centre of the stimulus to the surround.
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'
-                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-                See :ref:`units` for explanation of other options.
             pos :
                 a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
                 Stimuli can be position beyond the window!
@@ -3900,9 +3902,6 @@ class MovieStim(_BaseVisualStim):
             filename :
                 a string giving the relative or absolute path to the movie. Can be any movie that
                 AVbin can read (e.g. mpeg, DivX)
-            units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'
-                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-                See :ref:`units` for explanation of other options.
             flipVert : True or *False*
                 If True then the movie will be top-bottom flipped
             flipHoriz : True or *False*
@@ -4152,9 +4151,6 @@ class TextStim(_BaseVisualStim):
                 Required - the stimulus must know where to draw itself
             text:
                 The text to be rendered
-            units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'
-                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-                See :ref:`units` for explanation of other options.
             height:
                 Height of the characters (including the ascent of the letter and the descent)
             antialias:
@@ -4732,10 +4728,6 @@ class ShapeStim(_BaseVisualStim):
             win :
                 A :class:`~psychopy.visual.Window` object (required)
 
-            units :  **None**, 'norm', 'cm', 'deg' or 'pix'
-                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-                See :ref:`units` for explanation of other options.
-
             lineWidth : int (or float?)
                 specifying the line width in **pixels**
 
@@ -5186,10 +5178,6 @@ class ImageStim(_BaseVisualStim):
                 + **None**, 'circle', 'gauss', 'raisedCos'
                 + or the name of an image file (most formats supported)
                 + or a numpy array (1xN or NxN) ranging -1:1
-
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'
-                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-                See :ref:`units` for explanation of other options.
 
             texRes:
                 Sets the resolution of the mask (this is independent of the image resolution)
