@@ -1267,7 +1267,7 @@ class _BaseVisualStim(object):
     @AttributeSetter
     def units(self, value):
         """
-        **None**, 'norm', 'cm', 'deg' or 'pix'
+        None, 'norm', 'cm', 'deg' or 'pix'
 
             If None then the current units of the :class:`~psychopy.visual.Window` will be used.
             See :ref:`units` for explanation of other options.
@@ -1308,6 +1308,7 @@ class _BaseVisualStim(object):
             given in the color description of the stimulus)
 
             Setting contrast outside this range may produce strange results.::
+
                 # 0.0 to 1.0 decreases contrast
                 # 1.0 means unchanged
 
