@@ -2730,25 +2730,6 @@ class RadialStim(GratingStim):
 
             win :
                 a :class:`~psychopy.visual.Window` object (required)
-            tex :
-                The texture forming the image
-
-                - 'sqrXsqr', 'sinXsin', 'sin','sqr',None
-                - or the name of an image file (most formats supported)
-                - or a numpy array (1xN, NxNx1, NxNx3) ranging -1:1
-
-            mask : **none** or 'gauss'
-                Unlike the mask in the GratingStim, this is a 1-D mask dictating the behaviour
-                from the centre of the stimulus to the surround.
-            pos :
-                a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
-                Stimuli can be position beyond the window!
-            size :
-                a tuple (0.5,0.5) or a list [0.5,0.5] for the x and y
-                OR a single value (which will be applied to x and y).
-                Sizes can be negative and stimuli can extend beyond the window.
-            ori :
-                orientation of stimulus in degrees.
             texRes : (default= *128* )
                 resolution of the texture (if not loading from an image file)
             angularRes : (default= *100* )
@@ -2758,30 +2739,6 @@ class RadialStim(GratingStim):
                 of the stimulus (in radians)
             angularPhase :
                 the phase of the texture around the stimulus (in radians)
-
-            color:
-
-                Could be a:
-
-                    - web name for a color (e.g. 'FireBrick');
-                    - hex value (e.g. '#FF0047');
-                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
-
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
-
-            colorSpace:
-                the color space controlling the interpretation of the `color`
-                See :ref:`colorspaces`
-            contrast : float (default= *1.0* )
-                How far the stimulus deviates from the middle grey.
-                Contrast can vary -1:1 (this is a multiplier for the
-                values given in the color description of the stimulus)
-            opacity : float (default=*1.0*)
-                Between 0.0 and 1.0. 1.0 is opaque, 0.0 is transparent
-            depth:
-                The depth argument is deprecated and may be removed in future versions.
-                Depth is controlled simply by drawing order.
         """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
