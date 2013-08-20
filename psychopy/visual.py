@@ -4754,7 +4754,7 @@ class ShapeStim(_BaseVisualStim):
     def fillColor(self, color):
         """
         Sets the color of the shape fill. See :meth:`psychopy.visual.GratingStim.color`
-        for further details of how to use this function.
+        for further details of how to use colors.
 
         Note that shapes where some vertices point inwards will usually not
         'fill' correctly.
@@ -4763,6 +4763,10 @@ class ShapeStim(_BaseVisualStim):
 
     @AttributeSetter
     def lineColor(self, color):
+        """
+        Sets the color of the shape lines. See :meth:`psychopy.visual.GratingStim.color`
+        for further details of how to use colors.
+        """
         _setColor(self, color, rgbAttrib='lineRGB', colorAttrib='lineColor')
 
     @AttributeSetter
@@ -4776,22 +4780,24 @@ class ShapeStim(_BaseVisualStim):
     def lineColorSpace(self, value):
         """
         String or None
+
             defining which of the :ref:`colorspaces` to use. For strings and hex
             values this is not needed. If None the default colorSpace for the stimulus is
             used
 
             Example::
+
                 stim.lineColor = (1, 0, 0)  # lines are red in the default 'rgb' colorSpace
                 stim.lineColorSpace = 'rgb255'  # lines are now almost-black
                 stim.lineColor = (128, 255, 128) # lines are pale blue
         """
         self.__dict__['lineColorSpace'] = value
 
-    #def setColor(self, color, colorSpace=None, operation=''):
-    #    """For ShapeStim use :meth:`~ShapeStim.setLineColor` or
-    #    :meth:`~ShapeStim.setFillColor`
-    #    """
-    #    raise AttributeError, 'ShapeStim does not support setColor method. Please use setFillColor or setLineColor instead'
+    def setColor(self, color, colorSpace=None, operation=''):
+        """For ShapeStim use :meth:`~ShapeStim.lineColor` or
+        :meth:`~ShapeStim.fillColor`
+        """
+        raise AttributeError, 'ShapeStim does not support setColor method. Please use setFillColor or setLineColor instead'
     def setLineRGB(self, value, operation=''):
         """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.setLineColor`
         """
@@ -4801,7 +4807,7 @@ class ShapeStim(_BaseVisualStim):
         """
         self._set('fillRGB', value, operation)
     def setLineColor(self, color, colorSpace=None, operation='', log=True):
-        """Sets the color of the shape edge. See :meth:`psychopy.visual.GratingStim.setColor`
+        """Sets the color of the shape edge. See :meth:`psychopy.visual.GratingStim.color`
         for further details of how to use this function.
         """
         _setColor(self,color, colorSpace=colorSpace, operation=operation,
@@ -4809,7 +4815,7 @@ class ShapeStim(_BaseVisualStim):
                     colorAttrib='lineColor',#the name for this color
                     log=log)
     def setFillColor(self, color, colorSpace=None, operation='', log=True):
-        """Sets the color of the shape fill. See :meth:`psychopy.visual.GratingStim.setColor`
+        """Sets the color of the shape fill. See :meth:`psychopy.visual.GratingStim.color`
         for further details of how to use this function.
 
         Note that shapes where some vertices point inwards will usually not
