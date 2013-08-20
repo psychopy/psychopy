@@ -90,7 +90,7 @@ global DEBUG; DEBUG=False
 from psychopy.constants import *
 
 
-def val2array(value, withNone=True, withScalar=True, length=2):
+def _val2array(value, withNone=True, withScalar=True, length=2):
     """Helper function: converts different input to a numpy array.
     Raises informative error messages if input is invalid.
 
@@ -253,8 +253,8 @@ class Window:
         self.screen = screen
 
         #parameters for transforming the overall view
-        self.viewScale = val2array(viewScale)
-        self.viewPos = val2array(viewPos, True, False)
+        self.viewScale = _val2array(viewScale)
+        self.viewPos = _val2array(viewPos, True, False)
         self.viewOri  = float(viewOri)
         self.stereo = stereo #use quad buffer if requested (and if possible)
 
@@ -900,7 +900,7 @@ class Window:
         """Deprecated: As of v1.61.00 please use `setColor()` instead
         """
         global GL, currWindow
-        self.rgb = val2array(newRGB, False, length=3)
+        self.rgb = _val2array(newRGB, False, length=3)
         if self.winType=='pyglet' and currWindow!=self:
             self.winHandle.switch_to()
         GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)
@@ -1406,7 +1406,7 @@ class _BaseVisualStim(object):
                 stim.pos += (0.5, -1)  # Move right and up. Is now (1.0, -1.0)
                 stim.pos *= 0.2  # Move towards the center. Is now (0.2, -0.2)
         """
-        self.__dict__['pos'] = val2array(value, False, False)
+        self.__dict__['pos'] = _val2array(value, False, False)
         self._calcPosRendered()
 
     @AttributeSetter
@@ -1422,7 +1422,7 @@ class _BaseVisualStim(object):
                 print stim.size  # Outputs array([0.8, 0.8])
                 stim.size += (0,5, -0.5)  # make wider and flatter. Is now (1.3, 0.3)
         """
-        value = val2array(value)  # Check correct user input
+        value = _val2array(value)  # Check correct user input
         # None --> set to default
         if value == None:
             """Set the size to default (e.g. to the size of the loaded image etc)"""
@@ -1590,7 +1590,7 @@ class _BaseVisualStim(object):
         if op==None: op=''
         #format the input value as float vectors
         if type(val) in [tuple, list, numpy.ndarray]:
-            val = val2array(val)
+            val = _val2array(val)
 
         # Handle operations
         _setWithOperation(self, attrib, val, op)
@@ -1801,8 +1801,8 @@ class DotStim(_BaseVisualStim):
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         self.nDots = nDots
         #size
-        self.fieldPos = val2array(fieldPos, False, False)
-        self.fieldSize = val2array(fieldSize, False)
+        self.fieldPos = _val2array(fieldPos, False, False)
+        self.fieldSize = _val2array(fieldSize, False)
         if type(dotSize) in [tuple,list]:
             self.dotSize = numpy.array(dotSize)
         else:self.dotSize=dotSize
@@ -2387,7 +2387,7 @@ class GratingStim(_BaseVisualStim):
         self.interpolate = interpolate
 
         #NB Pedestal isn't currently being used during rendering - this is a place-holder
-        self.rgbPedestal = val2array(rgbPedestal, False, length=3)
+        self.rgbPedestal = _val2array(rgbPedestal, False, length=3)
         self.__dict__['colorSpace'] = colorSpace  # No need to invoke decorator for color updating. It is done just below.
         if rgb != None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
@@ -2403,12 +2403,12 @@ class GratingStim(_BaseVisualStim):
 
         # set other parameters
         self.ori = float(ori)
-        self.phase = val2array(phase, False)
+        self.phase = _val2array(phase, False)
         self._origSize = None  #if an image texture is loaded this will be updated
         self._requestedSize = size
-        self.size = val2array(size)
-        self.sf = val2array(sf)
-        self.pos = val2array(pos, False, False)
+        self.size = _val2array(size)
+        self.sf = _val2array(sf)
+        self.pos = _val2array(pos, False, False)
         self.depth = depth
 
         self.tex = tex
@@ -2447,7 +2447,7 @@ class GratingStim(_BaseVisualStim):
             else:
                 value = numpy.array([1.0, 1.0])
         else:
-            value = val2array(value)
+            value = _val2array(value)
 
         # Set value and update stuff
         self.__dict__['sf'] = value
@@ -2465,7 +2465,7 @@ class GratingStim(_BaseVisualStim):
         that setting phase=t*n drifts a stimulus at n Hz
         """
         # Recode phase to numpy array
-        value = val2array(value)
+        value = _val2array(value)
         self.__dict__['phase'] = value
         self._needUpdate = True
 
@@ -2776,7 +2776,7 @@ class RadialStim(GratingStim):
         self.maskRadialPhase = 0
         self.texRes = texRes #must be power of 2
         self.interpolate = interpolate
-        self.rgbPedestal = val2array(rgbPedestal, False, length=3)
+        self.rgbPedestal = _val2array(rgbPedestal, False, length=3)
 
         #these are defined by the GratingStim but will just cause confusion here!
         self.setSF = None
@@ -2806,7 +2806,7 @@ class RadialStim(GratingStim):
         self.pos = numpy.array(pos, float)
         self.depth=depth
         self.__dict__['sf'] = 1
-        self.size = val2array(size, False)
+        self.size = _val2array(size, False)
 
         self.tex = tex
         self.mask = mask
@@ -3313,8 +3313,8 @@ class ElementArrayStim:
             self.setColors(colors, colorSpace=colorSpace, log=False)
 
         #Deal with input for fieldpos and fieldsize
-        self.fieldPos = val2array(fieldPos, False)
-        self.fieldSize = val2array(fieldSize, False)
+        self.fieldPos = _val2array(fieldPos, False)
+        self.fieldSize = _val2array(fieldSize, False)
 
         #create textures
         self.texRes = texRes
@@ -3916,7 +3916,7 @@ class MovieStim(_BaseVisualStim):
         if size == None: self.size= numpy.array([self.format.width,
                                                  self.format.height] , float)
         else:
-            self.size = val2array(size)
+            self.size = _val2array(size)
 
         self.ori = ori
         self._calcPosRendered()
@@ -5173,7 +5173,7 @@ class ImageStim(_BaseVisualStim):
         self.flipVert = flipVert
         self._requestedSize=size
         self._origSize=None#if an image texture is loaded this will be updated
-        self.size = val2array(size)
+        self.size = _val2array(size)
         self.pos = numpy.array(pos,float)
         self.ori = float(ori)
         self.depth=depth
@@ -7476,7 +7476,7 @@ def _setColor(self, color, colorSpace=None, operation='',
 
     # If it wasn't a strin, do check and conversion of scalars, sequences and other stuff.
     else:
-        color = val2array(color, length=3)
+        color = _val2array(color, length=3)
 
         if color==None:
             setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
