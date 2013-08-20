@@ -35,6 +35,7 @@ pygame (must be version 1.8 or above):
 
 import numpy, time, sys
 from os import path
+import threading
 from string import capitalize
 from sys import platform, exit, stdout
 from psychopy import event, core, logging, prefs
@@ -417,7 +418,7 @@ class SoundPyo(_SoundBase):
         self.setSound(value=value, secs=secs, octave=octave, hamming=hamming)
         self.needsUpdate = False
 
-    def play(self, fromStart=True, log=True):
+    def play(self, fromStart=True, autoStop=True, log=True):
         """Starts playing the sound on an available channel.
         If no sound channels are available, it will not play and return None.
 
@@ -431,18 +432,26 @@ class SoundPyo(_SoundBase):
             self._updateSnd()  # ~0.00015s, regardless of the size of self._sndTable
         self._snd.out()
         self.status=STARTED
+        if autoStop:
+            self.flagFinish = threading.Timer(self.getDuration(), self._onEOS)
+            self.flagFinish.start()
         if log and self.autoLog:
             logging.exp("Sound %s started" %(self.name), obj=self)
         return self
 
     def _onEOS(self):
         #ToDo: is an EOS callback supported by pyo?
-        self.status=FINISHED
+        if self.status != NOT_STARTED:  # in case of multiple successive trials
+            self.status = FINISHED
         return True
 
     def stop(self, log=True):
         """Stops the sound immediately"""
         self._snd.stop()
+        try:
+            self.flagFinish.cancel()
+        except:
+            pass
         self.status=STOPPED
         if log and self.autoLog:
             logging.exp("Sound %s stopped" %(self.name), obj=self)
