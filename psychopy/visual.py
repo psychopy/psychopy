@@ -1229,6 +1229,23 @@ class _BaseVisualStim(object):
         self.status = NOT_STARTED
         self.units = units
 
+    @AttributeSetter
+    def win(self, value):
+        """
+        a :class:`~psychopy.visual.Window` object (required)
+
+           Example, drawing same stimulus in two different windows and display
+           simultaneously. Assuming that you have two windows and a stimulus (win1, win2 and stim)::
+
+               stim.win = win1  # stimulus will be drawn in win1
+               stim.draw()  # stimulus is now drawn to win1
+               stim.win = win2  # stimulus will be drawn in win2
+               stim.draw()  # it is now drawn in win2
+               win1.flip(waitBlanking=False)  # do not wait for next monitor update
+               win2.flip()  # wait for vertical blanking.
+        """
+        self.__dict__['win'] = value
+
     # Might seem simple at first, but this ensures that "name" attribute
     # appears in docs and that name setting and updating is logged.
     @AttributeSetter
@@ -1236,7 +1253,14 @@ class _BaseVisualStim(object):
         """
         String
 
-            The name of the object to be using during logged messages about this stim
+            The name of the object to be using during logged messages about this stim.
+            Example::
+
+                stim = visual.TextStim(win, text='happy message', name='positive')
+                stim.draw(); win.flip();  # log will include name
+                stim.text = 'sad message'
+                stim.name = 'negative'
+                stim.draw(); win.flip()  # log will include name
         """
         self.__dict__['name'] = value
 
@@ -1741,8 +1765,6 @@ class DotStim(_BaseVisualStim):
         """
         :Parameters:
 
-            win :
-                a :class:`~psychopy.visual.Window` object (required)
             nDots : int
                 number of dots to be generated
             fieldPos : (x,y) or [x,y]
@@ -2331,9 +2353,6 @@ class GratingStim(_BaseVisualStim):
         """
         :Parameters:
 
-            win :
-                a :class:`~psychopy.visual.Window` object (required)
-
             texRes:
                 resolution of the texture (if not loading from an image file)
 
@@ -2728,8 +2747,6 @@ class RadialStim(GratingStim):
         """
         :Parameters:
 
-            win :
-                a :class:`~psychopy.visual.Window` object (required)
             texRes : (default= *128* )
                 resolution of the texture (if not loading from an image file)
             angularRes : (default= *100* )
@@ -3854,8 +3871,6 @@ class MovieStim(_BaseVisualStim):
         """
         :Parameters:
 
-            win :
-                a :class:`~psychopy.visual.Window` object (required)
             filename :
                 a string giving the relative or absolute path to the movie. Can be any movie that
                 AVbin can read (e.g. mpeg, DivX)
@@ -4682,8 +4697,6 @@ class ShapeStim(_BaseVisualStim):
                  name='', autoLog=True):
         """
         :Parameters:
-            win :
-                A :class:`~psychopy.visual.Window` object (required)
 
             lineWidth : int (or float?)
                 specifying the line width in **pixels**
@@ -4912,9 +4925,6 @@ class Polygon(ShapeStim):
 
         :Parameters:
 
-            win :
-                A :class:`~psychopy.visual.Window` object (required)
-
             edges : int
                 Number of edges of the polygon
 
@@ -4963,9 +4973,6 @@ class Circle(Polygon):
 
         :Parameters:
 
-            win :
-                A :class:`~psychopy.visual.Window` object (required)
-
             edges : float or int (default=32)
                 Specifies the resolution of the polygon that is approximating the
                 circle.
@@ -5000,9 +5007,6 @@ class Rect(ShapeStim):
         Rect accepts all input parameters, that `~psychopy.visual.ShapeStim` accept, except for vertices and closeShape.
 
         :Parameters:
-
-            win :
-                A :class:`~psychopy.visual.Window` object (required)
 
             width : int or float
                 Width of the Rectangle (in its respective units, if specified)
@@ -5059,9 +5063,6 @@ class Line(ShapeStim):
         but always return False (because a line is not a proper (2D) polygon).
 
         :Parameters:
-
-            win :
-                A :class:`~psychopy.visual.Window` object (required)
 
             start : tuple, list or 2x1 array
                 Specifies the position of the start of the line
@@ -5125,8 +5126,6 @@ class ImageStim(_BaseVisualStim):
         """
         :Parameters:
 
-            win :
-                a :class:`~psychopy.visual.Window` object (required)
             image :
                 The image file to be presented (most formats supported)
             mask :
@@ -5446,8 +5445,6 @@ class BufferImageStim(GratingStim):
         """
         :Parameters:
 
-            win :
-                A :class:`~psychopy.visual.Window` object (required)
             buffer :
                 the screen buffer to capture from, default is 'back' (hidden).
                 'front' is the buffer in view after win.flip()
