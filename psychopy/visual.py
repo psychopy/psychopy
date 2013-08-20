@@ -1332,9 +1332,9 @@ class _BaseVisualStim(object):
                 if self.__class__.__name__ in ('ShapeStim','DotStim'):
                     pass # They work fine without shaders?
                 else:
-                    logging.warning('Called setContrast while useShaders = False but stimulus was not rebuild. Contrast might remain unchanged.')
+                    logging.warning('Tried to set contrast while useShaders = False but stimulus was not rebuild. Contrast might remain unchanged.')
         elif log:
-            logging.warning('Called setContrast() on class where useShaders was undefined. Contrast might remain unchanged')
+            logging.warning('Contrast was set on class where useShaders was undefined. Contrast might remain unchanged')
 
     @AttributeSetter
     def useShaders(self, value):
@@ -1580,9 +1580,9 @@ class _BaseVisualStim(object):
 
         e.g. ::
 
-             stim.setPos([3,2.5])
-             stim.setOri(45)
-             stim.setPhase(0.5, "+")
+             stim.pos = [3,2.5]
+             stim.ori = 45
+             stim.phase += 0.5
 
         NB this method does not flag the need for updates any more - that is
         done by specific methods as described above.
@@ -2223,9 +2223,9 @@ class SimpleImageStim:
 
         e.g. ::
 
-             stim.setPos([3,2.5])
-             stim.setOri(45)
-             stim.setPhase(0.5, "+")
+             stim.pos = [3,2.5]
+             stim.ori = 45
+             stim.phase += 0.5
 
         NB this method does not flag the need for updates any more - that is
         done by specific methods as described above.
@@ -4089,7 +4089,7 @@ class MovieStim(_BaseVisualStim):
         else:
             self.pause(log=False)
         #add to drawing list and update status
-        _BaseVisualStim.setAutoDraw(self, val, log=log)
+        _BaseVisualStim.autoDraw = val
     def __del__(self):
         self._clearTextures()
 
@@ -7647,9 +7647,9 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     for i in range(nFrames): # ... and go for real this time
         clockt.append(core.getTime())
         if showVisual:
-            myStim.setPhase(1.0/nFrames, '+')
+            myStim.phase += 1.0/nFrames
             myStim.sf += 3./nFrames
-            myStim.setOri(12./nFrames,'+')
+            myStim.ori += 12./nFrames
             myStim.setOpacity(.9/nFrames, '+')
             myStim.draw()
         elif showText:
