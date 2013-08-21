@@ -1282,6 +1282,12 @@ class _BaseVisualStim(object):
         else:
             self._winScale='pix' #set the window to have pixels coords
 
+        # Update size and position if they are defined. If not, this is probably
+        # during some init and they will be defined later, given the new unit.
+        if not isinstance(self.size, AttributeSetter) and not isinstance(self.pos, AttributeSetter):
+            self.size = self.size
+            self.pos = self.pos
+
     @AttributeSetter
     def opacity(self, value):
         """
@@ -5178,16 +5184,16 @@ class ImageStim(_BaseVisualStim):
         self.ori = float(ori)
         self.depth=depth
 
-        # Set the maskParams (defaults to None):
-        self.setImage(image, log=False)
-        self.setMask(mask, log=False)
-
         #color and contrast etc
         self.contrast = float(contrast)
         self.opacity = float(opacity)
         self.__dict__['colorSpace'] = colorSpace  #omit decorator
         self.setColor(color, colorSpace=colorSpace, log=False)
         self.rgbPedestal=[0,0,0]#does an rgb pedestal make sense for an image?
+
+                # Set the maskParams (defaults to None):
+        self.setImage(image, log=False)
+        self.setMask(mask, log=False)
 
         #fix scaling to window coords
         self._calcSizeRendered()
