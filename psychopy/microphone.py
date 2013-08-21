@@ -201,17 +201,28 @@ class AudioCapture(object):
 
         return self.savedFile
 
-    def playback(self, block=True, loops=0):
+    def playback(self, block=True, loops=0, stop=False):
         """Plays the saved .wav file, as just recorded or resampled. Execution
         blocks by default, but can return immediately with `block=False`.
+
+        `loops` : number of extra repetitions; 0 = play once
+
+        `stop` : True = stop an ongoing playback if one is in progress, and return
         """
         if not self.savedFile or not os.path.isfile(self.savedFile):
             msg = '%s: Playback requested but no saved file' % self.loggingId
             logging.error(msg)
             raise ValueError(msg)
 
+        if stop and hasattr(self, 'current_recording'):
+            if self.current_recording.status == PLAYING:
+                self.current_recording.stop()
+            return
+
         # play this file:
-        sound.Sound(self.savedFile, name=self.name+'.current_recording', loops=loops).play()
+        name = self.name+'.current_recording'
+        self.current_recording = sound.Sound(self.savedFile, name=name, loops=loops)
+        self.current_recording.play()
         if block:
             core.wait(self.duration * (loops + 1)) # set during record()
 
@@ -1011,7 +1022,10 @@ if __name__ == '__main__':
             core.wait(1)
             print 'start playback (x 2)'
             sys.stdout.flush()
-            mic.playback(loops=1)
+            mic.playback(loops=3, block=False)
+            core.wait(4)  # but only wait for 2 repetitions to complete
+            mic.playback(stop=True)
+            mic.playback(stop=True)  # not a problem
             print '\nend.', mic.savedFile
             for i in range(3):
                 t0 = time.time()
