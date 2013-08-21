@@ -90,7 +90,7 @@ global DEBUG; DEBUG=False
 from psychopy.constants import *
 
 
-def val2array(value, withNone=True, withScalar=True, length=2):
+def _val2array(value, withNone=True, withScalar=True, length=2):
     """Helper function: converts different input to a numpy array.
     Raises informative error messages if input is invalid.
 
@@ -253,8 +253,8 @@ class Window:
         self.screen = screen
 
         #parameters for transforming the overall view
-        self.viewScale = val2array(viewScale)
-        self.viewPos = val2array(viewPos, True, False)
+        self.viewScale = _val2array(viewScale)
+        self.viewPos = _val2array(viewPos, True, False)
         self.viewOri  = float(viewOri)
         self.stereo = stereo #use quad buffer if requested (and if possible)
 
@@ -900,7 +900,7 @@ class Window:
         """Deprecated: As of v1.61.00 please use `setColor()` instead
         """
         global GL, currWindow
-        self.rgb = val2array(newRGB, False, length=3)
+        self.rgb = _val2array(newRGB, False, length=3)
         if self.winType=='pyglet' and currWindow!=self:
             self.winHandle.switch_to()
         GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)
@@ -1227,13 +1227,75 @@ class _BaseVisualStim(object):
         self.name = name
         self.autoLog = autoLog
         self.status = NOT_STARTED
-        #unit conversions
-        if units != None and len(units):
-            self.units = units
-        else: self.units = win.units
+        self.units = units
+
+    @AttributeSetter
+    def win(self, value):
+        """
+        a :class:`~psychopy.visual.Window` object (required)
+
+           Example, drawing same stimulus in two different windows and display
+           simultaneously. Assuming that you have two windows and a stimulus (win1, win2 and stim)::
+
+               stim.win = win1  # stimulus will be drawn in win1
+               stim.draw()  # stimulus is now drawn to win1
+               stim.win = win2  # stimulus will be drawn in win2
+               stim.draw()  # it is now drawn in win2
+               win1.flip(waitBlanking=False)  # do not wait for next monitor update
+               win2.flip()  # wait for vertical blanking.
+        """
+        self.__dict__['win'] = value
+
+    # Might seem simple at first, but this ensures that "name" attribute
+    # appears in docs and that name setting and updating is logged.
+    @AttributeSetter
+    def name(self, value):
+        """
+        String
+
+            The name of the object to be using during logged messages about this stim.
+            Example::
+
+                stim = visual.TextStim(win, text='happy message', name='positive')
+                stim.draw(); win.flip();  # log will include name
+                stim.text = 'sad message'
+                stim.name = 'negative'
+                stim.draw(); win.flip()  # log will include name
+        """
+        self.__dict__['name'] = value
+
+    @AttributeSetter
+    def units(self, value):
+        """
+        None, 'norm', 'cm', 'deg' or 'pix'
+
+            If None then the current units of the :class:`~psychopy.visual.Window` will be used.
+            See :ref:`units` for explanation of other options.
+
+            Note that when you change units, you don't change the stimulus parameters
+            and it is likely to change appearance. Example::
+
+                # This stimulus is 20% wide and 50% tall with respect to window
+                stim = visual.PatchStim(win, units='norm', size=(0.2, 0.5)
+
+                # This stimulus is 0.2 degrees wide and 0.5 degrees tall.
+                stim.units = 'deg'
+        """
+        if value != None and len(value):
+            self.__dict__['units'] = value
+        else:
+            self.__dict__['units'] = self.win.units
+
         if self.units in ['norm', 'height']:
             self._winScale=self.units
-        else: self._winScale='pix' #set the window to have pixels coords
+        else:
+            self._winScale='pix' #set the window to have pixels coords
+
+        # Update size and position if they are defined. If not, this is probably
+        # during some init and they will be defined later, given the new unit.
+        if not isinstance(self.size, AttributeSetter) and not isinstance(self.pos, AttributeSetter):
+            self.size = self.size
+            self.pos = self.pos
 
     @AttributeSetter
     def opacity(self, value):
@@ -1258,17 +1320,19 @@ class _BaseVisualStim(object):
         Float between -1 (negative) and 1 (unchanged). :ref:`operations <attrib-operations>` supported.
             Set the contrast of the stimulus, i.e. scales how far the stimulus
             deviates from the middle grey. (This is a multiplier for the values
-            given in the color description of the stimulus)
+            given in the color description of the stimulus). Examples::
 
-            Setting contrast outside this range may produce strange results.::
-                # 0.0 to 1.0 decreases contrast
-                # 1.0 means unchanged
+                stim.contrast = 1.0  # unchanged contrast
+                stim.contrast = 0.5  # decrease contrast
+                stim.contrast = 0.0  # uniform, no contrast
+                stim.contrast = -0.5 # slightly inverted
+                stim.contrast = -1   # totally inverted
 
-                # 0.0 to -1.0 inverts with decreased contrast
-                # -1.0 means exactly inverted.
+            Setting contrast outside range -1 to 1 is possible, but may
+            produce strange results if color values exceeds the colorSpace limits.::
 
-                # >1.0 increases contrast. (See warning below)
-                # <-1.0 inverts with increased contrast (See warning below)
+                stim.contrast = 1.2 # increases contrast.
+                stim.contrast = -1.2  # inverts with increased contrast
         """
         self.__dict__['contrast'] = value
 
@@ -1284,9 +1348,9 @@ class _BaseVisualStim(object):
                 if self.__class__.__name__ in ('ShapeStim','DotStim'):
                     pass # They work fine without shaders?
                 else:
-                    logging.warning('Called setContrast while useShaders = False but stimulus was not rebuild. Contrast might remain unchanged.')
+                    logging.warning('Tried to set contrast while useShaders = False but stimulus was not rebuild. Contrast might remain unchanged.')
         elif log:
-            logging.warning('Called setContrast() on class where useShaders was undefined. Contrast might remain unchanged')
+            logging.warning('Contrast was set on class where useShaders was undefined. Contrast might remain unchanged')
 
     @AttributeSetter
     def useShaders(self, value):
@@ -1312,6 +1376,7 @@ class _BaseVisualStim(object):
         """
         :ref:`scalar <attrib-scalar>`. :ref:`operations <attrib-operations>` supported.
             Set the stimulus orientation in degrees.
+            ori can be greater than 360 and smaller than 0.
         """
         self.__dict__['ori'] = value
 
@@ -1357,8 +1422,11 @@ class _BaseVisualStim(object):
                 stim.pos = (0.5, 0)  # Slightly to the right
                 stim.pos += (0.5, -1)  # Move right and up. Is now (1.0, -1.0)
                 stim.pos *= 0.2  # Move towards the center. Is now (0.2, -0.2)
+
+            Tip: if you can see the actual pixel range this corresponds to by
+            looking at stim._posRendered
         """
-        self.__dict__['pos'] = val2array(value, False, False)
+        self.__dict__['pos'] = _val2array(value, False, False)
         self._calcPosRendered()
 
     @AttributeSetter
@@ -1373,8 +1441,11 @@ class _BaseVisualStim(object):
                 stim.size = 0.8  # Set size to (xsize, ysize) = (0.8, 0.8), quadratic.
                 print stim.size  # Outputs array([0.8, 0.8])
                 stim.size += (0,5, -0.5)  # make wider and flatter. Is now (1.3, 0.3)
+
+            Tip: if you can see the actual pixel range this corresponds to by
+            looking at stim._sizeRendered
         """
-        value = val2array(value)  # Check correct user input
+        value = _val2array(value)  # Check correct user input
         # None --> set to default
         if value == None:
             """Set the size to default (e.g. to the size of the loaded image etc)"""
@@ -1410,6 +1481,76 @@ class _BaseVisualStim(object):
         Deprecated. Depth is now controlled simply by drawing order.
         """
         self.__dict__['depth'] = value
+
+    @AttributeSetter
+    def color(self, value):
+        """
+        String: color name or hex.
+
+        Scalar or sequence for rgb, dkl or other :ref:`colorspaces`. :ref:`operations <attrib-operations>` supported for these.
+
+            OBS: when color is specified using numbers, it is interpreted with
+            respect to the stimulus' current colorSpace.
+
+            Can be specified in one of many ways. If a string is given then it
+            is interpreted as the name of the color. Any of the standard html/X11
+            `color names <http://www.w3schools.com/html/html_colornames.asp>`
+            can be used. e.g.::
+
+                myStim.color = 'white'
+                myStim.color = 'RoyalBlue'  #(the case is actually ignored)
+
+            A hex value can be provided, also formatted as with web colors. This can be
+            provided as a string that begins with # (not using python's usual 0x000000 format)::
+
+                myStim.color = '#DDA0DD'  #DDA0DD is hexadecimal for plum
+
+            You can also provide a triplet of values, which refer to the coordinates
+            in one of the :ref:`colorspaces`. If no color space is specified then the color
+            space most recently used for this stimulus is used again.::
+
+                myStim.color = [1.0,-1.0,-1.0]  #if colorSpace='rgb': a red color in rgb space
+                myStim.color = [0.0,45.0,1.0] #if colorSpace='dkl': DKL space with elev=0, azimuth=45
+                myStim.color = [0,0,255] #if colorSpace='rgb255': a blue stimulus using rgb255 space
+
+            Lastly, a single number can be provided, x, which is equivalent to providing
+            [x,x,x].::
+
+                myStim.color = 255  #if colorSpace='rgb255': all guns o max
+
+            :ref:`Operations <attrib-operations>` work just like with x-y pairs,
+            but has a different meaning here. For colors specified as a triplet
+            of values (or single intensity value) the new value will perform
+            this operation on the previous color. Assuming that colorSpace='rgb'::
+
+                thisStim.color += [1,1,1]  #increment all guns by 1 value
+                thisStim.color *= -1  #multiply the color by -1 (which in this space inverts the contrast)
+                thisStim.color *= [0.5, 0, 1]  #decrease red, remove green, keep blue
+        """
+        _setColor(self, value, rgbAttrib='rgb', colorAttrib='color')
+
+    @AttributeSetter
+    def colorSpace(self, value):
+        """
+        String or None
+
+            defining which of the :ref:`colorspaces` to use. For strings and hex
+            values this is not needed. If None the default colorSpace for the stimulus is
+            used (defined during initialisation).
+
+            Please note that changing colorSpace does not change stimulus parameters. Example::
+
+                # A light green text
+                stim = visual.TextStim(win, 'Color me!', color=(0, 1, 0), colorSpace='rgb')
+
+                # An almost-black text
+                stim.colorSpace = 'rgb255'
+
+                # Make it light green again
+                stim.color = (128, 255, 128)
+        """
+        self.__dict__['colorSpace'] = value
+
     def draw(self):
         raise NotImplementedError('Stimulus classes must overide _BaseVisualStim.draw')
     def setPos(self, newPos, operation='', log=True):
@@ -1447,54 +1588,21 @@ class _BaseVisualStim(object):
         """
         self._set('rgb', newRGB, operation)
         _setTexIfNoShaders(self)
-
     def setColor(self, color, colorSpace=None, operation='', log=True):
-        """Set the color of the stimulus. See :ref:`colorspaces` for further information
-        about the various ways to specify colors and their various implications.
+        """
+        Set the color of the stimulus.
+        OBS: can be set using stim.color = value syntax instead.
 
         :Parameters:
 
         color :
-            Can be specified in one of many ways. If a string is given then it
-            is interpreted as the name of the color. Any of the standard html/X11
-            `color names <http://www.w3schools.com/html/html_colornames.asp>`
-            can be used. e.g.::
-
-                myStim.setColor('white')
-                myStim.setColor('RoyalBlue')#(the case is actually ignored)
-
-            A hex value can be provided, also formatted as with web colors. This can be
-            provided as a string that begins with # (not using python's usual 0x000000 format)::
-
-                myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
-
-            You can also provide a triplet of values, which refer to the coordinates
-            in one of the :ref:`colorspaces`. If no color space is specified then the color
-            space most recently used for this stimulus is used again.::
-
-                myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
-                myStim.setColor([0.0,45.0,1.0], 'dkl') #DKL space with elev=0, azimuth=45
-                myStim.setColor([0,0,255], 'rgb255') #a blue stimulus using rgb255 space
-
-            Lastly, a single number can be provided, x, which is equivalent to providing
-            [x,x,x].::
-
-                myStim.setColor(255, 'rgb255') #all guns o max
+            see documentation for color.
 
         colorSpace : string or None
-
-            defining which of the :ref:`colorspaces` to use. For strings and hex
-            values this is not needed. If None the default colorSpace for the stimulus is
-            used (defined during initialisation).
+            see documentation for colorSpace
 
         operation : one of '+','-','*','/', or '' for no operation (simply replace value)
-
-            for colors specified as a triplet of values (or single intensity value)
-            the new value will perform this operation on the previous color::
-
-                thisStim.setColor([1,1,1],'rgb255','+')#increment all guns by 1 value
-                thisStim.setColor(-1, 'rgb', '*') #multiply the color by -1 (which in this space inverts the contrast)
-                thisStim.setColor([10,0,0], 'dkl', '+')#raise the elevation from the isoluminant plane by 10 deg
+            see documentation for color.
         """
         _setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='rgb', #or 'fillRGB' etc
@@ -1506,9 +1614,9 @@ class _BaseVisualStim(object):
 
         e.g. ::
 
-             stim.setPos([3,2.5])
-             stim.setOri(45)
-             stim.setPhase(0.5, "+")
+             stim.pos = [3,2.5]
+             stim.ori = 45
+             stim.phase += 0.5
 
         NB this method does not flag the need for updates any more - that is
         done by specific methods as described above.
@@ -1516,7 +1624,7 @@ class _BaseVisualStim(object):
         if op==None: op=''
         #format the input value as float vectors
         if type(val) in [tuple, list, numpy.ndarray]:
-            val = val2array(val)
+            val = _val2array(val)
 
         # Handle operations
         _setWithOperation(self, attrib, val, op)
@@ -1692,11 +1800,6 @@ class DotStim(_BaseVisualStim):
         """
         :Parameters:
 
-            win :
-                a :class:`~psychopy.visual.Window` object (required)
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'
-                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-                See :ref:`units` for explanation of other options.
             nDots : int
                 number of dots to be generated
             fieldPos : (x,y) or [x,y]
@@ -1724,50 +1827,16 @@ class DotStim(_BaseVisualStim):
                 random, but constant direction. For 'walk' noise dots vary their
                 direction every frame, but keep a constant speed.
 
-            color:
-
-                Could be a:
-
-                    - web name for a color (e.g. 'FireBrick');
-                    - hex value (e.g. '#FF0047');
-                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
-
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
-
-            colorSpace:
-
-                The color space controlling the interpretation of the `color`
-                See :ref:`colorspaces`
-
-            opacity : float (default= *1.0* )
-                1.0 is opaque, 0.0 is transparent
-
-            contrast: float (default= *1.0* )
-                How far the stimulus deviates from the middle grey.
-                Contrast can vary -1:1 (this is a multiplier for the
-                values given in the color description of the stimulus).
-
-            depth:
-
-                The depth argument is deprecated and may be removed in future versions.
-                Depth is controlled simply by drawing order.
-
             element : *None* or a visual stimulus object
                 This can be any object that has a ``.draw()`` method and a
                 ``.setPos([x,y])`` method (e.g. a GratingStim, TextStim...)!!
                 See `ElementArrayStim` for a faster implementation of this idea.
-
-            name : string
-                The name of the object to be using during logged messages about
-                this stimulus
-
             """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         self.nDots = nDots
         #size
-        self.fieldPos = val2array(fieldPos, False, False)
-        self.fieldSize = val2array(fieldSize, False)
+        self.fieldPos = _val2array(fieldPos, False, False)
+        self.fieldSize = _val2array(fieldSize, False)
         if type(dotSize) in [tuple,list]:
             self.dotSize = numpy.array(dotSize)
         else:self.dotSize=dotSize
@@ -2188,9 +2257,9 @@ class SimpleImageStim:
 
         e.g. ::
 
-             stim.setPos([3,2.5])
-             stim.setOri(45)
-             stim.setPhase(0.5, "+")
+             stim.pos = [3,2.5]
+             stim.ori = 45
+             stim.phase += 0.5
 
         NB this method does not flag the need for updates any more - that is
         done by specific methods as described above.
@@ -2319,41 +2388,8 @@ class GratingStim(_BaseVisualStim):
         """
         :Parameters:
 
-            win :
-                a :class:`~psychopy.visual.Window` object (required)
-
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'
-                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-                See :ref:`units` for explanation of other options.
-
-            size :
-                .. note::
-
-                    If the mask is Gaussian ('gauss'), then the 'size' parameter refers to
-                    the stimulus at 3 standard deviations on each side of the
-                    centre (ie. sd=size/6)
-
             texRes:
                 resolution of the texture (if not loading from an image file)
-
-            color:
-
-                Could be a:
-
-                    - web name for a color (e.g. 'FireBrick');
-                    - hex value (e.g. '#FF0047');
-                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
-
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
-
-            colorSpace:
-                the color space controlling the interpretation of the `color`
-                See :ref:`colorspaces`
-
-            name : string
-                The name of the object to be using during logged messages about
-                this stim
 
             maskParams: Various types of input. Default to None.
                 This is used to pass additional parameters to the mask if those
@@ -2385,9 +2421,8 @@ class GratingStim(_BaseVisualStim):
         self.interpolate = interpolate
 
         #NB Pedestal isn't currently being used during rendering - this is a place-holder
-        self.rgbPedestal = val2array(rgbPedestal, False, length=3)
-
-        self.colorSpace = colorSpace
+        self.rgbPedestal = _val2array(rgbPedestal, False, length=3)
+        self.__dict__['colorSpace'] = colorSpace  # No need to invoke decorator for color updating. It is done just below.
         if rgb != None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
             self.setColor(rgb, colorSpace='rgb', log=False)
@@ -2402,12 +2437,12 @@ class GratingStim(_BaseVisualStim):
 
         # set other parameters
         self.ori = float(ori)
-        self.phase = val2array(phase, False)
+        self.phase = _val2array(phase, False)
         self._origSize = None  #if an image texture is loaded this will be updated
         self._requestedSize = size
-        self.size = val2array(size)
-        self.sf = val2array(sf)
-        self.pos = val2array(pos, False, False)
+        self.size = _val2array(size)
+        self.sf = _val2array(sf)
+        self.pos = _val2array(pos, False, False)
         self.depth = depth
 
         self.tex = tex
@@ -2446,7 +2481,7 @@ class GratingStim(_BaseVisualStim):
             else:
                 value = numpy.array([1.0, 1.0])
         else:
-            value = val2array(value)
+            value = _val2array(value)
 
         # Set value and update stuff
         self.__dict__['sf'] = value
@@ -2464,7 +2499,7 @@ class GratingStim(_BaseVisualStim):
         that setting phase=t*n drifts a stimulus at n Hz
         """
         # Recode phase to numpy array
-        value = val2array(value)
+        value = _val2array(value)
         self.__dict__['phase'] = value
         self._needUpdate = True
 
@@ -2747,30 +2782,6 @@ class RadialStim(GratingStim):
         """
         :Parameters:
 
-            win :
-                a :class:`~psychopy.visual.Window` object (required)
-            tex :
-                The texture forming the image
-
-                - 'sqrXsqr', 'sinXsin', 'sin','sqr',None
-                - or the name of an image file (most formats supported)
-                - or a numpy array (1xN, NxNx1, NxNx3) ranging -1:1
-
-            mask : **none** or 'gauss'
-                Unlike the mask in the GratingStim, this is a 1-D mask dictating the behaviour
-                from the centre of the stimulus to the surround.
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'
-                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-                See :ref:`units` for explanation of other options.
-            pos :
-                a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
-                Stimuli can be position beyond the window!
-            size :
-                a tuple (0.5,0.5) or a list [0.5,0.5] for the x and y
-                OR a single value (which will be applied to x and y).
-                Sizes can be negative and stimuli can extend beyond the window.
-            ori :
-                orientation of stimulus in degrees.
             texRes : (default= *128* )
                 resolution of the texture (if not loading from an image file)
             angularRes : (default= *100* )
@@ -2780,33 +2791,6 @@ class RadialStim(GratingStim):
                 of the stimulus (in radians)
             angularPhase :
                 the phase of the texture around the stimulus (in radians)
-
-            color:
-
-                Could be a:
-
-                    - web name for a color (e.g. 'FireBrick');
-                    - hex value (e.g. '#FF0047');
-                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
-
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
-
-            colorSpace:
-                the color space controlling the interpretation of the `color`
-                See :ref:`colorspaces`
-            contrast : float (default= *1.0* )
-                How far the stimulus deviates from the middle grey.
-                Contrast can vary -1:1 (this is a multiplier for the
-                values given in the color description of the stimulus)
-            opacity : float (default=*1.0*)
-                Between 0.0 and 1.0. 1.0 is opaque, 0.0 is transparent
-            depth:
-                The depth argument is deprecated and may be removed in future versions.
-                Depth is controlled simply by drawing order.
-            name : string
-                The name of the object to be using during logged messages about
-                this stim
         """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
@@ -2826,7 +2810,7 @@ class RadialStim(GratingStim):
         self.maskRadialPhase = 0
         self.texRes = texRes #must be power of 2
         self.interpolate = interpolate
-        self.rgbPedestal = val2array(rgbPedestal, False, length=3)
+        self.rgbPedestal = _val2array(rgbPedestal, False, length=3)
 
         #these are defined by the GratingStim but will just cause confusion here!
         self.setSF = None
@@ -2856,7 +2840,7 @@ class RadialStim(GratingStim):
         self.pos = numpy.array(pos, float)
         self.depth=depth
         self.__dict__['sf'] = 1
-        self.size = val2array(size, False)
+        self.size = _val2array(size, False)
 
         self.tex = tex
         self.mask = mask
@@ -3363,8 +3347,8 @@ class ElementArrayStim:
             self.setColors(colors, colorSpace=colorSpace, log=False)
 
         #Deal with input for fieldpos and fieldsize
-        self.fieldPos = val2array(fieldPos, False)
-        self.fieldSize = val2array(fieldSize, False)
+        self.fieldPos = _val2array(fieldPos, False)
+        self.fieldSize = _val2array(fieldSize, False)
 
         #create textures
         self.texRes = texRes
@@ -3922,47 +3906,13 @@ class MovieStim(_BaseVisualStim):
         """
         :Parameters:
 
-            win :
-                a :class:`~psychopy.visual.Window` object (required)
             filename :
                 a string giving the relative or absolute path to the movie. Can be any movie that
                 AVbin can read (e.g. mpeg, DivX)
-            units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'
-                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-                See :ref:`units` for explanation of other options.
-            pos :
-                position of the centre of the movie, given in the units specified
             flipVert : True or *False*
                 If True then the movie will be top-bottom flipped
             flipHoriz : True or *False*
                 If True then the movie will be right-left flipped
-            ori :
-                Orientation of the stimulus in degrees
-            size :
-                Size of the stimulus in units given. If not specified then the movie will take its
-                original dimensions.
-            color:
-                Modified the weight of the colors in the movie. E,g, color="red"
-                will only display the red parts of the movie and make all other
-                things black. white (color=(1,1,1)) is the original colors.
-
-                Could be a:
-
-                    - web name for a color (e.g. 'FireBrick');
-                    - hex value (e.g. '#FF0047');
-                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
-
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
-
-            colorSpace:
-                the color space controlling the interpretation of the `color`
-                See :ref:`colorspaces`
-            opacity :
-                the movie can be made transparent by reducing this
-            name : string
-                The name of the object to be using during logged messages about
-                this stim
             loop : bool, optional
                 Whether to start the movie over from the beginning if draw is
                 called and the movie is done.
@@ -4000,7 +3950,7 @@ class MovieStim(_BaseVisualStim):
         if size == None: self.size= numpy.array([self.format.width,
                                                  self.format.height] , float)
         else:
-            self.size = val2array(size)
+            self.size = _val2array(size)
 
         self.ori = ori
         self._calcPosRendered()
@@ -4173,7 +4123,7 @@ class MovieStim(_BaseVisualStim):
         else:
             self.pause(log=False)
         #add to drawing list and update status
-        _BaseVisualStim.setAutoDraw(self, val, log=log)
+        _BaseVisualStim.autoDraw = val
     def __del__(self):
         self._clearTextures()
 
@@ -4208,33 +4158,6 @@ class TextStim(_BaseVisualStim):
                 Required - the stimulus must know where to draw itself
             text:
                 The text to be rendered
-            pos:
-                Position on the screen
-            color:
-
-                Could be a:
-
-                    - web name for a color (e.g. 'FireBrick');
-                    - hex value (e.g. '#FF0047');
-                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
-
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
-
-            colorSpace:
-                the color space controlling the interpretation of the `color`
-                See :ref:`colorspaces`
-            contrast: float (default= *1.0* )
-                How far the stimulus deviates from the middle grey.
-                Contrast can vary -1:1 (this is a multiplier for the
-                values given in the color description of the stimulus).
-            opacity: float (default= *1.0* )
-                How transparent the object will be (0 for transparent, 1 for opaque)
-            units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'
-                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-                See :ref:`units` for explanation of other options.
-            ori:
-                Orientation of the text
             height:
                 Height of the characters (including the ascent of the letter and the descent)
             antialias:
@@ -4255,12 +4178,6 @@ class TextStim(_BaseVisualStim):
                 Mirror-reverse the text in the left-right direction
             flipVert : boolean
                 Mirror-reverse the text in the up-down direction
-            name : string
-                The name of the object to be using during logged messages about
-                this stim
-            depth:
-                The depth argument is deprecated and may be removed in future versions.
-                Depth is controlled simply by drawing order.
         """
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
 
@@ -4815,38 +4732,6 @@ class ShapeStim(_BaseVisualStim):
                  name='', autoLog=True):
         """
         :Parameters:
-            win :
-                A :class:`~psychopy.visual.Window` object (required)
-
-            units :  **None**, 'norm', 'cm', 'deg' or 'pix'
-                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-                See :ref:`units` for explanation of other options.
-
-            lineColor :
-
-                Could be a:
-
-                    - web name for a color (e.g. 'FireBrick');
-                    - hex value (e.g. '#FF0047');
-                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
-
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
-
-            lineColorSpace:
-                The color space controlling the interpretation of the `lineColor`.
-                See :ref:`colorspaces`
-
-            fillColor :
-
-                Could be a:
-
-                    - web name for a color (e.g. 'FireBrick');
-                    - hex value (e.g. '#FF0047');
-                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
-
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
 
             lineWidth : int (or float?)
                 specifying the line width in **pixels**
@@ -4857,39 +4742,15 @@ class ShapeStim(_BaseVisualStim):
             closeShape : True or False
                 Do you want the last vertex to be automatically connected to the first?
 
-            pos : tuple, list or 2x1 array
-                the position of the anchor for the stimulus (relative to which the vertices are drawn)
-
-            size : float, int, tuple, list or 2x1 array
-                Scales the ShapeStim up or down. Size is independent of the units, i.e.
-                setting the size to 1.5 will make the stimulus to be 1.5 times it's original size
-                as defined by the vertices. Use a 2-tuple to scale asymmetrically.
-
-            ori : float or int
-                the shape can be rotated around the anchor
-
-            opacity : float (default= *1.0* )
-                1.0 is opaque, 0.0 is transparent
-
-            contrast: float (default= *1.0* )
-                How far the stimulus deviates from the middle grey.
-                Contrast can vary -1:1 (this is a multiplier for the
-                values given in the color description of the stimulus).
-
-            depth:
-                The depth argument is deprecated and may be removed in future versions.
-                Depth is controlled simply by drawing order.
-
             interpolate : True or False
                 If True the edge of the line will be antialiased.
-
-            name : string
-                The name of the object to be using during logged messages about
-                this stim
                 """
 
-
+        # Initialize inheritance and remove unwanted methods
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        self.__dict__['setColor'] = None
+        self.__dict__['color'] = None
+        self.__dict__['colorSpace'] = None
 
         self.contrast = float(contrast)
         self.opacity = float(opacity)
@@ -4898,30 +4759,77 @@ class ShapeStim(_BaseVisualStim):
         self.lineWidth=lineWidth
         self.interpolate=interpolate
 
+        # Color stuff
         self.useShaders=False#since we don't ned to combine textures with colors
-        self.lineColorSpace=lineColorSpace
+        self.__dict__['lineColorSpace'] = lineColorSpace
+        self.__dict__['fillColorSpace'] = fillColorSpace
+
         if lineRGB!=None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
             self.setLineColor(lineRGB, colorSpace='rgb')
         else:
             self.setLineColor(lineColor, colorSpace=lineColorSpace)
 
-        self.fillColorSpace=fillColorSpace
         if fillRGB!=None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
             self.setFillColor(fillRGB, colorSpace='rgb')
         else:
             self.setFillColor(fillColor, colorSpace=fillColorSpace)
 
+        # Other stuff
         self.depth=depth
         self.ori = numpy.array(ori,float)
         self.size = numpy.array([0.0,0.0])
         self.setSize(size, log=False)
         self.setVertices(vertices, log=False)
         self._calcVerticesRendered()
+
+    @AttributeSetter
+    def fillColor(self, color):
+        """
+        Sets the color of the shape fill. See :meth:`psychopy.visual.GratingStim.color`
+        for further details of how to use colors.
+
+        Note that shapes where some vertices point inwards will usually not
+        'fill' correctly.
+        """
+        _setColor(self, color, rgbAttrib='fillRGB', colorAttrib='fillColor')
+
+    @AttributeSetter
+    def lineColor(self, color):
+        """
+        Sets the color of the shape lines. See :meth:`psychopy.visual.GratingStim.color`
+        for further details of how to use colors.
+        """
+        _setColor(self, color, rgbAttrib='lineRGB', colorAttrib='lineColor')
+
+    @AttributeSetter
+    def fillColorSpace(self, value):
+        """
+        Sets color space for fill color. See documentation for lineColorSpace
+        """
+        self.__dict__['fillColorSpace'] = value
+
+    @AttributeSetter
+    def lineColorSpace(self, value):
+        """
+        String or None
+
+            defining which of the :ref:`colorspaces` to use. For strings and hex
+            values this is not needed. If None the default colorSpace for the stimulus is
+            used
+
+            Example::
+
+                stim.lineColor = (1, 0, 0)  # lines are red in the default 'rgb' colorSpace
+                stim.lineColorSpace = 'rgb255'  # lines are now almost-black
+                stim.lineColor = (128, 255, 128) # lines are pale blue
+        """
+        self.__dict__['lineColorSpace'] = value
+
     def setColor(self, color, colorSpace=None, operation=''):
-        """For ShapeStim use :meth:`~ShapeStim.setLineColor` or
-        :meth:`~ShapeStim.setFillColor`
+        """For ShapeStim use :meth:`~ShapeStim.lineColor` or
+        :meth:`~ShapeStim.fillColor`
         """
         raise AttributeError, 'ShapeStim does not support setColor method. Please use setFillColor or setLineColor instead'
     def setLineRGB(self, value, operation=''):
@@ -4933,7 +4841,7 @@ class ShapeStim(_BaseVisualStim):
         """
         self._set('fillRGB', value, operation)
     def setLineColor(self, color, colorSpace=None, operation='', log=True):
-        """Sets the color of the shape edge. See :meth:`psychopy.visual.GratingStim.setColor`
+        """Sets the color of the shape edge. See :meth:`psychopy.visual.GratingStim.color`
         for further details of how to use this function.
         """
         _setColor(self,color, colorSpace=colorSpace, operation=operation,
@@ -4941,7 +4849,7 @@ class ShapeStim(_BaseVisualStim):
                     colorAttrib='lineColor',#the name for this color
                     log=log)
     def setFillColor(self, color, colorSpace=None, operation='', log=True):
-        """Sets the color of the shape fill. See :meth:`psychopy.visual.GratingStim.setColor`
+        """Sets the color of the shape fill. See :meth:`psychopy.visual.GratingStim.color`
         for further details of how to use this function.
 
         Note that shapes where some vertices point inwards will usually not
@@ -5058,9 +4966,6 @@ class Polygon(ShapeStim):
 
         :Parameters:
 
-            win :
-                A :class:`~psychopy.visual.Window` object (required)
-
             edges : int
                 Number of edges of the polygon
 
@@ -5109,9 +5014,6 @@ class Circle(Polygon):
 
         :Parameters:
 
-            win :
-                A :class:`~psychopy.visual.Window` object (required)
-
             edges : float or int (default=32)
                 Specifies the resolution of the polygon that is approximating the
                 circle.
@@ -5146,9 +5048,6 @@ class Rect(ShapeStim):
         Rect accepts all input parameters, that `~psychopy.visual.ShapeStim` accept, except for vertices and closeShape.
 
         :Parameters:
-
-            win :
-                A :class:`~psychopy.visual.Window` object (required)
 
             width : int or float
                 Width of the Rectangle (in its respective units, if specified)
@@ -5205,9 +5104,6 @@ class Line(ShapeStim):
         but always return False (because a line is not a proper (2D) polygon).
 
         :Parameters:
-
-            win :
-                A :class:`~psychopy.visual.Window` object (required)
 
             start : tuple, list or 2x1 array
                 Specifies the position of the start of the line
@@ -5271,8 +5167,6 @@ class ImageStim(_BaseVisualStim):
         """
         :Parameters:
 
-            win :
-                a :class:`~psychopy.visual.Window` object (required)
             image :
                 The image file to be presented (most formats supported)
             mask :
@@ -5282,64 +5176,8 @@ class ImageStim(_BaseVisualStim):
                 + or the name of an image file (most formats supported)
                 + or a numpy array (1xN or NxN) ranging -1:1
 
-            units : **None**, 'norm', 'cm', 'deg' or 'pix'
-                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-                See :ref:`units` for explanation of other options.
-
-            pos :
-                a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
-                The origin is the screen centre, the units are determined
-                by units (see above). Stimuli can be position beyond the
-                window!
-
-            size :
-                a tuple (0.5,0.5) or a list [0.5,0.5] for the x and y
-                OR a single value (which will be applied to x and y).
-                Units are specified by 'units' (see above).
-                Sizes can be negative and can extend beyond the window.
-
-                .. note::
-
-                    If the mask is Gaussian ('gauss'), then the 'size' parameter refers to
-                    the stimulus at 3 standard deviations on each side of the
-                    centre (ie. sd=size/6)
-
-            ori:
-                orientation of stimulus in degrees
-
-            color:
-
-                Could be a:
-
-                    - web name for a color (e.g. 'FireBrick');
-                    - hex value (e.g. '#FF0047');
-                    - tuple (1.0,1.0,1.0); list [1.0,1.0, 1.0]; or numpy array.
-
-                If the last three are used then the color space should also be given
-                See :ref:`colorspaces`
-
-            colorSpace:
-                the color space controlling the interpretation of the `color`
-                See :ref:`colorspaces`
-
-            contrast: float (default= *1.0* )
-                How far the stimulus deviates from the middle grey.
-                Contrast can vary -1:1 (this is a multiplier for the
-                values given in the color description of the stimulus).
-
-            opacity: float (default= *1.0* )
-                1.0 is opaque, 0.0 is transparent
-
             texRes:
                 Sets the resolution of the mask (this is independent of the image resolution)
-
-            depth:
-                The depth argument is deprecated and may be removed in future versions.
-                Depth is controlled simply by drawing order.
-
-            name : string
-                The name of the object to be using during logged messages about
-                this stim
 
             maskParams: Various types of input. Default to None.
                 This is used to pass additional parameters to the mask if those
@@ -5353,40 +5191,38 @@ class ImageStim(_BaseVisualStim):
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 
-        self.interpolate=interpolate
-        self.flipHoriz = flipHoriz
-        self.flipVert = flipVert
-
-        self._origSize=None#if an image texture is loaded this will be updated
-
         #initialise textures for stimulus
         self._texID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._texID))
         self._maskID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._maskID))
-
-        # Set the maskParams (defaults to None):
         self.maskParams= maskParams
-
         self.texRes=texRes
+
+        # Other stuff
+        self._imName = image
         self.isLumImage = None
-        self.setImage(image, log=False)
-        self.setMask(mask, log=False)
+        self.interpolate=interpolate
+        self.flipHoriz = flipHoriz
+        self.flipVert = flipVert
+        self._requestedSize=size
+        self._origSize=None#if an image texture is loaded this will be updated
+        self.size = _val2array(size)
+        self.pos = numpy.array(pos,float)
+        self.ori = float(ori)
+        self.depth=depth
 
         #color and contrast etc
-        self.ori = float(ori)
         self.contrast = float(contrast)
         self.opacity = float(opacity)
-        self.colorSpace=colorSpace
+        self.__dict__['colorSpace'] = colorSpace  #omit decorator
         self.setColor(color, colorSpace=colorSpace, log=False)
         self.rgbPedestal=[0,0,0]#does an rgb pedestal make sense for an image?
 
-        #size
-        self._requestedSize=size
-        self.size = val2array(size)
-        self.pos = numpy.array(pos,float)
+                # Set the maskParams (defaults to None):
+        self.setImage(image, log=False)
+        self.setMask(mask, log=False)
 
-        self.depth=depth
         #fix scaling to window coords
         self._calcSizeRendered()
         self._calcPosRendered()
@@ -5654,8 +5490,6 @@ class BufferImageStim(GratingStim):
         """
         :Parameters:
 
-            win :
-                A :class:`~psychopy.visual.Window` object (required)
             buffer :
                 the screen buffer to capture from, default is 'back' (hidden).
                 'front' is the buffer in view after win.flip()
@@ -5679,8 +5513,6 @@ class BufferImageStim(GratingStim):
                 horizontally flip (mirror) the captured image, default = False
             flipVert :
                 vertically flip (mirror) the captured image; default = False
-            name : string
-                The name of the object to be using in log messages about this stim
         """
         # depends on: window._getRegionOfFrame
 
@@ -7657,46 +7489,38 @@ def _setColor(self, color, colorSpace=None, operation='',
     #rgb is calculated from converting color
     #rgbAttrib is the attribute name that rgb is stored under, e.g. lineRGB for self.lineRGB
     #colorSpace and takes name from colorAttrib+space e.g. self.lineRGBSpace=colorSpace
-    try:
-        color=float(color)
-        isScalar=True
-    except:
-        isScalar=False
 
     if colorSpaceAttrib==None:
         colorSpaceAttrib = colorAttrib+'Space'
 
+    # Handle strings and returns immediately as operations, colorspace etc. does not apply here.
     if type(color) in [str, unicode, numpy.string_]:
         if color.lower() in colors.colors255.keys():
             #set rgb, color and colorSpace
             setattr(self,rgbAttrib,numpy.array(colors.colors255[color.lower()], float))
-            setattr(self,colorSpaceAttrib,'named')#e.g. self.colorSpace='named'
-            setattr(self,colorAttrib,color) #e.g. self.color='red'
+            self.__dict__[colorSpaceAttrib] = 'named'  #e.g. 3rSpace='named'
+            self.__dict__[colorAttrib] = color  #e.g. self.color='red'
             _setTexIfNoShaders(self)
             return
         elif color[0]=='#' or color[0:2]=='0x':
             setattr(self,rgbAttrib,numpy.array(colors.hex2rgb255(color)))#e.g. self.rgb=[0,0,0]
-            setattr(self,colorAttrib,color) #e.g. self.color='#000000'
-            setattr(self,colorSpaceAttrib,'hex')#e.g. self.colorSpace='hex'
+            self.__dict__[colorSpaceAttrib] = 'hex'  #e.g. self.colorSpace='hex'
+            self.__dict__[colorAttrib] = color  #e.g. Qr='#000000'
             _setTexIfNoShaders(self)
             return
-#                except:
-#                    pass#this will be handled with AttributeError below
         #we got a string, but it isn't in the list of named colors and doesn't work as a hex
-        raise AttributeError("PsychoPy can't interpret the color string '%s'" %color)
-    elif isScalar:
-        color = numpy.asarray([color,color,color],float)
-    elif type(color) in [tuple,list]:
-        color = numpy.asarray(color,float)
-    elif type(color) ==numpy.ndarray:
-        pass
-    elif color==None:
-        setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
-        setattr(self,colorAttrib,None) #e.g. self.color='#000000'
-        setattr(self,colorSpaceAttrib,None)#e.g. self.colorSpace='hex'
-        _setTexIfNoShaders(self)
+        else:
+            raise AttributeError("PsychoPy can't interpret the color string '%s'" %color)
+
+    # If it wasn't a strin, do check and conversion of scalars, sequences and other stuff.
     else:
-        raise AttributeError("PsychoPy can't interpret the color %s (type=%s)" %(color, type(color)))
+        color = _val2array(color, length=3)
+
+        if color==None:
+            setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
+            self.__dict__[colorSpaceAttrib] = None  #e.g. self.colorSpace='hex'
+            self.__dict__[colorAttrib] = None  #e.g. self.color='#000000'
+            _setTexIfNoShaders(self)
 
     #at this point we have a numpy array of 3 vals (actually we haven't checked that there are 3)
     #check if colorSpace is given and use self.colorSpace if not
@@ -7715,10 +7539,7 @@ def _setColor(self, color, colorSpace=None, operation='',
             raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
                 %(operation, self.colorSpace, colorSpace))
     else:#OK to update current color
-        if hasattr(self, 'color'):
-            _setWithOperation(self, colorAttrib, color, operation)
-        else:
-            setattr(self, colorAttrib, color)
+        _setWithOperation(self, colorAttrib, color, operation, True)
     #get window (for color conversions)
     if colorSpace in ['dkl','lms']: #only needed for these spaces
         if hasattr(self,'dkl_rgb'):
@@ -7752,7 +7573,7 @@ def _setColor(self, color, colorSpace=None, operation='',
         setattr(self,rgbAttrib, colors.hsv2rgb(numpy.asarray(newColor)) )
     else:
         logging.error('Unknown colorSpace: %s' %colorSpace)
-    setattr(self,colorSpaceAttrib, colorSpace)#store name of colorSpace for future ref and for drawing
+    self.__dict__[colorSpaceAttrib] = colorSpace  #store name of colorSpace for future ref and for drawing
     #if needed, set the texture too
     _setTexIfNoShaders(self)
 
@@ -7768,28 +7589,47 @@ def _setColor(self, color, colorSpace=None, operation='',
             self.logOnFlip("Set Window %s=%s (%s)" %(colorAttrib,newColor,colorSpace),
                 level=logging.EXP,obj=self)
 
-def _setWithOperation(self, attrib, value, operation):
-    """ Sets an object property (scalar or numpy array) with an operation
-    History: introduced to avoid exec-calls"""
-    if not hasattr(self,attrib):
+def _setWithOperation(self, attrib, value, operation, stealth=False):
+    """ Sets an object property (scalar or numpy array) with an operation.
+    if stealth is True, then use self.__dict[key] = value. Else use setattr().
+    History: introduced in version 1.79 to avoid exec-calls"""
+
+    # Handle cases where attribute is not defined yet.
+    try:
+        oldValue = getattr(self, attrib)
+
+        # Calculate new value using operation
+        if operation == '':
+            newValue = oldValue * 0 + value  # Preserves dimensions, if array
+        elif operation == '+':
+            newValue = oldValue + value
+        elif operation == '*':
+            newValue = oldValue * value
+        elif operation == '-':
+            newValue = oldValue - value
+        elif operation == '/':
+            newValue = oldValue / value
+        elif operation == '**':
+            newValue = oldValue ** value
+        elif operation == '%':
+            newValue = oldValue % value
+        else:
+            raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
+    except AttributeError:
+        # attribute is not set yet. Do it now in a non-updating manner
         newValue = value
-    elif operation == '':
-        newValue = getattr(self, attrib) * 0 + value  # Preserves dimensions, if array
-    elif operation == '+':
-        newValue = getattr(self, attrib) + value
-    elif operation == '*':
-        newValue = getattr(self, attrib) * value
-    elif operation == '-':
-        newValue = getattr(self, attrib) - value
-    elif operation == '/':
-        newValue = getattr(self, attrib) / value
-    elif operation == '**':
-        newValue = getattr(self, attrib) ** value
-    elif operation == '%':
-        newValue = getattr(self, attrib) % value
-    else:
-        raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
-    setattr(self, attrib, newValue)
+    except TypeError:
+        # Attribute is "None" or unset and decorated. This is a sign that we are just initing
+        if oldValue is None or isinstance(oldValue, AttributeSetter):
+            newValue = value
+        else:
+            raise TypeError
+    finally:
+        # Set new value, with or without callback
+        if stealth:
+            self.__dict__[attrib] = newValue
+        else:
+            setattr(self, attrib, newValue)
 
 def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """Assesses the monitor refresh rate (average, median, SD) under current conditions, over at least 60 frames.
@@ -7845,9 +7685,9 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     for i in range(nFrames): # ... and go for real this time
         clockt.append(core.getTime())
         if showVisual:
-            myStim.setPhase(1.0/nFrames, '+')
+            myStim.phase += 1.0/nFrames
             myStim.sf += 3./nFrames
-            myStim.setOri(12./nFrames,'+')
+            myStim.ori += 12./nFrames
             myStim.setOpacity(.9/nFrames, '+')
             myStim.draw()
         elif showText:
