@@ -1271,6 +1271,15 @@ class _BaseVisualStim(object):
 
             If None then the current units of the :class:`~psychopy.visual.Window` will be used.
             See :ref:`units` for explanation of other options.
+
+            Note that when you change units, you don't change the stimulus parameters
+            and it is likely to change appearance. Example::
+
+                # This stimulus is 20% wide and 50% tall with respect to window
+                stim = visual.PatchStim(win, units='norm', size=(0.2, 0.5)
+
+                # This stimulus is 0.2 degrees wide and 0.5 degrees tall.
+                stim.units = 'deg'
         """
         if value != None and len(value):
             self.__dict__['units'] = value
@@ -1311,18 +1320,19 @@ class _BaseVisualStim(object):
         Float between -1 (negative) and 1 (unchanged). :ref:`operations <attrib-operations>` supported.
             Set the contrast of the stimulus, i.e. scales how far the stimulus
             deviates from the middle grey. (This is a multiplier for the values
-            given in the color description of the stimulus)
+            given in the color description of the stimulus). Examples::
 
-            Setting contrast outside this range may produce strange results.::
+                stim.contrast = 1.0  # unchanged contrast
+                stim.contrast = 0.5  # decrease contrast
+                stim.contrast = 0.0  # uniform, no contrast
+                stim.contrast = -0.5 # slightly inverted
+                stim.contrast = -1   # totally inverted
 
-                # 0.0 to 1.0 decreases contrast
-                # 1.0 means unchanged
+            Setting contrast outside range -1 to 1 is possible, but may
+            produce strange results if color values exceeds the colorSpace limits.::
 
-                # 0.0 to -1.0 inverts with decreased contrast
-                # -1.0 means exactly inverted.
-
-                # >1.0 increases contrast. (See warning below)
-                # <-1.0 inverts with increased contrast (See warning below)
+                stim.contrast = 1.2 # increases contrast.
+                stim.contrast = -1.2  # inverts with increased contrast
         """
         self.__dict__['contrast'] = value
 
@@ -1366,6 +1376,7 @@ class _BaseVisualStim(object):
         """
         :ref:`scalar <attrib-scalar>`. :ref:`operations <attrib-operations>` supported.
             Set the stimulus orientation in degrees.
+            ori can be greater than 360 and smaller than 0.
         """
         self.__dict__['ori'] = value
 
@@ -1411,6 +1422,9 @@ class _BaseVisualStim(object):
                 stim.pos = (0.5, 0)  # Slightly to the right
                 stim.pos += (0.5, -1)  # Move right and up. Is now (1.0, -1.0)
                 stim.pos *= 0.2  # Move towards the center. Is now (0.2, -0.2)
+
+            Tip: if you can see the actual pixel range this corresponds to by
+            looking at stim._posRendered
         """
         self.__dict__['pos'] = _val2array(value, False, False)
         self._calcPosRendered()
@@ -1427,6 +1441,9 @@ class _BaseVisualStim(object):
                 stim.size = 0.8  # Set size to (xsize, ysize) = (0.8, 0.8), quadratic.
                 print stim.size  # Outputs array([0.8, 0.8])
                 stim.size += (0,5, -0.5)  # make wider and flatter. Is now (1.3, 0.3)
+
+            Tip: if you can see the actual pixel range this corresponds to by
+            looking at stim._sizeRendered
         """
         value = _val2array(value)  # Check correct user input
         # None --> set to default
@@ -1520,6 +1537,17 @@ class _BaseVisualStim(object):
             defining which of the :ref:`colorspaces` to use. For strings and hex
             values this is not needed. If None the default colorSpace for the stimulus is
             used (defined during initialisation).
+
+            Please note that changing colorSpace does not change stimulus parameters. Example::
+
+                # A light green text
+                stim = visual.TextStim(win, 'Color me!', color=(0, 1, 0), colorSpace='rgb')
+
+                # An almost-black text
+                stim.colorSpace = 'rgb255'
+
+                # Make it light green again
+                stim.color = (128, 255, 128)
         """
         self.__dict__['colorSpace'] = value
 
