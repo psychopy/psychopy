@@ -207,15 +207,16 @@ class AudioCapture(object):
 
         `loops` : number of extra repetitions; 0 = play once
 
-        `stop` : True = stop an ongoing playback if one is in progress, and return
+        `stop` : True = immediately stop ongoing playback (if there is one), and return
         """
         if not self.savedFile or not os.path.isfile(self.savedFile):
             msg = '%s: Playback requested but no saved file' % self.loggingId
             logging.error(msg)
             raise ValueError(msg)
 
-        if stop and hasattr(self, 'current_recording'):
-            if self.current_recording.status == PLAYING:
+        if stop:
+            if (hasattr(self, 'current_recording') and
+                self.current_recording.status == PLAYING):
                 self.current_recording.stop()
             return
 
