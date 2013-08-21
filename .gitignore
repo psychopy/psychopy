@@ -24,7 +24,6 @@ psychopy/*/*/*/data/*.xlsx
 psychopy/*/*/*/data/*.psydat
 psychopy/demos/*/*/*.pickle
 psychopy/demos/*/*/*.psydat
-psychopy/demos/*/*/*.txt
 
 psychopy/tests/*Out.*
 psychopy/tests/data/*_local.png
