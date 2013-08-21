@@ -5561,8 +5561,12 @@ class ImageStim(_BaseVisualStim):
         self._imName = value
 
         wasLumImage = self.isLumImage
+        if value==None:
+            datatype = GL.GL_FLOAT
+        else:
+            datatype = GL.GL_UNSIGNED_BYTE
         self.isLumImage = createTexture(value, id=self.texID, stim=self,
-            pixFormat=GL.GL_RGB, dataType=GL.GL_UNSIGNED_BYTE,
+            pixFormat=GL.GL_RGB, dataType=datatype,
             maskParams=self.maskParams, forcePOW2=False)
         #if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize==None:
@@ -7465,7 +7469,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
         if wasLum and intensity.shape!=im.size:
             intensity.shape=im.size
 
-    if pixFormat==GL.GL_RGB and wasLum and dataType==GL.GL_FLOAT:
+    if pixFormat==GL.GL_RGB and wasLum and dataType==GL.GL_FLOAT: #grating stim on good machine
         #keep as float32 -1:1
         if sys.platform!='darwin' and stim.win.glVendor.startswith('nvidia'):
             #nvidia under win/linux might not support 32bit float
@@ -7476,7 +7480,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
         data[:,:,0] = intensity#R
         data[:,:,1] = intensity#G
         data[:,:,2] = intensity#B
-    elif pixFormat==GL.GL_RGB and wasLum:#and not using shaders
+    elif pixFormat==GL.GL_RGB and wasLum: #Grating on legacy hardware, or ImageStim with wasLum=True
         #scale by rgb and convert to ubyte
         internalFormat = GL.GL_RGB
         if stim.colorSpace in ['rgb', 'dkl', 'lms','hsv']:
@@ -7490,7 +7494,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
         data[:,:,2] = intensity*rgb[2]  + stim.rgbPedestal[2]#B
         #convert to ubyte
         data = psychopy.misc.float_uint8(stim.contrast*data)
-    elif pixFormat==GL.GL_RGB and dataType==GL.GL_FLOAT:#not wasLum
+    elif pixFormat==GL.GL_RGB and dataType==GL.GL_FLOAT: #probably a custom rgb array or rgb image
         internalFormat = GL.GL_RGB32F_ARB
         data = intensity
     elif pixFormat==GL.GL_RGB:# not wasLum, not useShaders  - an RGB bitmap with no shader options
