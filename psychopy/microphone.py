@@ -201,7 +201,7 @@ class AudioCapture(object):
 
         return self.savedFile
 
-    def playback(self, block=True):
+    def playback(self, block=True, loops=0):
         """Plays the saved .wav file, as just recorded or resampled. Execution
         blocks by default, but can return immediately with `block=False`.
         """
@@ -211,11 +211,14 @@ class AudioCapture(object):
             raise ValueError(msg)
 
         # play this file:
-        sound.Sound(self.savedFile, name=self.name+'.current_recording').play()
+        sound.Sound(self.savedFile, name=self.name+'.current_recording', loops=loops).play()
         if block:
-            core.wait(self.duration) # set during record()
+            core.wait(self.duration * (loops + 1)) # set during record()
 
-        logging.exp('%s: Playback: play %.3fs (est) %s' % (self.loggingId, self.duration, self.savedFile))
+        if loops:
+            logging.exp('%s: Playback: play %.3fs x %d (est) %s' % (self.loggingId, self.duration, loops+1, self.savedFile))
+        else:
+            logging.exp('%s: Playback: play %.3fs (est) %s' % (self.loggingId, self.duration, self.savedFile))
 
     def resample(self, newRate=16000, keep=True):
         """Re-sample the saved file to a new rate, return the full path.
@@ -1006,9 +1009,9 @@ if __name__ == '__main__':
             print '\nrecord stopped; sleeping 1s'
             sys.stdout.flush()
             core.wait(1)
-            print 'start playback ',
+            print 'start playback (x 2)'
             sys.stdout.flush()
-            mic.playback()
+            mic.playback(loops=1)
             print '\nend.', mic.savedFile
             for i in range(3):
                 t0 = time.time()
