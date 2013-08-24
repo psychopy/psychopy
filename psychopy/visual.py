@@ -1222,10 +1222,11 @@ class _BaseVisualStim(object):
     """A template for a stimulus class, on which GratingStim, TextStim etc... are based.
     Not finished...?
     """
-    def __init__(self, win, units=None, name='', autoLog=True):
+    def __init__(self, win, units=None, name='', autoLog=True, autoDraw=False):
         self.win = win
         self.name = name
         self.autoLog = autoLog
+        self.autoDraw = autoDraw
         self.status = NOT_STARTED
         self.units = units
 
@@ -1801,7 +1802,9 @@ class DotStim(_BaseVisualStim):
                  element=None,
                  signalDots='same',
                  noiseDots='direction',
-                 name='', autoLog=True):
+                 name='',
+                 autoLog=True,
+                 autoDraw=False):
         """
         :Parameters:
 
@@ -1837,7 +1840,7 @@ class DotStim(_BaseVisualStim):
                 ``.setPos([x,y])`` method (e.g. a GratingStim, TextStim...)!!
                 See `ElementArrayStim` for a faster implementation of this idea.
             """
-        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog, autoDraw=autoDraw)
         self.nDots = nDots
         #size
         self.fieldPos = _val2array(fieldPos, False, False)
@@ -2405,7 +2408,7 @@ class GratingStim(_BaseVisualStim):
                 cosine edge.
 
         """
-        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog, autoDraw=autoDraw)
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 
         # UGLY HACK: Some parameters depend on each other for processing.
@@ -2454,8 +2457,6 @@ class GratingStim(_BaseVisualStim):
         self.mask = mask
         self.contrast = float(contrast)
         self.opacity = float(opacity)
-        self.autoLog = autoLog
-        self.autoDraw = autoDraw
 
         #fix scaling to window coords
         self._calcPosRendered()
@@ -2783,7 +2784,9 @@ class RadialStim(GratingStim):
                  depth=0,
                  rgbPedestal = (0.0,0.0,0.0),
                  interpolate=False,
-                 name='', autoLog=True):
+                 name='',
+                 autoLog=True,
+                 autoDraw=False):
         """
         :Parameters:
 
@@ -2797,7 +2800,7 @@ class RadialStim(GratingStim):
             angularPhase :
                 the phase of the texture around the stimulus (in radians)
         """
-        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog, autoDraw=autoDraw)
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 
         # UGLY HACK again. (See same section in GratingStim for ideas)
@@ -3907,7 +3910,8 @@ class MovieStim(_BaseVisualStim):
                  name='',
                  loop=False,
                  autoLog=True,
-                 depth=0.0,):
+                 autoDraw=False,
+                 depth=0.0):
         """
         :Parameters:
 
@@ -3923,7 +3927,7 @@ class MovieStim(_BaseVisualStim):
                 called and the movie is done.
 
         """
-        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog, autoDraw=autoDraw)
 
         if not havePygletMedia:
             raise ImportError, """pyglet.media is needed for MovieStim and could not be imported.
@@ -4155,8 +4159,11 @@ class TextStim(_BaseVisualStim):
                  alignVert='center',
                  fontFiles=[],
                  wrapWidth=None,
-                 flipHoriz=False, flipVert=False,
-                 name='', autoLog=True):
+                 flipHoriz=False,
+                 flipVert=False,
+                 name='',
+                 autoLog=True,
+                 autoDraw=False):
         """
         :Parameters:
             win: A :class:`Window` object.
@@ -4184,7 +4191,7 @@ class TextStim(_BaseVisualStim):
             flipVert : boolean
                 Mirror-reverse the text in the up-down direction
         """
-        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog, autoDraw=autoDraw)
 
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
         self._needUpdate = True
@@ -4734,7 +4741,9 @@ class ShapeStim(_BaseVisualStim):
                  interpolate=True,
                  lineRGB=None,
                  fillRGB=None,
-                 name='', autoLog=True):
+                 name='',
+                 autoLog=True,
+                 autoDraw=False):
         """
         :Parameters:
 
@@ -4752,7 +4761,7 @@ class ShapeStim(_BaseVisualStim):
                 """
 
         # Initialize inheritance and remove unwanted methods
-        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog, autoDraw=autoDraw)
         self.__dict__['setColor'] = None
         self.__dict__['color'] = None
         self.__dict__['colorSpace'] = None
@@ -5167,7 +5176,9 @@ class ImageStim(_BaseVisualStim):
                  flipHoriz=False,
                  flipVert=False,
                  texRes=128,
-                 name='', autoLog=True,
+                 name='',
+                 autoLog=True,
+                 autoDraw=False,
                  maskParams=None):
         """
         :Parameters:
@@ -5193,7 +5204,7 @@ class ImageStim(_BaseVisualStim):
                 cosine edge.
 
         """
-        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog, autoDraw=autoDraw)
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 
         #initialise textures for stimulus
@@ -5491,7 +5502,7 @@ class BufferImageStim(GratingStim):
     """
     def __init__(self, win, buffer='back', rect=(-1, 1, 1, -1), sqPower2=False,
         stim=(), interpolate=True, flipHoriz=False, flipVert=False, mask='None', pos=(0,0),
-        name='', autoLog=True):
+        name='', autoLog=True, autoDraw=False):
         """
         :Parameters:
 
@@ -5559,6 +5570,7 @@ class BufferImageStim(GratingStim):
         self.flipVert = flipVert
 
         logging.exp('BufferImageStim %s: took %.1fms to initialize' % (name, 1000 * _clock.getTime()))
+
     @AttributeSetter
     def tex(self, value):
         """For BufferImageStim this method is not called by the user
