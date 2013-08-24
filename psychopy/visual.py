@@ -1233,16 +1233,21 @@ class _BaseVisualStim(object):
     def win(self, value):
         """
         a :class:`~psychopy.visual.Window` object (required)
+           Change default window for stimulus.
 
-           Example, drawing same stimulus in two different windows and display
-           simultaneously. Assuming that you have two windows and a stimulus (win1, win2 and stim)::
+           Example: Assuming that you have two windows and a stimulus
+           (win1, win2 and stim)::
 
-               stim.win = win1  # stimulus will be drawn in win1
+               stim.win = win1  # stimulus will be drawn in win1 as default
                stim.draw()  # stimulus is now drawn to win1
-               stim.win = win2  # stimulus will be drawn in win2
+               stim.win = win2  # stimulus will be drawn in win2 as default
                stim.draw()  # it is now drawn in win2
-               win1.flip(waitBlanking=False)  # do not wait for next monitor update
-               win2.flip()  # wait for vertical blanking.
+
+           Note that this just changes **default** window for stimulus.
+           You could also specify window-to-draw-to when drawing::
+
+               stim.draw(win1)
+               stim.draw(win2)
         """
         self.__dict__['win'] = value
 
