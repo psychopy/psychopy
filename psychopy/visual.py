@@ -116,6 +116,11 @@ def _val2array(value, withNone=True, withScalar=True, length=2):
     else:
         raise ValueError('Invalid parameter.')
 
+def _logAttrib(self, attrib, value, log):
+    if log or log is None and self.autoLog:
+        self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, value),
+            level=logging.EXP,obj=self)
+
 # Makes functions appear as attributes. Takes care of autologging. A useful setter. Should be in misc?
 class AttributeSetter(object):
     def __init__(self, func, doc=None):
@@ -1634,11 +1639,7 @@ class _BaseVisualStim(object):
 
         # Handle operations
         _setWithOperation(self, attrib, val, op)
-
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
-                level=logging.EXP,obj=self)
-
+        _logAttrib(self, attrib, getattr(self, attrib), log)
     def setUseShaders(self, value=True):
         """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self.useShaders = value
@@ -1921,10 +1922,7 @@ class DotStim(_BaseVisualStim):
         if attrib in ['nDots','coherence']:
             self.coherence=round(self.coherence*self.nDots)/self.nDots
 
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
-                level=logging.EXP,obj=self)
-
+        _logAttrib(self, attrib, getattr(self, attrib), log)
     def set(self, attrib, val, op='', log=True):
         """DotStim.set() is obsolete and may not be supported in future
         versions of PsychoPy. Use the specific method for each parameter instead
@@ -2186,9 +2184,7 @@ class SimpleImageStim:
             self.imArray = numpy.flipud(self.imArray)#numpy and pyglet disagree about ori so ud<=>lr
         self.flipHoriz=newVal
         self._needStrUpdate=True
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipHoriz=%s" %(self.name, newVal),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'flipHoriz', self.flipHoriz, log)
     def setFlipVert(self,newVal=True, log=True):
         """If set to True then the image will be flipped vertically (top-to-bottom).
         Note that this is relative to the original image, not relative to the current state.
@@ -2197,9 +2193,7 @@ class SimpleImageStim:
             self.imArray = numpy.fliplr(self.imArray)#numpy and pyglet disagree about ori so ud<=>lr
         self.flipVert=newVal
         self._needStrUpdate=True
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipVert=%s" %(self.name, newVal),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'flipVert', self.flipVert, log)
     def setUseShaders(self, val=True):
         """Set this stimulus to use shaders if possible.
         """
@@ -2278,10 +2272,7 @@ class SimpleImageStim:
             val=numpy.array(val, float)
 
         _setWithOperation(self, attrib, val, op)
-
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, attrib, getattr(self, attrib), log)
     def setPos(self, newPos, operation='', units=None, log=True):
         self._set('pos', val=newPos, op=operation, log=log)
         self._calcPosRendered()
@@ -2333,9 +2324,7 @@ class SimpleImageStim:
         self.dataType = GL.GL_UNSIGNED_BYTE
         self._needStrUpdate = True
 
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s image=%s" %(self.name, filename),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'image', self.image, log)
 
 class GratingStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in either dimension
@@ -3182,9 +3171,7 @@ class RadialStim(GratingStim):
         """Change the alpha-mask for the stimulus
         """
         self.mask = value
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'mask', self.mask, log)
 
     def __del__(self):
         self.clearTextures()#remove textures from graphics card to prevent crash
@@ -3425,9 +3412,8 @@ class ElementArrayStim:
             #set value
             _setWithOperation(self, 'xys', value, operation)
         self.needVertexUpdate=True
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s XYs=%s" %(self.name, type(value)),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'XYs', type(value), log)
+
     def setOris(self,value,operation='', log=True):
         """Set the orientation for each element.
         Should either be a single value or an Nx1 array/list
@@ -3448,9 +3434,7 @@ class ElementArrayStim:
         _setWithOperation(self, 'oris', value, operation)
 
         self.needVertexUpdate=True
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s oris=%s" %(self.name, type(value)),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'oris', type(value), log)
     #----------------------------------------------------------------------
     def setSfs(self, value,operation='', log=True):
         """Set the spatial frequency for each element.
@@ -3483,9 +3467,7 @@ class ElementArrayStim:
 
         # Set value and log
         _setWithOperation(self, 'sfs', value, operation)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s sfs=%s" %(self.name, type(value)),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'sfs', type(value), log)
 
     def setOpacities(self,value,operation='', log=True):
         """Set the opacity for each element.
@@ -3506,9 +3488,8 @@ class ElementArrayStim:
         #set value and log
         _setWithOperation(self, 'opacities', value, operation)
         self.needColorUpdate =True
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s opacities=%s" %(self.name, type(value)),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'opacities', type(value), log)
+
     def setSizes(self,value,operation='', log=True):
         """Set the size for each element.
         Should either be:
@@ -3537,9 +3518,8 @@ class ElementArrayStim:
         self.needVertexUpdate=True
         self.needTexCoordUpdate=True
 
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s sizes=%s" %(self.name, type(value)),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'sizes', type(value), log)
+
     def setPhases(self,value,operation='', log=True):
         """Set the phase for each element.
         Should either be:
@@ -3567,9 +3547,8 @@ class ElementArrayStim:
         _setWithOperation(self, 'phases', value, operation)
         self.needTexCoordUpdate=True
 
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s phases=%s" %(self.name, type(value)),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'phases', type(value), log)
+
     def setRgbs(self,value,operation='', log=True):
         """DEPRECATED (as of v1.74.00). Please use setColors() instead
         """
@@ -3645,12 +3624,10 @@ class ElementArrayStim:
             raise ValueError("New value for setContrs should be either Nx1 or a single value")
 
         #set value and log
-        _setWithOperation(self, 'contrs', value, operation)
         self.needColorUpdate=True
+        _setWithOperation(self, 'contrs', value, operation)
+        _logAttrib(self, 'contrs', type(value), log)
 
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s contrs=%s" %(self.name, type(value)),
-                level=logging.EXP,obj=self)
     def setFieldPos(self,value,operation='', log=True):
         """Set the centre of the array (X,Y)
         """
@@ -3664,10 +3641,8 @@ class ElementArrayStim:
         #set value and log
         _setWithOperation(self, 'fieldPos', value, operation)
         self._calcFieldCoordsRendered()
+        _logAttrib(self, 'fieldPos', type(value), log)
 
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s fieldPos=%s" %(self.name, type(value)),
-                level=logging.EXP,obj=self)
     def setPos(self, newPos=None, operation='', units=None, log=True):
         """Obselete - users should use setFieldPos or instead of setPos
         """
@@ -3687,10 +3662,8 @@ class ElementArrayStim:
         #set value and log
         _setWithOperation(self, 'fieldSize', value, operation)
         self.setXYs(log=False)#to reflect new settings, overriding individual xys
+        _logAttrib(self, 'fieldSize', value, log)
 
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s fieldSize=%s" %(self.name,value),
-                level=logging.EXP,obj=self)
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -3857,18 +3830,14 @@ class ElementArrayStim:
         """
         self.tex = value
         createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s tex=%s" %(self.name, value),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'tex', self.tex, log)
     def setMask(self,value, log=True):
         """Change the mask (all elements have the same mask). Avoid doing this
         during time-critical points in your script. Uploading new textures to the
         graphics card can be time-consuming."""
         self.mask = value
         createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self, res=self.texRes)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'mask', self.mask, log)
     def __del__(self):
         self.clearTextures()#remove textures from graphics card to prevent crash
     def clearTextures(self):
@@ -4020,10 +3989,7 @@ class MovieStim(_BaseVisualStim):
         self.status=NOT_STARTED
         self._player.pause()#start 'playing' on the next draw command
         self.filename=filename
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s movie=%s" %(self.name, filename),
-                level=logging.EXP,obj=self)
-
+        _logAttrib(self, 'movie', self.filename, log)
     def pause(self, log=True):
         """Pause the current point in the movie (sound will stop, current frame
         will not advance).  If play() is called again both will restart.
@@ -4336,10 +4302,7 @@ class TextStim(_BaseVisualStim):
                     self._font = pygame.font.SysFont(self.fontname, int(self.heightPix), italic=self.italic, bold=self.bold)
         #re-render text after a font change
         self._needSetText=True
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s font=%s" %(self.name, self.fontname),
-                level=logging.EXP,obj=self)
-
+        _logAttrib(self, 'font', self.fontname, log)
     def setText(self,text=None, log=True):
         """Set the text to be rendered using the current font
         """
@@ -4350,9 +4313,7 @@ class TextStim(_BaseVisualStim):
         else:
             self._setTextNoShaders(text)
         self._needSetText=False
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s text=%s" %(self.name, text),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'text', self.text, log)
     def setRGB(self, text, operation='', log=True):
         self._set('rgb', text, operation, log=log)
         if not self.useShaders:
@@ -4609,17 +4570,13 @@ class TextStim(_BaseVisualStim):
         Note that this is relative to the original, not relative to the current state.
         """
         self.flipHoriz = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipHoriz=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
+        _logAttrib(self, 'flipHoriz', self.flipHoriz, log)
     def setFlipVert(self, newVal=True, log=True):
         """If set to True then the text will be flipped vertically (top-to-bottom).
         Note that this is relative to the original, not relative to the current state.
         """
         self.flipVert = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
+        _logAttrib(self, 'flipVert', self.flipVert, log)
     def setFlip(self, direction, log=True):
         """(used by Builder to simplify the dialog)"""
         if direction == 'vert':
@@ -4901,9 +4858,7 @@ class ShapeStim(_BaseVisualStim):
         _setWithOperation(self, 'vertices', value, operation)
         self.needVertexUpdate=True
 
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s vertices=%s" %(self.name, value),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'vertices', self.vertices, log)
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -5013,9 +4968,7 @@ class Polygon(ShapeStim):
         self.radius = numpy.asarray(radius)
         self._calcVertices()
         self.setVertices(self.vertices, log=False)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s radius=%s" %(self.name, radius),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'radius', radius, log)
 
 class Circle(Polygon):
     """Creates a Circle with a given radius as a special case of a :class:`~psychopy.visual.ShapeStim`
@@ -5048,9 +5001,7 @@ class Circle(Polygon):
         self.radius = numpy.asarray(radius)
         self._calcVertices()
         self.setVertices(self.vertices, log=False)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s radius=%s" %(self.name, radius),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'radius', radius, log)
 
 class Rect(ShapeStim):
     """Creates a rectangle of given width and height as a special case of a :class:`~psychopy.visual.ShapeStim`
@@ -5091,18 +5042,14 @@ class Rect(ShapeStim):
         self.width = width
         self._calcVertices()
         self.setVertices(self.vertices, log=False)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s width=%s" %(self.name, width),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'width', self.width, log)
 
     def setHeight(self, height, log=True):
         """Changes the height of the Rectangle """
         self.height = height
         self._calcVertices()
         self.setVertices(self.vertices, log=False)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s height=%s" %(self.name, height),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'height', self.height, log)
 
 class Line(ShapeStim):
     """Creates a Line between two points.
@@ -5140,18 +5087,14 @@ class Line(ShapeStim):
             - tuple, list or 2x1 array specifying the coordinates of the start point"""
         self.start = start
         self.setVertices([self.start, self.end], log=False)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s start=%s" %(self.name, start),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'start', self.start, log)
 
     def setEnd(self, end, log=True):
         """Changes the end point of the line. Argument should be a tuple, list
         or 2x1 array specifying the coordinates of the end point"""
         self.end = end
         self.setVertices([self.start, self.end], log=False)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s end=%s" %(self.name, end),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'end', self.end, log)
 
     def contains(self):
         pass
@@ -5437,9 +5380,7 @@ class ImageStim(_BaseVisualStim):
         #if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize==None:
             self.size = None  # set size to default
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s image=%s" %(self.name, value),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'image', self._imName, log)
         #if we switched to/from lum image then need to update shader rule
         if wasLumImage != self.isLumImage:
             self.needUpdate=True
@@ -5451,9 +5392,8 @@ class ImageStim(_BaseVisualStim):
             pixFormat=GL.GL_ALPHA,dataType=GL.GL_UNSIGNED_BYTE,
             stim=self,
             res=self.texRes, maskParams=self.maskParams)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'mask', self.mask, log)
+
 class BufferImageStim(GratingStim):
     """
     Take a "screen-shot" (full or partial), save to a ImageStim()-like RBGA object.
@@ -5633,25 +5573,19 @@ class BufferImageStim(GratingStim):
         Note that this is relative to the original image, not relative to the current state.
         """
         self.flipHoriz = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipHoriz=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
+        _logAttrib(self, 'flipHoriz', self.flipHoriz, log)
     def setFlipVert(self, newVal=True, log=True):
         """If set to True then the image will be flipped vertically (top-to-bottom).
         Note that this is relative to the original image, not relative to the current state.
         """
         set.flipVert = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
+        _logAttrib(self, 'flipVert', self.flipVert, log)
     def setTex(self, tex, interpolate=True, log=True):
         """(This is not typically called directly.)"""
         # setTex is called only once
         self.interpolate = interpolate #set interp to new value
         self.tex = tex #cal the setter for tex
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s tex=%s" %(self.name, tex),
-                level=logging.EXP,obj=self)
+        _logAttrib(self, 'tex', self.tex, log)
     def draw(self, win=None):
         """
         Draws the BufferImage on the screen, similar to :class:`~psychopy.visual.ImageStim` `.draw()`.
@@ -6849,26 +6783,20 @@ class Aperture:
         self.size = size
         self._calcSizeRendered()
         if needReset: self._reset()
-        if log and self.autoLog:
-             self.win.logOnFlip("Set %s size=%s" %(self.name, size),
-                 level=logging.EXP,obj=self)
+        _logAttrib(self, 'size', self.size, log)
     def setOri(self, ori, needReset=True, log=True):
         """Set the orientation of the Aperture
         """
         self.ori = ori
         if needReset: self._reset()
-        if log and self.autoLog:
-             self.win.logOnFlip("Set %s ori=%s" %(self.name, ori),
-                 level=logging.EXP,obj=self)
+        _logAttrib(self, 'ori', self.ori, log)
     def setPos(self, pos, needReset=True, log=True):
         """Set the pos (centre) of the Aperture
         """
         self.pos = numpy.array(pos)
         self._calcPosRendered()
         if needReset: self._reset()
-        if log and self.autoLog:
-             self.win.logOnFlip("Set %s pos=%s" %(self.name, pos),
-                 level=logging.EXP,obj=self)
+        _logAttrib(self, 'pos', pos, log)
     def _calcSizeRendered(self):
         """Calculate the size of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
         if self.units in ['norm','pix', 'height']: self._sizeRendered=self.size
