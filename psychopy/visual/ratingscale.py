@@ -11,7 +11,7 @@ import sys
 import psychopy  # so we can get the __path__
 from psychopy import core, logging, event
 
-from psychopy.misc import isValidColor
+from psychopy.colors import isValidColor
 from psychopy.visual.circle import Circle
 from psychopy.visual.patch import PatchStim
 from psychopy.visual.shape import ShapeStim

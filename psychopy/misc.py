@@ -10,7 +10,7 @@
 
 import numpy  # this is imported by psychopy.core
 import random
-from psychopy import logging, monitors, colors
+from psychopy import logging, monitors
 
 import os
 import shutil
@@ -687,19 +687,6 @@ def hsv2rgb(hsv_Nx3):
     m=(hsv_Nx3[:,2] - C)
     rgb +=  m.reshape([len(m),1])# V-C is sometimes called m
     return rgb.reshape(origShape)*2-1
-
-
-def isValidColor(color):
-    """check color validity (equivalent to existing checks in _setColor)
-    """
-    try:
-        color = float(color)
-        return True
-    except:
-        if isinstance(color, basestring) and len(color):
-            return (color.lower() in colors.colors255.keys()
-                    or color[0] == '#' or color[0:2] == '0x')
-        return type(color) in [tuple, list, numpy.ndarray] or not color
 
 
 #--- coordinate transforms ---------------------------------------------
