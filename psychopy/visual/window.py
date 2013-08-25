@@ -8,14 +8,15 @@
 
 import sys
 import os
-import glob
-import copy
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
+# Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 import pyglet
 pyglet.options['debug_gl'] = False
+GL = pyglet.gl
+import ctypes
 
 #on windows try to load avbin now (other libs can interfere)
 if sys.platform == 'win32':
@@ -32,16 +33,14 @@ if sys.platform == 'win32':
 
 import psychopy  # so we can get the __path__
 from psychopy import core, platform_specific, logging, prefs, monitors, event
-from psychopy import colors
 import psychopy.event
 
 # misc must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 import psychopy.misc
 from psychopy import makeMovies
-from psychopy.misc import (attributeSetter, setWithOperation, isValidColor,
-                           makeRadialMatrix)
-from psychopy.visual import TextStim, GratingStim
+from psychopy.visual.text import TextStim
+from psychopy.visual.grating import GratingStim
 from psychopy.visual.helpers import setColor
 
 try:
@@ -56,20 +55,12 @@ if sys.platform == 'win32' and not haveAvbin:
                      and make sure that avbin is installed.""")
 
 import numpy
-from numpy import sin, cos, pi
 
 from psychopy.core import rush
 
 global currWindow
 currWindow = None
 reportNDroppedFrames = 5  # stop raising warning after this
-reportNImageResizes = 5
-global _nImageResizes
-_nImageResizes = 0
-
-#shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
-import ctypes
-GL = pyglet.gl
 
 import psychopy.gamma
 #import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
@@ -90,22 +81,8 @@ except:
 global useFBO
 useFBO = False
 
-try:
-    import matplotlib
-    if matplotlib.__version__ > '1.2':
-        from matplotlib.path import Path as mpl_Path
-    else:
-        from matplotlib import nxutils
-    haveMatplotlib = True
-except:
-    haveMatplotlib = False
-
 global DEBUG
 DEBUG = False
-
-#symbols for MovieStim: PLAYING, STARTED, PAUSED, NOT_STARTED, FINISHED
-from psychopy.constants import *
-
 
 #keep track of windows that have been opened
 openWindows = []

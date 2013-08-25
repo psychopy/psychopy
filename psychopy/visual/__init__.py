@@ -7,38 +7,39 @@
 '''Container for all visual-related functions and classes'''
 
 # window, should always be loaded first
-from .window import Window, getMsPerFrame
+from psychopy.visual.window import Window, getMsPerFrame
 
 # non-private helpers
-from .helpers import createTexture, pointInPolygon, polygonsOverlap
+from psychopy.visual.helpers import (createTexture,
+                                     pointInPolygon, polygonsOverlap)
 
 # non-stimulus classes only derived from Object
-from .aperture import Aperture
-from .custommouse import CustomMouse
+from psychopy.visual.aperture import Aperture
+from psychopy.visual.custommouse import CustomMouse
 
 # stimuli only derived from Object
-from .basevisual import BaseVisualStim
-from .elementarray import ElementArrayStim
-from .ratingscale import RatingScale
-from .simpleimage import SimpleImageStim
+from psychopy.visual.basevisual import BaseVisualStim
+from psychopy.visual.elementarray import ElementArrayStim
+from psychopy.visual.ratingscale import RatingScale
+from psychopy.visual.simpleimage import SimpleImageStim
 
 # stimuli derived from BaseVisualStim
-from .dot import DotStim
-from .grating import GratingStim
-from .image import ImageStim
-from .movie import MovieStim
-from .shape import ShapeStim
-from .text import TextStim
+from psychopy.visual.dot import DotStim
+from psychopy.visual.grating import GratingStim
+from psychopy.visual.image import ImageStim
+from psychopy.visual.movie import MovieStim
+from psychopy.visual.shape import ShapeStim
+from psychopy.visual.text import TextStim
 
 # stimuli derived from GratingStim
-from .bufferimage import BufferImageStim
-from .patch import PatchStim
-from .radial import RadialStim
+from psychopy.visual.bufferimage import BufferImageStim
+from psychopy.visual.patch import PatchStim
+from psychopy.visual.radial import RadialStim
 
 # stimuli derived from ShapeStim
-from .line import Line
-from .polygon import Polygon
-from .rect import Rect
+from psychopy.visual.line import Line
+from psychopy.visual.polygon import Polygon
+from psychopy.visual.rect import Rect
 
 # stimuli derived from Polygon
-from .circle import Circle
+from psychopy.visual.circle import Circle
