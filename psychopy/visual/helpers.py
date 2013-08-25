@@ -429,7 +429,7 @@ def setTexIfNoShaders(obj):
     if hasattr(obj, 'setTex') and hasattr(obj, 'tex') and not obj.useShaders:
         obj.setTex(obj.tex)
 
-def setColor(self, color, colorSpace=None, operation='',
+def setColor(obj, color, colorSpace=None, operation='',
                 rgbAttrib='rgb', #or 'fillRGB' etc
                 colorAttrib='color', #or 'fillColor' etc
                 colorSpaceAttrib=None, #e.g. 'colorSpace' or 'fillColorSpace'
@@ -439,12 +439,12 @@ def setColor(self, color, colorSpace=None, operation='',
     """
 
     #how this works:
-    #rather than using self.rgb=rgb this function uses setattr(self,'rgb',rgb)
+    #rather than using obj.rgb=rgb this function uses setattr(obj,'rgb',rgb)
     #color represents the color in the native space
-    #colorAttrib is the name that color will be assigned using setattr(self,colorAttrib,color)
+    #colorAttrib is the name that color will be assigned using setattr(obj,colorAttrib,color)
     #rgb is calculated from converting color
-    #rgbAttrib is the attribute name that rgb is stored under, e.g. lineRGB for self.lineRGB
-    #colorSpace and takes name from colorAttrib+space e.g. self.lineRGBSpace=colorSpace
+    #rgbAttrib is the attribute name that rgb is stored under, e.g. lineRGB for obj.lineRGB
+    #colorSpace and takes name from colorAttrib+space e.g. obj.lineRGBSpace=colorSpace
 
     if colorSpaceAttrib==None:
         colorSpaceAttrib = colorAttrib+'Space'
@@ -453,16 +453,16 @@ def setColor(self, color, colorSpace=None, operation='',
     if type(color) in [str, unicode, numpy.string_]:
         if color.lower() in colors.colors255.keys():
             #set rgb, color and colorSpace
-            setattr(self,rgbAttrib,numpy.array(colors.colors255[color.lower()], float))
-            self.__dict__[colorSpaceAttrib] = 'named'  #e.g. 3rSpace='named'
-            self.__dict__[colorAttrib] = color  #e.g. self.color='red'
-            setTexIfNoShaders(self)
+            setattr(obj,rgbAttrib,numpy.array(colors.colors255[color.lower()], float))
+            obj.__dict__[colorSpaceAttrib] = 'named'  #e.g. 3rSpace='named'
+            obj.__dict__[colorAttrib] = color  #e.g. obj.color='red'
+            setTexIfNoShaders(obj)
             return
         elif color[0]=='#' or color[0:2]=='0x':
-            setattr(self,rgbAttrib,numpy.array(colors.hex2rgb255(color)))#e.g. self.rgb=[0,0,0]
-            self.__dict__[colorSpaceAttrib] = 'hex'  #e.g. self.colorSpace='hex'
-            self.__dict__[colorAttrib] = color  #e.g. Qr='#000000'
-            setTexIfNoShaders(self)
+            setattr(obj,rgbAttrib,numpy.array(colors.hex2rgb255(color)))#e.g. obj.rgb=[0,0,0]
+            obj.__dict__[colorSpaceAttrib] = 'hex'  #e.g. obj.colorSpace='hex'
+            obj.__dict__[colorAttrib] = color  #e.g. Qr='#000000'
+            setTexIfNoShaders(obj)
             return
         #we got a string, but it isn't in the list of named colors and doesn't work as a hex
         else:
@@ -473,48 +473,48 @@ def setColor(self, color, colorSpace=None, operation='',
         color = psychopy.misc.val2array(color, length=3)
 
         if color==None:
-            setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
-            self.__dict__[colorSpaceAttrib] = None  #e.g. self.colorSpace='hex'
-            self.__dict__[colorAttrib] = None  #e.g. self.color='#000000'
-            setTexIfNoShaders(self)
+            setattr(obj,rgbAttrib,None)#e.g. obj.rgb=[0,0,0]
+            obj.__dict__[colorSpaceAttrib] = None  #e.g. obj.colorSpace='hex'
+            obj.__dict__[colorAttrib] = None  #e.g. obj.color='#000000'
+            setTexIfNoShaders(obj)
 
     #at this point we have a numpy array of 3 vals (actually we haven't checked that there are 3)
-    #check if colorSpace is given and use self.colorSpace if not
+    #check if colorSpace is given and use obj.colorSpace if not
     if colorSpace==None:
-        colorSpace=getattr(self,colorSpaceAttrib)
+        colorSpace=getattr(obj,colorSpaceAttrib)
         #using previous color space - if we got this far in the _stColor function
         #then we haven't been given a color name - we don't know what color space to use.
         if colorSpace == 'named':
             logging.error("If you setColor with a numeric color value then you need to specify a color space, e.g. setColor([1,1,-1],'rgb'), unless you used a numeric value previously in which case PsychoPy will reuse that color space.)")
             return
     #check whether combining sensible colorSpaces (e.g. can't add things to hex or named colors)
-    if operation!='' and getattr(self,colorSpaceAttrib) in ['named','hex']:
+    if operation!='' and getattr(obj,colorSpaceAttrib) in ['named','hex']:
             raise AttributeError("setColor() cannot combine ('%s') colors within 'named' or 'hex' color spaces"\
                 %(operation))
-    elif operation!='' and colorSpace!=getattr(self,colorSpaceAttrib) :
+    elif operation!='' and colorSpace!=getattr(obj,colorSpaceAttrib) :
             raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
-                %(operation, self.colorSpace, colorSpace))
+                %(operation, obj.colorSpace, colorSpace))
     else:#OK to update current color
-        setWithOperation(self, colorAttrib, color, operation, True)
+        setWithOperation(obj, colorAttrib, color, operation, True)
     #get window (for color conversions)
     if colorSpace in ['dkl','lms']: #only needed for these spaces
-        if hasattr(self,'dkl_rgb'):
-            win=self #self is probably a Window
-        elif hasattr(self, 'win'):
-            win=self.win #self is probably a Stimulus
+        if hasattr(obj,'dkl_rgb'):
+            win=obj #obj is probably a Window
+        elif hasattr(obj, 'win'):
+            win=obj.win #obj is probably a Stimulus
         else:
             win=None
             logging.error("_setColor() is being applied to something that has no known Window object")
-    #convert new self.color to rgb space
-    newColor=getattr(self, colorAttrib)
+    #convert new obj.color to rgb space
+    newColor=getattr(obj, colorAttrib)
     if colorSpace in ['rgb','rgb255']:
-        setattr(self,rgbAttrib, newColor)
+        setattr(obj,rgbAttrib, newColor)
     elif colorSpace=='dkl':
         if numpy.all(win.dkl_rgb==numpy.ones([3,3])):
             dkl_rgb=None
         else:
             dkl_rgb=win.dkl_rgb
-        setattr(self,rgbAttrib, colors.dkl2rgb(numpy.asarray(newColor).transpose(), dkl_rgb) )
+        setattr(obj,rgbAttrib, colors.dkl2rgb(numpy.asarray(newColor).transpose(), dkl_rgb) )
     elif colorSpace=='lms':
         if numpy.all(win.lms_rgb==numpy.ones([3,3])):
             lms_rgb=None
@@ -524,23 +524,23 @@ def setColor(self, color, colorSpace=None, operation='',
             lms_rgb=win.lms_rgb
         else:
             lms_rgb=win.lms_rgb
-        setattr(self,rgbAttrib, colors.lms2rgb(newColor, lms_rgb) )
+        setattr(obj,rgbAttrib, colors.lms2rgb(newColor, lms_rgb) )
     elif colorSpace=='hsv':
-        setattr(self,rgbAttrib, colors.hsv2rgb(numpy.asarray(newColor)) )
+        setattr(obj,rgbAttrib, colors.hsv2rgb(numpy.asarray(newColor)) )
     else:
         logging.error('Unknown colorSpace: %s' %colorSpace)
-    self.__dict__[colorSpaceAttrib] = colorSpace  #store name of colorSpace for future ref and for drawing
+    obj.__dict__[colorSpaceAttrib] = colorSpace  #store name of colorSpace for future ref and for drawing
     #if needed, set the texture too
-    setTexIfNoShaders(self)
+    setTexIfNoShaders(obj)
 
-    if hasattr(self, 'autoLog'):
-        autoLog = self.autoLog
+    if hasattr(obj, 'autoLog'):
+        autoLog = obj.autoLog
     else:
         autoLog = False
     if autoLog and log:
-        if hasattr(self,'win'):
-            self.win.logOnFlip("Set %s.%s=%s (%s)" %(self.name,colorAttrib,newColor,colorSpace),
-                level=logging.EXP,obj=self)
+        if hasattr(obj,'win'):
+            obj.win.logOnFlip("Set %s.%s=%s (%s)" %(obj.name,colorAttrib,newColor,colorSpace),
+                level=logging.EXP,obj=obj)
         else:
-            self.logOnFlip("Set Window %s=%s (%s)" %(colorAttrib,newColor,colorSpace),
-                level=logging.EXP,obj=self)
+            obj.logOnFlip("Set Window %s=%s (%s)" %(colorAttrib,newColor,colorSpace),
+                level=logging.EXP,obj=obj)
