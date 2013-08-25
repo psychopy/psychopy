@@ -30,6 +30,9 @@ import psychopy.event
 #misc must only be imported *after* event or MovieStim breaks on win32 (JWP has no idea why!)
 import psychopy.misc
 import makeMovies
+from psychopy.misc import (attributeSetter, setWithOperation, IsValidColor,
+                           makeRadialMatrix)
+
 try:
     from PIL import Image
 except ImportError:
@@ -89,44 +92,6 @@ global DEBUG; DEBUG=False
 #symbols for MovieStim: PLAYING, STARTED, PAUSED, NOT_STARTED, FINISHED
 from psychopy.constants import *
 
-
-def _val2array(value, withNone=True, withScalar=True, length=2):
-    """Helper function: converts different input to a numpy array.
-    Raises informative error messages if input is invalid.
-
-    withNone: True/False. should 'None' be passed?
-    withScalar: True/False. is a scalar an accepted input? Will be converted to array of this scalar
-    elements: False/2/3. Number of elements input should have or be converted to. Might be False (do not accept arrays or convert to such)"""
-    if value is None:
-        if withNone:
-            return None
-        else:
-            raise ValueError('Invalid parameter. None is not accepted as value.')
-    value = numpy.asarray(value, float)
-    if numpy.product(value.shape)==1:
-        if withScalar:
-            return numpy.repeat(value, length)  # e.g. 5 becomes array([5.0, 5.0, 5.0]) for length=3
-        else:
-            raise ValueError('Invalid parameter. Single numbers are not accepted. Should be tuple/list/array of length ' + str(length))
-    elif type(value) in (tuple, list, numpy.ndarray):
-        if len(value) is length:
-            return numpy.array(value, float)
-        else:
-            raise ValueError('Invalid parameter. Should be length ' + str(length) + 'but got length ' + str(len(value)))
-    else:
-        raise ValueError('Invalid parameter.')
-
-# Makes functions appear as attributes. Takes care of autologging. A useful setter. Should be in misc?
-class AttributeSetter(object):
-    def __init__(self, func, doc=None):
-        self.func = func
-        self.__doc__ = doc if doc is not None else func.__doc__
-    def __set__(self, obj, value):
-        newValue = self.func(obj, value)
-        if obj.autoLog is True:
-            obj.win.logOnFlip("%s: %s = %s" %(obj.__class__.__name__, self.func.__name__, newValue),
-                level=logging.EXP, obj=obj)
-        return newValue
 
 #keep track of windows that have been opened
 openWindows=[]
@@ -253,8 +218,8 @@ class Window:
         self.screen = screen
 
         #parameters for transforming the overall view
-        self.viewScale = _val2array(viewScale)
-        self.viewPos = _val2array(viewPos, True, False)
+        self.viewScale = psychopy.misc.val2array(viewScale)
+        self.viewPos = psychopy.misc.val2array(viewPos, True, False)
         self.viewOri  = float(viewOri)
         self.stereo = stereo #use quad buffer if requested (and if possible)
 
@@ -900,7 +865,7 @@ class Window:
         """Deprecated: As of v1.61.00 please use `setColor()` instead
         """
         global GL, currWindow
-        self.rgb = _val2array(newRGB, False, length=3)
+        self.rgb = psychopy.misc.val2array(newRGB, False, length=3)
         if self.winType=='pyglet' and currWindow!=self:
             self.winHandle.switch_to()
         GL.glClearColor((self.rgb[0]+1.0)/2.0, (self.rgb[1]+1.0)/2.0, (self.rgb[2]+1.0)/2.0, 1.0)
@@ -1229,7 +1194,7 @@ class _BaseVisualStim(object):
         self.status = NOT_STARTED
         self.units = units
 
-    @AttributeSetter
+    @attributeSetter
     def win(self, value):
         """
         a :class:`~psychopy.visual.Window` object (required)
@@ -1248,7 +1213,7 @@ class _BaseVisualStim(object):
 
     # Might seem simple at first, but this ensures that "name" attribute
     # appears in docs and that name setting and updating is logged.
-    @AttributeSetter
+    @attributeSetter
     def name(self, value):
         """
         String
@@ -1264,7 +1229,7 @@ class _BaseVisualStim(object):
         """
         self.__dict__['name'] = value
 
-    @AttributeSetter
+    @attributeSetter
     def units(self, value):
         """
         None, 'norm', 'cm', 'deg' or 'pix'
@@ -1293,11 +1258,11 @@ class _BaseVisualStim(object):
 
         # Update size and position if they are defined. If not, this is probably
         # during some init and they will be defined later, given the new unit.
-        if not isinstance(self.size, AttributeSetter) and not isinstance(self.pos, AttributeSetter):
+        if not isinstance(self.size, attributeSetter) and not isinstance(self.pos, attributeSetter):
             self.size = self.size
             self.pos = self.pos
 
-    @AttributeSetter
+    @attributeSetter
     def opacity(self, value):
         """
         Float. :ref:`operations <attrib-operations>` supported.
@@ -1314,7 +1279,7 @@ class _BaseVisualStim(object):
             if hasattr(self,'mask'):
                 self.mask = self.mask
 
-    @AttributeSetter
+    @attributeSetter
     def contrast(self, value):
         """
         Float between -1 (negative) and 1 (unchanged). :ref:`operations <attrib-operations>` supported.
@@ -1352,7 +1317,7 @@ class _BaseVisualStim(object):
         elif log:
             logging.warning('Contrast was set on class where useShaders was undefined. Contrast might remain unchanged')
 
-    @AttributeSetter
+    @attributeSetter
     def useShaders(self, value):
         """
         True/False (default is *True*, if shaders are supported by the system)
@@ -1371,7 +1336,7 @@ class _BaseVisualStim(object):
             self.mask = self.mask
             self._needUpdate = True
 
-    @AttributeSetter
+    @attributeSetter
     def ori(self, value):
         """
         :ref:`scalar <attrib-scalar>`. :ref:`operations <attrib-operations>` supported.
@@ -1380,7 +1345,7 @@ class _BaseVisualStim(object):
         """
         self.__dict__['ori'] = value
 
-    @AttributeSetter
+    @attributeSetter
     def autoDraw(self, value):
         """
         True or False.
@@ -1410,7 +1375,7 @@ class _BaseVisualStim(object):
             toDraw.remove(self)  #remove from draw list
             self.status = STOPPED
 
-    @AttributeSetter
+    @attributeSetter
     def pos(self, value):
         """
         :ref:`x,y-pair <attrib-xy>`. :ref:`operations <attrib-operations>` supported.
@@ -1426,10 +1391,10 @@ class _BaseVisualStim(object):
             Tip: if you can see the actual pixel range this corresponds to by
             looking at stim._posRendered
         """
-        self.__dict__['pos'] = _val2array(value, False, False)
+        self.__dict__['pos'] = psychopy.misc.val2array(value, False, False)
         self._calcPosRendered()
 
-    @AttributeSetter
+    @attributeSetter
     def size(self, value):
         """
         :ref:`x,y-pair <attrib-xy>`, :ref:`scalar <attrib-scalar>` or None (resets to default). Supports :ref:`operations <attrib-operations>`.
@@ -1445,7 +1410,7 @@ class _BaseVisualStim(object):
             Tip: if you can see the actual pixel range this corresponds to by
             looking at stim._sizeRendered
         """
-        value = _val2array(value)  # Check correct user input
+        value = psychopy.misc.val2array(value)  # Check correct user input
         # None --> set to default
         if value == None:
             """Set the size to default (e.g. to the size of the loaded image etc)"""
@@ -1466,7 +1431,7 @@ class _BaseVisualStim(object):
             self._calcCyclesPerStim()
         self._needUpdate = True
 
-    @AttributeSetter
+    @attributeSetter
     def autoLog(self, value):
         """
         True or False.
@@ -1475,14 +1440,14 @@ class _BaseVisualStim(object):
         """
         self.__dict__['autoLog'] = value
 
-    @AttributeSetter
+    @attributeSetter
     def depth(self, value):
         """
         Deprecated. Depth is now controlled simply by drawing order.
         """
         self.__dict__['depth'] = value
 
-    @AttributeSetter
+    @attributeSetter
     def color(self, value):
         """
         String: color name or hex.
@@ -1529,7 +1494,7 @@ class _BaseVisualStim(object):
         """
         _setColor(self, value, rgbAttrib='rgb', colorAttrib='color')
 
-    @AttributeSetter
+    @attributeSetter
     def colorSpace(self, value):
         """
         String or None
@@ -1624,10 +1589,10 @@ class _BaseVisualStim(object):
         if op==None: op=''
         #format the input value as float vectors
         if type(val) in [tuple, list, numpy.ndarray]:
-            val = _val2array(val)
+            val = psychopy.misc.val2array(val)
 
         # Handle operations
-        _setWithOperation(self, attrib, val, op)
+        setWithOperation(self, attrib, val, op)
 
         if log and self.autoLog:
             self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
@@ -1835,8 +1800,8 @@ class DotStim(_BaseVisualStim):
         _BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         self.nDots = nDots
         #size
-        self.fieldPos = _val2array(fieldPos, False, False)
-        self.fieldSize = _val2array(fieldSize, False)
+        self.fieldPos = psychopy.misc.val2array(fieldPos, False, False)
+        self.fieldSize = psychopy.misc.val2array(fieldSize, False)
         if type(dotSize) in [tuple,list]:
             self.dotSize = numpy.array(dotSize)
         else:self.dotSize=dotSize
@@ -1907,7 +1872,7 @@ class DotStim(_BaseVisualStim):
             val=numpy.array(val,float)
 
         #change the attribute as requested
-        _setWithOperation(self, attrib, val, op)
+        setWithOperation(self, attrib, val, op)
 
         #update the actual coherence for the requested coherence and nDots
         if attrib in ['nDots','coherence']:
@@ -2269,7 +2234,7 @@ class SimpleImageStim:
         if type(val) in (tuple, list):
             val=numpy.array(val, float)
 
-        _setWithOperation(self, attrib, val, op)
+        setWithOperation(self, attrib, val, op)
 
         if log and self.autoLog:
             self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
@@ -2421,7 +2386,7 @@ class GratingStim(_BaseVisualStim):
         self.interpolate = interpolate
 
         #NB Pedestal isn't currently being used during rendering - this is a place-holder
-        self.rgbPedestal = _val2array(rgbPedestal, False, length=3)
+        self.rgbPedestal = psychopy.misc.val2array(rgbPedestal, False, length=3)
         self.__dict__['colorSpace'] = colorSpace  # No need to invoke decorator for color updating. It is done just below.
         if rgb != None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
@@ -2437,12 +2402,12 @@ class GratingStim(_BaseVisualStim):
 
         # set other parameters
         self.ori = float(ori)
-        self.phase = _val2array(phase, False)
+        self.phase = psychopy.misc.val2array(phase, False)
         self._origSize = None  #if an image texture is loaded this will be updated
         self._requestedSize = size
-        self.size = _val2array(size)
-        self.sf = _val2array(sf)
-        self.pos = _val2array(pos, False, False)
+        self.size = psychopy.misc.val2array(size)
+        self.sf = psychopy.misc.val2array(sf)
+        self.pos = psychopy.misc.val2array(pos, False, False)
         self.depth = depth
 
         self.tex = tex
@@ -2461,7 +2426,7 @@ class GratingStim(_BaseVisualStim):
         self._updateList()#ie refresh display list
 
 
-    @AttributeSetter
+    @attributeSetter
     def sf(self, value):
         """
         :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>`
@@ -2481,14 +2446,14 @@ class GratingStim(_BaseVisualStim):
             else:
                 value = numpy.array([1.0, 1.0])
         else:
-            value = _val2array(value)
+            value = psychopy.misc.val2array(value)
 
         # Set value and update stuff
         self.__dict__['sf'] = value
         self._calcCyclesPerStim()
         self._needUpdate = True
 
-    @AttributeSetter
+    @attributeSetter
     def phase(self, value):
         """
         :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>`
@@ -2499,11 +2464,11 @@ class GratingStim(_BaseVisualStim):
         that setting phase=t*n drifts a stimulus at n Hz
         """
         # Recode phase to numpy array
-        value = _val2array(value)
+        value = psychopy.misc.val2array(value)
         self.__dict__['phase'] = value
         self._needUpdate = True
 
-    @AttributeSetter
+    @attributeSetter
     def tex(self, value):
         """
         + **'sin'**,'sqr', 'saw', 'tri', None (resets to default)
@@ -2519,7 +2484,7 @@ class GratingStim(_BaseVisualStim):
             self.size = None  # Reset size do default
         self.__dict__['tex'] = value
 
-    @AttributeSetter
+    @attributeSetter
     def mask(self, value):
         """
         + 'circle', 'gauss', 'raisedCos', **None** (resets to default)
@@ -2810,7 +2775,7 @@ class RadialStim(GratingStim):
         self.maskRadialPhase = 0
         self.texRes = texRes #must be power of 2
         self.interpolate = interpolate
-        self.rgbPedestal = _val2array(rgbPedestal, False, length=3)
+        self.rgbPedestal = psychopy.misc.val2array(rgbPedestal, False, length=3)
 
         #these are defined by the GratingStim but will just cause confusion here!
         self.setSF = None
@@ -2840,7 +2805,7 @@ class RadialStim(GratingStim):
         self.pos = numpy.array(pos, float)
         self.depth=depth
         self.__dict__['sf'] = 1
-        self.size = _val2array(size, False)
+        self.size = psychopy.misc.val2array(size, False)
 
         self.tex = tex
         self.mask = mask
@@ -2867,7 +2832,7 @@ class RadialStim(GratingStim):
             self._listID = GL.glGenLists(1)
             self._updateList()#ie refresh display list
 
-    @AttributeSetter
+    @attributeSetter
     def mask(self, value):
         """
         + 'circle', 'gauss', 'raisedCos', **None** (resets to default)
@@ -3347,8 +3312,8 @@ class ElementArrayStim:
             self.setColors(colors, colorSpace=colorSpace, log=False)
 
         #Deal with input for fieldpos and fieldsize
-        self.fieldPos = _val2array(fieldPos, False)
-        self.fieldSize = _val2array(fieldSize, False)
+        self.fieldPos = psychopy.misc.val2array(fieldPos, False)
+        self.fieldSize = psychopy.misc.val2array(fieldSize, False)
 
         #create textures
         self.texRes = texRes
@@ -3415,7 +3380,7 @@ class ElementArrayStim:
             if not (value.shape in [(),(2,),(self.nElements,2)]):
                 raise ValueError("New value for setXYs should be either None or Nx2")
             #set value
-            _setWithOperation(self, 'xys', value, operation)
+            setWithOperation(self, 'xys', value, operation)
         self.needVertexUpdate=True
         if log and self.autoLog:
             self.win.logOnFlip("Set %s XYs=%s" %(self.name, type(value)),
@@ -3437,7 +3402,7 @@ class ElementArrayStim:
             raise ValueError("New value for setOris should be either Nx1 or a single value")
 
         #set value
-        _setWithOperation(self, 'oris', value, operation)
+        setWithOperation(self, 'oris', value, operation)
 
         self.needVertexUpdate=True
         if log and self.autoLog:
@@ -3474,7 +3439,7 @@ class ElementArrayStim:
             raise ValueError("New value for setSfs should be either Nx1, Nx2 or a single value")
 
         # Set value and log
-        _setWithOperation(self, 'sfs', value, operation)
+        setWithOperation(self, 'sfs', value, operation)
         if log and self.autoLog:
             self.win.logOnFlip("Set %s sfs=%s" %(self.name, type(value)),
                 level=logging.EXP,obj=self)
@@ -3496,7 +3461,7 @@ class ElementArrayStim:
             raise ValueError("New value for setOpacities should be either Nx1 or a single value")
 
         #set value and log
-        _setWithOperation(self, 'opacities', value, operation)
+        setWithOperation(self, 'opacities', value, operation)
         self.needColorUpdate =True
         if log and self.autoLog:
             self.win.logOnFlip("Set %s opacities=%s" %(self.name, type(value)),
@@ -3524,7 +3489,7 @@ class ElementArrayStim:
             raise ValueError("New value for setSizes should be either Nx1, Nx2 or a single value")
 
         #set value and log
-        _setWithOperation(self, 'sizes', value, operation)
+        setWithOperation(self, 'sizes', value, operation)
         self._calcSizesRendered()
         self.needVertexUpdate=True
         self.needTexCoordUpdate=True
@@ -3556,7 +3521,7 @@ class ElementArrayStim:
             raise ValueError("New value for setPhases should be either Nx1, Nx2 or a single value")
 
         #set value and log
-        _setWithOperation(self, 'phases', value, operation)
+        setWithOperation(self, 'phases', value, operation)
         self.needTexCoordUpdate=True
 
         if log and self.autoLog:
@@ -3637,7 +3602,7 @@ class ElementArrayStim:
             raise ValueError("New value for setContrs should be either Nx1 or a single value")
 
         #set value and log
-        _setWithOperation(self, 'contrs', value, operation)
+        setWithOperation(self, 'contrs', value, operation)
         self.needColorUpdate=True
 
         if log and self.autoLog:
@@ -3654,7 +3619,7 @@ class ElementArrayStim:
             raise ValueError("New value for setFieldPos should be [x,y]")
 
         #set value and log
-        _setWithOperation(self, 'fieldPos', value, operation)
+        setWithOperation(self, 'fieldPos', value, operation)
         self._calcFieldCoordsRendered()
 
         if log and self.autoLog:
@@ -3677,7 +3642,7 @@ class ElementArrayStim:
             raise ValueError("New value for setFieldSize should be [x,y] or a single value")
 
         #set value and log
-        _setWithOperation(self, 'fieldSize', value, operation)
+        setWithOperation(self, 'fieldSize', value, operation)
         self.setXYs(log=False)#to reflect new settings, overriding individual xys
 
         if log and self.autoLog:
@@ -3950,7 +3915,7 @@ class MovieStim(_BaseVisualStim):
         if size == None: self.size= numpy.array([self.format.width,
                                                  self.format.height] , float)
         else:
-            self.size = _val2array(size)
+            self.size = psychopy.misc.val2array(size)
 
         self.ori = ori
         self._calcPosRendered()
@@ -4784,7 +4749,7 @@ class ShapeStim(_BaseVisualStim):
         self.setVertices(vertices, log=False)
         self._calcVerticesRendered()
 
-    @AttributeSetter
+    @attributeSetter
     def fillColor(self, color):
         """
         Sets the color of the shape fill. See :meth:`psychopy.visual.GratingStim.color`
@@ -4795,7 +4760,7 @@ class ShapeStim(_BaseVisualStim):
         """
         _setColor(self, color, rgbAttrib='fillRGB', colorAttrib='fillColor')
 
-    @AttributeSetter
+    @attributeSetter
     def lineColor(self, color):
         """
         Sets the color of the shape lines. See :meth:`psychopy.visual.GratingStim.color`
@@ -4803,14 +4768,14 @@ class ShapeStim(_BaseVisualStim):
         """
         _setColor(self, color, rgbAttrib='lineRGB', colorAttrib='lineColor')
 
-    @AttributeSetter
+    @attributeSetter
     def fillColorSpace(self, value):
         """
         Sets color space for fill color. See documentation for lineColorSpace
         """
         self.__dict__['fillColorSpace'] = value
 
-    @AttributeSetter
+    @attributeSetter
     def lineColorSpace(self, value):
         """
         String or None
@@ -4884,7 +4849,7 @@ class ShapeStim(_BaseVisualStim):
             ):
                 raise ValueError("New value for setXYs should be 2x1 or Nx2")
         #set value and log
-        _setWithOperation(self, 'vertices', value, operation)
+        setWithOperation(self, 'vertices', value, operation)
         self.needVertexUpdate=True
 
         if log and self.autoLog:
@@ -5207,7 +5172,7 @@ class ImageStim(_BaseVisualStim):
         self.flipVert = flipVert
         self._requestedSize=size
         self._origSize=None#if an image texture is loaded this will be updated
-        self.size = _val2array(size)
+        self.size = psychopy.misc.val2array(size)
         self.pos = numpy.array(pos,float)
         self.ori = float(ori)
         self.depth=depth
@@ -5554,7 +5519,7 @@ class BufferImageStim(GratingStim):
         self.flipVert = flipVert
 
         logging.exp('BufferImageStim %s: took %.1fms to initialize' % (name, 1000 * _clock.getTime()))
-    @AttributeSetter
+    @attributeSetter
     def tex(self, value):
         """For BufferImageStim this method is not called by the user
         """
@@ -6313,7 +6278,7 @@ class RatingScale:
             scaledTickSize = self.tickSize * self.displaySizeFactor
             vert = [[-1 * scaledTickSize * 1.8, scaledTickSize * 3],
                     [ scaledTickSize * 1.8, scaledTickSize * 3], [0, -0.005]]
-            if markerColor == None or not _isValidColor(markerColor):
+            if markerColor == None or not IsValidColor(markerColor):
                 markerColor = 'DarkBlue'
             self.marker = ShapeStim(win=self.win, units='norm', vertices=vert,
                 lineWidth=0.1, lineColor=markerColor, fillColor=markerColor,
@@ -6324,13 +6289,13 @@ class RatingScale:
                     [ scaledTickSize * 1.8, scaledTickSize],
                     [ scaledTickSize * 1.8, -1 * scaledTickSize],
                     [-1 * scaledTickSize * 1.8, -1 * scaledTickSize]]
-            if markerColor == None or not _isValidColor(markerColor):
+            if markerColor == None or not IsValidColor(markerColor):
                 markerColor = 'black'
             self.marker = ShapeStim(win=self.win, units='norm', vertices=vert,
                 lineWidth=0.1, lineColor=markerColor, fillColor=markerColor,
                 name=self.name+'.markerSlider', opacity=0.8, autoLog=False)
         elif self.markerStyle == 'glow':
-            if markerColor == None or not _isValidColor(markerColor):
+            if markerColor == None or not IsValidColor(markerColor):
                 markerColor = 'White'
             self.marker = PatchStim(win=self.win, tex='sin', mask='gauss',
                 color=markerColor, opacity = 0.85, autoLog=False,
@@ -6344,7 +6309,7 @@ class RatingScale:
                     self.markerBaseSize *= .7
                 self.marker.setSize(self.markerBaseSize/2.)
         else: # self.markerStyle == 'circle':
-            if markerColor == None or not _isValidColor(markerColor):
+            if markerColor == None or not IsValidColor(markerColor):
                 markerColor = 'DarkRed'
             x,y = self.win.size
             windowRatio = float(y)/x
@@ -7072,14 +7037,6 @@ class CustomMouse():
         self.lastPos = self.mouse.getPos() # hardware mouse's position
         self.mouse.setVisible(False)
 
-def makeRadialMatrix(matrixSize):
-    """Generate a square matrix where each element val is
-    its distance from the centre of the matrix
-    """
-    oneStep = 2.0/(matrixSize-1)
-    xx,yy = numpy.mgrid[0:2+oneStep:oneStep, 0:2+oneStep:oneStep] -1.0 #NB need to add one step length because
-    rad = numpy.sqrt(xx**2 + yy**2)
-    return rad
 
 def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=True, dataType=None):
     """
@@ -7461,18 +7418,6 @@ def _setTexIfNoShaders(obj):
     if hasattr(obj, 'setTex') and hasattr(obj, 'tex') and not obj.useShaders:
         obj.setTex(obj.tex)
 
-def _isValidColor(color):
-    """check color validity (equivalent to existing checks in _setColor)
-    """
-    try:
-        color = float(color)
-        return True
-    except:
-        if isinstance(color, basestring) and len(color):
-            return (color.lower() in colors.colors255.keys()
-                    or color[0]=='#' or color[0:2]=='0x')
-        return type(color) in [tuple, list, numpy.ndarray] or color==None
-
 def _setColor(self, color, colorSpace=None, operation='',
                 rgbAttrib='rgb', #or 'fillRGB' etc
                 colorAttrib='color', #or 'fillColor' etc
@@ -7514,7 +7459,7 @@ def _setColor(self, color, colorSpace=None, operation='',
 
     # If it wasn't a strin, do check and conversion of scalars, sequences and other stuff.
     else:
-        color = _val2array(color, length=3)
+        color = psychopy.misc.val2array(color, length=3)
 
         if color==None:
             setattr(self,rgbAttrib,None)#e.g. self.rgb=[0,0,0]
@@ -7539,7 +7484,7 @@ def _setColor(self, color, colorSpace=None, operation='',
             raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
                 %(operation, self.colorSpace, colorSpace))
     else:#OK to update current color
-        _setWithOperation(self, colorAttrib, color, operation, True)
+        setWithOperation(self, colorAttrib, color, operation, True)
     #get window (for color conversions)
     if colorSpace in ['dkl','lms']: #only needed for these spaces
         if hasattr(self,'dkl_rgb'):
@@ -7588,48 +7533,6 @@ def _setColor(self, color, colorSpace=None, operation='',
         else:
             self.logOnFlip("Set Window %s=%s (%s)" %(colorAttrib,newColor,colorSpace),
                 level=logging.EXP,obj=self)
-
-def _setWithOperation(self, attrib, value, operation, stealth=False):
-    """ Sets an object property (scalar or numpy array) with an operation.
-    if stealth is True, then use self.__dict[key] = value. Else use setattr().
-    History: introduced in version 1.79 to avoid exec-calls"""
-
-    # Handle cases where attribute is not defined yet.
-    try:
-        oldValue = getattr(self, attrib)
-
-        # Calculate new value using operation
-        if operation == '':
-            newValue = oldValue * 0 + value  # Preserves dimensions, if array
-        elif operation == '+':
-            newValue = oldValue + value
-        elif operation == '*':
-            newValue = oldValue * value
-        elif operation == '-':
-            newValue = oldValue - value
-        elif operation == '/':
-            newValue = oldValue / value
-        elif operation == '**':
-            newValue = oldValue ** value
-        elif operation == '%':
-            newValue = oldValue % value
-        else:
-            raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
-    except AttributeError:
-        # attribute is not set yet. Do it now in a non-updating manner
-        newValue = value
-    except TypeError:
-        # Attribute is "None" or unset and decorated. This is a sign that we are just initing
-        if oldValue is None or isinstance(oldValue, AttributeSetter):
-            newValue = value
-        else:
-            raise TypeError
-    finally:
-        # Set new value, with or without callback
-        if stealth:
-            self.__dict__[attrib] = newValue
-        else:
-            setattr(self, attrib, newValue)
 
 def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """Assesses the monitor refresh rate (average, median, SD) under current conditions, over at least 60 frames.

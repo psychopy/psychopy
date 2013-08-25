@@ -1,22 +1,85 @@
+#!/usr/bin/env python
+
 """Tools, nothing to do with psychophysics or experiments
 - just handy things like conversion functions etc...
 """
+
 # Part of the PsychoPy library
 # Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import numpy, random #this is imported by psychopy.core
-from psychopy import logging
-import monitors
+import numpy  # this is imported by psychopy.core
+import random
+from psychopy import logging, monitors, colors
 
-import os, shutil, glob
+import os
+import shutil
+import glob
 import cPickle
 try:
     from PIL import Image
 except ImportError:
     import Image
 
-#from random import shuffle #this is core python dist
+
+class attributeSetter(object):
+    ''' Makes functions appear as attributes. Takes care of autologging.'''
+    def __init__(self, func, doc=None):
+        self.func = func
+        self.__doc__ = doc if doc is not None else func.__doc__
+
+    def __set__(self, obj, value):
+        newValue = self.func(obj, value)
+        if obj.autoLog is True:
+            obj.win.logOnFlip("%s: %s = %s" % (obj.__class__.__name__,
+                                               self.func.__name__, newValue),
+                              level=logging.EXP, obj=obj)
+        return newValue
+
+
+def setWithOperation(self, attrib, value, operation, stealth=False):
+    """ Sets an object property (scalar or numpy array) with an operation.
+    if stealth is True, then use self.__dict[key] = value. Else use setattr().
+    History: introduced in version 1.79 to avoid exec-calls"""
+
+    # Handle cases where attribute is not defined yet.
+    try:
+        oldValue = getattr(self, attrib)
+
+        # Calculate new value using operation
+        if operation == '':
+            newValue = oldValue * 0 + value  # Preserves dimensions, if array
+        elif operation == '+':
+            newValue = oldValue + value
+        elif operation == '*':
+            newValue = oldValue * value
+        elif operation == '-':
+            newValue = oldValue - value
+        elif operation == '/':
+            newValue = oldValue / value
+        elif operation == '**':
+            newValue = oldValue ** value
+        elif operation == '%':
+            newValue = oldValue % value
+        else:
+            raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
+    except AttributeError:
+        # attribute is not set yet. Do it now in a non-updating manner
+        newValue = value
+    except TypeError:
+        # Attribute is "None" or unset and decorated. This is a sign that we are just initing
+        if oldValue is None or isinstance(oldValue, attributeSetter):
+            newValue = value
+        else:
+            raise TypeError
+    finally:
+        # Set new value, with or without callback
+        if stealth:
+            self.__dict__[attrib] = newValue
+        else:
+            setattr(self, attrib, newValue)
+
+
 
 def toFile(filename, data):
     """save data (of any sort) as a pickle file
@@ -146,6 +209,32 @@ def extendArr(inArray,newSize):
     exec("newArr["+indString+"]=inArray")
     return newArr
 
+
+def val2array(value, withNone=True, withScalar=True, length=2):
+    """Helper function: converts different input to a numpy array.
+    Raises informative error messages if input is invalid.
+
+    withNone: True/False. should 'None' be passed?
+    withScalar: True/False. is a scalar an accepted input? Will be converted to array of this scalar
+    elements: False/2/3. Number of elements input should have or be converted to. Might be False (do not accept arrays or convert to such)"""
+    if value is None:
+        if withNone:
+            return None
+        else:
+            raise ValueError('Invalid parameter. None is not accepted as value.')
+    value = numpy.asarray(value, float)
+    if numpy.product(value.shape)==1:
+        if withScalar:
+            return numpy.repeat(value, length)  # e.g. 5 becomes array([5.0, 5.0, 5.0]) for length=3
+        else:
+            raise ValueError('Invalid parameter. Single numbers are not accepted. Should be tuple/list/array of length ' + str(length))
+    elif type(value) in (tuple, list, numpy.ndarray):
+        if len(value) is length:
+            return numpy.array(value, float)
+        else:
+            raise ValueError('Invalid parameter. Should be length ' + str(length) + 'but got length ' + str(len(value)))
+    else:
+        raise ValueError('Invalid parameter.')
 
 
 def ratioRange(start, nSteps=None, stop=None,
@@ -599,6 +688,23 @@ def hsv2rgb(hsv_Nx3):
     rgb +=  m.reshape([len(m),1])# V-C is sometimes called m
     return rgb.reshape(origShape)*2-1
 
+
+def isValidColor(color):
+    """check color validity (equivalent to existing checks in _setColor)
+    """
+    try:
+        color = float(color)
+        return True
+    except:
+        if isinstance(color, basestring) and len(color):
+            return (color.lower() in colors.colors255.keys()
+                    or color[0] == '#' or color[0:2] == '0x')
+        return type(color) in [tuple, list, numpy.ndarray] or not color
+
+
+#--- coordinate transforms ---------------------------------------------
+
+
 def pol2cart(theta, radius, units='deg'):
     """Convert from polar to cartesian coordinates
 
@@ -613,6 +719,17 @@ def pol2cart(theta, radius, units='deg'):
     yy = radius*numpy.sin(theta)
 
     return xx,yy
+
+
+def makeRadialMatrix(matrixSize):
+    """Generate a square matrix where each element val is
+    its distance from the centre of the matrix
+    """
+    oneStep = 2.0/(matrixSize-1)
+    xx,yy = numpy.mgrid[0:2+oneStep:oneStep, 0:2+oneStep:oneStep] -1.0 #NB need to add one step length because
+    rad = numpy.sqrt(xx**2 + yy**2)
+    return rad
+
 #----------------------------------------------------------------------
 def  cart2pol(x,y, units='deg'):
     """Convert from cartesian to polar coordinates
