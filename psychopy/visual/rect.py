@@ -1,5 +1,8 @@
-"""To control the screen and visual stimuli for experiments
-"""
+#!/usr/bin/env python
+
+'''Creates a rectangle of given width and height
+as a special case of a :class:`~psychopy.visual.ShapeStim`'''
+
 # Part of the PsychoPy library
 # Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -39,7 +42,7 @@ import psychopy.misc
 from psychopy import makeMovies
 from psychopy.misc import (attributeSetter, setWithOperation, isValidColor,
                            makeRadialMatrix)
-from psychopy.visual.basevisual import BaseVisualStim
+from psychopy.visual.shape import ShapeStim
 
 try:
     from PIL import Image
@@ -110,3 +113,55 @@ openWindows = []
 # can provide a default window for mouse
 psychopy.event.visualOpenWindows = openWindows
 
+
+class Rect(ShapeStim):
+    """Creates a rectangle of given width and height as a special case of a :class:`~psychopy.visual.ShapeStim`
+
+    (New in version 1.72.00)
+    """
+    def __init__(self, win, width=.5, height=.5, **kwargs):
+        """
+        Rect accepts all input parameters, that `~psychopy.visual.ShapeStim` accept, except for vertices and closeShape.
+
+        :Parameters:
+
+            width : int or float
+                Width of the Rectangle (in its respective units, if specified)
+
+            height : int or float
+                Height of the Rectangle (in its respective units, if specified)
+
+        """
+        self.width = width
+        self.height = height
+        self._calcVertices()
+        kwargs['closeShape'] = True # Make sure nobody messes around here
+        kwargs['vertices'] = self.vertices
+
+        ShapeStim.__init__(self, win, **kwargs)
+
+    def _calcVertices(self):
+        self.vertices = numpy.array([
+            (-self.width*.5,  self.height*.5),
+            ( self.width*.5,  self.height*.5),
+            ( self.width*.5, -self.height*.5),
+            (-self.width*.5, -self.height*.5)
+        ])
+
+    def setWidth(self, width, log=True):
+        """Changes the width of the Rectangle"""
+        self.width = width
+        self._calcVertices()
+        self.setVertices(self.vertices, log=False)
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s width=%s" %(self.name, width),
+                level=logging.EXP,obj=self)
+
+    def setHeight(self, height, log=True):
+        """Changes the height of the Rectangle """
+        self.height = height
+        self._calcVertices()
+        self.setVertices(self.vertices, log=False)
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s height=%s" %(self.name, height),
+                level=logging.EXP,obj=self)

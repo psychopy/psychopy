@@ -1,5 +1,9 @@
-"""To control the screen and visual stimuli for experiments
-"""
+#!/usr/bin/env python
+
+'''Deprecated (as of version 1.74.00):
+please use the :class:`~psychopy.visual.GratingStim`
+or the :class:`~psychopy.visual.ImageStim` classes.'''
+
 # Part of the PsychoPy library
 # Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -39,7 +43,7 @@ import psychopy.misc
 from psychopy import makeMovies
 from psychopy.misc import (attributeSetter, setWithOperation, isValidColor,
                            makeRadialMatrix)
-from psychopy.visual.basevisual import BaseVisualStim
+from psychopy.visual.grating import GratingStim
 
 try:
     from PIL import Image
@@ -110,3 +114,18 @@ openWindows = []
 # can provide a default window for mouse
 psychopy.event.visualOpenWindows = openWindows
 
+
+class PatchStim(GratingStim):
+    def __init__(self, *args, **kwargs):
+        """
+        Deprecated (as of version 1.74.00):
+        please use the :class:`~psychopy.visual.GratingStim`
+        or the :class:`~psychopy.visual.ImageStim` classes.
+
+        The GratingStim has identical abilities to the PatchStim
+        (but possibly different initial values)
+        whereas the ImageStim is designed to be use for non-cyclic images
+        (photographs, not gratings).
+        """
+        GratingStim.__init__(self, *args, **kwargs)
+        self.setImage = self.setTex
