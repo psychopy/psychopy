@@ -143,7 +143,7 @@ class BufferImageStim(GratingStim):
 
         # to improve drawing speed, move these out of draw:
         self.desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
-        self.thisScale = 2.0/numpy.array(self.win.size)
+        self.thisScale = numpy.array([4, 4])
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
 
@@ -217,31 +217,25 @@ class BufferImageStim(GratingStim):
         """If set to True then the image will be flipped vertically (top-to-bottom).
         Note that this is relative to the original image, not relative to the current state.
         """
-        set.flipVert = newVal
+        self.flipVert = newVal
         if log and self.autoLog:
             self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
                 level=logging.EXP, obj=self)
-    def setTex(self, tex, interpolate=True, log=True):
-        """(This is not typically called directly.)"""
-        # setTex is called only once
-        self.interpolate = interpolate #set interp to new value
-        self.tex = tex #cal the setter for tex
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s tex=%s" %(self.name, tex),
-                level=logging.EXP,obj=self)
+
     def draw(self, win=None):
         """
         Draws the BufferImage on the screen, similar to :class:`~psychopy.visual.ImageStim` `.draw()`.
         Allows dynamic position, size, rotation, mirroring, and opacity.
         Limitations / bugs: not sure what happens with shaders & self._updateList()
         """
-        if win==None: win=self.win
+        if win==None:
+            win=self.win
         self._selectWindow(win)
 
         GL.glPushMatrix() # preserve state
         #GL.glLoadIdentity()
 
-        GL.glScalef(self.thisScale[0] * (1,-1)[self.flipHoriz],
+        GL.glScalef(self.thisScale[0] * (1,-1)[self.flipHoriz],  # dynamic flip
                     self.thisScale[1] * (1,-1)[self.flipVert], 1.0)
 
         # enable dynamic position, orientation, opacity; depth not working?
