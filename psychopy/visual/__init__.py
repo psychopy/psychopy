@@ -6,6 +6,9 @@
 
 '''Container for all visual-related functions and classes'''
 
+# needed for backwards-compatibility
+from psychopy.constants import *
+
 # window, should always be loaded first
 from psychopy.visual.window import Window, getMsPerFrame
 
