@@ -4,33 +4,40 @@
 # Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import sys, os, glob, copy
+import sys
+import os
+import glob
+import copy
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
-# other calls to pyglet or pyglet submodules, otherwise it may not get picked up
-# by the pyglet GL engine and have no effect.
+# other calls to pyglet or pyglet submodules, otherwise it may not get picked
+# up by the pyglet GL engine and have no effect.
 import pyglet
 pyglet.options['debug_gl'] = False
 
 #on windows try to load avbin now (other libs can interfere)
-if sys.platform=='win32':
+if sys.platform == 'win32':
     #make sure we also check in SysWOW64 if on 64-bit windows
     if 'C:\\Windows\\SysWOW64' not in os.environ['PATH']:
-        os.environ['PATH']+=';C:\\Windows\\SysWOW64'
+        os.environ['PATH'] += ';C:\\Windows\\SysWOW64'
     try:
         from pyglet.media import avbin
-        haveAvbin=True
+        haveAvbin = True
     except ImportError:
-        haveAvbin=False#either avbin isn't installed or scipy.stats has been imported (prevents avbin loading)
+        # either avbin isn't installed or scipy.stats has been imported
+        # (prevents avbin loading)
+        haveAvbin = False
 
-import psychopy #so we can get the __path__
+import psychopy  # so we can get the __path__
 from psychopy import core, platform_specific, logging, prefs, monitors, event
-import colors
+import psychopy.colors
 import psychopy.event
-#misc must only be imported *after* event or MovieStim breaks on win32 (JWP has no idea why!)
+
+# misc must only be imported *after* event or MovieStim breaks on win32
+# (JWP has no idea why!)
 import psychopy.misc
-import makeMovies
-from psychopy.misc import (attributeSetter, setWithOperation, IsValidColor,
+import psychopy.makeMovies
+from psychopy.misc import (attributeSetter, setWithOperation, isValidColor,
                            makeRadialMatrix)
 
 try:
@@ -38,9 +45,11 @@ try:
 except ImportError:
     import Image
 
-if sys.platform=='win32' and not haveAvbin:
-    logging.error("""avbin.dll failed to load. Try importing psychopy.visual as the first
-    library (before anything that uses scipy) and make sure that avbin is installed.""")
+if sys.platform == 'win32' and not haveAvbin:
+    logging.error("""avbin.dll failed to load.
+                     Try importing psychopy.visual as the first library
+                     (before anything that uses scipy)
+                     and make sure that avbin is installed.""")
 
 import numpy
 from numpy import sin, cos, pi
@@ -48,11 +57,11 @@ from numpy import sin, cos, pi
 from core import rush
 
 global currWindow
-currWindow=None
-reportNDroppedFrames=5#stop raising warning after this
-reportNImageResizes=5
+currWindow = None
+reportNDroppedFrames = 5  # stop raising warning after this
+reportNImageResizes = 5
 global _nImageResizes
-_nImageResizes=0
+_nImageResizes = 0
 
 #shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 import ctypes
@@ -63,15 +72,15 @@ import psychopy.gamma
 import _shadersPyglet as _shaders
 try:
     from pyglet import media
-    havePygletMedia=True
+    havePygletMedia = True
 except:
-    havePygletMedia=False
+    havePygletMedia = False
 
 try:
     import pygame
-    havePygame=True
+    havePygame = True
 except:
-    havePygame=False
+    havePygame = False
 
 #do we want to use the frameBufferObject (if available an needed)?
 global useFBO
@@ -87,15 +96,18 @@ try:
 except:
     haveMatplotlib = False
 
-global DEBUG; DEBUG=False
+global DEBUG
+DEBUG = False
 
 #symbols for MovieStim: PLAYING, STARTED, PAUSED, NOT_STARTED, FINISHED
 from psychopy.constants import *
 
 
 #keep track of windows that have been opened
-openWindows=[]
-psychopy.event.visualOpenWindows = openWindows  # can provide a default window for mouse
+openWindows = []
+
+# can provide a default window for mouse
+psychopy.event.visualOpenWindows = openWindows
 
 class Window:
     """Used to set up a context in which to draw objects,
