@@ -953,6 +953,7 @@ class Window:
         #provide warning if stereo buffers are requested but unavailable
         if self.stereo and not GL.gl_info.have_extension('GL_STEREO'):
             logging.warning('A stereo window was requested but the graphics card does not appear to support GL_STEREO')
+        global useFBO
         if GL.gl_info.have_extension('GL_EXT_framebuffer_object') and useFBO:
             self.useFBO=True
         #add these methods to the pyglet window
@@ -1284,4 +1285,4 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     :Author:
         - 2010 written by Jeremy Gray
     """
-    return mywin.getMsPerFrame(nFrames=60, showVisual=False, msg='', msDelay=0.)
+    return myWin.getMsPerFrame(nFrames=60, showVisual=False, msg='', msDelay=0.)
