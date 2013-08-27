@@ -73,9 +73,8 @@ except:
 
 try:
     import pygame
-    havePygame = True
 except:
-    havePygame = False
+    pass
 
 #do we want to use the frameBufferObject (if available an needed)?
 global useFBO
@@ -263,10 +262,11 @@ class Window:
                 #an integer that needs to be an array
                 self.gamma = [gamma]*3
                 self.useNativeGamma = False
-            else:
-                #an array (hopefully!)
+            elif hasattr(gamma, '__iter__'):
                 self.gamma = gamma
                 self.useNativeGamma = False
+            else:
+                raise ValueError('gamma must be a numeric scalar or iterable')
         elif self.monitor.getGamma() is not None:
             if hasattr(self.monitor.getGammaGrid(), 'dtype'):
                 self.gamma = self.monitor.getGammaGrid()[1:, 2]
@@ -318,25 +318,8 @@ class Window:
         if winType is None:  # choose the default windowing
             winType = prefs.general['winType']
         self.winType = winType
-
-        if self.winType == 'pygame' and not havePygame:
-            logging.warning('Requested pygame backend but pygame ,'
-                            'is not installed or not fully working')
-            self.winType = 'pyglet'
-
-        #setup the context
-        if self.winType == "pygame":
-            self._setupPygame()
-        elif self.winType == "pyglet":
-            self._setupPyglet()
-
-        #check whether shaders are supported
-        # also will need to check for ARB_float extension,
-        # but that should be done after context is created
-        self._haveShaders = (self.winType == 'pyglet' and
-                             pyglet.gl.gl_info.get_version() >= '2.0')
-
         self._setupGL()
+
         self.frameClock = core.Clock()  # from psycho/core
         self.frames = 0  # frames since last fps calc
         self.movieFrames = []  # list of captured frames (Image objects)
@@ -346,6 +329,7 @@ class Window:
         self.recordFrameIntervalsJustTurnedOn = False
         self.nDroppedFrames = 0
         self.frameIntervals = []
+
         self._toDraw = []
         self._toDrawDepths = []
         self._eventDispatchers = []
@@ -676,7 +660,7 @@ class Window:
                             "unnecessary because Window.waitBlanking=False")
 
         #Do the flipping with last flip as special case
-        for frame in range(flips-1):
+        for _ in range(flips-1):
             self.flip(clearBuffer=False)
         self.flip(clearBuffer=clearBuffer)
 
@@ -1084,8 +1068,10 @@ class Window:
         """Set the monitor gamma, using Bits++ if possible"""
         if isinstance(gamma, (float, int)):
             self.gamma = [gamma]*3
-        else:
+        elif hasattr(gamma, '__iter__'):
             self.gamma = gamma
+        else:
+            raise ValueError('gamma must be a numeric scalar or iterable')
 
         if self.bitsMode is not None:
             #first ensure that window gamma is 1.0
@@ -1102,6 +1088,16 @@ class Window:
         elif self.winType == 'pyglet':
             self.winHandle.setGamma(self.winHandle, self.gamma)
 
+    def _checkMatchingSizes(self, requested, actual):
+        """Checks whether the requested and actual screen sizes differ. If not
+        then a warning is output and the window size is set to actual
+        """
+        if list(requested) != list(actual):
+            logging.warning("User requested fullscreen with size %s, "
+                            "but screen is actually %s. Using actual size" %
+                            (requested, actual))
+            self.size = numpy.array(actual)
+
     def _setupPyglet(self):
         self.winType = "pyglet"
         if self.allowStencil:
@@ -1111,7 +1107,8 @@ class Window:
         # options that the user might want
         config = GL.Config(depth_size=8, double_buffer=True,
                            stencil_size=stencil_size, stereo=self.stereo)
-        allScrs = pyglet.window.get_platform().get_default_display().get_screens()
+        allScrs = \
+            pyglet.window.get_platform().get_default_display().get_screens()
         # Screen (from Exp Settings) is 1-indexed,
         # so the second screen is Screen 1
         if len(allScrs) < int(self.screen) + 1:
@@ -1150,11 +1147,11 @@ class Window:
         self.winHandle.setGammaRamp = psychopy.gamma.setGammaRamp
         self.winHandle.getGammaRamp = psychopy.gamma.getGammaRamp
         self.winHandle.set_vsync(True)
-        self.winHandle.on_text = psychopy.event._onPygletText
-        self.winHandle.on_key_press = psychopy.event._onPygletKey
-        self.winHandle.on_mouse_press = psychopy.event._onPygletMousePress
-        self.winHandle.on_mouse_release = psychopy.event._onPygletMouseRelease
-        self.winHandle.on_mouse_scroll = psychopy.event._onPygletMouseWheel
+        self.winHandle.on_text = event._onPygletText
+        self.winHandle.on_key_press = event._onPygletKey
+        self.winHandle.on_mouse_press = event._onPygletMousePress
+        self.winHandle.on_mouse_release = event._onPygletMouseRelease
+        self.winHandle.on_mouse_scroll = event._onPygletMouseWheel
         if not self.allowGUI:
             # make mouse invisible. Could go further and make it 'exclusive'
             # (but need to alter x,y handling then)
@@ -1177,19 +1174,9 @@ class Window:
         except:
             pass  # doesn't matter
 
-    def _checkMatchingSizes(self, requested, actual):
-        """Checks whether the requested and actual screen sizes differ. If not
-        then a warning is output and the window size is set to actual
-        """
-        if list(requested) != list(actual):
-            logging.warning("User requested fullscreen with size %s, "
-                            "but screen is actually %s. Using actual size" %
-                            (requested, actual))
-            self.size = numpy.array(actual)
-
     def _setupPygame(self):
         #we have to do an explicit import of pyglet.gl from pyglet
-        # (only when using pygem backend)
+        # (only when using pygame backend)
         #Not clear why it's needed but otherwise drawing is corrupt. Using a
         #pyglet Window presumably gets around the problem
         import pyglet.gl as GL
@@ -1237,6 +1224,26 @@ class Window:
         pygame.display.set_gamma(1.0)  # this will be set appropriately later
 
     def _setupGL(self):
+        if self.winType == 'pygame':
+            try:
+                pygame
+            except:
+                logging.warning('Requested pygame backend but pygame ,'
+                                'is not installed or not fully working')
+                self.winType = 'pyglet'
+
+        #setup the context
+        if self.winType == "pygame":
+            self._setupPygame()
+        elif self.winType == "pyglet":
+            self._setupPyglet()
+
+        #check whether shaders are supported
+        # also will need to check for ARB_float extension,
+        # but that should be done after context is created
+        self._haveShaders = (self.winType == 'pyglet' and
+                             pyglet.gl.gl_info.get_version() >= '2.0')
+
         #setup screen color
         #these spaces are 0-centred
         if self.colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
@@ -1271,7 +1278,22 @@ class Window:
         if not GL.gl_info.have_extension('GL_ARB_texture_float'):
             self._haveShaders = False
 
-        if self.winType == 'pyglet' and self._haveShaders:
+        if self._haveShaders:
+            self._setupShaders()
+
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+
+        #identify gfx card vendor
+        self.glVendor = GL.gl_info.get_vendor().lower()
+
+        if sys.platform == 'darwin':
+            platform_specific.syncSwapBuffers(1)
+
+        if self.useFBO:
+            self._setupFrameBuffer()
+
+    def _setupShaders(self):
+        if self.winType == 'pyglet':
             #we should be able to compile shaders (don't just 'try')
             # fragSignedColorTexMask
             self._progSignedTexMask = _shaders.compileProgram(
@@ -1294,17 +1316,6 @@ class Window:
 #                    _shaders.vertSimple, _shaders.fragSignedColorTex)
 #            else:
 #                self._haveShaders=False
-
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
-
-        #identify gfx card vendor
-        self.glVendor = GL.gl_info.get_vendor().lower()
-
-        if sys.platform == 'darwin':
-            platform_specific.syncSwapBuffers(1)
-
-        if self.useFBO:
-            self._setupFrameBuffer()
 
     def _setupFrameBuffer(self):
         # Setup framebuffer
