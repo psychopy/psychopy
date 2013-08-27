@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+##!/usr/bin/env python
 
 '''A class representing a window for displaying one or more stimuli'''
 
@@ -220,25 +220,22 @@ class Window:
         self.scrDistCM = self.monitor.getDistance()
 
         scrSize = self.monitor.getSizePix()
-        if not scrSize:
+        if scrSize is None:
             self.scrWidthPIX = None
         else:
             self.scrWidthPIX = scrSize[0]
 
-        if not fullscr:
-            self._isFullScr = prefs.general['fullscr']
-        else:
-            self._isFullScr = fullscr
+        if fullscr is None:
+            fullscr = prefs.general['fullscr']
+        self._isFullScr = fullscr
 
-        if not units:
-            self.units = prefs.general['units']
-        else:
-            self.units = units
+        if units is None:
+            units = prefs.general['units']
+        self.units = units
 
-        if not allowGUI:
-            self.allowGUI = prefs.general['allowGUI']
-        else:
-            self.allowGUI = allowGUI
+        if allowGUI is None:
+            allowGUI = prefs.general['allowGUI']
+        self.allowGUI = allowGUI
 
         self.screen = screen
 
@@ -250,63 +247,56 @@ class Window:
 
         # setup bits++ if possible
         self.bitsMode = bitsMode  # could be [None, 'fast', 'slow']
-        if self.bitsMode:
+        if self.bitsMode is not None:
             from psychopy.hardware.crs import bits
             self.bits = bits.BitsBox(self)
             self.haveBits = True
+            if hasattr(self.monitor, 'lineariseLums'):
+                #rather than a gamma value we could use bits++ and provide a
+                # complete linearised lookup table using
+                # monitor.lineariseLums(lumLevels)
+                self.gamma = None
 
-        #gamma
-        if self.bitsMode and hasattr(self.monitor, 'lineariseLums'):
-            #rather than a gamma value we could use bits++ and provide a
-            # complete linearised lookup table using
-            # monitor.lineariseLums(lumLevels)
-            self.gamma = None
-        if gamma and type(gamma) in [float, int]:
-            #an integer that needs to be an array
-            self.gamma = [gamma, gamma, gamma]
-            self.useNativeGamma = False
-        elif gamma:  # and (type(gamma) not in [float, int]):
-            #an array (hopefully!)
-            self.gamma = gamma
-            self.useNativeGamma = False
-        elif type(self.monitor.getGammaGrid()) == numpy.ndarray:
-            self.gamma = self.monitor.getGammaGrid()[1:, 2]
-            # are we using the default gamma for all monitors?
-            if self.monitor.gammaIsDefault():
-                self.useNativeGamma = True
-            else:
+        # gamma
+        if gamma is not None:
+            if type(gamma) in [float, int]:
+                #an integer that needs to be an array
+                self.gamma = [gamma, gamma, gamma]
                 self.useNativeGamma = False
-        elif self.monitor.getGamma():
-            self.gamma = self.monitor.getGamma()
-            self.useNativeGamma = False
+            else:
+                #an array (hopefully!)
+                self.gamma = gamma
+                self.useNativeGamma = False
+        elif self.monitor.getGamma() is not None:
+            if type(self.monitor.getGammaGrid()) == numpy.ndarray:
+                self.gamma = self.monitor.getGammaGrid()[1:, 2]
+                # are we using the default gamma for all monitors?
+                if self.monitor.gammaIsDefault():
+                    self.useNativeGamma = True
+                else:
+                    self.useNativeGamma = False
+            else:
+                self.gamma = self.monitor.getGamma()
+                self.useNativeGamma = False
         else:
             self.gamma = None  # gamma wasn't set anywhere
             self.useNativeGamma = True
 
         #load color conversion matrices
-        dkl_rgb = self.monitor.getDKL_RGB()
-        if dkl_rgb:
-            self.dkl_rgb = dkl_rgb
-        else:
-            self.dkl_rgb = None
-
-        lms_rgb = self.monitor.getLMS_RGB()
-        if lms_rgb:
-            self.lms_rgb = lms_rgb
-        else:
-            self.lms_rgb = None
+        self.dkl_rgb = self.monitor.getDKL_RGB()
+        self.lms_rgb = self.monitor.getLMS_RGB()
 
         #set screen color
         self.colorSpace = colorSpace
-        if rgb:
+        if rgb is not None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. "
                             "Please use color and colorSpace args instead")
             self.setColor(rgb, colorSpace='rgb')
-        elif dkl:
+        elif dkl is not None:
             logging.warning("Use of dkl arguments to stimuli are deprecated. "
                             "Please use color and colorSpace args instead")
             self.setColor(dkl, colorSpace='dkl')
-        elif lms:
+        elif lms is not None:
             logging.warning("Use of lms arguments to stimuli are deprecated. "
                             "Please use color and colorSpace args instead")
             self.setColor(lms, colorSpace='lms')
@@ -325,10 +315,9 @@ class Window:
 
         self.allowStencil = allowStencil
         #setup context and openGL()
-        if not winType:  # choose the default windowing
-            self.winType = prefs.general['winType']
-        else:
-            self.winType = winType
+        if winType is None:  # choose the default windowing
+            winType = prefs.general['winType']
+        self.winType = winType
 
         if self.winType == 'pygame' and not havePygame:
             logging.warning('Requested pygame backend but pygame ,'
@@ -342,15 +331,10 @@ class Window:
             self._setupPyglet()
 
         #check whether shaders are supported
-        if self.winType == 'pyglet':  # we can check using gl_info
-            if pyglet.gl.gl_info.get_version() >= '2.0':
-                # also will need to check for ARB_float extension,
-                # but that should be done after context is created
-                self._haveShaders = True
-            else:
-                self._haveShaders = False
-        else:
-            self._haveShaders = False
+        # also will need to check for ARB_float extension,
+        # but that should be done after context is created
+        self._haveShaders = (self.winType == 'pyglet' and
+                             pyglet.gl.gl_info.get_version() >= '2.0')
 
         self._setupGL()
         self.frameClock = core.Clock()  # from psycho/core
@@ -365,26 +349,29 @@ class Window:
         self._toDraw = []
         self._toDrawDepths = []
         self._eventDispatchers = []
+
         try:
             self.origGammaRamp = psychopy.gamma.getGammaRamp(self.winHandle)
         except:
             self.origGammaRamp = None
+
         if self.useNativeGamma:
             logging.info('Using gamma table of operating system')
         else:
             logging.info('Using gamma: self.gamma' + str(self.gamma))
             self.setGamma(self.gamma)  # using either pygame or bits++
+
         self.lastFrameT = core.getTime()
-
         self.waitBlanking = waitBlanking
-
         self._refreshThreshold = 1/1.0  # initial val needed by flip()
+
         # over several frames with no drawing
         self._monitorFrameRate = self.getActualFrameRate()
-        if self._monitorFrameRate:
+        if self._monitorFrameRate is not None:
             self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
         else:
             self._refreshThreshold = (1.0/60)*1.2  # guess its a flat panel
+
         global currWindow
         currWindow = self
         openWindows.append(self)
@@ -577,6 +564,7 @@ class Window:
             GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
         else:
             GL.glLoadIdentity()  # still worth loading identity
+
         if self.viewPos:
             GL.glMatrixMode(GL.GL_MODELVIEW)
             if not self.viewScale:
@@ -586,7 +574,8 @@ class Window:
             norm_rf_pos_x = self.viewPos[0]/scale[0]
             norm_rf_pos_y = self.viewPos[1]/scale[1]
             GL.glTranslatef(norm_rf_pos_x, norm_rf_pos_y, 0.0)
-        if self.viewOri:
+
+        if self.viewOri is not None:
             GL.glRotatef(self.viewOri, 0.0, 0.0, -1.0)
 
         #reset returned buffer for next frame
@@ -922,7 +911,7 @@ class Window:
 
     def close(self):
         """Close the window (and reset the Bits++ if necess)."""
-        if (not self.useNativeGamma) and self.origGammaRamp:
+        if (not self.useNativeGamma) and self.origGammaRamp is not None:
             psychopy.gamma.setGammaRamp(self.winHandle, self.origGammaRamp)
         self.setMouseVisible(True)
         if self.winType == 'pyglet':
@@ -930,7 +919,7 @@ class Window:
         else:
             #pygame.quit()
             pygame.display.quit()
-        if self.bitsMode:
+        if self.bitsMode is not None:
             self.bits.reset()
         openWindows.remove(self)
         logging.flush()
@@ -1024,7 +1013,7 @@ class Window:
             desiredRGB = (self.rgb)/255.0
 
         # if it is None then this will be done during window setup
-        if self.winHandle:
+        if self.winHandle is not None:
             if self.winType == 'pyglet':
                 self.winHandle.switch_to()
             GL.glClearColor(desiredRGB[0], desiredRGB[1], desiredRGB[2], 1.0)
@@ -1098,7 +1087,7 @@ class Window:
         else:
             self.gamma = gamma
 
-        if self.bitsMode:
+        if self.bitsMode is not None:
             #first ensure that window gamma is 1.0
             if self.winType == 'pygame':
                 pygame.display.set_gamma(1.0, 1.0, 1.0)
@@ -1412,7 +1401,7 @@ class Window:
                     (numpy.std(self.frameIntervals[-nIdentical:]) <
                      (threshold/1000.0))):
                 rate = 1.0/numpy.mean(self.frameIntervals[-nIdentical:])
-                if not self.screen:
+                if self.screen is None:
                     scrStr = ""
                 else:
                     scrStr = " (%i)" % self.screen
