@@ -37,7 +37,7 @@ import psychopy.event
 
 # misc must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-import psychopy.misc
+from psychopy.misc import val2array
 from psychopy import makeMovies
 from psychopy.visual.text import TextStim
 from psychopy.visual.grating import GratingStim
@@ -62,7 +62,7 @@ global currWindow
 currWindow = None
 reportNDroppedFrames = 5  # stop raising warning after this
 
-import psychopy.gamma
+from psychopy.gamma import getGammaRamp, setGammaRamp, setGamma
 #import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
 import psychopy._shadersPyglet as _shaders
 try:
@@ -239,8 +239,8 @@ class Window:
         self.screen = screen
 
         # parameters for transforming the overall view
-        self.viewScale = psychopy.misc.val2array(viewScale)
-        self.viewPos = psychopy.misc.val2array(viewPos, True, False)
+        self.viewScale = val2array(viewScale)
+        self.viewPos = val2array(viewPos, True, False)
         self.viewOri = float(viewOri)
         self.stereo = stereo  # use quad buffer if requested (and if possible)
 
@@ -865,7 +865,7 @@ class Window:
     def close(self):
         """Close the window (and reset the Bits++ if necess)."""
         if (not self.useNativeGamma) and self.origGammaRamp is not None:
-            psychopy.gamma.setGammaRamp(self.winHandle, self.origGammaRamp)
+            setGammaRamp(self.winHandle, self.origGammaRamp)
         self.setMouseVisible(True)
         if self.winType == 'pyglet':
             self.winHandle.close()
@@ -975,7 +975,7 @@ class Window:
         """Deprecated: As of v1.61.00 please use `setColor()` instead
         """
         global GL, currWindow
-        self.rgb = psychopy.misc.val2array(newRGB, False, length=3)
+        self.rgb = val2array(newRGB, False, length=3)
         if self.winType == 'pyglet' and currWindow != self:
             self.winHandle.switch_to()
         GL.glClearColor((self.rgb[0]+1.0)/2.0,
@@ -1003,7 +1003,7 @@ class Window:
             self.useNativeGamma = True
 
         try:
-            self.origGammaRamp = psychopy.gamma.getGammaRamp(self.winHandle)
+            self.origGammaRamp = getGammaRamp(self.winHandle)
         except:
             self.origGammaRamp = None
 
@@ -1148,9 +1148,9 @@ class Window:
         if GL.gl_info.have_extension('GL_EXT_framebuffer_object') and useFBO:
             self.useFBO = True
         #add these methods to the pyglet window
-        self.winHandle.setGamma = psychopy.gamma.setGamma
-        self.winHandle.setGammaRamp = psychopy.gamma.setGammaRamp
-        self.winHandle.getGammaRamp = psychopy.gamma.getGammaRamp
+        self.winHandle.setGamma = setGamma
+        self.winHandle.setGammaRamp = setGammaRamp
+        self.winHandle.getGammaRamp = getGammaRamp
         self.winHandle.set_vsync(True)
         self.winHandle.on_text = event._onPygletText
         self.winHandle.on_key_press = event._onPygletKey
