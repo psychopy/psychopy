@@ -205,9 +205,9 @@ class Window:
         # convert to a Monitor object
         if not monitor:
             self.monitor = monitors.Monitor('__blank__')
-        if type(monitor) in [str, unicode]:
+        if isinstance(monitor, basestring):
             self.monitor = monitors.Monitor(monitor)
-        elif type(monitor) == dict:
+        elif hasattr(monitor, 'keys'):
             #convert into a monitor object
             self.monitor = monitors.Monitor('temp',
                                             currentCalib=monitor,
@@ -259,16 +259,16 @@ class Window:
 
         # gamma
         if gamma is not None:
-            if type(gamma) in [float, int]:
+            if isinstance(gamma, (float, int)):
                 #an integer that needs to be an array
-                self.gamma = [gamma, gamma, gamma]
+                self.gamma = [gamma]*3
                 self.useNativeGamma = False
             else:
                 #an array (hopefully!)
                 self.gamma = gamma
                 self.useNativeGamma = False
         elif self.monitor.getGamma() is not None:
-            if type(self.monitor.getGammaGrid()) == numpy.ndarray:
+            if hasattr(self.monitor.getGammaGrid(), 'dtype'):
                 self.gamma = self.monitor.getGammaGrid()[1:, 2]
                 # are we using the default gamma for all monitors?
                 if self.monitor.gammaIsDefault():
@@ -1082,8 +1082,8 @@ class Window:
 
     def setGamma(self, gamma):
         """Set the monitor gamma, using Bits++ if possible"""
-        if type(gamma) in [float, int]:
-            self.gamma = [gamma, gamma, gamma]
+        if isinstance(gamma, (float, int)):
+            self.gamma = [gamma]*3
         else:
             self.gamma = gamma
 
