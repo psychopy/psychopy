@@ -1533,7 +1533,11 @@ class Window:
 
 
 def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
-    """Assesses the monitor refresh rate (average, median, SD) under current
+    """
+    Deprecated: please use the getMsPerFrame method in the
+    `psychopy.visual.Window` class.
+
+    Assesses the monitor refresh rate (average, median, SD) under current
     conditions, over at least 60 frames.
 
     Records time for each refresh (frame) for n frames (at least 60), while
