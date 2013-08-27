@@ -257,30 +257,8 @@ class Window:
                 self.gamma = None
 
         # gamma
-        if gamma is not None:
-            if isinstance(gamma, (float, int)):
-                #an integer that needs to be an array
-                self.gamma = [gamma]*3
-                self.useNativeGamma = False
-            elif hasattr(gamma, '__iter__'):
-                self.gamma = gamma
-                self.useNativeGamma = False
-            else:
-                raise ValueError('gamma must be a numeric scalar or iterable')
-        elif self.monitor.getGamma() is not None:
-            if hasattr(self.monitor.getGammaGrid(), 'dtype'):
-                self.gamma = self.monitor.getGammaGrid()[1:, 2]
-                # are we using the default gamma for all monitors?
-                if self.monitor.gammaIsDefault():
-                    self.useNativeGamma = True
-                else:
-                    self.useNativeGamma = False
-            else:
-                self.gamma = self.monitor.getGamma()
-                self.useNativeGamma = False
-        else:
-            self.gamma = None  # gamma wasn't set anywhere
-            self.useNativeGamma = True
+        self.gamma = gamma
+        self._setupGamma()
 
         #load color conversion matrices
         self.dkl_rgb = self.monitor.getDKL_RGB()
@@ -291,17 +269,19 @@ class Window:
         if rgb is not None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. "
                             "Please use color and colorSpace args instead")
-            self.setColor(rgb, colorSpace='rgb')
+            color = rgb
+            colorSpace = 'rgb'
         elif dkl is not None:
             logging.warning("Use of dkl arguments to stimuli are deprecated. "
                             "Please use color and colorSpace args instead")
-            self.setColor(dkl, colorSpace='dkl')
+            color = dkl
+            colorSpace = 'dkl'
         elif lms is not None:
             logging.warning("Use of lms arguments to stimuli are deprecated. "
                             "Please use color and colorSpace args instead")
-            self.setColor(lms, colorSpace='lms')
-        else:
-            self.setColor(color, colorSpace=colorSpace)
+            color = lms
+            colorSpace = 'lms'
+        self.setColor(color, colorSpace=colorSpace)
 
         #check whether FBOs are supported
         if blendMode == 'add' and not self.useFBO:
@@ -333,17 +313,6 @@ class Window:
         self._toDraw = []
         self._toDrawDepths = []
         self._eventDispatchers = []
-
-        try:
-            self.origGammaRamp = psychopy.gamma.getGammaRamp(self.winHandle)
-        except:
-            self.origGammaRamp = None
-
-        if self.useNativeGamma:
-            logging.info('Using gamma table of operating system')
-        else:
-            logging.info('Using gamma: self.gamma' + str(self.gamma))
-            self.setGamma(self.gamma)  # using either pygame or bits++
 
         self.lastFrameT = core.getTime()
         self.waitBlanking = waitBlanking
@@ -1014,6 +983,66 @@ class Window:
                         (self.rgb[2]+1.0)/2.0,
                         1.0)
 
+    def _setupGamma(self):
+        if self.gamma is not None:
+            self._checkGamma()
+            self.useNativeGamma = False
+        elif self.monitor.getGamma() is not None:
+            if hasattr(self.monitor.getGammaGrid(), 'dtype'):
+                self.gamma = self.monitor.getGammaGrid()[1:, 2]
+                # are we using the default gamma for all monitors?
+                if self.monitor.gammaIsDefault():
+                    self.useNativeGamma = True
+                else:
+                    self.useNativeGamma = False
+            else:
+                self.gamma = self.monitor.getGamma()
+                self.useNativeGamma = False
+        else:
+            self.gamma = None  # gamma wasn't set anywhere
+            self.useNativeGamma = True
+
+        try:
+            self.origGammaRamp = psychopy.gamma.getGammaRamp(self.winHandle)
+        except:
+            self.origGammaRamp = None
+
+        if self.useNativeGamma:
+            logging.info('Using gamma table of operating system')
+        else:
+            logging.info('Using gamma: self.gamma' + str(self.gamma))
+            self.setGamma(self.gamma)  # using either pygame or bits++
+
+    def setGamma(self, gamma):
+        """Set the monitor gamma, using Bits++ if possible"""
+
+        self._checkGamma(gamma)
+
+        if self.bitsMode is not None:
+            #first ensure that window gamma is 1.0
+            if self.winType == 'pygame':
+                pygame.display.set_gamma(1.0, 1.0, 1.0)
+            elif self.winType == 'pyglet':
+                self.winHandle.setGamma(self.winHandle, 1.0)
+            #then set bits++ to desired gamma
+            self.bits.setGamma(self.gamma)
+        elif self.winType == 'pygame':
+            pygame.display.set_gamma(self.gamma[0],
+                                     self.gamma[1],
+                                     self.gamma[2])
+        elif self.winType == 'pyglet':
+            self.winHandle.setGamma(self.winHandle, self.gamma)
+
+    def _checkGamma(self, gamma=None):
+        if gamma is None:
+            gamma = self.gamma
+        if isinstance(gamma, (float, int)):
+            self.gamma = [gamma]*3
+        elif hasattr(gamma, '__iter__'):
+            self.gamma = gamma
+        else:
+            raise ValueError('gamma must be a numeric scalar or iterable')
+
     def setScale(self, units, font='dummyFont', prevScale=(1.0, 1.0)):
         """This method is called from within the draw routine and sets the
         scale of the OpenGL context to map between units. Could potentially be
@@ -1063,30 +1092,6 @@ class Window:
         thisScale = thisScale/numpy.asarray(prevScale)
         GL.glScalef(thisScale[0], thisScale[1], 1.0)
         return thisScale  # just in case the user wants to know?!
-
-    def setGamma(self, gamma):
-        """Set the monitor gamma, using Bits++ if possible"""
-        if isinstance(gamma, (float, int)):
-            self.gamma = [gamma]*3
-        elif hasattr(gamma, '__iter__'):
-            self.gamma = gamma
-        else:
-            raise ValueError('gamma must be a numeric scalar or iterable')
-
-        if self.bitsMode is not None:
-            #first ensure that window gamma is 1.0
-            if self.winType == 'pygame':
-                pygame.display.set_gamma(1.0, 1.0, 1.0)
-            elif self.winType == 'pyglet':
-                self.winHandle.setGamma(self.winHandle, 1.0)
-            #then set bits++ to desired gamma
-            self.bits.setGamma(self.gamma)
-        elif self.winType == 'pygame':
-            pygame.display.set_gamma(self.gamma[0],
-                                     self.gamma[1],
-                                     self.gamma[2])
-        elif self.winType == 'pyglet':
-            self.winHandle.setGamma(self.winHandle, self.gamma)
 
     def _checkMatchingSizes(self, requested, actual):
         """Checks whether the requested and actual screen sizes differ. If not
