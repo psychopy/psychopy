@@ -54,7 +54,8 @@ class TestExpt():
         cls.exp = psychopy.app.builder.experiment.Experiment() # create once, not every test
 
     def setup(self):
-        # dirs and files:
+        """This setup is done for each test individually
+        """
         self.here = path.abspath(path.dirname(__file__))
         self.known_diffs_file   = path.join(self.here, 'known_py_diffs.txt')
         self.tmp_diffs_file     = path.join(self.here, 'tmp_py_diffs.txt') # not deleted by mkdtemp cleanup
@@ -306,22 +307,21 @@ class Test_ExptComponents():
             print "testing with:", compName
             thisComp = compClass(exp=self.exp, parentName='testRoutine', name=compName)
             self._checkCompileWith(thisComp)
-
     @classmethod
     def setup_class(cls):
         app = psychopyApp._app #this was created already
         app.newBuilderFrame()
         cls.builder = app.builderFrames[-1] # the most recent builder frame created
         cls.exp = cls.builder.exp
+        cls.here = path.abspath(path.dirname(__file__))
+        cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
+        cls.exp.addRoutine('testRoutine')
+        cls.testRoutine = cls.exp.routines['testRoutine']
+        cls.exp.flow.addRoutine(cls.testRoutine, 0)
 
     def setup(self):
         # dirs and files:
-        self.here = path.abspath(path.dirname(__file__))
-        self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
-        self.exp.addRoutine('testRoutine')
-        self.testRoutine = self.exp.routines['testRoutine']
-        self.exp.flow.addRoutine(self.testRoutine, 0)
-
+        pass
     def teardown(self):
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
 

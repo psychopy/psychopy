@@ -872,7 +872,7 @@ class MainFrame(wx.Frame):
                 msg='Your ColorCAL needs to be calibrated first. ' +\
                     'Please block all light from getting into the lens and press OK.'
                 while self.photom.getNeedsCalibrateZero():
-                    dlg = dialogs.MessageDialog(self,message=msg, 
+                    dlg = dialogs.MessageDialog(self,message=msg,
                                                 title='Dark calibration of ColorCAL',
                                                 type='Info')#info dlg has only an OK button
                     resp=dlg.ShowModal()
