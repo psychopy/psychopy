@@ -807,7 +807,7 @@ def getLumSeries(lumLevels=8,
 
     message.setText('Q to quit at any time')
     #
-    if photometer.type=='LS100':#LS100 likes to take at least one bright measurement
+    if havePhotom and photometer.type=='LS100':#LS100 likes to take at least one bright measurement
         junk=photometer.getLum()
 
     #what are the test values of luminance
