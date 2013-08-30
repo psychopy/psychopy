@@ -18,6 +18,10 @@ pyglet.options['debug_gl'] = False
 GL = pyglet.gl
 import ctypes
 
+#try to find avbin (we'll overload pyglet's load_library tool and then add some paths)
+import pyglet.lib
+import _pygletLibOverload
+pyglet.lib.load_library = _pygletLibOverload.load_library
 #on windows try to load avbin now (other libs can interfere)
 if sys.platform == 'win32':
     #make sure we also check in SysWOW64 if on 64-bit windows
@@ -256,10 +260,6 @@ class Window:
                 # monitor.lineariseLums(lumLevels)
                 self.gamma = None
 
-        # gamma
-        self.gamma = gamma
-        self._setupGamma()
-
         #load color conversion matrices
         self.dkl_rgb = self.monitor.getDKL_RGB()
         self.lms_rgb = self.monitor.getLMS_RGB()
@@ -299,6 +299,10 @@ class Window:
             winType = prefs.general['winType']
         self.winType = winType
         self._setupGL()
+
+        # gamma
+        self.gamma = gamma
+        self._setupGamma()
 
         self.frameClock = core.Clock()  # from psycho/core
         self.frames = 0  # frames since last fps calc
