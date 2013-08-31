@@ -682,6 +682,7 @@ class ElementArrayStim(object):
         #self._texCoords=numpy.array([[1,1],[1,0],[0,0],[0,1]],'d').reshape([1,4,2])
         self._texCoords=numpy.concatenate([[L,T],[R,T],[R,B],[L,B]]) \
             .transpose().reshape([N,4,2]).astype('d')
+        self._texCoords = numpy.ascontiguousarray(self._texCoords)
         self.needTexCoordUpdate=False
 
     def setTex(self,value, log=True):

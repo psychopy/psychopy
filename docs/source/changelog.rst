@@ -21,6 +21,7 @@ PsychoPy 1.79
 
 * NEW: attributes for stimuli can now be updated using e.g. `stim.pos = newPos` rather than using `stim.setPos(newPos)` to make things more like standard Python (thanks Jonas Lindeløv)
 * ADDED: Builder component for ioLab Systems button-box; refactor PsychoPy's ioLabs code (Jeremy)
+* FIXED: bug when using ElementArrayStim with numpy 1.7.1. Most elements were receiving SF=0
 
 PsychoPy 1.78
 ------------------------------
