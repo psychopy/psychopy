@@ -168,7 +168,7 @@ class _Logger:
     self.targets is a list of dicts {'stream':stream, 'level':level}
 
     """
-    def __init__(self, format="%(t).4f\t%(levelname)s\t%(message)s"):
+    def __init__(self, format="%(t).4f \t%(levelname)s \t%(message)s"):
         """The string-formatted elements %(xxxx)f can be used, where
         each xxxx is an attribute of the LogEntry.
         e.g. t, t_ms, level, levelname, message
@@ -180,11 +180,9 @@ class _Logger:
         self.lowestTarget=50
     def __del__(self):
         self.flush()
-        #try:
-        #    self.flush()
-        #except TypeError: # can happen in tests, mildly distracting
-        #    '''Exception TypeError: "'NoneType' object is not callable" in <bound method _Logger.__del__ of <psychopy.logging._Logger instance at 0x12dc788>> ignored'''
-        #    pass
+        # unicode logged to coder output window can cause logger failure, with
+        # error message pointing here. this is despite it being ok to log to
+        # terminal or Builder output. proper fix: fix coder unicode bug #97 (currently closed)
     def addTarget(self,target):
         """Add a target, typically a :class:`~log.LogFile` to the logger
         """
@@ -304,4 +302,3 @@ def log(msg, level, t=None, obj=None):
     Log the msg, at a  given level on the root logger
     """
     root.log(msg, level=level, t=t, obj=obj)
-

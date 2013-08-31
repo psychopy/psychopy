@@ -729,10 +729,10 @@ class MainFrame(wx.Frame):
                                                  stimSize=stimSize, monitor=self.currentMon)
 
             #allow user to type in values
-            if autoMode=='semi':
-                inputDlg = GammaLumValsDlg(lumLevels, parent=self)
-                lumsPre = inputDlg.show()#will be [] if user cancels
-                inputDlg.Destroy()
+            # if autoMode=='semi':
+            #     inputDlg = GammaLumValsDlg(lumLevels, parent=self)
+            #     lumsPre = inputDlg.show()#will be [] if user cancels
+            #     inputDlg.Destroy()
 
         #fit the gamma curves
         if lumsPre is None or len(lumsPre)>1:

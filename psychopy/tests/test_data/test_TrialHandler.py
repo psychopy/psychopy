@@ -149,7 +149,12 @@ class TestMultiStairs:
         conditions = data.importConditions(
             pjoin(fixturesPath, 'multiStairConds.xlsx'))
         stairs = data.MultiStairHandler(stairType='simple', conditions=conditions,
-                method='random', nTrials=20)
+                method='random', nTrials=20, name='simpleStairs')
+        exp = data.ExperimentHandler(name='testExp',
+                    savePickle=True,
+                    saveWideText=True,
+                    dataFileName=pjoin(self.temp_dir, 'multiStairExperiment'))
+        exp.addLoop(stairs)
         for intensity,condition in stairs:
             #make data that will cause different stairs to finish different times
             if random()>condition['startVal']:
@@ -163,7 +168,12 @@ class TestMultiStairs:
         conditions = data.importConditions(
             pjoin(fixturesPath, 'multiStairConds.xlsx'))
         stairs = data.MultiStairHandler(stairType='quest', conditions=conditions,
-                    method='random', nTrials=5)
+                    method='random', nTrials=20, name='QuestStairs')
+        exp = data.ExperimentHandler(name='testExp',
+                    savePickle=True,
+                    saveWideText=True,
+                    dataFileName=pjoin(self.temp_dir, 'multiQuestExperiment'))
+        exp.addLoop(stairs)
         for intensity,condition in stairs:
             #make data that will cause different stairs to finish different times
             if random()>condition['startVal']:
