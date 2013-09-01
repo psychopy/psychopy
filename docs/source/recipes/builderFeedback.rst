@@ -16,7 +16,7 @@ Feedback after a trial
 
 This is actually demonstrated in the demo, `ExtendedStroop` (in the Builder>demos menu, unpack the demos and then look in the menu again. tada!)
 
-If you have a Keyboard Component called `key_resp` then, after every trial you will have te folowing variables::
+If you have a Keyboard Component called `key_resp` then, after every trial you will have the following variables::
 
     key_resp.keys #a python list of keys pressed
     key_resp.rt #the time to the first key press

@@ -3,7 +3,7 @@
 ioLab Systems buttonbox Component
 ---------------------------------
 
-A button box is a hardware device that is used to collect participant reponses with high temporal precision, ideally witih true ms accuracy.
+A button box is a hardware device that is used to collect participant responses with high temporal precision, ideally with true ms accuracy.
 
 Both the response (which button was pressed) and time taken to make it are returned. The time taken is determined by a clock on the device itself. This is what makes it capable (in theory) of high precision timing.
 
@@ -15,7 +15,7 @@ Properties
 ~~~~~~~~~~~
 
 name : string
-    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
+    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
 
 start :
     The time that the stimulus should first appear. See :ref:`startStop` for details.
