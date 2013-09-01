@@ -254,6 +254,7 @@ class BaseVisualStim(object):
             looking at stim._sizeRendered
         """
         value = psychopy.misc.val2array(value)  # Check correct user input
+        self._requestedSize = value  #to track whether we're just using a default
         # None --> set to default
         if value == None:
             """Set the size to default (e.g. to the size of the loaded image etc)"""
@@ -268,7 +269,6 @@ class BaseVisualStim(object):
                 elif self.units == 'norm': value = 2 * numpy.array(self._origSize, float) / self.win.size
                 elif self.units == 'height': value = numpy.array(self._origSize, float) / self.win.size[1]
         self.__dict__['size'] = value
-        self._requestedSize = value  #to track whether we're just using a default
         self._calcSizeRendered()
         if hasattr(self, '_calcCyclesPerStim'):
             self._calcCyclesPerStim()

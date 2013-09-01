@@ -102,7 +102,7 @@ class ImageStim(BaseVisualStim):
         self.setColor(color, colorSpace=colorSpace, log=False)
         self.rgbPedestal=[0,0,0]#does an rgb pedestal make sense for an image?
 
-                # Set the maskParams (defaults to None):
+        # Set the image and mask
         self.setImage(image, log=False)
         self.setMask(mask, log=False)
 
