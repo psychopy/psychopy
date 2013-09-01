@@ -3,7 +3,7 @@ Tutorial 2: Measuring a JND using a staircase procedure
 
 This tutorial builds an experiment to test your just-noticeable-difference (JND) to orientation, that is it determines the smallest angular deviation that is needed for you to detect that a gabor stimulus isn't vertical (or at some other reference orientation). The method presents a pair of stimuli at once with the observer having to report with a key press whether the left or the right stimulus was at the reference orientation (e.g. vertical).
 
-You can download the :download:`full code here <tutorial2.py>`. Note that the entire experiment is constructed of less than 100 lines of code, including the initial presentation of a dialogue for parameters, generation and presentation of stimuli, running the trials, saving data and outputing a simple summary analysis for feedback. Not bad, eh?
+You can download the :download:`full code here <tutorial2.py>`. Note that the entire experiment is constructed of less than 100 lines of code, including the initial presentation of a dialogue for parameters, generation and presentation of stimuli, running the trials, saving data and outputting a simple summary analysis for feedback. Not bad, eh?
 
 There are a great many modifications that can be made to this code, however this example is designed to demonstrate how much can be achieved with very simple code. Modifying existing is an excellent way to begin writing your own scripts, for example you may want to try changing the appearance of the text or the stimuli.
 
@@ -41,7 +41,7 @@ We'll create a file to which we can output some data as text during each trial (
 .. literalinclude:: tutorial2.py
    :lines: 19-21
 
-PsychoPy allows us to set up an object to handle the presentation of stimuli in a staircase procedure, the :class:`~psychopy.data.StairHandler`. This will define the increment of the orientation (ie. how far it is from the reference orientation). The staircase can be configured in many ways, but we'll set it up to begin with an increment of 20deg (very detectable) and home in on the 80% threshold value. We'll step up our increment every time the subject gets a wrong answer and step down if they get three right answers in a row. The step size will also decrease after every 2 reversals, starting with an 8dB step (large) and going down to 1dB steps (smallish). We'll finish after 50 trials. 
+PsychoPy allows us to set up an object to handle the presentation of stimuli in a staircase procedure, the :class:`~psychopy.data.StairHandler`. This will define the increment of the orientation (i.e. how far it is from the reference orientation). The staircase can be configured in many ways, but we'll set it up to begin with an increment of 20deg (very detectable) and home in on the 80% threshold value. We'll step up our increment every time the subject gets a wrong answer and step down if they get three right answers in a row. The step size will also decrease after every 2 reversals, starting with an 8dB step (large) and going down to 1dB steps (smallish). We'll finish after 50 trials. 
 
 .. literalinclude:: tutorial2.py
    :lines: 24-27
@@ -93,7 +93,7 @@ Now we must tell the staircase the result of this trial with its :meth:`.addData
 Output your data and clean up
 -----------------------------
 
-OK! We're basically done! We've reached the end of the for-loop (which occured because the staircase terminated) which means the trials are over. The next step is to close the text data file and also save the staircase as a binary file (by 'pickling' the file in Python speak) which maintains a lot more info than we were saving in the text file.
+OK! We're basically done! We've reached the end of the for-loop (which occurred because the staircase terminated) which means the trials are over. The next step is to close the text data file and also save the staircase as a binary file (by 'pickling' the file in Python speak) which maintains a lot more info than we were saving in the text file.
 
 .. literalinclude:: tutorial2.py
    :lines: 90-92

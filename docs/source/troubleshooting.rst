@@ -3,7 +3,7 @@
 Troubleshooting
 =====================================
 
-Regretably, PsychoPy is not bug-free. Running on all possible hardware and all platforms is a big ask. That said, a huge number of bugs have been resolved by the fact that there are literally 1000s of people using the software that have :ref:`contributed either bug reports and/or fixes <contribute>`.
+Regrettably, PsychoPy is not bug-free. Running on all possible hardware and all platforms is a big ask. That said, a huge number of bugs have been resolved by the fact that there are literally 1000s of people using the software that have :ref:`contributed either bug reports and/or fixes <contribute>`.
 
 Below are some of the more common problems and their workarounds, as well as advice on how to get further help.
 
@@ -12,7 +12,7 @@ Below are some of the more common problems and their workarounds, as well as adv
 The application doesn't start
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You may find that you try to launch the PsychoPy application, the splash screen appears and then goes away and nothing more happens. What this means is that an error has occured during startup itself. 
+You may find that you try to launch the PsychoPy application, the splash screen appears and then goes away and nothing more happens. What this means is that an error has occurred during startup itself. 
 
 Commonly, the problem is that a preferences file is somehow corrupt. To fix that see :ref:`cleanPrefs`, below. 
 
@@ -69,7 +69,7 @@ To have a look at the source code do one of the following:
         - go to `Program Files\PsychoPy2\Lib\site-packages\Psychopy`
         - have a look at some of the files there
     - on Mac
-        - right click the PscyhoPy app and select `Show Package Contents`
+        - right click the PsychoPy app and select `Show Package Contents`
         - navigate to `Contents/Resources/lib/python2.6/psychopy`
         
 .. _cleanPrefs:
@@ -78,7 +78,7 @@ Cleaning preferences and app data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Every time you shut down PsychoPy (by normal means) your current preferences and the state of the application (the location and state of the windows) are saved to disk. If PsychoPy is crashing during startup you may need to edit those files or delete them completely. 
 
-On OS X and linux the files are::
+On OS X and Linux the files are::
     
     ~/.psychopy2/appData.cfg
     ~/.psychopy2/userPrefs.cfg
