@@ -12,7 +12,7 @@ Glossary
         The period in-between video frames and can be used for synchronising purposes. On a CRT display the screen is black during the VBI and the display beam is returned to the top of the display.
     
     VBI blocking
-        The setting whereby all functions are synced to the VBI. After a call to :meth:`psychopy.visual.Window.flip()` nothing else occurs until the VBI has occurred. This is optimal and allows very precise timing, because as soon as the flip has occured a very precise time interval is known to have occured.
+        The setting whereby all functions are synced to the VBI. After a call to :meth:`psychopy.visual.Window.flip()` nothing else occurs until the VBI has occurred. This is optimal and allows very precise timing, because as soon as the flip has occurred a very precise time interval is known to have occurred.
     
     VBI syncing
         (aka vsync)

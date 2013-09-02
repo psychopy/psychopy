@@ -7,7 +7,7 @@ The simplest way to understand the file format is probably simply to create an e
 
 The file format maps fairly obviously onto the structure of experiments constructed with the :ref:`builder` interface, as described :doc:`here <builder/concepts>`. There are general :ref:`settingsXML` for the experiment, then there is a list of :ref:`routinesXML` and a :ref:`flow` that describes how these are combined. 
 
-As with any xml file the format contains object `nodes` which can have direct properties and also child nodes. For instance the outermost node of the .psyexp file is the experiment node, with properties that specifiy the version of PsychoPy that was used to save the file most recently and the encoding of text within the file (ascii, unicode etc.), and with child nodes :ref:`settingsXML`, :ref:`routinesXML` and :ref:`flowXML`. 
+As with any xml file the format contains object `nodes` which can have direct properties and also child nodes. For instance the outermost node of the .psyexp file is the experiment node, with properties that specify the version of PsychoPy that was used to save the file most recently and the encoding of text within the file (ascii, unicode etc.), and with child nodes :ref:`settingsXML`, :ref:`routinesXML` and :ref:`flowXML`. 
 
 .. _paramsXML:
 
@@ -40,7 +40,7 @@ Each :ref:`Component <components>` is represented in the .psyexp file as a set o
 Flow
 ---------------------------
 
-The Flow node is rather more simple. It's children simply specify objects that occur in a particular order in time. A Routine described in this flow must exist in the list of Routines, since this is where it is fully described. One Routine can occur once, more than once or not at all in the Flow. 
+The Flow node is rather more simple. Its children simply specify objects that occur in a particular order in time. A Routine described in this flow must exist in the list of Routines, since this is where it is fully described. One Routine can occur once, more than once or not at all in the Flow. 
 The other children that can occur in a Flow are LoopInitiators and LoopTerminators which specify the start and endpoints of a loop. All loops must have exactly one initiator and one terminator. 
 
 .. _namesXML:

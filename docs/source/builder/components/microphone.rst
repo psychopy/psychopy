@@ -26,7 +26,7 @@ Parameters
 ~~~~~~~~~~~~
 
 `name` : string
-    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
+    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 `start` : float or integer
     The time that the stimulus should first play. See :ref:`startStop` for details.
