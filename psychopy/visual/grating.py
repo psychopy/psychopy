@@ -19,8 +19,8 @@ GL = pyglet.gl
 import psychopy  # so we can get the __path__
 from psychopy import logging
 
-import psychopy.misc
-from psychopy.misc import attributeSetter
+from psychopy.misc.arraytools import val2array
+from psychopy.misc.attributetools import attributeSetter
 from psychopy.visual.basevisual import BaseVisualStim
 from psychopy.visual.helpers import createTexture
 
@@ -119,7 +119,7 @@ class GratingStim(BaseVisualStim):
         self.interpolate = interpolate
 
         #NB Pedestal isn't currently being used during rendering - this is a place-holder
-        self.rgbPedestal = psychopy.misc.val2array(rgbPedestal, False, length=3)
+        self.rgbPedestal = val2array(rgbPedestal, False, length=3)
         self.__dict__['colorSpace'] = colorSpace  # No need to invoke decorator for color updating. It is done just below.
         if rgb != None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
@@ -135,12 +135,12 @@ class GratingStim(BaseVisualStim):
 
         # set other parameters
         self.ori = float(ori)
-        self.phase = psychopy.misc.val2array(phase, False)
+        self.phase = val2array(phase, False)
         self._origSize = None  #if an image texture is loaded this will be updated
         self._requestedSize = size
-        self.size = psychopy.misc.val2array(size)
-        self.sf = psychopy.misc.val2array(sf)
-        self.pos = psychopy.misc.val2array(pos, False, False)
+        self.size = val2array(size)
+        self.sf = val2array(sf)
+        self.pos = val2array(pos, False, False)
         self.depth = depth
 
         self.tex = tex
@@ -179,7 +179,7 @@ class GratingStim(BaseVisualStim):
             else:
                 value = numpy.array([1.0, 1.0])
         else:
-            value = psychopy.misc.val2array(value)
+            value = val2array(value)
 
         # Set value and update stuff
         self.__dict__['sf'] = value
@@ -197,7 +197,7 @@ class GratingStim(BaseVisualStim):
         that setting phase=t*n drifts a stimulus at n Hz
         """
         # Recode phase to numpy array
-        value = psychopy.misc.val2array(value)
+        value = val2array(value)
         self.__dict__['phase'] = value
         self._needUpdate = True
 

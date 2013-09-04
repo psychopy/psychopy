@@ -13,7 +13,7 @@ except ImportError:
 
 import numpy
 
-from psychopy.misc import float_uint8
+from psychopy.misc.typetools import float_uint8
 
 
 def array2image(a):

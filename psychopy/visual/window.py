@@ -41,7 +41,7 @@ import psychopy.event
 
 # misc must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.misc import val2array
+from psychopy.misc.arraytools import val2array
 from psychopy import makeMovies
 from psychopy.visual.text import TextStim
 from psychopy.visual.grating import GratingStim

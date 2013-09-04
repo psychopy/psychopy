@@ -36,7 +36,7 @@ import psychopy.event
 
 # misc must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-import psychopy.misc
+from psychopy.misc.arraytools import val2array
 from psychopy import makeMovies
 from psychopy.visual.basevisual import BaseVisualStim
 
@@ -135,7 +135,7 @@ class MovieStim(BaseVisualStim):
         if size == None: self.size= numpy.array([self.format.width,
                                                  self.format.height] , float)
         else:
-            self.size = psychopy.misc.val2array(size)
+            self.size = val2array(size)
 
         self.ori = ori
         self._calcPosRendered()

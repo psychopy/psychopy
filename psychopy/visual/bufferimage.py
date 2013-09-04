@@ -20,8 +20,8 @@ from psychopy import core, logging
 
 # misc must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-import psychopy.misc
-from psychopy.misc import attributeSetter
+from psychopy.misc.attributetools import attributeSetter
+from psychopy.misc.typetools import float_uint8
 from psychopy.visual.grating import GratingStim
 
 try:
@@ -171,7 +171,7 @@ class BufferImageStim(GratingStim):
         else: #pixFormat==GL.GL_RGB:# not wasLum, not useShaders  - an RGB bitmap with no shader options
             internalFormat = GL.GL_RGB
             dataType = GL.GL_UNSIGNED_BYTE
-            data = psychopy.misc.float_uint8(intensity)
+            data = float_uint8(intensity)
 
         pixFormat=GL.GL_RGBA # because win._getRegionOfFrame() returns RGBA
         internalFormat=GL.GL_RGBA32F_ARB

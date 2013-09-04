@@ -13,8 +13,10 @@ from psychopy import logging
 
 # misc must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-import psychopy.misc
-from psychopy.misc import attributeSetter, setWithOperation
+from psychopy.misc.arraytools import val2array
+from psychopy.misc.attributetools import attributeSetter, setWithOperation
+from psychopy.misc.colorspacetools import dkl2rgb, lms2rgb
+from psychopy.misc.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
                                      setColor, setTexIfNoShaders)
 
@@ -234,7 +236,7 @@ class BaseVisualStim(object):
             Tip: if you can see the actual pixel range this corresponds to by
             looking at stim._posRendered
         """
-        self.__dict__['pos'] = psychopy.misc.val2array(value, False, False)
+        self.__dict__['pos'] = val2array(value, False, False)
         self._calcPosRendered()
 
     @attributeSetter
@@ -253,7 +255,7 @@ class BaseVisualStim(object):
             Tip: if you can see the actual pixel range this corresponds to by
             looking at stim._sizeRendered
         """
-        value = psychopy.misc.val2array(value)  # Check correct user input
+        value = val2array(value)  # Check correct user input
         self._requestedSize = value  #to track whether we're just using a default
         # None --> set to default
         if value == None:
@@ -264,8 +266,8 @@ class BaseVisualStim(object):
             else:
                 #we have an image - calculate the size in `units` that matches original pixel size
                 if self.units == 'pix': value = numpy.array(self._origSize)
-                elif self.units == 'deg': value = psychopy.misc.pix2deg(numpy.array(self._origSize, float), self.win.monitor)
-                elif self.units == 'cm': value = psychopy.misc.pix2cm(numpy.array(self._origSize, float), self.win.monitor)
+                elif self.units == 'deg': value = pix2deg(numpy.array(self._origSize, float), self.win.monitor)
+                elif self.units == 'cm': value = pix2cm(numpy.array(self._origSize, float), self.win.monitor)
                 elif self.units == 'norm': value = 2 * numpy.array(self._origSize, float) / self.win.size
                 elif self.units == 'height': value = numpy.array(self._origSize, float) / self.win.size[1]
         self.__dict__['size'] = value
@@ -385,12 +387,12 @@ class BaseVisualStim(object):
         """DEPRECATED since v1.60.05: Please use setColor
         """
         self._set('dkl', val=newDKL, op=operation)
-        self.setRGB(psychopy.misc.dkl2rgb(self.dkl, self.win.dkl_rgb))
+        self.setRGB(dkl2rgb(self.dkl, self.win.dkl_rgb))
     def setLMS(self, newLMS, operation=''):
         """DEPRECATED since v1.60.05: Please use setColor
         """
         self._set('lms', value=newLMS, op=operation)
-        self.setRGB(psychopy.misc.lms2rgb(self.lms, self.win.lms_rgb))
+        self.setRGB(lms2rgb(self.lms, self.win.lms_rgb))
     def setRGB(self, newRGB, operation=''):
         """DEPRECATED since v1.60.05: Please use setColor
         """
@@ -432,7 +434,7 @@ class BaseVisualStim(object):
         if op==None: op=''
         #format the input value as float vectors
         if type(val) in [tuple, list, numpy.ndarray]:
-            val = psychopy.misc.val2array(val)
+            val = val2array(val)
 
         # Handle operations
         setWithOperation(self, attrib, val, op)
@@ -464,15 +466,15 @@ class BaseVisualStim(object):
     def _calcSizeRendered(self):
         """Calculate the size of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
         if self.units in ['norm','pix', 'height']: self._sizeRendered=copy.copy(self.size)
-        elif self.units in ['deg', 'degs']: self._sizeRendered=psychopy.misc.deg2pix(self.size, self.win.monitor)
-        elif self.units=='cm': self._sizeRendered=psychopy.misc.cm2pix(self.size, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._sizeRendered=deg2pix(self.size, self.win.monitor)
+        elif self.units=='cm': self._sizeRendered=cm2pix(self.size, self.win.monitor)
         else:
             logging.ERROR("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
         if self.units in ['norm','pix', 'height']: self._posRendered= copy.copy(self.pos)
-        elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
-        elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._posRendered=deg2pix(self.pos, self.win.monitor)
+        elif self.units=='cm': self._posRendered=cm2pix(self.pos, self.win.monitor)
     def setAutoDraw(self, value, log=True):
         """ Deprecated. Use 'stim.attribute = value' syntax instead"""
         self.autoDraw = value
@@ -501,9 +503,9 @@ class BaseVisualStim(object):
         elif type(x) in [list, tuple, numpy.ndarray]:
             x, y = x[0], x[1]
         if self.units in ['deg','degs']:
-            x, y = psychopy.misc.deg2pix(numpy.array((x, y)), self.win.monitor)
+            x, y = deg2pix(numpy.array((x, y)), self.win.monitor)
         elif self.units == 'cm':
-            x, y = psychopy.misc.cm2pix(numpy.array((x, y)), self.win.monitor)
+            x, y = cm2pix(numpy.array((x, y)), self.win.monitor)
         if self.ori:
             oriRadians = numpy.radians(self.ori)
             sinOri = numpy.sin(oriRadians)

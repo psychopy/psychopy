@@ -8,7 +8,7 @@
 
 import numpy
 
-from psychopy.misc import radians
+from psychopy.misc.unittools import radians
 
 
 def  cart2pol(x,y, units='deg'):

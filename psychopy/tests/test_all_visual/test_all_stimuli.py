@@ -1,5 +1,6 @@
 import sys, os, copy
-from psychopy import visual, misc, monitors, filters, prefs
+from psychopy import visual, monitors, filters, prefs
+from psychopy.misc.coordinatetools import pol2cart
 from psychopy.tests import utils
 import numpy
 import pytest
@@ -289,7 +290,7 @@ class _baseVisualTest:
         thetas = numpy.arange(0,360,10)
         N=len(thetas)
         radii = numpy.linspace(0,1.0,N)*self.scaleFactor
-        x, y = misc.pol2cart(theta=thetas, radius=radii)
+        x, y = pol2cart(theta=thetas, radius=radii)
         xys = numpy.array([x,y]).transpose()
         spiral = visual.ElementArrayStim(win, nElements=N,sizes=0.5*self.scaleFactor,
             sfs=3.0, xys=xys, oris=thetas)
