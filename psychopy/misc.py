@@ -22,28 +22,6 @@ except ImportError:
     import Image
 
 
-def toFile(filename, data):
-    """save data (of any sort) as a pickle file
-
-    simple wrapper of the cPickle module in core python
-    """
-    f = open(filename, 'w')
-    cPickle.dump(data,f)
-    f.close()
-
-def fromFile(filename):
-    """load data (of any sort) from a pickle file
-
-    simple wrapper of the cPickle module in core python
-    """
-    f = open(filename)
-    contents = cPickle.load(f)
-    f.close()
-    #if loading an experiment file make sure we don't save further copies using __del__
-    if hasattr(contents, 'abort'):
-        contents.abort()
-    return contents
-
 def createXYs(x,y=None):
     """Create an Nx2 array of XY values including all combinations of the
     x and y values provided.
@@ -75,27 +53,6 @@ def createXYs(x,y=None):
     xs = numpy.resize(x, len(x)*len(y))# [1,2,3,1,2,3,1,2,3]
     ys = numpy.repeat(y,len(x)) # [1,1,1,2,2,2,3,3,3]
     return numpy.vstack([xs,ys]).transpose()
-
-def mergeFolder(src, dst, pattern=None):
-    """Merge a folder into another.
-
-    Existing files in dst with the same name will be overwritten. Non-existent
-    files/folders will be created.
-
-    """
-    # dstdir must exist first
-    srcnames = os.listdir(src)
-    for name in srcnames:
-        srcfname = os.path.join(src, name)
-        dstfname = os.path.join(dst, name)
-        if os.path.isdir(srcfname):
-            if not os.path.isdir(dstfname): os.makedirs(dstfname)
-            mergeFolder(srcfname, dstfname)
-        else:
-            try:
-                shutil.copyfile(srcfname, dstfname)#copy without metadata
-            except IOError, why:
-                print why
 
 def radians(degrees):
     """Convert degrees to radians
@@ -690,29 +647,3 @@ def plotFrameIntervals(intervals):
     plot(intervals)
     show()
 
-def _handleFileCollision(fileName, fileCollisionMethod):
-    """ Handle filename collisions by overwriting, renaming, or failing hard.
-
-    :Parameters:
-
-        fileCollisionMethod: 'overwrite', 'rename', 'fail'
-            If a file with the requested name already exists, specify how to deal with it. 'overwrite' will overwite existing files in place, 'rename' will append an integer to create a new file ('trials1.psydat', 'trials2.pysdat' etc) and 'error' will raise an IOError.
-    """
-    if fileCollisionMethod == 'overwrite':
-        logging.warning('Data file, %s, will be overwritten' % fileName)
-    elif fileCollisionMethod == 'fail':
-        raise IOError("Data file %s already exists. Set argument fileCollisionMethod to overwrite." % fileName)
-    elif fileCollisionMethod == 'rename':
-        rootName, extension = os.path.splitext(fileName)
-        matchingFiles = glob.glob("%s*%s" % (rootName, extension))
-        count = len(matchingFiles)
-
-        fileName = "%s_%d%s" % (rootName, count, extension) # Build the renamed string.
-
-        if os.path.exists(fileName): # Check to make sure the new fileName hasn't been taken too.
-            raise IOError("New fileName %s has already been taken. Something is wrong with the append counter." % fileName)
-
-    else:
-        raise ValueError("Argument fileCollisionMethod was invalid: %s" % str(fileCollisionMethod))
-
-    return fileName
