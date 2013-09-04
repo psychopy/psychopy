@@ -32,19 +32,3 @@ except ImportError:
 
 
 
-def plotFrameIntervals(intervals):
-    """Plot a histogram of the frame intervals.
-
-    Where `intervals` is either a filename to a file, saved by Window.saveFrameIntervals
-    or simply a list (or array) of frame intervals
-
-    """
-    from pylab import hist, show, plot
-
-    if type(intervals)==str:
-        f = open(intervals, 'r')
-        exec("intervals = [%s]" %(f.readline()))
-    #    hist(intervals, int(len(intervals)/10))
-    plot(intervals)
-    show()
-
