@@ -20,10 +20,10 @@ GL = pyglet.gl
 import psychopy  # so we can get the __path__
 from psychopy import core, logging
 
-# misc must only be imported *after* event or MovieStim breaks on win32
+# tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-import psychopy.misc
-from psychopy.misc import setWithOperation
+from psychopy.tools.monitorunittools import cm2pix, deg2pix
+from psychopy.tools.attributetools import setWithOperation
 
 try:
     from PIL import Image
@@ -226,8 +226,8 @@ class SimpleImageStim:
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
         if self.units in ['pix', 'pixels', 'height', 'norm']: self._posRendered=self.pos
-        elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
-        elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._posRendered=deg2pix(self.pos, self.win.monitor)
+        elif self.units=='cm': self._posRendered=cm2pix(self.pos, self.win.monitor)
     def setImage(self,filename=None, log=True):
         """Set the image to be drawn.
 

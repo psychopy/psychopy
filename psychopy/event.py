@@ -9,7 +9,8 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 # 01/2011 modified by Dave Britton to get mouse event timing
 
 import sys, time, copy
-import psychopy.core, psychopy.misc
+import psychopy.core
+from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 from psychopy import logging
 from psychopy.constants import *
 import string, numpy
@@ -531,14 +532,14 @@ class Mouse:
     def _pix2windowUnits(self, pos):
         if self.win.units=='pix': return pos
         elif self.win.units=='norm': return pos*2.0/self.win.size
-        elif self.win.units=='cm': return psychopy.misc.pix2cm(pos, self.win.monitor)
-        elif self.win.units=='deg': return psychopy.misc.pix2deg(pos, self.win.monitor)
+        elif self.win.units=='cm': return pix2cm(pos, self.win.monitor)
+        elif self.win.units=='deg': return pix2deg(pos, self.win.monitor)
         elif self.win.units=='height': return pos/float(self.win.size[1])
     def _windowUnits2pix(self, pos):
         if self.win.units=='pix': return pos
         elif self.win.units=='norm': return pos*self.win.size/2.0
-        elif self.win.units=='cm': return psychopy.misc.cm2pix(pos, self.win.monitor)
-        elif self.win.units=='deg': return psychopy.misc.deg2pix(pos, self.win.monitor)
+        elif self.win.units=='cm': return cm2pix(pos, self.win.monitor)
+        elif self.win.units=='deg': return deg2pix(pos, self.win.monitor)
         elif self.win.units=='height': return pos*float(self.win.size[1])
 
 

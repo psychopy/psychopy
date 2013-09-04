@@ -19,9 +19,9 @@ import psychopy  # so we can get the __path__
 from psychopy import logging
 import psychopy.event
 
-# misc must only be imported *after* event or MovieStim breaks on win32
+# tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-import psychopy.misc
+from psychopy.tools.monitorunittools import cm2pix, deg2pix
 
 import numpy
 
@@ -118,15 +118,15 @@ class Aperture:
     def _calcSizeRendered(self):
         """Calculate the size of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
         if self.units in ['norm','pix', 'height']: self._sizeRendered=self.size
-        elif self.units in ['deg', 'degs']: self._sizeRendered=psychopy.misc.deg2pix(self.size, self.win.monitor)
-        elif self.units=='cm': self._sizeRendered=psychopy.misc.cm2pix(self.size, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._sizeRendered=deg2pix(self.size, self.win.monitor)
+        elif self.units=='cm': self._sizeRendered=cm2pix(self.size, self.win.monitor)
         else:
             logging.ERROR("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
         if self.units in ['norm','pix', 'height']: self._posRendered=self.pos
-        elif self.units in ['deg', 'degs']: self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
-        elif self.units=='cm': self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._posRendered=deg2pix(self.pos, self.win.monitor)
+        elif self.units=='cm': self._posRendered=cm2pix(self.pos, self.win.monitor)
     def enable(self):
         """Enable the aperture so that it is used in future drawing operations
 

@@ -9,7 +9,7 @@
 import numpy
 
 from psychopy import logging
-from psychopy.misc import sph2cart
+from psychopy.tools.coordinatetools import sph2cart
 
 
 def dkl2rgb(dkl, conversionMatrix=None):
