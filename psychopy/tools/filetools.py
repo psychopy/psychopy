@@ -6,11 +6,8 @@
 
 '''Functions and classes related to file and directory handling'''
 
-from psychopy import logging
-
 import os
 import shutil
-import glob
 import cPickle
 
 
@@ -58,31 +55,3 @@ def mergeFolder(src, dst, pattern=None):
                 shutil.copyfile(srcfname, dstfname)#copy without metadata
             except IOError, why:
                 print why
-
-
-def _handleFileCollision(fileName, fileCollisionMethod):
-    """ Handle filename collisions by overwriting, renaming, or failing hard.
-
-    :Parameters:
-
-        fileCollisionMethod: 'overwrite', 'rename', 'fail'
-            If a file with the requested name already exists, specify how to deal with it. 'overwrite' will overwite existing files in place, 'rename' will append an integer to create a new file ('trials1.psydat', 'trials2.pysdat' etc) and 'error' will raise an IOError.
-    """
-    if fileCollisionMethod == 'overwrite':
-        logging.warning('Data file, %s, will be overwritten' % fileName)
-    elif fileCollisionMethod == 'fail':
-        raise IOError("Data file %s already exists. Set argument fileCollisionMethod to overwrite." % fileName)
-    elif fileCollisionMethod == 'rename':
-        rootName, extension = os.path.splitext(fileName)
-        matchingFiles = glob.glob("%s*%s" % (rootName, extension))
-        count = len(matchingFiles)
-
-        fileName = "%s_%d%s" % (rootName, count, extension) # Build the renamed string.
-
-        if os.path.exists(fileName): # Check to make sure the new fileName hasn't been taken too.
-            raise IOError("New fileName %s has already been taken. Something is wrong with the append counter." % fileName)
-
-    else:
-        raise ValueError("Argument fileCollisionMethod was invalid: %s" % str(fileCollisionMethod))
-
-    return fileName
