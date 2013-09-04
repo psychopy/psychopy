@@ -1,34 +1,34 @@
 #!/usr/bin/env python
 
-"""Tools, nothing to do with psychophysics or experiments
-- just handy things like conversion functions etc...
-"""
-
 # Part of the PsychoPy library
 # Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import numpy  # this is imported by psychopy.core
-import random
-from psychopy import logging, monitors
+'''Wrapper for all miscellaneous functions and classes from psychopy.tools'''
 
-import os
-import shutil
-import glob
-import cPickle
-try:
-    from PIL import Image
-except ImportError:
-    import Image
+from psychopy.tools.arraytools import (createXYs, extendArr, makeRadialMatrix,
+                                       ratioRange, shuffleArray, val2array)
 
+from psychopy.tools.attributetools import attributeSetter, setWithOperation
 
+from psychopy.tools.colorspacetools import (dkl2rgb, dklCart2rgb,
+                                            hsv2rgb, lms2rgb,
+                                            rgb2dklCart, rgb2lms)
 
+from psychopy.tools.coordinatetools import (cart2pol, pol2cart,
+                                            cart2sph, sph2cart)
 
+from psychopy.tools.fileerrortools import handleFileCollision
 
+from psychopy.tools.filetools import toFile, fromFile, mergeFolder
 
-#---color conversions---#000000#FFFFFF------------------------------------------
+from psychopy.tools.imagetools import array2image, image2array, makeImageAuto
 
-#--- coordinate transforms ---------------------------------------------
+from psychopy.tools.monitorunittools import (cm2deg, deg2cm, cm2pix, pix2cm,
+                                             deg2pix, pix2deg)
 
+from psychopy.tools.plottools import plotFrameIntervals
 
+from psychopy.tools.typetools import float_uint8, float_uint16, uint8_float
 
+from psychopy.tools.unittools import radians
