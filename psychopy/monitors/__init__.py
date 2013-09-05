@@ -15,4 +15,3 @@ if 'testMonitor' not in calibTools.getAllMonitors():
         notes='default (not very useful) monitor')
     defMon.setSizePix([1024,768])
     defMon.saveMon()
-    

@@ -31,4 +31,3 @@ while True:
     
     win.flip()
     
-   
