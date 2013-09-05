@@ -21,8 +21,8 @@ from psychopy import logging
 
 # misc must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-import psychopy.misc
-from psychopy.misc import attributeSetter
+from psychopy.misc.arraytools import val2array
+from psychopy.misc.attributetools import attributeSetter
 from psychopy.visual.basevisual import BaseVisualStim
 from psychopy.visual.grating import GratingStim
 
@@ -104,7 +104,7 @@ class RadialStim(GratingStim):
         self.maskRadialPhase = 0
         self.texRes = texRes #must be power of 2
         self.interpolate = interpolate
-        self.rgbPedestal = psychopy.misc.val2array(rgbPedestal, False, length=3)
+        self.rgbPedestal = val2array(rgbPedestal, False, length=3)
 
         #these are defined by the GratingStim but will just cause confusion here!
         self.setSF = None
@@ -134,7 +134,7 @@ class RadialStim(GratingStim):
         self.pos = numpy.array(pos, float)
         self.depth=depth
         self.__dict__['sf'] = 1
-        self.size = psychopy.misc.val2array(size, False)
+        self.size = val2array(size, False)
 
         self.tex = tex
         self.mask = mask

@@ -1,4 +1,4 @@
-﻿# coding=utf-8
+# coding=utf-8
 """
 ioHub
 .. file: ioHub/devices/display/__init__.py
@@ -15,7 +15,7 @@ Distributed under the terms of the GNU General Public License
 import wx
 import sys
 
-from psychopy import misc
+from psychopy.misc.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 
 from .. import Device,Computer
 from ...constants import DeviceConstants
@@ -518,8 +518,8 @@ class Display(Device):
             
              
             # add pixels_per_degree to runtime info
-            ppd_x=misc.deg2pix(1.0,self._psychopy_monitor)#math.tan(math.radians(0.5))*2.0*viewing_distance*pixel_width/phys_width
-            ppd_y=misc.deg2pix(1.0,self._psychopy_monitor)#math.tan(math.radians(0.5))*2.0*viewing_distance*pixel_height/phys_height
+            ppd_x=deg2pix(1.0,self._psychopy_monitor)#math.tan(math.radians(0.5))*2.0*viewing_distance*pixel_width/phys_width
+            ppd_y=deg2pix(1.0,self._psychopy_monitor)#math.tan(math.radians(0.5))*2.0*viewing_distance*pixel_height/phys_height
             runtime_info['pixels_per_degree']=ppd_x,ppd_y            
                     
             self. _calculateCoordMappingFunctions(pixel_width,pixel_height,phys_unit_type, phys_width,phys_height)
@@ -571,13 +571,13 @@ class Display(Device):
                 #print2err('Display {0} bounds: {1}'.format(display_index,self.getBounds()))
                 if display_index == self.getIndex():      
                     ppx,ppy=display2psychopyPix(x,y)
-                    return misc.pix2cm(ppx,self._psychopy_monitor),misc.pix2cm(ppy,self._psychopy_monitor)
+                    return pix2cm(ppx,self._psychopy_monitor),pix2cm(ppy,self._psychopy_monitor)
                 return x,y
             self._pix2coord=pix2cmcoord
         
             def cmcoord2pix(self,cx,cy,display_index=None):
                 if display_index == self.getIndex():
-                    return psychopy2displayPix(misc.cm2pix(cx,self._psychopy_monitor),misc.cm2pix(cy,self._psychopy_monitor))  
+                    return psychopy2displayPix(cm2pix(cx,self._psychopy_monitor),cm2pix(cy,self._psychopy_monitor))
                 return cx,cy
             self._coord2pix=cmcoord2pix
             
@@ -585,14 +585,14 @@ class Display(Device):
             def pix2degcoord(self, x,y,display_index=None):
                 if display_index == self.getIndex():      
                     ppx,ppy=display2psychopyPix(x,y)
-#                    print2err('pix2degcoord: ',(x,y),( ppx,ppy),( misc.pix2deg(ppx,self._psychopy_monitor),misc.pix2deg(ppy,self._psychopy_monitor)))
-                    return misc.pix2deg(ppx,self._psychopy_monitor),misc.pix2deg(ppy,self._psychopy_monitor)
+#                    print2err('pix2degcoord: ',(x,y),( ppx,ppy),( pix2deg(ppx,self._psychopy_monitor),pix2deg(ppy,self._psychopy_monitor)))
+                    return pix2deg(ppx,self._psychopy_monitor),pix2deg(ppy,self._psychopy_monitor)
                 return x,y
             self._pix2coord=pix2degcoord
         
             def degcoord2pix(self,degx,degy,display_index=None):
                 if display_index == self.getIndex():
-                    return psychopy2displayPix(misc.deg2pix(degx,self._psychopy_monitor),misc.cm2pix(degy,self._psychopy_monitor))   
+                    return psychopy2displayPix(deg2pix(degx,self._psychopy_monitor),cm2pix(degy,self._psychopy_monitor))
                 return degx,degy
             self._coord2pix=degcoord2pix
             
@@ -619,7 +619,7 @@ class Display(Device):
         if psychopy_monitor_name is None or psychopy_monitor_name == 'None':
             return False
             
-        from psychopy import monitors#,misc
+        from psychopy import monitors
         
         existing_monitors=monitors.getAllMonitors()
 

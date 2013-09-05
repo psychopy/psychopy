@@ -25,7 +25,7 @@ import psychopy.event
 
 # misc must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-import psychopy.misc
+from psychopy.misc.monitorunittools import cm2pix, deg2pix
 from psychopy.visual.basevisual import BaseVisualStim
 
 import numpy
@@ -112,11 +112,11 @@ class TextStim(BaseVisualStim):
         if self.units=='cm':
             if height==None: self.height = 1.0#default text height
             else: self.height = height
-            self.heightPix = psychopy.misc.cm2pix(self.height, win.monitor)
+            self.heightPix = cm2pix(self.height, win.monitor)
         elif self.units in ['deg', 'degs']:
             if height==None: self.height = 1.0
             else: self.height = height
-            self.heightPix = psychopy.misc.deg2pix(self.height, win.monitor)
+            self.heightPix = deg2pix(self.height, win.monitor)
         elif self.units=='norm':
             if height==None: self.height = 0.1
             else: self.height = height
@@ -137,8 +137,8 @@ class TextStim(BaseVisualStim):
             elif self.units in ['pix', 'pixels']: self.wrapWidth=500
         if self.units=='norm': self._wrapWidthPix= self.wrapWidth*win.size[0]/2
         elif self.units=='height': self._wrapWidthPix= self.wrapWidth*win.size[0]
-        elif self.units in ['deg', 'degs']: self._wrapWidthPix= psychopy.misc.deg2pix(self.wrapWidth, win.monitor)
-        elif self.units=='cm': self._wrapWidthPix= psychopy.misc.cm2pix(self.wrapWidth, win.monitor)
+        elif self.units in ['deg', 'degs']: self._wrapWidthPix= deg2pix(self.wrapWidth, win.monitor)
+        elif self.units=='cm': self._wrapWidthPix= cm2pix(self.wrapWidth, win.monitor)
         elif self.units in ['pix', 'pixels']: self._wrapWidthPix=self.wrapWidth
 
         #generate the texture and list holders
@@ -170,11 +170,11 @@ class TextStim(BaseVisualStim):
         if self.units=='cm':
             if height==None: self.height = 1.0#default text height
             else: self.height = height
-            self.heightPix = psychopy.misc.cm2pix(self.height, self.win.monitor)
+            self.heightPix = cm2pix(self.height, self.win.monitor)
         elif self.units in ['deg', 'degs']:
             if height==None: self.height = 1.0
             else: self.height = height
-            self.heightPix = psychopy.misc.deg2pix(self.height, self.win.monitor)
+            self.heightPix = deg2pix(self.height, self.win.monitor)
         elif self.units=='norm':
             if height==None: self.height = 0.1
             else: self.height = height

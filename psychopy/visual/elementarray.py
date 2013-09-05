@@ -22,8 +22,9 @@ from psychopy import logging
 
 # misc must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-import psychopy.misc
-from psychopy.misc import setWithOperation
+from psychopy.misc.arraytools import val2array
+from psychopy.misc.attributetools import setWithOperation
+from psychopy.misc.monitorunittools import cm2pix, deg2pix
 from psychopy.visual.helpers import setColor, createTexture
 
 global currWindow
@@ -189,8 +190,8 @@ class ElementArrayStim(object):
             self.setColors(colors, colorSpace=colorSpace, log=False)
 
         #Deal with input for fieldpos and fieldsize
-        self.fieldPos = psychopy.misc.val2array(fieldPos, False)
-        self.fieldSize = psychopy.misc.val2array(fieldSize, False)
+        self.fieldPos = val2array(fieldPos, False)
+        self.fieldSize = val2array(fieldSize, False)
 
         #create textures
         self.texRes = texRes
@@ -598,22 +599,22 @@ class ElementArrayStim(object):
 
     def _calcSizesRendered(self):
         if self.units in ['norm','pix', 'height']: self._sizesRendered=self.sizes
-        elif self.units in ['deg', 'degs']: self._sizesRendered=psychopy.misc.deg2pix(self.sizes, self.win.monitor)
-        elif self.units=='cm': self._sizesRendered=psychopy.misc.cm2pix(self.sizes, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._sizesRendered=deg2pix(self.sizes, self.win.monitor)
+        elif self.units=='cm': self._sizesRendered=cm2pix(self.sizes, self.win.monitor)
     def _calcXYsRendered(self):
         if self.units in ['norm','pix','height']: self._XYsRendered=self.xys
-        elif self.units in ['deg', 'degs']: self._XYsRendered=psychopy.misc.deg2pix(self.xys, self.win.monitor)
-        elif self.units=='cm': self._XYsRendered=psychopy.misc.cm2pix(self.xys, self.win.monitor)
+        elif self.units in ['deg', 'degs']: self._XYsRendered=deg2pix(self.xys, self.win.monitor)
+        elif self.units=='cm': self._XYsRendered=cm2pix(self.xys, self.win.monitor)
     def _calcFieldCoordsRendered(self):
         if self.units in ['norm', 'pix','height']:
             self._fieldSizeRendered=self.fieldSize
             self._fieldPosRendered=self.fieldPos
         elif self.units in ['deg', 'degs']:
-            self._fieldSizeRendered=psychopy.misc.deg2pix(self.fieldSize, self.win.monitor)
-            self._fieldPosRendered=psychopy.misc.deg2pix(self.fieldPos, self.win.monitor)
+            self._fieldSizeRendered=deg2pix(self.fieldSize, self.win.monitor)
+            self._fieldPosRendered=deg2pix(self.fieldPos, self.win.monitor)
         elif self.units=='cm':
-            self._fieldSizeRendered=psychopy.misc.cm2pix(self.fieldSize, self.win.monitor)
-            self._fieldPosRendered=psychopy.misc.cm2pix(self.fieldPos, self.win.monitor)
+            self._fieldSizeRendered=cm2pix(self.fieldSize, self.win.monitor)
+            self._fieldPosRendered=cm2pix(self.fieldPos, self.win.monitor)
 
     def updateElementVertices(self):
         self._calcXYsRendered()

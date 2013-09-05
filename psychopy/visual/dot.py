@@ -21,8 +21,9 @@ from psychopy import logging
 
 # misc must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-import psychopy.misc
-from psychopy.misc import setWithOperation
+from psychopy.misc.attributetools import setWithOperation
+from psychopy.misc.arraytools import val2array
+from psychopy.misc.monitorunittools import cm2pix, deg2pix
 from psychopy.visual.basevisual import BaseVisualStim
 
 import numpy
@@ -110,8 +111,8 @@ class DotStim(BaseVisualStim):
         BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         self.nDots = nDots
         #size
-        self.fieldPos = psychopy.misc.val2array(fieldPos, False, False)
-        self.fieldSize = psychopy.misc.val2array(fieldSize, False)
+        self.fieldPos = val2array(fieldPos, False, False)
+        self.fieldSize = val2array(fieldSize, False)
         if type(dotSize) in [tuple,list]:
             self.dotSize = numpy.array(dotSize)
         else:self.dotSize=dotSize
@@ -354,15 +355,15 @@ class DotStim(BaseVisualStim):
 
     def _calcDotsXYRendered(self):
         if self.units in ['norm','pix', 'height']: self._dotsXYRendered=self._dotsXY
-        elif self.units in ['deg','degs']: self._dotsXYRendered=psychopy.misc.deg2pix(self._dotsXY, self.win.monitor)
-        elif self.units=='cm': self._dotsXYRendered=psychopy.misc.cm2pix(self._dotsXY, self.win.monitor)
+        elif self.units in ['deg','degs']: self._dotsXYRendered=deg2pix(self._dotsXY, self.win.monitor)
+        elif self.units=='cm': self._dotsXYRendered=cm2pix(self._dotsXY, self.win.monitor)
     def _calcFieldCoordsRendered(self):
         if self.units in ['norm', 'pix', 'height']:
             self._fieldSizeRendered=self.fieldSize
             self._fieldPosRendered=self.fieldPos
         elif self.units in ['deg', 'degs']:
-            self._fieldSizeRendered=psychopy.misc.deg2pix(self.fieldSize, self.win.monitor)
-            self._fieldPosRendered=psychopy.misc.deg2pix(self.fieldPos, self.win.monitor)
+            self._fieldSizeRendered=deg2pix(self.fieldSize, self.win.monitor)
+            self._fieldPosRendered=deg2pix(self.fieldPos, self.win.monitor)
         elif self.units=='cm':
-            self._fieldSizeRendered=psychopy.misc.cm2pix(self.fieldSize, self.win.monitor)
-            self._fieldPosRendered=psychopy.misc.cm2pix(self.fieldPos, self.win.monitor)
+            self._fieldSizeRendered=cm2pix(self.fieldSize, self.win.monitor)
+            self._fieldPosRendered=cm2pix(self.fieldPos, self.win.monitor)

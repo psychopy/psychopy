@@ -22,8 +22,9 @@ from psychopy import core, logging, colors
 
 # misc must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-import psychopy.misc
-from psychopy.misc import setWithOperation, makeRadialMatrix
+from psychopy.misc.arraytools import makeRadialMatrix, val2array
+from psychopy.misc.attributetools import setWithOperation
+from psychopy.misc.typetools import float_uint8
 
 try:
     from PIL import Image
@@ -294,19 +295,19 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None,
         data[:,:,1] = intensity*rgb[1]  + stim.rgbPedestal[1]#G
         data[:,:,2] = intensity*rgb[2]  + stim.rgbPedestal[2]#B
         #convert to ubyte
-        data = psychopy.misc.float_uint8(stim.contrast*data)
+        data = float_uint8(stim.contrast*data)
     elif pixFormat==GL.GL_RGB and dataType==GL.GL_FLOAT: #probably a custom rgb array or rgb image
         internalFormat = GL.GL_RGB32F_ARB
         data = intensity
     elif pixFormat==GL.GL_RGB:# not wasLum, not useShaders  - an RGB bitmap with no shader options
         internalFormat = GL.GL_RGB
-        data = intensity #psychopy.misc.float_uint8(intensity)
+        data = intensity #float_uint8(intensity)
     elif pixFormat==GL.GL_ALPHA:
         internalFormat = GL.GL_ALPHA
         if wasImage:
             data = intensity
         else:
-            data = psychopy.misc.float_uint8(intensity)
+            data = float_uint8(intensity)
     #check for RGBA textures
     if len(intensity.shape)>2 and intensity.shape[2] == 4:
         if pixFormat==GL.GL_RGB: pixFormat=GL.GL_RGBA
@@ -470,7 +471,7 @@ def setColor(obj, color, colorSpace=None, operation='',
 
     # If it wasn't a strin, do check and conversion of scalars, sequences and other stuff.
     else:
-        color = psychopy.misc.val2array(color, length=3)
+        color = val2array(color, length=3)
 
         if color==None:
             setattr(obj,rgbAttrib,None)#e.g. obj.rgb=[0,0,0]
