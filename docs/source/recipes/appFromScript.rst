@@ -17,7 +17,7 @@ Instructions:
 
    #. Download and install py2exe (http://www.py2exe.org/)
    #. Develop your Psychopy script as normal
-   #. Copy this setup.py file into the same director as your script
+   #. Copy this setup.py file into the same directory as your script
    #. Change the Name of progName variable in this file to the Name of your desired executable program name
    #. use cmd (or bash, terminal, etc.) and run the following in the directory of your the two files:
            python setup.py py2exe

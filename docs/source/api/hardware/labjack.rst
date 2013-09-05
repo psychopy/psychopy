@@ -4,8 +4,8 @@ labjack (USB I/O devices)
 =============================================
 	
 The labjack package is included in the Standalone PsychoPy distributions. 
-It differs slightly form the standard version distributed by labjack 
-(www.labjack.com) in the import. From the cutoms distribution use::
+It differs slightly from the standard version distributed by labjack 
+(www.labjack.com) in the import. For the custom distribution use::
 
 	from labjack import u3
 	
