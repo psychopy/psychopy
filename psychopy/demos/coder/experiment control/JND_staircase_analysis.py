@@ -6,7 +6,8 @@
 #on the right
 #
 
-from psychopy import data, gui, misc, core
+from psychopy import data, gui, core
+from psychopy.tools.filetools import fromFile
 import pylab, scipy
 
 files = gui.fileOpenDlg('.')
@@ -16,7 +17,7 @@ if not files:
 #get the data from all the files
 allIntensities, allResponses = [],[]
 for thisFileName in files:
-    thisDat = misc.fromFile(thisFileName)
+    thisDat = fromFile(thisFileName)
     assert isinstance(thisDat, data.StairHandler)
     allIntensities.append( thisDat.intensities )
     allResponses.append( thisDat.data )

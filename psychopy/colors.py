@@ -1,4 +1,4 @@
-from psychopy.misc import dkl2rgb, lms2rgb, hsv2rgb
+from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb, hsv2rgb
 import numpy
 
 def hex2rgb255(hexColor):

@@ -6,7 +6,8 @@ from pytest import raises
 from tempfile import mkdtemp
 from numpy.random import random
 
-from psychopy import data, misc
+from psychopy import data
+from psychopy.tools.filetools import fromFile
 from psychopy.tests import utils
 
 thisPath = os.path.split(__file__)[0]
@@ -80,7 +81,7 @@ class TestTrialHandler:
             assert matches==1, "Found %d matching files, should be %d" % (matches, count)
 
     def test_multiKeyResponses(self):
-        dat = misc.fromFile(os.path.join(fixturesPath,'multiKeypressTrialhandler.psydat'))
+        dat = fromFile(os.path.join(fixturesPath,'multiKeypressTrialhandler.psydat'))
         #test csv output
         dat.saveAsText(pjoin(self.temp_dir, 'testMultiKeyTrials.csv'), appendFile=False)
         utils.compareTextFiles(pjoin(self.temp_dir, 'testMultiKeyTrials.csv'), pjoin(fixturesPath,'corrMultiKeyTrials.csv'))

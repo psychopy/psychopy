@@ -18,7 +18,7 @@ GL = pyglet.gl
 import psychopy  # so we can get the __path__
 from psychopy import logging
 
-import psychopy.misc
+from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import BaseVisualStim
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
                                      createTexture)
@@ -90,7 +90,7 @@ class ImageStim(BaseVisualStim):
         self.flipVert = flipVert
         self._requestedSize=size
         self._origSize=None#if an image texture is loaded this will be updated
-        self.size = psychopy.misc.val2array(size)
+        self.size = val2array(size)
         self.pos = numpy.array(pos,float)
         self.ori = float(ori)
         self.depth=depth

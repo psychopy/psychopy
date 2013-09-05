@@ -9,7 +9,8 @@ see also the elementArrayStim demo
 
 """
 
-from psychopy import visual, event, misc
+from psychopy import visual, event
+from psychopy.tools.coordinatetools import pol2cart
 import numpy
 
 nDots = 500
@@ -32,7 +33,7 @@ for frameN in range(400):
     outFieldDots = (dotsRadius>=2.0)
     dotsRadius[outFieldDots] = numpy.random.rand(sum(outFieldDots))*2.0
     
-    dotsX, dotsY = misc.pol2cart(dotsTheta,dotsRadius)
+    dotsX, dotsY = pol2cart(dotsTheta,dotsRadius)
     dotsX *= 0.75 #to account for wider aspect ratio
     dots.setXYs(numpy.array([dotsX, dotsY]).transpose())
     dots.draw()
