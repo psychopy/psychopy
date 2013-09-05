@@ -13,7 +13,8 @@ import re
 import numpy
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
-from psychopy import data, logging, misc, gui
+from psychopy import data, logging, gui
+from psychopy.tools.filetools import mergeFolder
 from tempfile import mkdtemp # to check code syntax
 import cPickle
 from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re
@@ -4142,7 +4143,7 @@ class BuilderFrame(wx.Frame):
             unpackFolder = os.path.join(unpackFolder, 'PsychoPy2 Demos')
             if not os.path.isdir(unpackFolder):
                 os.mkdir(unpackFolder)
-        misc.mergeFolder(os.path.join(self.paths['demos'], 'builder'), unpackFolder)
+        mergeFolder(os.path.join(self.paths['demos'], 'builder'), unpackFolder)
         self.prefs['unpackedDemosDir']=unpackFolder
         self.app.prefs.saveUserPrefs()
         self.demosMenuUpdate()

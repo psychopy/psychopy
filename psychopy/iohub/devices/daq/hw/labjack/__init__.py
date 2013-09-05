@@ -238,4 +238,3 @@ class LabJackDataReader(threading.Thread):
         except:
             print2err("ERROR IN THREAD RUN:")
             printExceptionDetailsToStdErr()
-            

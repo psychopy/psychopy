@@ -6,14 +6,15 @@ of Ledgeway and Smith, 1994, Vision Research, 34, 2727–2740
 Instructions: on each trial press the up/down cursor keys depending on 
 the apparent direction of motion of the bars."""
 
-from psychopy import visual, core, event, misc, gui, data
+from psychopy import visual, core, event, gui, data
+from psychopy.tools.filetools import fromFile, toFile
 from psychopy import filters
 import numpy as num
 import time
 
 try:
     #try to load previous info
-    info = misc.fromFile('info_gamma.pickle')
+    info = fromFile('info_gamma.pickle')
     print info
 except:
     #if no file use some defaults
@@ -28,7 +29,7 @@ except:
 dlg = gui.DlgFromDict(info)
 #save to a file for future use (ie storing as defaults)
 if dlg.OK: 
-    misc.toFile('info_gamma.pickle',info)
+    toFile('info_gamma.pickle',info)
 else:
     core.quit() #user cancelled. quit
 print info

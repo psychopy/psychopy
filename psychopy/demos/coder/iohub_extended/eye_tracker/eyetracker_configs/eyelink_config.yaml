@@ -172,4 +172,3 @@ monitor_devices:
         # For the eyelink implementation, valid values are:
         # 'EYELINK 1000 DESKTOP', 'EYELINK 1000 TOWER', 'EYELINK 1000 REMOTE', 'EYELINK 1000 LONG RANGE', 'EYELINK 2'
         model_name: EYELINK 1000 TOWER
-        

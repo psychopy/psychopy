@@ -17,10 +17,10 @@ GL = pyglet.gl
 import psychopy  # so we can get the __path__
 from psychopy import logging
 
-# misc must only be imported *after* event or MovieStim breaks on win32
+# tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-import psychopy.misc
-from psychopy.misc import attributeSetter, setWithOperation
+from psychopy.tools.monitorunittools import cm2pix, deg2pix
+from psychopy.tools.attributetools import attributeSetter, setWithOperation
 from psychopy.visual.basevisual import BaseVisualStim
 from psychopy.visual.helpers import setColor
 
@@ -278,9 +278,9 @@ class ShapeStim(BaseVisualStim):
             self._verticesRendered=self.vertices
             self._posRendered=self.pos
         elif self.units in ['deg', 'degs']:
-            self._verticesRendered=psychopy.misc.deg2pix(self.vertices, self.win.monitor)
-            self._posRendered=psychopy.misc.deg2pix(self.pos, self.win.monitor)
+            self._verticesRendered=deg2pix(self.vertices, self.win.monitor)
+            self._posRendered=deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm':
-            self._verticesRendered=psychopy.misc.cm2pix(self.vertices, self.win.monitor)
-            self._posRendered=psychopy.misc.cm2pix(self.pos, self.win.monitor)
+            self._verticesRendered=cm2pix(self.vertices, self.win.monitor)
+            self._posRendered=cm2pix(self.pos, self.win.monitor)
         self._verticesRendered = self._verticesRendered * self.size
