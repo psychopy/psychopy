@@ -36,4 +36,3 @@ for frameN in range(20):#run 20 frames like this
 for stim in [stim1, stim2, fixation]:
     stim.setAutoDraw(False)
 win.flip()#will cause the 'off' log messages to be sent
-    

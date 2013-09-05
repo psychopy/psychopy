@@ -269,4 +269,3 @@ if __name__ == '__main__':
             raise ValueError, "expected integer arguments: base power [shift [which-sequence]]"
         print mseq(*args)
         #print _center(mseq(*args), args[0])
-    
