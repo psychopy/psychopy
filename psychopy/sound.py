@@ -534,7 +534,8 @@ class SoundPyo(_SoundBase):
             channels=2
         else:
             channels=1
-        self._sndTable = pyo.DataTable(size=len(thisArray), init=thisArray.tolist(),
+        self._sndTable = pyo.DataTable(size=len(thisArray),
+                                       init=thisArray.T.tolist(),
                                        chnls=channels)
         self._updateSnd()
         # a DataTable has no .getDur() method, so just store the duration:
@@ -654,8 +655,8 @@ def initPyo(rate=44100, stereo=True, buffer=128):
             return -1
 
         # create the instance of the server:
-        if platform=='darwin':
-            #for mac we set the backend using the server audio param
+        if platform in ['darwin', 'linux2']:
+            #for mac/linux we set the backend using the server audio param
             pyoSndServer = Server(sr=rate, nchnls=maxChnls, buffersize=buffer, audio=audioDriver)
         else:
             #with others we just use portaudio and then set the OutputDevice below
