@@ -100,6 +100,8 @@ class EyetrackerComponent(BaseComponent):
         buff.writeIndented("if %(name)s.status == STARTED:  # only update if started and not stopped!\n" %(self.params))
         buff.setIndentLevel(1, relative=True)#to get out of the if statement
         dedentAtEnd=1#keep track of how far to dedent later
+        buff.writeIndented("%(name)s.x, %(name)s.y = eyetracker.getPosition()\n" %(self.params))
+        buff.writeIndented("%(name)s.pupil = eyetracker.getPupilSize()\n" %(self.params))
 
         #actual each-frame checks
         if self.params['saveState'].val in ['every frame']:
