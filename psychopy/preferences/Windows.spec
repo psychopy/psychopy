@@ -43,8 +43,6 @@
     audioDriver = list(default=list('Primary Sound','ASIO','Audigy'))
     # path to flac (lossless audio compression) on this operating system
     flac = string(default='')
-    # whether or not to override pyglet lib dir
-    pygletLibOverload=bool(default=True)
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]

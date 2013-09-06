@@ -78,6 +78,8 @@ class _TraceLibrary(object):
         return f
 
 class LibraryLoader(object):
+    darwin_not_found_error = "image not found"
+    linux_not_found_error  = "No such file or directory"
     def load_library(self, *names, **kwargs):
         '''Find and load a library.
 
@@ -89,14 +91,19 @@ class LibraryLoader(object):
         if 'framework' in kwargs and self.platform == 'darwin':
             return self.load_framework(kwargs['framework'])
 
+        if not names:
+            raise ImportError("No library name specified")
+        
         platform_names = kwargs.get(self.platform, [])
         if type(platform_names) in (str, unicode):
             platform_names = [platform_names]
         elif type(platform_names) is tuple:
             platform_names = list(platform_names)
 
-        if self.platform == 'linux2':
-            platform_names.extend(['lib%s.so' % n for n in names])
+        if self.platform.startswith('linux'):
+            for name in names:
+                libname = ctypes.util.find_library(name)
+                platform_names.append(libname or 'lib%s.so' % name)
 
         platform_names.extend(names)
         for name in platform_names:
@@ -107,7 +114,14 @@ class LibraryLoader(object):
                 if _debug_trace:
                     lib = _TraceLibrary(lib)
                 return lib
-            except OSError:
+            except OSError, o:
+                if ((self.platform == "win32" and o.winerror != 126) or
+                    (self.platform.startswith("linux") and
+                     self.linux_not_found_error not in o.args[0]) or
+                    (self.platform == "darwin" and
+                     self.darwin_not_found_error not in o.args[0])):
+                    print "Unexpected error loading library %s: %s" % (name, str(o))
+                    raise
                 path = self.find_library(name)
                 if path:
                     try:
@@ -154,7 +168,7 @@ class MachOLibraryLoader(LibraryLoader):
     def find_library(self, path):
         '''Implements the dylib search as specified in Apple documentation:
 
-        http://developer.apple.com/documentation/DeveloperTools/Conceptual/DynamicLibraries/Articles/DynamicLibraryUsageGuidelines.html
+        http://developer.apple.com/documentation/DeveloperTools/Conceptual/DynamicLibraries/100-Articles/DynamicLibraryUsageGuidelines.html
 
         Before commencing the standard search, the method first checks
         the bundle's ``Frameworks`` directory if the application is running
@@ -296,7 +310,7 @@ class LinuxLibraryLoader(LibraryLoader):
 
 if sys.platform == 'darwin':
     loader = MachOLibraryLoader()
-elif sys.platform == 'linux2':
+elif sys.platform.startswith('linux'):
     loader = LinuxLibraryLoader()
 else:
     loader = LibraryLoader()

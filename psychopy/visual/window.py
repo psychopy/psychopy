@@ -21,7 +21,6 @@ import ctypes
 #try to find avbin (we'll overload pyglet's load_library tool and then add some paths)
 import pyglet.lib
 import _pygletLibOverload
-old_pyglet_load = pyglet.lib.load_library
 pyglet.lib.load_library = _pygletLibOverload.load_library
 #on windows try to load avbin now (other libs can interfere)
 if sys.platform == 'win32':
@@ -47,9 +46,6 @@ from psychopy import makeMovies
 from psychopy.visual.text import TextStim
 from psychopy.visual.grating import GratingStim
 from psychopy.visual.helpers import setColor
-
-if prefs.general['pygletLibOverload'] is False:
-    pyglet.lib.load_library = old_pyglet_load
 
 try:
     from PIL import Image
