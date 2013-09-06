@@ -729,10 +729,10 @@ class MainFrame(wx.Frame):
                                                  stimSize=stimSize, monitor=self.currentMon)
 
             #allow user to type in values
-            # if autoMode=='semi':
-            #     inputDlg = GammaLumValsDlg(lumLevels, parent=self)
-            #     lumsPre = inputDlg.show()#will be [] if user cancels
-            #     inputDlg.Destroy()
+            if autoMode=='semi':
+                inputDlg = GammaLumValsDlg(parent=self, levels=lumLevels)
+                lumsPre = inputDlg.show()#will be [] if user cancels
+                inputDlg.Destroy()
 
         #fit the gamma curves
         if lumsPre is None or len(lumsPre)>1:
@@ -741,6 +741,7 @@ class MainFrame(wx.Frame):
             self.currentMon.setLevelsPre(lumLevels)#save for future
             self.btnPlotGamma.Enable(True)
             self.choiceLinearMethod.Enable()
+            
             #do the fits
             self.doGammaFits(lumLevels,lumsPre)
         else:
@@ -963,53 +964,78 @@ class MainFrame(wx.Frame):
         print event
 
 class GammaLumValsDlg(wx.Dialog):
-    #a dialogue to get the luminance values recorded for each level
-    def __init__(self, levels):
-        wx.Dialog.__init__(self, parent, -1, 'Input recorded luminance values',
+    '''a dialogue to manually get the luminance values recorded for each level'''
+    def __init__(self, parent, levels):
+
+        wx.Dialog.__init__(self, parent, -1, 'Recorded luminance values',
             style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER
             )
-        mainSizer =  wx.BoxSizer(cols=2, hgap=10, vgap=10)
-        rFields=[]
-        gFields=[]
-        bFields=[]
-        lFields=[]
-        allFields = [lFields, rFields, gFields, bFields]
-        #add the necessary input boxes and labels
-        for thisLevel in levels:
-            thisRow=wx.BoxSizer(wx.HORIZONTAL)
-            inputLabel = wx.StaticText(self,-1,label,
-                                            size=labelLength,
-                                            style=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
-            inputBox = wx.TextCtrl(self,-1,size=(30,25))
-            inputFields.append(inputBox)
-            thisRow.Add(inputLabel, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-            thisRow.Add(inputBox,1)
-            mainSizer.Add(thisRow, 1, wx.ALIGN_CENTER)
 
-        #add buttons for OK and Cancel
-        buttons = wx.BoxSizer(wx.HORIZONTAL)
-        OK = wx.Button(self, wx.ID_OK, " OK ")
-        OK.SetDefault()
-        buttons.Add(OK)
-        CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
-        buttons.Add(CANCEL)
-        self.sizer.Add(buttons,1,flag=wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM,border=5)
+        pad=5
 
-        self.SetSizerAndFit(self.sizer)
+        panel = wx.Panel(self, -1)
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        mainSizer.Add(self.makeCalibBox(parent=panel, levels=levels), 1, wx.EXPAND|wx.ALL, pad)
+
+        butBox = wx.BoxSizer(wx.HORIZONTAL)
+        btnOK = wx.Button(panel, wx.ID_OK, " OK ")
+        btnOK.SetDefault()
+        btnCANC = wx.Button(panel, wx.ID_CANCEL, " Cancel ")
+
+        butBox.Add(btnOK,1,wx.BOTTOM|wx.ALIGN_RIGHT, pad)
+        butBox.Add(btnCANC,1,wx.BOTTOM|wx.RIGHT|wx.ALIGN_RIGHT, pad)
+        mainSizer.Add(butBox, 
+            flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)    
+
+        #finalise panel layout
+        panel.SetAutoLayout(True)
+        panel.SetSizerAndFit(mainSizer)
+        mainSizer.Layout()
+        self.SetSize(self.GetBestSize())
+
+    def makeCalibBox(self,parent,levels):
+        '''do my best to make a calibration box'''
+        gammaBox = wx.StaticBox(parent,-1,'Luminance Values')
+        gammaBox.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
+        gammaBoxSizer = wx.StaticBoxSizer(gammaBox, wx.VERTICAL)
+
+        theCols = map(str,levels)
+
+        self.gammaGrid = SimpleGrid(parent, id=-1,
+                                    cols=theCols,
+                                    rows=['lum','R','G','B'])
+        gammaBoxSizer.Add(self.gammaGrid)
+        grid.EVT_GRID_CELL_CHANGE(self.gammaGrid,self.onChangeGammaGrid)
+        gammaBoxSizer.Layout()
+
+        return gammaBoxSizer
+ 
+    def onChangeGammaGrid(self, event):
+        '''The first column = black, so it gets set same for all, let's help out!'''
+        if event.GetCol()==0:
+            newVal = self.gammaGrid.GetCellValue(event.GetRow(), event.GetCol())
+            try: newVal=float(newVal)
+            except: pass #ignore values that can't be a float
+            for nRow in range(self.gammaGrid.nRows):
+                self.gammaGrid.SetCellValue(nRow,0,'%f' %newVal)
+ 
+    def getData(self):
+        '''retrieve the data from the grid in same format as auto calibration'''
+        data=[]
+        for nRow in range(self.gammaGrid.nRows):
+            bob=[]
+            for nCol in range(self.gammaGrid.nCols):
+                bob.append(self.gammaGrid.GetCellValue(nRow, nCol))
+            data.append(map(float,bob))
+        return data
 
     def show(self):
-        #show dialog and retrieve data
+        '''show dialog, retrieve data, empty if cancel'''
         ok = self.ShowModal()
         if  ok == wx.ID_OK:
-            #get data from input fields
-            for thisField in allFields:#select the particular gun/column
-                for n in range(len(self.inputFields)):
-                    thisVal = self.inputFields[n].GetValue()
-                    thisField.append(float(thisVal))
+            return numpy.array(self.getData())
         else:
-            allFields= []
-
-        return allFields
+            return numpy.array([])
 
 class GammaDlg(wx.Dialog):
     def __init__(self, parent, monitor):
