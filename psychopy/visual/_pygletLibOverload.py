@@ -34,6 +34,8 @@
 '''Functions for loading dynamic libraries.
 
 These extend and correct ctypes functions.
+
+THIS IS A MODIFIED VERSION OF ``pyglet/lib.py``
 '''
 
 __docformat__ = 'restructuredtext'
@@ -93,7 +95,7 @@ class LibraryLoader(object):
 
         if not names:
             raise ImportError("No library name specified")
-        
+
         platform_names = kwargs.get(self.platform, [])
         if type(platform_names) in (str, unicode):
             platform_names = [platform_names]
