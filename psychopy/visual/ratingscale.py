@@ -122,6 +122,7 @@ class RatingScale:
                 acceptSize=1.0,
                 leftKeys='left',
                 rightKeys='right',
+                respKeys=(),
                 lineColor='White',
                 ticksAboveLine=True,
                 markerStyle='triangle',
@@ -217,6 +218,12 @@ class RatingScale:
             a key or list of keys that mean "move leftwards", default = `['left']`
         rightKeys :
             a key or list of keys that mean "move rightwards", default = `['right']`
+        respKeys :
+            a list of key characters to use for responding, in the desired order.
+            The first item will be the left-most choice, the second item will be the
+            next choice, and so on. If there are
+            fewer respKeys than choices, the right-most choices will not be selectable
+            using respKeys, but rightKeys can be used to navigate there.
         lineColor :
             color to use for the scale line, default = 'White'
         ticksAboveLine :
@@ -310,7 +317,7 @@ class RatingScale:
 
         # Set scale & position, key-bindings:
         self._initPosScale(pos, displaySizeFactor, stretchHoriz)
-        self._initKeys(self.acceptKeys, skipKeys, escapeKeys, leftKeys, rightKeys, allowSkip)
+        self._initKeys(self.acceptKeys, skipKeys, escapeKeys, leftKeys, rightKeys, respKeys, allowSkip)
 
         # Construct the visual elements:
         self._initLine(tickMarkValues=tickMarks, lineColor=lineColor)
@@ -504,7 +511,7 @@ class RatingScale:
         if not 0.06 < self.displaySizeFactor < 3:
             logging.warning("RatingScale %s: unusual displaySizeFactor" % self.name)
 
-    def _initKeys(self, acceptKeys, skipKeys, escapeKeys, leftKeys, rightKeys, allowSkip):
+    def _initKeys(self, acceptKeys, skipKeys, escapeKeys, leftKeys, rightKeys, respKeys, allowSkip):
         # keys for accepting the currently selected response:
         if self.mouseOnly:
             self.acceptKeys = [ ] # no valid keys, so must use mouse
@@ -532,17 +539,29 @@ class RatingScale:
             rightKeys = [rightKeys]
         self.rightKeys = rightKeys
 
-        # allow responding via numeric keys if the response range is in 0-9:
-        self.respKeys = [ ]
-        if (not self.mouseOnly and self.low > -1 and self.high < 10):
-            self.respKeys = [str(i) for i in range(self.low, self.high + 1)]
-        # but if any digit is used as an action key, that should take precedence
-        # so disable using numeric keys:
-        if (set(self.respKeys).intersection(self.leftKeys + self.rightKeys +
-                                self.acceptKeys + self.skipKeys + self.escapeKeys) == set([]) ):
+        # allow responding via aribtrary keys if given as a param:
+        if respKeys and hasattr(respKeys, '__iter__'):
+            self.respKeys = respKeys
             self.enableRespKeys = True
+            if (set(self.respKeys).intersection(self.leftKeys + self.rightKeys +
+                        self.acceptKeys + self.skipKeys + self.escapeKeys)):
+                logging.warning('RatingScale %s: respKeys may conflict with other keys' % self.name)
         else:
-            self.enableRespKeys = False
+            # allow resp via numeric keys if the response range is in 0-9
+            self.respKeys = [ ]
+            if (not self.mouseOnly and self.low > -1 and self.high < 10):
+                self.respKeys = [str(i) for i in range(self.low, self.high + 1)]
+            # but if any digit is used as an action key, that should take precedence
+            # so disable using numeric keys:
+            if (set(self.respKeys).intersection(self.leftKeys + self.rightKeys +
+                                    self.acceptKeys + self.skipKeys + self.escapeKeys) == set([]) ):
+                self.enableRespKeys = True
+            else:
+                self.enableRespKeys = False
+        if self.enableRespKeys:
+            self.tickFromKeyPress = {}
+            for i, key in enumerate(self.respKeys):
+                self.tickFromKeyPress[key] = i + self.low
 
         self.allKeys = (self.rightKeys + self.leftKeys + self.acceptKeys +
                         self.escapeKeys + self.skipKeys + self.respKeys)
@@ -1000,7 +1019,8 @@ class RatingScale:
                 elif self.enableRespKeys and key in self.respKeys:
                     # place the marker at the corresponding tick (from key)
                     self.markerPlaced = True
-                    self.markerPlacedAt = self._getMarkerFromTick(int(key))
+                    resp = self.tickFromKeyPress[key]
+                    self.markerPlacedAt = self._getMarkerFromTick(resp)
                     proportion = self.markerPlacedAt / self.tickMarks
                     self.marker.setPos([self.displaySizeFactor * (-0.5 + proportion), 0])
                     if self.singleClick and self.beyondMinTime:
