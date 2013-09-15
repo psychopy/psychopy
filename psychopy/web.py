@@ -11,8 +11,6 @@ import os, sys, time
 import hashlib, base64
 import httplib, mimetypes
 import urllib2, socket, re
-import shutil # for testing
-from tempfile import mkdtemp
 from psychopy import logging
 from psychopy.constants import PSYCHOPY_USERAGENT
 from psychopy import prefs
@@ -22,10 +20,6 @@ socket.setdefaulttimeout(TIMEOUT)
 
 global proxies
 proxies = None #if this is populated then it has been set up already
-
-# selector for tests and demos:
-SELECTOR_FOR_TEST_UPLOAD = 'http://upload.psychopy.org/test/up.php'
-BASIC_AUTH_CREDENTIALS = 'psychopy:open-sourc-ami'
 
 
 class NoInternetAccessError(StandardError):
@@ -64,7 +58,7 @@ def requireInternetAccess(forceCheck=False):
         raise NoInternetAccessError(msg)
     return True
 
-def testProxy(handler, URL=None):
+def tryProxy(handler, URL=None):
     """
     Test whether we can connect to a URL with the current proxy settings.
 
@@ -180,7 +174,7 @@ def proxyFromPacFiles(pacURLs=[], URL=None):
         for thisPoss in possProxies:
             proxUrl = 'http://' + thisPoss
             handler=urllib2.ProxyHandler({'http':proxUrl})
-            if testProxy(handler)==True:
+            if tryProxy(handler)==True:
                 logging.debug('successfully loaded: %s' %proxUrl)
                 urllib2.install_opener(urllib2.build_opener(handler))
                 return handler
@@ -206,7 +200,7 @@ def setupProxy():
     global proxies
     #try doing nothing
     proxies=urllib2.ProxyHandler(urllib2.getproxies())
-    if testProxy(proxies) is True:
+    if tryProxy(proxies) is True:
         logging.debug("Using standard urllib2 (static proxy or no proxy required)")
         urllib2.install_opener(urllib2.build_opener(proxies))#this will now be used globally for ALL urllib2 opening
         return 1
@@ -214,7 +208,7 @@ def setupProxy():
     #try doing what we did last time
     if len(prefs.connections['proxy'])>0:
         proxies=urllib2.ProxyHandler({'http': prefs.connections['proxy']})
-        if testProxy(proxies) is True:
+        if tryProxy(proxies) is True:
             logging.debug('Using %s (from prefs)' %(prefs.connections['proxy']))
             urllib2.install_opener(urllib2.build_opener(proxies))#this will now be used globally for ALL urllib2 opening
             return 1
@@ -392,7 +386,7 @@ def upload(selector, filename, basicAuth=None, host=None, https=False):
 
     Author: Jeremy R. Gray, 2012
     """
-    
+
     requireInternetAccess()  # needed to upload over http
 
     fields = [('name', 'PsychoPy_upload'), ('type', 'file')]
@@ -458,67 +452,3 @@ def upload(selector, filename, basicAuth=None, host=None, https=False):
         else:
             logging.error('upload: ' + outcome[:102])
     return outcome
-
-def _test_upload():
-    def _upload(stuff):
-        """assumes that SELECTOR_FOR_TEST_UPLOAD is a configured http server
-        """
-        selector = SELECTOR_FOR_TEST_UPLOAD
-        basicAuth = BASIC_AUTH_CREDENTIALS
-
-        # make a tmp dir just for testing:
-        tmp = mkdtemp()
-        filename = 'test.txt'
-        tmp_filename = os.path.join(tmp, filename)
-        f = open(tmp_filename, 'w+')
-        f.write(stuff)
-        f.close()
-
-        # get local sha256 before cleanup:
-        digest = hashlib.sha256()
-        digest.update(open(tmp_filename).read())
-        dgst = digest.hexdigest()
-
-        # upload:
-        status = upload(selector, tmp_filename, basicAuth)
-        shutil.rmtree(tmp) # cleanup; do before asserts
-
-        # test
-        good_upload = True
-        disgest_match = False
-        if not status.startswith('success'):
-            good_upload = False
-        elif status.find(dgst) > -1:
-            logging.exp('digests match')
-            digest_match = True
-        else:
-            logging.error('digest mismatch')
-
-        logging.flush()
-        assert good_upload # remote server FAILED to report success
-        assert digest_match # sha256 mismatch local vs remote file
-
-        return int(status.split()[3]) # bytes
-
-    # test upload: normal text, binary:
-    msg = PSYCHOPY_USERAGENT # can be anything
-    print 'text:   '
-    bytes = _upload(msg) #normal text
-    assert (bytes == len(msg)) # FAILED to report len() bytes
-
-    print 'binary: '
-    digest = hashlib.sha256()  # to get binary, 256 bits
-    digest.update(msg)
-    bytes = _upload(digest.digest())
-    assert (bytes == 32) # FAILED to report 32 bytes for a 256-bit binary file (= odd if digests match)
-    logging.exp('binary-file byte-counts match')
-
-if __name__ == '__main__':
-    """unit-tests for this module"""
-    logging.console.setLevel(logging.DEBUG)
-
-    t0=time.time()
-    print setupProxy()
-    print 'setup proxy took %.2fs' %(time.time()-t0)
-
-    _test_upload()
