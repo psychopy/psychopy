@@ -322,6 +322,10 @@ class RatingScale:
         # Construct the visual elements:
         self._initLine(tickMarkValues=tickMarks, lineColor=lineColor)
         self._initMarker(customMarker, markerExpansion, markerColor, markerStyle)
+        try:
+            float(textSizeFactor)
+        except:
+            textSizeFactor = 1.0
         self._initTextElements(win, self.lowAnchorText, self.highAnchorText,
             self.scale, textColor, textFont, textSizeFactor, showValue, tickMarks)
         self._initAcceptBox(self.showAccept, acceptPreText, acceptText, acceptSize,
@@ -510,6 +514,7 @@ class RatingScale:
             self.displaySizeFactor = 0.6
         if not 0.06 < self.displaySizeFactor < 3:
             logging.warning("RatingScale %s: unusual displaySizeFactor" % self.name)
+        self.displaySizeFactor = min(5, self.displaySizeFactor)
 
     def _initKeys(self, acceptKeys, skipKeys, escapeKeys, leftKeys, rightKeys, respKeys, allowSkip):
         # keys for accepting the currently selected response:
@@ -750,8 +755,6 @@ class RatingScale:
         self.showValue = bool(showValue) # hide if False
         self.textColor = textColor  # rgb
         self.textFont = textFont
-        if not type(textSizeFactor) in [float, int]:
-            textSizeFactor = 1.0
         self.textSize = 0.2 * textSizeFactor * self.displaySizeFactor
         self.textSizeSmall = self.textSize * 0.6
         self.showValue = bool(showValue)
@@ -794,6 +797,7 @@ class RatingScale:
                     pos=[self.tickPositions[c], vertPosTmp], height=self.textSizeSmall,
                     color=self.textColor, name=self.name+'.tickLabel.'+unicode(lab)))
         self.setDescription(scale) # do after having set the relevant things
+
     def setDescription(self, scale=None):
         """Method to set the text description that appears above the rating line.
 
