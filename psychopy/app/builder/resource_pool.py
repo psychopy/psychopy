@@ -28,7 +28,7 @@ class ResourceList(wx.ListView):
         name_filter = str(name_filter or "")
         resource_names = (pool.params["resources"].val.keys())
         resource_entries = [[name] for name in filter(lambda s: name_filter in s, resource_names)]
-        for pos, entry in enumerate(resource_entries):
+        for pos, entry in enumerate(sorted(resource_entries)):
             self.InsertImageStringItem(pos, entry[0], 0)
     
     def update_resources(self, pool, name_filter=None):
@@ -73,9 +73,11 @@ class ResourcePoolDialog(wx.Frame):
         self.resource_list.update_resources(self.pool)
 
     def show_file_add(self, event):
-        file_name = wx.FileSelector("Add file", parent=self)
-        if file_name:
-            self.add_to_pool(file_name)
+        file_dialog = wx.FileDialog(self, "Add files", style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_PREVIEW)
+        file_dialog.ShowModal()
+        if file_dialog.GetReturnCode() == wx.ID_OK:
+            for file_name in file_dialog.GetPaths():
+                self.add_to_pool(file_name)
             self.list_added()
 
     def get_selected_resource(self):

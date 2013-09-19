@@ -274,7 +274,6 @@ class Device(object):
         
         if self.handle is None:
             raise LabJackException("The device handle is None.")
-        import ioHub
         if(isinstance(self.handle, LJSocketHandle)):
             return self._readFromLJSocketHandle(numBytes, modbus, stream)
         elif(isinstance(self.handle, UE9TCPHandle)):

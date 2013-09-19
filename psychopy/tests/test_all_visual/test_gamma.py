@@ -1,5 +1,8 @@
 from psychopy import visual
 
+from psychopy.tests import utils
+
+@utils.skip_under_xvfb
 def test_low_gamma():
     """setting gamma low (dark screen)"""
     win = visual.Window([600,600], gamma=0.5)#should make the entire screen bright
@@ -7,6 +10,7 @@ def test_low_gamma():
         win.flip()
     assert win.useNativeGamma==False
     win.close()
+@utils.skip_under_xvfb
 def test_mid_gamma():
     """setting gamma high (bright screen)"""
     win = visual.Window([600,600], gamma=2.0)#should make the entire screen bright
@@ -14,6 +18,7 @@ def test_mid_gamma():
         win.flip()
     assert win.useNativeGamma==False
     win.close()
+@utils.skip_under_xvfb
 def test_high_gamma():
     """setting gamma high (bright screen)"""
     win = visual.Window([600,600], gamma=4.0)#should make the entire screen bright

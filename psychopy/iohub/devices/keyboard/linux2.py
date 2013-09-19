@@ -39,12 +39,12 @@ class Keyboard(ioHubKeyboardDevice):
                     current_state=self._modifier_states[mod_key]
                     if event_array[4]==EventConstants.KEYBOARD_PRESS and current_state is False:
                         self._modifier_states[mod_key]=True
-                        self._modifier_value+=KeyboardConstants._modifierCodes.getID(mod_key)
+                        ioHubKeyboardDevice._modifier_value+=KeyboardConstants._modifierCodes.getID(mod_key)
                     elif event_array[4]==EventConstants.KEYBOARD_RELEASE and current_state is True:
                         self._modifier_states[mod_key]=False
-                        self._modifier_value-=KeyboardConstants._modifierCodes.getID(mod_key)
+                        ioHubKeyboardDevice._modifier_value-=KeyboardConstants._modifierCodes.getID(mod_key)
         
-                event_array[-2]=self._modifier_value
+                event_array[-2]=ioHubKeyboardDevice._modifier_value
 
                 self._addNativeEventToBuffer(event_array)
                 

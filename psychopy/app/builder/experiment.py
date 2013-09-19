@@ -14,7 +14,8 @@ import locale
 import psychopy
 from psychopy.app.builder import components
 
-# predefine some regex's (do it here because deepcopy complains if do in NameSpace.__init__)
+# predefine some regex's; deepcopy complains if do in NameSpace.__init__()
+_unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")  # detect "code wanted"
 _valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
 _nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
 
@@ -521,14 +522,9 @@ class Param:
             # return str if code wanted
             # return repr if str wanted; this neatly handles "it's" and 'He says "hello"'
             if type(self.val) in [str, unicode]:
-                if re.search(r"/\$", self.val):
-                    logging.warning('builder.experiment.Param: found "/$" -- did you mean "\$" ?  [%s]' % self.val)
-                nonEscapedSomewhere = re.search(r"^\$|[^\\]\$", self.val)
-                if nonEscapedSomewhere: # code wanted, clean-up first
-                    tmp = re.sub(r"^(\$)+", '', self.val) # remove leading $, if any
-                    tmp = re.sub(r"([^\\])(\$)+", r"\1", tmp) # remove all nonescaped $, squash $$$$$
-                    tmp = re.sub(r"[\\]\$", '$', tmp) # remove \ from all \$
-                    return "%s" %tmp # return code; %s --> str or unicode
+                codeWanted = _unescapedDollarSign_re.search(self.val)
+                if codeWanted:
+                    return "%s" % getCodeFromParamStr(self.val)
                 else: # str wanted
                     return repr(re.sub(r"[\\]\$", '$', self.val)) # remove \ from all \$
             return repr(self.val)
@@ -537,8 +533,10 @@ class Param:
                 return "%s" %(self.val[1:])#a $ in a code parameter is unecessary so remove it
             elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"):
                 return "%s" %(self.val[1:])#the user actually wanted just the $
-            else:#provide the code
-                return "%s" %(self.val)
+            elif (type(self.val) in [str, unicode]):
+                return "%s" %(self.val)#the user actually wanted just the $
+            else: #if the value was a tuple it needs converting to a string first
+                return "%s" %(repr(self.val))
         elif self.valType == 'bool':
             return "%s" %(self.val)
         else:
@@ -916,24 +914,83 @@ class Flow(list):
             else:
                 del self[id]#just delete the single entry we were given (e.g. from right-click in GUI)
 
-    def writeCode(self, script):
-        # detect all 'constant update' fields that seem intended to be dynamic:
+    def _dubiousConstantUpdates(self, component):
+        """Return a list of fields in component that are set to be constant but
+        seem intended to be dynamic. Some code fields are constant, and some
+        denoted as code by $ are constant.
+        """
+        warnings = []
+        keywords = self.exp.namespace.nonUserBuilder[:] + ['expInfo']
+        ignore = set(keywords).difference(set(['random', 'rand']))
+        for key in component.params:
+            field = component.params[key]
+            if not hasattr(field, 'val') or not isinstance(field.val, basestring):
+                continue  # continue == no problem, no warning
+            if not (field.allowedUpdates and type(field.allowedUpdates) == list and
+                len(field.allowedUpdates) and field.updates == 'constant'):
+                continue
+            # only non-empty, possibly-code, and 'constant' updating at this point
+            if field.valType == 'str':
+                if not bool(_unescapedDollarSign_re.search(field.val)):
+                    continue
+                code = getCodeFromParamStr(field.val)
+            elif field.valType == 'code':
+                code = field.val
+            else:
+                continue
+            # get var names in the code; no names == constant
+            try:
+                names = compile(code,'','eval').co_names
+            except SyntaxError:
+                continue
+            # ignore reserved words:
+            if not set(names).difference(ignore):
+                continue
+            warnings.append( (field, key) )
+        if warnings:
+            return warnings
+        return [(None, None)]
+    def _prescreenValues(self):
+        # pre-screen and warn about some conditions in component values:
+        trailingWhitespace = []
         constWarnings = []
         for entry in self:  #NB each entry is a routine or LoopInitiator/Terminator
-            if type(entry) == Routine:
-                self._currentRoutine=entry
-                for component in self._currentRoutine:
-                    for field, key in _dubiousConstantUpdates(component):
-                        if field:
-                            constWarnings.append((field, key, component, entry))
+            if type(entry) != Routine:
+                continue
+            for component in entry:
+                # detect and strip trailing whitespace (can cause problems):
+                for key in component.params:
+                    field = component.params[key]
+                    if not hasattr(field, 'label'):
+                        continue  # no problem, no warning
+                    if field.label.lower() == 'text' or not field.valType in ['str', 'code']:
+                        continue
+                    if type(field.val) == basestring and field.val != field.val.strip():
+                        trailingWhitespace.append((field.val, key, component, entry))
+                        field.val = field.val.strip()
+                # detect 'constant update' fields that seem intended to be dynamic:
+                for field, key in self._dubiousConstantUpdates(component):
+                    if field:
+                        constWarnings.append((field.val, key, component, entry))
+        if trailingWhitespace:
+            warnings = []
+            msg = '"%s", in Routine %s (%s: %s)'
+            for field, key, component, routine in trailingWhitespace:
+                warnings.append( msg % (field, routine.params['name'],
+                                component.params['name'], key.capitalize()) )
+            print 'Note: Trailing white-space removed:\n ',
+            print '\n  '.join(list(set(warnings)))  # non-redundant, order unknown
         if constWarnings:
             warnings = []
             msg = '"%s", in Routine %s (%s: %s)'
             for field, key, component, routine in constWarnings:
-                warnings.append( msg % (field.val, routine.params['name'],
+                warnings.append( msg % (field, routine.params['name'],
                                 component.params['name'], key.capitalize()) )
             print 'Note: Dynamic code seems intended but updating is "constant":\n ',
             print '\n  '.join(list(set(warnings)))  # non-redundant, order unknown
+
+    def writeCode(self, script):
+        self._prescreenValues()
         # writeStartCode and writeInitCode:
         for entry in self:  #NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine=entry
@@ -1089,7 +1146,7 @@ class Routine(list):
         return 'Routine'
     def getComponentFromName(self, name):
         for comp in self:
-            if comp.params['name']==name:
+            if comp.params['name'].val==name:
                 return comp
         return None
     def getMaxTime(self):
@@ -1195,11 +1252,6 @@ class NameSpace():
     - column headers in condition files
     - abbreviating parameter names (e.g. rgb=thisTrial.rgb)
 
-    TO DO (throughout app):
-        conditions on import
-        how to rename routines? seems like: make a contextual menu with 'remove', which calls DlgRoutineProperties
-        staircase resists being reclassified as trialhandler
-
     :Author:
         2011 Jeremy Gray
     """
@@ -1228,7 +1280,8 @@ class NameSpace():
             'iterkeys', 'round', 'memoryview', 'issubclass', 'property', 'zip',
             'itervalues', 'keys', 'pop', 'popitem', 'setdefault', 'update',
             'values', 'viewitems', 'viewkeys', 'viewvalues', 'coerce',
-             '__builtins__', '__doc__', '__file__', '__name__', '__package__']
+            '__builtins__', '__doc__', '__file__', '__name__', '__package__',
+            'None', 'True', 'False']
         # these are based on a partial test, known to be incomplete:
         self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event',
             'gui', 'sound', 'misc', 'logging', 'microphone',
@@ -1241,6 +1294,7 @@ class NameSpace():
             'theseKeys', 'win', 'x', 'y', 'level', 'component', 'thisComponent']
         # user-entered, from Builder dialog or conditions file:
         self.user = []
+        self.nonUserBuilder = self.numpy + self.keywords + self.psychopy
 
     def __str__(self, numpy_count_only=True):
         vars = self.user + self.builder + self.psychopy
@@ -1401,41 +1455,11 @@ def _XMLremoveWhitespaceNodes(parent):
         else:
             removeWhitespaceNodes(child)
 
-def _dubiousConstantUpdates(component):
-    """Return a list of fields in component that are set to be constant but seem
-    intended to be dynamic. Many code fields will actually be constant, and some
-    denoted as code by $ will be constant. The classification is not 100% correct.
+def getCodeFromParamStr(val):
+    """Convert a Param.val string to its intended python code, as triggered by $
     """
-    def _isConst(string):
-        # guess at whether an expression is constant or intended to be dynamic
-        try:
-            val = eval(string)  # any leading $ already removed
-            return True  # constant (or string contains var(s) in the current namespace hmm)
-        except NameError, KeyError:
-            return False  # guess: probably contains variables --> dynamic
-        except:
-            return False  # parsing failed, so assume its dynamic
-    def allAreConstant(string):
-        # parse single items or comma-sep'd lists to see if all items are constant
-        items = string.lstrip('$[(').strip('])').split(',')
-        return all([_isConst(s) for s in items])
+    tmp = re.sub(r"^(\$)+", '', val)  # remove leading $, if any
+    tmp2 = re.sub(r"([^\\])(\$)+", r"\1", tmp)  # remove all nonescaped $, squash $$$$$
+    return re.sub(r"[\\]\$", '$', tmp2)  # remove \ from all \$
 
-    warnings = []
-    for key in component.params:
-        field = component.params[key]
-        if (not hasattr(field, 'val') or not isinstance(field.val, basestring) or
-            not field.val.strip() or not field.valType in ['code', 'str']):
-            continue  # continue == no problem, no warning
-        if not (field.allowedUpdates and type(field.allowedUpdates) == list and
-            len(field.allowedUpdates) and field.updates == 'constant'):
-            continue
-        # only non-empty, possibly-code, and 'constant' updating at this point
-        if field.valType == 'str' and not bool(re.search(r"^\$|[^\\]\$", field.val)):  # "$" without "\$"
-            continue
-        # special case: treat expInfo as constant because its used that way
-        if allAreConstant(field.val) or 'expInfo[' in field.val:  # $1 and $[1,1,1] are code but not dynamic
-            continue
-        warnings.append( (field, key) )
-    if warnings:
-        return warnings
-    return [(None, None)]
+

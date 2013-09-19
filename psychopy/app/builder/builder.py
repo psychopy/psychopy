@@ -7,7 +7,8 @@ from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 import wx.aui, wx.stc
 import sys, os, glob, copy, shutil, traceback
 import keyword
-import py_compile, codecs
+import codecs
+import re
 import numpy
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
@@ -36,6 +37,10 @@ routineFlowColor=wx.Color(200,150,150, 255)
 darkgrey=wx.Color(65,65,65, 255)
 white=wx.Color(255,255,255, 255)
 darkblue=wx.Color(30,30,150, 255)
+codeSyntaxOkay=wx.Color(220,250,220, 255)  # light green
+
+# regular expression to check for unescaped '$' to indicate code:
+_unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
@@ -1676,7 +1681,7 @@ class ParamCtrls:
         if type(param.val)==numpy.ndarray:
             initial=param.val.tolist() #convert numpy arrays to lists
         labelLength = wx.Size(self.dpi*2,self.dpi*2/3)#was 8*until v0.91.4
-        if param.valType == 'code' and label not in ['name', 'Experiment info']:
+        if param.valType == 'code' and label.lower() not in ['name', 'experiment info']:
             displayLabel = label+' $'
         else:
             displayLabel = label
@@ -1876,6 +1881,16 @@ class _BaseParamsDlg(wx.Dialog):
         self.codeFieldNameFromID = {}
         self.codeIDFromFieldName = {}
 
+        # for switching font to signal code:
+        self.codeFaceName = 'Courier New'  # get another monospace if not available
+        # need font size for STCs:
+        if wx.Platform == '__WXMSW__':
+            self.faceSize = 10
+        elif wx.Platform == '__WXMAC__':
+            self.faceSize = 14
+        else:
+            self.faceSize = 12
+
         #create a header row of titles
         if not suppressTitles:
             size=wx.Size(1.5*self.dpi,-1)
@@ -1906,9 +1921,10 @@ class _BaseParamsDlg(wx.Dialog):
             remaining.remove('name')
             if 'name' in self.order:
                 self.order.remove('name')
-                #add start/stop info
+        #add start/stop info
         if 'startType' in remaining:
-            remaining = self.addStartStopCtrls(remaining=remaining) #self.ctrlSizer.Add(
+            remaining = self.addStartStopCtrls(remaining=remaining)
+            #self.ctrlSizer.Add(
             #    wx.StaticLine(self, size=wx.Size(100,10)),
             #    (self.currRow,0),(1,3), wx.ALIGN_CENTER|wx.EXPAND)
             self.currRow[self.ctrlSizer] += 1 #an extra row to create space (staticLine didn't look right)
@@ -1966,6 +1982,14 @@ class _BaseParamsDlg(wx.Dialog):
         remaining.remove('stopType')
         remaining.remove('stopVal')
         remaining.remove('durationEstim')
+
+        # use monospace font to signal code:
+        self.defaultFontFaceName = self.startValCtrl.GetFont().GetFaceName()
+        self.checkCodeWanted(self.startValCtrl)
+        self.startValCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
+        self.checkCodeWanted(self.stopValCtrl)
+        self.stopValCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
+
         return remaining
 
     def browserHandler(self, value_ctrl):
@@ -2008,6 +2032,26 @@ class _BaseParamsDlg(wx.Dialog):
         elif fieldName == 'Monitor':
             #self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize, ctrls.valueCtrl)
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.openMonitorCenter)
+
+        # use monospace font to signal code:
+        if fieldName != 'name' and hasattr(ctrls.valueCtrl, 'GetFont'):
+            font = ctrls.valueCtrl.GetFont()
+            self.defaultFontFaceName = font.GetFaceName()
+            _font = ctrls.valueCtrl.GetFont()
+            try:
+                _font.SetFaceName(self.codeFaceName)  # see what happens
+            except:
+                self.codeFaceName = self.app.prefs.coder['codeFont']
+            if self.params[fieldName].valType == 'code':
+                font.SetFaceName(self.codeFaceName)
+                ctrls.valueCtrl.SetFont(font)
+            elif self.params[fieldName].valType == 'str':
+                ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
+                try:
+                    self.checkCodeWanted(ctrls.valueCtrl)
+                except:
+                    pass
+
         self.currRow[sizer] += 1
 
     def addParam(self,fieldName, advanced=False):
@@ -2151,38 +2195,25 @@ class _BaseParamsDlg(wx.Dialog):
             # ... but skip the check if end of line is colon ord(58)=':'
             self._setNameColor(self._testCompile(codeBox))
         event.Skip()
-    def _testCompile(self, ctrl):
-        """checks code.val for legal python syntax, sets field bg color, returns status
+    def _testCompile(self, ctrl, mode='exec'):
+        """checks whether code.val is legal python syntax, returns error status
 
-        method: writes code to a file, try to py_compile it. not intended for
-        high-freq repeated checking, ok for CPU but hits the disk every time.
+        mode = 'exec' (statement or expr) or 'eval' (expr only)
         """
-        # better to use a StringIO.StringIO() than a tmp file, but couldnt work it out
-        # definitely don't want eval() or exec()
-        tmpDir = mkdtemp(prefix='psychopy-check-code-syntax')
-        tmpFile = os.path.join(tmpDir, 'tmp')
         if hasattr(ctrl,'GetText'):
             val = ctrl.GetText()
-        elif hasattr(ctrl, 'GetValue'): #e.g. TextCtrl
+        elif hasattr(ctrl, 'GetValue'):  #e.g. TextCtrl
             val = ctrl.GetValue()
         else:
             raise ValueError, 'Unknown type of ctrl in _testCompile: %s' %(type(ctrl))
-        f = codecs.open(tmpFile, 'w', 'utf-8')
-        f.write(val)
-        f.close()
-        #f=StringIO.StringIO(self.params[param].val) # tried to avoid a tmp file, no go
         try:
-            py_compile.compile(tmpFile, doraise=True)
-            syntaxCheck = True # syntax fine
+            compile(val, '', mode)
+            syntaxOk = True
             ctrl.setStatus('OK')
-        except: # hopefully SyntaxError, but can't check for it; checking messes with things
-#            ctrl.SetBackgroundColour(wx.Color(250,210,210, 255)) # red, bad
+        except SyntaxError:
             ctrl.setStatus('error')
-            syntaxCheck = False # syntax error
-        # clean up tmp files:
-        shutil.rmtree(tmpDir, ignore_errors=True)
-
-        return syntaxCheck
+            syntaxOk = False
+        return syntaxOk
 
     def checkCodeSyntax(self, event=None):
         """Checks syntax for whole code component by code box, sets box bg-color.
@@ -2192,21 +2223,55 @@ class _BaseParamsDlg(wx.Dialog):
         elif hasattr(event,'GetText'):
             codeBox = event #we were given the control itself, not an event
         else:
-            print 'checkCodeSyntax received unexpected event object (%s). Should be a wx.Event or a CodeBox' %type(event)
-            logging.error('checkCodeSyntax received unexpected event object (%s). Should be a wx.Event or a CodeBox' %type(event))
+            raise ValueError('checkCodeSyntax received unexpected event object (%s). Should be a wx.Event or a CodeBox' %type(event))
         text = codeBox.GetText()
         if not text.strip(): # if basically empty
-            codeBox.SetBackgroundColour(wx.Color(255,255,255, 255)) # white
+            codeBox.SetBackgroundColour(white)
             return # skip test
         goodSyntax = self._testCompile(codeBox) # test syntax
         self._setNameColor(goodSyntax)
     def _setNameColor(self, goodSyntax):
         if goodSyntax:
-            self.paramCtrls['name'].valueCtrl.SetBackgroundColour(wx.Color(220,250,220, 255)) # name green, good
+            self.paramCtrls['name'].valueCtrl.SetBackgroundColour(codeSyntaxOkay)
             self.nameOKlabel.SetLabel("")
         else:
-            self.paramCtrls['name'].valueCtrl.SetBackgroundColour(wx.Color(255,255,255, 255)) # name white
+            self.paramCtrls['name'].valueCtrl.SetBackgroundColour(white)
             self.nameOKlabel.SetLabel('syntax error')
+
+    def checkCodeWanted(self, event=None):
+        """check whether a $ is present (if so, set the display font)
+        """
+        if hasattr(event, 'GetEventObject'):
+            strBox = event.GetEventObject()
+        elif hasattr(event, 'GetValue'):
+            strBox = event  # we were given the control itself, not an event
+        else:
+            raise ValueError('checkCodeWanted received unexpected event object (%s).')
+        try:
+            val = strBox.GetValue()
+            if isinstance(val, dict):
+                strBox = strBox.valueField.valueFields[strBox.valueField.variant]
+                val = strBox.GetValue()
+            stc = False
+        except:
+            val = strBox.GetText()
+            stc = True  # might be StyledTextCtrl
+
+        # set display font based on presence of $ (without \$)?
+        font = strBox.GetFont()
+        if _unescapedDollarSign_re.search(val):
+            facename = self.codeFaceName
+        else:
+            facename = self.defaultFontFaceName
+        if stc:
+            strBox.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
+                                "face:%s,size:%d" % (facename, self.faceSize))
+        else:
+            font.SetFaceName(facename)
+            strBox.SetFont(font)
+
+        if hasattr(event, 'Skip'):
+            event.Skip()
 
     def getParams(self):
         """retrieves data from any fields in self.paramCtrls
@@ -3617,7 +3682,8 @@ class BuilderFrame(wx.Frame):
         self.fileHistory = wx.FileHistory(maxFiles=10)
         self.recentFilesMenu = wx.Menu()
         self.fileHistory.UseMenu(self.recentFilesMenu)
-        for filename in self.appData['fileHistory']: self.fileHistory.AddFileToHistory(filename)
+        for filename in self.appData['fileHistory']:
+            self.fileHistory.AddFileToHistory(filename)
         self.Bind(
             wx.EVT_MENU_RANGE, self.OnFileHistory, id=wx.ID_FILE1, id2=wx.ID_FILE9
             )
@@ -3633,7 +3699,7 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
         self.fileMenu.Enable(wx.ID_SAVE, False)
         wx.EVT_MENU(self, wx.ID_SAVEAS,  self.fileSaveAs)
-        wx.EVT_MENU(self, wx.ID_CLOSE,  self.closeFrame)
+        wx.EVT_MENU(self, wx.ID_CLOSE,  self.commandCloseFrame)
         item = self.fileMenu.Append(wx.ID_PREFERENCES, text = "&Preferences")
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         #-------------quit
@@ -3727,20 +3793,27 @@ class BuilderFrame(wx.Frame):
 
         self.SetMenuBar(menuBar)
 
-    def closeFrame(self, event=None, checkSave=True):
 
-        if self.app.coder==None and sys.platform!='darwin':
-            if not self.app.quitting:
-                self.app.quit()
-                return#app.quit() will have closed the frame already
-        okToClose = self.fileClose(updateViews=False)#close file first (check for save) but no need to update view
-        if not okToClose:
-            return 0
+    def commandCloseFrame(self, event):
+        self.Close()
+
+    def closeFrame(self, event):
+        if event.CanVeto():
+            okToClose = self.fileClose(updateViews=False)#close file first (check for save) but no need to update view
         else:
-            self.app.allFrames.remove(self)
-            self.app.builderFrames.remove(self)
-            self.Destroy()#close window
-            return 1#indicates all was successful (including check for save)
+            okToClose = True
+
+        if not okToClose:
+            event.Veto()
+        else:
+            # is it the last frame?
+            if len(wx.GetApp().allFrames) == 1 and sys.platform != 'darwin' and not wx.GetApp().quitting:
+                wx.GetApp().quit()
+            else:
+                self.app.allFrames.remove(self)
+                self.app.builderFrames.remove(self)
+                self.Destroy() # required
+
     def quit(self, event=None):
         """quit the app"""
         self.app.quit()
@@ -3790,6 +3863,7 @@ class BuilderFrame(wx.Frame):
             #update the views
             self.updateAllViews()#if frozen effect will be visible on thaw
         self.updateReadme()
+        self.fileHistory.AddFileToHistory(filename)
 
     def fileSave(self,event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
@@ -3800,9 +3874,11 @@ class BuilderFrame(wx.Frame):
             if not self.fileSaveAs(filename):
                 return False #the user cancelled during saveAs
         else:
+            self.fileHistory.AddFileToHistory(filename)
             self.exp.saveToXML(filename)
         self.setIsModified(False)
         return True
+
     def fileSaveAs(self,event=None, filename=None):
         """
         """
@@ -3858,6 +3934,7 @@ class BuilderFrame(wx.Frame):
             pass
         self.updateWindowTitle()
         return returnVal
+
     def getShortFilename(self):
         """returns the filename without path or extension
         """
@@ -3891,25 +3968,31 @@ class BuilderFrame(wx.Frame):
             self.readmeFrame.Show(value)
     def toggleReadme(self, evt=None):
         self.readmeFrame.toggleVisible()
+
     def OnFileHistory(self, evt=None):
         # get the file based on the menu ID
         fileNum = evt.GetId() - wx.ID_FILE1
         path = self.fileHistory.GetHistoryFile(fileNum)
-        self.setCurrentDoc(path)#load the file
+        self.fileOpen(filename=path)
         # add it back to the history so it will be moved up the list
         self.fileHistory.AddFileToHistory(path)
+
     def checkSave(self):
         """Check whether we need to save before quitting
         """
         if hasattr(self, 'isModified') and self.isModified:
-            dlg = dialogs.MessageDialog(self,'Experiment has changed. Save before quitting?', type='Warning')
+            message = 'Experiment %s has changed. Save before quitting?' % self.filename
+            dlg = dialogs.MessageDialog(self, message, type='Warning')
             resp = dlg.ShowModal()
-            dlg.Destroy()
-            if resp  == wx.ID_CANCEL: return False #return, don't quit
+            if resp == wx.ID_CANCEL:
+                return False #return, don't quit
             elif resp == wx.ID_YES:
-                if not self.fileSave(): return False #user might cancel during save
-            elif resp == wx.ID_NO: pass #don't save just quit
-        return 1
+                if not self.fileSave():
+                    return False #user might cancel during save
+            elif resp == wx.ID_NO:
+                pass #don't save just quit
+        return True
+    
     def fileClose(self, event=None, checkSave=True, updateViews=True):
         """This is typically only called when the user x"""
         if checkSave:

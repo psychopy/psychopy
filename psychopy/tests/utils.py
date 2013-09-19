@@ -158,3 +158,24 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
         shutil.copyfile(pathToActual,pathToLocal)
         logging.warning("xlsxActual!=xlsxCorr: Saving local copy to %s" %pathToLocal)
         raise IOError, error
+
+_under_xvfb = 'xvfb-run' in os.environ.get('XAUTHORITY', '')
+
+def skip_under_xvfb(fn=None):
+    """Skip if a test is executed under Xvfb (via xvfb-run only atm)
+
+    Could also be used as a decorator (if argument provided) or
+    unparametrized in the code
+    """
+    # TODO: ad-hoc check ATM -- there might be better ways
+    if _under_xvfb:
+        skip, msg = pytest.skip, "Cannot be tested under Xvfb"
+        if fn is not None:
+            def _inner():
+                skip(msg)
+            _inner.__name__ = fn.__name__
+            return _inner
+        else:
+            skip(msg)
+    else:
+        return fn

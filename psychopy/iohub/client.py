@@ -17,13 +17,7 @@ import subprocess
 from collections import deque
 import json
 import signal
-
-try:
-    from yaml import load, dump
-    from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError:
-#    print "*** Using Python based YAML Parsing"
-    from yaml import Loader, Dumper
+from weakref import proxy
 
 from psychopy import  core as core, gui
 import psychopy.logging as psycho_logging
@@ -32,12 +26,14 @@ if sys.platform != 'darwin':
     import psutil
     _psutil_available=True
 
-from . import IO_HUB_DIRECTORY,isIterable
+from . import IO_HUB_DIRECTORY,isIterable, load, dump, Loader, Dumper, updateDict
+from . import MessageDialog, win32MessagePump
+from . import print2err,printExceptionDetailsToStdErr,ioHubError,ioHubServerError,ioHubConnectionException
 from .devices import Computer, DeviceEvent,import_device
 from .devices.experiment import MessageEvent,LogEvent
 from .constants import DeviceConstants,EventConstants
-from .util import updateDict,MessageDialog, print2err,printExceptionDetailsToStdErr,ioHubError,win32MessagePump, ioHubConnectionException, ioHubServerError
 from .net import UDPClientConnection
+from . import _DATA_STORE_AVAILABLE
 
 currentSec= Computer.currentSec
 
@@ -325,12 +321,15 @@ class ioHubConnection(object):
         # >> current mouse position:  [-211.0, 371.0]
         
     """
+    ACTIVE_CONNECTION=None
     _replyDictionary=dict()
     def __init__(self,ioHubConfig=None,ioHubConfigAbsPath=None):        
         if ioHubConfig:
             if not isinstance(ioHubConfig,dict):
                 raise ioHubError("The provided ioHub Configuration is not a dictionary.", ioHubConfig)
-            
+        
+        if ioHubConnection.ACTIVE_CONNECTION is not None:
+            raise AttributeError("An existing ioHubConnection is already open. Use ioHubConnection.getActiveConnection() to access it; or use ioHubConnection.quit() to close it.")
         # udp port setup
         self.udp_client = None
 
@@ -942,7 +941,7 @@ class ioHubConnection(object):
                 sys.exit(1)
 
         #print '* IOHUB SERVER ONLINE *'        
-
+        ioHubConnection.ACTIVE_CONNECTION=proxy(self)
         # save ioHub ProcessID to file so next time it is started, it can be checked and killed if necessary
 
         try:
@@ -1293,6 +1292,7 @@ class ioHubConnection(object):
                     Computer.ioHubServerProcess.kill()
                 printExceptionDetailsToStdErr()
             finally:
+                ioHubConnection.ACTIVE_CONNECTION=None
                 self._server_process=None
                 Computer.ioHubServerProcessID=None
                 Computer.ioHubServerProcess=None
@@ -1324,6 +1324,7 @@ class ioHubConnection(object):
     def __del__(self):
         try:
             self._shutDownServer()
+            ioHubConnection.ACTIVE_CONNECTION=None
         except:
             pass
 
@@ -1482,12 +1483,14 @@ def launchHubServer(**kwargs):
     psychopy_monitor_name=kwargs.get('psychopy_monitor_name',None)
     if psychopy_monitor_name:
         del kwargs['psychopy_monitor_name']
-
-    datastore_name=kwargs.get('datastore_name',None)
-    if datastore_name is not None:
-        del kwargs['datastore_name']
-    else:
-        datastore_name = None
+        
+    datastore_name=None
+    if _DATA_STORE_AVAILABLE is True:        
+        datastore_name=kwargs.get('datastore_name',None)
+        if datastore_name is not None:
+            del kwargs['datastore_name']
+        else:
+            datastore_name = None
 
 
     device_dict=kwargs
@@ -1528,12 +1531,12 @@ def launchHubServer(**kwargs):
     
     # Add remaining defined devices to the device list.
     for class_name,device_config in device_dict.iteritems():
-        device_list.append(dict(class_name=device_config))
+        device_list.append({class_name:device_config})
 
     # Create an ioHub configuration dictionary.
     ioConfig=dict(monitor_devices=device_list)
     
-    if experiment_code and session_code:    
+    if _DATA_STORE_AVAILABLE is True and experiment_code and session_code:    
         # Enable saving of all device events to the 'ioDataStore'
         # datastore name is equal to experiment code given unless the 
         # datastore_name kwarg is provided, inwhich case it is used.
@@ -1967,12 +1970,6 @@ class ioHubExperimentRuntime(object):
 
             self.hub._sendSessionInfo(tempdict)
 
-            # create necessary paths based on yaml settings,
-            self.paths=PathMapping(self.configFilePath,self.configuration.get('paths',None))
-    
-            self.paths.saveToJson()
-        
-
             self._setInitialProcessAffinities(ioHubInfo)
 
             return self.hub
@@ -2069,113 +2066,6 @@ class ioHubExperimentRuntime(object):
             pass
         self.hub=None
         self.devices=None
-    
-class PathDir(object):
-    def __init__(self, physicalAbsPath, fileFilter=None):
-        self._extensions=None
-        self._fileTypes=None
-        self._path=physicalAbsPath
-
-        if fileFilter is not None:
-            if len(fileFilter)==2:
-                self._fileTypes,self._extensions=fileFilter
-
-        if self._fileTypes:
-            for ft in self._fileTypes:
-                if ft in PathMapping._FILE_TYPES:
-                    if ft not in PathMapping._fileTypeToPath:
-                        PathMapping._fileTypeToPath[ft]=self
-    
-    def getPath(self):
-        return self._path
-    
-    def getExtensions(self):    
-        return self._extensions
-
-    def getFileTypes(self):    
-        return self._fileTypes
-    
-class PathMapping(object):
-    _FILE_TYPES=dict(CONDITION_FILES='CONDITION_FILES',
-                    IMAGE_FILES='IMAGE_FILES',
-                    AUDIO_FILES='AUDIO_FILES',
-                    VIDEO_FILES='VIDEO_FILES',
-                    IOHUB_DATA='IOHUB_DATA',
-                    LOGS='LOGS',
-                    SYS_INFO='SYS_INFO',
-                    USER_FILES='USER_FILES',
-                    NATIVE_DEVICE_DATA='NATIVE_DEVICE_DATA',)
-    _fileTypeToPath={}
-    def __init__(self, top, pathSettings):
-        self.experimentSourceDir=os.path.abspath(top)
-        self.pythonPath=sys.path
-        self.workingDir=os.getcwdu()
-
-        self.structure=PathDir(os.path.abspath(top))
-
-        # build the structure
-
-        if pathSettings is None:
-            self._fileTypeToPath['*']=self.structure
-            self._fileTypeToPath['SYS_INFO']=self.structure
-            self._fileTypeToPath['IOHUB_DATA']=self.structure
-            self._fileTypeToPath['NATIVE_DEVICE_DATA']=self.structure
-            self.SYS_INFO=self.structure
-            self.IOHUB_DATA=self.structure
-        else:
-            def buildOutPath(root,pathDict):
-
-                for subdir,info in pathDict.iteritems():
-                    isSubjectDir=False
-                    if subdir == 'session_defaults.code':
-                        subdir=_currentSessionInfo['code']
-                        isSubjectDir=True
-
-                    newDir=os.path.join(root._path,subdir)
-                    if os.path.exists(newDir):
-                        if isSubjectDir:
-                            #TODO Show dialog asking if they want subject dir to be removed / overwritten.
-                            print "#TODO Show dialog asking if they want subject dir to be removed / overwritten."
-                    else:
-                        os.makedirs(newDir)
-
-                    if isinstance(info,dict):
-                        newPath=PathDir(newDir)
-                        setattr(root,subdir,newPath)
-                        buildOutPath(newPath,info)
-                    else:
-                        newPath=PathDir(newDir,info)
-                        for ft in newPath._fileTypes:
-                            if not hasattr(self,ft):
-                                setattr(self,ft,newPath)
-                        setattr(root,subdir,newPath)
-
-
-            buildOutPath(self.structure,pathSettings)
-
-    def getPathForFile(self,fileName=None,fileExtension=None,fileType=None):
-        if fileExtension in self._fileTypeToPath:
-            return self._fileTypeToPath[fileExtension]
-        if fileType in self._fileTypeToPath:
-            return self._fileTypeToPath[fileType]
-        if isinstance(fileName,(str,unicode)):
-            i=fileName.rfind('.')
-            if i > 0:
-                ext = fileName.strip()[i+1:]
-                if ext in self._fileTypeToPath:
-                    return self._fileTypeToPath[ext]
-        return self._fileTypeToPath['*']
-
-    def saveToJson(self):
-        mappings={}
-        for v in self._FILE_TYPES.values():
-            if v in self._fileTypeToPath:
-                mappings[v]=self._fileTypeToPath[v]._path
-
-        f=open(os.path.join(self.experimentSourceDir,'exp.paths'),'w')
-        f.write(json.dumps(mappings))
-        f.flush()
-        f.close()
        
 class ioHubExperimentRuntimeError(Exception):
     """Base class for exceptions raised by ioHubExperimentRuntime class."""

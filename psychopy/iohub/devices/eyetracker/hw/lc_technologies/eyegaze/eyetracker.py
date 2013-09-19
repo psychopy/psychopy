@@ -62,7 +62,7 @@ class EyeTracker(EyeTrackerDevice):
         Return:
             float: The eye tracker hardware's reported current time.
         """
-        return pEyeGaze.lct_TimerRead(None) 
+        return pEyeGaze.lct_TimerRead(None)-(pEyeGaze.EgGetApplicationStartTimeSec()/self.DEVICE_TIMEBASE_TO_SEC)
         
     def trackerSec(self):
         """
@@ -75,7 +75,7 @@ class EyeTracker(EyeTrackerDevice):
         Return:
             float: The eye tracker hardware's reported current time in sec.msec-usec format.        
         """
-        return pEyeGaze.lct_TimerRead(None) * self.DEVICE_TIMEBASE_TO_SEC
+        return (pEyeGaze.lct_TimerRead(None)*self.DEVICE_TIMEBASE_TO_SEC) - pEyeGaze.EgGetApplicationStartTimeSec()
 
     def setConnectionState(self,enable):
         """
@@ -377,11 +377,6 @@ class EyeTracker(EyeTrackerDevice):
                 sample_data0=self._eyegaze_control.pstEgData[0]
 
                 device_event_timestamp=sample_data0.dGazeTimeSec               
-                # is this really calculating delay??
-                # event_delay = (current_tracker_time - device_event_timestamp) - (sample_data0.dReportTimeSec - device_event_timestamp)
-                # Was unable to get support on the sample fixing the delay calculation
-                # during last 2 weeks of April, so instead of giving wrong data,
-                # am setting delay to 0 and noting  the issue on implementation page 
                 event_delay=current_tracker_time-device_event_timestamp
                 
                 iohub_time=logged_time-event_delay
@@ -398,6 +393,7 @@ class EyeTracker(EyeTrackerDevice):
                     monoSample=[
                                 0,                            # experiment_id (filled in by ioHub)
                                 0,                            # session_id (filled in by ioHub)
+                                0, #device id (always 0 now) 
                                 Computer._getNextEventID(),
                                 event_type,
                                 device_event_timestamp,
@@ -452,6 +448,7 @@ class EyeTracker(EyeTrackerDevice):
                     binocSample=[
                                  0,                            # experiment_id (filled in by ioHub)
                                  0,                            # session_id (filled in by ioHub)
+                                 0, #device id (always 0 now) 
                                  Computer._getNextEventID(),
                                  event_type,
                                  device_event_timestamp,

@@ -8,16 +8,9 @@ import gevent
 import json
 import os,sys
 
-from yaml import load
-try:
-    from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError:
-    from yaml import Loader, Dumper
-        
-
 import psychopy.iohub  as iohub   
-from psychopy.iohub.server import ioServer, Computer
-from psychopy.iohub.util import updateDict,printExceptionDetailsToStdErr, print2err, MonotonicClock
+from psychopy.iohub.server import ioServer
+from psychopy.iohub import Computer, updateDict,printExceptionDetailsToStdErr, print2err, MonotonicClock, load, dump, Loader, Dumper
 
 def run(rootScriptPathDir,configFilePath):
     import tempfile

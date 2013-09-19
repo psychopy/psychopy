@@ -19,19 +19,42 @@ Changelog
 PsychoPy 1.77
 ------------------------------
 
+PsychoPy 1.77.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Standalone package changes:
+    - fixed pytables version on Win32 (to be compatible with WinXP)
+    - pyo upgraded to 0.6.6 on OSX and Win32
+* FIXED: The recent files list in Builder now contains recent files! (Thanks Piotr Iwaniuk)
+* FIXED: Timing issue with LC Tech eye-tracker in iohub
+
 PsychoPy 1.77.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* ADDED: preview of ioHub for faster (asynchronous) polling of hardware including mouse, keyboard, eyetrackers and other devices
-* ADDED: :class:`AdvancedMicrophone` class to add and retrieve a high-frequency tone to indicate the start of recording (e.g., to allow accurate vocal RT estimation), with demo (Jeremy Gray)
+* ADDED: preview of Sol Simpson's **ioHub** for faster (asynchronous) polling of hardware including mouse, keyboard, eyetrackers and other devices. See iohub demos for example usage. This provides many advantages over previous event polling:
+    - asynchronous process allows constant polling (not tied to refresh rates) in a way that won't impact the rendering of your stimuli. It even runs on a separate CPU core if possible.
+    - provides up/down/duration for key presses
+    - provides unicode character (rather than simply key name for keyboard)
+    - provides a unified API for eyetracker classes
+    - provides async access to the parallel port
+    - provides an alternative data output format (using hdf5) particularly useful for high-output streaming data (e.g. eye-trackers)
+    
+* DEPRECATED: opensslwrap will soon be replaced by pyFileSec, a much-improved version of the same package (= file-oriented encryption)
 * IMPROVED: substantially (~40%) faster loading of RGB images from disk (by using byte format rather than float). May also allow storing of more images on graphics card than previously
-* ADDED: :class:`MovieStim` now updates its `status` attribute to FINISHED, in line with other stimuli
-* ADDED: support for pyglet version 1.2 alpha (but 1.1.4 is still recommended - it appears to render faster)
+* ADDED: :class:`AdvancedMicrophone` class to add and retrieve a high-frequency tone to indicate the start of recording (e.g., to allow accurate vocal RT estimation), with demo (Jeremy Gray)
 * REFACTORED: parallel port support. Support for Windows via inpout32/inpout64 and Linux via pyparallel added.  Existing API maintained for single port usage, but new PParallel classes added to provide more flexibility when dealing with multiple ports. see :ref:`parallel` (Thanks Mark Hymers)
+* ADDED: :class:`MovieStim` now updates its `status` attribute to FINISHED, in line with other stimuli
+* CHANGED: microphone default file names include milliseconds (to avoid two files with the same name)
+* ADDED: color-word speech-recognition demo (coder > input > speech_recognition.py)
+* ADDED: in Builder components dialog boxes, text that will be interpreted as code is displayed in monospace font
+* ADDED: remove and warn about trailing whitespace in Builder component values (but not Text fields)
+* ADDED: support for pyglet version 1.2 alpha (but 1.1.4 is still recommended - it appears to render faster)
 * ADDED: more sound.SoundPyo methods (get & set duration, volume, looping)
 * FIXED: event.Mouse() can obtain a default visual.Window(), if one has already been created
 * ADDED: Builder components generate a compile-time warning if a field's value looks dynamic but its updating is constant (Jeremy Gray)
 * ADDED: better simulated scanner-noise in launchScan (just for fun)
+* ADDED: RatingScale.getHistory() returns intermediate time-stamped ratings; allows "continuous" ratings
+* CHANGED: RatingScale.getRating() no longer returns False prior to an accepted rating (now returns the currently selected value)
 
 PsychoPy 1.76
 ------------------------------
@@ -41,8 +64,6 @@ PsychoPy 1.76.00
 
 The compatibility changes in this release below are likely to affect very few users
 
-* ADDED: RatingScale.getHistory() returns intermediate time-stamped ratings; allows "continuous" ratings
-* CHANGED: RatingScale.getRating() no longer returns False prior to an accepted rating (now returns the currently selected value)
 * ADDED: :func:`Window.callOnFlip() <psychopy.visual.Window.callOnFlip>` function to allow arbitrary functions to be called, timed precisely to the point where the frame flip has occurred (see Coder Demos>Timing>callOnFlip)
 * FIXED: a scaling bug in RatingScale descriptions (Giuseppe Pagnoni)
 * ADDED: support for mirror-image text, and mirror-image BufferImageStim (Jeremy Gray)

@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "PsychoPy2"
-!define PRODUCT_VERSION "1.77.00"
+!define PRODUCT_VERSION "1.77.01"
 !define PRODUCT_PUBLISHER "Jon Peirce"
 !define PRODUCT_WEB_SITE "http://www.psychopy.org"
 ;!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\AppMainExe.exe"
@@ -80,6 +80,17 @@ Section "PsychoPy" SEC01
   SectionIn RO
   SetShellVarContext all
   SetOutPath "$INSTDIR"
+  
+  MessageBox MB_YESNO "Install Visual C++ Redist?" /SD IDYES IDNO endVCRedist
+    File "bundled\vcredist_x86.exe"
+    ExecWait "$INSTDIR\bundled\vcredist_x86.exe /q"
+  endVCRedist:
+  
+  MessageBox MB_YESNO "Install ZeroMQ?" /SD IDYES IDNO endZMQ
+    File "bundled\ZeroMQ-x86.exe"
+    ExecWait "$INSTDIR\bundled\ZeroMQ-x86.exe /S"
+  endZMQ:
+  
   SetOverwrite on
   ;AppDir is the path to the psychopy app folder
   Var /GLOBAL AppDir

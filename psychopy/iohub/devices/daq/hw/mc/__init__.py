@@ -38,9 +38,7 @@ class AnalogInput(AnalogInputDevice):
     _SAMPLE_BLOCK_TRANSFER_SIZE['USB-1208FS']=31
     _SAMPLE_BLOCK_TRANSFER_SIZE['USB-1616FS']=62
 
-    # >>> implementation specific private class attributes
     _DLL=None
-    # <<<
 
     _newDataTypes=[('gain','i4'),('options','i4')]
                    
@@ -92,26 +90,24 @@ class AnalogInput(AnalogInputDevice):
         # get the MC API software version number
         _version=c_float(CURRENTREVNUM)
         _DLL.cbDeclareRevision(byref(_version))      
-        # The ioHub device expects the software version as a string        
+
         self.software_version=str(_version)
         
 
         # Initiate error handling
         # Parameters:
-        # PRINTALL :all warnings and errors encountered will be printed
-        # DONTSTOP :program will continue even if error occurs.
-        # Note that STOPALL and STOPFATAL are only effective in
-        # Windows applications, not Console applications.
+        #   PRINTALL :all warnings and errors encountered will be printed
+        #   DONTSTOP :program will continue even if error occurs.
+        #   Note that STOPALL and STOPFATAL are only effective in
+        #   Windows applications, not Console applications.
         _DLL.cbErrHandling (c_int(PRINTALL),c_int(DONTSTOP))
 
         # get the analog input resolution of the device model.
         self._a2d_resolution=c_int(0)
-        # /* Get the resolution of A/D */
         _DLL.cbGetConfig(c_int(BOARDINFO), self.device_number, 0, c_int(BIADRES), byref(self._a2d_resolution))
 
         # set the device options based on the device model_name
         if self.model_name == 'USB-1208FS':
-            #self.options = BACKGROUND + CONTINUOUS
             self.options = NOCONVERTDATA + BACKGROUND + CONTINUOUS + CALIBRATEDATA
         elif self.model_name == 'USB-1616FS': 
             self.options = BACKGROUND + CONTINUOUS
@@ -119,7 +115,7 @@ class AnalogInput(AnalogInputDevice):
         # init AnalogInput device memory handle to 0
         self._memory_handle=0
         
-        # Currently AnalogInput device gets data from a fix set of input channels:
+        # Currently AnalogInput device gets data from a fixed set of input channels:
         # Analog Inputs 0 - 7
         starting_channel_number=c_int(0)
         ending_channel_number=c_int(self.input_channel_count-1)
@@ -142,14 +138,12 @@ class AnalogInput(AnalogInputDevice):
                         ("count", c_int),
                         ("indexes", POINTER(c_uint)),
                         ("values", POINTER(c_uint16))]
-                        #("channels", POINTER(c_ushort))]
 
             @staticmethod
             def create(low,high,save_channels,asize):
                 dsb = AnalogInputSampleArray()
                 dsb.indexes=(c_uint * asize)()
                 dsb.values=(c_uint16 * asize)()
-                #dsb.channels=(c_ushort * asize)()
                 dsb.count=asize
                 dsb.low_channel=low
                 dsb.high_channel=high
@@ -164,13 +158,11 @@ class AnalogInput(AnalogInputDevice):
                     self.values[d]=0
                     #self.channels[d]=0
 
-        # create the class that will hold a local copy of sample data from the analog input device.
         self._local_sample_buffer=AnalogInputSampleArray.create(starting_channel_number,
                                                     ending_channel_number,
                                                     save_channels,
                                                     self._input_sample_buffer_size)
 
-        # init the analog device status to IDLE.
         self._device_status=c_short(IDLE)
 
         self.enableEventReporting(False)
@@ -179,7 +171,6 @@ class AnalogInput(AnalogInputDevice):
             
     def enableEventReporting(self,enable):
         current=self.isReportingEvents()
-        print2err('AnalogInput.enableEventReporting: {0} {1}'.format(current,enable))
         if current == enable:
             return current
 
@@ -231,7 +222,6 @@ class AnalogInput(AnalogInputDevice):
                                                          # a `4 bytes too much`error
             self._device_status=c_short(IDLE)
             self._local_sample_buffer.zero()
-            # initialize various counters and index values for use during data collection
             self._current_sample_buffer_index=c_long(0)
             self._last_sample_buffer_index=c_long(0)
             self._samples_received_count=c_long(0)
@@ -269,42 +259,25 @@ class AnalogInput(AnalogInputDevice):
                 lastIndex=self._last_sample_buffer_index.value
                 samples=self._local_sample_buffer
 
-#                ioHub.print2err("cc: %ld\tec: %ld"%(self._samples_received_count.value,self._local_sample_count_created))
-#                ioHub.print2err("c_index: %ld, l_index: %ld,  c_count: %ld"%(currentIndex,lastIndex,currentSampleCount))
                 if lastIndex != currentIndex:
-
-                        # only for 1208FS
-                        #ulStat = self._DLL.cbAConvertData (c_int32(self.device_number), self._current_sample_buffer_index, self._sample_data_buffer,None)
-
                         self._last_sample_buffer_index=c_long(currentIndex)
 
                         if lastIndex>currentIndex:
                             for v in xrange(lastIndex,self._input_sample_buffer_size):
-                                #ioHub.print2err("v: %d\t%d"%(v,self._sample_data_buffer[v]))
                                 self._saveScannedEvent(logged_time,samples,v)
-
                             lastIndex=0
 
                         for v in xrange(lastIndex,currentIndex):
-                                #ioHub.print2err("v: %d\t%d"%(v,self._sample_data_buffer[v]))
                                 self._saveScannedEvent(logged_time,samples,v)
-#            ioHub.print2err("-----------")
-        else:
-        
+        else:        
            ioHub.print2err("Error: MC DAQ not responding. Exiting...")
            self.getConfiguration['_ioServer'].shutDown()
            sys.exit(1)
 
     def _saveScannedEvent(self,logged_time,samples,sample_index):
         sample_channel=self._local_sample_count_created%samples.input_channel_count
-
         samples.values[sample_index]=self._sample_data_buffer[sample_index]
-        
-        #ioHub.print2err("{0}\t{1}\t{2}".format(sample_index,samples.values[sample_index],self._sample_data_buffer[sample_index]))        
-        
         samples.indexes[sample_index]=self._local_sample_count_created/samples.input_channel_count
-        #samples.channels[sample_index]=sample_channel
-
         if sample_channel == samples.input_channel_count-1 and self.isReportingEvents():
             mce=self._createMultiChannelEventList(logged_time,samples,sample_index-sample_channel)
             self._addNativeEventToBuffer(mce)
@@ -371,10 +344,7 @@ class AnalogInput(AnalogInputDevice):
         # but when ever I give it second param ctypes throws
         # a `4 bytes too much`error
         ulStat = self._DLL.cbStopBackground (c_int32(self.device_number)) 
-        print2err("cbStopBackground: ",ulStat)
-
         ulStat=self._DLL.cbWinBufFree(cast(self._memory_handle,POINTER(c_void_p)))
-        print2err("cbWinBufFree _memory_handle: ",ulStat)
 
     def __del__(self):
         try:

@@ -19,6 +19,12 @@ circumstances, the use of encryption can conflict with policies of your boss or
 institution (or even government). You are responsible for knowing your situation,
 and for the consequences of your decisions about whether and how to use encryption.
 
+**NOTICE** A much improved version of opensslwrap is available as a separate python
+package called pyFileSec, which is directly based on opensslwrap but goes far
+beyond it. pyFileSec is under active developement and will soon be integrated with
+PsychoPy. For this reason, opensslwrap should not be used for new projects, and
+will be retained in PsychoPy only for backwards compatibility and only for a short while.
+
 **Status & Caveats:** As of April 2012, this is **beta software**, made available for
 **evaluation and testing purposes**. All feedback can be posted to the psychopy-dev list.
 
