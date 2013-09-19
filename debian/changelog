@@ -1,9 +1,10 @@
-psychopy-openbci (1.77.0.0.2-1) UNRELEASED; urgency=low
+psychopy-openbci (1.77.1.0.1-1) unstable; urgency=low
 
   * Added launching obci at startup.
   * Minor fixes.
+  * Fixed Appliance communication.
 
- -- Karol Auguštin <karol@augustin.pl>  Tue, 18 Jun 2013 14:43:50 +0200
+ -- Karol Auguštin <karol@augustin.pl>  Thu, 19 Sep 2013 14:48:10 +0200
 
 psychopy-openbci (1.77.0.0.1-1) unstable; urgency=low
 
