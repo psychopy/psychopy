@@ -10,7 +10,7 @@ PsychoPy can be installed in three main ways:
 
 * **As libraries**: PsychoPy and the libraries it depends on can also be installed individually, providing greater flexibility. This option requires managing a python environment.
 
-* **As source code**: If you want to customize how PsychoPy works, consult the :ref:`developer's guide` for installation and work-flow suggestions. 
+* **As source code**: If you want to customize how PsychoPy works, consult the :ref:`developer's guide <developers>` for installation and work-flow suggestions. 
 
 When you start PsychoPy for the first time, a **Configuration Wizard** will retrieve and summarize key system settings. Based on the summary, you may want to adjust some preferences to better reflect your environment. In addition, this is a good time to unpack the Builder demos to a location of your choice. (See the Demo menu in the Builder.)
 
