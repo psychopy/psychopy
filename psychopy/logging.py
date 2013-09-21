@@ -299,6 +299,7 @@ def log(msg, level, t=None, obj=None):
 
     usage::
         log(level, msg, t=t, obj=obj)
+
     Log the msg, at a  given level on the root logger
     """
     root.log(msg, level=level, t=t, obj=obj)
