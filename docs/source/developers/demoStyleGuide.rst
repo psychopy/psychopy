@@ -67,5 +67,5 @@ For the comment / description, it's a good idea to read and be informed by the r
     ...
     logging.console.setLevel(logging.INFO)  # or logging.DEBUG for even more stuff
 
-- End a script with `win.close()` (assuming the script used a `visual.Window`), and then `core.quit()` even though its not strictly necessary
+- End a script with `win.close()` (assuming the script used a `visual.Window`), and then `core.quit()` even though it's not strictly necessary
 

@@ -52,9 +52,9 @@ That's a bit easy though. Let's make the stimulus move, at least! To do that we 
         mywin.update()
 
 
-That ran for 200 frames (and then waited 5 seconds as well). Maybe it would be nicer to keep updating until the user hits a key instead. Thats easy to add too. In the first line add :mod:`~psychopy.event` to the list of modules you'll import. Then replace the line::
+That ran for 200 frames (and then waited 5 seconds as well). Maybe it would be nicer to keep updating until the user hits a key instead. That's easy to add too. In the first line add :mod:`~psychopy.event` to the list of modules you'll import. Then replace the line::
    
-    for frameN in range(200)
+    for frameN in range(200):
 
 with the line:
 

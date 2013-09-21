@@ -103,7 +103,7 @@ If you want to install each library individually rather than use the simpler dis
 * `numpy <http://www.numpy.org/>`_ (version 0.9.6 or greater)
 * `scipy <http://www.scipy.org/Download>`_ (version 0.4.8 or greater)
 * `pyglet <http://www.pyglet.org>`_ (version 1.1.4, not version 1.2)
-* `wxPython <http://www.wxpython.org>`_ (version 2.8.10 ro 2.8.11, not 2.9)
+* `wxPython <http://www.wxpython.org>`_ (version 2.8.10 or 2.8.11, not 2.9)
 * `Python Imaging Library <http://www.pythonware.com/products/pil/>`_ (`sudo easy_install PIL`)
 * `matplotlib <http://matplotlib.sourceforge.net/>`_ (for plotting and fast polygon routines)
 * `lxml <http://lxml.de/>`_ (needed for loading/saving builder experiment files)
