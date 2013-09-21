@@ -7,10 +7,10 @@ The simple answer is 'yes', given some additional hardware. The clocks that Psyc
 .. _Cedrus Response Pad: http://www.cedrus.com/responsepads
 
 Before conducting your experiment in which effects might be on the order of 1 ms, do consider that;
-* your screen has a temporal resolution of ~10 ms
-* your visual system has a similar upper limit (or you would notice the flickering screen)
-* human response times are typically in the range 200-400 ms and very variable
-* USB keyboard latencies are variable, in the range 20-30ms
+    - your screen has a temporal resolution of ~10 ms
+    - your visual system has a similar upper limit (or you would notice the flickering screen)
+    - human response times are typically in the range 200-400 ms and very variable
+    - USB keyboard latencies are variable, in the range 20-30ms
 
 That said, PsychoPy does aim to give you as high a temporal precision as possible, and is likely not to be the limiting factor of your experiment.
 

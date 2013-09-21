@@ -24,3 +24,14 @@ Specific considerations for specific designs
    detectingFrameDrops
    reducingFrameDrops
    timingTestByOS
+
+.. _millisecondTiming:
+
+Other questions about timing
+--------------------------------------------------
+
+.. toctree::
+   :maxdepth: 2
+   
+   millisecondPrecision
+
