@@ -22,7 +22,7 @@ Typically you should create your stimulus once, at the beginning of the script, 
     core.wait(2.0)
 
 Setting stimulus attributes
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Stimulus attributes are typically set using either
          - a string, which is just some characters (as message.setText('world') above)
          - a scalar (a number; see below)

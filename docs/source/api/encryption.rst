@@ -79,7 +79,7 @@ Many people are invested in making OpenSSL robust, and one specific version of O
 has received FIPS 140-2 certification (http://www.openssl.org/docs/fips/fipsnotes.html).
 The effective weak link is almost certainly not cryptographic but rather in how the
 encryption key(s) are handled, which partly depends on you, including generation,
-signing, storage, backup. (For what its worth: the cryptographic weak link is
+signing, storage, backup. (For what it's worth: the cryptographic weak link is
 the RSA public key, especially because: 1) key verification is not attempted, and
 2) you, as the user, can provide keys of varying strengths, including key length,
 entropy quality, provenance, handling.) If the keys are bad or compromised, the
@@ -91,7 +91,7 @@ allowing logical and physical separation, giving considerable flexibility. The i
 is that anyone anywhere can encrypt information that only a trusted process (with
 access to the private keys) can decrypt. Anyone anywhere can know the process used
 to achieve the encryption without compromising the achievable degree of security.
-Its the private key that is essential to keep private.
+It's the private key that is essential to keep private.
 
 Some considerations:
 
@@ -103,7 +103,7 @@ Some considerations:
 - By design, the computer used for encryption can be different from the computer used
   for decryption; it can be a different device, operating system, and openssl version.
 - "Best practice" is not to move your private key from the machine on which it was
-  generated; certainly never ever email it. Its fine to share the public key.
+  generated; certainly never ever email it. It's fine to share the public key.
 - Some good advice from GnuPG: "If your system allows for encrypted swap partitions,
   please make use of that feature."
 
@@ -163,7 +163,7 @@ to rotate).
 
 The meta-data includes information about what public key was used for
 encryption, to make it easier to identify the relevant files. But even without that
-information, you could just try rotate()'ing the encryption on all files, and it
+information, you could just try `rotate()`'ing the encryption on all files, and it
 would only succeed for those with the right key pair. The meta-data are not
 required for key rotation. PsychoPy is not needed for rotation (or decryption).
 Even opensslwrap is not needed: It is just a wrapper to make it easier to work with
@@ -181,8 +181,8 @@ ever, which is a crucial difference between the AES password and the RSA key pai
 Q: What if I lose my private key?
 
 A: The whole idea is that, if you don't have the private key, the encryption should
-be strong enough that data recovery is a very expensive proposition, if its even
-possible (and hopefully its not possible). You should design your procedures under
+be strong enough that data recovery is a very expensive proposition, if it's even
+possible (and hopefully it's not possible). You should design your procedures under
 the assumption that data recovery will not be possible if you lose the private key.
 If you do lose the key, resign yourself to the idea that your encrypted data are
 going to stay encrypted forever. This is not at all to say that it is impossible
@@ -208,7 +208,7 @@ being able to do it, or even hire someone to do it.
 - Rely exclusively on standard widely available & supported tools and algorithms.
   OpenSSL and the basic approach (RSA + AES 256) are well-understood and recommended,
   e.g., http://crypto.stackexchange.com/a/15/ .
-- Eventually opensslwrap.py will be signed and verifiable (once its more stable).
+- Eventually opensslwrap.py will be signed and verifiable (once it's more stable).
 - Avoid obfuscation and "security through obscurity".
   Obfuscation does not enhance security, yet can make data recovery more difficult 
   or expensive. So transparency is more important. For this reason, meta-data
@@ -233,7 +233,7 @@ being able to do it, or even hire someone to do it.
 - Decrypt by using the private key to recover the password (which is one of the files in
   the .tgz bundle), and then use the password to recover the data (from the AES-
   encrypted file in the bundle).
-- The program does not try to manage the RSA keys. Its completely up to you (the user).
+- The program does not try to manage the RSA keys. It's completely up to you (the user).
 - Use and return full paths to files, to reduce ambiguity.
 
 Installing OpenSSL

@@ -7,7 +7,7 @@ There are many things that can affect the speed at which drawing is achieved on 
 
 Things to change on your system:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   #. make sure you have a good graphics card. Avoid integrated graphics chips, especially Intel integrated chips and especially on laptops (because on these you don't get to change your mind so easily later). In particular, try to make sure that you card supports OpenGL 2.0
+   #. make sure you have a good graphics card. Avoid integrated graphics chips, especially Intel integrated chips and especially on laptops (because on these you don't get to change your mind so easily later). In particular, try to make sure that your card supports OpenGL 2.0
    #. shut down as many programs, including background processes. Although modern processors are fast and often have multiple cores, substantial disk/memory accessing can cause frame drops
 	* anti-virus auto-updating (if you're allowed)
 	* email checking software
