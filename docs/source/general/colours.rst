@@ -73,7 +73,7 @@ To use DKL color space the monitor should be calibrated with an appropriate spec
 
 In the Derrington, Krauskopf and Lennie [#dkl1984]_ color space (based on the Macleod and Boynton [#mb1979]_ chromaticity diagram) colors are represented in a 3-dimensional space using spherical coordinates that specify the `elevation` from the isoluminant plane, the `azimuth` (the hue) and the contrast (as a fraction of the maximal modulations along the cardinal axes of the space).
 
-.. image:: ../images/dklSPace.png
+.. image:: ../images/dklSpace.png
 
 In PsychoPy these values are specified in units of degrees for elevation and azimuth and as a float (ranging -1:1) for the contrast.
 
