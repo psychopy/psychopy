@@ -1541,7 +1541,7 @@ class StairHandler(_BaseTrialHandler):
         self.otherData[dataName].append(value)
         #add the current data to experiment if poss
         if self.getExp() != None:#update the experiment handler too
-            self.getExp().addData(dataName, result)
+            self.getExp().addData(dataName, value)
     def addData(self, result, intensity=None):
         """Deprecated since 1.79.00: This function name was ambiguous. Please use one of
         these instead:
