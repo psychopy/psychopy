@@ -276,7 +276,7 @@ class SoundPygame(_SoundBase):
         log : bool
             Whether or not to log the playback event.
         loops : int
-            How many times to repeat the sound after it plays once. If 
+            How many times to repeat the sound after it plays once. If
             `loops` == -1, the sound will repeat indefinitely until stopped.
 
         Notes
@@ -414,7 +414,7 @@ class SoundPyo(_SoundBase):
             effect on sounds from files.
         """
         global pyoSndServer
-        if pyoSndServer==None:
+        if pyoSndServer==None or pyoSndServer.getIsBooted()==0:
             initPyo(rate=sampleRate)
 
         self.sampleRate=pyoSndServer.getSamplingRate()
