@@ -27,7 +27,7 @@ For example:
     * $random(2)
         will generate a pair of random numbers
 
-    * $"yn"[randint()]
+    * $"yn"[randint(2)]
         will randomly choose the first or second character (y or n)
 
     *  $globalClock.getTime()

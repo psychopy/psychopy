@@ -51,7 +51,7 @@ def _convertToNewStyle(newClass, oldInstance):
 
 def fromFile(filename):
     """In order to switch experiment handler to the new-style (post-python 2.2,
-       circa 2001) classes, this is a proof-of-concept loader based on misc.fromFile
+       circa 2001) classes, this is a proof-of-concept loader based on tools.filetools.fromFile
        that will load psydat files created with either new or old style TrialHandlers
        or StairHandlers.
 

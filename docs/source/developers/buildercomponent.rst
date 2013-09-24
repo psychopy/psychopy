@@ -71,7 +71,7 @@ During development, I found it helpful at times to save the params into the xxx_
             try: buff.writeIndented("# %s: %s <type %s>\n" % (p, self.params[p].val, self.params[p].valType))
             except: pass
 
-A lot more detail can be infered from Jon's code.
+A lot more detail can be inferred from Jon's code.
 
 Making things loop-compatible looks interesting -- see keyboard.py for an example, especially code for saving data at the end.
 

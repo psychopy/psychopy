@@ -462,4 +462,3 @@ class EyeTrackerDevice(Device):
 from eye_events import (MonocularEyeSampleEvent, BinocularEyeSampleEvent,
                         FixationStartEvent,FixationEndEvent,SaccadeStartEvent,
                         SaccadeEndEvent,BlinkStartEvent,BlinkEndEvent)
-        

@@ -120,4 +120,3 @@ class StdOutFrame(wx.Frame):
         """Return the text of the current buffer
         """
         return self.stdoutCtrl.GetValue()
-        

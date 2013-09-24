@@ -17,9 +17,9 @@ As an application, PsychoPy has two main views: the :doc:`Builder <builder/build
 
 .. _python : http://www.python.org
 
-The Builder and Coder views are the two main aspects of the PsychoPy application. If you've installed the StandAlone version of PsychoPy on **MS Windows** then there should be an obvious link to PsychoPy in your > Start > Programs. If you installed the StandAlone version on **Mac OS X** then the application is where you put it (!). On these two platforms you can open the Builder and Coder views from the View menu and the default view can be set from the preferences. **On linux**, you can start PsychoPy from a command line, or make a launch icon (which can depend on the desktop and distro). If the PsychoPy app is started with flags ----coder (or -c), or ----builder (or -b), then the preferences will be overridden and that view will be created as the app opens.
+The Builder and Coder views are the two main aspects of the PsychoPy application. If you've installed the StandAlone version of PsychoPy on **MS Windows** then there should be an obvious link to PsychoPy in your > Start > Programs. If you installed the StandAlone version on **Mac OS X** then the application is where you put it (!). On these two platforms you can open the Builder and Coder views from the View menu and the default view can be set from the preferences. **On Linux**, you can start PsychoPy from a command line, or make a launch icon (which can depend on the desktop and distro). If the PsychoPy app is started with flags ----coder (or -c), or ----builder (or -b), then the preferences will be overridden and that view will be created as the app opens.
 
-For experienced python programmers, its possible to use PsychoPy without ever opening the Builder or Coder. Install the PsychoPy libraries and dependencies, and use your favorite IDE instead of the Coder.
+For experienced python programmers, it's possible to use PsychoPy without ever opening the Builder or Coder. Install the PsychoPy libraries and dependencies, and use your favorite IDE instead of the Coder.
 
 Builder
 ========================
@@ -33,14 +33,14 @@ Start PsychoPy, and be sure to be in the Builder view.
     
 * If you have poked around a bit in the Builder already, be sure to start with a clean slate. To get a new Builder view, type `Ctrl-N` on Windows or Linux, or `Cmd-N` on Mac.
 * Click on a Text component
-    .. image:: ../../psychopy/app/Builder/components/text.png
+    .. image:: ../../psychopy/app/builder/components/text.png
   
   and a Text Properties dialog will pop up.
     .. image:: images/textdialog.png
       :width: 220
 
 * In the `Text` field, replace the default text with your message. When you run the program, the text you type here will be shown on the screen.
-* Click OK (near the botton of the dialog box). (Properties dialogs have a link to online help---an icon at the bottom, near the OK button.)
+* Click OK (near the bottom of the dialog box). (Properties dialogs have a link to online help---an icon at the bottom, near the OK button.)
 * Your text component now resides in a routine called `trial`. You can click on it to view or edit it. (Components, Routines, and other Builder concepts are explained in the :doc:`Builder documentation <builder/builder>`.)
 * Back in the main Builder, type `Ctrl-R` (Windows, Linux) or `Cmd-R` (Mac), or use the mouse to click the `Run` icon.
     .. image:: ../../psychopy/app/Resources/run32.png
@@ -90,7 +90,7 @@ To switch quickly between Builder and Coder views, you can type `Ctrl-L` / `Cmd-
 Coder
 =================
 
-Being able to inspect Builder-generated code is nice, but its possible to write code yourself, directly. With the Coder and various libraries, you can do virtually anything that your computer is capable of doing, using a full-featured modern programming language (python).
+Being able to inspect Builder-generated code is nice, but it's possible to write code yourself, directly. With the Coder and various libraries, you can do virtually anything that your computer is capable of doing, using a full-featured modern programming language (python).
 
 For variety, lets say hello to the Spanish-speaking world. PsychoPy knows Unicode (UTF-8).
 

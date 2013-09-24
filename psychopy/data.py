@@ -4,7 +4,9 @@
 # Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import misc, gui, logging
+from psychopy import gui, logging
+from psychopy.tools.arraytools import extendArr, shuffleArray
+from psychopy.tools.fileerrortools import handleFileCollision
 import psychopy
 import cPickle, string, sys, platform, os, time, copy, csv
 import numpy
@@ -161,12 +163,13 @@ class ExperimentHandler(object):
                 #append the attribute name and the current value
                 names.append(attrName)
                 vals.append(getattr(loop,attr))
-
+        #method of constants
         if hasattr(loop, 'thisTrial'):
             trial = loop.thisTrial
             if hasattr(trial,'items'):#is a TrialList object or a simple dict
                 for attr,val in trial.items():
-                    if attr not in self._paramNamesSoFar: self._paramNamesSoFar.append(attr)
+                    if attr not in self._paramNamesSoFar:
+                        self._paramNamesSoFar.append(attr)
                     names.append(attr)
                     vals.append(val)
             elif trial==[]:#we haven't had 1st trial yet? Not actually sure why this occasionally happens (JWP)
@@ -174,6 +177,7 @@ class ExperimentHandler(object):
             else:
                 names.append(name+'.thisTrial')
                 vals.append(trial)
+        #single StairHandler
         elif hasattr(loop, 'intensities'):
             names.append(name+'.intensity')
             if len(loop.intensities)>0:
@@ -266,8 +270,10 @@ class ExperimentHandler(object):
                 f.write(u'%s%s' %(heading,delim))
             f.write('\n')
         #write the data for each entry
+
         for entry in self.entries:
             for name in names:
+                entry.keys()
                 if name in entry.keys():
                     if ',' in unicode(entry[name]):
                         f.write(u'"%s"%s' %(entry[name],delim))
@@ -285,13 +291,13 @@ class ExperimentHandler(object):
 
         :Parameters:
 
-            fileCollisionMethod: Collision method passed to :func:`~psychopy.misc._handleFileCollision`
+            fileCollisionMethod: Collision method passed to :func:`~psychopy.tools.fileerrortools.handleFileCollision`
         """
         #otherwise use default location
         if not fileName.endswith('.psydat'):
             fileName+='.psydat'
         if os.path.exists(fileName):
-            fileName = misc._handleFileCollision(fileName, fileCollisionMethod)
+            fileName = handleFileCollision(fileName, fileCollisionMethod)
 
         #create the file or print to stdout
         f = open(fileName, 'wb')
@@ -361,7 +367,7 @@ class _BaseTrialHandler(object):
 
         :Parameters:
 
-            fileCollisionMethod: Collision method passed to :func:`~psychopy.misc._handleFileCollision`
+            fileCollisionMethod: Collision method passed to :func:`~psychopy.tools.fileerrortools.handleFileCollision`
         """
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
             logging.info('.saveAsPickle() called but no trials completed. Nothing saved')
@@ -370,7 +376,7 @@ class _BaseTrialHandler(object):
         if not fileName.endswith('.psydat'):
             fileName+='.psydat'
         if os.path.exists(fileName):
-            fileName = misc._handleFileCollision(fileName, fileCollisionMethod)
+            fileName = handleFileCollision(fileName, fileCollisionMethod)
 
         #create the file or print to stdout
         f = open(fileName, 'wb')
@@ -613,8 +619,8 @@ class TrialHandler(_BaseTrialHandler):
     The psydat file format is literally just a pickled copy of the TrialHandler object that
     saved it. You can open it with::
 
-            from psychopy import misc
-            dat = misc.fromFile(path)
+            from psychopy.tools.filetools import fromFile
+            dat = fromFile(path)
 
     Then you'll find that `dat` has the following attributes that
     """
@@ -797,7 +803,7 @@ class TrialHandler(_BaseTrialHandler):
             sequenceIndices = []
             seed=self.seed
             for thisRep in range(self.nReps):
-                thisRepSeq = misc.shuffleArray(indices.flat, seed=seed).tolist()
+                thisRepSeq = shuffleArray(indices.flat, seed=seed).tolist()
                 seed=None#so that we only seed the first pass through!
                 sequenceIndices.append(thisRepSeq)
             sequenceIndices = numpy.transpose(sequenceIndices)
@@ -806,7 +812,7 @@ class TrialHandler(_BaseTrialHandler):
         elif self.method == 'fullRandom':
             # indices*nReps, flatten, shuffle, unflatten; only use seed once
             sequential = numpy.repeat(indices, self.nReps,1) # = sequential
-            randomFlat = misc.shuffleArray(sequential.flat, seed=self.seed)
+            randomFlat = shuffleArray(sequential.flat, seed=self.seed)
             sequenceIndices = numpy.reshape(randomFlat, (len(indices), self.nReps))
         logging.exp('Created sequence: %s, trialTypes=%d, nReps=%i, seed=%s' %
                 (self.method, len(indices), self.nReps, str(self.seed) )  )
@@ -1468,6 +1474,7 @@ class StairHandler(_BaseTrialHandler):
         self.nTrials = nTrials#to terminate the nTrials must be exceeded and either
         self.finished=False
         self.thisTrialN = -1
+        self.otherData={} #a dict of lists where each should have the same length as the main data
         self.data = []
         self.intensities=[]
         self.reversalPoints = []
@@ -1484,8 +1491,7 @@ class StairHandler(_BaseTrialHandler):
         self._exp = None#the experiment handler that owns me!
     def __iter__(self):
         return self
-
-    def addData(self, result, intensity=None):
+    def addResponse(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
 
         This is essential to advance the staircase to a new intensity level!
@@ -1509,7 +1515,6 @@ class StairHandler(_BaseTrialHandler):
             else:
                 #or reset
                 self.correctCounter = 1
-
         else:
             if  len(self.data)>1 and self.data[-2]==result:
                 #increment if on a run
@@ -1518,9 +1523,32 @@ class StairHandler(_BaseTrialHandler):
                 #or reset
                 self.correctCounter = -1
 
-        if self.getExp()!=None:#update the experiment handler too
-            self.getExp().addData("%s.result" %(self.name), result)
+        #add the current data to experiment if poss
+        if self.getExp() != None:#update the experiment handler too
+            self.getExp().addData(self.name+".response", result)
         self.calculateNextIntensity()
+
+    def addOtherData(self, dataName, value):
+        """Add additonal data to the handler, to be tracked alongside the result
+        data but not affecting the value of the staircase
+        """
+        if not self.otherData.has_key(dataName): #init the list
+            if self.thisTrialN>0:
+                self.otherData[dataName]=[None]*(self.thisTrialN-1) #might have run trals already
+            else:
+                self.otherData[dataName]=[]
+        #then add current value
+        self.otherData[dataName].append(value)
+        #add the current data to experiment if poss
+        if self.getExp() != None:#update the experiment handler too
+            self.getExp().addData(dataName, value)
+    def addData(self, result, intensity=None):
+        """Deprecated since 1.79.00: This function name was ambiguous. Please use one of
+        these instead:
+            .addResponse(result, intensity)
+            .addOtherData('dataName', value')
+        """
+        self.addResponse(result, intensity)
 
     def calculateNextIntensity(self):
         """based on current intensity, counter of correct responses and current direction"""
@@ -1609,6 +1637,10 @@ class StairHandler(_BaseTrialHandler):
 
         """
         if self.finished==False:
+            #check that all 'otherData' is aligned with current trialN
+            for key in self.otherData.keys():
+                while len(self.otherData[key])<self.thisTrialN:
+                    self.otherData[key].append(None)
             #update pointer for next trial
             self.thisTrialN+=1
             self.intensities.append(self._nextIntensity)
@@ -1994,7 +2026,7 @@ class QuestHandler(StairHandler):
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp=None
 
-    def addData(self, result, intensity=None):
+    def addResponse(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
 
         Supplying an `intensity` value here indicates that you did not use the
@@ -2013,10 +2045,10 @@ class QuestHandler(StairHandler):
         self._quest.update(intensity, result)
         # Update other things
         self.data.append(result)
-        if self.getExp()!=None:
-            self.getExp().addData('response', result)
+        #add the current data to experiment if poss
+        if self.getExp() != None:#update the experiment handler too
+            self.getExp().addData(self.name+".response", result)
         self.calculateNextIntensity()
-
     def importData(self, intensities, results):
         """import some data which wasn't previously given to the quest algorithm"""
         # NOT SURE ABOUT CLASS TO USE FOR RAISING ERROR
@@ -2029,7 +2061,6 @@ class QuestHandler(StairHandler):
                 self.addData(result, intensity)
             except StopIteration:   # would get a stop iteration if stopInterval set
                 pass    # TODO: might want to check if nTrials is still good
-
     def calculateNextIntensity(self):
         """based on current intensity and counter of correct responses"""
         self._intensity()
@@ -2327,7 +2358,20 @@ class MultiStairHandler(_BaseTrialHandler):
         self.currentStaircase = self.thisPassRemaining.pop(0)#take the first and remove it
         self._nextIntensity = self.currentStaircase._nextIntensity#gets updated by self.addData()
         #return value
-        if self.finished==False:
+        if not self.finished:
+            #inform experiment of the condition (but not intensity, that might be overridden by user)
+            if self.getExp() != None:
+                exp = self.getExp()
+                stair = self.currentStaircase
+                for key, value in stair.condition.items():
+                    exp.addData("%s.%s" %(self.name, key), value)
+                exp.addData(self.name+'.thisIndex', self.conditions.index(stair.condition))
+                exp.addData(self.name+'.thisRepN', stair.thisTrialN+1)
+                exp.addData(self.name+'.thisN', self.totalTrials)
+                exp.addData(self.name+'.direction', stair.currentDirection)
+                exp.addData(self.name+'.stepSize', stair.stepSizeCurrent)
+                exp.addData(self.name+'.stepType', stair.stepType)
+                exp.addData(self.name+'.intensity', self._nextIntensity)
             return self._nextIntensity, self.currentStaircase.condition
         else:
             raise StopIteration
@@ -2340,19 +2384,35 @@ class MultiStairHandler(_BaseTrialHandler):
         """
         self.thisPassRemaining = copy.copy(self.runningStaircases)
         if self.method=='random': numpy.random.shuffle(self.thisPassRemaining)
-    def addData(self, result, intensity=None):
+    def addResponse(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
 
         This is essential to advance the staircase to a new intensity level!
         """
-        self.currentStaircase.addData(result)
-        if self.getExp()!=None:#update the experiment handler too
-            self.getExp().addData('response', result)
+        self.currentStaircase.addResponse(result, intensity)
         try:
             self.currentStaircase.next()
         except:
             self.runningStaircases.remove(self.currentStaircase)
+        #add the current data to experiment if poss
+        if self.getExp() != None:#update the experiment handler too
+            self.getExp().addData(self.name+".response", result)
         self.totalTrials+=1
+    def addOtherData(self, name, value):
+        """Add some data about the curent trial that will not be used to control the
+        staircase(s) such as reaction time data
+        """
+        self.currentStaircase.addOtherData(name, value)
+    def addData(self, result, intensity=None):
+        """Deprecated 1.79.00: It was ambiguous whether you were adding the response
+        (0 or 1) or some other data concerning the trial so there is now a pair
+        of explicit methods:
+            addResponse(corr,intensity) #some data that alters the next trial value
+            addOtherData('RT', reactionTime) #some other data that won't control staircase
+        """
+        self.addResponse(result, intensity)
+        if type(result) in [str, unicode]:
+            raise TypeError, "MultiStairHandler.addData should only receive corr/incorr. Use .addOtherData('datName',val)"
     def saveAsPickle(self, fileName):
         """Saves a copy of self (with data) to a pickle file.
 
@@ -2537,7 +2597,7 @@ class DataHandler(dict):
         if not numpy.alltrue(posArr<shapeArr):
             #array isn't big enough
             logging.warning('need a bigger array for:'+thisType)
-            self[thisType]=misc.extendArr(self[thisType],posArr)#not implemented yet!
+            self[thisType]=extendArr(self[thisType],posArr)#not implemented yet!
         #check for ndarrays with more than one value and for non-numeric data
         if self.isNumeric[thisType] and \
             ((type(value)==numpy.ndarray and len(value)>1) or (type(value) not in [float, int])):

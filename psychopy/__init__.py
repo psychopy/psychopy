@@ -7,7 +7,7 @@
 #--------------------------------------------------------------------------
 
 #version info for PsychoPy
-__version__='1.78.00'
+__version__='1.78.01'
 __license__='GNU GPLv3 (or more recent equivalent)'
 __author__='Jonathan Peirce'
 __author_email__='jon@peirce.org.uk'
@@ -16,7 +16,7 @@ __users_email__='psychopy-users@googlegroups.com'
 __url__='http://www.psychopy.org'
 __downloadUrl__='http://code.google.com/p/psychopy/downloads'
 __build_platform__='n/a'
-__git_sha__='n/a'
+__git_sha__='7cb83ab'
 if __git_sha__=='n/a':
     import subprocess
     #see if we're in a git repo and fetch from there

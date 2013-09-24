@@ -183,10 +183,11 @@ class KeyboardComponent(BaseComponent):
                 buff.writeIndented("   if str(%(correctAns)s).lower() == 'none': %(name)s.corr = 1  # correct non-response\n" %(self.params))
                 buff.writeIndented("   else: %(name)s.corr = 0  # failed to respond (incorrectly)\n" %(self.params))
             buff.writeIndented("# store data for %s (%s)\n" %(currLoop.params['name'], currLoop.type))
-            if currLoop.type=='StairHandler':
-                #data belongs to a StairHandler
+            if currLoop.type in ['StairHandler', 'MultiStairHandler']:
+                #data belongs to a Staircase-type of object
                 if self.params['storeCorrect'].val==True:
-                    buff.writeIndented("%s.addData(%s.corr)\n" %(currLoop.params['name'], name))
+                    buff.writeIndented("%s.addResponse(%s.corr)\n" %(currLoop.params['name'], name))
+                    buff.writeIndented("%s.addOtherData('%s.rt', %s.rt)\n" %(currLoop.params['name'], name, name))
             else:
                 #always add keys
                 buff.writeIndented("%s.addData('%s.keys',%s.keys)\n" \

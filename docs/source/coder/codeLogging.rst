@@ -21,9 +21,9 @@ Multiple `targets` can also be created to receive log messages. Each target has 
 
 Updating the logs
 ~~~~~~~~~~~~~~~~~~~~~
-For performance purposes log files are not actually written when the log commands are 'sent'. They are stored in a stack and processed automatically when the script ends. You might also choose to force a `flush` of the logged messages manually during the experiment (e.g. during an inter-trial interval)::
+For performance purposes log files are not actually written when the log commands are 'sent'. They are stored in a list and processed automatically when the script ends. You might also choose to force a `flush` of the logged messages manually during the experiment (e.g. during an inter-trial interval)::
 
-    from psychopy import log
+    from psychopy import logging
     
     ...
     

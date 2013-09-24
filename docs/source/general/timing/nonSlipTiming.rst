@@ -9,7 +9,7 @@ There are two ways to get around this:
 
  #. *Time by frames* If you are confident that you :ref:`aren't dropping frames <detectDroppedFrames>` then you could base your timing on frames instead to avoid the problem.
  
- #. *Non-slip (global) clock timing* The other way, which for imaging is probably the most sensible, is to arrange timing based on a global clock rather than on a relative timing method. At the start of each trial you add the (known) duration that the trial will last to a *global* timer and then wait until that timer reaches the necessary value. To facilitate this, the PsychoPy (e.g. a :class:`~psychopy.core.Clock()`) was given a new `add()` method as of version 1.74.00 and a :class:`~psychopy.core.CountdownTimer()` was also added.
+ #. *Non-slip (global) clock timing* The other way, which for imaging is probably the most sensible, is to arrange timing based on a global clock rather than on a relative timing method. At the start of each trial you add the (known) duration that the trial will last to a *global* timer and then wait until that timer reaches the necessary value. To facilitate this, the PsychoPy :class:`~psychopy.core.Clock()` was given a new `add()` method as of version 1.74.00 and a :class:`~psychopy.core.CountdownTimer()` was also added.
 
 The non-slip method can only be used in cases where the trial is of a known duration at its start. It cannot, for example, be used if the trial ends when the subject makes a response, as would occur in most behavioural studies.
  

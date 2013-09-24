@@ -6,7 +6,7 @@ Detecting dropped frames
 Occasionally you will drop frames if you:
 
 * try to do too much drawing
-* do it in an innefficient manner (write poor code)
+* do it in an inefficient manner (write poor code)
 * have a poor computer/graphics card
 
 Things to avoid:

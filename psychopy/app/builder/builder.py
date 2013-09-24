@@ -13,7 +13,8 @@ import re
 import numpy
 import experiment, components
 from psychopy.app import stdOutRich, dialogs
-from psychopy import data, logging, misc, gui
+from psychopy import data, logging, gui
+from psychopy.tools.filetools import mergeFolder
 from tempfile import mkdtemp # to check code syntax
 import cPickle
 from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re
@@ -484,7 +485,7 @@ class FlowPanel(wx.ScrolledWindow):
             prevLoop=loop
             if loopDlg.params['loopType'].val=='staircase':
                 loop= loopDlg.stairHandler
-            elif loopDlg.params['loopType'].val=='interleaved stairs':
+            elif loopDlg.params['loopType'].val=='interleaved staircases':
                 loop= loopDlg.multiStairHandler
             else:
                 loop=loopDlg.trialHandler #['random','sequential', 'fullRandom', ]
@@ -2368,7 +2369,6 @@ class _BaseParamsDlg(wx.Dialog):
         if hasattr(newUpdates, 'startswith') and  "during:" in newUpdates:
             newUpdates = newUpdates.split(': ')[1] #remove the part that says 'during'
             newRoutine, newStatic =  newUpdates.split('.')
-            print 'newStatic', newStatic
             exp.routines[newRoutine].getComponentFromName(newStatic).addComponentUpdate(
                 newRoutine, compName, fieldName)
     def _checkName(self, event=None, name=None):
@@ -2451,13 +2451,15 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.conditions=loop.params['conditions'].val
             self.conditionsFile=loop.params['conditionsFile'].val
             self.trialHandler = self.currentHandler = loop
-            self.currentType=loop.params['loopType']#could be 'random', 'sequential', 'fullRandom'
+            self.currentType=loop.params['loopType'].val #could be 'random', 'sequential', 'fullRandom'
         elif loop.type=='StairHandler':
             self.stairHandler = self.currentHandler = loop
             self.currentType='staircase'
         elif loop.type=='MultiStairHandler':
+            self.conditions=loop.params['conditions'].val
+            self.conditionsFile=loop.params['conditionsFile'].val
             self.multiStairHandler = self.currentHandler = loop
-            self.currentType='interleaved staircase'
+            self.currentType='interleaved staircases'
         elif loop.type=='QuestHandler':
             pass # what to do for quest?
         self.params['name']=self.currentHandler.params['name']
@@ -2491,7 +2493,6 @@ class DlgLoopProperties(_BaseParamsDlg):
         #otherwise it will be left as a summary string, not a conditions
         if self.currentHandler.params.has_key('conditionsFile'):
             self.currentHandler.params['conditions'].val=self.conditions
-
     def makeGlobalCtrls(self):
         for fieldName in ['name','loopType']:
             container=wx.BoxSizer(wx.HORIZONTAL)#to put them in
@@ -2645,8 +2646,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                 if hasattr(gridGUI, 'fileName'):
                     self.conditionsFile = gridGUI.fileName
         self.currentHandler.params['conditionsFile'].val = self.conditionsFile
-        if self.conditionsFile: # as set via DlgConditions
-            valCtrl = self.constantsCtrls['conditionsFile'].valueCtrl
+        if self.currentCtrls.haskey('conditionsFile'): # as set via DlgConditions
+            valCtrl = self.currentCtrls['conditionsFile'].valueCtrl
             valCtrl.Clear()
             valCtrl.WriteText(getAbbrev(self.conditionsFile))
         # still need to do namespace and internal updates (see end of onBrowseTrialsFile)
@@ -2711,20 +2712,19 @@ class DlgLoopProperties(_BaseParamsDlg):
             except ImportError, msg:
                 msg = str(msg)
                 if msg.startswith('Could not open'):
-                    self.constantsCtrls['conditions'].setValue('Could not read conditions from:\n' + newFullPath.split(os.path.sep)[-1])
+                    self.currentCtrls['conditions'].setValue('Could not read conditions from:\n' + newFullPath.split(os.path.sep)[-1])
                     logging.error('Could not open as a conditions file: %s' % newFullPath)
                 else:
                     m2 = msg.replace('Conditions file ', '')
                     dlgErr = dialogs.MessageDialog(parent=self.frame,
                         message=m2.replace(': ', os.linesep * 2), type='Info',
                         title='Configuration error in conditions file').ShowModal()
-                    self.constantsCtrls['conditions'].setValue(
+                    self.currentCtrls['conditions'].setValue(
                         'Bad condition name(s) in file:\n' + newFullPath.split(os.path.sep)[-1])
                     logging.error('Rejected bad condition name(s) in file: %s' % newFullPath)
                 self.conditionsFile = self.conditionsFileOrig
                 self.conditions = self.conditionsOrig
                 return # no update or display changes
-
             duplCondNames = []
             if len(self.condNamesInFile):
                 for condName in self.condNamesInFile:
@@ -2738,8 +2738,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                 if isSameFilePathAndName:
                     logging.info('Assuming reloading file: same filename and duplicate condition names in file: %s' % self.conditionsFile)
                 else:
-                    self.constantsCtrls['conditionsFile'].setValue(getAbbrev(newPath))
-                    self.constantsCtrls['conditions'].setValue(
+                    self.currentCtrls['conditionsFile'].setValue(getAbbrev(newPath))
+                    self.currentCtrls['conditions'].setValue(
                         'Warning: Condition names conflict with existing:\n['+duplCondNamesStr+
                         ']\nProceed anyway? (= safe if these are in old file)')
                     logging.warning('Duplicate condition names, different conditions file: %s' % duplCondNamesStr)
@@ -2747,8 +2747,8 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.duplCondNames = duplCondNames # add after self.show() in __init__
 
             if needUpdate or 'conditionsFile' in self.currentCtrls.keys() and not duplCondNames:
-                self.constantsCtrls['conditionsFile'].setValue(getAbbrev(newPath))
-                self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
+                self.currentCtrls['conditionsFile'].setValue(getAbbrev(newPath))
+                self.currentCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
 
     def getParams(self):
         """Retrieves data and re-inserts it into the handler and returns those handler params
@@ -2779,19 +2779,19 @@ class DlgLoopProperties(_BaseParamsDlg):
             if os.path.isfile(self.conditionsFile):
                 try:
                     self.conditions = data.importConditions(self.conditionsFile)
-                    self.constantsCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
+                    self.currentCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
                 except ImportError, msg:
-                    self.constantsCtrls['conditions'].setValue(
+                    self.currentCtrls['conditions'].setValue(
                         'Badly formed condition name(s) in file:\n'+str(msg).replace(':','\n')+
                         '.\nNeed to be legal as var name; edit file, try again.')
                     self.conditions = ''
                     logging.error('Rejected bad condition name in conditions file: %s' % str(msg).split(':')[0])
             else:
                 self.conditions = None
-                self.constantsCtrls['conditions'].setValue("No parameters set (conditionsFile not found)")
+                self.currentCtrls['conditions'].setValue("No parameters set (conditionsFile not found)")
         else:
             logging.debug('DlgLoop: could not determine if a condition filename was edited')
-            #self.constantsCtrls['conditions'] could be misleading at this point
+            #self.currentCtrls['conditions'] could be misleading at this point
     def onOK(self, event=None):
         # intercept OK in case user deletes or edits the filename manually
         if 'conditionsFile' in self.currentCtrls.keys():
@@ -4143,7 +4143,7 @@ class BuilderFrame(wx.Frame):
             unpackFolder = os.path.join(unpackFolder, 'PsychoPy2 Demos')
             if not os.path.isdir(unpackFolder):
                 os.mkdir(unpackFolder)
-        misc.mergeFolder(os.path.join(self.paths['demos'], 'builder'), unpackFolder)
+        mergeFolder(os.path.join(self.paths['demos'], 'builder'), unpackFolder)
         self.prefs['unpackedDemosDir']=unpackFolder
         self.app.prefs.saveUserPrefs()
         self.demosMenuUpdate()

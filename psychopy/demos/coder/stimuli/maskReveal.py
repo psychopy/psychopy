@@ -8,7 +8,8 @@ efficient way of doing this is to create an element array and alter the
 opacity of each element of the array to reveal what's behind it.
 
 """
-from psychopy import core, visual, event, misc
+from psychopy import core, visual, event
+from psychopy.tools.arraytools import createXYs
 import numpy
 
 #create a window to draw in
@@ -23,7 +24,7 @@ gabor = visual.GratingStim(myWin,tex='sin',
     sf=5)
 
 #create a grid of xy vals
-xys = misc.createXYs( numpy.linspace(-0.5,0.5,11) )#11 entries from -0.5 to 0.5 
+xys = createXYs( numpy.linspace(-0.5,0.5,11) )#11 entries from -0.5 to 0.5
 #create opacity for each square in mask
 opacs = numpy.ones(len(xys))#all opaque to start
 #create mask

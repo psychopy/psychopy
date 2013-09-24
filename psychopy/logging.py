@@ -180,11 +180,9 @@ class _Logger:
         self.lowestTarget=50
     def __del__(self):
         self.flush()
-        #try:
-        #    self.flush()
-        #except TypeError: # can happen in tests, mildly distracting
-        #    '''Exception TypeError: "'NoneType' object is not callable" in <bound method _Logger.__del__ of <psychopy.logging._Logger instance at 0x12dc788>> ignored'''
-        #    pass
+        # unicode logged to coder output window can cause logger failure, with
+        # error message pointing here. this is despite it being ok to log to
+        # terminal or Builder output. proper fix: fix coder unicode bug #97 (currently closed)
     def addTarget(self,target):
         """Add a target, typically a :class:`~log.LogFile` to the logger
         """
@@ -301,6 +299,7 @@ def log(msg, level, t=None, obj=None):
 
     usage::
         log(level, msg, t=t, obj=obj)
+
     Log the msg, at a  given level on the root logger
     """
     root.log(msg, level=level, t=t, obj=obj)

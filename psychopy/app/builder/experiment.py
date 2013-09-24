@@ -564,7 +564,6 @@ class TrialHandler:
             hint="The start and end of the loop (see flow timeline)")
         self.params['loopType']=Param(loopType, valType='str',
             allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
-                # should it be 'interleaved stairs' (to be consistent with stair and multistair handler)?
             hint="How should the next condition value(s) be chosen?")#NB staircase is added for the sake of the loop properties dialog
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['endPoints']=Param(endPoints,valType='num',
@@ -681,7 +680,7 @@ class StairHandler:
             hint="Minimum number of times the staircase must change direction before ending")
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['loopType']=Param('staircase', valType='str',
-            allowedVals=['random','sequential','fullRandom','staircase','interleaved stairs'],
+            allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
             hint="How should the next trial value(s) be chosen?")#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
@@ -750,12 +749,12 @@ class MultiStairHandler:
             hint="How to select the next staircase to run")
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['loopType']=Param('staircase', valType='str',
-        allowedVals=['random','sequential','fullRandom','staircase','interleaved stairs'],
+        allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
             hint="How should the next trial value(s) be chosen?")#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
             hint='Where to loop from and to (see values currently shown in the flow view)')
         self.params['conditions']=Param(conditions, valType='str', updates=None, allowedUpdates=None,
-            hint="A list of dictionaries describing the differences between each condition")
+            hint="A list of dictionaries describing the differences between each staircase")
         self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
             hint="An xlsx or csv file specifying the parameters for each condition")
     def writeInitCode(self,buff):
@@ -764,21 +763,26 @@ class MultiStairHandler:
         #write the code
         buff.writeIndentedLines("\n# set up handler to look after randomisation of trials etc\n")
         buff.writeIndentedLines("conditions = data.importConditions(%s)" %self.params['conditionsFile'])
-        buff.writeIndented("%(name)s = data.MultiStairHandler(stairType=%(stairType)s, name='%(name)s,'\n" %(self.params))
+        buff.writeIndented("%(name)s = data.MultiStairHandler(stairType=%(stairType)s, name='%(name)s',\n" %(self.params))
         buff.writeIndented("    nTrials=%(nReps)s,\n" %self.params)
         buff.writeIndented("    conditions=conditions,\n")
         buff.writeIndented("    originPath=%s" %repr(self.exp.expPath))
         buff.write(")\n"%self.params)
         buff.writeIndented("thisExp.addLoop(%(name)s)  # add the loop to the experiment\n" %self.params)
         buff.writeIndented("# initialise values for first condition\n")
-        buff.writeIndented("level = %s._nextIntensity  # initialise some vals\n" %(self.thisName))
-        buff.writeIndented("condition = %s.currentStaircase.condition\n" %(self.thisName))
+        buff.writeIndented("level = %(name)s._nextIntensity  # initialise some vals\n" %(self.params))
+        buff.writeIndented("condition = %(name)s.currentStaircase.condition\n" %(self.params))
     def writeLoopStartCode(self,buff):
         #work out a name for e.g. thisTrial in trials:
         buff.writeIndented("\n")
-        buff.writeIndented("for level, condition in %s:\n" %(self.thisName, self.params['name']))
+        buff.writeIndented("for level, condition in %(name)s:\n" %(self.params))
         buff.setIndentLevel(1, relative=True)
-        buff.writeIndented("currentLoop = %s\n" %(self.params['name']))
+        buff.writeIndented("currentLoop = %(name)s\n" %(self.params))
+        #create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind cluttered namespace
+        if not self.exp.prefsBuilder['unclutteredNamespace']:
+            buff.writeIndented("# abbreviate parameter names if possible (e.g. rgb=condition.rgb)\n")
+            buff.writeIndented("for paramName in condition.keys():\n")
+            buff.writeIndented(buff.oneIndent+"exec(paramName + '= condition[paramName]')\n")
     def writeLoopEndCode(self,buff):
         buff.writeIndentedLines("thisExp.nextEntry()\n\n")
         buff.setIndentLevel(-1, relative=True)
@@ -786,7 +790,7 @@ class MultiStairHandler:
         buff.writeIndented("\n")
         #save data
         if self.exp.settings.params['Save excel file'].val:
-            buff.writeIndented("%(name)s.saveAsExcel(filename + '.xlsx', sheetName='%(name)s')\n" %self.params)
+            buff.writeIndented("%(name)s.saveAsExcel(filename + '.xlsx')\n" %self.params)
         if self.exp.settings.params['Save csv file'].val:
             buff.writeIndented("%(name)s.saveAsText(filename + '%(name)s.csv', delim=',')\n" %self.params)
     def getType(self):

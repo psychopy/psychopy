@@ -20,7 +20,7 @@ The idea is to have clean code that looks and works the same way across demos, w
     """Demo name, purpose, description (1-2 sentences, although some demos need more explanation).
     """
 
-For the comment / description, its a good idea to read and be informed by the relevant parts of the API (see http://psychopy.org/api/api.html), but there's no need to duplicate that text in your comment. If you are unsure, please post to the dev list psychopy-dev@googlegroups.com.
+For the comment / description, it's a good idea to read and be informed by the relevant parts of the API (see http://psychopy.org/api/api.html), but there's no need to duplicate that text in your comment. If you are unsure, please post to the dev list psychopy-dev@googlegroups.com.
 
 - Follow PEP-8 mostly, some exceptions:
 
@@ -67,5 +67,5 @@ For the comment / description, its a good idea to read and be informed by the re
     ...
     logging.console.setLevel(logging.INFO)  # or logging.DEBUG for even more stuff
 
-- End a script with `win.close()` (assuming the script used a `visual.Window`), and then `core.quit()` even though its not strictly necessary
+- End a script with `win.close()` (assuming the script used a `visual.Window`), and then `core.quit()` even though it's not strictly necessary
 
