@@ -185,6 +185,13 @@ def wait(secs, hogCPUperiod=0.2):
         try:
             # this takes focus away from command line terminal window:
             pyglet.media.dispatch_events()#events for sounds/video should run independently of wait()
+        except AttributeError:
+            # see http://www.pyglet.org/doc/api/pyglet.media-module.html#dispatch_events
+            # Deprecated: Since pyglet 1.1, Player objects schedule themselves
+            # on the default clock automatically. Applications should not call
+            # pyglet.media.dispatch_events().
+            pass
+        try:
             wins = pyglet.window.get_platform().get_default_display().get_windows()
             for win in wins: win.dispatch_events()#pump events on pyglet windows
         except:
