@@ -146,8 +146,10 @@ class BufferImageStim(GratingStim):
         self.thisScale = numpy.array([4, 4])
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
+        self.autoLog = autoLog
 
         logging.exp('BufferImageStim %s: took %.1fms to initialize' % (name, 1000 * _clock.getTime()))
+
     @attributeSetter
     def tex(self, value):
         """For BufferImageStim this method is not called by the user
