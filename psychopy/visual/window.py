@@ -831,24 +831,15 @@ class Window:
             GL.glReadBuffer(GL.GL_BACK)
         else:
             GL.glReadBuffer(GL.GL_FRONT)
-        # pyglet.gl stores the data in a ctypes buffer
-        if self.winType == 'pyglet':
-            #http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
-            bufferDat = (GL.GLubyte * (4 * horz * vert))()
-            GL.glReadPixels(box[0], box[1], horz, vert,
-                            GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
 
-            # not right
-            #GL.glGetTexImage(GL.GL_TEXTURE_1D, 0,
-            #                 GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
-            im = Image.fromstring(mode='RGBA', size=(horz, vert),
-                                  data=bufferDat)
-        else:  # works but much slower, pyopengl returns the data
-            im = Image.fromstring(mode='RGBA', size=(horz, vert),
-                                  data=GL.glReadPixels(box[0], box[1],
-                                                       horz, vert,
-                                                       GL.GL_RGBA,
-                                                       GL.GL_UNSIGNED_BYTE),)
+        #http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
+        bufferDat = (GL.GLubyte * (4 * horz * vert))()
+        GL.glReadPixels(box[0], box[1], horz, vert,
+                        GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
+        # not right
+        #GL.glGetTexImage(GL.GL_TEXTURE_1D, 0,
+        #                 GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
+        im = Image.fromstring(mode='RGBA', size=(horz, vert), data=bufferDat)
         region = im.transpose(Image.FLIP_TOP_BOTTOM)
 
         if power2 or squarePower2:  # use to avoid interpolation in PatchStim
