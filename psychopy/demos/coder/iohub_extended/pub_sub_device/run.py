@@ -14,9 +14,9 @@ RemoteEventSubscriber subscribes to only KeyboardPressEvents, and KeyboardCharEv
     
 Inital Version: July 17th, 2013, Sol Simpson
 """
-from psychopy import core
-from psychopy.iohub import (EventConstants,ioHubExperimentRuntime,
-                            MessageDialog, module_directory,Computer)
+
+from psychopy.iohub import (ioHubExperimentRuntime, MessageDialog,
+                            module_directory,Computer)
 
 class ExperimentRuntime(ioHubExperimentRuntime):
     """
@@ -68,12 +68,10 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 if __name__ == "__main__":
     def main(configurationDirectory):
         """
-        Creates an instance of the ExperimentRuntime class, gets the eye tracker
-        the user wants to use for the demo, and launches the experiment logic.
+        Creates an instance of the ExperimentRuntime class, launches the experiment logic.
         """        
         runtime=ExperimentRuntime(configurationDirectory, "experiment_config.yaml")    
         runtime.start(configurationDirectory)
-
 
     # Get the current directory, using a method that does not rely on __FILE__
     # or the accuracy of the value of __FILE__.

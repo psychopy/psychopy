@@ -966,17 +966,17 @@ struct_AOIStruct._fields_ = [
     ('eye', c_char),
 ]
 
-pDLLSetCalibrationPoint = CFUNCTYPE(UNCHECKED(c_int), struct_CalibrationPointStruct) # <input>: 604
+pDLLSetCalibrationPoint = WINFUNCTYPE(UNCHECKED(c_int), struct_CalibrationPointStruct) # <input>: 604
 
-pDLLSetSample = CFUNCTYPE(UNCHECKED(c_int), struct_SampleStruct) # <input>: 605
+pDLLSetSample = WINFUNCTYPE(UNCHECKED(c_int), struct_SampleStruct) # <input>: 605
 
-pDLLSetEvent = CFUNCTYPE(UNCHECKED(c_int), struct_EventStruct) # <input>: 606
+pDLLSetEvent = WINFUNCTYPE(UNCHECKED(c_int), struct_EventStruct) # <input>: 606
 
-pDLLSetEyeImage = CFUNCTYPE(UNCHECKED(c_int), struct_ImageStruct) # <input>: 607
+pDLLSetEyeImage = WINFUNCTYPE(UNCHECKED(c_int), struct_ImageStruct) # <input>: 607
 
-pDLLSetSceneVideo = CFUNCTYPE(UNCHECKED(c_int), struct_ImageStruct) # <input>: 608
+pDLLSetSceneVideo = WINFUNCTYPE(UNCHECKED(c_int), struct_ImageStruct) # <input>: 608
 
-pDLLSetTrackingMonitor = CFUNCTYPE(UNCHECKED(c_int), struct_ImageStruct) # <input>: 609
+pDLLSetTrackingMonitor = WINFUNCTYPE(UNCHECKED(c_int), struct_ImageStruct) # <input>: 609
 
 # <input>: 621
 if hasattr(_libs['iViewXAPI'], 'iV_AbortCalibration'):
