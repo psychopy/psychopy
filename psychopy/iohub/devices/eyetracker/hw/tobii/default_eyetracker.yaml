@@ -72,21 +72,21 @@ eyetracker.hw.tobii.EyeTracker:
         # The associated target attribute properties can be supplied
         # for the given target_type. 
         target_attributes:
-            outer_diameter: 35
-            outer_stroke_width: 5
-            outer_fill_color: [255,255,255]
-            outer_line_color: [255,255,255]
-            inner_diameter: 5
-            inner_stroke_width: 0
-            inner_color: [0,0,0]
-            inner_fill_color: [0,0,0]
-            inner_line_color: [0,0,0]
-            animate:
-                enable: True
-                movement_velocity: 300.0  # 300 pix / sec
-                expansion_ratio: 3.0  # expands to 3 x the starting size
-                expansion_speed: 30.0  # exapands at 30.0 pix / sec
-                contract_only: False
+             outer_diameter: 35
+             outer_stroke_width: 2
+             outer_fill_color: [128,128,128]
+             outer_line_color: [255,255,255]
+             inner_diameter: 7
+             inner_stroke_width: 1
+             inner_color: [0,0,0]
+             inner_fill_color: [0,0,0]
+             inner_line_color: [0,0,0]
+             animate:
+                 enable: True
+                 movement_velocity: 600.0  # 500 pix / sec
+                 expansion_ratio: 3.0  # expands to 3 x the starting size
+                 expansion_speed: 30.0  # exapands at 30.0 pix / sec
+                 contract_only: True
     
     runtime_settings:
         # The supported sampling rates for Tobii are model dependent. 
