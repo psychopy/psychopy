@@ -22,16 +22,15 @@ class TestMicrophone(object):
         global sound
         from psychopy import sound
         switchOn(48000)
-        self.startdir = os.getcwd()
-        self.tmp = mkdtemp()
-        os.chdir(self.tmp)
+        self.tmp = mkdtemp(prefix='psychopy-tests-microphone')
     @classmethod
     def teardown_class(self):
-        os.chdir(self.startdir)
-        shutil.rmtree(self.tmp, ignore_errors=True)
+        if hasattr(self, 'tmp'):
+            shutil.rmtree(self.tmp, ignore_errors=True)
         switchOff()  # not needed, just get code coverage
 
     def test_AudioCapture_basics(self):
+        os.chdir(self.tmp)
         microphone.haveMic = False
         with pytest.raises(MicrophoneError):
             AdvAudioCapture()
@@ -46,6 +45,7 @@ class TestMicrophone(object):
         mic.stop()
 
     def test_AdvAudioCapture(self):
+        os.chdir(self.tmp)
         mic = AdvAudioCapture()
         tone = sound.Sound(440, secs=.02)
         mic.setMarker(tone=tone)
@@ -90,7 +90,7 @@ class TestMicrophone(object):
         with pytest.raises(ValueError):
             mic.resample(newRate=-1)
 
-@pytest.mark.needs_sound
+#@pytest.mark.needs_sound
 @pytest.mark.microphone
 @pytest.mark.speech
 class TestMicrophoneNoSound(object):
@@ -99,11 +99,8 @@ class TestMicrophoneNoSound(object):
         try:
             assert _getFlacPath()
         except:
-            print 'no flac, skipping tests'
             pytest.skip()
-        self.startdir = os.getcwd()
-        self.tmp = mkdtemp()
-        os.chdir(self.tmp)
+        self.tmp = mkdtemp(prefix='psychopy-tests-microphone')
         for testFile in ['red_16000.flac.dist', 'green_48000.flac.dist']:
             t = join(TESTS_DATA_PATH, testFile)
             new_wav = join(self.tmp, testFile.replace('.dist', ''))
@@ -129,30 +126,33 @@ class TestMicrophoneNoSound(object):
     def test_misc(self):
         getRMS([1,2,3,4,5])
 
+    def test_wav_flac(self):
         filename = os.path.join(self.tmp, 'test_bad_readWav')
         with open(filename, 'wb') as fd:
             fd.write('x')
         with pytest.raises(SoundFileError):
             readWavFile(filename)
 
-        with pytest.raises(OverflowError):
-            getDft([])
+        testFile = join(self.tmp, 'red_16000.wav')
+        newFile = wav2flac(testFile, keep=True)
+        flac2wav(newFile, keep=True)
+        wav2flac('.', keep=True)
+        flac2wav('.', keep=True)
+        wav2flac('', keep=True)
+        flac2wav('', keep=True)
 
+    def test_DFT(self):
         testFile = join(self.tmp, 'red_16000.wav')
         data, sampleRate = readWavFile(testFile)
+
+        with pytest.raises(OverflowError):
+            getDft([])
         getDft(data)
         getDftBins(data)
         getDftBins(data, sampleRate=16000)
         getDft(data, sampleRate=sampleRate)
         getDft(data, wantPhase=True)
 
-        newFile = wav2flac(testFile, keep=True)
-        flac2wav(newFile, keep=True)
-
-        wav2flac('.', keep=True)
-        flac2wav('.', keep=True)
-        wav2flac('', keep=True)
-        flac2wav('', keep=True)
 
     def test_Speech2Text(self):
         try:
