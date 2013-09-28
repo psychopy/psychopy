@@ -595,7 +595,10 @@ def initPyo(rate=44100, stereo=True, buffer=128):
     """
     global pyoSndServer, Sound, audioDriver, duplex, maxChnls
     Sound = SoundPyo
-    if not 'pyo' in locals():
+    global pyo
+    try:
+        assert pyo
+    except NameError:
         import pyo  # microphone.switchOn() calls initPyo even if audioLib is something else
     #subclass the pyo.Server so that we can insert a __del__ function that shuts it down
     class _Server(pyo.Server):
