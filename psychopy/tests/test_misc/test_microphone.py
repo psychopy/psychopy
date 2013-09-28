@@ -90,6 +90,7 @@ class TestMicrophone(object):
         with pytest.raises(ValueError):
             mic.resample(newRate=-1)
 
+@pytest.mark.needs_sound
 @pytest.mark.microphone
 @pytest.mark.speech
 class TestMicrophoneNoSound(object):
@@ -113,9 +114,7 @@ class TestMicrophoneNoSound(object):
         if hasattr(self, 'tmp'):
             shutil.rmtree(self.tmp, ignore_errors=True)
 
-    def xxx_test_getFlacPath(self):
-        pytest.skip()  # failing cryptically on travis
-
+    def test_getFlacPath(self):
         #microphone.FLAC_PATH = None
         #with pytest.raises(MicrophoneError):
         #    _getFlacPath('this is not flac')
