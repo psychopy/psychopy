@@ -897,7 +897,6 @@ def flac2wav(path, keep=True):
     for flacfile in flac_files:
         wavfile = flacfile.strip('.flac') + '.wav'
         flac_cmd = [flac_path, "-d", "--totally-silent", "-f", "-o", wavfile, flacfile]
-        print flac_cmd
         __, se = core.shellCall(flac_cmd, stderr=True)
         if se or not os.path.isfile(flacfile): # just try again
             logging.warn('Failed to convert to .wav; trying again')

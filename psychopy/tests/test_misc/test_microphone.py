@@ -98,6 +98,7 @@ class TestMicrophoneNoSound(object):
         try:
             assert _getFlacPath()
         except:
+            print 'no flac, skipping tests'
             pytest.skip()
         self.startdir = os.getcwd()
         self.tmp = mkdtemp()
@@ -113,17 +114,16 @@ class TestMicrophoneNoSound(object):
             shutil.rmtree(self.tmp, ignore_errors=True)
 
     def test_getFlacPath(self):
-        global FLAC_PATH
-        FLAC_PATH = None
+        #microphone.FLAC_PATH = None
         #with pytest.raises(MicrophoneError):
         #    _getFlacPath('this is not flac')
-        FLAC_PATH = None
+        microphone.FLAC_PATH = None
         _getFlacPath()
-        FLAC_PATH = None
+        microphone.FLAC_PATH = None
         _getFlacPath('flac')
 
-        FLAC_PATH = 'flac'
-        assert FLAC_PATH
+        microphone.FLAC_PATH = 'flac'
+        assert microphone.FLAC_PATH
 
     def test_misc(self):
         getRMS([1,2,3,4,5])
