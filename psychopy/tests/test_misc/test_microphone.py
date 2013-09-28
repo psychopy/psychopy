@@ -95,6 +95,10 @@ class TestMicrophone(object):
 class TestMicrophoneNoSound(object):
     @classmethod
     def setup_class(self):
+        try:
+            assert _getFlacPath()
+        except:
+            pytest.skip()
         self.startdir = os.getcwd()
         self.tmp = mkdtemp()
         os.chdir(self.tmp)
@@ -102,11 +106,11 @@ class TestMicrophoneNoSound(object):
             t = join(TESTS_DATA_PATH, testFile)
             new_wav = join(self.tmp, testFile.replace('.dist', ''))
             shutil.copyfile(t, new_wav)
-            flac2wav(new_wav, keep=True)
+            flac2wav(new_wav)
     @classmethod
     def teardown_class(self):
-        os.chdir(self.startdir)
-        shutil.rmtree(self.tmp, ignore_errors=True)
+        if hasattr(self, 'tmp'):
+            shutil.rmtree(self.tmp, ignore_errors=True)
 
     def test_getFlacPath(self):
         global FLAC_PATH
