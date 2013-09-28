@@ -14,7 +14,7 @@ from os.path import abspath, dirname, join
 
 from psychopy.tests.utils import TESTS_PATH, TESTS_DATA_PATH
 
-#@pytest.mark.needs_sound
+@pytest.mark.needs_sound
 @pytest.mark.microphone
 class TestMicrophone(object):
     @classmethod
@@ -90,7 +90,7 @@ class TestMicrophone(object):
         with pytest.raises(ValueError):
             mic.resample(newRate=-1)
 
-#@pytest.mark.needs_sound
+@pytest.mark.needs_sound
 @pytest.mark.microphone
 @pytest.mark.speech
 class TestMicrophoneNoSound(object):
