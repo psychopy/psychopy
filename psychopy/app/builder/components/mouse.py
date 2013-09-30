@@ -78,7 +78,6 @@ class MouseComponent(BaseComponent):
             buff.writeIndented("%(name)s.midButton = []\n" %(self.params))
             buff.writeIndented("%(name)s.rightButton = []\n" %(self.params))
             buff.writeIndented("%(name)s.time = []\n" %(self.params))
-            buff.writeIndented("%(name)s.selection = []\n" %(self.params))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
@@ -151,6 +150,7 @@ class MouseComponent(BaseComponent):
         #some shortcuts
         name = self.params['name']
         store = self.params['saveMouseState'].val#do this because the param itself is not a string!
+        forceEnd = self.params['forceEndRoutineOnPress'].val
         #check if we're in a loop (so saving is possible)
         if len(self.exp.flow._loopList):
             currLoop=self.exp.flow._loopList[-1]#last (outer-most) loop
@@ -171,4 +171,8 @@ class MouseComponent(BaseComponent):
         elif store != 'never' and currLoop!=None:
             buff.writeIndented("# save %(name)s data\n" %(self.params))
             for property in ['x','y','leftButton','midButton','rightButton','time', 'selection']:
-                buff.writeIndented("%s.addData('%s.%s', %s.%s)\n" %(currLoop.params['name'], name,property,name,property))
+                if store=='every frame' or not forceEnd:
+                    buff.writeIndented("%s.addData('%s.%s', %s.%s)\n" %(currLoop.params['name'], name,property,name,property))
+                else:
+                    #we only had one click so don't return a list
+                    buff.writeIndented("%s.addData('%s.%s', %s.%s[0])\n" %(currLoop.params['name'], name,property,name,property))

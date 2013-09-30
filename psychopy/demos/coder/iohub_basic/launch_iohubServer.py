@@ -153,8 +153,3 @@ if __name__ == '__main__':
                result = namespace[test]()
                print 'Test Result: ', result
                break 
-    
- 
-
-
-#myWin = FullScreenWindow(display)

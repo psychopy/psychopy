@@ -736,14 +736,15 @@ class EyeTracker(EyeTrackerDevice):
                         right_gazeY=right_eye_data.gazeY
   
  
+                        #print2err('\tleft_pupil,right_pupil: ',(left_pupil_measure,right_pupil_measure))
                         #print2err('\tright_gazeX,right_gazeY: ',(right_gazeX,right_gazeY))
                         #print2err('\tleft_gazeX,left_gazeY: ',(left_gazeX,left_gazeY))
 
                         right_gazeX,right_gazeY=self._eyeTrackerToDisplayCoords((right_gazeX,right_gazeY))
                         left_gazeX,left_gazeY=self._eyeTrackerToDisplayCoords((left_gazeX,left_gazeY))
                       
-                        #print2err('\t2display_coors-> right_gazeX,right_gazeY: ',(right_gazeX,right_gazeY))
-                        #print2err('\t2display_coors-> left_gazeX,left_gazeY: ',(left_gazeX,left_gazeY))
+                        #print2err('\tright2display_coors-> right_gazeX,right_gazeY: ',(right_gazeX,right_gazeY))
+                        #print2err('\t2leftdisplay_coors-> left_gazeX,left_gazeY: ',(left_gazeX,left_gazeY))
                         left_eyePositionX=left_eye_data.eyePositionX
                         right_eyePositionX=right_eye_data.eyePositionX
                         left_eyePositionY=left_eye_data.eyePositionY
@@ -807,16 +808,13 @@ class EyeTracker(EyeTrackerDevice):
     
                         self._latest_sample=binocSample
             
-                        g=None
                         ic=0
+                        g=[0.0,0.0]  
                         if right_pupil_measure>0.0:
-                            g=[0.0,0.0]                            
                             g[0]=right_gazeX
                             g[1]=right_gazeY
                             ic+=1
                         if left_pupil_measure>0.0:
-                            if g is None:
-                                g=[0.0,0.0]  
                             g[0]=+left_gazeX
                             g[1]=+left_gazeY
                             ic+=1
@@ -985,14 +983,22 @@ class EyeTracker(EyeTrackerDevice):
         """
         """
         try:
-            cl,ct,cr,cb=self._display_device.getCoordBounds()
-            cw,ch=cr-cl,ct-cb
-            
-            dl,dt,dr,db=self._display_device.getBounds()
-            dw,dh=dr-dl,db-dt
-
-            gxn,gyn=eyetracker_point[0]/dw,eyetracker_point[1]/dh                        
-            return cl+cw*gxn,cb+ch*(1.0-gyn)   
+            gaze_x,gaze_y=eyetracker_point
+            dw,dh=self._display_device.getPixelResolution()
+            gaze_x=gaze_x/dw
+            gaze_y=gaze_y/dh
+            left,top,right,bottom=self._display_device.getCoordBounds()
+            w,h=right-left,top-bottom            
+            x,y=left+w*gaze_x,bottom+h*(1.0-gaze_y)  
+            return x,y
+#            cl,ct,cr,cb=self._display_device.getCoordBounds()
+#            cw,ch=cr-cl,ct-cb
+#            
+#            dl,dt,dr,db=self._display_device.getBounds()
+#            dw,dh=dr-dl,db-dt
+#
+#            gxn,gyn=eyetracker_point[0]/dw,eyetracker_point[1]/dh                        
+#            return cl+cw*gxn,cb+ch*(1.0-gyn)   
         except Exception,e:
             return createErrorResult("IOHUB_DEVICE_EXCEPTION",
                     error_message="An unhandled exception occurred on the ioHub Server Process.",

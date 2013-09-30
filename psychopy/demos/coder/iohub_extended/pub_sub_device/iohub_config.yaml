@@ -1,0 +1,48 @@
+monitor_devices:
+    - Display:
+        name: display
+        reporting_unit_type: pix
+        device_number: 0
+        physical_dimensions:
+            width: 590
+            height: 340
+            unit_type: mm
+        default_eye_distance:
+            surface_center: 500
+            unit_type: mm
+        psychopy_monitor_name: default
+    - Keyboard:
+        name: kb
+    - Mouse:
+        name: mouse
+    - Experiment:
+        name: experiment
+    - network.EventPublisher:
+        name: evt_pub
+        event_buffer_length: 128
+        # Use a non zero device number when creating an event publisher. 
+        # All events received by subscribing computer will be tagged with this
+        # device number, allowing them to be seperated / distinguished from 
+        # locally generated events of the same type.
+        # 
+        device_number: 1
+        monitor_event_types: [KeyboardPressEvent,KeyboardReleaseEvent,KeyboardCharEvent]
+        publishing_protocal: tcp://127.0.0.1:5555
+    - network.RemoteEventSubscriber:
+        name: evt_sub
+        event_buffer_length: 128
+        # For this demo, we are connecting the subscriber to the locally running
+        # event publisher.
+        #
+        subscription_protocal: tcp://127.0.0.1:5555
+        monitor_event_types: [KeyboardPressEvent,KeyboardCharEvent]
+        # remote_iohub_address specifies the ioHub server ip and standard UDP port
+        #   for the 'remote' ioHub Server instance that is running the EventPublisher.
+        #   This is used by the time syncronization manager so offset and drift
+        #   measures can be calculated between the time base of the local and remote ioHub 
+        #   servers. Port 9034 is the default ioHub server UDP port, so unless
+        #   it has been reconfigured, it is a good bet. ;)
+        #
+        remote_iohub_address: [127.0.0.1, 9034]
+data_store:
+    enable: True

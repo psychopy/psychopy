@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-keyboard.run.py
+iohub_keyboard.py
 
 Displays event information from ioHub Keyboard Events. 
 
 Inital Version: May 6th, 2013, Sol Simpson
+Updated June 22nd: Added demo timeout. SS
 """
-from psychopy import visual
+from psychopy import core, visual
 from psychopy.iohub import launchHubServer,EventConstants 
 
 
@@ -66,7 +67,11 @@ TEXT_ROWS_START_Y=(ROW_COUNT*TEXT_ROW_HEIGHT)/2
 #
 # field labels:
 title_label = visual.TextStim(window, units=unit_type, text=u'Press CTRL + Q to Exit Demo', 
-                         pos = [0,display_resolution[1]/2-100], height=TEXT_STIM_HEIGHT+1.5, 
+                         pos = [0,display_resolution[1]/4], height=TEXT_STIM_HEIGHT, 
+                         color=[0.5,0.2,0.5], colorSpace='rgb',alignHoriz='center',
+                         alignVert='center',wrapWidth=display_resolution[0])
+title2_label = visual.TextStim(window, units=unit_type, text=u'Press and Releases Keys for ioHub KB Event Details', 
+                         pos = [0,display_resolution[1]/3], height=TEXT_STIM_HEIGHT+1.5, 
                          color=[-0.5,0.5,0.5], colorSpace='rgb',alignHoriz='center',
                          alignVert='center',wrapWidth=display_resolution[0])
 key_text_label = visual.TextStim(window, units=unit_type, text=u'event.key:', 
@@ -112,7 +117,7 @@ event_type_stim = visual.TextStim(window,units=unit_type, text=u'',
                          wrapWidth=VALUE_WRAP_LENGTH)
 
 # Having all the stim to update / draw in a list makes drawing code more compact and reusable
-STIM_LIST=[title_label,key_text_label,ucode_label,modifiers_label,keypress_duration_label,event_type_label,
+STIM_LIST=[title_label,title2_label,key_text_label,ucode_label,modifiers_label,keypress_duration_label,event_type_label,
            key_text_stim,ucode_stim,modifiers_stim,keypress_duration_stim,event_type_stim]  
 
 
@@ -121,7 +126,9 @@ STIM_LIST=[title_label,key_text_label,ucode_label,modifiers_label,keypress_durat
 io.clearEvents('all')
         
 QUIT_EXP=False
-# Loop until we get a CTRL+q, event 
+demo_timeout_start=core.getTime()
+
+# Loop until we get a CTRL+q event or until 120 seconds has passed 
 #
 while QUIT_EXP is False:
     
@@ -140,17 +147,24 @@ while QUIT_EXP is False:
     # recent event in the list of a given event type is what you will see.
     #    
     for event in keyboard.getEvents():
+        #print 'KB EVT: ',  event, '\n'
         key_text_stim.setText(event.key)
         ucode_stim.setText('{0:#06x} = {1}'.format(event.ucode,unichr(event.ucode)))
         modifiers_stim.setText(str(event.modifiers))
         if event.type == EventConstants.KEYBOARD_CHAR:
             keypress_duration_stim.setText("%.6f"%(event.duration))
         event_type_stim.setText(EventConstants.getName(event.type))
+
+        demo_timeout_start=event.time
     
-        if event.key.lower()=='q' and ('CONTROL_LEFT' in event.modifiers or 'CONTROL_LEFT' in event.modifiers):
+        if (event.key.lower()=='q' and ('CONTROL_LEFT' in event.modifiers or 'CONTROL_LEFT' in event.modifiers)):
             QUIT_EXP=True
             break
-
+        
+    if flip_time-demo_timeout_start>15.0:
+        print "Ending Demo Due to 15 Seconds of Inactivity."
+        break
+    
     # Send a message to the iohub with the message text that a flip 
     # occurred and what the mouse position was. Since we know the 
     # psychopy-iohub time the flip occurred on, we can set that directly 

@@ -11,7 +11,6 @@ from psychopy.iohub import launchHubServer,EventConstants
 from math import fabs
 
 io=launchHubServer(psychopy_monitor_name='default')
-#window=FullScreenWindow(io.devices.display)
 display = io.devices.display
 window=visual.Window(display.getPixelResolution(), monitor=display.getPsychopyMonitorName(), 
                         units=display.getCoordinateType(),

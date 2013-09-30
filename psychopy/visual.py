@@ -86,13 +86,8 @@ except:
 
 global DEBUG; DEBUG=False
 
-#symbols for MovieStim
+#symbols for MovieStim: PLAYING, STARTED, PAUSED, NOT_STARTED, FINISHED
 from psychopy.constants import *
-#PLAYING=1
-#STARTED=1
-#PAUSED=2
-#NOT_STARTED=0
-#FINISHED=-1
 
 #keep track of windows that have been opened
 openWindows=[]
@@ -1185,8 +1180,10 @@ class Window(object):
             self.flip()
             if len(self.frameIntervals)>=10 and numpy.std(self.frameIntervals[-10:])<(threshold/1000.0):
                 rate = 1.0/numpy.mean(self.frameIntervals[-10:])
-                if self.screen==None:scrStr=""
-                else: scrStr = " (%i)" %self.screen
+                if self.screen==None:
+                    scrStr=""
+                else:
+                    scrStr = " (%i)" %self.screen
                 logging.debug('Screen%s actual frame rate measured at %.2f' %(scrStr,rate))
                 self.setRecordFrameIntervals(recordFrmIntsOrig)
                 self.frameIntervals=[]
@@ -1514,7 +1511,7 @@ class _BaseVisualStim:
         return pointInPolygon(x, y, self)
 
     def _getPolyAsRendered(self):
-        """return a list of vertices as rendered; used by overlaps(), centroid()
+        """return a list of vertices as rendered; used by overlaps()
         """
         oriRadians = numpy.radians(self.ori)
         sinOri = numpy.sin(-oriRadians)
@@ -2194,6 +2191,7 @@ class SimpleImageStim:
         if log and self.autoLog:
             self.win.logOnFlip("Set %s image=%s" %(self.name, filename),
                 level=logging.EXP,obj=self)
+
 class GratingStim(_BaseVisualStim):
     """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in either dimension
     One of the main stimuli for PsychoPy.
@@ -2667,7 +2665,6 @@ class GratingStim(_BaseVisualStim):
     def _calcCyclesPerStim(self):
         if self.units in ['norm', 'height']: self._cycles=self.sf#this is the only form of sf that is not size dependent
         else: self._cycles=self.sf*self.size
-
 
 class PatchStim(GratingStim):
     def __init__(self, *args, **kwargs):
@@ -3887,6 +3884,9 @@ class MovieStim(_BaseVisualStim):
         mov.draw() #draw the current frame (automagically determined)
 
     See MovieStim.py for demo.
+
+    mov.contains() and mov.overlaps() will work only if the containing
+    visual.Window() has units='pix'.
     """
     def __init__(self, win,
                  filename = "",
@@ -3971,7 +3971,6 @@ class MovieStim(_BaseVisualStim):
             logging.error("looping of movies is not currently supported for pyglet>=1.2 only for version 1.1.4")
         self.loadMovie( self.filename )
         self.format=self._movie.video_format
-        self.pos=pos
         self.pos = numpy.asarray(pos, float)
         self.depth=depth
         self.flipVert = flipVert
@@ -3982,21 +3981,34 @@ class MovieStim(_BaseVisualStim):
         self.status=NOT_STARTED
 
         #size
-        if size == None: self.size= numpy.array([self.format.width,
-                                                 self.format.height] , float)
-
-        elif type(size) in [tuple,list]: self.size = numpy.array(size,float)
-        else: self.size = numpy.array((size,size),float)
+        if size == None:
+            self.size = numpy.array([self.format.width, self.format.height], float)
+        elif type(size) in [tuple, list]:
+            self.size = numpy.array(size,float)
+        else:
+            self.size = numpy.array((size,size), float)
 
         self.ori = ori
-
         self._calcPosRendered()
         self._calcSizeRendered()
+
+        # enable self.contains(), overlaps(); currently win must have pix units:
+        self._calcVertices()
 
         #check for pyglet
         if win.winType!='pyglet':
             logging.Error('Movie stimuli can only be used with a pyglet window')
             core.quit()
+    def _calcVertices(self):
+        R, T = self._sizeRendered / 2  # pix
+        L, B = -R, -T
+        self.needVertexUpdate = True
+        self._vertices = numpy.array([[L, T], [R, T], [R, B], [L, B]])
+        self.needVertexUpdate = True
+    def _calcVerticesRendered(self):
+        self.needVertexUpdate = False
+        self._verticesRendered = self._vertices
+        self._posRendered = self.pos
     def setMovie(self, filename, log=True):
         """See `~MovieStim.loadMovie` (the functions are identical).
         This form is provided for syntactic consistency with other visual stimuli.
@@ -5062,7 +5074,10 @@ class Polygon(ShapeStim):
             ) * self.radius
             for e in xrange(self.edges)
         ]
-
+    def setEdges(self,edges):
+        "Set the number of edges to a new value"
+        self.edges=edges
+        self._calcVertices()
     def setRadius(self, radius, log=True):
         """Changes the radius of the Polygon. Parameter should be
 
@@ -5073,8 +5088,9 @@ class Polygon(ShapeStim):
         if log and self.autoLog:
             self.win.logOnFlip("Set %s radius=%s" %(self.name, radius),
                 level=logging.EXP,obj=self)
+
 class Circle(Polygon):
-    """Creates a Circle with a given radius as a special case of a `~psychopy.visual.ShapeStim`
+    """Creates a Circle with a given radius as a special case of a :class:`~psychopy.visual.ShapeStim`
 
     (New in version 1.72.00)
     """
@@ -5112,7 +5128,7 @@ class Circle(Polygon):
                 level=logging.EXP,obj=self)
 
 class Rect(ShapeStim):
-    """Creates a rectangle of given width and height as a special case of a `~psychopy.visual.ShapeStim`
+    """Creates a rectangle of given width and height as a special case of a :class:`~psychopy.visual.ShapeStim`
 
     (New in version 1.72.00)
     """
@@ -5173,7 +5189,7 @@ class Line(ShapeStim):
     """
     def __init__(self, win, start=(-.5, -.5), end=(.5, .5), **kwargs):
         """
-        Line accepts all input parameters, that `~psychopy.visual.ShapeStim` accepts, except
+        Line accepts all input parameters, that :class:`~psychopy.visual.ShapeStim` accepts, except
         for vertices, closeShape and fillColor.
 
         The methods `contains` and `overlaps` are inherited from `~psychopy.visual.ShapeStim`,
@@ -5353,6 +5369,7 @@ class ImageStim(_BaseVisualStim):
         self.maskParams= maskParams
 
         self.texRes=texRes
+        self.isLumImage = None
         self.setImage(image, log=False)
         self.setMask(mask, log=False)
 
@@ -5554,6 +5571,7 @@ class ImageStim(_BaseVisualStim):
         """
         self._imName = value
 
+        wasLumImage = self.isLumImage
         self.isLumImage = createTexture(value, id=self.texID, stim=self,
             pixFormat=GL.GL_RGB, dataType=GL.GL_UNSIGNED_BYTE,
             maskParams=self.maskParams, forcePOW2=False)
@@ -5563,6 +5581,9 @@ class ImageStim(_BaseVisualStim):
         if log and self.autoLog:
             self.win.logOnFlip("Set %s image=%s" %(self.name, value),
                 level=logging.EXP,obj=self)
+        #if we switched to/from lum image then need to update shader rule
+        if wasLumImage != self.isLumImage:
+            self.needUpdate=True
     def setMask(self,value, log=True):
         """Change the image to be used as an alpha-mask for the image
         """
@@ -5590,6 +5611,7 @@ class ImageStim(_BaseVisualStim):
         #set it
         self._calcSizeRendered()
         self.needUpdate=True
+
 class BufferImageStim(GratingStim):
     """
     Take a "screen-shot" (full or partial), save to a ImageStim()-like RBGA object.
@@ -5673,7 +5695,7 @@ class BufferImageStim(GratingStim):
         # depends on: window._getRegionOfFrame
 
         _clock = core.Clock()
-        if len(list(stim)) > 0: # draw all stim to the back buffer
+        if stim: # draw all stim to the back buffer
             win.clearBuffer()
             logging.debug('BufferImageStim.__init__: clearing back buffer')
             buffer = 'back'
@@ -5694,19 +5716,17 @@ class BufferImageStim(GratingStim):
             if not sqPower2:
                 logging.debug('BufferImageStim.__init__: defaulting to square power-of-2 sized image (%s)' % glversion )
             region = win._getRegionOfFrame(buffer=buffer, rect=rect, squarePower2=True)
+        if stim:
+            win.clearBuffer()
 
         # turn the RGBA region into a GratingStim()-like object:
         if win.units in ['norm']:
             pos *= win.size/2.
         GratingStim.__init__(self, win, tex=region, units='pix', mask=mask, pos=pos,
                              interpolate=interpolate, name=name, autoLog=autoLog)
-        # May 2012: GratingStim is ~3x faster to initialize than ImageStim, looks the same in the demo
-        # but subclassing ImageStim seems more intuitive; maybe setTex gets called multiple times?
-        #ImageStim.__init__(self, win, image=region, units='pix', interpolate=interpolate, name=name, autoLog=autoLog)
 
         # to improve drawing speed, move these out of draw:
         self.desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
-
         self.thisScale = 2.0/numpy.array(self.win.size)
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
@@ -5872,7 +5892,7 @@ class RatingScale:
             myRatingScale = visual.RatingScale(myWin,
                                 choices=['cherry', 'apple', True, var, 'pie'])
 
-        So if you the subject chooses True,
+        So if the subject chooses True,
         getResponse() will return True (bool) and not u'True' (unicode).
 
     See Coder Demos -> stimuli -> ratingScale.py for examples. As another example,
@@ -5936,19 +5956,19 @@ class RatingScale:
         win :
             A :class:`~psychopy.visual.Window` object (required)
         scale :
-            string, explanation of the numbers to display to the subject, shown above the line;
-            default = '<low>=not at all, <high>=extremely'
-            to suppress all text above the line, set `showScale=False`,
-            if `labels` is not `False` and `choices` or `tickMarks` exists,
+            explanation of the numbers to display to the subject, shown above the line;
+            string, default = '<low>=not at all, <high>=extremely'.
+            To suppress all text above the line, set `showScale=False`.
+            If `labels` is not `False` and `choices` or `tickMarks` exists,
             `scale` defaults to `False`.
         choices :
             a list of items which the subject can choose among;
-            (takes precedence over `low`, `high`, `lowAnchorText`, `highAnchorText`, `showScale`,
-            `tickMarks`)
+            takes precedence over `low`, `high`, `lowAnchorText`, `highAnchorText`,
+            `showScale`, `tickMarks`, `precision`.
         low :
             lowest numeric rating / low anchor (integer, default = 1)
         high :
-            highest numeric rating / high anchor (integer, default = 7; at least low+1)
+            highest numeric rating / high anchor (integer, default = 7; at least `low + 1`)
         lowAnchorText :
             text to dsiplay for the low end of the scale (default = numeric low value)
         highAnchorText :
@@ -5956,43 +5976,45 @@ class RatingScale:
         tickMarks :
             list of positions at which tick marks should be placed
             (low and high need to be included if tick marks should be at the edges of the scale).
-            If None (the default), tick marks are placed automatically equally spaced,
-            one per integer value (auto-rescaling by a factor of 10 can happen to reduce visual clutter)
+            If `None` (the default), tick marks are automatically equally spaced,
+            one per integer value; auto-rescaling (by a factor of 10) can happen to reduce visual clutter.
         labels :
             text to be placed at each tick mark as placed by tickMarks and controls where labels
             of choices are displayed. Default is `None`.
             If `None` and `choices`:  choices will be plotted at ticks and
             `showAnchors=False`, but `scale` can be used for plotting above the line.
             If `None` and  `tickMarks`: `tickMarks` will be used and `showAnchors=False`.
-            If False, no labels are plotted at ticj marks (i.e., restores old behavior of `choices`).
+            If `False`, no labels are plotted at tick marks.
         precision :
             portions of a tick to accept as input [1, 10, 100], default = 1 tick (no fractional parts)
 
-            .. note:: `leftKeys` / `rightKeys` will move the marker by one portion of a tick.
+            .. note:: pressing a key in `leftKeys` or `rightKeys` will move the marker by one portion of a tick.
+
+            .. note:: precision is incompatible with `choices`.
 
         textSizeFactor :
-            control the size of text elements of the scale.
-            for larger than default text (expand) set > 1; for smaller, set < 1
+            the size of text elements of the scale.
+            For larger than default text (expand) set > 1; for smaller, set < 1.
         textColor :
             color to use for anchor and scale text (assumed to be RGB), default = 'LightGray'
         textFont :
             name of the font to use, default = 'Helvetica Bold'
         showValue :
-            show the subject their currently selected number, default = True
+            show the subject their currently selected number, default = `True`
         showScale :
-            show the `scale` text (the text above the line), default = True
-            if False, will not show any text above the line
+            show the `scale` text (the text above the line), default = `True`.
+            If `False`, will not show any text above the line.
         showAnchors :
-            show the two end points of the scale (low, high), default = True
+            show the two end points of the scale (`low`, `high`), default = `True`
         showAccept :
-            show the button to click to accept the current value by using the mouse, default = True
+            show the button to click to accept the current value by using the mouse, default = `True`
 
             .. note::
-                If showAccept is False and acceptKeys is empty, acceptKeys is reset to ['return']
+                If showAccept is False and acceptKeys is empty, `acceptKeys` is reset to `['return']`
                 to give the subject a way to respond.
 
         acceptKeys :
-            a key or list of keys that mean "accept the current response", default = ['return']
+            a key or list of keys that are used to mean "accept the current response", default = `['return']`
         acceptPreText :
             text to display before any value has been selected
         acceptText :
@@ -6000,39 +6022,42 @@ class RatingScale:
         acceptSize :
             width of the accept box relative to the default (e.g., 2 is twice as wide)
         leftKeys :
-            a key or list of keys that mean "move leftwards", default = ['left']
+            a key or list of keys that mean "move leftwards", default = `['left']`
         rightKeys :
-            a key or list of keys that mean "move rightwards", default = ['right']
+            a key or list of keys that mean "move rightwards", default = `['right']`
         lineColor :
             color to use for the scale line, default = 'White'
         ticksAboveLine :
             should the tick marks be displayed above the line (the default) or below
         markerStyle :
-            'triangle' (DarkBlue), 'circle' (DarkRed), or 'glow' (White)
+            'triangle' (DarkBlue), 'circle' (DarkRed), 'glow' (White, expanding),
+            or 'slider' (translucent Black, looks best with `precision=100`)
         markerColor :
-            None = use defaults; or any legal RGB colorname, e.g., '#123456', 'DarkRed'
+            `None` = use defaults; or any legal RGB colorname, e.g., '#123456', 'DarkRed'
         markerStart :
-            False, or the value in [low..high] to be pre-selected upon initial display
+            `False`, or the value in [`low`..`high`] to be pre-selected upon initial display
         markerExpansion :
             how much the glow marker expands when moving to the right; 0=none, negative shrinks; try 10 or -10
         customMarker :
             allows for a user-defined marker; must have a `.draw()` method, such as a
             :class:`~psychopy.visual.TextStim()` or :class:`~psychopy.visual.GratingStim()`
         escapeKeys :
-            keys that will quit the experiment, calling `core.quit()`. default = [ ] (none).
+            keys that will quit the experiment if pressed by the subject (by calling
+            `core.quit()`). default = `[ ]` (no escape keys).
 
-            .. note:: in the Builder, the default is ['escape'] (to be consistent with other Builder conventions)
+            .. note:: in the Builder, the default is `['escape']` (to be consistent
+            with other Builder conventions)
 
         allowSkip :
-            if True, the subject can skip an item by pressing a key in `skipKeys`, default = True
+            if True, the subject can skip an item by pressing a key in `skipKeys`, default = `True`
         skipKeys :
-            list of keys the subject can use to skip a response, default = ['tab']
+            list of keys the subject can use to skip a response, default = `['tab']`
 
             .. note::
                 to require a response to every item, use `allowSkip=False`
 
         mouseOnly :
-            require the subject use the mouse only (no keyboard), default = False.
+            require the subject use the mouse only (no keyboard), default = `False`.
             can be used to avoid competing with other objects for keyboard input.
 
             .. note::
@@ -6043,28 +6068,28 @@ class RatingScale:
                 `mouseOnly=True` is helpful if there will be something else
                 on the screen expecting keyboard input
         singleClick :
-            enable a mouse click to both indicate and accept the rating, default = False.
-            note that the 'accept' box is visible, but clicking it has no effect,
-            its just to display the value. a legal key press will also count as a singleClick.
+            enable a mouse click to both indicate and accept the rating, default = `False`.
+            Note that the 'accept' box is visible, but clicking it has no effect,
+            its just to display the value. A legal key press will also count as a singleClick.
         pos : tuple (x, y)
             where to position the rating scale (x, y) in terms of the window's units (pix, norm);
-            default (0.0, -0.4) in norm units
+            default `(0.0, -0.4)` in norm units
         displaySizeFactor :
             how much to expand or contract the overall rating scale display
             (not just the line length)
         stretchHoriz:
-            multiplicative factor for stretching (or compressing) the scale
+            how much to stretch (or compress) the scale
             horizontally (3 -> use the whole window);
-            like displaySizeFactor, but only in the horizontal direction
+            acts like `displaySizeFactor`, but only in the horizontal direction
         minTime :
             number of seconds that must elapse before a reponse can be accepted,
-            default = 1.0s
+            default = `1.0`.
         maxTime :
             number of seconds after which a reponse cannot be made accepted.
             if `maxTime` <= `minTime`, there's unlimited time.
-            default = 0.0s (wait forever)
+            default = `0.0` (wait forever).
         disappear :
-            if True, the rating scale will be hidden after a value is accepted;
+            if `True`, the rating scale will be hidden after a value is accepted;
             useful when showing multiple scales. The default is to remain on-screen.
 
         name : string
@@ -6129,6 +6154,9 @@ class RatingScale:
         self.mouseOnly = bool(mouseOnly)
         self.singleClick = bool(singleClick)
         self.acceptKeys = acceptKeys
+        if choices and precision != 1:
+            precision = 1  # a fractional choice is undefined
+            logging.exp('RatingScale: precision is incompatible with choices')
         self.precision = precision
         self.showAnchors = bool(showAnchors)
         self.labelTexts = None
@@ -6464,6 +6492,17 @@ class RatingScale:
             self.marker = ShapeStim(win=self.win, units='norm', vertices=vert,
                 lineWidth=0.1, lineColor=markerColor, fillColor=markerColor,
                 name=self.name+'.markerTri', autoLog=False)
+        elif self.markerStyle == 'slider':
+            scaledTickSize = self.tickSize * self.displaySizeFactor
+            vert = [[-1 * scaledTickSize * 1.8, scaledTickSize],
+                    [ scaledTickSize * 1.8, scaledTickSize],
+                    [ scaledTickSize * 1.8, -1 * scaledTickSize],
+                    [-1 * scaledTickSize * 1.8, -1 * scaledTickSize]]
+            if markerColor == None or not _isValidColor(markerColor):
+                markerColor = 'black'
+            self.marker = ShapeStim(win=self.win, units='norm', vertices=vert,
+                lineWidth=0.1, lineColor=markerColor, fillColor=markerColor,
+                name=self.name+'.markerSlider', opacity=0.8, autoLog=False)
         elif self.markerStyle == 'glow':
             if markerColor == None or not _isValidColor(markerColor):
                 markerColor = 'White'
@@ -6548,8 +6587,8 @@ class RatingScale:
         """Method to set the text description that appears above the rating line.
 
         Useful when using the same RatingScale object to rate several dimensions.
-        setDescription(None) will reset the description to its initial state.
-        set to a space character (' ') to make the description invisible.
+        `setDescription(None)` will reset the description to its initial state.
+        Set to a space character (' ') to make the description invisible.
         The description will not be visible if `showScale` is False.
         """
         if scale is None:
@@ -6599,7 +6638,7 @@ class RatingScale:
         interpolate = bool(not sys.platform.startswith('linux'))
         self.acceptBox = ShapeStim(win=self.win, vertices=acceptBoxVertices,
             fillColor=self.acceptFillColor, lineColor=self.acceptLineColor,
-            interpolate=interpolate, name=self.name+'.accept')
+            interpolate=interpolate, name=self.name+'.accept', autoLog=False)
 
         # text to display inside accept button before a marker has been placed:
         if self.low > 0 and self.high < 10 and not self.mouseOnly:
@@ -6646,11 +6685,17 @@ class RatingScale:
 
         Assuming you have defined rs = RatingScale(...), you can specify a tick
         position directly::
+
             rs.setMarkerPos(2)
+
         or do range checking, precision management, and auto-rescaling::
+
             rs.setMarkerPos(rs._getMarkerFromTick(2))
+
         To work from a screen coordinate, such as the X position of a mouse click::
+
             rs.setMarkerPos(rs._getMarkerFromPos(mouseX))
+
         """
         self.markerPlacedAt = tick
         self.markerPlaced = True # only needed first time, which this ensures
@@ -6697,10 +6742,10 @@ class RatingScale:
             # fix the marker position on the line
             if not self.markerPosFixed:
                 try:
-                    self.marker.setFillColor('DarkGray')
+                    self.marker.setFillColor('DarkGray', log=False)
                 except AttributeError:
                     try:
-                        self.marker.setColor('DarkGray')
+                        self.marker.setColor('DarkGray', log=False)
                     except:
                         pass
                 self.marker.setPos((0, -.012), '+')  # drop it onto the line
@@ -6739,9 +6784,9 @@ class RatingScale:
                 self.marker.draw()
             if self.showAccept:
                 self.frame = (self.frame + 1) % 100
-                self.acceptBox.setFillColor(self.pulseColor[self.frame])
-                self.acceptBox.setLineColor(self.pulseColor[self.frame])
-                self.accept.setColor(self.acceptTextColor)
+                self.acceptBox.setFillColor(self.pulseColor[self.frame], log=False)
+                self.acceptBox.setLineColor(self.pulseColor[self.frame], log=False)
+                self.accept.setColor(self.acceptTextColor, log=False)
                 if self.showValue and self.markerPlacedAt is not False:
                     if self.choices:
                         val = unicode(self.choices[int(self.markerPlacedAt)])
@@ -6811,8 +6856,8 @@ class RatingScale:
             # minimum time is enforced during key and mouse handling
             self.status = FINISHED
             if self.showAccept:
-                self.acceptBox.setFillColor(self.acceptFillColor)
-                self.acceptBox.setLineColor(self.acceptLineColor)
+                self.acceptBox.setFillColor(self.acceptFillColor, log=False)
+                self.acceptBox.setLineColor(self.acceptLineColor, log=False)
 
         # build up response history:
         tmpRating = self.getRating()
@@ -7425,7 +7470,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
                     im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
 
         #is it Luminance or RGB?
-        if im.mode=='L':
+        if im.mode=='L' and pixFormat==GL.GL_ALPHA:
             wasLum = True
         elif pixFormat==GL.GL_ALPHA:#we have RGB and need Lum
             wasLum = True
@@ -7441,7 +7486,6 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None, forcePOW2=
             intensity = numpy.array(im)
         if wasLum and intensity.shape!=im.size:
             intensity.shape=im.size
-            print intensity.min(), intensity.max()
 
     if pixFormat==GL.GL_RGB and wasLum and dataType==GL.GL_FLOAT:
         #keep as float32 -1:1
@@ -7596,7 +7640,6 @@ def polygonsOverlap(poly1, poly2):
             return True
     return False
 
-
 def _setTexIfNoShaders(obj):
     """Useful decorator for classes that need to update Texture after other properties
     """
@@ -7674,7 +7717,13 @@ def _setColor(self, color, colorSpace=None, operation='',
 
     #at this point we have a numpy array of 3 vals (actually we haven't checked that there are 3)
     #check if colorSpace is given and use self.colorSpace if not
-    if colorSpace==None: colorSpace=getattr(self,colorSpaceAttrib)
+    if colorSpace==None:
+        colorSpace=getattr(self,colorSpaceAttrib)
+        #using previous color space - if we got this far in the _stColor function
+        #then we haven't been given a color name - we don't know what color space to use.
+        if colorSpace == 'named':
+            logging.error("If you setColor with a numeric color value then you need to specify a color space, e.g. setColor([1,1,-1],'rgb'), unless you used a numeric value previously in which case PsychoPy will reuse that color space.)")
+            return
     #check whether combining sensible colorSpaces (e.g. can't add things to hex or named colors)
     if operation!='' and getattr(self,colorSpaceAttrib) in ['named','hex']:
             raise AttributeError("setColor() cannot combine ('%s') colors within 'named' or 'hex' color spaces"\
@@ -7686,14 +7735,17 @@ def _setColor(self, color, colorSpace=None, operation='',
         exec('self.%s %s= color' %(colorAttrib, operation))#if no operation then just assign
     #get window (for color conversions)
     if colorSpace in ['dkl','lms']: #only needed for these spaces
-        if hasattr(self,'dkl_rgb'): win=self #self is probably a Window
-        elif hasattr(self, 'win'): win=self.win #self is probably a Stimulus
+        if hasattr(self,'dkl_rgb'):
+            win=self #self is probably a Window
+        elif hasattr(self, 'win'):
+            win=self.win #self is probably a Stimulus
         else:
             win=None
             logging.error("_setColor() is being applied to something that has no known Window object")
     #convert new self.color to rgb space
     newColor=getattr(self, colorAttrib)
-    if colorSpace in ['rgb','rgb255']: setattr(self,rgbAttrib, newColor)
+    if colorSpace in ['rgb','rgb255']:
+        setattr(self,rgbAttrib, newColor)
     elif colorSpace=='dkl':
         if numpy.all(win.dkl_rgb==numpy.ones([3,3])):
             dkl_rgb=None
@@ -7712,7 +7764,8 @@ def _setColor(self, color, colorSpace=None, operation='',
         setattr(self,rgbAttrib, colors.lms2rgb(newColor, lms_rgb) )
     elif colorSpace=='hsv':
         setattr(self,rgbAttrib, colors.hsv2rgb(numpy.asarray(newColor)) )
-    else: logging.error('Unknown colorSpace: %s' %colorSpace)
+    else:
+        logging.error('Unknown colorSpace: %s' %colorSpace)
     setattr(self,colorSpaceAttrib, colorSpace)#store name of colorSpace for future ref and for drawing
     #if needed, set the texture too
     _setTexIfNoShaders(self)
@@ -7724,6 +7777,7 @@ def _setColor(self, color, colorSpace=None, operation='',
         else:
             self.logOnFlip("Set Window %s=%s (%s)" %(colorAttrib,newColor,colorSpace),
                 level=logging.EXP,obj=self)
+
 def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """Assesses the monitor refresh rate (average, median, SD) under current conditions, over at least 60 frames.
 
