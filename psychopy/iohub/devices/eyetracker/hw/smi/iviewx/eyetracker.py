@@ -45,7 +45,7 @@ class EyeTracker(EyeTrackerDevice):
                          'BlinkStartEvent', 'BlinkEndEvent']
 
     __slots__=['_api_pc_ip','_api_pc_port','_et_pc_ip','_et_pc_port',
-               '_enable_data_filter','_ioKeyboard','_kbEventQueue','_last_setup_result']
+               '_enable_data_filter','_ioKeyboard','_kbEventQueue','_last_setup_result','_handle_sample_callback']
     # <<<
 
     def __init__(self, *args,**kwargs):
@@ -69,11 +69,11 @@ class EyeTracker(EyeTrackerDevice):
 
             ####
             # Callback sample notification support.
+            # Sept 24, 2013: Callback approach may now work.
             # Causes python to sig term after 1 - 5 mointes recording. 
             # Use polling method instead!
             ####
-            #self._handle_sample_callback=pyViewX.pDLLSetSample(self._handleNativeEvent)            
-            #pyViewX.SetSampleCallback(self._handle_sample_callback)
+            self._handle_sample_callback=pyViewX.pDLLSetSample(self._handleNativeEvent)            
                         
             ####
             # Set the filtering level......
@@ -583,6 +583,7 @@ class EyeTracker(EyeTrackerDevice):
                     method="EyeTracker.setRecordingState",arguement='recording', value=recording)             
 
             if recording is True and not self.isRecordingEnabled(): 
+                pyViewX.SetSampleCallback(self._handle_sample_callback)
                 self._latest_sample=None
                 self._latest_gaze_position=None
 
@@ -591,7 +592,8 @@ class EyeTracker(EyeTrackerDevice):
                 if r == pyViewX.RET_SUCCESS or r == pyViewX.ERR_RECORDING_DATA_BUFFER:
                     EyeTrackerDevice.enableEventReporting(self,True)
                     return self.isRecordingEnabled()
-                    
+                
+                pyViewX.SetSampleCallback(pyViewX.pDLLSetSample(0))    
                 if r == pyViewX.ERR_NOT_CONNECTED:
                     print2err("iViewX setRecordingState True Failed: ERR_NOT_CONNECTED") 
                     return EyeTrackerConstants.EYETRACKER_ERROR
@@ -604,6 +606,8 @@ class EyeTracker(EyeTrackerDevice):
                 self._latest_gaze_position=None
 
                 r=pyViewX.StopRecording() 
+                pyViewX.SetSampleCallback(pyViewX.pDLLSetSample(0))    
+
                 
                 if r == pyViewX.RET_SUCCESS or r == pyViewX.ERR_EMPTY_DATA_BUFFER:
                     EyeTrackerDevice.enableEventReporting(self,False)
@@ -663,312 +667,514 @@ class EyeTracker(EyeTrackerDevice):
                     error_message="An unhandled exception occurred on the ioHub Server Process.",
                     method="EyeTracker.getLastGazePosition", error=e)             
         
-    def _poll(self):
-        if self.isRecordingEnabled():        
-            try:
-                poll_time=Computer.getTime()
-                tracker_time=self.trackerSec()
-                native_tracker_time=self.trackerTime()
-                confidence_interval=poll_time-self._last_poll_time
-               
-                #print2err('-------------iview poll-------------')
-                #print2err('poll_time, confidence_interval: ',(poll_time,confidence_interval))
-                #print2err('tracker_time_sec, native_tracker_time: ',(tracker_time,native_tracker_time))
-                DEVICE_TIMEBASE_TO_SEC=EyeTracker.DEVICE_TIMEBASE_TO_SEC
-    
-                nSamples=[]
-                while 1:
-                    sample=pyViewX.SampleStruct()
-                    r=pyViewX.GetSample(byref(sample))	
-                    if r == pyViewX.RET_SUCCESS:
-                        nSamples.append(sample)
-                    elif r == pyViewX.RET_NO_VALID_DATA:
-                        break
-                    elif r == pyViewX.ERR_NOT_CONNECTED:
-                        break
-                
-                nEvents=[]
-                while 1:
-                    eventDataSample=pyViewX.EventStruct()
-                    r=pyViewX.GetEvent(byref(eventDataSample))	
-                    if r == pyViewX.RET_SUCCESS:
-                        nEvents.append(eventDataSample)
-                    elif r == pyViewX.RET_NO_VALID_DATA:
-                        break
-                    elif r == pyViewX.ERR_NOT_CONNECTED:
-                        break
-    
-                    
-                # process any sample events we got.....     
-                if nSamples:                    
-                    while nSamples:
-                        sample=nSamples.pop(0)
-    
-                        event_type=EventConstants.BINOCULAR_EYE_SAMPLE
-                        # TODO: Detrmine if binocular data is averaged or not for 
-                        #       given model , tracking params, and indicate 
-                        #       so using the recording_eye_type
-                        #       EyeTrackerConstants.BINOCULAR or EyeTrackerConstants.BINOCULAR_AVERAGED
-                        logged_time=poll_time
-                        event_timestamp=sample.timestamp*DEVICE_TIMEBASE_TO_SEC
-                        event_delay=tracker_time-event_timestamp
-                        iohub_time=poll_time-event_delay
- 
-                        plane_number=sample.planeNumber
-                        
-                        left_eye_data=sample.leftEye
-                        right_eye_data=sample.rightEye
-    
-                        left_pupil_measure=left_eye_data.diam
-                        right_pupil_measure=right_eye_data.diam
-
-                        # TODO: ensure corrrect pupil measure type is being saved with pupl data to datastore.                    
-                        pupil_measure_type=EyeTrackerConstants.PUPIL_DIAMETER
-                        
-                        left_gazeX=left_eye_data.gazeX
-                        right_gazeX=right_eye_data.gazeX
-                        left_gazeY=left_eye_data.gazeY
-                        right_gazeY=right_eye_data.gazeY
-   
-                        right_gazeX,right_gazeY=self._eyeTrackerToDisplayCoords((right_gazeX,right_gazeY))
-                        left_gazeX,left_gazeY=self._eyeTrackerToDisplayCoords((left_gazeX,left_gazeY))
-                
-                        left_eyePositionX=left_eye_data.eyePositionX
-                        right_eyePositionX=right_eye_data.eyePositionX
-                        left_eyePositionY=left_eye_data.eyePositionY
-                        right_eyePositionY=right_eye_data.eyePositionY
-                        left_eyePositionZ=left_eye_data.eyePositionZ
-                        right_eyePositionZ=right_eye_data.eyePositionZ
-   
-                        binocSample=[
-                                     0,
-                                     0,
-                                     0, #device id (not currently used)
-                                     Computer._getNextEventID(),
-                                     event_type,
-                                     event_timestamp,
-                                     logged_time,
-                                     iohub_time,
-                                     confidence_interval,
-                                     event_delay,
-                                     0,
-                                     left_gazeX,
-                                     left_gazeY,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     left_eyePositionX,
-                                     left_eyePositionY,
-                                     left_eyePositionZ,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     left_pupil_measure,
-                                     pupil_measure_type,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     right_gazeX,
-                                     right_gazeY,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     right_eyePositionX,
-                                     right_eyePositionY,
-                                     right_eyePositionZ,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     right_pupil_measure,
-                                     pupil_measure_type,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     EyeTrackerConstants.UNDEFINED,
-                                     plane_number    # Since the sample struct has not status field
-                                     ]               # we are using it to hold the 
-                                                     # 'plane number' from the iViewX native sample.
-    
-                        self._latest_sample=binocSample
-            
-            
-                        ic=0
-                        EyeTracker._gx=0.0
-                        EyeTracker._gy=0.0  
-                        if right_pupil_measure>0.0 and right_eye_data.gazeX != 0.0 and  right_eye_data.gazeY != 0.0:
-                            EyeTracker._gx=EyeTracker._gx+right_gazeX
-                            EyeTracker._gy=EyeTracker._gy+right_gazeY
-                            ic+=1
-
-                        if left_pupil_measure>0.0 and left_eye_data.gazeX != 0.0 and  left_eye_data.gazeY != 0.0:
-                            EyeTracker._gx=EyeTracker._gx+left_gazeX
-                            EyeTracker._gy=EyeTracker._gy+left_gazeY
-                            ic+=1
-                            
-                        if ic == 2:
-                            EyeTracker._gx= EyeTracker._gx/2.0
-                            EyeTracker._gy= EyeTracker._gy/2.0
-
-                        if ic > 0:
-                            self._latest_gaze_position=(EyeTracker._gx,EyeTracker._gy)
-                        else:
-                            self._latest_gaze_position=None
-                            
-                        self._addNativeEventToBuffer(binocSample)
-    
-                # process any fixation events we got.....
-                if nEvents:
-                    # each fixation event is both a start and end fixation, so we will
-                    # create both a STartFix and EndFix ioHub event for each fix event
-                    # we get from the iViewX
-                    
-                    while nEvents:
-                        fix_event=nEvents.pop(0)
-                        
-                        # common fields
-                        logged_time=poll_time
-                        confidence_interval=poll_time-self._last_poll_time
-    
-                        if fix_event.eye == 'r':
-                            which_eye=EyeTrackerConstants.RIGHT_EYE
-                        elif fix_event.eye == 'l':
-                            which_eye=EyeTrackerConstants.LEFT_EYE
-    
-                        event_start_time=fix_event.startTime*DEVICE_TIMEBASE_TO_SEC
-                        event_end_time=fix_event.endTime*DEVICE_TIMEBASE_TO_SEC
-                        event_duration=fix_event.duration*DEVICE_TIMEBASE_TO_SEC
-    
-                        event_avg_x=fix_event.positionX
-                        event_avg_y=fix_event.positionY
-                        
-                        event_avg_x,event_avg_y=self._eyeTrackerToDisplayCoords((event_avg_x,event_avg_y))
-                        start_event_delay=tracker_time-event_start_time
-                        end_event_delay=tracker_time-event_end_time
-                        
-                        start_iohub_time=poll_time-start_event_delay
-                        end_iohub_time=poll_time-end_event_delay
-                        
-                        # create fix start event......
-                        event_type=EventConstants.FIXATION_START
-    
-                        se=[
-                            0,                              # exp ID
-                            0,                              # sess ID
-                            0, #device id (not currently used)
-                            Computer._getNextEventID(),     # event ID
-                            event_type,                     # event type
-                            event_start_time,
-                            logged_time,
-                            start_iohub_time,
-                            confidence_interval,
-                            start_event_delay,
-                            0,                                      # ioHub filter ID
-                            which_eye,                              # eye
-                            EyeTrackerConstants.UNDEFINED,          # gaze x
-                            EyeTrackerConstants.UNDEFINED,          # gaze y
-                            EyeTrackerConstants.UNDEFINED,          # gaze z
-                            EyeTrackerConstants.UNDEFINED,          # angle x
-                            EyeTrackerConstants.UNDEFINED,          # angle y
-                            EyeTrackerConstants.UNDEFINED,          # raw x
-                            EyeTrackerConstants.UNDEFINED,          # raw y
-                            EyeTrackerConstants.UNDEFINED,          # pupil area
-                            EyeTrackerConstants.UNDEFINED,          # pupil measure type 1
-                            EyeTrackerConstants.UNDEFINED,          # pupil measure 2
-                            EyeTrackerConstants.UNDEFINED,          # pupil measure 2 type
-                            EyeTrackerConstants.UNDEFINED,          # ppd x
-                            EyeTrackerConstants.UNDEFINED,          # ppd y
-                            EyeTrackerConstants.UNDEFINED,          # velocity x
-                            EyeTrackerConstants.UNDEFINED,          # velocity y
-                            EyeTrackerConstants.UNDEFINED,          # velocity xy
-                            EyeTrackerConstants.UNDEFINED           # status
-                            ]
+    def _handleNativeEvent(self,*args,**kwargs):
+        """
+        TODO: Add support for Fixation events. Currently callback only supports samples.
         
-                        self._addNativeEventToBuffer(se)
-                    
-                    
-                        # create fix end event........
-    
-                        event_type=EventConstants.FIXATION_END
-    
-                        fee=[0,
-                             0,
-                             0, #device id (not currently used)
-                             Computer._getNextEventID(),
-                             event_type,
-                             event_end_time,
-                             logged_time,
-                             end_iohub_time,
-                             confidence_interval,
-                             end_event_delay,
-                             0,
-                             which_eye,
-                             event_duration,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             event_avg_x,
-                             event_avg_y,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED
-                             ]
-                        
-                        self._addNativeEventToBuffer(fee)
-                self._last_poll_time=poll_time
-                return True
+        The _handleEvent method can be used by the native device interface (implemented 
+        by the ioHub Device class) to register new native device events
+        by calling this method of the ioHub Device class. 
+        
+        When a native device interface uses the _handleNativeEvent method it is 
+        employing an event callback approach to notify the ioHub Process when new
+        native device events are available. This is in contrast to devices that use
+        a polling method to check for new native device events, which would implement
+        the _poll() method instead of this method.
+        
+        Generally speaking this method is called by the native device interface
+        once for each new event that is available for the ioHub Process. However,
+        with good cause, there is no reason why a single call to this
+        method could not handle multiple new native device events. 
+
+        .. note::         
+            If using _handleNativeEvent, be sure to remove the device_timer 
+            property from the devices configuration section of the iohub_config.yaml.
+
+        Any arguments or kwargs passed to this method are determined by the ioHub
+        Device implementation and should contain all the information needed to create
+        an ioHub Device Event.
+        
+        Since any callbacks should take as little time to process as possible, 
+        a two stage approach is used to turn a native device event into an ioHub
+        Device event representation:
+            #. This method is called by the native device interface as a callback, providing the necessary information to be able to create an ioHub event. As little processing should be done in this method as possible.
+            #. The data passed to this method, along with the time the callback was called, are passed as a tuple to the Device classes _addNativeEventToBuffer method.
+            #. During the ioHub Servers event processing routine, any new native events that have been added to the ioHub Server using the _addNativeEventToBuffer method are passed individually to the _getIOHubEventObject method, which must also be implemented by the given Device subclass.
+            #. The _getIOHubEventObject method is responsible for the actual conversion of the native event representation to the required ioHub Event representation for the accociated event type.
             
-            except Exception:
-                print2err("ERROR occurred during poll:")
-                printExceptionDetailsToStdErr()
+        Args:
+            args(tuple): tuple of non keyword arguements passed to the callback.
+            
+        Kwargs:
+            kwargs(dict): dict of keyword arguements passed to the callback.
+            
+        Returns:
+            None
+        """
+        try:
+                
+            poll_time=Computer.getTime()
+            tracker_time=self.trackerSec()
+            
+            # TODO: The switch from polling to event based means CI calc need to be changed.
+            # Setting to 0 for now.
+            confidence_interval=0.0#poll_time-self._last_poll_time
+            DEVICE_TIMEBASE_TO_SEC=EyeTracker.DEVICE_TIMEBASE_TO_SEC  
+                  
+            sample = args[0]
+            #print2err('sample: ',sample.timestamp)
+    
+            event_type=EventConstants.BINOCULAR_EYE_SAMPLE
+            # TODO: Detrmine if binocular data is averaged or not for 
+            #       given model , tracking params, and indicate 
+            #       so using the recording_eye_type
+            #       EyeTrackerConstants.BINOCULAR or EyeTrackerConstants.BINOCULAR_AVERAGED
+            logged_time=poll_time
+            event_timestamp=sample.timestamp*DEVICE_TIMEBASE_TO_SEC
+            event_delay=tracker_time-event_timestamp
+            iohub_time=poll_time-event_delay
+     
+            plane_number=sample.planeNumber
+            
+            left_eye_data=sample.leftEye
+            right_eye_data=sample.rightEye
+    
+            left_pupil_measure=left_eye_data.diam
+            right_pupil_measure=right_eye_data.diam
+    
+            # TODO: ensure corrrect pupil measure type is being saved with pupl data to datastore.                    
+            pupil_measure_type=EyeTrackerConstants.PUPIL_DIAMETER
+            
+            left_gazeX=left_eye_data.gazeX
+            right_gazeX=right_eye_data.gazeX
+            left_gazeY=left_eye_data.gazeY
+            right_gazeY=right_eye_data.gazeY
+       
+            right_gazeX,right_gazeY=self._eyeTrackerToDisplayCoords((right_gazeX,right_gazeY))
+            left_gazeX,left_gazeY=self._eyeTrackerToDisplayCoords((left_gazeX,left_gazeY))
+    
+            left_eyePositionX=left_eye_data.eyePositionX
+            right_eyePositionX=right_eye_data.eyePositionX
+            left_eyePositionY=left_eye_data.eyePositionY
+            right_eyePositionY=right_eye_data.eyePositionY
+            left_eyePositionZ=left_eye_data.eyePositionZ
+            right_eyePositionZ=right_eye_data.eyePositionZ
+       
+            binocSample=[
+                         0,
+                         0,
+                         0, #device id (not currently used)
+                         Computer._getNextEventID(),
+                         event_type,
+                         event_timestamp,
+                         logged_time,
+                         iohub_time,
+                         confidence_interval,
+                         event_delay,
+                         0,
+                         left_gazeX,
+                         left_gazeY,
+                         EyeTrackerConstants.UNDEFINED,
+                         left_eyePositionX,
+                         left_eyePositionY,
+                         left_eyePositionZ,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         left_pupil_measure,
+                         pupil_measure_type,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         right_gazeX,
+                         right_gazeY,
+                         EyeTrackerConstants.UNDEFINED,
+                         right_eyePositionX,
+                         right_eyePositionY,
+                         right_eyePositionZ,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         right_pupil_measure,
+                         pupil_measure_type,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         EyeTrackerConstants.UNDEFINED,
+                         plane_number    # Since the sample struct has not status field
+                         ]               # we are using it to hold the 
+                                         # 'plane number' from the iViewX native sample.
+            
+            self._addNativeEventToBuffer(binocSample)
+        except Exception:
+            print2err("ERROR occurred during iViewX Sample Callback.")
+            printExceptionDetailsToStdErr()
+        finally:
+            return 0
+            
+    def _getIOHubEventObject(self,native_event_data):
+        """
+        The _getIOHubEventObject method is called by the ioHub Process to convert 
+        new native device event objects that have been received to the appropriate 
+        ioHub Event type representation. 
+        
+        Args:
+            native_event_data: object or tuple of (callback_time, native_event_object)
+           
+        Returns:
+            tuple: The appropriate ioHub Event type in list form.
+        """
+
+        self._latest_sample=native_event_data
+        
+        getAttribIndex=BinocularEyeSampleEvent.CLASS_ATTRIBUTE_NAMES.index
+        
+        left_pupil_measure=native_event_data[getAttribIndex('left_pupil_measure1')]        
+        left_gazeX=native_event_data[getAttribIndex('left_gaze_x')]
+        left_gazeY=native_event_data[getAttribIndex('left_gaze_y')]
+        right_gazeX=native_event_data[getAttribIndex('right_gaze_x')]
+        right_gazeY=native_event_data[getAttribIndex('right_gaze_y')]
+        right_pupil_measure=native_event_data[getAttribIndex('right_pupil_measure1')]
+        
+        ic=0
+        EyeTracker._gx=0.0
+        EyeTracker._gy=0.0  
+        if right_pupil_measure>0.0 and right_gazeX != 0.0 and  right_gazeY != 0.0:
+            EyeTracker._gx=EyeTracker._gx+right_gazeX
+            EyeTracker._gy=EyeTracker._gy+right_gazeY
+            ic+=1
+
+        if left_pupil_measure>0.0 and left_gazeX != 0.0 and  left_gazeY != 0.0:
+            EyeTracker._gx=EyeTracker._gx+left_gazeX
+            EyeTracker._gy=EyeTracker._gy+left_gazeY
+            ic+=1
+            
+        if ic == 2:
+            EyeTracker._gx= EyeTracker._gx/2.0
+            EyeTracker._gy= EyeTracker._gy/2.0
+
+        if ic > 0:
+            self._latest_gaze_position=(EyeTracker._gx,EyeTracker._gy)
+        else:
+            self._latest_gaze_position=None
+
+        return self._latest_sample
+        
+#    def _poll(self):
+#        if self.isRecordingEnabled():        
+#            try:
+#                poll_time=Computer.getTime()
+#                tracker_time=self.trackerSec()
+#                native_tracker_time=self.trackerTime()
+#                confidence_interval=poll_time-self._last_poll_time
+#               
+#                #print2err('-------------iview poll-------------')
+#                #print2err('poll_time, confidence_interval: ',(poll_time,confidence_interval))
+#                #print2err('tracker_time_sec, native_tracker_time: ',(tracker_time,native_tracker_time))
+#                DEVICE_TIMEBASE_TO_SEC=EyeTracker.DEVICE_TIMEBASE_TO_SEC
+#    
+#                nSamples=[]
+#                while 1:
+#                    sample=pyViewX.SampleStruct()
+#                    r=pyViewX.GetSample(byref(sample))	
+#                    if r == pyViewX.RET_SUCCESS:
+#                        nSamples.append(sample)
+#                    elif r == pyViewX.RET_NO_VALID_DATA:
+#                        break
+#                    elif r == pyViewX.ERR_NOT_CONNECTED:
+#                        break
+#                
+#                nEvents=[]
+#                while 1:
+#                    eventDataSample=pyViewX.EventStruct()
+#                    r=pyViewX.GetEvent(byref(eventDataSample))	
+#                    if r == pyViewX.RET_SUCCESS:
+#                        nEvents.append(eventDataSample)
+#                    elif r == pyViewX.RET_NO_VALID_DATA:
+#                        break
+#                    elif r == pyViewX.ERR_NOT_CONNECTED:
+#                        break
+#    
+#                    
+#                # process any sample events we got.....     
+#                if nSamples:                    
+#                    while nSamples:
+#                        sample=nSamples.pop(0)
+#    
+#                        event_type=EventConstants.BINOCULAR_EYE_SAMPLE
+#                        # TODO: Detrmine if binocular data is averaged or not for 
+#                        #       given model , tracking params, and indicate 
+#                        #       so using the recording_eye_type
+#                        #       EyeTrackerConstants.BINOCULAR or EyeTrackerConstants.BINOCULAR_AVERAGED
+#                        logged_time=poll_time
+#                        event_timestamp=sample.timestamp*DEVICE_TIMEBASE_TO_SEC
+#                        event_delay=tracker_time-event_timestamp
+#                        iohub_time=poll_time-event_delay
+# 
+#                        plane_number=sample.planeNumber
+#                        
+#                        left_eye_data=sample.leftEye
+#                        right_eye_data=sample.rightEye
+#    
+#                        left_pupil_measure=left_eye_data.diam
+#                        right_pupil_measure=right_eye_data.diam
+#
+#                        # TODO: ensure corrrect pupil measure type is being saved with pupl data to datastore.                    
+#                        pupil_measure_type=EyeTrackerConstants.PUPIL_DIAMETER
+#                        
+#                        left_gazeX=left_eye_data.gazeX
+#                        right_gazeX=right_eye_data.gazeX
+#                        left_gazeY=left_eye_data.gazeY
+#                        right_gazeY=right_eye_data.gazeY
+#   
+#                        right_gazeX,right_gazeY=self._eyeTrackerToDisplayCoords((right_gazeX,right_gazeY))
+#                        left_gazeX,left_gazeY=self._eyeTrackerToDisplayCoords((left_gazeX,left_gazeY))
+#                
+#                        left_eyePositionX=left_eye_data.eyePositionX
+#                        right_eyePositionX=right_eye_data.eyePositionX
+#                        left_eyePositionY=left_eye_data.eyePositionY
+#                        right_eyePositionY=right_eye_data.eyePositionY
+#                        left_eyePositionZ=left_eye_data.eyePositionZ
+#                        right_eyePositionZ=right_eye_data.eyePositionZ
+#   
+#                        binocSample=[
+#                                     0,
+#                                     0,
+#                                     0, #device id (not currently used)
+#                                     Computer._getNextEventID(),
+#                                     event_type,
+#                                     event_timestamp,
+#                                     logged_time,
+#                                     iohub_time,
+#                                     confidence_interval,
+#                                     event_delay,
+#                                     0,
+#                                     left_gazeX,
+#                                     left_gazeY,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     left_eyePositionX,
+#                                     left_eyePositionY,
+#                                     left_eyePositionZ,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     left_pupil_measure,
+#                                     pupil_measure_type,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     right_gazeX,
+#                                     right_gazeY,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     right_eyePositionX,
+#                                     right_eyePositionY,
+#                                     right_eyePositionZ,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     right_pupil_measure,
+#                                     pupil_measure_type,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     EyeTrackerConstants.UNDEFINED,
+#                                     plane_number    # Since the sample struct has not status field
+#                                     ]               # we are using it to hold the 
+#                                                     # 'plane number' from the iViewX native sample.
+#    
+#                        self._latest_sample=binocSample
+#            
+#            
+#                        ic=0
+#                        EyeTracker._gx=0.0
+#                        EyeTracker._gy=0.0  
+#                        if right_pupil_measure>0.0 and right_eye_data.gazeX != 0.0 and  right_eye_data.gazeY != 0.0:
+#                            EyeTracker._gx=EyeTracker._gx+right_gazeX
+#                            EyeTracker._gy=EyeTracker._gy+right_gazeY
+#                            ic+=1
+#
+#                        if left_pupil_measure>0.0 and left_eye_data.gazeX != 0.0 and  left_eye_data.gazeY != 0.0:
+#                            EyeTracker._gx=EyeTracker._gx+left_gazeX
+#                            EyeTracker._gy=EyeTracker._gy+left_gazeY
+#                            ic+=1
+#                            
+#                        if ic == 2:
+#                            EyeTracker._gx= EyeTracker._gx/2.0
+#                            EyeTracker._gy= EyeTracker._gy/2.0
+#
+#                        if ic > 0:
+#                            self._latest_gaze_position=(EyeTracker._gx,EyeTracker._gy)
+#                        else:
+#                            self._latest_gaze_position=None
+#                            
+#                        self._addNativeEventToBuffer(binocSample)
+#    
+#                # process any fixation events we got.....
+#                if nEvents:
+#                    # each fixation event is both a start and end fixation, so we will
+#                    # create both a STartFix and EndFix ioHub event for each fix event
+#                    # we get from the iViewX
+#                    
+#                    while nEvents:
+#                        fix_event=nEvents.pop(0)
+#                        
+#                        # common fields
+#                        logged_time=poll_time
+#                        confidence_interval=poll_time-self._last_poll_time
+#    
+#                        if fix_event.eye == 'r':
+#                            which_eye=EyeTrackerConstants.RIGHT_EYE
+#                        elif fix_event.eye == 'l':
+#                            which_eye=EyeTrackerConstants.LEFT_EYE
+#    
+#                        event_start_time=fix_event.startTime*DEVICE_TIMEBASE_TO_SEC
+#                        event_end_time=fix_event.endTime*DEVICE_TIMEBASE_TO_SEC
+#                        event_duration=fix_event.duration*DEVICE_TIMEBASE_TO_SEC
+#    
+#                        event_avg_x=fix_event.positionX
+#                        event_avg_y=fix_event.positionY
+#                        
+#                        event_avg_x,event_avg_y=self._eyeTrackerToDisplayCoords((event_avg_x,event_avg_y))
+#                        start_event_delay=tracker_time-event_start_time
+#                        end_event_delay=tracker_time-event_end_time
+#                        
+#                        start_iohub_time=poll_time-start_event_delay
+#                        end_iohub_time=poll_time-end_event_delay
+#                        
+#                        # create fix start event......
+#                        event_type=EventConstants.FIXATION_START
+#    
+#                        se=[
+#                            0,                              # exp ID
+#                            0,                              # sess ID
+#                            0, #device id (not currently used)
+#                            Computer._getNextEventID(),     # event ID
+#                            event_type,                     # event type
+#                            event_start_time,
+#                            logged_time,
+#                            start_iohub_time,
+#                            confidence_interval,
+#                            start_event_delay,
+#                            0,                                      # ioHub filter ID
+#                            which_eye,                              # eye
+#                            EyeTrackerConstants.UNDEFINED,          # gaze x
+#                            EyeTrackerConstants.UNDEFINED,          # gaze y
+#                            EyeTrackerConstants.UNDEFINED,          # gaze z
+#                            EyeTrackerConstants.UNDEFINED,          # angle x
+#                            EyeTrackerConstants.UNDEFINED,          # angle y
+#                            EyeTrackerConstants.UNDEFINED,          # raw x
+#                            EyeTrackerConstants.UNDEFINED,          # raw y
+#                            EyeTrackerConstants.UNDEFINED,          # pupil area
+#                            EyeTrackerConstants.UNDEFINED,          # pupil measure type 1
+#                            EyeTrackerConstants.UNDEFINED,          # pupil measure 2
+#                            EyeTrackerConstants.UNDEFINED,          # pupil measure 2 type
+#                            EyeTrackerConstants.UNDEFINED,          # ppd x
+#                            EyeTrackerConstants.UNDEFINED,          # ppd y
+#                            EyeTrackerConstants.UNDEFINED,          # velocity x
+#                            EyeTrackerConstants.UNDEFINED,          # velocity y
+#                            EyeTrackerConstants.UNDEFINED,          # velocity xy
+#                            EyeTrackerConstants.UNDEFINED           # status
+#                            ]
+#        
+#                        self._addNativeEventToBuffer(se)
+#                    
+#                    
+#                        # create fix end event........
+#    
+#                        event_type=EventConstants.FIXATION_END
+#    
+#                        fee=[0,
+#                             0,
+#                             0, #device id (not currently used)
+#                             Computer._getNextEventID(),
+#                             event_type,
+#                             event_end_time,
+#                             logged_time,
+#                             end_iohub_time,
+#                             confidence_interval,
+#                             end_event_delay,
+#                             0,
+#                             which_eye,
+#                             event_duration,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             event_avg_x,
+#                             event_avg_y,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED,
+#                             EyeTrackerConstants.UNDEFINED
+#                             ]
+#                        
+#                        self._addNativeEventToBuffer(fee)
+#                self._last_poll_time=poll_time
+#                return True
+#            
+#            except Exception:
+#                print2err("ERROR occurred during poll:")
+#                printExceptionDetailsToStdErr()
                 
 
     def _eyeTrackerToDisplayCoords(self,eyetracker_point):

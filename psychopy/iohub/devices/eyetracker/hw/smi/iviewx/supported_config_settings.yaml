@@ -7,12 +7,7 @@ eyetracker.hw.smi.iviewx.EyeTracker:
     enable: IOHUB_BOOL
     save_events: IOHUB_BOOL
     stream_events: IOHUB_BOOL
-    auto_report_events: False 
-    device_timer:
-        interval:
-            IOHUB_FLOAT:
-                min: 0.001
-                max: 0.020
+    auto_report_events: False
     event_buffer_length: 
         IOHUB_INT:
             min: 1  

@@ -654,6 +654,62 @@ class ioHubConnection(object):
         r=self._sendToHubServer(('RPC','initializeConditionVariableTable',(self.experimentID,self.experimentSessionID,condition_variable_provider._numpyConditionVariableDescriptor)))
         return r[2]
 
+    def createTrialHandlerRecordTable(self,trials):
+        """
+        This method allow the use of psychopy TrialHandler's with
+        the ioDataStore Experiment Conditions table.
+
+        Example psychopy code usage:
+        
+            # to load a trial handler and 
+            # create an associated ioDataStore Table
+            #
+            from psychopy.data import TrialHandler,importConditions
+            exp_conditions=importConditions('trial_conditions.xlsx')
+            trials = TrialHandler(exp_conditions,1)
+            
+            # then pass the trial object to this method..
+            #
+            self.createTrialHandlerRecordTable(trials)
+        
+            #to read each row of the trial handler
+            #
+            for trial in trials:
+                # do whatever...
+                pass
+                
+            # during the trial, trial variable values can be updated
+            #
+            trial['TRIAL_START']=flip_time
+                        
+            # At the end of each trial, before getting
+            # the next trial handler row, send the trial
+            # variable states to the ioDataStore
+            #
+            self.addTrialHandlerRecord(trial.values())
+                        
+        TODO: Base str field lengths on max str length found in trial data.
+        """
+        trial=trials.trialList[0]
+        numpy_trial_condition_types=[]
+        for cond_name,cond_val in trial.iteritems():
+            if isinstance(cond_val,basestring):
+                numpy_dtype=(cond_name,'S',256)
+            elif isinstance(cond_val,int):
+                numpy_dtype=(cond_name,'i4')
+            elif isinstance(cond_val,long):
+                numpy_dtype=(cond_name,'i8')
+            elif isinstance(cond_val,float):
+                numpy_dtype=(cond_name,'f8')
+            else:
+                numpy_dtype=(cond_name,'S',256)
+            numpy_trial_condition_types.append(numpy_dtype)
+
+            class ConditionVariableDescription:
+                _numpyConditionVariableDescriptor=numpy_trial_condition_types
+
+        self.initializeConditionVariableTable(ConditionVariableDescription)
+
     def addRowToConditionVariableTable(self,data):
         """
         Add a row to the condition variable table for the current
@@ -675,6 +731,9 @@ class ioHubConnection(object):
         r=self._sendToHubServer(('RPC','addRowToConditionVariableTable',(self.experimentSessionID,data)))
         return r[2]
 
+    def addTrialHandlerRecord(self,trials):
+        self.addRowToConditionVariableTable(trials)
+        
     def enableHighPriority(self,disable_gc=False):
         """        
         Sets the priority of the **ioHub Process** to high priority

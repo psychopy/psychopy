@@ -677,3 +677,4 @@ def _displayToEyeTrackerCoords(self,display_x,display_y):
         except Exception:
             print2err("ERROR occurred during _displayToEyeTrackerCoords:")
             printExceptionDetailsToStdErr()          
+       

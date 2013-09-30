@@ -186,20 +186,9 @@ class EyeTracker(EyeTrackerDevice):
         """
         try:
             calibration_properties=self.getConfiguration().get('calibration')
-            circle_attributes=calibration_properties.get('target_attributes')
-            targetForegroundColor=circle_attributes.get('outer_color') # [r,g,b] of outer circle of targets
-            targetBackgroundColor=circle_attributes.get('inner_color') # [r,g,b] of inner circle of targets
             screenColor=calibration_properties.get('screen_background_color')                     # [r,g,b] of screen
-            targetOuterDiameter=circle_attributes.get('outer_diameter')     # diameter of outer target circle (in px)
-            targetInnerDiameter=circle_attributes.get('inner_diameter')     # diameter of inner target circle (in px)
 
-            genv=TobiiPsychopyCalibrationGraphics(self,
-                                                  targetForegroundColor=targetForegroundColor,
-                                                  targetBackgroundColor=targetBackgroundColor,
-                                                  screenColor=screenColor,
-                                                  targetOuterDiameter=targetOuterDiameter,
-                                                  targetInnerDiameter=targetInnerDiameter)
-
+            genv=TobiiPsychopyCalibrationGraphics(self,screenColor=screenColor)
 
             calibrationOK=genv.runCalibration()
             genv.window.close()

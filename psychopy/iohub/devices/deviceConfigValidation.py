@@ -202,9 +202,6 @@ def isValidRgb255Color(config_param_name,color,constraints):
         else:
             raise ColorValueError(config_param_name,color)
             
-        if len(color) == 3:
-            color=list(color)
-            color.append(255)
         return color
         
     raise ColorValueError(config_param_name,color)

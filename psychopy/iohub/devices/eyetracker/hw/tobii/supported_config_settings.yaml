@@ -31,6 +31,7 @@ eyetracker.hw.tobii.EyeTracker:
         sampling_rate: [25,30,60,120,400]
         track_eyes: [BINOCULAR,]
     calibration:
+        minimize_psychopy_win: IOHUB_BOOL
         # The Tobii ioHub Common Eye Tracker Interface currently support 
         # a 3, 5 and 9 point calibration mode.
         # THREE_POINTS,FIVE_POINTS,NINE_POINTS
@@ -47,14 +48,40 @@ eyetracker.hw.tobii.EyeTracker:
         target_attributes:
             outer_diameter:
                 IOHUB_INT:
-                    min: 8
-                    max: 256
-            inner_diameter: 
+                    min: 1
+                    max: 1000
+            outer_stroke_width:
                 IOHUB_INT:
-                    min: 0
-                    max: 255
-            outer_color: IOHUB_RGBA255_COLOR
-            inner_color: IOHUB_RGBA255_COLOR                 
+                    min: 1
+                    max: 1000
+            outer_fill_color: IOHUB_RGBA255_COLOR
+            outer_line_color: IOHUB_RGBA255_COLOR
+            inner_diameter:
+                IOHUB_INT:
+                    min: 1
+                    max: 1000
+            inner_stroke_width:
+                IOHUB_INT:
+                    min: 1
+                    max: 1000
+            inner_fill_color: IOHUB_RGBA255_COLOR
+            inner_line_color: IOHUB_RGBA255_COLOR
+            animate:
+                enable: IOHUB_BOOL
+                movement_velocity: # 300 pix / sec
+                    IOHUB_FLOAT:
+                        min: 1.0
+                        max: 1000.0
+                expansion_ratio: # expands to 3 x the starting size
+                    IOHUB_FLOAT:
+                        min: 1.0
+                        max: 100.0
+                expansion_speed: # exapands at 30.0 pix / sec
+                    IOHUB_FLOAT:
+                        min: 1.0
+                        max: 100.0
+                contract_only: IOHUB_BOOL
+
     device_number: 0
     manufacture_date: IOHUB_DATE
     model_number:
