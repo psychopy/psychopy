@@ -289,3 +289,4 @@ if not hasattr(LogEvent,'CRITICAL'):
     for lln,llv in LogEvent._levelNames.iteritems():
         if isinstance(lln,basestring):
             setattr(LogEvent,lln,llv)
+    
