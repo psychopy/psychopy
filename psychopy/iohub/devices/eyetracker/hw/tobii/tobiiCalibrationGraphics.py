@@ -19,7 +19,6 @@ import copy
 from ..... import print2err,printExceptionDetailsToStdErr,convertCamelToSnake
 from .... import Computer,DeviceEvent
 from .....constants import EventConstants
-from .....util import FullScreenWindow
 from . tobiiclasses import Point2D
 
 currentTime=Computer.getTime
@@ -108,7 +107,13 @@ class TobiiPsychopyCalibrationGraphics(object):
 #                                                                         (x,y),
 #                                                                         (x,y)]
 
-        self.window = FullScreenWindow(self._eyetrackerinterface._display_device)
+        display=self._eyetrackerinterface._display_device
+        self.window=visual.Window(display.getPixelResolution(),monitor=display.getPsychopyMonitorName(),
+                            units=display.getCoordinateType(),
+                            fullscr=True,
+                            allowGUI=False,
+                            screen=display.getIndex()
+                            )
         self.window.setColor(self.WINDOW_BACKGROUND_COLOR,'rgb255')        
         self.window.flip(clearBuffer=True)
         
@@ -151,14 +156,14 @@ class TobiiPsychopyCalibrationGraphics(object):
             if event[-5] == u' ':
                 self._msg_queue.put("SPACE_KEY_ACTION")
                 self.clearAllEventBuffers()
-            if event[-5] == u'ESCAPE':
+            elif event[-5] == u'ESCAPE':
                 self._msg_queue.put("QUIT")
                 self.clearAllEventBuffers()
 
     def MsgPump(self):
         #keep the psychopy window happy ;)
         if currentTime()-self._lastMsgPumpTime>self.IOHUB_HEARTBEAT_INTERVAL:                
-            # try to keep ioHub, being blocked. ;(
+            # try to keep ioHub from being blocked. ;(
             if self._eyetrackerinterface._iohub_server:
                 for dm in self._eyetrackerinterface._iohub_server.deviceMonitors:
                     dm.device._poll()
@@ -190,7 +195,7 @@ class TobiiPsychopyCalibrationGraphics(object):
         self.calibrationPointINNER.setFillColor(self.CALIBRATION_POINT_INNER_COLOR,'rgb255')
         self.calibrationPointINNER.setLineColor(None,'rgb255 ')
 
-        instuction_text="Press Space Key to Start Eye Tracker Calibration."
+        instuction_text="Press SPACE to Start Calibration; ESCAPE to Exit."
         self.startCalibrationTextScreen=visual.TextStim(self.window, 
                                                         text=instuction_text, 
                                                         pos = self.TEXT_POS, 
@@ -217,11 +222,9 @@ class TobiiPsychopyCalibrationGraphics(object):
         self._lastCalibrationReturnCode=0
         self._lastCalibration=None
         
-        calibration_sequence_completed=False
-        quit_calibration_notified=False
-        
+        calibration_sequence_completed=False        
 
-        instuction_text="Press Space Key to Start Eye Tracker Calibration."
+        instuction_text="Press SPACE to Start Calibration; ESCAPE to Exit."
         self.startCalibrationTextScreen.setText(instuction_text)
         
         self.startCalibrationTextScreen.draw()
@@ -234,12 +237,14 @@ class TobiiPsychopyCalibrationGraphics(object):
             msg=self.getNextMsg()
             if msg == 'SPACE_KEY_ACTION':
                 break
-
+            elif msg == 'QUIT':
+                self.clearAllEventBuffers()
+                return False
+                
             self.MsgPump()
 
         self.clearAllEventBuffers()
-
-
+    
         auto_pace=self._eyetrackerinterface.getConfiguration()['calibration']['auto_pace']
         pacing_speed=self._eyetrackerinterface.getConfiguration()['calibration']['pacing_speed']
 
@@ -281,13 +286,10 @@ class TobiiPsychopyCalibrationGraphics(object):
                 if msg == 'SPACE_KEY_ACTION':
                     break
                 elif msg == 'QUIT':
-                    quit_calibration_notified=True
-                    
+                    return False
+                
                 self.MsgPump()
-            
-            if quit_calibration_notified:
-                break
-            
+                        
             pt2D=Point2D(pt[0],pt[1])
             self._tobii.AddCalibrationPoint(pt2D,self.on_add_calibration_point)
             time.sleep(0.5)            
@@ -419,7 +421,7 @@ class TobiiPsychopyCalibrationGraphics(object):
                 self.MsgPump()
 
         if self._lastCalibrationOK is False:
-            instuction_text="Calibration Failed. Options: SPACE: Re-run Calibration; ESCAPE: Exit Program"            
+            instuction_text="Calibration Failed. Options: SPACE: Re-run Calibration; ESCAPE: Exit Setup"            
             self.startCalibrationTextScreen.setText(instuction_text)
             self.startCalibrationTextScreen.draw()
             self.window.flip()

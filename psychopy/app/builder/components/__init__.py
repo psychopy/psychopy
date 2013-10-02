@@ -40,7 +40,7 @@ def getIcons(filename=None):
 
         return icons
 
-def getComponents(folder=None):
+def getComponents(folder=None, fetchIcons=True):
     """Get a dictionary of available component objects for the Builder experiments.
 
     If folder==None then the built-in components will be returned, otherwise
@@ -51,7 +51,7 @@ def getComponents(folder=None):
     os.sys.path.append(folder)
     components={}
     #setup a default icon
-    if 'default' not in icons.keys():
+    if fetchIcons and 'default' not in icons.keys():
         icons['default']=getIcons(filename=None)
     #go through components in directory
     if os.path.isdir(folder):
@@ -69,9 +69,11 @@ def getComponents(folder=None):
                     name=attrib
                     components[attrib]=getattr(module, attrib)
                     #also try to get an iconfile
-                    if hasattr(module,'iconFile'):
-                        icons[name]=getIcons(module.iconFile)
-                    else:icons[name]=icons['default']
+                    if fetchIcons:
+                        if hasattr(module,'iconFile'):
+                            icons[name]=getIcons(module.iconFile)
+                        else:
+                            icons[name]=icons['default']
                     if hasattr(module, 'tooltip'):
                         tooltips[name] = module.tooltip
                     #assign the module categories to the Component
@@ -79,7 +81,7 @@ def getComponents(folder=None):
                         components[attrib].categories=['Custom']
     return components
 
-def getAllComponents(folderList=[]):
+def getAllComponents(folderList=[], fetchIcons=True):
     """Get a dictionary of all available components, from the builtins as well
     as all folders in the folderlist.
 
@@ -87,7 +89,7 @@ def getAllComponents(folderList=[]):
     """
     if type(folderList)!=list:
         raise TypeError, 'folderList should be a list, not a string'
-    components=getComponents()#get the built-ins
+    components=getComponents(fetchIcons=fetchIcons)#get the built-ins
     for folder in folderList:
         userComps=getComponents(folder)
         for thisKey in userComps.keys():

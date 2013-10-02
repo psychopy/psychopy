@@ -1,0 +1,19 @@
+# experiment_config.yaml: settings related to the experiment being run when the run.py script is launched,
+# any custom session variables you want displayed in a dialog for input at the start of the experiment
+
+title: EventPublisher and RemoteEventSubscriber Demo
+code: sub_sub_demo
+version: '1.0'
+description:
+session_defaults:
+    name: Session Name
+    code: E1S01
+    comments: None
+session_variable_order: [ name, code, comments]
+
+display_session_dialog: False
+
+ioHub:
+    config: ioHub_config.yaml
+
+  

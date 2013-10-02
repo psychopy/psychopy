@@ -2,6 +2,9 @@
 
 """Demo to illustrate speech recognition using microphone.Speech2Text
 
+Requires flac, which does not come with PsychoPy. You can get it free,
+download & install from https://xiph.org/flac/download.html
+
 Records 2.5s of speech, displays the word(s) spoken, and sets a color.
 Can be used to show subjects how loudly and clearly they need to talk.
 """
@@ -13,8 +16,8 @@ from psychopy.microphone import switchOn, AudioCapture, Speech2Text
 
 web.requireInternetAccess()  # needed to access google's speech API
 
-def display(items):
-    [item.draw() for item in items]
+def display(*args):
+    [item.draw() for item in args]
     win.flip()
 
 # PsychoPy only knows English color names; 'en-UK' might work better here for some speakers:
@@ -27,7 +30,7 @@ word = visual.TextStim(win, text='', height=0.2, opacity=0.8, pos=(0,.25))
 icon = visual.ImageStim(win, image='mic.png', opacity=0.6)
 anykey = visual.TextStim(win, text='Press any key to start', pos=instr.pos-[0,.3], color='darkblue')
 
-display((instr, anykey))
+display(instr, anykey)
 if 'escape' in event.waitKeys(): core.quit()
 win.flip()
 
@@ -36,21 +39,21 @@ switchOn(sampleRate=16000)
 mic = AudioCapture()
 
 while not (event.getKeys(['escape', 'q']) or word.text in ['exit']):
-    display((instr, word))
+    display(instr, word)
     core.wait(1.5)
-    display((instr, word, icon))
+    display(instr, word, icon)
 
     # Record for 2.5 seconds, get the "best word" guess:
     wavfile = mic.record(2.5)
-    display((instr, word))
+    display(instr, word)
     guess = Speech2Text(wavfile, **options).getResponse()
     os.remove(wavfile)
 
     if guess.word:
         word.setText(guess.word)
-    color = guess.word.replace(' ', '')
+    color = guess.word.replace(' ', '').lower()  # Green -> green
     if not color in colors.colors:
-        color = -0.7
+        color = 'black'
     word.setColor(color)
 
 win.flip()

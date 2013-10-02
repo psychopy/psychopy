@@ -122,6 +122,10 @@ class ioHubKeyboardDevice(Device):
                 charEvent=list(key_release)
                 charEvent[DeviceEvent.EVENT_TYPE_ID_INDEX]=KeyboardCharEvent.EVENT_TYPE_ID
                 charEvent[DeviceEvent.EVENT_ID_INDEX]=Computer._getNextEventID()
+                # Add .1 msec to the Char event time so that, when sorted, Char event follows
+                # the Release Event that generated it.
+                #
+                charEvent[DeviceEvent.EVENT_HUB_TIME_INDEX]=key_release[DeviceEvent.EVENT_HUB_TIME_INDEX]+0.0001
                 charEvent.append(tuple(key_press))
                 charEvent.append(key_release[DeviceEvent.EVENT_HUB_TIME_INDEX]-key_press[DeviceEvent.EVENT_HUB_TIME_INDEX])
                 charEvents.append(charEvent)

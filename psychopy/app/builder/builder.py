@@ -2,7 +2,8 @@
 # Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from wx.lib import platebtn, scrolledpanel, newevent
+import wx
+from wx.lib import platebtn, scrolledpanel
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 import wx.aui, wx.stc
 import sys, os, glob, copy, shutil, traceback
@@ -29,6 +30,7 @@ import threading
 
 canvasColor=[200,200,200]#in prefs? ;-)
 routineTimeColor=wx.Color(50,100,200, 200)
+staticTimeColor=wx.Color(200,50,50, 100)
 nonSlipFill=wx.Color(150,200,150, 255)
 nonSlipEdge=wx.Color(0,100,0, 255)
 relTimeFill=wx.Color(200,150,150, 255)
@@ -867,6 +869,7 @@ class FlowPanel(wx.ScrolledWindow):
         else:
             dc.DrawPolygon([[size,0],[0,size],[-size,0]], pos[0],pos[1]-4*size)#points down
         dc.SetIdBounds(tmpId,wx.Rect(pos[0]-size,pos[1]-size,2*size,2*size))
+
     def drawFlowRoutine(self,dc,routine,id,pos=[0,0], draw=True):
         """Draw a box to show a routine on the timeline
         draw=False is for a dry-run, esp to compute and return size information without drawing or setting a pdc ID
@@ -889,7 +892,7 @@ class FlowPanel(wx.ScrolledWindow):
             fontSizeDelta = (8,4,0)[self.appData['flowSize']]
             font.SetPointSize(1000/self.dpi-fontSizeDelta)
 
-        maxTime,nonSlip=routine.getMaxTime()
+        maxTime, nonSlip, onlyStaticComps = routine.getMaxTime()
         if nonSlip:
             rgbFill=nonSlipFill
             rgbEdge=nonSlipEdge
@@ -1118,7 +1121,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         if op=='edit':
             self.editComponentProperties(component=component)
         elif op=='remove':
-            r.remove(component)
+            r.removeComponent(component)
             self.frame.addToUndoStack("REMOVE `%s` from Routine" %(component.params['name'].val))
             self.frame.exp.namespace.remove(component.params['name'].val)
         elif op.startswith('move'):
@@ -1173,26 +1176,49 @@ class RoutineCanvas(wx.ScrolledWindow):
                 w = self.GetFullTextExtent(name)[0]
         self.timeXpos = w+(50,50,90)[self.drawSize]
 
-        #draw timeline at bottom of page
-        yPosBottom = self.yPosTop+len(self.routine)*self.componentStep
-        self.drawTimeGrid(self.pdc,self.yPosTop,yPosBottom)
-        yPos = self.yPosTop
-
+        #separate components according to whether they are drawn in separate row
+        rowComponents = []
+        staticCompons = []
         for n, component in enumerate(self.routine):
+            if component.type == 'Static':
+                staticCompons.append(component)
+            else:
+                rowComponents.append(component)
+
+        #draw time grid
+        yPosBottom = self.yPosTop+len(rowComponents)*self.componentStep
+        yPos = self.yPosTop
+        self.drawTimeGrid(self.pdc,self.yPosTop,yPosBottom)
+        #normal components, one per row
+        for component in rowComponents:
             self.drawComponent(self.pdc, component, yPos)
             yPos+=self.componentStep
+
+        #draw any Static Components fist (below the grid)
+        for thisComp in self.routine:
+            if thisComp.type=='Static':
+                bottom = max(yPosBottom,self.GetSize()[1])
+                self.drawStatic(self.pdc, thisComp, self.yPosTop, bottom)
 
         self.SetVirtualSize((self.maxWidth, yPos+50))#the 50 allows space for labels below the time axis
         self.pdc.EndDrawing()
         self.Refresh()#refresh the visible window after drawing (using OnPaint)
-
+    def getMaxTime(self):
+        """Return the max time to be drawn in the window
+        """        
+        maxTime, nonSlip, onlyStaticComps = self.routine.getMaxTime()
+        if onlyStaticComps:
+            maxTime= maxTime+0.5
+        return maxTime
     def drawTimeGrid(self, dc, yPosTop, yPosBottom, labelAbove=True):
         """Draws the grid of lines and labels the time axes
         """
-        tMax=self.routine.getMaxTime()[0]*1.1
+        tMax=self.getMaxTime()*1.1
         xScale = self.getSecsPerPixel()
         xSt=self.timeXposStart
         xEnd=self.timeXposEnd
+
+#        dc.SetId(wx.NewId())
         dc.SetPen(wx.Pen(wx.Color(0, 0, 0, 150)))
         #draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt,y1=yPosTop,
@@ -1215,13 +1241,50 @@ class RoutineCanvas(wx.ScrolledWindow):
         # or draw bottom labels only if scrolling is turned on, virtual size > available size?
         if yPosBottom>300:#if bottom of grid is far away then draw labels here too
             dc.DrawText('t (sec)',xEnd+5,yPosBottom-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
+
     def setFontSize(self, size, dc):
         font = self.GetFont()
         font.SetPointSize(size)
         dc.SetFont(font)
+    def drawStatic(self, dc, component, yPosTop, yPosBottom):
+        """draw a static component box"""
+        #set an id for the region of this comonent (so it can act as a button)
+        ##see if we created this already
+        id=None
+        for key in self.componentFromID.keys():
+            if self.componentFromID[key]==component:
+                id=key
+        if not id: #then create one and add to the dict
+            id = wx.NewId()
+            self.componentFromID[id]=component
+        dc.SetId(id)
+        #deduce start and stop times if possible
+        startTime, duration, nonSlipSafe = component.getStartAndDuration()
+        #draw entries on timeline (if they have some time definition)
+        if startTime!=None and duration!=None:#then we can draw a sensible time bar!
+            #calculate rectangle for component
+            xScale = self.getSecsPerPixel()
+            dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0), style=wx.TRANSPARENT))
+            dc.SetBrush(wx.Brush(staticTimeColor))
+            xSt = self.timeXposStart + startTime/xScale
+            w = (duration)/xScale+1.85 # +1.85 to compensate for border alpha=0 in dc.SetPen
+            if w>10000: w=10000#limit width to 10000 pixels!
+            if w<2: w=2#make sure at least one pixel shows
+            h = yPosBottom-yPosTop
+            #add name label
+            name = component.params['name'].val
+            nameW, nameH = self.GetFullTextExtent(name)[0:2]
+            #draw text
+            x = xSt+w/2
+            y = yPosTop-nameH*3
+            dc.DrawText(name, x, y)
+            fullRect = wx.Rect(x-20,y,nameW, nameH)
+            #draw the rectangle
+            dc.DrawRectangle(xSt, yPosTop-nameH*4, w, h+nameH*5)
+            fullRect.Union(wx.Rect(xSt, yPosTop, w, h))#update bounds to include time bar
+        dc.SetIdBounds(id,fullRect)
     def drawComponent(self, dc, component, yPos):
         """Draw the timing of one component on the timeline"""
-
         #set an id for the region of this comonent (so it can act as a button)
         ##see if we created this already
         id=None
@@ -1294,7 +1357,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.frame.addToUndoStack("EDIT `%s`" %component.params['name'].val)
 
     def getSecsPerPixel(self):
-        return float(self.routine.getMaxTime()[0])/(self.timeXposEnd-self.timeXposStart)
+        return float(self.getMaxTime())/(self.timeXposEnd-self.timeXposStart)
 
 class RoutinesNotebook(wx.aui.AuiNotebook):
     """A notebook that stores one or more routines
@@ -1436,7 +1499,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         #start all except for Favorites collapsed
         for section in categories[1:]:
             self.toggleSection(self.panels[section])
-        
+
         self.Bind(wx.EVT_SIZE, self.on_resize)
         self.SetSizer(self.sizer)
         self.SetAutoLayout(True)
@@ -1649,7 +1712,8 @@ class FavoriteComponents(object):
         return favorites
 
 class ParamCtrls:
-    def __init__(self, parent, label, param, browse=False, noCtrls=False, appPrefs=None):
+    def __init__(self, parent, label, param,
+                 browse=False, noCtrls=False, advanced=False, appPrefs=None):
         """Create a set of ctrls for a particular Component Parameter, to be
         used in Component Properties dialogs. These need to be positioned
         by the calling dlg.
@@ -1671,6 +1735,19 @@ class ParamCtrls:
         self.param = param
         self.dpi=wx.GetApp().dpi
         self.valueWidth = self.dpi * 3.5
+        #try to find the experiment
+        self.exp=None
+        tryForExp = self.dlg
+        while self.exp==None:
+            if hasattr(tryForExp,'frame'):
+                self.exp=tryForExp.frame.exp
+            else:
+                try:
+                    tryForExp=tryForExp.parent#try going up a level
+                except:
+                    print dir(tryForExp)
+                    tryForExp.parent
+
         #param has the fields:
         #val, valType, allowedVals=[],allowedTypes=[], hint="", updates=None, allowedUpdates=None
         # we need the following
@@ -1706,11 +1783,10 @@ class ParamCtrls:
             #for expInfo convert from a string to the list-of-dicts
             val = self.expInfoToListWidget(param.val)
             self.valueCtrl = dialogs.ListWidget(parent, val, order=['Field','Default'])
-        elif label in components.code.codeParamNames[:]:
+        elif param.valType=='extendedCode':
             self.valueCtrl = CodeBox(parent,-1,
                  pos=wx.DefaultPosition, size=wx.Size(100,100),#set the viewer to be small, then it will increase with wx.aui control
                  style=0, prefs=appPrefs)
-
             if len(param.val):
                 self.valueCtrl.AddText(unicode(param.val))
             #code input fields one day change these to wx.stc fields?
@@ -1756,7 +1832,11 @@ class ParamCtrls:
         if param.allowedUpdates==None or len(param.allowedUpdates)==0:
             pass
         else:
-            self.updateCtrl = wx.Choice(parent, choices=param.allowedUpdates)
+            updates = copy.copy(param.allowedUpdates)
+            for routineName, routine in self.exp.routines.items():
+                for static in routine.getStatics():
+                    updates.append("set during: %s.%s" %(routineName, static.params['name']))
+            self.updateCtrl = wx.Choice(parent, choices=updates)
             self.updateCtrl.SetStringSelection(param.updates)
         if param.allowedUpdates!=None and len(param.allowedUpdates)==1:
             self.updateCtrl.Disable()#visible but can't be changed
@@ -1877,7 +1957,6 @@ class _BaseParamsDlg(wx.Dialog):
         types=dict([])
         self.useUpdates=False#does the dlg need an 'updates' row (do any params use it?)
         self.timeParams=['startType','startVal','stopType','stopVal']
-        self.codeParamNames = components.code.codeParamNames[:] # want a copy
         self.codeFieldNameFromID = {}
         self.codeIDFromFieldName = {}
 
@@ -1938,13 +2017,12 @@ class _BaseParamsDlg(wx.Dialog):
         #add any params that weren't specified in the order
         for fieldName in remaining:
             if fieldName not in self.advParams:
-                self.addParam(fieldName)
-
+                self.addParam(fieldName, valType=self.params[fieldName].valType)
         #add advanced params if needed
         if len(self.advParams) > 0:
             self.addAdvancedTab()
             for fieldName in self.advParams:
-                self.addParam(fieldName, advanced=True)
+                self.addParam(fieldName, advanced=True, valType=self.params[fieldName].valType)
 
     def addStartStopCtrls(self,remaining):
         """Add controls for startType, startVal, stopType, stopVal
@@ -2026,7 +2104,7 @@ class _BaseParamsDlg(wx.Dialog):
             sizer.AddGrowableRow(currRow) #doesn't seem to work though
         elif fieldName in ['color', 'Color']:
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
-        elif fieldName in self.codeParamNames:
+        elif valType == 'extendedCode':
             sizer.AddGrowableRow(currRow) #doesn't seem to work though
             ctrls.valueCtrl.Bind(wx.EVT_KEY_DOWN, self.onTextEventCode)
         elif fieldName == 'Monitor':
@@ -2054,7 +2132,7 @@ class _BaseParamsDlg(wx.Dialog):
 
         self.currRow[sizer] += 1
 
-    def addParam(self,fieldName, advanced=False):
+    def addParam(self, fieldName, advanced=False):
         """Add a parameter to the basic sizer
         """
         if advanced:
@@ -2300,9 +2378,32 @@ class _BaseParamsDlg(wx.Dialog):
             else:
                 ctrls = self.paramCtrls[fieldName]#the various dlg ctrls for this param
                 param.val = ctrls.getValue()
-                if ctrls.typeCtrl: param.valType = ctrls.getType()
-                if ctrls.updateCtrl: param.updates = ctrls.getUpdates()
+                if ctrls.typeCtrl:
+                    param.valType = ctrls.getType()
+                if ctrls.updateCtrl:
+                    #may also need to update a static
+                    updates = ctrls.getUpdates()
+                    if param.updates != updates:
+                        self._updateStaticUpdates(fieldName, param.updates, updates)
+                        param.updates=updates
         return self.params
+    def _updateStaticUpdates(self, fieldName, updates, newUpdates):
+        """If the old/new updates ctrl is using a Static component then we
+        need to remove/add the component name to the appropriate static
+        """
+        exp = self.frame.exp
+        compName = self.params['name'].val
+        if hasattr(updates, 'startswith') and "during:" in updates:
+            updates = updates.split(': ')[1] #remove the part that says 'during'
+            origRoutine, origStatic =  updates.split('.')
+            exp.routines[origRoutine].getComponentFromName(origStatic).remComponentUpdate(
+                origRoutine, compName, fieldName)
+        if hasattr(newUpdates, 'startswith') and  "during:" in newUpdates:
+            newUpdates = newUpdates.split(': ')[1] #remove the part that says 'during'
+            newRoutine, newStatic =  newUpdates.split('.')
+            print 'newStatic', newStatic
+            exp.routines[newRoutine].getComponentFromName(newStatic).addComponentUpdate(
+                newRoutine, compName, fieldName)
     def _checkName(self, event=None, name=None):
         """checks namespace, return error-msg (str), enable (bool)
         """
@@ -2840,8 +2941,8 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.currRow = {}
 
         #for input devices:
-        #self.onFullScrChange(event=None)#do this just to set the initial values to be
-        #self.Bind(wx.EVT_CHECKBOX, self.onFullScrChange, self.paramCtrls['Full-screen window'].valueCtrl)
+        self.onFullScrChange(event=None)#do this just to set the initial values to be
+        self.Bind(wx.EVT_CHECKBOX, self.onFullScrChange, self.paramCtrls['Full-screen window'].valueCtrl)
 
         #for all components
         self.show()
@@ -3488,7 +3589,6 @@ class BuilderFrame(wx.Frame):
         self.IDs = self.app.IDs
         self.frameType='builder'
         self.filename = fileName
-        self.amp_manager = None
 
         if fileName in self.appData['frames'].keys():
             self.frameData = self.appData['frames'][fileName]
@@ -3824,10 +3924,17 @@ class BuilderFrame(wx.Frame):
             if not self.fileClose(updateViews=False): return False #close the existing (and prompt for save if necess)
         self.filename='untitled.psyexp'
         self.exp = experiment.Experiment(prefs=self.app.prefs)
-        default_routine = 'trial'
-        self.exp.addRoutine(default_routine) #create the trial routine as an example
-        self.exp.flow.addRoutine(self.exp.routines[default_routine], pos=1)#add it to flow
-        self.exp.namespace.add(default_routine, self.exp.namespace.user) # add it to user's namespace
+        defaultName = 'trial'
+        self.exp.addRoutine(defaultName) #create the trial routine as an example
+        self.exp.flow.addRoutine(self.exp.routines[defaultName], pos=1)#add it to flow
+        self.exp.namespace.add(defaultName, self.exp.namespace.user) # add it to user's namespace
+        routine = self.exp.routines[defaultName]
+        #add an ISI component by default
+        components = self.componentButtons.components
+        ISI = components['StaticComponent'](self.exp, parentName=defaultName, name='ISI',
+                startType='time (s)', startVal=0.0,
+                stopType='duration (s)', stopVal=0.5)
+        routine.addComponent(ISI)
         self.resetUndoStack()
         self.setIsModified(False)
         self.updateAllViews()

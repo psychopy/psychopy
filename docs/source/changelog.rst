@@ -16,11 +16,41 @@ Changelog
 
 :blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
+PsychoPy 1.78
+------------------------------
+
+PsychoPy 1.78.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(not yet released)
+
+* ADDED: option to preload during Builder scripts using Static Component, which uses :class:`~psychopy.core.StaticPeriod` class
+* ADDED: Polygon Component to Builder for drawing regular polygons (including simple lines)
+* ADDED: TrialHander can now fetch previous trials as well as future ones (thanks Mike MacAskill)
+* ADDED: BufferImageStim accepts mask and pos params (thanks Jeremy)
+* ADDED: generated Sounds (not sound files) now use a Hamming window to get rid of sharp onset/offset noises (thanks Jeremy)
+* ADDED: microphone component able to play & identify a marker tone (for vocal RT), compute loudness, compression (Jeremy)
+* ADDED: sound files: lossless compress / uncompress (requires flac executable installed separately) (Jeremy)
+* FIXED: movieStim.contains() and .overlaps() can work, requires that the visual.Window has units of pix
+* ADDED: microphone compress() audio recordings; requires flac download (not packaged with PsychoPy)
+* ADDED: new preference `flac` = system path for flac, e.g. c:/Program Files (x86)/FLAC/flac.exe (not always needed)
+* FIXED: reduced number of queries when closing down and provides filenames of changed files in msg (thanks Piot Iwaniuk)
+
 PsychoPy 1.77
 ------------------------------
 
+PsychoPy 1.77.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+released July 2013
+
+* FIXED: problem with Builder Images appearing grey unless they were 'constant'. This is a bug that was introduced in 1.77.00 with the faster loading of images.
+* FIXED: having a monitors folder with a unicode character in the path doesn't break the app (thanks Sebastiaan Mathot)
+
 PsychoPy 1.77.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+released June 2013
 
 * Standalone package changes:
     - fixed pytables version on Win32 (to be compatible with WinXP)
@@ -31,6 +61,8 @@ PsychoPy 1.77.01
 PsychoPy 1.77.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+released June 2013
+
 * ADDED: preview of Sol Simpson's **ioHub** for faster (asynchronous) polling of hardware including mouse, keyboard, eyetrackers and other devices. See iohub demos for example usage. This provides many advantages over previous event polling:
     - asynchronous process allows constant polling (not tied to refresh rates) in a way that won't impact the rendering of your stimuli. It even runs on a separate CPU core if possible.
     - provides up/down/duration for key presses
@@ -38,7 +70,7 @@ PsychoPy 1.77.00
     - provides a unified API for eyetracker classes
     - provides async access to the parallel port
     - provides an alternative data output format (using hdf5) particularly useful for high-output streaming data (e.g. eye-trackers)
-    
+
 * DEPRECATED: opensslwrap will soon be replaced by pyFileSec, a much-improved version of the same package (= file-oriented encryption)
 * IMPROVED: substantially (~40%) faster loading of RGB images from disk (by using byte format rather than float). May also allow storing of more images on graphics card than previously
 * ADDED: :class:`AdvancedMicrophone` class to add and retrieve a high-frequency tone to indicate the start of recording (e.g., to allow accurate vocal RT estimation), with demo (Jeremy Gray)
@@ -292,7 +324,7 @@ PsychoPy 1.72.00
     - ShapeStim now has a size parameter that scales the locations of vertices
     - new classes; Rect, Line, Circle, Polygon
 
-* FIXED: error with DotStim when fieldSize was a tuple and fieldShape was 'sqr' 
+* FIXED: error with DotStim when fieldSize was a tuple and fieldShape was 'sqr'
 * FIXED: calibration plots in Monitor Center now resize and quit as expected
 * FIXED: conditions files can now have lists of numbers [0,0]
 * FIXED: buglet with flushing mouse events (thanks Sebastiaan Mathot)

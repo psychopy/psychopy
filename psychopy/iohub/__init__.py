@@ -39,7 +39,7 @@ from util import fix_encoding,OrderedDict, module_directory, updateDict
 from util import printExceptionDetailsToStdErr, ioHubError, createErrorResult, ioHubServerError, ioHubConnectionException
 from util import isIterable,getCurrentDateTimeString,convertCamelToSnake
 from util import ExperimentVariableProvider
-from util import FullScreenWindow, win32MessagePump, SinusoidalMotion
+from util import win32MessagePump, SinusoidalMotion
 from util import TimeTrigger, DeviceEventTrigger
 from util import ScreenState, ClearScreen,InstructionScreen, ImageScreen
 from util import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog

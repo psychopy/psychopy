@@ -18,31 +18,6 @@ from ..devices import Computer
 from .exception_tools import ioHubError
 from . import win32MessagePump
  
-#
-## Create a FullScreenWindow based on an ioHub Displays settings
-# 
-
-class FullScreenWindow(visual.Window):
-    def __init__(self,iohub_display,res=None,color=[128,128,128], colorSpace='rgb255',
-                 winType='pyglet',gamma=1.0,fullscr=True,allowGUI=False,
-                 waitBlanking=True):
-        if res == None:
-            res=iohub_display.getPixelResolution()
-        visual.Window.__init__(self,res,monitor=iohub_display.getPsychopyMonitorName(),
-                                    units=iohub_display.getCoordinateType(),
-                                    color=color, colorSpace=colorSpace,
-                                    fullscr=fullscr,
-                                    allowGUI=allowGUI,
-                                    screen=iohub_display.getIndex(),
-                                    waitBlanking=waitBlanking,
-                                    winType=winType, 
-                                    gamma=gamma
-                                    )
-            
-    def flip(self,clearBuffer=True):
-        visual.Window.flip(self,clearBuffer)
-        return Computer.getTime()
-
 ###########################################
 #
 # ScreenState Class------------------------------------------------------------

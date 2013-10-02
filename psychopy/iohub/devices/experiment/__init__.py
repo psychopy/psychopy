@@ -107,7 +107,7 @@ class MessageEvent(DeviceEvent):
 
     _newDataTypes=[
                 ('msg_offset', N.float32), 
-                ('prefix',N.str,3), 
+                ('category',N.str,32), 
                 ('text',N.str,128)  
                 ]
     __slots__=[e[0] for e in _newDataTypes]
@@ -117,12 +117,12 @@ class MessageEvent(DeviceEvent):
         #: String type
         self.text=None
         
-        #: The prefix attribute is a 0 - 3 long string used as a 'group' or 'category' 
-        #: code that can be assigned to messages. The prefix attribute may be useful
+        #: The category attribute is a 0 - 32 long string used as a 'group' or 'category' 
+        #: code that can be assigned to messages. The category attribute may be useful
         #: for grouping messages into categories or types when retieving them for analysis
         #: by assigning the same prix string to related Message Event types.
         #: String type.
-        self.prefix=None
+        self.category=None
         
         #: The msg_offset attribute can be used in cases where the Experiment Message
         #: Evenet needs to be sent *before* or *after* the time the actual event occurred.
@@ -142,7 +142,7 @@ class MessageEvent(DeviceEvent):
         DeviceEvent.__init__(self, *args,**kwargs)
 
     @staticmethod
-    def _createAsList(text,prefix='',msg_offset=0.0, sec_time=None,set_event_id=Computer.isIoHubProcess):
+    def _createAsList(text,category='',msg_offset=0.0, sec_time=None,set_event_id=Computer.isIoHubProcess):
         csec=currentSec()
         if sec_time is not None:
             csec=sec_time
@@ -150,7 +150,7 @@ class MessageEvent(DeviceEvent):
         if set_event_id:
             event_num=Computer._getNextEventID()
         return (0,0,0,event_num,MessageEvent.EVENT_TYPE_ID,
-                csec,0,0,0.0,0.0,0,msg_offset,prefix,text)
+                csec,0,0,0.0,0.0,0,msg_offset,category,text)
 
 class LogEvent(DeviceEvent):
     """

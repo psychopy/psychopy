@@ -1,7 +1,7 @@
 recursive-include psychopy *.txt
 
 recursive-include psychopy *.png
-recursive-include psychopy/app/Resources *.icns 
+recursive-include psychopy/app/Resources *.icns
 recursive-include psychopy/app/Resources *.ico
 recursive-include psychopy/app/Resources *.ttf
 recursive-include psychopy/app *.spec
@@ -10,7 +10,7 @@ recursive-include psychopy/monitors *.ico
 
 recursive-include psychopy/iohub *.yaml
 
-recursive-include psychopy/demos/coder *.mov *.jpg *.ttf *.yaml *.py
+recursive-include psychopy/demos/coder *.mov *.jpg *.ttf *.yaml *.py *.part
 recursive-include psychopy/demos/builder *.psyexp *.csv *.xlsx *.wav
 
 recursive-include psychopy/preferences *.spec

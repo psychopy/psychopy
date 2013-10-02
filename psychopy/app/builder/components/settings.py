@@ -198,14 +198,14 @@ class SettingsComponent:
                 if thisComp.type=='Aperture': allowStencil = True
                 if thisComp.type=='RatingScale': allowGUI = True # to have a mouse; BUT might not want it shown in other routines
 
-        
+
         requestedScreenNumber = int(self.params['Screen'].val)
         if requestedScreenNumber > wx.Display.GetCount():
             logging.warn("Requested screen can't be found. Writing script using first available screen.")
             screenNumber = 0
         else:
             screenNumber = requestedScreenNumber-1 #computer has 1 as first screen
-        
+
         if fullScr:
             size = wx.Display(screenNumber).GetGeometry()[2:4]
         else:
@@ -241,6 +241,14 @@ class SettingsComponent:
         if 'microphone' in self.exp.psychopyLibs: # need a pyo Server
             buff.writeIndentedLines("\n# Enable sound input/output:\n"+
                                 "microphone.switchOn()\n")
+
+        buff.writeIndented("# store frame rate of monitor if we can measure it successfully\n")
+        buff.writeIndented("expInfo['frameRate']=win._getActualFrameRate()\n")
+        buff.writeIndented("if expInfo['frameRate']!=None:\n")
+        buff.writeIndented("    frameDur = 1.0/round(expInfo['frameRate'])\n")
+        buff.writeIndented("else:\n")
+        buff.writeIndented("    frameDur = 1.0/60.0 # couldn't get a reliable measure so guess\n")
+
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)
         """
