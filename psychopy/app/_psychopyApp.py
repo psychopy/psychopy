@@ -6,6 +6,7 @@
 
 import sys, psychopy
 import copy
+import subprocess
 
 # Ensure 2.8 version of wx
 if not hasattr(sys, 'frozen'):
@@ -19,7 +20,7 @@ except ImportError: # if it's not there locally, try the wxPython lib.
 #NB keep imports to a minimum here because splash screen has not yet shown
 #e.g. coder and builder are imported during app.__init__ because they take a while
 from psychopy import preferences, logging#needed by splash screen for the path to resources/psychopySplash.png
-from psychopy.app import connections
+#from psychopy.app import connections
 import sys, os, threading
 
 """
@@ -74,6 +75,7 @@ class MenuFrame(wx.Frame):
 class PsychoPyApp(wx.App):
     def __init__(self, arg=0, **kwargs):
         wx.App.__init__(self, arg)
+        self.launched_obci = False
         self.onInit(**kwargs)
 
     def onInit(self, showSplash=True, interactive=True):
@@ -107,10 +109,14 @@ class PsychoPyApp(wx.App):
         if splash: splash.SetText("  Loading PsychoPy2..."+uidRootFlag)
         from psychopy import compatibility
         from psychopy.app import coder, builder, dialogs, wxIDs, urls #import coder and builder here but only use them later
+        from psychopy.app import resources
         self.keys = self.prefs.keys
         self.prefs.pageCurrent = 0  # track last-viewed page of prefs, to return there
         self.IDs=wxIDs
         self.urls=urls.urls
+        # add psychopy-specifi art providers
+        wx.ArtProvider.Push(resources.ArtProvider())
+        wx.ArtProvider.Push(resources.ComponentArtProvider())
         self.quitting=False
         #check compatibility with last run version (before opening windows)
         self.firstRun = False
@@ -182,14 +188,31 @@ class PsychoPyApp(wx.App):
         self.allFrames=[]#these are ordered and the order is updated with self.onNewTopWindow
         if mainFrame in ['both', 'coder']: self.showCoder(fileList=scripts)
         if mainFrame in ['both', 'builder']: self.showBuilder(fileList=exps)
+        
+        
+        # TODO: in Windows start OBCI server
+        if sys.platform in ['win32', 'win64']:
+            # detect obci installation
+            if splash: splash.SetText("  Loading OBCI server..."+uidRootFlag)
+            try:
+                import obci
+                obci_path = os.path.abspath(os.path.dirname(obci.__file__))
+                os.environ['OBCI_INSTALL_DIR'] = obci_path
+                obci_script = os.path.join(obci_path, 'control/launcher/obci_script.py')
+                print 'Launching OBCI'
+                subprocess.Popen(['python', obci_script, "srv"]).wait()
+                self.launched_obci = True
+            except Exception:
+                print "OBCI not installed"
 
         #send anonymous info to www.psychopy.org/usage.php
         #please don't disable this - it's important for PsychoPy's development
         self._latestAvailableVersion=None
         self.updater=None
-        if self.prefs.connections['checkForUpdates'] or self.prefs.connections['allowUsageStats']:
-            connectThread = threading.Thread(target=connections.makeConnections, args=(self,))
-            connectThread.start()
+        # connections are disabled for now
+        #if self.prefs.connections['checkForUpdates'] or self.prefs.connections['allowUsageStats']:
+        #    connectThread = threading.Thread(target=connections.makeConnections, args=(self,))
+        #    connectThread.start()
 
         ok, msg = compatibility.checkCompatibility(last, self.version, self.prefs, fix=True)
         if not ok and not self.firstRun and interactive:  #tell the user what has changed
@@ -205,10 +228,10 @@ class PsychoPyApp(wx.App):
             self.prefs.app['showStartupTips'] = showTip
             self.prefs.saveUserPrefs()
 
-        if self.prefs.connections['checkForUpdates']:
-            self.Bind(wx.EVT_IDLE, self.checkUpdates)
-        else:
-            self.Bind(wx.EVT_IDLE, self.onIdle)
+        #if self.prefs.connections['checkForUpdates']:
+        #    self.Bind(wx.EVT_IDLE, self.checkUpdates)
+        #else:
+        self.Bind(wx.EVT_IDLE, self.onIdle)
         return True
     def _wizard(self, selector, arg=''):
         from psychopy import core
@@ -258,7 +281,7 @@ class PsychoPyApp(wx.App):
         self.coder.setOutputWindow()#takes control of sys.stdout
         self.allFrames.append(self.coder)
     def newBuilderFrame(self, event=None, fileName=None):
-        from psychopy.app import builder#have to reimport because it is ony local to __init__ so far
+        from psychopy.app.builder import builder#have to reimport because it is ony local to __init__ so far
         thisFrame = builder.BuilderFrame(None, -1,
                                   title="PsychoPy2 Experiment Builder (v%s)" %self.version,
                                   fileName=fileName, app=self)

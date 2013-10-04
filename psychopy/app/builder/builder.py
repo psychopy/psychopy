@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
-from wx.lib import platebtn, scrolledpanel
+from wx.lib import platebtn, scrolledpanel, newevent
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 import wx.aui, wx.stc
 import sys, os, glob, copy, shutil, traceback
@@ -1712,7 +1712,7 @@ class FavoriteComponents(object):
         return favorites
 
 class ParamCtrls:
-    def __init__(self, parent, label, param,
+    def __init__(self, parent, label, param, exp,
                  browse=False, noCtrls=False, advanced=False, appPrefs=None):
         """Create a set of ctrls for a particular Component Parameter, to be
         used in Component Properties dialogs. These need to be positioned
@@ -1736,18 +1736,8 @@ class ParamCtrls:
         self.dpi=wx.GetApp().dpi
         self.valueWidth = self.dpi * 3.5
         #try to find the experiment
-        self.exp=None
-        tryForExp = self.dlg
-        while self.exp==None:
-            if hasattr(tryForExp,'frame'):
-                self.exp=tryForExp.frame.exp
-            else:
-                try:
-                    tryForExp=tryForExp.parent#try going up a level
-                except:
-                    print dir(tryForExp)
-                    tryForExp.parent
-
+        self.exp = exp
+        
         #param has the fields:
         #val, valType, allowedVals=[],allowedTypes=[], hint="", updates=None, allowedUpdates=None
         # we need the following
@@ -2078,13 +2068,13 @@ class _BaseParamsDlg(wx.Dialog):
         return handler
     
     
-    def addParamToSizer(self, fieldName, sizer, parent):
+    def addParamToSizer(self, fieldName, sizer, parent, valType=None):
         param = self.params[fieldName]
         if param.label not in [None, '']:
             label = param.label
         else:
             label = fieldName
-        ctrls = ParamCtrls(parent, label=label, param=param, appPrefs=self.app.prefs)
+        ctrls = ParamCtrls(parent, label=label, param=param, exp=self.frame.exp, appPrefs=self.app.prefs)
         self.paramCtrls[fieldName] = ctrls
         if fieldName == 'name':
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.checkName)
@@ -2132,7 +2122,7 @@ class _BaseParamsDlg(wx.Dialog):
 
         self.currRow[sizer] += 1
 
-    def addParam(self, fieldName, advanced=False):
+    def addParam(self, fieldName, advanced=False, valType=None):
         """Add a parameter to the basic sizer
         """
         if advanced:
@@ -2141,7 +2131,7 @@ class _BaseParamsDlg(wx.Dialog):
         else:
             sizer = self.ctrlSizer
             parent = self
-        self.addParamToSizer(fieldName, sizer, parent)        
+        self.addParamToSizer(fieldName, sizer, parent, valType)        
 
     def openMonitorCenter(self,event):
         self.app.openMonitorCenter(event)
@@ -2547,7 +2537,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         for fieldName in ['name','loopType']:
             container=wx.BoxSizer(wx.HORIZONTAL)#to put them in
             self.globalCtrls[fieldName] = ctrls = ParamCtrls(self, fieldName,
-                self.currentHandler.params[fieldName])
+                self.currentHandler.params[fieldName], self.exp)
             container.AddMany( (ctrls.nameCtrl, ctrls.valueCtrl))
             self.ctrlSizer.Add(container)
 
@@ -2575,7 +2565,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 ctrls=self.globalCtrls[fieldName]
             elif fieldName=='conditionsFile':
                 container=wx.BoxSizer(wx.HORIZONTAL)
-                ctrls=ParamCtrls(self, fieldName, handler.params[fieldName], browse=True)
+                ctrls=ParamCtrls(self, fieldName, handler.params[fieldName], self.exp, browse=True)
                 self.Bind(wx.EVT_BUTTON, self.onChooseTrialsFile, ctrls.browseCtrl)
                 ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.viewConditions)
                 container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl, ctrls.browseCtrl))
@@ -2585,13 +2575,13 @@ class DlgLoopProperties(_BaseParamsDlg):
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
                     text = """No parameters set"""
-                ctrls = ParamCtrls(self, 'conditions',text,noCtrls=True)#we'll create our own widgets
+                ctrls = ParamCtrls(self, 'conditions',text, self.exp, noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
                 ctrls.valueCtrl = self.addText(text, size)#NB this automatically adds to self.ctrlSizer
                 #self.ctrlSizer.Add(ctrls.valueCtrl)
             else: #normal text entry field
                 container=wx.BoxSizer(wx.HORIZONTAL)
-                ctrls=ParamCtrls(self, fieldName, handler.params[fieldName])
+                ctrls=ParamCtrls(self, fieldName, handler.params[fieldName], self.exp)
                 container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl))
                 self.ctrlSizer.Add(container)
             #store info about the field
@@ -2618,7 +2608,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 ctrls=self.globalCtrls[fieldName]
             elif fieldName=='conditionsFile':
                 container=wx.BoxSizer(wx.HORIZONTAL)
-                ctrls=ParamCtrls(self, fieldName, handler.params[fieldName], browse=True)
+                ctrls=ParamCtrls(self, fieldName, handler.params[fieldName], self.exp, browse=True)
                 self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,ctrls.browseCtrl)
                 container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl, ctrls.browseCtrl))
                 self.ctrlSizer.Add(container)
@@ -2627,13 +2617,13 @@ class DlgLoopProperties(_BaseParamsDlg):
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
                     text = """No parameters set (select a file above)"""
-                ctrls = ParamCtrls(self, 'conditions',text,noCtrls=True)#we'll create our own widgets
+                ctrls = ParamCtrls(self, 'conditions',text, self.exp, noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
                 ctrls.valueCtrl = self.addText(text, size)#NB this automatically adds to self.ctrlSizer
                 #self.ctrlSizer.Add(ctrls.valueCtrl)
             else: #normal text entry field
                 container=wx.BoxSizer(wx.HORIZONTAL)
-                ctrls=ParamCtrls(self, fieldName, handler.params[fieldName])
+                ctrls=ParamCtrls(self, fieldName, handler.params[fieldName], self.exp)
                 container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl))
                 self.ctrlSizer.Add(container)
             #store info about the field
@@ -2649,7 +2639,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 ctrls=self.globalCtrls[fieldName]
             else: #normal text entry field
                 container=wx.BoxSizer(wx.HORIZONTAL)
-                ctrls=ParamCtrls(self, fieldName, handler.params[fieldName])
+                ctrls=ParamCtrls(self, fieldName, handler.params[fieldName], self.exp)
                 container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl))
                 self.ctrlSizer.Add(container)
             #store info about the field
@@ -3589,6 +3579,7 @@ class BuilderFrame(wx.Frame):
         self.IDs = self.app.IDs
         self.frameType='builder'
         self.filename = fileName
+        self.amp_manager = None
 
         if fileName in self.appData['frames'].keys():
             self.frameData = self.appData['frames'][fileName]
