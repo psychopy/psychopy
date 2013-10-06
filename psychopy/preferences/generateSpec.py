@@ -13,6 +13,8 @@ darwinSpec = baseSpec.replace('psychopy prefs for ALL PLATFORMS', 'psychopy pref
 darwinSpec = darwinSpec.replace("list('portaudio')", "list('coreaudio', 'portaudio')")
 darwinSpec = darwinSpec.replace("allowModuleImports = boolean(default='True')", '')
 darwinSpec = darwinSpec.replace("default='Helvetica'", "default='Monaco'")
+darwinSpec = darwinSpec.replace("'0x0378', '0x03BC'", #no parallel port on a mac but user might create for other plat?
+                                "'0x0378', '0x03BC', '/dev/parport0', '/dev/parport1'")
 # Note: Darwin key-binding prefs should be given as Ctrl+O here, displayed as Cmd+O to user
 f = open('Darwin.spec', 'wb')
 f.write(darwinSpec)
@@ -23,6 +25,7 @@ linuxSpec = baseSpec.replace('psychopy prefs for ALL PLATFORMS', 'psychopy prefs
 linuxSpec = linuxSpec.replace('integer(6,24, default=14)','integer(6,24, default=12)')
 linuxSpec = linuxSpec.replace("default='Helvetica'", "default='Ubuntu Mono, DejaVu Sans Mono'")
 linuxSpec = linuxSpec.replace("allowModuleImports = boolean(default='True')", '')
+linuxSpec = linuxSpec.replace("'0x0378', '0x03BC'", "'/dev/parport0', '/dev/parport1'") #parallel ports
 f = open('Linux.spec', 'wb')
 f.write(linuxSpec)
 f.close()

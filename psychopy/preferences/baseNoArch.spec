@@ -40,6 +40,7 @@
     audioDriver = list(default=list('portaudio'))
     # path to flac (lossless audio compression) on this operating system
     flac = string(default='')
+    parallelPorts = list(default=list('0x0378', '0x03BC'))
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
