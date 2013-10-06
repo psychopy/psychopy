@@ -69,6 +69,7 @@ class PParallelDLPortIO(object):
             raise e
 
         self.base = address
+        self.status = None
 
     def setData(self, data):
         """Set the data to be presented on the parallel port (one ubyte).

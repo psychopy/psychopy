@@ -11,24 +11,72 @@ There is also a newer, class-based API exposed in the classes
 :class:`PParallelDLPortIO`.  Each instance of these classes can be used to
 access a different parallel port.
 """
-
+from psychopy import logging
 import sys
 
-from _linux import PParallelLinux
-from _inpout32 import PParallelInpOut32
-from _dlportio import PParallelDLPortIO
+# To make life easier, only try drivers which have a hope in heck of working
+if sys.platform.startswith('linux'):
+    from _linux import PParallelLinux
+    ParallelPort = PParallelLinux
+elif sys.platform == 'win32':
+    from ctypes import windll
+    if hasattr(windll, 'inpout32'):
+        from _inpout32 import PParallelInpOut32
+        ParallelPort = PParallelInpOut32
+    elif hasattr(windll, 'dlportio'):
+        from _dlportio import PParallelDLPortIO
+        ParallelPort = PParallelDLPortIO
+    else:
+        logging.warning("psychopy.parallel has been imported but no parallel port driver found. Install either input32 or dlportio")
+else:
+    logging.warning("psychopy.parallel has been imported on a Mac (which doesn't have a parallel port?)")
+    #OS X doesn't have a parallel port but write the class for documentations purps
+    class ParallelPort(object):
+        """
+        This class provides read/write access to the parallel port on Windows and Linux
+
+        Usage::
+
+            from psychopy import parallel
+            port = parallel.ParallelPort(addresss = 0x0378)
+            port.setData(4)
+            port.readPin(2)
+            port.setPin(2, 1)
+
+        """
+        def setData(self, data):"""
+            Set the data to be presented on the parallel port (one ubyte).
+            Alternatively you can set the value of each pin (data pins are pins
+            2-9 inclusive) using :func:`~psychopy.parallel.setPin`
+
+            examples::
+
+                parallel.setData(0) #sets all pins low
+                parallel.setData(255) #sets all pins high
+                parallel.setData(2) #sets just pin 3 high (remember that pin2=bit0)
+                parallel.setData(3) #sets just pins 2 and 3 high
+
+            you can also convert base 2 to int v easily in python::
+
+                parallel.setData( int("00000011",2) )#pins 2 and 3 high
+                parallel.setData( int("00000101",2) )#pins 2 and 4 high
+            """
+            raise NotImplementedError, "Parallel ports don't work on a Mac"
+        def readData(self):
+            """Return the value currently set on the data pins (2-9)"""
+            raise NotImplementedError, "Parallel ports don't work on a Mac"
+        def readPin(self, pinNumber):
+            """Determine whether a desired (input) pin is high(1) or low(0).
+
+            Pins 2-13 and 15 are currently read here
+            """
+            raise NotImplementedError, "Parallel ports don't work on a Mac"
 
 # In order to maintain API compatibility, we have to manage to deal with
 # the old, non-object-based, calls.  This necessitates keeping a
 # global object referring to a port.  We initialise it the first time
 # that the person calls
-PORT = None
-
-# To make life easier, only try drivers which have a hope in heck of working
-if sys.platform == 'linux2':
-    PREFERRED_DRIVERS = [PParallelLinux]
-else:
-    PREFERRED_DRIVERS = [PParallelDLPortIO, PParallelInpOut32]
+PORT = ParallelPort() # create a port using default address
 
 def setPortAddress(address=0x0378):
     """
@@ -48,7 +96,7 @@ def setPortAddress(address=0x0378):
     on your platform
     """
 
-    global PORT, PREFERRED_DRIVERS
+    global PORT
 
     # This is useful with the Linux-based driver where deleting
     # the port object ensures that we're not longer holding the
@@ -57,14 +105,12 @@ def setPortAddress(address=0x0378):
     if PORT is not None:
         del PORT
 
-    tmp = None
-    for d in PREFERRED_DRIVERS:
-        try:
-            tmp = d(address=address)
-            if tmp is not None:
-                break
-        except Exception, e:
-            tmp = None
+    try:
+        tmp = d(address=address)
+        if tmp is not None:
+            break
+    except Exception, e:
+        tmp = None
 
     PORT = tmp
 
