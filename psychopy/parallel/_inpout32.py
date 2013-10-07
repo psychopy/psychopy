@@ -22,7 +22,10 @@ class PParallelInpOut32(object):
         from numpy import uint8
         from ctypes import windll
 
-        self.base = address
+        if isinstance(address, basestring) and address.startswith('0x'): #convert u"0x0378" into 0x0378
+            self.base = int(address, 16)
+        else:
+            self.base = address
         self.port = windll.inpout32
 
         BYTEMODEMASK = uint8(1 << 5 | 1 << 6 | 1 << 7)

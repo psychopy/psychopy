@@ -71,9 +71,9 @@ class ParallelOutComponent(BaseComponent):
         self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
         buff.writeIndented("%(name)s.status = STARTED\n" %(self.params))
         if not self.params['syncScreen'].val:
-            buff.writeIndented("%(name)s.setData(%(startData)s)\n" %(self.params))
+            buff.writeIndented("%(name)s.setData(int(%(startData)s))\n" %(self.params))
         else:
-            buff.writeIndented("win.callOnFlip(%(name)s.setData, %(startData)s)\n" %(self.params))
+            buff.writeIndented("win.callOnFlip(%(name)s.setData, int(%(startData)s))\n" %(self.params))
 
 
         buff.setIndentLevel(-1, relative=True)#to get out of the if statement
@@ -82,18 +82,18 @@ class ParallelOutComponent(BaseComponent):
             self.writeStopTestCode(buff)#writes an if statement to determine whether to draw etc
             buff.writeIndented("%(name)s.status = STOPPED\n" %(self.params))
             if not self.params['syncScreen'].val:
-                buff.writeIndented("%(name)s.setData(%(stopData)s)\n" %(self.params))
+                buff.writeIndented("%(name)s.setData(int(%(stopData)s))\n" %(self.params))
             else:
-                buff.writeIndented("win.callOnFlip(%(name)s.setData, %(stopData)s)\n" %(self.params))
+                buff.writeIndented("win.callOnFlip(%(name)s.setData, int(%(stopData)s))\n" %(self.params))
             buff.setIndentLevel(-1, relative=True)#to get out of the if statement
 
         #dedent
-        buff.setIndentLevel(-dedentAtEnd, relative=True)#'if' statement of the time test and button check
+#        buff.setIndentLevel(-dedentAtEnd, relative=True)#'if' statement of the time test and button check
 
     def writeRoutineEndCode(self,buff):
         #make sure that we do switch to stopData if the routine has been aborted before our 'end'
-        buff.writeIndented("if %(name)s.status == STARTED\n" %(self.params))
+        buff.writeIndented("if %(name)s.status == STARTED:\n" %(self.params))
         if not self.params['syncScreen'].val:
-            buff.writeIndented("%(name)s.setData(%(stopData)s)\n" %(self.params))
+            buff.writeIndented("    %(name)s.setData(int(%(stopData)s))\n" %(self.params))
         else:
-            buff.writeIndented("win.callOnFlip(%(name)s.setData, %(stopData)s)\n" %(self.params))
+            buff.writeIndented("    win.callOnFlip(%(name)s.setData, int(%(stopData)s))\n" %(self.params))

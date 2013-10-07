@@ -62,6 +62,7 @@ else:
                 parallel.setData( int("00000011",2) )#pins 2 and 3 high
                 parallel.setData( int("00000101",2) )#pins 2 and 4 high
             """
+            sys.stdout.flush()
             raise NotImplementedError, "Parallel ports don't work on a Mac"
         def readData(self):
             """Return the value currently set on the data pins (2-9)"""
@@ -98,6 +99,8 @@ def setPortAddress(address=0x0378):
     """
 
     global PORT
+    if isinstance(address, basestring) and address.startswith('0x'): #convert u"0x0378" into 0x0378
+        address = int(address, 16)
 
     # This is useful with the Linux-based driver where deleting
     # the port object ensures that we're not longer holding the

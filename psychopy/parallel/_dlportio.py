@@ -67,8 +67,11 @@ class PParallelDLPortIO(object):
         except Exception, e:
             print "Could not import DLportIO driver, parallel Ports not available"
             raise e
-
-        self.base = address
+        
+        if isinstance(address, basestring) and address.startswith('0x'): #convert u"0x0378" into 0x0378
+            self.base = int(address, 16)
+        else:
+            self.base = address
         self.status = None
 
     def setData(self, data):
