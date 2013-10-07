@@ -1,0 +1,62 @@
+monitor_devices:
+    - Display:
+        name: display
+        reporting_unit_type: pix
+        device_number: 0
+        physical_dimensions:
+            width: 590
+            height: 340
+            unit_type: mm
+        default_eye_distance:
+            surface_center: 500
+            unit_type: mm
+        psychopy_monitor_name: default
+
+    - Keyboard:
+        name: keyboard
+
+    - Mouse:
+        name: mouse
+
+    - Experiment:
+        name: experiment
+
+    # SMI iView Config
+    - eyetracker.hw.smi.iviewx.EyeTracker:
+        enable: True
+        name: tracker
+        save_events: True
+        stream_events: True
+        event_buffer_length: 1024
+        monitor_event_types: [BinocularEyeSampleEvent,]
+        network_settings:
+            send_ip_address: 127.0.0.1
+            send_port: 4444
+            receive_ip_address: 127.0.0.1
+            receive_port: 5555	            
+        runtime_settings:
+            sampling_rate: 60
+            track_eyes: BINOCULAR_AVERAGED
+            sample_filtering:
+                FILTER_ALL: FILTER_OFF            
+            vog_settings:
+                pupil_measure_types: PUPIL_DIAMETER
+        calibration:
+            type: FIVE_POINTS
+            auto_pace: Yes
+            pacing_speed: FAST
+            screen_background_color: 20
+            target_type: CIRCLE_TARGET
+            target_attributes:
+                target_size: 30
+                target_color: 239
+                target_inner_color: RED
+            show_validation_accuracy_window: True
+        model_name: REDm
+
+data_store:
+    enable: True
+    experiment_info:
+        code: ystart
+    session_info:
+        code: S0001    
