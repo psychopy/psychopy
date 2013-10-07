@@ -44,7 +44,8 @@ else:
             port.setPin(2, 1)
 
         """
-        def setData(self, data):"""
+        def setData(self, data):
+            """
             Set the data to be presented on the parallel port (one ubyte).
             Alternatively you can set the value of each pin (data pins are pins
             2-9 inclusive) using :func:`~psychopy.parallel.setPin`
@@ -106,13 +107,9 @@ def setPortAddress(address=0x0378):
         del PORT
 
     try:
-        tmp = d(address=address)
-        if tmp is not None:
-            break
+        PORT = d(address=address)
     except Exception, e:
-        tmp = None
-
-    PORT = tmp
+        PORT = None
 
 def setData(data):
     """
