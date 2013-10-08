@@ -12,7 +12,7 @@ iconFile = path.join(thisFolder,'parallelOut.png')
 tooltip = 'Parallel out: send signals from the parallel port'
 
 class ParallelOutComponent(BaseComponent):
-    """An event class for checking the mouse location and buttons at given timepoints"""
+    """A class for sending signals from the parallel port"""
     categories = ['I/O']
     def __init__(self, exp, parentName, name='p_port',
                 startType='time (s)', startVal=0.0,
@@ -58,7 +58,7 @@ class ParallelOutComponent(BaseComponent):
         self.params['syncScreen']=Param(syncScreen, valType='bool',
             allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
-            hint="If the parallel port data relates to visual stimuli then sync it's pulse to the screen refresh",
+            hint="If the parallel port data relates to visual stimuli then sync its pulse to the screen refresh",
             label="Sync to screen")
     def writeInitCode(self,buff):
         buff.writeIndented("%(name)s = parallel.ParallelPort(address=%(address)s)\n" %(self.params))
