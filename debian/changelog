@@ -1,3 +1,9 @@
+psychopy-openbci (1.78.0.0.3-1) unstable; urgency=low
+
+  * Fix difference in data.py to enable save CSV files.
+
+ -- Karol Auguštin <karol@augustin.pl>  Wed, 09 Oct 2013 16:58:58 +0200
+
 psychopy-openbci (1.78.0.0.2-1) unstable; urgency=low
 
   * Fixed lost parameter in mouse.
