@@ -292,8 +292,8 @@ class ExperimentHandler(object):
         f = open(fileName, 'wb')
         cPickle.dump(self, f)
         f.close()
-        #but set back to previous setting for the 'live' copy
-        self.saveWideText=neededSaveWideText
+        #no need to save again
+        self.savePickle=False
 
     def abort(self):
         """Inform the ExperimentHandler that the run was aborted.
