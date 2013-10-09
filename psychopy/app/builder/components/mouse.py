@@ -78,6 +78,7 @@ class MouseComponent(BaseComponent):
             buff.writeIndented("%(name)s.midButton = []\n" %(self.params))
             buff.writeIndented("%(name)s.rightButton = []\n" %(self.params))
             buff.writeIndented("%(name)s.time = []\n" %(self.params))
+            buff.writeIndented("%(name)s.selection = []\n" %(self.params))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
