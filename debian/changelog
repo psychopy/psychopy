@@ -1,3 +1,9 @@
+psychopy-openbci (1.78.0.0.2-1) unstable; urgency=low
+
+  * Fixed lost parameter in mouse.
+
+ -- Karol Auguštin <karol@augustin.pl>  Wed, 09 Oct 2013 14:24:40 +0200
+
 psychopy-openbci (1.78.0.0.1-2) unstable; urgency=low
 
   * Fix bad import in builder.
