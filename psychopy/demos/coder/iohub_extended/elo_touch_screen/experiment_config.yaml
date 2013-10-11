@@ -1,0 +1,13 @@
+title: Elo Touch Screen Example
+code: elo_test
+version: '1.0'
+description: Demos the Elo Touch Screen Device
+session_defaults:
+    name: Session Name
+    code: E1S01
+    comments: None
+    user_variables:
+        calibrate_elo: True
+        validate_elo: True
+session_variable_order: [ name, code, calibrate_elo, validate_elo, comments]
+  
