@@ -2646,7 +2646,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 if hasattr(gridGUI, 'fileName'):
                     self.conditionsFile = gridGUI.fileName
         self.currentHandler.params['conditionsFile'].val = self.conditionsFile
-        if self.currentCtrls.haskey('conditionsFile'): # as set via DlgConditions
+        if 'conditionsFile' in self.currentCtrls.keys(): # as set via DlgConditions
             valCtrl = self.currentCtrls['conditionsFile'].valueCtrl
             valCtrl.Clear()
             valCtrl.WriteText(getAbbrev(self.conditionsFile))
@@ -2903,11 +2903,11 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.mainSizer.Add(self.ctrlSizer)
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
-        
+
         #move the psoition to be v near the top of screen and to the right of the left-most edge of builder
         builderPos = self.frame.GetPosition()
         self.SetPosition((builderPos[0]+200,20))
-        
+
         #do show and process return
         retVal = self.ShowModal()
         if retVal== wx.ID_OK: self.OK=True
