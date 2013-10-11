@@ -1418,7 +1418,7 @@ class ioHubConnection(object):
 
 
 #quickConnect
-
+print "#####\nTODO: Test launchHubServer with diff arg inputs and new iohub_config_name kwarg.\n#####\n"
 def launchHubServer(**kwargs):
     """   
     The launchHubServer function can be used to start the ioHub Process
@@ -1431,6 +1431,7 @@ def launchHubServer(**kwargs):
     * experiment_code: The label being used for the experiment being run.
     * session_code: A unique session code for the current run of the experiment.
     * psychopy_monitor_name: The name of the PsychoPy Monitor settings file that should be used to define physical characteristics of the ioHub Display device being created.
+    * iohub_config_name: A string providing the absolute path and file name of an iohub_config yaml file to load and use for configuring monitored devices. Any other device name kwargs are ignored.    
     * Any valid ioHub Device class names: Each class name would be given as a kwarg label, and the value of the kwarg must be a dict object containing the Device Configuration Settings that need to be changed from ioHub Device type defaults. 
     
     Device class name kwarg value dictionaries must be properly formatted and contain valid
@@ -1580,49 +1581,60 @@ def launchHubServer(**kwargs):
             datastore_name = None
 
 
-    device_dict=kwargs
-    
-    device_list=[]
-    
-    # Ensure a Display Device has been defined. If note, create one.
-    # Insert Display device as first device in dev. list.
-    if 'Display' not in device_dict: 
-        if psychopy_monitor_name:
-            device_list.append(dict(Display={'psychopy_monitor_name':psychopy_monitor_name,'override_using_psycho_settings':True}))
+    monitor_devices_config=None
+    if kwargs.get('iohub_config_name'):        
+        from psychopy.iohub import load, Loader    
+        # Load the specified iohub configuration file, converting it to a python dict.
+        io_config=load(kwargs.get('iohub_config_name'),'r', Loader=Loader)
+        monitor_devices_config=io_config.get('monitor_devices')
+
+    ioConfig=None
+    if monitor_devices_config is None:
+        device_dict=kwargs
+        
+        device_list=[]
+        
+        # Ensure a Display Device has been defined. If note, create one.
+        # Insert Display device as first device in dev. list.
+        if 'Display' not in device_dict: 
+            if psychopy_monitor_name:
+                device_list.append(dict(Display={'psychopy_monitor_name':psychopy_monitor_name,'override_using_psycho_settings':True}))
+            else:
+                device_list.append(dict(Display={'override_using_psycho_settings':False}))
         else:
-            device_list.append(dict(Display={'override_using_psycho_settings':False}))
-    else:
-        device_list.append(dict(Display=device_dict['Display']))
-        del device_dict['Display']
-
-    # Ensure a Experiment Device has been defined. If note, create one.
-    if 'Experiment' not in device_dict:    
-        device_list.append(dict(Experiment={}))
-    else:
-        device_list.append(dict(Experiment=device_dict['Experiment']))
-        del device_dict['Experiment']
-
-    # Ensure a Keyboard Device has been defined. If note, create one.
-    if 'Keyboard' not in device_dict:    
-        device_list.append(dict(Keyboard={}))
-    else:
-        device_list.append(dict(Keyboard=device_dict['Keyboard']))
-        del device_dict['Keyboard']
-
-    # Ensure a Mouse Device has been defined. If note, create one.
-    if 'Mouse' not in device_dict:    
-        device_list.append(dict(Mouse={}))
-    else:
-        device_list.append(dict(Mouse=device_dict['Mouse']))
-        del device_dict['Mouse']
+            device_list.append(dict(Display=device_dict['Display']))
+            del device_dict['Display']
     
-    # Add remaining defined devices to the device list.
-    for class_name,device_config in device_dict.iteritems():
-        device_list.append({class_name:device_config})
-
-    # Create an ioHub configuration dictionary.
-    ioConfig=dict(monitor_devices=device_list)
+        # Ensure a Experiment Device has been defined. If note, create one.
+        if 'Experiment' not in device_dict:    
+            device_list.append(dict(Experiment={}))
+        else:
+            device_list.append(dict(Experiment=device_dict['Experiment']))
+            del device_dict['Experiment']
     
+        # Ensure a Keyboard Device has been defined. If note, create one.
+        if 'Keyboard' not in device_dict:    
+            device_list.append(dict(Keyboard={}))
+        else:
+            device_list.append(dict(Keyboard=device_dict['Keyboard']))
+            del device_dict['Keyboard']
+    
+        # Ensure a Mouse Device has been defined. If note, create one.
+        if 'Mouse' not in device_dict:    
+            device_list.append(dict(Mouse={}))
+        else:
+            device_list.append(dict(Mouse=device_dict['Mouse']))
+            del device_dict['Mouse']
+        
+        # Add remaining defined devices to the device list.
+        for class_name,device_config in device_dict.iteritems():
+            device_list.append({class_name:device_config})
+    
+        # Create an ioHub configuration dictionary.
+        ioConfig=dict(monitor_devices=device_list)
+    else:
+        ioConfig=dict(monitor_devices=monitor_devices_config)
+        
     if _DATA_STORE_AVAILABLE is True and experiment_code and session_code:    
         # Enable saving of all device events to the 'ioDataStore'
         # datastore name is equal to experiment code given unless the 
@@ -2089,9 +2101,10 @@ class ioHubExperimentRuntime(object):
        
     def start(self,*sys_argv):
         """
-        This method is called automatically. A user script does not need 
-        to call it. This method calls the run() method of the class, 
-        beginning execution of the script.
+        This method should be called from within a user script which as extended
+        this class to start the ioHub Server. The run() method of the class,
+        containing the user experiment logic, is then called. When the run() method
+        completes, the ioHub Server is stopped and the program exits.
 
         Args: None
         Return: None
