@@ -22,7 +22,10 @@ class PParallelInpOut32(object):
         from numpy import uint8
         from ctypes import windll
 
-        self.base = address
+        if isinstance(address, basestring) and address.startswith('0x'): #convert u"0x0378" into 0x0378
+            self.base = int(address, 16)
+        else:
+            self.base = address
         self.port = windll.inpout32
 
         BYTEMODEMASK = uint8(1 << 5 | 1 << 6 | 1 << 7)
@@ -34,6 +37,7 @@ class PParallelInpOut32(object):
         # Now to make sure the port is in output mode we need to make
         # sure that bit 5 of the control register is not set
         self.port.Out32( self.base + 2, int(self.port.Inp32(self.base + 2) & ~uint8( 1 << 5 )) )
+        self.status = None
 
     def setData(self, data):
         """Set the data to be presented on the parallel port (one ubyte).

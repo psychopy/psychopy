@@ -11,7 +11,7 @@ iconFile = path.join(thisFolder,'eyetracker.png')
 tooltip = 'Eyetracker: use one of several eyetrackers to follow gaze'
 
 class EyetrackerComponent(BaseComponent):
-    """An event class for checking the mouse location and buttons at given timepoints"""
+    """A class for using one of several eyetrackers to follow gaze"""
     categories = ['Responses']
     def __init__(self, exp, parentName, name='eyes',
                 startType='time (s)', startVal=0.0,
