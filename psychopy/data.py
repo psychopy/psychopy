@@ -4,7 +4,9 @@
 # Copyright (C) 2013 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import misc, gui, logging
+from psychopy import gui, logging
+from psychopy.tools.arraytools import extendArr, shuffleArray
+from psychopy.tools.fileerrortools import handleFileCollision
 import psychopy
 import cPickle, string, sys, platform, os, time, copy, csv
 import numpy
@@ -289,13 +291,13 @@ class ExperimentHandler(object):
 
         :Parameters:
 
-            fileCollisionMethod: Collision method passed to :func:`~psychopy.misc._handleFileCollision`
+            fileCollisionMethod: Collision method passed to :func:`~psychopy.tools.fileerrortools.handleFileCollision`
         """
         #otherwise use default location
         if not fileName.endswith('.psydat'):
             fileName+='.psydat'
         if os.path.exists(fileName):
-            fileName = misc._handleFileCollision(fileName, fileCollisionMethod)
+            fileName = handleFileCollision(fileName, fileCollisionMethod)
 
         #create the file or print to stdout
         f = open(fileName, 'wb')
@@ -365,7 +367,7 @@ class _BaseTrialHandler(object):
 
         :Parameters:
 
-            fileCollisionMethod: Collision method passed to :func:`~psychopy.misc._handleFileCollision`
+            fileCollisionMethod: Collision method passed to :func:`~psychopy.tools.fileerrortools.handleFileCollision`
         """
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
             logging.info('.saveAsPickle() called but no trials completed. Nothing saved')
@@ -374,7 +376,7 @@ class _BaseTrialHandler(object):
         if not fileName.endswith('.psydat'):
             fileName+='.psydat'
         if os.path.exists(fileName):
-            fileName = misc._handleFileCollision(fileName, fileCollisionMethod)
+            fileName = handleFileCollision(fileName, fileCollisionMethod)
 
         #create the file or print to stdout
         f = open(fileName, 'wb')
@@ -617,8 +619,8 @@ class TrialHandler(_BaseTrialHandler):
     The psydat file format is literally just a pickled copy of the TrialHandler object that
     saved it. You can open it with::
 
-            from psychopy import misc
-            dat = misc.fromFile(path)
+            from psychopy.tools.filetools import fromFile
+            dat = fromFile(path)
 
     Then you'll find that `dat` has the following attributes that
     """
@@ -801,7 +803,7 @@ class TrialHandler(_BaseTrialHandler):
             sequenceIndices = []
             seed=self.seed
             for thisRep in range(self.nReps):
-                thisRepSeq = misc.shuffleArray(indices.flat, seed=seed).tolist()
+                thisRepSeq = shuffleArray(indices.flat, seed=seed).tolist()
                 seed=None#so that we only seed the first pass through!
                 sequenceIndices.append(thisRepSeq)
             sequenceIndices = numpy.transpose(sequenceIndices)
@@ -810,7 +812,7 @@ class TrialHandler(_BaseTrialHandler):
         elif self.method == 'fullRandom':
             # indices*nReps, flatten, shuffle, unflatten; only use seed once
             sequential = numpy.repeat(indices, self.nReps,1) # = sequential
-            randomFlat = misc.shuffleArray(sequential.flat, seed=self.seed)
+            randomFlat = shuffleArray(sequential.flat, seed=self.seed)
             sequenceIndices = numpy.reshape(randomFlat, (len(indices), self.nReps))
         logging.exp('Created sequence: %s, trialTypes=%d, nReps=%i, seed=%s' %
                 (self.method, len(indices), self.nReps, str(self.seed) )  )
@@ -1539,7 +1541,7 @@ class StairHandler(_BaseTrialHandler):
         self.otherData[dataName].append(value)
         #add the current data to experiment if poss
         if self.getExp() != None:#update the experiment handler too
-            self.getExp().addData(dataName, result)
+            self.getExp().addData(dataName, value)
     def addData(self, result, intensity=None):
         """Deprecated since 1.79.00: This function name was ambiguous. Please use one of
         these instead:
@@ -2595,7 +2597,7 @@ class DataHandler(dict):
         if not numpy.alltrue(posArr<shapeArr):
             #array isn't big enough
             logging.warning('need a bigger array for:'+thisType)
-            self[thisType]=misc.extendArr(self[thisType],posArr)#not implemented yet!
+            self[thisType]=extendArr(self[thisType],posArr)#not implemented yet!
         #check for ndarrays with more than one value and for non-numeric data
         if self.isNumeric[thisType] and \
             ((type(value)==numpy.ndarray and len(value)>1) or (type(value) not in [float, int])):

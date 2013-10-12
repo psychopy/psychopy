@@ -1,19 +1,60 @@
-*.py[co]
-*.egg-info
-*.log
-*.orig
+#########################################
+# Editor temporary/working/backup files #
+.#*
+[#]*#
+*~
+*$
+*.bak
+*.kdev4
+.project
+.pydevproject
+/.ropeproject/config.py
+/.ropeproject/history
+/.ropeproject/objectdb
+/.spyderproject
+
+# Compiled source #
+###################
+*.a
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.py[ocd]
+*.so
+
+# Python files #
+################
 *__pycache__*
-.hg*
-.coverage
-.idea
-dist
+# setup.py working directory
 build
+_build
+# sphinx build directory
+doc/_build
+# setup.py dist directory
+dist
+# Egg metadata
+*.egg-info
+# tox testing tool
+.tox
+
+# OS generated files #
+######################
+.directory
+.gdb_history
+.DS_Store
+ehthumbs.db
+Icon?
+*.orig
 old
+Thumbs.db
 nonSVN
-nonSphinx
-sitePrefs.cfg
-builddocs.sh
-appData.cfg
+.hg*
+*.log
+
+# Things specific to this project #
+###################################
 PsyScope*
 psychopy1
 
@@ -24,24 +65,25 @@ psychopy/*/*/*/data/*.xlsx
 psychopy/*/*/*/data/*.psydat
 psychopy/demos/*/*/*.pickle
 psychopy/demos/*/*/*.psydat
-psychopy/demos/*/*/*.txt
 
 psychopy/tests/*Out.*
 psychopy/tests/data/*_local.png
 psychopy/tests/*htmlcov*
 
-.DS_Store
+/iohub_docs/*.bat
+/iohub_docs/*.txt
 
-/.ropeproject/config.py
-/.ropeproject/history
-/.ropeproject/objectdb
-/.spyderproject
+sitePrefs.cfg
+appData.cfg
 
-*.hdf5
 *.iohpid
 *.paths
 *.EDF
-*.bak
-/iohub_docs/*.bat
-_build
-/iohub_docs/*.txt
+
+# Documentation generated files #
+#################################
+.coverage
+.idea
+builddocs.sh
+nonSphinx
+*.hdf5

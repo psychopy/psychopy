@@ -334,8 +334,8 @@ class PsychoPyApp(wx.App):
         return new_rgb
     def openMonitorCenter(self,event):
         from psychopy.monitors import MonitorCenter
-        frame = MonitorCenter.MainFrame(None,'PsychoPy2 Monitor Center')
-        frame.Show(True)
+        self.monCenter = MonitorCenter.MainFrame(None,'PsychoPy2 Monitor Center')
+        self.monCenter.Show(True)
     def MacOpenFile(self,fileName):
         logging.debug('PsychoPyApp: Received Mac file dropped event')
         if fileName.endswith('.py'):
@@ -416,8 +416,8 @@ let me/us know at psychopy-users@googlegroups.com"""
         info.AddDocWriter('Jonathan Peirce')
         info.AddDocWriter('Jeremy Gray')
         info.AddDocWriter('Rebecca Sharman')
-
-        wx.AboutBox(info)
+        if not self.testMode:
+            wx.AboutBox(info)
 
     def followLink(self, event=None, url=None):
         """Follow either an event id (which should be a key to a url defined in urls.py)

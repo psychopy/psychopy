@@ -10,7 +10,8 @@ for-loops for a large array of stimuli like this.
 see also the starField demo
 """
 
-from psychopy import visual, core, misc, event
+from psychopy import visual, core, event
+from psychopy.tools.coordinatetools import cart2pol
 import numpy #for maths on arrays
 from numpy.random import random, shuffle #we only need these two commands from this lib
 win = visual.Window([1024,768], units='pix', monitor='testMonitor')
@@ -34,7 +35,7 @@ def makeCoherentOris(XYs, coherence, formAngle):
     shuffle(possibleIndices) #...shuffle it'in-place' (without creating a new array)...
     coherentIndices = possibleIndices[0:int(nNew*coherence)]#...and take first nnn elements
     #set the ori of the coherent elements
-    theta, radius = misc.cart2pol(XYs[:,0], XYs[:,1]) #get polar coordinates for elements
+    theta, radius = cart2pol(XYs[:,0], XYs[:,1]) #get polar coordinates for elements
     newOris[coherentIndices] = theta[coherentIndices]+formAngle
     return newOris
     

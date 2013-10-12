@@ -4,6 +4,7 @@ recursive-include psychopy *.png
 recursive-include psychopy/app/Resources *.icns
 recursive-include psychopy/app/Resources *.ico
 recursive-include psychopy/app/Resources *.ttf
+recursive-include psychopy/app/Resources *.desktop
 recursive-include psychopy/app *.spec
 
 recursive-include psychopy/monitors *.ico

@@ -1,7 +1,8 @@
 
 # This file specifies defaults for psychopy prefs for Darwin.
+
 # !! This file is auto-generated and will be overwritten!!
-#Edit baseNoArch.spec instead.
+# Edit baseNoArch.spec (all platforms) or generateSpec.py (platform-specific) instead.
 
 # Notes on usage for developers (not needed or intended for use when making or running experiments):
 # - baseNoArch.spec is copied & edited to be platform specific when you run generateSpec.py
@@ -36,11 +37,13 @@
     version = string(default='')
     # Add paths here to your custom Python modules
     paths=list(default=list())
-    #choice of audio library
+    # choice of audio library
     audioLib = list(default=list('pygame', 'pyo'))
-    audioDriver = list(default=list('coreaudio','portaudio'))
+    # audio driver to use
+    audioDriver = list(default=list('coreaudio', 'portaudio'))
     # path to flac (lossless audio compression) on this operating system
     flac = string(default='')
+    parallelPorts = list(default=list('0x0378', '0x03BC', '/dev/parport0', '/dev/parport1'))
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
@@ -62,9 +65,9 @@
 # Settings for the Coder window
 [coder]
     # a list of font names; the first one found on the system will be used
-    codeFont = string(default='Helvetica')
+    codeFont = string(default='Monaco')
     # a list of font names; the first one found on the system will be used
-    commentFont = string(default='Comic Sans MS')
+    commentFont = string(default='Monaco')
     # a list of font names; the first one found on the system will be used
     outputFont = string(default='Monaco')
     # Font size (in pts) takes an integer between 6 and 24
@@ -93,12 +96,14 @@
     savedDataFolder = string(default='data')
     # Panels arrangement: topFlow = Flow on top, Components on left
     topFlow = boolean(default=False)
+    # Display text in a floating window that describes the experiment
     alwaysShowReadme = boolean(default=True)
+    # Upper limit on how many components can be in favorites
     maxFavorites = integer(default=10)
 
 # Settings for connections
 [connections]
-    # the http proxy for usage stats and auto-updating; format is host:port
+    # the http proxy for usage stats and auto-updating; format is host: port
     proxy = string(default="")
     # override the above proxy settings with values found in the environment (if possible)
     autoProxy = boolean(default=True)
@@ -187,8 +192,8 @@
     # decrease display size in Flow
     smallerFlow = string(default='Ctrl+-')
     # increase display size of Routines
-    largerRoutine = string(default='Ctrl++') # on mac book pro this is good
+    largerRoutine = string(default='Ctrl+Shift+=') # on mac book pro this is good
     # decrease display size of Routines
-    smallerRoutine = string(default='Ctrl+_')
+    smallerRoutine = string(default='Ctrl+Shift+-')
     #show or hide the readme (info) for this experiment if possible
     toggleReadme = string(default='Ctrl+I')

@@ -1,7 +1,8 @@
 
 # This file specifies defaults for psychopy prefs for Linux.
+
 # !! This file is auto-generated and will be overwritten!!
-#Edit baseNoArch.spec instead.
+# Edit baseNoArch.spec (all platforms) or generateSpec.py (platform-specific) instead.
 
 # Notes on usage for developers (not needed or intended for use when making or running experiments):
 # - baseNoArch.spec is copied & edited to be platform specific when you run generateSpec.py
@@ -36,11 +37,13 @@
     version = string(default='')
     # Add paths here to your custom Python modules
     paths=list(default=list())
-    #choice of audio library
+    # choice of audio library
     audioLib = list(default=list('pygame', 'pyo'))
+    # audio driver to use
     audioDriver = list(default=list('portaudio'))
     # path to flac (lossless audio compression) on this operating system
     flac = string(default='')
+    parallelPorts = list(default=list('/dev/parport0', '/dev/parport1'))
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
@@ -51,7 +54,7 @@
     # what windows to display when PsychoPy starts
     defaultView = option('last', 'builder', 'coder', 'both', default='last')
     # reset preferences to defaults on next restart of PsychoPy
-    resetPrefs = boolean(default='False')
+    resetPrefs = boolean(default='False') # default must be False!
     # save any unsaved preferences before closing the window
     autoSavePrefs = boolean(default='False')
     # enable features for debugging PsychoPy itself, including unit-tests
@@ -62,11 +65,11 @@
 # Settings for the Coder window
 [coder]
     # a list of font names; the first one found on the system will be used
-    codeFont = string(default='Arial')
+    codeFont = string(default='Ubuntu Mono, DejaVu Sans Mono')
     # a list of font names; the first one found on the system will be used
-    commentFont = string(default='Comic Sans MS')
+    commentFont = string(default='Ubuntu Mono, DejaVu Sans Mono')
     # a list of font names; the first one found on the system will be used
-    outputFont = string(default='Courier New')
+    outputFont = string(default='Ubuntu Mono, DejaVu Sans Mono')
     # Font size (in pts) takes an integer between 6 and 24
     codeFontSize = integer(6,24, default=12)
     # Font size (in pts) takes an integer between 6 and 24
@@ -84,7 +87,7 @@
     # if False will create scripts with an 'easier' but more cluttered namespace
     unclutteredNamespace = boolean(default=False)
     # folder names for custom components; expects a comma-separated list
-    componentsFolders = list(default=list('/usr/share/pyshared/psychopy/app/builder/components'))
+    componentsFolders = list(default=list('/Users/Shared/PsychoPy2/components'))
     # a list of components to hide (eg, because you never use them)
     hiddenComponents = list(default=list('PatchComponent'))
     # where the Builder demos are located on this computer (after unpacking)
@@ -93,12 +96,14 @@
     savedDataFolder = string(default='data')
     # Panels arrangement: topFlow = Flow on top, Components on left
     topFlow = boolean(default=False)
+    # Display text in a floating window that describes the experiment
     alwaysShowReadme = boolean(default=True)
+    # Upper limit on how many components can be in favorites
     maxFavorites = integer(default=10)
 
 # Settings for connections
 [connections]
-    # the http proxy for usage stats and auto-updating; format is host:port
+    # the http proxy for usage stats and auto-updating; format is host: port
     proxy = string(default="")
     # override the above proxy settings with values found in the environment (if possible)
     autoProxy = boolean(default=True)
@@ -187,8 +192,8 @@
     # decrease display size in Flow
     smallerFlow = string(default='Ctrl+-')
     # increase display size of Routines
-    largerRoutine = string(default='Ctrl++') # good in ubuntu virtual machine (on mac book pro...)
+    largerRoutine = string(default='Ctrl+Shift+=') # on mac book pro this is good
     # decrease display size of Routines
-    smallerRoutine = string(default='Ctrl+_')
+    smallerRoutine = string(default='Ctrl+Shift+-')
     #show or hide the readme (info) for this experiment if possible
     toggleReadme = string(default='Ctrl+I')

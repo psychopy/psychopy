@@ -36,6 +36,8 @@ eyetracker.hw.tobii.EyeTracker:
     serial_number:
 
     calibration:
+        minimize_psychopy_win: False
+
         # The Tobii ioHub Common Eye Tracker Interface currently support 
         # a 3, 5 and 9 point calibration mode.
         # THREE_POINTS,FIVE_POINTS,NINE_POINTS
@@ -70,17 +72,21 @@ eyetracker.hw.tobii.EyeTracker:
         # The associated target attribute properties can be supplied
         # for the given target_type. 
         target_attributes:
-            # the outer diameter of the circle, in pixels.
-            outer_diameter: 33
-            
-            # the inner diameter of the circle, in pixels.
-            inner_diameter: 6
-            
-            # The color to use for the outer target 'ring'.
-            outer_color: [255,255,255]
-            
-            # The color to use for the center of the target.
-            inner_color: [0,0,0]
+             outer_diameter: 35
+             outer_stroke_width: 2
+             outer_fill_color: [128,128,128]
+             outer_line_color: [255,255,255]
+             inner_diameter: 7
+             inner_stroke_width: 1
+             inner_color: [0,0,0]
+             inner_fill_color: [0,0,0]
+             inner_line_color: [0,0,0]
+             animate:
+                 enable: True
+                 movement_velocity: 600.0  # 500 pix / sec
+                 expansion_ratio: 3.0  # expands to 3 x the starting size
+                 expansion_speed: 30.0  # exapands at 30.0 pix / sec
+                 contract_only: True
     
     runtime_settings:
         # The supported sampling rates for Tobii are model dependent. 

@@ -7,10 +7,10 @@ The simple answer is 'yes', given some additional hardware. The clocks that Psyc
 .. _Cedrus Response Pad: http://www.cedrus.com/responsepads
 
 Before conducting your experiment in which effects might be on the order of 1 ms, do consider that;
-* your screen has a temporal resolution of ~10 ms
-* your visual system has a similar upper limit (or you would notice the flickering screen)
-* human response times are typically in the range 200-400 ms and very variable
-* USB keyboard latencies are variable, in the range 20-30ms
+    - your screen has a temporal resolution of ~10 ms
+    - your visual system has a similar upper limit (or you would notice the flickering screen)
+    - human response times are typically in the range 200-400 ms and very variable
+    - USB keyboard latencies are variable, in the range 20-30ms
 
 That said, PsychoPy does aim to give you as high a temporal precision as possible, and is likely not to be the limiting factor of your experiment.
 
@@ -36,4 +36,4 @@ For ''CRT (cathode ray tube) screens'', the lines of pixels are drawn sequential
 Can I have my stimulus to appear with a very precise rate?
 ------------------------------------------------------------
 
-Yes. Generally to do that you should time your stimulus (its onset/offset, its rate of change...) using the frame refresh rather than a clock. e.g. you should write your code to say 'for 20 frames present this stimulus' rather than 'for 300ms present this stimulus'. Provided your graphics card is set to syncronise page-flips with the vertical blank, and provided that you aren't :doc:`dropping frames <detectingFrameDrops>` the frame rate will always be absolutely constant.
+Yes. Generally to do that you should time your stimulus (its onset/offset, its rate of change...) using the frame refresh rather than a clock. e.g. you should write your code to say 'for 20 frames present this stimulus' rather than 'for 300ms present this stimulus'. Provided your graphics card is set to synchronise page-flips with the vertical blank, and provided that you aren't :doc:`dropping frames <detectingFrameDrops>` the frame rate will always be absolutely constant.

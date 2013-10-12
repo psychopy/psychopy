@@ -3,7 +3,7 @@
 Data outputs
 ====================================
 
-There are a number of different forms of output that PsychoPy can generate, depending on the study and your preferred analysis software. Multiple file types can be output from a single experiment (e.g. :ref:`excelFile` for a quick browse, :ref:`logFile` to check for error mesages and :ref:`psydatFile` for detailed analysis)
+There are a number of different forms of output that PsychoPy can generate, depending on the study and your preferred analysis software. Multiple file types can be output from a single experiment (e.g. :ref:`excelFile` for a quick browse, :ref:`logFile` to check for error messages and :ref:`psydatFile` for detailed analysis)
 
 .. _logFile:
 
@@ -25,7 +25,7 @@ These files are ideal for batch analysis with a python script and plotting via `
 Of particular interest might be the attributes of the Handler:
     :extraInfo: the `extraInfo` dictionary provided to the Handler during its creation
     :trialList: the list of dictionaries provided to the Handler during its creation
-    :data: a dictionary of 2D numpy arrays. Each entry in the dictionary represents a type of data (e.g. if you added 'rt' data during your experiment using :ref:`~psychopy.data.TrialHandler.addData` then 'rt' will be a key). For each of those entries the 2D array represents the condition number and repeat number (remember that these start at 0 in python, unlike matlab(TM) which starts at 1)
+    :data: a dictionary of 2D numpy arrays. Each entry in the dictionary represents a type of data (e.g. if you added 'rt' data during your experiment using :ref:`~psychopy.data.TrialHandler.addData` then 'rt' will be a key). For each of those entries the 2D array represents the condition number and repeat number (remember that these start at 0 in python, unlike Matlab(TM) which starts at 1)
 
 For example, to open a psydat file and examine some of its contents with::
 
@@ -40,7 +40,7 @@ For example, to open a psydat file and examine some of its contents with::
     for condN, condition in enumerate(conditions):
         print condition, datFile.data['response'][condN], numpy.mean(datFile.data['response'][condN])
 
-Ideally, we should provide a demo script here for fetching and plotting some data feel (free to :ref:`contribute <contribute>`).
+Ideally, we should provide a demo script here for fetching and plotting some data (feel free to :ref:`contribute <contribute>`).
 
 .. _longWide:
 
@@ -58,7 +58,7 @@ Excel data file
 
 Excel 2007 files (.xlsx) are a useful and flexible way to output data as a spreadsheet. The file format is open and supported by nearly all spreadsheet applications (including older versions of Excel and also OpenOffice). N.B. because .xlsx files are widely supported, the older Excel file format (.xls) is not likely to be supported by PsychoPy unless a user contributes the code to the project.
 
-Data from PsychoPy are output as a table, with a header row. Each row represents one condition (trial type) as given to the :class:`~psychopy.data.TrialHandler`. Each column represents a different type of data as given in the header. For some data, where there are multiple columns for a single entry in the header. This indicates multiple trials. For example, with a standard data file in which response time has been collected as 'rt' there will be a heading `rt_raw` with several columns, one for each trial that occured for the various trial types, and also an `rt_mean` heading with just a single column giving the mean reaction time for each condition.
+Data from PsychoPy are output as a table, with a header row. Each row represents one condition (trial type) as given to the :class:`~psychopy.data.TrialHandler`. Each column represents a different type of data as given in the header. For some data, where there are multiple columns for a single entry in the header. This indicates multiple trials. For example, with a standard data file in which response time has been collected as 'rt' there will be a heading `rt_raw` with several columns, one for each trial that occurred for the various trial types, and also an `rt_mean` heading with just a single column giving the mean reaction time for each condition.
 
 If you're creating experiments by writing scripts then you can specify the sheet name as well as file name for Excel file outputs. This way you can store multiple sessions for a single subject (use the subject as the filename and a date-stamp as the sheetname) or a single file for multiple subjects (give the experiment name as the filename and the participant as the sheetname).
 
@@ -68,4 +68,4 @@ Builder experiments use the participant name as the file name and then create a 
 
 Delimited text files (.dlm, .csv)
 -------------------------------------------------
-For maximum compatibility, especially for legacy analysis software, you can choose to output your data as a delimitted text file. Typically this would be comma-separated values (.csv file) or tab-delimited (.dlm file). The format of those files is exactly the same as the Excel file, but is limited by the file format to a single sheet.
+For maximum compatibility, especially for legacy analysis software, you can choose to output your data as a delimited text file. Typically this would be comma-separated values (.csv file) or tab-delimited (.dlm file). The format of those files is exactly the same as the Excel file, but is limited by the file format to a single sheet.

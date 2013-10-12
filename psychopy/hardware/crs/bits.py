@@ -9,7 +9,7 @@ These may one day get built into psychopy.visual
 import numpy
 from sys import platform
 from copy import copy
-from psychopy import misc, logging, monitors
+from psychopy import logging, monitors
 from OpenGL import GL
 import OpenGL.GL.ARB.multitexture as GL_multitexture
 try:

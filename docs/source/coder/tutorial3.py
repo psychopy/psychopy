@@ -4,7 +4,8 @@
 #the left and a combined psychometric function from the same data
 #on the right
 
-from psychopy import data, gui, misc, core
+from psychopy import data, gui, core
+from psychopy.tools.filetools import fromFile
 import pylab
 
 #Open a dialog box to select files from
@@ -15,7 +16,7 @@ if not files:
 #get the data from all the files
 allIntensities, allResponses = [],[]
 for thisFileName in files:
-    thisDat = misc.fromFile(thisFileName)
+    thisDat = fromFile(thisFileName)
     allIntensities.append( thisDat.intensities )
     allResponses.append( thisDat.data )
     

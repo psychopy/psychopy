@@ -1,0 +1,181 @@
+<PsychoPy2experiment version="1.78.00" encoding="utf-8">
+  <Settings>
+    <Param name="Show mouse" val="False" valType="bool" updates="None"/>
+    <Param name="Save csv file" val="False" valType="bool" updates="None"/>
+    <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
+    <Param name="Enable Escape" val="True" valType="bool" updates="None"/>
+    <Param name="color" val="$[0,0,0]" valType="str" updates="None"/>
+    <Param name="Window size (pixels)" val="[1920, 1080]" valType="code" updates="None"/>
+    <Param name="Full-screen window" val="True" valType="bool" updates="None"/>
+    <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
+    <Param name="Save log file" val="True" valType="bool" updates="None"/>
+    <Param name="Experiment info" val="{u'session': u'001', u'participant': u''}" valType="code" updates="None"/>
+    <Param name="Save excel file" val="False" valType="bool" updates="None"/>
+    <Param name="Save wide csv file" val="True" valType="bool" updates="None"/>
+    <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
+    <Param name="expName" val="interleaved_SF_contrast" valType="str" updates="None"/>
+    <Param name="logging level" val="exp" valType="code" updates="None"/>
+    <Param name="Units" val="deg" valType="str" updates="None"/>
+    <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
+    <Param name="Saved data folder" val="" valType="code" updates="None"/>
+    <Param name="Screen" val="1" valType="num" updates="None"/>
+  </Settings>
+  <Routines>
+    <Routine name="trial">
+      <CodeComponent name="setSide">
+        <Param name="Begin Experiment" val="" valType="extendedCode" updates="constant"/>
+        <Param name="name" val="setSide" valType="code" updates="None"/>
+        <Param name="Each Frame" val="" valType="extendedCode" updates="constant"/>
+        <Param name="Begin Routine" val="if random()&gt;0.5:&#10;    pos = [-5,0] #this is deg visual angle&#10;    correctAns = 'left'&#10;else:&#10;    pos = [+5,0]&#10;    correctAns = 'right'" valType="extendedCode" updates="constant"/>
+        <Param name="End Routine" val="trials.addOtherData('side',correctAns)" valType="extendedCode" updates="constant"/>
+        <Param name="End Experiment" val="" valType="extendedCode" updates="constant"/>
+      </CodeComponent>
+      <StaticComponent name="ISI">
+        <Param name="code" val="" valType="code" updates="None"/>
+        <Param name="name" val="ISI" valType="code" updates="None"/>
+        <Param name="stopVal" val="0.25" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+      </StaticComponent>
+      <GratingComponent name="grating">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
+        <Param name="tex" val="sin" valType="str" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="grating" valType="code" updates="constant"/>
+        <Param name="color" val="$level" valType="str" updates="set every repeat"/>
+        <Param name="stopVal" val="10" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="0.16" valType="code" updates="None"/>
+        <Param name="mask" val="gauss" valType="str" updates="constant"/>
+        <Param name="pos" val="pos" valType="code" updates="set every repeat"/>
+        <Param name="interpolate" val="linear" valType="str" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="texture resolution" val="128" valType="code" updates="constant"/>
+        <Param name="phase" val="0.0" valType="code" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (frames)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.5" valType="code" updates="None"/>
+        <Param name="sf" val="sf" valType="code" updates="set every repeat"/>
+        <Param name="advancedParams"/>
+        <Param name="size" val="4" valType="code" updates="constant"/>
+      </GratingComponent>
+      <KeyboardComponent name="resp">
+        <Param name="correctAns" val="$correctAns" valType="str" updates="constant"/>
+        <Param name="storeCorrect" val="True" valType="bool" updates="constant"/>
+        <Param name="name" val="resp" valType="code" updates="None"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="allowedKeys" val="'left','right'" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.5" valType="code" updates="None"/>
+        <Param name="store" val="last key" valType="str" updates="constant"/>
+      </KeyboardComponent>
+      <GratingComponent name="fixation">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
+        <Param name="tex" val="" valType="str" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="fixation" valType="code" updates="constant"/>
+        <Param name="color" val="black" valType="str" updates="constant"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="mask" val="gauss" valType="str" updates="constant"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="interpolate" val="linear" valType="str" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="texture resolution" val="128" valType="code" updates="constant"/>
+        <Param name="phase" val="0.0" valType="code" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.25" valType="code" updates="None"/>
+        <Param name="sf" val="None" valType="code" updates="constant"/>
+        <Param name="advancedParams"/>
+        <Param name="size" val="1" valType="code" updates="constant"/>
+      </GratingComponent>
+    </Routine>
+    <Routine name="thanks">
+      <TextComponent name="thanksMsg">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="thanksMsg" valType="code" updates="constant"/>
+        <Param name="color" val="$[1,1,1]" valType="str" updates="constant"/>
+        <Param name="wrapWidth" val="" valType="code" updates="constant"/>
+        <Param name="stopVal" val="2.0" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="flip" val="" valType="str" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="text" val="You're done! Fun, wasn't it!? ;-)" valType="str" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
+      </TextComponent>
+    </Routine>
+    <Routine name="instructions">
+      <TextComponent name="instrText">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="instrText" valType="code" updates="None"/>
+        <Param name="wrapWidth" val="" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="str" updates="constant"/>
+        <Param name="text" val="Press the left and right cursor keys to indicate whether the grating was on the left or right (there is always a correct answer).&#13;&#10;&#13;&#10;If you don't see anything then guess!&#13;&#10;&#13;&#10;&#13;&#10;Press any key to continue" valType="str" updates="constant"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="flip" val="" valType="str" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="1" valType="code" updates="constant"/>
+      </TextComponent>
+      <KeyboardComponent name="endInstructions">
+        <Param name="correctAns" val="" valType="str" updates="constant"/>
+        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
+        <Param name="name" val="endInstructions" valType="code" updates="None"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="allowedKeys" val="" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="store" val="last key" valType="str" updates="constant"/>
+      </KeyboardComponent>
+    </Routine>
+  </Routines>
+  <Flow>
+    <Routine name="instructions"/>
+    <LoopInitiator loopType="MultiStairHandler" name="trials">
+      <Param name="stairType" val="simple" valType="str" updates="None"/>
+      <Param name="switchMethod" val="random" valType="str" updates="None"/>
+      <Param name="name" val="trials" valType="code" updates="None"/>
+      <Param name="conditionsFile" val="stairDefinitions.xlsx" valType="str" updates="None"/>
+      <Param name="loopType" val="interleaved staircases" valType="str" updates="None"/>
+      <Param name="nReps" val="40" valType="code" updates="None"/>
+      <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
+      <Param name="conditions" val="[{u'startVal': 0.001, u'sf': 2, u'label': u'low_2'}, {u'startVal': 0.1, u'sf': 2, u'label': u'high_2'}, {u'startVal': 0.001, u'sf': 8, u'label': u'low_8'}, {u'startVal': 0.1, u'sf': 8, u'label': u'high_8'}]" valType="str" updates="None"/>
+    </LoopInitiator>
+    <Routine name="trial"/>
+    <LoopTerminator name="trials"/>
+    <Routine name="thanks"/>
+  </Flow>
+</PsychoPy2experiment>

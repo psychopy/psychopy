@@ -1,4 +1,5 @@
-from psychopy.misc import dkl2rgb, lms2rgb, hsv2rgb
+from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb, hsv2rgb
+import numpy
 
 def hex2rgb255(hexColor):
     """Convert a hex color string (e.g. "#05ff66") into an rgb triplet
@@ -8,6 +9,20 @@ def hex2rgb255(hexColor):
     elif hexColor[0:2].lower() == '0x': hexColor = hexColor[2:]
     if len(hexColor)==3: hexColor = hexColor[0]+'0'+hexColor[1]+'0'+hexColor[2]+'0'
     return int(hexColor[0:2], 16), int(hexColor[2:4], 16), int(hexColor[4:6], 16)
+
+
+def isValidColor(color):
+    """check color validity (equivalent to existing checks in _setColor)
+    """
+    try:
+        color = float(color)
+        return True
+    except:
+        if isinstance(color, basestring) and len(color):
+            return (color.lower() in colors255.keys()
+                    or color[0] == '#' or color[0:2] == '0x')
+        return type(color) in [tuple, list, numpy.ndarray] or not color
+
 
 """140 colors defined by most modern browsers (originally the standard colors of X11).
 Google for 140 web colors for further info"""

@@ -179,4 +179,3 @@ if __name__=='__main__':
                 print "%.3f" % a,
             print
             assert max(ac_10) < 1./(len(ms) - 3) or max(ac_10) < .10
-        

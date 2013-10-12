@@ -5,7 +5,7 @@ RatingScale Component
 
 A rating scale is used to collect a numeric rating or a choice from a few alternatives, via the mouse, the keyboard, or both. Both the response and time taken to make it are returned.
 
-A given routine might involve an image (patch component), along with a rating scale to collect the response. A routine from a personality questionaire could have text plus a rating scale.
+A given routine might involve an image (patch component), along with a rating scale to collect the response. A routine from a personality questionnaire could have text plus a rating scale.
 
 Three common usage styles are enabled on the first settings page:
     'visual analog scale': the subject uses the mouse to position a marker on an unmarked line
@@ -20,7 +20,7 @@ Properties
 ~~~~~~~~~~~
 
 name : string
-    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
+    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
 
 start :
     The time that the stimulus should first appear. See :ref:`startStop` for details.
@@ -30,7 +30,7 @@ stop :
     
 visualAnalogScale : checkbox
     If this is checked, a line with no tick marks will be presented using the 'glow' marker, and will return a rating from 0.00 to 1.00 (quasi-continuous). This is intended to bias people away from thinking in terms of numbers, and focus more on the visual bar when making their rating.
-    This supercedes either choices or scaleDescription.
+    This supersedes either choices or scaleDescription.
 
 category choices : string
     Instead of a numeric scale, you can present the subject with words or phrases to choose from. Enter all the words as a string. (Probably more than 6 or so will not look so great on the screen.)
@@ -40,10 +40,10 @@ scaleDescription :
     Brief instructions, reminding the subject how to interpret the numerical scale, default = "1 = not at all ... extremely = 7"
     
 low : str
-    The lowest number (bottom end of the scale), default = 1. If its not an integer, it will be converted to lowAnchorText (see Advanced).
+    The lowest number (bottom end of the scale), default = 1. If it's not an integer, it will be converted to lowAnchorText (see Advanced).
     
 high : str
-    The highest number (top end of the scale), default = 7. If its not an integer, it will be converted to highAnchorText (see Advanced).
+    The highest number (top end of the scale), default = 7. If it's not an integer, it will be converted to highAnchorText (see Advanced).
     
 
 Advanced settings
@@ -81,7 +81,7 @@ highAnchorText : str
     Custom text to display at the low end of the scale, e.g., "100%"; overrides 'high' setting
     
 customize_everything : str
-    If this is not blank, it will be used when initializing the rating scale just as it would be in a code component (see :class:`~psychopy.visual.RatingScale`). This allows access to all the customizable aspects of a rating scale, and supercedes all of the other RatingScale settings in the dialog panel.
+    If this is not blank, it will be used when initializing the rating scale just as it would be in a code component (see :class:`~psychopy.visual.RatingScale`). This allows access to all the customizable aspects of a rating scale, and supersedes all of the other RatingScale settings in the dialog panel.
     (This does not affect: startTime, forceEndTrial, duration, storeRatingTime, storeRating.)
 
 .. seealso::

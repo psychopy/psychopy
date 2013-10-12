@@ -804,10 +804,12 @@ def getLumSeries(lumLevels=8,
         if len(psychopy.event.getKeys()):
             break#we got a keypress so move on
 
+    if autoMode!='semi':
+        message.setText('Q to quit at any time')
+    else:
+        message.setText('Spacebar for next patch')
 
-    message.setText('Q to quit at any time')
-    #
-    if photometer.type=='LS100':#LS100 likes to take at least one bright measurement
+    if havePhotom and photometer.type=='LS100': #LS100 likes to take at least one bright measurement
         junk=photometer.getLum()
 
     #what are the test values of luminance
@@ -817,7 +819,7 @@ def getLumSeries(lumLevels=8,
 
     if allGuns: guns=[0,1,2,3]#gun=0 is the white luminance measure
     else: allGuns=[0]
-    lumsList = numpy.zeros((len(guns),len(toTest)), 'd') #this will hoold the measured luminance values
+    lumsList = numpy.zeros((len(guns),len(toTest)), 'd') #this will hold the measured luminance values
     #for each gun, for each value run test
     for gun in guns:
         for valN, DACval in enumerate(toTest):
@@ -838,11 +840,7 @@ def getLumSeries(lumLevels=8,
             myWin.flip()
 
             time.sleep(0.2)#allowing the screen to settle (no good reason!)
-            #check for quit request
-            for thisKey in psychopy.event.getKeys():
-                if thisKey in ['q', 'Q', 'escape']:
-                    myWin.close()
-                    return numpy.array([])
+
             #take measurement
             if havePhotom and autoMode=='auto':
                 actualLum = photometer.getLum()
@@ -853,9 +851,25 @@ def getLumSeries(lumLevels=8,
                 else:
                     #otherwise just this gun
                     lumsList[gun,valN] =  actualLum
+     
+                #check for quit request
+                for thisKey in psychopy.event.getKeys():
+                    if thisKey in ['q', 'Q', 'escape']:
+                        myWin.close()
+                        return numpy.array([])
+     
             elif autoMode=='semi':
                 print "At DAC value %i" % DACval
-                psychopy.event.waitKeys()
+     
+                done = False
+                while not done:
+                    #check for quit request
+                    for thisKey in psychopy.event.getKeys():
+                        if thisKey in ['q', 'Q', 'escape']:
+                            myWin.close()
+                            return numpy.array([])
+                        elif thisKey in [' ','space']:
+                            done = True
 
     myWin.close() #we're done with the visual stimuli
     if havePhotom: return lumsList

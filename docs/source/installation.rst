@@ -10,7 +10,7 @@ PsychoPy can be installed in three main ways:
 
 * **As libraries**: PsychoPy and the libraries it depends on can also be installed individually, providing greater flexibility. This option requires managing a python environment.
 
-* **As source code**: If you want to customize how PsychoPy works, consult the :ref:`developer's guide` for installation and work-flow suggestions. 
+* **As source code**: If you want to customize how PsychoPy works, consult the :ref:`developer's guide <developers>` for installation and work-flow suggestions. 
 
 When you start PsychoPy for the first time, a **Configuration Wizard** will retrieve and summarize key system settings. Based on the summary, you may want to adjust some preferences to better reflect your environment. In addition, this is a good time to unpack the Builder demos to a location of your choice. (See the Demo menu in the Builder.)
 
@@ -103,7 +103,7 @@ If you want to install each library individually rather than use the simpler dis
 * `numpy <http://www.numpy.org/>`_ (version 0.9.6 or greater)
 * `scipy <http://www.scipy.org/Download>`_ (version 0.4.8 or greater)
 * `pyglet <http://www.pyglet.org>`_ (version 1.1.4, not version 1.2)
-* `wxPython <http://www.wxpython.org>`_ (version 2.8.10 ro 2.8.11, not 2.9)
+* `wxPython <http://www.wxpython.org>`_ (version 2.8.10 or 2.8.11, not 2.9)
 * `Python Imaging Library <http://www.pythonware.com/products/pil/>`_ (`sudo easy_install PIL`)
 * `matplotlib <http://matplotlib.sourceforge.net/>`_ (for plotting and fast polygon routines)
 * `lxml <http://lxml.de/>`_ (needed for loading/saving builder experiment files)

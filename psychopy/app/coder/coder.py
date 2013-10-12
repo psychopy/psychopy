@@ -1634,9 +1634,12 @@ class CoderFrame(wx.Frame):
                 resp = dlg.ShowModal()
                 sys.stdout.flush()
                 dlg.Destroy()
-                if resp  == wx.ID_CANCEL: return 0 #return, don't quit
-                elif resp == wx.ID_YES: self.fileSave() #save then quit
-                elif resp == wx.ID_NO: pass #don't save just quit
+                if resp  == wx.ID_CANCEL:
+                    return 0 #return, don't quit
+                elif resp == wx.ID_YES:
+                    self.fileSave() #save then quit
+                elif resp == wx.ID_NO:
+                    pass #don't save just quit
         return 1
 
     def closeFrame(self, event=None, checkSave=True):
@@ -1648,7 +1651,9 @@ class CoderFrame(wx.Frame):
                 self.app.quit()
                 return#app.quit() will have closed the frame already
 
-        if checkSave: self.checkSave()#check all files before initiating close of any
+        if checkSave:
+            if self.checkSave()==0:#check all files before initiating close of any
+                return 0 #this signals user cancelled
 
         wasShown = self.IsShown()
         self.Hide()#ugly to see it close all the files independently
