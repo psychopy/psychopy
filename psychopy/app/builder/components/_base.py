@@ -132,7 +132,7 @@ class BaseComponent(object):
         elif paramName=='fieldPos':
             paramCaps='FieldPos'
         else:
-            paramCaps = paramName.capitalize()
+            paramCaps = paramName[0].capitalize() + paramName[1:]
         #then write the line
         if updateType=='set every frame':
             loggingStr = ', log=False'
