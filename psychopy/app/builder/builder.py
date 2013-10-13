@@ -2198,7 +2198,7 @@ class _BaseParamsDlg(wx.Dialog):
             helpBtn = wx.Button(self, wx.ID_HELP)
             helpBtn.SetToolTip(wx.ToolTip("Go to online help about this component"))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
-            buttons.Add(helpBtn, wx.ALIGN_LEFT|wx.ALL,border=3)
+            buttons.Add(helpBtn, 0, wx.ALIGN_LEFT|wx.ALL,border=3)
             buttons.AddSpacer(12)
         self.OKbtn = wx.Button(self, wx.ID_OK, " OK ")
         # intercept OK button if a loop dialog, in case file name was edited:
