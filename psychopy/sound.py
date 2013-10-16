@@ -420,6 +420,7 @@ class SoundPyo(_SoundBase):
         self.sampleRate=pyoSndServer.getSamplingRate()
         self.format = bits
         self.isStereo = stereo
+        self.channels = 1 + int(stereo)
         self.secs=secs
         self.autoLog=autoLog
         self.name=name
@@ -523,20 +524,17 @@ class SoundPyo(_SoundBase):
                 self.fileName=path.join(filePath,fileName+'.wav')
         if self.fileName is None:
             return False
-        #load the file
-        self._sndTable = pyo.SndTable(self.fileName)
+        # want mono sound file played to both speakers, not just left / 0
+        self._sndTable = pyo.SndTable(initchnls=self.channels)
+        self._sndTable.setSound(self.fileName)  # mono file loaded to all chnls
         self._updateSnd()
         self.duration = self._sndTable.getDur()
         return True
 
     def _fromArray(self, thisArray):
-        if self.isStereo:
-            channels=2
-        else:
-            channels=1
         self._sndTable = pyo.DataTable(size=len(thisArray),
                                        init=thisArray.T.tolist(),
-                                       chnls=channels)
+                                       chnls=self.channels)
         self._updateSnd()
         # a DataTable has no .getDur() method, so just store the duration:
         self.duration = float(len(thisArray)) / self.sampleRate
