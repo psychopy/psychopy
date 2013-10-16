@@ -523,8 +523,9 @@ class SoundPyo(_SoundBase):
                 self.fileName=path.join(filePath,fileName+'.wav')
         if self.fileName is None:
             return False
-        #load the file
-        self._sndTable = pyo.SndTable(self.fileName)
+        #load the file into two channels, so that mono does not all go to left:
+        self._sndTable = pyo.SndTable(initchnls=2)
+        self._sndTable.setSound(self.fileName)  # if mono, goes into both chnls
         self._updateSnd()
         self.duration = self._sndTable.getDur()
         return True
