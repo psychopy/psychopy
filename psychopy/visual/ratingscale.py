@@ -141,6 +141,7 @@ class RatingScale:
                 minTime=1.0,
                 maxTime=0.0,
                 disappear=False,
+                flipVert=False,
                 name='',
                 autoLog=True):
         """
@@ -290,7 +291,8 @@ class RatingScale:
         disappear :
             if `True`, the rating scale will be hidden after a value is accepted;
             useful when showing multiple scales. The default is to remain on-screen.
-
+        flipVert :
+            if ``True``, flip the rating scale display in the vertical direction
         name : string
             The name of the object to be using during logged messages about
             this stim
@@ -344,6 +346,8 @@ class RatingScale:
         # Final touches:
         self.origScaleDescription = self.scaleDescription.text
         self.reset()  # sets .status, among other things
+        if flipVert:
+            self.flipVert()
         self.win.units = self.savedWinUnits
 
     def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys,
@@ -746,6 +750,7 @@ class RatingScale:
                 name=self.name+'.markerCir', autoLog=False)
             self.markerBaseSize = self.tickSize
         self.markerColor = markerColor
+        self.markerYpos = self.offsetVert + self.markerOffsetVert
 
     def _initTextElements(self, win, lowAnchorText, highAnchorText, scale, textColor,
                           textFont, textSizeFactor, showValue, tickMarks):
@@ -915,6 +920,21 @@ class RatingScale:
         self.markerPlacedAt = tick
         self.markerPlaced = True # only needed first time, which this ensures
 
+    def flipVert(self):
+        flipSet = self.visualDisplayElements + [self.marker]
+        for item in flipSet:
+            if hasattr(item, 'pos'):
+                item.setPos([1,-1], '*')
+            if type(item) == TextStim:
+                item.flipVert = True
+            if hasattr(item, 'vertices'):
+                v = []
+                for i in range(len(item.vertices)):
+                    v.append([item.vertices[i][0], -1 * item.vertices[i][1]])
+                item.setVertices(v)
+        self.nearLine = [[x, -1 * y] for x, y in self.nearLine]
+        self.markerYpos *= -1
+
     def draw(self):
         """Update the visual display, check for response (key, mouse, skip).
 
@@ -994,8 +1014,7 @@ class RatingScale:
             # set the marker's screen position based on tick (== markerPlacedAt)
             if self.markerPlacedAt is not False:
                 x = self.offsetHoriz + self.hStretchTotal * (-0.5 + proportion)
-                y = self.offsetVert + self.markerOffsetVert
-                self.marker.setPos((x, y))
+                self.marker.setPos((x, self.markerYpos))
                 self.marker.draw()
             if self.showAccept:
                 self.frame = (self.frame + 1) % 100
