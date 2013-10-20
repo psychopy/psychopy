@@ -157,7 +157,7 @@ class KeyboardComponent(BaseComponent):
 
         if storeCorr:
             buff.writeIndented("# was this 'correct'?\n" %self.params)
-            buff.writeIndented("if (%(name)s.keys == str(%(correctAns)s)): %(name)s.corr = 1\n" %(self.params))
+            buff.writeIndented("if (%(name)s.keys == str(%(correctAns)s)) or (%(name)s.keys == %(correctAns)): %(name)s.corr = 1\n" %(self.params))
             buff.writeIndented("else: %(name)s.corr=0\n" %self.params)
 
         if forceEnd==True:
