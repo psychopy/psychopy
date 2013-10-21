@@ -545,3 +545,55 @@ def setColor(obj, color, colorSpace=None, operation='',
         else:
             obj.logOnFlip("Set Window %s=%s (%s)" %(colorAttrib,newColor,colorSpace),
                 level=logging.EXP,obj=obj)
+
+
+# for groupFlipVert:
+immutables = set([int, float, str, tuple, long, bool,
+                  numpy.float64, numpy.float, numpy.int, numpy.long])
+
+def groupFlipVert(flipList, yReflect=0):
+    """Reverses the vertical mirroring of all items in list ``flipList``.
+
+    Reverses the .flipVert status, vertical (y) positions, and angular rotation
+    (.ori). Flipping preserves the relations among the group's visual elements.
+    The parameter ``yReflect`` is the y-value of an imaginary horizontal line
+    around which to reflect the items; default = 0 (screen center).
+
+    Typical usage is to call once prior to any display; call again to un-flip.
+    Can be called with a list of all stim to be presented in a given routine.
+
+    Will flip a) all psychopy.visual.xyzStim that have a setFlipVert method,
+    b) the y values of .vertices, and c) items in n x 2 lists that are mutable
+    (i.e., list, numpy.array, no tuples): [[x1, y1], [x2, y2], ...]
+    """
+
+    if type(flipList) != list:
+        flipList = [flipList]
+    for item in flipList:
+        if type(item) in (list, numpy.ndarray):
+            if type(item[0]) in (list, numpy.ndarray) and len(item[0]) == 2:
+                for i in range(len(item)):
+                    item[i][1] = 2 * yReflect - item[i][1]
+            else:
+                raise ValueError('Cannot vert-flip elements in "%s", type=%s' %
+                                 (str(item), type(item[0])))
+        elif type(item) in immutables:
+            raise ValueError('Cannot change immutable item "%s"' % str(item))
+        if hasattr(item, 'setPos'):
+            item.setPos([1, -1], '*')
+            item.setPos([0, 2 * yReflect], '+')
+        elif hasattr(item, 'pos'):  # only if no setPos available
+            item.pos[1] *= -1
+            item.pos[1] += 2 * yReflect
+        if hasattr(item, 'setFlipVert'):  # eg TextStim, custom marker
+            item.setFlipVert(not item.flipVert)
+        elif hasattr(item, 'vertices'):  # and lacks a setFlipVert method
+            try:
+                v = item.vertices * [1, -1]  # numpy.array
+            except:
+                v = [[item.vertices[i][0], -1 * item.vertices[i][1]]
+                     for i in range(len(item.vertices))]
+            item.setVertices(v)
+        if hasattr(item, 'setOri') and item.ori:  # non-zero orientation angle
+            item.setOri(-1, '*')
+            item._needVertexUpdate = True

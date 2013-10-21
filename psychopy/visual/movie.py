@@ -235,6 +235,23 @@ class MovieStim(BaseVisualStim):
         if log and self.autoLog:
             self.win.logOnFlip("Set %s seek=%f" %(self.name,timestamp),
                 level=logging.EXP,obj=self)
+    def setFlipHoriz(self, newVal=True, log=True):
+        """If set to True then the text will be flipped horiztonally (left-to-right).
+        Note that this is relative to the original, not relative to the current state.
+        """
+        self.flipHoriz = newVal
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s flipHoriz=%s" % (self.name, newVal),
+                level=logging.EXP, obj=self)
+    def setFlipVert(self, newVal=True, log=True):
+        """If set to True then the text will be flipped vertically (top-to-bottom).
+        Note that this is relative to the original, not relative to the current state.
+        """
+        self.flipVert = newVal
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
+                level=logging.EXP, obj=self)
+
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
         default win for this object if not specified). The current position in

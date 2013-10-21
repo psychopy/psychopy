@@ -16,7 +16,7 @@ from psychopy.visual.circle import Circle
 from psychopy.visual.patch import PatchStim
 from psychopy.visual.shape import ShapeStim
 from psychopy.visual.text import TextStim
-from psychopy.visual.helpers import pointInPolygon
+from psychopy.visual.helpers import pointInPolygon, groupFlipVert
 
 import numpy
 from numpy import cos
@@ -298,7 +298,7 @@ class RatingScale:
             this stim
         autolog :
             whether logging should be done automatically
-        """
+    """
 
         logging.exp('RatingScale %s: init()' % name)
         self.win = win
@@ -343,11 +343,13 @@ class RatingScale:
                 self.visualDisplayElements.append(text)
         self.visualDisplayElements += [self.line]  # last b/c win xp had display issues
 
+        # Mirror (flip) vertically if requested
+        self.flipVert = False
+        self.setFlipVert(flipVert)
+
         # Final touches:
         self.origScaleDescription = self.scaleDescription.text
         self.reset()  # sets .status, among other things
-        if flipVert:
-            self.flipVert()
         self.win.units = self.savedWinUnits
 
     def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys,
@@ -647,29 +649,29 @@ class RatingScale:
         # space around the line within which to accept mouse input:
         pad = 0.06 * self.displaySizeFactor
         self.nearLine = [
-            (self.lineLeftEnd - pad, -2 * pad + self.offsetVert),
-            (self.lineLeftEnd - pad, 2 * pad + self.offsetVert),
-            (self.lineRightEnd + pad, 2 * pad + self.offsetVert),
-            (self.lineRightEnd + pad, -2 * pad + self.offsetVert) ]
+            [self.lineLeftEnd - pad, -2 * pad + self.offsetVert],
+            [self.lineLeftEnd - pad, 2 * pad + self.offsetVert],
+            [self.lineRightEnd + pad, 2 * pad + self.offsetVert],
+            [self.lineRightEnd + pad, -2 * pad + self.offsetVert] ]
 
         # vertices for ShapeStim:
         self.tickPositions = []  # list to hold horizontal positions
-        vertices = [(self.lineLeftEnd, self.offsetVert)]  # first vertex
+        vertices = [[self.lineLeftEnd, self.offsetVert]]  # first vertex
         vertExcursion = self.tickSize * self.displaySizeFactor
         if not self.ticksAboveLine:
             vertExcursion *= -1  # flip ticks to display below the line
         lineLength = self.lineRightEnd - self.lineLeftEnd
         for count, tick in enumerate(tickMarkPositions):
             horizTmp = self.lineLeftEnd + lineLength * tick
-            vertices += [(horizTmp, self.offsetVert + vertExcursion),
-                         (horizTmp, self.offsetVert)]
+            vertices += [[horizTmp, self.offsetVert + vertExcursion],
+                         [horizTmp, self.offsetVert]]
             if count < len(tickMarkPositions) - 1:
                 tickRelPos = lineLength * tickMarkPositions[count + 1]
                 nextHorizTmp = self.lineLeftEnd + tickRelPos
                 vertices.append([nextHorizTmp, self.offsetVert])
             self.tickPositions.append(horizTmp)
-        vertices += [(self.lineRightEnd, self.offsetVert),
-                     (self.lineLeftEnd, self.offsetVert)]
+        vertices += [[self.lineRightEnd, self.offsetVert],
+                     [self.lineLeftEnd, self.offsetVert]]
 
         # create the line:
         self.line = ShapeStim(win=self.win, units='norm', vertices=vertices,
@@ -920,20 +922,16 @@ class RatingScale:
         self.markerPlacedAt = tick
         self.markerPlaced = True # only needed first time, which this ensures
 
-    def flipVert(self):
-        flipSet = self.visualDisplayElements + [self.marker]
-        for item in flipSet:
-            if hasattr(item, 'pos'):
-                item.setPos([1,-1], '*')
-            if type(item) == TextStim:
-                item.flipVert = True
-            if hasattr(item, 'vertices'):
-                v = []
-                for i in range(len(item.vertices)):
-                    v.append([item.vertices[i][0], -1 * item.vertices[i][1]])
-                item.setVertices(v)
-        self.nearLine = [[x, -1 * y] for x, y in self.nearLine]
-        self.markerYpos *= -1
+    def setFlipVert(self, newVal=True, log=True):
+        """Sets current vertical mirroring to ``newVal``.
+        """
+        if self.flipVert != newVal:
+            self.flipVert = not self.flipVert
+            self.markerYpos *= -1
+            groupFlipVert([self.nearLine, self.marker] + self.visualDisplayElements)
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, self.flipVert),
+                level=logging.EXP, obj=self)
 
     def draw(self):
         """Update the visual display, check for response (key, mouse, skip).
@@ -983,7 +981,7 @@ class RatingScale:
                         self.marker.setColor('DarkGray', log=False)
                     except:
                         pass
-                self.marker.setPos((0, -.012), '+')  # drop it onto the line
+                self.marker.setPos((0, -.012), ('+', '-')[self.flipVert])  # drop it onto the line
                 self.markerPosFixed = True  # flag to park it there
             self.marker.draw()
             if self.showAccept:
