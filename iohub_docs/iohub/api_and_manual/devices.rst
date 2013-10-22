@@ -87,10 +87,10 @@ found in the following sections.
     Analog to Digitial Input <device_details/daq>
     Computer <device_details/computer>
     Display <device_details/display>
+    EventPublisher and RemoteEventSubscriber <device_details/event_pub_sub>
     Experiment <device_details/experiment>
     Eye Tracker <device_details/eyetracker>
     Keyboard <device_details/keyboard>
     Mouse <device_details/mouse>
     Touch Screen <device_details/touch>
     XInput Gamepad <device_details/xinput_gamepad>
-    
