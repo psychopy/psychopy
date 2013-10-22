@@ -236,7 +236,7 @@ class MovieStim(BaseVisualStim):
             self.win.logOnFlip("Set %s seek=%f" %(self.name,timestamp),
                 level=logging.EXP,obj=self)
     def setFlipHoriz(self, newVal=True, log=True):
-        """If set to True then the text will be flipped horiztonally (left-to-right).
+        """If set to True then the movie will be flipped horiztonally (left-to-right).
         Note that this is relative to the original, not relative to the current state.
         """
         self.flipHoriz = newVal
@@ -244,7 +244,7 @@ class MovieStim(BaseVisualStim):
             self.win.logOnFlip("Set %s flipHoriz=%s" % (self.name, newVal),
                 level=logging.EXP, obj=self)
     def setFlipVert(self, newVal=True, log=True):
-        """If set to True then the text will be flipped vertically (top-to-bottom).
+        """If set to True then the movie will be flipped vertically (top-to-bottom).
         Note that this is relative to the original, not relative to the current state.
         """
         self.flipVert = newVal
