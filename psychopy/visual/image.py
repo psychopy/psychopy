@@ -309,7 +309,7 @@ class ImageStim(BaseVisualStim):
                 level=logging.EXP,obj=self)
         #if we switched to/from lum image then need to update shader rule
         if wasLumImage != self.isLumImage:
-            self.needUpdate=True
+            self._needUpdate=True
     def setMask(self,value, log=True):
         """Change the image to be used as an alpha-mask for the image
         """
