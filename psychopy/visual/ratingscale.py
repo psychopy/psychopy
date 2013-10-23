@@ -16,7 +16,7 @@ from psychopy.visual.circle import Circle
 from psychopy.visual.patch import PatchStim
 from psychopy.visual.shape import ShapeStim
 from psychopy.visual.text import TextStim
-from psychopy.visual.helpers import pointInPolygon
+from psychopy.visual.helpers import pointInPolygon, groupFlipVert
 
 import numpy
 from numpy import cos
@@ -141,6 +141,7 @@ class RatingScale:
                 minTime=1.0,
                 maxTime=0.0,
                 disappear=False,
+                flipVert=False,
                 name='',
                 autoLog=True):
         """
@@ -290,13 +291,14 @@ class RatingScale:
         disappear :
             if `True`, the rating scale will be hidden after a value is accepted;
             useful when showing multiple scales. The default is to remain on-screen.
-
+        flipVert :
+            if ``True``, flip the rating scale display in the vertical direction
         name : string
             The name of the object to be using during logged messages about
             this stim
         autolog :
             whether logging should be done automatically
-        """
+    """
 
         logging.exp('RatingScale %s: init()' % name)
         self.win = win
@@ -340,6 +342,10 @@ class RatingScale:
             for text in self.labels:
                 self.visualDisplayElements.append(text)
         self.visualDisplayElements += [self.line]  # last b/c win xp had display issues
+
+        # Mirror (flip) vertically if requested
+        self.flipVert = False
+        self.setFlipVert(flipVert)
 
         # Final touches:
         self.origScaleDescription = self.scaleDescription.text
@@ -643,29 +649,29 @@ class RatingScale:
         # space around the line within which to accept mouse input:
         pad = 0.06 * self.displaySizeFactor
         self.nearLine = [
-            (self.lineLeftEnd - pad, -2 * pad + self.offsetVert),
-            (self.lineLeftEnd - pad, 2 * pad + self.offsetVert),
-            (self.lineRightEnd + pad, 2 * pad + self.offsetVert),
-            (self.lineRightEnd + pad, -2 * pad + self.offsetVert) ]
+            [self.lineLeftEnd - pad, -2 * pad + self.offsetVert],
+            [self.lineLeftEnd - pad, 2 * pad + self.offsetVert],
+            [self.lineRightEnd + pad, 2 * pad + self.offsetVert],
+            [self.lineRightEnd + pad, -2 * pad + self.offsetVert] ]
 
         # vertices for ShapeStim:
         self.tickPositions = []  # list to hold horizontal positions
-        vertices = [(self.lineLeftEnd, self.offsetVert)]  # first vertex
+        vertices = [[self.lineLeftEnd, self.offsetVert]]  # first vertex
         vertExcursion = self.tickSize * self.displaySizeFactor
         if not self.ticksAboveLine:
             vertExcursion *= -1  # flip ticks to display below the line
         lineLength = self.lineRightEnd - self.lineLeftEnd
         for count, tick in enumerate(tickMarkPositions):
             horizTmp = self.lineLeftEnd + lineLength * tick
-            vertices += [(horizTmp, self.offsetVert + vertExcursion),
-                         (horizTmp, self.offsetVert)]
+            vertices += [[horizTmp, self.offsetVert + vertExcursion],
+                         [horizTmp, self.offsetVert]]
             if count < len(tickMarkPositions) - 1:
                 tickRelPos = lineLength * tickMarkPositions[count + 1]
                 nextHorizTmp = self.lineLeftEnd + tickRelPos
                 vertices.append([nextHorizTmp, self.offsetVert])
             self.tickPositions.append(horizTmp)
-        vertices += [(self.lineRightEnd, self.offsetVert),
-                     (self.lineLeftEnd, self.offsetVert)]
+        vertices += [[self.lineRightEnd, self.offsetVert],
+                     [self.lineLeftEnd, self.offsetVert]]
 
         # create the line:
         self.line = ShapeStim(win=self.win, units='norm', vertices=vertices,
@@ -746,6 +752,7 @@ class RatingScale:
                 name=self.name+'.markerCir', autoLog=False)
             self.markerBaseSize = self.tickSize
         self.markerColor = markerColor
+        self.markerYpos = self.offsetVert + self.markerOffsetVert
 
     def _initTextElements(self, win, lowAnchorText, highAnchorText, scale, textColor,
                           textFont, textSizeFactor, showValue, tickMarks):
@@ -915,6 +922,17 @@ class RatingScale:
         self.markerPlacedAt = tick
         self.markerPlaced = True # only needed first time, which this ensures
 
+    def setFlipVert(self, newVal=True, log=True):
+        """Sets current vertical mirroring to ``newVal``.
+        """
+        if self.flipVert != newVal:
+            self.flipVert = not self.flipVert
+            self.markerYpos *= -1
+            groupFlipVert([self.nearLine, self.marker] + self.visualDisplayElements)
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, self.flipVert),
+                level=logging.EXP, obj=self)
+
     def draw(self):
         """Update the visual display, check for response (key, mouse, skip).
 
@@ -963,7 +981,7 @@ class RatingScale:
                         self.marker.setColor('DarkGray', log=False)
                     except:
                         pass
-                self.marker.setPos((0, -.012), '+')  # drop it onto the line
+                self.marker.setPos((0, -.012), ('+', '-')[self.flipVert])  # drop it onto the line
                 self.markerPosFixed = True  # flag to park it there
             self.marker.draw()
             if self.showAccept:
@@ -994,8 +1012,7 @@ class RatingScale:
             # set the marker's screen position based on tick (== markerPlacedAt)
             if self.markerPlacedAt is not False:
                 x = self.offsetHoriz + self.hStretchTotal * (-0.5 + proportion)
-                y = self.offsetVert + self.markerOffsetVert
-                self.marker.setPos((x, y))
+                self.marker.setPos((x, self.markerYpos))
                 self.marker.draw()
             if self.showAccept:
                 self.frame = (self.frame + 1) % 100
