@@ -1,0 +1,64 @@
+monitor_devices:
+    - Display:
+        name: display
+        reporting_unit_type: pix
+        device_number: 0
+        physical_dimensions:
+            width: 590
+            height: 340
+            unit_type: mm
+        default_eye_distance:
+            surface_center: 500
+            unit_type: mm
+        psychopy_monitor_name: default
+
+    - Keyboard:
+        name: keyboard
+
+    - Mouse:
+        name: mouse
+
+    - Experiment:
+        name: experimentRuntime
+
+# SRR EyeLink Config
+    - eyetracker.hw.sr_research.eyelink.EyeTracker:
+        name: tracker
+        save_events: True
+        stream_events: True
+        device_timer:
+            interval: 0.001
+        monitor_event_types: [ MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
+        simulation_mode: False
+        enable_interface_without_connection: True
+        network_settings: 100.1.1.1
+        default_native_data_file_name: et_data
+        runtime_settings:
+            sampling_rate: 1000
+            track_eyes: RIGHT_EYE
+            sample_filtering:
+                FILTER_ONLINE: FILTER_OFF
+            vog_settings:
+                pupil_measure_types: PUPIL_AREA
+                tracking_mode: PUPIL_CR_TRACKING
+                pupil_center_algorithm: CENTROID_FIT
+        calibration:
+            type: NINE_POINTS
+            auto_pace: True
+            pacing_speed: 1.5
+            screen_background_color: [128,128,128,255]
+            target_type: CIRCLE_TARGET
+            target_attributes:
+                # outer_diameter and inner_diameter are specified in pixels
+                outer_diameter: 33
+                inner_diameter: 6
+                outer_color: [255,255,255]
+                inner_color: [0,0,0]
+        model_name: EYELINK 1000 TOWER
+
+data_store:
+    enable: True
+    experiment_info:
+        code: ystart
+    session_info:
+        code: S0001    

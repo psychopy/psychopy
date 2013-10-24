@@ -481,8 +481,11 @@ class Display(Device):
             runtime_info['retrace_rate']=mode.refresh
             runtime_info['bits_per_pixel']=mode.bpp
             runtime_info['primary']=primary
-            runtime_info['pixel_resolution']=mode.w,mode.h
-                                                
+	    if mode.w > 0 and mode.h >0:
+            	runtime_info['pixel_resolution']=mode.w,mode.h
+            else:
+            	runtime_info['pixel_resolution']=w-x,h-y
+                                
             runtime_info_list.append(runtime_info)
 
             #ioHub.print2err("Display {0} runtime info: {1}".format(i,runtime_info))

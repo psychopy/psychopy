@@ -118,6 +118,12 @@ class ioHubpyTablesFile():
             pass
 
         try:
+            self.TABLES['TOUCH']=self.emrtFile.root.data_collection.events.touch.TouchEvent
+        except:
+            # Just means the table for this event type has not been created as the event type is not being recorded
+            pass
+
+        try:
             self.TABLES['GAMEPAD_STATE_CHANGE']=self.emrtFile.root.data_collection.events.gamepad.GamepadStateChangeEvent
         except:
             # Just means the table for this event type has not been created as the event type is not being recorded
@@ -218,6 +224,7 @@ class ioHubpyTablesFile():
         self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'experiment', title='Experiment Device Events.')
         self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'keyboard', title='Keyboard Device Events.')
         self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'mouse', title='Mouse Device Events.')
+        self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'touch', title='Touch Device Events.')
         self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'gamepad', title='GamePad Device Events.')
         self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'analog_input', title='AnalogInput Device Events.')
         self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'eyetracker', title='EyeTracker Device Events.')
@@ -230,6 +237,7 @@ class ioHubpyTablesFile():
         self._eventGroupMappings['KEYBOARD_KEY']=self.emrtFile.root.data_collection.events.keyboard
         self._eventGroupMappings['KEYBOARD_CHAR']=self.emrtFile.root.data_collection.events.keyboard
         self._eventGroupMappings['MOUSE_INPUT']=self.emrtFile.root.data_collection.events.mouse
+        self._eventGroupMappings['TOUCH']=self.emrtFile.root.data_collection.events.touch
         self._eventGroupMappings['GAMEPAD_STATE_CHANGE']=self.emrtFile.root.data_collection.events.gamepad
         self._eventGroupMappings['MULTI_CHANNEL_ANALOG_INPUT']=self.emrtFile.root.data_collection.events.analog_input
         self._eventGroupMappings['MESSAGE']=self.emrtFile.root.data_collection.events.experiment

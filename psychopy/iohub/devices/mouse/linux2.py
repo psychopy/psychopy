@@ -31,15 +31,25 @@ class Mouse(MouseDevice):
         self._cursorVisible=True
         
         if Mouse._xdll is None:
-            Mouse._xdll = cdll.LoadLibrary('libX11.so') 
-            Mouse._xdisplay = self._xdll.XOpenDisplay(None) 
-            Mouse._xscreen_count = self._xdll.XScreenCount(self._xdisplay)  
             try:
-                Mouse._xfixsdll=cdll.LoadLibrary('libXfixes.so')
+                Mouse._xdll = cdll.LoadLibrary('libX11.so') 
+                Mouse._xdisplay = self._xdll.XOpenDisplay(None) 
+                Mouse._xscreen_count = self._xdll.XScreenCount(self._xdisplay)  
+                try:
+                    # should use linux cmd:
+                    # find /usr/lib -name libXfixes.so\*
+                    # to find full path to the lib (if it exists)
+                    #
+                    Mouse._xfixsdll=cdll.LoadLibrary('libXfixes.so')
+                except:
+                    try:
+                        Mouse._xfixsdll=cdll.LoadLibrary('libXfixes.so.3.1.0')
+                    except:
+                        print2err('ERROR: Mouse._xfixsdll is None. libXfixes.so cound not be found')
             except:
-                Mouse._xfixsdll=None
-                
-        if self._display_device and self._display_device._xwindow is None:
+                print2err('ERROR: Mouse._xdll is None. libX11.so cound not be found')
+               
+        if Mouse._xfixsdll and self._xdll and self._display_device and self._display_device._xwindow is None:
             self._display_device._xwindow= self._xdll.XRootWindow(Mouse._xdisplay, self._display_device.getIndex())
 
     def _nativeSetMousePos(self,px,py):

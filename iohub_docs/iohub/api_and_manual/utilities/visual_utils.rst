@@ -6,7 +6,6 @@ Simple Experiment Graphics Utilities
 .. autosummary::
    :toctree:
 
-   FullScreenWindow
    ScreenState
    ClearScreen
    InstructionScreen

@@ -121,9 +121,9 @@ class AnalogInput(AnalogInputDevice):
             multi_channel_event=list(event)
 
             multi_channel_event[3]=Computer._getNextEventID()
-            multi_channel_event[5]=float(self._scan_count)/float(self.channel_sampling_rate)
-            multi_channel_event[7]=multi_channel_event[4]+start_post
-            multi_channel_event[9]=logged_time-multi_channel_event[6]
+            multi_channel_event[5]=float(self._scan_count)/float(self.channel_sampling_rate) #device_time
+            multi_channel_event[7]=multi_channel_event[5]+start_post # iohub time
+            multi_channel_event[9]=logged_time-multi_channel_event[7] #delay
 
             multi_channel_event.extend([ain[a][s] for a in channel_index_list])
             self._addNativeEventToBuffer(multi_channel_event)
