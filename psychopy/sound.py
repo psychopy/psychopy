@@ -691,7 +691,7 @@ def setaudioLib(api):
 def apodize(soundArray, sampleRate):
     """Apply a Hamming window (5ms) to reduce a sound's 'click' onset / offset
     """
-    hwSize = min(sampleRate // 200, len(soundArray) // 15)
+    hwSize = int(min(sampleRate // 200, len(soundArray) // 15))
     hammingWindow = numpy.hamming(2 * hwSize + 1)
     soundArray[:hwSize] *= hammingWindow[:hwSize]
     for i in range(2):
