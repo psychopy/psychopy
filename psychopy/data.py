@@ -2356,7 +2356,14 @@ class MultiStairHandler(_BaseTrialHandler):
                 raise StopIteration
         #fetch next staircase/value
         self.currentStaircase = self.thisPassRemaining.pop(0)#take the first and remove it
-        self._nextIntensity = self.currentStaircase._nextIntensity#gets updated by self.addData()
+        #if staircase.next() not called, staircaseHandler would not save the first intensity,
+        #Error: miss align intensities and responses
+        try:
+            self._nextIntensity =self.currentStaircase.next()#gets updated by self.addData()
+        except:
+            self.runningStaircases.remove(self.currentStaircase)
+            if len(self.runningStaircases)==0: #If finished,set finished flag 
+                self.finished=True
         #return value
         if not self.finished:
             #inform experiment of the condition (but not intensity, that might be overridden by user)
@@ -2390,10 +2397,6 @@ class MultiStairHandler(_BaseTrialHandler):
         This is essential to advance the staircase to a new intensity level!
         """
         self.currentStaircase.addResponse(result, intensity)
-        try:
-            self.currentStaircase.next()
-        except:
-            self.runningStaircases.remove(self.currentStaircase)
         #add the current data to experiment if poss
         if self.getExp() != None:#update the experiment handler too
             self.getExp().addData(self.name+".response", result)
