@@ -269,7 +269,7 @@ class Monitor:
     #equivalent get functions
     def getSizePix(self):
         """Returns the size of the current calibration in pixels, or None if not defined"""
-        if self.currentCalib.has_key('sizePix'):
+        if 'sizePix' in self.currentCalib:
             return self.currentCalib['sizePix']
         else:
             return None
@@ -284,13 +284,13 @@ class Monitor:
         calibTools.strFromDate"""
         return self.currentCalib['calibDate']
     def getGamma(self):
-        if self.currentCalib.has_key('gamma'):
+        if 'gamma' in self.currentCalib:
             return self.currentCalib['gamma']
         else:
             return None
     def getGammaGrid(self):
         """Gets the min,max,gamma values for the each gun"""
-        if self.currentCalib.has_key('gammaGrid'):
+        if 'gammaGrid' in self.currentCalib:
             # Make sure it's an array, so you can look at the shape
             grid = numpy.asarray(self.currentCalib['gammaGrid'])
             if grid.shape!=[4,6]:
@@ -302,33 +302,33 @@ class Monitor:
             return None
     def getLineariseMethod(self):
         """Gets the min,max,gamma values for the each gun"""
-        if self.currentCalib.has_key('lineariseMethod'):
+        if 'lineariseMethod' in self.currentCalib:
             return self.currentCalib['lineariseMethod']
         else:
             return None
     def getMeanLum(self):
-        if self.currentCalib.has_key('meanLum'):
+        if 'meanLum' in self.currentCalib:
             return self.currentCalib['meanLum']
         else:
             return None
     def getLumsPre(self):
         """Gets the measured luminance values from last calibration"""
-        if self.currentCalib.has_key('lumsPre'):
+        if 'lumsPre' in self.currentCalib:
             return self.currentCalib['lumsPre']
         else: return None
     def getLumsPost(self):
         """Gets the measured luminance values from last calibration TEST"""
-        if self.currentCalib.has_key('lumsPost'):
+        if 'lumsPost' in self.currentCalib:
             return self.currentCalib['lumsPost']
         else: return None
     def getLevelsPre(self):
         """Gets the measured luminance values from last calibration"""
-        if self.currentCalib.has_key('levelsPre'):
+        if 'levelsPre' in self.currentCalib:
             return self.currentCalib['levelsPre']
         else: return None
     def getLevelsPost(self):
         """Gets the measured luminance values from last calibration TEST"""
-        if self.currentCalib.has_key('levelsPost'):
+        if 'levelsPost' in self.currentCalib:
             return self.currentCalib['levelsPost']
         else: return None
     def getSpectra(self):
@@ -339,7 +339,7 @@ class Monitor:
             - nm, power = monitor.getSpectra()
 
             """
-        if self.currentCalib.has_key('spectraNM'):
+        if 'spectraNM' in self.currentCalib:
             return self.currentCalib['spectraNM'], self.currentCalib['spectraRGB']
         else:
             return None, None
@@ -349,7 +349,7 @@ class Monitor:
         Otherwise, if power spectra are available for the
         monitor a matrix will be calculated.
         """
-        if not self.currentCalib.has_key('dkl_rgb'): RECOMPUTE=True
+        if not 'dkl_rgb' in self.currentCalib: RECOMPUTE=True
         if RECOMPUTE:
             nm, power = self.getSpectra()
             if nm==None:
@@ -365,7 +365,7 @@ class Monitor:
         Otherwise (if power spectra are available for the
         monitor) a matrix will be calculated.
         """
-        if not self.currentCalib.has_key('lms_rgb'): RECOMPUTE=True
+        if not 'lms_rgb' in self.currentCalib: RECOMPUTE=True
         if RECOMPUTE:
             nm, power = self.getSpectra()
             if nm==None:

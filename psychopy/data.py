@@ -1024,7 +1024,7 @@ class TrialHandler(_BaseTrialHandler):
         #do the necessary analysis on the data
         for thisDataOutN,thisDataOut in enumerate(dataOut):
             dataType, analType =string.rsplit(thisDataOut, '_', 1)
-            if not self.data.has_key(dataType):
+            if not dataType in self.data:
                 dataOutInvalid.append(thisDataOut)#that analysis can't be done
                 continue
             thisData = self.data[dataType]
@@ -1156,9 +1156,9 @@ class TrialHandler(_BaseTrialHandler):
                 # now collect the value from each trial of the variables named in the header:
                 for parameterName in header:
                     # the header includes both trial and data variables, so need to check before accessing:
-                    if self.trialList[trialTypeIndex] and self.trialList[trialTypeIndex].has_key(parameterName):
+                    if self.trialList[trialTypeIndex] and parameterName in self.trialList[trialTypeIndex]:
                         nextEntry[parameterName] = self.trialList[trialTypeIndex][parameterName]
-                    elif self.data.has_key(parameterName):
+                    elif parameterName in self.data:
                         nextEntry[parameterName] = self.data[parameterName][trialTypeIndex][repThisType]
                     else: # allow a null value if this parameter wasn't explicitly stored on this trial:
                         nextEntry[parameterName] = ''
@@ -1532,7 +1532,7 @@ class StairHandler(_BaseTrialHandler):
         """Add additonal data to the handler, to be tracked alongside the result
         data but not affecting the value of the staircase
         """
-        if not self.otherData.has_key(dataName): #init the list
+        if not dataName in self.otherData: #init the list
             if self.thisTrialN>0:
                 self.otherData[dataName]=[None]*(self.thisTrialN-1) #might have run trals already
             else:
@@ -2582,7 +2582,7 @@ class DataHandler(dict):
         """Add data to an existing data type
         (and add a new one if necess)
         """
-        if not self.has_key(thisType):
+        if not thisType in self:
             self.addDataType(thisType)
         if position==None:
             #'ran' is always the first thing to update

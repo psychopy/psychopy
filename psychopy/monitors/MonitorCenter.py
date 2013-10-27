@@ -505,13 +505,13 @@ class MainFrame(wx.Frame):
 
         #keys that may not exist
         #todo remove this code - only needed for monitor objects made pre version 0.63
-        if not self.currentMon.currentCalib.has_key('gammaGrid'):
+        if not 'gammaGrid' in self.currentMon.currentCalib:
             self.currentMon.currentCalib['gammaGrid']=monitors.numpy.ones((4,3), 'd')
-        if not self.currentMon.currentCalib.has_key('lms_rgb'):
+        if not 'lms_rgb' in self.currentMon.currentCalib:
             self.currentMon.currentCalib['lms_rgb']=monitors.numpy.ones((3,3), 'd')
-        if not self.currentMon.currentCalib.has_key('dkl_rgb'):
+        if not 'dkl_rgb' in self.currentMon.currentCalib:
             self.currentMon.currentCalib['dkl_rgb']=monitors.numpy.ones((3,3), 'd')
-        if not self.currentMon.currentCalib.has_key('sizePix'):
+        if not 'sizePix' in self.currentMon.currentCalib:
             self.currentMon.currentCalib['sizePix']= [1024,768]
 
         #insert values from new calib into GUI
@@ -537,10 +537,10 @@ class MainFrame(wx.Frame):
 
     def enableDisableCtrls(self):
         #update controls for current monitor
-        if not self.currentMon.currentCalib.has_key('lumsPre'):
+        if not 'lumsPre' in self.currentMon.currentCalib:
             self.btnPlotGamma.Enable(True)
         else: self.btnPlotGamma.Enable(True)
-        if not self.currentMon.currentCalib.has_key('spectraRGB'):
+        if not 'spectraRGB' in self.currentMon.currentCalib:
             self.btnPlotSpectra.Enable(False)
         else: self.btnPlotSpectra.Enable(True)
         if self.currentMon.getLevelsPre()==None:
