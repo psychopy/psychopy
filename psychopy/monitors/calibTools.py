@@ -885,7 +885,7 @@ def getLumSeriesPR650(lumLevels=8,
     autoMode='auto',
     stimSize = 0.3,
     photometer='COM1'):
-    """DEPRECATED (since v1.60.01): Use :class:`pscyhopy.monitors.getLumSeries()` instead"""
+    """DEPRECATED (since v1.60.01): Use :class:`psychopy.monitors.getLumSeries()` instead"""
 
     logging.warning("DEPRECATED (since v1.60.01): Use monitors.getLumSeries() instead")
     val= getLumSeries(lumLevels,
