@@ -93,7 +93,7 @@ def RgbHistogram (images, verbose=False):
         color = datalist [i]
         key = repr (color)
 
-        if dicthist.has_key (key):  # color already exists
+        if key in dicthist:  # color already exists
             dicthist [key] += 1     # increment the count
         else:                       # make a new key
             dicthist [key] = 1      # instantiate a new entry and init the count
