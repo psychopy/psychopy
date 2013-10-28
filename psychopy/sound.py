@@ -614,7 +614,7 @@ def initPyo(rate=44100, stereo=True, buffer=128):
         Server = pyo.Server
 
     # if we already have a server, just re-initialize it
-    if globals().has_key('pyoSndServer') and hasattr(pyoSndServer,'shutdown'):
+    if 'pyoSndServer' in globals() and hasattr(pyoSndServer,'shutdown'):
         pyoSndServer.stop()
         core.wait(0.5)#make sure enough time passes for the server to shutdown
         pyoSndServer.shutdown()

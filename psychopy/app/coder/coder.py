@@ -1133,7 +1133,7 @@ class CoderFrame(wx.Frame):
         wx.EVT_CLOSE(self, self.closeFrame)#NB not the same as quit - just close the window
         wx.EVT_IDLE(self, self.onIdle)
 
-        if self.appData.has_key('state') and self.appData['state']=='maxim':
+        if 'state' in self.appData and self.appData['state']=='maxim':
             self.Maximize()
         #initialise some attributes
         self.modulesLoaded=False #will turn true when loading thread completes

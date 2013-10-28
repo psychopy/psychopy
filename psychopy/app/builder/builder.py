@@ -2491,8 +2491,9 @@ class DlgLoopProperties(_BaseParamsDlg):
 
         #make sure we set this back regardless of whether OK
         #otherwise it will be left as a summary string, not a conditions
-        if self.currentHandler.params.has_key('conditionsFile'):
+        if 'conditionsFile' in self.currentHandler.params:
             self.currentHandler.params['conditions'].val=self.conditions
+
     def makeGlobalCtrls(self):
         for fieldName in ['name','loopType']:
             container=wx.BoxSizer(wx.HORIZONTAL)#to put them in
@@ -2531,7 +2532,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl, ctrls.browseCtrl))
                 self.ctrlSizer.Add(container)
             elif fieldName=='conditions':
-                if handler.params.has_key('conditions'):
+                if 'conditions' in handler.params:
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
                     text = """No parameters set"""
@@ -2573,7 +2574,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl, ctrls.browseCtrl))
                 self.ctrlSizer.Add(container)
             elif fieldName=='conditions':
-                if handler.params.has_key('conditions'):
+                if 'conditions' in handler.params:
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
                     text = """No parameters set (select a file above)"""
