@@ -3,6 +3,8 @@ Resources (e.g. for teaching)
 
 There are a number of further resources to help learn/teach about PsychoPy.
 
+If you also have PsychoPy materials/course then please let us know so that we can link to them from here too!
+
 :ref:`P4N`
 ---------------------------------------------------------------
 
@@ -11,31 +13,29 @@ There will be a 3-day workshop in April 2014 at Nottingham University. It won't 
 .. _youtube:
 
 Youtube tutorials
----------------------
+-----------------
 
-There is now a `youtube PsychoPy <http://www.youtube.com/watch?v=VV6qhuQgsiI>`_ tutorial showing how to build a basic experiment in the :ref:`builder` interface. That's a great way to get started; build your own complete experiment in 15 minutes flat!
+- `Youtube PsychoPy tutorial <http://www.youtube.com/watch?v=VV6qhuQgsiI>`_ showing how to build a basic experiment in the :ref:`builder` interface. That's a great way to get started; build your own complete experiment in 15 minutes flat!
 
-There's also a `subtitled version of the stroop video tutorial <https://www.universalsubtitles.org/en/videos/rBzTFjunIDB2>`_ (Thanks Kevin Cole for doing that!)
+- There's also a `subtitled version of the stroop video tutorial <https://www.universalsubtitles.org/en/videos/rBzTFjunIDB2>`_ (Thanks Kevin Cole for doing that!)
 
 .. _lectureMaterials:
 
-Lecture materials (Builder)
--------------------------------
+Materials for Builder
+---------------------
 
-At `School of Psychology, University of Nottingham`_, PsychoPy is now used for all first year practical class teaching. The classes that comprise that first year course are provided below. They were created partially with funding from the former `Higher Education Academy Psychology Network`_. Note that the materials here will be updated frequently as they are further developed (e.g. to update screenshots etc) so make sure you have the latest version of them!
+- At `School of Psychology, University of Nottingham`_, PsychoPy is now used for all first year practical class teaching. The classes that comprise that first year course are provided below. They were created partially with funding from the former `Higher Education Academy Psychology Network`_. Note that the materials here will be updated frequently as they are further developed (e.g. to update screenshots etc) so make sure you have the latest version of them!
 
         `PsychoPy_pracs_2011v2.zip (21MB) <PsychoPy_pracs_2011v2.zip>`_ (last updated: 15 Dec 2011)
 
-The `GestaltReVision group (Leuven) wiki <http://gestaltrevision.be/wiki/python>`_ covering PsychoPy (some Builder info and a great tutorial for Python/PsychoPy coding of experiments).
+- The `GestaltReVision group (University of Leuven) wiki <http://gestaltrevision.be/wiki/python>`_ covering PsychoPy (some Builder info and great tutorials for Python/PsychoPy coding of experiments).
 
-If you also use PsychoPy for your lectures then please let us know so that we can link to your materials/course from here too!
+Materials for Coder
+-------------------
 
-Lecture materials (Coder)
--------------------------------
+- `Gary Lupyan <http://sapir.psych.wisc.edu/>`_ runs a class on programming experiments using Python/PsychoPy and makes his lecture materials available `on this wiki <http://sapir.psych.wisc.edu/wiki/index.php/Psych711>`_
 
-`Gary Lupyan <http://sapir.psych.wisc.edu/>`_ runs a class on programming experiments using Python/PsychoPy and makes his lecture materials available `on this wiki <http://sapir.psych.wisc.edu/wiki/index.php/Psych711>`_
-
-Also the `GestaltReVision group (Leuven) wiki <http://gestaltrevision.be/wiki/python>`_ has lots of great information taking you from basic programming to advanced techniques.
+- The `GestaltReVision group (University of Leuven) wiki <http://gestaltrevision.be/wiki/python>`_ offers a `one-day crash course to Python and PsychoPy on a IPython Notebook <http://nbviewer.ipython.org/7036997>`_, and has lots of great information taking you from basic programming to advanced techniques.
 
 ---------------------------------
 
