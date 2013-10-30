@@ -583,7 +583,7 @@ def _bestDriver(devNames, devIDs):
                     audioDriver=devString
                     outputID=devIDs[devN]
                     return audioDriver, outputID #we found an asio driver don'w look for others
-            except UnicodeDecodeError, UnicodeEncodeError:
+            except (UnicodeDecodeError, UnicodeEncodeError):
                 logging.warn('find best sound driver - could not interpret unicode in driver name')
     else:
         return None, None
