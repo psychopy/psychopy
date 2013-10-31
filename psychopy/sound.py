@@ -583,7 +583,7 @@ def _bestDriver(devNames, devIDs):
                     audioDriver=devString
                     outputID=devIDs[devN]
                     return audioDriver, outputID #we found an asio driver don'w look for others
-            except UnicodeDecodeError, UnicodeEncodeError:
+            except (UnicodeDecodeError, UnicodeEncodeError):
                 logging.warn('find best sound driver - could not interpret unicode in driver name')
     else:
         return None, None
@@ -640,6 +640,7 @@ def initPyo(rate=44100, stereo=True, buffer=128):
                 maxInputChnls = pyo.pa_get_input_max_channels(inputID)
                 duplex = bool(maxInputChnls > 0)
             else:
+                maxInputChnls = 0
                 duplex=False
         else:#for other platforms set duplex to True (if microphone is available)
             audioDriver = prefs.general['audioDriver'][0]
