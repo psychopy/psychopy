@@ -1630,6 +1630,12 @@ class CoderFrame(wx.Frame):
             doc = self.notebook.GetPage(ii)
             filename=doc.filename
             if doc.UNSAVED:
+                self.notebook.SetSelection(ii) #fetch that page and show it
+                #make sure frame is at front
+                self.Show(True)
+                self.Raise()
+                self.app.SetTopWindow(self)
+                #then bring up dialog
                 dlg = dialogs.MessageDialog(self,message='Save changes to %s before quitting?' %filename, type='Warning')
                 resp = dlg.ShowModal()
                 sys.stdout.flush()
@@ -1648,7 +1654,7 @@ class CoderFrame(wx.Frame):
         """
         if len(self.app.builderFrames)==0 and sys.platform!='darwin':
             if not self.app.quitting:
-                self.app.quit()
+                self.app.quit(event) #send the event so it can be vetoed if neded
                 return#app.quit() will have closed the frame already
 
         if checkSave:

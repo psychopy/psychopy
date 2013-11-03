@@ -3781,18 +3781,17 @@ class BuilderFrame(wx.Frame):
     def commandCloseFrame(self, event):
         self.Close()
 
-    def closeFrame(self, event):
-        if event.CanVeto():
-            okToClose = self.fileClose(updateViews=False)#close file first (check for save) but no need to update view
-        else:
-            okToClose = True
+    def closeFrame(self, event=None, checkSave=True):
+        okToClose = self.fileClose(updateViews=False, checkSave=checkSave)#close file first (check for save) but no need to update view
 
         if not okToClose:
-            event.Veto()
+            if hasattr(event, 'Veto'):
+                event.Veto()
+            return
         else:
             # is it the last frame?
             if len(wx.GetApp().allFrames) == 1 and sys.platform != 'darwin' and not wx.GetApp().quitting:
-                wx.GetApp().quit()
+                wx.GetApp().quit(event)
             else:
                 self.app.allFrames.remove(self)
                 self.app.builderFrames.remove(self)
@@ -3800,7 +3799,7 @@ class BuilderFrame(wx.Frame):
 
     def quit(self, event=None):
         """quit the app"""
-        self.app.quit()
+        self.app.quit(event)
     def fileNew(self, event=None, closeCurrent=True):
         """Create a default experiment (maybe an empty one instead)"""
         #Note: this is NOT the method called by the File>New menu item. That calls app.newBuilderFrame() instead
@@ -3931,7 +3930,6 @@ class BuilderFrame(wx.Frame):
         """
         return os.path.splitext(os.path.split(self.filename)[1])[0]
 
-
     def updateReadme(self):
         """Check whether there is a readme file in this folder and try to show it"""
         #create the frame if we don't have one yet
@@ -3972,6 +3970,9 @@ class BuilderFrame(wx.Frame):
         """Check whether we need to save before quitting
         """
         if hasattr(self, 'isModified') and self.isModified:
+            self.Show(True)
+            self.Raise()
+            self.app.SetTopWindow(self)
             message = 'Experiment %s has changed. Save before quitting?' % self.filename
             dlg = dialogs.MessageDialog(self, message, type='Warning')
             resp = dlg.ShowModal()
@@ -3989,12 +3990,13 @@ class BuilderFrame(wx.Frame):
         if checkSave:
             ok = self.checkSave()
             if not ok: return False#user cancelled
-
+        print 'closing', self.filename
         if self.filename==None:
             frameData=self.appData['defaultFrame']
         else:
             frameData = dict(self.appData['defaultFrame'])
             self.appData['prevFiles'].append(self.filename)
+
             #get size and window layout info
         if self.IsIconized():
             self.Iconize(False)#will return to normal mode to get size info
