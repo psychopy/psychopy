@@ -122,7 +122,7 @@ class cedrusButtonBoxComponent(BaseComponent):
 
     def writeRoutineStartCode(self,buff):
         if self.params['store'].val != 'nothing' or self.params['storeCorrect'].val:
-            buff.writeIndented("%(name)sBtns = []  # to store response values\n" %self.params +
+            buff.writeIndentedLines("%(name)sBtns = []  # to store response values\n" %self.params +
                   "%(name)sRTs = []\n" % self.params)
 
     def writeFrameCode(self,buff):
@@ -243,6 +243,7 @@ class cedrusButtonBoxComponent(BaseComponent):
             currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
         else:
             currLoop = None
+        loopname = currLoop.params['name']
         if store == 'nothing' or not currLoop:  # need a loop to store any data!
             return
 
@@ -261,13 +262,12 @@ class cedrusButtonBoxComponent(BaseComponent):
         if currLoop.type == 'StairHandler':
             # StairHandler only needs correct-ness
             if self.params['storeCorrect'].val:
-                buff.writeIndented("%s.addData(%sCorr)\n" % (currLoop.params['name'], name))
-                buff.writeIndented("%s.addOtherData('%s.rt', %s.rt)\n" %(currLoop.params['name'], name, name))
+                buff.writeIndented("%s.addData(%sCorr)\n" % (loopname, name))
+                buff.writeIndented("%s.addOtherData('%s.rt', %s.rt)\n" %(loopname, name, name))
         else:
             # TrialHandler gets button and RT info:
-            loopnamename = (currLoop.params['name'], name, name)
-            buff.writeIndented("%s.addData('%s.btns', %sBtns)\n" % (loopnamename, self.params['name'], self.params['name']))
+            buff.writeIndented("%s.addData('%s.btns', %sBtns)\n" % (loopname, name, name))
             if self.params['storeCorrect'].val:
-                buff.writeIndented("%s.addData('%s.corr', %sCorr)\n" % (loopnamename, self.params['name'], self.params['name']))
+                buff.writeIndented("%s.addData('%s.corr', %sCorr)\n" % (loopname, name, name))
             buff.writeIndented("if %(name)sBtns != None:  # add RTs if there are responses\n" % self.params)
-            buff.writeIndented("    %s.addData('%s.rt', %sRTs)\n" % (loopnamename, self.params['name'], self.params['name']))
+            buff.writeIndented("    %s.addData('%s.rt', %sRTs)\n" % (loopname, name, name))
