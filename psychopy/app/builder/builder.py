@@ -1432,7 +1432,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
-        scrolledpanel.ScrolledPanel.__init__(self,frame,id,size=(100,10*self.dpi))
+        if self.app.prefs.app['largeIcons']:
+            panelWidth = 3*48+40
+        else:
+            panelWidth = 3*24+40
+        scrolledpanel.ScrolledPanel.__init__(self,frame,id,size=(panelWidth,10*self.dpi))
         self.sizer=wx.BoxSizer(wx.VERTICAL)
         self.components=components.getAllComponents()
         self.components=experiment.getAllComponents(self.app.prefs.builder['componentsFolders'])
@@ -1460,7 +1464,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 self.panels[categ]=wx.FlexGridSizer(cols=2)
             self.sizer.Add(sectionBtn, flag=wx.EXPAND)
             self.sizerList.append(sectionBtn)
-            self.sizer.Add(self.panels[categ])
+            self.sizer.Add(self.panels[categ], flag=wx.ALIGN_CENTER)
             self.sizerList.append(self.panels[categ])
         self.makeComponentButtons()
         self._rightClicked=None
@@ -1479,8 +1483,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             cols = self.GetClientSize()[0] / 58
         else:
             cols = self.GetClientSize()[0] / 34
-        for panel in self.panels.values():
-            panel.SetCols(max(1, cols))
+        for category in self.panels.values():
+            category.SetCols(max(1, cols))
 
     def makeFavoriteButtons(self):
         #add a copy of each favorite to that panel first
