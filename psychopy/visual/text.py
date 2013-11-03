@@ -162,6 +162,10 @@ class TextStim(BaseVisualStim):
         self.contrast = float(contrast)
         self.setText(text, log=False) #self.width and self.height get set with text and calcSizeRednered is called
         self._needUpdate = True
+
+    def __del__(self):
+        GL.glDeleteLists(self._listID, 1)
+
     def setHeight(self,height, log=True):
         """Set the height of the letters (including the entire box that surrounds the letters
         in the font). The width of the letters is then defined by the font.

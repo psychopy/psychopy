@@ -473,6 +473,8 @@ class RadialStim(GratingStim):
                 level=logging.EXP,obj=self)
 
     def __del__(self):
+        if not self.useShaders:
+            GL.glDeleteLists(self._listID, 1)
         self.clearTextures()#remove textures from graphics card to prevent crash
 
     def clearTextures(self):
