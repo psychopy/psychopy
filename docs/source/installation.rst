@@ -32,7 +32,7 @@ If you're thinking of buying a laptop for running experiments, **avoid the built
 Windows
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Once installed, you'll now find a link to the PsychoPy application in > Start > Progams > PsychoPy2. Click that and the Configuration Wizard should start. 
+Once installed, you'll now find a link to the PsychoPy application in > Start > Programs > PsychoPy2. Click that and the Configuration Wizard should start. 
 
 The wizard will try to make sure you have reasonably current drivers for your graphics card. You may be directed to download the latest drivers from the vendor, rather than using the pre-installed windows drivers. If necessary, get new drivers directly from the graphics card vendor; don't rely on Windows updates. The windows-supplied drivers are buggy and sometimes don't support OpenGL at all.
 

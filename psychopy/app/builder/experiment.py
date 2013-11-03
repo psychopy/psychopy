@@ -1065,7 +1065,7 @@ class Routine(list):
         buff.writeIndented('# keep track of which components have finished\n')
         buff.writeIndented('%sComponents = []\n' %(self.name))
         for thisCompon in self:
-            if thisCompon.params.has_key('startType'):
+            if 'startType' in thisCompon.params:
                 buff.writeIndented('%sComponents.append(%s)\n' %(self.name, thisCompon.params['name']))
         buff.writeIndented("for thisComponent in %sComponents:\n"%(self.name))
         buff.writeIndented("    if hasattr(thisComponent, 'status'):\n")
@@ -1152,7 +1152,7 @@ class Routine(list):
         nonSlipSafe = True # if possible
         onlyStaticComps = True
         for n, component in enumerate(self):
-            if component.params.has_key('startType'):
+            if 'startType' in component.params:
                 start, duration, nonSlip = component.getStartAndDuration()
                 if not nonSlip:
                     nonSlipSafe=False

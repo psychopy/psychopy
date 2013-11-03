@@ -171,7 +171,7 @@ class BaseComponent(object):
         nonSlipSafe indicates that the component's duration is a known fixed
         value and can be used in non-slip global clock timing (e.g for fMRI)
         """
-        if not self.params.has_key('startType'):
+        if not 'startType' in self.params:
             return None, None, True#this component does not have any start/stop
         startType=self.params['startType'].val
         stopType=self.params['stopType'].val

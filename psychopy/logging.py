@@ -221,7 +221,7 @@ class _Logger:
         for target in self.targets:
             for thisEntry in self.toFlush:
                 if thisEntry.level>=target.level:
-                    if not formatted.has_key(thisEntry):
+                    if not thisEntry in formatted:
                         #convert the entry into a formatted string
                         formatted[thisEntry]= self.format %thisEntry.__dict__
                     target.write(formatted[thisEntry]+'\n')

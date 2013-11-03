@@ -124,9 +124,9 @@ class GlobSizer(wx.GridBagSizer):
             del self.growableCols[idx]
             wx.GridBagSizer.RemoveGrowableCol(self, idx)
     def IsRowGrowable(self, idx):
-        return self.growableRows.has_key(idx)
+        return idx in self.growableRows
     def IsColGrowable(self, idx):
-        return self.growableCols.has_key(idx)
+        return idx in self.growableCols
     def GetGrowableRows(self):
         grows = self.growableRows.keys(); grows.sort()
         return grows

@@ -583,7 +583,7 @@ def _bestDriver(devNames, devIDs):
                     audioDriver=devString
                     outputID=devIDs[devN]
                     return audioDriver, outputID #we found an asio driver don'w look for others
-            except UnicodeDecodeError, UnicodeEncodeError:
+            except (UnicodeDecodeError, UnicodeEncodeError):
                 logging.warn('find best sound driver - could not interpret unicode in driver name')
     else:
         return None, None
@@ -614,7 +614,7 @@ def initPyo(rate=44100, stereo=True, buffer=128):
         Server = pyo.Server
 
     # if we already have a server, just re-initialize it
-    if globals().has_key('pyoSndServer') and hasattr(pyoSndServer,'shutdown'):
+    if 'pyoSndServer' in globals() and hasattr(pyoSndServer,'shutdown'):
         pyoSndServer.stop()
         core.wait(0.5)#make sure enough time passes for the server to shutdown
         pyoSndServer.shutdown()
@@ -640,6 +640,7 @@ def initPyo(rate=44100, stereo=True, buffer=128):
                 maxInputChnls = pyo.pa_get_input_max_channels(inputID)
                 duplex = bool(maxInputChnls > 0)
             else:
+                maxInputChnls = 0
                 duplex=False
         else:#for other platforms set duplex to True (if microphone is available)
             audioDriver = prefs.general['audioDriver'][0]
@@ -691,7 +692,7 @@ def setaudioLib(api):
 def apodize(soundArray, sampleRate):
     """Apply a Hamming window (5ms) to reduce a sound's 'click' onset / offset
     """
-    hwSize = min(sampleRate // 200, len(soundArray) // 15)
+    hwSize = int(min(sampleRate // 200, len(soundArray) // 15))
     hammingWindow = numpy.hamming(2 * hwSize + 1)
     soundArray[:hwSize] *= hammingWindow[:hwSize]
     for i in range(2):
