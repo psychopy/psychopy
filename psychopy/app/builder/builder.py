@@ -416,7 +416,7 @@ class FlowPanel(wx.ScrolledWindow):
         x = self.getNearestGapPoint(0)
         self.drawEntryPoints([x])
     def setLoopPoint2(self, evt=None):
-        """We'ce got the location of the first point, waiting to get the second
+        """We've got the location of the first point, waiting to get the second
         """
         self.mode='loopPoint2'
         self.frame.SetStatusText('Click the other end for the loop')
@@ -457,7 +457,7 @@ class FlowPanel(wx.ScrolledWindow):
         r = len(nsu) // c  # number of rows
         print '_' * c * m
         for i in range(r):
-            print ' '+''.join([nsu[i+j*r] for j in range(c)])  # typially to coder output
+            print ' '+''.join([nsu[i+j*r] for j in range(c)])  # typically to coder output
         collisions = self.frame.exp.namespace.getCollisions()
         if collisions:
             print "*** collisions ***: %s" % str(collisions)
@@ -493,8 +493,8 @@ class FlowPanel(wx.ScrolledWindow):
             if loop.getType()!=prevLoop.getType():
                 #get indices for start and stop points of prev loop
                 flow = self.frame.exp.flow
-                startII = flow.index(prevLoop.initiator)#find the index of the initator
-                endII = flow.index(prevLoop.terminator)-1 #minus one because initator will have been deleted
+                startII = flow.index(prevLoop.initiator) #find the index of the initiator
+                endII = flow.index(prevLoop.terminator)-1 #minus one because initiator will have been deleted
                 #remove old loop completely
                 flow.removeComponent(prevLoop)
                 #finally insert the new loop
@@ -603,7 +603,7 @@ class FlowPanel(wx.ScrolledWindow):
         if op=='rename':
             print 'rename is not implemented yet'
             #if component is a loop: DlgLoopProperties
-            #elif comonent is a routine: DlgRoutineProperties
+            #elif component is a routine: DlgRoutineProperties
         self.draw()
         self._menuComponentID=None
     def removeComponent(self, component, compID):
@@ -1226,7 +1226,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.SetFont(font)
     def drawStatic(self, dc, component, yPosTop, yPosBottom):
         """draw a static component box"""
-        #set an id for the region of this comonent (so it can act as a button)
+        #set an id for the region of this component (so it can act as a button)
         ##see if we created this already
         id=None
         for key in self.componentFromID.keys():
@@ -1263,7 +1263,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             dc.SetIdBounds(id,fullRect)
     def drawComponent(self, dc, component, yPos):
         """Draw the timing of one component on the timeline"""
-        #set an id for the region of this comonent (so it can act as a button)
+        #set an id for the region of this component (so it can act as a button)
         ##see if we created this already
         id=None
         for key in self.componentFromID.keys():
@@ -1654,7 +1654,7 @@ class FavoriteComponents(object):
                 self.currentLevels[comp]=self.neutral
 
     def makeFavorite(self, compName):
-        """Set the value of this component to an arbitraty high value (10000)
+        """Set the value of this component to an arbitrary high value (10000)
         """
         self.currentLevels[compName] = 10000
     def promoteComponent(self, compName, value=1):
@@ -2220,7 +2220,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.border.Add(self.mainSizer, flag=wx.ALL|wx.EXPAND, border=8)
         self.SetSizerAndFit(self.border)
-        #move the psoition to be v near the top of screen and to the right of the left-most edge of builder
+        #move the position to be v near the top of screen and to the right of the left-most edge of builder
         builderPos = self.frame.GetPosition()
         self.SetPosition((builderPos[0]+200,20))
 
@@ -3615,14 +3615,14 @@ class BuilderFrame(wx.Frame):
 
         ctrlKey = 'Ctrl+'  # show key-bindings in tool-tips in an OS-dependent way
         if sys.platform == 'darwin': ctrlKey = 'Cmd+'
-        self.toolbar.AddSimpleTool(self.IDs.tbFileNew, new_bmp, ("New [%s]" %self.app.keys['new']).replace('Ctrl+', ctrlKey), "Create new python file")
+        self.toolbar.AddSimpleTool(self.IDs.tbFileNew, new_bmp, ("New [%s]" %self.app.keys['new']).replace('Ctrl+', ctrlKey), "Create new experiment file")
         self.toolbar.Bind(wx.EVT_TOOL, self.app.newBuilderFrame, id=self.IDs.tbFileNew)
-        self.toolbar.AddSimpleTool(self.IDs.tbFileOpen, open_bmp, ("Open [%s]" %self.app.keys['open']).replace('Ctrl+', ctrlKey), "Open an existing file")
+        self.toolbar.AddSimpleTool(self.IDs.tbFileOpen, open_bmp, ("Open [%s]" %self.app.keys['open']).replace('Ctrl+', ctrlKey), "Open an existing experiment file")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileOpen, id=self.IDs.tbFileOpen)
-        self.toolbar.AddSimpleTool(self.IDs.tbFileSave, save_bmp, ("Save [%s]" %self.app.keys['save']).replace('Ctrl+', ctrlKey),  "Save current file")
+        self.toolbar.AddSimpleTool(self.IDs.tbFileSave, save_bmp, ("Save [%s]" %self.app.keys['save']).replace('Ctrl+', ctrlKey),  "Save current experiment file")
         self.toolbar.EnableTool(self.IDs.tbFileSave, False)
         self.toolbar.Bind(wx.EVT_TOOL, self.fileSave, id=self.IDs.tbFileSave)
-        self.toolbar.AddSimpleTool(self.IDs.tbFileSaveAs, saveAs_bmp, ("Save As... [%s]" %self.app.keys['saveAs']).replace('Ctrl+', ctrlKey), "Save current python file as...")
+        self.toolbar.AddSimpleTool(self.IDs.tbFileSaveAs, saveAs_bmp, ("Save As... [%s]" %self.app.keys['saveAs']).replace('Ctrl+', ctrlKey), "Save current experiment file as...")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileSaveAs, id=self.IDs.tbFileSaveAs)
         self.toolbar.AddSimpleTool(self.IDs.tbUndo, undo_bmp, ("Undo [%s]" %self.app.keys['undo']).replace('Ctrl+', ctrlKey), "Undo last action")
         self.toolbar.Bind(wx.EVT_TOOL, self.undo, id=self.IDs.tbUndo)
@@ -4173,7 +4173,7 @@ class BuilderFrame(wx.Frame):
             self.demosMenu.Append(thisID, shortname)
             wx.EVT_MENU(self, thisID, self.demoLoad)
     def runFile(self, event=None):
-        #get abs path of expereiment so it can be stored with data at end of exp
+        #get abs path of experiment so it can be stored with data at end of exp
         expPath = self.filename
         if expPath==None or expPath.startswith('untitled'):
             ok = self.fileSave()
@@ -4213,8 +4213,8 @@ class BuilderFrame(wx.Frame):
             #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:
-            fullPath= fullPath.replace(' ','\ ')#for unix this signifis a space in a filename
-            pythonExec = sys.executable.replace(' ','\ ')#for unix this signifis a space in a filename
+            fullPath= fullPath.replace(' ','\ ')#for unix this signifies a space in a filename
+            pythonExec = sys.executable.replace(' ','\ ')#for unix this signifies a space in a filename
             command = '%s -u %s' %(pythonExec, fullPath)# the quotes would break a unix system command
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
         self.toolbar.EnableTool(self.IDs.tbRun,False)
