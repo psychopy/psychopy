@@ -67,6 +67,10 @@ try:
             cls._names.update(dict([(v,k) for k,v in cls._names.iteritems()]))
             cls._initialized=True
      
+        @classmethod
+        def getConstants(cls):
+            return cls._names
+            
     class EventConstants(Constants):
         """
         EventConstants provides access to the ioHub Device Event type constants, 

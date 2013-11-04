@@ -1,0 +1,21 @@
+Metadata-Version: 1.0
+Name: freetype-py
+Version: 0.4.1
+Summary: Freetype python bindings
+Home-page: http://code.google.com/p/freetype-py/
+Author: Nicolas P. Rougier
+Author-email: Nicolas.Rougier@inria.fr
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: X11 Applications
+Classifier: Environment :: MacOS X
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
+Classifier: Operating System :: MacOS
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: POSIX
+Classifier: Operating System :: Unix
+Classifier: Programming Language :: Python
+Classifier: Topic :: Multimedia :: Graphics
