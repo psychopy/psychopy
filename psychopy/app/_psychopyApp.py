@@ -148,7 +148,8 @@ class PsychoPyApp(wx.App):
         else: scripts=[]
         if self.prefs.builder['reloadPrevExp'] and ('prevFiles' in self.prefs.appData['builder'].keys()):
             exps=self.prefs.appData['builder']['prevFiles']
-        else: exps=[]
+        else:
+            exps=[]
         #then override the prev files by command options and passed files
         if len(sys.argv)>1:
             if sys.argv[1]==__name__:
@@ -181,8 +182,10 @@ class PsychoPyApp(wx.App):
         self.builderFrames = []
         self.copiedRoutine=None
         self.allFrames=[]#these are ordered and the order is updated with self.onNewTopWindow
-        if mainFrame in ['both', 'coder']: self.showCoder(fileList=scripts)
-        if mainFrame in ['both', 'builder']: self.showBuilder(fileList=exps)
+        if mainFrame in ['both', 'coder']:
+            self.showCoder(fileList=scripts)
+        if mainFrame in ['both', 'builder']:
+            self.showBuilder(fileList=exps)
 
         #send anonymous info to www.psychopy.org/usage.php
         #please don't disable this - it's important for PsychoPy's development
@@ -367,18 +370,17 @@ class PsychoPyApp(wx.App):
             self.prefs.appData['lastFrame']='both'
 
         self.prefs.appData['lastVersion']=self.version
-
         #update app data while closing each frame
         self.prefs.appData['builder']['prevFiles']=[]#start with an empty list to be appended by each frame
         self.prefs.appData['coder']['prevFiles']=[]
+
         for frame in list(self.allFrames):
             try:
-                frame.Close(force=True)
+                frame.closeFrame(event=event, checkSave=False)
                 self.prefs.saveAppData()#must do this before destroying the frame?
             except:
                 pass #we don't care if this fails - we're quitting anyway
         self.Exit()
-        #sys.exit()#really force a quit
 
     def showPrefs(self, event):
         from psychopy.app.preferencesDlg import PreferencesDlg

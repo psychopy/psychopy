@@ -19,9 +19,25 @@ Changelog
 PsychoPy 1.79
 ------------------------------
 
-* NEW: attributes for stimuli can now be updated using e.g. `stim.pos = newPos` rather than using `stim.setPos(newPos)` to make things more like standard Python (thanks Jonas Lindeløv)
-* ADDED: Builder component for ioLab Systems button-box; refactor PsychoPy's ioLabs code (Jeremy)
+* NEW: attributes for stimuli can now be updated using e.g. `stim.pos = newPos` rather than using `stim.setPos(newPos)` to make things more like standard Python (thanks Jonas Lindeløv). This version also involved some major restructuring behind the scenes that should not be visible to users (thanks Todd Jennings)
+* ADDED: Builder Components for
+    * ioLab Systems button-box; refactor PsychoPy's ioLabs code (Jeremy)
+    * Cedrus button-box (tested on RB730)
+    * parallel port output component
+* ADDED: option for sounds to `loop`
 * FIXED: bug when using ElementArrayStim with numpy 1.7.1. Most elements were receiving SF=0
+* FIXED: 'semi-automatic' calibration (thanks Flip Phillips)
+* FIXED: shut-down issues. Builder now remembers its last experiment and you don't get multiple messages about the scripts that have changed
+* FIXED: bugs with MultiStairHandler that were making it unusable (in code and Builder)
+* FIXED: lists of key presses can now be considered `correct` (Ian Hussey)
+* FIXED: certain further cases of bitmap images appearing desaturated
+* FIXED: mono sounds now duplicate to both channels correctly
+* changes to Standalone packages (require fetching the installer):
+    * pyFileSec for uploading files to server using encryption (this is Jeremy's module)
+    * pandas on win32 is now v1.3 (was already this version on OS X)
+    * pyxid now includes Jared's upstream bug-fix
+* FIXED: many user interface tweaks, documentation and help string corrections (Philip Wiesemann)
+* CHANGED: data curve fitting functions are now using scipy.optimise.curve_fit and should hopefully be more robust to local minima(?)
 
 PsychoPy 1.78
 ------------------------------

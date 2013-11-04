@@ -407,6 +407,7 @@ class GratingStim(BaseVisualStim):
 
 
     def __del__(self):
+        GL.glDeleteLists(self._listID, 1)
         self.clearTextures()#remove textures from graphics card to prevent crash
 
     def clearTextures(self):
