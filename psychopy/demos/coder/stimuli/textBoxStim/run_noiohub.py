@@ -48,34 +48,80 @@ max_flip_count=60*60*2
 text=getRandomString(text_length)
 
 stime=core.getTime()*1000.0
+#
+visual.TextBox.createCachedFontStim(font_stim_label='style1',
+                                    file_name='VeraMoBd.ttf',
+                                    font_size=48,
+                                    dpi=72,
+                                    font_color=[0,0,1,1],
+                                    font_background_color=None)
+
+visual.TextBox.createCachedFontStim(font_stim_label='style2',
+                                    file_name='VeraMoIt.ttf',
+                                    font_size=14,
+                                    dpi=72,
+                                    font_color=[0,1,0,1],
+                                    font_background_color=None)
+
+visual.TextBox.createCachedFontStim(font_stim_label='style3',
+                                    file_name='VeraMoBI.ttf',
+                                    font_size=64,
+                                    dpi=72,
+                                    font_color=[1,1,0,1],
+                                    font_background_color=None)
+                                    
 textbox=visual.TextBox(window=window,
+#                         label='textbox1', 
+#                         font_stim_label='style3', 
+#                         text=text, 
+#                         line_spacing=None,
+#                         line_spacing_units=None,
+#                         border_color=None,#[1,0,0,1],
+#                         border_stroke_width=None,#2,
+#                         background_color=None,#[0.25,0.25,0.25,1],
+#                         grid_color=[0,0,1,.5],
+#                         grid_stroke_width=1,
+#                         size=(display_resolution[0]*.2,50),
+#                         pos=(0.0,0.0), 
+#                         units='pix',  
+#                         align_horz='center',
+#                         align_vert='center'
+#                         )
                          label='textbox1', 
                          font_stim_label='white_40pt', 
                          text=text, 
                          font_file_name='VeraMono.ttf', 
-                         font_size=40,
+                         font_size=36,
                          dpi=72, 
-                         font_color=[1,0,1,0.5], 
+                         font_color=[1,1,1,0.5], 
                          font_background_color=None,#[0,0,1,1],
                          line_spacing=None,
                          line_spacing_units=None,
                          border_color=None,#[1,0,0,1],
                          border_stroke_width=2,
                          background_color=None,#[0.25,0.25,0.25,1],
-                         grid_color=None,#[0,0,1,.5],
-                         grid_stroke_width=None,#1,
-                         size=(display_resolution[0]*.2,50),
+                         grid_color=[0,0,1,.5],
+                         grid_stroke_width=1,
+                         size=(display_resolution[0]*.5,150),
                          pos=(0.0,0.0), 
                          units='pix',  
                          align_horz='center',
-                         align_vert='center',
-                         draw_time_buffer_size=30
+                         align_vert='center'
                          )
+
+textbox.addFontStim(font_stim_label='style1')
+textbox.addFontStim(font_stim_label='style2')
+textbox.addFontStim(font_stim_label='style3')
+
+print "** TODO: FIX textbox.setDefaultFontStim does not work when called before first call to textbox.build()"
+#textbox.setDefaultFontStim('style2')
+
+# NOTE: CAN NOT currently add new font stims to a TextBox object after draw()
+# has been called; Can only switch between available Font Stims already loaded.
 textbox.draw()
 etime=core.getTime()*1000.0
 textbox_init_dur=etime-stime
 
-#textbox.addFontStim(font_stim_label='VeraMono',file_name='VeraMono.ttf',size=42,font_color=[1,0,0,1])
 #print 'DefaultFontStim:',textbox.getDefaultFontStim()
 
 stime=core.getTime()*1000.0

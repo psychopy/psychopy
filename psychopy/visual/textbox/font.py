@@ -16,7 +16,7 @@ class TTFont(object):
     _fonts_by_id=dict()
     _glyphs_loaded=False
 
-    texture_atlas=TextureAtlas()
+    texture_atlas=TextureAtlas(2048,1024)
     _background_swatch=None
     def __init__(self,label,file_name,size,dpi=72):
         self._label=label

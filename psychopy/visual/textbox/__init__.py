@@ -119,13 +119,12 @@ try:
         _default_font_stim_glyphs_info=dict(
                                     label='textbox_default_font_stim',
                                     file_name='VeraMono.ttf',
-                                    font_size=24,
+                                    font_size=14,
                                     dpi=72,
                                     font_color=[0,0,0,1],
                                     font_background_color=None
                                     )
-        _default_font_stim_glyphs=None
-        draw_time_buffer=None#NumPyRingBuffer(30)        
+        _default_font_stim_glyphs=None       
         def __init__(self, 
                      window=None,
                      label=None, 
@@ -147,8 +146,7 @@ try:
                      pos=(0.0,0.0), 
                      units=None,  
                      align_horz='center',
-                     align_vert='center',
-                     draw_time_buffer_size=0
+                     align_vert='center'
                      ):
             self._window=window  
             self._text=text
@@ -177,55 +175,18 @@ try:
             self._font_stims={}
             self._glyph_sets_to_convert={}
             
-            default_font_stim_labelglyphset=None
-            if self._default_font_stim is None and self._default_font_stim_glyphs_info:
-                    default_font_stim_labelglyphset=self.addFontStim(self._default_font_stim_glyphs_info.get('label'))
+            # >>>> SHOULD THIS CODE BLOCK MOVE TO FIRST CALL TO DRAW() ?????
 
-            if font_stim_label:
-                fs=self._font_stims.get(font_stim_label)
-                if fs:
-                    self._default_font_stim=fs
-                elif self._font_stim_cache.get(font_stim_label):
-                        default_font_stim_labelglyphset=self.addFontStim(font_stim_label=font_stim_label)
-             
-            if self._default_font_stim is None:           
-                if font_file_name:
-                    # create new font stim using TextBox args
-                    default_font_stim_labelglyphset=self.addFontStim(font_stim_label,font_file_name,font_size,dpi,font_color,font_background_color)
-                        
-            if self._default_font_stim is None and default_font_stim_labelglyphset:
-                    self._default_font_stim=default_font_stim_labelglyphset
-            
-            if self._default_font_stim is None:
-                raise ValueError('TextBox: Error creating object. Arguements do not provide enough data to create the TextBox stim.')
+            self._setDefaultFontStimFromArgs(font_stim_label,font_file_name,font_size,dpi,font_color,font_background_color)
                     
-            if units is None:
-                self._units=self._window.units
+            # <<<<< END SHOULD THIS CODE BLOCK MOVE ?????
+            self.setUnits(self._units)
                 
-            x,y=pos
-            if units == 'perc':
-                x=self._window.winHandle.screen.width*(x/100.0)-self._window.winHandle.screen.width/2.0
-                y=self._window.winHandle.screen.height*(y/100.0)-self._window.winHandle.screen.height/2.0   
-            self._position=int(x),int(y)
-            
-            if self._size is None:
-                self._size=self._window.winHandle.screen.width,self._window.winHandle.screen.height
-            width,height=self._size[0],self._size[1]
-            if units == 'perc':
-                width=self._window.winHandle.screen.width*(width/100.0)
-                height=self._window.winHandle.screen.height*(height/100.0)            
-#            elif units == 'chars':
-#                height_spacing=self.getPixelTextLineSpacing()
-#                max_width,max_height=self.getMaxTextCellSize()
-#                width=max_width*width+2
-#                height=(max_height+height_spacing)*height+2            
-            self._size=int(width),int(height)         
+            self.setPosition(self._position)
+            self.setSize(self._size)
             
             self._textbox_instances[self.getLabel()]=proxy(self)
             
-            if draw_time_buffer_size > 0:
-                from psychopy.iohub.util import NumPyRingBuffer
-                TextBox.draw_time_buffer=NumPyRingBuffer(draw_time_buffer_size)
         @classmethod
         def _createDefaultFontGlyphs(cls):
             if cls._default_font_stim_glyphs is None:
@@ -261,15 +222,17 @@ try:
             if fs:
                 return font_stim_label,fs.getGlyphSet()
 
+            gs=TextBox._font_stim_cache.get(font_stim_label)
+            if gs:
+                self._glyph_sets_to_convert[font_stim_label]=gs
+                return font_stim_label,gs##return self._font_stims.setdefault(font_stim_label,TextRegionType(self,gs))
+
             if file_name:
                 gs=TextBox.createCachedFontStim(font_stim_label,file_name,size,dpi,font_color,background_color)
-                self._glyph_sets_to_convert[font_stim_label]=gs
-                return font_stim_label,gs
-            else:   
-                gs=TextBox._font_stim_cache.get(font_stim_label)
                 if gs:
                     self._glyph_sets_to_convert[font_stim_label]=gs
-                    return font_stim_label,gs##return self._font_stims.setdefault(font_stim_label,TextRegionType(self,gs))
+                    return font_stim_label,gs
+
              
         @staticmethod
         def getFontStimCache():
@@ -282,7 +245,21 @@ try:
             for k,v in self._glyph_sets_to_convert.iteritems():
                 gs_dict[k]=v
             return gs_dict
-            
+        
+        def _setDefaultFontStimFromArgs(self,font_stim_label=None,font_file_name=None,font_size=None,dpi=None,font_color=None,font_background_color=None):
+            if font_stim_label:
+                if self._font_stims.get(font_stim_label):
+                    self._default_font_stim=self._font_stims.get(font_stim_label)                
+                elif self._font_stim_cache.get(font_stim_label):
+                    self._default_font_stim=self.addFontStim(font_stim_label=font_stim_label)             
+            if self._default_font_stim is None and font_file_name:
+                    # create new font stim using TextBox args
+                    self._default_font_stim=self.addFontStim(font_stim_label,font_file_name,font_size,dpi,font_color,font_background_color)
+                        
+            if self._default_font_stim is None:
+                    self._default_font_stim=self.addFontStim(self._default_font_stim_glyphs_info.get('label'))
+                    
+
         def getFontStims(self):
             return self._font_stims
     
@@ -333,20 +310,29 @@ try:
                     gs.max_tile_sizes.append((max_width,max_height))
                     TextBox._te_glyph_set_label_to_max_size[te_name][gs.getLabel()]=(max_width,max_height)
        
+            ###
+       
+            self._glyph_set_max_tile_sizes=self._te_glyph_set_label_to_max_size[self._label]
+
             for gs_label,gs in GlyphSet.loaded_glyph_sets.iteritems():
                 gs.createDisplayListsForMaxTileSizes()
 
-            self._glyph_set_max_tile_sizes=self._te_glyph_set_label_to_max_size[self._label]
+            ###
 
             if isinstance(self._default_font_stim,(list,tuple)):
                 font_stim_label,gs=self._default_font_stim
                 fs=TextRegionType(self,gs)
                 self._font_stims.setdefault(font_stim_label,fs)
                 self._default_font_stim=fs
+                if self._glyph_sets_to_convert.get(font_stim_label):
+                    del self._glyph_sets_to_convert[font_stim_label]    
                 
+            ###
+
             for font_stim_label,gs in self._glyph_sets_to_convert.iteritems():#[font_stim_label]=gs
                 self._font_stims.setdefault(font_stim_label,TextRegionType(self,gs))
-                
+            self._glyph_sets_to_convert.clear()
+            
         def setText(self,text_source):
             self._text=text_source
             self._set_text=True
@@ -364,16 +350,91 @@ try:
         def getWindow(self):
             return self._window
     
+        def getUnits(self):
+            return self._units
+
+        def setUnits(self,units):
+            if units is None:
+                self._units=self._window.units
+            else:
+                self._units=units
+                
         def getPosition(self):
             return self._position
     
+        def setPosition(self,pos):            
+            x,y=pos
+            if self._units == 'perc':
+                x=self._window.winHandle.screen.width*(x/100.0)-self._window.winHandle.screen.width/2.0
+                y=self._window.winHandle.screen.height*(y/100.0)-self._window.winHandle.screen.height/2.0   
+            self._position=int(x),int(y)
+            
         def getSize(self):
             return self._size
+
+        def setSize(self,size):
+            self._size=size
+            if self._size is None:
+                self._size=self._window.winHandle.screen.width,self._window.winHandle.screen.height
+            width,height=self._size[0],self._size[1]
+            if self._units == 'perc':
+                width=self._window.winHandle.screen.width*(width/100.0)
+                height=self._window.winHandle.screen.height*(height/100.0)            
+            self._size=int(width),int(height)         
+            
+        def getDisplayList(self):
+            if self._display_list is None:
+                dl_index = gl.glGenLists(1)        
+                gl.glNewList(dl_index, gl.GL_COMPILE)           
+        
+                border_thickness=self._border_stroke_width
+                if self._border_stroke_width is None:
+                    border_thickness=0
+                    
+                if self._background_color:
+                    gl.glColor4f(*self._background_color)
+                    gl.glRectf(border_thickness,-border_thickness, self._size[0]-border_thickness,-self._size[1]+border_thickness)      
     
+                if self._border_color:
+                    gl.glLineWidth(border_thickness)
+                    gl.glColor4f(*self._border_color)
+                    gl.glBegin(gl.GL_LINES)    
+    
+                    x1=0
+                    y1=0
+                    x2=self._size[0]
+                    y2=-self._size[1]
+                    
+                    gl.glVertex2d(x1, y1)             
+                    gl.glVertex2d(x2, y1)              
+    
+                    gl.glVertex2d(x2, y1)                 
+                    gl.glVertex2d(x2, y2)              
+
+                    gl.glVertex2d(x2, y2)              
+                    gl.glVertex2d(x1, y2)                 
+    
+                    gl.glVertex2d(x1, y2)                 
+                    gl.glVertex2d(x1, y1)             
+    
+                    gl.glEnd()    
+                            
+                gl.glColor4f(0.0,0.0,0.0,1.0)
+    
+                gl.glEndList( )
+                self._display_list=dl_index
+            return self._display_list
+                
         def getDefaultFontStim(self):
             return self._default_font_stim
-            
-        def getDefaultGlyphDisplayListSet(self,default_font_stim_name=None):
+        
+        def setDefaultFontStim(self,font_stim_label):
+            if font_stim_label and font_stim_label in self.getFontStims().keys():
+                self._default_font_stim=self.getFontStims().get(font_stim_label)
+                if self.getTextGrid():
+                    self.getTextGrid().setDefaultDisplayListsLabel(font_stim_label)
+
+        def getDefaultGlyphDisplayListSet(self):
             if self.getDefaultFontStim() is None:
                 raise AttributeError("getDefaultGlyphDisplayListSet: default_font_stim can not be None")
             return self.getDefaultFontStim().getGlyphSet()._display_lists[self.getMaxTextCellSize()]
@@ -457,71 +518,17 @@ try:
                 self._set_text=False
          
         def draw(self):              
-            etime=None
-            if self.draw_time_buffer is not None:
-                 etime=getTime()*1000.0      
-            
             self.buildResourcesIfNeeded()
             
-            self._resetPygletCompatState()                 
-            
+            self._resetPygletCompatState()                             
             gl.glPushMatrix()
             t,l=self._getTopLeftPixPos()
-            gl.glTranslatef(t,l, 0 )
-
-            if self._display_list is None:
-                dl_index = gl.glGenLists(1)        
-                gl.glNewList(dl_index, gl.GL_COMPILE)           
-        
-                border_thickness=self._border_stroke_width
-                if self._border_stroke_width is None:
-                    border_thickness=0
-                    
-                if self._background_color:
-                    gl.glColor4f(*self._background_color)
-                    gl.glRectf(border_thickness,-border_thickness, self._size[0]-border_thickness,-self._size[1]+border_thickness)      
-    
-                if self._border_color:
-                    gl.glLineWidth(border_thickness)
-                    gl.glColor4f(*self._border_color)
-                    gl.glBegin(gl.GL_LINES)    
-    
-                    x1=0
-                    y1=0
-                    x2=self._size[0]
-                    y2=-self._size[1]
-                    
-                    gl.glVertex2d(x1, y1)             
-                    gl.glVertex2d(x2, y1)              
-    
-                    gl.glVertex2d(x2, y1)                 
-                    gl.glVertex2d(x2, y2)              
-
-                    gl.glVertex2d(x2, y2)              
-                    gl.glVertex2d(x1, y2)                 
-    
-                    gl.glVertex2d(x1, y2)                 
-                    gl.glVertex2d(x1, y1)             
-    
-                    gl.glEnd()    
-                            
-                gl.glColor4f(0.0,0.0,0.0,1.0)
-    
-                gl.glEndList( )
-                self._display_list=dl_index  
- 
-            gl.glCallList(self._display_list)
-            
-            self._text_grid.draw()
-    
+            gl.glTranslatef(t,l, 0 ) 
+            gl.glCallList(self.getDisplayList())            
+            self.getTextGrid().draw()    
             gl.glPopMatrix()        
             self._resetPsychoPyWindow(self._window.rgb,self._window.colorSpace)                 
             gl.glFinish()
-            
-            if self.draw_time_buffer is not None:
-                dtime=getTime()*1000.0
-                self.draw_time_buffer.append(dtime-etime)
-
             
         def _resetPygletCompatState(self):
             gl.glViewport( 0, 0, self._window.winHandle.screen.width,self._window.winHandle.screen.height )

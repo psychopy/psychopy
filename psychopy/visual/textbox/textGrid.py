@@ -102,7 +102,7 @@ class TextGrid(object):
         self._lines_visible=v
                 
     def setDefaultDisplayListsLabel(self,l):
-        self.default_display_lists=self.getTextBox().getDefaultGlyphDisplayListSet(l)
+        self.default_display_lists=self.getTextBox().getDefaultGlyphDisplayListSet()
         for rid in self.text_region_types.keys():
             if l == self.text_region_types[rid].getLabel():
                 self.default_region_type_key=rid
