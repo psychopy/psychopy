@@ -42,33 +42,33 @@ window=visual.Window(display_resolution,
 # Create font of a given size and dpi using a ttf file. Label is used
 # When creating textBox instance. 
 
-text_length=10
+text_length=110
 chng_txt_each_flips=5
 max_flip_count=60*60*2
 text=getRandomString(text_length)
 
 stime=core.getTime()*1000.0
 #
-visual.TextBox.createCachedFontStim(font_stim_label='style1',
-                                    file_name='VeraMoBd.ttf',
-                                    font_size=48,
-                                    dpi=72,
-                                    font_color=[0,0,1,1],
-                                    font_background_color=None)
+#visual.TextBox.createCachedFontStim(font_stim_label='style1',
+#                                    file_name='VeraMoBd.ttf',
+#                                    font_size=48,
+#                                    dpi=72,
+#                                    font_color=[0,0,1,1],
+#                                    font_background_color=None)
 
-visual.TextBox.createCachedFontStim(font_stim_label='style2',
-                                    file_name='VeraMoIt.ttf',
-                                    font_size=14,
-                                    dpi=72,
-                                    font_color=[0,1,0,1],
-                                    font_background_color=None)
+#visual.TextBox.createCachedFontStim(font_stim_label='style2',
+#                                    file_name='VeraMoIt.ttf',
+#                                    font_size=14,
+#                                    dpi=72,
+#                                    font_color=[0,1,0,1],
+#                                    font_background_color=None)
 
-visual.TextBox.createCachedFontStim(font_stim_label='style3',
-                                    file_name='VeraMoBI.ttf',
-                                    font_size=64,
-                                    dpi=72,
-                                    font_color=[1,1,0,1],
-                                    font_background_color=None)
+#visual.TextBox.createCachedFontStim(font_stim_label='style3',
+#                                    file_name='VeraMoBI.ttf',
+#                                    font_size=64,
+#                                    dpi=72,
+#                                    font_color=[1,1,0,1],
+#                                    font_background_color=None)
                                     
 textbox=visual.TextBox(window=window,
 #                         label='textbox1', 
@@ -106,15 +106,14 @@ textbox=visual.TextBox(window=window,
                          pos=(0.0,0.0), 
                          units='pix',  
                          align_horz='center',
-                         align_vert='center'
+                         align_vert='center',
+                         grid_horz_justification='center',
+                         grid_vert_justification='center'
                          )
 
-textbox.addFontStim(font_stim_label='style1')
-textbox.addFontStim(font_stim_label='style2')
-textbox.addFontStim(font_stim_label='style3')
-
-print "** TODO: FIX textbox.setDefaultFontStim does not work when called before first call to textbox.build()"
-#textbox.setDefaultFontStim('style2')
+#textbox.addFontStim(font_stim_label='style1')
+#textbox.addFontStim(font_stim_label='style2')
+#textbox.addFontStim(font_stim_label='style3')
 
 # NOTE: CAN NOT currently add new font stims to a TextBox object after draw()
 # has been called; Can only switch between available Font Stims already loaded.
@@ -122,12 +121,15 @@ textbox.draw()
 etime=core.getTime()*1000.0
 textbox_init_dur=etime-stime
 
+# TODO FIX: Updating active font stim does not change font graphics in window.
+#textbox.setActiveFontStim('style2')
+
 #print 'DefaultFontStim:',textbox.getDefaultFontStim()
 
 stime=core.getTime()*1000.0
 textstim = visual.TextStim(window,pos=(0.0,-(display_resolution[1]/4)),
                     alignHoriz='center',alignVert='center',height=40,
-                    text=text,autoLog=False,wrapWidth=display_resolution[0]*.2)
+                    text=text,autoLog=False,wrapWidth=display_resolution[0]*.5)
 textstim.draw()
 etime=core.getTime()*1000.0
 textstim_init_dur=etime-stime

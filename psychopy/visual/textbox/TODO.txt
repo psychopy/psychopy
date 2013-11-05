@@ -80,3 +80,20 @@
 17) Look into improving initial textstim init and first draw() call time.
     Can currently take 2-3 sec for only one fontstim type. When 4 fontstim's
     are cached for textbox, startup time can be 15 sec!!
+
+18) *DONE*:
+          It would be nice if there was the ability to 'pad' rows of text 
+          after the soft wrapping has been used to split the text into 1 - N 
+          rows. This would be useful because it could allow support for
+          text to be center or right justified instead of always left. 
+          Examples (assume a row can hold up to 20 chars):
+            With text length of 14 for the row: 
+                center justify: to center it in the text grid, 3 cells would be
+                left empty before the row line text started to be displayed.
+                right justify: 6 cells on the left of the row would be skipped
+                before displaying the 14 chars on the line.
+          * Need to determine how to best handle the 'padding'. It could be 
+            done within textgrid.draw() by just adding the correct number of
+            /space/ glyphs to cells before doing the drawing. This may not work
+            depending on how drawing is done and how it interacts with a text
+            char 'index'; I forget how I implemented these details right now. 

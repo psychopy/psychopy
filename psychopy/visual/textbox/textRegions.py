@@ -213,12 +213,6 @@ class TextRegionType(object):
     def getLabel(self):
         return self._glyph_set.getLabel()
     
-    def getTextBox(self):
-        return self._text_box
-
-    def getTextGrid(self):
-        return self._text_box.getTextGrid()
-    
     def getGlyphSet(self):
         return self._glyph_set
         
