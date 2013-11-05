@@ -535,10 +535,6 @@ class Window:
         if self.viewOri is not None:
             GL.glRotatef(self.viewOri, 0.0, 0.0, -1.0)
 
-        #reset returned buffer for next frame
-        if clearBuffer:
-            GL.glClear(GL.GL_COLOR_BUFFER_BIT)
-
         #waitBlanking
         if self.waitBlanking:
             GL.glBegin(GL.GL_POINTS)
@@ -553,6 +549,17 @@ class Window:
 
         #get timestamp
         now = logging.defaultClock.getTime()
+
+        #reset returned buffer for next frame
+        if clearBuffer:
+            GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+
+        # run other functions immediately after flip completes
+        for callEntry in self._toCall:
+            callEntry['function'](*callEntry['args'], **callEntry['kwargs'])
+        del self._toCall[:]
+
+        # do bookkeeping
         if self.recordFrameIntervals:
             self.frames += 1
             deltaT = now - self.lastFrameT
@@ -579,10 +586,6 @@ class Window:
                         t=now,
                         obj=logEntry['obj'])
         del self._toLog[:]
-        #function calls
-        for callEntry in self._toCall:
-            callEntry['function'](*callEntry['args'], **callEntry['kwargs'])
-        del self._toCall[:]
 
         #    If self.waitBlanking is True, then return the time that
         # GL.glFinish() returned, set as the 'now' variable. Otherwise
