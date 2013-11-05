@@ -81,9 +81,9 @@ class cedrusButtonBoxComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint="Do you want to save the response as correct/incorrect?",
             label="Store correct")
-        self.params['correctAns'] = Param(correctAns, valType='str', allowedTypes=[],
+        self.params['correctAns'] = Param(correctAns, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="What is the 'correct' response? Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns",
+            hint="What is the 'correct' response? This should be an integer for the button (or a variable containing an integer)",
             label="Correct answer")
         self.params['deviceNumber'] = Param(deviceNumber, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
@@ -122,8 +122,8 @@ class cedrusButtonBoxComponent(BaseComponent):
 
     def writeRoutineStartCode(self,buff):
         if self.params['store'].val != 'nothing' or self.params['storeCorrect'].val:
-            buff.writeIndentedLines("%(name)sBtns = []  # to store response values\n" %self.params +
-                  "%(name)sRTs = []\n" % self.params)
+            buff.writeIndentedLines("%(name)s.btns = []  # to store response values\n" %self.params +
+                  "%(name)s.rts = []\n" % self.params)
 
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame.
@@ -168,7 +168,7 @@ class cedrusButtonBoxComponent(BaseComponent):
         buff.writeIndented("# *%(name)s* updates\n" % self.params)
         #write start code
         self.writeStartTestCode(buff)  #writes an if statement to determine whether to start
-        lines = "%(name)s.status = STARTED\n"
+        buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
         if self.params['discard previous'].val:
             buff.writeIndented("%(name)s.poll_for_response()\n" % self.params)
             buff.writeIndented("%(name)s.clear_response_queue()\n" % self.params)
@@ -186,23 +186,21 @@ class cedrusButtonBoxComponent(BaseComponent):
         buff.setIndentLevel(1, relative=True)  #to get out of the if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
 
-        lines="theseButtonsPressed=[]"
-        lines="theseButtonsRTs=[]"
-        lines += "# check for button presses\n"
-        lines += "%(name)s.poll_for_response()\n" %self.params
-        lines += "for evt in %(name)s.response_queue:\n" %self.params
+        buff.writeIndented("theseButtonsPressed=[]\n" % self.params)
+        buff.writeIndented("theseButtonsRTs=[]\n" % self.params)
+        buff.writeIndented("# check for button presses\n" % self.params)
+        buff.writeIndented("%(name)s.poll_for_response()\n" %self.params)
+        buff.writeIndented("for evt in %(name)s.response_queue:\n" %self.params)
         if len(keyCheckStr):
-            lines += "    if evt['key'] not in %s:\n" %keyListStr
-            lines += "        continue #we don't careabout this key\n" %keyListStr
-        lines += "    if evt['pressed']: #could be extended to examine releases too?\n"
-        lines += "      theseButtonsPressed.append(evt['key'])\n"
+            buff.writeIndented("    if evt['key'] not in %s:\n" %keyList)
+            buff.writeIndented("        continue #we don't care about this key\n" %keyList)
+        buff.writeIndented("    if evt['pressed']: #could be extended to examine releases too?\n")
+        buff.writeIndented("      theseButtonsPressed.append(evt['key'])\n")
         if useBoxTimer:
-            lines += "      theseButtonsRTs.append(evt['time'])\n"
+            buff.writeIndented("      theseButtonsRTs.append(evt['time'])\n")
         else:
-            lines += "      theseButtonsRTs.append(%(name)sClock.getTime())\n" %self.params
+            buff.writeIndented("      theseButtonsRTs.append(%(name)sClock.getTime())\n" %self.params)
         buff.writeIndented("%(name)s.clear_response_queue() #and clear those responses so we don't process them again\n" % self.params)
-        buff.writeIndentedLines(lines % self.params)
-        lines=""
 
         # store something?
         if store != 'nothing' or forceEnd:
@@ -211,28 +209,26 @@ class cedrusButtonBoxComponent(BaseComponent):
             dedentAtEnd += 1
 
         if store == 'first button':
-            buff.writeIndented("if %(name)sBtns == []:  # True if the first\n" % self.params)
+            buff.writeIndented("if %(name)s.btns == []:  # True if the first\n" % self.params)
             buff.setIndentLevel(1, True)
             dedentAtEnd += 1
-            buff.writeIndented("%(name)sBtns = theseButtonsPressed[0]  # just the first button\n" % self.params)
-            buff.writeIndented("%(name)sRTs = theseButtonsRTs[0]\n" %(self.params))
+            buff.writeIndented("%(name)s.btns = [theseButtonsPressed[0]]  # just the first button\n" % self.params)
+            buff.writeIndented("%(name)s.rts = [theseButtonsRTs[0]]\n" %(self.params))
         elif store == 'last button':
-            buff.writeIndented("%(name)sBtns = theseButtonsPressed[-1]  # just the last button\n" % self.params)
-            buff.writeIndented("%(name)sRTs = theseButtonsRTs[-1]\n" % self.params)
+            buff.writeIndented("%(name)s.btns = [theseButtonsPressed[-1]] # just the last button\n" % self.params)
+            buff.writeIndented("%(name)s.rts = [theseButtonsRTs[-1]]\n" % self.params)
         elif store == 'all buttons':
-            buff.writeIndented("%(name)sBtns.extend(theseButtonsPressed)  # all buttons\n" % self.params)
-            buff.writeIndented("%(name)sRTs.extend(theseButtonsRTs)\n" % self.params)
+            buff.writeIndented("%(name)s.btns.extend(theseButtonsPressed)  # all buttons\n" % self.params)
+            buff.writeIndented("%(name)s.rts.extend(theseButtonsRTs)\n" % self.params)
 
-        lines = ''
         if storeCorr:
-            lines += ("# was this 'correct'?\n" +
-                     "if %(name)sBtns == str(%(correctAns)s):\n" +
-                     "    %(name)sCorr = 1\n" +
-                     "else:\n    %(name)sCorr=0\n")
+            buff.writeIndented("# was this 'correct'?\n")
+            buff.writeIndented("if %(name)s.btns == [int(%(correctAns)s)]:\n" % self.params)
+            buff.writeIndented("    %(name)s.corr = 1\n" % self.params)
+            buff.writeIndentedLines("else:\n    %(name)s.corr=0\n" % self.params)
         if forceEnd:
-            lines += ("# a response forces the end of the routine\n" +
-                     "continueRoutine = False\n")
-        buff.writeIndentedLines(lines % self.params)
+            buff.writeIndented("# a response forces the end of the routine\n" % self.params)
+            buff.writeIndented("continueRoutine = False\n" % self.params)
         buff.setIndentLevel(-(dedentAtEnd), relative=True)
 
     def writeRoutineEndCode(self, buff):
@@ -243,15 +239,15 @@ class cedrusButtonBoxComponent(BaseComponent):
             currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
         else:
             currLoop = None
-        loopname = currLoop.params['name']
         if store == 'nothing' or not currLoop:  # need a loop to store any data!
             return
+        loopname = currLoop.params['name']
 
         # write the actual code
         lines = ''
         lines += "# store cedrus response box data for %s (%s)\n" % (name, currLoop.type)
-        lines += ("if len(%(name)sBtns) == 0:  # no ioLabs responses\n" +
-                  "    %(name)sBtns = None\n")
+        lines += ("if len(%(name)s.btns) == 0:  # no responses\n" +
+                  "    %(name)s.btns = None\n")
         if self.params['storeCorrect'].val:  #check for correct NON-repsonse
             lines += "    # was no response the correct answer?\n"
             lines += "    if str(%(correctAns)s).lower() == 'none':\n"
@@ -266,8 +262,8 @@ class cedrusButtonBoxComponent(BaseComponent):
                 buff.writeIndented("%s.addOtherData('%s.rt', %s.rt)\n" %(loopname, name, name))
         else:
             # TrialHandler gets button and RT info:
-            buff.writeIndented("%s.addData('%s.btns', %sBtns)\n" % (loopname, name, name))
+            buff.writeIndented("%s.addData('%s.btns', %s.btns)\n" % (loopname, name, name))
             if self.params['storeCorrect'].val:
                 buff.writeIndented("%s.addData('%s.corr', %sCorr)\n" % (loopname, name, name))
-            buff.writeIndented("if %(name)sBtns != None:  # add RTs if there are responses\n" % self.params)
-            buff.writeIndented("    %s.addData('%s.rt', %sRTs)\n" % (loopname, name, name))
+            buff.writeIndented("if %(name)s.btns != None:  # add RTs if there are responses\n" % self.params)
+            buff.writeIndented("    %s.addData('%s.rt', %s.rts)\n" % (loopname, name, name))
