@@ -728,11 +728,11 @@ class ioHubConnection(object):
         for i,d in enumerate(data):
             if isinstance(d,unicode):
                 data[i]=d.encode('utf-8')
-        r=self._sendToHubServer(('RPC','addRowToConditionVariableTable',(self.experimentSessionID,data)))
+        r=self._sendToHubServer(('RPC','addRowToConditionVariableTable',(self.experimentID,self.experimentSessionID,data)))
         return r[2]
 
-    def addTrialHandlerRecord(self,trials):
-        self.addRowToConditionVariableTable(trials)
+    def addTrialHandlerRecord(self,cv_row):
+        self.addRowToConditionVariableTable(cv_row)
         
     def enableHighPriority(self,disable_gc=False):
         """        

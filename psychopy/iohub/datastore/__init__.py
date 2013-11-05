@@ -304,8 +304,12 @@ class ioHubpyTablesFile():
         #ioHub.print2err("Session ID set to: ",self.active_session_id)
         return self.active_session_id
 
-    def _initializeConditionVariableTable(self,experiment_id,np_dtype):
+    def _initializeConditionVariableTable(self,experiment_id,session_id,np_dtype):
         experimentConditionVariableTable=None
+        exp_session=[('EXPERIMENT_ID','i4'),('SESSION_ID','i4')]
+        exp_session.extend(np_dtype)
+        np_dtype=exp_session
+        print2err('np_dtype: ',np_dtype,' ',type(np_dtype))
         self._EXP_COND_DTYPE=N.dtype(np_dtype)
         try:
             expCondTableName="EXP_CV_%d"%(experiment_id)
@@ -326,10 +330,14 @@ class ioHubpyTablesFile():
         self._activeRunTimeConditionVariableTable=experimentConditionVariableTable
         return True
 
-    def _addRowToConditionVariableTable(self,session_id,data):
+    def _addRowToConditionVariableTable(self,experiment_id,session_id,data):
         if self.emrtFile and 'EXP_CV' in self.TABLES and self._EXP_COND_DTYPE is not None:
+            temp=[experiment_id,session_id]
+            temp.extend(data)
+            data=temp            
             try:
                 etable=self.TABLES['EXP_CV']
+                print2err('data: ',data,' ',type(data))
 
                 for i,d in enumerate(data):
                     if isinstance(d,(list,tuple)):

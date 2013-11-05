@@ -351,12 +351,12 @@ class udpServer(DatagramServer):
                         temp[1].append(tuple(i))
                     output.append(tuple(temp))
 
-            return self.iohub.emrt_file._initializeConditionVariableTable(experiment_id,output)
+            return self.iohub.emrt_file._initializeConditionVariableTable(experiment_id,session_id,output)
         return False
 
-    def addRowToConditionVariableTable(self,session_id,data):
+    def addRowToConditionVariableTable(self,experiment_id,session_id,data):
         if self.iohub.emrt_file:
-            return self.iohub.emrt_file._addRowToConditionVariableTable(session_id,data)
+            return self.iohub.emrt_file._addRowToConditionVariableTable(experiment_id,session_id,data)
         return False
 
     def clearEventBuffer(self):
