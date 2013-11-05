@@ -628,7 +628,8 @@ class Display(Device):
 
         psychoMonitor=None
         
-        if override_using_psycho_settings is True and psychopy_monitor_name in existing_monitors:             
+        override=override_using_psycho_settings is True
+        if override and psychopy_monitor_name in existing_monitors:             
             psychoMonitor = monitors.Monitor(psychopy_monitor_name)
 
             px,py=self.getPixelResolution()
