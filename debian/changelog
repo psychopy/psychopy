@@ -1,3 +1,9 @@
+psychopy-openbci (1.78.0.0.4-1) unstable; urgency=low
+
+  * BF: uninitialized variable when drawing ISI
+
+ -- Karol Auguštin <karol@augustin.pl>  Wed, 06 Nov 2013 16:26:17 +0100
+
 psychopy-openbci (1.78.0.0.3-1) unstable; urgency=low
 
   * Fix difference in data.py to enable save CSV files.
