@@ -231,15 +231,11 @@ class TextBox(object):
         
         max_width=0
         max_height=0            
-        print 'Text Styles:',self._text_styles
-        print 'Style Cache:',self._text_style_cache
         for gs in self._text_styles.itervalues():
-            print 'A: ',gs
             max_width=max(gs._font._max_tile_width,max_width)
             max_height=max(gs._font._max_tile_height,max_height)
 
         for gs in self._text_styles.itervalues():
-            print 'B: ',gs
             gs.max_tile_sizes.append((max_width,max_height))
             TextBox._te_glyph_set_label_to_max_size[self._label][gs.getLabel()]=(max_width,max_height)
    
