@@ -1282,7 +1282,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             #draw the rectangle
             dc.DrawRectangle(xSt, yPosTop-nameH*4, w, h+nameH*5)
             fullRect.Union(wx.Rect(xSt, yPosTop, w, h))#update bounds to include time bar
-        dc.SetIdBounds(id,fullRect)
+            dc.SetIdBounds(id,fullRect)
     def drawComponent(self, dc, component, yPos):
         """Draw the timing of one component on the timeline"""
         #set an id for the region of this comonent (so it can act as a button)
