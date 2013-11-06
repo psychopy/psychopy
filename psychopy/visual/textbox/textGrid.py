@@ -12,7 +12,6 @@ import pyglet.gl as gl
 from font import TTFont
 
 import parsedTextDocument
-from collections import OrderedDict
 
 getTime = core.getTime
 
@@ -32,20 +31,18 @@ class TextGrid(object):
             self._lines_visible=False
             self._line_color=None
             self._line_width=None     
+
+        self._possible_glyth_sets=dict()
         
         # Default display list        
         max_size=self._text_box.getMaxTextCellSize()
-        self.default_display_lists=self._text_box._getDefaultGlyphDisplayListSet()
-        self._pixel_line_spacing=self._text_box._getPixelTextLineSpacing()        
-        self._cell_size=max_size[0],max_size[1]+self._pixel_line_spacing
+        
+        self._cell_size=max_size[0],max_size[1]+self._text_box._getPixelTextLineSpacing()
         self._limit_text_to_grid_shape=True
         
         self._horz_justification=grid_horz_justification
         self._vert_justification=grid_vert_justification
-        
-        if self.default_display_lists is None:
-            raise AttributeError('default_display_lists can not be None.')
-                
+                       
         # Attributes to fill in at grid build time.
         #
         # _shape = cell column count, cell row count 
@@ -61,20 +58,17 @@ class TextGrid(object):
         #
         self._position=None         
         
-        # _display_list: The display list used to draw the text grid cell borders
+        # _grid_lines_dlist: The display list used to draw the text grid cell borders
         #   if they are visible. This should be rebuilt whenever _rebuild is True
         #
-        self._display_list=None
+        self._grid_lines_dlist=None
+
+        self._draw_start_dlist=None
+        self._draw_end_dlist=None
                 
         self._first_visible_row_id=None
         self._last_visible_row_id=None
         self._text_document=None
-        self.text_region_types=OrderedDict()
-        
-    def reset(self):
-        #self.setVisibleLineIndexRange(0)
-        for key,trt in self.text_region_types.iteritems():
-            trt.clearRegions()
 
     def getWindow(self):
         return self._window
@@ -83,7 +77,7 @@ class TextGrid(object):
         return self._size
 
     def getCellSize(self):
-        return self._cell_size[0],self._cell_size[1]
+        return self._cell_size
         
     def getShape(self):
         return self._shape
@@ -102,15 +96,6 @@ class TextGrid(object):
             
     def setVisibility(self,v):
         self._lines_visible=v
-                
-    def setDefaultDisplayListsLabel(self,l):
-        self.default_display_lists=self._text_box._getDefaultGlyphDisplayListSet()
-        for rid in self.text_region_types.keys():
-            if l == self.text_region_types[rid].getLabel():
-                self.default_region_type_key=rid
-                return rid
-        self.default_region_type_key=len(self.region_type_display_list_tuple)-1     
-        return self.default_region_type_key
         
     def getPixelBounds(self):
         """
@@ -158,9 +143,6 @@ class TextGrid(object):
 
     def getLastVisibleCharIndex(self):
         return self.getParsedTextDocument().getParsedLine(self.getLastVisibleRowIndex()).getIndexRange()[1]-1
-        
-    def getTextRegionTypes(self):
-        return self.text_region_types
         
     def getGridCellIndex(self,pixel_position):
         wsize=self._text_box._window.size
@@ -229,6 +211,32 @@ class TextGrid(object):
         self._col_lines=[int(np.floor(x)) for x in xrange(0,self._size[0]+1,self._cell_size[0])]    
         self._row_lines=[int(np.floor(y)) for y in xrange(0,-self._size[1]-1,-self._cell_size[1])]    
 
+        self._createDisplayLists()
+        
+    def _createDisplayLists(self):
+        dl_index = gl.glGenLists(1)        
+        gl.glNewList(dl_index, gl.GL_COMPILE)           
+        gl.glActiveTexture(gl.GL_TEXTURE0)        
+        gl.glEnable( gl.GL_TEXTURE_2D )
+        gl.glBindTexture( gl.GL_TEXTURE_2D, TTFont.texture_atlas.getTextureID() )
+        gl.glTexEnvf( gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE )
+        gl.glTranslatef( self._position[0], -self._position[1], 0 )
+        gl.glPushMatrix( )
+        gl.glEndList( )
+        self._draw_start_dlist=dl_index  
+
+        dl_index = gl.glGenLists(1)        
+        gl.glNewList(dl_index, gl.GL_COMPILE)           
+        gl.glPopMatrix()       
+        gl.glBindTexture( gl.GL_TEXTURE_2D,0 )
+        gl.glDisable( gl.GL_TEXTURE_2D ) 
+        if self._grid_lines_dlist and self.getVisibility() is True:
+            gl.glCallList(self._grid_lines_dlist)            
+        gl.glColor4f(0.0,0.0,0.0,1)
+        gl.glPopMatrix() 
+        gl.glEndList( )
+        self._draw_end_dlist=dl_index  
+        
         if self._line_color:                
             # create grid lines display list
             dl_index = gl.glGenLists(1)        
@@ -248,34 +256,14 @@ class TextGrid(object):
             gl.glLineWidth(1)
             gl.glColor4f(0.0,0.0,0.0,1)
             gl.glEndList( )
-            self._display_list=dl_index  
-                
-        #
-        ## Create region Objects
-        #    
-        self.text_region_types=self._text_box._font_stims       
-        region_type_keys=self.text_region_types.keys()
-        temp=['NOT_USED',]
-        for rid in region_type_keys:
-            temp.append(self.text_region_types[rid].getGlyphForCharCode)
-        self.default_region_type_key=len(temp)
-        temp.append(self.default_display_lists.get)                
-        self.region_type_display_list_tuple=tuple(temp)
+            self._grid_lines_dlist=dl_index         
+
         
     def draw(self):
-        gl.glActiveTexture(gl.GL_TEXTURE0)        
-        gl.glEnable( gl.GL_TEXTURE_2D )
-        gl.glBindTexture( gl.GL_TEXTURE_2D, TTFont.texture_atlas.getTextureID() )
-        gl.glTexEnvf( gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE )
-        gl.glTranslatef( self._position[0], -self._position[1], 0 )
-
-        gl.glPushMatrix( )
+        gl.glCallList(self._draw_start_dlist) 
         
         getParsedLine=self._text_document.getParsedLine
-        default_display_lists=self.default_display_lists.get
-        display_list_tuple=None
-        if len(self.region_type_display_list_tuple)>2:
-            display_list_tuple=self.region_type_display_list_tuple
+        active_text_style_dlist=self._text_box._active_text_style._display_lists[self._text_box.getMaxTextCellSize()].get#_active_text_style._display_lists[ts]
         
         hjust=self._horz_justification
         vjust=self._vert_justification
@@ -292,15 +280,7 @@ class TextGrid(object):
         
         cell_width,cell_height=self._cell_size
         num_cols,num_rows=self._shape
-
-        def buildDisplayListForLine(line):
-            line_ords=line.getOrds()
-            if display_list_tuple:
-                text_region_flags=line.text_region_flags[0,:]
-                return [display_list_tuple[text_region_flags[i]](c) for i,c in enumerate(line_ords)]
-            else:
-                return [default_display_lists(c) for c in line_ords] 
-        
+        line_spacing=self._text_box._getPixelTextLineSpacing()
         self.setVisibleLineIndexRange(self._first_visible_row_id)
         line_count=(self._last_visible_row_id+1)-self._first_visible_row_id
         
@@ -311,7 +291,7 @@ class TextGrid(object):
             if line_display_list[0]==0: 
                 # line_display_list[0]==0 Indicates parsed line text has 
                 # changed since last draw, so rebuild line display list. 
-                line_display_list[0:line_length]=buildDisplayListForLine(line)
+                line_display_list[0:line_length]=[active_text_style_dlist(c) for c in line.getOrds()] 
                 
             if pad_left_proportion or (pad_top_proportion and line_count>1):
                 empty_cell_count=num_cols-line_length
@@ -319,20 +299,8 @@ class TextGrid(object):
                 trans_left=int(empty_cell_count*pad_left_proportion)*cell_width
                 trans_top=int(empty_line_count*pad_top_proportion)*cell_height
                 
-            gl.glTranslatef(trans_left,-int(self._pixel_line_spacing/2.0+trans_top),0)
+            gl.glTranslatef(trans_left,-int(line_spacing/2.0+trans_top),0)
             gl.glCallLists(line_length,gl.GL_UNSIGNED_INT,line_display_list[0:line_length].ctypes)
-            gl.glTranslatef(-line_length*cell_width-trans_left,-cell_height+int(self._pixel_line_spacing/2.0+trans_top),0)
-#            else:
-#                gl.glTranslatef(0,-int(self._pixel_line_spacing/2.0),0)
-#                gl.glCallLists(line_length,gl.GL_UNSIGNED_INT,line_display_list[0:line_length].ctypes)
-#                gl.glTranslatef(-line_length*cell_width,-cell_height+int(self._pixel_line_spacing/2.0),0)
-        gl.glPopMatrix()       
-        gl.glBindTexture( gl.GL_TEXTURE_2D,0 )
-        gl.glDisable( gl.GL_TEXTURE_2D ) 
+            gl.glTranslatef(-line_length*cell_width-trans_left,-cell_height+int(line_spacing/2.0+trans_top),0)
 
-        if self._display_list and self.getVisibility() is True:
-            gl.glCallList(self._display_list)
-            
-        gl.glColor4f(0.0,0.0,0.0,1)
-
-        gl.glPopMatrix() 
+        gl.glCallList(self._draw_end_dlist) 

@@ -156,7 +156,7 @@ class ParsedTextDocument(object):
                 line._ords=[ord(c) for c in linestr]
                 line._length=len(line._ords)
                 line._gl_display_list[0]=0
-                line.text_region_flags[:,:]=self._text_grid.default_region_type_key                    
+                line.text_region_flags[:,:]=1#self._text_grid.default_region_type_key                    
             else:
                 ParsedTextLine(self,linestr,[current_index,current_index+len(linestr)])
                 line=self._children[-1]
@@ -236,7 +236,7 @@ class ParsedTextLine(object):
         self._line_index=parent.getChildCount()-1
         self._ords=[ord(c) for c in source_text]
         self._length=len(self._ords)
-        self.text_region_flags=numpy.ones((2,parent._num_columns),numpy.uint32)*parent._text_grid.default_region_type_key
+        self.text_region_flags=numpy.ones((2,parent._num_columns),numpy.uint32)#*parent._text_grid.default_region_type_key
         self._gl_display_list=numpy.zeros(parent._num_columns,numpy.uint)
             
     def getIndex(self):

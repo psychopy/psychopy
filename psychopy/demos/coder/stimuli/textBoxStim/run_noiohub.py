@@ -48,22 +48,23 @@ max_flip_count=60*60*2
 text=getRandomString(text_length)
 
 stime=core.getTime()*1000.0
-#
-#visual.TextBox.createCachedFontStim(font_stim_label='style1',
-#                                    file_name='VeraMoBd.ttf',
-#                                    font_size=48,
-#                                    dpi=72,
-#                                    font_color=[0,0,1,1],
-#                                    font_background_color=None)
 
-#visual.TextBox.createCachedFontStim(font_stim_label='style2',
+print ' ** FIX: TextGrid Lines no longer being drawn correctly'
+visual.TextBox.createTextStyle(text_style_label='style1',
+                                    file_name='VeraMoBd.ttf',
+                                    font_size=36,
+                                    dpi=72,
+                                    font_color=[0,0,1,1],
+                                    font_background_color=None)
+
+#visual.TextBox.createTextStyle(text_style_label='style2',
 #                                    file_name='VeraMoIt.ttf',
 #                                    font_size=14,
 #                                    dpi=72,
 #                                    font_color=[0,1,0,1],
 #                                    font_background_color=None)
 
-#visual.TextBox.createCachedFontStim(font_stim_label='style3',
+#visual.TextBox.createTextStyle(text_style_label='style3',
 #                                    file_name='VeraMoBI.ttf',
 #                                    font_size=64,
 #                                    dpi=72,
@@ -71,29 +72,14 @@ stime=core.getTime()*1000.0
 #                                    font_background_color=None)
                                     
 textbox=visual.TextBox(window=window,
-#                         label='textbox1', 
-#                         font_stim_label='style3', 
-#                         text=text, 
-#                         line_spacing=None,
-#                         line_spacing_units=None,
-#                         border_color=None,#[1,0,0,1],
-#                         border_stroke_width=None,#2,
-#                         background_color=None,#[0.25,0.25,0.25,1],
-#                         grid_color=[0,0,1,.5],
-#                         grid_stroke_width=1,
-#                         size=(display_resolution[0]*.2,50),
-#                         pos=(0.0,0.0), 
-#                         units='pix',  
-#                         align_horz='center',
-#                         align_vert='center'
-#                         )
-                         label='textbox1', 
-                         font_stim_label='white_40pt', 
+                         name='textbox1', 
+                         active_text_style_label='white_40pt', 
+                         available_text_styles_labels=['style1',],
                          text=text, 
                          font_file_name='VeraMono.ttf', 
                          font_size=36,
                          dpi=72, 
-                         font_color=[1,1,1,0.5], 
+                         font_color=[1,1,1,1], 
                          font_background_color=None,#[0,0,1,1],
                          line_spacing=None,
                          line_spacing_units=None,
@@ -102,7 +88,7 @@ textbox=visual.TextBox(window=window,
                          background_color=None,#[0.25,0.25,0.25,1],
                          grid_color=[0,0,1,.5],
                          grid_stroke_width=1,
-                         size=(display_resolution[0]*.5,150),
+                         size=(display_resolution[0]*.5,300),
                          pos=(0.0,0.0), 
                          units='pix',  
                          align_horz='center',
@@ -111,20 +97,13 @@ textbox=visual.TextBox(window=window,
                          grid_vert_justification='center'
                          )
 
-#textbox.addFontStim(font_stim_label='style1')
-#textbox.addFontStim(font_stim_label='style2')
-#textbox.addFontStim(font_stim_label='style3')
 
-# NOTE: CAN NOT currently add new font stims to a TextBox object after draw()
-# has been called; Can only switch between available Font Stims already loaded.
 textbox.draw()
 etime=core.getTime()*1000.0
 textbox_init_dur=etime-stime
 
 # TODO FIX: Updating active font stim does not change font graphics in window.
-#textbox.setActiveFontStim('style2')
-
-#print 'DefaultFontStim:',textbox.getDefaultFontStim()
+textbox.setActiveTextStyle('style1')
 
 stime=core.getTime()*1000.0
 textstim = visual.TextStim(window,pos=(0.0,-(display_resolution[1]/4)),
@@ -136,7 +115,12 @@ textstim_init_dur=etime-stime
 
 fixSpot = visual.PatchStim(window,tex="none", mask="gauss",
                     pos=(0,0), size=(30,30),color='black', autoLog=False)
-grating = visual.PatchStim(window,pos=(300,0),
+lgrating = visual.PatchStim(window,pos=(-300,0),
+                    tex="sin",mask="gauss",
+                    color=[-1.0,0.5,1.0],
+                    size=(150.0,150.0), sf=(0.01,0.0),
+                    autoLog=False)
+rgrating = visual.PatchStim(window,pos=(300,0),
                     tex="sin",mask="gauss",
                     color=[1.0,0.5,-1.0],
                     size=(150.0,150.0), sf=(0.01,0.0),
@@ -159,23 +143,30 @@ event.clearEvents()
 demo_timeout_start=window.flip()
      
 while True:
-    grating.setOri(5, '+')
-    grating.setPhase(0.05, '+')
-    grating.draw()
+    lgrating.setOri(5, '+')
+    lgrating.setPhase(0.05, '+')
+    lgrating.draw()
 
     fixSpot.draw()
 
     if fcount==0 or fcount%chng_txt_each_flips==0:
         t=getRandomString(text_length)
-        pyglet_dur=updateStimText(textstim,t)
+
         textbox_dur=updateStimText(textbox,t)
-        textstim_txt_change_draw_times.append(pyglet_dur)
         textbox_txt_change_draw_times.append(textbox_dur)
+
+        pyglet_dur=updateStimText(textstim,t)
+        textstim_txt_change_draw_times.append(pyglet_dur)
     else:
-        pyglet_dur=updateStimText(textstim)
         textbox_dur=updateStimText(textbox)
-        textstim_no_change_draw_times.append(pyglet_dur)
         textbox_no_change_draw_times.append(textbox_dur)
+
+        pyglet_dur=updateStimText(textstim)
+        textstim_no_change_draw_times.append(pyglet_dur)
+
+    rgrating.setOri(5, '+')
+    rgrating.setPhase(0.05, '+')
+    rgrating.draw()
         
     flip_time=window.flip()#redraw the buffer
     fcount+=1
