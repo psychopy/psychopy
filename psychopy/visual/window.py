@@ -535,6 +535,10 @@ class Window:
         if self.viewOri is not None:
             GL.glRotatef(self.viewOri, 0.0, 0.0, -1.0)
 
+        #reset returned buffer for next frame
+        if clearBuffer:
+            GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+
         #waitBlanking
         if self.waitBlanking:
             GL.glBegin(GL.GL_POINTS)
@@ -549,10 +553,6 @@ class Window:
 
         #get timestamp
         now = logging.defaultClock.getTime()
-
-        #reset returned buffer for next frame
-        if clearBuffer:
-            GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
         # run other functions immediately after flip completes
         for callEntry in self._toCall:
