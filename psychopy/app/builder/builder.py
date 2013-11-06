@@ -18,6 +18,7 @@ from psychopy.tools.filetools import mergeFolder
 from tempfile import mkdtemp # to check code syntax
 import cPickle
 from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re
+from psychopy.app.builder import validators
 
 from psychopy.constants import *
 
@@ -1791,6 +1792,10 @@ class ParamCtrls:
         if len(param.allowedVals)==1:
             self.valueCtrl.Disable()#visible but can't be changed
 
+        # add a NameValidator to name valueCtrl
+        if label.lower() == "name":
+            self.valueCtrl.SetValidator(validators.NameValidator())
+
         #create the type control
         if len(param.allowedTypes)==0:
             pass
@@ -2234,6 +2239,26 @@ class _BaseParamsDlg(wx.Dialog):
         else:  self.OK=False
         return wx.ID_OK
 
+    def Validate(self, *args, **kwargs):
+        """
+        Validate form data and disable OK button if validation fails.
+        """
+        valid = super(_BaseParamsDlg, self).Validate(*args, **kwargs)
+        if valid:
+            self.OKbtn.Enable()
+        else:
+            self.OKbtn.Disable()
+        return valid
+
+    def onOK(self, event=None):
+        """
+        Handler for OK button which should validate dialog contents.
+        """
+        valid = self.Validate()
+        if not valid:
+            return
+        event.Skip()
+
     def onTextEventCode(self, event=None):
         """process text events for code components: change color to grey
         """
@@ -2397,12 +2422,11 @@ class _BaseParamsDlg(wx.Dialog):
             else:
                 return "", True
     def checkName(self, event=None):
-        """check param name against namespace, legal var name
         """
-        msg, enable = self._checkName(event=event)
-        self.nameOKlabel.SetLabel(msg)
-        if enable: self.OKbtn.Enable()
-        else: self.OKbtn.Disable()
+        Issue a form validation on name change.
+        """
+        self.Validate()
+
     def onHelp(self, event=None):
         """Uses self.app.followLink() to self.helpUrl
         """
