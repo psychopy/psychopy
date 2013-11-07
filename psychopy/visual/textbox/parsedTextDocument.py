@@ -8,7 +8,6 @@ from textwrap import TextWrapper
 import codecs,os
 from collections import deque
 from weakref import proxy
-from psychopy.core import getTime
             
 class ParsedTextDocument(object):
     def __init__(self,text_data,text_grid,parse_text_as_needed=True):
@@ -28,8 +27,8 @@ class ParsedTextDocument(object):
         self._num_columns,self._max_visible_rows=text_grid._shape
         self._limit_text_length=0
         
-        if text_grid.limitTextLengthToVisibleRowCount():
-           self._limit_text_length =self._max_visible_rows*self._num_columns
+        #if text_grid.limitTextLengthToVisibleRowCount():
+        self._limit_text_length =self._max_visible_rows*self._num_columns
         
         if self._limit_text_length>0 and self._limit_text_length<len(self._text):
             self._text=self._text[:self._limit_text_length]
@@ -116,7 +115,7 @@ class ParsedTextDocument(object):
             from_text_index=self._text_parsed_to_index
         if to_text_index is None:
             try:
-                to_row_index=self._text_grid.getFirstVisibleRowIndex()+self._text_grid._shape[1]+1
+                to_row_index=self._text_grid._first_visible_row_id+self._text_grid._shape[1]+1
                 line=self.getParsedLine(to_row_index)
                 to_text_index=line.getIndexRange()[1]+self._num_columns
             except:            
@@ -156,7 +155,7 @@ class ParsedTextDocument(object):
                 line._ords=[ord(c) for c in linestr]
                 line._length=len(line._ords)
                 line._gl_display_list[0]=0
-                line.text_region_flags[:,:]=1#self._text_grid.default_region_type_key                    
+                #line.text_region_flags[:,:]=1#self._text_grid.default_region_type_key                    
             else:
                 ParsedTextLine(self,linestr,[current_index,current_index+len(linestr)])
                 line=self._children[-1]
@@ -236,7 +235,7 @@ class ParsedTextLine(object):
         self._line_index=parent.getChildCount()-1
         self._ords=[ord(c) for c in source_text]
         self._length=len(self._ords)
-        self.text_region_flags=numpy.ones((2,parent._num_columns),numpy.uint32)#*parent._text_grid.default_region_type_key
+        #self.text_region_flags=numpy.ones((2,parent._num_columns),numpy.uint32)#*parent._text_grid.default_region_type_key
         self._gl_display_list=numpy.zeros(parent._num_columns,numpy.uint)
             
     def getIndex(self):
@@ -260,13 +259,13 @@ class ParsedTextLine(object):
     def getDisplayList(self):
         return self._gl_display_list
 
-    def getTextRegionFlags(self):
-        return self.text_region_flags
+    #def getTextRegionFlags(self):
+    #    return self.text_region_flags
         
-    def setTextRegionFlags(self,f):
-        self.text_region_flags=f
+    #def setTextRegionFlags(self,f):
+    #    self.text_region_flags=f
 
     def __del__(self):
-        self.text_region_flags=None 
+        #self.text_region_flags=None 
         self._gl_display_list=None
         self._ords=None

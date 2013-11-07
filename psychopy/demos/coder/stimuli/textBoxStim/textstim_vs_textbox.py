@@ -4,17 +4,27 @@ Created on Thu Mar 21 18:37:10 2013
 
 @author: Sol
 """
-
-from psychopy import visual, core,event
 import string
 import random
+from psychopy import visual, core, event
 from psychopy.iohub.util import NumPyRingBuffer
 
+# Variables to control text string length etc.
+text_length=200
+chng_txt_each_flips=5
+max_flip_count=60*60*2
+display_resolution=1920,1080
+textbox_width=display_resolution[0]*.8
+textbox_height=200
+
+# Circular buffers to store timing measures
 textstim_txt_change_draw_times=NumPyRingBuffer(6000)
 textstim_no_change_draw_times=NumPyRingBuffer(6000)
 textbox_txt_change_draw_times=NumPyRingBuffer(6000)
 textbox_no_change_draw_times=NumPyRingBuffer(6000)
 
+# Some utility functions >>>
+#
 char_choices=u"ùéèàç^ùèàçé«¼±£¢¤¬¦²³½¾°µ¯­±√∞≤≥±≠"+string.ascii_uppercase[:15]
 def getRandomString(slength):
     s=u''.join(random.choice(char_choices) for i in range(slength))
@@ -25,106 +35,7 @@ def getRandomString(slength):
         lns=len(ns)
     return ns[:slength]
     
-display_resolution=1920,1080
-# ioHub currently supports the use of a single full-screen PsychoPy Window
-window=visual.Window(display_resolution,
-                        units='pix',
-                        fullscr=True, allowGUI=False,
-                        screen=0
-                        )
-
-# **** TextBox Setup *****
-
-# Add font search dir. 
-#Default is currently the psychopy.visual.textbox.fonts dir
-#TextBox.addFontSearchDirectories('font_dir_TBD')
-
-# Create font of a given size and dpi using a ttf file. Label is used
-# When creating textBox instance. 
-
-text_length=110
-chng_txt_each_flips=5
-max_flip_count=60*60*2
 text=getRandomString(text_length)
-
-stime=core.getTime()*1000.0
-
-print ' ** FIX: TextGrid Lines no longer being drawn correctly'
-visual.TextBox.createTextStyle(text_style_label='style1',
-                                    file_name='VeraMoBd.ttf',
-                                    font_size=36,
-                                    dpi=72,
-                                    font_color=[0,0,1,1],
-                                    font_background_color=None)
-
-#visual.TextBox.createTextStyle(text_style_label='style2',
-#                                    file_name='VeraMoIt.ttf',
-#                                    font_size=14,
-#                                    dpi=72,
-#                                    font_color=[0,1,0,1],
-#                                    font_background_color=None)
-
-#visual.TextBox.createTextStyle(text_style_label='style3',
-#                                    file_name='VeraMoBI.ttf',
-#                                    font_size=64,
-#                                    dpi=72,
-#                                    font_color=[1,1,0,1],
-#                                    font_background_color=None)
-                                    
-textbox=visual.TextBox(window=window,
-                         name='textbox1', 
-                         active_text_style_label='white_40pt', 
-                         available_text_styles_labels=['style1',],
-                         text=text, 
-                         font_file_name='VeraMono.ttf', 
-                         font_size=36,
-                         dpi=72, 
-                         font_color=[1,1,1,1], 
-                         font_background_color=None,#[0,0,1,1],
-                         line_spacing=None,
-                         line_spacing_units=None,
-                         border_color=None,#[1,0,0,1],
-                         border_stroke_width=2,
-                         background_color=None,#[0.25,0.25,0.25,1],
-                         grid_color=[0,0,1,.5],
-                         grid_stroke_width=1,
-                         size=(display_resolution[0]*.5,300),
-                         pos=(0.0,0.0), 
-                         units='pix',  
-                         align_horz='center',
-                         align_vert='center',
-                         grid_horz_justification='center',
-                         grid_vert_justification='center'
-                         )
-
-
-textbox.draw()
-etime=core.getTime()*1000.0
-textbox_init_dur=etime-stime
-
-# TODO FIX: Updating active font stim does not change font graphics in window.
-textbox.setActiveTextStyle('style1')
-
-stime=core.getTime()*1000.0
-textstim = visual.TextStim(window,pos=(0.0,-(display_resolution[1]/4)),
-                    alignHoriz='center',alignVert='center',height=40,
-                    text=text,autoLog=False,wrapWidth=display_resolution[0]*.5)
-textstim.draw()
-etime=core.getTime()*1000.0
-textstim_init_dur=etime-stime
-
-fixSpot = visual.PatchStim(window,tex="none", mask="gauss",
-                    pos=(0,0), size=(30,30),color='black', autoLog=False)
-lgrating = visual.PatchStim(window,pos=(-300,0),
-                    tex="sin",mask="gauss",
-                    color=[-1.0,0.5,1.0],
-                    size=(150.0,150.0), sf=(0.01,0.0),
-                    autoLog=False)
-rgrating = visual.PatchStim(window,pos=(300,0),
-                    tex="sin",mask="gauss",
-                    color=[1.0,0.5,-1.0],
-                    size=(150.0,150.0), sf=(0.01,0.0),
-                    autoLog=False)
 
 def updateStimText(stim,text=None):
     stime=core.getTime()*1000.0
@@ -133,51 +44,161 @@ def updateStimText(stim,text=None):
     stim.draw()
     etime=core.getTime()*1000.0 
     return etime-stime
+#
+# <<<<<
 
-t=getRandomString(text_length)
-pyglet_dur=0
-textbox_dur=0
-fcount=0
+# Create PsychoPy Window and various visual stim, 
+# including a TextStim and two Textbox stim.    
 
+# Create Window
+window=visual.Window(display_resolution,
+                        units='pix',
+                        fullscr=True, allowGUI=False,
+                        screen=0
+                        )
+
+# Here we are adding a text style that will be used by the second TextBox stim.
+# By creating the text style this way, multiple textbox instances can share
+# the same text style if desired.
+#
+#  ** IMPORTANT: TextBox.createTextStyle can only be called PRIOR to
+#                any actual TextBox class instances being created.
+
+visual.TextBox.createTextStyle(text_style_label='style1',
+                                    file_name='VeraMoBd.ttf',
+                                    font_size=24,
+                                    dpi=72,
+                                    font_color=[0,0.5,1,1],
+                                    font_background_color=None)
+                                    
+# Create a TextBox stim, defining the text style to use for the stim
+# by passing arguements to the TextBox init.
+# We also time how long it takes to create the stim and 
+# perform the first stim draw() call.
+#
+stime=core.getTime()*1000.0                                    
+textbox=visual.TextBox(window=window,
+                         name='textbox1', 
+                         active_text_style_label='white_40pt', 
+                         text=text, 
+                         font_file_name='VeraMono.ttf', 
+                         font_size=36,
+                         dpi=72, 
+                         font_color=[0.5,0.25,1,1], 
+                         border_color=[0,1,0,1],
+                         border_stroke_width=2,
+                         grid_color=[0,0,1,.5],
+                         grid_stroke_width=1,
+                         size=(textbox_width,textbox_height),
+                         pos=(0.0,0.0), 
+                         units='pix',  
+                         align_horz='center',
+                         align_vert='center',
+                         grid_horz_justification='center',
+                         grid_vert_justification='center'
+                         )
+textbox.draw()
+etime=core.getTime()*1000.0
+textbox_init_dur=etime-stime
+
+# Create a TextStim stim, using the default font.
+# We also time how long it takes to create the stim and 
+# perform the first stim draw() call.
+#
+stime=core.getTime()*1000.0
+textstim = visual.TextStim(window,pos=(0.0,-(display_resolution[1]/4)),
+                    alignHoriz='center',alignVert='center',height=40,
+                    text=text,autoLog=False,wrapWidth=textbox_width)
+textstim.draw()
+etime=core.getTime()*1000.0
+textstim_init_dur=etime-stime
+
+# Create some other non text psychopy stim.
+#
+fixSpot = visual.PatchStim(window,tex="none", mask="gauss",
+                    pos=(0,0), size=(30,30),color='black', autoLog=False)
+fixSpot.draw()
+
+lgrating = visual.PatchStim(window,pos=(-300,0),
+                    tex="sin",mask="gauss",
+                    color=[-1.0,0.5,1.0],
+                    size=(150.0,150.0), sf=(0.01,0.0),
+                    autoLog=False)
+lgrating.draw()
+
+# Create a second Textbox, using the text style called 'style1' that was 
+# defined earlier in the script.
+#                    
+#textbox2=visual.TextBox(window=window,
+#                         name='textbox2', 
+#                         active_text_style_label='style1', 
+#                         text=text, 
+#                         background_color=[0.25,0.25,0.25,1],
+#                         size=(display_resolution[0]*.45,40),
+#                         pos=(0.0,(display_resolution[1]/4)), 
+#                         units='pix',  
+#                         align_horz='center',
+#                         align_vert='center',
+#                         grid_horz_justification='center',
+#                         grid_vert_justification='center'
+#                         )
+#textbox2.draw()
+
+rgrating = visual.PatchStim(window,pos=(300,0),
+                    tex="sin",mask="gauss",
+                    color=[1.0,0.5,-1.0],
+                    size=(150.0,150.0), sf=(0.01,0.0),
+                    autoLog=False)
+rgrating.draw()
+
+# Do the first stim display and start into the testing loop.
+#
+demo_start=window.flip()     
 event.clearEvents()
-demo_timeout_start=window.flip()
-     
+fcount=0
 while True:
     lgrating.setOri(5, '+')
     lgrating.setPhase(0.05, '+')
     lgrating.draw()
-
     fixSpot.draw()
 
+    # For the textBox and TextStim resources, change the text every
+    # chng_txt_each_flips, and record the time it takes to update the text
+    # and redraw() each resource type.
+    #
     if fcount==0 or fcount%chng_txt_each_flips==0:
         t=getRandomString(text_length)
-
         textbox_dur=updateStimText(textbox,t)
         textbox_txt_change_draw_times.append(textbox_dur)
-
         pyglet_dur=updateStimText(textstim,t)
         textstim_txt_change_draw_times.append(pyglet_dur)
+#        updateStimText(textbox2,t)
     else:
         textbox_dur=updateStimText(textbox)
         textbox_no_change_draw_times.append(textbox_dur)
-
         pyglet_dur=updateStimText(textstim)
         textstim_no_change_draw_times.append(pyglet_dur)
-
+#        updateStimText(textbox2)
+    
     rgrating.setOri(5, '+')
     rgrating.setPhase(0.05, '+')
     rgrating.draw()
         
-    flip_time=window.flip()#redraw the buffer
+    # Update the display to show stim changes
+    flip_time=window.flip()
     fcount+=1
 
+    # End the test when a keyboard event is detected or when max_flip_count
+    # win.flip() calls have been made.
+    #
     kb_events=event.getKeys()
     if kb_events:
         break
-
-    if fcount>=max_flip_count or flip_time-demo_timeout_start>300.0:
-        print "Ending Demo Due to 30 Seconds of Inactivity."
+    if fcount>=max_flip_count:
         break
+
+# Print a comparision of the TextBox and TextStim performance.
+#
 print
 print '-------Text Draw Duration Test---------'
 print
@@ -187,8 +208,8 @@ print '+ TextStim INIT Dur (secs):\t%.3f'%(textstim_init_dur/1000.0)
 print '+ Text Change Flip Perc:\t%.2f'%((1.0/chng_txt_each_flips)*100.0),r'%'
 print
 print '+ Total Flip Count:\t\t',fcount
-print '+ Test Duration (secs):\t\t%.3f'%(flip_time-demo_timeout_start)
-print '+ FPS:\t\t\t\t%.3f'%(float(fcount)/(flip_time-demo_timeout_start))
+print '+ Test Duration (secs):\t\t%.3f'%(flip_time-demo_start)
+print '+ FPS:\t\t\t\t%.3f'%(float(fcount)/(flip_time-demo_start))
 print
 print '+ Average Draw Call Durations (msec):'
 print

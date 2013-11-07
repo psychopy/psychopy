@@ -69,14 +69,10 @@ class TextureAtlas:
         Upload atlas data into video memory.
         '''
         gl.glEnable( gl.GL_TEXTURE_2D )
-
         if self.texid is None:
             self.texid = gl.GLuint(0)
             gl.glGenTextures(1,ctypes.byref(self.texid))
-
-
         gl.glBindTexture( gl.GL_TEXTURE_2D, self.texid )
-
         gl.glTexParameteri( gl.GL_TEXTURE_2D,
                             gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP )
         gl.glTexParameteri( gl.GL_TEXTURE_2D,
@@ -85,7 +81,6 @@ class TextureAtlas:
                             gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR )
         gl.glTexParameteri( gl.GL_TEXTURE_2D,
                             gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR )
-
         if self.depth == 1:
             gl.glTexImage2D( gl.GL_TEXTURE_2D, 0, gl.GL_ALPHA,
                              self.width, self.height, 0,
@@ -98,32 +93,27 @@ class TextureAtlas:
             gl.glTexImage2D( gl.GL_TEXTURE_2D, 0, gl.GL_RGBA,
                              self.width, self.height, 0,
                              gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, self.data.ctypes )
-
         gl.glBindTexture( gl.GL_TEXTURE_2D, 0 )
 
-#        print 'Updated Data: ',self.depth
-#        print 'self.data.shape: ', self.data.shape
-
-
-    def draw(self):
-        gl.glBindTexture( gl.GL_TEXTURE_2D, self.texid )
-        
-        gl.glPushMatrix( )  
-        gl.glTranslatef( 0, self.height, 0 )   
-        gl.glPushMatrix( )
-        gl.glEnable( gl.GL_TEXTURE_2D )
-        gl.glBindTexture( gl.GL_TEXTURE_2D, self.texid )
-        gl.glColor4f(1,1,1,1)  
-        gl.glBegin( gl.GL_QUADS )
-        gl.glTexCoord2f( 0, 1 ), gl.glVertex2f( 0,-self.height )
-        gl.glTexCoord2f( 0, 0 ), gl.glVertex2f( 0,0 )
-        gl.glTexCoord2f( 1, 0), gl.glVertex2f( self.width,0 )
-        gl.glTexCoord2f( 1, 1 ), gl.glVertex2f( self.width, -self.height )
-        gl.glEnd( )
-
-        gl.glPopMatrix( )
-        gl.glPopMatrix( )
-        gl.glFinish()
+#    def draw(self):
+#        gl.glBindTexture( gl.GL_TEXTURE_2D, self.texid )
+#        
+#        gl.glPushMatrix( )  
+#        gl.glTranslatef( 0, self.height, 0 )   
+#        gl.glPushMatrix( )
+#        gl.glEnable( gl.GL_TEXTURE_2D )
+#        gl.glBindTexture( gl.GL_TEXTURE_2D, self.texid )
+#        gl.glColor4f(1,1,1,1)  
+#        gl.glBegin( gl.GL_QUADS )
+#        gl.glTexCoord2f( 0, 1 ), gl.glVertex2f( 0,-self.height )
+#        gl.glTexCoord2f( 0, 0 ), gl.glVertex2f( 0,0 )
+#        gl.glTexCoord2f( 1, 0), gl.glVertex2f( self.width,0 )
+#        gl.glTexCoord2f( 1, 1 ), gl.glVertex2f( self.width, -self.height )
+#        gl.glEnd( )
+#
+#        gl.glPopMatrix( )
+#        gl.glPopMatrix( )
+#        gl.glFinish()
         
         
     def set_region(self, region, data):

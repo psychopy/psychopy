@@ -142,7 +142,6 @@ class TextBox(object):
              ):
         self._window=window  
         self._text=text
-        self._set_text=True
         self._label=name
         self._line_spacing=line_spacing
         self._line_spacing_units=line_spacing_units
@@ -158,7 +157,9 @@ class TextBox(object):
         self._size=size
         self._position=pos
         self._units=units
-        
+        if self._units is None:
+            self._units=self._window.units
+            
         #TODO: Implement support for following 3 attributes
         self._color_space=colorSpace
         self._opacity=opacity
@@ -195,9 +196,8 @@ class TextBox(object):
         if flipVert:
             print 'Parameter "flipVert" is not supported by TextBox'
         
-        self._display_lists=dict(textbox_background=None,
-                                 enable_psychopy_gl_settings=None,
-                                 enable_pyglet_gl_settings=None)         
+        self._display_lists=dict(textbox_pre_textgrid=None,
+                                 textbox_post_textgrid=None)         
 
         self._pixel_line_spacing=0
         self._glyph_set_max_tile_sizes=None
@@ -248,6 +248,22 @@ class TextBox(object):
 
         ###
 
+        self._text_grid=TextGrid(self, line_color=self._grid_color, 
+                                 line_width=self._grid_stroke_width,
+                                 grid_horz_justification=self._grid_horz_justification,
+                                 grid_vert_justification=self._grid_vert_justification)
+        ###
+
+        self._createDisplayLists()
+
+        ###
+
+        if not self._text or len(self._text) == 0:                
+            self._text=u'\n'
+        self._text_grid._createParsedTextDocument(self._text)
+
+        ###
+
         self._textbox_instances[self.getLabel()]=proxy(self)
         
     def getWindow(self):
@@ -264,8 +280,11 @@ class TextBox(object):
 
     def setText(self,text_source):
         self._text=text_source
-        self._set_text=True
-        #self._reset()
+        if not self._text:                
+            self._text=u'\n'
+        ptd=self._text_grid._text_document   
+        ptd.deleteText(0,ptd.getTextLength(),self._text)
+        self._text_grid._deleteGlyphDisplayList()
         
     def getUnits(self):
         return self._units
@@ -283,10 +302,6 @@ class TextBox(object):
         print 'TextBox.getColorSpace: Color Space not yet supported'
         return self._color_space
 
-    def setColorSpace(self,v):
-        print 'TextBox.setColorSpace: Color Space not yet supported'
-        self._color_space=v
-
     def getAutoLog(self):
         print 'TextBox.getAutoLog: Auto Log not yet supported'
         return self._auto_log
@@ -299,9 +314,32 @@ class TextBox(object):
         print 'TextBox.getOpacity: Opacity not yet supported'
         return self._opacity
 
-    def setOpacity(self,v):
-        print 'TextBox.setOpacity: Opacity not yet supported'
-        self._opacity=v
+    def getLineSpacing(self):
+        return self._line_spacing
+
+    def getBorderColor(self):
+        return self._border_color
+
+    def getBorderWidth(self):
+        return self._border_stroke_width
+
+    def getBackgroundColor(self):
+        return self._background_color
+
+    def getTextGridLineColor(self):
+        return self._grid_color
+
+    def getTextGridLineWidth(self):
+        return self._grid_stroke_width
+
+    def getHorzAlignment(self):
+        return self._align_horz
+
+    def getVertAlignment(self):
+        return self._align_vert
+
+    def getTextGrid(self):
+        return self._text_grid
             
     @staticmethod
     def getFontSearchDirectories():
@@ -323,6 +361,7 @@ class TextBox(object):
     def setActiveTextStyle(self,text_style_label):
         if text_style_label and text_style_label in self._text_styles.keys():
             self._active_text_style=self._text_styles.get(text_style_label)
+            self._text_grid._deleteGlyphDisplayList()
 
     def getMaxTextCellSize(self):
         return self._glyph_set_max_tile_sizes[self._active_text_style.getLabel()]
@@ -331,37 +370,15 @@ class TextBox(object):
         return self._alignment
      
     def draw(self):              
-        self._buildResourcesIfNeeded()
-        
-        # enable_pyglet_gl_settings
-        gl.glCallList(self._display_lists['enable_pyglet_gl_settings'])#self._resetPygletCompatState()                             
-        t,l=self._getTopLeftPixPos()
-        gl.glTranslatef(t,l, 0 ) 
-        
-        # draw textbox_background and outline
-        tbdl=self._display_lists['textbox_background']
-        if tbdl:
-            gl.glCallList(tbdl)  
-
-        # draw text grid and char glyphs.          
-        self._text_grid.draw()    
-        
-        # enable_psychopy_gl_settings
-        rgb=self._window.rgb
-        colorSpace=self._window.colorSpace
-        if colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
-            desiredRGB = (rgb+1)/2.0#RGB in range 0:1 and scaled for contrast
-        else:
-            desiredRGB = rgb/255.0
-        gl.glClearColor(desiredRGB[0],desiredRGB[1],desiredRGB[2], 1.0)
-        gl.glCallList(self._display_lists['enable_psychopy_gl_settings'])                  
-  
+        gl.glCallList(self._display_lists['textbox_pre_textgrid'])                            
+        self._text_grid._draw()            
+        gl.glCallList(self._display_lists['textbox_post_textgrid'])                          
         gl.glFinish()
 
     def _createDisplayLists(self):
-        # create DL for switching to pyglet compatible GL state
         dl_index = gl.glGenLists(1)        
         gl.glNewList(dl_index, gl.GL_COMPILE)           
+        
         gl.glViewport( 0, 0, self._window.winHandle.screen.width,self._window.winHandle.screen.height )
         gl.glMatrixMode( gl.GL_PROJECTION )
         gl.glLoadIdentity()
@@ -373,28 +390,11 @@ class TextBox(object):
         gl.glEnable( gl.GL_COLOR_MATERIAL )
         gl.glColorMaterial( gl.GL_FRONT_AND_BACK, gl.GL_AMBIENT_AND_DIFFUSE )
         gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
-        gl.glPushMatrix()
-        gl.glEndList()
-        self._display_lists['enable_pyglet_gl_settings']=dl_index
-
-        # create DL for switching to psychopy compatible GL state
-        dl_index = gl.glGenLists(1)        
-        gl.glNewList(dl_index, gl.GL_COMPILE)           
-        gl.glPopMatrix()        
-        gl.glViewport(0, 0, int(self._window.winHandle.screen.width), int(self._window.winHandle.screen.height))
-        gl.glMatrixMode(gl.GL_PROJECTION) # Reset The Projection Matrix
-        gl.glLoadIdentity()
-        gl.gluOrtho2D(-1,1,-1,1)
-        gl.glMatrixMode(gl.GL_MODELVIEW)# Reset The Projection Matrix
-        gl.glLoadIdentity()
-        gl.glEndList( )
-        self._display_lists['enable_psychopy_gl_settings']=dl_index 
-
-
-        #display list for drawing textbox border and background fill
+ 
+        # draw textbox_background and outline
+        t,l=self._getTopLeftPixPos()
+        gl.glTranslatef(t,l, 0 )         
         if self._background_color or self._border_color:
-            dl_index = gl.glGenLists(1)        
-            gl.glNewList(dl_index, gl.GL_COMPILE)           
             border_thickness=self._border_stroke_width
             if self._border_stroke_width is None:
                 border_thickness=0            
@@ -420,8 +420,28 @@ class TextBox(object):
                 gl.glVertex2d(x1, y1)             
                 gl.glEnd()    
             gl.glColor4f(0.0,0.0,0.0,1.0)
-            gl.glEndList( )
-            self._display_lists['textbox_background']=dl_index  
+        gl.glEndList( )
+        self._display_lists['textbox_pre_textgrid']=dl_index  
+
+        #######
+
+        dl_index = gl.glGenLists(1)        
+        gl.glNewList(dl_index, gl.GL_COMPILE)           
+        rgb=self._window.rgb
+        colorSpace=self._window.colorSpace
+        if colorSpace in ['rgb','dkl','lms','hsv']: #these spaces are 0-centred
+            desiredRGB = (rgb+1)/2.0#RGB in range 0:1 and scaled for contrast
+        else:
+            desiredRGB = rgb/255.0
+        gl.glClearColor(desiredRGB[0],desiredRGB[1],desiredRGB[2], 1.0) 
+        gl.glViewport(0, 0, int(self._window.winHandle.screen.width), int(self._window.winHandle.screen.height))
+        gl.glMatrixMode(gl.GL_PROJECTION) # Reset The Projection Matrix
+        gl.glLoadIdentity()
+        gl.gluOrtho2D(-1,1,-1,1)
+        gl.glMatrixMode(gl.GL_MODELVIEW)# Reset The Projection Matrix
+        gl.glLoadIdentity()
+        gl.glEndList( )
+        self._display_lists['textbox_post_textgrid']=dl_index 
 
     def _freeDisplayList(self,dlist_name=None):
         # if no dlist_name is given, delete all dlists
@@ -469,7 +489,8 @@ class TextBox(object):
             h=misc.cm2pix(h,self._window.monitor)  
         elif units in ['norm']:
             print 'TODO: Add support for Norm Unit Type'
-            print 'ERROR: TextBox._getPixelSize: norm unit type not yet supported'                      
+            print 'ERROR: TextBox._getPixelSize: norm unit type not yet supported'    
+        #print 'int(w),int(h):',int(w),int(h)                  
         return int(w),int(h)
      
     def _getPixelPosition(self):
@@ -539,32 +560,6 @@ class TextBox(object):
                 te_y=te_y+te_h
             self._top_left_gl=te_x,te_y   
         return self._top_left_gl
-        
-    def _buildResourcesIfNeeded(self):    
-        #
-        ## Text Editor Glyph Grid Settings
-        #
-        if self._text_grid is None:
-            self._text_grid=TextGrid(self, line_color=self._grid_color, 
-                                     line_width=self._grid_stroke_width,
-                                     grid_horz_justification=self._grid_horz_justification,
-                                     grid_vert_justification=self._grid_vert_justification)
-            self._text_grid.configure()
-            print ' ** _text_grid.configure() **'
-
-            self._createDisplayLists()
-
-        # Load initial text for textgrid....
-        if self._set_text:
-            #print ' ** createParsedTextDocument() **'
-            if not self._text:                
-                self._text=u'\n'
-            ptd=self._text_grid.getParsedTextDocument()
-            if ptd:
-                ptd.deleteText(0,ptd.getTextLength(),self._text)
-            else:
-                self._text_grid.createParsedTextDocument(self._text)
-            self._set_text=False
 
     def __del__(self):
         del self._textbox_instances[self.getName()]
