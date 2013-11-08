@@ -104,9 +104,9 @@ class TextBox(object):
                                 file_name='VeraMono.ttf',
                                 font_size=14,
                                 dpi=72,
-                                font_color=[0,0,0,255],
+                                font_color=[-1,-1,-1,1],
                                 font_background_color=None,
-                                color_space='rgb255',
+                                color_space='rgb',
                                 opacity=1
                                 )   
     _gl_info=None
@@ -145,7 +145,7 @@ class TextBox(object):
              align_vert='center',       # Determines how TextBox y pos is 
                                         # should be interpreted to.
                                         # 'left', 'center', 'right' are valid options.
-             units=None,                # Coordinate unit type to use for position
+             units='norm',                # Coordinate unit type to use for position
                                         # and size related attributes. Valid
                                         # options are 'pix', 'cm', 'deg', 'norm'
                                         # Only pix is currently working though.
@@ -667,11 +667,11 @@ class TextBox(object):
         if is_sequence(color) and len(color)==4:
             if color_space == 'rgb255':
                 if [cc for cc in color if cc < 0 or cc > 255]:
-                    raise ValueError('TextBox: rgb255 colors must contain elements between 0 and 255. Value: '+str(rgb)) 
+                    raise ValueError('TextBox: rgb255 colors must contain elements between 0 and 255. Value: '+str(color)) 
                 return color[0]/255.0,color[1]/255.0,color[2]/255.0,color[3]/255.0
             if color_space == 'rgb':
                 if [cc for cc in color if cc < -1.0 or cc > 1.0]:
-                    raise ValueError('TextBox: rgb colors must contain elements between -1.0 and 1.0. Value: '+str(rgb)) 
+                    raise ValueError('TextBox: rgb colors must contain elements between -1.0 and 1.0. Value: '+str(color)) 
                 return (color[0]+1.0)/2.0,(color[1]+1.0)/2.0,(color[2]+1.0)/2.0,(color[3]+1.0)/2.0
 
         raise ValueError("TextBox: color: %s, opacity: %s, is not a valid color for color space %s."%(str(color),str(opacity),color_space))

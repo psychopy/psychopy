@@ -57,24 +57,6 @@ window=visual.Window(display_resolution,
                         screen=0
                         )
 
-import pyglet.gl as gl
-
-# Here we are adding a text style that will be used by the second TextBox stim.
-# By creating the text style this way, multiple textbox instances can share
-# the same text style if desired.
-#
-#  ** IMPORTANT: TextBox.createTextStyle can only be called PRIOR to
-#                any actual TextBox class instances being created.
-
-visual.TextBox.createTextStyle(text_style_label='style1',
-                                    file_name='VeraMoBd.ttf',
-                                    font_size=24,
-                                    dpi=72,
-                                    font_color=[0,128,255],
-                                    font_background_color=None,
-                                    color_space='rgb255',
-                                    opacity=1)
-                                    
 # Create a TextBox stim, defining the text style to use for the stim
 # by passing arguements to the TextBox init.
 # We also time how long it takes to create the stim and 
@@ -82,8 +64,7 @@ visual.TextBox.createTextStyle(text_style_label='style1',
 #
 stime=core.getTime()*1000.0                                    
 textbox=visual.TextBox(window=window,
-                         name='textbox1', 
-                         active_text_style_label='white_40pt', 
+                         text_style_label='white_40pt', 
                          text=text, 
                          font_file_name='VeraMono.ttf', 
                          font_size=36,
@@ -96,13 +77,10 @@ textbox=visual.TextBox(window=window,
                          grid_stroke_width=1,
                          size=(0.8,.1),
                          pos=(0.0,0.0), 
-                         units='norm',  
-                         align_horz='center',
-                         align_vert='center',
+                         units='norm',
                          grid_horz_justification='center',
                          grid_vert_justification='center',
-                         color_space='rgb255',
-                         interpolate=False
+                         color_space='rgb255'
                          )
 textbox.draw()
 etime=core.getTime()*1000.0
@@ -133,24 +111,6 @@ lgrating = visual.PatchStim(window,pos=(-300,0),
                     autoLog=False)
 lgrating.draw()
 
-# Create a second Textbox, using the text style called 'style1' that was 
-# defined earlier in the script.
-#                    
-#textbox2=visual.TextBox(window=window,
-#                         name='textbox2', 
-#                         active_text_style_label='style1', 
-#                         text=text, 
-#                         background_color=[0.25,0.25,0.25,1],
-#                         size=(display_resolution[0]*.45,40),
-#                         pos=(0.0,(display_resolution[1]/4)), 
-#                         units='pix',  
-#                         align_horz='center',
-#                         align_vert='center',
-#                         grid_horz_justification='center',
-#                         grid_vert_justification='center'
-#                         )
-#textbox2.draw()
-
 rgrating = visual.PatchStim(window,pos=(300,0),
                     tex="sin",mask="gauss",
                     color=[1.0,0.5,-1.0],
@@ -179,13 +139,11 @@ while True:
         textbox_txt_change_draw_times.append(textbox_dur)
         pyglet_dur=updateStimText(textstim,t)
         textstim_txt_change_draw_times.append(pyglet_dur)
-#        updateStimText(textbox2,t)
     else:
         textbox_dur=updateStimText(textbox)
         textbox_no_change_draw_times.append(textbox_dur)
         pyglet_dur=updateStimText(textstim)
         textstim_no_change_draw_times.append(pyglet_dur)
-#        updateStimText(textbox2)
     
     rgrating.setOri(5, '+')
     rgrating.setPhase(0.05, '+')

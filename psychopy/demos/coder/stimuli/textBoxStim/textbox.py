@@ -12,8 +12,8 @@ from psychopy.iohub.util import NumPyRingBuffer
 # Variables to control text string length etc.
 
 display_resolution=800,600
-textbox_width=1.66
-textbox_height=.33
+textbox_width=1.95
+textbox_height=.15
 textbox_units='norm'
 
 # Create PsychoPy Window and various visual stim, 
@@ -26,58 +26,51 @@ window=visual.Window(display_resolution,
                         screen=0
                         )
 
-# Here we are adding a text style that will be used by the second TextBox stim.
+# Here we are adding text styles that will be used by the TextBox 
+# created later in the script.
 # By creating the text style this way, multiple textbox instances can share
 # the same text style if desired.
 #
 #  ** IMPORTANT: TextBox.createTextStyle can only be called PRIOR to
 #                any actual TextBox class instances being created.
 
-visual.TextBox.createTextStyle(text_style_label='style1',
+visual.TextBox.createTextStyle(text_style_label='VeraBold24',
                                     file_name='VeraMoBd.ttf',
                                     font_size=24,
-                                    dpi=72,
-                                    font_color=[0,0,0],
-                                    font_background_color=None,
-                                    color_space='rgb255',
-                                    opacity=1)
-                                                               
-#textbox=visual.TextBox(window=window,
-#                         name='textbox1', 
-#                         text_style_label='style1',
-#                         text='This is the default TextBox UX.', 
-#                         size=(textbox_width,textbox_height),
-#                         pos=(0.0,0.5), 
-#                         units=textbox_units,  
-#                         align_horz='center',
-#                         align_vert='center',
-#                         grid_horz_justification='center',
-#                         grid_vert_justification='center'
-#                         )
+                                    font_color=[1,-1,-1],
+                                    font_background_color=[1,1,1]
+                                    )
 
-textbox2=visual.TextBox(window=window,
-                         name='textbox1', 
-                         text='This TextBox is using the different UX features.', 
-                         font_file_name='VeraMono.ttf', 
-                         font_size=36,
-                         dpi=72, 
-                         font_color=[255,255,255,255], 
-                         background_color=[0,0,0,255],
-                         border_color=[0,0,255,255],
-                         border_stroke_width=4,
-                         grid_color=[255,0,0,128],
-                         grid_stroke_width=1,
-                         size=(textbox_width,textbox_height),
-                         pos=(0.0,0.0), 
-                         units=textbox_units,  
-                         align_horz='center',
-                         align_vert='center',
+visual.TextBox.createTextStyle(text_style_label='Vera36',
+                                    file_name='VeraMono.ttf',
+                                    font_size=36,
+                                    font_color=[1,1,1,1]
+                                    )
+                                                               
+textbox=visual.TextBox(window=window, 
+                         text_style_label='Vera36',
+                         text='This is the plain TextBox UX.', 
+                         size=(1.33,.30),
+                         pos=(0.0,0.25), 
                          grid_horz_justification='center',
-                         grid_vert_justification='center',
-                         color_space='rgb255'
+                         grid_vert_justification='center'                       
                          )
 
-#textbox.draw()
+textbox2=visual.TextBox(window=window,
+                         text_style_label='VeraBold24',
+                         text='This TextBox is using the different UX features.', 
+                         background_color=[-1,-1,-1,1],
+                         border_color=[-1,-1,1,1],
+                         border_stroke_width=4,
+                         grid_color=[-1,1,-1,1],
+                         grid_stroke_width=1,
+                         size=(1.5,.25),
+                         pos=(0.0,-0.25),
+                         grid_horz_justification='center',
+                         grid_vert_justification='center',
+                         )
+
+textbox.draw()
 textbox2.draw()
 
 demo_start=window.flip()     
@@ -85,14 +78,13 @@ event.clearEvents()
 fcount=0
 while True:
 
-#    textbox.draw()
+    textbox.draw()
     textbox2.draw()
     # Update the display to show stim changes
     flip_time=window.flip()
     fcount+=1
 
-    # End the test when a keyboard event is detected or when max_flip_count
-    # win.flip() calls have been made.
+    # End the test when a keyboard event is detected
     #
     kb_events=event.getKeys()
     if kb_events:
