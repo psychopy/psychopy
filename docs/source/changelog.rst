@@ -52,11 +52,31 @@ psychopy.iohub Related Changes:
 * NEW: Device configuration file can now be specified to the launchHubServer() function when starting the ioHub Process.
 * NEW: Simple examples of how to use iohub within a Builder project using a Custom Code Component.
 * FIXED: Analog Input Event delay calculation error that was causing incorrect time correction to be applied to this event type.
+* NEW: LabJack AnalogInput interface now handles dropped samples and sampling rates that cause multichannel samples to be split between USB packets.
 * FIXED: Gaze position calculation fix for the SMI eye tracker interface during binocular tracking.
 * NEW: Enhanced Tobii eye tracker setup and calibration graphics:
     * Head position within the 3D eye tracking head box can be visualized before and after calibration
     * Animated fixation target support added during calibration routine
-
+* ADDED: Following two EXPERIMENTAL stage implementations (Use at Own Risk):
+    * Alternative Text stimulus, psychopy.visual.TextBox:
+        * Supports monospace TTF files only.
+        * Very precise placement of text.
+        * Update and redraw the text string being displayed very quickly ( 1 - 5 msec for 200 char string, depending on graphics card and OS)
+        * IMPORTANT: TextBox is still being finalized and completed; expect to find issues. API changes guaranteed.
+    * ioDataStore -> Pandas Data Frame based post processing API:
+        * Creates a set of Pandas Data Frames for device events, experiment messages, and experiment condition variables.
+        * Filter, Group, Join data using the Pandas API.
+        * Access event information with associated condition variable states.
+        * Define Interest Periods (IP):
+            * filter event temporally based on start and end time criteria.
+            * define an IP's start and end time criteria using experiment message events, or experiment condition variable columns.
+            * re-occurring IP's supported.
+            * overlapping IP's supported.
+        * Define Regions of Interest (ROI),
+            * filter Mouse, Eye Tracker, and Touch device events based on screen location.
+            * circle, ellipse, rectangle, and general polygon ROI shapes supported. (ROI functionality is dependent on the shapely python package)
+        * IMPORTANT: The ioDataStore->DataFrame API is still being designed and developed. Expect to find issues. API changes guaranteed.
+                  
 PsychoPy 1.78
 ------------------------------
 
