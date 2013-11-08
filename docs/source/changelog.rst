@@ -39,6 +39,24 @@ PsychoPy 1.79
 * FIXED: many user interface tweaks, documentation and help string corrections (Philip Wiesemann)
 * CHANGED: data curve fitting functions are now using scipy.optimise.curve_fit and should hopefully be more robust to local minima(?)
 
+psychopy.iohub Related Changes:
+
+* ADDED: Initial release of the new Touch device:
+    * currently supporting Elo brand Touch Screens.
+    * any Elo model supporting the SmartSet protocol should work (Elo 2700 model used for testing to date)
+    * Touch Events (TouchPress, TouchRelease, TouchMovement) are provided in a separate event stream
+    * Touch and Mouse device events are independent of each other, so both devices can be used in parallel without interference
+    * Touch screen calibration routine provided; calibration state can be saved to device hardware for persistence
+    * See the demos.coder.iohub_extended Touch script for example of calibration graphics front end.
+* NEW: PsychoPy TrialHandler's can now be used to feed experiment condition variables to the ioDataStore.
+* NEW: Device configuration file can now be specified to the launchHubServer() function when starting the ioHub Process.
+* NEW: Simple examples of how to use iohub within a Builder project using a Custom Code Component.
+* FIXED: Analog Input Event delay calculation error that was causing incorrect time correction to be applied to this event type.
+* FIXED: Gaze position calculation fix for the SMI eye tracker interface during binocular tracking.
+* NEW: Enhanced Tobii eye tracker setup and calibration graphics:
+    * Head position within the 3D eye tracking head box can be visualized before and after calibration
+    * Animated fixation target support added during calibration routine
+
 PsychoPy 1.78
 ------------------------------
 
