@@ -38,6 +38,13 @@ PsychoPy 1.79
     * pyxid now includes Jared's upstream bug-fix
 * FIXED: many user interface tweaks, documentation and help string corrections (Philip Wiesemann)
 * CHANGED: data curve fitting functions are now using scipy.optimise.curve_fit and should hopefully be more robust to local minima(?)
+* ADDED: Following EXPERIMENTAL stage implementation (Use at Own Risk):
+    * Alternative Text stimulus, psychopy.visual.TextBox:
+        * freetype lib must be available. freetype python wrapper must be copied from visual.textbox.freetype-py folder to python path.
+        * Supports monospace TTF files only. 
+        * Very precise placement of text.
+        * Update and redraw the text string being displayed very quickly ( 1 - 5 msec for 200 char string, depending on graphics card and OS)
+        * IMPORTANT: TextBox is still being finalized and completed; expect to find issues. API changes guaranteed.
 
 psychopy.iohub Related Changes:
 
@@ -57,13 +64,7 @@ psychopy.iohub Related Changes:
 * NEW: Enhanced Tobii eye tracker setup and calibration graphics:
     * Head position within the 3D eye tracking head box can be visualized before and after calibration
     * Animated fixation target support added during calibration routine
-* ADDED: Following two EXPERIMENTAL stage implementations (Use at Own Risk):
-    * Alternative Text stimulus, psychopy.visual.TextBox:
-        * freetype lib must be available. freetype python wrapper must be copied from visual.textbox.freetype-py folder to python path.
-        * Supports monospace TTF files only. 
-        * Very precise placement of text.
-        * Update and redraw the text string being displayed very quickly ( 1 - 5 msec for 200 char string, depending on graphics card and OS)
-        * IMPORTANT: TextBox is still being finalized and completed; expect to find issues. API changes guaranteed.
+* ADDED: Following EXPERIMENTAL stage implementation (Use at Own Risk):
     * ioDataStore -> Pandas Data Frame based post processing API:
         * Creates a set of Pandas Data Frames for device events, experiment messages, and experiment condition variables.
         * Filter, Group, Join data using the Pandas API.
