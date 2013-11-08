@@ -4,8 +4,9 @@ Created on Tue May 28 23:49:38 2013
 
 @author: Sol
 """
+from pyglet.gl import (glGenLists,glNewList,glTranslatef,glColor4f,glBegin,glEndList,
+               glDeleteLists,GL_COMPILE,glEnd,GL_QUADS,glTexCoord2f,glVertex2f)
 from weakref import proxy
-import pyglet.gl as gl
 
 class Glyph(object):
     def __init__(self,gindex,charcode,uchar,size, offset, advance, texcoords,region):
@@ -22,7 +23,7 @@ class GlyphSet(object):
     loaded_glyph_sets=dict()
     def __init__(self,ttfont,font_color,background_color):
         self._label=self.getNameFromValues(ttfont.getLabel(),font_color,background_color)
-        self._font=ttfont
+        self._font=proxy(ttfont)
         self._background_color = background_color
         self._font_color = font_color
         
@@ -45,12 +46,13 @@ class GlyphSet(object):
                                     font_color=font_color,
                                     background_color=background_color)
     @classmethod    
-    def createCached(cls,ttfont,font_color,background_color):
+    def createCached(cls,ttfont,font_color,background_color,org_color_info):
         gs_label=cls.getNameFromValues(ttfont.getLabel(),font_color,background_color)
         if gs_label in GlyphSet.loaded_glyph_sets:
             return GlyphSet.loaded_glyph_sets[gs_label]
         else:
             gs=GlyphSet(ttfont,font_color,background_color)
+            gs._org_color_info=org_color_info
             GlyphSet.loaded_glyph_sets[gs_label]=gs
             return gs
 
@@ -72,7 +74,7 @@ class GlyphSet(object):
         if self._font:
             bx1,by1,bx2,by2=self._font._background_swatch
             glyph_count=self._font.getGlyphCount()
-            base = gl.glGenLists(glyph_count)      
+            base = glGenLists(glyph_count)      
             space_code=None            
             max_tile_width,max_tile_height=max_tile_size
             display_lists_for_chars={}
@@ -85,33 +87,22 @@ class GlyphSet(object):
                 cell_color=self._background_color
                 font_color=self._font_color 
                 gx1,gy1,gx2,gy2=glyph.texcoords               
-                if cell_color and len(cell_color)==3:
-                    self._cell_color=tuple(list(cell_color).append(1))
-                    cell_color=self._cell_color
-                elif cell_color and len(cell_color)!=4:
-                    raise AttributeError('Background color must be a tuple / list of 3 or 4 elements.')
-                if len(font_color)==3:
-                    self._font_color=tuple(list(font_color).append(1))
-                    font_color=self._font_color
-                elif len(font_color)==4:
-                    pass
-                else:
-                    raise AttributeError('Font color must be a tuple / list of 3 or 4 elements.')                
+ 
                 hdiff=(max_tile_height-self._font._max_tile_height)/2.0
                 wdiff=(max_tile_width-self._font._max_tile_width)/2.0
  
-                gl.glNewList(dl_index, gl.GL_COMPILE)           
-                if cell_color and cell_color[3]>0:
-                    gl.glColor4f(*cell_color)                
-                    gl.glBegin( gl.GL_QUADS )
-                    gl.glTexCoord2f( bx1, by2 ),    gl.glVertex2f( 0,-max_tile_height)#glyph.size[1] )
-                    gl.glTexCoord2f( bx1, by1 ),    gl.glVertex2f( 0,0 )
-                    gl.glTexCoord2f( bx2, by1 ),    gl.glVertex2f( max_tile_width,0)#glyph.size[0],0 )
-                    gl.glTexCoord2f( bx2, by2 ),    gl.glVertex2f( max_tile_width, -max_tile_height)#glyph.size[0],glyph.size[1] )
-                    gl.glEnd()        
+                glNewList(dl_index, GL_COMPILE)           
+                if cell_color:
+                    glColor4f(*cell_color)                
+                    glBegin( GL_QUADS )
+                    glTexCoord2f( bx1, by2 ),    glVertex2f( 0,-max_tile_height)#glyph.size[1] )
+                    glTexCoord2f( bx1, by1 ),    glVertex2f( 0,0 )
+                    glTexCoord2f( bx2, by1 ),    glVertex2f( max_tile_width,0)#glyph.size[0],0 )
+                    glTexCoord2f( bx2, by2 ),    glVertex2f( max_tile_width, -max_tile_height)#glyph.size[0],glyph.size[1] )
+                    glEnd()        
                 if uchar != u' ':
-                    gl.glColor4f(*font_color)  
-                    gl.glBegin( gl.GL_QUADS )
+                    glColor4f(*font_color)  
+                    glBegin( GL_QUADS )
                     x1 = glyph.offset[0]
                     x2 = x1+glyph.size[0]
                     x1+=wdiff
@@ -119,14 +110,15 @@ class GlyphSet(object):
                     y1=(self._font._max_ascender-glyph.offset[1])                 
                     y2=y1+glyph.size[1]
                     y1+=hdiff
-                    y2+=hdiff                    
-                    gl.glTexCoord2f( gx1, gy2 ),    gl.glVertex2f( x1,-y2 )
-                    gl.glTexCoord2f( gx1, gy1 ),    gl.glVertex2f( x1,-y1 )
-                    gl.glTexCoord2f( gx2, gy1 ),    gl.glVertex2f( x2,-y1 )
-                    gl.glTexCoord2f( gx2, gy2 ),    gl.glVertex2f( x2,-y2 )
-                    gl.glEnd( )        
-                gl.glTranslatef( max_tile_width,0,0)                
-                gl.glEndList( )
+                    y2+=hdiff         
+                    
+                    glTexCoord2f( gx1, gy2 ),    glVertex2f( x1,-y2 )
+                    glTexCoord2f( gx1, gy1 ),    glVertex2f( x1,-y1 )
+                    glTexCoord2f( gx2, gy1 ),    glVertex2f( x2,-y1 )
+                    glTexCoord2f( gx2, gy2 ),    glVertex2f( x2,-y2 )
+                    glEnd( )        
+                glTranslatef( max_tile_width,0,0)                
+                glEndList( )
                 display_lists_for_chars[charcode]=dl_index
             
             if space_code and ord(u'\n') not in display_lists_for_chars:
@@ -134,5 +126,24 @@ class GlyphSet(object):
                 i=i+1
             return display_lists_for_chars
             
+    def _free(self):
+        del self._font
+        del GlyphSet.loaded_glyph_sets[self._label]
+        self._label=None
+        for dlists in self._display_lists:
+            for dl in dlists:
+                glDeleteLists(dl, 1)
+            del dlists
+        self._display_lists.clear()
+        if len(GlyphSet.loaded_glyph_sets)==0:
+           for f in TTFont._loaded_fonts.values():
+               f._free()
+           TTFont._loaded_fonts.clear()
+           
+    def __del__(self):
+        if self._label is not None:
+            self._free()
+
+from font import TTFont            
 
     

@@ -115,7 +115,7 @@ class ParsedTextDocument(object):
             from_text_index=self._text_parsed_to_index
         if to_text_index is None:
             try:
-                to_row_index=self._text_grid._first_visible_row_id+self._text_grid._shape[1]+1
+                to_row_index=0+self._text_grid._shape[1]+1
                 line=self.getParsedLine(to_row_index)
                 to_text_index=line.getIndexRange()[1]+self._num_columns
             except:            
@@ -182,12 +182,11 @@ class ParsedTextDocument(object):
         for l in range(start_line,to_line+1):
             self._children[l]._gl_display_list[0]=0
         
+    def getLineInfoByIndex(self,i):
+        c=self._children[i]
+        return c._length, c._gl_display_list, c._ords
+
     def getParsedLine(self,i):
-        if i is None:
-            return None
-        i=int(i)
-        if i<0 or i>=self.getChildCount():
-            return None
         return self._children[i]
 
     def getParsedLines(self):
@@ -220,7 +219,19 @@ class ParsedTextDocument(object):
             if char_index >= rsi and char_index < rei:
                 return line
         return None
-        
+
+    def _free(self):
+        self._text=None
+        self._text_wrapper=None
+        del self._text_wrapper
+        for c in self._children:
+            c._free()
+        del self._children[:]
+
+    def __del__(self):
+        if self._text is not None:
+            self._free()
+            
 import numpy
  
 class ParsedTextLine(object):
@@ -259,13 +270,12 @@ class ParsedTextLine(object):
     def getDisplayList(self):
         return self._gl_display_list
 
-    #def getTextRegionFlags(self):
-    #    return self.text_region_flags
+    def _free(self):
+        self._text=None
+        del self._index_range
+        del self._ords
+        del self._gl_display_list
         
-    #def setTextRegionFlags(self,f):
-    #    self.text_region_flags=f
-
     def __del__(self):
-        #self.text_region_flags=None 
-        self._gl_display_list=None
-        self._ords=None
+        if self._text is not None:
+            self._free()

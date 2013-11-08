@@ -13,10 +13,8 @@ from textureAtlas import TextureAtlas
 class TTFont(object):
     _font_dirs=[]
     _loaded_fonts=dict()
-    _fonts_by_id=dict()
     _glyphs_loaded=False
-
-    texture_atlas=TextureAtlas(1024,1024)
+    _texture_atlas=TextureAtlas(1024,1024)
     _background_swatch=None
     def __init__(self,label,file_name,size,dpi=72):
         self._label=label
@@ -117,7 +115,7 @@ class TTFont(object):
 
     @classmethod
     def getTextureAtlas(cls):
-        return cls.texture_atlas
+        return cls._texture_atlas
     
     def getLabel(self):
         return self._label
@@ -151,10 +149,10 @@ class TTFont(object):
                 rows   = ttfont._font.glyph.bitmap.rows
                 pitch  = ttfont._font.glyph.bitmap.pitch
     
-                region = TTFont.texture_atlas.get_region(width+2, rows+2)
+                region = TTFont._texture_atlas.get_region(width+2, rows+2)
                 x,y,w,h=region
                 if x < 0:
-                    raise "TTFont.texture_atlas.get_region failed for: {0}, requested area: {1}".format(uchar,(width+2, rows+2))
+                    raise "TTFont._texture_atlas.get_region failed for: {0}, requested area: {1}".format(uchar,(width+2, rows+2))
                     
                 x,y = x+1, y+1
                 w,h = w-2, h-2
@@ -165,17 +163,17 @@ class TTFont(object):
                 gamma = 1.0
                 Z = ((data/255.0)**(gamma))
                 data = (Z*255).astype(numpy.ubyte)
-                TTFont.texture_atlas.set_region((x,y,w,h), data)
+                TTFont._texture_atlas.set_region((x,y,w,h), data)
     
                 # Build glyph
                 size   = w,h
                 offset = left, top
                 advance= ttfont._font.glyph.advance.x, ttfont._font.glyph.advance.y
                 
-                u0     = (x +     0.0)/float(TTFont.texture_atlas.width)
-                v0     = (y +     0.0)/float(TTFont.texture_atlas.height)
-                u1     = (x + w - 0.0)/float(TTFont.texture_atlas.width)
-                v1     = (y + h - 0.0)/float(TTFont.texture_atlas.height)
+                u0     = (x +     0.0)/float(TTFont._texture_atlas.width)
+                v0     = (y +     0.0)/float(TTFont._texture_atlas.height)
+                u1     = (x + w - 0.0)/float(TTFont._texture_atlas.width)
+                v1     = (y + h - 0.0)/float(TTFont._texture_atlas.height)
     
                 texcoords = (u0,v0,u1,v1)
                 g=Glyph(gindex,charcode,uchar,size, offset, advance, texcoords,region)                      
@@ -205,23 +203,38 @@ class TTFont(object):
             max_width=max(ttfont._max_tile_width,max_width)            
             max_height=max(ttfont._max_tile_height,max_height)
         
-        region=TTFont.texture_atlas.get_region(max_width,max_height)
+        region=TTFont._texture_atlas.get_region(max_width,max_height)
         x,y,w,h=region
         if x<0:
             raise u"Font background_swatch could not find texture Atlas space: {1},{2}".format(max_width,max_height)
         
-        u0     = (x)/float(TTFont.texture_atlas.width)
-        v0     = (y)/float(TTFont.texture_atlas.height)
-        u1     = (x + w)/float(TTFont.texture_atlas.width)
-        v1     = (y + h)/float(TTFont.texture_atlas.height)
+        u0     = (x)/float(TTFont._texture_atlas.width)
+        v0     = (y)/float(TTFont._texture_atlas.height)
+        u1     = (x + w)/float(TTFont._texture_atlas.width)
+        v1     = (y + h)/float(TTFont._texture_atlas.height)
 
         texcoords = (u0,v0,u1,v1)
 
         TTFont._background_swatch=texcoords
         bswatch=numpy.ones((h,w,1),dtype=numpy.ubyte)
         bswatch*=255
-        TTFont.texture_atlas.set_region(region,bswatch)  
+        TTFont._texture_atlas.set_region(region,bswatch)  
 
+    def _free(self):
+        self._glyphs_loaded=False
+        del self._loaded_fonts[self.getLabel()]
+        self._label=None
+        self._charcode2glyph.clear()
+        
+        if len(self._loaded_fonts)==0:
+            TTFont._texture_atlas.deleteTexture()
+            del TTFont._texture_atlas
+            del TTFont._font_dirs
+
+    def __del__(self):
+        if self._label is not None:        
+            self._free()
+        
     @staticmethod
     def getFreeTypeVersion():
         return version()

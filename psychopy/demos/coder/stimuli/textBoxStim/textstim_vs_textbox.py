@@ -10,7 +10,7 @@ from psychopy import visual, core, event
 from psychopy.iohub.util import NumPyRingBuffer
 
 # Variables to control text string length etc.
-text_length=200
+text_length=30
 chng_txt_each_flips=5
 max_flip_count=60*60*2
 display_resolution=1920,1080
@@ -57,6 +57,8 @@ window=visual.Window(display_resolution,
                         screen=0
                         )
 
+import pyglet.gl as gl
+
 # Here we are adding a text style that will be used by the second TextBox stim.
 # By creating the text style this way, multiple textbox instances can share
 # the same text style if desired.
@@ -68,8 +70,10 @@ visual.TextBox.createTextStyle(text_style_label='style1',
                                     file_name='VeraMoBd.ttf',
                                     font_size=24,
                                     dpi=72,
-                                    font_color=[0,0.5,1,1],
-                                    font_background_color=None)
+                                    font_color=[0,128,255],
+                                    font_background_color=None,
+                                    color_space='rgb255',
+                                    opacity=1)
                                     
 # Create a TextBox stim, defining the text style to use for the stim
 # by passing arguements to the TextBox init.
@@ -84,18 +88,21 @@ textbox=visual.TextBox(window=window,
                          font_file_name='VeraMono.ttf', 
                          font_size=36,
                          dpi=72, 
-                         font_color=[0.5,0.25,1,1], 
-                         border_color=[0,1,0,1],
+                         font_color=[0,255,0,255], 
+                         background_color=None,#[128,32,192,255],
+                         border_color=None,#[0,255,0,64],
                          border_stroke_width=2,
-                         grid_color=[0,0,1,.5],
+                         grid_color=None,#[255,255,0,255],
                          grid_stroke_width=1,
-                         size=(textbox_width,textbox_height),
+                         size=(0.8,.1),
                          pos=(0.0,0.0), 
-                         units='pix',  
+                         units='norm',  
                          align_horz='center',
                          align_vert='center',
                          grid_horz_justification='center',
-                         grid_vert_justification='center'
+                         grid_vert_justification='center',
+                         color_space='rgb255',
+                         interpolate=False
                          )
 textbox.draw()
 etime=core.getTime()*1000.0

@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon May 20 16:10:57 2013
-
-@author: Sol
-"""
 # -----------------------------------------------------------------------------
 #
 #  FreeType high-level python API - Copyright 2011 Nicolas P. Rougier
 #  Distributed under the terms of the new BSD license.
 #
 # -----------------------------------------------------------------------------
-import pyglet.gl as gl
+from pyglet.gl import (GLuint,glEnable,GL_TEXTURE_2D,glBindTexture,glTexParameteri,
+               GL_TEXTURE_WRAP_S, GL_CLAMP,GL_TEXTURE_WRAP_T,glTexImage2D,
+               GL_TEXTURE_MIN_FILTER,GL_LINEAR,GL_TEXTURE_MAG_FILTER,GL_ALPHA,
+               GL_UNSIGNED_BYTE,GL_RGB,GL_RGBA,glGenTextures,glDeleteTextures)
 import ctypes
 import math
 import numpy as np
@@ -63,58 +61,39 @@ class TextureAtlas:
 
     def getTextureID(self):
         return self.texid
-        
+
+
+
     def upload(self):
         '''
         Upload atlas data into video memory.
         '''
-        gl.glEnable( gl.GL_TEXTURE_2D )
+        glEnable( GL_TEXTURE_2D )
         if self.texid is None:
-            self.texid = gl.GLuint(0)
-            gl.glGenTextures(1,ctypes.byref(self.texid))
-        gl.glBindTexture( gl.GL_TEXTURE_2D, self.texid )
-        gl.glTexParameteri( gl.GL_TEXTURE_2D,
-                            gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP )
-        gl.glTexParameteri( gl.GL_TEXTURE_2D,
-                            gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP )
-        gl.glTexParameteri( gl.GL_TEXTURE_2D,
-                            gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR )
-        gl.glTexParameteri( gl.GL_TEXTURE_2D,
-                            gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR )
+            self.texid = GLuint(0)
+            glGenTextures(1,ctypes.byref(self.texid))
+        glBindTexture( GL_TEXTURE_2D, self.texid )
+        glTexParameteri( GL_TEXTURE_2D,
+                            GL_TEXTURE_WRAP_S, GL_CLAMP )
+        glTexParameteri( GL_TEXTURE_2D,
+                            GL_TEXTURE_WRAP_T, GL_CLAMP )
+        glTexParameteri( GL_TEXTURE_2D,
+                            GL_TEXTURE_MAG_FILTER, GL_LINEAR )
+        glTexParameteri( GL_TEXTURE_2D,
+                            GL_TEXTURE_MIN_FILTER, GL_LINEAR )
         if self.depth == 1:
-            gl.glTexImage2D( gl.GL_TEXTURE_2D, 0, gl.GL_ALPHA,
+            glTexImage2D( GL_TEXTURE_2D, 0, GL_ALPHA,
                              self.width, self.height, 0,
-                             gl.GL_ALPHA, gl.GL_UNSIGNED_BYTE, self.data.ctypes )
+                             GL_ALPHA, GL_UNSIGNED_BYTE, self.data.ctypes )
         elif self.depth == 3:
-            gl.glTexImage2D( gl.GL_TEXTURE_2D, 0, gl.GL_RGB,
+            glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB,
                              self.width, self.height, 0,
-                             gl.GL_RGB, gl.GL_UNSIGNED_BYTE, self.data.ctypes )
+                             GL_RGB, GL_UNSIGNED_BYTE, self.data.ctypes )
         else:
-            gl.glTexImage2D( gl.GL_TEXTURE_2D, 0, gl.GL_RGBA,
+            glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
                              self.width, self.height, 0,
-                             gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, self.data.ctypes )
-        gl.glBindTexture( gl.GL_TEXTURE_2D, 0 )
-
-#    def draw(self):
-#        gl.glBindTexture( gl.GL_TEXTURE_2D, self.texid )
-#        
-#        gl.glPushMatrix( )  
-#        gl.glTranslatef( 0, self.height, 0 )   
-#        gl.glPushMatrix( )
-#        gl.glEnable( gl.GL_TEXTURE_2D )
-#        gl.glBindTexture( gl.GL_TEXTURE_2D, self.texid )
-#        gl.glColor4f(1,1,1,1)  
-#        gl.glBegin( gl.GL_QUADS )
-#        gl.glTexCoord2f( 0, 1 ), gl.glVertex2f( 0,-self.height )
-#        gl.glTexCoord2f( 0, 0 ), gl.glVertex2f( 0,0 )
-#        gl.glTexCoord2f( 1, 0), gl.glVertex2f( self.width,0 )
-#        gl.glTexCoord2f( 1, 1 ), gl.glVertex2f( self.width, -self.height )
-#        gl.glEnd( )
-#
-#        gl.glPopMatrix( )
-#        gl.glPopMatrix( )
-#        gl.glFinish()
-        
+                             GL_RGBA, GL_UNSIGNED_BYTE, self.data.ctypes )
+        glBindTexture( GL_TEXTURE_2D, 0 )
         
     def set_region(self, region, data):
         '''
@@ -132,7 +111,6 @@ class TextureAtlas:
 
         x, y, width, height = region
         self.data[y:y+height,x:x+width, :] = data
-
 
 
     def get_region(self, width, height):
@@ -197,7 +175,6 @@ class TextureAtlas:
         return region
 
 
-
     def fit(self, index, width, height):
         '''
         Test if region (width,height) fit into self.nodes[index]
@@ -215,7 +192,6 @@ class TextureAtlas:
             Height or the region to be tested
 
         '''
-
         node = self.nodes[index]
         x,y = node[0], node[1]
         width_left = width        
@@ -234,12 +210,10 @@ class TextureAtlas:
         return y
 
 
-
     def merge(self):
         '''
         Merge nodes
         '''
-
         i = 0
         while i < len(self.nodes)-1:
             node = self.nodes[i]
@@ -251,38 +225,10 @@ class TextureAtlas:
                 i += 1
                 
     def deleteTexture(self):
-        gl.glDeleteTextures(1, self.texid)
+        if self.texid:
+            glDeleteTextures(1, self.texid)
+            self.texid=None
         
     def __del__(self):
         self.deleteTexture()
-        
-#from psychopy import visual,core
-#
-#class AtlasWindow(visual.Window):
-#    def __init__(self,*args,**kwargs):
-#        visual.Window.__init__(self,*args,**kwargs)
-#
-#        window_width, window_height=args[0]
-#        
-#        gl.glViewport( 0, 0, window_width, window_height )
-#        gl.glMatrixMode( gl.GL_PROJECTION )
-#        gl.glLoadIdentity( )
-#        gl.glOrtho( 0, window_width, 0, window_height, -1, 1 )
-#        gl.glMatrixMode( gl.GL_MODELVIEW )
-#        gl.glLoadIdentity( )
-#        gl.glEnable( gl.GL_TEXTURE_2D )
-#        gl.glTexEnvf( gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE )
-#        gl.glDisable( gl.GL_DEPTH_TEST )
-#        gl.glEnable( gl.GL_BLEND )
-#        gl.glEnable( gl.GL_COLOR_MATERIAL )
-#        gl.glColorMaterial( gl.GL_FRONT_AND_BACK, gl.GL_AMBIENT_AND_DIFFUSE )
-#        gl.glBlendFunc( gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA )
-#
-#
-#    def onResize( self, width, height ):
-#        gl.glViewport( 0, 0, width, height )
-#        gl.glMatrixMode( gl.GL_PROJECTION )
-#        gl.glLoadIdentity( )
-#        gl.glOrtho( 0, width, 0, height, -1, 1 )
-#        gl.glMatrixMode( gl.GL_MODELVIEW )
-#        gl.glLoadIdentity( )
+        del self.data
