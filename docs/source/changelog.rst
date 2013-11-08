@@ -59,7 +59,8 @@ psychopy.iohub Related Changes:
     * Animated fixation target support added during calibration routine
 * ADDED: Following two EXPERIMENTAL stage implementations (Use at Own Risk):
     * Alternative Text stimulus, psychopy.visual.TextBox:
-        * Supports monospace TTF files only.
+        * freetype lib must be available. freetype python wrapper must be copied from visual.textbox.freetype-py folder to python path.
+        * Supports monospace TTF files only. 
         * Very precise placement of text.
         * Update and redraw the text string being displayed very quickly ( 1 - 5 msec for 200 char string, depending on graphics card and OS)
         * IMPORTANT: TextBox is still being finalized and completed; expect to find issues. API changes guaranteed.
