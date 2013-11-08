@@ -1418,7 +1418,7 @@ class ioHubConnection(object):
 
 
 #quickConnect
-print "#####\nTODO: Test launchHubServer with diff arg inputs and new iohub_config_name kwarg.\n#####\n"
+#TODO: Test launchHubServer with diff arg inputs and new iohub_config_name kwarg.
 def launchHubServer(**kwargs):
     """   
     The launchHubServer function can be used to start the ioHub Process
