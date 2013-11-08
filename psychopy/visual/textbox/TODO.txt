@@ -1,24 +1,15 @@
-1) Support unit types supported by psychopy for textbox fields:
-        - size
-        - position
-        - line_spacing
+1) Add 'autoLog' attribute to TextBox like other psychopy stim types have.
 
-2) Any TextBox color attributes need to support psychopy color types.
-
-3) Add 'opacity' attribute to TextBox like other psychopy stim types have.
-
-4) Add 'autoLog' attribute to TextBox like other psychopy stim types have.
-
-5) Support specifying 3 or 4 element colors when given as a list, 
+2) DONE: Support specifying 3 or 4 element colors when given as a list, 
    where 4th element is alpha for that color (4 element color lists are 
    already supported). TODO: If a color has len(3) or is a str, 
    then use opacity value of stim to set alpha for the color.
 
-6) Add support for associating several FontStims with a TextBox. User should be
+3) DONE: Add support for associating several FontStims with a TextBox. User should be
     able to change the 'default' fontstim being used by the textbox by setting it
     with a textstim_label that has previously been defined.
 
-7) NOTE: TextBox relies on knowing possible font setting combinations before
+4) NOTE: TextBox relies on knowing possible font setting combinations before
     first call to .draw() is made. This means users can *not* set individual 
     font related attributes (like .setFontSize(), .setFontColor(), etc.) 
     with the textbox stim. Instead, see #6 for what is possible. 
@@ -26,19 +17,19 @@
     ( like position, alignment, border color / stroke width, textgrid cell
     line grid color and stroke width, others??)
 
-8) Add support for user 'marking up' text for textbox, specifying which fontstim
+5) Add support for user 'marking up' text for textbox, specifying which fontstim
     (from available preloaded fontstims ) should be used for each character of the
     text. i.e. user can format different parts of text differently, using the 
     set of defined fontstim's. 
 
-9) Consider saving fontatlas array and glyph set / font char -> atlas region
+6) Consider saving fontatlas array and glyph set / font char -> atlas region
     dictionary to file system. Then, if user defines a fontstim in a future 
     experiment session that matches what is defined in an available fontatlas file
     (the fontatlas file(s) must be in known file location(s)), load it from
     dist instead of doing all the python logic to rebuild it in memory. 
     Should speed up reloading of previously used fontstim's.  
 
-10) Allow size of textbox to be determined by the maximum char cell size and
+7) Allow size of textbox to be determined by the maximum char cell size and
     max number of chars that will be used in experiment. So size of textbox
     would not be specified in textbox constructor, similar to current TextStim.
     perhaps allow user to specify the 'wrap_width' (in stim units) and if max 
@@ -46,54 +37,22 @@
     each row of text will be determined by max cell height and line spacing 
     attribute.  
 
-11) Remove, or make private, and class methods or attributes that the end user 
-    would never use in the TextBox API.
+8) Document TextBox class methods etc.
 
-12) Remove any attributes or methods that are no longer needed in textBox, given
-    code originated from TextEditor.
-
-13) Document TextBox class methods etc.
-
-14) Use properties for setting / getting public attributes instead of setters
+9) Use properties for setting / getting public attributes instead of setters
     and getters. 
 
-15) Document differences between TextStim and TextBoxStim, including attributes
+10) Document differences between TextStim and TextBoxStim, including attributes
     of textStim that are *not* going to be added to TextBox init method:
                  depth
                  rgb
                  contrast - ??
                  ori
                  height
-                 antialias
                  bold
                  italic
-                 alignHoriz
-                 alignVert
-                 fontFiles
                  wrapWidth
 
-16) Look into improving performance of draw() when text has not changed since 
-    last draw(). Currently code is run as if text was changing event call 
-    to draw(); should be able to cache last textbox graphics state in a hw 
-    tex and reuse when text has not changed.
-
-17) Look into improving initial textstim init and first draw() call time.
-    Can currently take 2-3 sec for only one fontstim type. When 4 fontstim's
-    are cached for textbox, startup time can be 15 sec!!
-
-18) *DONE*:
-          It would be nice if there was the ability to 'pad' rows of text 
-          after the soft wrapping has been used to split the text into 1 - N 
-          rows. This would be useful because it could allow support for
-          text to be center or right justified instead of always left. 
-          Examples (assume a row can hold up to 20 chars):
-            With text length of 14 for the row: 
-                center justify: to center it in the text grid, 3 cells would be
-                left empty before the row line text started to be displayed.
-                right justify: 6 cells on the left of the row would be skipped
-                before displaying the 14 chars on the line.
-          * Need to determine how to best handle the 'padding'. It could be 
-            done within textgrid.draw() by just adding the correct number of
-            /space/ glyphs to cells before doing the drawing. This may not work
-            depending on how drawing is done and how it interacts with a text
-            char 'index'; I forget how I implemented these details right now. 
+11) Look into improving initial textstim init and first draw() call time.
+    Can currently take 2-3 sec for only one fontstim type. Inital load time is 
+    about 1 - 2 seconds per TTF file loaded.!
