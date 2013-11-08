@@ -1,35 +1,23 @@
 1) Add 'autoLog' attribute to TextBox like other psychopy stim types have.
 
-2) DONE: Support specifying 3 or 4 element colors when given as a list, 
-   where 4th element is alpha for that color (4 element color lists are 
-   already supported). TODO: If a color has len(3) or is a str, 
-   then use opacity value of stim to set alpha for the color.
+2) Add support for following color formats:
+    * dkl
+    * hsv
+    * lms
 
-3) DONE: Add support for associating several FontStims with a TextBox. User should be
-    able to change the 'default' fontstim being used by the textbox by setting it
-    with a textstim_label that has previously been defined.
-
-4) NOTE: TextBox relies on knowing possible font setting combinations before
-    first call to .draw() is made. This means users can *not* set individual 
-    font related attributes (like .setFontSize(), .setFontColor(), etc.) 
-    with the textbox stim. Instead, see #6 for what is possible. 
-    TODO: List attributes of textBox that *can* be changed during experiment runtime.
-    ( like position, alignment, border color / stroke width, textgrid cell
-    line grid color and stroke width, others??)
-
-5) Add support for user 'marking up' text for textbox, specifying which fontstim
+3) Add support for user 'marking up' text for textbox, specifying which fontstim
     (from available preloaded fontstims ) should be used for each character of the
     text. i.e. user can format different parts of text differently, using the 
     set of defined fontstim's. 
 
-6) Consider saving fontatlas array and glyph set / font char -> atlas region
+4) Consider saving fontatlas array and glyph set / font char -> atlas region
     dictionary to file system. Then, if user defines a fontstim in a future 
     experiment session that matches what is defined in an available fontatlas file
     (the fontatlas file(s) must be in known file location(s)), load it from
     dist instead of doing all the python logic to rebuild it in memory. 
     Should speed up reloading of previously used fontstim's.  
 
-7) Allow size of textbox to be determined by the maximum char cell size and
+5) Allow size of textbox to be determined by the maximum char cell size and
     max number of chars that will be used in experiment. So size of textbox
     would not be specified in textbox constructor, similar to current TextStim.
     perhaps allow user to specify the 'wrap_width' (in stim units) and if max 
@@ -37,22 +25,30 @@
     each row of text will be determined by max cell height and line spacing 
     attribute.  
 
-8) Document TextBox class methods etc.
+6) Document TextBox class methods etc.
 
-9) Use properties for setting / getting public attributes instead of setters
+7) Use properties for setting / getting public attributes instead of setters
     and getters. 
 
-10) Document differences between TextStim and TextBoxStim, including attributes
-    of textStim that are *not* going to be added to TextBox init method:
-                 depth
-                 rgb
-                 contrast - ??
-                 ori
-                 height
-                 bold
-                 italic
-                 wrapWidth
+8) Document differences between TextStim and TextBoxStim.
 
-11) Look into improving initial textstim init and first draw() call time.
+9) Look into improving initial textstim init and first draw() call time.
     Can currently take 2-3 sec for only one fontstim type. Inital load time is 
     about 1 - 2 seconds per TTF file loaded.!
+
+10) NOTE: TextBox relies on knowing possible font setting combinations before
+    first call to .draw() is made. This means users can *not* set individual 
+    font related attributes (like .setFontSize(), .setFontColor(), etc.) 
+    with the textbox stim. Instead, see #6 for what is possible. 
+    TODO: List attributes of textBox that *can* be changed during experiment runtime.
+    ( like position, alignment, border color / stroke width, textgrid cell
+    line grid color and stroke width, others??)
+
+-) DONE: Support specifying 3 or 4 element colors when given as a list, 
+   where 4th element is alpha for that color (4 element color lists are 
+   already supported). TODO: If a color has len(3) or is a str, 
+   then use opacity value of stim to set alpha for the color.
+
+3-) DONE: Add support for associating several FontStims with a TextBox. User should be
+    able to change the 'default' fontstim being used by the textbox by setting it
+    with a textstim_label that has previously been defined.
