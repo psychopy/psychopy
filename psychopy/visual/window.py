@@ -553,6 +553,13 @@ class Window:
 
         #get timestamp
         now = logging.defaultClock.getTime()
+
+        # run other functions immediately after flip completes
+        for callEntry in self._toCall:
+            callEntry['function'](*callEntry['args'], **callEntry['kwargs'])
+        del self._toCall[:]
+
+        # do bookkeeping
         if self.recordFrameIntervals:
             self.frames += 1
             deltaT = now - self.lastFrameT
@@ -579,10 +586,6 @@ class Window:
                         t=now,
                         obj=logEntry['obj'])
         del self._toLog[:]
-        #function calls
-        for callEntry in self._toCall:
-            callEntry['function'](*callEntry['args'], **callEntry['kwargs'])
-        del self._toCall[:]
 
         #    If self.waitBlanking is True, then return the time that
         # GL.glFinish() returned, set as the 'now' variable. Otherwise
