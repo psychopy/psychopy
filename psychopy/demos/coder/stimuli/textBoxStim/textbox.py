@@ -4,21 +4,9 @@ Created on Thu Mar 21 18:37:10 2013
 
 @author: Sol
 """
-import string
-import random
 from psychopy import visual, core, event
-from psychopy.iohub.util import NumPyRingBuffer
-
-# Variables to control text string length etc.
 
 display_resolution=800,600
-textbox_width=1.95
-textbox_height=.15
-textbox_units='norm'
-
-# Create PsychoPy Window and various visual stim, 
-# including a TextStim and two Textbox stim.    
-
 # Create Window
 window=visual.Window(display_resolution,
                         units='pix',
@@ -72,17 +60,14 @@ textbox2=visual.TextBox(window=window,
 
 textbox.draw()
 textbox2.draw()
-
 demo_start=window.flip()     
 event.clearEvents()
-fcount=0
-while True:
 
+while True:
     textbox.draw()
     textbox2.draw()
     # Update the display to show stim changes
     flip_time=window.flip()
-    fcount+=1
 
     # End the test when a keyboard event is detected
     #

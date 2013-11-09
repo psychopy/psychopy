@@ -354,12 +354,12 @@ class TextBox(object):
 
         ###
 
+        self._text_grid._setActiveGlyphDisplayLists(
+            self._active_text_style._display_lists[self.getMaxTextCellSize()])
+
         if not self._text or len(self._text) == 0:                
             self._text=u'\n'
         self._text_grid._createParsedTextDocument(self._text)
-
-        self._text_grid._setActiveGlyphDisplayLists(
-            self._active_text_style._display_lists[self.getMaxTextCellSize()])
 
         ###
 
@@ -483,12 +483,11 @@ class TextBox(object):
     def getAlignment(self):
         return self._alignment
      
-    def draw(self):              
-        glCallList(self._display_lists['textbox_pre_textgrid'])                            
-        self._text_grid._draw()            
-        glCallList(self._display_lists['textbox_post_textgrid'])                          
+    def draw(self):
+        self._text_grid._buildDisplayList() 
+        glCallList(self._text_grid._textgrid_dlist) 
         glFinish()
-
+        
     def _createDisplayLists(self):
         TextBox._gl_info=getGLInfo()
 

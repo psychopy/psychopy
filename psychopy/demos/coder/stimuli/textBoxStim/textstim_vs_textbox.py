@@ -10,12 +10,10 @@ from psychopy import visual, core, event
 from psychopy.iohub.util import NumPyRingBuffer
 
 # Variables to control text string length etc.
-text_length=30
+text_length=160
 chng_txt_each_flips=5
 max_flip_count=60*60*2
 display_resolution=1920,1080
-textbox_width=display_resolution[0]*.8
-textbox_height=200
 
 # Circular buffers to store timing measures
 textstim_txt_change_draw_times=NumPyRingBuffer(6000)
@@ -73,9 +71,9 @@ textbox=visual.TextBox(window=window,
                          background_color=None,#[128,32,192,255],
                          border_color=None,#[0,255,0,64],
                          border_stroke_width=2,
-                         grid_color=None,#[255,255,0,255],
+                         grid_color=[255,255,0,255],
                          grid_stroke_width=1,
-                         size=(0.8,.1),
+                         size=(1.6,.25),
                          pos=(0.0,0.0), 
                          units='norm',
                          grid_horz_justification='center',
@@ -93,7 +91,7 @@ textbox_init_dur=etime-stime
 stime=core.getTime()*1000.0
 textstim = visual.TextStim(window,pos=(0.0,-(display_resolution[1]/4)),
                     alignHoriz='center',alignVert='center',height=40,
-                    text=text,autoLog=False,wrapWidth=textbox_width)
+                    text=text,autoLog=False,wrapWidth=display_resolution[0]*0.8)
 textstim.draw()
 etime=core.getTime()*1000.0
 textstim_init_dur=etime-stime
