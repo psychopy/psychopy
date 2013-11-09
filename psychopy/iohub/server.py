@@ -329,6 +329,20 @@ class udpServer(DatagramServer):
             return False
         except:
             printExceptionDetailsToStdErr()
+
+    def registerPygletWindowHandles(self,*win_hwhds):
+        if self.iohub:
+            for wh in win_hwhds:
+                if wh not in self.iohub._pyglet_window_hnds:
+                    self.iohub._pyglet_window_hnds.append(wh)            
+            print2err(">>IOHUB.registerPygletWindowHandles:",win_hwhds)
+        
+    def unregisterPygletWindowHandles(self,*win_hwhds):
+        if self.iohub:
+            for wh in win_hwhds:
+                if wh in self.iohub._pyglet_window_hnds:
+                    self.iohub._pyglet_window_hnds.remove(wh)
+            print2err("<<IOHUB.unregisterPygletWindowHandles:",win_hwhds)
             
     def createExperimentSessionEntry(self,sessionInfoDict):
         self.iohub.sessionInfoDict=sessionInfoDict
@@ -351,12 +365,12 @@ class udpServer(DatagramServer):
                         temp[1].append(tuple(i))
                     output.append(tuple(temp))
 
-            return self.iohub.emrt_file._initializeConditionVariableTable(experiment_id,output)
+            return self.iohub.emrt_file._initializeConditionVariableTable(experiment_id,session_id,output)
         return False
 
-    def addRowToConditionVariableTable(self,session_id,data):
+    def addRowToConditionVariableTable(self,experiment_id,session_id,data):
         if self.iohub.emrt_file:
-            return self.iohub.emrt_file._addRowToConditionVariableTable(session_id,data)
+            return self.iohub.emrt_file._addRowToConditionVariableTable(experiment_id,session_id,data)
         return False
 
     def clearEventBuffer(self):
@@ -414,6 +428,7 @@ class ioServer(object):
     eventBuffer=None
     deviceDict={}
     _logMessageBuffer=deque(maxlen=128)
+    _pyglet_window_hnds=[]
     def __init__(self, rootScriptPathDir, config=None):
         self._session_id=None
         self._experiment_id=None

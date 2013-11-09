@@ -55,6 +55,18 @@ class Keyboard(ioHubKeyboardDevice):
     def _nativeEventCallback(self,event):
         if self.isReportingEvents():
             notifiedTime=getTime()
+            
+            report_system_wide_events=self.getConfiguration().get('report_system_wide_events',True)
+
+            pyglet_window_hnds=self._iohub_server._pyglet_window_hnds
+            if event.Window in pyglet_window_hnds:
+                pass
+            elif len(pyglet_window_hnds)>0 and report_system_wide_events is False:
+                # For keyboard, when report_system_wide_events is false
+                # do not record kb events that are not targeted for
+                # a PsychoPy window, still allow them to pass to the desktop 
+                # apps.
+                return True
 
             event.Type = EventConstants.KEYBOARD_RELEASE
             if event.Message in [pyHook.HookConstants.WM_KEYDOWN,pyHook.HookConstants.WM_SYSKEYDOWN]:
