@@ -60,7 +60,7 @@ psychopy1
 
 psychopy/demos/coder/misc/frame*
 psychopy/demos/*.psydat
-psychopy/demos/*/*/*.csv
+#psychopy/demos/*/*/*.csv
 psychopy/*/*/*/data/*.xlsx
 psychopy/*/*/*/data/*.psydat
 psychopy/demos/*/*/*.pickle
