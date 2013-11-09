@@ -329,6 +329,20 @@ class udpServer(DatagramServer):
             return False
         except:
             printExceptionDetailsToStdErr()
+
+    def registerPygletWindowHandles(self,*win_hwhds):
+        if self.iohub:
+            for wh in win_hwhds:
+                if wh not in self.iohub._pyglet_window_hnds:
+                    self.iohub._pyglet_window_hnds.append(wh)            
+            print2err(">>IOHUB.registerPygletWindowHandles:",win_hwhds)
+        
+    def unregisterPygletWindowHandles(self,*win_hwhds):
+        if self.iohub:
+            for wh in win_hwhds:
+                if wh in self.iohub._pyglet_window_hnds:
+                    self.iohub._pyglet_window_hnds.remove(wh)
+            print2err("<<IOHUB.unregisterPygletWindowHandles:",win_hwhds)
             
     def createExperimentSessionEntry(self,sessionInfoDict):
         self.iohub.sessionInfoDict=sessionInfoDict
@@ -414,6 +428,7 @@ class ioServer(object):
     eventBuffer=None
     deviceDict={}
     _logMessageBuffer=deque(maxlen=128)
+    _pyglet_window_hnds=[]
     def __init__(self, rootScriptPathDir, config=None):
         self._session_id=None
         self._experiment_id=None
