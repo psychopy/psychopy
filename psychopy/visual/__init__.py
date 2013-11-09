@@ -46,3 +46,6 @@ from psychopy.visual.rect import Rect
 
 # stimuli derived from Polygon
 from psychopy.visual.circle import Circle
+
+# TextBox alternative to TextStim
+from textbox import TextBox
