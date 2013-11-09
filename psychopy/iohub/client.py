@@ -728,11 +728,30 @@ class ioHubConnection(object):
         for i,d in enumerate(data):
             if isinstance(d,unicode):
                 data[i]=d.encode('utf-8')
-        r=self._sendToHubServer(('RPC','addRowToConditionVariableTable',(self.experimentSessionID,data)))
+        r=self._sendToHubServer(('RPC','addRowToConditionVariableTable',(self.experimentID,self.experimentSessionID,data)))
         return r[2]
 
-    def addTrialHandlerRecord(self,trials):
-        self.addRowToConditionVariableTable(trials)
+    def addTrialHandlerRecord(self,cv_row):
+        self.addRowToConditionVariableTable(cv_row)
+
+    def registerPygletWindowHandles(self,*winHandles):
+        """
+        Sends 1 - n Window handles to iohub so it can determine if kb or
+        mouse events were targeted at a psychopy window or other window.
+        """
+        print2err(">>CLIENT.registerPygletWindowHandles:",winHandles)
+        r=self._sendToHubServer(('RPC','registerPygletWindowHandles',winHandles))
+        return r[2]
+
+    def unregisterPygletWindowHandles(self,*winHandles):
+        """
+        Sends 1 - n Window handles to iohub so it can determine if kb or
+        mouse events were targeted at a psychopy window or other window.
+        """
+        print2err(">>CLIENT.unregisterPygletWindowHandles:",winHandles)
+
+        r=self._sendToHubServer(('RPC','unregisterPygletWindowHandles',winHandles))
+        return r[2]
         
     def enableHighPriority(self,disable_gc=False):
         """        
@@ -1012,6 +1031,10 @@ class ioHubConnection(object):
                 r=self._server_process.stdout.readline()
                 if r and r.rstrip().strip() == 'IOHUB_READY':
                     hubonline=True
+                    from psychopy.visual import window
+                    window.IOHUB_ACTIVE=True
+                    if window.openWindows:
+                        self.registerPygletWindowHandles(*window.openWindows)
                     break
                 elif r and r.rstrip().strip() == 'IOHUB_FAILED':
                     print "ioHub sent IOHUB_FAILED, exiting...."
@@ -1348,6 +1371,8 @@ class ioHubConnection(object):
 
     def _shutDownServer(self):
         if self._shutdown_attempted is False:
+            from psychopy.visual import window
+            window.IOHUB_ACTIVE=False
             self._shutdown_attempted=True
             TimeoutError = Exception
             if sys.platform != 'darwin':
@@ -1418,7 +1443,7 @@ class ioHubConnection(object):
 
 
 #quickConnect
-print "#####\nTODO: Test launchHubServer with diff arg inputs and new iohub_config_name kwarg.\n#####\n"
+#TODO: Test launchHubServer with diff arg inputs and new iohub_config_name kwarg.
 def launchHubServer(**kwargs):
     """   
     The launchHubServer function can be used to start the ioHub Process

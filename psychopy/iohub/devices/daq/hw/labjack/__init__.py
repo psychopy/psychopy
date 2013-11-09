@@ -22,7 +22,8 @@ class AnalogInput(AnalogInputDevice):
     __slots__=[e[0] for e in _newDataTypes]+['_labjack',
                                             '_calibration_data',
                                             '_data_streaming_thread',
-                                            '_scan_count']
+                                            '_scan_count',
+                                            '_part_sample']
     def __init__(self, *args, **kwargs):
         """
         """
@@ -61,10 +62,12 @@ class AnalogInput(AnalogInputDevice):
 
             if AnalogInputDevice.enableEventReporting(self, enable) is True:
                 self._scan_count=0
+                self._part_sample=None
                 self._data_streaming_thread.enableDataStreaming(True)
                 
             else:
                 self._data_streaming_thread.enableDataStreaming(False)
+                self._part_sample=None
                                      
         except:
             print2err("----- LabJack AnalogInput enableEventReporting ERROR ----")
@@ -77,26 +80,86 @@ class AnalogInput(AnalogInputDevice):
             
         logged_time=Computer.getTime()
         start_pre,start_post,analog_data=labjack_data
-
+        
+        #=print2err ('ain_keys: ',analog_data.keys())
+        
         str_proto='AIN%d'
         channel_index_list=range(self.input_channel_count)
-        ain=[]
-        ain_counts=[]
+        ain=[[],]*self.input_channel_count
+        ain_counts=[0,]*self.input_channel_count
         for c in channel_index_list:
-            ai=analog_data[str_proto%c]
-            ain.append(ai)
-            ain_counts.append(len(ai))
+            ain[c]=analog_data[str_proto%c]
+            ain_counts[c]=len(ain[c])
 
-        #ioHub.print2err("Channel Counts: {0} {1}".format(logged_time,ain_counts))
         ain_counts=tuple(ain_counts)
         
+        
         if ain_counts[0] != ain_counts[-1]:
-            err_str="Channel Sample Count Mismatch: "
-            for c in channel_index_list:
-                err_str+='{%d}, '%c
-            err_str=err_str[:-2]
-            print2err(err_str.format(*ain_counts))
+            #print2err('Channel Count Mismatch: ',ain_counts)
+            
+            missing_channel_count=0
+            if ain_counts[0] > ain_counts[-1]:
+                #print2err('Last sample in packet incomplete: ', ain_counts[-1])
+                missing_channel_count=ain_counts[0]-ain_counts[-1]
+                
+                if missing_channel_count>1:
+                    print2err('**** UNHANDLED: > 1 sample in packet does not have 8 channels: ', ain_counts)
+                    print2err('Dropping all samples in packet')
+                    print2err('-----------')
+                    return
+                    
+                self._part_sample=[0.0,]*self.input_channel_count
+                for ci in channel_index_list:
+                    if ain_counts[ci]>ain_counts[-1]:
+                        self._part_sample[ci]=ain[ci][-1]
+                        ain[ci]=ain[ci][:-1]
+                    
+                #print2err('Part Sample Created: {0}'.format(self._part_sample))
+                #print2err('-----------')
+            elif ain_counts[0] < ain_counts[-1]:
+                #print2err('First sample in packet incomplete: ', ain_counts[0])
+                missing_channel_count=ain_counts[-1]-ain_counts[0]
 
+                if missing_channel_count>1:
+                    print2err('**** UNHANDLED: > 1 sample in packet does not have 8 channels: ', ain_counts)
+                    print2err('Dropping all samples in packet')
+                    print2err('-----------')
+                    return
+                
+                if self._part_sample is None:
+                    print2err('**** Part Sample is None')
+                    print2err('**** Dropping first sample in packet')
+                    print2err('-----------')
+
+                    for ci in channel_index_list:
+                        if ain_counts[ci]>ain_counts[0]:
+                            ain[ci]=ain[ci][1:]
+                else:
+                    for ci in channel_index_list:
+                        if ain_counts[ci]>ain_counts[0]:
+                            self._part_sample[ci]=ain[ci][0]
+                            ain[ci]=ain[ci][1:]
+                            
+                    for ci in channel_index_list:
+                        temp=ain[ci]
+                        ain[ci]=[self._part_sample[ci],]
+                        ain[ci].extend(temp)
+                    
+                    #print2err('Inserted completed sample {0}'.format(self._part_sample))
+                    #print2err('-----------')
+                    self._part_sample=None
+            else:
+                print2err('**** UNHANDLED: Both first and last sampless do not have 8 channels: ', ain_counts)
+                print2err('Dropping all samples in packet')
+                print2err('-----------')
+                return
+                
+                
+                
+                
+               
+                
+               
         device_time=0.0
         iohub_time=0.0
         delay=0.0
@@ -117,7 +180,7 @@ class AnalogInput(AnalogInputDevice):
             0 # filter_id
             ]
         
-        for s in range(ain_counts[0]):
+        for s in range(len(ain[0])):
             multi_channel_event=list(event)
 
             multi_channel_event[3]=Computer._getNextEventID()
@@ -216,7 +279,7 @@ class LabJackDataReader(threading.Thread):
                         print2err('ERRORS DURING LABJACK STREAMING: current: {0} total: {1}'.format(returnDict['errors'],self.error_count))
                     if returnDict['missed'] != 0:
                         self.missed_count+=returnDict['missed']
-                        print2err('DROPPED SAMPLES DURING LABJACK STREAMING: current: {0} total: {1}'.format(returnDict['missing'],self.missed_count))
+                        print2err('DROPPED SAMPLES DURING LABJACK STREAMING: current: {0} total: {1}'.format(returnDict['missed'],self.missed_count))
 
                     # put a copy of the new analog input events in the queue for pickup by the ioHub Device Poll
                     self.iohub_device._nativeEventCallback([self.stream_start_time_pre,

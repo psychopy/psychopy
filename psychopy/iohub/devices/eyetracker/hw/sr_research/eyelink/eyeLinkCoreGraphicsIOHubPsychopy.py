@@ -60,18 +60,6 @@ class EyeLinkCoreGraphicsIOHubPsychopy(EyeLinkCustomDisplay):
             KeyboardConstants._virtualKeyCodes.VK_F10: pylink.F10_KEY,
             KeyboardConstants._virtualKeyCodes.VK_F10: pylink.F10_KEY,
             }                                 
-    
-#    SOUND_MAPPINGS={
-#                    -1 : 'wav/error.wav', #cal error beep
-#                    -2 : 'wav/error.wav', # DC error beep
-#                    0 : 'wav/qbeep.wav', # cal. good beep
-#                    1: 'wav/type.wav', # cal target beep
-#                    2:  'wav/qbeep.wav', # DC good beep
-#                    3 : 'wav/type.wav'  # dc target beep
-#                    #'wav/error.wav': None, # file name to Nsound buffer mapping
-#                    #'wav/qbeep.wav': None, # file name to Nsound buffer mapping
-#                    #'wav/type.wav': None, # file name to Nsound buffer mapping
-#                  }
 
     WINDOW_BACKGROUND_COLOR=(128,128,128)
     CALIBRATION_POINT_OUTER_RADIUS=15.0,15.0
@@ -116,14 +104,17 @@ class EyeLinkCoreGraphicsIOHubPsychopy(EyeLinkCustomDisplay):
         EyeLinkCoreGraphicsIOHubPsychopy.CALIBRATION_POINT_INNER_RADIUS=targetInnerDiameter/2.0,targetInnerDiameter/2.0
  
         self.tracker.setOfflineMode();           
+        
         display=self._eyetrackerinterface._display_device
-        self.window=visual.Window(display.getPixelResolution(),monitor=display.getPsychopyMonitorName(),
-                            units=display.getCoordinateType(),
-                            fullscr=True,
-                            allowGUI=False,
-                            screen=display.getIndex()
-                            )
-        self.window.setColor(color=self.WINDOW_BACKGROUND_COLOR,colorSpace='rgb255')        
+        self.window=visual.Window(display.getPixelResolution(),
+                                  monitor=display.getPsychopyMonitorName(),
+                                  units=display.getCoordinateType(),
+                                  fullscr=True,
+                                  allowGUI=False,
+                                  screen=display.getIndex()
+                                  )
+        self.window.setColor(color=self.WINDOW_BACKGROUND_COLOR,
+                             colorSpace='rgb255')        
         self.window.flip(clearBuffer=True)
         
         self._createStim()
@@ -180,40 +171,24 @@ class EyeLinkCoreGraphicsIOHubPsychopy(EyeLinkCustomDisplay):
             self._ioMouse._removeEventListener(self)
      
     def _handleEvent(self,ioe):
-        #print2err("Got Event: ",ioe)
-
         event=copy.deepcopy(ioe)
         event_type_index=DeviceEvent.EVENT_TYPE_ID_INDEX
         if event[event_type_index] == EventConstants.KEYBOARD_PRESS:
-            #print2err('Should handle keyboard event for: ', ioe[-4], ' key_id: ',ioe[-5],' key_mods: ',ioe[-2]) #key pressed
-#            print2err('** KEY: ', ioe[-4]," ,key_id: ",ioe[-5]," ,ascii_code: ",ioe[-6]," ,scan_code: ",ioe[-7])               
             self.translate_key_message((event[-5],event[-2]))
                 
         elif event[event_type_index] == EventConstants.MOUSE_BUTTON_PRESS:
-#            print2err('Should handle mouse pressed event for button id: ', ioe[-7])
             self.state=1
         elif event[event_type_index] == EventConstants.MOUSE_BUTTON_RELEASE:
-#            print2err('Should handle mouse release event for button id: ', ioe[-7])
-            self.state=0
-            
+            self.state=0            
         elif event[event_type_index] == EventConstants.MOUSE_MOVE:
             self.pos=self._ioMouse.getPosition()
-
-#    def _printKeyMapping(self):
-#        print2err("===========================================")
-#        for iokey, pylkey in self.IOHUB2PYLINK_KB_MAPPING.iteritems():
-#            print2err(iokey,' : ',pylkey)
-#        print2err("===========================================")
         
     def translate_key_message(self,event):
         key = 0
         mod = 0
-        #ioHub.print2err('translate_key_message:' ,event)
         if len(event) >0 :
-            key = event[0]
-            
+            key = event[0]           
             self.keys.append(pylink.KeyInput(key,mod))
-
         return key
 
     def get_input_key(self):
@@ -224,18 +199,13 @@ class EyeLinkCoreGraphicsIOHubPsychopy(EyeLinkCustomDisplay):
                 for dm in self._iohub_server.deviceMonitors:
                     dm.device._poll()
                 self._iohub_server._processDeviceEventIteration()
-
-
-            self._lastMsgPumpTime=currentSecTime()
-                
+            self._lastMsgPumpTime=currentSecTime()                
         if len(self.keys) > 0:
             k= self.keys
             self.keys=[]
-            #ioHub.print2err('KEY get_input_key: ',k)
             return k
         else:
             return None
-
 
     def _createStim(self):        
 
@@ -279,34 +249,47 @@ class EyeLinkCoreGraphicsIOHubPsychopy(EyeLinkCustomDisplay):
                         s.draw()
                         
         self.calStim=StimSet()
-        
-        coord_type=self._eyetrackerinterface._display_device.getCoordinateType()
-        
+                
         self.calStim.calibrationPoint=OrderedDict()
-        self.calStim.calibrationPoint['OUTER'] = visual.Circle(self.window,pos=(0,0),
-                    lineWidth=1.0, lineColor=self.CALIBRATION_POINT_OUTER_COLOR, lineColorSpace='rgb255',
-                    fillColor=self.CALIBRATION_POINT_OUTER_COLOR, fillColorSpace='rgb255',
-                    radius=self.CALIBRATION_POINT_OUTER_RADIUS,                    
-                    name='CP_OUTER', units='pix',opacity=1.0, interpolate=False)
+        self.calStim.calibrationPoint['OUTER'] = visual.Circle(
+                                self.window,
+                                pos=(0,0),
+                                lineWidth=1.0, 
+                                lineColor=self.CALIBRATION_POINT_OUTER_COLOR, 
+                                lineColorSpace='rgb255',
+                                fillColor=self.CALIBRATION_POINT_OUTER_COLOR, 
+                                fillColorSpace='rgb255',
+                                radius=self.CALIBRATION_POINT_OUTER_RADIUS,                    
+                                name='CP_OUTER', 
+                                units='pix',
+                                opacity=1.0, 
+                                interpolate=False)
 
-        self.calStim.calibrationPoint['INNER'] = visual.Circle(self.window,
-                    pos=(0,0),lineWidth=1.0,lineColor=self.CALIBRATION_POINT_INNER_COLOR, lineColorSpace='rgb255',
-                    fillColor=self.CALIBRATION_POINT_INNER_COLOR, fillColorSpace='rgb255', 
-                    radius=self.CALIBRATION_POINT_INNER_RADIUS,
-                    name='CP_INNER',units='pix',opacity=1.0, interpolate=False)
+        self.calStim.calibrationPoint['INNER'] = visual.Circle(
+                                self.window,
+                                pos=(0,0),lineWidth=1.0,
+                                lineColor=self.CALIBRATION_POINT_INNER_COLOR, 
+                                lineColorSpace='rgb255',
+                                fillColor=self.CALIBRATION_POINT_INNER_COLOR, 
+                                fillColorSpace='rgb255', 
+                                radius=self.CALIBRATION_POINT_INNER_RADIUS,
+                                name='CP_INNER',
+                                units='pix',
+                                opacity=1.0, 
+                                interpolate=False)
 
         self.imageStim=StimSet()
-        self.imageStim.imageTitle = visual.TextStim(self.window, text = "EL CAL", pos=(0,0), units='pix', alignHoriz='center')        
+        self.imageStim.imageTitle = visual.TextStim(self.window, 
+                                                    text = "EL CAL", 
+                                                    pos=(0,0), 
+                                                    units='pix', 
+                                                    alignHoriz='center')        
         
     def setup_cal_display(self):
-        #ioHub.print2err('setup_cal_display entered')
         self.window.flip(clearBuffer=True)
-        #ioHub.print2err('setup_cal_display exiting')
 
     def exit_cal_display(self):
-        #ioHub.print2err('exit_cal_display entered')
         self.window.flip(clearBuffer=True)
-        #ioHub.print2err('exit_cal_display exiting')
 
     def record_abort_hide(self):
         pass
@@ -319,25 +302,16 @@ class EyeLinkCoreGraphicsIOHubPsychopy(EyeLinkCustomDisplay):
         
     def draw_cal_target(self, x, y):
         self.width/2
-        self.calStim.updateStim('calibrationPoint',setPos=(x-self.width/2,-(y-self.height/2)))  
+        self.calStim.updateStim('calibrationPoint',
+                                setPos=(x-self.width/2,-(y-self.height/2)))  
         self.calStim.draw()
         self.window.flip(clearBuffer=True)
         
     def play_beep(self, beepid):
         pass
-        #if (Nsound is not None) and (beepid in self.SOUND_MAPPINGS):
-        #    sname=self.SOUND_MAPPINGS[beepid]
-        #    audiobuffer,audioplayer=self.SOUND_MAPPINGS[sname]
-        #    audiobuffer >> audioplayer
-        #elif Nsound is None:
-        #    pass
-        #else:
-        #    ioHub.print2err('play_beep ERROR: Unsupported beep id: %d.'%(beepid))
                     
     def exit_image_display(self):
-        #ioHub.print2err('exit_image_display entered')
         self.window.flip(clearBuffer=True)
-        #ioHub.print2err('exit_image_display exiting')
 
     def alert_printf(self,msg):
         print2err('**************************************************')
@@ -345,11 +319,9 @@ class EyeLinkCoreGraphicsIOHubPsychopy(EyeLinkCustomDisplay):
         print2err('**************************************************')
         
     def image_title(self, text):
-        #ioHub.print2err('image_title entered')
         self.imageStim.updateStim('imageTitle',setText=text)
         self.imageStim.draw()        
         self.window.flip(clearBuffer=True)
-        #ioHub.print2err('image_title exiting')
 
 ############# From Pyglet Custom Graphics #####################################
 #

@@ -9,10 +9,13 @@ recursive-include psychopy/app *.spec
 
 recursive-include psychopy/monitors *.ico
 
-recursive-include psychopy/iohub *.yaml
+recursive-include psychopy/iohub *.yaml 
+recursive-include psychopy/iohub/devices/eyetracker/hw/sr_research/eyelink/win32 *.pyc *.dll *.pyd 
 
-recursive-include psychopy/demos/coder *.mov *.jpg *.ttf *.yaml *.py *.part
-recursive-include psychopy/demos/builder *.psyexp *.csv *.xlsx *.wav
+recursive-include psychopy/visual/textbox/fonts *.ttf
+
+recursive-include psychopy/demos/coder *.mov *.jpg *.ttf *.yaml *.py *.part *.xlsx *.xls
+recursive-include psychopy/demos/builder *.psyexp *.csv *.xlsx *.wav *.yaml
 
 recursive-include psychopy/preferences *.spec
 
