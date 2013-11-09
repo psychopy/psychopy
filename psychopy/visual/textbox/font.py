@@ -7,7 +7,7 @@ Created on Sun May 19 12:20:03 2013
 
 import os
 import numpy
-from freetype import Face, version, FT_LOAD_RENDER,  FT_LOAD_FORCE_AUTOHINT
+from psychopy.visual.textbox.freetype_bf import Face, version, FT_LOAD_RENDER,  FT_LOAD_FORCE_AUTOHINT
 from textureAtlas import TextureAtlas
               
 class TTFont(object):

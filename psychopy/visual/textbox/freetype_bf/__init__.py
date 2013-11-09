@@ -17,6 +17,12 @@ Note:
   search might fail. In such a case (or for other reasons), you can specify the
   FT_library_filename before importing the freetype library and freetype will use
   the specified one. 
+  
+UPDATED MAY 2013 by Sol Simpson:
+    - Added OSX and Linux libfreetype paths for ctypes
+    - Removed a method that was constantly causing exceptions because it was
+      never being found in the freetype lib. We never use it or need to, 
+      so just removing it was the easiest solution. ;)
 '''
 from ctypes import *
 from ft_types import *

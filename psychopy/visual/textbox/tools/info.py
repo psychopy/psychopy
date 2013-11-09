@@ -11,7 +11,7 @@ Created on Thu May 19 10:47:38 2013
 @author: Sol
 """
 
-from freetype import *
+from psychopy.visual.textbox.freetype_bf import *
 
 if __name__ == '__main__':
     import sys
