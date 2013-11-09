@@ -8,6 +8,7 @@ import string
 import random
 from psychopy import visual, core, event
 from psychopy.iohub.util import NumPyRingBuffer
+import pyglet.gl as gl
 
 # Variables to control text string length etc.
 text_length=160
@@ -16,10 +17,10 @@ max_flip_count=60*60*2
 display_resolution=1920,1080
 
 # Circular buffers to store timing measures
-textstim_txt_change_draw_times=NumPyRingBuffer(6000)
-textstim_no_change_draw_times=NumPyRingBuffer(6000)
-textbox_txt_change_draw_times=NumPyRingBuffer(6000)
-textbox_no_change_draw_times=NumPyRingBuffer(6000)
+stim1_txt_change_draw_times=NumPyRingBuffer(6000)
+stim1_no_change_draw_times=NumPyRingBuffer(6000)
+stim2_txt_change_draw_times=NumPyRingBuffer(6000)
+stim2_no_change_draw_times=NumPyRingBuffer(6000)
 
 # Some utility functions >>>
 #
@@ -40,6 +41,7 @@ def updateStimText(stim,text=None):
     if text:    
         stim.setText(text)
     stim.draw()
+    gl.glFinish()
     etime=core.getTime()*1000.0 
     return etime-stime
 #
@@ -74,7 +76,7 @@ textbox=visual.TextBox(window=window,
                          grid_color=[255,255,0,255],
                          grid_stroke_width=1,
                          size=(1.6,.25),
-                         pos=(0.0,0.0), 
+                         pos=(0.0,.25), 
                          units='norm',
                          grid_horz_justification='center',
                          grid_vert_justification='center',
@@ -96,104 +98,95 @@ textstim.draw()
 etime=core.getTime()*1000.0
 textstim_init_dur=etime-stime
 
-# Create some other non text psychopy stim.
-#
-fixSpot = visual.PatchStim(window,tex="none", mask="gauss",
-                    pos=(0,0), size=(30,30),color='black', autoLog=False)
-fixSpot.draw()
-
-lgrating = visual.PatchStim(window,pos=(-300,0),
-                    tex="sin",mask="gauss",
-                    color=[-1.0,0.5,1.0],
-                    size=(150.0,150.0), sf=(0.01,0.0),
-                    autoLog=False)
-lgrating.draw()
-
-rgrating = visual.PatchStim(window,pos=(300,0),
-                    tex="sin",mask="gauss",
-                    color=[1.0,0.5,-1.0],
-                    size=(150.0,150.0), sf=(0.01,0.0),
-                    autoLog=False)
-rgrating.draw()
 
 # Do the first stim display and start into the testing loop.
 #
-demo_start=window.flip()     
-event.clearEvents()
-fcount=0
-while True:
-    lgrating.setOri(5, '+')
-    lgrating.setPhase(0.05, '+')
-    lgrating.draw()
-    fixSpot.draw()
 
-    # For the textBox and TextStim resources, change the text every
-    # chng_txt_each_flips, and record the time it takes to update the text
-    # and redraw() each resource type.
-    #
-    if fcount==0 or fcount%chng_txt_each_flips==0:
-        t=getRandomString(text_length)
-        textbox_dur=updateStimText(textbox,t)
-        textbox_txt_change_draw_times.append(textbox_dur)
-        pyglet_dur=updateStimText(textstim,t)
-        textstim_txt_change_draw_times.append(pyglet_dur)
-    else:
-        textbox_dur=updateStimText(textbox)
-        textbox_no_change_draw_times.append(textbox_dur)
-        pyglet_dur=updateStimText(textstim)
-        textstim_no_change_draw_times.append(pyglet_dur)
+
+#stim_draw_orders=[[textstim,textbox],[textbox,textstim]]
+stim_draw_orders=[[textstim,textbox],[textbox,textstim],[textbox,textbox],[textstim,textstim]]
+for stim1, stim2 in stim_draw_orders:
+    stim1_txt_change_draw_times.clear()    
+    stim2_txt_change_draw_times.clear()    
+    stim1_no_change_draw_times.clear()    
+    stim2_no_change_draw_times.clear()    
+    demo_start=window.flip()     
+    event.clearEvents()
+    fcount=0
+    while True:
+        # For the textBox and TextStim resources, change the text every
+        # chng_txt_each_flips, and record the time it takes to update the text
+        # and redraw() each resource type.
+        #
     
-    rgrating.setOri(5, '+')
-    rgrating.setPhase(0.05, '+')
-    rgrating.draw()
-        
-    # Update the display to show stim changes
-    flip_time=window.flip()
-    fcount+=1
-
-    # End the test when a keyboard event is detected or when max_flip_count
-    # win.flip() calls have been made.
+        # Make sure timing of stim is for the time taken for that stim alone. ;)
+        gl.glFlush()
+        gl.glFinish()
+    
+        if fcount==0 or fcount%chng_txt_each_flips==0:
+            t=getRandomString(text_length)
+            stim1_dur=updateStimText(stim1,t)
+            stim1_txt_change_draw_times.append(stim1_dur)
+            t=getRandomString(text_length)
+            stim2_dur=updateStimText(stim2,t)
+            stim2_txt_change_draw_times.append(stim2_dur)
+        else:
+            stim1_dur=updateStimText(stim1)
+            stim1_no_change_draw_times.append(stim1_dur)
+            stim2_dur=updateStimText(stim2)
+            stim2_no_change_draw_times.append(stim2_dur)
+            
+        # Update the display to show stim changes
+        flip_time=window.flip()
+        fcount+=1
+    
+        # End the test when a keyboard event is detected or when max_flip_count
+        # win.flip() calls have been made.
+        #
+        kb_events=event.getKeys()
+        if kb_events:
+            break
+        if fcount>=max_flip_count:
+            break
+    
+    # Print a comparision of the TextBox and TextStim performance.
     #
-    kb_events=event.getKeys()
-    if kb_events:
-        break
-    if fcount>=max_flip_count:
-        break
-
-# Print a comparision of the TextBox and TextStim performance.
-#
-print
-print '-------Text Draw Duration Test---------'
-print
-print '+ Text Stim Char Length:\t',text_length
-print '+ TextBox INIT Dur (secs):\t%.3f'%(textbox_init_dur/1000.0)
-print '+ TextStim INIT Dur (secs):\t%.3f'%(textstim_init_dur/1000.0)
-print '+ Text Change Flip Perc:\t%.2f'%((1.0/chng_txt_each_flips)*100.0),r'%'
-print
-print '+ Total Flip Count:\t\t',fcount
-print '+ Test Duration (secs):\t\t%.3f'%(flip_time-demo_start)
-print '+ FPS:\t\t\t\t%.3f'%(float(fcount)/(flip_time-demo_start))
-print
-print '+ Average Draw Call Durations (msec):'
-print
-print 'Text Object\tNo Txt Change\tTxt Change'
-print
-print '%s\t\t%.3f\t\t%.3f'%(textbox.__class__.__name__,
-    textbox_no_change_draw_times.mean(),textbox_txt_change_draw_times.mean())
-print '%s\t%.3f\t\t%.3f'%(textstim.__class__.__name__,
-    textstim_no_change_draw_times.mean(),textstim_txt_change_draw_times.mean())
-print
-print '+ TextStim / TextBox Draw Time Ratio:'
-print
-print '\tNo Txt Change\tTxt Change'
-print
-print 'Ratio\t%.3f\t\t%.3f'%(textstim_no_change_draw_times.mean()/textbox_no_change_draw_times.mean(),
-    textstim_txt_change_draw_times.mean()/textbox_txt_change_draw_times.mean())
-print
-print '---------------------------------------'
-
-window.getMovieFrame()
-window.saveMovieFrames('text_test_%d.png'%(text_length))
-kb_events=event.waitKeys()
+    print
+    print '-------Text Draw Duration Test---------'
+    print
+    print '+ Draw Order: %s then %s\t'%(stim1.__class__.__name__,stim2.__class__.__name__)
+    print '+ Text Stim Char Length:\t',text_length
+    if stim1.__class__.__name__ == 'TextBox':
+        print '+ TextBox INIT Dur (secs):\t%.3f'%(textbox_init_dur/1000.0)
+    else:    
+        print '+ TextStim INIT Dur (secs):\t%.3f'%(textstim_init_dur/1000.0)
+    if stim1 != stim2:
+        if stim2.__class__.__name__ == 'TextBox':
+            print '+ TextBox INIT Dur (secs):\t%.3f'%(textbox_init_dur/1000.0)
+        else:    
+            print '+ TextStim INIT Dur (secs):\t%.3f'%(textstim_init_dur/1000.0)
+    print '+ Text Change Flip Perc:\t%.2f'%((1.0/chng_txt_each_flips)*100.0),r'%'
+    print
+    print '+ Total Flip Count:\t\t',fcount
+    print '+ Test Duration (secs):\t\t%.3f'%(flip_time-demo_start)
+    print '+ FPS:\t\t\t\t%.3f'%(float(fcount)/(flip_time-demo_start))
+    print
+    print '+ Average Draw Call Durations (msec):'
+    print
+    print 'Text Object\tNo Txt Change\tTxt Change'
+    print
+    print '%s\t\t%.3f\t\t%.3f'%(stim1.__class__.__name__,
+        stim1_no_change_draw_times.mean(),stim1_txt_change_draw_times.mean())
+    print '%s\t%.3f\t\t%.3f'%(stim2.__class__.__name__,
+        stim2_no_change_draw_times.mean(),stim2_txt_change_draw_times.mean())
+    print
+    print '+ %s / %s Draw Time Ratio:'%(stim1.__class__.__name__,stim2.__class__.__name__)
+    print
+    print '\tNo Txt Change\tTxt Change'
+    print
+    print 'Ratio\t%.3f\t\t%.3f'%(stim1_no_change_draw_times.mean()/stim2_no_change_draw_times.mean(),
+        stim1_txt_change_draw_times.mean()/stim2_txt_change_draw_times.mean())
+    print
+    print '---------------------------------------'
 
 core.quit()

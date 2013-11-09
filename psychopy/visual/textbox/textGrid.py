@@ -103,7 +103,7 @@ class TextGrid(object):
                 
     def _createParsedTextDocument(self,f):
         if self._shape:
-            self._text_document=parsedTextDocument.ParsedTextDocument(f,self,False) 
+            self._text_document=parsedTextDocument.ParsedTextDocument(f,self) 
             self._deleteDisplayList()
             self._buildDisplayList()
         else:
@@ -114,7 +114,9 @@ class TextGrid(object):
             dl_index = glGenLists(1)        
             glNewList(dl_index, GL_COMPILE)           
 
-            glCallList(self._text_box._display_lists['textbox_pre_textgrid'])                            
+            #stime=getTime()
+
+            self._text_box._te_start_gl()                         
     
             ###
             glActiveTexture(GL_TEXTURE0)        
@@ -184,9 +186,13 @@ class TextGrid(object):
                             glVertex2i(x, int(-self._size[1]))                        
                 glEnd()
             
-            glCallList(self._text_box._display_lists['textbox_post_textgrid'])                          
-            glEndList()
+            self._text_box._te_end_gl()                         
 
+            #etime=getTime()
+
+            glEndList()
+            
+            #print 'GL_TIME: %.3f'%((etime-stime)*1000.0)
             self._textgrid_dlist=dl_index
 
     def __del__(self):

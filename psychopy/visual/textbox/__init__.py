@@ -205,7 +205,7 @@ class TextBox(object):
         
         aliased_wrange=TextBox._gl_info['GL_ALIASED_LINE_WIDTH_RANGE']
         antia_wrange=TextBox._gl_info['GL_SMOOTH_LINE_WIDTH_RANGE']
-        antia_gran=TextBox._gl_info['GL_SMOOTH_LINE_WIDTH_GRANULARITY']
+        #antia_gran=TextBox._gl_info['GL_SMOOTH_LINE_WIDTH_GRANULARITY']
         
         if grid_stroke_width and grid_color:
             if interpolate:
@@ -230,12 +230,7 @@ class TextBox(object):
                     self._border_stroke_width= aliased_wrange[0]   
                 if border_stroke_width > aliased_wrange[1]:
                     self._border_stroke_width= aliased_wrange[1]   
-        
-        print            
-        print 'self._border_stroke_width:',self._border_stroke_width
-        print 'self._grid_stroke_width:',self._grid_stroke_width
-        print
-
+                    
         self._units=units
         if self._units is None:
             self._units=self._window.units
@@ -286,9 +281,6 @@ class TextBox(object):
             print 'Parameter "flipHoriz" is not supported by TextBox'
         if flipVert:
             print 'Parameter "flipVert" is not supported by TextBox'
-        
-        self._display_lists=dict(textbox_pre_textgrid=None,
-                                 textbox_post_textgrid=None)         
 
         self._glyph_set_max_tile_sizes=None
         self._alignment=align_horz,align_vert
@@ -348,9 +340,6 @@ class TextBox(object):
                                  line_width=self._grid_stroke_width,
                                  grid_horz_justification=self._grid_horz_justification,
                                  grid_vert_justification=self._grid_vert_justification)
-        ###
-
-        self._createDisplayLists()
 
         ###
 
@@ -484,16 +473,21 @@ class TextBox(object):
         return self._alignment
      
     def draw(self):
+#        atime=getTime()        
         self._text_grid._buildDisplayList() 
+#        btime=getTime()
         glCallList(self._text_grid._textgrid_dlist) 
-        glFinish()
+#        ctime=getTime()
+        #glFinish()
+        #dtime=getTime()
         
-    def _createDisplayLists(self):
-        TextBox._gl_info=getGLInfo()
-
-        dl_index = glGenLists(1)        
-        glNewList(dl_index, GL_COMPILE)           
+#        print 'BUILD LIST: %.3f'%((btime-atime)*1000.0)
+#        print 'CALL_LIST: %.3f'%((ctime-btime)*1000.0)
+#        #print 'FINISH: %.3f'%((dtime-ctime)*1000.0)
+#        print 'TOTAL: %.3f'%((ctime-atime)*1000.0)
+#        print '----'
         
+    def _te_start_gl(self):
         glViewport( 0, 0, self._window.winHandle.screen.width,self._window.winHandle.screen.height )
         glMatrixMode( GL_PROJECTION )
         glLoadIdentity()
@@ -547,13 +541,8 @@ class TextBox(object):
                 glVertex2d(x1-hbthick, y1)             
                 glEnd()    
             glColor4f(0.0,0.0,0.0,1.0)
-        glEndList( )
-        self._display_lists['textbox_pre_textgrid']=dl_index  
 
-        #######
-
-        dl_index = glGenLists(1)        
-        glNewList(dl_index, GL_COMPILE)           
+    def _te_end_gl(self):
         rgb=self._window.rgb
         rgb=TextBox._toRGBA2(rgb,1,self._window.colorSpace,self._window)
         glClearColor(rgb[0],rgb[1],rgb[2], 1.0) 
@@ -563,23 +552,6 @@ class TextBox(object):
         gluOrtho2D(-1,1,-1,1)
         glMatrixMode(GL_MODELVIEW)# Reset The Projection Matrix
         glLoadIdentity()
-        glEndList( )
-        self._display_lists['textbox_post_textgrid']=dl_index 
-
-    def _freeDisplayList(self,dlist_name=None):
-        # if no dlist_name is given, delete all dlists
-        if dlist_name:
-            dlist=self._display_lists.get(dlist_name)
-            if dlist:
-                glDeleteLists(dlist, 1)
-                self._display_lists[dlist_name]=None
-        else:
-            dlist_names=self._display_lists.keys()
-            for dlist_name in dlist_names:
-                dlist=self._display_lists.get(dlist_name)
-                if dlist:
-                    glDeleteLists(dlist, 1)
-                    self._display_lists[dlist_name]=None
 
     @staticmethod
     def _toPix(xy,units,window):
@@ -739,7 +711,6 @@ class TextBox(object):
 
     def __del__(self):
         del self._textbox_instances[self.getName()]
-        self._freeDisplayList()
         self._text_styles.clear()
         self._glyph_set_max_tile_sizes=None
         del self._active_text_style
