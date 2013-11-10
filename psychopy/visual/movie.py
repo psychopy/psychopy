@@ -146,7 +146,7 @@ class MovieStim(BaseVisualStim):
 
         #check for pyglet
         if win.winType!='pyglet':
-            logging.Error('Movie stimuli can only be used with a pyglet window')
+            logging.error('Movie stimuli can only be used with a pyglet window')
             core.quit()
     def _calcVertices(self):
         R, T = self._sizeRendered / 2  # pix
