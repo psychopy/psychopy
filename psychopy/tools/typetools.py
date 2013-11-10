@@ -29,7 +29,7 @@ def float_uint16(inarray):
     """
     i16max = 2**16 - 1
     retVal = numpy.around(i16max*(1.0+numpy.asarray(inarray))/2.0)
-    return retVal.astype(numpy.UnsignedInt16)
+    return retVal.astype(numpy.uint16)
 
 
 def uint8_float(inarray):
