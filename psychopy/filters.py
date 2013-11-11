@@ -49,7 +49,7 @@ def makeGrating(res,
 
     if gratType is "none":
             res=2
-            intensity = numpy.ones((res,res),Float)
+            intensity = numpy.ones((res, res), float)
     elif gratType is "sin":
             intensity= contr*(numpy.sin( xrange*numpy.sin(ori)+yrange*numpy.cos(ori) + phase))
     elif gratType is "ramp":

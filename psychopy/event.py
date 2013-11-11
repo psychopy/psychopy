@@ -302,7 +302,7 @@ class Mouse:
 
     :Parameters:
         visible : **True** or False
-            makes the mouse invisbile if necessary
+            makes the mouse invisible if necessary
         newPos : **None** or [x,y]
             gives the mouse a particular starting position (pygame `Window` only)
         win : **None** or `Window`
@@ -340,7 +340,7 @@ class Mouse:
         if newPos is not None: self.setPos(newPos)
 
     def setPos(self,newPos=(0,0)):
-        """Sets the current postiion of the mouse (pygame only),
+        """Sets the current position of the mouse (pygame only),
         in the same units as the :class:`~visual.Window` (0,0) is at centre
 
         :Parameters:
@@ -356,7 +356,7 @@ class Mouse:
         else: print "pyglet does not support setting the mouse position yet"
 
     def getPos(self):
-        """Returns the current postion of the mouse,
+        """Returns the current position of the mouse,
         in the same units as the :class:`~visual.Window` (0,0) is at centre
         """
         if usePygame: #for pygame top left is 0,0
