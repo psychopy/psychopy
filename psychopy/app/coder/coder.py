@@ -2090,6 +2090,7 @@ class CoderFrame(wx.Frame):
     def stopFile(self, event):
         self.toolbar.EnableTool(self.IDs.tbRun,True)
         self.toolbar.EnableTool(self.IDs.tbStop,False)
+        self.app.terminateHubProcess()
         if runScripts in ['thread','dbg']:
             #killing a debug context doesn't really work on pygame scripts because of the extra
             if runScripts == 'dbg':self.db.quit()
