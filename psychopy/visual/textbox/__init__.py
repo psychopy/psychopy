@@ -22,14 +22,20 @@ from pyglet.gl import (glCallList,glFinish,glGenLists,glNewList,glViewport,
                GL_SMOOTH_LINE_WIDTH_RANGE,GL_SMOOTH_LINE_WIDTH_GRANULARITY,
                GL_POLYGON_SMOOTH)
 
+
 from psychopy import core,misc,colors
 import psychopy.tools.colorspacetools as colortools
 import psychopy.tools.arraytools as arraytools
+from font_manager import SystemFontManager
 
 from textGrid import TextGrid
 from glyph import GlyphSet
 from font import TTFont
 
+print 'TODO: '
+print ' - Handle cases where loaded font file does not have a glyph for a charcode being used in the text. Should give warning and replace with a space glyph, not crash'
+print ' - Fix crash when > 1 textbox is added to a window.'
+print
 def getTime():
     return core.getTime()
 
@@ -54,8 +60,7 @@ def getGLInfo():
     glGetFloatv(GL_SMOOTH_LINE_WIDTH_GRANULARITY,swg)
     gl_info['GL_SMOOTH_LINE_WIDTH_GRANULARITY']=swg
     return gl_info
-    
-        
+       
 class TextBox(object):
     """
     TextBox is a psychopy visual stimulus type that supports the presentation
@@ -96,37 +101,24 @@ class TextBox(object):
         * TBC
      
     """
+    font_manager = SystemFontManager() 
     _textbox_instances={}
     _text_style_cache={}
     _te_glyph_set_label_to_max_size={}
-    _default_text_style_info=dict(
-                                label='default_textbox_text_style',
-                                file_name='VeraMono.ttf',
-                                font_size=14,
-                                dpi=72,
-                                font_color=[-1,-1,-1,1],
-                                font_background_color=None,
-                                color_space='rgb',
-                                opacity=1
-                                )   
     _gl_info=None
+    default_font_family_style=None
     def __init__(self, 
              window=None,               # PsychoPy Window instance
-             name=None,                 # Name for the TextBox Stim
-             text_style_label=None,# Label of an already loaded 
-                                        # FontStim.
-             available_text_styles_labels=[],# List of pre loaded test style labels
-                                        # that should be made available for this
-                                        # instance of TextBox
              text='Default Test Text.', # Initial text to be displayed.
-             font_file_name=None,       # Name of TTF file to use. File
-                                        # must be in one of the Font Search
-                                        # Directories registed with TextBox. 
+             font_name=None,            # Family name of Font
+             bold=False,                # Bold and italics are used to 
+             italic=False,             #    determine style of font
              font_size=32,              # Pt size to use for font.
-             dpi=72,                    # DPI used to create font bitmaps
-                                        # (should match your system DPI setting)
              font_color=[0,0,0,1],      # Color to draw the text with.  
              font_background_color=None,# Color to fill each text cell with.
+             dpi=72,                    # DPI used to create font bitmaps
+             font_file_name=None,       # to hand a ttf file for use directly
+                                        # (should match your system DPI setting)
              line_spacing=0,            # Amount of extra spacing to add between
              line_spacing_units='pix',  # lines of text.
              background_color=None,     # Color to use to fill the entire area
@@ -171,14 +163,13 @@ class TextBox(object):
              ori=None,
              antialias=None,
              height=None,
-             bold=None,
-             italic=None,
              alignHoriz=None,
              alignVert=None,
              fontFiles=None,
              wrapWidth=None,
              flipHoriz=None, 
-             flipVert=None
+             flipVert=None,
+             name=None                 # Name for the TextBox Stim
              ):
         self._window=window  
         self._text=text
@@ -197,8 +188,6 @@ class TextBox(object):
         self._size=size
         self._position=pos
         self._interpolate=interpolate
-
-
         
         if TextBox._gl_info is None:
             TextBox._gl_info =getGLInfo()
@@ -265,10 +254,6 @@ class TextBox(object):
             print 'Parameter "antialias" is not supported by TextBox'
         if height:
             print 'Parameter "height" is not supported by TextBox'
-        if bold:
-            print 'Parameter "bold" is not supported by TextBox'
-        if italic:
-            print 'Parameter "italic" is not supported by TextBox'
         if alignHoriz:
             print 'Parameter "alignHoriz" is not supported by TextBox'
         if alignVert:
@@ -285,20 +270,37 @@ class TextBox(object):
         self._glyph_set_max_tile_sizes=None
         self._alignment=align_horz,align_vert
         self._active_text_style=None
-        self._available_text_styles_labels=available_text_styles_labels
         self._text_grid=None
         self._text_styles={}
         
         if self._label is None:
             self._label='TextBox_%s'%(str(int(time.time())))
-        
-        for tsl in self._available_text_styles_labels:
-            ts = self._text_style_cache.get(tsl)
-            if ts:
-                self._text_styles.setdefault(tsl,ts)
-                
-        self._setActiveTextStyleFromArgs(text_style_label,
-                                         font_file_name,
+
+
+        text_style=None        
+        if font_name:
+            matching_fonts=self.font_manager.getFontsMatching(font_name,bold=bold,italic=italic)
+            if matching_fonts:
+                text_style=matching_fonts[0]
+        else:
+            for family_name,style in self.font_manager.font_family_styles:
+                b,i=self.font_manager.booleansFromStyleName(style)
+                if b==bold and i==italic:
+                    text_style=self.font_manager.getFontsMatching(family_name,style=style)[0]
+
+        #print 'Text Info Match:',text_style
+        if text_style:
+            text_style=self.createTextStyle(text_style,
+                                            font_size=font_size,
+                                            dpi=dpi,
+                                            font_color=font_color,
+                                            font_background_color=font_background_color,
+                                            color_space=color_space,
+                                            opacity=opacity,
+                                            window=window)                        
+        #print 'text_style Match:',text_style
+ 
+        self._setActiveTextStyleFromArgs(text_style,font_file_name,
                                          font_size,
                                          dpi,
                                          font_color,
@@ -307,7 +309,7 @@ class TextBox(object):
                                          opacity)
                                     
         ###
-
+        #print 'self._active_text_style:', self._active_text_style                            
         if TTFont._glyphs_loaded is False:
             TTFont._loadGlyphs()
             TTFont.getTextureAtlas().upload()
@@ -424,37 +426,34 @@ class TextBox(object):
     def getTextGrid(self):
         return self._text_grid
             
-    @staticmethod
-    def getFontSearchDirectories():
-        return TTFont.getSearchDirectories()
 
     @staticmethod
-    def addFontSearchDirectories(*font_dir_list):
-        return TTFont.addSearchDirectories(*font_dir_list)
-            
-    @staticmethod
-    def removeFontSearchDirectories(*font_dir_list):
-        return TTFont.removeSearchDirectories(*font_dir_list)
-
-    @staticmethod
-    def createTextStyle(text_style_label,file_name,font_size=24,dpi=72,font_color=[0,0,0,1],font_background_color=None,color_space='rgb',opacity=1.0,window=None):
+    def createTextStyle(font_info=None,file_path=None,font_size=24,dpi=72,font_color=[0,0,0,1],font_background_color=None,color_space='rgb',opacity=1.0,window=None):
         if len(TextBox._textbox_instances)>0:
             raise ValueError("TextBox.createTextStyle can not be called after a TextBox object has been created. Current TextBox count: %d"%(len(TextBox._textbox_instances)))
-        if text_style_label in TextBox._text_style_cache:
-            raise ValueError("TextBox.createTextStyle TextBox Label Already In Use: %s"%(text_style_label))
+
+        font=None
+        if font_info:
+            font=TTFont.load(font_info.path,font_size,dpi) 
+        else:
+            font=TTFont.load(file_path,font_size,dpi) 
+            
+        if font and font.getLabel() in TextBox._text_style_cache:
+            raise ValueError("TextBox.createTextStyle TextBox Label Already In Use: %s"%( font.getLabel()))
             
         font_rgba=TextBox._toRGBA2(font_color,opacity,color_space,window)
         back_rgba=None
         if font_background_color:
             back_rgba=TextBox._toRGBA2(font_background_color,opacity,color_space,window)
-        gs=GlyphSet.createCached(TTFont.load(file_name,font_size,dpi),
+        gs=GlyphSet.createCached(font,
                                  font_rgba,
                                  back_rgba,
                                  org_color_info=dict(font_color=font_color,
                                                      font_background_color=font_background_color,
                                                      color_space=color_space,
                                                      opacity=opacity))
-        return TextBox._text_style_cache.setdefault(text_style_label,proxy(gs))
+    
+        return TextBox._text_style_cache.setdefault( font.getLabel(),proxy(gs))
 
     def setActiveTextStyle(self,text_style_label):
         if text_style_label and text_style_label in self._text_styles.keys():
@@ -647,21 +646,23 @@ class TextBox(object):
 
         raise ValueError("TextBox: color: %s, opacity: %s, is not a valid color for color space %s."%(str(color),str(opacity),color_space))
             
-    def _setActiveTextStyleFromArgs(self,text_style_label=None,font_file_name=None,font_size=None,dpi=None,font_color=None,font_background_color=None,color_space=None,opacity=None):
-        if text_style_label:
-            if self._text_styles.get(text_style_label):
-                self._active_text_style=self._text_styles.get(text_style_label)                
-            elif self._text_style_cache.get(text_style_label):
-                ts=self._text_style_cache.get(text_style_label)
-                self._text_styles[text_style_label]=ts
-                self._active_text_style=ts             
+    def _setActiveTextStyleFromArgs(self,text_style=None,font_file_name=None,font_size=None,dpi=None,font_color=None,font_background_color=None,color_space=None,opacity=None):
+        if text_style:
+            tslabel= text_style.getLabel()
+            if tslabel in self._text_styles.keys():
+                self._active_text_style=self._text_styles[tslabel]              
+            elif tslabel in self._text_style_cache.keys():            
+                self._active_text_style=self._text_styles[tslabel]
+            else:
+                self._text_styles.setdefault(text_style.getLabel(),text_style) 
+                self._active_text_style=text_style
         if self._active_text_style is None and font_file_name:
                 # create new font stim using TextBox args
-                self._active_text_style=self.createTextStyle(text_style_label,font_file_name,font_size,dpi,font_color,font_background_color,color_space,opacity,self._window)
+                self._active_text_style=self.createTextStyle(None,font_file_name,font_size,dpi,font_color,font_background_color,color_space,opacity,self._window)
                 if self._active_text_style:                
-                    self._text_styles.setdefault(text_style_label,self._active_text_style)   
+                    self._text_styles.setdefault(text_style.getLabel(),self._active_text_style)   
         if self._active_text_style is None:
-                self._active_text_style=self._text_style_cache[self._default_text_style_info.get('label')]
+                raise ValueError("No Text Style could be created based on information given!")
                          
     def _reset(self):
         self._text_grid.reset()                       
@@ -719,28 +720,28 @@ class TextBox(object):
             for gs in GlyphSet.loaded_glyph_sets.values():
                 if gs._label is not None:                
                     gs._free()
-
-
         
-def _module_directory(local_function):
-    mp=os.path.abspath(inspect.getsourcefile(local_function))
-    moduleDirectory,mname=os.path.split(mp)
-    return moduleDirectory
-        
-_THIS_DIR=_module_directory(getTime)    
-TTFont.addSearchDirectories(os.path.join(_THIS_DIR,'fonts'))
+#def _module_directory(local_function):
+#    mp=os.path.abspath(inspect.getsourcefile(local_function))
+#    moduleDirectory,mname=os.path.split(mp)
+#    return moduleDirectory
+#        
+#_THIS_DIR=_module_directory(getTime)    
+#TTFont.addSearchDirectories(_THIS_DIR)
+#TTFont.addSearchDirectories(os.path.join(_THIS_DIR,'fonts'))
 
-_label=TextBox._default_text_style_info.get('label')
-if _label and _label not in TextBox._text_style_cache:
-        dtsi=TextBox._default_text_style_info
-        label=_label
-        file_name=dtsi['file_name']
-        size=dtsi['font_size']
-        dpi=dtsi['dpi']
-        font_color=dtsi['font_color']
-        background_color=dtsi['font_background_color']
-        color_space=dtsi['color_space']
-        opacity=dtsi['opacity']
-        TextBox.createTextStyle(label,file_name,
-                        size,dpi,font_color,
-                        background_color,color_space,opacity)                
+
+#_label=TextBox._default_text_style_info.get('label')
+#if _label and _label not in TextBox._text_style_cache:
+#        dtsi=TextBox._default_text_style_info
+#        label=_label
+#        file_name=dtsi['file_name']
+#        size=dtsi['font_size']
+#        dpi=dtsi['dpi']
+#        font_color=dtsi['font_color']
+#        background_color=dtsi['font_background_color']
+#        color_space=dtsi['color_space']
+#        opacity=dtsi['opacity']
+#        TextBox.createTextStyle(label,file_name,
+#                        size,dpi,font_color,
+#                        background_color,color_space,opacity)                

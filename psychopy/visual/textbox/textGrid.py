@@ -154,6 +154,18 @@ class TextGrid(object):
                 if line_display_list[0]==0: 
                     # line_display_list[0]==0 Indicates parsed line text has 
                     # changed since last draw, so rebuild line display list. 
+                    #dlists=[active_text_style_dlist(c) for c in line_ords] 
+#                    print'---'           
+#                    print 'line_ords:',line_ords
+#                    print 'line_count:',line_count
+#                    print 'line_display_list:',line_display_list
+#                    print 'dlists:',dlists
+#                    print 'line length:',line_length
+#                    dlists=[]
+#                    for c in line_ords:
+#                        di=active_text_style_dlist(c) 
+#                        #print 'c,di:',c,di
+#                        dlists.append(di)
                     line_display_list[0:line_length]=[active_text_style_dlist(c) for c in line_ords] 
                     
                 if apply_padding:

@@ -4,7 +4,7 @@ Created on Thu Mar 21 18:37:10 2013
 
 @author: Sol
 """
-import string
+import string,os
 import random
 from psychopy import visual, core, event
 from psychopy.iohub.util import NumPyRingBuffer
@@ -24,7 +24,7 @@ stim2_no_change_draw_times=NumPyRingBuffer(6000)
 
 # Some utility functions >>>
 #
-char_choices=u"ùéèàç^ùèàçé«¼±£¢¤¬¦²³½¾°µ¯­±√∞≤≥±≠"+string.ascii_uppercase[:15]
+char_choices=string.ascii_uppercase+u"ùéèàç^ùèàçé«¼±£¢¤¬¦²³½¾°µ¯­±√∞≤≥±≠"
 def getRandomString(slength):
     s=u''.join(random.choice(char_choices) for i in range(slength))
     ns=u''
@@ -57,20 +57,24 @@ window=visual.Window(display_resolution,
                         screen=0
                         )
 
-# Create a TextBox stim, defining the text style to use for the stim
-# by passing arguements to the TextBox init.
-# We also time how long it takes to create the stim and 
-# perform the first stim draw() call.
-#
+print visual.TextBox.font_manager.getSystemFontInfo().keys()
+
+#'Lucida Sans Typewriter', 'Simplified Arabic Fixed', 'DFKai-SB', 'Rod', 'Courier New', 'Consolas', 'Miriam Fixed', 'Lucida Console', 'SimSun-ExtB'
+font_name='Lucida Console' #'Consolas'
+bold=False
+italic=False
+
 stime=core.getTime()*1000.0                                    
 textbox=visual.TextBox(window=window,
-                         text_style_label='white_40pt', 
                          text=text, 
-                         font_file_name='VeraMono.ttf', 
-                         font_size=36,
-                         dpi=72, 
-                         font_color=[0,255,0,255], 
-                         background_color=None,#[128,32,192,255],
+                         font_name=font_name,
+                         bold=bold,
+                         italic=italic,
+                         font_size=32,
+                         font_color=[255,255,255], 
+                         background_color=[128,32,192,255],
+                         font_file_name=None, 
+                         dpi=72,
                          border_color=None,#[0,255,0,64],
                          border_stroke_width=2,
                          grid_color=[255,255,0,255],
