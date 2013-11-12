@@ -10,6 +10,7 @@ base could be used in core.py and logging.py; vs. duplicating the getTime and
 Clock logic.
 
 @author: Sol
+@author: Jon
 """
 from __future__ import division
 import time

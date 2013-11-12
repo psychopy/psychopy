@@ -1394,6 +1394,8 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.openBuilderView,  self.app.showBuilder)
         #        self.viewMenu.Append(self.IDs.openShell, "Go to &IPython Shell\t%s" %self.app.keys['switchToShell'], "Go to a shell window for interactive commands")
         #        wx.EVT_MENU(self, self.IDs.openShell,  self.app.showShell)
+        #self.viewMenu.Append(self.IDs.openIPythonNotebook, "Go to &IPython notebook", "Open an IPython notebook (unconnected in a browser)")
+        #wx.EVT_MENU(self, self.IDs.openIPythonNotebook,  self.app.openIPythonNotebook)
 
         self.demosMenu = wx.Menu()
         self.demos={}

@@ -23,7 +23,7 @@ import threading
 #   but should not do so from a load-save-load because only the first
 #   load should change things
 
-allComponents = psychopy.app.builder.experiment.getComponents()
+allComponents = psychopy.app.builder.experiment.getComponents(fetchIcons=False)
 
 def _filterout_legal(lines):
     return [l

@@ -128,41 +128,6 @@ class VisualComponent(_base.BaseComponent):
             buff.setIndentLevel(+1, relative=True)#to enter the if block
             self.writeParamUpdates(buff, 'set every frame')
             buff.setIndentLevel(-1, relative=True)#to exit the if block
-    def writeParamUpdates(self, buff, updateType):
-        """Write updates to the buffer for each parameter that needs it
-        updateType can be 'experiment', 'routine' or 'frame'
-        """
-        for thisParamName in self.params.keys():
-            if thisParamName=='advancedParams':
-                continue
-            thisParam=self.params[thisParamName]
-            #capitalise params
-            if thisParamName=='advancedParams':
-                continue
-            elif thisParamName=='letterHeight':
-                paramCaps='Height' #setHeight for TextStim
-            elif thisParamName=='image' and self.getType()=='PatchComponent':
-                paramCaps='Tex' #setTex for PatchStim
-            elif thisParamName=='sf':
-                paramCaps='SF' #setSF, not SetSf
-            elif thisParamName=='coherence':
-                paramCaps='FieldCoherence' #setSF, not SetSf
-            elif thisParamName=='fieldPos':
-                paramCaps='FieldPos'
-            else:
-                paramCaps = thisParamName.capitalize()
-
-            if thisParam.updates=='set every frame':
-                loggingStr = ', log=False'
-            else:
-                loggingStr=''
-            #color is slightly special
-            if thisParam.updates==updateType:
-                if thisParamName=='color':
-                    buff.writeIndented("%(name)s.setColor(%(color)s, colorSpace=%(colorSpace)s" %(self.params))
-                    buff.write("%s)\n" %(loggingStr))
-                else:
-                    buff.writeIndented("%s.set%s(%s%s)\n" %(self.params['name'], paramCaps, thisParam,loggingStr))
     
     def getStimulus(self, window):
         """

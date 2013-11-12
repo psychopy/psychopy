@@ -131,7 +131,12 @@ class ObciBaseClient(object):
         self.msg_factory = OBCIMessageTool(msg_templates=templates)
         self.socket = self.context.socket(zmq.REQ)
         self.socket.connect(address)
-        self.socket.RCVTIMEO = 7000
+        
+        # disabled bc Ubuntu LTS uses archaic zmq version
+        # self.socket.RCVTIMEO = 7000
+        self.poller = zmq.Poller()
+        self.poller.register(self.socket, zmq.POLLIN)
+        
         self.open = True
 
     def close(self):
@@ -142,7 +147,8 @@ class ObciBaseClient(object):
     def send_recv(self, message_name, **kwargs):
         data = self.msg_factory.fill_msg(message_name, **kwargs)
         self.socket.send(data)
-        response = self.socket.recv()
+        poll_results = self.poller.poll(7000)
+        response = self.socket.recv(zmq.NOBLOCK) if poll_results else None
         return json.loads(response)
 
 

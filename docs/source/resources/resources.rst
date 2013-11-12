@@ -6,7 +6,7 @@ There are a number of further resources to help learn/teach about PsychoPy.
 :ref:`P4N`
 ---------------------------------------------------------------
 
-There will be a 3-day workshop in March 2013 at Nottingham University, taught by Jon Peirce. It won't be *only* about PsychoPy, but about Python for science more generally and focussing on coding rather than using the Builder interface. You can see further information :ref:`here <P4N>`
+There will be a 3-day workshop in April 2014 at Nottingham University, taught by Jon Peirce. It won't be *only* about PsychoPy, but about Python for science more generally and focussing on coding rather than using the Builder interface. You can see further information :ref:`here <P4N>`
 
 .. _youtube:
 

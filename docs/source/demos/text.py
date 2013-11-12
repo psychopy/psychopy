@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from psychopy import *
+from psychopy import visual, core
 """
 Text rendering has changed a lot (for the better) under pyglet. This
 script shows you the new way to specify fonts.

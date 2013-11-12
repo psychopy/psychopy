@@ -162,7 +162,7 @@ class StopPanel(wx.Panel):
     def SetValue(self, value):
         self.value = value
         self.valueField.SetValue(value)
-        self.estimationField.SetValue(value["estimation"])
+        self.estimationField.SetValue(str(value["estimation"]))
     
     def setToolTips(self, hints):
         self.valueField.setToolTips(hints)

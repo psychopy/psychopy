@@ -38,7 +38,7 @@ monitor_devices:
         # simulation_mode can be True or False. This indicates if the eye tracker
         # should provide simulated eye data instead of sending eye data based on a 
         # participants actual eye movements. 
-        simulation_mode: True
+        simulation_mode: False
 
         # enable_interface_without_connection is a boolean specifying if the ioHub Device
         # should be enabled without truely connecting to the underlying eye tracking
@@ -171,5 +171,5 @@ monitor_devices:
         # The model_name setting allows the definition of the eye tracker model being used.
         # For the eyelink implementation, valid values are:
         # 'EYELINK 1000 DESKTOP', 'EYELINK 1000 TOWER', 'EYELINK 1000 REMOTE', 'EYELINK 1000 LONG RANGE', 'EYELINK 2'
-        model_name: EYELINK 1000 DESKTOP
+        model_name: EYELINK 1000 TOWER
         
