@@ -27,6 +27,7 @@ if sys.platform == 'win32':
     #make sure we also check in SysWOW64 if on 64-bit windows
     if 'C:\\Windows\\SysWOW64' not in os.environ['PATH']:
         os.environ['PATH'] += ';C:\\Windows\\SysWOW64'
+        
     try:
         from pyglet.media import avbin
         haveAvbin = True
@@ -86,6 +87,9 @@ useFBO = False
 
 global DEBUG
 DEBUG = False
+
+global IOHUB_ACTIVE
+IOHUB_ACTIVE = False
 
 #keep track of windows that have been opened
 openWindows = []
@@ -863,6 +867,11 @@ class Window:
             setGammaRamp(self.winHandle, self.origGammaRamp)
         self.setMouseVisible(True)
         if self.winType == 'pyglet':
+            # If iohub is running, inform it to stop looking for this win id
+            # when filtering kb and mouse events (if the filter is enabled of course)
+            #
+            if IOHUB_ACTIVE:
+                IOHUB_ACTIVE.unregisterPygletWindowHandles(self.winHandle._hwnd)
             self.winHandle.close()
         else:
             #pygame.quit()
@@ -1173,6 +1182,23 @@ class Window:
             self.winHandle.set_icon(icon)
         except:
             pass  # doesn't matter
+
+        # Code to allow iohub to know id of any psychopy windows created
+        # so kb and mouse event filtering by window id can be supported.
+        #
+        # If an iohubConnection is active, give this window os handle to 
+        # to the ioHub server. If windows were already created before the 
+        # iohub was active, also send them to iohub.
+        # 
+        if IOHUB_ACTIVE:
+            from psychopy.iohub.client import ioHubConnection
+            if ioHubConnection.ACTIVE_CONNECTION:
+                winhwnds=[]
+                for w in openWindows:
+                    winhwnds.append(w.winHandle._hwnd)
+                if self.winHandle._hwnd not in winhwnds:
+                    winhwnds.append(self.winHandle._hwnd)
+                ioHubConnection.ACTIVE_CONNECTION.registerPygletWindowHandles(*winhwnds)
 
     def _setupPygame(self):
         #we have to do an explicit import of pyglet.gl from pyglet
