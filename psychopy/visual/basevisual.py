@@ -304,7 +304,7 @@ class BaseVisualStim(object):
 
             Can be specified in one of many ways. If a string is given then it
             is interpreted as the name of the color. Any of the standard html/X11
-            `color names <http://www.w3schools.com/html/html_colornames.asp>`
+            `color names <http://www.w3schools.com/html/html_colornames.asp>`_
             can be used. e.g.::
 
                 myStim.color = 'white'
