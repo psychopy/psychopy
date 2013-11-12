@@ -131,8 +131,7 @@ class ParsedTextDocument(object):
                 line=update_lines.popleft()
                 line._text=linestr             
                 line._index_range=[current_index,current_index+len(linestr)]
-                line._ords=[ord(c) for c in linestr]
-                line._length=len(line._ords)
+                line.updateOrds(linestr)
                 line._gl_display_list[0]=0
             else:
                 ParsedTextLine(self,linestr,[current_index,current_index+len(linestr)])
@@ -213,6 +212,8 @@ class ParsedTextDocument(object):
 import numpy
  
 class ParsedTextLine(object):
+    charcodes_with_glyphs=None
+    replacement_charcode=None
     def __init__(self,parent,source_text,index_range):
         if parent:
             self._parent=proxy(parent)
@@ -222,11 +223,39 @@ class ParsedTextLine(object):
         self._text=source_text
         self._index_range=index_range
         self._line_index=parent.getChildCount()-1
-        self._ords=[ord(c) for c in source_text]
-        self._length=len(self._ords)
+                
+        self.updateOrds(self._text)
+        
         #self.text_region_flags=numpy.ones((2,parent._num_columns),numpy.uint32)#*parent._text_grid.default_region_type_key
         self._gl_display_list=numpy.zeros(parent._num_columns,numpy.uint)
             
+    def updateOrds(self,text):
+        if ParsedTextLine.charcodes_with_glyphs is None:
+            active_text_style=self._parent._text_grid._text_box._active_text_style
+            if active_text_style:
+                ParsedTextLine.charcodes_with_glyphs=active_text_style.getFont().getAvailableCharCodes()
+
+        ok_charcodes=ParsedTextLine.charcodes_with_glyphs
+        
+        if ParsedTextLine.replacement_charcode is None:
+            replacement_charcodes=[ord(cc) for cc in [u'?',u' ',u'_',u'-',u'0',u'='] if cc in ok_charcodes]
+            if not replacement_charcodes:
+                ParsedTextLine.replacement_charcode=ok_charcodes[0]
+            else:
+                ParsedTextLine.replacement_charcode=replacement_charcodes[0]
+                    
+        self._ords=[]
+                
+        for c in text:
+            ccode=ord(c)
+            if ccode in ok_charcodes:
+                self._ords.append(ccode)
+            else:
+                self._ords.append(self.replacement_charcode)
+
+        self._length=len(self._ords)
+        
+
     def getIndex(self):
         return self._line_index
         

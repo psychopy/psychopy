@@ -57,10 +57,10 @@ window=visual.Window(display_resolution,
                         screen=0
                         )
 
-print visual.TextBox.font_manager.getSystemFontInfo().keys()
-
-#'Lucida Sans Typewriter', 'Simplified Arabic Fixed', 'DFKai-SB', 'Rod', 'Courier New', 'Consolas', 'Miriam Fixed', 'Lucida Console', 'SimSun-ExtB'
-font_name='Lucida Console' #'Consolas'
+# SS: On my Win7 box in Canada, following monospace TTFs are installed:
+#'Lucida Sans Typewriter', 'Simplified Arabic Fixed', 'DFKai-SB', 'Rod', 
+#'Courier New', 'Consolas', 'Miriam Fixed', 'Lucida Console', 'SimSun-ExtB'
+font_name='Lucida Sans Typewriter' #'Consolas'
 bold=False
 italic=False
 

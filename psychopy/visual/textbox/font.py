@@ -95,6 +95,9 @@ class TTFont(object):
     def getGlyphCount(self):
         return len(self._charcode2glyph.keys())
 
+    def getAvailableCharCodes(self):
+        return self._charcode2glyph.keys()
+
     @classmethod
     def _loadGlyphs(cls):
         # Create a list of all code points available in the font face.

@@ -33,7 +33,6 @@ from glyph import GlyphSet
 from font import TTFont
 
 print 'TODO: '
-print ' - Handle cases where loaded font file does not have a glyph for a charcode being used in the text. Should give warning and replace with a space glyph, not crash'
 print ' - Fix crash when > 1 textbox is added to a window.'
 print
 def getTime():
