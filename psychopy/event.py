@@ -337,6 +337,7 @@ class Mouse:
         if not usePygame:
             global mouseButtons
             mouseButtons = [0,0,0]
+        self.setVisible(visible)
         if newPos is not None: self.setPos(newPos)
 
     def setPos(self,newPos=(0,0)):
