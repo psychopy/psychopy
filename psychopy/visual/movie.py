@@ -22,6 +22,7 @@ if sys.platform == 'win32':
     #make sure we also check in SysWOW64 if on 64-bit windows
     if 'C:\\Windows\\SysWOW64' not in os.environ['PATH']:
         os.environ['PATH'] += ';C:\\Windows\\SysWOW64'
+
     try:
         from pyglet.media import avbin
         haveAvbin = True

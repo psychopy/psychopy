@@ -80,6 +80,7 @@ class ioHubKeyboardDevice(Device):
         a KeyboardCharEvent is created using the KeyboardReleaseEvent as the basis for the Char event, and the
         KeyboardStartEvent that was stored in the dict for the startEvent, and duration calculated fields.
         '''
+
         press_events=[e for e in self.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS,clearEvents=False) if e[DeviceEvent.EVENT_ID_INDEX] > self._lastProcessedEventID]
         release_events=[e for e in self.getEvents(event_type_id=EventConstants.KEYBOARD_RELEASE,clearEvents=False) if e[DeviceEvent.EVENT_ID_INDEX] > self._lastProcessedEventID]
 

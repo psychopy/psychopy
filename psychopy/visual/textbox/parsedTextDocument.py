@@ -10,12 +10,15 @@ from collections import deque
 from weakref import proxy
             
 class ParsedTextDocument(object):
-    def __init__(self,text_data,text_grid,parse_text_as_needed=True):
+    def __init__(self,text_data,text_grid):
         if os.path.isfile(text_data):
             tfile=codecs.open(text_data,'rU','utf-8')
             text_data=tfile.read()
             tfile.close()
-            
+        
+        self._text_grid=proxy(text_grid)
+        self._num_columns,self._max_visible_rows=text_grid._shape
+        
         text_data=text_data.replace('\r\n','\n')
         if len(text_data) and text_data[-1] != u'\n':
             text_data=text_data+u'\n'
@@ -24,24 +27,17 @@ class ParsedTextDocument(object):
         self._text=text_data
         self._children=[]
 
-        self._num_columns,self._max_visible_rows=text_grid._shape
-        self._limit_text_length=0
-        
-        #if text_grid.limitTextLengthToVisibleRowCount():
-        self._limit_text_length =self._max_visible_rows*self._num_columns
-        
+        self._limit_text_length=self._max_visible_rows*self._num_columns
+                
         if self._limit_text_length>0 and self._limit_text_length<len(self._text):
+            print 'TextBox Warning: The text length to be displayed is > the number of character positions available.',self._text[:10],len(self._text),self._limit_text_length
             self._text=self._text[:self._limit_text_length]
             
-        self._text_grid=proxy(text_grid)
         self._default_parse_chunk_size=self._num_columns*(self._max_visible_rows+1)
         self._text_wrapper=TextWrapper(width=self._num_columns,drop_whitespace=False,replace_whitespace=False,expand_tabs=False) 
         
         self._text_parsed_to_index=0
-        if parse_text_as_needed is False:
-            self._parse(0,len(self._text))
-        else:            
-            self._parse(0)
+        self._parse(0,len(self._text))
 
     def addChild(self,c):
         self._children.append(c)
@@ -100,38 +96,21 @@ class ParsedTextDocument(object):
         return self.getParsedLineCount()-1
         
     def _parse(self,from_text_index,to_text_index=None):
-        from_text_index=int(from_text_index)
-        if to_text_index is not None: 
-            to_text_index=int(to_text_index)
-            
-        if from_text_index < 0:
-            raise IndexError("Parse from_text_index must be >= 0.")        
-
+        from_text_index=0
+        to_text_index=self.getTextLength()
         line_index=None        
-        if self._children and from_text_index<=self._text_parsed_to_index:
-            line_index=self.getLineIndex(from_text_index)
-            from_text_index=self.getParsedLine(line_index).getIndexRange()[0]
-        else:
-            from_text_index=self._text_parsed_to_index
-        if to_text_index is None:
-            try:
-                to_row_index=0+self._text_grid._shape[1]+1
-                line=self.getParsedLine(to_row_index)
-                to_text_index=line.getIndexRange()[1]+self._num_columns
-            except:            
-                to_text_index = from_text_index+self._default_parse_chunk_size
-
-        if to_text_index  > self.getTextLength():
-            to_text_index=self.getTextLength()
-        
+                    
+        if self._children:
+            line_index=0
+      
         update_lines=[]
         if line_index is not None:
-            update_lines=deque(self._children[line_index:])
+            update_lines=deque(self._children[:])
         para_split_text=self._text[from_text_index:to_text_index].splitlines(True)
         if len(para_split_text)==0:
             return
           
-        current_index=from_text_index        
+        current_index=0        
         for para_text in para_split_text:
             current_index=self._wrapText(para_text,current_index,update_lines)
                 
@@ -152,10 +131,8 @@ class ParsedTextDocument(object):
                 line=update_lines.popleft()
                 line._text=linestr             
                 line._index_range=[current_index,current_index+len(linestr)]
-                line._ords=[ord(c) for c in linestr]
-                line._length=len(line._ords)
+                line.updateOrds(linestr)
                 line._gl_display_list[0]=0
-                #line.text_region_flags[:,:]=1#self._text_grid.default_region_type_key                    
             else:
                 ParsedTextLine(self,linestr,[current_index,current_index+len(linestr)])
                 line=self._children[-1]
@@ -235,6 +212,8 @@ class ParsedTextDocument(object):
 import numpy
  
 class ParsedTextLine(object):
+    charcodes_with_glyphs=None
+    replacement_charcode=None
     def __init__(self,parent,source_text,index_range):
         if parent:
             self._parent=proxy(parent)
@@ -244,11 +223,39 @@ class ParsedTextLine(object):
         self._text=source_text
         self._index_range=index_range
         self._line_index=parent.getChildCount()-1
-        self._ords=[ord(c) for c in source_text]
-        self._length=len(self._ords)
+                
+        self.updateOrds(self._text)
+        
         #self.text_region_flags=numpy.ones((2,parent._num_columns),numpy.uint32)#*parent._text_grid.default_region_type_key
         self._gl_display_list=numpy.zeros(parent._num_columns,numpy.uint)
             
+    def updateOrds(self,text):
+        if ParsedTextLine.charcodes_with_glyphs is None:
+            active_text_style=self._parent._text_grid._text_box._active_text_style
+            if active_text_style:
+                ParsedTextLine.charcodes_with_glyphs=active_text_style.getFont().getAvailableCharCodes()
+
+        ok_charcodes=ParsedTextLine.charcodes_with_glyphs
+        
+        if ParsedTextLine.replacement_charcode is None:
+            replacement_charcodes=[ord(cc) for cc in [u'?',u' ',u'_',u'-',u'0',u'='] if cc in ok_charcodes]
+            if not replacement_charcodes:
+                ParsedTextLine.replacement_charcode=ok_charcodes[0]
+            else:
+                ParsedTextLine.replacement_charcode=replacement_charcodes[0]
+                    
+        self._ords=[]
+                
+        for c in text:
+            ccode=ord(c)
+            if ccode in ok_charcodes:
+                self._ords.append(ccode)
+            else:
+                self._ords.append(self.replacement_charcode)
+
+        self._length=len(self._ords)
+        
+
     def getIndex(self):
         return self._line_index
         

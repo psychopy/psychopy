@@ -67,21 +67,24 @@ class Keyboard(ioHubKeyboardDevice):
                 # a PsychoPy window, still allow them to pass to the desktop 
                 # apps.
                 return True
-
+                
             event.Type = EventConstants.KEYBOARD_RELEASE
             if event.Message in [pyHook.HookConstants.WM_KEYDOWN,pyHook.HookConstants.WM_SYSKEYDOWN]:
                 event.Type = EventConstants.KEYBOARD_PRESS
-            
+
             self._last_callback_time=notifiedTime
             
             event.RepeatCount=0
-            if event.Type == EventConstants.KEYBOARD_PRESS:
-                key_already_pressed=self._key_states.get(event.KeyID,None)
-                if key_already_pressed is not None:
-                    event.RepeatCount=key_already_pressed[1]+1
-                    if self._report_auto_repeats is False and event.RepeatCount>0:
-                        return True
-
+            key_already_pressed=self._key_states.get(event.KeyID,None)
+            if key_already_pressed and event.Type == EventConstants.KEYBOARD_PRESS:
+                event.RepeatCount=key_already_pressed[1]+1
+                if self._report_auto_repeats is False and event.RepeatCount>0:
+                    return True
+            elif key_already_pressed and event.Type == EventConstants.KEYBOARD_RELEASE:
+                if 'KeyboardReleaseEvent' not in self.getConfiguration().get('monitor_event_types'):
+                    event.RepeatCount=0
+                    self._key_states.pop(event.KeyID)
+                    
             self._addNativeEventToBuffer((notifiedTime,event))
             
         #endtime=getTime()

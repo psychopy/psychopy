@@ -13,7 +13,7 @@ Created on Sun May 19 15:22:54 2013
 from __future__ import print_function
 from __future__ import division
 import sys
-from freetype import *
+from psychopy.visual.textbox.freetype_bf import *
 
 verbose     = 0
 debug       = 0

@@ -1031,10 +1031,6 @@ class ioHubConnection(object):
                 r=self._server_process.stdout.readline()
                 if r and r.rstrip().strip() == 'IOHUB_READY':
                     hubonline=True
-                    from psychopy.visual import window
-                    window.IOHUB_ACTIVE=True
-                    if window.openWindows:
-                        self.registerPygletWindowHandles(*window.openWindows)
                     break
                 elif r and r.rstrip().strip() == 'IOHUB_FAILED':
                     print "ioHub sent IOHUB_FAILED, exiting...."
@@ -1054,6 +1050,16 @@ class ioHubConnection(object):
         #print '* IOHUB SERVER ONLINE *'        
         ioHubConnection.ACTIVE_CONNECTION=proxy(self)
         # save ioHub ProcessID to file so next time it is started, it can be checked and killed if necessary
+
+        from psychopy.visual import window
+        window.IOHUB_ACTIVE=True
+        if window.openWindows:
+            whs=[]
+            for w in window.openWindows:
+                whs.append(w.winHandle._hwnd)
+            print 'ioclient registering existing windows:',whs
+            self.registerPygletWindowHandles(*whs)
+
 
         try:
             iopFile= open(iopFileName,'w')

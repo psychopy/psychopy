@@ -347,6 +347,40 @@ class PsychoPyApp(wx.App):
             self.coder.setCurrentDoc(fileName)
         elif fileName.endswith('.psyexp'):
             self.newBuilderFrame(fileName=fileName)
+    def terminateHubProcess(self):
+        """
+        Send a UPD message to iohub informing it to exit. 
+        
+        Use this when force quiting the experiment script process so iohub
+        knows to exit as well.
+        
+        If message is not sent within 1 second, or the iohub server 
+        address in incorrect,the issue is logged.
+        """
+        sock=None
+        try:
+            logging.debug('PsychoPyApp: terminateHubProcess called.')
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.settimeout(1.0)     
+            iohub_address='127.0.0.1', 9034        
+            import msgpack
+            tx_data=msgpack.Packer().pack(('STOP_IOHUB_SERVER',))
+            return sock.sendto(tx_data,iohub_address)
+        except socket.error,e:
+            logging.debug('PsychoPyApp: terminateHubProcess socket.error: %s'%(str(e)))
+        except socket.herror,e:
+            logging.debug('PsychoPyApp: terminateHubProcess socket.herror: %s'%(str(e)))
+        except socket.gaierror,e:
+            logging.debug('PsychoPyApp: terminateHubProcess socket.gaierror: %s'%(str(e)))
+        except socket.timeout,e:
+            logging.debug('PsychoPyApp: terminateHubProcess socket.timeout: %s'%(str(e)))
+        except Exception, e:
+            logging.debug('PsychoPyApp: terminateHubProcess exception: %s'%(str(e)))
+        finally:
+            if sock:
+                sock.close()
+            logging.debug('PsychoPyApp: terminateHubProcess completed.')      
     def quit(self, event=None):
         logging.debug('PsychoPyApp: Quitting...')
         self.quitting=True
