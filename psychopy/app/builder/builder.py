@@ -4251,6 +4251,7 @@ class BuilderFrame(wx.Frame):
         self.toolbar.EnableTool(self.IDs.tbRun,False)
         self.toolbar.EnableTool(self.IDs.tbStop,True)
     def stopFile(self, event=None):
+        self.app.terminateHubProcess()
         success = wx.Kill(self.scriptProcessID,wx.SIGTERM) #try to kill it gently first
         if success[0] != wx.KILL_OK:
             wx.Kill(self.scriptProcessID,wx.SIGKILL) #kill it aggressively
