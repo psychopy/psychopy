@@ -8,7 +8,7 @@ from psychopy import visual, event, core, logging
 import os
 
 # create a window before creating your rating scale, whatever units you like:
-myWin = visual.Window(fullscr=True, units='pix', monitor='testMonitor')
+myWin = visual.Window(fullscr=False, size=[1100, 800], units='pix', monitor='testMonitor')
 
 # instructions from the subject's point of view:
 instr = visual.TextStim(myWin,text="""This is a demo of visual.RatingScale(). There are three examples.
@@ -26,7 +26,7 @@ if 'escape' in event.waitKeys():
 # Example 1 --------(almost as simple as possible)--------
 # create a default RatingScale object, plus choices[]:
 #myRatingScale = visual.RatingScale(myWin) # = almost as simple as possible: defaults to 1-7 scale, not at all to extremely
-myRatingScale = visual.RatingScale(myWin, choices=['cold', 'cool', 'tepid', 'warm', 'hot'])
+myRatingScale = visual.RatingScale(myWin, choices=['cold', 'cool', 'tepid', 'warm', 'hot'], escapeKeys=['escape'])
 
 # item to-be-rated:
 question = "How cool was that?"
@@ -57,7 +57,7 @@ if 'escape' in event.waitKeys():
     core.quit()
 
 # create a scale for Example 2, using quite a few non-default options:
-myRatingScale = visual.RatingScale(myWin, low=0, high=50, precision=10, 
+myRatingScale = visual.RatingScale(myWin, low=0, high=50, precision=10, escapeKeys=['escape'],
         markerStyle='glow', markerExpansion=10, showValue=False, allowSkip=False, pos=[0,-300], name='Example2')
 
 # using a list is handy if you have a lot of items to rate on the same scale, eg personality adjectives or images:
@@ -149,7 +149,7 @@ if 'escape' in event.waitKeys():
 
 # create a default RatingScale object, plus choices[]:
 #myRatingScale = visual.RatingScale(myWin) # = as simple as possible: defaults to 1-7 scale, not at all to extremely
-myRatingScale = visual.RatingScale(myWin, low = 0, high = 100, tickMarks = [0, 25, 50, 80, 100], labels = ["0%", "1/4", "half/half", "kinda", "100%"])
+myRatingScale = visual.RatingScale(myWin, low = 0, high = 100, tickMarks = [0, 25, 50, 80, 100], escapeKeys=['escape'], labels = ["0%", "1/4", "half/half", "kinda", "100%"])
 
 # item to-be-rated:
 question = "How probable is it that you will use this functionality in your next experiment?"

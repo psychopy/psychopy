@@ -1421,7 +1421,8 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         """
         currPage = self.GetSelection()
         self.removePages()
-        for routineName in self.frame.exp.routines:
+        displayOrder = sorted(self.frame.exp.routines.keys())  # alphabetical
+        for routineName in displayOrder:
             self.addRoutinePage(routineName, self.frame.exp.routines[routineName])
         if currPage>-1:
             self.SetSelection(currPage)

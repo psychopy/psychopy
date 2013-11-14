@@ -32,7 +32,7 @@ The easiest way to help the project is to write to the forum (mailing list) with
 *If you're having problems*, e.g. you think you may have found a bug:
     - take a look at the :ref:`troubleshooting` and :ref:`gotchas` first
     - submit a message with as much information as possible about your system and the problem
-    - please try to be precise. Rather than say "It didn't work" try to say what what specific form of "not working" you found (did the stimulus not appear? or it appeared but poorly rendered? or the whole application crashed?!)
+    - please try to be precise. Rather than say "It didn't work" try to say what specific form of "not working" you found (did the stimulus not appear? or it appeared but poorly rendered? or the whole application crashed?!)
     - if there is an error message, try to provide it completely
     
 *If you had problems* and worked out how to fix things, even if it turned out the problem was your own lack of understanding, please still contribute the information. Others are likely to have similar problems. Maybe the documentation could be clearer, or your email to the forum will be found by others googling for the same problem.

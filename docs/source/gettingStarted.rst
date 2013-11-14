@@ -45,7 +45,7 @@ Start PsychoPy, and be sure to be in the Builder view.
 * Back in the main Builder, type `Ctrl-R` (Windows, Linux) or `Cmd-R` (Mac), or use the mouse to click the `Run` icon.
     .. image:: ../../psychopy/app/Resources/run32.png
 
-Assuming you typed in "Hello world!", your screen should have looked this this (briefly):
+Assuming you typed in "Hello world!", your screen should have looked like this (briefly):
       .. image:: images/helloworld.png
         :width: 220
 
