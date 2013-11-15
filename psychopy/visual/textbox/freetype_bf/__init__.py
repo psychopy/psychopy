@@ -33,12 +33,12 @@ import ctypes.util
 
 __dll__    = None
 __handle__ = None
-FT_Library_filename = ctypes.util.find_library('freetype')
+FT_Library_filename = None
+
 if not FT_Library_filename:
     paths_to_try = [ 'libfreetype.so.6',  # Linux
                      '/usr/X11/lib/libfreetype.dylib' # MacOS X
                    ]
-
     for p in paths_to_try:
         try:
             __dll__ = ctypes.CDLL(p)
@@ -46,12 +46,13 @@ if not FT_Library_filename:
             pass            
         if __dll__ is not None:
             break
+
+if not __dll__:
+    FT_Library_filename = ctypes.util.find_library('freetype')
+    __dll__ = ctypes.CDLL(FT_Library_filename)
         
 if not FT_Library_filename and not __dll__:
-    raise RuntimeError, 'Freetype library not found'
-if not __dll__:
-  __dll__ = ctypes.CDLL(FT_Library_filename)
-
+    raise Exception('Freetype library not found')
 
 
 # -----------------------------------------------------------------------------

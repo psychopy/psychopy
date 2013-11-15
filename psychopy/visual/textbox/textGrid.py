@@ -14,17 +14,18 @@ from pyglet.gl import (glCallList,glGenLists,glNewList,glDisable,glEnable,
                GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE,GL_UNSIGNED_INT,
                glPopMatrix,glBindTexture,glActiveTexture,glTexEnvf,
                glPushMatrix,glCallLists,glVertex2i)
-from font import TTFont
 import parsedTextDocument
 getTime = core.getTime
 
 class TextGrid(object):
-    def __init__(self, text_box, line_color=None, line_width=1, 
+    def __init__(self, text_box, line_color=None, line_width=1,
+                 font_color=(1,1,1,1),
                  grid_horz_justification='left',
                  grid_vert_justification='top'):
         
         self._text_box=proxy(text_box)
         
+        self._font_color=font_color
         if line_color:
             self._line_color=line_color
             self._line_width=line_width
@@ -40,7 +41,8 @@ class TextGrid(object):
         self._horz_justification=grid_horz_justification
         self._vert_justification=grid_vert_justification
         
-        self._textgrid_dlist=None
+        self._text_dlist=None
+        self._gridlines_dlist=None
         
         self._text_document=None
 
@@ -91,37 +93,41 @@ class TextGrid(object):
     def _setText(self,text):
         self._text_document.deleteText(0,self._text_document.getTextLength(),
                                        text)
-        self._deleteDisplayList()
+        self._deleteTextDL()
         
-    def _setActiveGlyphDisplayLists(self,dlists):
-        self._active_glyph_display_lists=dlists
+    def setCurrentFontDisplayLists(self,dlists):
+        self._current_font_display_lists=dlists
         
-    def _deleteDisplayList(self):
-        if self._textgrid_dlist:
-            glDeleteLists(self._textgrid_dlist, 1)
-            self._textgrid_dlist=0
+    def _deleteTextDL(self):
+        if self._text_dlist:
+            glDeleteLists(self._text_dlist, 1)
+            self._text_dlist=0
+
+    def _deleteGridLinesDL(self):
+        if self._gridlines_dlist:
+            glDeleteLists(self._gridlines_dlist, 1)
+            self._gridlines_dlist=None
                 
     def _createParsedTextDocument(self,f):
         if self._shape:
             self._text_document=parsedTextDocument.ParsedTextDocument(f,self) 
-            self._deleteDisplayList()
-            self._buildDisplayList()
+            self._deleteTextDL()
         else:
             raise AttributeError("Could not create _text_document. num_columns needs to be known.")
 
-    def _buildDisplayList(self):
-        if not self._textgrid_dlist:            
+    def _text_glyphs_gl(self):
+        if not self._text_dlist:            
             dl_index = glGenLists(1)        
             glNewList(dl_index, GL_COMPILE)           
 
             #stime=getTime()
 
-            self._text_box._te_start_gl()                         
+            #self._text_box._te_start_gl()                         
     
             ###
             glActiveTexture(GL_TEXTURE0)        
             glEnable( GL_TEXTURE_2D )
-            glBindTexture( GL_TEXTURE_2D, TTFont.getTextureAtlas().getTextureID() )
+            glBindTexture( GL_TEXTURE_2D, self._text_box._current_glfont.atlas.texid)
             glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE )
             glTranslatef( self._position[0], -self._position[1], 0 )
             glPushMatrix()
@@ -142,13 +148,15 @@ class TextGrid(object):
                 pad_top_proportion=1.0
             
             getLineInfoByIndex=self._text_document.getLineInfoByIndex
-            active_text_style_dlist=self._active_glyph_display_lists.get
+            active_text_style_dlist=self._current_font_display_lists.get
             cell_width,cell_height=self._cell_size
             num_cols,num_rows=self._shape
             line_spacing=self._text_box._getPixelTextLineSpacing()
             line_count=min(num_rows,self._text_document.getParsedLineCount())
             apply_padding=pad_left_proportion or (pad_top_proportion and line_count>1)
             
+            glColor4f(*self._text_box._toRGBA(self._font_color))    
+
             for r in range(line_count):            
                 line_length,line_display_list,line_ords=getLineInfoByIndex(r)
                 if line_display_list[0]==0: 
@@ -169,8 +177,18 @@ class TextGrid(object):
             glBindTexture( GL_TEXTURE_2D,0 )
             glDisable( GL_TEXTURE_2D ) 
 
-            ###
-            if self._line_color:                
+            glEndList()            
+            #print 'GL_TIME: %.3f'%((etime-stime)*1000.0)
+            self._text_dlist=dl_index
+        glCallList(self._text_dlist) 
+
+
+    def _textgrid_lines_gl(self):
+        if self._line_color:
+            if not self._gridlines_dlist:                
+                dl_index = glGenLists(1)        
+                glNewList(dl_index, GL_COMPILE)           
+
                 glLineWidth(self._line_width)
                 glColor4f(*self._text_box._toRGBA(self._line_color))                   
                 glBegin(GL_LINES)
@@ -183,21 +201,19 @@ class TextGrid(object):
                             glVertex2i(x, y)
                             glVertex2i(x, int(-self._size[1]))                        
                 glEnd()
+                self._gridlines_dlist=dl_index
+            glCallList(self._gridlines_dlist) 
             
-            self._text_box._te_end_gl()                         
+            #self._text_box._te_end_gl()                         
 
             #etime=getTime()
 
-            glEndList()
-            
-            #print 'GL_TIME: %.3f'%((etime-stime)*1000.0)
-            self._textgrid_dlist=dl_index
 
     def __del__(self):
-        if self._textgrid_dlist:
-            glDeleteLists(self._textgrid_dlist, 1)
-            self._textgrid_dlist=0
-        self._active_glyph_display_lists=None
+        if self._text_dlist:
+            glDeleteLists(self._text_dlist, 1)
+            self._text_dlist=0
+        self._current_font_display_lists=None
         self._text_document._free()
         del self._text_document
         
