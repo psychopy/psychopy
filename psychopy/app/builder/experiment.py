@@ -284,7 +284,9 @@ class Experiment:
         if 'valType' in paramNode.keys():
             params[name].valType = paramNode.get('valType')
             # compatibility checks:
-            if name in ['correctAns','text'] and paramNode.get('valType')=='code':
+            if name=='text' and paramNode.get('valType')=='code':
+                params[name].valType='str'# these components were changed in v1.60.01
+            elif name=='correctAns' and paramNode.get('valType')=='code' and paramNode.getparent().tag=="TextComponent":
                 params[name].valType='str'# these components were changed in v1.60.01
             elif name in ['allowedKeys'] and paramNode.get('valType')=='str':
                 params[name].valType='code'# these components were changed in v1.70.00
