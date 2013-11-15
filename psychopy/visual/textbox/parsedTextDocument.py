@@ -231,9 +231,9 @@ class ParsedTextLine(object):
             
     def updateOrds(self,text):
         if ParsedTextLine.charcodes_with_glyphs is None:
-            active_text_style=self._parent._text_grid._text_box._active_text_style
+            active_text_style=self._parent._text_grid._text_box._current_glfont
             if active_text_style:
-                ParsedTextLine.charcodes_with_glyphs=active_text_style.getFont().getAvailableCharCodes()
+                ParsedTextLine.charcodes_with_glyphs=active_text_style.charcode2unichr.keys()
 
         ok_charcodes=ParsedTextLine.charcodes_with_glyphs
         
@@ -245,7 +245,7 @@ class ParsedTextLine(object):
                 ParsedTextLine.replacement_charcode=replacement_charcodes[0]
                     
         self._ords=[]
-                
+        text=text.replace(u'\n',' ').replace(u'\t',' ')        
         for c in text:
             ccode=ord(c)
             if ccode in ok_charcodes:

@@ -29,12 +29,7 @@ import psychopy.tools.arraytools as arraytools
 from font_manager import SystemFontManager
 
 from textGrid import TextGrid
-from glyph import GlyphSet
-from font import TTFont
 
-print 'TODO: '
-print ' - Fix crash when > 1 textbox is added to a window.'
-print
 def getTime():
     return core.getTime()
 
@@ -43,6 +38,15 @@ def is_sequence(arg):
             hasattr(arg, "__getitem__") or
             hasattr(arg, "__iter__"))
 
+global _system_font_manager
+_system_font_manager=None
+
+def getFontManager():
+    global _system_font_manager
+    if _system_font_manager is None:
+        _system_font_manager = SystemFontManager() 
+    return _system_font_manager
+    
 def getGLInfo():
     gl_info=dict()
     gl_info['GL_LINE_SMOOTH']=glIsEnabled(GL_LINE_SMOOTH)
@@ -100,12 +104,8 @@ class TextBox(object):
         * TBC
      
     """
-    font_manager = SystemFontManager() 
     _textbox_instances={}
-    _text_style_cache={}
-    _te_glyph_set_label_to_max_size={}
     _gl_info=None
-    default_font_family_style=None
     def __init__(self, 
              window=None,               # PsychoPy Window instance
              text='Default Test Text.', # Initial text to be displayed.
@@ -114,10 +114,7 @@ class TextBox(object):
              italic=False,             #    determine style of font
              font_size=32,              # Pt size to use for font.
              font_color=[0,0,0,1],      # Color to draw the text with.  
-             font_background_color=None,# Color to fill each text cell with.
              dpi=72,                    # DPI used to create font bitmaps
-             font_file_name=None,       # to hand a ttf file for use directly
-                                        # (should match your system DPI setting)
              line_spacing=0,            # Amount of extra spacing to add between
              line_spacing_units='pix',  # lines of text.
              background_color=None,     # Color to use to fill the entire area
@@ -177,8 +174,6 @@ class TextBox(object):
         self._line_spacing_units=line_spacing_units
         self._border_color=border_color
         self._background_color=background_color        
-        self._grid_color=grid_color
-        self._grid_stroke_width=grid_stroke_width
         self._border_stroke_width=border_stroke_width         
         self._grid_horz_justification=grid_horz_justification
         self._grid_vert_justification=grid_vert_justification
@@ -187,6 +182,11 @@ class TextBox(object):
         self._size=size
         self._position=pos
         self._interpolate=interpolate
+        
+        self._draw_start_dlist=None
+        self._draw_end_dlist=None
+        self._draw_te_background_dlist=None
+
         
         if TextBox._gl_info is None:
             TextBox._gl_info =getGLInfo()
@@ -266,87 +266,27 @@ class TextBox(object):
         if flipVert:
             print 'Parameter "flipVert" is not supported by TextBox'
 
-        self._glyph_set_max_tile_sizes=None
         self._alignment=align_horz,align_vert
-        self._active_text_style=None
+        self._current_glfont=None
         self._text_grid=None
-        self._text_styles={}
+
         
         if self._label is None:
             self._label='TextBox_%s'%(str(int(time.time())))
 
+        fm=getFontManager()
+        if font_name is None:
+            font_name=fm.getFontFamilyStyles()[0][0]
+        gl_font=fm.getGLFont(font_name,font_size,bold,italic,dpi)
+        self._current_glfont=gl_font
 
-        text_style=None        
-        if font_name:
-            matching_fonts=self.font_manager.getFontsMatching(font_name,bold=bold,italic=italic)
-            if matching_fonts:
-                text_style=matching_fonts[0]
-        else:
-            for family_name,style in self.font_manager.font_family_styles:
-                b,i=self.font_manager.booleansFromStyleName(style)
-                if b==bold and i==italic:
-                    text_style=self.font_manager.getFontsMatching(family_name,style=style)[0]
+        self._text_grid=TextGrid(self, line_color=grid_color, 
+                 line_width=grid_stroke_width, font_color=font_color,
+                 grid_horz_justification=grid_horz_justification,
+                 grid_vert_justification=grid_vert_justification)
 
-        #print 'Text Info Match:',text_style
-        if text_style:
-            text_style=self.createTextStyle(text_style,
-                                            font_size=font_size,
-                                            dpi=dpi,
-                                            font_color=font_color,
-                                            font_background_color=font_background_color,
-                                            color_space=color_space,
-                                            opacity=opacity,
-                                            window=window)                        
-        #print 'text_style Match:',text_style
- 
-        self._setActiveTextStyleFromArgs(text_style,font_file_name,
-                                         font_size,
-                                         dpi,
-                                         font_color,
-                                         font_background_color,
-                                         color_space,
-                                         opacity)
-                                    
-        ###
-        #print 'self._active_text_style:', self._active_text_style                            
-        if TTFont._glyphs_loaded is False:
-            TTFont._loadGlyphs()
-            TTFont.getTextureAtlas().upload()
-
-        ###
-                    
-        # calculate max tile size, and set the value in the Glyph Set
-        TextBox._te_glyph_set_label_to_max_size[self._label]={}
+        self._text_grid.setCurrentFontDisplayLists(gl_font.charcode2displaylist)
         
-        max_width=0
-        max_height=0            
-        for gs in self._text_styles.itervalues():
-            max_width=max(gs._font._max_tile_width,max_width)
-            max_height=max(gs._font._max_tile_height,max_height)
-
-        for gs in self._text_styles.itervalues():
-            gs.max_tile_sizes.append((max_width,max_height))
-            TextBox._te_glyph_set_label_to_max_size[self._label][gs.getLabel()]=(max_width,max_height)
-   
-        ###
-   
-        self._glyph_set_max_tile_sizes=self._te_glyph_set_label_to_max_size[self._label]
-
-        for gs_label,gs in GlyphSet.loaded_glyph_sets.iteritems():
-            gs.createDisplayListsForMaxTileSizes()
-
-        ###
-
-        self._text_grid=TextGrid(self, line_color=self._grid_color, 
-                                 line_width=self._grid_stroke_width,
-                                 grid_horz_justification=self._grid_horz_justification,
-                                 grid_vert_justification=self._grid_vert_justification)
-
-        ###
-
-        self._text_grid._setActiveGlyphDisplayLists(
-            self._active_text_style._display_lists[self.getMaxTextCellSize()])
-
         if not self._text or len(self._text) == 0:                
             self._text=u'\n'
         self._text_grid._createParsedTextDocument(self._text)
@@ -370,6 +310,7 @@ class TextBox(object):
     def setText(self,text_source):
         if not self._text:                
             self._text=u'\n'
+
         self._text=text_source
         self._text_grid._setText(self._text)
         
@@ -388,6 +329,14 @@ class TextBox(object):
     def getColorSpace(self):
         return self._color_space
 
+    def getFontColor(self):
+        return self._text_grid._font_color
+
+    def setFontColor(self,c):
+        if c != self._text_grid._font_color:
+            self._text_grid._font_color=c
+            self._text_grid._deleteTextDL()
+            
     def getAutoLog(self):
         return self._auto_log
 
@@ -404,110 +353,103 @@ class TextBox(object):
     def getBorderColor(self):
         return self._border_color
 
+    def setBorderColor(self,c):
+        if c!= self._border_color:
+            self._border_color=c
+            self._deleteBackgroundDL()
+
     def getBorderWidth(self):
         return self._border_stroke_width
+
+    def setBorderWidth(self,c):
+        if c!= self._border_stroke_width:
+            self._border_stroke_width=c
+            self._deleteBackgroundDL()
 
     def getBackgroundColor(self):
         return self._background_color
 
+    def setBackgroundColor(self,c):
+        if c!= self._background_color:
+            self._background_color=c
+            self._deleteBackgroundDL()
+
     def getTextGridLineColor(self):
-        return self._grid_color
+        return self._text_grid._line_color
+
+    def setTextGridLineColor(self,c):
+        if c!= self._text_grid._line_color:
+            self._text_grid._line_color=c
+            self._text_grid._deleteGridLinesDL()
 
     def getTextGridLineWidth(self):
-        return self._grid_stroke_width
+        return self._text_grid._line_width
+
+    def setTextGridLineWidth(self,c):
+        if c!= self._text_grid._line_width:
+            self._text_grid._line_width=c
+            self._text_grid._deleteGridLinesDL()
 
     def getHorzAlignment(self):
         return self._align_horz
 
     def getVertAlignment(self):
         return self._align_vert
-
-    def getTextGrid(self):
-        return self._text_grid
             
-
-    @staticmethod
-    def createTextStyle(font_info=None,file_path=None,font_size=24,dpi=72,font_color=[0,0,0,1],font_background_color=None,color_space='rgb',opacity=1.0,window=None):
-        if len(TextBox._textbox_instances)>0:
-            raise ValueError("TextBox.createTextStyle can not be called after a TextBox object has been created. Current TextBox count: %d"%(len(TextBox._textbox_instances)))
-
-        font=None
-        if font_info:
-            font=TTFont.load(font_info.path,font_size,dpi) 
-        else:
-            font=TTFont.load(file_path,font_size,dpi) 
-            
-        if font and font.getLabel() in TextBox._text_style_cache:
-            raise ValueError("TextBox.createTextStyle TextBox Label Already In Use: %s"%( font.getLabel()))
-            
-        font_rgba=TextBox._toRGBA2(font_color,opacity,color_space,window)
-        back_rgba=None
-        if font_background_color:
-            back_rgba=TextBox._toRGBA2(font_background_color,opacity,color_space,window)
-        gs=GlyphSet.createCached(font,
-                                 font_rgba,
-                                 back_rgba,
-                                 org_color_info=dict(font_color=font_color,
-                                                     font_background_color=font_background_color,
-                                                     color_space=color_space,
-                                                     opacity=opacity))
-    
-        return TextBox._text_style_cache.setdefault( font.getLabel(),proxy(gs))
-
-    def setActiveTextStyle(self,text_style_label):
-        if text_style_label and text_style_label in self._text_styles.keys():
-            self._active_text_style=self._text_styles.get(text_style_label)
-            self._text_grid._deleteDisplayList()
-            self._text_grid._setActiveGlyphDisplayLists(
-                self._active_text_style._display_lists[self.getMaxTextCellSize()])
-
-    def getActiveTextStyle(self):
-        return self._active_text_style
-
     def getMaxTextCellSize(self):
-        return self._glyph_set_max_tile_sizes[self._active_text_style.getLabel()]
+        return self._current_glfont.max_tile_width,self._current_glfont.max_tile_height
 
     def getAlignment(self):
         return self._alignment
      
     def draw(self):
-#        atime=getTime()        
-        self._text_grid._buildDisplayList() 
-#        btime=getTime()
-        glCallList(self._text_grid._textgrid_dlist) 
-#        ctime=getTime()
-        #glFinish()
-        #dtime=getTime()
-        
-#        print 'BUILD LIST: %.3f'%((btime-atime)*1000.0)
-#        print 'CALL_LIST: %.3f'%((ctime-btime)*1000.0)
-#        #print 'FINISH: %.3f'%((dtime-ctime)*1000.0)
-#        print 'TOTAL: %.3f'%((ctime-atime)*1000.0)
-#        print '----'
+        self._te_start_gl()
+        self._te_bakground_dlist()
+        self._text_grid._text_glyphs_gl() 
+        self._text_grid._textgrid_lines_gl()
+        self._te_end_gl()
+
         
     def _te_start_gl(self):
-        glViewport( 0, 0, self._window.winHandle.screen.width,self._window.winHandle.screen.height )
-        glMatrixMode( GL_PROJECTION )
-        glLoadIdentity()
-        glOrtho( 0, self._window.winHandle.screen.width, 0, self._window.winHandle.screen.height, -1, 1 )
-        glMatrixMode( GL_MODELVIEW )
-        glLoadIdentity()
-        glDisable( GL_DEPTH_TEST )
-        glEnable( GL_BLEND )
-        glEnable( GL_COLOR_MATERIAL )
-        glColorMaterial( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE )
-        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA )
-        if self._interpolate:
-            glEnable(GL_LINE_SMOOTH)
-            glEnable(GL_POLYGON_SMOOTH)
-        else:
-            glDisable(GL_LINE_SMOOTH)
-            glDisable(GL_POLYGON_SMOOTH)
- 
-        # draw textbox_background and outline
-        t,l=self._getTopLeftPixPos()
-        glTranslatef(t,l, 0 )         
-        if self._background_color or self._border_color:
+        if not self._draw_start_dlist:            
+            dl_index = glGenLists(1)        
+            glNewList(dl_index, GL_COMPILE)           
+            glViewport( 0, 0, self._window.winHandle.screen.width,self._window.winHandle.screen.height )
+            glMatrixMode( GL_PROJECTION )
+            glLoadIdentity()
+            glOrtho( 0, self._window.winHandle.screen.width, 0, self._window.winHandle.screen.height, -1, 1 )
+            glMatrixMode( GL_MODELVIEW )
+            glLoadIdentity()
+            glDisable( GL_DEPTH_TEST )
+            glEnable( GL_BLEND )
+            glEnable( GL_COLOR_MATERIAL )
+            glColorMaterial( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE )
+            glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA )
+            if self._interpolate:
+                glEnable(GL_LINE_SMOOTH)
+                glEnable(GL_POLYGON_SMOOTH)
+            else:
+                glDisable(GL_LINE_SMOOTH)
+                glDisable(GL_POLYGON_SMOOTH)
+            t,l=self._getTopLeftPixPos()
+            glTranslatef(t,l, 0 )   
+            glEndList()
+            self._draw_start_dlist=dl_index
+        glCallList(self._draw_start_dlist) 
+
+    def _deleteStartDL(self):
+        if self._draw_start_dlist:
+            glDeleteLists(self._draw_start_dlist, 1)
+            self._draw_start_dlist=None
+
+    def _te_bakground_dlist(self):
+        if not self._draw_te_background_dlist and (self._background_color or self._border_color):            
+            dl_index = glGenLists(1)        
+            glNewList(dl_index, GL_COMPILE)           
+        
+            # draw textbox_background and outline
+            #t,l=self._getTopLeftPixPos()
+            #glTranslatef(t,l, 0 )         
             border_thickness=self._border_stroke_width
             size=self._getPixelSize()
             if self._border_stroke_width is None:
@@ -539,18 +481,40 @@ class TextBox(object):
                 glVertex2d(x1-hbthick, y1)             
                 glEnd()    
             glColor4f(0.0,0.0,0.0,1.0)
+            glEndList()
+            self._draw_te_background_dlist=dl_index
+        if (self._background_color or self._border_color):
+            glCallList(self._draw_te_background_dlist) 
+            
+    def _deleteBackgroundDL(self):
+        if self._draw_te_background_dlist:
+            glDeleteLists(self._draw_te_background_dlist, 1)
+            self._draw_te_background_dlist=None
 
     def _te_end_gl(self):
-        rgb=self._window.rgb
-        rgb=TextBox._toRGBA2(rgb,1,self._window.colorSpace,self._window)
-        glClearColor(rgb[0],rgb[1],rgb[2], 1.0) 
-        glViewport(0, 0, int(self._window.winHandle.screen.width), int(self._window.winHandle.screen.height))
-        glMatrixMode(GL_PROJECTION) # Reset The Projection Matrix
-        glLoadIdentity()
-        gluOrtho2D(-1,1,-1,1)
-        glMatrixMode(GL_MODELVIEW)# Reset The Projection Matrix
-        glLoadIdentity()
+        if not self._draw_end_dlist:            
+            dl_index = glGenLists(1)        
+            glNewList(dl_index, GL_COMPILE)           
 
+            rgb=self._window.rgb
+            rgb=TextBox._toRGBA2(rgb,1,self._window.colorSpace,self._window)
+            glClearColor(rgb[0],rgb[1],rgb[2], 1.0) 
+            glViewport(0, 0, int(self._window.winHandle.screen.width), int(self._window.winHandle.screen.height))
+            glMatrixMode(GL_PROJECTION) # Reset The Projection Matrix
+            glLoadIdentity()
+            gluOrtho2D(-1,1,-1,1)
+            glMatrixMode(GL_MODELVIEW)# Reset The Projection Matrix
+            glLoadIdentity()
+
+            glEndList()
+            self._draw_end_dlist=dl_index    
+        glCallList(self._draw_end_dlist) 
+
+    def _deleteEndDL(self):
+        if self._draw_end_dlist:
+            glDeleteLists(self._draw_end_dlist, 1)
+            self._draw_end_dlist=None
+            
     @staticmethod
     def _toPix(xy,units,window):
         if isinstance(xy, numbers.Number):
@@ -644,25 +608,7 @@ class TextBox(object):
                 return (color[0]+1.0)/2.0,(color[1]+1.0)/2.0,(color[2]+1.0)/2.0,(color[3]+1.0)/2.0
 
         raise ValueError("TextBox: color: %s, opacity: %s, is not a valid color for color space %s."%(str(color),str(opacity),color_space))
-            
-    def _setActiveTextStyleFromArgs(self,text_style=None,font_file_name=None,font_size=None,dpi=None,font_color=None,font_background_color=None,color_space=None,opacity=None):
-        if text_style:
-            tslabel= text_style.getLabel()
-            if tslabel in self._text_styles.keys():
-                self._active_text_style=self._text_styles[tslabel]              
-            elif tslabel in self._text_style_cache.keys():            
-                self._active_text_style=self._text_styles[tslabel]
-            else:
-                self._text_styles.setdefault(text_style.getLabel(),text_style) 
-                self._active_text_style=text_style
-        if self._active_text_style is None and font_file_name:
-                # create new font stim using TextBox args
-                self._active_text_style=self.createTextStyle(None,font_file_name,font_size,dpi,font_color,font_background_color,color_space,opacity,self._window)
-                if self._active_text_style:                
-                    self._text_styles.setdefault(text_style.getLabel(),self._active_text_style)   
-        if self._active_text_style is None:
-                raise ValueError("No Text Style could be created based on information given!")
-                         
+                                     
     def _reset(self):
         self._text_grid.reset()                       
 
@@ -711,36 +657,6 @@ class TextBox(object):
 
     def __del__(self):
         del self._textbox_instances[self.getName()]
-        self._text_styles.clear()
-        self._glyph_set_max_tile_sizes=None
-        del self._active_text_style
+        del self._current_glfont
         del self._text_grid
-        if len(self._textbox_instances) == 0:
-            for gs in GlyphSet.loaded_glyph_sets.values():
-                if gs._label is not None:                
-                    gs._free()
         
-#def _module_directory(local_function):
-#    mp=os.path.abspath(inspect.getsourcefile(local_function))
-#    moduleDirectory,mname=os.path.split(mp)
-#    return moduleDirectory
-#        
-#_THIS_DIR=_module_directory(getTime)    
-#TTFont.addSearchDirectories(_THIS_DIR)
-#TTFont.addSearchDirectories(os.path.join(_THIS_DIR,'fonts'))
-
-
-#_label=TextBox._default_text_style_info.get('label')
-#if _label and _label not in TextBox._text_style_cache:
-#        dtsi=TextBox._default_text_style_info
-#        label=_label
-#        file_name=dtsi['file_name']
-#        size=dtsi['font_size']
-#        dpi=dtsi['dpi']
-#        font_color=dtsi['font_color']
-#        background_color=dtsi['font_background_color']
-#        color_space=dtsi['color_space']
-#        opacity=dtsi['opacity']
-#        TextBox.createTextStyle(label,file_name,
-#                        size,dpi,font_color,
-#                        background_color,color_space,opacity)                

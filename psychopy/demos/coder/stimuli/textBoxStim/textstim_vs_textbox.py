@@ -57,10 +57,21 @@ window=visual.Window(display_resolution,
                         screen=0
                         )
 
-# SS: On my Win7 box in Canada, following monospace TTFs are installed:
-#'Lucida Sans Typewriter', 'Simplified Arabic Fixed', 'DFKai-SB', 'Rod', 
-#'Courier New', 'Consolas', 'Miriam Fixed', 'Lucida Console', 'SimSun-ExtB'
-font_name='Lucida Sans Typewriter' #'Consolas'
+
+fm=visual.textbox.getFontManager()
+available_font_names=fm.getFontFamilyStyles()
+prefered_fonts=[fn for fn,fs in available_font_names if fn in [
+                                                            'Courier New',
+                                                            'Consolas',
+                                                            'Lucida Sans Typewriter',
+                                                            'Ubuntu Mono',
+                                                            'DejaVu Sans Mono',
+                                                            'Bitstream Vera Sans Mono',
+                                                            'Luxi Mono']]
+if prefered_fonts:
+    font_name=prefered_fonts[0]
+else:
+    font_name=available_font_names[0][0]
 bold=False
 italic=False
 
@@ -71,14 +82,13 @@ textbox=visual.TextBox(window=window,
                          bold=bold,
                          italic=italic,
                          font_size=32,
-                         font_color=[255,255,255], 
-                         background_color=[128,32,192,255],
-                         font_file_name=None, 
+                         font_color=[0,0,0], 
+                         #background_color=[128,32,192,255],
                          dpi=72,
-                         border_color=None,#[0,255,0,64],
-                         border_stroke_width=2,
-                         grid_color=[255,255,0,255],
-                         grid_stroke_width=1,
+                         #border_color=[0,255,0,64],
+                         #border_stroke_width=2,
+                         #grid_color=[255,255,0,255],
+                         #grid_stroke_width=1,
                          size=(1.6,.25),
                          pos=(0.0,.25), 
                          units='norm',
