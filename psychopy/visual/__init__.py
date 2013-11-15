@@ -48,4 +48,7 @@ from psychopy.visual.rect import Rect
 from psychopy.visual.circle import Circle
 
 # TextBox alternative to TextStim
-from textbox import TextBox
+try:
+    from textbox import TextBox
+except: # this stimulus is still very experimental
+    pass
