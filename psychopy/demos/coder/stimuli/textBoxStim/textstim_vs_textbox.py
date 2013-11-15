@@ -118,7 +118,7 @@ textstim_init_dur=etime-stime
 
 
 #stim_draw_orders=[[textstim,textbox],[textbox,textstim]]
-stim_draw_orders=[[textstim,textbox],[textbox,textstim],[textbox,textbox],[textstim,textstim]]
+stim_draw_orders=[[textstim,textbox],]
 for stim1, stim2 in stim_draw_orders:
     stim1_txt_change_draw_times.clear()    
     stim2_txt_change_draw_times.clear()    
