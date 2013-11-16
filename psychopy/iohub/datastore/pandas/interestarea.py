@@ -3,7 +3,7 @@ from __future__ import division
 """
 ioHub DataStore to Pandas DataFrame Module with Event Filtering Support
 
-.. file: ..../iohubpandas/interestarea.py
+.. file: psychopy.iohub.datastore.pandas.interestarea.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
 Distributed under the terms of the GNU General Public License 

@@ -3,7 +3,7 @@ from __future__ import division
 """
 ioHub DataStore to Pandas DataFrame Module with Event Filtering Support
 
-.. file: ..../iohubpandas/interestperiod.py
+.. file: psychopy.iohub.datastore.pandas.interestperiod.py
 
 Copyright (C) 2012-2013 iSolver Software Solutions
 Distributed under the terms of the GNU General Public License 
@@ -103,7 +103,7 @@ class EventBasedIP(InterestPeriodDefinition):
             
         ip_df has columns:
             start_time
-            start_event_id
+            start_event_id 
             end_time
             end_event_id
             ip_name
