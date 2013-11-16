@@ -6,13 +6,13 @@ News
 
 **Latest stable version**: 1.77.02 was released July 2013, with several performance improvements. See complete :doc:`changelog`
 
-**Cutting edge version**: 1.78.00 was released Aug 2013. Adds 'Static Component' to allow pre-loading of images, and Shape Component for standard geometric shapes
+**Cutting edge version**: 1.78.00 was released Aug 2013. Adds :ref:`static` to allow pre-loading of images, and Shape Component for standard geometric shapes
 
 **Upcoming Workshops**:
+        
+    :ref:`P4N`
     
-    * Jon Peirce is running a 1/2-day `PsychoPy workshop at ECVP <http://www.ecvp.uni-bremen.de/node/46>`_
-    
-    * We'll be running a multi-day :ref:`Python for Neuroscience workshop <P4N>` again in April 2014 at Nottingham University. I'm hoping we'll be able to run Novice and Intermediate streams this year (last year was novice-only), with contributing experienced users from all over the world (last year was just Jon) 
+        There will be a 3-day Python Workshop in April 2014 at Nottingham University, with **novice** and **intermediate** streams. We'll follow that with 2 days of a 'code sprint' for developers of PsychoPy. Limited spaces, so book now at `Nottingham's online store <http://store.nottingham.ac.uk/browse/extra_info.asp?compid=1&modid=2&catid=49&prodid=323>`_. 
 
 .. title:: Home
 

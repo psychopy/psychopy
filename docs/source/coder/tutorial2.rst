@@ -98,7 +98,7 @@ OK! We're basically done! We've reached the end of the for-loop (which occurred 
 .. literalinclude:: tutorial2.py
    :lines: 90-92
 
-While we're here, it's quite nice to give some immediate feedback to the user. Let's tell them the the intensity values at the all the reversals and give them the mean of the last 6. This is an easy way to get an estimate of the threshold, but we might be able to do a better job by trying to reconstruct the psychometric function. To give that a try see the staircase analysis script of :doc:`Tutorial 3 <tutorial3>`.
+While we're here, it's quite nice to give some immediate feedback to the user. Let's tell them the intensity values at the all the reversals and give them the mean of the last 6. This is an easy way to get an estimate of the threshold, but we might be able to do a better job by trying to reconstruct the psychometric function. To give that a try see the staircase analysis script of :doc:`Tutorial 3 <tutorial3>`.
 
 Having saved the data you can give your participant some feedback and quit!
 

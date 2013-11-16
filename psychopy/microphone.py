@@ -461,8 +461,8 @@ def readWavFile(filename):
     return data, sampleRate
 
 def getDftBins(data=[], sampleRate=None, low=100, high=8000, chunk=64):
-    """Get DFT (discrete Fourier transform) of `data`, doing so in time-domain
-    bins of `chunk` samples.
+    """Return DFT (discrete Fourier transform) of ``data``, doing so in
+    time-domain bins, each of size ``chunk`` samples.
 
     e.g., for getting FFT magnitudes in a ms-by-ms manner.
 
@@ -514,10 +514,22 @@ def getDft(data, sampleRate=None, wantPhase=False):
             return magn, phase
         return magn
 
+def getRMSBins(data, chunk=64):
+    """Return RMS (loudness) in bins of ``chunk`` samples
+    """
+    # better to vectorize
+    bins = []
+    i = chunk
+    while i <= len(data):
+        r = getRMS(data[i-chunk:i])
+        bins.append(r)
+        i += chunk
+    return np.array(bins)
+
 def getRMS(data):
     """Compute and return the audio power ("loudness").
 
-    Identical to std() if the mean is 0; .wav data should have a mean of 0.
+    Uses numpy.std() as RMS. std() is same as RMS if the mean is 0, and .wav data should have a mean of 0.
     Returns an array if given stereo data (RMS computed within-channel).
 
     `data` can be an array (1D, 2D) or filename; .wav format only.
@@ -526,8 +538,8 @@ def getRMS(data):
     def _rms(data):
         """Audio loudness / power, as rms; ~2x faster than std()"""
         if len(data.shape) > 1:
-            return np.sqrt(np.mean(data ** 2, axis=1))
-        return np.sqrt(np.mean(data ** 2))
+            return np.std(data, axis=1) #np.sqrt(np.mean(data ** 2, axis=1))
+        return np.std(data) #np.sqrt(np.mean(data ** 2))
     if isinstance(data, basestring):
         if not os.path.isfile(data):
             raise ValueError('getRMS: could not find file %s' % data)

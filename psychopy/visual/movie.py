@@ -147,7 +147,7 @@ class MovieStim(BaseVisualStim):
 
         #check for pyglet
         if win.winType!='pyglet':
-            logging.Error('Movie stimuli can only be used with a pyglet window')
+            logging.error('Movie stimuli can only be used with a pyglet window')
             core.quit()
     def _calcVertices(self):
         R, T = self._sizeRendered / 2  # pix
@@ -237,7 +237,7 @@ class MovieStim(BaseVisualStim):
             self.win.logOnFlip("Set %s seek=%f" %(self.name,timestamp),
                 level=logging.EXP,obj=self)
     def setFlipHoriz(self, newVal=True, log=True):
-        """If set to True then the movie will be flipped horiztonally (left-to-right).
+        """If set to True then the movie will be flipped horizontally (left-to-right).
         Note that this is relative to the original, not relative to the current state.
         """
         self.flipHoriz = newVal
@@ -300,7 +300,7 @@ class MovieStim(BaseVisualStim):
         GL.glPopMatrix()
 
     def setContrast(self):
-        """"Not yet implemented for MovieStim"""
+        """Not yet implemented for MovieStim"""
         pass
 
     def _onEos(self):

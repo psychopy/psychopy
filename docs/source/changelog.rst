@@ -38,15 +38,15 @@ PsychoPy 1.79
     * pyxid now includes Jared's upstream bug-fix
 * FIXED: many user interface tweaks, documentation and help string corrections (Philip Wiesemann)
 * CHANGED: data curve fitting functions are now using scipy.optimise.curve_fit and should hopefully be more robust to local minima(?)
-* ADDED: Following EXPERIMENTAL stage implementation (Use at Own Risk):
-    * Alternative Text stimulus, psychopy.visual.TextBox:
-        * freetype lib must be available. freetype python wrapper must be copied from visual.textbox.freetype-py folder to python path.
-        * Supports monospace TTF files only. 
-        * Very precise placement of text.
-        * Update and redraw the text string being displayed very quickly ( 1 - 5 msec for 200 char string, depending on graphics card and OS)
+* CHANGED: microphone getRMS now uses numpy.std(); the change should have no effect on loudness values computed for .wav files
+* ADDED: builder demo for mental rotation task
+* ADDED: Alternative Text stimulus, psychopy.visual.TextBox:
+        * Requires: freetype lib and freetype python wrapper (included in Standalone)
+        * Advantages: text that changes each frame (very fast updating)
+        * Disadvantages: slow to set up font initially. Supports monospace TTF files only. 
         * IMPORTANT: TextBox is still being finalized and completed; expect to find issues. API changes guaranteed.
 
-psychopy.iohub Related Changes:
+*psychopy.iohub Changes* :
 
 * ADDED: Initial release of the new Touch device:
     * currently supporting Elo brand Touch Screens.
@@ -55,7 +55,7 @@ psychopy.iohub Related Changes:
     * Touch and Mouse device events are independent of each other, so both devices can be used in parallel without interference
     * Touch screen calibration routine provided; calibration state can be saved to device hardware for persistence
     * See the demos.coder.iohub_extended Touch script for example of calibration graphics front end.
-* NEW: PsychoPy TrialHandler's can now be used to feed experiment condition variables to the ioDataStore.
+* NEW: PsychoPy TrialHandler can now be used to feed experiment condition variables to the ioDataStore.
 * NEW: Device configuration file can now be specified to the launchHubServer() function when starting the ioHub Process.
 * NEW: Simple examples of how to use iohub within a Builder project using a Custom Code Component.
 * FIXED: Analog Input Event delay calculation error that was causing incorrect time correction to be applied to this event type.

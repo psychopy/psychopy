@@ -157,8 +157,10 @@ class KeyboardComponent(BaseComponent):
 
         if storeCorr:
             buff.writeIndented("# was this 'correct'?\n" %self.params)
-            buff.writeIndented("if (%(name)s.keys == str(%(correctAns)s)) or (%(name)s.keys == %(correctAns)s): %(name)s.corr = 1\n" %(self.params))
-            buff.writeIndented("else: %(name)s.corr=0\n" %self.params)
+            buff.writeIndented("if (%(name)s.keys == str(%(correctAns)s)) or (%(name)s.keys == %(correctAns)s):\n" %(self.params))
+            buff.writeIndented("    %(name)s.corr = 1\n" %(self.params))
+            buff.writeIndented("else:\n")
+            buff.writeIndented("    %(name)s.corr = 0\n" %(self.params))
 
         if forceEnd==True:
             buff.writeIndented("# a response ends the routine\n" %self.params)
@@ -176,7 +178,7 @@ class KeyboardComponent(BaseComponent):
         #write the actual code
         if (store!='nothing') and currLoop:#need a loop to do the storing of data!
             buff.writeIndented("# check responses\n" %self.params)
-            buff.writeIndented("if len(%(name)s.keys) == 0:  # No response was made\n"%self.params)
+            buff.writeIndented("if %(name)s.keys in ['', [], None]:  # No response was made\n"%self.params)
             buff.writeIndented("   %(name)s.keys=None\n" %(self.params))
             if self.params['storeCorrect'].val:#check for correct NON-repsonse
                 buff.writeIndented("   # was no response the correct answer?!\n" %(self.params))

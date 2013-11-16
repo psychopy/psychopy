@@ -27,22 +27,25 @@ elif sys.platform == 'win32':
         from _dlportio import PParallelDLPortIO
         ParallelPort = PParallelDLPortIO
     else:
-        logging.warning("psychopy.parallel has been imported but no parallel port driver found. Install either input32 or dlportio")
+        logging.warning("psychopy.parallel has been imported but no "
+                        "parallel port driver found. Install either "
+                        "input32 or dlportio")
 else:
-    logging.warning("psychopy.parallel has been imported on a Mac (which doesn't have a parallel port?)")
-    #OS X doesn't have a parallel port but write the class for documentations purps
+    logging.warning("psychopy.parallel has been imported on a Mac "
+                    "(which doesn't have a parallel port?)")
+
+    #OS X doesn't have a parallel port but write the class for doc purps
     class ParallelPort(object):
         """
-        This class provides read/write access to the parallel port on Windows and Linux
+        This class provides r/w access to the parallel port on Windows & Linux
 
         Usage::
 
             from psychopy import parallel
-            port = parallel.ParallelPort(addresss = 0x0378)
+            port = parallel.ParallelPort(address=0x0378)
             port.setData(4)
             port.readPin(2)
             port.setPin(2, 1)
-
         """
         def setData(self, data):
             """
@@ -52,10 +55,10 @@ else:
 
             examples::
 
-                parallel.setData(0) #sets all pins low
-                parallel.setData(255) #sets all pins high
-                parallel.setData(2) #sets just pin 3 high (remember that pin2=bit0)
-                parallel.setData(3) #sets just pins 2 and 3 high
+                parallel.setData(0)  # sets all pins low
+                parallel.setData(255)  # sets all pins high
+                parallel.setData(2)  # sets just pin 3 high (remember that pin2=bit0)
+                parallel.setData(3)  # sets just pins 2 and 3 high
 
             you can also convert base 2 to int v easily in python::
 
@@ -63,22 +66,25 @@ else:
                 parallel.setData( int("00000101",2) )#pins 2 and 4 high
             """
             sys.stdout.flush()
-            raise NotImplementedError, "Parallel ports don't work on a Mac"
+            raise NotImplementedError("Parallel ports don't work on a Mac")
+
         def readData(self):
             """Return the value currently set on the data pins (2-9)"""
-            raise NotImplementedError, "Parallel ports don't work on a Mac"
+            raise NotImplementedError("Parallel ports don't work on a Mac")
+
         def readPin(self, pinNumber):
             """Determine whether a desired (input) pin is high(1) or low(0).
 
             Pins 2-13 and 15 are currently read here
             """
-            raise NotImplementedError, "Parallel ports don't work on a Mac"
+            raise NotImplementedError("Parallel ports don't work on a Mac")
 
 # In order to maintain API compatibility, we have to manage to deal with
 # the old, non-object-based, calls.  This necessitates keeping a
 # global object referring to a port.  We initialise it the first time
 # that the person calls
-PORT = ParallelPort() # create a port using default address
+PORT = None  # don't create a port until necessary
+
 
 def setPortAddress(address=0x0378):
     """
@@ -110,9 +116,11 @@ def setPortAddress(address=0x0378):
         del PORT
 
     try:
-        PORT = d(address=address)
-    except Exception, e:
+        PORT = ParallelPort(address=address)
+    except Exception as exp:
+        logging.warning('Could not initiate port: %s' % str(exp))
         PORT = None
+
 
 def setData(data):
     """
@@ -134,7 +142,10 @@ def setData(data):
     """
 
     global PORT
+    if PORT is None:
+        raise RuntimeError('Port address must be set using setPortAddress')
     PORT.setData(data)
+
 
 def setPin(pinNumber, state):
     """Set a desired pin to be high(1) or low(0).
@@ -146,6 +157,7 @@ def setPin(pinNumber, state):
     """
     global PORT
     PORT.setPin(pinNumber, state)
+
 
 def readPin(pinNumber):
     """

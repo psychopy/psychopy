@@ -284,7 +284,9 @@ class Experiment:
         if 'valType' in paramNode.keys():
             params[name].valType = paramNode.get('valType')
             # compatibility checks:
-            if name in ['correctAns','text'] and paramNode.get('valType')=='code':
+            if name=='text' and paramNode.get('valType')=='code':
+                params[name].valType='str'# these components were changed in v1.60.01
+            elif name=='correctAns' and paramNode.get('valType')=='code' and paramNode.getparent().tag=="TextComponent":
                 params[name].valType='str'# these components were changed in v1.60.01
             elif name in ['allowedKeys'] and paramNode.get('valType')=='str':
                 params[name].valType='code'# these components were changed in v1.70.00
@@ -1182,7 +1184,7 @@ class ExpFile(list):
         self.name=name
         self.exp=exp #the exp we belong to
         self.expObject = None #the experiment we represent on disk (see self.loadExp)
-        self.filename-filename
+        self.filename = filename
         self._clockName=None#this is used for script-writing e.g. "t=trialClock.GetTime()"
         self.type='ExpFile'
         list.__init__(self, components)
@@ -1197,7 +1199,7 @@ class ExpFile(list):
     def loadExp(self):
         #fetch the file
         self.expObject = Experiment()
-        self.expObject.loadFromXML(sel.filename)
+        self.expObject.loadFromXML(self.filename)
         self.flow = self.expObject.flow #extract the flow, which is the key part for us
     def writeInitCode(self,buff):
         #tell each object on our flow to write its init code
