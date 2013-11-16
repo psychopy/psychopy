@@ -23,8 +23,11 @@ from psychopy import  core as core, gui
 import psychopy.logging as psycho_logging
     
 if sys.platform != 'darwin':
-    import psutil
-    _psutil_available=True
+    try:
+        import psutil
+        _psutil_available=True
+    except ImportError, e:
+        print 'Note: psutil python package could not be imported. Process priority and cpu affinity settings will not be available.'
 
 from . import IO_HUB_DIRECTORY,isIterable, load, dump, Loader, Dumper, updateDict
 from . import MessageDialog, win32MessagePump

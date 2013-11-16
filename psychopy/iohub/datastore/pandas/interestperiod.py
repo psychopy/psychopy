@@ -69,9 +69,9 @@ class InterestPeriodDefinition(object):
         
 #############################################
 
-class MessageBasedIP(InterestPeriodDefinition):
+class EventBasedIP(InterestPeriodDefinition):
     """
-    MessageBasedIP Class
+    EventBasedIP Class
     
     trial_ip=BoundingEventsIP(name='trial_ip',
                               start_source_df=exp_data.MESSAGE,
