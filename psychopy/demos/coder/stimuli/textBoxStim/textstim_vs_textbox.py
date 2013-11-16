@@ -58,6 +58,7 @@ window=visual.Window(display_resolution,
                         )
 
 
+# Find a font that is available on the system.
 fm=visual.textbox.getFontManager()
 available_font_names=fm.getFontFamilyStyles()
 prefered_fonts=[fn for fn,fs in available_font_names if fn in [

@@ -5,6 +5,7 @@ Created on Thu Mar 21 18:37:10 2013
 @author: Sol
 """
 from psychopy import visual, core, event
+import numpy as np
 
 display_resolution=800,600
 # Create Window
@@ -19,7 +20,7 @@ window=visual.Window(display_resolution,
 # textbox stim, a default font is selected by TextBox stim automatically.  
 #                                                         
 textbox=visual.TextBox(window=window, 
-                         text='This is the plain TextBox UX.', 
+                         text='PRESS ANY KEY TO QUIT DEMO.\n(Displayed using a plain TextBox.)', 
                          bold=False,
                          italic=False,
                          font_size=18,
@@ -32,7 +33,7 @@ textbox=visual.TextBox(window=window,
                          )
 
 textbox2=visual.TextBox(window=window,
-                         text='This TextBox is using the different UX features.', 
+                         text='This TextBox is using all the different UX elements.', 
                          bold=False,
                          italic=False,
                          font_size=32,
@@ -42,7 +43,9 @@ textbox2=visual.TextBox(window=window,
                          border_stroke_width=4,
                          grid_color=[-1,1,-1,1],
                          grid_stroke_width=1,
-                         size=(1.5,.5),
+                         textgrid_shape=[20,4], # 20 cols (20 chars wide)
+                                                # by 3 rows (3 lines of text)
+                         #size=(1.75,.6),
                          pos=(0.0,-0.5),
                          grid_horz_justification='center', 
                          grid_vert_justification='center',
@@ -53,8 +56,26 @@ textbox.draw()
 textbox2.draw()
 demo_start=window.flip()     
 event.clearEvents()
-
+last_attrib_change_time=demo_start
 while True:
+    if core.getTime()-last_attrib_change_time> 2.5:
+        last_attrib_change_time=core.getTime()
+        color=list(((np.random.rand(3,1)*2.0)-1.0)[:,0])
+        textbox.setFontColor(list(((np.random.rand(3,1)*2.0)-1.0)[:,0]))
+        
+        textbox2.setFontColor(list(((np.random.rand(3,1)*2.0)-1.0)[:,0]))
+        textbox2.setBackgroundColor(list(((np.random.rand(3,1)*2.0)-1.0)[:,0]))
+        textbox2.setBorderColor(list(((np.random.rand(3,1)*2.0)-1.0)[:,0]))
+        textbox2.setBorderWidth(np.random.choice([2,4,6,8]))
+        textbox2.setTextGridLineColor(list(((np.random.rand(3,1)*2.0)-1.0)[:,0]))
+        #textbox2.setTextGridLineWidth(np.random.choice([2,4,6,8]))
+        textbox2.setHorzJust(np.random.choice(['left','center','right']))
+        textbox2.setVertJust(np.random.choice(['top','center','bottom']))
+        #textbox2.setPosition((np.random.choice([-0.1,0,.1]),np.random.choice([-0.3,-0.4,-0.5])))
+        #textbox2.setHorzAlignment(np.random.choice(['left','center','right']))
+        #textbox2.setVertAlignment(np.random.choice(['top','center','bottom']))
+        
+        
     textbox.draw()
     textbox2.draw()
     # Update the display to show stim changes

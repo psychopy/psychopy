@@ -99,7 +99,38 @@ class TextBox(object):
           is very fast, however the initial time to create a TextBox instance
           is very slow ( relative to TextStim ).
         * TextBox's can not be rotated or flipped.
-        
+
+    * TextBox Read/Write Attributes:
+        text
+        font_color
+        background_color
+        border_color
+        border_stroke_width
+        pos
+        align_horz
+        align_vert
+        grid_color
+        grid_stroke_width
+        grid_horz_justification
+        grid_vert_justification         
+         
+    * Read Only Attributes (Currently):
+        window
+        font_name
+        bold
+        italic
+        font_size
+        dpi
+        line_spacing
+        line_spacing_units
+        size
+        textgrid_shape
+        units
+        color_space
+        opacity
+        autoLog
+        interpolate
+       
     Textbox vs. TextStim:
         * TBC
      
@@ -124,6 +155,16 @@ class TextBox(object):
              size=None,                 # (width,height) desired for the TextBox
                                         # stim to use. Specify using the unit
                                         # type the textBox is using.
+             textgrid_shape=None,        # (cols,rows) of characters to use when
+                                        # creating the textgrid layout. 
+                                        # rows*cols = maximum number of chars
+                                        # that can be displayed. If textgrid_shape
+                                        # is not None, then the TextBox size
+                                        # must be atleast large enough to hold
+                                        # the number of specified cols and rows.
+                                        # If the size specified is less than
+                                        # what is needed, the size will be increased
+                                        # automatically.
              pos=(0.0,0.0),             # (x,y) screen position for the TextBox
                                         # stim. Specify using the unit
                                         # type the textBox is using.
@@ -181,6 +222,7 @@ class TextBox(object):
         self._align_vert=align_vert      
         self._size=size
         self._position=pos
+        self._textgrid_shape=textgrid_shape
         self._interpolate=interpolate
         
         self._draw_start_dlist=None
@@ -193,7 +235,7 @@ class TextBox(object):
         
         aliased_wrange=TextBox._gl_info['GL_ALIASED_LINE_WIDTH_RANGE']
         antia_wrange=TextBox._gl_info['GL_SMOOTH_LINE_WIDTH_RANGE']
-        #antia_gran=TextBox._gl_info['GL_SMOOTH_LINE_WIDTH_GRANULARITY']
+        antia_gran=TextBox._gl_info['GL_SMOOTH_LINE_WIDTH_GRANULARITY']
         
         if grid_stroke_width and grid_color:
             if interpolate:
@@ -266,7 +308,6 @@ class TextBox(object):
         if flipVert:
             print 'Parameter "flipVert" is not supported by TextBox'
 
-        self._alignment=align_horz,align_vert
         self._current_glfont=None
         self._text_grid=None
 
@@ -282,6 +323,7 @@ class TextBox(object):
 
         self._text_grid=TextGrid(self, line_color=grid_color, 
                  line_width=grid_stroke_width, font_color=font_color,
+                 shape=textgrid_shape,
                  grid_horz_justification=grid_horz_justification,
                  grid_vert_justification=grid_vert_justification)
 
@@ -308,6 +350,19 @@ class TextBox(object):
         return self._text
 
     def setText(self,text_source):
+        """
+        Set the text to be displayed within the Textbox. 
+        
+        Note that once a TextBox has been created, the number of character
+        rows and columns is static. To change the size of a TextBox, the
+        a new TextBox stim must be created to replace the current Textbox stim.
+        
+        Therefore ensure that the textbox is large enough to display
+        the larest length string to be presented in the TextBox. Characters
+        that do not fit within the TextBox will not be displayed.
+        
+        Color value must be valid for the color space being used by the TextBox.
+        """        
         if not self._text:                
             self._text=u'\n'
 
@@ -320,8 +375,24 @@ class TextBox(object):
     def getPosition(self):
         return self._position
 
-    def setPosition(self,pos):            
-        self._position=pos
+    def setPosition(self,pos): 
+        """
+        Set the (x,y) position of the TextBox on the Monitor. The position must 
+        be given using the unit coord type being used by the stim.
+        
+        The TextBox position is interpreted differently depending on the 
+        Horzontal and Vertical Alignment settings of the stim. For example,
+        if the TextBox alignment is specified as left, top, then the position
+        specifies the top left hand corner of where the stim will be drawn.
+        An alignment of bottom,right indicates that the position value will
+        define where the bottom right corner of the TextBox will be drawn.
+        A horz., vert. alignment of center, center will place the center of
+        the TextBox at pos.
+        """
+        if pos != self._position:           
+            self._position=pos
+            self._deleteBackgroundDL()
+            self._deleteStartDL()
         
     def getSize(self):
         return self._size
@@ -333,10 +404,49 @@ class TextBox(object):
         return self._text_grid._font_color
 
     def setFontColor(self,c):
+        """
+        Set the color to use when drawing text within the TextBox.
+        Color value must be valid for the color space being used by the TextBox.
+        """        
         if c != self._text_grid._font_color:
             self._text_grid._font_color=c
             self._text_grid._deleteTextDL()
-            
+   
+    def getHorzJust(self):
+        return self._text_grid._horz_justification
+
+    def getVertJust(self):
+        return self._text_grid._vert_justification
+        
+    def setHorzJust(self,v):
+        """
+        Specify how text within the TextBox should be aligned horizontally.
+        For example, if a text grid has 10 columns, and the text being displayed
+        is 6 characters in length, the horizontal justification determines
+        if the text should be draw starting at the left of the text columns (left),
+        or should be centered on the columns ('center', in this example 
+        there would be two empty text cells to the left and right of the text.),
+        or should be drawn such that the last letter of text is drawn in the
+        last column of the text row ('right'). 
+        """
+        if v != self._text_grid._horz_justification:
+            self._text_grid._horz_justification=v
+            self._text_grid._deleteTextDL()
+
+    def setVertJust(self,v):
+        """
+        Specify how text within the TextBox should be aligned vertically.
+        For example, if a text grid has 3 rows for text, and the text being 
+        displayed all fits on one row, the vertical justification determines
+        if the text should be draw on the top row of the text grid (top),
+        or should be centered on the rows ('center', in this example 
+        there would be one row  above and below the row used to draw the text),
+        or should be drawn on the last row of the text grid, ('bottom'). 
+        """
+        if v != self._text_grid._vert_justification:
+            self._text_grid._vert_justification=v
+            self._text_grid._deleteTextDL()
+
     def getAutoLog(self):
         return self._auto_log
 
@@ -354,6 +464,13 @@ class TextBox(object):
         return self._border_color
 
     def setBorderColor(self,c):
+        """
+        Set the line color to use for the border which can be drawn around
+        the edges of the TextBox stim. Color value must 
+        be valid for the color space being used by the TextBox.
+        
+        A value of None will result in no border being drawn.
+        """        
         if c!= self._border_color:
             self._border_color=c
             self._deleteBackgroundDL()
@@ -362,7 +479,29 @@ class TextBox(object):
         return self._border_stroke_width
 
     def setBorderWidth(self,c):
+        """
+        Set the stroke width (in pixels) to use for the border of the TextBox 
+        stim. Border values must be within the range of stroke widths supported
+        by the OpenGL driver used by the computer graphics card. Setting the 
+        width outside the valid range will result in the stroke width being 
+        clamped to the nearest end of the valid range.
+        
+        Use the TextBox.getGLineRanges() to access a dict containing some
+        OpenGL parameters which provide the minimum, maximum, and resolution
+        of valid line widths.
+        """        
         if c!= self._border_stroke_width:
+            if self._interpolate:
+                lrange=TextBox._gl_info['GL_SMOOTH_LINE_WIDTH_RANGE']
+                antia_gran=TextBox._gl_info['GL_SMOOTH_LINE_WIDTH_GRANULARITY']
+            else:
+                lrange=TextBox._gl_info['GL_ALIASED_LINE_WIDTH_RANGE']
+
+            if c < lrange[0]:
+                c=lrange[0]
+            elif c > lrange[1]:
+                c=lrange[1]
+                
             self._border_stroke_width=c
             self._deleteBackgroundDL()
 
@@ -370,6 +509,12 @@ class TextBox(object):
         return self._background_color
 
     def setBackgroundColor(self,c):
+        """
+        Set the fill color to use for the TextBox stim area. Color value must 
+        be valid for the color space being used by the TextBox.
+        
+        A value of None will result in no backgrount being drawn.
+        """
         if c!= self._background_color:
             self._background_color=c
             self._deleteBackgroundDL()
@@ -378,6 +523,14 @@ class TextBox(object):
         return self._text_grid._line_color
 
     def setTextGridLineColor(self,c):
+        """
+        Lines can be drawn which mark the bounding box for each character
+        within the TextEditors text grid. Set the text grid line color 
+        to change whatcolor should be used. Color value must 
+        be valid for the color space being used by the TextBox.
+        
+        A value of None will result in no text grid lines being drawn.
+        """
         if c!= self._text_grid._line_color:
             self._text_grid._line_color=c
             self._text_grid._deleteGridLinesDL()
@@ -386,7 +539,29 @@ class TextBox(object):
         return self._text_grid._line_width
 
     def setTextGridLineWidth(self,c):
+        """
+        Set the stroke width (in pixels) to use for the text grid character
+        bounding boxes. Border values must be within the range of stroke 
+        widths supported by the OpenGL driver used by the computer graphics 
+        card. Setting the width outside the valid range will result in the 
+        stroke width being clamped to the nearest end of the valid range.
+        
+        Use the TextBox.getGLineRanges() to access a dict containing some
+        OpenGL parameters which provide the minimum, maximum, and resolution
+        of valid line widths.
+        """
         if c!= self._text_grid._line_width:
+            if self._interpolate:
+                lrange=TextBox._gl_info['GL_SMOOTH_LINE_WIDTH_RANGE']
+                antia_gran=TextBox._gl_info['GL_SMOOTH_LINE_WIDTH_GRANULARITY']
+            else:
+                lrange=TextBox._gl_info['GL_ALIASED_LINE_WIDTH_RANGE']
+
+            if c < lrange[0]:
+                c=lrange[0]
+            elif c > lrange[1]:
+                c=lrange[1]
+
             self._text_grid._line_width=c
             self._text_grid._deleteGridLinesDL()
 
@@ -395,13 +570,37 @@ class TextBox(object):
 
     def getVertAlignment(self):
         return self._align_vert
-            
+
+    def setHorzAlignment(self,v):
+        """
+        Specify how the horizontal (x) component of the TextBox position
+        is to be interpreted. left = x position is the left edge, right =
+        x position is the right edge x position, and center = the x position
+        is used to center the stim horizontally.
+        """
+        if v!= self._align_horz:
+            self._align_horz=v
+            self._deleteBackgroundDL()
+            self._deleteStartDL()
+
+    def setVertAlignment(self,v):
+        """
+        Specify how the vertical (y) component of the TextBox position
+        is to be interpreted. top = y position is the top edge, bottom =
+        y position is the bottom edge y position, and center = the y position
+        is used to center the stim vertically.
+        """
+        if v!= self._align_vert:
+            self._align_vert=v
+            self._deleteBackgroundDL()
+            self._deleteStartDL()
+    
     def getMaxTextCellSize(self):
         return self._current_glfont.max_tile_width,self._current_glfont.max_tile_height
 
-    def getAlignment(self):
-        return self._alignment
-     
+    def getOpenGLSettings(self):
+        return self._gl_info
+        
     def draw(self):
         self._te_start_gl()
         self._te_bakground_dlist()
@@ -617,7 +816,22 @@ class TextBox(object):
             r = self._toPix((self._size[0]-1.0,self._size[1]-1.0) ,self._units, self._window)
             return int(r[0]+self._window.size[0]/2),int(r[1]+self._window.size[1]/2)
         return [int(x) for x in self._toPix(self._size ,self._units, self._window)]
-     
+
+    def _setSize(self,pix_sz):
+        units=self._units
+        if units in ('pix','pixs'):
+            self._size=list(pix_sz) 
+        if units in ['deg','degs']:
+            self._size= misc.pix2deg(pix_sz[0],self._window.monitor),misc.pix2deg(pix_sz[1],self._window.monitor)  
+        if units in ['cm']:
+            self._size= misc.pix2cm(pix_sz[0],self._window.monitor),misc.pix2cm(pix_sz[1],self._window.monitor)     
+        if units in ['norm']:
+            pw,ph=pix_sz
+            dw,dh=self._window.size
+            nw=(pw/float(dw))*2.0
+            nh=(ph/float(dh))*2.0
+            self._size=nw,nh
+            
     def _getPixelPosition(self):
         return [int(x) for x in self._toPix(self._position ,self._units, self._window)]
                     

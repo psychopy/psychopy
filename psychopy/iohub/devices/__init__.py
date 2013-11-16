@@ -22,8 +22,11 @@ global _psutil_available
 _psutil_available=False
 
 if sys.platform != 'darwin':
-    import psutil
-    _psutil_available=True
+    try:
+        import psutil
+        _psutil_available=True
+    except ImportError, e:
+        print 'Note: psutil python package could not be imported. Process priority and cpu affinity settings will not be available.'
 
 from ..util import convertCamelToSnake, print2err,printExceptionDetailsToStdErr
 from psychopy.clock import monotonicClock
