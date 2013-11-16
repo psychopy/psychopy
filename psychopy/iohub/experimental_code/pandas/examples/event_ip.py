@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Nov 01 09:32:29 2013
+Demonstrates how to use event dataframe columns and value matching to 
+define an interest period. An Interest Period is a temporal filter that can be used
+to remove events from a dataframe that did not occur within the IP's start and 
+end time period. In this example MESSAGE events are queried, retrieving
+any messages that where written with specific start and end trial text. The
+time of each start and end message set is used to form each IP instance that
+can be used for filtering.
 
 @author: Sol
 """

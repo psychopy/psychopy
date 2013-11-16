@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Nov 01 09:32:29 2013
+Demonstrates how to use two Condition Variables to specify a temporal filter
+based on a start and end time. With the ConditionVariableBasedIP two columns of the
+condition variables are used for each start time and each end time; forming the
+instances of the IP. 
 
 @author: Sol
 """
 
-import pandas as pd
 from psychopy.iohub.datastore.pandas import ioHubPandasDataView
-from psychopy.iohub.datastore.pandas.interestperiod import EventBasedIP,ConditionVariableBasedIP
+from psychopy.iohub.datastore.pandas.interestperiod import ConditionVariableBasedIP
 
 exp_data=ioHubPandasDataView('io_stroop.hdf5')
 
