@@ -14,7 +14,7 @@ from pyglet.gl import (glCallList,glGenLists,glNewList,glDisable,glEnable,
                GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE,GL_UNSIGNED_INT,
                glPopMatrix,glBindTexture,glActiveTexture,glTexEnvf,
                glPushMatrix,glCallLists,glVertex2i)
-import parsedTextDocument
+import parsedtext
 getTime = core.getTime
 
 class TextGrid(object):
@@ -125,7 +125,7 @@ class TextGrid(object):
                 
     def _createParsedTextDocument(self,f):
         if self._shape:
-            self._text_document=parsedTextDocument.ParsedTextDocument(f,self) 
+            self._text_document=parsedtext.ParsedTextDocument(f,self) 
             self._deleteTextDL()
         else:
             raise AttributeError("Could not create _text_document. num_columns needs to be known.")

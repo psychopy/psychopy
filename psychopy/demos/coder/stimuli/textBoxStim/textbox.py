@@ -63,6 +63,7 @@ while True:
         color=list(((np.random.rand(3,1)*2.0)-1.0)[:,0])
         textbox.setFontColor(list(((np.random.rand(3,1)*2.0)-1.0)[:,0]))
         
+        #textbox2.setOpacity(np.random.rand())
         textbox2.setFontColor(list(((np.random.rand(3,1)*2.0)-1.0)[:,0]))
         textbox2.setBackgroundColor(list(((np.random.rand(3,1)*2.0)-1.0)[:,0]))
         textbox2.setBorderColor(list(((np.random.rand(3,1)*2.0)-1.0)[:,0]))

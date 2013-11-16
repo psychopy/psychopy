@@ -26,9 +26,9 @@ from pyglet.gl import (glCallList,glFinish,glGenLists,glNewList,glViewport,
 from psychopy import core,misc,colors
 import psychopy.tools.colorspacetools as colortools
 import psychopy.tools.arraytools as arraytools
-from font_manager import SystemFontManager
+from fontmanager import SystemFontManager
 
-from textGrid import TextGrid
+from textgrid import TextGrid
 
 def getTime():
     return core.getTime()
@@ -112,8 +112,10 @@ class TextBox(object):
         grid_color
         grid_stroke_width
         grid_horz_justification
-        grid_vert_justification         
-         
+        grid_vert_justification
+        opacity         
+        interpolate
+        
     * Read Only Attributes (Currently):
         window
         font_name
@@ -127,9 +129,7 @@ class TextBox(object):
         textgrid_shape
         units
         color_space
-        opacity
-        autoLog
-        interpolate
+
        
     Textbox vs. TextStim:
         * TBC
@@ -368,6 +368,21 @@ class TextBox(object):
 
         self._text=text_source
         self._text_grid._setText(self._text)
+
+
+    def getInterpolate(self):
+        return self._interpolate
+        
+    def setInterpolate(self,i):
+        """ 
+        Using a bool value, specify whether interpolation should be enabled 
+        for the TextStim. When interpolate == True, GL_LINE_SMOOTH and
+        GL_POLYGON_SMOOTH are enabled within OpenGL. When interpolate is set 
+        to False, they are disabled.
+        """                
+        if i != self._interpolate:
+            self._deleteStartDL()
+            self._interpolate=i
         
     def getUnits(self):
         return self._units
@@ -456,6 +471,27 @@ class TextBox(object):
 
     def getOpacity(self):
         return self._opacity
+
+    def setOpacity(self,o):
+        """
+        Sets the TextBox wide transparency level for the stim. 0.0 equals
+        no visibility, while 1.0 is fully visible.
+        
+        When Opacity is set to a value between 0.0 and 1.0, it is used to set the
+        alpha channel of all drawing done within the TextBox stim.
+        
+        If opacity is set to None, then each element of the TextBox stim 
+        can have a different opacity, by providing rgb or rgb255 colors with a 
+        4th element in the color list. Colors that only have three channels 
+        specified use an alpha channel value of 1.0. 
+        """
+        if o != self._opacity and o >=0.0 and o <= 1.0:
+            self._text_grid._deleteTextDL()   
+            self._deleteBackgroundDL()
+            self._text_grid._deleteGridLinesDL()
+            self._deleteStartDL()
+            self._deleteEndDL()
+            self._opacity=o
 
     def getLineSpacing(self):
         return self._line_spacing
