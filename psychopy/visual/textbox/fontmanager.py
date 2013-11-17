@@ -301,6 +301,9 @@ class MonospaceFontAtlas(object):
         est_max_width=(face.bbox.xMax-face.bbox.xMin)/float(units_ppem)*x_ppem
         est_max_height=face.size.ascender/float(units_ppem)*y_ppem
         target_atlas_area=int(est_max_width*est_max_height)*face.num_glyphs
+        # make sure it is big enough. ;)
+        # height is trimmed before sending to video ram anyhow.
+        target_atlas_area=target_atlas_area*3.0
         pow2_area=nextPow2(target_atlas_area)
         atlas_width=2048
         atlas_height=pow2_area/atlas_width

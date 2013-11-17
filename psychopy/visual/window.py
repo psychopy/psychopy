@@ -874,7 +874,7 @@ class Window:
             # when filtering kb and mouse events (if the filter is enabled of course)
             #
             if IOHUB_ACTIVE:
-                IOHUB_ACTIVE.unregisterPygletWindowHandles(self.winHandle._hwnd)
+                IOHUB_ACTIVE.unregisterPygletWindowHandles(self._hw_handle)
             self.winHandle.close()
         else:
             #pygame.quit()
@@ -1147,6 +1147,13 @@ class Window:
                                               config=config,
                                               screen=thisScreen,
                                               style=style)
+        if sys.platform =='win32':
+            self._hw_handle=self.winHandle._hwnd
+        elif sys.platform =='darwin':
+            self._hw_handle=self.winHandle._window.value        
+        elif sys.platform =='linux2':
+            self._hw_handle=self.winHandle._window.value
+            
         #provide warning if stereo buffers are requested but unavailable
         if self.stereo and not GL.gl_info.have_extension('GL_STEREO'):
             logging.warning('A stereo window was requested but the graphics '
@@ -1198,9 +1205,9 @@ class Window:
             if ioHubConnection.ACTIVE_CONNECTION:
                 winhwnds=[]
                 for w in openWindows:
-                    winhwnds.append(w.winHandle._hwnd)
-                if self.winHandle._hwnd not in winhwnds:
-                    winhwnds.append(self.winHandle._hwnd)
+                    winhwnds.append(w._hw_handle)
+                if self._hw_handle not in winhwnds:
+                    winhwnds.append(self._hw_handle)
                 ioHubConnection.ACTIVE_CONNECTION.registerPygletWindowHandles(*winhwnds)
 
     def _setupPygame(self):
