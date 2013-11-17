@@ -329,8 +329,7 @@ class TextBox(object):
 
         self._text_grid.setCurrentFontDisplayLists(gl_font.charcode2displaylist)
         
-        if not self._text or len(self._text) == 0:                
-            self._text=u'\n'
+        self._text=self._text.replace('\r\n','\n')
         self._text_grid._createParsedTextDocument(self._text)
 
         ###
@@ -354,22 +353,23 @@ class TextBox(object):
         Set the text to be displayed within the Textbox. 
         
         Note that once a TextBox has been created, the number of character
-        rows and columns is static. To change the size of a TextBox, the
+        rows and columns is static. To change the size of a TextBox,
         a new TextBox stim must be created to replace the current Textbox stim.
-        
         Therefore ensure that the textbox is large enough to display
-        the larest length string to be presented in the TextBox. Characters
+        the largest length string to be presented in the TextBox. Characters
         that do not fit within the TextBox will not be displayed.
         
         Color value must be valid for the color space being used by the TextBox.
         """        
         if not self._text:                
-            self._text=u'\n'
+            raise ValueError("TextBox.setText only accepts strings with a length > 0")
 
-        self._text=text_source
-        self._text_grid._setText(self._text)
+        self._text=text_source.replace('\r\n','\n')
+        return self._text_grid._setText(self._text)
 
-
+    def getDisplayedText(self):
+        return self._text_grid._text_document.getDisplayedText()   
+        
     def getInterpolate(self):
         return self._interpolate
         

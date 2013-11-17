@@ -25,7 +25,7 @@ textbox=visual.TextBox(window=window,
                          italic=False,
                          font_size=18,
                          font_color=[-1,-1,1], 
-                         size=(1.9,.5),
+                         size=(1.9,.2),
                          pos=(0.0,0.5), 
                          units='norm',
                          grid_horz_justification='center',
@@ -43,14 +43,18 @@ textbox2=visual.TextBox(window=window,
                          border_stroke_width=4,
                          grid_color=[-1,1,-1,1],
                          grid_stroke_width=1,
-                         textgrid_shape=[20,4], # 20 cols (20 chars wide)
-                                                # by 3 rows (3 lines of text)
+                         textgrid_shape=[20,2], # 20 cols (20 chars wide)
+                                                # by 2 rows (4 lines of text)
                          #size=(1.75,.6),
                          pos=(0.0,-0.5),
                          grid_horz_justification='center', 
                          grid_vert_justification='center',
                          )
 
+if textbox.getDisplayedText()!=textbox.getText():
+    print '**Note: Text provided to TextBox does not fit within the TextBox bounds.'
+if textbox2.getDisplayedText()!=textbox2.getText():
+    print '**Note: Text provided to TextBox2 does not fit within the TextBox bounds.'
 
 textbox.draw()
 textbox2.draw()

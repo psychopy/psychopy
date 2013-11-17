@@ -108,7 +108,9 @@ class TextGrid(object):
     def _setText(self,text):
         self._text_document.deleteText(0,self._text_document.getTextLength(),
                                        text)
+                
         self._deleteTextDL()
+        return self._text_document.getDisplayedText()   
         
     def setCurrentFontDisplayLists(self,dlists):
         self._current_font_display_lists=dlists
