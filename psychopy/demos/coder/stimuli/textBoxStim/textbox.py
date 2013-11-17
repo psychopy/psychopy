@@ -43,8 +43,8 @@ textbox2=visual.TextBox(window=window,
                          border_stroke_width=4,
                          grid_color=[-1,1,-1,1],
                          grid_stroke_width=1,
-                         textgrid_shape=[20,2], # 20 cols (20 chars wide)
-                                                # by 2 rows (4 lines of text)
+                         textgrid_shape=[20,4], # 20 cols (20 chars wide)
+                                                # by 4 rows (4 lines of text)
                          #size=(1.75,.6),
                          pos=(0.0,-0.5),
                          grid_horz_justification='center', 

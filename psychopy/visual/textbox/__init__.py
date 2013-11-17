@@ -66,74 +66,126 @@ def getGLInfo():
        
 class TextBox(object):
     """
-    TextBox is a psychopy visual stimulus type that supports the presentation
-    of text using TTF font files. TextBox is an alternative to the TextStim
-    psychopy component. TextBox and TextStim each have different strengths
-    and weaknesses. You should select the most appropriate text component type
-    based on the intended use of the stimulus within an experiment.
+    Similar to the visual.TextStim component, TextBox can be used to display
+    text within a psychopy window. TextBox and TextStim each have different
+    strengths and weaknesses. You should select the most appropriate text 
+    component type based on how it will be used within the experiment.
 
     TextBox Features:
-        * Each character displayed by TextBox is positioned very precisely,
-          allowing the exact window position and area of each text character 
-          to be reported.
-        * The text string being displayed can be changed and then displayed 
-          **very** quickly (often in under 1 - 2 msec); 
-          see TextBox Draw Performance section for details.
+        * Text character placement is very well defined, useful when the exact 
+          positioning of each letter needs to be known. 
+          
+        * The text string that is displayed can be changed ( setText() ) and
+          drawn ( win.draw() ) **very** quickly. See the TextBox vs. TextStim
+          comparision table for details.
+        
+        * Built-in font manager; providing easy access to the font family names
+          and styles that are available on the computer being used.
+          
         * TextBox is a composite stimulus type, with the following graphical
           elements:
              - TextBox Border / Outline
              - TextBox Fill Area
              - Text Grid Cell Lines
-             - Text Grid Cell Areas
              - Text Glyphs
-          Attributes for each of the TextBox graphical elements can be specified 
-          to control many aspects of how the textBox is displayed.
-        * Different font character sets, colors, and sizes can be used within
-          a single TextBox. (Internally supported but not brought out to the 
-          user level API at this time. This will be fixed soon.)
+          Attributes for each of the TextBox graphical elements can be changed 
+          to control many aspects of how the TextBox is displayed.
+          
+        * When using 'rgb' or 'rgb255' color spaces, colors can be specified as
+          a list/tuple of 3 elements (red, green, blue), or with four elements
+          (reg, green, blue, alpha) which allows different elements of the 
+          TextBox to use different opacity settings if desired. For colors that 
+          include the alpha channel value, it will be applied instead of the 
+          opacity setting of the TextBox, effectively overriding the stimulus 
+          defined opacity for that part of the textbox graphics. Colors that 
+          do not include an alpha channel use the opacity setting as normal.
+
+        * Text Line Spacing can be controlled.
           
     Textbox Limitations:
         * Only Monospace Fonts are supported. 
-        * TTF files must be used. 
-        * Changing the text to be displayed after the Textbox is first drawn
-          is very fast, however the initial time to create a TextBox instance
-          is very slow ( relative to TextStim ).
-        * TextBox's can not be rotated or flipped.
+                  
+        * TextBox component is not a completely **standard** psychopy visual
+          stim and has the following functional difference:
+              - TextBox attributes are never accessed directly; get* and set*
+                methods are always used (this will be changed to use class 
+                properies in the future).
+              - Setting an attribute of a TextBox only supports value replacement,
+                ( textbox.setFontColor([1.0,1.0,1.0]) ) and does not support
+                specifying operators.
+                
+        * Some key word arguements supported by other stimulus types in general,
+          or by TextStim itself, are not supported by TextBox. See the TextBox 
+          class definition for the agruements that are supported.
 
-    * TextBox Read/Write Attributes:
-        text
-        font_color
-        background_color
-        border_color
-        border_stroke_width
-        pos
-        align_horz
-        align_vert
-        grid_color
-        grid_stroke_width
-        grid_horz_justification
-        grid_vert_justification
-        opacity         
-        interpolate
-        
-    * Read Only Attributes (Currently):
-        window
-        font_name
-        bold
-        italic
-        font_size
-        dpi
-        line_spacing
-        line_spacing_units
-        size
-        textgrid_shape
-        units
-        color_space
-
+        * When a new font, style, and size are used it takes about 1 second to
+          load and process the font. This is a one time delay for a given 
+          font name, style, and size. After first being loaded, 
+          the same font sytle can be used or re-applied to multiple TextBox 
+          components with no significant delay. 
+          
+        * Auto logging or auto drawing is not currently supported.
        
-    Textbox vs. TextStim:
-        * TBC
-     
+    TextStim and TextBox Comparision
+    
+        TBC:
+           - include initial load time difference and text update / draw 
+             differences as a function for several text lengths.
+           - include important high level functional difference. For example
+             Font Support: TextBox is Monospace only. TextStim supports non
+             monospace fints as well; etc.
+    
+    Example TextBox Usage:
+    
+        from psychopy import visual
+        
+        win=visual.Window((....)
+        
+        # A Textbox stim that will look similar to a TextStim component
+        #
+        
+        textstimlike=visual.TextBox(
+                                    window=win,
+                                    text="This textbox looks most like a textstim.",
+                                    font_size=18,
+                                    font_color=[-1,-1,1],
+                                    color_space='rgb',                                    
+                                    size=(1.8,.1),
+                                    pos=(0.0,.5),
+                                    units='norm'                                    
+                                   )
+        
+        # A Textbox stim that uses more of the supported graphical features
+        #
+        textboxloaded=visual.TextBox(
+                         window=win
+                         text='TextBox showing all supported graphical elements', 
+                         font_size=32,
+                         font_color=[1,1,1], 
+                         border_color=[-1,-1,1], # draw a blue border around stim
+                         border_stroke_width=4, # border width of 4 pix.
+                         background_color=[-1,-1,-1], # fill the stim background
+                         grid_color=[1,-1,-1,0.5], # draw a red line around each
+                                                   # possible letter area,
+                                                   # 50% transparent
+                         grid_stroke_width=1,      # with a width of 1 pix
+                         textgrid_shape=[20,2], # specify area of text box
+                                                # by the number of cols x
+                                                # number of rows of text to support
+                                                # instead of by a screen 
+                                                # units width x height.                         
+                         pos=(0.0,-.5),
+                         # If the text string length < num rows * num cols in
+                         # textgrid_shape, how should text be justified?
+                         #
+                         grid_horz_justification='center', 
+                         grid_vert_justification='center',
+                         )
+        
+        textstimlike.draw()
+        textboxloaded.draw()
+        win.flip()
+
     """
     _textbox_instances={}
     _gl_info=None
@@ -192,21 +244,7 @@ class TextBox(object):
              grid_vert_justification='top',  # 'top', 'bottom', 'center'
              autoLog=True,              # Log each time stim is updated.
              interpolate=False,
-
-             # -- Below TextStim params are NOT supported by TextBox --
-             depth=None, 
-             rgb=None,
-             contrast=None,
-             ori=None,
-             antialias=None,
-             height=None,
-             alignHoriz=None,
-             alignVert=None,
-             fontFiles=None,
-             wrapWidth=None,
-             flipHoriz=None, 
-             flipVert=None,
-             name=None                 # Name for the TextBox Stim
+             name=None
              ):
         self._window=window  
         self._text=text
@@ -235,8 +273,6 @@ class TextBox(object):
         
         aliased_wrange=TextBox._gl_info['GL_ALIASED_LINE_WIDTH_RANGE']
         antia_wrange=TextBox._gl_info['GL_SMOOTH_LINE_WIDTH_RANGE']
-        antia_gran=TextBox._gl_info['GL_SMOOTH_LINE_WIDTH_GRANULARITY']
-        
         if grid_stroke_width and grid_color:
             if interpolate:
                 if grid_stroke_width < antia_wrange[0]:
@@ -248,7 +284,6 @@ class TextBox(object):
                     self._grid_stroke_width= aliased_wrange[0]   
                 if grid_stroke_width > aliased_wrange[1]:
                     self._grid_stroke_width= aliased_wrange[1]   
-
         if border_stroke_width and border_color:
             if interpolate:
                 if border_stroke_width < antia_wrange[0]:
@@ -280,37 +315,8 @@ class TextBox(object):
         #TODO: Implement support for autoLog
         self._auto_log=autoLog
         
-        
-        # Notify that a TextStim param was passed that is not supported by
-        # TextBox. TODO: Move to log??
-        if rgb:
-            print 'Parameter "rgb" is not supported by TextBox'
-        if depth:
-            print 'Parameter "depth" is not supported by TextBox'
-        if contrast:
-            print 'Parameter "contrast" is not supported by TextBox'
-        if ori:
-            print 'Parameter "ori" is not supported by TextBox'
-        if antialias:
-            print 'Parameter "antialias" is not supported by TextBox'
-        if height:
-            print 'Parameter "height" is not supported by TextBox'
-        if alignHoriz:
-            print 'Parameter "alignHoriz" is not supported by TextBox'
-        if alignVert:
-            print 'Parameter "alignVert" is not supported by TextBox'
-        if fontFiles:
-            print 'Parameter "fontFiles" is not supported by TextBox'
-        if wrapWidth:
-            print 'Parameter "wrapWidth" is not supported by TextBox'
-        if flipHoriz:
-            print 'Parameter "flipHoriz" is not supported by TextBox'
-        if flipVert:
-            print 'Parameter "flipVert" is not supported by TextBox'
-
         self._current_glfont=None
         self._text_grid=None
-
         
         if self._label is None:
             self._label='TextBox_%s'%(str(int(time.time())))
@@ -326,14 +332,11 @@ class TextBox(object):
                  shape=textgrid_shape,
                  grid_horz_justification=grid_horz_justification,
                  grid_vert_justification=grid_vert_justification)
-
         self._text_grid.setCurrentFontDisplayLists(gl_font.charcode2displaylist)
         
         self._text=self._text.replace('\r\n','\n')
         self._text_grid._createParsedTextDocument(self._text)
-
-        ###
-
+        
         self._textbox_instances[self.getLabel()]=proxy(self)
         
     def getWindow(self):
@@ -631,11 +634,12 @@ class TextBox(object):
             self._deleteBackgroundDL()
             self._deleteStartDL()
     
-    def getMaxTextCellSize(self):
-        return self._current_glfont.max_tile_width,self._current_glfont.max_tile_height
-
-    def getOpenGLSettings(self):
-        return self._gl_info
+    def getValidStrokeWidths(self):
+        if self._interpolate:
+            return (TextBox._gl_info['GL_SMOOTH_LINE_WIDTH_RANGE'],
+                    TextBox._gl_info['GL_SMOOTH_LINE_WIDTH_GRANULARITY'])
+        else:
+            return self._gl_info['GL_ALIASED_LINE_WIDTH_RANGE']
         
     def draw(self):
         self._te_start_gl()
@@ -873,7 +877,7 @@ class TextBox(object):
                     
     def _getPixelTextLineSpacing(self):
         if self._line_spacing:
-            max_size=self.getMaxTextCellSize()
+            max_size=self._current_glfont.max_tile_width,self._current_glfont.max_tile_height
             line_spacing_units=self._line_spacing_units
             line_spacing_height=self._line_spacing
             

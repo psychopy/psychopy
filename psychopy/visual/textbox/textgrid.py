@@ -33,7 +33,8 @@ class TextGrid(object):
             self._line_color=None
             self._line_width=None     
         
-        max_size=self._text_box.getMaxTextCellSize()        
+        cfont=self._text_box._current_glfont
+        max_size=cfont.max_tile_width,cfont.max_tile_height     
         self._cell_size=max_size[0],max_size[1]+self._text_box._getPixelTextLineSpacing()
         if self._cell_size[0]==0:
             print 'ERROR WITH CELL SIZE!!!! ', self._text_box.getLabel()
