@@ -1331,6 +1331,8 @@ class RoutineCanvas(wx.ScrolledWindow):
                 self.Refresh()#then redraw visible
                 self.frame.flowPanel.draw()
 #                self.frame.flowPanel.Refresh()
+            elif component.params['name'].val != old_name:
+                self.redrawRoutine() #need to refresh name
             self.frame.exp.namespace.remove(old_name)
             self.frame.exp.namespace.add(component.params['name'].val)
             self.frame.addToUndoStack("EDIT `%s`" %component.params['name'].val)
