@@ -641,7 +641,7 @@ class FlowPanel(wx.ScrolledWindow):
                     for fname in fieldNames:
                         self.frame.exp.namespace.remove(fname)
                 except:
-                    logging.debug("Condtions file %s couldn't be found so names not removed from namespace")
+                    logging.debug("Conditions file %s couldn't be found so names not removed from namespace" % conditionsFile)
             self.frame.exp.namespace.remove(component.params['name'].val)
         #perform the actual removal
         flow.removeComponent(component, id=compID)
