@@ -652,7 +652,7 @@ class FlowPanel(wx.ScrolledWindow):
         # deleted.
         dc = wx.BufferedPaintDC(self)
         dc = wx.GCDC(dc)
-        # use PrepateDC to set position correctly
+        # use PrepareDC to set position correctly
         self.PrepareDC(dc)
         # we need to clear the dc BEFORE calling PrepareDC
         bg = wx.Brush(self.GetBackgroundColour())
@@ -1124,7 +1124,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             gcdc = dc
         else:
             gcdc = wx.GCDC(dc)
-        # use PrepateDC to set position correctly
+        # use PrepareDC to set position correctly
         self.PrepareDC(dc)
         # we need to clear the dc BEFORE calling PrepareDC
         bg = wx.Brush(self.GetBackgroundColour())
@@ -2936,7 +2936,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
 
-        #move the psoition to be v near the top of screen and to the right of the left-most edge of builder
+        #move the position to be v near the top of screen and to the right of the left-most edge of builder
         builderPos = self.frame.GetPosition()
         self.SetPosition((builderPos[0]+200,20))
 
