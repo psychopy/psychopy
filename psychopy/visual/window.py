@@ -1152,7 +1152,7 @@ class Window:
         elif sys.platform =='darwin':
             self._hw_handle=self.winHandle._window.value        
         elif sys.platform =='linux2':
-            self._hw_handle=self.winHandle._window.value
+            self._hw_handle=self.winHandle._window
             
         #provide warning if stereo buffers are requested but unavailable
         if self.stereo and not GL.gl_info.have_extension('GL_STEREO'):
