@@ -2038,8 +2038,12 @@ class QuestHandler(StairHandler):
             intensity = self._questNextIntensity
         else:
             intensity = self._intensity2scale(intensity)
-            #update the intensity
-            self.intensities.pop()#remove the one that had been auto-generated
+            # Update the intensity.
+            #
+            # During the first trial, self.intensities will be of length 0,
+            # so pop() would not work.
+            if len(self.intensities) != 0:
+                self.intensities.pop()  #remove the one that had been auto-generated
             self.intensities.append(intensity)
         # Update quest
         self._quest.update(intensity, result)
