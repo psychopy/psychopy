@@ -335,14 +335,14 @@ class udpServer(DatagramServer):
             for wh in win_hwhds:
                 if wh not in self.iohub._pyglet_window_hnds:
                     self.iohub._pyglet_window_hnds.append(wh)            
-            print2err(">>IOHUB.registerPygletWindowHandles:",win_hwhds)
+            #print2err(">>IOHUB.registerPygletWindowHandles:",win_hwhds)
         
     def unregisterPygletWindowHandles(self,*win_hwhds):
         if self.iohub:
             for wh in win_hwhds:
                 if wh in self.iohub._pyglet_window_hnds:
                     self.iohub._pyglet_window_hnds.remove(wh)
-            print2err("<<IOHUB.unregisterPygletWindowHandles:",win_hwhds)
+            #print2err("<<IOHUB.unregisterPygletWindowHandles:",win_hwhds)
             
     def createExperimentSessionEntry(self,sessionInfoDict):
         self.iohub.sessionInfoDict=sessionInfoDict

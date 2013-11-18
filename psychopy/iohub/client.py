@@ -742,7 +742,7 @@ class ioHubConnection(object):
         Sends 1 - n Window handles to iohub so it can determine if kb or
         mouse events were targeted at a psychopy window or other window.
         """
-        print2err(">>CLIENT.registerPygletWindowHandles:",winHandles)
+        #print2err(">>CLIENT.registerPygletWindowHandles:",winHandles)
         r=self._sendToHubServer(('RPC','registerPygletWindowHandles',winHandles))
         return r[2]
 
@@ -751,7 +751,7 @@ class ioHubConnection(object):
         Sends 1 - n Window handles to iohub so it can determine if kb or
         mouse events were targeted at a psychopy window or other window.
         """
-        print2err(">>CLIENT.unregisterPygletWindowHandles:",winHandles)
+        #print2err(">>CLIENT.unregisterPygletWindowHandles:",winHandles)
 
         r=self._sendToHubServer(('RPC','unregisterPygletWindowHandles',winHandles))
         return r[2]
@@ -1060,7 +1060,7 @@ class ioHubConnection(object):
             whs=[]
             for w in window.openWindows:
                 whs.append(w._hw_handle)
-            print 'ioclient registering existing windows:',whs
+            #print 'ioclient registering existing windows:',whs
             self.registerPygletWindowHandles(*whs)
 
 
