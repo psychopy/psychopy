@@ -1,3 +1,9 @@
+psychopy-openbci (1.78.0.0.5-1) unstable; urgency=low
+
+  * Fixed amp manager error with ZMQ2.
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 18 Nov 2013 08:16:57 +0100
+
 psychopy-openbci (1.78.0.0.4-1) unstable; urgency=low
 
   * BF: uninitialized variable when drawing ISI
