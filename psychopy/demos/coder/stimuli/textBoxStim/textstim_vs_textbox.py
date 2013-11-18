@@ -4,7 +4,7 @@ Created on Thu Mar 21 18:37:10 2013
 
 @author: Sol
 """
-import string,os
+import string
 import random
 from psychopy import visual, core, event
 from psychopy.iohub.util import NumPyRingBuffer
