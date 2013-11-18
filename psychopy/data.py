@@ -1247,7 +1247,7 @@ def importConditions(fileName, returnFieldNames=False):
     if fileName.endswith('.csv'):
         #use csv import library to fetch the fieldNames
         f = open(fileName, 'rU')#the U converts line endings to os.linesep (not unicode!)
-        trialsArr = numpy.recfromcsv(f)
+        trialsArr = numpy.recfromcsv(f, case_sensitive=True)
         fieldNames = trialsArr.dtype.names
         _assertValidVarNames(fieldNames, fileName)
         f.close()
