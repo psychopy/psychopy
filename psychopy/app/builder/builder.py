@@ -641,7 +641,7 @@ class FlowPanel(wx.ScrolledWindow):
                     for fname in fieldNames:
                         self.frame.exp.namespace.remove(fname)
                 except:
-                    logging.debug("Condtions file %s couldn't be found so names not removed from namespace")
+                    logging.debug("Conditions file %s couldn't be found so names not removed from namespace" % conditionsFile)
             self.frame.exp.namespace.remove(component.params['name'].val)
         #perform the actual removal
         flow.removeComponent(component, id=compID)
@@ -652,7 +652,7 @@ class FlowPanel(wx.ScrolledWindow):
         # deleted.
         dc = wx.BufferedPaintDC(self)
         dc = wx.GCDC(dc)
-        # use PrepateDC to set position correctly
+        # use PrepareDC to set position correctly
         self.PrepareDC(dc)
         # we need to clear the dc BEFORE calling PrepareDC
         bg = wx.Brush(self.GetBackgroundColour())
@@ -1124,7 +1124,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             gcdc = dc
         else:
             gcdc = wx.GCDC(dc)
-        # use PrepateDC to set position correctly
+        # use PrepareDC to set position correctly
         self.PrepareDC(dc)
         # we need to clear the dc BEFORE calling PrepareDC
         bg = wx.Brush(self.GetBackgroundColour())
@@ -1331,6 +1331,8 @@ class RoutineCanvas(wx.ScrolledWindow):
                 self.Refresh()#then redraw visible
                 self.frame.flowPanel.draw()
 #                self.frame.flowPanel.Refresh()
+            elif component.params['name'].val != old_name:
+                self.redrawRoutine() #need to refresh name
             self.frame.exp.namespace.remove(old_name)
             self.frame.exp.namespace.add(component.params['name'].val)
             self.frame.addToUndoStack("EDIT `%s`" %component.params['name'].val)
@@ -2934,7 +2936,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
 
-        #move the psoition to be v near the top of screen and to the right of the left-most edge of builder
+        #move the position to be v near the top of screen and to the right of the left-most edge of builder
         builderPos = self.frame.GetPosition()
         self.SetPosition((builderPos[0]+200,20))
 
