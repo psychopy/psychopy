@@ -20,17 +20,14 @@ class ParsedTextDocument(object):
         self._num_columns,self._max_visible_rows=text_grid._shape
         
         text_data=text_data.replace('\r\n','\n')
-        if len(text_data) and text_data[-1] != u'\n':
-            text_data=text_data+u'\n'
-        elif len(text_data)==0:
-            text_data=text_data+u'\n'
+#        if len(text_data) and text_data[-1] != u'\n':
+#            text_data=text_data+u'\n'
         self._text=text_data
         self._children=[]
 
         self._limit_text_length=self._max_visible_rows*self._num_columns
                 
         if self._limit_text_length>0 and self._limit_text_length<len(self._text):
-            print 'TextBox Warning: The text length to be displayed is > the number of character positions available.',self._text[:10],len(self._text),self._limit_text_length
             self._text=self._text[:self._limit_text_length]
             
         self._default_parse_chunk_size=self._num_columns*(self._max_visible_rows+1)
@@ -38,7 +35,12 @@ class ParsedTextDocument(object):
         
         self._text_parsed_to_index=0
         self._parse(0,len(self._text))
-
+        
+    def getDisplayedText(self):
+        lli=min(self._max_visible_rows,self.getChildCount())-1
+        lline=self.getParsedLine(lli)
+        return self._text[:lline._index_range[1]]
+        
     def addChild(self,c):
         self._children.append(c)
         

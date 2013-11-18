@@ -4,7 +4,7 @@ Created on Thu Mar 21 18:37:10 2013
 
 @author: Sol
 """
-import string,os
+import string
 import random
 from psychopy import visual, core, event
 from psychopy.iohub.util import NumPyRingBuffer
@@ -58,6 +58,7 @@ window=visual.Window(display_resolution,
                         )
 
 
+# Find a font that is available on the system.
 fm=visual.textbox.getFontManager()
 available_font_names=fm.getFontFamilyStyles()
 prefered_fonts=[fn for fn,fs in available_font_names if fn in [
@@ -118,7 +119,7 @@ textstim_init_dur=etime-stime
 
 
 #stim_draw_orders=[[textstim,textbox],[textbox,textstim]]
-stim_draw_orders=[[textstim,textbox],[textbox,textstim],[textbox,textbox],[textstim,textstim]]
+stim_draw_orders=[[textstim,textbox],]
 for stim1, stim2 in stim_draw_orders:
     stim1_txt_change_draw_times.clear()    
     stim2_txt_change_draw_times.clear()    

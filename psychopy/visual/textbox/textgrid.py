@@ -14,12 +14,12 @@ from pyglet.gl import (glCallList,glGenLists,glNewList,glDisable,glEnable,
                GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE,GL_UNSIGNED_INT,
                glPopMatrix,glBindTexture,glActiveTexture,glTexEnvf,
                glPushMatrix,glCallLists,glVertex2i)
-import parsedTextDocument
+import parsedtext
 getTime = core.getTime
 
 class TextGrid(object):
     def __init__(self, text_box, line_color=None, line_width=1,
-                 font_color=(1,1,1,1),
+                 font_color=(1,1,1,1),shape=None,
                  grid_horz_justification='left',
                  grid_vert_justification='top'):
         
@@ -33,7 +33,8 @@ class TextGrid(object):
             self._line_color=None
             self._line_width=None     
         
-        max_size=self._text_box.getMaxTextCellSize()        
+        cfont=self._text_box._current_glfont
+        max_size=cfont.max_tile_width,cfont.max_tile_height     
         self._cell_size=max_size[0],max_size[1]+self._text_box._getPixelTextLineSpacing()
         if self._cell_size[0]==0:
             print 'ERROR WITH CELL SIZE!!!! ', self._text_box.getLabel()
@@ -49,10 +50,25 @@ class TextGrid(object):
         #
         ## Text Grid line_spacing
         #
-        te_size=self._text_box._getPixelSize()
-        self._shape=te_size[0]//self._cell_size[0],te_size[1]//self._cell_size[1]
+        te_size=[0,0]
+        if self._text_box._size:
+            te_size=list(self._text_box._getPixelSize())
+
+        if shape:
+            self._shape=shape
+        else:
+            self._shape=te_size[0]//self._cell_size[0],te_size[1]//self._cell_size[1]
+
         self._size=self._cell_size[0]*self._shape[0],self._cell_size[1]*self._shape[1]
-        
+        resized=False
+        if shape and self._size[0]>te_size[0]:
+            te_size[0]=self._size[0]       
+            resized=True
+        if shape and self._size[1]>te_size[1]:
+            te_size[1]=self._size[1]       
+            resized=True
+        if resized:    
+            self._text_box._setSize(te_size)    
         # For now, The text grid is centered in the TextBox area.
         #
         dx=(te_size[0]-self._size[0])//2
@@ -93,7 +109,9 @@ class TextGrid(object):
     def _setText(self,text):
         self._text_document.deleteText(0,self._text_document.getTextLength(),
                                        text)
+                
         self._deleteTextDL()
+        return self._text_document.getDisplayedText()   
         
     def setCurrentFontDisplayLists(self,dlists):
         self._current_font_display_lists=dlists
@@ -110,7 +128,7 @@ class TextGrid(object):
                 
     def _createParsedTextDocument(self,f):
         if self._shape:
-            self._text_document=parsedTextDocument.ParsedTextDocument(f,self) 
+            self._text_document=parsedtext.ParsedTextDocument(f,self) 
             self._deleteTextDL()
         else:
             raise AttributeError("Could not create _text_document. num_columns needs to be known.")
@@ -154,7 +172,8 @@ class TextGrid(object):
             line_spacing=self._text_box._getPixelTextLineSpacing()
             line_count=min(num_rows,self._text_document.getParsedLineCount())
             apply_padding=pad_left_proportion or (pad_top_proportion and line_count>1)
-            
+            trans_left=0
+            trans_top=0
             glColor4f(*self._text_box._toRGBA(self._font_color))    
 
             for r in range(line_count):            
@@ -165,7 +184,7 @@ class TextGrid(object):
                 if apply_padding:
                     empty_cell_count=num_cols-line_length
                     empty_line_count=num_rows-line_count
-                    trans_left=int(empty_cell_count*pad_left_proportion)*cell_width
+                    trans_left=int((empty_cell_count+1)*pad_left_proportion)*cell_width
                     trans_top=int(empty_line_count*pad_top_proportion)*cell_height
                     
                 glTranslatef(trans_left,-int(line_spacing/2.0+trans_top),0)
@@ -201,6 +220,8 @@ class TextGrid(object):
                             glVertex2i(x, y)
                             glVertex2i(x, int(-self._size[1]))                        
                 glEnd()
+                glColor4f(0.0,0.0,0.0,1.0)
+                glEndList() 
                 self._gridlines_dlist=dl_index
             glCallList(self._gridlines_dlist) 
             

@@ -8,40 +8,16 @@ import os,math
 import numpy as np
 from psychopy.core import getTime
 from psychopy import logging
-from textureAtlas import TextureAtlas       
-
+try:
+    from textureatlas import TextureAtlas       
+    from fontstore import FontStore
+except Exception, e:
+        print 'error importing fontstore:',e
 from pyglet.gl import (glGenLists,glNewList,GL_COMPILE,GL_QUADS,
                       glBegin,glTexCoord2f,glVertex2f,glEnd,glDeleteLists,
                       glEndList,glTranslatef,glPopMatrix,glPushMatrix
                        )
-import pprint
 
-global have_tables
-try:
-    import tables as tb
-    have_tables=True
-    
-    def my_close_open_files(verbose):
-        open_files = tb.file._open_files
-        are_open_files = len(open_files) > 0
-        if verbose and are_open_files:
-            print >> sys.stderr, "Closing remaining open files:",
-        for fileh in open_files.keys():
-            if verbose:
-                print >> sys.stderr, "%s..." % (open_files[fileh].filename,),
-            open_files[fileh].close()
-            if verbose:
-                print >> sys.stderr, "done",
-        if verbose and are_open_files:
-            print >> sys.stderr
-    
-    import sys, atexit
-    atexit.register(my_close_open_files, False)
-    
-except:
-    print 'Error importing pytables. FontStore will not be supported.'
-    have_tables=False
-    
 log=math.log
 ceil=math.ceil
 
@@ -50,106 +26,6 @@ def nearestPow2(n):
 
 def nextPow2(n):
     return int(pow(2, ceil(log(n, 2))))
-
-class FontStore(object):
-    def __init__(self,file_path=None):
-        self.file_path=file_path
-        if have_tables is False:
-            raise Exception("FontStore requires pytables package to be available.")
-        
-        if self.file_path is None:
-            self.file_path=os.path.join(os.getcwd(),'fontstore.hdf5')
-        self._tables=None
-        self.open()
-        
-    def open(self):
-        """
-        Open the FontStore HDF5 file located at self.file_path
-        """
-        fs_filter = tb.Filters(complevel=1, complib='blosc', fletcher32=True)
-        self._tables=tb.open_file(self.file_path, mode = "a", title = "PsychoPy Font Store",filter=fs_filter)
-    
-    def getStoredFontNames(self):
-        """
-        """
-        pass
-    
-    def getFamilyGroup(self,family_name):
-        group=None
-        family_group_name=family_name.replace(u' ','_')
-        for g in self._tables.list_nodes("/",classname='Group'):
-            if g._v_attrs.TITLE==family_name:
-                group=g
-                break        
-        if group is None:
-            group = self._tables.create_group(self._tables.root,family_group_name, family_name)        
-        return group
-
-    def getStyleGroup(self,font_atlas,family_group):
-        group=None
-        style_name=font_atlas.font_info.style_name
-        for g in self._tables.list_nodes(family_group, classname='Group'):
-            if g._v_attrs.TITLE==style_name:
-                group=g
-                break        
-        if group is None:
-            group = self.createFontStyleGroup(font_atlas,family_group)
-            
-            # Add some font info used when recreating display lists.
-            #
-            
-            self._tables.flush()
-        return group
-
-    def createFontStyleGroup(self,font_atlas,family_group):
-        style_name=font_atlas.font_info.style_name      
-        style_group_name=style_name.replace(u' ','_')        
-        group = self._tables.create_group(family_group,style_group_name, style_name)    
-
-        # add font info useful for re-creating display lists.
-        for k,v in font_atlas.font_info.asdict().iteritems():
-            group._v_attrs[k]=v
-
-        self._tables.create_group(group, "sizes", "Glyph Data for different Font Sizes")
-        return group
-        
-    def addFontAtlas(self,font_atlas):
-        style_group=None
-        family_group=self.getFamilyGroup(font_atlas.font_info.family_name)
-        if family_group:
-            style_group=self.getStyleGroup(font_atlas,family_group)  
-        if style_group:
-            size=font_atlas.size
-            dpi=font_atlas.dpi        
-            
-            
-            # save the original font file to the hdf5 file
-            ttf_file_name=os.path.split(font_atlas.font_info.path)[-1]
-            ttf_node_name=ttf_file_name.replace(u'.',u'_')
-            try:
-                ttf_exists=style_group._f_get_child(ttf_node_name) 
-            except tb.NoSuchNodeError,e:
-                import tables
-                from tables.nodes import filenode
-                f=file(font_atlas.font_info.path,'rb')                
-                ttf_node=filenode.new_node(self._tables, where=style_group,name=ttf_node_name,title=ttf_file_name)
-                ttf_node.write(f.read())
-                f.close()
-                ttf_node.close()
-            
-            # create 2d array to store the fontatlas bitmap data in.
-            atlas_bmp=None
-            for a in self._tables.list_nodes(style_group.sizes, classname='Array'):
-                if a._v_attrs.TITLE=="%d pt, %d dpi"%(size,dpi):
-                    atlas_bmp=a
-            if atlas_bmp is None:
-                atlas_bmp=tb.Array(style_group.sizes, "A_%d_%d"%(size,dpi), obj=font_atlas.atlas.data, title='%d pt, %d dpi'%(size,dpi))    
-            
-    def __del__(self):
-        if self._tables:
-            self._tables.flush()
-            self._tables.close()
-            self._tables=None
         
 class SystemFontManager(object):
     """
@@ -273,7 +149,10 @@ class SystemFontManager(object):
                 font_atlas.createFontAtlas()
 #            t3=getTime() 
             if fm.font_store:
+                t1=getTime()
                 fm.font_store.addFontAtlas(font_atlas)
+                t2=getTime()
+                print 'font store add atlas:',t2-t1
 
 #        etime=getTime()
 #        print 'getGLFont:',t2-t1,t3-t2,t3-t1
@@ -346,6 +225,7 @@ class FontInfo(object):
         self.style_name=face.style_name
         self.charmaps=[charmap.encoding_name for charmap in face.charmaps]
         self.num_faces=face.num_faces
+        self.num_glyphs=face.num_glyphs
         #self.size_info= [dict(width=s.width,height=s.height,x_ppem=s.x_ppem,y_ppem=s.y_ppem) for s in face.available_sizes]
         self.units_per_em=face.units_per_EM
         self.monospace=face.is_fixed_width
@@ -421,6 +301,9 @@ class MonospaceFontAtlas(object):
         est_max_width=(face.bbox.xMax-face.bbox.xMin)/float(units_ppem)*x_ppem
         est_max_height=face.size.ascender/float(units_ppem)*y_ppem
         target_atlas_area=int(est_max_width*est_max_height)*face.num_glyphs
+        # make sure it is big enough. ;)
+        # height is trimmed before sending to video ram anyhow.
+        target_atlas_area=target_atlas_area*3.0
         pow2_area=nextPow2(target_atlas_area)
         atlas_width=2048
         atlas_height=pow2_area/atlas_width
@@ -459,11 +342,13 @@ class MonospaceFontAtlas(object):
 #            v0     = (y +     0.0)
 #            u1     = (x + w - 0.0)
 #            v1     = (y + h - 0.0)
-
             self.charcode2glyph[charcode]=dict(
                         offset=(face.glyph.bitmap_left,face.glyph.bitmap_top),
                         size=(w,h),
-                        texcoords = [x, y, x + w, y + h]
+                        atlas_coords=(x,y,w,h),
+                        texcoords = [x, y, x + w, y + h],
+                        index=gindex,
+                        unichar=uchar
                         )
             
             charcode, gindex = face.get_next_char(charcode, gindex)
