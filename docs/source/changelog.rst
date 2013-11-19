@@ -39,6 +39,7 @@ PsychoPy 1.79
 * FIXED: many user interface tweaks, documentation and help string corrections (Philip Wiesemann)
 * FIXED: PsychoPy Coder view now closes the iohub process when the experiment script is terminated using 'Stop'. (Sol Simpson)
 * FIXED: bug importing conditions if the first row of numbers was the only float. (importFromConditions now uses numpy instead of matplotlib)
+* FIXED: Builder use of single staircase loops now respects the min/max values
 * CHANGED: data curve fitting functions are now using scipy.optimise.curve_fit and should hopefully be more robust to local minima(?)
 * CHANGED: microphone getRMS now uses numpy.std(); the change should have no effect on loudness values computed for .wav files
 * ADDED: builder demo for mental rotation task

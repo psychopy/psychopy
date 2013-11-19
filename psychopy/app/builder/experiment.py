@@ -702,6 +702,7 @@ class StairHandler:
         buff.writeIndented("    stepSizes=%(step sizes)s, stepType=%(step type)s,\n" %self.params)
         buff.writeIndented("    nReversals=%(N reversals)s, nTrials=%(nReps)s, \n" %self.params)
         buff.writeIndented("    nUp=%(N up)s, nDown=%(N down)s,\n" %self.params)
+        buff.writeIndented("    minVal=%(min value)s, maxVal=%(max value)s,\n" %self.params)
         buff.writeIndented("    originPath=%s" %repr(self.exp.expPath))
         buff.write(", name='%(name)s')\n"%self.params)
         buff.writeIndented("thisExp.addLoop(%(name)s)  # add the loop to the experiment" %self.params)
