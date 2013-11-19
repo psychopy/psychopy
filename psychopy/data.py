@@ -2627,6 +2627,7 @@ class _baseFunctionFit:
         self.yy = numpy.asarray(yy)
         self.sems = numpy.asarray(sems)
         self.expectedMin = expectedMin
+        self.guess = guess
         # for holding error calculations:
         self.ssq=0
         self.rms=0
@@ -2642,7 +2643,7 @@ class _baseFunctionFit:
         #self.params = optimize.fmin_bfgs(self._getErr, self.params, None, (self.xx,self.yy,self.sems),disp=self.display)
         global _chance
         _chance = self.expectedMin
-        self.params, self.covar = optimize.curve_fit(self._eval, self.xx, self.yy)
+        self.params, self.covar = optimize.curve_fit(self._eval, self.xx, self.yy, p0=self.guess, sigma=self.sems)
         self.ssq = self._getErr(self.params, self.xx, self.yy, 1.0)
         self.chi = self._getErr(self.params, self.xx, self.yy, self.sems)
         self.rms = self.ssq/len(self.xx)
