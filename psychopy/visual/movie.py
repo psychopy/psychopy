@@ -85,6 +85,7 @@ class MovieStim(BaseVisualStim):
                  color=(1.0,1.0,1.0),
                  colorSpace='rgb',
                  opacity=1.0,
+                 volume=1.0,
                  name='',
                  loop=False,
                  autoLog=True,
@@ -99,6 +100,8 @@ class MovieStim(BaseVisualStim):
                 If True then the movie will be top-bottom flipped
             flipHoriz : True or *False*
                 If True then the movie will be right-left flipped
+            volume : 
+                The nominal level is 1.0, and 0.0 is silence, see pyglet.media.Player
             loop : bool, optional
                 Whether to start the movie over from the beginning if draw is
                 called and the movie is done.
@@ -115,6 +118,7 @@ class MovieStim(BaseVisualStim):
             """
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
+        self._player.volume=volume
         self._player._on_eos=self._onEos
         self.filename=filename
         self.duration=None
