@@ -12,6 +12,10 @@ except ImportError:
     import Image
 from os.path import *
 
+excludeComponents = ['VisualComponent', 'BaseComponent', #these are templates, not for use
+                     'EyetrackerComponent', #this one isn't ready yet
+                     ]
+
 def pilToBitmap(pil,scaleFactor=1.0):
     image = wx.EmptyImage(pil.size[0], pil.size[1] )
     image.SetData( pil.convert( "RGB").tostring() )
@@ -65,7 +69,7 @@ def getComponents(folder=None, fetchIcons=True):
                 name=None
                 #just fetch the attributes that end with 'Component', not other functions
                 if attrib.endswith('omponent') and \
-                    attrib not in ['VisualComponent', 'BaseComponent']:#must be a component
+                    attrib not in excludeComponents:#must be a component
                     name=attrib
                     components[attrib]=getattr(module, attrib)
                     #also try to get an iconfile
