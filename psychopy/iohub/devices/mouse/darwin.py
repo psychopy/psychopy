@@ -96,7 +96,7 @@ class Mouse(MouseDevice):
 
     def _nativeSetMousePos(self,px,py):
         result=Qz.CGWarpMouseCursorPosition(Qz.CGPointMake(float(px),float(py)))
-        print2err('_nativeSetMousePos result: ',result)
+        #print2err('_nativeSetMousePos result: ',result)
             
     def _nativeGetSystemCursorVisibility(self):
         return Qz.CGCursorIsVisible()
@@ -169,10 +169,10 @@ class Mouse(MouseDevice):
             
                     result=self._validateMousePosition((px,py),display_index)
                     if result != True:
-                        print2err("!!! _validateMousePosition made ajustment: {0} to {1}".format((px,py),result))
+                        #print2err("!!! _validateMousePosition made ajustment: {0} to {1}".format((px,py),result))
                         nx,ny=result
                         display_index=self.getDisplayIndexForMousePosition((nx,ny))
-                        print2err("Going to Update mousePosition: {0} => {1} on D {2}".format((px,py),(ny,ny),display_index))            
+                        #print2err("Going to Update mousePosition: {0} => {1} on D {2}".format((px,py),(ny,ny),display_index))            
                         px,py=nx,ny
                         self._nativeSetMousePos(px,py)   
             

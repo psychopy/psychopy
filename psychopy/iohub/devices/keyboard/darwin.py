@@ -263,18 +263,18 @@ class Keyboard(ioHubKeyboardDevice):
                         key_name,ucode,key_code=self._getKeyNameForEvent(keyEvent)
                         window_number=keyEvent.windowNumber()
 
-                        report_system_wide_events=self.getConfiguration().get('report_system_wide_events',True)
+                        #report_system_wide_events=self.getConfiguration().get('report_system_wide_events',True)
             
-                        pyglet_window_hnds=self._iohub_server._pyglet_window_hnds
-                        print2err("pyglet_window_hnds: ",pyglet_window_hnds)
-                        if event.Window in pyglet_window_hnds:
-                            pass
-                        elif len(pyglet_window_hnds)>0 and report_system_wide_events is False:
+                        #pyglet_window_hnds=self._iohub_server._pyglet_window_hnds
+                        #print2err("pyglet_window_hnds: ",pyglet_window_hnds)
+                        #if event.Window in pyglet_window_hnds:
+                        #    pass
+                        #elif len(pyglet_window_hnds)>0 and report_system_wide_events is False:
                             # For keyboard, when report_system_wide_events is false
                             # do not record kb events that are not targeted for
                             # a PsychoPy window, still allow them to pass to the desktop 
                             # apps.
-                            return event
+                        #    return event
 
 
 
@@ -320,7 +320,7 @@ class Keyboard(ioHubKeyboardDevice):
                         ioe[15]=key_name.encode('utf-8') 
                         ioe[16]=ioHubKeyboardDevice._modifier_value
                         ioe[17]=window_number
-                        print2err('OSX event handler: ',ucode,' ',iohub_time,' ',window_number)
+                        #print2err('OSX event handler: ',ucode,' ',iohub_time,' ',window_number)
                         self._addNativeEventToBuffer(copy(ioe))
                         #print2err("**Final values:key_name [",key_name,"] ucode: ",ucode, ' key_code: ',key_code)
                 else:
