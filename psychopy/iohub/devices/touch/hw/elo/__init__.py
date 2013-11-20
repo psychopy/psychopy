@@ -72,9 +72,15 @@ class Touch(TouchDevice):
     def __init__(self,*args,**kwargs):   
         TouchDevice.__init__(self,*args,**kwargs)
         
-        self.serial_port_num=self.getConfiguration().get('serial')
-        if self.serial_port_num:
-            self.serial_port_num=self.serial_port_num.get('port')
+        serial_config=self.getConfiguration().get('serial')
+        if serial_config:
+            sport=serial_config.get('port')
+            try:
+                sport=int(sport)-1
+            except:
+                sport=sport
+            self.serial_port_num=sport
+            
         self._raw_positions=False
         self._rx_data=''
         self._serial_port_hw=None
@@ -87,9 +93,9 @@ class Touch(TouchDevice):
         return 'CALIBRATED'
         
     def _connectSerial(self):
-        self._serial_port_hw = serial.Serial(self.serial_port_num-1, 9600, timeout=0)
+        self._serial_port_hw = serial.Serial(self.serial_port_num, 9600, timeout=0)
         if self._serial_port_hw is None:
-            raise ValueError("Error: Serial Port Connection Failed: %d"%(self.serial_port_num))
+            raise ValueError("Error: Serial Port Connection Failed: %s"%(str(self.serial_port_num)))
         self._flushSerialInput()
         
     def _readAnyRx(self,max_bytes=256):
@@ -217,7 +223,7 @@ class Touch(TouchDevice):
         
             # set scaling .....
             pkt=self._command('S',*('X',xmin,xmax))
-            reply_packets=self._polcommandl()
+            reply_packets=self._poll()
     
             # set scaling .....
             pkt=self._command('S',*('Y',ymin,ymax))
@@ -242,7 +248,7 @@ class Touch(TouchDevice):
     def clearEvents(self):
         try:
             self._flushSerialInput()
-            Device.clearEvents(self)
+            TouchDevice.clearEvents(self)
         except Exception, e:
             print2err("Exception During Touch.clearEvents: ",str(e))
             
@@ -292,7 +298,7 @@ class Touch(TouchDevice):
                             else:
                                 self._position=self._pixelToDisplayCoords(touch_event.x,touch_event.y)
                             
-                            event =command[            
+                            event =[            
                                     0, # exp id
                                     0, # session id
                                     0, #device id (not currently used)

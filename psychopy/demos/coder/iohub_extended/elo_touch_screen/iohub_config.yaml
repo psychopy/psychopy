@@ -31,7 +31,7 @@ monitor_devices:
         serial:
             port: 9
         device_timer:
-            interval: 0.002
+            interval: 0.001
             
 data_store:
     enable: True

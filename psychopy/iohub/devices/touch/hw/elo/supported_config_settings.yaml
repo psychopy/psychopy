@@ -14,9 +14,10 @@ touch.hw.elo.Touch:
             max_length: 32   
     serial:
         port: 
-            IOHUB_INT:
-                min: 1
-                max: 24    
+            IOHUB_STRING:
+                min_length: 1
+                max_length: 32
+                first_char_alpha: False     
     device_timer:
         interval:
             IOHUB_FLOAT:
