@@ -42,6 +42,6 @@ def test_extra_imports():
         import parallel
     import pylink
     import yaml, msgpack, gevent
-    import ipython, tornado
+    import IPython, tornado
     import pyfilesec
     import psychopy_ext
