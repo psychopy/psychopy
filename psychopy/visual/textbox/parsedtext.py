@@ -163,7 +163,7 @@ class ParsedTextDocument(object):
         
     def getLineInfoByIndex(self,i):
         c=self._children[i]
-        return c._length, c._gl_display_list, c._ords
+        return c,c._length, c._gl_display_list, c._ords
 
     def getParsedLine(self,i):
         return self._children[i]
@@ -225,7 +225,10 @@ class ParsedTextLine(object):
         self._text=source_text
         self._index_range=index_range
         self._line_index=parent.getChildCount()-1
-                
+        
+        self._trans_left=0
+        self._trans_top=0
+        
         self.updateOrds(self._text)
         
         #self.text_region_flags=numpy.ones((2,parent._num_columns),numpy.uint32)#*parent._text_grid.default_region_type_key

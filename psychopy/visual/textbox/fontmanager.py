@@ -271,7 +271,6 @@ class MonospaceFontAtlas(object):
         return "%s_%d_%d"%(font_info.getID(),size,dpi)
     
     def createFontAtlas(self):
-        t1=getTime()
         if self.atlas:
             self.atlas.free()
             self.atlas=None
@@ -287,7 +286,6 @@ class MonospaceFontAtlas(object):
         # This is used when the altas is created to properly size the tex.
         # i.e. max glyph size * num glyphs
         #
-
 
         max_w,max_h=0,0
         max_ascender, max_descender, max_tile_width = 0, 0, 0
@@ -307,10 +305,10 @@ class MonospaceFontAtlas(object):
         pow2_area=nextPow2(target_atlas_area)
         atlas_width=2048
         atlas_height=pow2_area/atlas_width
-        t2=getTime()        
         self.atlas=TextureAtlas(atlas_width,atlas_height)
-        t3=getTime()  
         charcode, gindex=face.get_first_char()
+        #w_max_glyph=[]
+        #h_max_glyph=[]
         while gindex:        
             uchar=self.charcode2unichr.setdefault(charcode,unichr(charcode))
 
@@ -323,25 +321,21 @@ class MonospaceFontAtlas(object):
             max_tile_width = max( max_tile_width,bitmap.width)
             max_w=max(bitmap.width,max_w)
             max_h=max(bitmap.rows,max_h)
-
+                
             x,y,w,h = self.atlas.get_region(bitmap.width+2, bitmap.rows+2)
             
-            #glyphdata['atlas_region']=x,y,w,h
+            #if bitmap.width==max_w:
+            #    w_max_glyph=(self.size,charcode,uchar,(x,y,w,h),(bitmap.width,bitmap.rows))
+            #if bitmap.rows==max_h:
+            #    h_max_glyph=(self.size,charcode,uchar,(x,y,w,h),(bitmap.width,bitmap.rows))
+                
             if x < 0:
                 raise Exception("MonospaceFontAtlas.get_region failed for: {0}, requested area: {1}. Atlas Full!".format(charcode,(bitmap.width+2, bitmap.rows+2)))              
             x,y = x+1, y+1
             w,h = w-2, h-2
-            #print 'bitmap.width,bitmap.rows,bitmap.pitch : h,w:',bitmap.width,bitmap.rows,bitmap.pitch,h,w
             data = np.array(bitmap._FT_Bitmap.buffer[:(bitmap.rows*bitmap.width)],dtype=np.ubyte).reshape(h,w,1)
-            #gamma = 1.0
-            #Z = ((data/255.0)**(gamma))
-            #data = (Z*255).astype(np.ubyte)
             self.atlas.set_region((x,y,w,h), data)
             
-#            u0     = (x +     0.0)
-#            v0     = (y +     0.0)
-#            u1     = (x + w - 0.0)
-#            v1     = (y + h - 0.0)
             self.charcode2glyph[charcode]=dict(
                         offset=(face.glyph.bitmap_left,face.glyph.bitmap_top),
                         size=(w,h),
@@ -352,7 +346,6 @@ class MonospaceFontAtlas(object):
                         )
             
             charcode, gindex = face.get_next_char(charcode, gindex)
-        t4=getTime()          
         self.max_ascender = max_ascender
         self.max_descender = max_descender
         self.max_tile_width = max_tile_width
@@ -363,20 +356,11 @@ class MonospaceFontAtlas(object):
         height=nextPow2(self.atlas.max_y+1)
         self.atlas.resize(height)
         self.atlas.upload()        
-        t5=getTime()  
         self.createDisplayLists()
-        t6=getTime()
-        
-#        print "Creating Atlas Times:"
-#        print "\tDetermine size",t2-t1
-#        print "\tCreating Atlas",t3-t2
-#        print "\tCreate bitmap glyphs",t4-t3
-#        print "\tResize+Upload",t5-t4
-#        print "\tMake DLs:",t6-t5
-#        print "\tTotal:",t6-t1
         self._face=None
-       #self.atlas.freeMemoryBuffer()
-   
+        #print 'w_max_glyth info:',w_max_glyph
+        #print 'h_max_glyth info:',h_max_glyph
+        
     def createDisplayLists(self):
         glyph_count=len(self.charcode2unichr)
         max_tile_width,max_tile_height=self.max_tile_width,self.max_tile_height        

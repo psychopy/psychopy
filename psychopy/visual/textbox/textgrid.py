@@ -38,10 +38,7 @@ class TextGrid(object):
         self._cell_size=max_size[0],max_size[1]+self._text_box._getPixelTextLineSpacing()
         if self._cell_size[0]==0:
             print 'ERROR WITH CELL SIZE!!!! ', self._text_box.getLabel()
-        #print 'self._cell_size:',self._cell_size
-        self._horz_justification=grid_horz_justification
-        self._vert_justification=grid_vert_justification
-        
+                   
         self._text_dlist=None
         self._gridlines_dlist=None
         
@@ -81,7 +78,14 @@ class TextGrid(object):
         #
         self._col_lines=[int(np.floor(x)) for x in xrange(0,self._size[0]+1,self._cell_size[0])]    
         self._row_lines=[int(np.floor(y)) for y in xrange(0,-self._size[1]-1,-self._cell_size[1])]    
-        
+
+        self._apply_padding=False
+        self._pad_top_proportion=0  
+        self._pad_left_proportion=0  
+        #print 'self._cell_size:',self._cell_size
+        self.setHorzJust(grid_horz_justification)
+        self.setVertJust(grid_vert_justification)
+         
     def getSize(self):
         return self._size
 
@@ -105,12 +109,52 @@ class TextGrid(object):
 
     def getVertJust(self):
         return self._vert_justification
-  
+
+    def setHorzJust(self,j):
+        self._horz_justification=j
+        self._pad_left_proportion=0     
+        if j=='center':
+            self._pad_left_proportion=0.5
+        elif j=='right':
+            self._pad_left_proportion=1.0
+        
+        self.applyPadding()
+
+    def setVertJust(self,j):
+        self._vert_justification=j
+        self._pad_top_proportion=0     
+        if j=='center':
+            self._pad_top_proportion=0.5
+        elif j=='bottom':
+            self._pad_top_proportion=1.0                
+
+        self.applyPadding()
+
+    def applyPadding(self):
+        self._apply_padding=self._pad_left_proportion or (self._pad_top_proportion and self.getRowCountWithText()>1)    
+        num_cols,num_rows=self._shape     
+        line_count=self.getRowCountWithText()
+        for li in range(line_count):
+            cline=self._text_document.getParsedLine(li)
+            line_length=cline.getLength()
+            if self._apply_padding:
+                cline._trans_left=int((num_cols-line_length+1)*self._pad_left_proportion)
+                cline._trans_top==int((num_rows-line_count)*self._pad_top_proportion)
+            else:
+                cline._trans_left=0
+                cline._trans_top=0
+        
+    def getRowCountWithText(self):
+        if self._text_document:
+            return min(self._shape[1],self._text_document.getParsedLineCount())
+        return 0
+        
     def _setText(self,text):
         self._text_document.deleteText(0,self._text_document.getTextLength(),
                                        text)
                 
         self._deleteTextDL()
+        self.applyPadding()
         return self._text_document.getDisplayedText()   
         
     def setCurrentFontDisplayLists(self,dlists):
@@ -130,6 +174,7 @@ class TextGrid(object):
         if self._shape:
             self._text_document=parsedtext.ParsedTextDocument(f,self) 
             self._deleteTextDL()
+            self.applyPadding()
         else:
             raise AttributeError("Could not create _text_document. num_columns needs to be known.")
 
@@ -152,44 +197,24 @@ class TextGrid(object):
 
             ###
             
-            hjust=self._horz_justification
-            vjust=self._vert_justification
-            pad_left_proportion=0     
-            pad_top_proportion=0     
-            if hjust=='center':
-                pad_left_proportion=0.5
-            elif hjust=='right':
-                pad_left_proportion=1.0
-            if vjust=='center':
-                pad_top_proportion=0.5
-            elif vjust=='bottom':
-                pad_top_proportion=1.0
-            
             getLineInfoByIndex=self._text_document.getLineInfoByIndex
             active_text_style_dlist=self._current_font_display_lists.get
             cell_width,cell_height=self._cell_size
             num_cols,num_rows=self._shape
             line_spacing=self._text_box._getPixelTextLineSpacing()
-            line_count=min(num_rows,self._text_document.getParsedLineCount())
-            apply_padding=pad_left_proportion or (pad_top_proportion and line_count>1)
-            trans_left=0
-            trans_top=0
+            line_count=self.getRowCountWithText()
+            
+
             glColor4f(*self._text_box._toRGBA(self._font_color))    
 
             for r in range(line_count):            
-                line_length,line_display_list,line_ords=getLineInfoByIndex(r)
+                cline,line_length,line_display_list,line_ords=getLineInfoByIndex(r)
                 if line_display_list[0]==0: 
                     line_display_list[0:line_length]=[active_text_style_dlist(c) for c in line_ords] 
-                    
-                if apply_padding:
-                    empty_cell_count=num_cols-line_length
-                    empty_line_count=num_rows-line_count
-                    trans_left=int((empty_cell_count+1)*pad_left_proportion)*cell_width
-                    trans_top=int(empty_line_count*pad_top_proportion)*cell_height
-                    
-                glTranslatef(trans_left,-int(line_spacing/2.0+trans_top),0)
+                                        
+                glTranslatef(cline._trans_left*cell_width,-int(line_spacing/2.0+cline._trans_top*cell_height),0)
                 glCallLists(line_length,GL_UNSIGNED_INT,line_display_list[0:line_length].ctypes)
-                glTranslatef(-line_length*cell_width-trans_left,-cell_height+int(line_spacing/2.0+trans_top),0)
+                glTranslatef(-line_length*cell_width-cline._trans_left*cell_width,-cell_height+int(line_spacing/2.0+cline._trans_top*cell_height),0)
     
                 ###
             glPopMatrix()       
