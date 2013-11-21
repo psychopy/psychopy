@@ -24,6 +24,8 @@ textbox=visual.TextBox(window=window,
                          font_color=[-1,-1,1], 
                          size=(1.9,.3),
                          pos=(0.0,0.25), 
+                         grid_color=[-1,1,-1,1],
+                         grid_stroke_width=1,
                          grid_horz_justification='center',
                          units='norm',
                          )
@@ -34,6 +36,8 @@ textbox2=visual.TextBox(window=window,
                          font_color=[1,-1,-1], 
                          background_color=[-1,-1,-1,1],
                          border_color=[-1,-1,1,1],
+                         grid_color=[-1,1,-1,1],
+                         grid_stroke_width=1,
                          border_stroke_width=4,
                          textgrid_shape=[20,4], # 20 cols (20 chars wide)
                                                 # by 4 rows (4 lines of text)

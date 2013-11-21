@@ -6,6 +6,7 @@ Created on Sun Nov 10 12:18:45 2013
 """
 import os,math
 import numpy as np
+import unicodedata as ud
 from psychopy.core import getTime
 from psychopy import logging
 try:
@@ -15,7 +16,7 @@ except Exception, e:
         print 'error importing fontstore:',e
 from pyglet.gl import (glGenLists,glNewList,GL_COMPILE,GL_QUADS,
                       glBegin,glTexCoord2f,glVertex2f,glEnd,glDeleteLists,
-                      glEndList,glTranslatef,glPopMatrix,glPushMatrix
+                      glEndList,glTranslatef,glPopMatrix,glPushMatrix,glDeleteTextures
                        )
 
 log=math.log
@@ -210,13 +211,11 @@ class SystemFontManager(object):
     def __del__(self):
         self.font_store=None       
         if self.font_atlas_dict:
-            for fa in self.font_atlas_dict.values():
-                if fa:
-                    fa.free()
             self.font_atlas_dict.clear()
+            self.font_atlas_dict=None
         if self._available_font_info:    
             self._available_font_info.clear()
-        
+            self._available_font_info=None
 
 class FontInfo(object):
     def __init__(self,fp,face):
@@ -307,45 +306,41 @@ class MonospaceFontAtlas(object):
         atlas_height=pow2_area/atlas_width
         self.atlas=TextureAtlas(atlas_width,atlas_height)
         charcode, gindex=face.get_first_char()
-        #w_max_glyph=[]
-        #h_max_glyph=[]
-        while gindex:        
-            uchar=self.charcode2unichr.setdefault(charcode,unichr(charcode))
 
-            face.load_char(uchar, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT )
-            bitmap = face.glyph.bitmap      
-            
-            self.total_bitmap_area+=bitmap.width*bitmap.rows
-            max_ascender = max( max_ascender, face.glyph.bitmap_top)
-            max_descender = max( max_descender, bitmap.rows - face.glyph.bitmap_top )
-            max_tile_width = max( max_tile_width,bitmap.width)
-            max_w=max(bitmap.width,max_w)
-            max_h=max(bitmap.rows,max_h)
+        while gindex:   
+            uchar = unichr(charcode)
+            if ud.category(uchar) not in (u'Zl',u'Zp',u'Cc',u'Cf',u'Cs',u'Co',u'Cn'):
+                self.charcode2unichr[charcode]=uchar
+                face.load_char(uchar, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT )
+                bitmap = face.glyph.bitmap      
                 
-            x,y,w,h = self.atlas.get_region(bitmap.width+2, bitmap.rows+2)
-            
-            #if bitmap.width==max_w:
-            #    w_max_glyph=(self.size,charcode,uchar,(x,y,w,h),(bitmap.width,bitmap.rows))
-            #if bitmap.rows==max_h:
-            #    h_max_glyph=(self.size,charcode,uchar,(x,y,w,h),(bitmap.width,bitmap.rows))
+                self.total_bitmap_area+=bitmap.width*bitmap.rows
+                max_ascender = max( max_ascender, face.glyph.bitmap_top)
+                max_descender = max( max_descender, bitmap.rows - face.glyph.bitmap_top )
+                max_tile_width = max( max_tile_width,bitmap.width)
+                max_w=max(bitmap.width,max_w)
+                max_h=max(bitmap.rows,max_h)
+                    
+                x,y,w,h = self.atlas.get_region(bitmap.width+2, bitmap.rows+2)
+                    
+                if x < 0:
+                    raise Exception("MonospaceFontAtlas.get_region failed for: {0}, requested area: {1}. Atlas Full!".format(charcode,(bitmap.width+2, bitmap.rows+2)))              
+                x,y = x+1, y+1
+                w,h = w-2, h-2
+                data = np.array(bitmap._FT_Bitmap.buffer[:(bitmap.rows*bitmap.width)],dtype=np.ubyte).reshape(h,w,1)
+                self.atlas.set_region((x,y,w,h), data)
                 
-            if x < 0:
-                raise Exception("MonospaceFontAtlas.get_region failed for: {0}, requested area: {1}. Atlas Full!".format(charcode,(bitmap.width+2, bitmap.rows+2)))              
-            x,y = x+1, y+1
-            w,h = w-2, h-2
-            data = np.array(bitmap._FT_Bitmap.buffer[:(bitmap.rows*bitmap.width)],dtype=np.ubyte).reshape(h,w,1)
-            self.atlas.set_region((x,y,w,h), data)
-            
-            self.charcode2glyph[charcode]=dict(
-                        offset=(face.glyph.bitmap_left,face.glyph.bitmap_top),
-                        size=(w,h),
-                        atlas_coords=(x,y,w,h),
-                        texcoords = [x, y, x + w, y + h],
-                        index=gindex,
-                        unichar=uchar
-                        )
-            
+                self.charcode2glyph[charcode]=dict(
+                            offset=(face.glyph.bitmap_left, face.glyph.bitmap_top),
+                            size=(w,h),
+                            atlas_coords=(x,y,w,h),
+                            texcoords = [x, y, x + w, y + h],
+                            index=gindex,
+                            unichar=uchar
+                            )
+
             charcode, gindex = face.get_next_char(charcode, gindex)
+
         self.max_ascender = max_ascender
         self.max_descender = max_descender
         self.max_tile_width = max_tile_width
@@ -360,7 +355,7 @@ class MonospaceFontAtlas(object):
         self._face=None
         #print 'w_max_glyth info:',w_max_glyph
         #print 'h_max_glyth info:',h_max_glyph
-        
+            
     def createDisplayLists(self):
         glyph_count=len(self.charcode2unichr)
         max_tile_width,max_tile_height=self.max_tile_width,self.max_tile_height        
@@ -411,21 +406,25 @@ class MonospaceFontAtlas(object):
             misc.imsave(file_name, self.atlas.data.reshape(self.atlas.data.shape[:2]))
         else:
             misc.imsave(file_name, self.atlas.data)
-    
-    def free(self):
-        if self.atlas:
-            self.atlas.free()
+
+        
+    def __del__(self): 
+        self._face=None
+        if self.atlas.texid:
+            glDeleteTextures(1, self.atlas.texid)
+            self.atlas.texid=None
+            self.atlas=None
         if self.charcode2displaylist:
             for dl in self.charcode2displaylist.values():
                 glDeleteLists(dl, 1)
-        
-    def __del__(self):   
-        self.free()
-        self._face=None
+            self.charcode2displaylist.clear()
+        self.charcode2displaylist=None
         if self.charcode2glyph:    
             self.charcode2glyph.clear()
+            self.charcode2glyph=None
         if self.charcode2unichr:
             self.charcode2unichr.clear()
+            self.charcode2unichr=None
 
         
 try:
