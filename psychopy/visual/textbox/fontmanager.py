@@ -6,6 +6,7 @@ Created on Sun Nov 10 12:18:45 2013
 """
 import os,math
 import numpy as np
+import unicodedata as ud
 from psychopy.core import getTime
 from psychopy import logging
 try:
@@ -15,7 +16,7 @@ except Exception, e:
         print 'error importing fontstore:',e
 from pyglet.gl import (glGenLists,glNewList,GL_COMPILE,GL_QUADS,
                       glBegin,glTexCoord2f,glVertex2f,glEnd,glDeleteLists,
-                      glEndList,glTranslatef,glPopMatrix,glPushMatrix
+                      glEndList,glTranslatef,glPopMatrix,glPushMatrix,glDeleteTextures
                        )
 
 log=math.log
@@ -210,13 +211,11 @@ class SystemFontManager(object):
     def __del__(self):
         self.font_store=None       
         if self.font_atlas_dict:
-            for fa in self.font_atlas_dict.values():
-                if fa:
-                    fa.free()
             self.font_atlas_dict.clear()
+            self.font_atlas_dict=None
         if self._available_font_info:    
             self._available_font_info.clear()
-        
+            self._available_font_info=None
 
 class FontInfo(object):
     def __init__(self,fp,face):
@@ -271,7 +270,6 @@ class MonospaceFontAtlas(object):
         return "%s_%d_%d"%(font_info.getID(),size,dpi)
     
     def createFontAtlas(self):
-        t1=getTime()
         if self.atlas:
             self.atlas.free()
             self.atlas=None
@@ -287,7 +285,6 @@ class MonospaceFontAtlas(object):
         # This is used when the altas is created to properly size the tex.
         # i.e. max glyph size * num glyphs
         #
-
 
         max_w,max_h=0,0
         max_ascender, max_descender, max_tile_width = 0, 0, 0
@@ -307,52 +304,43 @@ class MonospaceFontAtlas(object):
         pow2_area=nextPow2(target_atlas_area)
         atlas_width=2048
         atlas_height=pow2_area/atlas_width
-        t2=getTime()        
         self.atlas=TextureAtlas(atlas_width,atlas_height)
-        t3=getTime()  
         charcode, gindex=face.get_first_char()
-        while gindex:        
-            uchar=self.charcode2unichr.setdefault(charcode,unichr(charcode))
 
-            face.load_char(uchar, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT )
-            bitmap = face.glyph.bitmap      
-            
-            self.total_bitmap_area+=bitmap.width*bitmap.rows
-            max_ascender = max( max_ascender, face.glyph.bitmap_top)
-            max_descender = max( max_descender, bitmap.rows - face.glyph.bitmap_top )
-            max_tile_width = max( max_tile_width,bitmap.width)
-            max_w=max(bitmap.width,max_w)
-            max_h=max(bitmap.rows,max_h)
+        while gindex:   
+            uchar = unichr(charcode)
+            if ud.category(uchar) not in (u'Zl',u'Zp',u'Cc',u'Cf',u'Cs',u'Co',u'Cn'):
+                self.charcode2unichr[charcode]=uchar
+                face.load_char(uchar, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT )
+                bitmap = face.glyph.bitmap      
+                
+                self.total_bitmap_area+=bitmap.width*bitmap.rows
+                max_ascender = max( max_ascender, face.glyph.bitmap_top)
+                max_descender = max( max_descender, bitmap.rows - face.glyph.bitmap_top )
+                max_tile_width = max( max_tile_width,bitmap.width)
+                max_w=max(bitmap.width,max_w)
+                max_h=max(bitmap.rows,max_h)
+                    
+                x,y,w,h = self.atlas.get_region(bitmap.width+2, bitmap.rows+2)
+                    
+                if x < 0:
+                    raise Exception("MonospaceFontAtlas.get_region failed for: {0}, requested area: {1}. Atlas Full!".format(charcode,(bitmap.width+2, bitmap.rows+2)))              
+                x,y = x+1, y+1
+                w,h = w-2, h-2
+                data = np.array(bitmap._FT_Bitmap.buffer[:(bitmap.rows*bitmap.width)],dtype=np.ubyte).reshape(h,w,1)
+                self.atlas.set_region((x,y,w,h), data)
+                
+                self.charcode2glyph[charcode]=dict(
+                            offset=(face.glyph.bitmap_left, face.glyph.bitmap_top),
+                            size=(w,h),
+                            atlas_coords=(x,y,w,h),
+                            texcoords = [x, y, x + w, y + h],
+                            index=gindex,
+                            unichar=uchar
+                            )
 
-            x,y,w,h = self.atlas.get_region(bitmap.width+2, bitmap.rows+2)
-            
-            #glyphdata['atlas_region']=x,y,w,h
-            if x < 0:
-                raise Exception("MonospaceFontAtlas.get_region failed for: {0}, requested area: {1}. Atlas Full!".format(charcode,(bitmap.width+2, bitmap.rows+2)))              
-            x,y = x+1, y+1
-            w,h = w-2, h-2
-            #print 'bitmap.width,bitmap.rows,bitmap.pitch : h,w:',bitmap.width,bitmap.rows,bitmap.pitch,h,w
-            data = np.array(bitmap._FT_Bitmap.buffer[:(bitmap.rows*bitmap.width)],dtype=np.ubyte).reshape(h,w,1)
-            #gamma = 1.0
-            #Z = ((data/255.0)**(gamma))
-            #data = (Z*255).astype(np.ubyte)
-            self.atlas.set_region((x,y,w,h), data)
-            
-#            u0     = (x +     0.0)
-#            v0     = (y +     0.0)
-#            u1     = (x + w - 0.0)
-#            v1     = (y + h - 0.0)
-            self.charcode2glyph[charcode]=dict(
-                        offset=(face.glyph.bitmap_left,face.glyph.bitmap_top),
-                        size=(w,h),
-                        atlas_coords=(x,y,w,h),
-                        texcoords = [x, y, x + w, y + h],
-                        index=gindex,
-                        unichar=uchar
-                        )
-            
             charcode, gindex = face.get_next_char(charcode, gindex)
-        t4=getTime()          
+
         self.max_ascender = max_ascender
         self.max_descender = max_descender
         self.max_tile_width = max_tile_width
@@ -363,20 +351,11 @@ class MonospaceFontAtlas(object):
         height=nextPow2(self.atlas.max_y+1)
         self.atlas.resize(height)
         self.atlas.upload()        
-        t5=getTime()  
         self.createDisplayLists()
-        t6=getTime()
-        
-#        print "Creating Atlas Times:"
-#        print "\tDetermine size",t2-t1
-#        print "\tCreating Atlas",t3-t2
-#        print "\tCreate bitmap glyphs",t4-t3
-#        print "\tResize+Upload",t5-t4
-#        print "\tMake DLs:",t6-t5
-#        print "\tTotal:",t6-t1
         self._face=None
-       #self.atlas.freeMemoryBuffer()
-   
+        #print 'w_max_glyth info:',w_max_glyph
+        #print 'h_max_glyth info:',h_max_glyph
+            
     def createDisplayLists(self):
         glyph_count=len(self.charcode2unichr)
         max_tile_width,max_tile_height=self.max_tile_width,self.max_tile_height        
@@ -427,21 +406,25 @@ class MonospaceFontAtlas(object):
             misc.imsave(file_name, self.atlas.data.reshape(self.atlas.data.shape[:2]))
         else:
             misc.imsave(file_name, self.atlas.data)
-    
-    def free(self):
-        if self.atlas:
-            self.atlas.free()
+
+        
+    def __del__(self): 
+        self._face=None
+        if self.atlas.texid:
+            glDeleteTextures(1, self.atlas.texid)
+            self.atlas.texid=None
+            self.atlas=None
         if self.charcode2displaylist:
             for dl in self.charcode2displaylist.values():
                 glDeleteLists(dl, 1)
-        
-    def __del__(self):   
-        self.free()
-        self._face=None
+            self.charcode2displaylist.clear()
+        self.charcode2displaylist=None
         if self.charcode2glyph:    
             self.charcode2glyph.clear()
+            self.charcode2glyph=None
         if self.charcode2unichr:
             self.charcode2unichr.clear()
+            self.charcode2unichr=None
 
         
 try:

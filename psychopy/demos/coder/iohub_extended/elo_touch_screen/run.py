@@ -8,6 +8,7 @@ from psychopy import visual
 from psychopy.iohub import ioHubExperimentRuntime,EventConstants,module_directory
 import math
 import numpy as np      
+import time
     
 class EloTouchScreenDemo(ioHubExperimentRuntime):
     """
@@ -80,7 +81,7 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
                        units=unit_type)
         
         # Clear all events from the global and device level event buffers.
-        self.hub.clearEvents() 
+        self.hub.clearEvents('all') 
 
         # determine whether calibration has been enabled.
         user_params=self.getUserDefinedParameters()        
@@ -88,7 +89,7 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
         if user_params.get('calibrate_elo',False) is True:        
             #Calibrate
             self.run_elo_calibration()   
-            self.hub.clearEvents()
+            self.hub.clearEvents('all')
             #Validate
             terminate_calibration=False
             while not terminate_calibration and self.run_elo_validation() is False:
@@ -96,7 +97,7 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
                 kb_events=kb.getEvents()
                 if kb_events:
                     terminate_calibration=True
-                self.hub.clearEvents()
+                self.hub.clearEvents('all')
 
             # End demo if calibration has been cancelled.
             if terminate_calibration is True:
@@ -107,7 +108,13 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
         else:
             self.touch.restoreConfiguration()
 
-        self.hub.clearEvents()
+        self.hub.clearEvents('all')
+
+        self.cal_instruct_stim.setText("Move the dot with your finger.\nPess any key to exit.")
+        self.cal_instruct_stim.setPos((0,0))        
+        self.cal_instruct_stim.draw() 
+        self.touch_contingent_stim.draw()
+        window.flip()
         
         # Constantly get Touch events and update the touch_contingent_stim
         # position with the latest Touch event position. End demo when a
@@ -118,11 +125,11 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
             if touch_events:
                 te=touch_events[-1]
                 self.touch_contingent_stim.setPos((te.x_position,te.y_position))
+                self.cal_instruct_stim.draw()
+                self.touch_contingent_stim.draw()
+                window.flip()
             
-            self.touch_contingent_stim.draw()
-            flip_time=window.flip()
-            
-            kb_events=kb.getEvents()
+            kb_events=kb.getEvents(event_type=EventConstants.KEYBOARD_PRESS)
             if kb_events:
                 run_demo=False
                 
@@ -146,10 +153,12 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
                     return te.x_position,te.y_position
 
             #not self.devices.kb.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS):
-            self.touch_point_stim.draw()
-            self.cal_instruct_stim.draw()
-            self.window.flip()
-
+            #self.touch_point_stim.draw()
+            #self.cal_instruct_stim.draw()
+            #self.window.flip()
+            time.sleep(0.05)
+        self.hub.clearEvents('all')
+        
     def run_elo_calibration(self): 
         """
         Performs the Touch device Calibration routine. 
@@ -195,14 +204,14 @@ Touch each Point when it is Presented.")
                                       leftx,uppery,rightx,lowery)
  
         self.cal_instruct_stim.setText('CALIBRATION COMPLETE.\nPRESS ANY KEY TO CONTINUE.')
-
         self.cal_instruct_stim.setPos((0,0))
-        
-        self.hub.clearEvents()
+        self.cal_instruct_stim.draw()
+        self.window.flip()
+        self.hub.clearEvents('all')
         kb=self.devices.kb
-        while not kb.getEvents(EventConstants.KEYBOARD_CHAR):
-           self.hub.wait(0.25)
-        self.hub.clearEvents()
+        while not kb.getEvents(EventConstants.KEYBOARD_PRESS):
+           time.sleep(0.05)
+        self.hub.clearEvents('all')
 
 
     def run_elo_validation(self):     
@@ -217,7 +226,8 @@ Touch each Point when it is Presented.")
     
         self.cal_instruct_stim.setText("Elo Touch Screen Validation.\n\
 Touch each Point when it is Presented.")    
-                            
+        self.cal_instruct_stim.setPos((0,-display_resolution[1]/2*0.8))
+                
         val_points=(
                     (0,0),
                     (-dwidth/2*.8,dheight/2*.8),
@@ -248,14 +258,13 @@ Touch each Point when it is Presented.")
             txt+='\nVALIDATION GOOD.'
 
         self.cal_instruct_stim.setText(txt)
-
         self.cal_instruct_stim.setPos((0,0))
-        
-        self.hub.clearEvents()
+        self.cal_instruct_stim.draw()
+        self.window.flip()         
+        self.hub.clearEvents('all')
         kb=self.devices.kb
-        while not kb.getEvents(EventConstants.KEYBOARD_CHAR):
-           self.cal_instruct_stim.draw()
-           self.window.flip()
+        while not kb.getEvents(EventConstants.KEYBOARD_PRESS):
+           time.sleep(.05)
         
         return val_passed
         
