@@ -7,6 +7,7 @@ Created on Sun Nov 10 12:18:45 2013
 import os,math
 import numpy as np
 import unicodedata as ud
+from matplotlib import font_manager
 from psychopy.core import getTime
 from psychopy import logging
 try:
@@ -16,7 +17,7 @@ except Exception, e:
         print 'error importing fontstore:',e
 from pyglet.gl import (glGenLists,glNewList,GL_COMPILE,GL_QUADS,
                       glBegin,glTexCoord2f,glVertex2f,glEnd,glDeleteLists,
-                      glEndList,glTranslatef,glPopMatrix,glPushMatrix,glDeleteTextures
+                      glEndList,glTranslatef,glDeleteTextures
                        )
 
 log=math.log
@@ -28,26 +29,31 @@ def nearestPow2(n):
 def nextPow2(n):
     return int(pow(2, ceil(log(n, 2))))
         
-class SystemFontManager(object):
+class FontManager(object):
     """
-    SystemFontManager provides a simple API for finding, loading, and creating
-    OpenGL based glyph graphics for font files supported by the FreeType lib.
+    FontManager provides a simple API for finding and loading font files (.ttf)
+    via the FreeType lib
     
-    The SystemFontManager finds supported font files on the computer and
+    The FontManager finds supported font files on the computer and
     initially creates a dictionary containing the information about 
     available fonts. This can be used to quickly determine what font family 
     names are available on the computer and what styles (bold, italic) are
     supported for each family.
     
-    When the font glyph set is needed in a form that can be used within OpenGL,
-    SystemFontManager can be used to get a FontAtlas object based on the
-    requested family anme, style, font size, and dpi. 
+    This font information can then be used to create the resources necessary to 
+    display text using a given font family, style, size, color, and dpi.
+
+    The FontManager is currently used by the psychopy.visual.TextBox stim type.
+    A user script can access the FontManager via:
     
-    A FontAtlas object creates an OpenGL texture for the glyph set requested,
-    drawn based on the size and dpi information provided. An OpenGL display
-    list is created for each glyph which will run the appropriate function
-    calls to have the glyph for the requested character to be drawn at the
-    current pointer position.
+    font_mngr=visual.textbox.getFontManager()
+    
+    A user script never creates an instance of the FontManager class and should
+    always access it using visual.textbox.getFontManager().
+    
+    Once a font of a given size and dpi has been created; it is cached by the 
+    FontManager and can be used by all TextBox instances created within the 
+    experiment.    
     
     """
     freetype_import_error=None
@@ -56,19 +62,16 @@ class SystemFontManager(object):
     _available_font_info={}
     font_store=None
     def __init__(self,monospace_only=True):
-        if SystemFontManager.freetype_import_error:
-            raise Exception('Appears the freetype library could not load. Error: %s'%(str(SystemFontManager.freetype_import_error)))
+        if FontManager.freetype_import_error:
+            raise Exception('Appears the freetype library could not load. Error: %s'%(str(FontManager.freetype_import_error)))
  
         self.load_monospace_only=monospace_only
         self.updateFontInfo(monospace_only)
         #self.enableFontStore()        
 
-    def enableFontStore(self,path=None):
-        SystemFontManager.font_store=FontStore(path)
-        
     def getFontFamilyNames(self):
         """
-        Returns a list of the available font family names
+        Returns a list of the available font family names.
         """
         return self._available_font_info.keys()
 
@@ -87,20 +90,6 @@ class SystemFontManager(object):
         """
         return self.font_family_styles
 
-    def getFontInfo(self,refresh=False,monospace=True):
-        """
-        Returns the available font information as a dict of dict's. 
-        The first level dict has keys for the available font families. 
-        The second level dict has keys for the available styles of the
-        associated font family. The values in the second level font
-        family - style dict are each a list containing FontInfo objects.
-        There is one FontInfo object for each physical font file found that
-        matches the associated font family and style.
-        """
-        if refresh or not self._available_font_info:
-            self.updateFontInfo(monospace)
-        return self._available_font_info
-
     def getFontsMatching(self,font_family_name,bold=False,italic=False,font_style=None):
         """
         Returns the list of FontInfo instances that match the provided
@@ -117,6 +106,61 @@ class SystemFontManager(object):
             if b==bold and i==italic:
                 return fonts
         return None
+    
+
+    def addFontFile(self,font_path,monospace_only=True):
+        """
+        Add a Font File to the FontManger font search space. The 
+        font_path must be a valid path including the font file name.
+        Relative paths can be used, with the current working directory being
+        the origin.
+        
+        If monospace_only is True, the font file will only be added if it is a
+        monospace font (as only monospace fonts are currently supported by 
+        TextBox). 
+        
+        Adding a Font to the FontManager is not persistant across runs of 
+        the script, so any extra font paths need to be added each time the
+        script starts.
+        """
+        return self.addFontFiles((font_path,),monospace_only)
+
+    def addFontFiles(self,font_paths,monospace_only=True):
+        """
+        Add a list of font files to the FontManger font search space. Each element 
+        of the font_paths list must be a valid path including the font file name.
+        Relative paths can be used, with the current working directory being
+        the origin.
+        
+        If monospace_only is True, each font file will only be added if it is a
+        monospace font (as only monospace fonts are currently supported by 
+        TextBox). 
+        
+        Adding fonts to the FontManager is not persistant across runs of 
+        the script, so any extra font paths need to be added each time the
+        script starts.
+        """
+        
+        fi=None
+        for fp in  font_paths:
+            if os.path.isfile(fp) and os.path.exists(fp):
+                try:                
+                    face=Face(fp)
+                    if monospace_only:
+                        if face.is_fixed_width:
+                            fi=self._createFontInfo(fp,face)
+                    else:
+                        fi=self._createFontInfo(fp,face)
+                except Exception, e:
+                    logging.debug('Error during FontManager.updateFontInfo(): %s\nFont File: %s'%(str(e),fp))
+
+        self.font_family_styles.sort()
+        
+        return fi
+
+    # Class methods for FontManager below this comment should not need to be
+    # used by user scripts in most situations. Accessing them will not hurt though.
+    # 
 
     @staticmethod
     def getGLFont(font_family_name,size=32,bold=False,italic=False,dpi=72):
@@ -127,7 +171,6 @@ class SystemFontManager(object):
         then the existing FontAtlas is returned. Otherwise, a new FontAtlas is 
         created , added to the cache, and returned.
         """
-#        stime=getTime()
         from psychopy.visual.textbox import getFontManager
         fm=getFontManager()
 
@@ -137,60 +180,42 @@ class SystemFontManager(object):
                 # have been saved to the hdf5 file (assuming it is faster)
                 pass
                 #print "TODO: Check if requested font is in FontStore"
-#            t1=getTime()    
             font_infos=fm.getFontsMatching(font_family_name,bold,italic)
             if len(font_infos) == 0:
                 return False
             font_info=font_infos[0]   
             fid=MonospaceFontAtlas.getIdFromArgs(font_info,size,dpi)
             font_atlas=fm.font_atlas_dict.get(fid)
-#            t2=getTime() 
             if font_atlas is None:
                 font_atlas=fm.font_atlas_dict.setdefault(fid,MonospaceFontAtlas(font_info,size,dpi))
                 font_atlas.createFontAtlas()
-#            t3=getTime() 
             if fm.font_store:
                 t1=getTime()
                 fm.font_store.addFontAtlas(font_atlas)
                 t2=getTime()
                 print 'font store add atlas:',t2-t1
-
-#        etime=getTime()
-#        print 'getGLFont:',t2-t1,t3-t2,t3-t1
         return font_atlas
+
+    def getFontInfo(self,refresh=False,monospace=True):
+        """
+        Returns the available font information as a dict of dict's. 
+        The first level dict has keys for the available font families. 
+        The second level dict has keys for the available styles of the
+        associated font family. The values in the second level font
+        family - style dict are each a list containing FontInfo objects.
+        There is one FontInfo object for each physical font file found that
+        matches the associated font family and style.
+        """
+        if refresh or not self._available_font_info:
+            self.updateFontInfo(monospace)
+        return self._available_font_info
+
         
     def updateFontInfo(self,monospace_only=True):
         self._available_font_info.clear()
-        del self.font_family_styles[:]
-        import matplotlib.font_manager as font_manager    
-        font_paths=font_manager.findSystemFonts()
-
-        def createFontInfo(fp,fface):
-            fns=(fface.family_name,fface.style_name)
-            if fns in self.font_family_styles:
-                pass
-            else:
-                self.font_family_styles.append((fface.family_name,fface.style_name))
-            
-            styles_for_font_dict=self._available_font_info.setdefault(fface.family_name,{})
-            fonts_for_style=styles_for_font_dict.setdefault(fface.style_name,[])
-            fi=FontInfo(fp,fface)
-            fonts_for_style.append(fi)
-            
-        for fp in  font_paths:
-            if os.path.isfile(fp) and os.path.exists(fp):
-                try:                
-                    face=Face(fp)
-                    if monospace_only:
-                        if face.is_fixed_width:
-                            createFontInfo(fp,face)
-                    else:
-                        createFontInfo(fp,face)
-                except Exception, e:
-                    logging.debug('Error during FontManager.updateFontInfo(): %s\nFont File: %s'%(str(e),fp))
-
-        self.font_family_styles.sort() 
-               
+        del self.font_family_styles[:]   
+        self.addFontFiles(font_manager.findSystemFonts(),monospace_only)
+        
     def booleansFromStyleName(self,style):
         """
         For the given style name, return a
@@ -208,6 +233,19 @@ class SystemFontManager(object):
             bold=True    
         return bold,italic
         
+    def _createFontInfo(self,fp,fface):
+        fns=(fface.family_name,fface.style_name)
+        if fns in self.font_family_styles:
+            pass
+        else:
+            self.font_family_styles.append((fface.family_name,fface.style_name))
+        
+        styles_for_font_dict=self._available_font_info.setdefault(fface.family_name,{})
+        fonts_for_style=styles_for_font_dict.setdefault(fface.style_name,[])
+        fi=FontInfo(fp,fface)
+        fonts_for_style.append(fi)
+        return fi
+
     def __del__(self):
         self.font_store=None       
         if self.font_atlas_dict:
@@ -430,4 +468,4 @@ class MonospaceFontAtlas(object):
 try:
     from psychopy.visual.textbox.freetype_bf import Face,FT_LOAD_RENDER,FT_LOAD_FORCE_AUTOHINT 
 except Exception, e:
-    SystemFontManager.freetype_import_error=e
+    FontManager.freetype_import_error=e

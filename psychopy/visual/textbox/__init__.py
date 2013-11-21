@@ -26,7 +26,7 @@ from pyglet.gl import (glCallList,glFinish,glGenLists,glNewList,glViewport,
                GL_SMOOTH_LINE_WIDTH_RANGE,GL_SMOOTH_LINE_WIDTH_GRANULARITY,
                GL_POLYGON_SMOOTH)
 
-from fontmanager import SystemFontManager
+from fontmanager import FontManager
 from textgrid import TextGrid
 
 def getTime():
@@ -43,7 +43,7 @@ _system_font_manager=None
 def getFontManager():
     global _system_font_manager
     if _system_font_manager is None:
-        _system_font_manager = SystemFontManager() 
+        _system_font_manager = FontManager() 
     return _system_font_manager
     
 def getGLInfo():
@@ -950,7 +950,7 @@ class TextBox(object):
                 glDisable(GL_LINE_SMOOTH)
                 glDisable(GL_POLYGON_SMOOTH)
             t,l=self._getTopLeftPixPos()
-            glTranslatef(t,l, 0 )   
+            glTranslatef(t,l, 0 )  
             glEndList()
             self._draw_start_dlist=dl_index
         glCallList(self._draw_start_dlist) 
