@@ -29,6 +29,7 @@ PsychoPy 1.79.00
     * parallel port output component
 * ADDED: option for sounds to `loop`
 * ADDED: volume argument for MovieStim so that sound can be muted (Frank Papenmeier)
+* ADDED: window now prevents system from sleep/screensaver on windows and OS X
 * ADDED: builder demo for mental rotation task
 * ADDED: Alternative Text stimulus, psychopy.visual.TextBox (Sol Simpson)
         * Two demos in psychopy.coder.visual.textbox
