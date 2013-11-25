@@ -874,7 +874,8 @@ class Window:
             # when filtering kb and mouse events (if the filter is enabled of course)
             #
             if IOHUB_ACTIVE:
-                IOHUB_ACTIVE.unregisterPygletWindowHandles(self._hw_handle)
+                from psychopy.iohub.client import ioHubConnection
+                ioHubConnection.ACTIVE_CONNECTION.unregisterPygletWindowHandles(self._hw_handle)
             self.winHandle.close()
         else:
             #pygame.quit()
