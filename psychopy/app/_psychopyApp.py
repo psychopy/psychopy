@@ -260,7 +260,8 @@ class PsychoPyApp(wx.App):
         self.SetTopWindow(self.coder)
         self.coder.Raise()
         self.coder.setOutputWindow()#takes control of sys.stdout
-        self.allFrames.append(self.coder)
+        if self.coder not in self.allFrames:
+            self.allFrames.append(self.coder)
     def newBuilderFrame(self, event=None, fileName=None):
         from psychopy.app import builder#have to reimport because it is ony local to __init__ so far
         thisFrame = builder.BuilderFrame(None, -1,
@@ -349,12 +350,12 @@ class PsychoPyApp(wx.App):
             self.newBuilderFrame(fileName=fileName)
     def terminateHubProcess(self):
         """
-        Send a UPD message to iohub informing it to exit. 
-        
+        Send a UPD message to iohub informing it to exit.
+
         Use this when force quiting the experiment script process so iohub
         knows to exit as well.
-        
-        If message is not sent within 1 second, or the iohub server 
+
+        If message is not sent within 1 second, or the iohub server
         address in incorrect,the issue is logged.
         """
         sock=None
@@ -362,8 +363,8 @@ class PsychoPyApp(wx.App):
             logging.debug('PsychoPyApp: terminateHubProcess called.')
             import socket
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            sock.settimeout(1.0)     
-            iohub_address='127.0.0.1', 9034        
+            sock.settimeout(1.0)
+            iohub_address='127.0.0.1', 9034
             import msgpack
             tx_data=msgpack.Packer().pack(('STOP_IOHUB_SERVER',))
             return sock.sendto(tx_data,iohub_address)
@@ -380,7 +381,7 @@ class PsychoPyApp(wx.App):
         finally:
             if sock:
                 sock.close()
-            logging.debug('PsychoPyApp: terminateHubProcess completed.')      
+            logging.debug('PsychoPyApp: terminateHubProcess completed.')
     def quit(self, event=None):
         logging.debug('PsychoPyApp: Quitting...')
         self.quitting=True
