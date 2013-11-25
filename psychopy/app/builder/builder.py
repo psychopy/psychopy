@@ -23,17 +23,17 @@ from psychopy.app.builder import validators
 from psychopy.constants import *
 
 canvasColor=[200,200,200]#in prefs? ;-)
-routineTimeColor=wx.Color(50,100,200, 200)
-staticTimeColor=wx.Color(200,50,50, 100)
-nonSlipFill=wx.Color(150,200,150, 255)
-nonSlipEdge=wx.Color(0,100,0, 255)
-relTimeFill=wx.Color(200,150,150, 255)
-relTimeEdge=wx.Color(200,50,50, 255)
-routineFlowColor=wx.Color(200,150,150, 255)
-darkgrey=wx.Color(65,65,65, 255)
-white=wx.Color(255,255,255, 255)
-darkblue=wx.Color(30,30,150, 255)
-codeSyntaxOkay=wx.Color(220,250,220, 255)  # light green
+routineTimeColor=wx.Colour(50,100,200, 200)
+staticTimeColor=wx.Colour(200,50,50, 100)
+nonSlipFill=wx.Colour(150,200,150, 255)
+nonSlipEdge=wx.Colour(0,100,0, 255)
+relTimeFill=wx.Colour(200,150,150, 255)
+relTimeEdge=wx.Colour(200,50,50, 255)
+routineFlowColor=wx.Colour(200,150,150, 255)
+darkgrey=wx.Colour(65,65,65, 255)
+white=wx.Colour(255,255,255, 255)
+darkblue=wx.Colour(30,30,150, 255)
+codeSyntaxOkay=wx.Colour(220,250,220, 255)  # light green
 
 # regular expression to check for unescaped '$' to indicate code:
 _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
@@ -282,9 +282,9 @@ class FlowPanel(wx.ScrolledWindow):
         self.btnInsertRoutine = platebtn.PlateButton(self,-1,'Insert Routine ', pos=(10,10))
         self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop     ', pos=(10,30)) #spaces give size for CANCEL
 
-        self.labelTextGray = {'normal': wx.Color(150,150,150, 20),'hlight':wx.Color(150,150,150, 20)}
-        self.labelTextRed = {'normal': wx.Color(250,10,10, 250),'hlight':wx.Color(250,10,10, 250)}
-        self.labelTextBlack = {'normal': wx.Color(0,0,0, 250),'hlight':wx.Color(250,250,250, 250)}
+        self.labelTextGray = {'normal': wx.Colour(150,150,150, 20),'hlight':wx.Colour(150,150,150, 20)}
+        self.labelTextRed = {'normal': wx.Colour(250,10,10, 250),'hlight':wx.Colour(250,10,10, 250)}
+        self.labelTextBlack = {'normal': wx.Colour(0,0,0, 250),'hlight':wx.Colour(250,250,250, 250)}
 
         # use self.appData['flowSize'] to index a tuple to get a specific value, eg: (4,6,8)[self.appData['flowSize']]
         self.flowMaxSize = 2 # upper limit on increaseSize
@@ -724,7 +724,7 @@ class FlowPanel(wx.ScrolledWindow):
             self.gapMidPoints.append(currX+gap/2)
             self.gapNestLevels.append(nestLevel)
             pdc.SetId(lineId)
-            pdc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+            pdc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
             pdc.DrawLine(x1=currX,y1=self.linePos[1],x2=currX+gap,y2=self.linePos[1])
             currX+=gap
         lineRect = wx.Rect(self.linePos[0]-2, self.linePos[1]-2, currX-self.linePos[0]+2, 4)
@@ -750,7 +750,7 @@ class FlowPanel(wx.ScrolledWindow):
         for ii, entry in enumerate(expFlow):
             if entry.getType()=='Routine':
                 currX = self.drawFlowRoutine(pdc,entry, id=ii,pos=[currX,self.linePos[1]-10])
-            pdc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+            pdc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
             pdc.DrawLine(x1=currX,y1=self.linePos[1],x2=currX+gap,y2=self.linePos[1])
             currX += gap
 
@@ -761,8 +761,8 @@ class FlowPanel(wx.ScrolledWindow):
         #   font.SetPointSize(600/self.dpi)
         #   self.SetFont(font); pdc.SetFont(font)
         #   w,h = self.GetFullTextExtent(str(len(self.pointsToDraw)))[0:2]
-        #   pdc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
-        #   pdc.SetBrush(wx.Brush(wx.Color(0,0,0,255)))
+        #   pdc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
+        #   pdc.SetBrush(wx.Brush(wx.Colour(0,0,0,255)))
         #   pdc.DrawCircle(xPos,self.linePos[1], w+2)
         #   pdc.SetTextForeground([255,255,255])
         #   pdc.DrawText(str(n), xPos-w/2, self.linePos[1]-h/2)
@@ -780,7 +780,7 @@ class FlowPanel(wx.ScrolledWindow):
                 id = wx.NewId()
                 self.entryPointIDlist.append(id)
                 self.pdc.SetId(id)
-                self.pdc.SetBrush(wx.Brush(wx.Color(0,0,0,255)))
+                self.pdc.SetBrush(wx.Brush(wx.Colour(0,0,0,255)))
                 self.pdc.DrawCircle(pos,self.linePos[1], ptSize)
                 r = self.pdc.GetIdBounds(id)
                 self.OffsetRect(r)
@@ -814,15 +814,15 @@ class FlowPanel(wx.ScrolledWindow):
     def drawLineStart(self, dc, pos):
         #draw bar at start of timeline; circle looked bad, offset vertically
         ptSize = (3,3,4)[self.appData['flowSize']]
-        dc.SetBrush(wx.Brush(wx.Color(0,0,0, 255)))
-        dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+        dc.SetBrush(wx.Brush(wx.Colour(0,0,0, 255)))
+        dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
         dc.DrawPolygon([[0,-ptSize],[1,-ptSize],[1,ptSize], [0,ptSize]], pos[0],pos[1])
     def drawLineEnd(self, dc, pos):
         #draws arrow at end of timeline
         #tmpId = wx.NewId()
         #dc.SetId(tmpId)
-        dc.SetBrush(wx.Brush(wx.Color(0,0,0, 255)))
-        dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+        dc.SetBrush(wx.Brush(wx.Colour(0,0,0, 255)))
+        dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
         dc.DrawPolygon([[0,-3],[5,0],[0,3]], pos[0],pos[1])
         #dc.SetIdBounds(tmpId,wx.Rect(pos[0],pos[1]+3,5,6))
     def drawLoopEnd(self, dc, pos, downwards=True):
@@ -830,8 +830,8 @@ class FlowPanel(wx.ScrolledWindow):
         # idea: might want a wxID for grabbing and relocating the loop endpoint
         tmpId = wx.NewId()
         dc.SetId(tmpId)
-        #dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
-        #dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+        #dc.SetBrush(wx.Brush(wx.Colour(0,0,0, 250)))
+        #dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
         size = (3,4,5)[self.appData['flowSize']]
         #if downwards: dc.DrawPolygon([[size,0],[0,size],[-size,0]], pos[0],pos[1]+2*size)#points down
         #else: dc.DrawPolygon([[size,size],[0,0],[-size,size]], pos[0],pos[1]-3*size)#points up
@@ -841,8 +841,8 @@ class FlowPanel(wx.ScrolledWindow):
         # draws direction arrow on left side of a loop
         tmpId = wx.NewId()
         dc.SetId(tmpId)
-        dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
-        dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+        dc.SetBrush(wx.Brush(wx.Colour(0,0,0, 250)))
+        dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
         size = (3,4,5)[self.appData['flowSize']]
         offset = (3,2,0)[self.appData['flowSize']]
         if downwards:
@@ -892,7 +892,7 @@ class FlowPanel(wx.ScrolledWindow):
         endX = pos[0]+w+pad
         #the edge should match the text
         if draw:
-            dc.SetPen(wx.Pen(wx.Color(rgbEdge[0],rgbEdge[1],rgbEdge[2], wx.ALPHA_OPAQUE)))
+            dc.SetPen(wx.Pen(wx.Colour(rgbEdge[0],rgbEdge[1],rgbEdge[2], wx.ALPHA_OPAQUE)))
             dc.SetBrush(wx.Brush(rgbFill))
             dc.DrawRoundedRectangleRect(rect, (4,6,8)[self.appData['flowSize']])
             #draw text
@@ -932,10 +932,10 @@ class FlowPanel(wx.ScrolledWindow):
         curve = (6, 11, 15)[self.appData['flowSize']] #extra distance, in both h and w for curve
         yy = [base,height+curve*up,height+curve*up/2,height] # for area
         r,g,b=rgb
-        dc.SetPen(wx.Pen(wx.Color(r, g, b, 200)))
+        dc.SetPen(wx.Pen(wx.Colour(r, g, b, 200)))
         vertOffset=0 # 1 is interesting too
         area = wx.Rect(startX, base+vertOffset, endX-startX, max(yy)-min(yy))
-        dc.SetBrush(wx.Brush(wx.Color(0,0,0,0),style=wx.TRANSPARENT)) # transparent
+        dc.SetBrush(wx.Brush(wx.Colour(0,0,0,0),style=wx.TRANSPARENT)) # transparent
         dc.DrawRoundedRectangleRect(area, curve) # draws outline
         dc.SetIdBounds(tmpId, area)
 
@@ -979,9 +979,9 @@ class FlowPanel(wx.ScrolledWindow):
         #draw box
         rect = wx.Rect(x, y, w+pad,h+pad)
         #the edge should match the text
-        dc.SetPen(wx.Pen(wx.Color(r, g, b, 100)))
+        dc.SetPen(wx.Pen(wx.Colour(r, g, b, 100)))
         #try to make the loop fill brighter than the background canvas:
-        dc.SetBrush(wx.Brush(wx.Color(235,235,235, 250)))
+        dc.SetBrush(wx.Brush(wx.Colour(235,235,235, 250)))
 
         dc.DrawRoundedRectangleRect(rect, (4,6,8)[self.appData['flowSize']])
         #draw text
@@ -1198,7 +1198,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         xEnd=self.timeXposEnd
 
         #dc.SetId(wx.NewId())
-        dc.SetPen(wx.Pen(wx.Color(0, 0, 0, 150)))
+        dc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 150)))
         #draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt,y1=yPosTop,
                     x2=xEnd,y2=yPosTop)
@@ -1243,7 +1243,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         if startTime!=None and duration!=None:#then we can draw a sensible time bar!
             #calculate rectangle for component
             xScale = self.getSecsPerPixel()
-            dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0), style=wx.TRANSPARENT))
+            dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0), style=wx.TRANSPARENT))
             dc.SetBrush(wx.Brush(staticTimeColor))
             xSt = self.timeXposStart + startTime/xScale
             w = (duration)/xScale + 1  # +1 to compensate for border alpha=0 in dc.SetPen
@@ -1296,7 +1296,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         #draw entries on timeline (if they have some time definition)
         if startTime!=None and duration!=None:#then we can draw a sensible time bar!
             xScale = self.getSecsPerPixel()
-            dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0), style=wx.TRANSPARENT))
+            dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0), style=wx.TRANSPARENT))
             dc.SetBrush(wx.Brush(routineTimeColor))
             hSize = (3.5,2.75,2)[self.drawSize]
             yOffset = (3,3,0)[self.drawSize]
@@ -3541,7 +3541,7 @@ class BuilderFrame(wx.Frame):
                             pos=(int(self.frameData['winX']), int(self.frameData['winY'])),
                             size=(int(self.frameData['winW']),int(self.frameData['winH'])),
                             style=style)
-
+        self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.panel = wx.Panel(self)
         #create icon
         if sys.platform=='darwin':
@@ -4373,9 +4373,13 @@ class ReadmeFrame(wx.Frame):
         pos=wx.Point(parent.Position[0]+80, parent.Position[1]+80 )
         wx.Frame.__init__(self, parent, title=title, size=(600,500),pos=pos,
             style=wx.DEFAULT_FRAME_STYLE | wx.FRAME_FLOAT_ON_PARENT)
+        self.Bind(wx.EVT_CLOSE, self.onClose)
         self.Hide()
         self.makeMenus()
         self.ctrl = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+    def onClose(self, evt=None):
+        self.parent.readmeFrame = None
+        self.Destroy()
     def makeMenus(self):
         """ IDs are from app.wxIDs"""
 
