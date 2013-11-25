@@ -1011,7 +1011,7 @@ class ioHubConnection(object):
             server_output='hi there'
             ctime = Computer.globalClock.getTime
 
-            timeout_time=ctime()+10.0 # timeout if ioServer does not reply in 10 seconds
+            timeout_time=ctime()+ioHubConfig.get('start_process_timeout',30.0)# timeout if ioServer does not reply in 10 seconds
             while server_output and ctime()<timeout_time:
                 isDataAvail=self._serverStdOutHasData()
                 if isDataAvail is True:
@@ -1024,10 +1024,10 @@ class ioHubConnection(object):
                         print "ioHub Failed to start, exiting...."
                         time.sleep(0.25)
                         sys.exit(1)
-
+                        
                         
                 else:
-                    time.sleep(0.0001)
+                    time.sleep(0.001)
         else:
             r="hi"
             while r:
