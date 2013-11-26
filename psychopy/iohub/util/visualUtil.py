@@ -434,7 +434,7 @@ class TimeTrigger(Trigger):
     """
     __slots__=['start_time','delay']
     def __init__(self, start_time, delay, repeat_count=0, trigger_function = lambda a,b,c: True==True, user_kwargs={}):
-        Trigger.__init__(self,trigger_function,user_kwargs,repeat_count=0)
+        Trigger.__init__(self,trigger_function,user_kwargs,repeat_count)
 
         sFunc=start_time
         if not callable(start_time):
