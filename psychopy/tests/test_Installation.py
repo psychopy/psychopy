@@ -43,5 +43,4 @@ def test_extra_imports():
     import pylink
     import yaml, msgpack, gevent
     import IPython, tornado
-    import pyfilesec
     import psychopy_ext
