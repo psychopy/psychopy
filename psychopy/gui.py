@@ -36,7 +36,9 @@ class Dlg(wx.Dialog):
     """
     def __init__(self,title='PsychoPy dialogue',
             pos=None, size=wx.DefaultSize,
-            style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
+            style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT,
+            labelButtonOK = " OK ",
+            labelButtonCancel = " Cancel "):
         style=style|wx.RESIZE_BORDER
         try:
             wx.Dialog.__init__(self, None,-1,title,pos,size,style)
@@ -52,6 +54,8 @@ class Dlg(wx.Dialog):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         #self.addText('')#insert some space at top of dialogue
         self.pos = pos
+        self.labelButtonOK = labelButtonOK
+        self.labelButtonCancel = labelButtonCancel
     def addText(self, text, color=''):
         textLength = wx.Size(8*len(text)+16, 25)
         myTxt = wx.StaticText(self,-1,
@@ -124,11 +128,11 @@ class Dlg(wx.Dialog):
         """
         #add buttons for OK and Cancel
         buttons = wx.BoxSizer(wx.HORIZONTAL)
-        OK = wx.Button(self, wx.ID_OK, " OK ")
+        OK = wx.Button(self, wx.ID_OK, self.labelButtonOK)
         OK.SetDefault()
 
         buttons.Add(OK)
-        CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
+        CANCEL = wx.Button(self, wx.ID_CANCEL, self.labelButtonCancel)
         buttons.Add(CANCEL)
         self.sizer.Add(buttons,1,flag=wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM,border=5)
 
