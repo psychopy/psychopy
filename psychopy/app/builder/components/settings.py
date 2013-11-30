@@ -104,14 +104,10 @@ class SettingsComponent:
         buff.writeIndentedLines("\n# Setup files for saving\n")
         buff.writeIndented("if not os.path.isdir('%s'):\n" % saveToDir)
         buff.writeIndented("    os.makedirs('%s')  # if this fails (e.g. permissions) we will get error\n" % saveToDir)
-        if 'participant' in expInfoDict:
-            buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['participant'], expInfo['date'])\n")
-        elif 'Participant' in expInfoDict:
-            buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Participant'], expInfo['date'])\n")
-        elif 'Subject' in expInfoDict:
-            buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Subject'], expInfo['date'])\n")
-        elif 'Observer' in expInfoDict:
-            buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['Observer'], expInfo['date'])\n")
+        for field in ['participant', 'Participant', 'Subject', 'Observer']:
+            if field in expInfoDict:
+                buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['" + field + "'], expInfo['date'])\n")
+                break;
         else:
             buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s' %(expInfo['date'])\n")
 
