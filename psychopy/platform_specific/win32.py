@@ -14,7 +14,7 @@
     #define THREAD_PRIORITY_ABOVE_NORMAL    1
     #define THREAD_PRIORITY_HIGHEST         2
     #define THREAD_PRIORITY_TIME_CRITICAL   15
-    
+
 try:
     from ctypes import windll
     windll=windll.kernel32
@@ -34,13 +34,17 @@ THREAD_PRIORITY_NORMAL       =   0
 THREAD_PRIORITY_ABOVE_NORMAL =   1
 THREAD_PRIORITY_HIGHEST      =   2
 THREAD_PRIORITY_TIME_CRITICAL=   15
+#sleep signals
+ES_CONTINUOUS = 0x80000000
+ES_DISPLAY_REQUIRED = 0x00000002
+ES_SYSTEM_REQUIRED = 0x00000001
 
-def rush(value=True):    
-    """Raise the priority of the current thread/process 
+def rush(value=True):
+    """Raise the priority of the current thread/process
     Win32 and OS X only so far - on linux use os.nice(niceIncrement)
-    
+
     Set with rush(True) or rush(False)
-    
+
     Beware and don't take priority until after debugging your code
     and ensuring you have a way out (e.g. an escape sequence of
     keys within the display loop). Otherwise you could end up locked
@@ -48,7 +52,7 @@ def rush(value=True):
     """
     if importWindllFailed:
         return False
-    
+
     thr=windll.GetCurrentThread()
     pr =windll.GetCurrentProcess()
     if value:
@@ -63,3 +67,14 @@ def waitForVBL():
     """Not implemented on win32 yet
     """
     pass
+
+def sendStayAwake():
+    """Sends a signal to your system to indicate that the computer is in use and
+    should not sleep. This should be sent periodically, but PsychoPy will send
+    the signal by default on each screen refresh.
+    Added: v1.79.00
+
+    Currently supported on: windows, OS X
+    """
+    success = windll.SetThreadExecutionState( ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED )
+    return success #indicates success

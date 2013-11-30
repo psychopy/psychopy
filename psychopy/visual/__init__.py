@@ -50,5 +50,6 @@ from psychopy.visual.circle import Circle
 # TextBox alternative to TextStim
 try:
     from textbox import TextBox
-except: # this stimulus is still very experimental
+except:
     pass
+    
