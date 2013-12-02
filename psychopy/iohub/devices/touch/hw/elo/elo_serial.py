@@ -9,24 +9,26 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com>
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
+
 from .... import Computer
 from ..... import print2err
 getTime=Computer.getTime
-# Elo Serial Packet Definitions
 
+
+# Elo Serial Packet Definitions
 class SmartSetPacket(object):
     LEAD_IN_BYTE='U'
     PACKET_TYPE_CHAR=''
     def __init__(self,time,packet_bytes):
         self.time=time
         if isinstance(packet_bytes,bytearray): 
-            self.packet_bytes=packet_bytes
+            self._packet_bytes=packet_bytes
         else:
-            self.packet_bytes=bytearray(packet_bytes)
+            self._packet_bytes=bytearray(packet_bytes)
             
     def calculateCheckSum(self):
         chksum=0xAA
-        for b in self.packet_bytes[:-1]:
+        for b in self._packet_bytes[:-1]:
            chksum+=b 
         chksum=chksum%256   
         return chksum   
@@ -35,34 +37,41 @@ class QueryPacket(SmartSetPacket):
     def __init__(self,b2=0,b3=0,b4=0,b5=0,b6=0,b7=0,b8=0):                 
         SmartSetPacket.__init__(self,getTime(),bytearray([self.LEAD_IN_BYTE,self.PACKET_TYPE_CHAR,b2,b3,b4,b5,b6,b7,b8,0])) 
         chksum=self.calculateCheckSum()
-        self.packet_bytes[-1]=chksum
+        self._packet_bytes[-1]=chksum
         
     def __str__(self):
-        return '%s : %s'%(self.__class__.__name__,str(self.packet_bytes))
+        return '%s : %s'%(self.__class__.__name__,str(self._packet_bytes))
         
 class CommandPacket(QueryPacket):        
     def __init__(self,b2=0,b3=0,b4=0,b5=0,b6=0,b7=0,b8=0):
         QueryPacket.__init__(self,b2,b3,b4,b5,b6,b7,b8)    
 
 class ResponsePacket(SmartSetPacket):       
-    def __init__(self,time,packet_bytes):
-        SmartSetPacket.__init__(self,time,packet_bytes)   
-        self.valid_response=True
-        if len(packet_bytes) != 10:
+    def __init__(self,time,_packet_bytes):
+        SmartSetPacket.__init__(self,time,_packet_bytes)   
+        self._valid_response=True
+        if len(_packet_bytes) != 10:
             self.valid_respons=False
-            print2err('Warning: ResponsePacket packet_bytes must be 10 bytes in length: %s'%str(self.packet_bytes))           
-        if packet_bytes[1] != ord(self.PACKET_TYPE_CHAR):
+            print2err('Warning: ResponsePacket _packet_bytes must be 10 bytes in length: %s'%str(self._packet_bytes))           
+        if _packet_bytes[1] != ord(self.PACKET_TYPE_CHAR):
             self.valid_respons=False
-            print2err('Warning: ResponsePacket PACKET_TYPE_CHAR must equal %s: %s'%(self.PACKET_TYPE_CHAR,str(self.packet_bytes)))
+            print2err('Warning: ResponsePacket PACKET_TYPE_CHAR must equal %s: %s'%(self.PACKET_TYPE_CHAR,str(self._packet_bytes)))
         if self.validPacket() is False:
             self.valid_respons=False
-            print2err("ERROR: checksum %s %d (%d != %d)\n"%(str([b for b in self.packet_bytes]),len(self.packet_bytes),self.calculateCheckSum(),self.packet_bytes[-1]))
+            print2err("ERROR: checksum %s %d (%d != %d)\n"%(str([b for b in self._packet_bytes]),len(self._packet_bytes),self.calculateCheckSum(),self._packet_bytes[-1]))
 
     def validPacket(self):
-        if self.calculateCheckSum() == self.packet_bytes[-1]:
+        if self.calculateCheckSum() == self._packet_bytes[-1]:
             return True
         return False
 
+    def asdict(self):
+        rd=dict()
+        for k,v in self.__dict__.iteritems():
+            if k[0]!='_':
+                rd[k]=v
+        return rd
+        
 QUERY_PACKET_TYPES=dict()
 COMMAND_PACKET_TYPES=dict()
 RESPONSE_PACKET_TYPES=dict()
@@ -173,8 +182,8 @@ class CommandReport(CommandPacket):
     PACKET_TYPE_CHAR='B'
     def __init__(self,untouch_delay,touch_pkt_delay):
         CommandPacket.__init__(self,chr(untouch_delay),chr(touch_pkt_delay))
-        self.untouch_delay=self.packet_bytes[2]*10
-        self.touch_pkt_delay=self.packet_bytes[3]*10
+        self.untouch_delay=self._packet_bytes[2]*10
+        self.touch_pkt_delay=self._packet_bytes[3]*10
 COMMAND_PACKET_TYPES[CommandReport.PACKET_TYPE_CHAR]=CommandReport 
 
 # Response Packet
@@ -193,8 +202,8 @@ class ResponseReport(ResponsePacket):
     PACKET_TYPE_CHAR='B'
     def __init__(self,time,packet_bytes):
         ResponsePacket.__init__(self,time,packet_bytes)
-        self.untouch_delay=self.packet_bytes[2]*10
-        self.touch_pkt_delay=self.packet_bytes[3]*10
+        self.untouch_delay=self._packet_bytes[2]*10
+        self.touch_pkt_delay=self._packet_bytes[3]*10
 RESPONSE_PACKET_TYPES[ResponseReport.PACKET_TYPE_CHAR]=ResponseReport 
 
 ###############################################################################
@@ -357,10 +366,10 @@ class ResponseCalibration(ResponsePacket):
     PACKET_TYPE_CHAR='C'
     def __init__(self,time,packet_bytes):
         ResponsePacket.__init__(self,time,packet_bytes)
-        self.axis=chr(self.packet_bytes[2])        
-        self.offset=self.packet_bytes[4]<<8+self.packet_bytes[3]
-        self.numerator=self.packet_bytes[6]<<8+self.packet_bytes[5]
-        self.denominator=self.packet_bytes[8]<<8+self.packet_bytes[7]        
+        self.axis=chr(self._packet_bytes[2])        
+        self.offset=int(self._packet_bytes[4]<<8+self._packet_bytes[3])
+        self.numerator=int(self._packet_bytes[6]<<8+self._packet_bytes[5])
+        self.denominator=int(self._packet_bytes[8]<<8+self._packet_bytes[7])  
 RESPONSE_PACKET_TYPES[ResponseCalibration.PACKET_TYPE_CHAR]=ResponseCalibration
 
 ###############################################################################
@@ -474,20 +483,20 @@ class ResponseDiagnostics(ResponsePacket):
     PACKET_TYPE_CHAR='D'
     def __init__(self,time,packet_bytes):
         ResponsePacket.__init__(self,time,packet_bytes)
-        diag_mask=self.packet_bytes[2]
+        diag_mask=self._packet_bytes[2]
         self.diag_mask=diag_mask
         
         # True means test FAILED
         # False means test passed or was not run.
         #
-        self.id_test=diag_mask&1 != 0
-        self.cpu_test=diag_mask&2 != 0
-        self.rom_test=diag_mask&4 != 0
-        self.ram_test=diag_mask&8 != 0
-        self.nvram_test=diag_mask&16 != 0
-        self.drive_test=diag_mask&32 != 0
-        self.chop_test=diag_mask&64 != 0
-        self.reserved=diag_mask&128 != 0
+        self.id_test=diag_mask&1 == 0
+        self.cpu_test=diag_mask&2 == 0
+        self.rom_test=diag_mask&4 == 0
+        self.ram_test=diag_mask&8 == 0
+        self.nvram_test=diag_mask&16 == 0
+        self.drive_test=diag_mask&32 == 0
+        self.chop_test=diag_mask&64 == 0
+        self.reserved=diag_mask&128 == 0
         
 RESPONSE_PACKET_TYPES[ResponseDiagnostics.PACKET_TYPE_CHAR]=ResponseDiagnostics  
 
@@ -647,12 +656,12 @@ class ResponseFilter(ResponsePacket):
     def __init__(self,time,packet_bytes):
         ResponsePacket.__init__(self,time,packet_bytes)
         
-        self.elo_type=chr(self.packet_bytes[2])
-        self.sample_avg_count=self.packet_bytes[3]
-        self.sample_dev_thresh=self.packet_bytes[4]
-        self.samples_before_state_change=self.packet_bytes[5]
-        self.press_detection_thresh=self.packet_bytes[6]&0b11110000
-        self.drive_sig_change_delay=((self.packet_bytes[6]&0b00001111)+1)*.5
+        self.elo_type=chr(self._packet_bytes[2])
+        self.sample_avg_count=self._packet_bytes[3]
+        self.sample_dev_thresh=self._packet_bytes[4]
+        self.samples_before_state_change=self._packet_bytes[5]
+        self.press_detection_thresh=self._packet_bytes[6]&0b11110000
+        self.drive_sig_change_delay=((self._packet_bytes[6]&0b00001111)+1)*.5
 RESPONSE_PACKET_TYPES[ResponseFilter.PACKET_TYPE_CHAR]=ResponseFilter
 
 ###############################################################################
@@ -779,10 +788,10 @@ class ResponseTimer(ResponsePacket):
     PACKET_TYPE_CHAR='H'
     def __init__(self,time,packet_bytes):
         ResponsePacket.__init__(self,time,packet_bytes)
-        interval=self.packet_bytes[4:6]
-        current=self.packet_bytes[6:8]
-        self.enable=self.packet_bytes[2]
-        self.mode=self.packet_bytes[3]     
+        interval=self._packet_bytes[4:6]
+        current=self._packet_bytes[6:8]
+        self.enable=self._packet_bytes[2]
+        self.mode=self._packet_bytes[3]     
         self.interval= ((interval[1] << 8) + interval[0])*10.0
         self.current= ((current[1] << 8) + current[0])*10.0
 
@@ -887,24 +896,28 @@ class ResponseID(ResponsePacket):
         3. Filtering parameters are slightly different. See Filter command.
     """
     PACKET_TYPE_CHAR='I'
+    typeChar2ModelType={'0':'Accutouch','1':'DuraTouch','2':'IntelliTouch','3':'CarrollTouch'}
+    ioChar2CommType={'0':'Serial','1':'PC-Bus','2':'Micro Channel','3':'ADB','4':'USB'}
+    ctrlByte2CtrlType={0:'E271-2200',1:'E271-2210',3:'E281-2310',5:'E281-2310B',6:'2500S',7:'2500U',8:'3000U',9:'4000U',10:'4000S',14:'COACh IIs'}
     def __init__(self,time,packet_bytes):
         ResponsePacket.__init__(self,time,packet_bytes)        
-        self.type=chr(self.packet_bytes[2])
-        self.io=chr(self.packet_bytes[3])
-        self.features=self.packet_bytes[4]
-        features=self.features
-        self.reserved1=features&1 != 0
-        self.reserved2=features&2 != 0
-        self.reserved3=features&4 != 0
-        self.reserved4=features&8 != 0
+        self.screen_type=self.typeChar2ModelType.get(chr(self._packet_bytes[2]),'UNKNOWN')
+        self.comm_interface=self.ioChar2CommType.get(chr(self._packet_bytes[3]),'UNKNOWN')
+        self._features=self._packet_bytes[4]
+        features=self._features
+        self._reserved1=features&1 != 0
+        self._reserved2=features&2 != 0
+        self._reserved3=features&4 != 0
+        self._reserved4=features&8 != 0
         self.extern_a2d=features&16 != 0
         self.ram_32K_bytes=features&32 != 0
         self.ram_available=features&64 != 0
         self.z_axis_available=features&128 != 0
-        self.minor=self.packet_bytes[5]
-        self.major=self.packet_bytes[6]
-        self.p=self.packet_bytes[7]
-        self.serial_controller_model=self.packet_bytes[8]      
+        self._minor=self._packet_bytes[5]
+        self._major=self._packet_bytes[6]
+        self.firmware_version=u'{0}.{1}'.format(self._major,self._minor)
+        self.p=self._packet_bytes[7]
+        self.controller_model=self.ctrlByte2CtrlType.get(int(self._packet_bytes[8]),'UNKNOWN')      
 RESPONSE_PACKET_TYPES[ResponseID.PACKET_TYPE_CHAR]=ResponseID
 
 ###############################################################################
@@ -991,25 +1004,25 @@ class ResponseJumpers(ResponsePacket):
                   }
     def __init__(self,time,packet_bytes):
         ResponsePacket.__init__(self,time,packet_bytes)        
-        self.type=self.ELO_TYPES.get(chr(self.packet_bytes[2]),'UNKNOWN')
-        self.io=self.IO_TYPES.get(chr(self.packet_bytes[3]),'UNKNOWN') 
+        self.type=self.ELO_TYPES.get(chr(self._packet_bytes[2]),'UNKNOWN')
+        self.io=self.IO_TYPES.get(chr(self._packet_bytes[3]),'UNKNOWN') 
         if self.type == 'AccuTouch':
-            self.nvram_boot=chr(self.packet_bytes[4]) == '1'
-            self.stream_mode=chr(self.packet_bytes[5]) == '1'  
+            self.nvram_boot=chr(self._packet_bytes[4]) == '1'
+            self.stream_mode=chr(self._packet_bytes[5]) == '1'  
         else:
             self.nvram_boot=True 
 
         if self.type == 'AccuTouch':
-            self.nvram_boot=chr(self.packet_bytes[4]) == '1'
-            self.hardware_handshaking=chr(self.packet_bytes[7]) == '1'  
-            self.smartset_binary_mode=chr(self.packet_bytes[8]) == '1'            
+            self.nvram_boot=chr(self._packet_bytes[4]) == '1'
+            self.hardware_handshaking=chr(self._packet_bytes[7]) == '1'  
+            self.smartset_binary_mode=chr(self._packet_bytes[8]) == '1'            
         else:
             self.nvram_boot=True 
             self.stream_mode=True  
             self.hardware_handshaking=True  
             self.smartset_binary_mode=True           
  
-        self.baud_rate=self.BAUD_MAPPING.get(self.packet_bytes[6],0)     
+        self.baud_rate=self.BAUD_MAPPING.get(self._packet_bytes[6],0)     
 
 RESPONSE_PACKET_TYPES[ResponseJumpers.PACKET_TYPE_CHAR]=ResponseJumpers
 
@@ -1063,7 +1076,7 @@ class ResponseKey(ResponsePacket):
     PACKET_TYPE_CHAR='K'
     def __init__(self,time,packet_bytes):
         ResponsePacket.__init__(self,time,packet_bytes)        
-        self.key_value=self.packet_bytes[2]
+        self.key_value=self._packet_bytes[2]
 RESPONSE_PACKET_TYPES[ResponseKey.PACKET_TYPE_CHAR]=ResponseKey
 
 ###############################################################################
@@ -1118,7 +1131,7 @@ class ResponseLowPower(ResponsePacket):
     PACKET_TYPE_CHAR='L'
     def __init__(self,time,packet_bytes):
         ResponsePacket.__init__(self,time,packet_bytes)        
-        self.enable_low_power=self.packet_bytes[2]>0
+        self.enable_low_power=self._packet_bytes[2]>0
 RESPONSE_PACKET_TYPES[ResponseLowPower.PACKET_TYPE_CHAR]=ResponseLowPower
 
 ###############################################################################
@@ -1349,9 +1362,9 @@ class ResponseNVRAM(ResponsePacket):
     PACKET_TYPE_CHAR='N'
     def __init__(self,time,packet_bytes):
         ResponsePacket.__init__(self,time,packet_bytes)
-        self.save_settings=self.packet_bytes[2] # 0 or 1
-        self.active_areas=self.packet_bytes[3] # 0, 1, 2, or 3
-        self.use_secondary_area=self.packet_bytes[4] # 0 or 1
+        self.save_settings=self._packet_bytes[2] # 0 or 1
+        self.active_areas=self._packet_bytes[3] # 0, 1, 2, or 3
+        self.use_secondary_area=self._packet_bytes[4] # 0 or 1
 RESPONSE_PACKET_TYPES[ResponseNVRAM.PACKET_TYPE_CHAR]=ResponseNVRAM
 
 ###############################################################################
@@ -1381,6 +1394,8 @@ class ResponseOwner(ResponsePacket):
     PACKET_TYPE_CHAR='O'
     def __init__(self,time,packet_bytes):
         ResponsePacket.__init__(self,time,packet_bytes)
+        self.name=''.join([chr(b) for b in self._packet_bytes[2:8]])
+        
 RESPONSE_PACKET_TYPES[ResponseOwner.PACKET_TYPE_CHAR]=ResponseOwner
 
 ###############################################################################
@@ -1573,17 +1588,15 @@ class ResponseParameter(ResponsePacket):
     PACKET_TYPE_CHAR='P'
     def __init__(self,time,packet_bytes):
         ResponsePacket.__init__(self,time,packet_bytes)
-        self.io_type=chr(self.packet_bytes[2])
-        self.serial_settings1=self.packet_bytes[3]
-        self.serial_settings2=self.packet_bytes[4]
+        self.io_type=chr(self._packet_bytes[2])
+        self.serial_settings1=self._packet_bytes[3]
+        self.serial_settings2=self._packet_bytes[4]
 RESPONSE_PACKET_TYPES[ResponseParameter.PACKET_TYPE_CHAR]=ResponseParameter
 
 ###############################################################################
 #
 # Scaling Packets ('S','s')
 #      
-
-print '** Scaling Packets for Axis Inversion not yet supported'
 
 # Query Packet
 class QueryScaling(QueryPacket):
@@ -1694,10 +1707,10 @@ class ResponseScaling (ResponsePacket):
     PACKET_TYPE_CHAR='S'
     def __init__(self,time,packet_bytes):
         ResponsePacket.__init__(self,packet_bytes)
-        self.axis=chr(self.packet_bytes[2])        
-        self.offset=self.packet_bytes[4]<<8+self.packet_bytes[3]
-        self.numerator=self.packet_bytes[6]<<8+self.packet_bytes[5]
-        self.denominator=self.packet_bytes[8]<<8+self.packet_bytes[7]        
+        self.axis=chr(self._packet_bytes[2])        
+        self.offset=self._packet_bytes[4]<<8+self._packet_bytes[3]
+        self.numerator=self._packet_bytes[6]<<8+self._packet_bytes[5]
+        self.denominator=self._packet_bytes[8]<<8+self._packet_bytes[7]        
         
 RESPONSE_PACKET_TYPES[ResponseScaling.PACKET_TYPE_CHAR]=ResponseScaling
 
@@ -1783,7 +1796,7 @@ class ResponseTouch(ResponsePacket):
     PACKET_TYPE_CHAR='T'
     def __init__(self,time,packet_bytes):
         ResponsePacket.__init__(self,time,packet_bytes)
-        status=self.packet_bytes[2]
+        status=self._packet_bytes[2]
         self.touch_type=self.TOUCH_PRESS
         if status&self.TOUCH_MOVE==self.TOUCH_MOVE:
             self.touch_type=self.TOUCH_MOVE
@@ -1803,17 +1816,33 @@ class ResponseTouch(ResponsePacket):
 #        *z = touch[6] + (touch[7] << 8);
 #        *flags = touch[1];
 
-        x=self.packet_bytes[3:5]
+        x=self._packet_bytes[3:5]
         self.x= (x[1] << 8) + x[0]
 
-        y=self.packet_bytes[5:7]
+        y=self._packet_bytes[5:7]
         self.y= (y[1] << 8) + y[0]
 
-        z=self.packet_bytes[7:9]
+        z=self._packet_bytes[7:9]
         self.z= (z[1] << 8) + z[0]
 
     def __str__(self):
         return "Elo Touch Event:\n\ttype:\t%d\n\ttime:\t%.3f\n\tx:\t%d\n\ty:\t%d\n\tz:\t%d\n\tPacket Bytes:\t"%(self.touch_type
-                                            ,self.time*1000.0,self.x,self.y,self.z)+str(self.packet_bytes)
+                                            ,self.time*1000.0,self.x,self.y,self.z)+str(self._packet_bytes)
 RESPONSE_PACKET_TYPES[ResponseTouch.PACKET_TYPE_CHAR]=ResponseTouch
 
+def loadPacketNames():
+    classes=[(name, obj) for name, obj in globals().iteritems() if hasattr(obj,'PACKET_TYPE_CHAR')]
+    
+    for name,obj in classes:
+        if not name.endswith('Packet'):
+            if name.startswith('Response'):
+                okey=name[len('Response'):]
+                RESPONSE_PACKET_TYPES[okey]=obj
+            elif name.startswith('Query'):
+                okey=name[len('Query'):]
+                QUERY_PACKET_TYPES[okey]=obj
+            elif name.startswith('Command'):
+                okey=name[len('Command'):]
+                COMMAND_PACKET_TYPES[okey]=obj
+
+loadPacketNames()

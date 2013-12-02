@@ -234,6 +234,148 @@ class CodeBox(wx.stc.StyledTextCtrl):
                         self.Expand(lineClicked, True, True, 100)
                 else:
                     self.ToggleFold(lineClicked)
+
+class CodeComponentDialog(wx.Dialog):
+    def __init__(self,frame,title,params,order,
+            helpUrl=None, suppressTitles=True,size=wx.DefaultSize,
+            style=(wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
+                            | wx.THICK_FRAME | wx.DIALOG_NO_PARENT),
+            editing=False):
+
+        wx.Dialog.__init__(self, frame,-1,title,size=size,style=style)
+        self.frame=frame
+        self.app=frame.app
+        self.helpUrl=helpUrl
+        self.params=params   #dict
+        self.order=order
+        self.title = title
+        self.code_gui_elements={}
+        if not editing and 'name' in self.params.keys():
+            # then we're adding a new component, so provide a known-valid name:
+            self.params['name'].val = self.frame.exp.namespace.makeValid(params['name'].val)
+
+
+        self.code_sections = wx.Notebook(self, wx.ID_ANY, style=0)
+
+        for pkey in self.order:
+            param=self.params.get(pkey)
+            if pkey == 'name':
+                self.name_label = wx.StaticText(self, wx.ID_ANY,param.label)
+                self.component_name = wx.TextCtrl(self,
+                                 wx.ID_ANY,
+                                 unicode(param.val),
+                                 style=wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB)
+                self.component_name.SetValidator(validators.NameValidator())
+
+                self.nameOKlabel=wx.StaticText(self,-1,'',
+                                            style=wx.ALIGN_RIGHT)
+                self.nameOKlabel.SetForegroundColour(wx.RED)
+
+            else:
+                guikey=pkey.replace(' ','_')
+                param_gui_elements=self.code_gui_elements.setdefault(guikey,
+                                                                     dict())
+
+                panel_element=param_gui_elements.setdefault(guikey+'_panel',
+                                       wx.Panel(self.code_sections, wx.ID_ANY))
+                code_box=param_gui_elements.setdefault(guikey+'_codebox',
+                                              CodeBox(panel_element,
+                                                    wx.ID_ANY,
+                                                    pos=wx.DefaultPosition,
+                                                    style=0,
+                                                    prefs=self.app.prefs))
+                if len(param.val):
+                    code_box.AddText(unicode(param.val))
+
+
+        if self.helpUrl!=None:
+            self.help_button = wx.Button(self, wx.ID_HELP, "")
+            self.help_button.SetToolTip(wx.ToolTip("Go to online help about this component"))
+        self.ok_button = wx.Button(self, wx.ID_OK, " OK ")
+        self.ok_button.SetDefault()
+        self.cancel_button = wx.Button(self, wx.ID_CANCEL, "")
+
+        self.__set_properties()
+        self.__do_layout()
+
+        self.Bind(wx.EVT_BUTTON, self.helpButtonHandler, self.help_button)
+
+
+        #do show and process return
+        ret=self.ShowModal()
+
+        if ret == wx.ID_OK:
+            self.checkName()
+            self.OK=True
+            self.params = self.getParams()#get new vals from dlg
+            self.Validate()
+            # TODO: Should code from each code section tab have syntax checked??
+        else:
+            self.OK=False
+
+    def checkName(self, event=None):
+        """
+        Issue a form validation on name change.
+        """
+        self.Validate()
+
+    def __set_properties(self):
+
+        self.SetTitle(self.title)
+        self.SetSize((640, 480))
+
+    def __do_layout(self):
+        for param_name in self.order:
+             if param_name.lower() != 'name':
+                guikey=param_name.replace(' ','_')
+                param_gui_dict=self.code_gui_elements.get(guikey)
+                asizer=param_gui_dict.setdefault(guikey+'_sizer',wx.BoxSizer(wx.VERTICAL))
+                asizer.Add(param_gui_dict.get(guikey+'_codebox'), 1, wx.EXPAND, 0)
+                param_gui_dict.get(guikey+'_panel').SetSizer(asizer)
+                self.code_sections.AddPage(param_gui_dict.get(guikey+'_panel'), param_name)
+
+        name_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        name_sizer.Add(self.name_label, 0, wx.RIGHT | wx.LEFT | wx.TOP | wx.BOTTOM, 10)
+        name_sizer.Add(self.component_name, 0,  wx.BOTTOM | wx.TOP, 10)
+        name_sizer.Add(self.nameOKlabel, 0,  wx.RIGHT | wx.LEFT | wx.TOP | wx.BOTTOM, 10)
+
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_1.Add(name_sizer)
+        sizer_1.Add(self.code_sections, 1, wx.EXPAND, 0)
+        sizer_2.Add(self.help_button, 0, wx.RIGHT, 10)
+        sizer_2.Add(self.ok_button, 0, wx.LEFT, 10)
+        sizer_2.Add(self.cancel_button, 0, 0, 0)
+        sizer_1.Add(sizer_2, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
+        self.SetSizer(sizer_1)
+        self.Layout()
+        self.Center()
+
+    def getParams(self):
+        """retrieves data from any fields in self.code_gui_elements
+        (populated during the __init__ function)
+
+        The new data from the dlg get inserted back into the original params
+        used in __init__ and are also returned from this method.
+        """
+        #get data from input fields
+        for fieldName in self.params.keys():
+            param=self.params[fieldName]
+            if fieldName=='name':
+                param.val = self.component_name.GetValue()
+            else:
+                guikey=fieldName.replace(' ','_')
+                cb_gui_el=guikey+'_codebox'
+                if guikey in self.code_gui_elements:
+
+                    param.val=self.code_gui_elements.get(guikey).get(cb_gui_el).GetText()
+        return self.params
+
+    def helpButtonHandler(self, event):
+        """Uses self.app.followLink() to self.helpUrl
+        """
+        self.app.followLink(url=self.helpUrl)
+
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
@@ -1320,18 +1462,27 @@ class RoutineCanvas(wx.ScrolledWindow):
         #check current timing settings of component (if it changes we need to update views)
         timings = component.getStartAndDuration()
         #create the dialog
-        dlg = DlgComponentProperties(frame=self.frame,
-            title=component.params['name'].val+' Properties',
-            params = component.params,
-            order = component.order,
-            helpUrl=helpUrl, editing=True)
+        if isinstance(component,components.code.CodeComponent):
+            dlg = CodeComponentDialog(frame=self.frame,
+                title=component.params['name'].val+' Properties',
+                params = component.params,
+                order = component.order,
+                helpUrl=helpUrl, editing=True)
+        else:
+            dlg = DlgComponentProperties(frame=self.frame,
+                title=component.params['name'].val+' Properties',
+                params = component.params,
+                order = component.order,
+                helpUrl=helpUrl, editing=True)
         if dlg.OK:
+            print 'DLG: ', dlg
             if component.getStartAndDuration() != timings:
                 self.redrawRoutine()#need to refresh timings section
                 self.Refresh()#then redraw visible
                 self.frame.flowPanel.draw()
 #                self.frame.flowPanel.Refresh()
             elif component.params['name'].val != old_name:
+                print 'name changed!:',component.params['name'].val ,old_name
                 self.redrawRoutine() #need to refresh name
             self.frame.exp.namespace.remove(old_name)
             self.frame.exp.namespace.add(component.params['name'].val)
@@ -1909,6 +2060,7 @@ class _BaseParamsDlg(wx.Dialog):
             showAdvanced=False,
             size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL,editing=False):
+
         wx.Dialog.__init__(self, frame,-1,title,size=size,style=style)
         self.frame=frame
         self.app=frame.app
@@ -2853,6 +3005,7 @@ class DlgComponentProperties(_BaseParamsDlg):
         if self.OK:
             self.params = self.getParams()#get new vals from dlg
         self.Destroy()
+
     def onStoreCorrectChange(self,event=None):
         """store correct has been checked/unchecked. Show or hide the correctAns field accordingly"""
         if self.paramCtrls['storeCorrect'].valueCtrl.GetValue():

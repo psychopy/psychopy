@@ -31,7 +31,37 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
         kb=self.devices.kb
         touch=self.devices.touch
         self.touch=touch
+
+        # Issue a query on the ID settings and get the reply as a dict of 
+        # parsed values. See the elo_serial.py in psychopy/iohub/devices/touch/hw/elo
+        # to see what are valid query names. In the elo_serial.py a subset of
+        # the classes are named Query*, where * is the query name. The query 
+        # associated with any Query* class can be issued from a psychopy script 
+        # by calling the following method of the touch device with the * part
+        # of the Query class name:
+        #
+        #   # Issue an ID Query and get the response from the elo device.
+        #   query_reply=touch.queryDevice('ID') 
+        #   
+        id_dict=touch.queryDevice('ID')
+        print "queryDevice('ID'):",id_dict
+        print
         
+        # getHardwareConfiguration returns the results from the following 
+        # queries, issued when the elo device interface was created by iohub:
+        #
+        #   ID
+        #   Diagnostics
+        #   Owner
+        #   Jumper
+        #   Report
+        #
+        hw_conf_dict=touch.getHardwareConfiguration()    
+        import pprint
+        print "hw_conf_dict:"
+        pprint.pprint(hw_conf_dict)
+        print
+
         display_resolution=display.getPixelResolution()
         psychopy_monitor=display.getPsychopyMonitorName()
         unit_type=display.getCoordinateType()
@@ -67,9 +97,11 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
                        edges=64,
                        units=unit_type)
 
+        self.min_touch_stim_radius=15
+        self.max_touch_stim_radius=40
         self.touch_contingent_stim=visual.Circle(self.window,pos=(0,0),
                        lineWidth=3,
-                       radius=15,
+                       radius=self.min_touch_stim_radius,
                        name='touch_point_stim',
                        fillColor=[0,255,0],
                        lineColor=[255,0,255],
@@ -124,7 +156,10 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
             touch_events=self.touch.getEvents()                 
             if touch_events:
                 te=touch_events[-1]
+                rad_range=self.max_touch_stim_radius- self.min_touch_stim_radius
+                touch_stim_radius=self.min_touch_stim_radius+(te.pressure/255.0)*rad_range
                 self.touch_contingent_stim.setPos((te.x_position,te.y_position))
+                self.touch_contingent_stim.setRadius(touch_stim_radius)
                 self.cal_instruct_stim.draw()
                 self.touch_contingent_stim.draw()
                 window.flip()

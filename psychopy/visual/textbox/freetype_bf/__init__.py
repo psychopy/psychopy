@@ -7,7 +7,7 @@
 #
 # -----------------------------------------------------------------------------
 '''
-FreeType high-level python API 
+FreeType high-level python API
 
 This the bindings for the high-level API of FreeType (that must be installed
 somewhere on your system).
@@ -16,12 +16,12 @@ Note:
   C Library will be searched using the ctypes.util.find_library. However, this
   search might fail. In such a case (or for other reasons), you can specify the
   FT_library_filename before importing the freetype library and freetype will use
-  the specified one. 
-  
+  the specified one.
+
 UPDATED MAY 2013 by Sol Simpson:
     - Added OSX and Linux libfreetype paths for ctypes
     - Removed a method that was constantly causing exceptions because it was
-      never being found in the freetype lib. We never use it or need to, 
+      never being found in the freetype lib. We never use it or need to,
       so just removing it was the easiest solution. ;)
 '''
 from ctypes import *
@@ -37,20 +37,20 @@ FT_Library_filename = None
 
 if not FT_Library_filename:
     paths_to_try = [ 'libfreetype.so.6',  # Linux
-                     '/usr/X11/lib/libfreetype.dylib' # MacOS X
+                     '/usr/X11/lib/libfreetype.dylib', # MacOS X
                    ]
     for p in paths_to_try:
         try:
             __dll__ = ctypes.CDLL(p)
         except OSError:
-            pass            
+            pass
         if __dll__ is not None:
             break
 
 if not __dll__:
     FT_Library_filename = ctypes.util.find_library('freetype')
     __dll__ = ctypes.CDLL(FT_Library_filename)
-        
+
 if not FT_Library_filename and not __dll__:
     raise Exception('Freetype library not found')
 
@@ -330,7 +330,7 @@ class GlyphMetrics( object ):
 
     width = property( lambda self: self._FT_Glyph_Metrics.width,
        doc = '''The glyph's width.''' )
-    
+
     height = property( lambda self: self._FT_Glyph_Metrics.heigth,
        doc = '''The glyph's height.''' )
 
@@ -531,7 +531,7 @@ class Bitmap(object):
     pixel_mode = property(lambda self: self._FT_Bitmap.pixel_mode,
            doc = '''The pixel mode, i.e., how pixel bits are stored. See
                     FT_Pixel_Mode for possible values.''')
-  
+
     palette_mode = property(lambda self: self._FT_Bitmap.palette_mode,
              doc ='''This field is intended for paletted pixel modes; it
                      indicates how the palette is stored. Not used currently.''')
@@ -644,7 +644,7 @@ class Outline( object ):
         :param charmap: a FT_Outline
         '''
         self._FT_Outline = outline
-        
+
     n_contours = property(lambda self: self._FT_Outline.n_contours)
     def _get_contours(self):
         n = self._FT_Outline.n_contours
@@ -683,7 +683,7 @@ class Outline( object ):
               argument to the SCANMODE instruction).
 
               Bits 3 and 4 are reserved for internal purposes.''')
-        
+
     flags = property(lambda self: self._FT_Outline.flags,
       doc = '''A set of bit flags used to characterize the outline and give
                hints to the scan-converter and hinter on how to
@@ -847,18 +847,18 @@ class Glyph( object ):
           can compute the width and height of the glyph image (be it in integer
           or 26.6 pixels) as:
 
-          width  = bbox.xMax - bbox.xMin;                                  
-          height = bbox.yMax - bbox.yMin;                                  
+          width  = bbox.xMax - bbox.xMin;
+          height = bbox.yMax - bbox.yMin;
 
           Note also that for 26.6 coordinates, if 'bbox_mode' is set to
           FT_GLYPH_BBOX_GRIDFIT, the coordinates will also be grid-fitted, which
           corresponds to:
 
           bbox.xMin = FLOOR(bbox.xMin);
-          bbox.yMin = FLOOR(bbox.yMin);                                    
-          bbox.xMax = CEILING(bbox.xMax);                                  
-          bbox.yMax = CEILING(bbox.yMax);                                  
-        
+          bbox.yMin = FLOOR(bbox.yMin);
+          bbox.xMax = CEILING(bbox.xMax);
+          bbox.yMax = CEILING(bbox.yMax);
+
           To get the bbox in pixel coordinates, set 'bbox_mode' to
           FT_GLYPH_BBOX_TRUNCATE.
 
@@ -1060,7 +1060,7 @@ class Face( object ):
         self._filename = filename
         self._index = index
         self._FT_Face = face
-    
+
     def __del__( self ):
         '''
         Discard  face object, as well as all of its child slots and sizes.
@@ -1072,7 +1072,7 @@ class Face( object ):
         '''
         This function calls FT_Request_Size to request the nominal size (in
         points).
-        
+
         :param float width: The nominal width, in 26.6 fractional points.
 
         :param float height: The nominal height, in 26.6 fractional points.
@@ -1185,7 +1185,7 @@ class Face( object ):
         :param agindex: Glyph index of next character code. 0 if charmap is empty.
 
         **Note**:
-  
+
           You should use this function with FT_Get_First_Char to walk over all
           character codes available in a given charmap. See the note for this
           function for a simple code example.
@@ -1302,7 +1302,7 @@ class Face( object ):
         :param flags: A set of bit flags similar to those used when calling
                       FT_Load_Glyph, used to determine what kind of advances
                       you need.
-                    
+
         :return: The advance value, in either font units or 16.16 format.
 
                  If FT_LOAD_VERTICAL_LAYOUT is set, this is the vertical
@@ -1314,7 +1314,7 @@ class Face( object ):
         error = FT_Get_Advance( self._FT_Face, gindex, flags, byref(padvance) )
         if error: raise FT_Exception( error )
         return padvance.value
-        
+
 
 
     def get_kerning( self, left, right, mode = FT_KERNING_DEFAULT ):
@@ -1322,7 +1322,7 @@ class Face( object ):
         Return the kerning vector between two glyphs of a same face.
 
         :param left: The index of the left glyph in the kern pair.
-        
+
         :param right: The index of the right glyph in the kern pair.
 
         :param mode: See FT_Kerning_Mode for more information. Determines the scale
@@ -1350,7 +1350,7 @@ class Face( object ):
         'TrueType', 'Type 1', 'BDF', ‘PCF', ‘Type 42', ‘CID Type 1', ‘CFF',
         'PFR', and ‘Windows FNT'.
         '''
-        
+
         return FT_Get_X11_Font_Format( self._FT_Face )
 
 
@@ -1441,7 +1441,7 @@ class Face( object ):
                doc = '''True whenever a face object contains a font face that
                         contains fixed-width (or 'monospace', 'fixed-pitch',
                         etc.) glyphs.''')
-    
+
     def _has_fixed_sizes( self ):
         return bool( self.face_flags & FT_FACE_FLAG_FIXED_SIZES )
     has_fixed_sizes = property( _has_fixed_sizes,
@@ -1783,7 +1783,7 @@ class Stroker( object ):
         error = FT_Stroker_BeginSubPath( self._FT_Stroker, to, _open )
         if error: raise FT_Exception( error )
 
-    
+
     def end_subpath( self ):
         '''
         Close the current sub-path in the stroker.
@@ -1797,7 +1797,7 @@ class Stroker( object ):
         error = FT_Stroker_EndSubPath( self._FT_Stroker)
         if error: raise FT_Exception( error )
 
-    
+
     def line_to( self, to ):
         '''
         'Draw' a single line segment in the stroker's current sub-path, from
@@ -1813,7 +1813,7 @@ class Stroker( object ):
         error = FT_Stroker_LineTo( self._FT_Stroker, to )
         if error: raise FT_Exception( error )
 
-        
+
     def conic_to( self, control, to ):
         '''
         'Draw' a single quadratic Bezier in the stroker's current sub-path,
@@ -1830,7 +1830,7 @@ class Stroker( object ):
         '''
         error = FT_Stroker_ConicTo( self._FT_Stroker, control, to )
         if error: raise FT_Exception( error )
-        
+
 
     def cubic_to( self, control1, control2, to ):
         '''
@@ -1850,15 +1850,15 @@ class Stroker( object ):
         '''
         error = FT_Stroker_CubicTo( self._FT_Stroker, control1, control2, to )
         if error: raise FT_Exception( error )
-        
-        
+
+
     def get_border_counts( self, border ):
         '''
         Call this function once you have finished parsing your paths with the
         stroker. It returns the number of points and contours necessary to
         export one of the 'border' or 'stroke' outlines generated by the
         stroker.
-        
+
         :param border: The border index.
 
         :return: number of points, number of contours
@@ -1869,7 +1869,7 @@ class Stroker( object ):
                                     byref(anum_points), byref(anum_contours) )
         if error: raise FT_Exception( error )
         return anum_points.value, anum_contours.value
-                                            
+
 
     def export_border( self , border, outline ):
         '''
@@ -1882,7 +1882,7 @@ class Stroker( object ):
         :param border:  The border index.
 
         :param outline: The target outline.
-            
+
         **Note**:
 
           Always call this function after get_border_counts to get sure that

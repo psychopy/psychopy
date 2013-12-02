@@ -16,8 +16,9 @@ from ... import TouchDevice, TouchEvent,TouchMoveEvent,TouchPressEvent,TouchRele
 import serial
 from serial.tools import list_ports
 import math
-
+from collections import deque
 from .elo_serial import *
+import gevent
 
 currentSec=Computer.currentSec
 getTime=Computer.currentSec
@@ -68,10 +69,10 @@ class Touch(TouchDevice):
     EVENT_CLASS_NAMES=['TouchEvent','TouchMoveEvent','TouchPressEvent','TouchReleaseEvent']                       
     DEVICE_TYPE_ID=DeviceConstants.TOUCH
     DEVICE_TYPE_STRING='TOUCH'
-    __slots__=['_rx_data','_serial_port_hw','serial_port_num','_raw_positions']
+    __slots__=['_elo_hw_config','_non_touch_events','_rx_data','_serial_port_hw','serial_port_num','_raw_positions']
     def __init__(self,*args,**kwargs):   
         TouchDevice.__init__(self,*args,**kwargs)
-        
+        self._non_touch_events=deque(maxlen=64)
         serial_config=self.getConfiguration().get('serial')
         if serial_config:
             sport=serial_config.get('port')
@@ -84,8 +85,50 @@ class Touch(TouchDevice):
         self._raw_positions=False
         self._rx_data=''
         self._serial_port_hw=None
-        
         self._connectSerial()
+        
+        self._elo_hw_config=dict(JUMPERS=self.queryDevice('Jumpers'))#_getJumpers())        
+        self._elo_hw_config['OWNER']=self.queryDevice('Owner')
+        self._elo_hw_config['ID']=self.queryDevice('ID')
+        self._elo_hw_config['REPORT']=self.queryDevice('Report')
+        self._elo_hw_config['DIAGNOSTICS']=self.queryDevice('Diagnostics')        
+    
+    def getHardwareConfiguration(self):
+        return self._elo_hw_config
+        
+    def queryDevice(self,query_type, *args,**kwargs):
+        """
+        Send the underlying touch screen device a query request and return the response.
+        """
+        self._query(query_type,*args,**kwargs)
+        if query_type in RESPONSE_PACKET_TYPES.keys():
+            stime=getTime()
+            while getTime()-stime<0.10:
+                self._poll()
+                while len(self._non_touch_events):
+                    reply=self._non_touch_events.popleft()
+                    if reply.__class__.__name__.endswith(query_type):
+                        return reply.asdict()
+                gevent.sleep(0)
+
+
+        return None
+        
+    def commandDevice(self,cmd_type, *args,**kwargs):
+        """
+        Send the underlying touch screen device a command and return the response.
+        """
+        self._command(cmd_type,*args,**kwargs)
+        if cmd_type in RESPONSE_PACKET_TYPES.keys():
+            stime=getTime()
+            while getTime()-stime<0.010:
+                self._poll()
+                while len(self._non_touch_events):
+                    reply=self._non_touch_events.popleft()
+                    if reply.__class__.__name__.endswith(cmd_type):
+                        return reply.asdict()
+                gevent.sleep(0)
+        return None
     
     def getPositionType(self):
         if self._raw_positions is True:
@@ -112,18 +155,18 @@ class Touch(TouchDevice):
         self._serial_port_hw.flush()
         return tx_count
 
-    def _query(self,query_type,*args):
+    def _query(self,query_type,*args,**kwargs):
         qpkt=query_type
         if isinstance(query_type,basestring):
-            qpkt=QUERY_PACKET_TYPES[query_type](*args)
-        self._tx(qpkt.packet_bytes)
+            qpkt=QUERY_PACKET_TYPES[query_type](*args,**kwargs)
+        self._tx(qpkt._packet_bytes)
         return qpkt
         
-    def _command(self,cmd_type,*args):
+    def _command(self,cmd_type,*args,**kwargs):
         qpkt=cmd_type
         if isinstance(cmd_type,basestring):
-            qpkt=COMMAND_PACKET_TYPES[cmd_type](*args)
-        self._tx(qpkt.packet_bytes)
+            qpkt=COMMAND_PACKET_TYPES[cmd_type](*args,**kwargs)
+        self._tx(qpkt._packet_bytes)
         return qpkt
    
     def _rx(self,async=False,num_bytes=10):
@@ -131,16 +174,8 @@ class Touch(TouchDevice):
             while self._serial_port_hw.inWaiting()>0:
                 self._rx_data+=self._serial_port_hw.read(self._serial_port_hw.inWaiting())
         else:
-                self._rx_data+=self._serial_port_hw.read(num_bytes)
+                self._rx_data+=self._serial_port_hw.read(num_bytes) 
 
-    def _getJumpers(self):
-        pkt=self._query('j')
-        reply_packets=self.getEvents()
-        for rp in reply_packets:
-            if rp.packet_bytes[1]==ord('J'):
-                print2err('Jumper Response: ',[b for b in rp.packet_bytes])
-                return rp
-                
     def saveConfiguration(self):
         # Save elo device settings to NVRAM
         pkt=self._command('N',*(1,7,0))
@@ -247,6 +282,7 @@ class Touch(TouchDevice):
 
     def clearEvents(self):
         try:
+            self._non_touch_events.clear()
             self._flushSerialInput()
             TouchDevice.clearEvents(self)
         except Exception, e:
@@ -258,7 +294,6 @@ class Touch(TouchDevice):
         """
         try:
             poll_time=currentSec()
-            events=[]
             self._rx()
             while self._rx_data or self._serial_port_hw.inWaiting():
                 self._rx(num_bytes=self._serial_port_hw.inWaiting())
@@ -273,14 +308,14 @@ class Touch(TouchDevice):
                         if len(self._rx_data)<10:
                             self._last_poll_time=poll_time
                             #print2err('Poll < 10 bytes: ',currentSec()-poll_time)
-                            return events
+                            return self._non_touch_events
                             
                     if self._rx_data[0]=='U' and self._rx_data[1] == 'T':
                         response_class=RESPONSE_PACKET_TYPES.get('T')
                         touch_event=response_class(poll_time,bytearray(self._rx_data[:10]))
-                        #print2err('packet_bytes: ',[b for b in touch_event.packet_bytes])
+                        #print2err('packet_bytes: ',[b for b in touch_event._packet_bytes])
                         self._rx_data=self._rx_data[10:]
-                        if touch_event.valid_response is True:
+                        if touch_event._valid_response is True:
                             etype=EventConstants.TOUCH_MOVE
                             if touch_event.touch_type==touch_event.TOUCH_PRESS:                    
                                 etype=EventConstants.TOUCH_PRESS
@@ -324,17 +359,19 @@ class Touch(TouchDevice):
                         if response_class:
                             rc=response_class(poll_time,bytearray(self._rx_data[:10]))
                             self._rx_data=self._rx_data[10:]
-                            if rc.valid_response is True:
-                                events.append(rc)
+                            if rc._valid_response is True:
+                                self._non_touch_events.append(rc)
+                            else:
+                                print2err("Invalid Response:",rc.asdict())
                         else:
                             print2err('Warning: UNHANDLED RX PACKET TYPE: %d %s'%(poll_time,str([c for c in self._rx_data[:10]])))
                             self._rx_data=self._rx_data[10:]
                         #print2err('Poll Non TouchEvent: ',currentSec()-poll_time)
 
-#            if events or touch_event_received:
+#            if self._non_touch_events or touch_event_received:
 #                print2err('Poll end: %.6f %.6f'%(currentSec()-poll_time,poll_time-self._last_poll_time))
             self._last_poll_time=poll_time
-            return events
+            return self._non_touch_events
         except:
             print2err("Exception During Touch._poll: ")
             printExceptionDetailsToStdErr()            
