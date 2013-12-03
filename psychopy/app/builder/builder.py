@@ -335,14 +335,14 @@ class CodeComponentDialog(wx.Dialog):
                 self.code_sections.AddPage(param_gui_dict.get(guikey+'_panel'), param_name)
 
         name_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        name_sizer.Add(self.name_label, 0, wx.RIGHT | wx.LEFT | wx.TOP | wx.BOTTOM, 10)
+        name_sizer.Add(self.name_label, 0, wx.ALL, 10)
         name_sizer.Add(self.component_name, 0,  wx.BOTTOM | wx.TOP, 10)
-        name_sizer.Add(self.nameOKlabel, 0,  wx.RIGHT | wx.LEFT | wx.TOP | wx.BOTTOM, 10)
+        name_sizer.Add(self.nameOKlabel, 0,  wx.ALL, 10)
 
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1.Add(name_sizer)
-        sizer_1.Add(self.code_sections, 1, wx.EXPAND, 0)
+        sizer_1.Add(self.code_sections, 1, wx.EXPAND |wx.ALL, 10)
         sizer_2.Add(self.help_button, 0, wx.RIGHT, 10)
         sizer_2.Add(self.ok_button, 0, wx.LEFT, 10)
         sizer_2.Add(self.cancel_button, 0, 0, 0)
@@ -1749,11 +1749,18 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         else:
             helpUrl=None
         #create component template
-        dlg = DlgComponentProperties(frame=self.frame,
-            title=componentName+' Properties',
-            params = newComp.params,
-            order = newComp.order,
-            helpUrl=helpUrl)
+        if componentName=='Code':
+            dlg = CodeComponentDialog(frame=self.frame,
+                title=componentName+' Properties',
+                params = newComp.params,
+                order = newComp.order,
+                helpUrl=helpUrl)
+        else:
+            dlg = DlgComponentProperties(frame=self.frame,
+                title=componentName+' Properties',
+                params = newComp.params,
+                order = newComp.order,
+                helpUrl=helpUrl)
 
         compName = newComp.params['name']
         if dlg.OK:
