@@ -19,12 +19,24 @@ Changelog
 PsychoPy 1.79
 ------------------------------
 
-* NEW: attributes for stimuli can now be updated using e.g. `stim.pos = newPos` rather than using `stim.setPos(newPos)` to make things more like standard Python (thanks Jonas Lindeløv). This version also involved some major restructuring behind the scenes that should not be visible to users (thanks Todd Jennings)
+PsychoPy 1.79.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ADDED: attributes for some stimuli can now be updated using e.g. `stim.pos = newPos` rather than using `stim.setPos(newPos)` to make things more like standard Python (thanks Jonas Lindeløv). This version also involved some major restructuring behind the scenes that should not be visible to users (thanks Todd Jennings)
 * ADDED: Builder Components for
     * ioLab Systems button-box; refactor PsychoPy's ioLabs code (Jeremy)
     * Cedrus button-box (tested on RB730)
     * parallel port output component
 * ADDED: option for sounds to `loop`
+* ADDED: volume argument for MovieStim so that sound can be muted (Frank Papenmeier)
+* ADDED: window now prevents system from sleep/screensaver on windows and OS X
+* ADDED: builder demo for mental rotation task
+* ADDED: Alternative Text stimulus, psychopy.visual.TextBox (Sol Simpson)
+        * Two demos in psychopy.coder.visual.textbox
+        * Requires: freetype lib (included in Standalone)
+        * Advantages: Very fast update following text change; very precise character placement.
+        * Disadvantages: Supports monospace fonts only. 
+        * IMPORTANT: TextBox is still being finalized and completed; expect to find (and please report) issues. API changes guaranteed.
 * FIXED: bug when using ElementArrayStim with numpy 1.7.1. Most elements were receiving SF=0
 * FIXED: 'semi-automatic' calibration (thanks Flip Phillips)
 * FIXED: shut-down issues. Builder now remembers its last experiment and you don't get multiple messages about the scripts that have changed
@@ -37,14 +49,10 @@ PsychoPy 1.79
     * pandas on win32 is now v1.3 (was already this version on OS X)
     * pyxid now includes Jared's upstream bug-fix
 * FIXED: many user interface tweaks, documentation and help string corrections (Philip Wiesemann)
+* FIXED: PsychoPy Coder view now closes the iohub process when the experiment script is terminated using 'Stop'. (Sol Simpson)
+* FIXED: bug importing conditions if the first row of numbers was the only float. (importFromConditions now uses numpy instead of matplotlib)
+* FIXED: Builder use of single staircase loops now respects the min/max values
 * CHANGED: data curve fitting functions are now using scipy.optimise.curve_fit and should hopefully be more robust to local minima(?)
-* CHANGED: microphone getRMS now uses numpy.std(); the change should have no effect on loudness values computed for .wav files
-* ADDED: builder demo for mental rotation task
-* ADDED: Alternative Text stimulus, psychopy.visual.TextBox:
-        * Requires: freetype lib and freetype python wrapper (included in Standalone)
-        * Advantages: text that changes each frame (very fast updating)
-        * Disadvantages: slow to set up font initially. Supports monospace TTF files only. 
-        * IMPORTANT: TextBox is still being finalized and completed; expect to find issues. API changes guaranteed.
 
 *psychopy.iohub Changes* :
 
@@ -55,6 +63,7 @@ PsychoPy 1.79
     * Touch and Mouse device events are independent of each other, so both devices can be used in parallel without interference
     * Touch screen calibration routine provided; calibration state can be saved to device hardware for persistence
     * See the demos.coder.iohub_extended Touch script for example of calibration graphics front end.
+* ADDED: Keyboard and Mouse events can be restricted to those events targeted at a PsychoPy Window. Currently supported on Windows and Linux only.
 * NEW: PsychoPy TrialHandler can now be used to feed experiment condition variables to the ioDataStore.
 * NEW: Device configuration file can now be specified to the launchHubServer() function when starting the ioHub Process.
 * NEW: Simple examples of how to use iohub within a Builder project using a Custom Code Component.

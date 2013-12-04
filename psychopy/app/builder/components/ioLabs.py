@@ -23,7 +23,7 @@ class ioLabsButtonBoxComponent(BaseComponent):
     More than one component in a routine will produce conflicts between
     components over which active buttons (for responses and lights).
     """
-    categories = ['Custom']  # which section(s) in the components panel
+    categories = ['Responses']  # which section(s) in the components panel
     def __init__(self, exp, parentName, name='bbox',
                 active="(0,1,2,3,4,5,6,7)", store='first button',
                 forceEndRoutine=True, storeCorrect=False, correctAns="0",

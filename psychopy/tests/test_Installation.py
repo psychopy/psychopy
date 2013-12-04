@@ -41,3 +41,6 @@ def test_extra_imports():
     if sys.platform=='win32':
         import parallel
     import pylink
+    import yaml, msgpack, gevent
+    import IPython, tornado
+    import psychopy_ext

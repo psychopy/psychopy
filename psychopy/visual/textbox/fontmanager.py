@@ -6,16 +6,18 @@ Created on Sun Nov 10 12:18:45 2013
 """
 import os,math
 import numpy as np
+import unicodedata as ud
+from matplotlib import font_manager
 from psychopy.core import getTime
 from psychopy import logging
 try:
-    from textureatlas import TextureAtlas       
+    from textureatlas import TextureAtlas
     from fontstore import FontStore
 except Exception, e:
         print 'error importing fontstore:',e
 from pyglet.gl import (glGenLists,glNewList,GL_COMPILE,GL_QUADS,
                       glBegin,glTexCoord2f,glVertex2f,glEnd,glDeleteLists,
-                      glEndList,glTranslatef,glPopMatrix,glPushMatrix
+                      glEndList,glTranslatef,glDeleteTextures
                        )
 
 log=math.log
@@ -26,28 +28,33 @@ def nearestPow2(n):
 
 def nextPow2(n):
     return int(pow(2, ceil(log(n, 2))))
-        
-class SystemFontManager(object):
+
+class FontManager(object):
     """
-    SystemFontManager provides a simple API for finding, loading, and creating
-    OpenGL based glyph graphics for font files supported by the FreeType lib.
-    
-    The SystemFontManager finds supported font files on the computer and
-    initially creates a dictionary containing the information about 
-    available fonts. This can be used to quickly determine what font family 
+    FontManager provides a simple API for finding and loading font files (.ttf)
+    via the FreeType lib
+
+    The FontManager finds supported font files on the computer and
+    initially creates a dictionary containing the information about
+    available fonts. This can be used to quickly determine what font family
     names are available on the computer and what styles (bold, italic) are
     supported for each family.
-    
-    When the font glyph set is needed in a form that can be used within OpenGL,
-    SystemFontManager can be used to get a FontAtlas object based on the
-    requested family anme, style, font size, and dpi. 
-    
-    A FontAtlas object creates an OpenGL texture for the glyph set requested,
-    drawn based on the size and dpi information provided. An OpenGL display
-    list is created for each glyph which will run the appropriate function
-    calls to have the glyph for the requested character to be drawn at the
-    current pointer position.
-    
+
+    This font information can then be used to create the resources necessary to
+    display text using a given font family, style, size, color, and dpi.
+
+    The FontManager is currently used by the psychopy.visual.TextBox stim type.
+    A user script can access the FontManager via:
+
+    font_mngr=visual.textbox.getFontManager()
+
+    A user script never creates an instance of the FontManager class and should
+    always access it using visual.textbox.getFontManager().
+
+    Once a font of a given size and dpi has been created; it is cached by the
+    FontManager and can be used by all TextBox instances created within the
+    experiment.
+
     """
     freetype_import_error=None
     font_atlas_dict={}
@@ -55,19 +62,16 @@ class SystemFontManager(object):
     _available_font_info={}
     font_store=None
     def __init__(self,monospace_only=True):
-        if SystemFontManager.freetype_import_error:
-            raise Exception('Appears the freetype library could not load. Error: %s'%(str(SystemFontManager.freetype_import_error)))
- 
+        #if FontManager.freetype_import_error:
+        #    raise Exception('Appears the freetype library could not load. Error: %s'%(str(FontManager.freetype_import_error)))
+
         self.load_monospace_only=monospace_only
         self.updateFontInfo(monospace_only)
-        #self.enableFontStore()        
+        #self.enableFontStore()
 
-    def enableFontStore(self,path=None):
-        SystemFontManager.font_store=FontStore(path)
-        
     def getFontFamilyNames(self):
         """
-        Returns a list of the available font family names
+        Returns a list of the available font family names.
         """
         return self._available_font_info.keys()
 
@@ -86,20 +90,6 @@ class SystemFontManager(object):
         """
         return self.font_family_styles
 
-    def getFontInfo(self,refresh=False,monospace=True):
-        """
-        Returns the available font information as a dict of dict's. 
-        The first level dict has keys for the available font families. 
-        The second level dict has keys for the available styles of the
-        associated font family. The values in the second level font
-        family - style dict are each a list containing FontInfo objects.
-        There is one FontInfo object for each physical font file found that
-        matches the associated font family and style.
-        """
-        if refresh or not self._available_font_info:
-            self.updateFontInfo(monospace)
-        return self._available_font_info
-
     def getFontsMatching(self,font_family_name,bold=False,italic=False,font_style=None):
         """
         Returns the list of FontInfo instances that match the provided
@@ -117,16 +107,70 @@ class SystemFontManager(object):
                 return fonts
         return None
 
+
+    def addFontFile(self,font_path,monospace_only=True):
+        """
+        Add a Font File to the FontManger font search space. The
+        font_path must be a valid path including the font file name.
+        Relative paths can be used, with the current working directory being
+        the origin.
+
+        If monospace_only is True, the font file will only be added if it is a
+        monospace font (as only monospace fonts are currently supported by
+        TextBox).
+
+        Adding a Font to the FontManager is not persistant across runs of
+        the script, so any extra font paths need to be added each time the
+        script starts.
+        """
+        return self.addFontFiles((font_path,),monospace_only)
+
+    def addFontFiles(self,font_paths,monospace_only=True):
+        """
+        Add a list of font files to the FontManger font search space. Each element
+        of the font_paths list must be a valid path including the font file name.
+        Relative paths can be used, with the current working directory being
+        the origin.
+
+        If monospace_only is True, each font file will only be added if it is a
+        monospace font (as only monospace fonts are currently supported by
+        TextBox).
+
+        Adding fonts to the FontManager is not persistant across runs of
+        the script, so any extra font paths need to be added each time the
+        script starts.
+        """
+
+        fi=None
+        for fp in  font_paths:
+            if os.path.isfile(fp) and os.path.exists(fp):
+                try:
+                    face=Face(fp)
+                    if monospace_only:
+                        if face.is_fixed_width:
+                            fi=self._createFontInfo(fp,face)
+                    else:
+                        fi=self._createFontInfo(fp,face)
+                except Exception, e:
+                    logging.debug('Error during FontManager.updateFontInfo(): %s\nFont File: %s'%(str(e),fp))
+
+        self.font_family_styles.sort()
+
+        return fi
+
+    # Class methods for FontManager below this comment should not need to be
+    # used by user scripts in most situations. Accessing them will not hurt though.
+    #
+
     @staticmethod
     def getGLFont(font_family_name,size=32,bold=False,italic=False,dpi=72):
         """
         Return a FontAtlas object that matches the family name, style info,
         and size provided. FontAtlas objects are cached, so if multiple
         TextBox instances use the same font (with matching font properties)
-        then the existing FontAtlas is returned. Otherwise, a new FontAtlas is 
+        then the existing FontAtlas is returned. Otherwise, a new FontAtlas is
         created , added to the cache, and returned.
         """
-#        stime=getTime()
         from psychopy.visual.textbox import getFontManager
         fm=getFontManager()
 
@@ -136,60 +180,42 @@ class SystemFontManager(object):
                 # have been saved to the hdf5 file (assuming it is faster)
                 pass
                 #print "TODO: Check if requested font is in FontStore"
-#            t1=getTime()    
             font_infos=fm.getFontsMatching(font_family_name,bold,italic)
             if len(font_infos) == 0:
                 return False
-            font_info=font_infos[0]   
+            font_info=font_infos[0]
             fid=MonospaceFontAtlas.getIdFromArgs(font_info,size,dpi)
             font_atlas=fm.font_atlas_dict.get(fid)
-#            t2=getTime() 
             if font_atlas is None:
                 font_atlas=fm.font_atlas_dict.setdefault(fid,MonospaceFontAtlas(font_info,size,dpi))
                 font_atlas.createFontAtlas()
-#            t3=getTime() 
             if fm.font_store:
                 t1=getTime()
                 fm.font_store.addFontAtlas(font_atlas)
                 t2=getTime()
                 print 'font store add atlas:',t2-t1
-
-#        etime=getTime()
-#        print 'getGLFont:',t2-t1,t3-t2,t3-t1
         return font_atlas
-        
+
+    def getFontInfo(self,refresh=False,monospace=True):
+        """
+        Returns the available font information as a dict of dict's.
+        The first level dict has keys for the available font families.
+        The second level dict has keys for the available styles of the
+        associated font family. The values in the second level font
+        family - style dict are each a list containing FontInfo objects.
+        There is one FontInfo object for each physical font file found that
+        matches the associated font family and style.
+        """
+        if refresh or not self._available_font_info:
+            self.updateFontInfo(monospace)
+        return self._available_font_info
+
+
     def updateFontInfo(self,monospace_only=True):
         self._available_font_info.clear()
         del self.font_family_styles[:]
-        import matplotlib.font_manager as font_manager    
-        font_paths=font_manager.findSystemFonts()
+        self.addFontFiles(font_manager.findSystemFonts(),monospace_only)
 
-        def createFontInfo(fp,fface):
-            fns=(fface.family_name,fface.style_name)
-            if fns in self.font_family_styles:
-                pass
-            else:
-                self.font_family_styles.append((fface.family_name,fface.style_name))
-            
-            styles_for_font_dict=self._available_font_info.setdefault(fface.family_name,{})
-            fonts_for_style=styles_for_font_dict.setdefault(fface.style_name,[])
-            fi=FontInfo(fp,fface)
-            fonts_for_style.append(fi)
-            
-        for fp in  font_paths:
-            if os.path.isfile(fp) and os.path.exists(fp):
-                try:                
-                    face=Face(fp)
-                    if monospace_only:
-                        if face.is_fixed_width:
-                            createFontInfo(fp,face)
-                    else:
-                        createFontInfo(fp,face)
-                except Exception, e:
-                    logging.debug('Error during FontManager.updateFontInfo(): %s\nFont File: %s'%(str(e),fp))
-
-        self.font_family_styles.sort() 
-               
     def booleansFromStyleName(self,style):
         """
         For the given style name, return a
@@ -202,21 +228,32 @@ class SystemFontManager(object):
         if s == 'regular':
             return False, False
         if s.find('italic')>=0 or s.find('oblique')>=0:
-            italic=True    
+            italic=True
         if s.find('bold')>=0:
-            bold=True    
+            bold=True
         return bold,italic
-        
+
+    def _createFontInfo(self,fp,fface):
+        fns=(fface.family_name,fface.style_name)
+        if fns in self.font_family_styles:
+            pass
+        else:
+            self.font_family_styles.append((fface.family_name,fface.style_name))
+
+        styles_for_font_dict=self._available_font_info.setdefault(fface.family_name,{})
+        fonts_for_style=styles_for_font_dict.setdefault(fface.style_name,[])
+        fi=FontInfo(fp,fface)
+        fonts_for_style.append(fi)
+        return fi
+
     def __del__(self):
-        self.font_store=None       
+        self.font_store=None
         if self.font_atlas_dict:
-            for fa in self.font_atlas_dict.values():
-                if fa:
-                    fa.free()
             self.font_atlas_dict.clear()
-        if self._available_font_info:    
+            self.font_atlas_dict=None
+        if self._available_font_info:
             self._available_font_info.clear()
-        
+            self._available_font_info=None
 
 class FontInfo(object):
     def __init__(self,fp,face):
@@ -232,10 +269,10 @@ class FontInfo(object):
         self.charmap_id=face.charmap.index
         self.label="%s_%s"%(face.family_name,face.style_name)
         self.id=self.label
-        
+
     def getID(self):
         return self.id
-        
+
     def asdict(self):
         d={}
         for k,v in self.__dict__.iteritems():
@@ -251,7 +288,7 @@ class MonospaceFontAtlas(object):
         self.id=self.getIdFromArgs(font_info,size,dpi)
         self._face=Face(font_info.path)
         self._face.set_char_size(height=self.size*64,vres=self.dpi)
-        
+
         self.charcode2glyph=None
         self.charcode2unichr=None
         self.charcode2displaylist=None
@@ -262,16 +299,15 @@ class MonospaceFontAtlas(object):
         self.max_bitmap_size = None
         self.total_bitmap_area=0
         self.atlas=None
-    
+
     def getID(self):
         return self.id
 
     @staticmethod
     def getIdFromArgs(font_info,size,dpi):
         return "%s_%d_%d"%(font_info.getID(),size,dpi)
-    
+
     def createFontAtlas(self):
-        t1=getTime()
         if self.atlas:
             self.atlas.free()
             self.atlas=None
@@ -287,7 +323,6 @@ class MonospaceFontAtlas(object):
         # This is used when the altas is created to properly size the tex.
         # i.e. max glyph size * num glyphs
         #
-
 
         max_w,max_h=0,0
         max_ascender, max_descender, max_tile_width = 0, 0, 0
@@ -307,52 +342,43 @@ class MonospaceFontAtlas(object):
         pow2_area=nextPow2(target_atlas_area)
         atlas_width=2048
         atlas_height=pow2_area/atlas_width
-        t2=getTime()        
         self.atlas=TextureAtlas(atlas_width,atlas_height)
-        t3=getTime()  
         charcode, gindex=face.get_first_char()
-        while gindex:        
-            uchar=self.charcode2unichr.setdefault(charcode,unichr(charcode))
 
-            face.load_char(uchar, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT )
-            bitmap = face.glyph.bitmap      
-            
-            self.total_bitmap_area+=bitmap.width*bitmap.rows
-            max_ascender = max( max_ascender, face.glyph.bitmap_top)
-            max_descender = max( max_descender, bitmap.rows - face.glyph.bitmap_top )
-            max_tile_width = max( max_tile_width,bitmap.width)
-            max_w=max(bitmap.width,max_w)
-            max_h=max(bitmap.rows,max_h)
+        while gindex:
+            uchar = unichr(charcode)
+            if ud.category(uchar) not in (u'Zl',u'Zp',u'Cc',u'Cf',u'Cs',u'Co',u'Cn'):
+                self.charcode2unichr[charcode]=uchar
+                face.load_char(uchar, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT )
+                bitmap = face.glyph.bitmap
 
-            x,y,w,h = self.atlas.get_region(bitmap.width+2, bitmap.rows+2)
-            
-            #glyphdata['atlas_region']=x,y,w,h
-            if x < 0:
-                raise Exception("MonospaceFontAtlas.get_region failed for: {0}, requested area: {1}. Atlas Full!".format(charcode,(bitmap.width+2, bitmap.rows+2)))              
-            x,y = x+1, y+1
-            w,h = w-2, h-2
-            #print 'bitmap.width,bitmap.rows,bitmap.pitch : h,w:',bitmap.width,bitmap.rows,bitmap.pitch,h,w
-            data = np.array(bitmap._FT_Bitmap.buffer[:(bitmap.rows*bitmap.width)],dtype=np.ubyte).reshape(h,w,1)
-            #gamma = 1.0
-            #Z = ((data/255.0)**(gamma))
-            #data = (Z*255).astype(np.ubyte)
-            self.atlas.set_region((x,y,w,h), data)
-            
-#            u0     = (x +     0.0)
-#            v0     = (y +     0.0)
-#            u1     = (x + w - 0.0)
-#            v1     = (y + h - 0.0)
-            self.charcode2glyph[charcode]=dict(
-                        offset=(face.glyph.bitmap_left,face.glyph.bitmap_top),
-                        size=(w,h),
-                        atlas_coords=(x,y,w,h),
-                        texcoords = [x, y, x + w, y + h],
-                        index=gindex,
-                        unichar=uchar
-                        )
-            
+                self.total_bitmap_area+=bitmap.width*bitmap.rows
+                max_ascender = max( max_ascender, face.glyph.bitmap_top)
+                max_descender = max( max_descender, bitmap.rows - face.glyph.bitmap_top )
+                max_tile_width = max( max_tile_width,bitmap.width)
+                max_w=max(bitmap.width,max_w)
+                max_h=max(bitmap.rows,max_h)
+
+                x,y,w,h = self.atlas.get_region(bitmap.width+2, bitmap.rows+2)
+
+                if x < 0:
+                    raise Exception("MonospaceFontAtlas.get_region failed for: {0}, requested area: {1}. Atlas Full!".format(charcode,(bitmap.width+2, bitmap.rows+2)))
+                x,y = x+1, y+1
+                w,h = w-2, h-2
+                data = np.array(bitmap._FT_Bitmap.buffer[:(bitmap.rows*bitmap.width)],dtype=np.ubyte).reshape(h,w,1)
+                self.atlas.set_region((x,y,w,h), data)
+
+                self.charcode2glyph[charcode]=dict(
+                            offset=(face.glyph.bitmap_left, face.glyph.bitmap_top),
+                            size=(w,h),
+                            atlas_coords=(x,y,w,h),
+                            texcoords = [x, y, x + w, y + h],
+                            index=gindex,
+                            unichar=uchar
+                            )
+
             charcode, gindex = face.get_next_char(charcode, gindex)
-        t4=getTime()          
+
         self.max_ascender = max_ascender
         self.max_descender = max_descender
         self.max_tile_width = max_tile_width
@@ -362,57 +388,48 @@ class MonospaceFontAtlas(object):
         # resize atlas
         height=nextPow2(self.atlas.max_y+1)
         self.atlas.resize(height)
-        self.atlas.upload()        
-        t5=getTime()  
+        self.atlas.upload()
         self.createDisplayLists()
-        t6=getTime()
-        
-#        print "Creating Atlas Times:"
-#        print "\tDetermine size",t2-t1
-#        print "\tCreating Atlas",t3-t2
-#        print "\tCreate bitmap glyphs",t4-t3
-#        print "\tResize+Upload",t5-t4
-#        print "\tMake DLs:",t6-t5
-#        print "\tTotal:",t6-t1
         self._face=None
-       #self.atlas.freeMemoryBuffer()
-   
+        #print 'w_max_glyth info:',w_max_glyph
+        #print 'h_max_glyth info:',h_max_glyph
+
     def createDisplayLists(self):
         glyph_count=len(self.charcode2unichr)
-        max_tile_width,max_tile_height=self.max_tile_width,self.max_tile_height        
+        max_tile_width,max_tile_height=self.max_tile_width,self.max_tile_height
         display_lists_for_chars={}
-        
-        base = glGenLists(glyph_count)               
+
+        base = glGenLists(glyph_count)
         for i,(charcode,glyph) in enumerate( self.charcode2glyph.iteritems()):
             dl_index=base+i
-            uchar=self.charcode2unichr[charcode]                
+            uchar=self.charcode2unichr[charcode]
 
-            # update tex coords to reflect earlier resize of atlas height.            
-            gx1,gy1,gx2,gy2=glyph['texcoords']             
+            # update tex coords to reflect earlier resize of atlas height.
+            gx1,gy1,gx2,gy2=glyph['texcoords']
             gx1=gx1/float(self.atlas.width)
             gy1=gy1/float(self.atlas.height)
             gx2=gx2/float(self.atlas.width)
             gy2=gy2/float(self.atlas.height)
             glyph['texcoords'] =[gx1,gy1,gx2,gy2]
-            
-            glNewList(dl_index, GL_COMPILE)           
-            if uchar not in [u'\t',u'\n']:               
+
+            glNewList(dl_index, GL_COMPILE)
+            if uchar not in [u'\t',u'\n']:
                 glBegin( GL_QUADS )
                 x1 = glyph['offset'][0]
                 x2 = x1+glyph['size'][0]
-                y1=(self.max_ascender-glyph['offset'][1])                 
+                y1=(self.max_ascender-glyph['offset'][1])
                 y2=y1+glyph['size'][1]
-                
+
                 glTexCoord2f( gx1, gy2 ),    glVertex2f( x1,-y2 )
                 glTexCoord2f( gx1, gy1 ),    glVertex2f( x1,-y1 )
                 glTexCoord2f( gx2, gy1 ),    glVertex2f( x2,-y1 )
                 glTexCoord2f( gx2, gy2 ),    glVertex2f( x2,-y2 )
-                glEnd( )        
-                glTranslatef( max_tile_width,0,0)                    
+                glEnd( )
+                glTranslatef( max_tile_width,0,0)
             glEndList( )
 
             display_lists_for_chars[charcode]=dl_index
-        
+
         self.charcode2displaylist=display_lists_for_chars
 
     def saveGlyphBitmap(self,file_name=None):
@@ -423,28 +440,32 @@ class MonospaceFontAtlas(object):
         from scipy import misc
         if self.atlas is None:
             self.loadAtlas()
-        if self.atlas.depth==1:    
+        if self.atlas.depth==1:
             misc.imsave(file_name, self.atlas.data.reshape(self.atlas.data.shape[:2]))
         else:
             misc.imsave(file_name, self.atlas.data)
-    
-    def free(self):
-        if self.atlas:
-            self.atlas.free()
+
+
+    def __del__(self):
+        self._face=None
+        if self.atlas.texid:
+            glDeleteTextures(1, self.atlas.texid)
+            self.atlas.texid=None
+            self.atlas=None
         if self.charcode2displaylist:
             for dl in self.charcode2displaylist.values():
                 glDeleteLists(dl, 1)
-        
-    def __del__(self):   
-        self.free()
-        self._face=None
-        if self.charcode2glyph:    
+            self.charcode2displaylist.clear()
+        self.charcode2displaylist=None
+        if self.charcode2glyph:
             self.charcode2glyph.clear()
+            self.charcode2glyph=None
         if self.charcode2unichr:
             self.charcode2unichr.clear()
+            self.charcode2unichr=None
 
-        
+
 try:
-    from psychopy.visual.textbox.freetype_bf import Face,FT_LOAD_RENDER,FT_LOAD_FORCE_AUTOHINT 
+    from psychopy.visual.textbox.freetype_bf import Face,FT_LOAD_RENDER,FT_LOAD_FORCE_AUTOHINT
 except Exception, e:
-    SystemFontManager.freetype_import_error=e
+    FontManager.freetype_import_error=e

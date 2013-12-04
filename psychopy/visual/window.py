@@ -27,7 +27,7 @@ if sys.platform == 'win32':
     #make sure we also check in SysWOW64 if on 64-bit windows
     if 'C:\\Windows\\SysWOW64' not in os.environ['PATH']:
         os.environ['PATH'] += ';C:\\Windows\\SysWOW64'
-        
+
     try:
         from pyglet.media import avbin
         haveAvbin = True
@@ -591,6 +591,9 @@ class Window:
                         obj=logEntry['obj'])
         del self._toLog[:]
 
+        #keep the system awake (prevent screen-saver or sleep)
+        platform_specific.sendStayAwake()
+
         #    If self.waitBlanking is True, then return the time that
         # GL.glFinish() returned, set as the 'now' variable. Otherwise
         # return None as before
@@ -874,7 +877,8 @@ class Window:
             # when filtering kb and mouse events (if the filter is enabled of course)
             #
             if IOHUB_ACTIVE:
-                IOHUB_ACTIVE.unregisterPygletWindowHandles(self._hw_handle)
+                from psychopy.iohub.client import ioHubConnection
+                ioHubConnection.ACTIVE_CONNECTION.unregisterPygletWindowHandles(self._hw_handle)
             self.winHandle.close()
         else:
             #pygame.quit()
@@ -1150,10 +1154,10 @@ class Window:
         if sys.platform =='win32':
             self._hw_handle=self.winHandle._hwnd
         elif sys.platform =='darwin':
-            self._hw_handle=self.winHandle._window.value        
+            self._hw_handle=self.winHandle._window.value
         elif sys.platform =='linux2':
             self._hw_handle=self.winHandle._window
-            
+
         #provide warning if stereo buffers are requested but unavailable
         if self.stereo and not GL.gl_info.have_extension('GL_STEREO'):
             logging.warning('A stereo window was requested but the graphics '
@@ -1196,10 +1200,10 @@ class Window:
         # Code to allow iohub to know id of any psychopy windows created
         # so kb and mouse event filtering by window id can be supported.
         #
-        # If an iohubConnection is active, give this window os handle to 
-        # to the ioHub server. If windows were already created before the 
+        # If an iohubConnection is active, give this window os handle to
+        # to the ioHub server. If windows were already created before the
         # iohub was active, also send them to iohub.
-        # 
+        #
         if IOHUB_ACTIVE:
             from psychopy.iohub.client import ioHubConnection
             if ioHubConnection.ACTIVE_CONNECTION:

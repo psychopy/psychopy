@@ -8,6 +8,10 @@ from __future__ import division
 import os,inspect,numbers
 from weakref import proxy
 import time
+import numpy as np
+from psychopy import core,misc,colors
+import psychopy.tools.colorspacetools as colortools
+import psychopy.tools.arraytools as arraytools
 import pyglet
 pyglet.options['debug_gl'] = False
 from pyglet.gl import (glCallList,glFinish,glGenLists,glNewList,glViewport,
@@ -22,12 +26,7 @@ from pyglet.gl import (glCallList,glFinish,glGenLists,glNewList,glViewport,
                GL_SMOOTH_LINE_WIDTH_RANGE,GL_SMOOTH_LINE_WIDTH_GRANULARITY,
                GL_POLYGON_SMOOTH)
 
-
-from psychopy import core,misc,colors
-import psychopy.tools.colorspacetools as colortools
-import psychopy.tools.arraytools as arraytools
-from fontmanager import SystemFontManager
-
+from fontmanager import FontManager
 from textgrid import TextGrid
 
 def getTime():
@@ -44,7 +43,7 @@ _system_font_manager=None
 def getFontManager():
     global _system_font_manager
     if _system_font_manager is None:
-        _system_font_manager = SystemFontManager() 
+        _system_font_manager = FontManager() 
     return _system_font_manager
     
 def getGLInfo():
@@ -273,7 +272,14 @@ class TextBox(object):
              interpolate=False,
              name=None
              ):
-        self._window=proxy(window)  
+        self._window=proxy(window) 
+
+        self._font_name=font_name
+        self._font_size=font_size
+        self._dpi=dpi
+        self._bold=bold
+        self._italic=italic
+        
         self._text=text
         self._label=name
         self._line_spacing=line_spacing
@@ -349,9 +355,9 @@ class TextBox(object):
             self._label='TextBox_%s'%(str(int(time.time())))
 
         fm=getFontManager()
-        if font_name is None:
-            font_name=fm.getFontFamilyStyles()[0][0]
-        gl_font=fm.getGLFont(font_name,font_size,bold,italic,dpi)
+        if self._font_name is None:
+            self._font_name=fm.getFontFamilyStyles()[0][0]
+        gl_font=fm.getGLFont(self._font_name,self._font_size,self._bold,self._italic,self._dpi)
         self._current_glfont=gl_font
 
         self._text_grid=TextGrid(self, line_color=grid_color, 
@@ -407,8 +413,114 @@ class TextBox(object):
             
             displayed_text=self.getText()[0:min(text_length,rows*cols]
         """
-        return self._text_grid._text_document.getDisplayedText()   
+        return self._getTextWrappedDoc().getDisplayedText()   
+    
+    def getTextGridCellPlacement(self):
+        """
+        Returns a 3d numpy array containing position information for each text grid cell
+        in the TextBox. The array has the shape (num_cols,num_rows,cell_bounds),
+        where num_cols is the number of textgrid columns in the TextBox. 
+        num_rows is the number of textgrid rows in the TextBox. cell_bounds is
+        a 4 element array containing the (x pos, y pos, width, height) data
+        for the given cell. Position fields are for the top left hand corner of
+        the cell box. Column and Row indices start at 0.
         
+        To get the shape of the textgrid in terms of columns and rows, use:
+        
+        cell_pos_array=textbox.getTextGridCellPlacement()
+        col_row_count=cell_pos_array.shape[:2]
+        
+        To access the position, width, and height for textgrid cell at 
+        column 0 and row 0 (so the top left cell in the textgrid):
+        
+        cell00=cell_pos_array[0,0,:]
+        
+        For the cell at col 3, row 1 (so 4th cell on second row):
+        
+        cell41=cell_pos_array[4,1,:]        
+        """
+        col_lines=self._text_grid._col_lines    
+        row_lines=self._text_grid._row_lines   
+
+        cellinfo=np.zeros((len(col_lines[:-1]),len(row_lines[:-1]),4),dtype=np.float32)
+        
+
+        tb_tl=self._getTopLeftPixPos()
+        tg_tl=self._text_grid._position
+        #print 'tb_tl,tg_tl:',tb_tl,tg_tl
+        starting_x,starting_y=tb_tl[0]+tg_tl[0],tb_tl[1]-tg_tl[1]
+        #print 'Text Cell Placement:'
+       
+        for i,x in enumerate(col_lines[:-1]):
+            for j,y in enumerate(row_lines[:-1]):
+                px,py=starting_x+x,starting_y+y
+                w,h=col_lines[i+1]-px,-(row_lines[j+1]-py)
+                cellinfo[i,j,0]=px
+                cellinfo[i,j,1]=py
+                cellinfo[i,j,2]=w
+                cellinfo[i,j,3]=h
+                
+        for i,x in enumerate(col_lines[:-1]):
+            for j,y in enumerate(row_lines[:-1]):
+                x,y=self._pix2units((float(cellinfo[i,j,0]),float(cellinfo[i,j,1])))
+                w,h=self._pix2units((float(cellinfo[i,j,2]),float(cellinfo[i,j,3])),False)
+                cellinfo[i,j,0]=x
+                cellinfo[i,j,1]=y
+                cellinfo[i,j,2]=w
+                cellinfo[i,j,3]=h
+                #print 'col %d, row %d: '%(i,j),cellinfo[i,j,:]
+    
+#        print 'cell[0,0]:',cellinfo[0,0,:]
+        return cellinfo
+    
+    def getGlyphPositionForTextIndex(self,char_index):
+        """
+        For the provided char_index, which is the index of one chatacter in 
+        the current text being displayed by the TextBox ( getDisplayedText() ),
+        return the bounding box position, width, and height for the associated
+        glyph drawn to the screen. This factors in the glyphs position within 
+        the textgrid cell it is being drawn in, so the returned bounding box is
+        for the actual glyph itself, not the textgrid cell. For textgrid cell placement
+        information, see the getTextGridCellPlacement() method.
+        
+        The glyph position for the given text index is returned as a tuple
+        (x,y,width,height), where x,y is the top left hand corner of the bounding box. 
+        
+        Special Cases:
+            * If the index provided is out of bounds for the currently displayed text, None is returned. 
+            * For u' ' (space) characters, the full textgrid cell bounding box is returned. 
+            * For u'\n' ( new line ) characters,the textgrid cell bounding box is returned, but with the box width set to 0. 
+        """
+         
+        if char_index < 0 or char_index >= len(self.getDisplayedText()):
+            raise IndexError("The provided index of %d is out of range for the currently displayed text."%(char_index))
+            
+        # Get the Glyph info for the char in question:
+        gl_font=getFontManager().getGLFont(self._font_name,self._font_size,self._bold,self._italic,self._dpi)
+        glyph_data=gl_font.charcode2glyph.get(ord(self._text[char_index]))
+        ox,oy=glyph_data['offset'][0],gl_font.max_ascender-glyph_data['offset'][1]
+        gw,gh=glyph_data['size']
+#        print 'glyph_data for %s: %d,%d %d,%d'%(glyph_data['unichar'],ox,oy,gw,gh)
+
+        # get the col,row for the xhar index provided        
+        col_row = self._getTextWrappedDoc().getTextGridCellForCharIndex(char_index)
+        if col_row is None:
+            return None
+        cline=self._getTextWrappedDoc().getParsedLine(col_row[1])
+        #print 'cline._trans_left,cline._trans_top:',cline._trans_left,cline._trans_top
+        c=col_row[0]+cline._trans_left
+        r=col_row[1]+cline._trans_top
+        x,y,width,height=self.getTextGridCellPlacement()[c,r,:]
+#        print 'text_grid cell (%d,%d) placement: %d,%d %d,%d'%(c,r,x,y,width,height)
+#        print 'gygh bounds: ',x+ox,y-oy,gw,gh
+        ox,oy=self._pix2units((ox,oy),False)
+        gw,gh=self._pix2units((gw,gh),False)
+        #print 'glyph_data %d %d -> %.3f %.3f'%(glyph_data['size'][0],glyph_data['size'][1],gw,gh)
+        return x+ox,y-oy,gw,gh
+
+    def _getTextWrappedDoc(self):
+        return self._text_grid._text_document
+
     def getPosition(self):
         """
         Return the x,y position of the textbox, in getUnitType() coord space.
@@ -433,8 +545,8 @@ class TextBox(object):
         A horz., vert. alignment of center, center will place the center of
         the TextBox at pos.
         """
-        if pos != self._position:           
-            self._position=pos
+        if pos[0] != self._position[0] or pos[1] != self._position[1]:           
+            self._position=pos[0],pos[1]
             self._deleteBackgroundDL()
             self._deleteStartDL()
 
@@ -608,7 +720,7 @@ class TextBox(object):
         last column of the text row ('right'). 
         """
         if v != self._text_grid._horz_justification:
-            self._text_grid._horz_justification=v
+            self._text_grid.setHorzJust(v)
             self._text_grid._deleteTextDL()
 
     def getVertJust(self):
@@ -631,7 +743,7 @@ class TextBox(object):
         or should be drawn on the last row of the text grid, ('bottom'). 
         """
         if v != self._text_grid._vert_justification:
-            self._text_grid._vert_justification=v
+            self._text_grid.setVertJust(v)
             self._text_grid._deleteTextDL()
 
     def getBorderWidth(self):
@@ -838,7 +950,7 @@ class TextBox(object):
                 glDisable(GL_LINE_SMOOTH)
                 glDisable(GL_POLYGON_SMOOTH)
             t,l=self._getTopLeftPixPos()
-            glTranslatef(t,l, 0 )   
+            glTranslatef(t,l, 0 )  
             glEndList()
             self._draw_start_dlist=dl_index
         glCallList(self._draw_start_dlist) 
@@ -948,6 +1060,42 @@ class TextBox(object):
                 return xy[0]*window.size[0]/2.0,xy[1]*window.size[1]/2.0
 
         return ValueError("TextBox: %s, %s could not be converted to pix units"%(str(xy),str(units)))
+
+    def _pix2units(self,xy,is_position=True):
+        units=self._units
+        window=self._window
+        ww,wh=float(window.size[0]),float(window.size[1])
+        
+        if isinstance(xy, numbers.Number):
+            xy=xy,xy           
+        elif is_sequence(xy):
+            if len(xy)==1:
+                xy=xy[0],xy[0]
+            else:
+                xy=xy[:2]
+        else:                
+            raise ValueError("TextBox: coord variables must be array-like or a single number. Invalid: %s"%(str(xy)))
+        
+        if not isinstance(xy[0], numbers.Number) or not isinstance(xy[1], numbers.Number):
+            raise ValueError("TextBox: coord variables must only contain numbers. Invalid: %s, %s, %s"%(str(xy),str(type(xy[0])),str(type(xy[1]))))
+
+        x,y=xy
+        if is_position:
+            #convert to psychopy pix, origin is center of monitor.
+            #print 'x,y:',x,y
+            x,y=int(x-ww/2),int(y-wh/2)
+            #print 'xy psycho:',x,y    
+            #print '---'
+        if units in ('pix','pixs'):
+            return x,y            
+        if units in ['deg','degs']:
+            return misc.pix2deg(x,window.monitor),misc.deg2pix(y,window.monitor)                        
+        if units in ['cm']:
+            return misc.pix2cm(x,window.monitor),misc.cm2pix(y,window.monitor)                         
+        if units in ['norm']:
+            return x/ww*2.0,y/wh*2.0
+
+        raise ValueError("TextBox: %s, %s could not be converted to pix units"%(str(xy),str(units)))
         
     def _toRGBA(self,color):
         return self.__class__._toRGBA2(color,self._opacity,self._color_space,self._window)
@@ -1040,7 +1188,8 @@ class TextBox(object):
             self._size=nw,nh
             
     def _getPixelPosition(self):
-        return [int(x) for x in self._toPix(self._position ,self._units, self._window)]
+        ppos=self._toPix(self._position ,self._units, self._window)
+        return int(ppos[0]),int(ppos[1])
                     
     def _getPixelTextLineSpacing(self):
         if self._line_spacing:

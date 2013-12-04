@@ -23,17 +23,17 @@ from psychopy.app.builder import validators
 from psychopy.constants import *
 
 canvasColor=[200,200,200]#in prefs? ;-)
-routineTimeColor=wx.Color(50,100,200, 200)
-staticTimeColor=wx.Color(200,50,50, 100)
-nonSlipFill=wx.Color(150,200,150, 255)
-nonSlipEdge=wx.Color(0,100,0, 255)
-relTimeFill=wx.Color(200,150,150, 255)
-relTimeEdge=wx.Color(200,50,50, 255)
-routineFlowColor=wx.Color(200,150,150, 255)
-darkgrey=wx.Color(65,65,65, 255)
-white=wx.Color(255,255,255, 255)
-darkblue=wx.Color(30,30,150, 255)
-codeSyntaxOkay=wx.Color(220,250,220, 255)  # light green
+routineTimeColor=wx.Colour(50,100,200, 200)
+staticTimeColor=wx.Colour(200,50,50, 100)
+nonSlipFill=wx.Colour(150,200,150, 255)
+nonSlipEdge=wx.Colour(0,100,0, 255)
+relTimeFill=wx.Colour(200,150,150, 255)
+relTimeEdge=wx.Colour(200,50,50, 255)
+routineFlowColor=wx.Colour(200,150,150, 255)
+darkgrey=wx.Colour(65,65,65, 255)
+white=wx.Colour(255,255,255, 255)
+darkblue=wx.Colour(30,30,150, 255)
+codeSyntaxOkay=wx.Colour(220,250,220, 255)  # light green
 
 # regular expression to check for unescaped '$' to indicate code:
 _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
@@ -234,6 +234,148 @@ class CodeBox(wx.stc.StyledTextCtrl):
                         self.Expand(lineClicked, True, True, 100)
                 else:
                     self.ToggleFold(lineClicked)
+
+class CodeComponentDialog(wx.Dialog):
+    def __init__(self,frame,title,params,order,
+            helpUrl=None, suppressTitles=True,size=wx.DefaultSize,
+            style=(wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
+                            | wx.THICK_FRAME | wx.DIALOG_NO_PARENT),
+            editing=False):
+
+        wx.Dialog.__init__(self, frame,-1,title,size=size,style=style)
+        self.frame=frame
+        self.app=frame.app
+        self.helpUrl=helpUrl
+        self.params=params   #dict
+        self.order=order
+        self.title = title
+        self.code_gui_elements={}
+        if not editing and 'name' in self.params.keys():
+            # then we're adding a new component, so provide a known-valid name:
+            self.params['name'].val = self.frame.exp.namespace.makeValid(params['name'].val)
+
+
+        self.code_sections = wx.Notebook(self, wx.ID_ANY, style=0)
+
+        for pkey in self.order:
+            param=self.params.get(pkey)
+            if pkey == 'name':
+                self.name_label = wx.StaticText(self, wx.ID_ANY,param.label)
+                self.component_name = wx.TextCtrl(self,
+                                 wx.ID_ANY,
+                                 unicode(param.val),
+                                 style=wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB)
+                self.component_name.SetValidator(validators.NameValidator())
+
+                self.nameOKlabel=wx.StaticText(self,-1,'',
+                                            style=wx.ALIGN_RIGHT)
+                self.nameOKlabel.SetForegroundColour(wx.RED)
+
+            else:
+                guikey=pkey.replace(' ','_')
+                param_gui_elements=self.code_gui_elements.setdefault(guikey,
+                                                                     dict())
+
+                panel_element=param_gui_elements.setdefault(guikey+'_panel',
+                                       wx.Panel(self.code_sections, wx.ID_ANY))
+                code_box=param_gui_elements.setdefault(guikey+'_codebox',
+                                              CodeBox(panel_element,
+                                                    wx.ID_ANY,
+                                                    pos=wx.DefaultPosition,
+                                                    style=0,
+                                                    prefs=self.app.prefs))
+                if len(param.val):
+                    code_box.AddText(unicode(param.val))
+
+
+        if self.helpUrl!=None:
+            self.help_button = wx.Button(self, wx.ID_HELP, "")
+            self.help_button.SetToolTip(wx.ToolTip("Go to online help about this component"))
+        self.ok_button = wx.Button(self, wx.ID_OK, " OK ")
+        self.ok_button.SetDefault()
+        self.cancel_button = wx.Button(self, wx.ID_CANCEL, "")
+
+        self.__set_properties()
+        self.__do_layout()
+
+        self.Bind(wx.EVT_BUTTON, self.helpButtonHandler, self.help_button)
+
+
+        #do show and process return
+        ret=self.ShowModal()
+
+        if ret == wx.ID_OK:
+            self.checkName()
+            self.OK=True
+            self.params = self.getParams()#get new vals from dlg
+            self.Validate()
+            # TODO: Should code from each code section tab have syntax checked??
+        else:
+            self.OK=False
+
+    def checkName(self, event=None):
+        """
+        Issue a form validation on name change.
+        """
+        self.Validate()
+
+    def __set_properties(self):
+
+        self.SetTitle(self.title)
+        self.SetSize((640, 480))
+
+    def __do_layout(self):
+        for param_name in self.order:
+             if param_name.lower() != 'name':
+                guikey=param_name.replace(' ','_')
+                param_gui_dict=self.code_gui_elements.get(guikey)
+                asizer=param_gui_dict.setdefault(guikey+'_sizer',wx.BoxSizer(wx.VERTICAL))
+                asizer.Add(param_gui_dict.get(guikey+'_codebox'), 1, wx.EXPAND, 0)
+                param_gui_dict.get(guikey+'_panel').SetSizer(asizer)
+                self.code_sections.AddPage(param_gui_dict.get(guikey+'_panel'), param_name)
+
+        name_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        name_sizer.Add(self.name_label, 0, wx.ALL, 10)
+        name_sizer.Add(self.component_name, 0,  wx.BOTTOM | wx.TOP, 10)
+        name_sizer.Add(self.nameOKlabel, 0,  wx.ALL, 10)
+
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_1.Add(name_sizer)
+        sizer_1.Add(self.code_sections, 1, wx.EXPAND |wx.ALL, 10)
+        sizer_2.Add(self.help_button, 0, wx.RIGHT, 10)
+        sizer_2.Add(self.ok_button, 0, wx.LEFT, 10)
+        sizer_2.Add(self.cancel_button, 0, 0, 0)
+        sizer_1.Add(sizer_2, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
+        self.SetSizer(sizer_1)
+        self.Layout()
+        self.Center()
+
+    def getParams(self):
+        """retrieves data from any fields in self.code_gui_elements
+        (populated during the __init__ function)
+
+        The new data from the dlg get inserted back into the original params
+        used in __init__ and are also returned from this method.
+        """
+        #get data from input fields
+        for fieldName in self.params.keys():
+            param=self.params[fieldName]
+            if fieldName=='name':
+                param.val = self.component_name.GetValue()
+            else:
+                guikey=fieldName.replace(' ','_')
+                cb_gui_el=guikey+'_codebox'
+                if guikey in self.code_gui_elements:
+
+                    param.val=self.code_gui_elements.get(guikey).get(cb_gui_el).GetText()
+        return self.params
+
+    def helpButtonHandler(self, event):
+        """Uses self.app.followLink() to self.helpUrl
+        """
+        self.app.followLink(url=self.helpUrl)
+
 class FlowPanel(wx.ScrolledWindow):
     def __init__(self, frame, id=-1):
         """A panel that shows how the routines will fit together
@@ -282,9 +424,9 @@ class FlowPanel(wx.ScrolledWindow):
         self.btnInsertRoutine = platebtn.PlateButton(self,-1,'Insert Routine ', pos=(10,10))
         self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop     ', pos=(10,30)) #spaces give size for CANCEL
 
-        self.labelTextGray = {'normal': wx.Color(150,150,150, 20),'hlight':wx.Color(150,150,150, 20)}
-        self.labelTextRed = {'normal': wx.Color(250,10,10, 250),'hlight':wx.Color(250,10,10, 250)}
-        self.labelTextBlack = {'normal': wx.Color(0,0,0, 250),'hlight':wx.Color(250,250,250, 250)}
+        self.labelTextGray = {'normal': wx.Colour(150,150,150, 20),'hlight':wx.Colour(150,150,150, 20)}
+        self.labelTextRed = {'normal': wx.Colour(250,10,10, 250),'hlight':wx.Colour(250,10,10, 250)}
+        self.labelTextBlack = {'normal': wx.Colour(0,0,0, 250),'hlight':wx.Colour(250,250,250, 250)}
 
         # use self.appData['flowSize'] to index a tuple to get a specific value, eg: (4,6,8)[self.appData['flowSize']]
         self.flowMaxSize = 2 # upper limit on increaseSize
@@ -724,7 +866,7 @@ class FlowPanel(wx.ScrolledWindow):
             self.gapMidPoints.append(currX+gap/2)
             self.gapNestLevels.append(nestLevel)
             pdc.SetId(lineId)
-            pdc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+            pdc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
             pdc.DrawLine(x1=currX,y1=self.linePos[1],x2=currX+gap,y2=self.linePos[1])
             currX+=gap
         lineRect = wx.Rect(self.linePos[0]-2, self.linePos[1]-2, currX-self.linePos[0]+2, 4)
@@ -750,7 +892,7 @@ class FlowPanel(wx.ScrolledWindow):
         for ii, entry in enumerate(expFlow):
             if entry.getType()=='Routine':
                 currX = self.drawFlowRoutine(pdc,entry, id=ii,pos=[currX,self.linePos[1]-10])
-            pdc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+            pdc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
             pdc.DrawLine(x1=currX,y1=self.linePos[1],x2=currX+gap,y2=self.linePos[1])
             currX += gap
 
@@ -761,8 +903,8 @@ class FlowPanel(wx.ScrolledWindow):
         #   font.SetPointSize(600/self.dpi)
         #   self.SetFont(font); pdc.SetFont(font)
         #   w,h = self.GetFullTextExtent(str(len(self.pointsToDraw)))[0:2]
-        #   pdc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
-        #   pdc.SetBrush(wx.Brush(wx.Color(0,0,0,255)))
+        #   pdc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
+        #   pdc.SetBrush(wx.Brush(wx.Colour(0,0,0,255)))
         #   pdc.DrawCircle(xPos,self.linePos[1], w+2)
         #   pdc.SetTextForeground([255,255,255])
         #   pdc.DrawText(str(n), xPos-w/2, self.linePos[1]-h/2)
@@ -780,7 +922,7 @@ class FlowPanel(wx.ScrolledWindow):
                 id = wx.NewId()
                 self.entryPointIDlist.append(id)
                 self.pdc.SetId(id)
-                self.pdc.SetBrush(wx.Brush(wx.Color(0,0,0,255)))
+                self.pdc.SetBrush(wx.Brush(wx.Colour(0,0,0,255)))
                 self.pdc.DrawCircle(pos,self.linePos[1], ptSize)
                 r = self.pdc.GetIdBounds(id)
                 self.OffsetRect(r)
@@ -814,15 +956,15 @@ class FlowPanel(wx.ScrolledWindow):
     def drawLineStart(self, dc, pos):
         #draw bar at start of timeline; circle looked bad, offset vertically
         ptSize = (3,3,4)[self.appData['flowSize']]
-        dc.SetBrush(wx.Brush(wx.Color(0,0,0, 255)))
-        dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+        dc.SetBrush(wx.Brush(wx.Colour(0,0,0, 255)))
+        dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
         dc.DrawPolygon([[0,-ptSize],[1,-ptSize],[1,ptSize], [0,ptSize]], pos[0],pos[1])
     def drawLineEnd(self, dc, pos):
         #draws arrow at end of timeline
         #tmpId = wx.NewId()
         #dc.SetId(tmpId)
-        dc.SetBrush(wx.Brush(wx.Color(0,0,0, 255)))
-        dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+        dc.SetBrush(wx.Brush(wx.Colour(0,0,0, 255)))
+        dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
         dc.DrawPolygon([[0,-3],[5,0],[0,3]], pos[0],pos[1])
         #dc.SetIdBounds(tmpId,wx.Rect(pos[0],pos[1]+3,5,6))
     def drawLoopEnd(self, dc, pos, downwards=True):
@@ -830,8 +972,8 @@ class FlowPanel(wx.ScrolledWindow):
         # idea: might want a wxID for grabbing and relocating the loop endpoint
         tmpId = wx.NewId()
         dc.SetId(tmpId)
-        #dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
-        #dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+        #dc.SetBrush(wx.Brush(wx.Colour(0,0,0, 250)))
+        #dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
         size = (3,4,5)[self.appData['flowSize']]
         #if downwards: dc.DrawPolygon([[size,0],[0,size],[-size,0]], pos[0],pos[1]+2*size)#points down
         #else: dc.DrawPolygon([[size,size],[0,0],[-size,size]], pos[0],pos[1]-3*size)#points up
@@ -841,8 +983,8 @@ class FlowPanel(wx.ScrolledWindow):
         # draws direction arrow on left side of a loop
         tmpId = wx.NewId()
         dc.SetId(tmpId)
-        dc.SetBrush(wx.Brush(wx.Color(0,0,0, 250)))
-        dc.SetPen(wx.Pen(wx.Color(0,0,0, 255)))
+        dc.SetBrush(wx.Brush(wx.Colour(0,0,0, 250)))
+        dc.SetPen(wx.Pen(wx.Colour(0,0,0, 255)))
         size = (3,4,5)[self.appData['flowSize']]
         offset = (3,2,0)[self.appData['flowSize']]
         if downwards:
@@ -892,7 +1034,7 @@ class FlowPanel(wx.ScrolledWindow):
         endX = pos[0]+w+pad
         #the edge should match the text
         if draw:
-            dc.SetPen(wx.Pen(wx.Color(rgbEdge[0],rgbEdge[1],rgbEdge[2], wx.ALPHA_OPAQUE)))
+            dc.SetPen(wx.Pen(wx.Colour(rgbEdge[0],rgbEdge[1],rgbEdge[2], wx.ALPHA_OPAQUE)))
             dc.SetBrush(wx.Brush(rgbFill))
             dc.DrawRoundedRectangleRect(rect, (4,6,8)[self.appData['flowSize']])
             #draw text
@@ -932,10 +1074,10 @@ class FlowPanel(wx.ScrolledWindow):
         curve = (6, 11, 15)[self.appData['flowSize']] #extra distance, in both h and w for curve
         yy = [base,height+curve*up,height+curve*up/2,height] # for area
         r,g,b=rgb
-        dc.SetPen(wx.Pen(wx.Color(r, g, b, 200)))
+        dc.SetPen(wx.Pen(wx.Colour(r, g, b, 200)))
         vertOffset=0 # 1 is interesting too
         area = wx.Rect(startX, base+vertOffset, endX-startX, max(yy)-min(yy))
-        dc.SetBrush(wx.Brush(wx.Color(0,0,0,0),style=wx.TRANSPARENT)) # transparent
+        dc.SetBrush(wx.Brush(wx.Colour(0,0,0,0),style=wx.TRANSPARENT)) # transparent
         dc.DrawRoundedRectangleRect(area, curve) # draws outline
         dc.SetIdBounds(tmpId, area)
 
@@ -979,9 +1121,9 @@ class FlowPanel(wx.ScrolledWindow):
         #draw box
         rect = wx.Rect(x, y, w+pad,h+pad)
         #the edge should match the text
-        dc.SetPen(wx.Pen(wx.Color(r, g, b, 100)))
+        dc.SetPen(wx.Pen(wx.Colour(r, g, b, 100)))
         #try to make the loop fill brighter than the background canvas:
-        dc.SetBrush(wx.Brush(wx.Color(235,235,235, 250)))
+        dc.SetBrush(wx.Brush(wx.Colour(235,235,235, 250)))
 
         dc.DrawRoundedRectangleRect(rect, (4,6,8)[self.appData['flowSize']])
         #draw text
@@ -1198,7 +1340,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         xEnd=self.timeXposEnd
 
         #dc.SetId(wx.NewId())
-        dc.SetPen(wx.Pen(wx.Color(0, 0, 0, 150)))
+        dc.SetPen(wx.Pen(wx.Colour(0, 0, 0, 150)))
         #draw horizontal lines on top and bottom
         dc.DrawLine(x1=xSt,y1=yPosTop,
                     x2=xEnd,y2=yPosTop)
@@ -1243,7 +1385,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         if startTime!=None and duration!=None:#then we can draw a sensible time bar!
             #calculate rectangle for component
             xScale = self.getSecsPerPixel()
-            dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0), style=wx.TRANSPARENT))
+            dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0), style=wx.TRANSPARENT))
             dc.SetBrush(wx.Brush(staticTimeColor))
             xSt = self.timeXposStart + startTime/xScale
             w = (duration)/xScale + 1  # +1 to compensate for border alpha=0 in dc.SetPen
@@ -1296,7 +1438,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         #draw entries on timeline (if they have some time definition)
         if startTime!=None and duration!=None:#then we can draw a sensible time bar!
             xScale = self.getSecsPerPixel()
-            dc.SetPen(wx.Pen(wx.Color(200, 100, 100, 0), style=wx.TRANSPARENT))
+            dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0), style=wx.TRANSPARENT))
             dc.SetBrush(wx.Brush(routineTimeColor))
             hSize = (3.5,2.75,2)[self.drawSize]
             yOffset = (3,3,0)[self.drawSize]
@@ -1320,18 +1462,27 @@ class RoutineCanvas(wx.ScrolledWindow):
         #check current timing settings of component (if it changes we need to update views)
         timings = component.getStartAndDuration()
         #create the dialog
-        dlg = DlgComponentProperties(frame=self.frame,
-            title=component.params['name'].val+' Properties',
-            params = component.params,
-            order = component.order,
-            helpUrl=helpUrl, editing=True)
+        if isinstance(component,components.code.CodeComponent):
+            dlg = CodeComponentDialog(frame=self.frame,
+                title=component.params['name'].val+' Properties',
+                params = component.params,
+                order = component.order,
+                helpUrl=helpUrl, editing=True)
+        else:
+            dlg = DlgComponentProperties(frame=self.frame,
+                title=component.params['name'].val+' Properties',
+                params = component.params,
+                order = component.order,
+                helpUrl=helpUrl, editing=True)
         if dlg.OK:
+            print 'DLG: ', dlg
             if component.getStartAndDuration() != timings:
                 self.redrawRoutine()#need to refresh timings section
                 self.Refresh()#then redraw visible
                 self.frame.flowPanel.draw()
 #                self.frame.flowPanel.Refresh()
             elif component.params['name'].val != old_name:
+                print 'name changed!:',component.params['name'].val ,old_name
                 self.redrawRoutine() #need to refresh name
             self.frame.exp.namespace.remove(old_name)
             self.frame.exp.namespace.add(component.params['name'].val)
@@ -1598,11 +1749,18 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         else:
             helpUrl=None
         #create component template
-        dlg = DlgComponentProperties(frame=self.frame,
-            title=componentName+' Properties',
-            params = newComp.params,
-            order = newComp.order,
-            helpUrl=helpUrl)
+        if componentName=='Code':
+            dlg = CodeComponentDialog(frame=self.frame,
+                title=componentName+' Properties',
+                params = newComp.params,
+                order = newComp.order,
+                helpUrl=helpUrl)
+        else:
+            dlg = DlgComponentProperties(frame=self.frame,
+                title=componentName+' Properties',
+                params = newComp.params,
+                order = newComp.order,
+                helpUrl=helpUrl)
 
         compName = newComp.params['name']
         if dlg.OK:
@@ -1909,6 +2067,7 @@ class _BaseParamsDlg(wx.Dialog):
             showAdvanced=False,
             size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL,editing=False):
+
         wx.Dialog.__init__(self, frame,-1,title,size=size,style=style)
         self.frame=frame
         self.app=frame.app
@@ -2853,6 +3012,7 @@ class DlgComponentProperties(_BaseParamsDlg):
         if self.OK:
             self.params = self.getParams()#get new vals from dlg
         self.Destroy()
+
     def onStoreCorrectChange(self,event=None):
         """store correct has been checked/unchecked. Show or hide the correctAns field accordingly"""
         if self.paramCtrls['storeCorrect'].valueCtrl.GetValue():
@@ -3541,7 +3701,7 @@ class BuilderFrame(wx.Frame):
                             pos=(int(self.frameData['winX']), int(self.frameData['winY'])),
                             size=(int(self.frameData['winW']),int(self.frameData['winH'])),
                             style=style)
-
+        self.Bind(wx.EVT_CLOSE, self.closeFrame)
         self.panel = wx.Panel(self)
         #create icon
         if sys.platform=='darwin':
@@ -4373,9 +4533,13 @@ class ReadmeFrame(wx.Frame):
         pos=wx.Point(parent.Position[0]+80, parent.Position[1]+80 )
         wx.Frame.__init__(self, parent, title=title, size=(600,500),pos=pos,
             style=wx.DEFAULT_FRAME_STYLE | wx.FRAME_FLOAT_ON_PARENT)
+        self.Bind(wx.EVT_CLOSE, self.onClose)
         self.Hide()
         self.makeMenus()
         self.ctrl = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+    def onClose(self, evt=None):
+        self.parent.readmeFrame = None
+        self.Destroy()
     def makeMenus(self):
         """ IDs are from app.wxIDs"""
 

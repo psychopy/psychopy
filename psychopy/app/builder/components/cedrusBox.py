@@ -195,7 +195,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         buff.writeIndented("    evt = %(name)s.get_next_response()\n" %self.params)
         if len(keyCheckStr):
             buff.writeIndented("    if evt['key'] not in %s:\n" %keyList)
-            buff.writeIndented("        continue #we don't care about this key\n" %keyList)
+            buff.writeIndented("        continue #we don't care about this key\n")
         buff.writeIndented("    if evt['pressed']: #could be extended to examine releases too?\n")
         buff.writeIndented("      theseKeys.append(evt['key'])\n")
         if useBoxTimer:
