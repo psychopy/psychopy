@@ -187,6 +187,8 @@ class BaseVisualStim(object):
         :ref:`scalar <attrib-scalar>`. :ref:`operations <attrib-operations>` supported.
             Set the stimulus orientation in degrees.
             ori can be greater than 360 and smaller than 0.
+            An ori of 0 is vertical, and increasing ori values are increasingly
+            clockwise.
         """
         self.__dict__['ori'] = value
 

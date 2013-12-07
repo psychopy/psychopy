@@ -120,7 +120,10 @@ class ElementArrayStim(object):
                 elements)
 
             oris :
-                the orientations of the elements (Nx1 or a single value)
+                the orientations of the elements (Nx1 or a single value). oris
+                are in degrees, and can be greater than 360 and smaller than 0.
+                An ori of 0 is vertical, and increasing ori values are
+                increasingly clockwise.
 
             sfs :
                 the spatial frequencies of the elements (Nx1, Nx2 or a single
@@ -278,6 +281,10 @@ class ElementArrayStim(object):
             pass #is already Nx1
         else:
             raise ValueError("New value for setOris should be either Nx1 or a single value")
+
+        # flip orientation so, when drawn, it matches the convention of other
+        # visual stimuli
+        value = -value
 
         #set value
         setWithOperation(self, 'oris', value, operation)
