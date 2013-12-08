@@ -54,7 +54,7 @@ class TextComponent(VisualComponent):
             label="Wrap width")
         self.params['flip']=Param(flip, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat', 'set every frame'],
-            hint="'horiz' = left-right reversed; 'vert' = up-down reversed; $var = variable",
+            hint="horiz = left-right reversed; vert = up-down reversed; $var = variable",
             label="Flip (mirror)")
 
     def writeInitCode(self,buff):
@@ -70,7 +70,9 @@ class TextComponent(VisualComponent):
         buff.writeIndented("    font=%(font)s,\n" %inits)
         buff.writeIndented("    "+unitsStr+"pos=%(pos)s, height=%(letterHeight)s, wrapWidth=%(wrapWidth)s,\n" %(inits))
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" %(inits))
-        flip = self.params['flip'].val
+        flip = self.params['flip'].val.strip()
+        if flip and not flip in ['horiz', 'vert']:
+            raise ValueError("flip value should be 'horiz' or 'vert' (no quotes) in component '%s'" % self.params['name'].val)
         if flip == 'horiz':
             buff.writeIndented("    flipHoriz=%s," % bool(flip == 'horiz') )
         elif flip == 'vert':
