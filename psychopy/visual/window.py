@@ -81,10 +81,6 @@ try:
 except:
     pass
 
-#do we want to use the frameBufferObject (if available an needed)?
-global useFBO
-useFBO = False
-
 global DEBUG
 DEBUG = False
 
@@ -134,7 +130,9 @@ class Window:
                  waitBlanking=True,
                  allowStencil=False,
                  stereo=False,
-                 name='window1'):
+                 name='window1',
+                 checkTiming=True,
+                 useFBO=False):
         """
         :Parameters:
 
@@ -201,7 +199,7 @@ class Window:
         self.pos = pos
         # this will get overridden once the window is created
         self.winHandle = None
-        self.useFBO = False  # override during setupPyglet if needed
+        self.useFBO = useFBO
 
         self._toLog = []
         self._toCall = []
@@ -290,10 +288,9 @@ class Window:
         #check whether FBOs are supported
         if blendMode == 'add' and not self.useFBO:
             logging.warning('User requested a blendmode of "add" but '
-                            'framebuffer objects not available. '
-                            'You need PyOpenGL3.0+ to use this blend mode')
+                            'framebuffer objects not available.')
             # resort to the simpler blending without float rendering
-            self.blendMode = 'average'
+            self.blendMode = 'avg'
         else:
             self.blendMode = blendMode
 
@@ -327,7 +324,9 @@ class Window:
         self._refreshThreshold = 1/1.0  # initial val needed by flip()
 
         # over several frames with no drawing
-        self._monitorFrameRate = self.getActualFrameRate()
+        self._monitorFrameRate=None
+        if checkTiming:
+            self._monitorFrameRate = self.getActualFrameRate()
         if self._monitorFrameRate is not None:
             self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
         else:
@@ -336,6 +335,11 @@ class Window:
         global currWindow
         currWindow = self
         openWindows.append(self)
+
+    def __del__(self):
+        if self.useFBO:
+            GL.glDeleteTextures(1, self.frameTexture)
+            GL.glDeleteFramebuffersEXT( 1, self.frameBuffer)
 
     def setRecordFrameIntervals(self, value=True):
         """To provide accurate measures of frame intervals, to determine
@@ -448,13 +452,16 @@ class Window:
         global currWindow
         for thisStim in self._toDraw:
             thisStim.draw()
+        logging.debug("flipping win")
 
         if self.useFBO:
-            GL.glUseProgram(0)
+            logging.debug("blitting FBO")
+            GL.glUseProgram(self._progFBOtoFrame)
             #need blit the frambuffer object to the actual back buffer
 
             # unbind the framebuffer as the render target
             GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+            GL.glDisable(GL.GL_BLEND)
 
             # before flipping need to copy the renderBuffer to the frameBuffer
             GL.glActiveTexture(GL.GL_TEXTURE0)
@@ -477,6 +484,8 @@ class Window:
             GL.glVertex2f(1.0, -1.0)
 
             GL.glEnd()
+            GL.glEnable(GL.GL_BLEND)
+            GL.glUseProgram(0)
 
         #update the bits++ LUT
         if self.bitsMode in ['fast', 'bits++']:
@@ -511,11 +520,12 @@ class Window:
 
         if self.useFBO:
             #set rendering back to the framebuffer object
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)  # ubind the frame texture
-            #bind the FBO the frameBuffer
             GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            #set to no active rendering texture
+            GL.glActiveTexture(GL.GL_TEXTURE0)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
         #rescale/reposition view of the window
         if self.viewScale:
@@ -896,6 +906,13 @@ class Window:
         self.frames = 0
         return fps
 
+    def setBlendMode(self, blendMode):
+        self.blendMode = blendMode
+        if blendMode=='avg':
+            GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+        elif blendMode=='add':
+            GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE)
+
     def setColor(self, color, colorSpace=None, operation=''):
         """Set the color of the window.
 
@@ -1162,9 +1179,10 @@ class Window:
         if self.stereo and not GL.gl_info.have_extension('GL_STEREO'):
             logging.warning('A stereo window was requested but the graphics '
                             'card does not appear to support GL_STEREO')
-        global useFBO
-        if GL.gl_info.have_extension('GL_EXT_framebuffer_object') and useFBO:
-            self.useFBO = True
+
+        if self.useFBO and not GL.gl_info.have_extension('GL_EXT_framebuffer_object'):
+            logging.warn("Trying to use a framebuffer pbject but GL_EXT_framebuffer_object is not supported. Disabling")
+            self.useFBO=False
         #add these methods to the pyglet window
         self.winHandle.setGamma = setGamma
         self.winHandle.setGammaRamp = setGammaRamp
@@ -1318,9 +1336,6 @@ class Window:
         if not GL.gl_info.have_extension('GL_ARB_texture_float'):
             self._haveShaders = False
 
-        if self._haveShaders:
-            self._setupShaders()
-
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
         #identify gfx card vendor
@@ -1332,30 +1347,20 @@ class Window:
         if self.useFBO:
             self._setupFrameBuffer()
 
+        if self._haveShaders: #do this after setting up FrameBufferObject
+            self._setupShaders()
+
     def _setupShaders(self):
-        if self.winType == 'pyglet':
-            #we should be able to compile shaders (don't just 'try')
-            # fragSignedColorTexMask
-            self._progSignedTexMask = _shaders.compileProgram(
-                _shaders.vertSimple, _shaders.fragSignedColorTexMask)
-            self._progSignedTex = _shaders.compileProgram(
-                _shaders.vertSimple, _shaders.fragSignedColorTex)
-            self._progSignedTexMask1D = _shaders.compileProgram(
-                _shaders.vertSimple, _shaders.fragSignedColorTexMask1D)
-            self._progSignedTexFont = _shaders.compileProgram(
-                _shaders.vertSimple, _shaders.fragSignedColorTexFont)
-        #on PyOpenGL we should try to get an init value
-#        elif self.winType=='pygame':
-#            from OpenGL.GL.ARB import shader_objects
-#            if shader_objects.glInitShaderObjectsARB():
-#                self._haveShaders=True
-#                # fragSignedColorTexMask
-#                self._progSignedTexMask = _shaders.compileProgram(
-#                    _shaders.vertSimple, _shaders.fragSignedColorTexMask)
-#                self._progSignedTex = _shaders.compileProgram(
-#                    _shaders.vertSimple, _shaders.fragSignedColorTex)
-#            else:
-#                self._haveShaders=False
+        self._progSignedTexFont = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexFont)
+        self._progFBOtoFrame = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragFBOtoFrame)
+        if self.useFBO:
+            self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask_withFBO)
+            self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex_withFBO)
+            self._progSignedTexMask1D = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask1D_withFBO)
+        else:
+            self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)
+            self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
+            self._progSignedTexMask1D = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask1D)
 
     def _setupFrameBuffer(self):
         # Setup framebuffer
@@ -1382,6 +1387,10 @@ class Window:
                                      GL.GL_COLOR_ATTACHMENT0_EXT,
                                      GL.GL_TEXTURE_2D, self.frameTexture, 0)
 
+        status = GL.glCheckFramebufferStatusEXT (GL.GL_FRAMEBUFFER_EXT);
+        if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
+            print "Error in framebuffer activation"
+            return
         status = GL.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT)
         if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
             logging.error("Error in framebuffer activation")

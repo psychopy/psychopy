@@ -65,8 +65,33 @@ def compileProgram(vertexSource=None, fragmentSource=None):
 
         return program
 
+"""NOTE about frag shaders using FBO. If a floating point texture is being used
+as a frame buffer (FBO object) then we should keep in the range -1:1 during frag
+shader. Otherwise we need to convert to 0:1. This means that some shaders
+differ for FBO use if they're performing any signed math
+
+"""
+
+fragFBOtoFrame = '''
+    uniform sampler2D texture;
+
+    float rand(vec2 seed){
+        return fract(sin(dot(seed.xy ,vec2(12.9898,78.233))) * 43758.5453);
+    }
+
+    void main() {
+        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+        gl_FragColor.rgb = textureFrag.rgb;
+        if ( gl_FragColor.r>1.0 || gl_FragColor.g>1.0 || gl_FragColor.b>1.0) {
+            gl_FragColor.rgb = vec3 (rand(gl_TexCoord[0].st), 0, 0);
+        }
+        else if ( gl_FragColor.r<0.0 || gl_FragColor.g<0.0 || gl_FragColor.b<0.0) {
+            gl_FragColor.rgb = vec3 (0, 0, rand(gl_TexCoord[0].st));
+        }
+    }
+    '''
+
 fragSignedColor = '''
-    // Fragment program
     uniform sampler2D texture;
     void main() {
         vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
@@ -74,7 +99,6 @@ fragSignedColor = '''
     }
     '''
 fragSignedColorTex = '''
-    // Fragment program
     uniform sampler2D texture;
     void main() {
         vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
@@ -82,9 +106,16 @@ fragSignedColorTex = '''
         gl_FragColor.a = gl_Color.a*textureFrag.a;
     }
     '''
+fragSignedColorTex_withFBO = '''
+    uniform sampler2D texture;
+    void main() {
+        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+        gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0);
+        gl_FragColor.a = gl_Color.a * textureFrag.a;
+    }
+    '''
 #the shader for pyglet fonts doesn't use multitextures - just one texture
 fragSignedColorTexFont = '''
-    // Fragment program
     uniform sampler2D texture;
     uniform vec3 rgb;
     void main() {
@@ -94,26 +125,41 @@ fragSignedColorTexFont = '''
     }
     '''
 fragSignedColorTexMask = '''
-    // Fragment program
     uniform sampler2D texture, mask;
     void main() {
         vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
         vec4 maskFrag = texture2D(mask,gl_TexCoord[1].st);
         gl_FragColor.a = gl_Color.a*maskFrag.a*textureFrag.a;
-        //
         gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;
     }
     '''
+fragSignedColorTexMask_withFBO = '''
+    uniform sampler2D texture, mask;
+    void main() {
+        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+        vec4 maskFrag = texture2D(mask,gl_TexCoord[1].st);
+        gl_FragColor.a = gl_Color.a * maskFrag.a * textureFrag.a;
+        gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0);
+    }
+    '''
 fragSignedColorTexMask1D = '''
-    // Fragment program
     uniform sampler2D texture;
     uniform sampler1D mask;
     void main() {
         vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
         vec4 maskFrag = texture1D(mask,gl_TexCoord[1].s);
         gl_FragColor.a = gl_Color.a*maskFrag.a*textureFrag.a;
-        //
         gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;
+    }
+    '''
+fragSignedColorTexMask1D_withFBO = '''
+    uniform sampler2D texture;
+    uniform sampler1D mask;
+    void main() {
+        vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
+        vec4 maskFrag = texture1D(mask,gl_TexCoord[1].s);
+        gl_FragColor.a = gl_Color.a * maskFrag.a*textureFrag.a;
+        gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0);
     }
     '''
 vertSimple = """
@@ -125,70 +171,3 @@ vertSimple = """
             gl_Position =  ftransform();
     }
     """
-cartoonVertexSource = '''
-    // Vertex program
-    varying vec3 normal;
-    void main() {
-        normal = gl_NormalMatrix * gl_Normal;
-        gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-    }
-    '''
-cartoonFragSource = '''
-    // Fragment program
-    varying vec3 normal;
-    void main() {
-        float intensity;
-        vec4 color;
-        vec3 n = normalize(normal);
-        vec3 l = normalize(gl_LightSource[0].position).xyz;
-
-        // quantize to 5 steps (0, .25, .5, .75 and 1)
-        intensity = (floor(dot(l, n) * 4.0) + 1.0)/4.0;
-        color = vec4(intensity*1.0, intensity*0.5, intensity*0.5,
-            intensity*1.0);
-
-        gl_FragColor = color;
-    }
-    '''
-
-expoShaderTxt="""
-!!ARBfp1.0
-
-# Texture units:
-#   0 - pattern texture
-#   1 - surface mask texture
-#   2 - overlay texture
-
-ATTRIB pattern    = fragment.texcoord[0];
-ATTRIB surfacemask    = fragment.texcoord[1];
-ATTRIB overlaypattern = fragment.texcoord[2];
-
-# Offset & scale constants
-PARAM  offset    = { 0.5, 0.5, 0.5, 0.0 };
-PARAM  gain    = { 2.0, 2.0, 2.0, 1.0 };
-PARAM  contrast    = program.local[0];
-PARAM  ocontrast = program.local[1];
-
-# temp registers
-TEMP t0, t1, t2;
-
-# Get the current textel values into registers
-TEX t0, pattern, texture[0], 2D;
-TEX t1, surfacemask, texture[1], 2D;
-TEX t2, overlaypattern, texture[2], 2D;
-
-# Combine values
-SUB t2.rgb, t2, offset;        # make signed overlay texture
-MUL t2, t2, ocontrast;        # multiply texture and contrast (including alpha)
-
-SUB t0.rgb, t0, offset;        # make signed pattern texture value
-MUL t0, t0, contrast;        # multiply texture and contrast (including alpha)
-
-MUL t0.rgb, t0, gain;        # x 2, anticipating 0.5 x 0.5 texture multiplication
-
-MUL t0.a, t0, t1;            # multiply base texture by surface mask (currently only alpha [later for lum-alpha])
-MAD result.color, t0, t2, offset;   # multiply base and overlay, restore offset
-
-END
-
-"""

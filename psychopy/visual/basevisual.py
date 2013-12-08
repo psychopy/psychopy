@@ -557,11 +557,12 @@ class BaseVisualStim(object):
             rgb = (rgb / 255.0) * 2 - 1
 
         # Convert to RGB in range 0:1 and scaled for contrast
+        # although the shader then has to convert it back it gets clamped en route otherwise
         desiredRGB = (rgb * contrast + 1) / 2.0
-
-        # Check that boundaries are not exceeded
-        if numpy.any(desiredRGB > 1.0) or numpy.any(desiredRGB < 0):
-            logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
-            desiredRGB=[0.0, 0.0, 1.0]
+        if not self.win.useFBO:
+            # Check that boundaries are not exceeded. If we have an FBO that can handle this
+            if numpy.any(desiredRGB > 1.0) or numpy.any(desiredRGB < 0):
+                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead' %desiredRGB) #AOH
+                desiredRGB=[0.0, 0.0, 1.0]
 
         return desiredRGB
