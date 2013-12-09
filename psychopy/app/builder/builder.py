@@ -2073,26 +2073,19 @@ class _BaseParamsDlg(wx.Dialog):
         self.app=frame.app
         self.dpi=self.app.dpi
         self.helpUrl=helpUrl
-        self.Center()
-        self.panel = wx.Panel(self, -1)
         self.params=params   #dict
         self.title = title
         if not editing and title != 'Experiment Settings' and 'name' in self.params.keys():
             # then we're adding a new component, so provide a known-valid name:
             self.params['name'].val = self.frame.exp.namespace.makeValid(params['name'].val)
         self.paramCtrls={}
+        self.suppressTitles = suppressTitles
         self.showAdvanced=showAdvanced
         self.order=order
         self.data = []
-        self.ctrlSizer= wx.GridBagSizer(vgap=2,hgap=2)
-        self.ctrlSizer.AddGrowableCol(1)#valueCtrl column
-        self.currRow = 0
-        self.advCtrlSizer= wx.GridBagSizer(vgap=2,hgap=2)
-        self.advCurrRow = 0
         self.nameOKlabel=None
         self.maxFieldLength = 10#max( len(str(self.params[x])) for x in keys )
         types=dict([])
-        self.useUpdates=False#does the dlg need an 'updates' row (do any params use it?)
         self.timeParams=['startType','startVal','stopType','stopVal']
         self.codeFieldNameFromID = {}
         self.codeIDFromFieldName = {}
@@ -2107,16 +2100,60 @@ class _BaseParamsDlg(wx.Dialog):
         else:
             self.faceSize = 12
 
+        #organise the params by category
+        categs = {'Basic':[]}
+        for thisName in self.params:
+            thisParam = self.params[thisName]
+            if type(thisParam)==list:
+                continue#not really a param as such
+            thisCateg = thisParam.categ
+            if thisCateg not in categs:
+                categs[thisCateg] = [thisParam]
+            else:
+                categs[thisCateg].append(thisParam)
+        if not categs['Basic']: #there were no entries of this categ so delete it
+            del categs['Basic']
+
+        #create main sizer
+        self.mainSizer=wx.BoxSizer(wx.VERTICAL)
+        if len(categs)==1:
+            #we only have one category so don't bother with tabs
+            panel = wx.Panel(self, -1)
+            self.addCategoryOfParams(self.params, parent=self)
+            self.mainSizer.Add(self.ctrlSizer,flag=wx.EXPAND|wx.ALL)#add main controls
+            if hasattr(self, 'advParams') and len(self.advParams)>0:#add advanced controls
+                self.mainSizer.Add(self.advPanel,flag=wx.EXPAND|wx.ALL,border=5)
+        else:
+            self.pages = wx.aui.AuiNotebook(self, -1)
+            for categName in categs:
+                theseParams = categs[categName]
+                page = wx.ScrolledWindow(self.pages, -1)
+                self.addCategoryOfParams(theseParams, parent=page)
+                page.SetSizerAndFit(self.ctrlSizer)
+                self.pages.AddPage(page, categName)
+            self.mainSizer.Add(self.pages, flag=wx.EXPAND|wx.ALL)#add main controls
+
+    def addCategoryOfParams(self, params, parent):
+        """Add all the params for a single category (after its tab has been created)
+        """
+        #create the sizers to fit the params and set row to zero
+        self.ctrlSizer= wx.GridBagSizer(vgap=2,hgap=2)
+        self.ctrlSizer.AddGrowableCol(1)#valueCtrl column
+        self.currRow = 0
+        self.advCtrlSizer= wx.GridBagSizer(vgap=2,hgap=2)
+        self.advCurrRow = 0
+        self.useUpdates=False#does the dlg need an 'updates' row (do any params use it?)
+
         #create a header row of titles
-        if not suppressTitles:
+        if not self.suppressTitles:
             size=wx.Size(1.5*self.dpi,-1)
-            self.ctrlSizer.Add(wx.StaticText(self,-1,'Parameter',size=size, style=wx.ALIGN_CENTER),(self.currRow,0))
-            self.ctrlSizer.Add(wx.StaticText(self,-1,'Value',size=size, style=wx.ALIGN_CENTER),(self.currRow,1))
+            self.ctrlSizer.Add(wx.StaticText(parent,-1,'Parameter',size=size, style=wx.ALIGN_CENTER),(self.currRow,0))
+            self.ctrlSizer.Add(wx.StaticText(parent,-1,'Value',size=size, style=wx.ALIGN_CENTER),(self.currRow,1))
             #self.sizer.Add(wx.StaticText(self,-1,'Value Type',size=size, style=wx.ALIGN_CENTER),(self.currRow,3))
-            self.ctrlSizer.Add(wx.StaticText(self,-1,'Updates',size=size, style=wx.ALIGN_CENTER),(self.currRow,2))
+            self.ctrlSizer.Add(wx.StaticText(parent,-1,'Updates',size=size, style=wx.ALIGN_CENTER),(self.currRow,2))
             self.currRow+=1
             self.ctrlSizer.Add(
-                wx.StaticLine(self, size=wx.Size(100,20)),
+                wx.StaticLine(parent, size=wx.Size(100,20)),
                 (self.currRow,0),(1,2), wx.ALIGN_CENTER|wx.EXPAND)
         self.currRow+=1
 
@@ -2126,7 +2163,8 @@ class _BaseParamsDlg(wx.Dialog):
         if 'advancedParams' in self.params.keys():
             self.advParams=self.params['advancedParams']
             remaining.remove('advancedParams')
-        else:self.advParams=[]
+        else:
+            self.advParams=[]
 
         #start with the name (always)
         if 'name' in remaining:
@@ -2353,16 +2391,17 @@ class _BaseParamsDlg(wx.Dialog):
         This method returns wx.ID_OK (as from ShowModal), but also
         sets self.OK to be True or False
         """
+        #add a label to check name
         if 'name' in self.params.keys():
             if len(self.params['name'].val):
                 nameInfo='Need a name'
-            else: nameInfo=''
+            else:
+                nameInfo=''
             self.nameOKlabel=wx.StaticText(self,-1,nameInfo,size=(300,25),
                                         style=wx.ALIGN_RIGHT)
             self.nameOKlabel.SetForegroundColour(wx.RED)
-
+            self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
         #add buttons for OK and Cancel
-        self.mainSizer=wx.BoxSizer(wx.VERTICAL)
         buttons = wx.StdDialogButtonSizer()
         #help button if we know the url
         if self.helpUrl!=None:
@@ -2377,16 +2416,11 @@ class _BaseParamsDlg(wx.Dialog):
             self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
         self.OKbtn.SetDefault()
         self.checkName() # disables OKbtn if bad name
-
         buttons.Add(self.OKbtn, 0, wx.ALL,border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         buttons.Add(CANCEL, 0, wx.ALL,border=3)
         buttons.Realize()
-        #put it all together
-        self.mainSizer.Add(self.ctrlSizer,flag=wx.EXPAND|wx.ALL)#add main controls
-        if hasattr(self, 'advParams') and len(self.advParams)>0:#add advanced controls
-            self.mainSizer.Add(self.advPanel,flag=wx.EXPAND|wx.ALL,border=5)
-        if self.nameOKlabel: self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
+        #add to sizer
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.border = wx.BoxSizer(wx.VERTICAL)
         self.border.Add(self.mainSizer, flag=wx.ALL|wx.EXPAND, border=8)
@@ -2397,8 +2431,10 @@ class _BaseParamsDlg(wx.Dialog):
 
         #do show and process return
         retVal = self.ShowModal()
-        if retVal== wx.ID_OK: self.OK=True
-        else:  self.OK=False
+        if retVal== wx.ID_OK:
+            self.OK=True
+        else:
+            self.OK=False
         return wx.ID_OK
 
     def Validate(self, *args, **kwargs):
@@ -2658,6 +2694,9 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.makeConstantsCtrls()#the controls for Method of Constants
         self.makeMultiStairCtrls()
         self.setCtrls(self.currentType)
+
+        self.mainSizer=wx.BoxSizer(wx.VERTICAL)
+        self.mainSizer.Add(self.ctrlSizer,flag=wx.EXPAND|wx.ALL)#add main controls
 
         #show dialog and get most of the data
         self.show()

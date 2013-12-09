@@ -27,47 +27,61 @@ class SettingsComponent:
             hint="Name of the entire experiment (taken by default from the filename on save)",
             label="Experiment name")
         self.params['Full-screen window']=Param(fullScr, valType='bool', allowedTypes=[],
-            hint="Run the experiment full-screen (recommended)")
+            hint="Run the experiment full-screen (recommended)",
+            categ='Screen')
         self.params['Window size (pixels)']=Param(winSize, valType='code', allowedTypes=[],
             hint="Size of window (if not fullscreen)")
         self.params['Screen']=Param(screen, valType='num', allowedTypes=[],
-            hint="Which physical screen to run on (1 or 2)")
+            hint="Which physical screen to run on (1 or 2)",
+            categ='Screen')
         self.params['Monitor']=Param(monitor, valType='str', allowedTypes=[],
             hint="Name of the monitor (from Monitor Center). Right-click to go there, then copy & paste a monitor name here.")
         self.params['color']=Param(color, valType='str', allowedTypes=[],
             hint="Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)",
-            label="Color")
+            label="Color",
+            categ='Screen')
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             hint="Needed if color is defined numerically (see PsychoPy documentation on color spaces)")
         self.params['Units']=Param(units, valType='str', allowedTypes=[],
             allowedVals=['use prefs', 'deg','pix','cm','norm','height'],
-            hint="Units to use for window/stimulus coordinates (e.g. cm, pix, deg")
+            hint="Units to use for window/stimulus coordinates (e.g. cm, pix, deg)",
+            categ='Screen')
         self.params['Show mouse']=Param(showMouse, valType='bool', allowedTypes=[],
-            hint="Should the mouse be visible on screen?")
+            hint="Should the mouse be visible on screen?",
+            categ='Screen')
         self.params['Save log file']=Param(saveLogFile, valType='bool', allowedTypes=[],
-            hint="Save a detailed log (more detailed than the excel/csv files) of the entire experiment")
+            hint="Save a detailed log (more detailed than the excel/csv files) of the entire experiment",
+            categ='Data')
         self.params['Save wide csv file']=Param(saveWideCSVFile, valType='bool', allowedTypes=[],
             hint="Save data from loops in comma-separated-value (.csv) format for maximum portability",
-            label="Save csv file (trial-by-trial)")
+            label="Save csv file (trial-by-trial)",
+            categ='Data')
         self.params['Save csv file']=Param(saveCSVFile, valType='bool', allowedTypes=[],
             hint="Save data from loops in comma-separated-value (.csv) format for maximum portability",
-            label="Save csv file (summaries)")
+            label="Save csv file (summaries)",
+            categ='Data')
         self.params['Save excel file']=Param(saveXLSXFile, valType='bool', allowedTypes=[],
-            hint="Save data from loops in Excel (.xlsx) format")
+            hint="Save data from loops in Excel (.xlsx) format",
+            categ='Data')
         self.params['Save psydat file']=Param(savePsydatFile, valType='bool', allowedVals=[True],
-            hint="Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.")
+            hint="Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.",
+            categ='Data')
         self.params['Saved data folder']=Param(savedDataFolder, valType='code', allowedTypes=[],
-            hint="Name of the folder in which to save data and log files (blank defaults to the builder pref)")
+            hint="Name of the folder in which to save data and log files (blank defaults to the builder pref)",
+            categ='Data')
         self.params['Show info dlg']=Param(showExpInfo, valType='bool', allowedTypes=[],
-            hint="Start the experiment with a dialog to set info (e.g.participant or condition)")
+            hint="Start the experiment with a dialog to set info (e.g.participant or condition)",
+            categ='Data')
         self.params['Enable Escape']=Param(enableEscape, valType='bool', allowedTypes=[],
             hint="Enable the <esc> key, to allow subjects to quit / break out of the experiment")
         self.params['Experiment info']=Param(expInfo, valType='code', allowedTypes=[],
-            hint="The info to present in a dialog box. Right-click to check syntax and preview the dialog box.")
+            hint="The info to present in a dialog box. Right-click to check syntax and preview the dialog box.",
+            categ='Data')
         self.params['logging level']=Param(logging, valType='code',
             allowedVals=['error','warning','data','exp','info','debug'],
             hint="How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)",
-            label="Logging level")
+            label="Logging level",
+            categ='Data')
     def getType(self):
         return self.__class__.__name__
     def getShortType(self):
@@ -136,7 +150,7 @@ class SettingsComponent:
            for thisComp in thisRoutine: #a single routine is a list of components
                if thisComp.type=='Aperture': allowStencil = True
                if thisComp.type=='RatingScale': allowGUI = True # to have a mouse; BUT might not want it shown in other routines
-               
+
         requestedScreenNumber = int(self.params['Screen'].val)
         if requestedScreenNumber > wx.Display.GetCount():
             logging.warn("Requested screen can't be found. Writing script using first available screen.")
