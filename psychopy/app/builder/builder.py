@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
-from wx.lib import platebtn, scrolledpanel
+from wx.lib import platebtn, scrolledpanel, flatnotebook
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 import wx.aui, wx.stc
 import sys, os, glob, copy, shutil, traceback
@@ -255,7 +255,8 @@ class CodeComponentDialog(wx.Dialog):
             self.params['name'].val = self.frame.exp.namespace.makeValid(params['name'].val)
 
 
-        self.code_sections = wx.Notebook(self, wx.ID_ANY, style=0)
+        self.code_sections = flatnotebook.FlatNotebook(self, wx.ID_ANY,
+            agwStyle=flatnotebook.FNB_NO_X_BUTTON | flatnotebook.FNB_NAV_BUTTONS_WHEN_NEEDED)
 
         for pkey in self.order:
             param=self.params.get(pkey)
