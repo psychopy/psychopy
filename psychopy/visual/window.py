@@ -528,7 +528,7 @@ class Window:
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
         #rescale/reposition view of the window
-        if self.viewScale:
+        if self.viewScale is not None:
             GL.glMatrixMode(GL.GL_PROJECTION)
             GL.glLoadIdentity()
             GL.glOrtho(-1, 1, -1, 1, -1, 1)
@@ -536,7 +536,7 @@ class Window:
         else:
             GL.glLoadIdentity()  # still worth loading identity
 
-        if self.viewPos:
+        if self.viewPos is not None:
             GL.glMatrixMode(GL.GL_MODELVIEW)
             if not self.viewScale:
                 scale = [1, 1]
