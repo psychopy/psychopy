@@ -30,7 +30,7 @@ be the number entered into the device_number parameter setting for the ioHub
 AnalogInput Device.   
 
 Finally, the .cal file create for the device may need to be copied
-from the Measurement Comuping Program Files folder to the folder that contains
+from the Measurement Computing Program Files folder to the folder that contains
 your experiment script.
 
 Default LabJack AnalogInput Device Settings
