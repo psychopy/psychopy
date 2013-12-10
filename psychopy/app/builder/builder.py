@@ -2116,17 +2116,9 @@ class _BaseParamsDlg(wx.Dialog):
 
         #create main sizer
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
-#        if len(categs)==1:
-#            #we only have one category so don't bother with tabs
-#            panel = wx.Panel(self, -1)
-#            self.ctrls = self.addCategoryOfParams(self.params, parent=self)
-#            self.mainSizer.Add(self.ctrls, flag=wx.EXPAND|wx.ALL)#add main controls
-#            if hasattr(self, 'advParams') and len(self.advParams)>0:#add advanced controls
-#                self.mainSizer.Add(self.advPanel,flag=wx.EXPAND|wx.ALL,border=5)
-#        else:
         self.ctrls = flatnotebook.FlatNotebook(self,
             agwStyle = flatnotebook.FNB_NO_X_BUTTON | flatnotebook.FNB_NO_TAB_FOCUS | flatnotebook.FNB_NO_NAV_BUTTONS \
-                )#flatnotebook.FNB_HIDE_ON_SINGLE_TAB)
+                | flatnotebook.FNB_HIDE_ON_SINGLE_TAB)
         self.mainSizer.Add(self.ctrls, flag=wx.EXPAND|wx.ALL)#add main controls
         categNames = sorted(categs)
         if 'Basic' in categNames:
@@ -2343,7 +2335,7 @@ class _BaseParamsDlg(wx.Dialog):
     def onNewTextSize(self, event):
         self.Fit()#for ExpandoTextCtrl this is needed
 
-    def addText(self, text, parent, sizer, size, currRowsize=None):
+    def addText(self, text, parent, sizer, size, currRow=None):
         if parent==None:
             parent=self
         if size==None:
@@ -2352,7 +2344,7 @@ class _BaseParamsDlg(wx.Dialog):
                                 label=text,
                                 style=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL,
                                 size=size)
-        sizer.Add(myTxt,wx.EXPAND)#add to current row spanning entire
+        sizer.Add(myTxt, (currRow, 0))#add to current row spanning entire
         return myTxt
     def show(self):
         """Adds an OK and cancel button, shows dialogue.
@@ -2369,7 +2361,7 @@ class _BaseParamsDlg(wx.Dialog):
             self.nameOKlabel=wx.StaticText(self,-1,nameInfo,size=(300,25),
                                         style=wx.ALIGN_RIGHT)
             self.nameOKlabel.SetForegroundColour(wx.RED)
-            self.ctrlSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
+            self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
         #add buttons for OK and Cancel
         buttons = wx.StdDialogButtonSizer()
         #help button if we know the url
@@ -2390,10 +2382,10 @@ class _BaseParamsDlg(wx.Dialog):
         buttons.Add(CANCEL, 0, wx.ALL,border=3)
         buttons.Realize()
         #add to sizer
-        self.ctrlSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
-        self.border = wx.BoxSizer(wx.VERTICAL)
-        self.border.Add(self.ctrlSizer, flag=wx.ALL|wx.EXPAND, border=8)
-        self.SetSizerAndFit(self.border)
+        self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
+        border = wx.BoxSizer(wx.VERTICAL)
+        border.Add(self.mainSizer, flag=wx.ALL|wx.EXPAND, border=8)
+        self.SetSizerAndFit(border)
         #move the position to be v near the top of screen and to the right of the left-most edge of builder
         builderPos = self.frame.GetPosition()
         self.SetPosition((builderPos[0]+200,20))
@@ -2611,7 +2603,6 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.app=frame.app
         self.dpi=self.app.dpi
         self.params={}
-        self.Center()
         self.panel = wx.Panel(self, -1)
         self.globalCtrls={}
         self.constantsCtrls={}
@@ -2619,7 +2610,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.multiStairCtrls={}
         self.currentCtrls={}
         self.data = []
-        self.ctrlSizer= wx.BoxSizer(wx.VERTICAL)
+        self.mainSizer= wx.BoxSizer(wx.VERTICAL)
         self.conditions=None
         self.conditionsFile=None
         #create a valid new name; save old name in case we need to revert
@@ -2658,10 +2649,14 @@ class DlgLoopProperties(_BaseParamsDlg):
         elif loop.type=='QuestHandler':
             pass # what to do for quest?
         self.params['name']=self.currentHandler.params['name']
-        self.makeGlobalCtrls()
-        self.makeStaircaseCtrls()
-        self.makeConstantsCtrls()#the controls for Method of Constants
-        self.makeMultiStairCtrls()
+        self.globalPanel = self.makeGlobalCtrls()
+        self.stairPanel = self.makeStaircaseCtrls()
+        self.constantsPanel = self.makeConstantsCtrls()#the controls for Method of Constants
+        self.multiStairPanel = self.makeMultiStairCtrls()
+        self.mainSizer.Add(self.globalPanel)
+        self.mainSizer.Add(self.stairPanel)
+        self.mainSizer.Add(self.constantsPanel)
+        self.mainSizer.Add(self.multiStairPanel)
         self.setCtrls(self.currentType)
 
         #show dialog and get most of the data
@@ -2690,15 +2685,20 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.currentHandler.params['conditions'].val=self.conditions
 
     def makeGlobalCtrls(self):
+        panel = wx.Panel(parent=self)
+        panelSizer = wx.GridBagSizer(5,5)
+        panel.SetSizer(panelSizer)
+        row=0
         for fieldName in ['name','loopType']:
-            container=wx.BoxSizer(wx.HORIZONTAL)#to put them in
-            self.globalCtrls[fieldName] = ctrls = ParamCtrls(dlg=self, parent=self,
+            self.globalCtrls[fieldName] = ctrls = ParamCtrls(dlg=self, parent=panel,
                 label=fieldName, param=self.currentHandler.params[fieldName])
-            container.AddMany( (ctrls.nameCtrl, ctrls.valueCtrl))
-            self.ctrlSizer.Add(container)
+            panelSizer.Add(ctrls.nameCtrl, [row, 0])
+            panelSizer.Add(ctrls.valueCtrl, [row, 1])
+            row += 1
 
         self.globalCtrls['name'].valueCtrl.Bind(wx.EVT_TEXT, self.checkName)
         self.Bind(wx.EVT_CHOICE, self.onTypeChanged, self.globalCtrls['loopType'].valueCtrl)
+        return panel
 
     def makeConstantsCtrls(self):
         #a list of controls for the random/sequential versions
@@ -2706,6 +2706,10 @@ class DlgLoopProperties(_BaseParamsDlg):
         handler=self.trialHandler
         #loop through the params
         keys = handler.params.keys()
+        panel = wx.Panel(parent=self)
+        panelSizer = wx.GridBagSizer(5,5)
+        panel.SetSizer(panelSizer)
+        row=0
         #add conditions stuff to the *end*
         if 'conditions' in keys:
             keys.remove('conditions')
@@ -2715,40 +2719,47 @@ class DlgLoopProperties(_BaseParamsDlg):
             keys.insert(-1,'conditionsFile')
         #then step through them
         for fieldName in keys:
-            if fieldName=='endPoints':continue#this was deprecated in v1.62.00
+            if fieldName=='endPoints':
+                continue#this was deprecated in v1.62.00
             if fieldName in self.globalCtrls.keys():
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             elif fieldName=='conditionsFile':
-                container=wx.BoxSizer(wx.HORIZONTAL)
-                ctrls=ParamCtrls(dlg=self, parent=self, label=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
                     param=handler.params[fieldName], browse=True)
                 self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,ctrls.browseCtrl)
                 ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.viewConditions)
-                container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl, ctrls.browseCtrl))
-                self.ctrlSizer.Add(container)
+                panelSizer.Add(ctrls.nameCtrl, [row, 0])
+                panelSizer.Add(ctrls.valueCtrl, [row, 1])
+                panelSizer.Add(ctrls.browseCtrl, [row, 2])
+                row += 1
             elif fieldName=='conditions':
                 if 'conditions' in handler.params:
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
                     text = """No parameters set"""
-                ctrls = ParamCtrls(dlg=self, parent=self, label='conditions',
+                ctrls = ParamCtrls(dlg=self, parent=panel, label='conditions',
                     param=text, noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
-                ctrls.valueCtrl = self.addText(text, size=size, 
-                    parent=self, sizer=self.ctrlSizer)#NB this automatically adds to sizer
-                #sizer.Add(ctrls.valueCtrl)
+                ctrls.valueCtrl = self.addText(text, size=size,
+                    parent=self, sizer=panelSizer, currRow=row)#NB this automatically adds to sizer
+                row += 1
             else: #normal text entry field
-                container=wx.BoxSizer(wx.HORIZONTAL)
-                ctrls=ParamCtrls(dlg=self, parent=self, label=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
                     param=self.currentHandler.params[fieldName])
-                container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl))
-                self.ctrlSizer.Add(container)
+                panelSizer.Add(ctrls.nameCtrl, [row, 0])
+                panelSizer.Add(ctrls.valueCtrl, [row, 1])
+                row += 1
             #store info about the field
             self.constantsCtrls[fieldName] = ctrls
+        return panel
 
     def makeMultiStairCtrls(self):
         #a list of controls for the random/sequential versions
+        panel = wx.Panel(parent=self)
+        panelSizer = wx.GridBagSizer(5,5)
+        panel.SetSizer(panelSizer)
+        row=0
         #that can be hidden or shown
         handler=self.multiStairHandler
         #loop through the params
@@ -2767,33 +2778,40 @@ class DlgLoopProperties(_BaseParamsDlg):
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             elif fieldName=='conditionsFile':
-                container=wx.BoxSizer(wx.HORIZONTAL)
-                ctrls=ParamCtrls(dlg=self, parent=self, label=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
                     param=handler.params[fieldName], browse=True)
                 self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,ctrls.browseCtrl)
-                container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl, ctrls.browseCtrl))
-                self.ctrlSizer.Add(container)
+                panelSizer.Add(ctrls.nameCtrl, [row, 0])
+                panelSizer.Add(ctrls.valueCtrl, [row, 1])
+                panelSizer.Add(ctrls.browseCtrl, [row, 2])
+                row += 1
             elif fieldName=='conditions':
                 if 'conditions' in handler.params:
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
                     text = """No parameters set (select a file above)"""
-                ctrls = ParamCtrls(dlg=self, parent=self, label='conditions',
+                ctrls = ParamCtrls(dlg=self, parent=panel, label='conditions',
                     param=text, noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
-                ctrls.valueCtrl = self.addText(text, size=size, 
-                    parent=self, sizer=self.ctrlSizer)#NB this automatically adds to sizer
-                #sizer.Add(ctrls.valueCtrl)
+                ctrls.valueCtrl = self.addText(text, size=size,
+                    parent=panel, sizer=panelSizer, currRow=row)#NB this automatically adds to sizer
+                row += 1
             else: #normal text entry field
-                container=wx.BoxSizer(wx.HORIZONTAL)
                 ctrls=ParamCtrls(dlg=self, parent=self, label=fieldName,
                     param=handler.params[fieldName])
-                container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl))
-                self.ctrlSizer.Add(container)
+                panelSizer.Add(ctrls.nameCtrl, [row, 0])
+                panelSizer.Add(ctrls.valueCtrl, [row, 1])
+                row += 1
             #store info about the field
             self.multiStairCtrls[fieldName] = ctrls
+        return panel
+
     def makeStaircaseCtrls(self):
         """Setup the controls for a StairHandler"""
+        panel = wx.Panel(parent=self)
+        panelSizer = wx.GridBagSizer(5,5)
+        panel.SetSizer(panelSizer)
+        row=0
         handler=self.stairHandler
         #loop through the params
         for fieldName in handler.params.keys():
@@ -2803,13 +2821,14 @@ class DlgLoopProperties(_BaseParamsDlg):
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             else: #normal text entry field
-                container=wx.BoxSizer(wx.HORIZONTAL)
-                ctrls=ParamCtrls(dlg=self, parent=self, label=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
                     param=handler.params[fieldName])
-                container.AddMany((ctrls.nameCtrl, ctrls.valueCtrl))
-                self.ctrlSizer.Add(container)
+                panelSizer.Add(ctrls.nameCtrl, [row, 0])
+                panelSizer.Add(ctrls.valueCtrl, [row, 1])
+                row += 1
             #store info about the field
             self.staircaseCtrls[fieldName] = ctrls
+        return panel
     def getTrialsSummary(self, conditions):
         if type(conditions)==list and len(conditions)>0:
             #get attr names (conditions[0].keys() inserts u'name' and u' is annoying for novice)
@@ -2859,35 +2878,25 @@ class DlgLoopProperties(_BaseParamsDlg):
         # still need to do namespace and internal updates (see end of onBrowseTrialsFile)
 
     def setCtrls(self, ctrlType):
-        #create a list of ctrls to hide
-        toHide = self.currentCtrls.values()
-        if len(toHide)==0:
-            toHide.extend(self.staircaseCtrls.values())
-            toHide.extend(self.multiStairCtrls.values())
-            toHide.extend(self.constantsCtrls.values())
         #choose the ctrls to show/hide
         if ctrlType=='staircase':
             self.currentHandler = self.stairHandler
-            toShow = self.staircaseCtrls
+            self.stairPanel.Show()
+            self.constantsPanel.Hide()
+            self.multiStairPanel.Hide()
         elif ctrlType=='interleaved staircases':
             self.currentHandler = self.multiStairHandler
-            toShow = self.multiStairCtrls
+            self.stairPanel.Hide()
+            self.constantsPanel.Hide()
+            self.multiStairPanel.Show()
         else:
             self.currentHandler = self.trialHandler
-            toShow = self.constantsCtrls
-        #hide them
-        for ctrls in toHide:
-            if ctrls.nameCtrl: ctrls.nameCtrl.Hide()
-            if ctrls.valueCtrl: ctrls.valueCtrl.Hide()
-            if ctrls.browseCtrl: ctrls.browseCtrl.Hide()
-        #show them
-        for paramName in toShow.keys():
-            ctrls=toShow[paramName]
-            if ctrls.nameCtrl: ctrls.nameCtrl.Show()
-            if ctrls.valueCtrl: ctrls.valueCtrl.Show()
-            if ctrls.browseCtrl: ctrls.browseCtrl.Show()
-        self.currentCtrls=toShow
-        self.ctrlSizer.Layout()
+            self.stairPanel.Hide()
+            self.constantsPanel.Show()
+            self.multiStairPanel.Hide()
+        self.currentCtrls=ctrlType
+        #redo layout
+        self.mainSizer.Layout()
         self.Fit()
         self.Refresh()
     def onTypeChanged(self, evt=None):
