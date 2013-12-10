@@ -20,7 +20,7 @@ import ctypes
 GL = pyglet.gl
 
 import psychopy  # so we can get the __path__
-from psychopy import logging
+from psychopy import logging, core
 import psychopy.event
 
 # tools must only be imported *after* event or MovieStim breaks on win32
@@ -610,3 +610,20 @@ class TextStim(BaseVisualStim):
         """Not implemented for TextStim
         """
         pass
+
+
+class InstructionScreen(TextStim):
+    """Convenience class to show instructions, any key continue, quit on escape.
+    """
+    def __init__(self, win, text, escape='escape'):
+        TextStim.__init__(self, win, text=text)
+        self.win = win
+        self.escape = escape
+        self.show()
+    def show(self):
+        self.win.flip()
+        psychopy.event.clearEvents()
+        self.draw()
+        self.win.flip()
+        if self.escape in psychopy.event.waitKeys():
+            core.quit()
