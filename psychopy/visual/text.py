@@ -613,17 +613,15 @@ class TextStim(BaseVisualStim):
 
 
 class InstructionScreen(TextStim):
-    """Convenience class to show instructions, any key continue, quit on escape.
+    """Class to show instructions, wait for any key to continue, escape to quit.
+
+    Usage: visual.InstructionScreen(win, text, **kwargs)
     """
-    def __init__(self, win, text, escape='escape'):
-        TextStim.__init__(self, win, text=text)
-        self.win = win
-        self.escape = escape
-        self.show()
-    def show(self):
-        self.win.flip()
-        psychopy.event.clearEvents()
+    def __init__(self, win, text, escape='escape', **kwargs):
+        TextStim.__init__(self, win, text=text, **kwargs)
+        win.flip()
         self.draw()
-        self.win.flip()
-        if self.escape in psychopy.event.waitKeys():
+        win.flip()
+        psychopy.event.clearEvents()
+        if escape in psychopy.event.waitKeys():
             core.quit()
