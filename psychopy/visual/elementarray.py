@@ -169,7 +169,7 @@ class ElementArrayStim(object):
         self.nElements = nElements
         #info for each element
         self.sizes = sizes
-        self.xys= xys
+        self.xys= val2array(xys, length=len(xys))
         self.opacities = opacities
         self.oris = oris
         self.contrs = contrs
