@@ -119,7 +119,7 @@ class MovieStim(BaseVisualStim):
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
         self._player.volume=volume
-        self._player._on_eos=self._onEos
+        self._player_default_on_eos = self._player._on_eos
         self.filename=filename
         self.duration=None
         self.loop = loop
@@ -210,6 +210,7 @@ class MovieStim(BaseVisualStim):
         will not advance).  If play() is called again both will restart.
         """
         self._player.pause()
+        self._player._on_eos = self._player_default_on_eos
         self.status=PAUSED
         if log and self.autoLog:
             self.win.logOnFlip("Set %s paused" %(self.name),
@@ -220,6 +221,7 @@ class MovieStim(BaseVisualStim):
         be loaded again. Use pause() if you may need to restart the movie.
         """
         self._player.stop()
+        self._player._on_eos = self._player_default_on_eos
         self.status=STOPPED
         if log and self.autoLog:
             self.win.logOnFlip("Set %s stopped" %(self.name),
@@ -228,6 +230,7 @@ class MovieStim(BaseVisualStim):
         """Continue a paused movie from current position
         """
         self._player.play()
+        self._player._on_eos=self._onEos
         self.status=PLAYING
         if log and self.autoLog:
             self.win.logOnFlip("Set %s playing" %(self.name),
@@ -314,6 +317,7 @@ class MovieStim(BaseVisualStim):
             self.status=PLAYING
         else:
             self.status=FINISHED
+            self._player._on_eos = self._player_default_on_eos
         if self.autoLog:
             self.win.logOnFlip("Set %s finished" %(self.name),
                 level=logging.EXP,obj=self)
@@ -332,4 +336,4 @@ class MovieStim(BaseVisualStim):
         #add to drawing list and update status
         BaseVisualStim.autoDraw = val
     def __del__(self):
-        self._clearTextures()
+        self._player.next()
