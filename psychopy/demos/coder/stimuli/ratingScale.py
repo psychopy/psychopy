@@ -14,7 +14,7 @@ visual.InstructionScreen(myWin, """This is a demo of visual.RatingScale(). There
 Example 1 is close to the default configuration. You can use keys or the mouse to indicate a rating: just click on the line (on the next screen). You can then select and drag the marker, or use the left and right arrow keys.
 To accept your rating, either press 'enter' or click the glowing button.
 
-Press any key to start Example 1 (or escape to quit).""")
+Press any key to start Example 1 (or escape to quit).""").show()
 
 # Example 1 --------(almost as simple as possible)--------
 # create a RatingScale object:
@@ -40,7 +40,7 @@ visual.InstructionScreen(myWin, """Example 2. This example uses non-default sett
 
 Try this: Place a marker, then drag it along the line using the mouse. In this example, you cannot use numeric keys to respond because the scale is 0 to 50.
 
-Press any key to start Example 2 (or escape to quit).""")
+Press any key to start Example 2 (or escape to quit).""").show()
 
 # create a scale for Example 2, using quite a few non-default options:
 myRatingScale = visual.RatingScale(myWin, low=0, high=50, precision=10, escapeKeys=['escape'],
@@ -79,7 +79,7 @@ visual.InstructionScreen(myWin, """Example 3. This example shows how one could o
 
 In such a situation, the subject will have to use the mouse (and not keyboard) to respond. The subject has to respond on both scales in order to go on to the next screen. Both of these considerations mean that its best to disallow the subject to skip a rating.
 
-Press any key to start Example 3 (or escape to quit).""")
+Press any key to start Example 3 (or escape to quit).""").show()
 
 x,y = myRatingScale.win.size # for converting norm units to pix
 leftward = -0.35 * x / 2 # use pix units, because the drawing window's units are pix
@@ -121,7 +121,7 @@ visual.InstructionScreen(myWin, """Example 4.
 
 In this example we will use acustim tick marks and custom labels for a scale from 0 too 100.
 
-Press any key to start Example 4 (or escape to quit).""")
+Press any key to start Example 4 (or escape to quit).""").show()
 
 myRatingScale = visual.RatingScale(myWin, low = 0, high = 100, escapeKeys=['escape'],
     tickMarks = [0, 25, 50, 80, 100],
