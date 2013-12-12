@@ -2166,8 +2166,7 @@ class _BaseParamsDlg(wx.Dialog):
             currRow+=1
         #add start/stop info
         if 'startType' in remaining:
-            remaining = self.addStartStopCtrls(remaining, parent, sizer, currRow)
-            currRow += 1 #an extra row to create space (staticLine didn't look right)
+            remaining, currRow = self.addStartStopCtrls(remaining, parent, sizer, currRow)
         currRow += 1
         #loop through the prescribed order (the most important?)
         for fieldName in self.order:
@@ -2191,8 +2190,8 @@ class _BaseParamsDlg(wx.Dialog):
         startTypeParam = self.params['startType']
         startValParam = self.params['startVal']
         #create label
-        label = wx.StaticText(self,-1,'Start', style=wx.ALIGN_CENTER)
-        labelEstim = wx.StaticText(self,-1,'Expected start (s)', style=wx.ALIGN_CENTER)
+        label = wx.StaticText(parent,-1,'Start', style=wx.ALIGN_CENTER)
+        labelEstim = wx.StaticText(parent,-1,'Expected start (s)', style=wx.ALIGN_CENTER)
         labelEstim.SetForegroundColour('gray')
         #the method to be used to interpret this start/stop
         self.startTypeCtrl = wx.Choice(parent, choices=startTypeParam.allowedVals)
@@ -2208,8 +2207,8 @@ class _BaseParamsDlg(wx.Dialog):
         startSizer.Add(self.startTypeCtrl)
         startSizer.Add(self.startValCtrl, 1,flag=wx.EXPAND)
         startEstimSizer=wx.BoxSizer(orient=wx.HORIZONTAL)
-        startEstimSizer.Add(labelEstim)
-        startEstimSizer.Add(self.startEstimCtrl)
+        startEstimSizer.Add(labelEstim, flag = wx.ALIGN_CENTRE_VERTICAL|wx.ALIGN_LEFT)
+        startEstimSizer.Add(self.startEstimCtrl, flag = wx.ALIGN_BOTTOM)
         startAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
         startAllCrtlSizer.Add(startSizer,flag=wx.EXPAND)
         startAllCrtlSizer.Add(startEstimSizer, flag=wx.ALIGN_RIGHT)
@@ -2225,8 +2224,8 @@ class _BaseParamsDlg(wx.Dialog):
         stopTypeParam = self.params['stopType']
         stopValParam = self.params['stopVal']
         #create label
-        label = wx.StaticText(self,-1,'Stop', style=wx.ALIGN_CENTER)
-        labelEstim = wx.StaticText(self,-1,'Expected duration (s)', style=wx.ALIGN_CENTER)
+        label = wx.StaticText(parent,-1,'Stop', style=wx.ALIGN_CENTER)
+        labelEstim = wx.StaticText(parent,-1,'Expected duration (s)', style=wx.ALIGN_CENTER)
         labelEstim.SetForegroundColour('gray')
         #the method to be used to interpret this start/stop
         self.stopTypeCtrl = wx.Choice(parent, choices=stopTypeParam.allowedVals)
@@ -2242,11 +2241,11 @@ class _BaseParamsDlg(wx.Dialog):
         stopSizer.Add(self.stopTypeCtrl)
         stopSizer.Add(self.stopValCtrl, 1,flag=wx.EXPAND)
         stopEstimSizer=wx.BoxSizer(orient=wx.HORIZONTAL)
-        stopEstimSizer.Add(labelEstim)
-        stopEstimSizer.Add(self.durationEstimCtrl)
+        stopEstimSizer.Add(labelEstim, flag = wx.ALIGN_CENTRE_VERTICAL)
+        stopEstimSizer.Add(self.durationEstimCtrl, flag = wx.ALIGN_CENTRE_VERTICAL)
         stopAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
         stopAllCrtlSizer.Add(stopSizer,flag=wx.EXPAND)
-        stopAllCrtlSizer.Add(stopEstimSizer, flag=wx.ALIGN_RIGHT)
+        stopAllCrtlSizer.Add(stopEstimSizer, flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTRE_VERTICAL)
         sizer.Add(label, (currRow,0),(1,1),wx.ALIGN_RIGHT)
         #add our new row
         sizer.Add(stopAllCrtlSizer,(currRow,1),(1,1),flag=wx.EXPAND)
@@ -2262,7 +2261,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.checkCodeWanted(self.stopValCtrl)
         self.stopValCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
 
-        return remaining
+        return remaining, currRow
 
     def addParam(self,fieldName, parent, sizer, currRow, advanced=False, valType=None):
         """Add a parameter to the basic sizer
@@ -2277,8 +2276,10 @@ class _BaseParamsDlg(wx.Dialog):
         if fieldName=='name':
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.checkName)
         # self.valueCtrl = self.typeCtrl = self.updateCtrl
-        sizer.Add(ctrls.nameCtrl, (currRow,0), flag=wx.ALIGN_RIGHT| wx.LEFT|wx.RIGHT,border=5 )
-        sizer.Add(ctrls.valueCtrl, (currRow,1) , flag=wx.EXPAND| wx.ALL,border=5)
+        sizer.Add(ctrls.nameCtrl, (currRow,0), border=5,
+            flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTRE_VERTICAL|wx.LEFT|wx.RIGHT)
+        sizer.Add(ctrls.valueCtrl, (currRow,1), border=5,
+            flag=wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL | wx.ALL)
         if ctrls.updateCtrl:
             sizer.Add(ctrls.updateCtrl, (currRow,2))
         if ctrls.typeCtrl:
@@ -2335,17 +2336,6 @@ class _BaseParamsDlg(wx.Dialog):
     def onNewTextSize(self, event):
         self.Fit()#for ExpandoTextCtrl this is needed
 
-    def addText(self, text, parent, sizer, size, currRow=None):
-        if parent==None:
-            parent=self
-        if size==None:
-            size = wx.Size(8*len(text)+16, 25)
-        myTxt = wx.StaticText(parent,-1,
-                                label=text,
-                                style=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL,
-                                size=size)
-        sizer.Add(myTxt, (currRow, 0))#add to current row spanning entire
-        return myTxt
     def show(self):
         """Adds an OK and cancel button, shows dialogue.
 
@@ -2359,9 +2349,9 @@ class _BaseParamsDlg(wx.Dialog):
             else:
                 nameInfo=''
             self.nameOKlabel=wx.StaticText(self,-1,nameInfo,size=(300,25),
-                                        style=wx.ALIGN_RIGHT)
+                                        style=wx.ALIGN_CENTRE)
             self.nameOKlabel.SetForegroundColour(wx.RED)
-            self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_RIGHT)
+            self.mainSizer.Add(self.nameOKlabel, wx.ALIGN_CENTRE|wx.EXPAND)
         #add buttons for OK and Cancel
         buttons = wx.StdDialogButtonSizer()
         #help button if we know the url
@@ -2653,10 +2643,11 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.stairPanel = self.makeStaircaseCtrls()
         self.constantsPanel = self.makeConstantsCtrls()#the controls for Method of Constants
         self.multiStairPanel = self.makeMultiStairCtrls()
-        self.mainSizer.Add(self.globalPanel)
-        self.mainSizer.Add(self.stairPanel)
-        self.mainSizer.Add(self.constantsPanel)
-        self.mainSizer.Add(self.multiStairPanel)
+        self.mainSizer.Add(self.globalPanel, border=5, flag=wx.ALL|wx.ALIGN_CENTRE)
+        self.mainSizer.Add(wx.StaticLine(self), border=5, flag=wx.ALL|wx.EXPAND)
+        self.mainSizer.Add(self.stairPanel, border=5, flag=wx.ALL|wx.ALIGN_CENTRE)
+        self.mainSizer.Add(self.constantsPanel, border=5, flag=wx.ALL|wx.ALIGN_CENTRE)
+        self.mainSizer.Add(self.multiStairPanel, border=5, flag=wx.ALL|wx.ALIGN_CENTRE)
         self.setCtrls(self.currentType)
 
         #show dialog and get most of the data
@@ -2692,8 +2683,10 @@ class DlgLoopProperties(_BaseParamsDlg):
         for fieldName in ['name','loopType']:
             self.globalCtrls[fieldName] = ctrls = ParamCtrls(dlg=self, parent=panel,
                 label=fieldName, param=self.currentHandler.params[fieldName])
-            panelSizer.Add(ctrls.nameCtrl, [row, 0])
-            panelSizer.Add(ctrls.valueCtrl, [row, 1])
+            panelSizer.Add(ctrls.nameCtrl, [row, 0], border=1,
+                flag=wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL | wx.ALL)
+            panelSizer.Add(ctrls.valueCtrl, [row, 1], border=1,
+                flag=wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL | wx.ALL)
             row += 1
 
         self.globalCtrls['name'].valueCtrl.Bind(wx.EVT_TEXT, self.checkName)
@@ -2711,12 +2704,12 @@ class DlgLoopProperties(_BaseParamsDlg):
         panel.SetSizer(panelSizer)
         row=0
         #add conditions stuff to the *end*
-        if 'conditions' in keys:
-            keys.remove('conditions')
-            keys.insert(-1,'conditions')
         if 'conditionsFile' in keys:
             keys.remove('conditionsFile')
-            keys.insert(-1,'conditionsFile')
+            keys.append('conditionsFile')
+        if 'conditions' in keys:
+            keys.remove('conditions')
+            keys.append('conditions')
         #then step through them
         for fieldName in keys:
             if fieldName=='endPoints':
@@ -2741,8 +2734,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                 ctrls = ParamCtrls(dlg=self, parent=panel, label='conditions',
                     param=text, noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
-                ctrls.valueCtrl = self.addText(text, size=size,
-                    parent=self, sizer=panelSizer, currRow=row)#NB this automatically adds to sizer
+                ctrls.valueCtrl = wx.StaticText(panel, label=text, size=size, style=wx.ALIGN_CENTER)
+                panelSizer.Add(ctrls.valueCtrl, (row, 0), span=(1,3), flag=wx.ALIGN_CENTER)
                 row += 1
             else: #normal text entry field
                 ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
@@ -2765,12 +2758,13 @@ class DlgLoopProperties(_BaseParamsDlg):
         #loop through the params
         keys = handler.params.keys()
         #add conditions stuff to the *end*
-        if 'conditions' in keys:
-            keys.remove('conditions')
-            keys.insert(-1,'conditions')
+        #add conditions stuff to the *end*
         if 'conditionsFile' in keys:
             keys.remove('conditionsFile')
-            keys.insert(-1,'conditionsFile')
+            keys.append('conditionsFile')
+        if 'conditions' in keys:
+            keys.remove('conditions')
+            keys.append('conditions')
         #then step through them
         for fieldName in keys:
             if fieldName=='endPoints':continue#this was deprecated in v1.62.00
@@ -2793,11 +2787,11 @@ class DlgLoopProperties(_BaseParamsDlg):
                 ctrls = ParamCtrls(dlg=self, parent=panel, label='conditions',
                     param=text, noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
-                ctrls.valueCtrl = self.addText(text, size=size,
-                    parent=panel, sizer=panelSizer, currRow=row)#NB this automatically adds to sizer
+                ctrls.valueCtrl = wx.StaticText(panel, label=text, size=size, style=wx.ALIGN_CENTER)
+                panelSizer.Add(ctrls.valueCtrl, (row, 0), span=(1,3), flag=wx.ALIGN_CENTER)
                 row += 1
             else: #normal text entry field
-                ctrls=ParamCtrls(dlg=self, parent=self, label=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
                     param=handler.params[fieldName])
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
