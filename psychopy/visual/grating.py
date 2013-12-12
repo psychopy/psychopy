@@ -161,13 +161,12 @@ class GratingStim(BaseVisualStim):
 
     @attributeSetter
     def sf(self, value):
-        """
-        :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>`
-        Where `units` == 'deg' or 'cm' units are in cycles per deg/cm.
-        If `units` == 'norm' then sf units are in cycles per stimulus (so scale with stimulus size).
-        If texture is an image loaded from a file then sf defaults to 1/stim size to give one cycle of the image.
+        """Spatial frequency of the grating texture
 
-        Spatial frequency.
+        Should be a :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>`
+        If `units` == 'deg' or 'cm' units are in cycles per deg or cm as appropriate.
+        If `units` == 'norm' then sf units are in cycles per stimulus (and so SF scales with stimulus size).
+        If texture is an image loaded from a file then SF defaults to 1/stimSize to give one cycle of the image.
         """
 
         # Recode phase to numpy array
@@ -188,10 +187,10 @@ class GratingStim(BaseVisualStim):
 
     @attributeSetter
     def phase(self, value):
-        """
-        :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>`
+        """Phase of the stimulus in each dimension of the texture.
 
-        Phase of the stimulus in each direction.
+        Should be an :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>`
+
         **NB** phase has modulus 1 (rather than 360 or 2*pi)
         This is a little unconventional but has the nice effect
         that setting phase=t*n drifts a stimulus at n Hz
@@ -203,12 +202,17 @@ class GratingStim(BaseVisualStim):
 
     @attributeSetter
     def tex(self, value):
-        """
-        + **'sin'**,'sqr', 'saw', 'tri', None (resets to default)
-        + or the name of an image file (most formats supported)
-        + or a numpy array (1xN or NxN) ranging -1:1
+        """Texture to used on the stimulus as a grating (aka carrier)
 
-        The texture forming the image
+        This can be one of various options:
+            + **'sin'**,'sqr', 'saw', 'tri', None (resets to default)
+            + the name of an image file (most formats supported)
+            + a numpy array (1xN or NxN) ranging -1:1
+
+        If specifying your own texture using an image or numpy array you should
+        ensure that the image has square power-of-two dimesnions (e.g. 256x256).
+        If not then PsychoPy will upsample your stimulus to the next larger
+        power of two.
         """
         createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self,
             res=self.texRes, maskParams=self.maskParams)
@@ -219,12 +223,12 @@ class GratingStim(BaseVisualStim):
 
     @attributeSetter
     def mask(self, value):
-        """
-        + 'circle', 'gauss', 'raisedCos', **None** (resets to default)
-        + or the name of an image file (most formats supported)
-        + or a numpy array (1xN or NxN) ranging -1:1
+        """The alpha mask (forming the shape of the image)
 
-            The alpha mask (forming the shape of the image)
+        This can be one of various options:
+            + 'circle', 'gauss', 'raisedCos', **None** (resets to default)
+            + the name of an image file (most formats supported)
+            + a numpy array (1xN or NxN) ranging -1:1
         """
         createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self,
             res=self.texRes, maskParams=self.maskParams)
@@ -412,7 +416,7 @@ class GratingStim(BaseVisualStim):
 
     def clearTextures(self):
         """
-        Clear the textures associated with the given stimulus.
+        Clear all textures associated with the stimulus.
         As of v1.61.00 this is called automatically during garbage collection of
         your stimulus, so doesn't need calling explicitly by the user.
         """
@@ -426,6 +430,6 @@ class GratingStim(BaseVisualStim):
             self._cycles = self.sf * self.size
 
     def contains(self, *args, **kwargs):
-        raise NotImplementedError("GratingStim do not have a contains() method")
+        raise NotImplementedError("GratingStim does not have a contains() method")
     def overlaps(self, *args, **kwargs):
-        raise NotImplementedError("GratingStim do not have an overlaps() method")
+        raise NotImplementedError("GratingStim does not have an overlaps() method")

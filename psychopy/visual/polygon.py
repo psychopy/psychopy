@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 '''Creates a regular polygon (triangles, pentagrams, ...)

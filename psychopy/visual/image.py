@@ -27,7 +27,7 @@ import numpy
 
 
 class ImageStim(BaseVisualStim):
-    '''Display an image on `psycopy.visual.Window`'''
+    '''Display an image on a :class:`psychopy.visual.Window`'''
     def __init__(self,
                  win,
                  image     =None,

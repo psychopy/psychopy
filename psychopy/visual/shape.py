@@ -136,24 +136,14 @@ class ShapeStim(BaseVisualStim):
     @attributeSetter
     def fillColorSpace(self, value):
         """
-        Sets color space for fill color. See documentation for lineColorSpace
+        Sets color space for fill color. See documentation for fillColorSpace
         """
         self.__dict__['fillColorSpace'] = value
 
     @attributeSetter
     def lineColorSpace(self, value):
         """
-        String or None
-
-            defining which of the :ref:`colorspaces` to use. For strings and hex
-            values this is not needed. If None the default colorSpace for the stimulus is
-            used
-
-            Example::
-
-                stim.lineColor = (1, 0, 0)  # lines are red in the default 'rgb' colorSpace
-                stim.lineColorSpace = 'rgb255'  # lines are now almost-black
-                stim.lineColor = (128, 255, 128) # lines are pale blue
+        Sets color space for line color. See documentation for lineColorSpace
         """
         self.__dict__['lineColorSpace'] = value
 

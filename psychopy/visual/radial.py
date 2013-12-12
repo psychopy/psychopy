@@ -163,12 +163,18 @@ class RadialStim(GratingStim):
 
     @attributeSetter
     def mask(self, value):
-        """
-        + 'circle', 'gauss', 'raisedCos', **None** (resets to default)
-        + or the name of an image file (most formats supported)
-        + or a numpy array (1xN or NxN) ranging -1:1
+        """The alpha mask that forms the shape of the resulting image
 
-            The alpha mask (forming the shape of the image)
+        Value should one of:
+
+            + 'circle', 'gauss', 'raisedCos', **None** (resets to default)
+            + or the name of an image file (most formats supported)
+            + or a numpy array (1xN) ranging -1:1
+
+        Note that the mask for `RadialStim` is somewhat different to the
+        mask for :class:`ImageStim`. For `RadialStim` it is a 1D array
+        specifying the luminance profile extending outwards from the
+        center of the stimulus, rather than a 2D array
         """
         self.__dict__['mask'] = value
         res = self.texRes#resolution of texture - 128 is bearable
@@ -234,22 +240,35 @@ class RadialStim(GratingStim):
         self._updateXY()
         self._needUpdate = True
     def setAngularCycles(self,value,operation='', log=True):
-        """set the number of cycles going around the stimulus"""
+        """Set the number of cycles going around the stimulus.
+
+        i.e. it controls the number of 'spokes'
+        """
         self._set('angularCycles', value, operation, log=log)
         self._updateTextureCoords()
         self._needUpdate = True
     def setRadialCycles(self,value,operation='', log=True):
-        """set the number of texture cycles from centre to periphery"""
+        """Set the number of texture cycles from centre to periphery
+
+        i.e. it controls the number of 'rings'
+        """
         self._set('radialCycles', value, operation, log=log)
         self._updateTextureCoords()
         self._needUpdate = True
     def setAngularPhase(self,value, operation='', log=True):
-        """set the angular phase of the texture (radians)"""
+        """Set the angular phase (like orientation) of the texture (wraps 0-1).
+
+        This is akin to setting the orientation of the texture around the
+        stimulus. If possible, it is more efficient to rotate the stimulus
+        using its `ori` setting instead."""
         self._set('angularPhase', value, operation, log=log)
         self._updateTextureCoords()
         self._needUpdate = True
     def setRadialPhase(self,value, operation='', log=True):
-        """set the radial phase of the texture (radians)"""
+        """Set the radial phase of the texture (wraps 0-1).
+
+        Can be used to drift concentric rings out/inwards
+        """
         self._set('radialPhase', value, operation, log=log)
         self._updateTextureCoords()
         self._needUpdate = True
@@ -257,11 +276,11 @@ class RadialStim(GratingStim):
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
-        this method after every MyWin.flip() if you want the
+        this method after every `win.flip()` if you want the
         stimulus to appear on that frame and then update the screen
         again.
 
-        If win is specified then override the normal window of this stimulus.
+        If `win` is specified then override the normal window of this stimulus.
         """
         if win==None: win=self.win
         self._selectWindow(win)
