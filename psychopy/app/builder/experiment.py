@@ -475,7 +475,9 @@ class Param:
     $myPathologicalVa$rName
     """
 
-    def __init__(self, val, valType, allowedVals=[],allowedTypes=[], hint="", label="", updates=None, allowedUpdates=None):
+    def __init__(self, val, valType, allowedVals=[],allowedTypes=[], hint="",
+                 label="", updates=None, allowedUpdates=None,
+                 categ="Basic"):
         """
         @param val: the value for this parameter
         @type val: any
@@ -491,6 +493,8 @@ class Param:
         @type updates: string
         @param allowedUpdates: conceivable updates for this param [None, 'routine', 'set every frame']
         @type allowedUpdates: list
+        @param categ: category for this parameter, will populate tabs in Component Dlg
+        @type allowedUpdates: string
         """
         self.label=label
         self.val=val
@@ -501,6 +505,7 @@ class Param:
         self.allowedUpdates=allowedUpdates
         self.allowedVals=allowedVals
         self.staticUpdater = None
+        self.categ = categ
     def __str__(self):
         if self.valType == 'num':
             try:
