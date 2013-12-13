@@ -196,7 +196,7 @@ class PsychoPyApp(wx.App):
             connectThread.start()
 
         ok, msg = compatibility.checkCompatibility(last, self.version, self.prefs, fix=True)
-        if not ok and not self.firstRun and interactive:  #tell the user what has changed
+        if not ok and not self.firstRun and not self.testMode:  #tell the user what has changed
             dlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title="Compatibility information")
             dlg.ShowModal()
 
