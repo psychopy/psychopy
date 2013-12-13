@@ -31,24 +31,28 @@ def setWithOperation(self, attrib, value, operation, stealth=False):
     # Handle cases where attribute is not defined yet.
     try:
         oldValue = getattr(self, attrib)
-
-        # Calculate new value using operation
-        if operation == '':
-            newValue = oldValue * 0 + value  # Preserves dimensions, if array
-        elif operation == '+':
-            newValue = oldValue + value
-        elif operation == '*':
-            newValue = oldValue * value
-        elif operation == '-':
-            newValue = oldValue - value
-        elif operation == '/':
-            newValue = oldValue / value
-        elif operation == '**':
-            newValue = oldValue ** value
-        elif operation == '%':
-            newValue = oldValue % value
+        if oldValue == None:
+            newValue = value 
         else:
-            raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
+            oldValue = numpy.asarray(oldValue, float)        
+            
+            # Calculate new value using operation
+            if operation == '':
+                newValue = oldValue * 0 + value  # Preserves dimensions, if array
+            elif operation == '+':
+                newValue = oldValue + value
+            elif operation == '*':
+                newValue = oldValue * value
+            elif operation == '-':
+                newValue = oldValue - value
+            elif operation == '/':
+                newValue = oldValue / value
+            elif operation == '**':
+                newValue = oldValue ** value
+            elif operation == '%':
+                newValue = oldValue % value
+            else:
+                raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
     except AttributeError:
         # attribute is not set yet. Do it now in a non-updating manner
         newValue = value
