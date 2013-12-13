@@ -31,7 +31,7 @@ def setWithOperation(self, attrib, value, operation, stealth=False):
     # Handle cases where attribute is not defined yet.
     try:
         oldValue = getattr(self, attrib)
-        if oldValue == None:
+        if oldValue is None:
             newValue = value 
         else:
             oldValue = numpy.asarray(oldValue, float)        
