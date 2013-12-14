@@ -2171,7 +2171,7 @@ class _BaseParamsDlg(wx.Dialog):
         currRow += 1
         #loop through the prescribed order (the most important?)
         for fieldName in self.order:
-            print fieldName
+#            print fieldName
             if fieldName not in paramNames:
                 continue#skip advanced params
             self.addParam(fieldName, parent, sizer, currRow, valType=self.params[fieldName].valType)
