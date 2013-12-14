@@ -3044,7 +3044,7 @@ class DlgComponentProperties(_BaseParamsDlg):
             self.paramCtrls['correctAns'].nameCtrl.Hide()
             #self.paramCtrls['correctAns'].typeCtrl.Hide()
             #self.paramCtrls['correctAns'].updateCtrl.Hide()
-        sizer.Layout()
+        self.mainSizer.Layout()
         self.Fit()
         self.Refresh()
 
