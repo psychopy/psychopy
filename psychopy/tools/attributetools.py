@@ -6,6 +6,8 @@
 
 '''Functions and classes related to attribute handling'''
 
+import numpy
+
 from psychopy import logging
 
 class attributeSetter(object):
