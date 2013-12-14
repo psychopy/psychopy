@@ -255,8 +255,12 @@ class CodeComponentDialog(wx.Dialog):
             self.params['name'].val = self.frame.exp.namespace.makeValid(params['name'].val)
 
 
+        agwStyle = flatnotebook.FNB_NO_X_BUTTON
+        if hasattr(flatnotebook, "FNB_NAV_BUTTONS_WHEN_NEEDED"):
+            # this style is not yet available in wxPython 2.8
+            agwStyle |= flatnotebook.FNB_NAV_BUTTONS_WHEN_NEEDED
         self.code_sections = flatnotebook.FlatNotebook(self, wx.ID_ANY,
-            agwStyle=flatnotebook.FNB_NO_X_BUTTON | flatnotebook.FNB_NAV_BUTTONS_WHEN_NEEDED)
+            agwStyle = agwStyle)
 
         for pkey in self.order:
             param=self.params.get(pkey)
