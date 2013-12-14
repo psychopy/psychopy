@@ -30,7 +30,8 @@ class SettingsComponent:
             hint="Run the experiment full-screen (recommended)",
             categ='Screen')
         self.params['Window size (pixels)']=Param(winSize, valType='code', allowedTypes=[],
-            hint="Size of window (if not fullscreen)")
+            hint="Size of window (if not fullscreen)",
+            categ='Screen')
         self.params['Screen']=Param(screen, valType='num', allowedTypes=[],
             hint="Which physical screen to run on (1 or 2)",
             categ='Screen')
