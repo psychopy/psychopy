@@ -3070,7 +3070,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.Destroy()
 
     def onFullScrChange(self,event=None):
-        """store correct has been checked/unchecked. Show or hide the correctAns field accordingly"""
+        """full-screen has been checked/unchecked. Show or hide the window size field accordingly"""
         if self.paramCtrls['Full-screen window'].valueCtrl.GetValue():
             #get screen size for requested display
             num_displays = wx.Display.GetCount()
