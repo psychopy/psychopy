@@ -4166,7 +4166,11 @@ class BuilderFrame(wx.Frame):
         if not self.readmeFrame.IsShown():
             self.readmeFrame.Show(value)
     def toggleReadme(self, evt=None):
-        self.readmeFrame.toggleVisible()
+        if self.readmeFrame == None:
+           self.updateReadme()
+           self.showReadme()
+        else:
+           self.readmeFrame.toggleVisible()
 
     def OnFileHistory(self, evt=None):
         # get the file based on the menu ID
