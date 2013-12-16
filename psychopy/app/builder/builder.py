@@ -2175,7 +2175,7 @@ class _BaseParamsDlg(wx.Dialog):
         currRow += 1
         #loop through the prescribed order (the most important?)
         for fieldName in self.order:
-            print fieldName
+#            print fieldName
             if fieldName not in paramNames:
                 continue#skip advanced params
             self.addParam(fieldName, parent, sizer, currRow, valType=self.params[fieldName].valType)
@@ -3048,7 +3048,7 @@ class DlgComponentProperties(_BaseParamsDlg):
             self.paramCtrls['correctAns'].nameCtrl.Hide()
             #self.paramCtrls['correctAns'].typeCtrl.Hide()
             #self.paramCtrls['correctAns'].updateCtrl.Hide()
-        sizer.Layout()
+        self.mainSizer.Layout()
         self.Fit()
         self.Refresh()
 
@@ -3074,7 +3074,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.Destroy()
 
     def onFullScrChange(self,event=None):
-        """store correct has been checked/unchecked. Show or hide the correctAns field accordingly"""
+        """full-screen has been checked/unchecked. Show or hide the window size field accordingly"""
         if self.paramCtrls['Full-screen window'].valueCtrl.GetValue():
             #get screen size for requested display
             num_displays = wx.Display.GetCount()
