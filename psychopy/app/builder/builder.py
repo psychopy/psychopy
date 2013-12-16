@@ -2721,7 +2721,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         for fieldName in keys:
             if fieldName=='endPoints':
                 continue#this was deprecated in v1.62.00
-            if fieldName in self.globalCtrls.keys():
+            if fieldName in self.globalCtrls:
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             elif fieldName=='conditionsFile':
@@ -2746,7 +2746,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 row += 1
             else: #normal text entry field
                 ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
-                    param=self.currentHandler.params[fieldName])
+                    param=handler.params[fieldName])
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
                 row += 1
@@ -2775,7 +2775,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         #then step through them
         for fieldName in keys:
             if fieldName=='endPoints':continue#this was deprecated in v1.62.00
-            if fieldName in self.globalCtrls.keys():
+            if fieldName in self.globalCtrls:
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             elif fieldName=='conditionsFile':
@@ -2815,10 +2815,10 @@ class DlgLoopProperties(_BaseParamsDlg):
         row=0
         handler=self.stairHandler
         #loop through the params
-        for fieldName in handler.params.keys():
+        for fieldName in handler.params:
             if fieldName=='endPoints':
                 continue#this was deprecated in v1.62.00
-            if fieldName in self.globalCtrls.keys():
+            if fieldName in self.globalCtrls:
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             else: #normal text entry field
@@ -2834,7 +2834,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         if type(conditions)==list and len(conditions)>0:
             #get attr names (conditions[0].keys() inserts u'name' and u' is annoying for novice)
             paramStr = "["
-            for param in conditions[0].keys():
+            for param in conditions[0]:
                 paramStr += (unicode(param)+', ')
             paramStr = paramStr[:-2]+"]"#remove final comma and add ]
             #generate summary info
@@ -2885,17 +2885,20 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.stairPanel.Show()
             self.constantsPanel.Hide()
             self.multiStairPanel.Hide()
+            self.currentCtrls = self.staircaseCtrls
         elif ctrlType=='interleaved staircases':
             self.currentHandler = self.multiStairHandler
             self.stairPanel.Hide()
             self.constantsPanel.Hide()
             self.multiStairPanel.Show()
+            self.currentCtrls = self.multiStairCtrls
         else:
             self.currentHandler = self.trialHandler
             self.stairPanel.Hide()
             self.constantsPanel.Show()
             self.multiStairPanel.Hide()
-        self.currentCtrls=ctrlType
+            self.currentCtrls = self.constantsCtrls
+        self.currentType=ctrlType
         #redo layout
         self.mainSizer.Layout()
         self.Fit()
