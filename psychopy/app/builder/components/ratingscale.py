@@ -43,8 +43,6 @@ class RatingScaleComponent(BaseComponent):
         #params
         self.order = ['name', 'visualAnalogScale', 'categoryChoices', 'scaleDescription', 'low', 'high', 'size']
         self.params = {}
-        self.params['advancedParams'] = ['singleClick', 'forceEndRoutine', 'size', 'disappear',
-                        'pos', 'storeRatingTime', 'storeRating', 'choiceLabelsAboveLine', 'lowAnchorText', 'highAnchorText', 'customize_everything']
 
         # normal params:
         self.params['name'] = Param(name, valType='code', allowedTypes=[],
@@ -86,35 +84,37 @@ class RatingScaleComponent(BaseComponent):
 
         # advanced params:
         self.params['singleClick'] = Param(singleClick, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=[], categ="Advanced",
             hint="Should clicking the line accept that rating (without needing to confirm via 'accept')?")
         self.params['disappear'] = Param(disappear, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=[], categ="Advanced",
             hint="Hide the scale when a rating has been accepted; False to remain on-screen")
         self.params['size'] = Param(size, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Relative size on the screen; size > 1 is larger than default; size < 1 is smaller")
         self.params['storeRating'] = Param(storeRating, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=[], categ="Advanced",
             hint="store the rating")
-        self.params['choiceLabelsAboveLine'] = Param(choiceLabelsAboveLine, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[], hint="restores the old behavior for choices (i.e., labels above the line)")
         self.params['storeRatingTime'] = Param(storeRatingTime, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=[], categ="Advanced",
             hint="store the time taken to make the choice (in seconds)")
+        self.params['choiceLabelsAboveLine'] = Param(choiceLabelsAboveLine, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[], categ="Advanced",
+            hint="restores the old behavior for choices (i.e., labels above the line)")
         self.params['pos'] = Param(pos, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=[], hint="x,y position on the screen")
+            updates='constant', allowedUpdates=[], categ="Advanced",
+            hint="x,y position on the screen")
         self.params['forceEndRoutine'] = Param(forceEndRoutine, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=[], categ="Advanced",
             hint="Should accepting a rating cause the end of the routine (e.g. trial)?")
         self.params['lowAnchorText'] = Param(lowAnchorText, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=[], categ="Advanced",
             hint="Description of the low end of the scale; to hide it, set it to a space.")
         self.params['highAnchorText'] = Param(highAnchorText, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=[], categ="Advanced",
             hint="Description of the high end of the scale; to hide it, set it to a space.")
         self.params['customize_everything'] = Param(customize_everything, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=[], categ="Custom",
             hint="Use this text to create the rating scale as you would in a code component; overrides all"+
                 " dialog settings except time parameters, forceEndRoutine, storeRatingTime, storeRating")
 

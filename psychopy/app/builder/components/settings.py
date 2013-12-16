@@ -36,13 +36,15 @@ class SettingsComponent:
             hint="Which physical screen to run on (1 or 2)",
             categ='Screen')
         self.params['Monitor']=Param(monitor, valType='str', allowedTypes=[],
+            categ="Screen",
             hint="Name of the monitor (from Monitor Center). Right-click to go there, then copy & paste a monitor name here.")
         self.params['color']=Param(color, valType='str', allowedTypes=[],
             hint="Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)",
             label="Color",
             categ='Screen')
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
-            hint="Needed if color is defined numerically (see PsychoPy documentation on color spaces)")
+            hint="Needed if color is defined numerically (see PsychoPy documentation on color spaces)",
+            categ="Screen")
         self.params['Units']=Param(units, valType='str', allowedTypes=[],
             allowedVals=['use prefs', 'deg','pix','cm','norm','height'],
             hint="Units to use for window/stimulus coordinates (e.g. cm, pix, deg)",

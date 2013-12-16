@@ -32,8 +32,6 @@ class PolygonComponent(VisualComponent):
         self.exp.requirePsychopyLibs(['visual'])
         self.order=['nVertices']
         #params
-        self.params['advancedParams']=[]
-
         self.params['nVertices']=Param(nVertices, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat'],
             hint="How many vertices? 2=line, 3=triangle... (90 approximates a circle)",

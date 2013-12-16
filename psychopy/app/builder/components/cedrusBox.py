@@ -25,7 +25,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
     categories = ['Responses']  # which section(s) in the components panel
     def __init__(self, exp, parentName, name='buttonBox',
                 store='first key',
-                useTimer=False, deviceNumber=0, allowedKeys="",
+                useTimer=True, deviceNumber=0, allowedKeys="",
                 getReleaseTime=False,  #not yet supported
                 forceEndRoutine=True, storeCorrect=False, correctAns="",
                 discardPrev=True,
@@ -39,7 +39,6 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         self.parentName = parentName
 
         self.params = {}
-        self.params['advancedParams']=['useBoxTimer', 'deviceNumber']
         self.order = ['forceEndRoutine', 'allowedKeys', #NB name and timing params always come 1st
             'store', 'storeCorrect', 'correctAns']
         self.params['name'] = Param(name, valType='code', hint="A name for this ButtonBox object (e.g. bbox)",
@@ -88,7 +87,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         self.params['deviceNumber'] = Param(deviceNumber, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Device number, if you have multiple devices which one do you want (0, 1, 2...)",
-            label="Device number")
+            label="Device number", categ='Advanced')
         #self.params['getReleaseTime'] = Param(getReleaseTime, valType='bool', allowedVals=[True, False],
         #    updates='constant', allowedUpdates=[],
         #    hint="Wait for the key to be released and store the time that it was held down",
@@ -96,7 +95,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         self.params['useBoxTimer'] = Param(getReleaseTime, valType='bool', allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
             hint="According to Cedrus the response box timer has a drift - use with caution!",
-            label="Use box timer")
+            label="Use box timer", categ='Advanced')
 
     def writeStartCode(self, buff):
         """code for start of the script (import statements)
