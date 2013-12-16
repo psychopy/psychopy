@@ -96,6 +96,8 @@ class ExperimentHandler(object):
         self.dataNames=[]#names of all the data (eg. resp.keys)
         if dataFileName in ['', None]:
             logging.warning('ExperimentHandler created with no dataFileName parameter. No data will be saved in the event of a crash')
+        else:
+            checkValidFilePath(dataFileName, makeValid=True) #fail now if we fail at all!
     def __del__(self):
         if self.dataFileName not in ['', None]:
             logging.debug('Saving data for %s ExperimentHandler' %self.name)
@@ -2358,7 +2360,7 @@ class MultiStairHandler(_BaseTrialHandler):
             self._nextIntensity =self.currentStaircase.next()#gets updated by self.addData()
         except:
             self.runningStaircases.remove(self.currentStaircase)
-            if len(self.runningStaircases)==0: #If finished,set finished flag 
+            if len(self.runningStaircases)==0: #If finished,set finished flag
                 self.finished=True
         #return value
         if not self.finished:
@@ -2913,6 +2915,19 @@ def getDateStr(format="%Y_%b_%d_%H%M"):
         now_dec = time.strftime("%Y_%m_%d_%H%M", time.localtime())  # '2011_03_16_1307'
 
     return now_dec
+
+def checkValidFilePath(filepath, makeValid=True):
+    """Checks whether file path location (e.g. is a valid folder)
+
+    This should also check whether we have write-permissions to the folder
+    but doesn't currently do that!
+
+    added in: 1.90.00
+    """
+    folder = os.path.split(os.path.abspath(filepath))[0]
+    if not os.path.isdir(folder):
+        os.makedirs(folder) #spit an error if we fail
+    return True
 
 def isValidVariableName(name):
     """Checks whether a certain string could be used as a valid variable.
