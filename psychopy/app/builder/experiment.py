@@ -275,6 +275,11 @@ class Experiment:
             params[name].val = paramNode.get('val')
             params[name].valType = 'extendedCode' #changed in 1.78.00
             return #so that we don't update valTyp again below
+        elif name == 'Saved data folder':
+            #deprecated in 1.80 for more complete data filename control
+            params[name] = Param(paramNode.get('val'), valType='code', allowedTypes=[],
+                hint="Name of the folder in which to save data and log files (blank defaults to the builder pref)",
+                categ='Data')
         elif 'val' in paramNode.keys():
             if paramNode.get('val')=='window units':#changed this value in 1.70.00
                 params[name].val = 'from exp settings'

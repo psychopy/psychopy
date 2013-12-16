@@ -11,21 +11,30 @@ class SettingsComponent:
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
                  logging='exp', color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  saveXLSXFile=False, saveCSVFile=False, saveWideCSVFile=True, savePsydatFile=True,
-                 savedDataFolder=''):
+                 savedDataFolder='', filename="'xxxx/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])"):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
         self.parentName=parentName
         self.url="http://www.psychopy.org/builder/settings.html"
+
+        #if filename is the default value fetch the builder pref for the folder instead
+        if filename.startswith("'xxxx"):
+            filename = filename.replace("xxxx", self.exp.prefsBuilder['savedDataFolder'].strip())
+        else:
+            print filename[0:5]
         #params
         self.params={}
-        self.order=['expName','Show info dlg','Experiment info',
+        self.order=['expName','Show info dlg','Experiment info','filename',
             'Save excel file','Save csv file','Save wide csv file','Save psydat file','Save log file','logging level',
             'Monitor','Screen', 'Full-screen window','Window size (pixels)',
             'color','colorSpace','Units',]
         self.params['expName']=Param(expName, valType='str', allowedTypes=[],
             hint="Name of the entire experiment (taken by default from the filename on save)",
             label="Experiment name")
+        self.params['Data filename']=Param(filename, valType='code', allowedTypes=[],
+            hint="Code to create your custom file name base. Don't give a file extension - this will be added.",
+            categ='Data')
         self.params['Full-screen window']=Param(fullScr, valType='bool', allowedTypes=[],
             hint="Run the experiment full-screen (recommended)",
             categ='Screen')
@@ -69,9 +78,6 @@ class SettingsComponent:
         self.params['Save psydat file']=Param(savePsydatFile, valType='bool', allowedVals=[True],
             hint="Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.",
             categ='Data')
-        self.params['Saved data folder']=Param(savedDataFolder, valType='code', allowedTypes=[],
-            hint="Name of the folder in which to save data and log files (blank defaults to the builder pref)",
-            categ='Data')
         self.params['Show info dlg']=Param(showExpInfo, valType='bool', allowedTypes=[],
             hint="Start the experiment with a dialog to set info (e.g.participant or condition)",
             categ='Data')
@@ -90,11 +96,15 @@ class SettingsComponent:
     def getShortType(self):
         return self.getType().replace('Component','')
     def getSaveDataDir(self):
-        saveToDir = self.params['Saved data folder'].val.strip()
-        if not saveToDir:
-            saveToDir = self.exp.prefsBuilder['savedDataFolder'].strip()
-            if not saveToDir:
-                saveToDir = 'data'
+        if 'Saved data folder' in self.params:
+            #we have a param for the folder (deprecated since 1.80)
+            saveToDir = self.params['Saved data folder'].val.strip()
+            if not saveToDir: #it was blank so try preferences
+                saveToDir = self.exp.prefsBuilder['savedDataFolder'].strip()
+                if not saveToDir: #still blank so just use 'data' folder
+                    saveToDir = 'data'
+        else:
+            saveToDir = os.path.split(self.params['Data filename'].val)[0]
         return saveToDir
     def writeStartCode(self,buff):
         buff.writeIndented("# Store info about the experiment session\n")
@@ -103,7 +113,8 @@ class SettingsComponent:
         else:
             buff.writeIndented("expName = %s  # from the Builder filename that created this script\n" %(self.params['expName']))
         expInfo = self.params['Experiment info'].val.strip()
-        if not len(expInfo): expInfo = '{}'
+        if not len(expInfo):
+            expInfo = '{}'
         try:
             expInfoDict = eval('dict(' + expInfo + ')')
         except SyntaxError, err:
@@ -115,23 +126,25 @@ class SettingsComponent:
             buff.writeIndented("if dlg.OK == False: core.quit()  # user pressed cancel\n")
         buff.writeIndented("expInfo['date'] = data.getDateStr()  # add a simple timestamp\n")
         buff.writeIndented("expInfo['expName'] = expName\n")
-        saveToDir = self.getSaveDataDir()
         level=self.params['logging level'].val.upper()
 
-        buff.writeIndentedLines("\n# Setup files for saving\n")
-        buff.writeIndented("if not os.path.isdir('%s'):\n" % saveToDir)
-        buff.writeIndented("    os.makedirs('%s')  # if this fails (e.g. permissions) we will get error\n" % saveToDir)
-        for field in ['participant', 'Participant', 'Subject', 'Observer']:
-            if field in expInfoDict:
-                buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s_%s' %(expInfo['" + field + "'], expInfo['date'])\n")
-                break;
-        else:
-            buff.writeIndented("filename = '" + saveToDir + "' + os.path.sep + '%s' %(expInfo['date'])\n")
+        saveToDir = self.getSaveDataDir()
+        buff.writeIndentedLines("\n# Setup filename for saving\n")
+        #deprecated code: before v1.80.00 we had 'Saved data folder' param but fairly fixed filename
+        if 'Saved data folder' in self.params:
+            participantField=''
+            for field in ['participant','Participant', 'Subject', 'Observer']:
+                if field in expInfoDict:
+                    participantField=field
+                    self.params['Data filename'].val = repr(saveToDir) + \
+                            " + os.path.sep + '%s_%s' %(expInfo['" + field + "'], expInfo['date'])"
+                    break
+            if not participantField: #we didn't find a participant-type field so skip that part of filename
+                self.params['Data filename'].val = repr(saveToDir) + " + os.path.sep + expInfo['date']"
+            del self.params['Saved data folder'] #so that we don't overwrite users changes doing this again
 
-        if self.params['Save log file'].val:
-            buff.writeIndented("logFile = logging.LogFile(filename+'.log', level=logging.%s)\n" %(level))
-
-        buff.writeIndented("logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a file\n")
+        #now write that data file name to the script
+        buff.writeIndented("filename = %s\n" %self.params['Data filename'])
 
         #set up the ExperimentHandler
         buff.writeIndentedLines("\n# An ExperimentHandler isn't essential but helps with data saving\n")
@@ -140,6 +153,11 @@ class SettingsComponent:
         buff.writeIndented("    originPath=%s,\n" %repr(self.exp.expPath))
         buff.writeIndented("    savePickle=%(Save psydat file)s, saveWideText=%(Save wide csv file)s,\n" %self.params)
         buff.writeIndented("    dataFileName=filename)\n")
+
+        if self.params['Save log file'].val:
+            buff.writeIndented("#save a log file for detail verbose info\n")
+            buff.writeIndented("logFile = logging.LogFile(filename+'.log', level=logging.%s)\n" %(level))
+        buff.writeIndented("logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a file\n")
 
     def writeWindowCode(self,buff):
         """ setup the window code
