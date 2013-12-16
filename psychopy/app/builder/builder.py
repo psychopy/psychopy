@@ -2461,7 +2461,9 @@ class _BaseParamsDlg(wx.Dialog):
             codeBox.SetBackgroundColour(white)
             return # skip test
         goodSyntax = self._testCompile(codeBox) # test syntax
-        self._setNameColor(goodSyntax)
+        #not quite every dialog has a name (e.g. settings) but if so then set its color
+        if 'name' in self.paramCtrls:
+            self._setNameColor(goodSyntax)
     def _setNameColor(self, goodSyntax):
         if goodSyntax:
             self.paramCtrls['name'].valueCtrl.SetBackgroundColour(codeSyntaxOkay)
