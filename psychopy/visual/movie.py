@@ -100,7 +100,7 @@ class MovieStim(BaseVisualStim):
                 If True then the movie will be top-bottom flipped
             flipHoriz : True or *False*
                 If True then the movie will be right-left flipped
-            volume : 
+            volume :
                 The nominal level is 1.0, and 0.0 is silence, see pyglet.media.Player
             loop : bool, optional
                 Whether to start the movie over from the beginning if draw is
@@ -334,6 +334,6 @@ class MovieStim(BaseVisualStim):
         else:
             self.pause(log=False)
         #add to drawing list and update status
-        BaseVisualStim.autoDraw = val
+        self.autoDraw = val
     def __del__(self):
         self._player.next()
