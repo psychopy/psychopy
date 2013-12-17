@@ -1057,17 +1057,6 @@ class FlowPanel(wx.ScrolledWindow):
 
         return endX
 
-        #tbtn = AB.AquaButton(self, id, pos=pos, label=name)
-        #tbtn.Bind(wx.EVT_BUTTON, self.onBtn)
-        #print tbtn.GetBackgroundColour()
-
-        #print dir(tbtn)
-        #print tbtn.GetRect()
-        #rect = tbtn.GetRect()
-        #return rect[0]+rect[2]+20
-    #def onBtn(self, event):
-        #print 'evt:', self.componentFromID[event.GetId()].name
-        #print '\nobj:', dir(event.GetEventObject())
     def drawLoop(self,dc,loop,id, startX,endX,
             base,height,rgb=[0,0,0], downwards=True):
         if downwards: up=-1
@@ -1480,14 +1469,12 @@ class RoutineCanvas(wx.ScrolledWindow):
                 order = component.order,
                 helpUrl=helpUrl, editing=True)
         if dlg.OK:
-            print 'DLG: ', dlg
             if component.getStartAndDuration() != timings:
                 self.redrawRoutine()#need to refresh timings section
                 self.Refresh()#then redraw visible
                 self.frame.flowPanel.draw()
 #                self.frame.flowPanel.Refresh()
             elif component.params['name'].val != old_name:
-                print 'name changed!:',component.params['name'].val ,old_name
                 self.redrawRoutine() #need to refresh name
             self.frame.exp.namespace.remove(old_name)
             self.frame.exp.namespace.add(component.params['name'].val)
@@ -1888,7 +1875,6 @@ class ParamCtrls:
                 try:
                     tryForExp=tryForExp.parent#try going up a level
                 except:
-                    print dir(tryForExp)
                     tryForExp.parent
 
         #param has the fields:
@@ -2088,7 +2074,6 @@ class _BaseParamsDlg(wx.Dialog):
         self.data = []
         self.nameOKlabel=None
         self.maxFieldLength = 10#max( len(str(self.params[x])) for x in keys )
-        types=dict([])
         self.timeParams=['startType','startVal','stopType','stopVal']
         self.codeFieldNameFromID = {}
         self.codeIDFromFieldName = {}
@@ -2111,10 +2096,8 @@ class _BaseParamsDlg(wx.Dialog):
                 continue#not really a param as such
             thisCateg = thisParam.categ
             if thisCateg not in categs:
-#                print 'new categ:', thisCateg, thisName
                 categs[thisCateg] = [thisName]
             else:
-#                print 'append categ:', thisName
                 categs[thisCateg].append(thisName)
         if not categs['Basic']: #there were no entries of this categ so delete it
             del categs['Basic']
@@ -2175,7 +2158,6 @@ class _BaseParamsDlg(wx.Dialog):
         currRow += 1
         #loop through the prescribed order (the most important?)
         for fieldName in self.order:
-#            print fieldName
             if fieldName not in paramNames:
                 continue#skip advanced params
             self.addParam(fieldName, parent, sizer, currRow, valType=self.params[fieldName].valType)
@@ -2398,6 +2380,10 @@ class _BaseParamsDlg(wx.Dialog):
         Validate form data and disable OK button if validation fails.
         """
         valid = super(_BaseParamsDlg, self).Validate(*args, **kwargs)
+        #also validate each page in the ctrls notebook
+        for thisPage in self.ctrls.GetChildren():
+            stillValid = thisPage.Validate()
+            valid = valid and stillValid
         if valid:
             self.OKbtn.Enable()
         else:
@@ -4209,7 +4195,6 @@ class BuilderFrame(wx.Frame):
         if checkSave:
             ok = self.checkSave()
             if not ok: return False#user cancelled
-        print 'closing', self.filename
         if self.filename==None:
             frameData=self.appData['defaultFrame']
         else:
@@ -4260,12 +4245,8 @@ class BuilderFrame(wx.Frame):
         """
         if newVal==None:
             newVal= self.getIsModified()
-        else: self.isModified=newVal
-#        elif newVal==False:
-#            self.lastSavedCopy=copy.copy(self.exp)
-#            print 'made new copy of exp'
-#        #then update buttons/menus
-#        if newVal:
+        else:
+            self.isModified=newVal
         self.toolbar.EnableTool(self.IDs.tbFileSave, newVal)
         self.fileMenu.Enable(wx.ID_SAVE, newVal)
     def getIsModified(self):
