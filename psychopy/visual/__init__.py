@@ -32,7 +32,7 @@ from psychopy.visual.grating import GratingStim
 from psychopy.visual.image import ImageStim
 from psychopy.visual.movie import MovieStim
 from psychopy.visual.shape import ShapeStim
-from psychopy.visual.text import TextStim, InstructionScreen
+from psychopy.visual.text import TextStim
 
 # stimuli derived from GratingStim
 from psychopy.visual.bufferimage import BufferImageStim
@@ -52,4 +52,3 @@ try:
     from textbox import TextBox
 except:
     pass
-
