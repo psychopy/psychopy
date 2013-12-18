@@ -157,7 +157,7 @@ def getInitVals(params):
             inits[name].val="norm"
             inits[name].valType='str'
         elif name == 'text':
-            inits[name].val="nonsense"
+            inits[name].val="default text"
             inits[name].valType='str'
         elif name == 'flip':
             inits[name].val=""

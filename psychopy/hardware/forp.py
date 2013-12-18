@@ -1,7 +1,10 @@
 """fORP fibre optic (MR-compatible) response devices by CurrentDesigns:
 http://www.curdes.com/
 This class is only useful when the fORP is connected via the serial port.
-If you're connecting via USB, just treat it like a standard keyboard.
+
+If you're connecting via USB, just treat it like a standard keyboard. E.g., use
+a Keyboard component, and typically listen for Allowed keys ``'1', '2', '3', '4', '5'``.
+Or use ``event.getKeys()``.
 """
 
 # Part of the PsychoPy library
@@ -162,4 +165,3 @@ class ButtonBox:
         if fullEvts:
             return set(self.rawEvts)
         return set(self.pressEvents)
-

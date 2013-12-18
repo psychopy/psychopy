@@ -71,11 +71,11 @@ class TextComponent(VisualComponent):
         buff.writeIndented("    "+unitsStr+"pos=%(pos)s, height=%(letterHeight)s, wrapWidth=%(wrapWidth)s,\n" %(inits))
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" %(inits))
         flip = self.params['flip'].val.strip()
-        if flip and not flip in ['horiz', 'vert']:
-            raise ValueError("flip value should be 'horiz' or 'vert' (no quotes) in component '%s'" % self.params['name'].val)
         if flip == 'horiz':
             buff.writeIndented("    flipHoriz=%s," % bool(flip == 'horiz') )
         elif flip == 'vert':
             buff.writeIndented("    flipVert=%s," % bool(flip == 'vert') )
+        elif flip:
+            raise ValueError("flip value should be 'horiz' or 'vert' (no quotes) in component '%s'" % self.params['name'].val)
         depth=-self.getPosInRoutine()
         buff.writeIndented("    depth=%.1f)\n" %(depth))

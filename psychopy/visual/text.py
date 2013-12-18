@@ -20,7 +20,7 @@ import ctypes
 GL = pyglet.gl
 
 import psychopy  # so we can get the __path__
-from psychopy import logging
+from psychopy import logging, core
 import psychopy.event
 
 # tools must only be imported *after* event or MovieStim breaks on win32
@@ -610,3 +610,4 @@ class TextStim(BaseVisualStim):
         """Not implemented for TextStim
         """
         pass
+
