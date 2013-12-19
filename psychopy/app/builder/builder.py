@@ -257,8 +257,11 @@ class CodeComponentDialog(wx.Dialog):
 
         agwStyle = flatnotebook.FNB_NO_X_BUTTON
         if hasattr(flatnotebook, "FNB_NAV_BUTTONS_WHEN_NEEDED"):
-            # this style is not yet available in wxPython 2.8
+            # not available in wxPython 2.8
             agwStyle |= flatnotebook.FNB_NAV_BUTTONS_WHEN_NEEDED
+        if hasattr(flatnotebook, "FNB_NO_TAB_FOCUS"):
+            # not available in wxPython 2.8.10
+            agwStyle |= flatnotebook.FNB_NO_TAB_FOCUS
         self.code_sections = flatnotebook.FlatNotebook(self, wx.ID_ANY,
             agwStyle = agwStyle)
 
@@ -2104,9 +2107,14 @@ class _BaseParamsDlg(wx.Dialog):
 
         #create main sizer
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
-        self.ctrls = flatnotebook.FlatNotebook(self,
-            agwStyle = flatnotebook.FNB_NO_X_BUTTON | flatnotebook.FNB_NO_TAB_FOCUS | flatnotebook.FNB_NO_NAV_BUTTONS \
-                | flatnotebook.FNB_HIDE_ON_SINGLE_TAB)
+        agwStyle = flatnotebook.FNB_NO_X_BUTTON
+        if hasattr(flatnotebook, "FNB_NAV_BUTTONS_WHEN_NEEDED"):
+            # not available in wxPython 2.8
+            agwStyle |= flatnotebook.FNB_NAV_BUTTONS_WHEN_NEEDED
+        if hasattr(flatnotebook, "FNB_NO_TAB_FOCUS"):
+            # not available in wxPython 2.8.10
+            agwStyle |= flatnotebook.FNB_NO_TAB_FOCUS
+        self.ctrls = flatnotebook.FlatNotebook(self, agwStyle = agwStyle)
         self.mainSizer.Add(self.ctrls, flag=wx.EXPAND|wx.ALL)#add main controls
         categNames = sorted(categs)
         if 'Basic' in categNames:
