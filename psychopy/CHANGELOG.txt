@@ -10,10 +10,27 @@ Changelog
 PsychoPy 1.79
 ------------------------------
 
+PsychoPy 1.79.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+FIXED: startup crash in 1.79.00
+FIXED: long-standing memory leak in MovieStim
+FIXED: fixed problem with MovieStim not displaying the image but playing the audio
+ADDED: volume attribute to MovieStim (Frank Papenmeier)
+FIXED: experiments were crashing if first line of a conditions file contained a float but the rest were integers
+FIXED: QuestHandler.addResponse() should not try to replace existing intensity on first trial (Richard Höchenberger)
+FIXED: Window's viewPos and viewScale attributes could not be changed
+FIXED: Builder code generation for Cedrus Box when user provided a limited set of available buttons
+FIXED: multiple issues causing fatal errors when setting stimulus parameters (Pieter Moors and Damien Mannion)
+FIXED: Builder experiments would crash under certain conditions when there was no 'participant' in the info dialog box (Philipp Wiesemann)
+FIXED: bug toggling readme file window in Builder (Philipp Wiesemann)
+FIXED: further fix to the Coder raising excessive 'this file has changed' warnings
+FIXED: Component names now update on the Routine panel after being changed in a dialog (Philipp Wiesemann)
+
 PsychoPy 1.79.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* ADDED: attributes for stimuli can now be updated using e.g. `stim.pos = newPos` rather than using `stim.setPos(newPos)` to make things more like standard Python (thanks Jonas Lindeløv). This version also involved some major restructuring behind the scenes that should not be visible to users (thanks Todd Jennings)
+* NEW: attributes for stimuli can now be updated using e.g. `stim.pos = newPos` rather than using `stim.setPos(newPos)` to make things more like standard Python (thanks Jonas Lindeløv). This version also involved some major restructuring behind the scenes that should not be visible to users (thanks Todd Jennings)
 * ADDED: Builder Components for
     * ioLab Systems button-box; refactor PsychoPy's ioLabs code (Jeremy)
     * Cedrus button-box (tested on RB730)

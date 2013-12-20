@@ -114,6 +114,7 @@ def createInitFile(dist=None):
     outStr += _getGitShaString(dist)
     outStr += getGitShaRuntime
     outStr += allList
+    outStr += "\n"
     f.write(outStr)
     f.close()
     return outStr
