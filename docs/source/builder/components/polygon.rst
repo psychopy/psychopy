@@ -21,23 +21,24 @@ name : string
 
 nVertices : integer
 
-    The number of vertices for your shape (2 gives a line, 3 gives a triangle,... a large number results in a circle/ellipse)
-    
+    The number of vertices for your shape (2 gives a line, 3 gives a triangle,... a large number results in a circle/ellipse).
+    It is not (currently) possible to vary the number of vertices dynamically.
+
 fill settings:
 
     Control the color inside the shape. If you set this to `None` then you will have a transparent shape (the line will remain)
-    
+
 line settings:
 
     Control color and width of the line. The line width is always specified in pixels - it does not honour the `units` parameter.
-    
+
 size : [w,h]
     See note above
-    
+
 start :
     The time that the stimulus should first appear. See :ref:`startStop` for details.
 
-stop : 
+stop :
     Governs the duration for which the stimulus is presented. See :ref:`startStop` for details.
 
 ori : degrees
@@ -52,7 +53,7 @@ units : deg, cm, pix, norm, or inherit from window
 
 
 .. seealso::
-	
+
 	API reference for :class:`~psychopy.visual.Polygon`
 	API reference for :class:`~psychopy.visual.Rect`
 	API reference for :class:`~psychopy.visual.ShapeStim` #for arbitrary vertices

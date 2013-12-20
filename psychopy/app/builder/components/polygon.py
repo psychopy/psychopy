@@ -32,8 +32,8 @@ class PolygonComponent(VisualComponent):
         self.exp.requirePsychopyLibs(['visual'])
         self.order=['nVertices']
         #params
-        self.params['nVertices']=Param(nVertices, valType='code',
-            updates='constant', allowedUpdates=['constant','set every repeat'],
+        self.params['nVertices']=Param(nVertices, valType='int',
+            updates='constant', allowedUpdates=['constant'],
             hint="How many vertices? 2=line, 3=triangle... (90 approximates a circle)",
             label="N Vertices")
         self.params['fillColorSpace']=Param(fillColorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
@@ -72,13 +72,13 @@ class PolygonComponent(VisualComponent):
         if self.params['units'].val=='from exp settings': unitsStr=""
         else: unitsStr="units=%(units)s, " %self.params
         inits = getInitVals(self.params)#replaces variable params with defaults
-        if int(self.params['nVertices'].val) == 2:
+        if self.params['nVertices'].val == '2':
             buff.writeIndented("%s = visual.Line(win=win, name='%s',%s\n" %(inits['name'],inits['name'],unitsStr))
             buff.writeIndented("    start=(-%(size)s[0]/2.0, 0), end=(+%(size)s[0]/2.0, 0),\n" %(inits) )
-        elif int(self.params['nVertices'].val) == 3:
+        elif self.params['nVertices'].val == '3':
             buff.writeIndented("%s = visual.ShapeStim(win=win, name='%s',%s\n" %(inits['name'],inits['name'],unitsStr))
             buff.writeIndented("    vertices = [[-%(size)s[0]/2.0,-%(size)s[1]/2.0], [+%(size)s[0]/2.0,-%(size)s[1]/2.0], [0,%(size)s[1]/2.0]],\n" %(inits) )
-        elif int(self.params['nVertices'].val) == 4:
+        elif self.params['nVertices'].val == '4':
             buff.writeIndented("%s = visual.Rect(win=win, name='%s',%s\n" %(inits['name'],inits['name'],unitsStr))
             buff.writeIndented("    width=%(size)s[0], height=%(size)s[1],\n" %(inits) )
         else:
