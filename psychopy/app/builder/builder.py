@@ -2080,6 +2080,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.timeParams=['startType','startVal','stopType','stopVal']
         self.codeFieldNameFromID = {}
         self.codeIDFromFieldName = {}
+        self.panels = []# a list of all panels in the ctrl to be traversed by validator
 
         # for switching font to signal code:
         self.codeFaceName = 'Courier New'  # get another monospace if not available
@@ -2126,6 +2127,7 @@ class _BaseParamsDlg(wx.Dialog):
             ctrls = self.addCategoryOfParams(theseParams, parent=page)
             page.SetSizer(ctrls)
             self.ctrls.AddPage(page, categName)
+            self.panels.append(page) #so the validator finds this set of controls
 
     def addCategoryOfParams(self, paramNames, parent):
         """Add all the params for a single category (after its tab has been created)
@@ -2389,8 +2391,8 @@ class _BaseParamsDlg(wx.Dialog):
         """
         valid = super(_BaseParamsDlg, self).Validate(*args, **kwargs)
         #also validate each page in the ctrls notebook
-        for thisPage in self.ctrls.GetChildren():
-            stillValid = thisPage.Validate()
+        for thisPanel in self.panels:
+            stillValid = thisPanel.Validate()
             valid = valid and stillValid
         if valid:
             self.OKbtn.Enable()
@@ -2650,6 +2652,9 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.mainSizer.Add(self.constantsPanel, border=5, flag=wx.ALL|wx.ALIGN_CENTRE)
         self.mainSizer.Add(self.multiStairPanel, border=5, flag=wx.ALL|wx.ALIGN_CENTRE)
         self.setCtrls(self.currentType)
+        # create a list of panels in the dialog, for the validator to step through
+        self.panels = [self.globalPanel, self.stairPanel, self.constantsPanel, self.multiStairPanel]
+
 
         #show dialog and get most of the data
         self.show()
