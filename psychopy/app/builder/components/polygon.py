@@ -83,7 +83,8 @@ class PolygonComponent(VisualComponent):
             buff.writeIndented("    width=%(size)s[0], height=%(size)s[1],\n" %(inits) )
         else:
             buff.writeIndented("%s = visual.Polygon(win=win, name='%s',%s\n" %(inits['name'],inits['name'],unitsStr))
-            buff.writeIndented("    edges = %(nVertices)s, size=%(size)s,\n" %(inits) )
+            buff.writeIndented("    edges = %s," % str(inits['nVertices'].val))
+            buff.writeIndented(" size=%(size)s,\n" %(inits) )
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s,\n" %(inits) )
         buff.writeIndented("    lineWidth=%(lineWidth)s, lineColor=%(lineColor)s, lineColorSpace=%(lineColorSpace)s,\n" %(inits) )
         buff.writeIndented("    fillColor=%(fillColor)s, fillColorSpace=%(fillColorSpace)s,\n" %(inits) )
