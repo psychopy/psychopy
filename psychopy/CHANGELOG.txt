@@ -13,22 +13,29 @@ PsychoPy 1.79
 PsychoPy 1.79.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-FIXED: startup crash in 1.79.00
-FIXED: long-standing memory leak in MovieStim
-FIXED: fixed problem with MovieStim not displaying the image but playing the audio
-ADDED: volume attribute to MovieStim (Frank Papenmeier)
-FIXED: experiments were crashing if first line of a conditions file contained a float but the rest were integers
-FIXED: QuestHandler.addResponse() should not try to replace existing intensity on first trial (Richard Höchenberger)
-FIXED: Window's viewPos and viewScale attributes could not be changed
-FIXED: Builder code generation for Cedrus Box when user provided a limited set of available buttons
-FIXED: multiple issues causing fatal errors when setting stimulus parameters (Pieter Moors and Damien Mannion)
-FIXED: Builder experiments would crash under certain conditions when there was no 'participant' in the info dialog box (Philipp Wiesemann)
-FIXED: bug toggling readme file window in Builder (Philipp Wiesemann)
-FIXED: further fix to the Coder raising excessive 'this file has changed' warnings
-FIXED: Component names now update on the Routine panel after being changed in a dialog (Philipp Wiesemann)
+(Dec 2013)
+
+* FIXED: startup crash in 1.79.00
+* FIXED: long-standing memory leak in MovieStim
+* FIXED: fixed problem with MovieStim not displaying the image but playing the audio
+* ADDED: volume attribute to MovieStim (Frank Papenmeier)
+* FIXED: experiments were crashing if first line of a conditions file contained a float but the rest were integers
+* FIXED: QuestHandler.addResponse() should not try to replace existing intensity on first trial (Richard Höchenberger)
+* FIXED: Window's viewPos and viewScale attributes could not be changed
+* FIXED: Builder code generation for Cedrus Box when user provided a limited set of available buttons
+* FIXED: multiple issues causing fatal errors when setting stimulus parameters (Pieter Moors and Damien Mannion)
+* FIXED: Builder experiments would crash under certain conditions when there was no 'participant' in the info dialog box (Philipp Wiesemann)
+* FIXED: bug toggling readme file window in Builder (Philipp Wiesemann)
+* FIXED: further fix to the Coder raising excessive 'this file has changed' warnings
+* FIXED: Component names now update on the Routine panel after being changed in a dialog (Philipp Wiesemann)
+* FIXED: bug importing conditions if the first row of numbers was the only float. (importFromConditions now uses numpy instead of matplotlib)
+* FIXED: further fix to the extra "file close" queries during shut-down
+
 
 PsychoPy 1.79.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(Dec 2013)
 
 * NEW: attributes for stimuli can now be updated using e.g. `stim.pos = newPos` rather than using `stim.setPos(newPos)` to make things more like standard Python (thanks Jonas Lindeløv). This version also involved some major restructuring behind the scenes that should not be visible to users (thanks Todd Jennings)
 * ADDED: Builder Components for
@@ -45,6 +52,7 @@ PsychoPy 1.79.00
         * Advantages: Very fast update following text change; very precise character placement.
         * Disadvantages: Supports monospace fonts only. 
         * IMPORTANT: TextBox is still being finalized and completed; expect to find (and please report) issues. API changes guaranteed.
+* FIXED: misaligned responses in csv output for QuestHandler (Zhili Zheng)
 * FIXED: bug when using ElementArrayStim with numpy 1.7.1. Most elements were receiving SF=0
 * FIXED: 'semi-automatic' calibration (thanks Flip Phillips)
 * FIXED: shut-down issues. Builder now remembers its last experiment and you don't get multiple messages about the scripts that have changed
@@ -58,7 +66,6 @@ PsychoPy 1.79.00
     * pyxid now includes Jared's upstream bug-fix
 * FIXED: many user interface tweaks, documentation and help string corrections (Philip Wiesemann)
 * FIXED: PsychoPy Coder view now closes the iohub process when the experiment script is terminated using 'Stop'. (Sol Simpson)
-* FIXED: bug importing conditions if the first row of numbers was the only float. (importFromConditions now uses numpy instead of matplotlib)
 * FIXED: Builder use of single staircase loops now respects the min/max values
 * CHANGED: data curve fitting functions are now using scipy.optimise.curve_fit and should hopefully be more robust to local minima(?)
 
