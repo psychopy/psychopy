@@ -91,7 +91,7 @@ Informative commit messages are really useful when we have to go back through th
   * *DOC*: for all kinds of documentation related commits
   * *TEST*: for adding or changing tests
   
-NB: The difference between BF and FF is that BF indicates a fis that is appropriate for back-porting to earlier versions, whereas FF indicates a fix to code that has not been released, and so cannot be back-ported.
+NB: The difference between BF and FF is that BF indicates a fix that is appropriate for back-porting to earlier versions, whereas FF indicates a fix to code that has not been released, and so cannot be back-ported.
 
 .. _pullRequest:
 
