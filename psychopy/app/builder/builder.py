@@ -4504,8 +4504,8 @@ class BuilderFrame(wx.Frame):
         # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,
         filename = evt.GetString().split('"')[1]
         lineNumber = int(evt.GetString().split(',')[1][5:])
-        self.app.coder.gotoLine(filename,lineNumber)
         self.app.showCoder()
+        self.app.coder.gotoLine(filename,lineNumber)
     def compileScript(self, event=None):
         script = self.generateScript(None) #leave the experiment path blank
         if not script:
