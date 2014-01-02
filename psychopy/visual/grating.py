@@ -98,6 +98,11 @@ class GratingStim(BaseVisualStim):
                 cosine edge.
 
         """
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        for unecess in ['self', 'rgb', 'dkl', 'lms']:
+            self._initParams.remove(unecess)
+        #initialise parent class
         BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 

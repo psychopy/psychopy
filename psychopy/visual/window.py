@@ -194,6 +194,12 @@ class Window:
                 will take precedence over preferences.
 
         """
+
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        for unecess in ['self', 'checkTiming', 'rgb', 'dkl', ]:
+            self._initParams.remove(unecess)
+
         self.name = name
         self.size = numpy.array(size, numpy.int)
         self.pos = pos
@@ -340,6 +346,19 @@ class Window:
         if self.useFBO:
             GL.glDeleteTextures(1, self.frameTexture)
             GL.glDeleteFramebuffersEXT( 1, self.frameBuffer)
+
+    def __repr__(self):
+        className = 'Window'
+        paramStrings = []
+        for param in self._initParams:
+            if hasattr(self, param):
+                paramStrings.append("%s=%s" %(param, repr(getattr(self, param))))
+            else:
+                paramStrings.append("%s=UNKNOWN" %(param))
+        # paramStrings = ["%s=%s" %(param, getattr(self, param)) for param in self._initParams]
+        params = ", ".join(paramStrings)
+        s = "%s(%s)" %(className, params)
+        return s
 
     def setRecordFrameIntervals(self, value=True):
         """To provide accurate measures of frame intervals, to determine

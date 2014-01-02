@@ -72,12 +72,14 @@ class _baseVisualTest:
             stim.setAutoDraw(False)
             assert stim.status==visual.FINISHED
             assert stim.status==visual.STOPPED
+            repr(stim) #check that repr(xxx) is working
     def test_greyscaleImage(self):
         win = self.win
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'greyscale.jpg')
         imageStim = visual.ImageStim(win, fileName)
         imageStim.draw()
         utils.compareScreenshot('greyscale_%s.png' %(self.contextName), win)
+        repr(imageStim) #check that repr(xxx) is working
     def test_gabor(self):
         win = self.win
         #using init
@@ -106,6 +108,7 @@ class _baseVisualTest:
         gabor.draw()
         utils.compareScreenshot('gabor2_%s.png' %(self.contextName), win)
         win.flip()
+        repr(gabor) #check that repr(xxx) is working
 
     #def testMaskMatrix(self):
     #    #aims to draw the exact same stimulus as in testGabor, but using filters
@@ -153,6 +156,7 @@ class _baseVisualTest:
         stim.setContrast(0.8)
         stim.setOpacity(0.8)
         stim.draw()
+        repr(stim) #check that repr(xxx) is working
         #compare with a LIBERAL criterion (fonts do differ)
         utils.compareScreenshot('text2_%s.png' %(self.contextName), win, crit=20)
 
@@ -172,6 +176,7 @@ class _baseVisualTest:
         for frameN in range(10):
             mov.draw()
             win.flip()
+        repr(mov) #check that repr(xxx) is working
     def test_rect(self):
         win = self.win
         rect = visual.Rect(win)
@@ -181,6 +186,7 @@ class _baseVisualTest:
         rect.setOri(30)
         rect.setFillColor('pink')
         rect.draw()
+        repr(rect) #check that repr(xxx) is working
     def test_circle(self):
         win = self.win
         circle = visual.Circle(win)
@@ -191,9 +197,13 @@ class _baseVisualTest:
         circle.setPos([0.5,-0.5])
         circle.setOri(30)
         circle.draw()
+        repr(circle) #check that repr(xxx) is working
     def text_line(self):
         win = self.win
         line = visual.Line(win)
+        line.draw()
+        win.flip()
+        repr(line) #check that repr(xxx) is working
     def test_Polygon(self):
         win = self.win
         cols = ['red','green','purple','orange','blue']
@@ -201,6 +211,7 @@ class _baseVisualTest:
             poly = visual.Polygon(win, edges=n+5, lineColor=col)
             poly.draw()
         win.flip()
+        repr(poly) #check that repr(xxx) is working
     def test_shape(self):
         win = self.win
 
@@ -217,6 +228,7 @@ class _baseVisualTest:
         shape.setContrast(0.8)
         shape.setOpacity(0.8)
         shape.draw()
+        repr(shape) #check that repr(xxx) is working
         utils.compareScreenshot('shape2_%s.png' %(self.contextName), win, crit=12.5)
     def test_radial(self):
         if self.win.winType=='pygame':
@@ -241,6 +253,7 @@ class _baseVisualTest:
         wedge.setRadialPhase(0.1,operation='+')
         wedge.setAngularPhase(0.1)
         wedge.draw()
+        repr(wedge) #check that repr(xxx) is working
         utils.compareScreenshot('wedge2_%s.png' %(self.contextName), win, crit=10.0)
     def test_simpleimage(self):
         win = self.win
@@ -248,6 +261,7 @@ class _baseVisualTest:
         if not os.path.isfile(fileName):
             raise IOError('Could not find image file: %s' % os.path.abspath(fileName))
         image = visual.SimpleImageStim(win, image=fileName, flipHoriz=True, flipVert=True)
+        repr(image) #check that repr(xxx) is working
         image.draw()
         utils.compareScreenshot('simpleimage1_%s.png' %(self.contextName), win, crit=5.0) # Should be exact replication
     def test_dots(self):
@@ -262,6 +276,7 @@ class _baseVisualTest:
             speed=0.01*self.scaleFactor, coherence=0.9)
         dots.draw()
         win.flip()
+        repr(dots) #check that repr(xxx) is working
 
         #using .set() and check the underlying variable changed
         prevDirs = copy.copy(dots._dotsDir)
@@ -281,7 +296,6 @@ class _baseVisualTest:
             "dots._signalDots failed to change after dots.setCoherence()"
         assert not numpy.alltrue(prevPosRend==dots._fieldPosRendered), \
             "dots._fieldPosRendered failed to change after dots.setPos()"
-
     def test_element_array(self):
         win = self.win
         if not win._haveShaders or utils._under_xvfb:
@@ -293,8 +307,9 @@ class _baseVisualTest:
         x, y = pol2cart(theta=thetas, radius=radii)
         xys = numpy.array([x,y]).transpose()
         spiral = visual.ElementArrayStim(win, nElements=N,sizes=0.5*self.scaleFactor,
-            sfs=3.0, xys=xys, oris=thetas)
+            sfs=3.0, xys=xys, oris=-thetas)
         spiral.draw()
+        repr(spiral) #check that repr(xxx) is working
         win.flip()
         spiral.draw()
         utils.compareScreenshot('elarray1_%s.png' %(self.contextName), win)
@@ -308,6 +323,7 @@ class _baseVisualTest:
         aperture.disable()
         grating.draw()
         aperture.enable()
+        repr(aperture) #check that repr(xxx) is working
         grating.ori = 90
         grating.setColor('black')
         grating.draw()
@@ -324,6 +340,7 @@ class _baseVisualTest:
         rs = visual.RatingScale(win, low=0,high=1,precision=100, displaySizeFactor=3, pos=(0,-.4),
                         lowAnchorText=' ', highAnchorText=' ', scale=' ',
                         markerStyle='glow', markerStart=0.7, markerColor='darkBlue')
+        repr(rs) #check that repr(xxx) is working
         rs.draw()
         if self.win.winType=='pyglet' and utils._under_xvfb:
             pytest.xfail("not clear why fails under Xvfb") # skip late so we smoke test the code
@@ -337,7 +354,6 @@ class _baseVisualTest:
         utils.skip_under_xvfb()             # skip late so we smoke test the code
         assert (1000/150.0 < msPFavg < 1000/40.0), \
             "Your frame period is %.1fms which suggests you aren't syncing to the frame" %msPFavg
-
 
 #create different subclasses for each context/backend
 class TestPygletNorm(_baseVisualTest):

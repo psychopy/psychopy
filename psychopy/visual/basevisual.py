@@ -39,6 +39,32 @@ class BaseVisualStim(object):
         self.status = NOT_STARTED
         self.units = units
 
+    def __repr__(self, complete=False):
+        """
+        """
+        if hasattr(self, '_initParams'):
+            className = self.__class__.__name__
+            paramStrings = []
+            for param in self._initParams:
+                if hasattr(self, param):
+                    val = getattr(self, param)
+                    valStr = repr(getattr(self, param))
+                    if len(repr(valStr))>50 and not complete:
+                        if val.__class__.__name__ == 'attributeSetter':
+                            valStr = "%s(...)" %val.__getattribute__.__class__.__name__
+                        else:
+                            valStr = "%s(...)" %val.__class__.__name__
+                else:
+                    valStr = 'UNKNOWN'
+                paramStrings.append("%s=%s" %(param, valStr))
+            #this could be used if all params are known to exist:
+            # paramStrings = ["%s=%s" %(param, getattr(self, param)) for param in self._initParams]
+            params = ", ".join(paramStrings)
+            s = "%s(%s)" %(className, params)
+        else:
+            s = object.__repr__(self)
+        return s
+
     @attributeSetter
     def win(self, value):
         """ The :class:`~psychopy.visual.Window` object in which the stimulus will be rendered
@@ -222,6 +248,7 @@ class BaseVisualStim(object):
 
         You do NOT need to set this on every frame flip!
         """
+        self.__dict__['autoDraw'] = value
         toDraw = self.win._toDraw
         toDrawDepths = self.win._toDrawDepths
         beingDrawn = (self in toDraw)

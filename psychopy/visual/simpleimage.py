@@ -80,6 +80,10 @@ class SimpleImageStim:
                 The name of the object to be using during logged messages about
                 this stim
         """
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
+
         #NB most stimuli use BaseVisualStim for the _set method and for
         # setting up win, name, units and autolog in __init__ but SimpleImage
         # shares very little with _Base so we do it manually here

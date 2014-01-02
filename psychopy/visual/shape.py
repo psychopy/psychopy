@@ -75,6 +75,9 @@ class ShapeStim(BaseVisualStim):
             interpolate : True or False
                 If True the edge of the line will be antialiased.
                 """
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
 
         # Initialize inheritance and remove unwanted methods
         BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)

@@ -35,6 +35,13 @@ class Line(ShapeStim):
                 Specifies the position of the end of the line
 
         """
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
+        #kwargs isn't a parameter, but a list of params
+        self._initParams.remove('kwargs')
+        self._initParams.extend(kwargs)
+
         self.start = start
         self.end = end
         self.vertices = [start, end]

@@ -34,6 +34,13 @@ class Polygon(ShapeStim):
                 Radius of the Polygon (distance from the center to the corners).
                 May be a -2tuple or list to stretch the polygon asymmetrically
         """
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
+        #kwargs isn't a parameter, but a list of params
+        self._initParams.remove('kwargs')
+        self._initParams.extend(kwargs)
+
         self.edges = edges
         self.radius = numpy.asarray(radius)
         self._calcVertices()

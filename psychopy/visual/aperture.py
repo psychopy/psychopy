@@ -43,6 +43,10 @@ class Aperture:
     """
     def __init__(self, win, size, pos=(0,0), ori=0, nVert=120, shape='circle', units=None,
             name='', autoLog=True):
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
+        #set self params
         self.win=win
         self.name = name
         self.autoLog=autoLog

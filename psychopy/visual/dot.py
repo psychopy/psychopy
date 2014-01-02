@@ -108,7 +108,12 @@ class DotStim(BaseVisualStim):
                 ``.setPos([x,y])`` method (e.g. a GratingStim, TextStim...)!!
                 See `ElementArrayStim` for a faster implementation of this idea.
             """
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = __builtins__['dir']()
+        self._initParams.remove('self')
+
         BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+
         self.nDots = nDots
         #size
         self.fieldPos = val2array(fieldPos, False, False)

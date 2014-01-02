@@ -69,6 +69,10 @@ class CustomMouse():
             not work yet. `getRel()` returns `[0,0]` and `mouseMoved()` always
             returns `False`. `clickReset()` may not be working.
         """
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
+
         self.win = win
         self.mouse = event.Mouse(win=self.win)
 

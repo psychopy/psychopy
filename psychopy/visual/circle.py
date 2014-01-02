@@ -35,6 +35,14 @@ class Circle(Polygon):
                 If radius is a 2-tuple or list, the values will be interpreted as semi-major and
                 semi-minor radii of an ellipse.
         """
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
+        #kwargs isn't a parameter, but a list of params
+        self._initParams.remove('kwargs')
+        self._initParams.extend(kwargs)
+
+        #initialise parent class
         kwargs['edges'] = edges
         kwargs['radius'] = radius
         Polygon.__init__(self, win, **kwargs)

@@ -107,6 +107,10 @@ class MovieStim(BaseVisualStim):
                 called and the movie is done.
 
         """
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
+
         BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
 
         if not havePygletMedia:

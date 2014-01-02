@@ -110,6 +110,10 @@ class BufferImageStim(GratingStim):
         """
         # depends on: window._getRegionOfFrame
 
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
+
         _clock = core.Clock()
         if stim: # draw all stim to the back buffer
             win.clearBuffer()

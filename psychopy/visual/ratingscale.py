@@ -299,6 +299,9 @@ class RatingScale:
         autolog :
             whether logging should be done automatically
     """
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
 
         logging.exp('RatingScale %s: init()' % name)
         self.win = win

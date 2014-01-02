@@ -154,6 +154,10 @@ class ElementArrayStim(object):
                 this stim
 
         """
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
+
         self.win=win
         self.name=name
         self.autoLog=autoLog

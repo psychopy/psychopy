@@ -24,6 +24,8 @@ class attributeSetter(object):
                               level=logging.EXP, obj=obj)
         return newValue
 
+    def __repr__(self):
+        return repr(self.__getattribute__)
 
 def setWithOperation(self, attrib, value, operation, stealth=False):
     """ Sets an object property (scalar or numpy array) with an operation.
@@ -34,10 +36,10 @@ def setWithOperation(self, attrib, value, operation, stealth=False):
     try:
         oldValue = getattr(self, attrib)
         if oldValue is None:
-            newValue = value 
+            newValue = value
         else:
-            oldValue = numpy.asarray(oldValue, float)        
-            
+            oldValue = numpy.asarray(oldValue, float)
+
             # Calculate new value using operation
             if operation == '':
                 newValue = oldValue * 0 + value  # Preserves dimensions, if array
