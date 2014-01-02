@@ -291,7 +291,7 @@ class BaseVisualStim(object):
         looking at `stim._posRendered`
         """
         self.__dict__['pos'] = val2array(value, False, False)
-        self._calcPosRendered()
+        self._updateVertices()
 
     @attributeSetter
     def size(self, value):
@@ -327,10 +327,9 @@ class BaseVisualStim(object):
                 elif self.units == 'norm': value = 2 * numpy.array(self._origSize, float) / self.win.size
                 elif self.units == 'height': value = numpy.array(self._origSize, float) / self.win.size[1]
         self.__dict__['size'] = value
-        self._calcSizeRendered()
+        self._updateVertices()
         if hasattr(self, '_calcCyclesPerStim'):
             self._calcCyclesPerStim()
-        self._needUpdate = True
 
     @attributeSetter
     def autoLog(self, value):
@@ -520,6 +519,25 @@ class BaseVisualStim(object):
         if self.units in ['norm','pix', 'height']: self._posRendered= copy.copy(self.pos)
         elif self.units in ['deg', 'degs']: self._posRendered=deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=cm2pix(self.pos, self.win.monitor)
+    def _updateVertices(self):
+        """Sets Stim.verticesPix from pos and size
+        """
+        #calculate the vertices in the absence of position
+        sqr = [[0.5,-0.5],[0.5,0.5],[-0.5,0.5],[-0.5,-0.5]]
+        radians = self.ori*0.017453292519943295
+        rotation = numpy.array([[numpy.cos(radians), -numpy.sin(radians)],
+                                [numpy.sin(radians), numpy.cos(radians)]])
+        vertsBase = numpy.dot(self.size*sqr, rotation)
+        #then combine with position and convert to pix
+        if self.units == 'pix':
+            verts = self.pos+vertsBase
+        elif self.units == 'cm':
+            verts = cm2pix(self.pos+vertsBase, self.win.monitor)
+        elif self.units == 'norm':
+            verts = (self.pos+vertsBase) * self.win.size
+        elif self.units =='deg':
+            verts = deg2pix(self.pos+vertsBase, self.win.monitor)
+        self.__dict__['verticesPix'] = verts
     def setAutoDraw(self, value, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""

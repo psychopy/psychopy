@@ -270,7 +270,6 @@ class GratingStim(BaseVisualStim):
         GL.glPushMatrix()#push before the list, pop after
         win.setScale(self._winScale)
         #move to centre of stimulus and rotate
-        GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         #the list just does the texture mapping
 
@@ -307,12 +306,6 @@ class GratingStim(BaseVisualStim):
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
-        #calculate coords in advance:
-        L = -self._sizeRendered[0]/2#vertices
-        R =  self._sizeRendered[0]/2
-        T =  self._sizeRendered[1]/2
-        B = -self._sizeRendered[1]/2
-        #depth = self.depth
 
         Ltex = -self._cycles[0]/2 - self.phase[0]+0.5
         Rtex = +self._cycles[0]/2 - self.phase[0]+0.5
@@ -324,19 +317,19 @@ class GratingStim(BaseVisualStim):
         # right bottom
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Rtex, Btex)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Rmask,Bmask)
-        GL.glVertex2f(R,B)
+        GL.glVertex2f(self.verticesPix[0,0], self.verticesPix[0,1])
         # left bottom
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Ltex,Btex)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Lmask,Bmask)
-        GL.glVertex2f(L,B)
+        GL.glVertex2f(self.verticesPix[1,0], self.verticesPix[1,1])
         # left top
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Ltex,Ttex)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Lmask,Tmask)
-        GL.glVertex2f(L,T)
+        GL.glVertex2f(self.verticesPix[2,0], self.verticesPix[2,1])
         # right top
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Rtex,Ttex)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Rmask,Tmask)
-        GL.glVertex2f(R,T)
+        GL.glVertex2f(self.verticesPix[3,0], self.verticesPix[3,1])
         GL.glEnd()
 
         #unbind the textures
