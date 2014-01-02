@@ -13,14 +13,14 @@ class Test_BufferImage(object):
     def setup_class(self):
         self.win = Window([128,256])
         self.winpix = Window([128,256], units='pix')
-        self.winpygame = Window([128,256], winType='pygame')
+        #self.winpygame = Window([128,256], winType='pygame')
     @classmethod
     def teardown_class(self):
-        for win in [self.win, self.winpix, self.winpygame]:
+        for win in [self.win, self.winpix]:
             win.close()
 
     def test_init(self):
-        for win in [self.win, self.winpygame]:
+        for win in [self.win, self.winpix]:
             b = BufferImageStim(win)
             good = TextStim(win, text='a')
             badWin = TextStim(self.winpix, text='a')
