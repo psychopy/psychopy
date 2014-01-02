@@ -800,8 +800,7 @@ class FlowPanel(wx.ScrolledWindow):
         # Create a buffered paint DC.  It will create the real
         # wx.PaintDC and then blit the bitmap to it when dc is
         # deleted.
-        dc = wx.BufferedPaintDC(self)
-        dc = wx.GCDC(dc)
+        dc = wx.GCDC(wx.BufferedPaintDC(self))
         # use PrepareDC to set position correctly
         self.PrepareDC(dc)
         # we need to clear the dc BEFORE calling PrepareDC
@@ -1258,17 +1257,13 @@ class RoutineCanvas(wx.ScrolledWindow):
         # Create a buffered paint DC.  It will create the real
         # wx.PaintDC and then blit the bitmap to it when dc is
         # deleted.
-        dc = wx.BufferedPaintDC(self)
-        if sys.platform.startswith('linux'):
-            gcdc = dc
-        else:
-            gcdc = wx.GCDC(dc)
+        dc = wx.GCDC(wx.BufferedPaintDC(self))
         # we need to clear the dc BEFORE calling PrepareDC
         bg = wx.Brush(self.GetBackgroundColour())
-        gcdc.SetBackground(bg)
-        gcdc.Clear()
+        dc.SetBackground(bg)
+        dc.Clear()
         # use PrepareDC to set position correctly
-        self.PrepareDC(gcdc)
+        self.PrepareDC(dc)
         # create a clipping rect from our position and size
         # and the Update Region
         xv, yv = self.GetViewStart()
@@ -1278,7 +1273,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         rgn.Offset(x,y)
         r = rgn.GetBox()
         # draw to the dc using the calculated clipping rect
-        self.pdc.DrawToDCClipped(gcdc,r)
+        self.pdc.DrawToDCClipped(dc,r)
 
     def redrawRoutine(self):
         self.pdc.Clear()#clear the screen
