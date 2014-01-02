@@ -3936,7 +3936,7 @@ class BuilderFrame(wx.Frame):
         menuBar.Append(self.viewMenu, '&View')
         self.viewMenu.Append(self.IDs.openCoderView, "&Open Coder view\t%s" %self.app.keys['switchToCoder'], "Open a new Coder view")
         wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.showCoder)
-        self.viewMenu.Append(self.IDs.toggleReadme, "&Toggle readme\t%s" %self.app.keys['toggleReadme'], "Open a new Coder view")
+        self.viewMenu.Append(self.IDs.toggleReadme, "&Toggle readme\t%s" %self.app.keys['toggleReadme'], "Toggle Readme")
         wx.EVT_MENU(self, self.IDs.toggleReadme,  self.toggleReadme)
         self.viewMenu.Append(self.IDs.tbIncrFlowSize, "&Flow Larger\t%s" %self.app.keys['largerFlow'], "Larger flow items")
         wx.EVT_MENU(self, self.IDs.tbIncrFlowSize, self.flowPanel.increaseSize)
@@ -4503,8 +4503,8 @@ class BuilderFrame(wx.Frame):
         # "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21,
         filename = evt.GetString().split('"')[1]
         lineNumber = int(evt.GetString().split(',')[1][5:])
-        self.app.coder.gotoLine(filename,lineNumber)
         self.app.showCoder()
+        self.app.coder.gotoLine(filename,lineNumber)
     def compileScript(self, event=None):
         script = self.generateScript(None) #leave the experiment path blank
         if not script:
@@ -4575,7 +4575,7 @@ class ReadmeFrame(wx.Frame):
         menuBar.Append(self.fileMenu, '&File')
         self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %self.parent.app.keys['save'])
         self.fileMenu.Append(wx.ID_CLOSE,   "&Close readme\t%s" %self.parent.app.keys['close'])
-        self.fileMenu.Append(self.parent.IDs.toggleReadme, "&Toggle readme\t%s" %self.parent.app.keys['toggleReadme'], "Open a new Coder view")
+        self.fileMenu.Append(self.parent.IDs.toggleReadme, "&Toggle readme\t%s" %self.parent.app.keys['toggleReadme'], "Toggle Readme")
         wx.EVT_MENU(self, self.parent.IDs.toggleReadme,  self.toggleVisible)
         wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.toggleVisible)
