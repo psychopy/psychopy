@@ -112,7 +112,7 @@ class DotStim(BaseVisualStim):
         self._initParams = __builtins__['dir']()
         self._initParams.remove('self')
 
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)#set autoLog at end of init
 
         self.nDots = nDots
         #size
@@ -166,6 +166,9 @@ class DotStim(BaseVisualStim):
 
         self._calcFieldCoordsRendered()
         self._update_dotsXY()
+        self.autoLog= autoLog
+        if autoLog:
+            logging.exp("Created %s = %s" %(self.name, repr(self)))
 
     def _set(self, attrib, val, op='', log=True):
         """Use this to set attributes of your stimulus after initialising it.
@@ -196,7 +199,7 @@ class DotStim(BaseVisualStim):
 
         if log and self.autoLog:
             self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
-                level=logging.EXP,obj=self)
+                level=logging.EXP)
 
     def set(self, attrib, val, op='', log=True):
         """DotStim.set() is obsolete and may not be supported in future

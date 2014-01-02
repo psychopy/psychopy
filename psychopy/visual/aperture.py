@@ -47,9 +47,9 @@ class Aperture:
         self._initParams = dir()
         self._initParams.remove('self')
         #set self params
+        self.autoLog=False #set this False first and change after attribs are set
         self.win=win
         self.name = name
-        self.autoLog=autoLog
 
         #unit conversions
         if units!=None and len(units): self.units = units
@@ -70,6 +70,9 @@ class Aperture:
         self.setSize(size, needReset=False)
         self.setPos(pos, needReset=False)
         self._reset()#implicitly runs an self.enable()
+        self.autoLog= autoLog
+        if autoLog:
+            logging.exp("Created %s = %s" %(self.name, repr(self)))
     def _reset(self):
         self.enable()
         GL.glClearStencil(0)

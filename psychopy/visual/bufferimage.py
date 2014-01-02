@@ -114,6 +114,7 @@ class BufferImageStim(GratingStim):
         self._initParams = dir()
         self._initParams.remove('self')
 
+        self.autoLog=False #set this False first and change after attribs are set
         _clock = core.Clock()
         if stim: # draw all stim to the back buffer
             win.clearBuffer()
@@ -143,7 +144,7 @@ class BufferImageStim(GratingStim):
         if win.units in ['norm']:
             pos *= win.size/2.
         GratingStim.__init__(self, win, tex=region, units='pix', mask=mask, pos=pos,
-                             interpolate=interpolate, name=name, autoLog=autoLog)
+                             interpolate=interpolate, name=name, autoLog=False)
 
         # to improve drawing speed, move these out of draw:
         self.desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)

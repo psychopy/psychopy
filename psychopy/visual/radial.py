@@ -90,7 +90,7 @@ class RadialStim(GratingStim):
         self._initParams = dir()
         self._initParams.remove('self')
 
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False) #autolog should start off false
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 
         # UGLY HACK again. (See same section in GratingStim for ideas)
@@ -164,6 +164,11 @@ class RadialStim(GratingStim):
             #generate a displaylist ID
             self._listID = GL.glGenLists(1)
             self._updateList()#ie refresh display list
+
+        #set autoLog (now that params have been initialised)
+        self.autoLog= autoLog
+        if autoLog:
+            logging.exp("Created %s = %s" %(self.name, repr(self)))
 
     @attributeSetter
     def mask(self, value):

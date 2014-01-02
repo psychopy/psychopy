@@ -103,7 +103,7 @@ class GratingStim(BaseVisualStim):
         for unecess in ['self', 'rgb', 'dkl', 'lms']:
             self._initParams.remove(unecess)
         #initialise parent class
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 
         # UGLY HACK: Some parameters depend on each other for processing.
@@ -163,6 +163,10 @@ class GratingStim(BaseVisualStim):
         self._listID = GL.glGenLists(1)
         self._updateList()#ie refresh display list
 
+        #set autoLog (now that params have been initialised)
+        self.autoLog= autoLog
+        if autoLog:
+            logging.exp("Created %s = %s" %(self.name, repr(self)))
 
     @attributeSetter
     def sf(self, value):

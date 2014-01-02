@@ -94,7 +94,7 @@ class TextStim(BaseVisualStim):
         self._initParams = dir()
         self._initParams.remove('self')
 
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)
 
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
         self._needUpdate = True
@@ -167,6 +167,11 @@ class TextStim(BaseVisualStim):
         self.contrast = float(contrast)
         self.setText(text, log=False) #self.width and self.height get set with text and calcSizeRednered is called
         self._needUpdate = True
+
+        #set autoLog (now that params have been initialised)
+        self.autoLog= autoLog
+        if autoLog:
+            logging.exp("Created %s = %s" %(self.name, repr(self)))
 
     def __del__(self):
         GL.glDeleteLists(self._listID, 1)

@@ -304,9 +304,9 @@ class RatingScale:
         self._initParams.remove('self')
 
         logging.exp('RatingScale %s: init()' % name)
+        self.autoLog = False # needs to start off False
         self.win = win
         self.name = name
-        self.autoLog = autoLog
         self.disappear = disappear
 
         # internally work in norm units, restore to orig units at the end of __init__:
@@ -354,6 +354,11 @@ class RatingScale:
         self.origScaleDescription = self.scaleDescription.text
         self.reset()  # sets .status, among other things
         self.win.units = self.savedWinUnits
+
+        #set autoLog (now that params have been initialised)
+        self.autoLog= autoLog
+        if autoLog:
+            logging.exp("Created %s = %s" %(self.name, repr(self)))
 
     def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys,
                    markerStart, low, high, precision, choices,

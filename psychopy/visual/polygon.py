@@ -40,7 +40,7 @@ class Polygon(ShapeStim):
         #kwargs isn't a parameter, but a list of params
         self._initParams.remove('kwargs')
         self._initParams.extend(kwargs)
-
+        self.autoLog = False #but will be changed if needed at end of init
         self.edges = edges
         self.radius = numpy.asarray(radius)
         self._calcVertices()

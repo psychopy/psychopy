@@ -80,7 +80,7 @@ class ShapeStim(BaseVisualStim):
         self._initParams.remove('self')
 
         # Initialize inheritance and remove unwanted methods
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False) #autoLog is set later
         self.__dict__['setColor'] = None
         self.__dict__['color'] = None
         self.__dict__['colorSpace'] = None
@@ -116,6 +116,11 @@ class ShapeStim(BaseVisualStim):
         self.setSize(size, log=False)
         self.setVertices(vertices, log=False)
         self._calcVerticesRendered()
+
+        #set autoLog (now that params have been initialised)
+        self.autoLog= autoLog
+        if autoLog:
+            logging.exp("Created %s = %s" %(self.name, repr(self)))
 
     @attributeSetter
     def fillColor(self, color):

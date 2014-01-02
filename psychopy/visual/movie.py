@@ -111,7 +111,7 @@ class MovieStim(BaseVisualStim):
         self._initParams = dir()
         self._initParams.remove('self')
 
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)
 
         if not havePygletMedia:
             raise ImportError, """pyglet.media is needed for MovieStim and could not be imported.
@@ -157,6 +157,12 @@ class MovieStim(BaseVisualStim):
         if win.winType!='pyglet':
             logging.error('Movie stimuli can only be used with a pyglet window')
             core.quit()
+
+        #set autoLog (now that params have been initialised)
+        self.autoLog= autoLog
+        if autoLog:
+            logging.exp("Created %s = %s" %(self.name, repr(self)))
+
     def _calcVertices(self):
         R, T = self._sizeRendered / 2  # pix
         L, B = -R, -T

@@ -87,9 +87,9 @@ class SimpleImageStim:
         #NB most stimuli use BaseVisualStim for the _set method and for
         # setting up win, name, units and autolog in __init__ but SimpleImage
         # shares very little with _Base so we do it manually here
+        self.autoLog=False #this will be set later
         self.win=win
         self.name=name
-        self.autoLog=autoLog
         #unit conversions
         if units!=None and len(units): self.units = units
         else: self.units = win.units
@@ -118,6 +118,12 @@ class SimpleImageStim:
         self.setFlipVert(flipVert)
 
         self._calcPosRendered()
+
+        #set autoLog (now that params have been initialised)
+        self.autoLog= autoLog
+        if autoLog:
+            logging.exp("Created %s = %s" %(self.name, repr(self)))
+
     def setFlipHoriz(self,newVal=True, log=True):
         """If set to True then the image will be flipped horiztonally (left-to-right).
         Note that this is relative to the original image, not relative to the current state.

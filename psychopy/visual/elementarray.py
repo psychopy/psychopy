@@ -158,9 +158,9 @@ class ElementArrayStim(object):
         self._initParams = dir()
         self._initParams.remove('self')
 
+        self.autoLog=False #until all params are set
         self.win=win
         self.name=name
-        self.autoLog=autoLog
 
         #unit conversions
         if units!=None and len(units): self.units = units
@@ -220,6 +220,10 @@ class ElementArrayStim(object):
         self._calcFieldCoordsRendered()
         self._calcSizesRendered()
         self._calcXYsRendered()
+
+        self.autoLog= autoLog
+        if autoLog:
+            logging.exp("Created %s = %s" %(self.name, repr(self)))
 
     def _selectWindow(self, win):
         global currWindow

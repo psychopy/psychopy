@@ -75,7 +75,7 @@ class ImageStim(BaseVisualStim):
         self._initParams = dir()
         self._initParams.remove('self')
 
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)#set autoLog at end of init
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 
         #initialise textures for stimulus
@@ -121,6 +121,10 @@ class ImageStim(BaseVisualStim):
         #generate a displaylist ID
         self._listID = GL.glGenLists(1)
         self._updateList()#ie refresh display list
+
+        self.autoLog= autoLog
+        if autoLog:
+            logging.exp("Created %s = %s" %(self.name, repr(self)))
 
     def _updateListShaders(self):
         """

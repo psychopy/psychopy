@@ -33,11 +33,14 @@ class BaseVisualStim(object):
     Not finished...?
     """
     def __init__(self, win, units=None, name='', autoLog=True):
+        self.autoLog = autoLog
         self.win = win
         self.name = name
-        self.autoLog = autoLog
         self.status = NOT_STARTED
         self.units = units
+        if autoLog:
+            logging.warning("%s is calling BaseVisualStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
+                            %(self.__class__.__name__))
 
     def __repr__(self, complete=False):
         """
