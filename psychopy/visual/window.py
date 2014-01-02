@@ -471,10 +471,8 @@ class Window:
         global currWindow
         for thisStim in self._toDraw:
             thisStim.draw()
-        logging.debug("flipping win")
 
         if self.useFBO:
-            logging.debug("blitting FBO")
             GL.glUseProgram(self._progFBOtoFrame)
             #need blit the frambuffer object to the actual back buffer
 
