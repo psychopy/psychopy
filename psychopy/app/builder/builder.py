@@ -1263,12 +1263,12 @@ class RoutineCanvas(wx.ScrolledWindow):
             gcdc = dc
         else:
             gcdc = wx.GCDC(dc)
-        # use PrepareDC to set position correctly
-        self.PrepareDC(dc)
         # we need to clear the dc BEFORE calling PrepareDC
         bg = wx.Brush(self.GetBackgroundColour())
         gcdc.SetBackground(bg)
         gcdc.Clear()
+        # use PrepareDC to set position correctly
+        self.PrepareDC(gcdc)
         # create a clipping rect from our position and size
         # and the Update Region
         xv, yv = self.GetViewStart()
@@ -1357,9 +1357,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.setFontSize(self.fontBaseSize/self.dpi, dc)
         dc.DrawText('t (sec)',xEnd+5,yPosTop-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
         # or draw bottom labels only if scrolling is turned on, virtual size > available size?
-        if yPosBottom>300:#if bottom of grid is far away then draw labels here too
+        if yPosBottom>300:#if bottom of grid is far away then draw labels there too
             dc.DrawText('t (sec)',xEnd+5,yPosBottom-self.GetFullTextExtent('t')[1]/2.0)#y is y-half height of text
-
     def setFontSize(self, size, dc):
         font = self.GetFont()
         font.SetPointSize(size)
