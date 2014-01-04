@@ -34,8 +34,6 @@ except ImportError:
 import numpy
 from numpy import pi
 
-
-
 class RadialStim(GratingStim):
     """Stimulus object for drawing radial stimuli, like an annulus, a rotating wedge,
     a checkerboard etc...
@@ -159,7 +157,8 @@ class RadialStim(GratingStim):
 
         self._updateTextureCoords()
         self._updateMaskCoords()
-        self._updateXY()
+        self._updateVerticesBase()
+        self._updateVertices()
         if not self.useShaders:
             #generate a displaylist ID
             self._listID = GL.glGenLists(1)
@@ -243,10 +242,10 @@ class RadialStim(GratingStim):
         GL.glEnable(GL.GL_TEXTURE_1D)
 
         self._needUpdate = True
+
     def setSize(self, value, operation='', log=True):
         self._set('size', value, operation, log=log)
-        self._calcSizeRendered()
-        self._updateXY()
+        self._needVertexUpdate=True
         self._needUpdate = True
     def setAngularCycles(self,value,operation='', log=True):
         """Set the number of cycles going around the stimulus.
@@ -297,10 +296,7 @@ class RadialStim(GratingStim):
         #do scaling
         GL.glPushMatrix()#push before the list, pop after
         #scale the viewport to the appropriate size
-        self.win.setScale(self._winScale)
-        #move to centre of stimulus and rotate
-        GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)
-        GL.glRotatef(-self.ori,0.0,0.0,1.0)
+        self.win.setScale('pix')
 
         if self.useShaders:
             #setup color
@@ -308,7 +304,7 @@ class RadialStim(GratingStim):
             GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
             #assign vertex array
-            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._visibleXY.ctypes)
+            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)
 
             #then bind main texture
             GL.glActiveTexture(GL.GL_TEXTURE0)
@@ -360,18 +356,18 @@ class RadialStim(GratingStim):
         #return the view to previous state
         GL.glPopMatrix()
 
-    def _updateXY(self):
-        """Update if the SIZE changes
-        Update AFTER _calcSizeRendered"""
+    def _updateVerticesBase(self):
+        """Update the base vertice if angular resolution changes. These will be
+        multiplied by the size and rotation matrix before rendering"""
         #triangles = [trisX100, verticesX3, xyX2]
-        self._XY = numpy.zeros([self.angularRes, 3, 2])
-        self._XY[:,1,0] = numpy.sin(self._angles)*self._sizeRendered[0]/2 #x position of 1st outer vertex
-        self._XY[:,1,1] = numpy.cos(self._angles)*self._sizeRendered[1]/2#y position of 1st outer vertex
-        self._XY[:,2,0] = numpy.sin(self._angles+self._triangleWidth)*self._sizeRendered[0]/2#x position of 2nd outer vertex
-        self._XY[:,2,1] = numpy.cos(self._angles+self._triangleWidth)*self._sizeRendered[1]/2#y position of 2nd outer vertex
+        vertsBase = numpy.zeros([self.angularRes, 3, 2])
+        vertsBase[:,1,0] = numpy.sin(self._angles) #x position of 1st outer vertex
+        vertsBase[:,1,1] = numpy.cos(self._angles) #y position of 1st outer vertex
+        vertsBase[:,2,0] = numpy.sin(self._angles+self._triangleWidth)#x position of 2nd outer vertex
+        vertsBase[:,2,1] = numpy.cos(self._angles+self._triangleWidth)#y position of 2nd outer vertex
 
-        self._visibleXY = self._XY[self._visible,:,:]
-        self._visibleXY = self._visibleXY.reshape(self._nVisible,2)
+        self._verticesBase = vertsBase[self._visible,:,:]
+        self._verticesBase = self._verticesBase.reshape(self._nVisible,2)
 
     def _updateTextureCoords(self):
         #calculate texture coordinates if angularCycles or Phase change
@@ -402,7 +398,7 @@ class RadialStim(GratingStim):
         GL.glNewList(self._listID,GL.GL_COMPILE)
 
         #assign vertex array
-        arrPointer = self._visibleXY.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+        arrPointer = self.verticesPix.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
         GL.glVertexPointer(2, GL.GL_FLOAT, 0, arrPointer)
 
         #setup the shaderprogram
@@ -456,7 +452,7 @@ class RadialStim(GratingStim):
         GL.glColor4f(1.0,1.0,1.0,self.opacity)#glColor can interfere with multitextures
 
         #assign vertex array
-        GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._visibleXY.ctypes)
+        GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
 
         #bind and enable textures
