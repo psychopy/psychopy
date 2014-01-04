@@ -105,7 +105,6 @@ class GratingStim(BaseVisualStim):
         #initialise parent class
         BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
-
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
         # TO DO: postpone calls to createTexture, setColor and _calcCyclesPerStim whin initiating stimulus
@@ -156,7 +155,6 @@ class GratingStim(BaseVisualStim):
         self.autoDraw = autoDraw
 
         #fix scaling to window coords
-        self._calcPosRendered()
         self._calcCyclesPerStim()
 
         #generate a displaylist ID
@@ -268,9 +266,7 @@ class GratingStim(BaseVisualStim):
 
         #do scaling
         GL.glPushMatrix()#push before the list, pop after
-        win.setScale(self._winScale)
-        #move to centre of stimulus and rotate
-        GL.glRotatef(-self.ori,0.0,0.0,1.0)
+        win.setScale('pix')
         #the list just does the texture mapping
 
         desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
@@ -367,11 +363,7 @@ class GratingStim(BaseVisualStim):
         GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-        #calculate coords in advance:
-        L = -self._sizeRendered[0]/2#vertices
-        R =  self._sizeRendered[0]/2
-        T =  self._sizeRendered[1]/2
-        B = -self._sizeRendered[1]/2
+
         #depth = self.depth
         Ltex = -self._cycles[0]/2 - self.phase[0]+0.5
         Rtex = +self._cycles[0]/2 - self.phase[0]+0.5
@@ -381,21 +373,21 @@ class GratingStim(BaseVisualStim):
 
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
         # right bottom
-        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,Rtex, Btex)
-        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,Rmask,Bmask)
-        GL.glVertex2f(R,B)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Rtex, Btex)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Rmask,Bmask)
+        GL.glVertex2f(self.verticesPix[0,0], self.verticesPix[0,1])
         # left bottom
-        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,Ltex,Btex)
-        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,Lmask,Bmask)
-        GL.glVertex2f(L,B)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Ltex,Btex)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Lmask,Bmask)
+        GL.glVertex2f(self.verticesPix[1,0], self.verticesPix[1,1])
         # left top
-        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,Ltex,Ttex)
-        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,Lmask,Tmask)
-        GL.glVertex2f(L,T)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Ltex,Ttex)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Lmask,Tmask)
+        GL.glVertex2f(self.verticesPix[2,0], self.verticesPix[2,1])
         # right top
-        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,Rtex,Ttex)
-        GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,Rmask,Tmask)
-        GL.glVertex2f(R,T)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Rtex,Ttex)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Rmask,Tmask)
+        GL.glVertex2f(self.verticesPix[3,0], self.verticesPix[3,1])
         GL.glEnd()
 
         #disable mask
@@ -410,7 +402,6 @@ class GratingStim(BaseVisualStim):
 
         #we're done!
         GL.glEndList()
-
 
     def __del__(self):
         GL.glDeleteLists(self._listID, 1)
