@@ -151,10 +151,6 @@ class RadialStim(GratingStim):
         self._visible[(self._angles+self._triangleWidth)*180/pi>(self.visibleWedge[1])] = False#second edge of wedge
         self._nVisible = numpy.sum(self._visible)*3
 
-        #do the scaling to the window coordinate system
-        self._calcPosRendered()
-        self._calcSizeRendered()#must be done BEFORE _updateXY
-
         self._updateTextureCoords()
         self._updateMaskCoords()
         self._updateVerticesBase()
@@ -295,9 +291,9 @@ class RadialStim(GratingStim):
 
         #do scaling
         GL.glPushMatrix()#push before the list, pop after
+        GL.glRotatef(90,0,0,1)
         #scale the viewport to the appropriate size
         self.win.setScale('pix')
-
         if self.useShaders:
             #setup color
             desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
@@ -357,7 +353,7 @@ class RadialStim(GratingStim):
         GL.glPopMatrix()
 
     def _updateVerticesBase(self):
-        """Update the base vertice if angular resolution changes. These will be
+        """Update the base vertices if angular resolution changes. These will be
         multiplied by the size and rotation matrix before rendering"""
         #triangles = [trisX100, verticesX3, xyX2]
         vertsBase = numpy.zeros([self.angularRes, 3, 2])
@@ -365,7 +361,7 @@ class RadialStim(GratingStim):
         vertsBase[:,1,1] = numpy.cos(self._angles) #y position of 1st outer vertex
         vertsBase[:,2,0] = numpy.sin(self._angles+self._triangleWidth)#x position of 2nd outer vertex
         vertsBase[:,2,1] = numpy.cos(self._angles+self._triangleWidth)#y position of 2nd outer vertex
-
+        vertsBase /= 2.0 #size should be 1.0, so radius should be 0.5
         self._verticesBase = vertsBase[self._visible,:,:]
         self._verticesBase = self._verticesBase.reshape(self._nVisible,2)
 

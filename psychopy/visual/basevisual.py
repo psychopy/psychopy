@@ -542,6 +542,7 @@ class BaseVisualStim(object):
             verts = self.vertices
         else:
             verts = self._verticesBase
+        # set size and orientation
         verts = numpy.dot(self.size*verts, self._rotationMatrix)
         #then combine with position and convert to pix
         if self.units == 'pix':
@@ -551,9 +552,9 @@ class BaseVisualStim(object):
         elif self.units =='deg':
             verts = deg2pix(self.pos+verts, self.win.monitor)
         elif self.units == 'norm':
-            verts = (self.__dict__['pos']+verts) * self.win.size/2.0
+            verts = (self.pos+verts) * self.win.size/2.0
         elif self.units == 'height':
-            verts = (self.__dict__['pos']+verts) * self.win.size[1]
+            verts = (self.pos+verts) * self.win.size[1]
         self.__dict__['verticesPix'] = verts
         self._needVertexUpdate = False
     def setAutoDraw(self, value, log=True):
