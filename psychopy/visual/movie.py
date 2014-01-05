@@ -161,7 +161,7 @@ class MovieStim(BaseVisualStim):
         #set autoLog (now that params have been initialised)
         self.autoLog= autoLog
         if autoLog:
-            logging.exp("Created %s = %s" %(self.name, repr(self)))
+            logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def _calcVertices(self):
         R, T = self._sizeRendered / 2  # pix

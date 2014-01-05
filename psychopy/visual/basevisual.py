@@ -42,7 +42,7 @@ class BaseVisualStim(object):
             logging.warning("%s is calling BaseVisualStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
                             %(self.__class__.__name__))
 
-    def __repr__(self, complete=False):
+    def __str__(self, complete=False):
         """
         """
         if hasattr(self, '_initParams'):

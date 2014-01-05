@@ -171,7 +171,7 @@ class TextStim(BaseVisualStim):
         #set autoLog (now that params have been initialised)
         self.autoLog= autoLog
         if autoLog:
-            logging.exp("Created %s = %s" %(self.name, repr(self)))
+            logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def __del__(self):
         GL.glDeleteLists(self._listID, 1)

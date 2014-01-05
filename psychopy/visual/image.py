@@ -124,7 +124,7 @@ class ImageStim(BaseVisualStim):
 
         self.autoLog= autoLog
         if autoLog:
-            logging.exp("Created %s = %s" %(self.name, repr(self)))
+            logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def _updateListShaders(self):
         """

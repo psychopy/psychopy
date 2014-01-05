@@ -347,7 +347,7 @@ class Window:
             GL.glDeleteTextures(1, self.frameTexture)
             GL.glDeleteFramebuffersEXT( 1, self.frameBuffer)
 
-    def __repr__(self):
+    def __str__(self):
         className = 'Window'
         paramStrings = []
         for param in self._initParams:
@@ -436,7 +436,7 @@ class Window:
               this message if desired
         """
 
-        self._toLog.append({'msg': msg, 'level': level, 'obj': str(obj)})
+        self._toLog.append({'msg': msg, 'level': level, 'obj': repr(obj)})
 
     def callOnFlip(self, function, *args, **kwargs):
         """Call a function immediately after the next .flip() command.

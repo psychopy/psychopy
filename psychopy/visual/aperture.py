@@ -72,7 +72,7 @@ class Aperture:
         self._reset()#implicitly runs an self.enable()
         self.autoLog= autoLog
         if autoLog:
-            logging.exp("Created %s = %s" %(self.name, repr(self)))
+            logging.exp("Created %s = %s" %(self.name, str(self)))
     def _reset(self):
         self.enable()
         GL.glClearStencil(0)

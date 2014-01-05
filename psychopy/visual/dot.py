@@ -168,7 +168,7 @@ class DotStim(BaseVisualStim):
         self._update_dotsXY()
         self.autoLog= autoLog
         if autoLog:
-            logging.exp("Created %s = %s" %(self.name, repr(self)))
+            logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def _set(self, attrib, val, op='', log=True):
         """Use this to set attributes of your stimulus after initialising it.

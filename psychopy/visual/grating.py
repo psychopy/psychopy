@@ -166,7 +166,7 @@ class GratingStim(BaseVisualStim):
         #set autoLog (now that params have been initialised)
         self.autoLog= autoLog
         if autoLog:
-            logging.exp("Created %s = %s" %(self.name, repr(self)))
+            logging.exp("Created %s = %s" %(self.name, str(self)))
 
     @attributeSetter
     def sf(self, value):
