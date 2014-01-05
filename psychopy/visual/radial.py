@@ -291,7 +291,6 @@ class RadialStim(GratingStim):
 
         #do scaling
         GL.glPushMatrix()#push before the list, pop after
-        GL.glRotatef(90,0,0,1)
         #scale the viewport to the appropriate size
         self.win.setScale('pix')
         if self.useShaders:
@@ -362,8 +361,8 @@ class RadialStim(GratingStim):
         vertsBase[:,2,0] = numpy.sin(self._angles+self._triangleWidth)#x position of 2nd outer vertex
         vertsBase[:,2,1] = numpy.cos(self._angles+self._triangleWidth)#y position of 2nd outer vertex
         vertsBase /= 2.0 #size should be 1.0, so radius should be 0.5
-        self._verticesBase = vertsBase[self._visible,:,:]
-        self._verticesBase = self._verticesBase.reshape(self._nVisible,2)
+        vertsBase = vertsBase[self._visible,:,:]
+        self._verticesBase = vertsBase.reshape(self._nVisible,2)
 
     def _updateTextureCoords(self):
         #calculate texture coordinates if angularCycles or Phase change

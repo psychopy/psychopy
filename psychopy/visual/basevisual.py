@@ -38,7 +38,7 @@ class BaseVisualStim(object):
         self.name = name
         self.status = NOT_STARTED
         self.units = units
-        self._verticesBase = [[0.5,-0.5],[0.5,0.5],[-0.5,0.5],[-0.5,-0.5]]
+        self._verticesBase = [[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]]
         if autoLog:
             logging.warning("%s is calling BaseVisualStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
                             %(self.__class__.__name__))
@@ -243,7 +243,7 @@ class BaseVisualStim(object):
 
         """
         self.__dict__['ori'] = value
-        radians = (90+value)*0.017453292519943295
+        radians = value*0.017453292519943295
         self._rotationMatrix = numpy.array([[numpy.cos(radians), -numpy.sin(radians)],
                                 [numpy.sin(radians), numpy.cos(radians)]])
         self._needVertexUpdate=True #need to update update vertices
