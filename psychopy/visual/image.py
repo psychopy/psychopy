@@ -110,14 +110,6 @@ class ImageStim(BaseVisualStim):
         self.setImage(image, log=False)
         self.setMask(mask, log=False)
 
-        #fix scaling to window coords
-        self._calcSizeRendered()
-        self._calcPosRendered()
-
-        # _verticesRendered for .contains() and .overlaps()
-        v = [(-.5,-.5), (-.5,.5), (.5,.5), (.5,-.5)]
-        self._verticesRendered = numpy.array(self._sizeRendered, dtype=float) * v
-
         #generate a displaylist ID
         self._listID = GL.glGenLists(1)
         self._updateList()#ie refresh display list
@@ -152,31 +144,23 @@ class ImageStim(BaseVisualStim):
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
 
-        flipHoriz = self.flipHoriz*(-2)+1#True=(-1), False->(+1)
-        flipVert = self.flipVert*(-2)+1
-        #calculate coords in advance:
-        L = -self._sizeRendered[0]/2 * flipHoriz#vertices
-        R =  self._sizeRendered[0]/2 * flipHoriz
-        T =  self._sizeRendered[1]/2 * flipVert
-        B = -self._sizeRendered[1]/2 * flipVert
-
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
         # right bottom
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,1,0)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,1,0)
-        GL.glVertex2f(R,B)
+        GL.glVertex2f(self.verticesPix[0,0], self.verticesPix[0,1])
         # left bottom
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,0,0)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,0,0)
-        GL.glVertex2f(L,B)
+        GL.glVertex2f(self.verticesPix[1,0], self.verticesPix[1,1])
         # left top
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,0,1)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,0,1)
-        GL.glVertex2f(L,T)
+        GL.glVertex2f(self.verticesPix[2,0], self.verticesPix[2,1])
         # right top
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,1,1)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,1,1)
-        GL.glVertex2f(R,T)
+        GL.glVertex2f(self.verticesPix[3,0], self.verticesPix[3,1])
         GL.glEnd()
 
         #unbind the textures
@@ -215,31 +199,23 @@ class ImageStim(BaseVisualStim):
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
 
-        flipHoriz = self.flipHoriz*(-2)+1#True=(-1), False->(+1)
-        flipVert = self.flipVert*(-2)+1
-        #calculate vertices
-        L = -self._sizeRendered[0]/2 * flipHoriz
-        R =  self._sizeRendered[0]/2 * flipHoriz
-        T =  self._sizeRendered[1]/2 * flipVert
-        B = -self._sizeRendered[1]/2 * flipVert
-
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
         # right bottom
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,1,0)
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,1,0)
-        GL.glVertex2f(R,B)
+        GL.glVertex2f(self.verticesPix[0,0], self.verticesPix[0,1])
         # left bottom
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,0,0)
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,0,0)
-        GL.glVertex2f(L,B)
+        GL.glVertex2f(self.verticesPix[1,0], self.verticesPix[1,1])
         # left top
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,0,1)
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,0,1)
-        GL.glVertex2f(L,T)
+        GL.glVertex2f(self.verticesPix[2,0], self.verticesPix[2,1])
         # right top
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,1,1)
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,1,1)
-        GL.glVertex2f(R,T)
+        GL.glVertex2f(self.verticesPix[3,0], self.verticesPix[3,1])
         GL.glEnd()
 
         GL.glDisable(GL.GL_TEXTURE_2D)
@@ -279,15 +255,10 @@ class ImageStim(BaseVisualStim):
     def draw(self, win=None):
         if win==None: win=self.win
         self._selectWindow(win)
-
-        #do scaling
+        
         GL.glPushMatrix()#push before the list, pop after
-        win.setScale(self._winScale)
-        #move to centre of stimulus and rotate
-        GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)
-        GL.glRotatef(-self.ori,0.0,0.0,1.0)
-        #the list just does the texture mapping
-
+        win.setScale('pix')
+        
         desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 

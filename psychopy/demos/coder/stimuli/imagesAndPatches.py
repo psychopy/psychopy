@@ -5,13 +5,13 @@ from psychopy import core, visual, event
 myWin = visual.Window((800,800), monitor='testMonitor',allowGUI=False, color=(-1,-1,-1))
 
 #INITIALISE SOME STIMULI
-beach = visual.ImageStim(myWin, image='beach.jpg', flipVert=True, pos=(0,4.50), units='deg')
+beach = visual.ImageStim(myWin, image='beach.jpg', flipHoriz=True, pos=(0,4.50), units='deg')
 faceRGB = visual.ImageStim(myWin,image='face.jpg', mask=None,
     pos=(50,-50), 
     size=None,#will be the size of the original image in pixels
     units='pix', interpolate=True,
     autoLog=False)#this stim changes too much for autologging to be useful
-print "original image size:", faceRGB.origSize
+print "original image size:", faceRGB.size
 faceALPHA = visual.GratingStim(myWin,pos=(-0.7,-0.2),
     tex="sin",mask="face.jpg",
     color=[1.0,1.0,-1.0],
