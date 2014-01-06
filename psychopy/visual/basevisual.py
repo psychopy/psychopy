@@ -16,7 +16,7 @@ from psychopy import logging
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import attributeSetter, setWithOperation
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb
-from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
+from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg, convertToPix
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
                                      setColor, setTexIfNoShaders)
 
@@ -514,14 +514,16 @@ class BaseVisualStim(object):
         else:
             self._updateListNoShaders()
     def _calcSizeRendered(self):
-        """Calculate the size of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
+        """DEPRECATED in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"""
+        #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This funtionality is nowhanded by _updateVertices() and verticesPix"
         if self.units in ['norm','pix', 'height']: self._sizeRendered=copy.copy(self.size)
         elif self.units in ['deg', 'degs']: self._sizeRendered=deg2pix(self.size, self.win.monitor)
         elif self.units=='cm': self._sizeRendered=cm2pix(self.size, self.win.monitor)
         else:
             logging.ERROR("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
     def _calcPosRendered(self):
-        """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
+        """DEPRECATED in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"""
+        #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"
         if self.units in ['norm','pix', 'height']: self._posRendered= copy.copy(self.pos)
         elif self.units in ['deg', 'degs']: self._posRendered=deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=cm2pix(self.pos, self.win.monitor)
@@ -531,7 +533,7 @@ class BaseVisualStim(object):
         """This determines the coordinated in pixels of the vertices for the
         current stimulus, accounting for size, ori, pos and units
         """
-        #because this is a property getter we can check /on-access/ if it needs updating!
+        #because this is a property getter we can check /on-access/ if it needs updating :-)
         if self._needVertexUpdate:
             self._updateVertices()
         return self.__dict__['verticesPix']
@@ -542,21 +544,20 @@ class BaseVisualStim(object):
             verts = self.vertices
         else:
             verts = self._verticesBase
+        #check wheher stimulus needs flipping in either direction
+        flip = numpy.array([1,1])
+        if hasattr(self, 'flipHoriz'):
+            flip[0] = self.flipHoriz*(-2)+1#True=(-1), False->(+1)
+        if hasattr(self, 'flipVert'):
+            flip[1] = self.flipVert*(-2)+1#True=(-1), False->(+1)
         # set size and orientation
-        verts = numpy.dot(self.size*verts, self._rotationMatrix)
+        verts = numpy.dot(self.size*verts*flip, self._rotationMatrix)
         #then combine with position and convert to pix
-        if self.units == 'pix':
-            verts = self.pos+verts
-        elif self.units == 'cm':
-            verts = cm2pix(self.pos+verts, self.win.monitor)
-        elif self.units =='deg':
-            verts = deg2pix(self.pos+verts, self.win.monitor)
-        elif self.units == 'norm':
-            verts = (self.pos+verts) * self.win.size/2.0
-        elif self.units == 'height':
-            verts = (self.pos+verts) * self.win.size[1]
+        verts = convertToPix(stim=self, vertices = verts, pos = self.pos)
+        #assign to self attrbute
         self.__dict__['verticesPix'] = verts
         self._needVertexUpdate = False
+
     def setAutoDraw(self, value, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""

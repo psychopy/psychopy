@@ -24,14 +24,13 @@ from psychopy import logging
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import setWithOperation
-from psychopy.tools.monitorunittools import cm2pix, deg2pix
+from psychopy.tools.monitorunittools import convertToPix
 from psychopy.visual.helpers import setColor, createTexture
 
 global currWindow
 currWindow = None
 
 import numpy
-
 
 class ElementArrayStim(object):
     """
@@ -178,8 +177,8 @@ class ElementArrayStim(object):
         self.oris = oris
         self.contrs = contrs
         self.phases = phases
-        self.needVertexUpdate=True
-        self.needColorUpdate=True
+        self._needVertexUpdate=True
+        self._needColorUpdate=True
         self.useShaders=True
         self.interpolate=interpolate
         self.fieldDepth=fieldDepth
@@ -267,7 +266,7 @@ class ElementArrayStim(object):
                 raise ValueError("New value for setXYs should be either None or Nx2")
             #set value
             setWithOperation(self, 'xys', value, operation)
-        self.needVertexUpdate=True
+        self._needVertexUpdate=True
         if log and self.autoLog:
             self.win.logOnFlip("Set %s XYs=%s" %(self.name, type(value)),
                 level=logging.EXP,obj=self)
@@ -287,14 +286,10 @@ class ElementArrayStim(object):
         else:
             raise ValueError("New value for setOris should be either Nx1 or a single value")
 
-        # flip orientation so, when drawn, it matches the convention of other
-        # visual stimuli
-        value = -value
-
         #set value
         setWithOperation(self, 'oris', value, operation)
 
-        self.needVertexUpdate=True
+        self._needVertexUpdate=True
         if log and self.autoLog:
             self.win.logOnFlip("Set %s oris=%s" %(self.name, type(value)),
                 level=logging.EXP,obj=self)
@@ -352,7 +347,7 @@ class ElementArrayStim(object):
 
         #set value and log
         setWithOperation(self, 'opacities', value, operation)
-        self.needColorUpdate =True
+        self._needColorUpdate =True
         if log and self.autoLog:
             self.win.logOnFlip("Set %s opacities=%s" %(self.name, type(value)),
                 level=logging.EXP,obj=self)
@@ -380,8 +375,8 @@ class ElementArrayStim(object):
 
         #set value and log
         setWithOperation(self, 'sizes', value, operation)
-        self.needVertexUpdate=True
-        self.needTexCoordUpdate=True
+        self._needVertexUpdate=True
+        self._needTexCoordUpdate=True
 
         if log and self.autoLog:
             self.win.logOnFlip("Set %s sizes=%s" %(self.name, type(value)),
@@ -411,7 +406,7 @@ class ElementArrayStim(object):
 
         #set value and log
         setWithOperation(self, 'phases', value, operation)
-        self.needTexCoordUpdate=True
+        self._needTexCoordUpdate=True
 
         if log and self.autoLog:
             self.win.logOnFlip("Set %s phases=%s" %(self.name, type(value)),
@@ -471,7 +466,7 @@ class ElementArrayStim(object):
             pass#all is good
         else:
             raise ValueError("New value for setRgbs should be either Nx1, Nx3 or a single value")
-        self.needColorUpdate=True
+        self._needColorUpdate=True
     def setContrs(self,value,operation='', log=True):
         """Set the contrast for each element.
         Should either be:
@@ -492,7 +487,7 @@ class ElementArrayStim(object):
 
         #set value and log
         setWithOperation(self, 'contrs', value, operation)
-        self.needColorUpdate=True
+        self._needColorUpdate=True
 
         if log and self.autoLog:
             self.win.logOnFlip("Set %s contrs=%s" %(self.name, type(value)),
@@ -546,11 +541,11 @@ class ElementArrayStim(object):
         if win==None: win=self.win
         self._selectWindow(win)
 
-        if self.needVertexUpdate:
+        if self._needVertexUpdate:
             self._updateVertices()
-        if self.needColorUpdate:
+        if self._needColorUpdate:
             self.updateElementColors()
-        if self.needTexCoordUpdate:
+        if self._needTexCoordUpdate:
             self.updateTextureCoords()
 
         #scale the drawing frame and get to centre of field
@@ -612,32 +607,29 @@ class ElementArrayStim(object):
         #Handle the orientation, size and location of each element in native units
         #
         radians = 0.017453292519943295
-        verts = numpy.zeros([self.nElements , 4, 3],'d')
+        verts = numpy.zeros([self.nElements*4, 3],'d')
         #rotate 'width' and 'height' and find their effects on X and Y
-        wx = self.sizes[:,0]*numpy.cos(self.oris[:]*numpy.pi/180)/2
-        wy = self.sizes[:,0]*numpy.sin(self.oris[:]*numpy.pi/180)/2
-        hx = self.sizes[:,1]*numpy.sin(self.oris[:]*numpy.pi/180)/2
-        hy = -self.sizes[:,1]*numpy.cos(self.oris[:]*numpy.pi/180)/2
-        print wx[0:4]
+        wx = -self.sizes[:,0]*numpy.cos(self.oris[:]*radians)/2
+        wy = self.sizes[:,0]*numpy.sin(self.oris[:]*radians)/2
+        hx = self.sizes[:,1]*numpy.sin(self.oris[:]*radians)/2
+        hy = self.sizes[:,1]*numpy.cos(self.oris[:]*radians)/2
         #X
-        verts[:,0,0] = self.xys[:,0] -wx + hx#TopL
-        verts[:,1,0] = self.xys[:,0] +wx + hx#TopR
-        verts[:,2,0] = self.xys[:,0] +wx - hx#BotR
-        verts[:,3,0] = self.xys[:,0] -wx - hx#BotL
+        verts[0::4,0] = + wx + hx#TopR
+        verts[1::4,0] = - wx + hx#TopL
+        verts[2::4,0] = - wx - hx#BotL
+        verts[3::4,0] = + wx - hx#BotR
         #Y
-        verts[:,0,1] = self.xys[:,1] -wy + hy
-        verts[:,1,1] = self.xys[:,1] +wy + hy
-        verts[:,2,1] = self.xys[:,1] +wy - hy
-        verts[:,3,1] = self.xys[:,1] -wy - hy
+        verts[0::4,1] = + wy + hy
+        verts[1::4,1] = - wy + hy
+        verts[2::4,1] = - wy - hy
+        verts[3::4,1] = + wy - hy
         #Z
-        verts[:,:,2] = numpy.tile(self.depths,(1,4)) + self.fieldDepth
-        
+        verts[:,2] = 1#self.depths + self.fieldDepth
         #Now shift by fieldPos and convert to appropriate units
-        #
-        #then combine with position and convert to pix
-        if self.units == 'pix':
-            pass
-        self.__dict__['verticesPix'] = numpy.ascontiguousarray(verts, 'd')
+        pos = numpy.tile(self.xys+self.fieldPos, (1,4)).reshape([self.nElements*4,2])
+        verts[:,:2] = convertToPix(stim=self, vertices = verts[:,:2], pos = pos)
+        #assign to self attrbute
+        self.__dict__['verticesPix'] = numpy.require(verts,requirements=['C'])#make sure it's contiguous
         self._needVertexUpdate = False
         
     #----------------------------------------------------------------------
@@ -657,7 +649,7 @@ class ElementArrayStim(object):
         self._RGBAs[:,-1] = self.opacities.reshape([N,])
         self._RGBAs=self._RGBAs.reshape([N,1,4]).repeat(4,1)#repeat for the 4 vertices in the grid
 
-        self.needColorUpdate=False
+        self._needColorUpdate=False
 
     def updateTextureCoords(self):
         """Create a new array of self._maskCoords"""
@@ -682,7 +674,7 @@ class ElementArrayStim(object):
         self._texCoords=numpy.concatenate([[L,T],[R,T],[R,B],[L,B]]) \
             .transpose().reshape([N,4,2]).astype('d')
         self._texCoords = numpy.ascontiguousarray(self._texCoords)
-        self.needTexCoordUpdate=False
+        self._needTexCoordUpdate=False
 
     def setTex(self,value, log=True):
         """Change the texture (all elements have the same base texture). Avoid this
