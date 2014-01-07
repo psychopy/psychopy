@@ -2,7 +2,7 @@
 """Audio capture and analysis using pyo"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy R. Gray, March 2012, March 2013
