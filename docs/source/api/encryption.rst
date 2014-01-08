@@ -9,3 +9,5 @@ with the StandAlone versions of PsychoPy, or can be installed using pip or easy_
 via https://pypi.python.org/pypi/PyFileSec/
 
 Some elaboration of pyFileSec usage and security strategy can be found here: http://pythonhosted.org//PyFileSec
+
+Basic usage is illustrated in the Coder demo > misc > encrypt_data.py
