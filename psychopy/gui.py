@@ -28,11 +28,12 @@ class Dlg(wx.Dialog):
         myDlg.addText('Experiment Info')
         myDlg.addField('Grating Ori:',45)
         myDlg.addField('Group:', choices=["Test", "Control"])
-        myDlg.show()#show dialog and wait for OK or Cancel
-        if gui.OK:#then the user pressed OK
+        myDlg.show()  # show dialog and wait for OK or Cancel
+        if myDlg.OK:  # then the user pressed OK
             thisInfo = myDlg.data
             print thisInfo
-        else: print 'user cancelled'
+        else:
+            print 'user cancelled'
     """
     def __init__(self,title='PsychoPy dialogue',
             pos=None, size=wx.DefaultSize,
