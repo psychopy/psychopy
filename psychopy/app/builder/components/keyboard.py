@@ -17,7 +17,7 @@ class KeyboardComponent(BaseComponent):
     def __init__(self, exp, parentName, name='key_resp', allowedKeys="'y','n','left','right','space'",store='last key',
                 forceEndRoutine=True,storeCorrect=False,correctAns="", discardPrev=True,
                 startType='time (s)', startVal=0.0,
-                stopType='duration (s)', stopVal=1.0,
+                stopType='duration (s)', stopVal='',
                 startEstim='', durationEstim=''):
         self.type='Keyboard'
         self.url="http://www.psychopy.org/builder/components/keyboard.html"
@@ -201,4 +201,3 @@ class KeyboardComponent(BaseComponent):
                 buff.writeIndented("if %(name)s.keys != None:  # we had a response\n" %(self.params))
                 buff.writeIndented("    %s.addData('%s.rt', %s.rt)\n" \
                                    %(currLoop.params['name'], name, name))
-
