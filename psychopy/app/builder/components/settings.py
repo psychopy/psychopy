@@ -159,6 +159,9 @@ class SettingsComponent:
             buff.writeIndented("logFile = logging.LogFile(filename+'.log', level=logging.%s)\n" %(level))
         buff.writeIndented("logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a file\n")
 
+        if self.exp.settings.params['Enable Escape'].val:
+            buff.writeIndentedLines("\nendExpNow = False  # flag for 'escape' or other condition => quit the exp\n")
+
     def writeWindowCode(self,buff):
         """ setup the window code
         """

@@ -136,6 +136,10 @@ class KeyboardComponent(BaseComponent):
             keyListStr= "keyList=%s" %(repr(keyList))
         #check for keypresses
         buff.writeIndented("theseKeys = event.getKeys(%s)\n" %(keyListStr))
+        if self.exp.settings.params['Enable Escape'].val:
+            buff.writeIndentedLines('\n# check for quit: key-code == psychopy.constants.ESCAPE')
+            buff.writeIndented('if ESCAPE in theseKeys or ESCAPE in event.getKeys(keyList=[ESCAPE]):\n')
+            buff.writeIndented('    endExpNow = True\n')
 
         #how do we store it?
         if store!='nothing' or forceEnd:
