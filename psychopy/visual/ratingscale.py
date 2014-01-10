@@ -92,10 +92,10 @@ class RatingScale:
     two modes (and not for subjects giving ratings).
 
     The Builder RatingScale component gives a restricted set of options, but also
-    allows full control over a RatingScale (via 'customizeEverything').
+    allows full control over a RatingScale (via 'customize_everything').
 
     :Authors:
-        2010 Jeremy Gray, with on-going updates
+        2010 Jeremy Gray: original code and on-going updates;
         2012 Henrik Singmann: tickMarks, labels, ticksAboveLine
     """
     def __init__(self,
@@ -228,7 +228,11 @@ class RatingScale:
         lineColor :
             color to use for the scale line, default = 'White'
         ticksAboveLine :
-            should the tick marks be displayed above the line (the default) or below
+            should the tick marks be displayed above the line (True, default) or below (False).
+
+            .. note::
+                A numeric value will scale the tick height: 1.0 is the same as True,
+                -1.0 False, and 0.0 suppresses the display of tickmarks.
         markerStyle :
             'triangle' (DarkBlue), 'circle' (DarkRed), 'glow' (White, expanding),
             or 'slider' (translucent Black, looks best with `precision=100`)
@@ -244,10 +248,6 @@ class RatingScale:
         escapeKeys :
             keys that will quit the experiment if pressed by the subject (by calling
             `core.quit()`). default = `[ ]` (no escape keys).
-
-            .. note:: in the Builder, the default is `['escape']` (to be consistent
-            with other Builder conventions)
-
         allowSkip :
             if True, the subject can skip an item by pressing a key in `skipKeys`, default = `True`
         skipKeys :
@@ -666,8 +666,14 @@ class RatingScale:
         self.tickPositions = []  # list to hold horizontal positions
         vertices = [[self.lineLeftEnd, self.offsetVert]]  # first vertex
         vertExcursion = self.tickSize * self.displaySizeFactor
-        if not self.ticksAboveLine:
+        if self.ticksAboveLine == False:
             vertExcursion *= -1  # flip ticks to display below the line
+        else:
+            # numeric -> scale tick height; True -> 1
+            try:
+                vertExcursion *= float(self.ticksAboveLine)
+            except:
+                pass
         lineLength = self.lineRightEnd - self.lineLeftEnd
         for count, tick in enumerate(tickMarkPositions):
             horizTmp = self.lineLeftEnd + lineLength * tick
