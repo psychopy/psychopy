@@ -126,7 +126,6 @@ class RatingScaleComponent(BaseComponent):
             self.params['customize_everything'].val = re.sub(r"[\\s,]*win=[^,]*,", '', self.params['customize_everything'].val)
             init_str += ', ' + self.params['customize_everything'].val.lstrip('(, ').strip('), ')
         else:
-            init_str += ", escapeKeys=['escape']"
             # size:
             try: s = float(self.params['size'].val)
             except: s = 1.0
@@ -238,4 +237,3 @@ class RatingScaleComponent(BaseComponent):
                                        % (currLoop.params['name'], name, name))
             else:
                 buff.writeIndented("# RatingScaleComponent: unknown loop type, not saving any data.")
-
