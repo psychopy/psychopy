@@ -124,7 +124,7 @@ class RatingScale:
                 rightKeys='right',
                 respKeys=(),
                 lineColor='White',
-                ticksAboveLine=True,
+                ticksAboveLine=1.0,
                 markerStyle='triangle',
                 markerColor=None,
                 markerStart=False,
@@ -228,11 +228,8 @@ class RatingScale:
         lineColor :
             color to use for the scale line, default = 'White'
         ticksAboveLine :
-            should the tick marks be displayed above the line (True, default) or below (False).
-
-            .. note::
-                A numeric value will scale the tick height: 1.0 is the same as True,
-                -1.0 False, and 0.0 suppresses the display of tickmarks.
+            The vertical height of tick marks: 1.0 is the default (above line),
+            -1.0 below the line, and 0.0 suppresses the display of tickmarks.
         markerStyle :
             'triangle' (DarkBlue), 'circle' (DarkRed), 'glow' (White, expanding),
             or 'slider' (translucent Black, looks best with `precision=100`)
@@ -665,15 +662,11 @@ class RatingScale:
         # vertices for ShapeStim:
         self.tickPositions = []  # list to hold horizontal positions
         vertices = [[self.lineLeftEnd, self.offsetVert]]  # first vertex
-        vertExcursion = self.tickSize * self.displaySizeFactor
-        if self.ticksAboveLine == False:
-            vertExcursion *= -1  # flip ticks to display below the line
-        else:
-            # numeric -> scale tick height; True -> 1
-            try:
-                vertExcursion *= float(self.ticksAboveLine)
-            except:
-                pass
+        # vertical height of ticks (purely cosmetic):
+        if self.ticksAboveLine is False:
+            self.ticksAboveLine = -1.  # backwards compatibility for boolean
+        # numeric -> scale tick height;  float(True) == 1.
+        vertExcursion = self.tickSize * self.displaySizeFactor * float(self.ticksAboveLine)
         lineLength = self.lineRightEnd - self.lineLeftEnd
         for count, tick in enumerate(tickMarkPositions):
             horizTmp = self.lineLeftEnd + lineLength * tick
