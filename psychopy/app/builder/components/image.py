@@ -66,6 +66,7 @@ class ImageComponent(VisualComponent):
         buff.writeIndented("    image=%(image)s, mask=%(mask)s,\n" %(inits))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s,\n" %(inits) )
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" %(inits) )
+        buff.writeIndented("    flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s,\n" %(inits) )
         buff.writeIndented("    texRes=%(texture resolution)s" %(inits))# no newline - start optional parameters
         if self.params['interpolate'].val=='linear':
             buff.write(", interpolate=True")
