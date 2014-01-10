@@ -110,7 +110,7 @@ class KeyboardComponent(BaseComponent):
         if store != 'nothing':
             buff.writeIndented("%(name)s.clock.reset()  # now t=0\n" % self.params)
         if self.params['discard previous'].val:
-            buff.writeIndented("event.clearEvents()\n")
+            buff.writeIndented("event.clearEvents(eventType='keyboard')\n")
         buff.setIndentLevel(-1, relative=True)#to get out of the if statement
         #test for stop (only if there was some setting for duration or stop)
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
@@ -138,7 +138,7 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndented("theseKeys = event.getKeys(%s)\n" %(keyListStr))
         if self.exp.settings.params['Enable Escape'].val:
             buff.writeIndentedLines('\n# check for quit: key-code == psychopy.constants.ESCAPE')
-            buff.writeIndented('if ESCAPE in theseKeys or ESCAPE in event.getKeys(keyList=[ESCAPE]):\n')
+            buff.writeIndented('if ESCAPE in theseKeys or event.getKeys(keyList=[ESCAPE]):\n')
             buff.writeIndented('    endExpNow = True\n')
 
         #how do we store it?
