@@ -92,10 +92,10 @@ class RatingScale:
     two modes (and not for subjects giving ratings).
 
     The Builder RatingScale component gives a restricted set of options, but also
-    allows full control over a RatingScale (via 'customizeEverything').
+    allows full control over a RatingScale (via 'customize_everything').
 
     :Authors:
-        2010 Jeremy Gray, with on-going updates
+        2010 Jeremy Gray: original code and on-going updates;
         2012 Henrik Singmann: tickMarks, labels, ticksAboveLine
     """
     def __init__(self,
@@ -124,7 +124,7 @@ class RatingScale:
                 rightKeys='right',
                 respKeys=(),
                 lineColor='White',
-                ticksAboveLine=True,
+                ticksAboveLine=1.0,
                 markerStyle='triangle',
                 markerColor=None,
                 markerStart=False,
@@ -228,7 +228,8 @@ class RatingScale:
         lineColor :
             color to use for the scale line, default = 'White'
         ticksAboveLine :
-            should the tick marks be displayed above the line (the default) or below
+            The vertical height of tick marks: 1.0 is the default (above line),
+            -1.0 below the line, and 0.0 suppresses the display of tickmarks.
         markerStyle :
             'triangle' (DarkBlue), 'circle' (DarkRed), 'glow' (White, expanding),
             or 'slider' (translucent Black, looks best with `precision=100`)
@@ -244,10 +245,6 @@ class RatingScale:
         escapeKeys :
             keys that will quit the experiment if pressed by the subject (by calling
             `core.quit()`). default = `[ ]` (no escape keys).
-
-            .. note:: in the Builder, the default is `['escape']` (to be consistent
-            with other Builder conventions)
-
         allowSkip :
             if True, the subject can skip an item by pressing a key in `skipKeys`, default = `True`
         skipKeys :
@@ -665,9 +662,11 @@ class RatingScale:
         # vertices for ShapeStim:
         self.tickPositions = []  # list to hold horizontal positions
         vertices = [[self.lineLeftEnd, self.offsetVert]]  # first vertex
-        vertExcursion = self.tickSize * self.displaySizeFactor
-        if not self.ticksAboveLine:
-            vertExcursion *= -1  # flip ticks to display below the line
+        # vertical height of ticks (purely cosmetic):
+        if self.ticksAboveLine is False:
+            self.ticksAboveLine = -1.  # backwards compatibility for boolean
+        # numeric -> scale tick height;  float(True) == 1.
+        vertExcursion = self.tickSize * self.displaySizeFactor * float(self.ticksAboveLine)
         lineLength = self.lineRightEnd - self.lineLeftEnd
         for count, tick in enumerate(tickMarkPositions):
             horizTmp = self.lineLeftEnd + lineLength * tick
