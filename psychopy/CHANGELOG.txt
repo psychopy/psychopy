@@ -7,6 +7,34 @@ Changelog
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
+PsychoPy 1.80
+------------------------------
+
+PsychoPy 1.80.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*psychopy.visual.RatingScale Changes* :
+
+* ADDED: RatingScale markerStart position can be arbitrary, e.g., can start between items or beyond the end of scale
+* ADDED: RatingScale tickHeight can be used to control the height of tickMarks, including no tick marks (tickHeight=0)
+
+* CHANGED: Builder: remove option: choiceLabelsAboveLine; change lowAnchorText, highAnchorText -> labels
+* CHANGED: skipping a rating now adds None as the final element in the history
+* CHANGED: the default minTime is shorter, now 0.4s
+* CHANGED: more info in the log when creating a rating scale object
+* CHANGED: removed showAnchors: now use labels=None (instead of showAnchors=False)
+* CHANGED: removed lowAnchorText & highAnchorText: now use labels=['leftAnchor', 'rightAnchor'] or with optional 3rd midpoint label
+* CHANGED: renamed several parameters:
+    stretchHoriz -> stretch,
+    textSizeFactor -> textSize
+    ticksAboveLine -> tickHeight
+    displaySizeFactor -> size
+    markerStyle -> marker
+    customMarker -> marker
+* CHANGED: removed showScale: now use scale=None (instead of showScale=False)
+* CHANGED: removed allowSkip: now use skipKeys=None (instead of allowSkip=False)
+* CHANGED: removed escapeKeys; no longer supported but it's easy to implement (as done in the coder demos)
+
 PsychoPy 1.79
 ------------------------------
 
@@ -50,7 +78,7 @@ PsychoPy 1.79.00
         * Two demos in psychopy.coder.visual.textbox
         * Requires: freetype lib (included in Standalone)
         * Advantages: Very fast update following text change; very precise character placement.
-        * Disadvantages: Supports monospace fonts only. 
+        * Disadvantages: Supports monospace fonts only.
         * IMPORTANT: TextBox is still being finalized and completed; expect to find (and please report) issues. API changes guaranteed.
 * FIXED: misaligned responses in csv output for QuestHandler (Zhili Zheng)
 * FIXED: bug when using ElementArrayStim with numpy 1.7.1. Most elements were receiving SF=0

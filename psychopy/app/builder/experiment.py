@@ -283,6 +283,22 @@ class Experiment:
         elif 'val' in paramNode.keys():
             if paramNode.get('val')=='window units':#changed this value in 1.70.00
                 params[name].val = 'from exp settings'
+            # in v1.80.00, several RatingScale API and Param fields were changed
+            # Try to avoid a KeyError in these cases so can load the experiment,
+            elif name in ['choiceLabelsAboveLine', 'lowAnchorText', 'highAnchorText']:
+                # not handled, just ignored; want labels=[lowAnchor, highAnchor]
+                return
+            elif name == 'customize_everything':
+                # Try to auto-update the code:
+                v = paramNode.get('val')  # python code, not XML
+                v = v.replace('markerStyle', 'marker').replace('customMarker', 'marker')
+                v = v.replace('stretchHoriz', 'stretch').replace('displaySizeFactor', 'size')
+                v = v.replace('textSizeFactor', 'textSize')
+                v = v.replace('ticksAboveLine=False', 'tickHeight=-1')
+                v = v.replace('showScale=False', 'scale=None').replace('allowSkip=False', 'skipKeys=None')
+                v = v.replace('showAnchors=False', 'labels=None')
+                # lowAnchorText highAnchorText will trigger obsolete error when run the script
+                params[name].val = v
             else:
                 params[name].val = paramNode.get('val')
         #get the value type and update rate
@@ -354,10 +370,16 @@ class Experiment:
                 component=getAllComponents(self.prefsBuilder['componentsFolders'])[componentType](\
                     name=componentNode.get('name'),
                     parentName=routineNode.get('name'), exp=self)
-                # check for components that were absent in older versions of the builder and change the default behavior (currently only the new behavior of choices for RatingScale, HS, November 2012)
+                # check for components that were absent in older versions of the builder and change the default behavior
+                # (currently only the new behavior of choices for RatingScale, HS, November 2012)
+                # HS's modification superceded Jan 2014, removing several RatingScale options
                 if componentType=='RatingScaleComponent':
-                    if not componentNode.get('choiceLabelsAboveLine'): #this rating scale was created using older version of psychopy
-                        component.params['choiceLabelsAboveLine'].val=True  #important to have .val here
+                    if (componentNode.get('choiceLabelsAboveLine') or
+                        componentNode.get('lowAnchorText') or
+                        componentNode.get('highAnchorText')):
+                        pass
+                    #if not componentNode.get('choiceLabelsAboveLine'): #this rating scale was created using older version of psychopy
+                    #    component.params['choiceLabelsAboveLine'].val=True  #important to have .val here
                 #populate the component with its various params
                 for paramNode in componentNode:
                     self._getXMLparam(params=component.params, paramNode=paramNode)

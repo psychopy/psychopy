@@ -2122,6 +2122,11 @@ class _BaseParamsDlg(wx.Dialog):
             page.SetSizer(ctrls)
             self.ctrls.AddPage(page, categName)
             self.panels.append(page) #so the validator finds this set of controls
+            if 'customize_everything' in self.params.keys():
+                if self.params['customize_everything'].val.strip():
+                    # set focus to the custom panel, because custom will trump others
+                    page.SetFocus()
+                    self.ctrls.SetSelection(self.ctrls.GetPageCount()-1)
 
     def addCategoryOfParams(self, paramNames, parent):
         """Add all the params for a single category (after its tab has been created)
