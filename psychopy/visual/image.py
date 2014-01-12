@@ -144,23 +144,24 @@ class ImageStim(BaseVisualStim):
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
 
+        vertsPix = self.verticesPix #access just once because it's slower than basic property
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
         # right bottom
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,1,0)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,1,0)
-        GL.glVertex2f(self.verticesPix[0,0], self.verticesPix[0,1])
+        GL.glVertex2f(vertsPix[0,0], vertsPix[0,1])
         # left bottom
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,0,0)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,0,0)
-        GL.glVertex2f(self.verticesPix[1,0], self.verticesPix[1,1])
+        GL.glVertex2f(vertsPix[1,0], vertsPix[1,1])
         # left top
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,0,1)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,0,1)
-        GL.glVertex2f(self.verticesPix[2,0], self.verticesPix[2,1])
+        GL.glVertex2f(vertsPix[2,0], vertsPix[2,1])
         # right top
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,1,1)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,1,1)
-        GL.glVertex2f(self.verticesPix[3,0], self.verticesPix[3,1])
+        GL.glVertex2f(vertsPix[3,0], vertsPix[3,1])
         GL.glEnd()
 
         #unbind the textures
@@ -199,23 +200,24 @@ class ImageStim(BaseVisualStim):
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
 
+        vertsPix = self.verticesPix #access just once because it's slower than basic property
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
         # right bottom
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,1,0)
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,1,0)
-        GL.glVertex2f(self.verticesPix[0,0], self.verticesPix[0,1])
+        GL.glVertex2f(vertsPix[0,0], vertsPix[0,1])
         # left bottom
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,0,0)
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,0,0)
-        GL.glVertex2f(self.verticesPix[1,0], self.verticesPix[1,1])
+        GL.glVertex2f(vertsPix[1,0], vertsPix[1,1])
         # left top
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,0,1)
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,0,1)
-        GL.glVertex2f(self.verticesPix[2,0], self.verticesPix[2,1])
+        GL.glVertex2f(vertsPix[2,0], vertsPix[2,1])
         # right top
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,1,1)
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,1,1)
-        GL.glVertex2f(self.verticesPix[3,0], self.verticesPix[3,1])
+        GL.glVertex2f(vertsPix[3,0], vertsPix[3,1])
         GL.glEnd()
 
         GL.glDisable(GL.GL_TEXTURE_2D)
@@ -255,10 +257,10 @@ class ImageStim(BaseVisualStim):
     def draw(self, win=None):
         if win==None: win=self.win
         self._selectWindow(win)
-        
+
         GL.glPushMatrix()#push before the list, pop after
         win.setScale('pix')
-        
+
         desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 

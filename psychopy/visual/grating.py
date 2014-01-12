@@ -309,23 +309,24 @@ class GratingStim(BaseVisualStim):
         Btex = -self._cycles[1]/2 - self.phase[1]+0.5
         Lmask=Bmask= 0.0; Tmask=Rmask=1.0#mask
 
+        vertsPix = self.verticesPix #access just once because it's slower than basic property
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
         # right bottom
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Rtex, Btex)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Rmask,Bmask)
-        GL.glVertex2f(self.verticesPix[0,0], self.verticesPix[0,1])
+        GL.glVertex2f(vertsPix[0,0], vertsPix[0,1])
         # left bottom
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Ltex,Btex)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Lmask,Bmask)
-        GL.glVertex2f(self.verticesPix[1,0], self.verticesPix[1,1])
+        GL.glVertex2f(vertsPix[1,0], vertsPix[1,1])
         # left top
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Ltex,Ttex)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Lmask,Tmask)
-        GL.glVertex2f(self.verticesPix[2,0], self.verticesPix[2,1])
+        GL.glVertex2f(vertsPix[2,0], vertsPix[2,1])
         # right top
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Rtex,Ttex)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Rmask,Tmask)
-        GL.glVertex2f(self.verticesPix[3,0], self.verticesPix[3,1])
+        GL.glVertex2f(vertsPix[3,0], vertsPix[3,1])
         GL.glEnd()
 
         #unbind the textures
@@ -371,23 +372,24 @@ class GratingStim(BaseVisualStim):
         Btex = -self._cycles[1]/2 - self.phase[1]+0.5
         Lmask=Bmask= 0.0; Tmask=Rmask=1.0#mask
 
+        vertsPix = self.verticesPix #access just once because it's slower than basic property
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
         # right bottom
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Rtex, Btex)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Rmask,Bmask)
-        GL.glVertex2f(self.verticesPix[0,0], self.verticesPix[0,1])
+        GL.glVertex2f(vertsPix[0,0], vertsPix[0,1])
         # left bottom
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Ltex,Btex)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Lmask,Bmask)
-        GL.glVertex2f(self.verticesPix[1,0], self.verticesPix[1,1])
+        GL.glVertex2f(vertsPix[1,0], vertsPix[1,1])
         # left top
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Ltex,Ttex)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Lmask,Tmask)
-        GL.glVertex2f(self.verticesPix[2,0], self.verticesPix[2,1])
+        GL.glVertex2f(vertsPix[2,0], vertsPix[2,1])
         # right top
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Rtex,Ttex)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Rmask,Tmask)
-        GL.glVertex2f(self.verticesPix[3,0], self.verticesPix[3,1])
+        GL.glVertex2f(vertsPix[3,0], vertsPix[3,1])
         GL.glEnd()
 
         #disable mask
