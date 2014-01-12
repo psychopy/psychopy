@@ -147,11 +147,7 @@ class MovieStim(BaseVisualStim):
             self.size = val2array(size)
 
         self.ori = ori
-        self._calcPosRendered()
-        self._calcSizeRendered()
-
-        # enable self.contains(), overlaps(); currently win must have pix units:
-        self._calcVertices()
+        self._updateVertices()
 
         #check for pyglet
         if win.winType!='pyglet':
@@ -163,15 +159,6 @@ class MovieStim(BaseVisualStim):
         if autoLog:
             logging.exp("Created %s = %s" %(self.name, repr(self)))
 
-    def _calcVertices(self):
-        R, T = self._sizeRendered / 2  # pix
-        L, B = -R, -T
-        self._vertices = numpy.array([[L, T], [R, T], [R, B], [L, B]])
-        self.needVertexUpdate = True
-    def _calcVerticesRendered(self):
-        self.needVertexUpdate = False
-        self._verticesRendered = self._vertices
-        self._posRendered = self.pos
     def setMovie(self, filename, log=True):
         """See `~MovieStim.loadMovie` (the functions are identical).
         This form is provided for syntactic consistency with other visual stimuli.
@@ -300,22 +287,30 @@ class MovieStim(BaseVisualStim):
         desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, 1)  #Contrast=1
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2],self.opacity)
         GL.glPushMatrix()
-        #do scaling
-        #scale the viewport to the appropriate size
-        self.win.setScale(self._winScale)
+        self.win.setScale('pix')
         #move to centre of stimulus and rotate
-        GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)
-        GL.glRotatef(-self.ori,0.0,0.0,1.0)
-        flipBitX = 1-self.flipHoriz*2
-        flipBitY = 1-self.flipVert*2
-        frameTexture.blit(
-                -self._sizeRendered[0]/2.0*flipBitX,
-                -self._sizeRendered[1]/2.0*flipBitY,
-                width=self._sizeRendered[0]*flipBitX,
-                height=self._sizeRendered[1]*flipBitY,
-                z=0)
-        GL.glPopMatrix()
+        vertsPix = self.verticesPix
+        t=frameTexture.tex_coords
+        array = (GL.GLfloat * 32)(
+             t[0],  t[1],  
+             vertsPix[0,0], vertsPix[0,1],    0.,  #vertex
+             t[3],  t[4],  
+             vertsPix[1,0], vertsPix[1,1],    0.,
+             t[6],  t[7],  
+             vertsPix[2,0], vertsPix[2,1],    0., 
+             t[9],  t[10],  
+             vertsPix[3,0], vertsPix[3,1],    0.,
+             )
 
+        GL.glPushAttrib(GL.GL_ENABLE_BIT)
+        GL.glEnable(frameTexture.target)
+        GL.glBindTexture(frameTexture.target, frameTexture.id)
+        GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
+        GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array) #2D texture array, 3D vertex array
+        GL.glDrawArrays(GL.GL_QUADS, 0, 4)
+        GL.glPopClientAttrib()
+        GL.glPopMatrix()
+        
     def setContrast(self):
         """Not yet implemented for MovieStim"""
         pass
