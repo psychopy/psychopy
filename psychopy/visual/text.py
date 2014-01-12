@@ -25,7 +25,7 @@ import psychopy.event
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.tools.monitorunittools import cm2pix, deg2pix
+from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.visual.basevisual import BaseVisualStim
 
 import numpy
@@ -538,6 +538,19 @@ class TextStim(BaseVisualStim):
             self.setFlipVert(True, log=log)
         elif direction == 'horiz':
             self.setFlipHoriz(True, log=log)
+    
+    @property
+    def posPix(self):
+        """This determines the coordinates in pixels of the position for the
+        current stimulus, accounting for pos and units. This property should
+        automatically update if `pos` is changed
+        """
+        #because this is a property getter we can check /on-access/ if it needs updating :-)
+        if self._needVertexUpdate:
+            self.__dict__['posPix'] = convertToPix(stim=self, vertices = [0,0], pos = self.pos)
+        self._needVertexUpdate = False
+        return self.__dict__['posPix']
+        
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -553,8 +566,9 @@ class TextStim(BaseVisualStim):
         GL.glPushMatrix()
         GL.glLoadIdentity()#for PyOpenGL this is necessary despite pop/PushMatrix, (not for pyglet)
         #scale and rotate
-        prevScale = win.setScale(self._winScale)#to units for translations
-        GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)#NB depth is set already
+        prevScale = win.setScale('pix')#to units for translations
+        posPix = self.posPix
+        GL.glTranslatef(posPix[0], posPix[1],0)#NB depth is set already
         GL.glRotatef(-self.ori,0.0,0.0,1.0)
         win.setScale('pix', None, prevScale)#back to pixels for drawing surface
         GL.glScalef((1,-1)[self.flipHoriz], (1,-1)[self.flipVert], 1)  # x,y,z; -1=flipped
@@ -620,4 +634,3 @@ class TextStim(BaseVisualStim):
         """Not implemented for TextStim
         """
         pass
-

@@ -530,8 +530,8 @@ class BaseVisualStim(object):
 
     @property
     def verticesPix(self):
-        """This determines the coordinated in pixels of the vertices for the
-        current stimulus, accounting for size, ori, pos and units
+        """This determines the coordinates of the vertices for the
+        current stimulus in pixels, accounting for size, ori, pos and units
         """
         #because this is a property getter we can check /on-access/ if it needs updating :-)
         if self._needVertexUpdate:
