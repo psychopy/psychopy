@@ -562,7 +562,7 @@ class BaseVisualStim(object):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
         self.autoLog = value
-    def contains(self, x, y=None):
+    def contains(self, x, y=None, units=None):
         """Determines if a point x,y is inside the extent of the stimulus.
 
         Can accept variety of input options:
@@ -581,25 +581,28 @@ class BaseVisualStim(object):
 
         See coder demo, shapeContains.py
         """
-        if self.needVertexUpdate:
-            self._calcVerticesRendered()
-        if hasattr(x, 'getPos'):
-            x, y = x.getPos()
+        #get the object in pixels
+        if hasattr(x, 'verticesPix'):
+            xy = x.verticesPix #access only once - this is a property (slower to access)
+            units = 'pix' #we can forget about the units
+        elif hasattr(x, 'getPos'):
+            xy = x.getPos()
+            units = xy.units
         elif type(x) in [list, tuple, numpy.ndarray]:
-            x, y = x[0], x[1]
-        if self.units in ['deg','degs']:
-            x, y = deg2pix(numpy.array((x, y)), self.win.monitor)
-        elif self.units == 'cm':
-            x, y = cm2pix(numpy.array((x, y)), self.win.monitor)
-        if self.ori:
-            oriRadians = numpy.radians(self.ori)
-            sinOri = numpy.sin(oriRadians)
-            cosOri = numpy.cos(oriRadians)
-            x0, y0 = x-self._posRendered[0], y-self._posRendered[1]
-            x = x0 * cosOri - y0 * sinOri + self._posRendered[0]
-            y = x0 * sinOri + y0 * cosOri + self._posRendered[1]
-
-        return pointInPolygon(x, y, self)
+            xy = numpy.array(x)
+        else:
+            xy = numpy.array((x,y))
+        #try to work out what units x,y has
+        if units is None:
+            if hasattr(xy, 'units'):
+                units = xy.units
+            else:
+                units = self.units
+        if units != 'pix':
+            xy = convertToPix(xy, pos=0, units=units, win=self.win)
+        # ourself in pixels
+        selfVerts = self.verticesPix
+        return pointInPolygon(xy[0], xy[1], poly = selfVerts)
 
     def _getPolyAsRendered(self):
         """return a list of vertices as rendered; used by overlaps()
@@ -624,13 +627,7 @@ class BaseVisualStim(object):
 
         See coder demo, shapeContains.py
         """
-        if self.needVertexUpdate:
-            self._calcVerticesRendered()
-        if self.ori:
-            polyRendered = self._getPolyAsRendered()
-            return polygonsOverlap(polyRendered, polygon)
-        else:
-            return polygonsOverlap(self, polygon)
+        return polygonsOverlap(self, polygon)
 
     def _getDesiredRGB(self, rgb, colorSpace, contrast):
         """ Convert color to RGB while adding contrast
