@@ -115,7 +115,6 @@ class ShapeStim(BaseVisualStim):
         self.size = numpy.array([0.0,0.0])
         self.setSize(size, log=False)
         self.setVertices(vertices, log=False)
-        self._calcVerticesRendered()
 
         #set autoLog (now that params have been initialised)
         self.autoLog= autoLog
@@ -194,7 +193,7 @@ class ShapeStim(BaseVisualStim):
         Use a tuple or list of two values to scale asymmetrically.
         """
         self._set('size', numpy.asarray(value), operation, log=log)
-        self.needVertexUpdate=True
+        self._needVertexUpdate=True
 
     def setVertices(self,value=None, operation='', log=True):
         """Set the xy values of the vertices (relative to the centre of the field).
@@ -213,7 +212,7 @@ class ShapeStim(BaseVisualStim):
                 raise ValueError("New value for setXYs should be 2x1 or Nx2")
         #set value and log
         setWithOperation(self, 'vertices', value, operation)
-        self.needVertexUpdate=True
+        self._needVertexUpdate=True
 
         if log and self.autoLog:
             self.win.logOnFlip("Set %s vertices=%s" %(self.name, value),
@@ -225,17 +224,14 @@ class ShapeStim(BaseVisualStim):
         stimulus to appear on that frame and then update the screen
         again.
         """
-        if self.needVertexUpdate: self._calcVerticesRendered()
         if win==None: win=self.win
         self._selectWindow(win)
 
-        nVerts = self.vertices.shape[0]
-
+        vertsPix = self.verticesPix #will check if it needs updating (check just once)
+        nVerts = vertsPix.shape[0]
         #scale the drawing frame etc...
         GL.glPushMatrix()#push before drawing, pop after
-        win.setScale(self._winScale)
-        GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)
-        GL.glRotatef(-self.ori,0.0,0.0,1.0)
+        win.setScale('pix')
         #load Null textures into multitexteureARB - or they modulate glColor
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -250,7 +246,7 @@ class ShapeStim(BaseVisualStim):
         else:
             GL.glDisable(GL.GL_LINE_SMOOTH)
             GL.glDisable(GL.GL_POLYGON_SMOOTH)
-        GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._verticesRendered.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
+        GL.glVertexPointer(2, GL.GL_DOUBLE, 0, vertsPix.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
 
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
         if nVerts>2: #draw a filled polygon first
@@ -269,16 +265,3 @@ class ShapeStim(BaseVisualStim):
             else: GL.glDrawArrays(GL.GL_LINE_STRIP, 0, nVerts)
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         GL.glPopMatrix()
-
-    def _calcVerticesRendered(self):
-        self.needVertexUpdate=False
-        if self.units in ['norm', 'pix', 'height']:
-            self._verticesRendered=self.vertices
-            self._posRendered=self.pos
-        elif self.units in ['deg', 'degs']:
-            self._verticesRendered=deg2pix(self.vertices, self.win.monitor)
-            self._posRendered=deg2pix(self.pos, self.win.monitor)
-        elif self.units=='cm':
-            self._verticesRendered=cm2pix(self.vertices, self.win.monitor)
-            self._posRendered=cm2pix(self.pos, self.win.monitor)
-        self._verticesRendered = self._verticesRendered * self.size

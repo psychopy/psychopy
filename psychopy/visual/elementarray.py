@@ -164,8 +164,6 @@ class ElementArrayStim(object):
         #unit conversions
         if units!=None and len(units): self.units = units
         else: self.units = win.units
-        if self.units in ['norm','height']: self._winScale=self.units
-        else: self._winScale='pix' #set the window to have pixels coords
         self.fieldPos = fieldPos
         self.fieldSize = fieldSize
         self.fieldShape = fieldShape
@@ -601,9 +599,9 @@ class ElementArrayStim(object):
         GL.glPopMatrix()
 
     def _updateVertices(self):
-        """Sets Stim.verticesPix from fieldPos and 
+        """Sets Stim.verticesPix from fieldPos and
         """
-        
+
         #Handle the orientation, size and location of each element in native units
         #
         radians = 0.017453292519943295
@@ -631,7 +629,7 @@ class ElementArrayStim(object):
         #assign to self attrbute
         self.__dict__['verticesPix'] = numpy.require(verts,requirements=['C'])#make sure it's contiguous
         self._needVertexUpdate = False
-        
+
     #----------------------------------------------------------------------
     def updateElementColors(self):
         """Create a new array of self._RGBAs based on self.rgbs. Not needed by the

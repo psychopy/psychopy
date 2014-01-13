@@ -38,7 +38,8 @@ class BaseVisualStim(object):
         self.name = name
         self.status = NOT_STARTED
         self.units = units
-        self._verticesBase = [[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]]
+        self._verticesBase = [[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]] #sqr
+        self._rotationMatrix = [[1.,0.],[0.,1.]] #no rotation as a default
         if autoLog:
             logging.warning("%s is calling BaseVisualStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
                             %(self.__class__.__name__))

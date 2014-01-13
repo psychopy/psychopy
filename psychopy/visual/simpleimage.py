@@ -93,8 +93,6 @@ class SimpleImageStim(object):
         #unit conversions
         if units!=None and len(units): self.units = units
         else: self.units = win.units
-        if self.units in ['norm','height']: self._winScale=self.units
-        else: self._winScale='pix' #set the window to have pixels coords
 
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 
@@ -245,7 +243,7 @@ class SimpleImageStim(object):
             self._posRendered = self.pos * self.win.size/2.0
         elif self.units == 'height':
             self._posRendered = self.pos * self.win.size[1]
-            
+
     def setImage(self,filename=None, log=True):
         """Set the image to be drawn.
 
