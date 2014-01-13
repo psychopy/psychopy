@@ -21,7 +21,7 @@ import psychopy.event
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.tools.monitorunittools import cm2pix, deg2pix
+from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 
 import numpy
 
@@ -52,10 +52,10 @@ class Aperture:
         self.name = name
 
         #unit conversions
-        if units!=None and len(units): self.units = units
-        else: self.units = win.units
-        if self.units in ['norm','height']: self._winScale=self.units
-        else: self._winScale='pix' #set the window to have pixels coords
+        if units!=None and len(units):
+            self.units = units
+        else:
+            self.units = win.units
 
         if shape.lower() == 'square':
             ori += 45
@@ -79,18 +79,17 @@ class Aperture:
         GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
 
         GL.glPushMatrix()
-        self.win.setScale(self._winScale)
-        GL.glTranslatef(self._posRendered[0], self._posRendered[1], 0)
+        self.win.setScale('pix')
+        GL.glTranslatef(self.posPix[0], self.posPix[1], 0)
         GL.glRotatef(-self.ori, 0.0, 0.0, 1.0)
 
         GL.glDisable(GL.GL_LIGHTING)
         GL.glDisable(GL.GL_DEPTH_TEST)
         GL.glDepthMask(GL.GL_FALSE)
-
         GL.glStencilFunc(GL.GL_NEVER, 0, 0)
         GL.glStencilOp(GL.GL_INCR, GL.GL_INCR, GL.GL_INCR)
         GL.glColor3f(0,0,0)
-        GL.gluDisk(self.quad, 0, self._sizeRendered/2.0, self.nVert, 2)
+        GL.gluDisk(self.quad, 0, self.sizePix/2.0, self.nVert, 2)
         GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
         GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
 
@@ -100,8 +99,9 @@ class Aperture:
         """Set the size (diameter) of the Aperture
         """
         self.size = size
-        self._calcSizeRendered()
-        if needReset: self._reset()
+        self._needVertexUpdate=True
+        if needReset:
+            self._reset()
         if log and self.autoLog:
              self.win.logOnFlip("Set %s size=%s" %(self.name, size),
                  level=logging.EXP,obj=self)
@@ -109,7 +109,8 @@ class Aperture:
         """Set the orientation of the Aperture
         """
         self.ori = ori
-        if needReset: self._reset()
+        if needReset:
+            self._reset()
         if log and self.autoLog:
              self.win.logOnFlip("Set %s ori=%s" %(self.name, ori),
                  level=logging.EXP,obj=self)
@@ -117,23 +118,42 @@ class Aperture:
         """Set the pos (centre) of the Aperture
         """
         self.pos = numpy.array(pos)
-        self._calcPosRendered()
-        if needReset: self._reset()
+        self._needVertexUpdate=True
+        if needReset:
+            self._reset()
         if log and self.autoLog:
              self.win.logOnFlip("Set %s pos=%s" %(self.name, pos),
                  level=logging.EXP,obj=self)
-    def _calcSizeRendered(self):
-        """Calculate the size of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
-        if self.units in ['norm','pix', 'height']: self._sizeRendered=self.size
-        elif self.units in ['deg', 'degs']: self._sizeRendered=deg2pix(self.size, self.win.monitor)
-        elif self.units=='cm': self._sizeRendered=cm2pix(self.size, self.win.monitor)
-        else:
-            logging.ERROR("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
-    def _calcPosRendered(self):
-        """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
-        if self.units in ['norm','pix', 'height']: self._posRendered=self.pos
-        elif self.units in ['deg', 'degs']: self._posRendered=deg2pix(self.pos, self.win.monitor)
-        elif self.units=='cm': self._posRendered=cm2pix(self.pos, self.win.monitor)
+    def _updateVertices(self):
+        """
+        """
+        #then combine with position and convert to pix
+        pos = convertToPix(stim=self, vertices = [0,0], pos = self.pos)
+        size = convertToPix(stim=self, vertices = self.size, pos = 0)
+        try:
+            size=size[0]
+        except:
+            pass
+        #assign to self attrbute
+        self.__dict__['posPix'] = pos
+        self.__dict__['sizePix'] = size
+        self._needVertexUpdate = False
+    @property
+    def posPix(self):
+        """This determines the centre of the aperture in in pixels using pos and units
+        """
+        #because this is a property getter we can check /on-access/ if it needs updating :-)
+        if self._needVertexUpdate:
+            self._updateVertices()
+        return self.__dict__['posPix']
+    @property
+    def sizePix(self):
+        """This determines the size of the aperture in in pixels using size and units
+        """
+        #because this is a property getter we can check /on-access/ if it needs updating :-)
+        if self._needVertexUpdate:
+            self._updateVertices()
+        return self.__dict__['sizePix']
     def enable(self):
         """Enable the aperture so that it is used in future drawing operations
 

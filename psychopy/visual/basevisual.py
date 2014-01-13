@@ -136,11 +136,6 @@ class BaseVisualStim(object):
         else:
             self.__dict__['units'] = self.win.units
 
-        if self.units in ['norm', 'height']:
-            self._winScale=self.units
-        else:
-            self._winScale='pix' #set the window to have pixels coords
-
         # Update size and position if they are defined. If not, this is probably
         # during some init and they will be defined later, given the new unit.
         if not isinstance(self.size, attributeSetter) and not isinstance(self.pos, attributeSetter):
