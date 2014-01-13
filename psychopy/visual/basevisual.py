@@ -549,7 +549,7 @@ class BaseVisualStim(object):
         # set size and orientation
         verts = numpy.dot(self.size*verts*flip, self._rotationMatrix)
         #then combine with position and convert to pix
-        verts = convertToPix(stim=self, vertices = verts, pos = self.pos)
+        verts = convertToPix(vertices=verts, pos=self.pos, win=self.win, units=self.units)
         #assign to self attrbute
         self.__dict__['verticesPix'] = verts
         self._needVertexUpdate = False

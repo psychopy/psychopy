@@ -538,7 +538,7 @@ class TextStim(BaseVisualStim):
             self.setFlipVert(True, log=log)
         elif direction == 'horiz':
             self.setFlipHoriz(True, log=log)
-    
+
     @property
     def posPix(self):
         """This determines the coordinates in pixels of the position for the
@@ -547,10 +547,10 @@ class TextStim(BaseVisualStim):
         """
         #because this is a property getter we can check /on-access/ if it needs updating :-)
         if self._needVertexUpdate:
-            self.__dict__['posPix'] = convertToPix(stim=self, vertices = [0,0], pos = self.pos)
+            self.__dict__['posPix'] = convertToPix(vertices = [0,0], pos = self.pos, units=self.units, win = self.win)
         self._needVertexUpdate = False
         return self.__dict__['posPix']
-        
+
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call

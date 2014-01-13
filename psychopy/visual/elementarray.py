@@ -625,7 +625,7 @@ class ElementArrayStim(object):
         verts[:,2] = 1#self.depths + self.fieldDepth
         #Now shift by fieldPos and convert to appropriate units
         pos = numpy.tile(self.xys+self.fieldPos, (1,4)).reshape([self.nElements*4,2])
-        verts[:,:2] = convertToPix(stim=self, vertices = verts[:,:2], pos = pos)
+        verts[:,:2] = convertToPix(vertices = verts[:,:2], pos = pos, units=self.units, win = self.win)
         #assign to self attrbute
         self.__dict__['verticesPix'] = numpy.require(verts,requirements=['C'])#make sure it's contiguous
         self._needVertexUpdate = False

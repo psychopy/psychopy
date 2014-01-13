@@ -128,8 +128,8 @@ class Aperture:
         """
         """
         #then combine with position and convert to pix
-        pos = convertToPix(stim=self, vertices = [0,0], pos = self.pos)
-        size = convertToPix(stim=self, vertices = self.size, pos = 0)
+        pos = convertToPix(vertices = [0,0], pos = self.pos, units=self.units, win=self.win)
+        size = convertToPix(vertices = self.size, pos = 0, units=self.units, win=self.win)
         try:
             size=size[0]
         except:
