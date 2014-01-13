@@ -292,13 +292,13 @@ class MovieStim(BaseVisualStim):
         vertsPix = self.verticesPix
         t=frameTexture.tex_coords
         array = (GL.GLfloat * 32)(
-             t[0],  t[1],  
+             t[0],  t[1],
              vertsPix[0,0], vertsPix[0,1],    0.,  #vertex
-             t[3],  t[4],  
+             t[3],  t[4],
              vertsPix[1,0], vertsPix[1,1],    0.,
-             t[6],  t[7],  
-             vertsPix[2,0], vertsPix[2,1],    0., 
-             t[9],  t[10],  
+             t[6],  t[7],
+             vertsPix[2,0], vertsPix[2,1],    0.,
+             t[9],  t[10],
              vertsPix[3,0], vertsPix[3,1],    0.,
              )
 
@@ -309,8 +309,9 @@ class MovieStim(BaseVisualStim):
         GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array) #2D texture array, 3D vertex array
         GL.glDrawArrays(GL.GL_QUADS, 0, 4)
         GL.glPopClientAttrib()
+        GL.glPopAttrib(GL.GL_ENABLE_BIT)
         GL.glPopMatrix()
-        
+
     def setContrast(self):
         """Not yet implemented for MovieStim"""
         pass
