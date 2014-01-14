@@ -293,7 +293,7 @@ class CodeComponentDialog(wx.Dialog):
                                                     prefs=self.app.prefs))
                 if len(param.val):
                     code_box.AddText(unicode(param.val))
-                    if not openToPage:
+                if len(param.val.strip()) and not openToPage:
                         openToPage = i  # first non-blank page
 
         if self.helpUrl!=None:
@@ -305,7 +305,7 @@ class CodeComponentDialog(wx.Dialog):
 
         self.__set_properties()
         self.__do_layout()
-        self.code_sections.SetSelection(openToPage - 1)
+        self.code_sections.SetSelection(max(0, openToPage - 1))
 
         self.Bind(wx.EVT_BUTTON, self.helpButtonHandler, self.help_button)
 
