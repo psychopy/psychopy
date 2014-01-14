@@ -36,7 +36,7 @@ def makeCoherentOris(XYs, coherence, formAngle):
     coherentIndices = possibleIndices[0:int(nNew*coherence)]#...and take first nnn elements
     #set the ori of the coherent elements
     theta, radius = cart2pol(XYs[:,0], XYs[:,1]) #get polar coordinates for elements
-    newOris[coherentIndices] = theta[coherentIndices]+formAngle
+    newOris[coherentIndices] = formAngle-theta[coherentIndices]
     return newOris
     
 globForm.setOris( makeCoherentOris(globForm.xys, coherence, 45) )

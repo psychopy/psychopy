@@ -9,6 +9,28 @@ monitor'''
 
 from psychopy import monitors
 
+def convertToPix(vertices, pos, units, win):
+    """Takes the base vertices and position, combines and converts to pixels
+
+    `vertsScaled` should have been rotated and scaled by size already.
+
+    The reason that `pos` and `vertsScaled` are provided separately is that it allows
+    the conversion from deg to apply flat-screen correction to each separately.
+
+    The reason that these use funtion args rather than relying on self.pos
+    is that some stimuli (e.g. ElementArrayStim use other terms like fieldPos)
+    """
+    if units == 'pix':
+        verts = pos+vertices
+    elif units == 'cm':
+        verts = cm2pix(pos+vertices, win.monitor)
+    elif units =='deg':
+        verts = deg2pix(pos+vertices, win.monitor)
+    elif units == 'norm':
+        verts = (pos+vertices) * win.size/2.0
+    elif units == 'height':
+        verts = (pos+vertices) * win.size[1]
+    return verts
 
 def cm2deg(cm, monitor):
     """Convert size in cm to size in degrees for a given Monitor object"""

@@ -1089,14 +1089,9 @@ class Window:
             raise ValueError('gamma must be a numeric scalar or iterable')
 
     def setScale(self, units, font='dummyFont', prevScale=(1.0, 1.0)):
-        """This method is called from within the draw routine and sets the
-        scale of the OpenGL context to map between units. Could potentially be
-        called by the user in order to draw OpenGl objects manually
-        in each frame.
-
-        The `units` can be 'height' (multiples of window height),
-        'norm'(normalised), 'pix'(pixels), 'cm' or 'stroke_font'.
-        The `font` parameter is only used if units='stroke_font'
+        """DEPRECATED: this method used to be used to switch between units for
+        stimulus drawing but this is now handled by the stimuli themselves and
+        the window should aways be left in units of 'pix'
         """
         if units == "norm":
             thisScale = numpy.array([1.0, 1.0])

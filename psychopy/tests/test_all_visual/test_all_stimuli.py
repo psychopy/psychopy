@@ -281,7 +281,7 @@ class _baseVisualTest:
         #using .set() and check the underlying variable changed
         prevDirs = copy.copy(dots._dotsDir)
         prevSignals = copy.copy(dots._signalDots)
-        prevPosRend = copy.copy(dots._fieldPosRendered)
+        prevVerticesPix = copy.copy(dots.verticesPix)
         dots.setDir(20)
         dots.setFieldCoherence(0.5)
         dots.setFieldPos([-0.5,0.5])
@@ -294,8 +294,8 @@ class _baseVisualTest:
             "dots._dotsDir failed to change after dots.setDir()"
         assert prevSignals.sum()!=dots._signalDots.sum(), \
             "dots._signalDots failed to change after dots.setCoherence()"
-        assert not numpy.alltrue(prevPosRend==dots._fieldPosRendered), \
-            "dots._fieldPosRendered failed to change after dots.setPos()"
+        assert not numpy.alltrue(prevVerticesPix==dots.verticesPix), \
+            "dots.verticesPix failed to change after dots.setPos()"
     def test_element_array(self):
         win = self.win
         if not win._haveShaders or utils._under_xvfb:

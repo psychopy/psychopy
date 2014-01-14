@@ -246,8 +246,6 @@ class BufferImageStim(GratingStim):
                     self.thisScale[1] * (1,-1)[self.flipVert], 1.0)
 
         # enable dynamic position, orientation, opacity; depth not working?
-        GL.glTranslatef(self._posRendered[0], self._posRendered[1], 0)
-        GL.glRotatef(-self.ori, 0.0, 0.0, 1.0)
         GL.glColor4f(self.desiredRGB[0], self.desiredRGB[1], self.desiredRGB[2], self.opacity)
 
         GL.glCallList(self._listID) # make it happen

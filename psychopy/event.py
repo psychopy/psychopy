@@ -339,7 +339,12 @@ class Mouse:
             mouseButtons = [0,0,0]
         self.setVisible(visible)
         if newPos is not None: self.setPos(newPos)
-
+    @property
+    def units(self):
+        """The units for this mouse
+        (will match the current units for the Window it lives in)
+        """
+        return self.win.units
     def setPos(self,newPos=(0,0)):
         """Sets the current position of the mouse (pygame only),
         in the same units as the :class:`~visual.Window` (0,0) is at centre

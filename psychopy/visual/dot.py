@@ -115,12 +115,14 @@ class DotStim(BaseVisualStim):
         BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)#set autoLog at end of init
 
         self.nDots = nDots
-        #size
-        self.fieldPos = val2array(fieldPos, False, False)
-        self.fieldSize = val2array(fieldSize, False)
+        #pos and size are ambiguous for dots so DotStim explicitly has
+        #fieldPos = pos, fieldSize=size and then dotSize as additional param
+        self.fieldPos = self.pos = val2array(fieldPos, False, False)
+        self.fieldSize = self.size = val2array(fieldSize, False)
         if type(dotSize) in [tuple,list]:
             self.dotSize = numpy.array(dotSize)
-        else:self.dotSize=dotSize
+        else:
+            self.dotSize=dotSize
         self.fieldShape = fieldShape
         self.dir = dir
         self.speed = speed
@@ -130,13 +132,6 @@ class DotStim(BaseVisualStim):
         self.noiseDots = noiseDots
         self.opacity = float(opacity)
         self.contrast = float(contrast)
-
-        #'rendered' coordinates represent the stimuli in the scaled coords of the window
-        #(i.e. norm for units==norm, but pix for all other units)
-        self._dotSizeRendered=None
-        self._speedRendered=None
-        self._fieldSizeRendered=None
-        self._fieldPosRendered=None
 
         self.useShaders=False#not needed for dots?
         self.colorSpace=colorSpace
@@ -153,7 +148,7 @@ class DotStim(BaseVisualStim):
 
         self.coherence=round(coherence*self.nDots)/self.nDots#store actual coherence
 
-        self._dotsXY = self._newDotsXY(self.nDots) #initialise a random array of X,Y
+        self. _verticesBase = self._dotsXY = self._newDotsXY(self.nDots) #initialise a random array of X,Y
         self._dotsSpeed = numpy.ones(self.nDots, 'f')*self.speed#all dots have the same speed
         self._dotsLife = abs(dotLife)*numpy.random.rand(self.nDots)#abs() means we can ignore the -1 case (no life)
         #determine which dots are signal
@@ -164,7 +159,6 @@ class DotStim(BaseVisualStim):
         self._dotsDir = numpy.random.rand(self.nDots)*2*pi
         self._dotsDir[self._signalDots] = self.dir*pi/180
 
-        self._calcFieldCoordsRendered()
         self._update_dotsXY()
         self.autoLog= autoLog
         if autoLog:
@@ -213,7 +207,7 @@ class DotStim(BaseVisualStim):
         logging.error("User called DotStim.setPos(pos). Use DotStim.SetFieldPos(pos) instead.")
     def setFieldPos(self,val, op='', log=True):
         self._set('fieldPos', val, op, log=log)
-        self._calcFieldCoordsRendered()
+        self.pos = self.fieldPos #we'll store this as both
     def setFieldCoherence(self,val, op='', log=True):
         """Change the coherence (%) of the DotStim. This will be rounded according
         to the number of dots in the stimulus.
@@ -254,9 +248,7 @@ class DotStim(BaseVisualStim):
 
         #draw the dots
         if self.element==None:
-            win.setScale(self._winScale)
-            #scale the drawing frame etc...
-            GL.glTranslatef(self._fieldPosRendered[0],self._fieldPosRendered[1],0)
+            win.setScale('pix')
             GL.glPointSize(self.dotSize)
 
             #load Null textures into multitexteureARB - they modulate with glColor
@@ -267,7 +259,7 @@ class DotStim(BaseVisualStim):
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
-            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._dotsXYRendered.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
+            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
             desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
 
             GL.glColor4f(desiredRGB[0], desiredRGB[1], desiredRGB[2], self.opacity)
@@ -278,7 +270,7 @@ class DotStim(BaseVisualStim):
             #we don't want to do the screen scaling twice so for each dot subtract the screen centre
             initialDepth=self.element.depth
             for pointN in range(0,self.nDots):
-                self.element.setPos(self._dotsXY[pointN,:]+self.fieldPos)
+                self.element.setPos(self.verticesPix[pointN,:]+self.fieldPos)
                 self.element.draw()
             self.element.setDepth(initialDepth)#reset depth before going to next frame
         GL.glPopMatrix()
@@ -329,49 +321,34 @@ class DotStim(BaseVisualStim):
             # noise dots are ~self._signalDots
             self._dotsDir[~self._signalDots] = numpy.random.rand((~self._signalDots).sum())*pi*2
             #then update all positions from dir*speed
-            self._dotsXY[:,0] += self.speed*numpy.reshape(numpy.cos(self._dotsDir),(self.nDots,))
-            self._dotsXY[:,1] += self.speed*numpy.reshape(numpy.sin(self._dotsDir),(self.nDots,))# 0 radians=East!
+            self._verticesBase[:,0] += self.speed*numpy.reshape(numpy.cos(self._dotsDir),(self.nDots,))
+            self._verticesBase[:,1] += self.speed*numpy.reshape(numpy.sin(self._dotsDir),(self.nDots,))# 0 radians=East!
         elif self.noiseDots == 'direction':
             #simply use the stored directions to update position
-            self._dotsXY[:,0] += self.speed*numpy.reshape(numpy.cos(self._dotsDir),(self.nDots,))
-            self._dotsXY[:,1] += self.speed*numpy.reshape(numpy.sin(self._dotsDir),(self.nDots,))# 0 radians=East!
+            self._verticesBase[:,0] += self.speed*numpy.reshape(numpy.cos(self._dotsDir),(self.nDots,))
+            self._verticesBase[:,1] += self.speed*numpy.reshape(numpy.sin(self._dotsDir),(self.nDots,))# 0 radians=East!
         elif self.noiseDots=='position':
             #update signal dots
-            self._dotsXY[self._signalDots,0] += \
+            self._verticesBase[self._signalDots,0] += \
                 self.speed*numpy.reshape(numpy.cos(self._dotsDir[self._signalDots]),(self._signalDots.sum(),))
-            self._dotsXY[self._signalDots,1] += \
+            self._verticesBase[self._signalDots,1] += \
                 self.speed*numpy.reshape(numpy.sin(self._dotsDir[self._signalDots]),(self._signalDots.sum(),))# 0 radians=East!
             #update noise dots
             dead = dead+(~self._signalDots)#just create new ones
 
         #handle boundaries of the field
         if self.fieldShape in  [None, 'square', 'sqr']:
-            dead = dead+(numpy.abs(self._dotsXY[:,0])>(self.fieldSize[0]/2.0))+(numpy.abs
+            dead = dead+(numpy.abs(self._verticesBase[:,0])>(self.fieldSize[0]/2.0))+(numpy.abs
                                                                                   (self
-                                                                                   ._dotsXY[:,1])>(self.fieldSize[1]/2.0))
+                                                                                   ._verticesBase[:,1])>(self.fieldSize[1]/2.0))
         elif self.fieldShape == 'circle':
             #transform to a normalised circle (radius = 1 all around) then to polar coords to check
-            normXY = self._dotsXY/(self.fieldSize/2.0)#the normalised XY position (where radius should be <1)
+            normXY = self._verticesBase/(self.fieldSize/2.0)#the normalised XY position (where radius should be <1)
             dead = dead + (numpy.hypot(normXY[:,0],normXY[:,1])>1) #add out-of-bounds to those that need replacing
 
         #update any dead dots
         if sum(dead):
-            self._dotsXY[dead,:] = self._newDotsXY(sum(dead))
+            self._verticesBase[dead,:] = self._newDotsXY(sum(dead))
 
-        #update the pixel XY coordinates
-        self._calcDotsXYRendered()
-
-    def _calcDotsXYRendered(self):
-        if self.units in ['norm','pix', 'height']: self._dotsXYRendered=self._dotsXY
-        elif self.units in ['deg','degs']: self._dotsXYRendered=deg2pix(self._dotsXY, self.win.monitor)
-        elif self.units=='cm': self._dotsXYRendered=cm2pix(self._dotsXY, self.win.monitor)
-    def _calcFieldCoordsRendered(self):
-        if self.units in ['norm', 'pix', 'height']:
-            self._fieldSizeRendered=self.fieldSize
-            self._fieldPosRendered=self.fieldPos
-        elif self.units in ['deg', 'degs']:
-            self._fieldSizeRendered=deg2pix(self.fieldSize, self.win.monitor)
-            self._fieldPosRendered=deg2pix(self.fieldPos, self.win.monitor)
-        elif self.units=='cm':
-            self._fieldSizeRendered=cm2pix(self.fieldSize, self.win.monitor)
-            self._fieldPosRendered=cm2pix(self.fieldPos, self.win.monitor)
+        #update the pixel XY coordinates in pixels (using _BaseVisual class)
+        self._updateVertices()
