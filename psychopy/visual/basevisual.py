@@ -553,6 +553,7 @@ class BaseVisualStim(object):
         #assign to self attrbute
         self.__dict__['verticesPix'] = verts
         self._needVertexUpdate = False
+        self._needUpdate = True #but we presumably need to update the list
 
     def setAutoDraw(self, value, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
