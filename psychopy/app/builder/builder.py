@@ -265,7 +265,8 @@ class CodeComponentDialog(wx.Dialog):
         self.code_sections = flatnotebook.FlatNotebook(self, wx.ID_ANY,
             agwStyle = agwStyle)
 
-        for pkey in self.order:
+        openToPage = 0
+        for i, pkey in enumerate(self.order):
             param=self.params.get(pkey)
             if pkey == 'name':
                 self.name_label = wx.StaticText(self, wx.ID_ANY,param.label)
@@ -274,11 +275,9 @@ class CodeComponentDialog(wx.Dialog):
                                  unicode(param.val),
                                  style=wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB)
                 self.component_name.SetValidator(validators.NameValidator())
-
                 self.nameOKlabel=wx.StaticText(self,-1,'',
                                             style=wx.ALIGN_RIGHT)
                 self.nameOKlabel.SetForegroundColour(wx.RED)
-
             else:
                 guikey=pkey.replace(' ','_')
                 param_gui_elements=self.code_gui_elements.setdefault(guikey,
@@ -294,7 +293,8 @@ class CodeComponentDialog(wx.Dialog):
                                                     prefs=self.app.prefs))
                 if len(param.val):
                     code_box.AddText(unicode(param.val))
-
+                    if not openToPage:
+                        openToPage = i  # first non-blank page
 
         if self.helpUrl!=None:
             self.help_button = wx.Button(self, wx.ID_HELP, "")
@@ -305,9 +305,9 @@ class CodeComponentDialog(wx.Dialog):
 
         self.__set_properties()
         self.__do_layout()
+        self.code_sections.SetSelection(openToPage - 1)
 
         self.Bind(wx.EVT_BUTTON, self.helpButtonHandler, self.help_button)
-
 
         #do show and process return
         ret=self.ShowModal()
@@ -1893,18 +1893,17 @@ class ParamCtrls:
 
         if label in ['text', 'customize_everything', 'Text']:
             #for text input we need a bigger (multiline) box
-            self.valueCtrl = wx.stc.StyledTextCtrl(parent,-1,
-                style=wx.TE_MULTILINE,
-                size=wx.Size(self.valueWidth,-1))
+            if label == 'customize_everything':
+                sx,sy = 300,400
+            else:
+                sx,sy = 100, 100
+            self.valueCtrl = CodeBox(parent,-1,
+                 pos=wx.DefaultPosition, size=wx.Size(sx,sy),#set the viewer to be small, then it will increase with wx.aui control
+                 style=0, prefs=appPrefs)
             if len(param.val):
                 self.valueCtrl.AddText(unicode(param.val))
             if label in ['text', 'Text']:
                 self.valueCtrl.SetFocus()
-            #expando seems like a nice idea - but probs with pasting in text and with resizing
-            #self.valueCtrl = ExpandoTextCtrl(parent,-1,str(param.val),
-            #    style=wx.TE_MULTILINE,
-            #    size=wx.Size(500,-1))
-            #self.valueCtrl.SetMaxHeight(500)
         elif label == 'Experiment info':
             #for expInfo convert from a string to the list-of-dicts
             val = self.expInfoToListWidget(param.val)
