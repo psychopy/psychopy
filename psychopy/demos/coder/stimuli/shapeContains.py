@@ -13,13 +13,14 @@ shape = visual.ShapeStim(win, fillColor='darkblue', lineColor=None,
     vertices=[(-0.02, -0.0), (-.8,.2), (0,.6), (.1,0.06), (.8, .3), (.6,-.4)])
 
 # define a buffer zone around the mouse for proximity detection:
-bufzone = visual.Circle(win, radius=0.15, edges=13)
+# use pix units just to show that it works to mix (shape and mouse use norm units)
+bufzone = visual.Circle(win, radius=30, edges=13, units='pix')
 
 # loop until detect a click inside the shape:
 while not mouse.isPressedIn(shape):
     instr.draw()
     # dynamic buffer zone around mouse pointer:
-    bufzone.setPos(mouse.getPos())  # follow the mouse
+    bufzone.setPos(mouse.getPos()*win.size/2)  # follow the mouse
     bufzone.setSize(mouse.getWheelRel()[1]/20., '+')  # vert scroll adjusts radius, can go negative
     # is the mouse inside the shape (hovering over it)?
     if shape.contains(mouse):
