@@ -587,7 +587,7 @@ class BaseVisualStim(object):
             units = 'pix' #we can forget about the units
         elif hasattr(x, 'getPos'):
             xy = x.getPos()
-            units = xy.units
+            units = x.units
         elif type(x) in [list, tuple, numpy.ndarray]:
             xy = numpy.array(x)
         else:
