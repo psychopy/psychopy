@@ -282,7 +282,7 @@ class Test_class_RatingScale:
         r.noResponse = True
         r.markerPlacedAt = 0
         r.status = FINISHED
-        assert r.getRating() == False
+        assert r.getRating() == None
 
         r.status = FINISHED + 1
         assert r.getRating() == 1
