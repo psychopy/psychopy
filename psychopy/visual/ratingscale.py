@@ -692,7 +692,7 @@ class RatingScale(object):
                 self.markerBaseSize *= self.markerSize * 0.7
                 if self.markerSize > 1.2:
                     self.markerBaseSize *= .7
-                self.marker.setSize(self.markerBaseSize/2.)
+                self.marker.setSize(self.markerBaseSize/2., log=False)
         elif self.markerStyle == 'circle':
             if markerColor == None or not isValidColor(markerColor):
                 markerColor = 'DarkRed'
@@ -933,13 +933,13 @@ class RatingScale(object):
             # fix the marker position on the line
             if not self.markerPosFixed:
                 try:
-                    self.marker.fillColor = 'DarkGray'
+                    self.marker.setFillColor('DarkGray', log=False)
                 except AttributeError:
                     try:
-                        self.marker.color = 'DarkGray'
+                        self.marker.setColor('DarkGray', log=False)
                     except:
                         pass
-                self.marker.setPos((0, -.012), ('+', '-')[self.flipVert])  # drop it onto the line
+                self.marker.setPos((0, -.012), ('+', '-')[self.flipVert], log=False)  # drop it onto the line
                 self.markerPosFixed = True  # flag to park it there
             self.marker.draw()
             if self.showAccept:
@@ -960,8 +960,8 @@ class RatingScale(object):
                 else:  # self.markerExpansion < 0:
                     newSize = - 0.1 * self.markerExpansion * (1 - proportion)
                     newOpacity = 1.2 - proportion
-                self.marker.size = self.markerBaseSize + newSize
-                self.marker.opacity = min(1, max(0, newOpacity))
+                self.marker.setSize(self.markerBaseSize + newSize, log=False)
+                self.marker.setOpacity(min(1, max(0, newOpacity)), log=False)
             # update position:
             if self.singleClick and pointInPolygon(mouseX, mouseY, self.nearLine):
                 self.setMarkerPos(self._getMarkerFromPos(mouseX))
@@ -970,13 +970,13 @@ class RatingScale(object):
             # set the marker's screen position based on tick (== markerPlacedAt)
             if self.markerPlacedAt is not False:
                 x = self.offsetHoriz + self.hStretchTotal * (-0.5 + proportion)
-                self.marker.pos = (x, self.markerYpos)
+                self.marker.setPos((x, self.markerYpos), log=False)
                 self.marker.draw()
             if self.showAccept and self.markerPlacedBySubject:
                 self.frame = (self.frame + 1) % 100
-                self.acceptBox.fillColor = self.pulseColor[self.frame]
-                self.acceptBox.lineColor = self.pulseColor[self.frame]
-                self.accept.color = self.acceptTextColor
+                self.acceptBox.setFillColor(self.pulseColor[self.frame], log=False)
+                self.acceptBox.setLineColor(self.pulseColor[self.frame], log=False)
+                self.accept.setColor(self.acceptTextColor, log=False)
                 if self.showValue and self.markerPlacedAt is not False:
                     if self.choices:
                         val = unicode(self.choices[int(self.markerPlacedAt)])
@@ -1001,7 +1001,7 @@ class RatingScale(object):
                     resp = self.tickFromKeyPress[key]
                     self.markerPlacedAt = self._getMarkerFromTick(resp)
                     #proportion = self.markerPlacedAt / self.tickMarks
-                    self.marker.pos = [self.size * (-0.5 + proportion), 0]
+                    self.marker.setPos([self.size * (-0.5 + proportion), 0], log=False)
                 if self.markerPlaced and self.beyondMinTime:
                     # can be placed by experimenter (markerStart) or by subject
                     if (self.markerPlacedBySubject or self.markerStart is None or
@@ -1030,7 +1030,7 @@ class RatingScale(object):
                 if (self.markerPlacedBySubject and self.singleClick
                         and self.beyondMinTime):
                     self.noResponse = False
-                    self.marker.setPos((0, self.offsetVert), '+')
+                    self.marker.setPos((0, self.offsetVert), '+', log=False)
                     logging.data('RatingScale %s: (key single-click) rating=%s' %
                                  (self.name, unicode(self.getRating())) )
 
@@ -1062,8 +1062,8 @@ class RatingScale(object):
             # minimum time is enforced during key and mouse handling
             self.status = FINISHED
             if self.showAccept:
-                self.acceptBox.fillColor = self.acceptFillColor
-                self.acceptBox.lineColor = self.acceptLineColor
+                self.acceptBox.setFillColor(self.acceptFillColor, log=False)
+                self.acceptBox.setLineColor(self.acceptLineColor, log=False)
 
         # build up response history:
         tmpRating = self.getRating()
@@ -1094,10 +1094,10 @@ class RatingScale(object):
         self.markerPosFixed = False
         self.frame = 0 # a counter used only to 'pulse' the 'accept' box
         if self.showAccept:
-            self.acceptBox.fillColor = self.acceptFillColor
-            self.acceptBox.lineColor = self.acceptLineColor
-            self.accept.color = '#444444'  # greyed out
-            self.accept.text = self.keyClick
+            self.acceptBox.setFillColor(self.acceptFillColor, log=False)
+            self.acceptBox.setLineColor(self.acceptLineColor, log=False)
+            self.accept.setColor('#444444', log=False)  # greyed out
+            self.accept.setText(self.keyClick, log=False)
         logging.exp('RatingScale %s: reset()' % self.name)
         self.status = NOT_STARTED
         self.history = None
