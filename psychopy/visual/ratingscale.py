@@ -25,8 +25,8 @@ class RatingScale(object):
     A RatingScale instance is a re-usable visual object having a ``draw()``
     method, with customizable appearance and response options. ``draw()``
     displays the rating scale, handles the subject's mouse or key responses,
-    and updates the display. When the subject accepts a selection, .noResponse
-    goes False (i.e., there is a response). You can call the ``getRating()``
+    and updates the display. When the subject accepts a selection, ``.noResponse``
+    goes ``False`` (i.e., there is a response). You can call the ``getRating()``
     method anytime to get a rating, ``getRT()`` to get the decision time, or
     ``getHistory()`` to obtain the entire set of (rating, RT) pairs.
 
@@ -34,12 +34,12 @@ class RatingScale(object):
     line intended to be a reminder of how to use the scale), the `line` (with
     tick marks), the `marker` (a moveable visual indicator on the line), the
     `labels` (text below the line that label specific points), and the `accept` button.
-    These elements can be customized by the experimenter. It is not possible
+    The appearance and function of elements can be customized by the experimenter; it is not possible
     to orient a rating scale to be vertical. Multiple scales can be displayed at
     the same time, and continuous real-time ratings can be obtained from the history.
 
     The Builder RatingScale component gives a restricted set of options, but also
-    allows full control over a RatingScale via 'customize_everything'.
+    allows full control over a RatingScale via the 'customize_everything' field.
 
     A RatingScale instance has no idea what else is on the screen. The experimenter
     has to draw the item to be rated, and handle `escape` to break or quit, if desired.
@@ -130,8 +130,9 @@ class RatingScale(object):
         win :
             A :class:`~psychopy.visual.Window` object (required).
         choices :
-            A list of items which the subject can choose among. `choices` takes
-            precedence over `low`, `high`, `precision`, `scale`, `labels`, and `tickMarks`.
+            A list of items which the subject can choose among. ``choices`` takes
+            precedence over ``low``, ``high``, ``precision``, ``scale``, ``labels``,
+            and ``tickMarks``.
         low :
             Lowest numeric rating (integer), default = 1.
         high :
@@ -139,8 +140,7 @@ class RatingScale(object):
         precision :
             Portions of a tick to accept as input [1, 10, 100]; default = 1 (a whole tick).
             Pressing a key in `leftKeys` or `rightKeys` will move the marker by
-            one portion of a tick. Not available with ``choices``, which are
-            categorical.
+            one portion of a tick.
         scale :
             Optional reminder message about how to respond or rate an item,
             displayed above the line; default = '<low>=not at all, <high>=extremely'.
@@ -168,26 +168,29 @@ class RatingScale(object):
         markerColor :
             Color to use for a predefined marker style, e.g., 'DarkRed', '#123456'.
         markerExpansion :
-            How much the `glow` marker expands when moving rightward; 0=none, negative shrinks.
+            Only affects the `glow` marker: How much to expand or contract when
+            moving rightward; 0=none, negative shrinks.
         singleClick :
-            Enable a mouse click to both select and accept the rating, default = `False`.
+            Enable a mouse click to both select and accept the rating, default = ``False``.
             A legal key press will also count as a singleClick.
             The 'accept' box is visible, but clicking it has no effect.
         pos : tuple (x, y)
             Position of the rating scale on the screen. The midpoint of the line will
             be positioned at ``(x, y)``; default = ``(0.0, -0.4)`` in norm units
         size :
-            How much to expand or contract the overall rating scale display.
-
+            How much to expand or contract the overall rating scale display. Default
+            size = 1.0. For larger than the default, set ``size`` > 1; for smaller, set < 1.
+        stretch:
+            Like ``size``, but only affects the horizontal direction.
         textSize :
-            The size of text elements, relative to the default size points).
-            For larger than the default, set > 1; for smaller, set < 1.
+            The size of text elements, relative to the default size (i.e., a scaling factor, not points).
         textColor :
-            Color to use for anchor and scale text; default = 'LightGray'.
+            Color to use for labels and scale text; default = 'LightGray'.
         textFont :
             Name of the font to use; default = 'Helvetica Bold'.
         showValue :
-            Show the subject their current selection default = ``True``.
+            Show the subject their current selection default = ``True``. Ignored
+            if singleClick is ``True``.
         showAccept :
             Show the button to click to accept the current value by using the mouse; default = ``True``.
         acceptPreText :
@@ -197,31 +200,29 @@ class RatingScale(object):
         acceptSize :
             The width of the accept box relative to the default (e.g., 2 is twice as wide).
         acceptKeys :
-            A key or list of keys that are used to accept the current response; default = 'return'.
+            A list of keys that are used to accept the current response; default = 'return'.
         leftKeys :
             A list of keys that each mean "move leftwards"; default = 'left'.
         rightKeys :
             A list of keys that each mean "move rightwards"; default = 'right'.
         respKeys :
-            A list of characters to use for selecting choices, in the desired order.
+            A list of keys to use for selecting choices, in the desired order.
             The first item will be the left-most choice, the second item will be the
             next choice, and so on.
-        lineColor :
-            The RGB color to use for the scale line, default = 'White'.
         skipKeys :
             List of keys the subject can use to skip a response, default = 'tab'.
-            To require a response to every item, set `skipKeys=None`.
+            To require a response to every item, set ``skipKeys=None``.
+        lineColor :
+            The RGB color to use for the scale line, default = 'White'.
         mouseOnly :
-            Require the subject use the mouse only (no keyboard), default = ``False``.
+            Require the subject to use the mouse (any keyboard input is ignored), default = ``False``.
             Can be used to avoid competing with other objects for keyboard input.
-        stretch:
-            Like `size`, but only affects the horizontal direction.
         minTime :
             Seconds that must elapse before a reponse can be accepted,
             default = `0.4`.
         maxTime :
             Seconds after which a response cannot be accepted.
-            If `maxTime` <= `minTime`, there's no time limit.
+            If ``maxTime`` <= ``minTime``, there's no time limit.
             Default = `0.0` (no time limit).
         disappear :
             Whether the rating scale should vanish after a value is accepted.
@@ -636,6 +637,8 @@ class RatingScale(object):
 
     def _initMarker(self, marker, markerColor, expansion):
         """define a visual Stim to be used as the indicator.
+
+        marker can be either a string, or a visual object (custom marker).
         """
         # preparatory stuff:
         self.markerOffsetVert = 0.
@@ -725,7 +728,7 @@ class RatingScale(object):
 
     def _initTextElements(self, win, scale, textColor,
                           textFont, textSize, showValue, tickMarks):
-        """creates TextStim for self.scaleDescription, self.lowAnchor, self.highAnchor
+        """creates TextStim for self.scaleDescription and self.labels
         """
         # text appearance (size, color, font, visibility):
         self.showValue = bool(showValue) # hide if False
@@ -756,19 +759,16 @@ class RatingScale(object):
         self.setDescription(scale) # do after having set the relevant things
 
     def setDescription(self, scale=None):
-        """Method to set the text description that appears above the rating line.
+        """Method to set the brief description (scale) that appears above the line.
 
         Useful when using the same RatingScale object to rate several dimensions.
         `setDescription(None)` will reset the description to its initial state.
         Set to a space character (' ') to make the description invisible.
-        The description will not be visible if `showScale` is False.
         """
         if scale is None:
             scale = self.origScaleDescription
         self.scaleDescription.setText(scale)
         logging.exp('RatingScale %s: setDescription="%s"' % (self.name, self.scaleDescription.text))
-        if not self.showScale:
-            logging.exp('RatingScale %s: description set but showScale is False' % self.name)
 
     def _initAcceptBox(self, showAccept, acceptPreText, acceptText, acceptSize,
                        markerColor, textSizeSmall, textSize, textFont):
@@ -886,7 +886,7 @@ class RatingScale(object):
     def draw(self):
         """Update the visual display, check for response (key, mouse, skip).
 
-        sets response flags: `self.noResponse`, `self.timedOut`.
+        Sets response flags: `self.noResponse`, `self.timedOut`.
         `draw()` only draws the rating scale, not the item to be rated.
         """
         self.win.units = 'norm'  # original units do get restored
@@ -1103,13 +1103,16 @@ class RatingScale(object):
         self.history = None
 
     def getRating(self):
-        """Returns the final, accepted rating, or the current (non-accepted) intermediate
-        selection. The rating is None if the subject skipped this item, or False
-        if not available. Returns the currently indicated rating even if it has
-        not been accepted yet (and so might change until accept is pressed).
+        """Returns the final, accepted rating, or the current (non-accepted) value.
+
+        The rating is None if the subject skipped this item, or
+        if not available yet. Returns the currently indicated rating even if it has
+        not been accepted yet (and so might change until accept is pressed). The
+        first rating in the list will have the value of
+        markerStart (whether None, a numeric value, or a choice value).
         """
         if self.noResponse and self.status == FINISHED:
-            return False
+            return None
         if not type(self.markerPlacedAt) in [float, int]:
             return None # eg, if skipped a response
 
@@ -1124,12 +1127,11 @@ class RatingScale(object):
                 pass
                 # == we have a numeric fractional choice from markerStart and
                 # want to save the numeric value as first item in the history
-            # retains type as given by experimenter, eg, str bool etc
-            # boolean False will have an RT value, however
         return response
 
     def getRT(self):
         """Returns the seconds taken to make the rating (or to indicate skip).
+
         Returns None if no rating available, or maxTime if the response timed out.
         Returns the time elapsed so far if no rating has been accepted yet (e.g.,
         for continuous usage).
@@ -1143,9 +1145,9 @@ class RatingScale(object):
         return round(self.decisionTime, 3)
 
     def getHistory(self):
-        """Return the subject's intermediate selection history, up to and including
-        the final accepted choice, as a list of (rating, time) tuples. The history
-        can be retrieved at any time, allowing for continuous ratings to be
+        """Return a list of the subject's selection history as (rating, time) tuples.
+
+        The history can be retrieved at any time, allowing for continuous ratings to be
         obtained in real-time. Both numerical and categorical choices are stored
         automatically in the history.
         """
