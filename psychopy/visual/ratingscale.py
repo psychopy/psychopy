@@ -632,7 +632,7 @@ class RatingScale(object):
 
         # create the line:
         self.line = ShapeStim(win=self.win, units='norm', vertices=vertices,
-            lineWidth=4, lineColor=self.lineColor, name=self.name+'.line')
+            lineWidth=4, lineColor=self.lineColor, name=self.name+'.line', autoLog=False)
 
     def _initMarker(self, marker, markerColor, expansion):
         """define a visual Stim to be used as the indicator.
