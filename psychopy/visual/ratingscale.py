@@ -251,7 +251,6 @@ class RatingScale(object):
             logging.error("RatingScale unknown kwargs: %s" % list(unknownArgs))
             core.quit()
 
-        logging.exp('RatingScale %s: init()' % name)
         self.autoLog = False # needs to start off False
         self.win = win
         self.name = name
@@ -743,7 +742,7 @@ class RatingScale(object):
         # create the TextStim:
         self.scaleDescription = TextStim(win=self.win, height=self.textSizeSmall,
             pos=[self.offsetHoriz, 0.22 * self.size + self.offsetVert],
-            color=self.textColor, wrapWidth=2 * self.hStretchTotal)
+            color=self.textColor, wrapWidth=2 * self.hStretchTotal, autoLog=False)
         self.scaleDescription.setFont(textFont)
         self.labels = []
         if self.labelTexts:
@@ -751,7 +750,7 @@ class RatingScale(object):
             for i, label in enumerate(self.labelTexts):
                 self.labels.append(TextStim(win=self.win, text=unicode(label), font=textFont,
                     pos=[self.tickPositions[i//self.autoRescaleFactor], vertPosTmp],
-                    height=self.textSizeSmall, color=self.textColor))
+                    height=self.textSizeSmall, color=self.textColor, autoLog=False))
         self.setDescription(scale) # do after having set the relevant things
 
     def setDescription(self, scale=None):
