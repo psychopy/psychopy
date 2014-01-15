@@ -748,9 +748,11 @@ class RatingScale(object):
         if self.labelTexts:
             vertPosTmp = -2 * self.textSizeSmall * self.size + self.offsetVert
             for i, label in enumerate(self.labelTexts):
-                self.labels.append(TextStim(win=self.win, text=unicode(label), font=textFont,
-                    pos=[self.tickPositions[i//self.autoRescaleFactor], vertPosTmp],
-                    height=self.textSizeSmall, color=self.textColor, autoLog=False))
+                # need all labels for tick position, i
+                if label:  # skip '' placeholders, no need to create them
+                    self.labels.append(TextStim(win=self.win, text=unicode(label), font=textFont,
+                        pos=[self.tickPositions[i//self.autoRescaleFactor], vertPosTmp],
+                        height=self.textSizeSmall, color=self.textColor, autoLog=False))
         self.setDescription(scale) # do after having set the relevant things
 
     def setDescription(self, scale=None):
