@@ -70,9 +70,6 @@ class MovieStim(BaseVisualStim):
         mov.draw() #draw the current frame (automagically determined)
 
     See MovieStim.py for demo.
-
-    mov.contains() and mov.overlaps() will work only if the containing
-    visual.Window() has units='pix'.
     """
     def __init__(self, win,
                  filename = "",

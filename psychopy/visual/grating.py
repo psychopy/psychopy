@@ -423,8 +423,3 @@ class GratingStim(BaseVisualStim):
             self._cycles = self.sf  #this is the only form of sf that is not size dependent
         else:
             self._cycles = self.sf * self.size
-
-    def contains(self, *args, **kwargs):
-        raise NotImplementedError("GratingStim does not have a contains() method")
-    def overlaps(self, *args, **kwargs):
-        raise NotImplementedError("GratingStim does not have an overlaps() method")

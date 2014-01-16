@@ -228,24 +228,6 @@ class ImageStim(BaseVisualStim):
         GL.glDeleteLists(self._listID, 1)
         self.clearTextures()#remove textures from graphics card to prevent crash
 
-    def contains(self, x, y=None):
-        """Determines if a point x,y is on the image (within its boundary).
-
-        See :class:`~psychopy.visual.ShapeStim` `.contains()`.
-        """
-        if hasattr(x, 'getPos'):
-            x,y = x.getPos()
-        elif type(x) in [list, tuple, numpy.ndarray]:
-            x,y = x[0:2]
-        return pointInPolygon(x, y, self)
-
-    def overlaps(self, polygon):
-        """Determines if the image overlaps another image or shape (`polygon`).
-
-        See :class:`~psychopy.visual.ShapeStim` `.overlaps()`.
-        """
-        return polygonsOverlap(self, polygon)
-
     def clearTextures(self):
         """
         Clear the textures associated with the given stimulus.
