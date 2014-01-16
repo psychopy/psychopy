@@ -337,9 +337,9 @@ class _baseVisualTest:
         # try to avoid text; avoid default / 'triangle' because it does not display on win XP
         win = self.win
         win.flip()
-        rs = visual.RatingScale(win, low=0,high=1,precision=100, displaySizeFactor=3, pos=(0,-.4),
-                        lowAnchorText=' ', highAnchorText=' ', scale=' ',
-                        markerStyle='glow', markerStart=0.7, markerColor='darkBlue')
+        rs = visual.RatingScale(win, low=0, high=1, precision=100, size=3, pos=(0,-.4),
+                        labels=[' ', ' '], scale=' ',
+                        marker='glow', markerStart=0.7, markerColor='darkBlue')
         str(rs) #check that str(xxx) is working
         rs.draw()
         if self.win.winType=='pyglet' and utils._under_xvfb:
