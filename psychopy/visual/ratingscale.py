@@ -412,7 +412,7 @@ class RatingScale(object):
             else:
                 self.markerStart = None
                 self.markerPlaced = False
-        else:  # float() failed
+        else:  # float(markerStart) suceeded
             self.markerPlacedAt = self.markerStart
             self.markerPlaced = True
 
