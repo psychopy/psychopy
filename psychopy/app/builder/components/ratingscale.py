@@ -23,15 +23,19 @@ class RatingScaleComponent(BaseComponent):
                  visualAnalogScale=False,
                  low='1', high='7',
                  singleClick=False,
+                 showAccept=True,
+                 labels='',
                  size='1.0',
+                 tickHeight='',
                  pos='0, -0.4',
                  startType='time (s)', startVal='0.0',
                  stopType='condition', stopVal='',
                  startEstim='', durationEstim='',
                  forceEndRoutine=True,
                  disappear=False,
-                 storeRating=True, storeRatingTime=True, choiceLabelsAboveLine=False,
-                 lowAnchorText='', highAnchorText='',
+                 marker='triangle',
+                 markerStart='',
+                 storeRating=True, storeRatingTime=True, storeHistory=False,
                  customize_everything=''
                  ):
         self.type='RatingScale'
@@ -41,7 +45,8 @@ class RatingScaleComponent(BaseComponent):
         self.exp.requirePsychopyLibs(['visual', 'event'])
 
         #params
-        self.order = ['name', 'visualAnalogScale', 'categoryChoices', 'scaleDescription', 'low', 'high', 'size']
+        self.order = ['name', 'visualAnalogScale', 'categoryChoices', 'scaleDescription',
+                      'low', 'high', 'labels', 'markerStart', 'size', 'pos', 'tickHeight']
         self.params = {}
 
         # normal params:
@@ -81,6 +86,15 @@ class RatingScaleComponent(BaseComponent):
         self.params['high'] = Param(high, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[], hint="Highest rating (top end of the scale); not used for categories.",
             label="High")
+        self.params['labels'] = Param(labels, valType='str', allowedTypes=[],
+            updates='constant', allowedUpdates=[], #categ="Advanced",
+            hint="Labels for the ends of the scale, separated by commas")
+        self.params['marker'] = Param(marker, valType='str', allowedTypes=[],
+            updates='constant', allowedUpdates=[], #categ="Advanced",
+            hint="Style for the marker: triangle, circle, glow, slider")
+        self.params['markerStart'] = Param(markerStart, valType='str', allowedTypes=[],
+            updates='constant', allowedUpdates=[], #categ="Advanced",
+            hint="initial position for the marker")
 
         # advanced params:
         self.params['singleClick'] = Param(singleClick, valType='bool', allowedTypes=[],
@@ -89,33 +103,35 @@ class RatingScaleComponent(BaseComponent):
         self.params['disappear'] = Param(disappear, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
             hint="Hide the scale when a rating has been accepted; False to remain on-screen")
-        self.params['size'] = Param(size, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="Relative size on the screen; size > 1 is larger than default; size < 1 is smaller")
+        self.params['showAccept'] = Param(showAccept, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[], categ="Advanced",
+            hint="Should the accept button by visible?")
         self.params['storeRating'] = Param(storeRating, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
             hint="store the rating")
         self.params['storeRatingTime'] = Param(storeRatingTime, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
             hint="store the time taken to make the choice (in seconds)")
-        self.params['choiceLabelsAboveLine'] = Param(choiceLabelsAboveLine, valType='bool', allowedTypes=[],
+        self.params['storeHistory'] = Param(storeHistory, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
-            hint="restores the old behavior for choices (i.e., labels above the line)")
-        self.params['pos'] = Param(pos, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=[], categ="Advanced",
-            hint="x,y position on the screen")
+            hint="store the history of (selection, time)")
         self.params['forceEndRoutine'] = Param(forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
             hint="Should accepting a rating cause the end of the routine (e.g. trial)?")
-        self.params['lowAnchorText'] = Param(lowAnchorText, valType='str', allowedTypes=[],
+        self.params['size'] = Param(size, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
-            hint="Description of the low end of the scale; to hide it, set it to a space.")
-        self.params['highAnchorText'] = Param(highAnchorText, valType='str', allowedTypes=[],
+            hint="Relative size on the screen; size > 1 is larger than default; size < 1 is smaller")
+        self.params['tickHeight'] = Param(tickHeight, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
-            hint="Description of the high end of the scale; to hide it, set it to a space.")
+            hint="height of tick marks (1 is upward, 0 is hidden, -1 is downward)")
+        self.params['pos'] = Param(pos, valType='str', allowedTypes=[],
+            updates='constant', allowedUpdates=[], categ="Advanced",
+            hint="x,y position on the screen")
+
+        # customization:
         self.params['customize_everything'] = Param(customize_everything, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Custom",
-            hint="Use this text to create the rating scale as you would in a code component; overrides all"+
+            hint="Use this text to create the rating scale as you would in a code component; overrides all"
                 " dialog settings except time parameters, forceEndRoutine, storeRatingTime, storeRating")
 
     def writeInitCode(self, buff):
@@ -126,37 +142,34 @@ class RatingScaleComponent(BaseComponent):
             self.params['customize_everything'].val = re.sub(r"[\\s,]*win=[^,]*,", '', self.params['customize_everything'].val)
             init_str += ', ' + self.params['customize_everything'].val.lstrip('(, ').strip('), ')
         else:
-            # size:
-            try: s = float(self.params['size'].val)
-            except: s = 1.0
-            init_str += ", displaySizeFactor=%.2f" % s
-
-            # position: x -> (x,x); x,y -> (x,y)
+            if self.params['marker'].val:
+                init_str += ', marker=%s' % repr(self.params['marker'].val)
+                if self.params['marker'].val == 'glow':
+                    init_str += ', markerExpansion=5'
+            init_str += ", size=%s" % self.params['size']
+            s = str(self.params['pos'].val)
+            s = s.lstrip('([ ').strip(')] ')
             try:
-                s = str(self.params['pos'].val)
-                s = s.lstrip('([ ').strip(')] ')
                 pos = map(float, s.split(',')) * 2
                 init_str += ", pos=%s" % pos[0:2]
             except:
                 pass # pos = None
 
             # type of scale:
-            choices = unicode(self.params['categoryChoices'].val).strip(', ').lstrip(', ')
+            choices = unicode(self.params['categoryChoices'].val)
             if self.params['visualAnalogScale'].val:
-                if self.params['lowAnchorText'].val == '': self.params['lowAnchorText'].val = '0%'
-                if self.params['highAnchorText'].val == '': self.params['highAnchorText'].val = '100%'
-                init_str += ", low=0, high=1, showScale=False, lowAnchorText='"+self.params['lowAnchorText'].val
-                init_str += "', highAnchorText='"+self.params['highAnchorText'].val+"'"
-                init_str += ",\n    precision=100, markerStyle='glow', showValue=False, markerExpansion=0"
+                init_str += ", low=0, high=1, precision=100, marker='glow', showValue=False, markerExpansion=0"
             elif len(choices):
                 if ',' in choices:
                     ch_list = choices.split(',')
                 else:
                     ch_list = choices.split(' ')
                 ch_list = [c.strip().strip(', ').lstrip(', ') for c in ch_list]
-                init_str += ', choices=' + unicode(ch_list)
-                if self.params['choiceLabelsAboveLine'].val:
-                    init_str += ', labels=False'
+                init_str += ', choices=%s, tickHeight=' % unicode(ch_list)
+                if self.params['tickHeight'].val:
+                    init_str += "%s" % self.params['tickHeight'].val
+                else:
+                    init_str += "-1"
             else:
                 # try to add low as int; but might be a var instead
                 try:
@@ -164,17 +177,12 @@ class RatingScaleComponent(BaseComponent):
                 except ValueError:
                     if self.params['low'].val:
                         init_str += ", low=%s" % self.params['low']
-                if len(self.params['lowAnchorText'].val):
-                    init_str += ", lowAnchorText=%s" % self.params['lowAnchorText']
-
-                # high/highAnchorText
                 try:
                     init_str += ', high=%d' % int(self.params['high'].val)
                 except ValueError:
-                    if len(self.params['high'].val):
+                    if self.params['high'].val:
                         init_str += ", high=%s" % self.params['high']
-                if self.params['highAnchorText'].val:
-                    init_str += ", highAnchorText=%s" % self.params['highAnchorText']
+                init_str += ', labels=%s' % repr(self.params['labels'].val.split(','))
 
             if not len(choices) and len(unicode(self.params['scaleDescription'])):
                 init_str += ", scale=%s" % self.params['scaleDescription']
@@ -182,6 +190,12 @@ class RatingScaleComponent(BaseComponent):
                 init_str += ", singleClick=True"
             if self.params['disappear'].val:
                 init_str += ", disappear=True"
+            if self.params['markerStart'].val:
+                init_str += ", markerStart=%s" % self.params['markerStart']
+            if not len(choices) and self.params['tickHeight'].val:
+                init_str += ", tickHeight=%s" % self.params['markerStart']
+            if not self.params['showAccept'].val:
+                init_str += ", showAccept=False"
         # write the RatingScale() instantiation code:
         init_str += ")\n"
         buff.writeIndented(init_str)
@@ -234,6 +248,9 @@ class RatingScaleComponent(BaseComponent):
                                        % (currLoop.params['name'], name, name))
                 if self.params['storeRatingTime'].val == True:
                     buff.writeIndented("%s.addData('%s.rt', %s.getRT())\n" \
+                                       % (currLoop.params['name'], name, name))
+                if self.params['storeHistory'].val == True:
+                    buff.writeIndented("%s.addData('%s.history', %s.getHistory())\n" \
                                        % (currLoop.params['name'], name, name))
             else:
                 buff.writeIndented("# RatingScaleComponent: unknown loop type, not saving any data.")

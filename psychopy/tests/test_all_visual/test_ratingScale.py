@@ -4,14 +4,14 @@ from psychopy import event, core
 from psychopy.constants import *
 from psychopy.tests import utils
 import pytest
-#import shutil
-#from tempfile import mkdtemp
 
 """define RatingScale configurations, test the logic
 
     .draw() is to pick up coverage, not do a visual test
-    ~97% coverage, miss code that is conditional on mouse events
+    ~93% coverage, esp miss code that is conditional on mouse events
 
+    test:
+    cd psychopy/psychopy/
     py.test -k ratingscale --cov-report term-missing --cov visual/ratingscale.py
 """
 
@@ -32,8 +32,8 @@ class Test_class_RatingScale:
 
         r = RatingScale(self.win)
         r = RatingScale(self.win, low=0, high=1000)
-        r = RatingScale(self.win, low='a', high='s')
-        assert r.low == 1 and r.high == 2
+        with pytest.raises(TypeError):
+            r = RatingScale(self.win, low='a', high='s')
 
         r = RatingScale(self.win, low=10, high=2)
         assert r.high == r.low + 1
@@ -47,7 +47,6 @@ class Test_class_RatingScale:
         assert r.respKeys == map(str, range(len(ch)))
         r = RatingScale(self.win, choices=['a'])
 
-        r = RatingScale(self.win, lowAnchorText=1, highAnchorText='a lot')
         r = RatingScale(self.win, tickMarks=[1,2,3])
         r = RatingScale(self.win, tickMarks=[1,2,3], labels=['a','b'])
 
@@ -55,13 +54,10 @@ class Test_class_RatingScale:
         for i in [-1, 0.3, 1.2, 9, 12, 100, 1000]:
             r = RatingScale(self.win, precision=i)
             assert r.precision in [1, 10, 100]
-        r = RatingScale(self.win, textSizeFactor=3, textColor=0.3)
-        r = RatingScale(self.win, textSizeFactor='a')
+        r = RatingScale(self.win, textSize=3, textColor=0.3)
 
         r = RatingScale(self.win, textFont=utils.TESTS_FONT)
         r = RatingScale(self.win, showValue=False)
-        r = RatingScale(self.win, showScale=False)
-        r = RatingScale(self.win, showAnchors=False)
         r = RatingScale(self.win, showAccept=False, acceptKeys=[])
         r = RatingScale(self.win, showAccept=False, mouseOnly=True, singleClick=False)
         assert r.mouseOnly == False
@@ -78,22 +74,20 @@ class Test_class_RatingScale:
         r = RatingScale(self.win, acceptKeys=['1'])
 
         r = RatingScale(self.win, lineColor='Black')
-        r = RatingScale(self.win, ticksAboveLine=False)
+        r = RatingScale(self.win, tickHeight=-1)
+        r = RatingScale(self.win, tickHeight=False)
         r = RatingScale(self.win, markerStart=3)
         r = RatingScale(self.win, markerStart='a', choices=['a','b'])
         r = RatingScale(self.win, markerColor='dark red')
-        r = RatingScale(self.win, markerStyle='glow', markerExpansion=0, displaySizeFactor=2)
+        r = RatingScale(self.win, marker='glow', markerExpansion=0, size=2)
         r.markerPlaced = True
         r.draw()
         r.markerExpansion = 10
         r.draw()
 
-        r = RatingScale(self.win, escapeKeys=['space'])
-        r = RatingScale(self.win, escapeKeys='space')
-        r = RatingScale(self.win, allowSkip=False)
-        r = RatingScale(self.win, allowSkip=True, skipKeys=None)
+        r = RatingScale(self.win, skipKeys=None)
         r = RatingScale(self.win, mouseOnly=True, singleClick=True)
-        r = RatingScale(self.win, displaySizeFactor=.2, stretchHoriz=2)
+        r = RatingScale(self.win, size=.2, stretch=2)
         r = RatingScale(self.win, pos=(0,.5), skipKeys='space')
         r = RatingScale(self.winpix, pos=[1])
         r = RatingScale(self.winpix, pos=['a','x'])
@@ -103,11 +97,11 @@ class Test_class_RatingScale:
         assert r.offsetHoriz == 2. * x / r.win.size[0]
         assert r.offsetVert == 2. * y / r.win.size[1]
 
-        r = RatingScale(self.win, stretchHoriz='foo')
-        assert r.stretchHoriz == 1
-        r = RatingScale(self.win, displaySizeFactor='foo')
-        assert r.displaySizeFactor == 0.6
-        r = RatingScale(self.win, displaySizeFactor=5)
+        r = RatingScale(self.win, stretch='foo')
+        assert r.stretch == 1
+        r = RatingScale(self.win, size='foo')
+        assert r.size == 0.6
+        r = RatingScale(self.win, size=5)
 
         r = RatingScale(self.win, minTime=0.001, maxTime=1)
         assert r.minTime == 0.001 and r.maxTime == 1
@@ -118,7 +112,7 @@ class Test_class_RatingScale:
 
     def test_markers(self):
         for marker in ['triangle', 'glow', 'slider', 'circle']:
-            r = RatingScale(self.win, markerStyle=marker)
+            r = RatingScale(self.win, marker=marker)
 
         class good_customMarker(object):
             def __init__(self):
@@ -127,21 +121,21 @@ class Test_class_RatingScale:
             def draw(self): pass
             def setPos(self, *args, **kwargs): pass
         cm = good_customMarker()
-        r = RatingScale(self.win, customMarker=cm)
+        r = RatingScale(self.win, marker=cm)
         r.noResponse = False
         r.markerPosFixed = False
         r.draw()
 
         # then delete parts to see how its handled / get coverage
         del cm.color
-        r = RatingScale(self.win, customMarker=cm)
+        r = RatingScale(self.win, marker=cm)
         assert hasattr(r.marker, 'color')
         del cm.fillColor
-        r = RatingScale(self.win, customMarker=cm)
+        r = RatingScale(self.win, marker=cm)
 
         class bad_customMarker(object):
             def __init__(self): pass
-        r = RatingScale(self.win, customMarker=bad_customMarker())
+        r = RatingScale(self.win, marker=bad_customMarker())
         assert type(r.marker) == shape.ShapeStim
 
     def test_ratingscale_misc(self):
@@ -155,7 +149,6 @@ class Test_class_RatingScale:
     def test_draw_conditionals(self):
         r = RatingScale(self.win)
 
-        # 934-40, 944-45 if self.allowTimeOut ....:
         r.allowTimeOut = True
         r.timedOut = False
         r.maxTime = -1
@@ -163,9 +156,8 @@ class Test_class_RatingScale:
         r.disappear = True
         r.draw()
 
-        # 1049-1061  if self.myMouse.getPressed()[0]:
+        # miss lines: if self.myMouse.getPressed()[0]:
 
-        # 1066-1072  if not self.noResponse and self.decisionTime == 0:
         r = RatingScale(self.win)
         r.beyondMinTime = True
         r.showAccept = True
@@ -173,12 +165,12 @@ class Test_class_RatingScale:
         r.decisionTime = 0
         r.draw()
 
-        r = RatingScale(self.win, singleClick=True, markerStyle='glow', markerExpansion=-10)
+        r = RatingScale(self.win, singleClick=True, markerStart=1, marker='glow', markerExpansion=-10)
         r.draw()
-        #del r.markerPlacedAt  # 989
-        #r.draw()
 
-        # 1006
+        r = RatingScale(self.win, singleClick=True, markerStart=-1)
+        r.draw()
+
         r = RatingScale(self.win, showAccept=True, choices=['a', 'b'])
         r.showValue = True
         r.markerPlacedAt = 1
@@ -187,10 +179,21 @@ class Test_class_RatingScale:
         r.showvalue = False
         r.draw()
 
+        r = RatingScale(self.win, labels=['a', 'b', 'c'])
+        r = RatingScale(self.win, tickMarks=[1,2,3], labels=None)
+
+        #r.draw()
+
         r = RatingScale(self.win, leftKeys=['s'])
         r.markerPlaced = False
         event._onPygletKey(symbol='s', modifiers=None, emulated=True)
         r.draw()
+
+    def test_obsolete_args(self):
+        with pytest.raises(SystemExit):
+            r = RatingScale(self.win, showScale=True)
+        with pytest.raises(SystemExit):
+            r = RatingScale(self.win, ZZZshowScale=True)
 
     def test_key_presses(self):
         r = RatingScale(self.win)
@@ -198,7 +201,6 @@ class Test_class_RatingScale:
         r.allKeys = ['s']
         r.markerPlacedAt = 2
 
-        # 1014-1042
         r.mouseOnly = False
         r.skipKeys = ['s']
         event._onPygletKey(symbol='s', modifiers=None, emulated=True)
@@ -230,8 +232,7 @@ class Test_class_RatingScale:
         event._onPygletKey(symbol='s', modifiers=None, emulated=True)
         r.draw()
 
-    def test_1019_1029(self):
-        # 1019-1029
+    def test_somelines(self):
         r = RatingScale(self.win)
         r.skipKeys = []
         r.mouseOnly = False
@@ -256,6 +257,7 @@ class Test_class_RatingScale:
         r.reset()
         assert r.noResponse == True
         assert r.markerPlaced == True
+        assert r.markerPlacedBySubject == False
         assert r.markerPlacedAt == r.markerStart - r.low
         assert r.firstDraw == True
         assert r.decisionTime == 0
@@ -280,7 +282,7 @@ class Test_class_RatingScale:
         r.noResponse = True
         r.markerPlacedAt = 0
         r.status = FINISHED
-        assert r.getRating() == False
+        assert r.getRating() == None
 
         r.status = FINISHED + 1
         assert r.getRating() == 1
@@ -302,7 +304,5 @@ class Test_class_RatingScale:
         assert 0.001 < h[-1][1] < 0.03
 
     def test_labels_False(self):
-        # 386-92
         for anchor in [None, 'a']:
-            r = RatingScale(self.win, choices=['1', '2', '3'], labels=False,
-                               lowAnchorText=anchor, highAnchorText=anchor)
+            r = RatingScale(self.win, labels=[anchor, anchor])

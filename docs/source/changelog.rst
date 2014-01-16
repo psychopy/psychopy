@@ -16,6 +16,30 @@ Changelog
 
 :blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
+
+PsychoPy 1.80
+------------------------------
+
+PsychoPy 1.80.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+* ADDED: RatingScale markerStart position can be arbitrary, e.g., can start between items or beyond the end of scale
+* ADDED: RatingScale tickHeight can be used to control the height of tickMarks, including no tick marks (tickHeight=0)
+
+*psychopy.visual.RatingScale Changes* :
+
+* :blue:`CHANGED: Builder: remove option: choiceLabelsAboveLine; change lowAnchorText, highAnchorText -> labels`
+* :blue:`CHANGED: skipping a rating now adds None as the final element in the history`
+* :blue:`CHANGED: the default minTime is shorter, now 0.4s`
+* :blue:`CHANGED: more info in the log when creating a rating scale object`
+* :blue:`CHANGED: removed showAnchors: now use labels=None (instead of showAnchors=False)`
+* :blue:`CHANGED: removed lowAnchorText & highAnchorText: now use labels=['leftAnchor', 'rightAnchor'] or with optional 3rd midpoint label`
+* :blue:`CHANGED: renamed several parameters: stretchHoriz -> stretch, textSizeFactor -> textSize, ticksAboveLine -> tickHeight, displaySizeFactor -> size, markerStyle -> marker, customMarker -> marker`
+* :blue:`CHANGED: removed showScale: now use scale=None (instead of showScale=False)`
+* :blue:`CHANGED: removed allowSkip: now use skipKeys=None (instead of allowSkip=False)`
+* :blue:`CHANGED: removed escapeKeys; no longer supported but it's easy to implement (as now done in the coder demo)`
+
 PsychoPy 1.79
 ------------------------------
 
@@ -54,7 +78,7 @@ PsychoPy 1.79.00
         * Two demos in psychopy.coder.visual.textbox
         * Requires: freetype lib (included in Standalone)
         * Advantages: Very fast update following text change; very precise character placement.
-        * Disadvantages: Supports monospace fonts only. 
+        * Disadvantages: Supports monospace fonts only.
         * IMPORTANT: TextBox is still being finalized and completed; expect to find (and please report) issues. API changes guaranteed.
 * FIXED: misaligned responses in csv output for QuestHandler (Zhili Zheng)
 * FIXED: bug when using ElementArrayStim with numpy 1.7.1. Most elements were receiving SF=0
@@ -106,7 +130,7 @@ PsychoPy 1.79.00
             * filter Mouse, Eye Tracker, and Touch device events based on screen location.
             * circle, ellipse, rectangle, and general polygon ROI shapes supported. (ROI functionality is dependent on the shapely python package)
         * IMPORTANT: The ioDataStore->DataFrame API is still being designed and developed. Expect to find issues. API changes guaranteed.
-                  
+
 PsychoPy 1.78
 ------------------------------
 
