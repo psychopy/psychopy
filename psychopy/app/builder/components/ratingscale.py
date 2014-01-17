@@ -91,7 +91,7 @@ class RatingScaleComponent(BaseComponent):
             hint="Labels for the ends of the scale, separated by commas")
         self.params['marker'] = Param(marker, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[], #categ="Advanced",
-            hint="Style for the marker: triangle, circle, glow, slider")
+            hint="Style for the marker: triangle, circle, glow, slider, hover")
         self.params['markerStart'] = Param(markerStart, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[], #categ="Advanced",
             hint="initial position for the marker")

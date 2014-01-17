@@ -23,9 +23,9 @@ PsychoPy 1.80
 PsychoPy 1.80.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
 * ADDED: RatingScale markerStart position can be arbitrary, e.g., can start between items or beyond the end of scale
 * ADDED: RatingScale tickHeight can be used to control the height of tickMarks, including no tick marks (tickHeight=0)
+* ADDED: RatingScale marker='hover' is similar to HTML-style hovering over clickable elements
 
 *psychopy.visual.RatingScale Changes* :
 
