@@ -13,8 +13,7 @@ from psychopy.tools.coordinatetools import sph2cart
 
 
 def dkl2rgb(dkl, conversionMatrix=None):
-    """Convert from DKL color space (cone-opponent space from Derrington,
-    Krauskopf & Lennie) to RGB.
+    """Convert from DKL color space (Derrington, Krauskopf & Lennie) to RGB.
 
     Requires a conversion matrix, which will be generated from generic
     Sony Trinitron phosphors if not supplied (note that this will not be

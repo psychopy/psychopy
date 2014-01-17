@@ -10,11 +10,9 @@ monitor'''
 from psychopy import monitors
 
 def convertToPix(vertices, pos, units, win):
-    """Takes the base vertices and position, combines and converts to pixels
+    """Takes vertices and position, combines and converts to pixels from any unit
 
-    `vertsScaled` should have been rotated and scaled by size already.
-
-    The reason that `pos` and `vertsScaled` are provided separately is that it allows
+    The reason that `pos` and `vertices` are provided separately is that it allows
     the conversion from deg to apply flat-screen correction to each separately.
 
     The reason that these use funtion args rather than relying on self.pos

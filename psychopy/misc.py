@@ -11,7 +11,8 @@ from psychopy.tools.arraytools import (createXYs, extendArr, makeRadialMatrix,
 
 from psychopy.tools.attributetools import attributeSetter, setWithOperation
 
-from psychopy.tools.colorspacetools import (dkl2rgb, dklCart2rgb,
+from psychopy.tools.colorspacetools import (convertToPix,
+                                            dkl2rgb, dklCart2rgb,
                                             hsv2rgb, lms2rgb,
                                             rgb2dklCart, rgb2lms)
 

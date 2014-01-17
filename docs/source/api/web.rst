@@ -13,4 +13,3 @@ Upload a file over http
 Proxy set-up and testing
 ------------------------
 .. autofunction:: psychopy.web.setupProxy
-.. autofunction:: psychopy.web.testProxy

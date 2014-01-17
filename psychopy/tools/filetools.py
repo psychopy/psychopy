@@ -38,7 +38,7 @@ def fromFile(filename):
 def mergeFolder(src, dst, pattern=None):
     """Merge a folder into another.
 
-    Existing files in dst with the same name will be overwritten. Non-existent
+    Existing files in `dst` folder with the same name will be overwritten. Non-existent
     files/folders will be created.
 
     """
