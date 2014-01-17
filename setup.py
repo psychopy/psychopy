@@ -33,14 +33,14 @@ packages = find_packages()
 dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov', '*.spec', '*.csv','*.psyexp', '*.xlsx']
 dataFiles = []
 
-scripts = ['psychopy/app/psychopyApp.py']
+scripts = ['psychopy/app/psychopyApp.py',
+           'psychopy_post_inst.py'] #although post_install only needs installing on win32 it needs packaging in the zip
 if platform=='win32':
     #you need the c extension for bits++ if you want to change bits modes, but not otherwise
     #cExtensions.append(Extension('psychopy.ext._bits',
     #sources = [os.path.join('psychopy','ext','_bits.c')],
     #libraries=['bits']))
-    # only install  post_install if on windows
-    scripts += ['psychopy_post_inst.py']
+    pass
 elif platform=='darwin':
     #from py2app import bdist_mpkg
     dataExtensions.extend(['*.icns'])
