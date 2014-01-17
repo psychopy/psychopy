@@ -158,9 +158,11 @@ class RatingScale(object):
             ``tickHeight`` is purely cosmetic, and can be fractional, e.g., 1.2.
         marker :
             The moveable visual indicator of the current selection. The predefined styles are
-            'triangle', 'circle', 'glow', or 'slider'. A slider moves smoothly when
+            'triangle', 'circle', 'glow', 'slider', or 'hover'. A slider moves smoothly when
             there are enough screen positions to move through, e.g., low=0, high=100.
-            Can also be a custom marker: any object with a .draw() method and .pos will work, e.g.,
+            Hovering requires a set of choices, and allows clicking directly on individual
+            choices; dwell-time is not recorded.
+            Can also be set to a custom marker stimulus: any object with a .draw() method and .pos will work, e.g.,
             ``visual.TextStim(win, text='[]', units='norm')``.
         markerStart :
             The location or value to be pre-selected upon initial display, either numeric or
@@ -261,9 +263,16 @@ class RatingScale(object):
         self.savedWinUnits = self.win.units
         self.win.units = 'norm'
 
+        # 'hover' style = like hyperlink with hover over choices:
+        if marker == 'hover':
+            showAccept = False
+            singleClick = True
+            textSize *= 1.5
+            mouseOnly = True
+
         # make things well-behaved if the requested value(s) would be trouble:
         self._initFirst(showAccept, mouseOnly, singleClick, acceptKeys,
-                        markerStart, low, high, precision, choices,
+                        marker, markerStart, low, high, precision, choices,
                         scale, tickMarks, labels, tickHeight)
         self._initMisc(minTime, maxTime)
 
@@ -272,7 +281,7 @@ class RatingScale(object):
         self._initKeys(self.acceptKeys, skipKeys, leftKeys, rightKeys, respKeys)
 
         # Construct the visual elements:
-        self._initLine(tickMarkValues=tickMarks, lineColor=lineColor)
+        self._initLine(tickMarkValues=tickMarks, lineColor=lineColor, marker=marker)
         self._initMarker(marker, markerColor, markerExpansion)
         self._initTextElements(win,
             self.scale, textColor, textFont, textSize, showValue, tickMarks)
@@ -289,7 +298,8 @@ class RatingScale(object):
             for item in self.labels:
                 if not item.text == '':  # skip any empty placeholders
                     self.visualDisplayElements.append(item)
-        self.visualDisplayElements += [self.line]
+        if marker != 'hover':
+            self.visualDisplayElements += [self.line]
 
         # Mirror (flip) vertically if requested
         self.flipVert = False
@@ -328,7 +338,7 @@ class RatingScale(object):
         return "%s(%s)" %(className, params)
 
     def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys,
-                   markerStart, low, high, precision, choices,
+                   marker, markerStart, low, high, precision, choices,
                    scale, tickMarks, labels, tickHeight):
         """some sanity checking; various things are set, especially those that are
         used later; choices, anchors, markerStart settings are handled here
@@ -365,6 +375,9 @@ class RatingScale(object):
             self.labelTexts = choices
         else:
             self.choices = False
+        if marker == 'hover' and not self.choices:
+            logging.error("RatingScale: marker='hover' requires a set of choices.")
+            core.quit()
 
         # Anchors need to be well-behaved [do after choices]:
         try:
@@ -412,7 +425,7 @@ class RatingScale(object):
             else:
                 self.markerStart = None
                 self.markerPlaced = False
-        else:  # float() failed
+        else:  # float(markerStart) suceeded
             self.markerPlacedAt = self.markerStart
             self.markerPlaced = True
 
@@ -533,7 +546,7 @@ class RatingScale(object):
         self.allKeys = (self.rightKeys + self.leftKeys + self.acceptKeys +
                         self.skipKeys + self.respKeys)
 
-    def _initLine(self, tickMarkValues=None, lineColor='White'):
+    def _initLine(self, tickMarkValues=None, lineColor='White', marker=None):
         """define a ShapeStim to be a graphical line, with tick marks.
 
         ### Notes (JRG Aug 2010)
@@ -604,11 +617,15 @@ class RatingScale(object):
 
         # space around the line within which to accept mouse input:
         pad = 0.06 * self.size
+        if marker == 'hover':
+            padText = (1./(3*(self.high-self.low))) * (self.lineRightEnd - self.lineLeftEnd)
+        else:
+            padText = 0
         self.nearLine = [
-            [self.lineLeftEnd - pad, -2 * pad + self.offsetVert],
-            [self.lineLeftEnd - pad, 2 * pad + self.offsetVert],
-            [self.lineRightEnd + pad, 2 * pad + self.offsetVert],
-            [self.lineRightEnd + pad, -2 * pad + self.offsetVert] ]
+            [self.lineLeftEnd - pad - padText, -2 * pad + self.offsetVert],
+            [self.lineLeftEnd - pad - padText, 2 * pad + self.offsetVert],
+            [self.lineRightEnd + pad + padText, 2 * pad + self.offsetVert],
+            [self.lineRightEnd + pad + padText, -2 * pad + self.offsetVert] ]
 
         # vertices for ShapeStim:
         self.tickPositions = []  # list to hold horizontal positions
@@ -659,7 +676,12 @@ class RatingScale(object):
             markerColor = markerColor.replace(' ', '')
 
         # define or create self.marker:
-        if self.markerStyle == 'triangle':
+        if self.markerStyle == 'hover':
+            self.marker = TextStim(win=self.win, text=' ', units='norm', autoLog=False)  # placeholder
+            self.markerOffsetVert = .02
+            if not markerColor:
+                markerColor = 'darkorange'
+        elif self.markerStyle == 'triangle':
             scaledTickSize = self.baseSize * self.size
             vert = [[-1 * scaledTickSize * 1.8, scaledTickSize * 3],
                     [ scaledTickSize * 1.8, scaledTickSize * 3], [0, -0.005]]
@@ -678,7 +700,7 @@ class RatingScale(object):
                 markerColor = 'black'
             self.marker = ShapeStim(win=self.win, units='norm', vertices=vert,
                 lineWidth=0.1, lineColor=markerColor, fillColor=markerColor,
-                name=self.name+'.markerSlider', opacity=0.8, autoLog=False)
+                name=self.name+'.markerSlider', opacity=0.7, autoLog=False)
         elif self.markerStyle == 'glow':
             if markerColor == None or not isValidColor(markerColor):
                 markerColor = 'White'
@@ -749,7 +771,10 @@ class RatingScale(object):
         self.scaleDescription.setFont(textFont)
         self.labels = []
         if self.labelTexts:
-            vertPosTmp = -2 * self.textSizeSmall * self.size + self.offsetVert
+            if self.markerStyle == 'hover':
+                vertPosTmp = self.offsetVert  # on the line = clickable labels
+            else:
+                vertPosTmp = -2 * self.textSizeSmall * self.size + self.offsetVert
             for i, label in enumerate(self.labelTexts):
                 # need all labels for tick position, i
                 if label:  # skip '' placeholders, no need to create them
@@ -1054,6 +1079,16 @@ class RatingScale(object):
                 logging.data('RatingScale %s: (mouse response) rating=%s' %
                             (self.name, unicode(self.getRating())) )
 
+        if (self.markerStyle == 'hover' and self.markerPlaced and
+                self.markerPlacedAt != self.markerPlacedAtLast):
+            if hasattr(self, 'targetWord'):
+                self.targetWord.setColor(self.textColor, log=False)
+                self.targetWord.setHeight(self.textSizeSmall, log=False)
+            self.targetWord = self.labels[int(self.markerPlacedAt)]
+            self.targetWord.setColor(self.markerColor, log=False)
+            self.targetWord.setHeight(1.05 * self.textSizeSmall, log=False)
+            self.markerPlacedAtLast = self.markerPlacedAt
+
         # decision time = secs from first .draw() to when first 'accept' value:
         if not self.noResponse and self.decisionTime == 0:
             self.decisionTime = self.clock.getTime()
@@ -1089,10 +1124,12 @@ class RatingScale(object):
         if self.markerStart != None:
             self.markerPlaced = True
             self.markerPlacedAt = self.markerStart - self.low # __init__ assures this is valid
+        self.markerPlacedAtLast = -1  # unplaced
         self.firstDraw = True # triggers self.clock.reset() at start of draw()
         self.decisionTime = 0
         self.markerPosFixed = False
         self.frame = 0 # a counter used only to 'pulse' the 'accept' box
+
         if self.showAccept:
             self.acceptBox.setFillColor(self.acceptFillColor, log=False)
             self.acceptBox.setLineColor(self.acceptLineColor, log=False)

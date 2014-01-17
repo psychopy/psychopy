@@ -27,6 +27,9 @@ if 'escape' in event.waitKeys():
 # create a RatingScale object:
 myRatingScale = visual.RatingScale(win, choices=['cold', 'cool', 'hot'])
 
+# Or try this one:
+#myRatingScale = visual.RatingScale(win, choices=map(str, range(1,8)), marker='hover')
+
 # the item to-be-rated or respond to:
 myItem = visual.TextStim(win, text="How cool was that?", height=.12, units='norm')
 
