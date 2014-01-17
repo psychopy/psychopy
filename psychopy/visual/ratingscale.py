@@ -1059,14 +1059,6 @@ class RatingScale(object):
                     logging.data('RatingScale %s: (key single-click) rating=%s' %
                                  (self.name, unicode(self.getRating())) )
 
-        if self.markerStyle == 'hover' and self.markerPlaced:
-            [w.setColor('white', log=False) for w in self.labels]
-            [w.setHeight(self.textSizeSmall, log=False) for w in self.labels]
-            targetWord = self.labels[int(round(self.markerPlacedAt))]
-            targetWord.setColor(self.markerColor, log=False)
-            targetWord.setHeight(1.05 * targetWord.height)
-            [w.setText(w.text, log=False) for w in self.labels]
-
         # handle mouse left-click:
         if self.myMouse.getPressed()[0]:
             #mouseX, mouseY = self.myMouse.getPos() # done above
@@ -1086,6 +1078,16 @@ class RatingScale(object):
                 self.history.append((self.getRating(), self.getRT()))
                 logging.data('RatingScale %s: (mouse response) rating=%s' %
                             (self.name, unicode(self.getRating())) )
+
+        if (self.markerStyle == 'hover' and self.markerPlaced and
+                self.markerPlacedAt != self.markerPlacedAtLast):
+            if hasattr(self, 'targetWord'):
+                self.targetWord.setColor(self.textColor, log=False)
+                self.targetWord.setHeight(self.textSizeSmall, log=False)
+            self.targetWord = self.labels[int(self.markerPlacedAt)]
+            self.targetWord.setColor(self.markerColor, log=False)
+            self.targetWord.setHeight(1.05 * self.textSizeSmall, log=False)
+            self.markerPlacedAtLast = self.markerPlacedAt
 
         # decision time = secs from first .draw() to when first 'accept' value:
         if not self.noResponse and self.decisionTime == 0:
@@ -1122,6 +1124,7 @@ class RatingScale(object):
         if self.markerStart != None:
             self.markerPlaced = True
             self.markerPlacedAt = self.markerStart - self.low # __init__ assures this is valid
+        self.markerPlacedAtLast = -1  # unplaced
         self.firstDraw = True # triggers self.clock.reset() at start of draw()
         self.decisionTime = 0
         self.markerPosFixed = False
