@@ -6,3 +6,4 @@
 .. currentmodule:: psychopy.tools.unittools
     
 .. autofunction:: radians
+.. autofunction:: degrees

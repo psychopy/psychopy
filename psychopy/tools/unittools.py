@@ -20,7 +20,7 @@ def radians(degrees):
     return degrees*0.017453292519943295 #0.017453292519943295 = pi/180
 
 def degrees(radians):
-    """Convert degrees to radians
+    """Convert radians to degrees
 
     >>> from numpy import pi
     >>> degrees(pi/2)
