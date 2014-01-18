@@ -14,7 +14,6 @@ class Test_textbox(object):
 
     def teardown_class(self):
         self.win.close()
-        self.winpix.close()
 
     def test_basic(self):
         for units in ['norm', 'pix']:
