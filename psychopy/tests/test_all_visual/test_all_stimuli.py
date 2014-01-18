@@ -187,6 +187,8 @@ class _baseVisualTest:
         rect.setFillColor('pink')
         rect.draw()
         str(rect) #check that str(xxx) is working
+        rect.setWidth(1, log=False)
+        rect.setHeight(1, log=False)
     def test_circle(self):
         win = self.win
         circle = visual.Circle(win)
@@ -198,9 +200,13 @@ class _baseVisualTest:
         circle.setOri(30)
         circle.draw()
         str(circle) #check that str(xxx) is working
-    def text_line(self):
+    def test_line(self):
         win = self.win
         line = visual.Line(win)
+        line.setStart((0,0), log=False)
+        line.setEnd((.1,.1), log=False)
+        line.contains()  # pass
+        line.overlaps()  # pass
         line.draw()
         win.flip()
         str(line) #check that str(xxx) is working
@@ -212,6 +218,8 @@ class _baseVisualTest:
             poly.draw()
         win.flip()
         str(poly) #check that str(xxx) is working
+        poly.setEdges(3, log=False)
+        poly.setRadius(1, log=False)
     def test_shape(self):
         win = self.win
 
