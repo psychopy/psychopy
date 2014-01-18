@@ -48,28 +48,28 @@ correctResults = [
     (False, False, False, True, True, False),
     (True, False, False, False, True, False) ]
 
-
 mon = monitors.Monitor('testMonitor')
 mon.setDistance(57)
 mon.setWidth(40.0)
 mon.setSizePix([1024,768])
 
 dbgStr = '"%s" returns wrong value: unit=%s, ori=%.1f, size=%s, pos=%s, testpoint=%s, expected=%s'
+win = visual.Window([512,512], monitor=mon, winType='pyglet')
 
 def contains_overlaps(testType):
     for param in params:
+        win.units = param['units']
         vertices = [( 0.05*param['scaleFactor'], 0.24*param['scaleFactor']),
                     ( 0.05*param['scaleFactor'],-0.24*param['scaleFactor']),
                     (-0.05*param['scaleFactor'],-0.24*param['scaleFactor']),
                     (-0.05*param['scaleFactor'], 0.24*param['scaleFactor'])]
-        win = visual.Window([512,512], monitor=mon, winType='pyglet', units=param['units'])
+
         shape = visual.ShapeStim(win, vertices=vertices)
         testPoints = [visual.Circle(win, radius=0.02*param['scaleFactor'],
                                     pos=p*param['scaleFactor'], units=param['units'])
                       for p in points]
         #message = visual.TextStim(win, text='test:%s  units:%s'%(testType,param['units']),
         #                          pos=(0,-0.4*param['scaleFactor']), height=0.04*param['scaleFactor'])
-
         for i in range(len(postures)):
             shape.setOri(postures[i]['ori'])
             shape.setSize(postures[i]['size'])
@@ -95,9 +95,6 @@ def contains_overlaps(testType):
                     testPoints[j].setFillColor('red')
                 testPoints[j].draw()
             win.flip()
-            #core.wait(0.2)
-
-        win.close()
 
 mpl_version = matplotlib.__version__
 from matplotlib import nxutils
