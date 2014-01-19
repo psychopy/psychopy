@@ -111,8 +111,11 @@ class Test_class_RatingScale:
         assert r.name == 'name' and r.autoLog == False
 
     def test_markers(self):
-        for marker in ['triangle', 'glow', 'slider', 'circle']:
-            r = RatingScale(self.win, marker=marker)
+        for marker in ['triangle', 'glow', 'slider', 'circle', 'hover']:
+            r = RatingScale(self.win, choices=map(str, range(8)), marker=marker)
+            r.draw()
+        with pytest.raises(SystemExit):
+            r = RatingScale(self.win, marker='hover')
 
         class good_customMarker(object):
             def __init__(self):
@@ -145,6 +148,8 @@ class Test_class_RatingScale:
         r.setMarkerPos(2)
         assert r.markerPlacedAt == 2
         r.setDescription()
+        assert r.flipVert == False, 'needed to test'
+        r.setFlipVert(True)
 
     def test_draw_conditionals(self):
         r = RatingScale(self.win)

@@ -11,8 +11,7 @@ from psychopy.tools.arraytools import (createXYs, extendArr, makeRadialMatrix,
 
 from psychopy.tools.attributetools import attributeSetter, setWithOperation
 
-from psychopy.tools.colorspacetools import (convertToPix,
-                                            dkl2rgb, dklCart2rgb,
+from psychopy.tools.colorspacetools import (dkl2rgb, dklCart2rgb,
                                             hsv2rgb, lms2rgb,
                                             rgb2dklCart, rgb2lms)
 
@@ -26,7 +25,7 @@ from psychopy.tools.filetools import toFile, fromFile, mergeFolder
 from psychopy.tools.imagetools import array2image, image2array, makeImageAuto
 
 from psychopy.tools.monitorunittools import (cm2deg, deg2cm, cm2pix, pix2cm,
-                                             deg2pix, pix2deg)
+                                             deg2pix, pix2deg, convertToPix)
 
 from psychopy.tools.plottools import plotFrameIntervals
 

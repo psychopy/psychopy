@@ -115,7 +115,7 @@ class CustomMouse():
         self.clicks = 0 # how many mouse clicks since last reset
         self.clickButton = 0 # which button to count clicks for; 0 = left
 
-    def _setPos(self, pos=None):
+    def _setPos(self, pos=None):  # not implemented hence: # pragma: no cover
         """internal mouse position management. setting a position here leads to
         the virtual mouse being out of alignment with the hardware mouse, which
         leads to an 'invisible wall' effect for the mouse.

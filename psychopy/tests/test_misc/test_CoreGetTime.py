@@ -22,14 +22,16 @@ from psychopy.core import getTime, MonotonicClock, Clock, CountdownTimer, wait, 
 from psychopy.clock import monotonicClock
 import gc
 
+import pytest
+
 def testEmptyFunction():
         pass
-    
+
 PRINT_TEST_RESULTS=False
 
 def printf(*args):
     if PRINT_TEST_RESULTS:
-        for a in args:    
+        for a in args:
             print a,
         print ''
 
@@ -41,14 +43,15 @@ if sys.platform == 'win32':
 else:
     py_time=time.time
     py_timer_name='time.time'
- 
+
 def printExceptionDetails():
         import traceback,pprint
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        pprint.pprint(exc_type, indent=1, width=80, depth=None)        
+        pprint.pprint(exc_type, indent=1, width=80, depth=None)
         pprint.pprint(exc_value, indent=1, width=80, depth=None)
         pprint.pprint(traceback.format_tb(exc_traceback), indent=1, width=80, depth=None)
-   
+
+@pytest.mark.slow
 def testDelayDurationAccuracy(sample_size=100):
     # test with sample_size randomly selected durations between 0.05 and 1.0 msec
     durations=np.zeros((3,sample_size))
@@ -95,23 +98,24 @@ def testDelayDurationAccuracy(sample_size=100):
     except:
         printf("\nDuration Difference Test: FAILED")
     printf("-------------------------------------\n")
-        
-    
+
+
+@pytest.mark.slow
 def testTimebaseQuality(sample_size=1000):
     gc.disable()
-    
-    callTimes=np.zeros((5,sample_size))  
-    
+
+    callTimes=np.zeros((5,sample_size))
+
     timer_clock_jumpbacks=0
     core_getTime_jumpbacks=0
-    
+
     for t in xrange(sample_size):
        s=py_time()
        e=py_time()
        callTimes[0][t]=e-s
        if e<s:
            timer_clock_jumpbacks+=1
-           
+
        s=getTime()
        e=getTime()
        callTimes[1][t]=e-s
@@ -132,7 +136,7 @@ def testTimebaseQuality(sample_size=1000):
        x=getTime()
        e=py_time()
        callTimes[4][t]=e-s
-    
+
 
     gc.enable()
 
@@ -147,11 +151,11 @@ def testTimebaseQuality(sample_size=1000):
         printf("\tmin:\t\t%.9f"%(callTimes[i].min()*1000.0))
         printf("\tmax:\t\t%.6f"%(callTimes[i].max()*1000.0))
         printf("\tmean:\t\t%.6f"%(callTimes[i].mean()*1000.0))
-        printf("\tstd:\t\t%.6f"%(callTimes[i].std()*1000.0))  
+        printf("\tstd:\t\t%.6f"%(callTimes[i].std()*1000.0))
 
     printf(">> %s jumpbacks: "%(py_timer_name),timer_clock_jumpbacks)
     printf(">> core.getTime() jumpbacks: ",core_getTime_jumpbacks)
-    
+
     # Test that these conditions are true:
     #   - Effective Resolution (mean inter timer call duration) of timer is < 10 usec
     #   - Maximum inter timer call duration is < 100 usec
@@ -177,25 +181,25 @@ def testTimebaseQuality(sample_size=1000):
 def testMonotonicClock():
     try:
         mc = MonotonicClock()
-        
+
         t1=mc.getTime()
         time.sleep(1.0)
         t2=mc.getTime()
-        
+
         startTime=mc.getLastResetTime()
-        
+
         assert t2>t1
         assert t2-t1 > 0.95
         assert t2-t1 < 1.05
         assert startTime > 0
 
-        # Test things that 'should fail':                   
+        # Test things that 'should fail':
         try:
             x=mc.timeAtLastReset
             assert 1=="MonotonicClock should not have an attribute called 'timeAtLastReset'."
         except:
             pass
-        
+
         try:
             x=mc.reset()
             assert 1=="MonotonicClock should not have a method 'reset()'."
@@ -215,34 +219,34 @@ def testMonotonicClock():
         printExceptionDetails()
 
     printf("-------------------------------------\n")
-        
+
 def testClock():
     try:
         c = Clock()
-        
+
         t1=c.getTime()
         time.sleep(1.0)
         t2=c.getTime()
-        
+
         startTime=c.getLastResetTime()
-        
+
         assert t2>t1
         assert t2-t1 > 0.95
         assert t2-t1 < 1.05
         assert startTime > 0
 
         c.reset()
-        t=c.getTime()  
+        t=c.getTime()
         assert t < 0.01
 
         c.reset(10)
-        t=c.getTime()  
+        t=c.getTime()
         assert t > -10.0
         assert t < -9.9
 
-        t1=c.getTime() 
+        t1=c.getTime()
         c.add(50)
-        t2=c.getTime()  
+        t2=c.getTime()
         assert t2-t1 > -50.0
         assert t2-t1 < -49.9
 
@@ -254,18 +258,18 @@ def testClock():
 
     printf("-------------------------------------\n")
 
-        
+
 def testCountdownTimer():
     try:
         cdt = CountdownTimer(5.0)
-        
+
         assert cdt.getTime() <= 5.0
         assert cdt.getTime() >= 4.75
-        
+
         time.sleep(cdt.getTime())
-        
+
         assert np.fabs(cdt.getTime()) < 0.1
-        
+
         printf(">> CountdownTimer Test: PASSED")
 
     except Exception:
@@ -279,10 +283,10 @@ def testWait(duration=1.55):
         t1=getTime()
         wait(duration)
         t2=getTime()
-        
+
         # Check that the actual duration of the wait was close to the requested delay.
-        #        
-        # Note that I have had to set this to a relatively high value of 
+        #
+        # Note that I have had to set this to a relatively high value of
         # 50 msec because on my Win7, i7, 16GB machine I would get delta's of up to
         # 35 msec when I was testing this.
         #
@@ -295,9 +299,9 @@ def testWait(duration=1.55):
         #
         # I have not changed the wait in psychopy until feedback is given, as I
         # may be missing a reason why the current wait() implementation is required.
-        # 
+        #
         assert np.fabs((t2-t1)-duration) < 0.05
-        
+
         printf(">> core.wait(%.2f) Test: PASSED"%(duration))
 
     except Exception:
@@ -311,13 +315,13 @@ def testLoggingDefaultClock():
         t1=logging.defaultClock.getTime()
         t2=getTime()
         t3=monotonicClock.getTime()
-        
+
         assert np.fabs(t1-t2) < 0.02
         assert np.fabs(t1-t3) < 0.02
         assert np.fabs(t3-t2) < 0.02
-        
+
         assert logging.defaultClock.getLastResetTime() == monotonicClock.getLastResetTime()
-                
+
         printf(">> logging.defaultClock Test: PASSED")
 
     except Exception:
@@ -345,4 +349,3 @@ if __name__ == '__main__':
     testTimebaseQuality()
     printf("\n** Next Test will Take ~ 1 minute...**\n")
     testDelayDurationAccuracy()
-

@@ -715,18 +715,6 @@ class RatingScale(object):
                 if self.markerSize > 1.2:
                     self.markerBaseSize *= .7
                 self.marker.setSize(self.markerBaseSize/2., log=False)
-        elif self.markerStyle == 'circle':
-            if markerColor == None or not isValidColor(markerColor):
-                markerColor = 'DarkRed'
-            x,y = self.win.size
-            windowRatio = float(y)/x
-            self.markerSizeVert = 3.2 * self.baseSize * self.size
-            circleSize = [self.markerSizeVert * windowRatio, self.markerSizeVert]
-            self.markerOffsetVert = self.markerSizeVert / 2.
-            self.marker = Circle(self.win, size=circleSize, units='norm',
-                lineColor=markerColor, fillColor=markerColor,
-                name=self.name+'.markerCir', autoLog=False)
-            self.markerBaseSize = self.baseSize
         elif self.markerStyle == 'custom':
             if markerColor == None:
                 if hasattr(marker, 'color'):
@@ -743,8 +731,18 @@ class RatingScale(object):
             if not hasattr(marker, 'name') or not marker.name:
                 marker.name = 'customMarker'
             self.marker = marker
-        else:
-            logging.error('no marker defined for RatingScale')
+        else:  # 'circle':
+            if markerColor == None or not isValidColor(markerColor):
+                markerColor = 'DarkRed'
+            x,y = self.win.size
+            windowRatio = float(y)/x
+            self.markerSizeVert = 3.2 * self.baseSize * self.size
+            circleSize = [self.markerSizeVert * windowRatio, self.markerSizeVert]
+            self.markerOffsetVert = self.markerSizeVert / 2.
+            self.marker = Circle(self.win, size=circleSize, units='norm',
+                lineColor=markerColor, fillColor=markerColor,
+                name=self.name+'.markerCir', autoLog=False)
+            self.markerBaseSize = self.baseSize
         self.markerColor = markerColor
         self.markerYpos = self.offsetVert + self.markerOffsetVert
 

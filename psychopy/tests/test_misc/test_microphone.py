@@ -16,6 +16,7 @@ from psychopy.tests.utils import TESTS_PATH, TESTS_DATA_PATH
 
 @pytest.mark.needs_sound
 @pytest.mark.microphone
+@pytest.mark.slow
 class TestMicrophone(object):
     @classmethod
     def setup_class(self):
@@ -93,6 +94,7 @@ class TestMicrophone(object):
 #@pytest.mark.needs_sound
 @pytest.mark.microphone
 @pytest.mark.speech
+@pytest.mark.slow
 class TestMicrophoneNoSound(object):
     @classmethod
     def setup_class(self):

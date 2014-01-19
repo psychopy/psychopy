@@ -56,10 +56,13 @@ class Polygon(ShapeStim):
             ) * self.radius
             for e in xrange(self.edges)
         ])
-    def setEdges(self,edges):
+    def setEdges(self,edges, log=True):
         "Set the number of edges to a new value"
         self.edges=edges
         self._calcVertices()
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s edges=%s" %(self.name, edges),
+                level=logging.EXP,obj=self)
     def setRadius(self, radius, log=True):
         """Changes the radius of the Polygon. Parameter should be
 
