@@ -44,15 +44,28 @@ def run(rootScriptPathDir,configFilePath):
         s.log('Receiving datagrams on :9000')
         s.udpService.start()
 
-        for m in s.deviceMonitors:
-            m.start()
-
-        gevent.spawn(s.processDeviceEvents,0.001)
-
-        sys.stdout.write("IOHUB_READY\n\r\n\r")
-        sys.stdout.flush()
-        
-        gevent.run()
+        if hasattr(gevent,'run'):
+            for m in s.deviceMonitors:
+                m.start()
+    
+            gevent.spawn(s.processDeviceEvents,0.001)
+    
+            sys.stdout.write("IOHUB_READY\n\r\n\r")
+            sys.stdout.flush()
+            
+            gevent.run()
+        else:
+            glets=[]
+            for m in s.deviceMonitors:
+                m.start()
+                glets.append(m)
+            glets.append(gevent.spawn(s.processDeviceEvents,0.001))
+    
+            sys.stdout.write("IOHUB_READY\n\r\n\r")
+            sys.stdout.flush()
+            
+            gevent.joinall(glets)
+            
 
         s.log("Server END Time Offset: {0}".format(Computer.globalClock.getLastResetTime()),'DEBUG')
 
