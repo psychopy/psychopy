@@ -35,8 +35,8 @@ Analog Input Device Configuration Settings
             
             # The model_name setting specifies which of the supported models from 
             # the manufacturer will be used during the experiment.
-            # If the Labjack implementation is being used, 'U6' is the only
-            # currently supported model. If the Measurment Computing interface is being
+            # If the LabJack implementation is being used, 'U6' is the only
+            # currently supported model. If the Measurement Computing interface is being
             # used then the model can be either 'USB-1616FS' or 'USB-1208FS'.
             model_name: [enter_model_name]
         
