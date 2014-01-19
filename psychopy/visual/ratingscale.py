@@ -395,13 +395,13 @@ class RatingScale(object):
         if not self.choices:
             if labels and len(labels) == 2:
                 # label the endpoints
-                self.labelTexts = [labels[0]] + [''] * (high - low - 1) + [labels[-1]]
+                self.labelTexts = [labels[0]] + [''] * (self.high-self.low - 1) + [labels[-1]]
             elif labels and len(labels) == 3 and (self.high-self.low) > 1 and (1+self.high-self.low) % 2:
                 # label endpoints and middle tick
                 placeHolder = [''] * ((self.high-self.low-2)//2)
                 self.labelTexts = [labels[0]] + placeHolder + [labels[1]] + placeHolder + [labels[2]]
             else:
-                self.labelTexts = [unicode(self.low)] + [''] * (high - low - 1) + [unicode(self.high)]
+                self.labelTexts = [unicode(self.low)] + [''] * (self.high-self.low - 1) + [unicode(self.high)]
 
         if tickMarks and not(labels is False):
             if labels is None:
@@ -765,7 +765,8 @@ class RatingScale(object):
         # create the TextStim:
         self.scaleDescription = TextStim(win=self.win, height=self.textSizeSmall,
             pos=[self.offsetHoriz, 0.22 * self.size + self.offsetVert],
-            color=self.textColor, wrapWidth=2 * self.hStretchTotal, autoLog=False)
+            color=self.textColor, wrapWidth=2 * self.hStretchTotal,
+            font=textFont, autoLog=False)
         self.scaleDescription.setFont(textFont)
         self.labels = []
         if self.labelTexts:
