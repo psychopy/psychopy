@@ -98,13 +98,13 @@ class _baseVisualTest:
         #win.flip()
 
         #using .set()
-        gabor.ori = 45
-        gabor.size -= 0.2*self.scaleFactor
-        gabor.setColor([45,30,0.3], colorSpace='dkl')
-        gabor.sf += 0.2/self.scaleFactor
-        gabor.pos += [-0.5*self.scaleFactor, 0.5*self.scaleFactor]
-        gabor.contrast = 0.8
-        gabor.opacity = 0.8
+        gabor.setOri(45, log=False)
+        gabor.setSize(0.2*self.scaleFactor, '-', log=False)
+        gabor.setColor([45,30,0.3], colorSpace='dkl', log=False)
+        gabor.setSF(0.2/self.scaleFactor, '+', log=False)
+        gabor.setPos([-0.5*self.scaleFactor, 0.5*self.scaleFactor], '+', log=False)
+        gabor.setContrast(0.8, log=False)
+        gabor.setOpacity(0.8, log=False)
         gabor.draw()
         utils.compareScreenshot('gabor2_%s.png' %(self.contextName), win)
         win.flip()
@@ -315,7 +315,7 @@ class _baseVisualTest:
         x, y = pol2cart(theta=thetas, radius=radii)
         xys = numpy.array([x,y]).transpose()
         spiral = visual.ElementArrayStim(win, nElements=N,sizes=0.5*self.scaleFactor,
-            sfs=3.0, xys=xys, oris=-thetas)
+            sfs=3.0, xys=xys, oris=-thetas, autoLog=False)
         spiral.draw()
         str(spiral) #check that str(xxx) is working
         win.flip()
@@ -332,7 +332,7 @@ class _baseVisualTest:
         grating.draw()
         aperture.enable()
         str(aperture) #check that str(xxx) is working
-        grating.ori = 90
+        grating.setOri(90, log=False)
         grating.setColor('black', log=False)
         grating.draw()
         if utils._under_xvfb:
