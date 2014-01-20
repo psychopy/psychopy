@@ -458,14 +458,14 @@ class RatingScale(object):
         frames_per_cycle = 100
         self.pulseColor = [0.6 + 0.22 * float(numpy.cos(i/15.65)) for i in range(frames_per_cycle)]
 
-    def _initPosScale(self, pos, size, stretch):
+    def _initPosScale(self, pos, size, stretch, log=True):
         """position (x,y) and size (magnification) of the rating scale
         """
         # Screen position (translation) of the rating scale as a whole:
         if pos:
             if len(list(pos)) == 2:
                 offsetHoriz, offsetVert = pos
-            else:
+            elif log and self.autoLog:
                 logging.warning("RatingScale %s: pos expects a tuple (x,y)" % self.name)
         try:
             self.offsetHoriz = float(offsetHoriz)
@@ -496,8 +496,6 @@ class RatingScale(object):
             self.size = float(size) * 0.6
         except ValueError:
             self.size = 0.6
-        if not 0.06 < self.size < 3:
-            logging.warning("RatingScale %s: unusual size" % self.name)
 
     def _initKeys(self, acceptKeys, skipKeys, leftKeys, rightKeys, respKeys):
         # keys for accepting the currently selected response:
@@ -782,7 +780,7 @@ class RatingScale(object):
                         height=self.textSizeSmall, color=self.textColor, autoLog=False))
         self.setDescription(scale) # do after having set the relevant things
 
-    def setDescription(self, scale=None):
+    def setDescription(self, scale=None, log=True):
         """Method to set the brief description (scale) that appears above the line.
 
         Useful when using the same RatingScale object to rate several dimensions.
@@ -792,7 +790,8 @@ class RatingScale(object):
         if scale is None:
             scale = self.origScaleDescription
         self.scaleDescription.setText(scale)
-        logging.exp('RatingScale %s: setDescription="%s"' % (self.name, self.scaleDescription.text))
+        if log and self.autoLog:
+            logging.exp('RatingScale %s: setDescription="%s"' % (self.name, self.scaleDescription.text))
 
     def _initAcceptBox(self, showAccept, acceptPreText, acceptText, acceptSize,
                        markerColor, textSizeSmall, textSize, textFont):
@@ -907,7 +906,7 @@ class RatingScale(object):
             self.win.logOnFlip("Set %s flipVert=%s" % (self.name, self.flipVert),
                 level=logging.EXP, obj=self)
 
-    def draw(self):
+    def draw(self, log=True):
         """Update the visual display, check for response (key, mouse, skip).
 
         Sets response flags: `self.noResponse`, `self.timedOut`.
@@ -939,9 +938,10 @@ class RatingScale(object):
             self.noResponse = False
             # getRT() returns a value because noResponse==False
             self.history.append((self.getRating(), self.getRT()))
-            logging.data('RatingScale %s: rating=%s (no response, timed out after %.3fs)' %
+            if log and self.autoLog:
+                logging.data('RatingScale %s: rating=%s (no response, timed out after %.3fs)' %
                          (self.name, unicode(self.getRating()), self.maxTime) )
-            logging.data('RatingScale %s: rating RT=%.3fs' % (self.name, self.getRT()) )
+                logging.data('RatingScale %s: rating RT=%.3fs' % (self.name, self.getRT()) )
 
         # 'disappear' == draw nothing if subj is done:
         if self.noResponse == False and self.disappear:
@@ -1055,7 +1055,8 @@ class RatingScale(object):
                         and self.beyondMinTime):
                     self.noResponse = False
                     self.marker.setPos((0, self.offsetVert), '+', log=False)
-                    logging.data('RatingScale %s: (key single-click) rating=%s' %
+                    if log and self.autoLog:
+                        logging.data('RatingScale %s: (key single-click) rating=%s' %
                                  (self.name, unicode(self.getRating())) )
 
         # handle mouse left-click:
@@ -1068,14 +1069,16 @@ class RatingScale(object):
                 self.markerPlacedAt = self._getMarkerFromPos(mouseX)
                 if self.singleClick and self.beyondMinTime:
                     self.noResponse = False
-                    logging.data('RatingScale %s: (mouse single-click) rating=%s' %
+                    if log and self.autoLog:
+                        logging.data('RatingScale %s: (mouse single-click) rating=%s' %
                                  (self.name, unicode(self.getRating())) )
             # if click in accept box and conditions are met, accept the response:
             elif (self.showAccept and self.markerPlaced and self.beyondMinTime and
                     self.acceptBox.contains(mouseX, mouseY)):
                 self.noResponse = False  # accept the currently marked value
                 self.history.append((self.getRating(), self.getRT()))
-                logging.data('RatingScale %s: (mouse response) rating=%s' %
+                if log and self.autoLog:
+                    logging.data('RatingScale %s: (mouse response) rating=%s' %
                             (self.name, unicode(self.getRating())) )
 
         if (self.markerStyle == 'hover' and self.markerPlaced and
@@ -1091,8 +1094,9 @@ class RatingScale(object):
         # decision time = secs from first .draw() to when first 'accept' value:
         if not self.noResponse and self.decisionTime == 0:
             self.decisionTime = self.clock.getTime()
-            logging.data('RatingScale %s: rating RT=%.3f' % (self.name, self.decisionTime))
-            logging.data('RatingScale %s: history=%s' % (self.name, self.getHistory()))
+            if log and self.autoLog:
+                logging.data('RatingScale %s: rating RT=%.3f' % (self.name, self.decisionTime))
+                logging.data('RatingScale %s: history=%s' % (self.name, self.getHistory()))
             # minimum time is enforced during key and mouse handling
             self.status = FINISHED
             if self.showAccept:
@@ -1107,7 +1111,7 @@ class RatingScale(object):
         # restore user's units:
         self.win.units = self.savedWinUnits
 
-    def reset(self):
+    def reset(self, log=True):
         """Restores the rating-scale to its post-creation state.
 
         The history is cleared, and the status is set to NOT_STARTED. Does not
@@ -1134,7 +1138,8 @@ class RatingScale(object):
             self.acceptBox.setLineColor(self.acceptLineColor, log=False)
             self.accept.setColor('#444444', log=False)  # greyed out
             self.accept.setText(self.keyClick, log=False)
-        logging.exp('RatingScale %s: reset()' % self.name)
+        if log and self.autoLog:
+            logging.exp('RatingScale %s: reset()' % self.name)
         self.status = NOT_STARTED
         self.history = None
 
