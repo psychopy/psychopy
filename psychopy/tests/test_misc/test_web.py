@@ -44,7 +44,7 @@ class TestWeb(object):
         with pytest.raises(ValueError):
             web.upload('', filename, basicAuth, log=False)
         web.upload(selector + 'JUNK', filename, basicAuth, log=False)
-        with pytest.raises(ValueError, log=False):
+        with pytest.raises(ValueError):
             web.upload(selector, filename + 'JUNK', basicAuth, log=False)
         web.upload(selector, filename, basicAuth + 'JUNK', log=False)
 
