@@ -34,23 +34,23 @@ class TestMicrophone(object):
         os.chdir(self.tmp)
         microphone.haveMic = False
         with pytest.raises(MicrophoneError):
-            AdvAudioCapture()
+            AdvAudioCapture(autoLog=False)
         microphone.haveMic = True
 
         switchOn(16000, 1, 2048)
         switchOn(48000)
 
-        mic = AdvAudioCapture(saveDir=self.tmp)
+        mic = AdvAudioCapture(saveDir=self.tmp, autoLog=False)
         mic.record(.10, block=False)  # returns immediately
         core.wait(.02)
         mic.stop()
 
     def test_AdvAudioCapture(self):
         os.chdir(self.tmp)
-        mic = AdvAudioCapture()
-        tone = sound.Sound(440, secs=.02)
+        mic = AdvAudioCapture(autoLog=False)
+        tone = sound.Sound(440, secs=.02, autoLog=False)
         mic.setMarker(tone=tone)
-        mic = AdvAudioCapture(filename='test_mic.wav', saveDir=self.tmp)
+        mic = AdvAudioCapture(filename='test_mic.wav', saveDir=self.tmp, autoLog=False)
 
         mic.record(1, block=True)
         mic.setFile(mic.savedFile)  # same file name

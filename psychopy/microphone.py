@@ -93,7 +93,7 @@ class AudioCapture(object):
             self.running = False
 
     def __init__(self, name='mic', filename='', saveDir='', sampletype=0,
-                 buffering=16, chnl=0, stereo=True):
+                 buffering=16, chnl=0, stereo=True, autoLog=True):
         """
         :Parameters:
             name :
@@ -134,6 +134,7 @@ class AudioCapture(object):
         if not serverBooted():
             raise AttributeError('pyo server not booted')
 
+        self.autoLog = autoLog
         self.loggingId = self.__class__.__name__
         if self.name:
             self.loggingId += ' ' + self.name
@@ -143,7 +144,7 @@ class AudioCapture(object):
         self.options = {'sampletype': sampletype, 'buffering': buffering,
                         'chnl': chnl, 'chnls': 1 + int(stereo==True)}
 
-    def stop(self):
+    def stop(self, log=True):
         """Interrupt a recording that is in progress; close & keep the file.
 
         Ends the recording before the duration that was initially specified. The
@@ -153,15 +154,18 @@ class AudioCapture(object):
         but you can start a new one.
         """
         if not self.recorder.running:
-            logging.exp('%s: Stop requested, but no record() in progress' % self.loggingId )
+            if log and self.autoLog:
+                logging.exp('%s: Stop requested, but no record() in progress' % self.loggingId )
             return
         self.duration = core.getTime() - self.onset  # new shorter duration
         self.recorder.stop()
-        logging.data('%s: Record stopped early, new duration %.3fs' % (self.loggingId, self.duration))
+        if log and self.autoLog:
+            logging.data('%s: Record stopped early, new duration %.3fs' % (self.loggingId, self.duration))
 
-    def reset(self):
+    def reset(self, log=True):
         """Restores to fresh state, ready to record again"""
-        logging.exp('%s: resetting at %.3f' % (self.loggingId, core.getTime()))
+        if log and self.autoLog:
+            logging.exp('%s: resetting at %.3f' % (self.loggingId, core.getTime()))
         self.__init__(name=self.name, saveDir=self.saveDir)
     def record(self, sec, filename='', block=True):
         """Capture sound input for duration <sec>, save to a file.
@@ -170,14 +174,15 @@ class AudioCapture(object):
         a meaningful identifier for filename and log.
         """
         return self._record(sec, filename=filename, block=block)
-    def _record(self, sec, filename='', block=True):
+    def _record(self, sec, filename='', block=True, log=True):
         while self.recorder.running:
             pass
         self.duration = float(sec)
         self.onset = core.getTime()  # for duration estimation, high precision
         self.fileOnset = core.getAbsTime()  # for log and filename, 1 sec precision
         ms = "%.3f" % (core.getTime() - int(core.getTime()))
-        logging.data('%s: Record: onset %d, capture %.3fs' %
+        if log and self.autoLog:
+            logging.data('%s: Record: onset %d, capture %.3fs' %
                      (self.loggingId, self.fileOnset, self.duration) )
         if not filename:
             onsettime = '-%d' % self.fileOnset + ms[1:]
@@ -191,17 +196,19 @@ class AudioCapture(object):
         self.rate = sound.pyoSndServer.getSamplingRate()
         if block:
             core.wait(self.duration, 0)
-            logging.exp('%s: Record: stop. %.3f, capture %.3fs (est)' %
+            if log and self.autoLog:
+                logging.exp('%s: Record: stop. %.3f, capture %.3fs (est)' %
                      (self.loggingId, core.getTime(), core.getTime() - t0) )
             while self.recorder.running:
                 core.wait(.001, 0)
         else:
-            logging.exp('%s: Record: return immediately, no blocking' %
+            if log and self.autoLog:
+                logging.exp('%s: Record: return immediately, no blocking' %
                      (self.loggingId) )
 
         return self.savedFile
 
-    def playback(self, block=True, loops=0, stop=False):
+    def playback(self, block=True, loops=0, stop=False, log=True):
         """Plays the saved .wav file, as just recorded or resampled. Execution
         blocks by default, but can return immediately with `block=False`.
 
@@ -227,12 +234,13 @@ class AudioCapture(object):
         if block:
             core.wait(self.duration * (loops + 1)) # set during record()
 
-        if loops:
-            logging.exp('%s: Playback: play %.3fs x %d (est) %s' % (self.loggingId, self.duration, loops+1, self.savedFile))
-        else:
-            logging.exp('%s: Playback: play %.3fs (est) %s' % (self.loggingId, self.duration, self.savedFile))
+        if log and self.autoLog:
+            if loops:
+                logging.exp('%s: Playback: play %.3fs x %d (est) %s' % (self.loggingId, self.duration, loops+1, self.savedFile))
+            else:
+                logging.exp('%s: Playback: play %.3fs (est) %s' % (self.loggingId, self.duration, self.savedFile))
 
-    def resample(self, newRate=16000, keep=True):
+    def resample(self, newRate=16000, keep=True, log=True):
         """Re-sample the saved file to a new rate, return the full path.
 
         Can take several visual frames to resample a 2s recording.
@@ -270,11 +278,13 @@ class AudioCapture(object):
         elif self.rate >= newRate:
             t0 = core.getTime()
             downsamp(self.savedFile, newFile, ratio) # default 128-sample anti-aliasing
-            logging.exp('%s: Down-sampled %sx in %.3fs to %s' % (self.loggingId, str(ratio), core.getTime()-t0, newFile))
+            if log and self.autoLog:
+                logging.exp('%s: Down-sampled %sx in %.3fs to %s' % (self.loggingId, str(ratio), core.getTime()-t0, newFile))
         else:
             t0 = core.getTime()
             upsamp(self.savedFile, newFile, ratio) # default 128-sample anti-aliasing
-            logging.exp('%s: Up-sampled %sx in %.3fs to %s' % (self.loggingId, str(ratio), core.getTime()-t0, newFile))
+            if log and self.autoLog:
+                logging.exp('%s: Up-sampled %sx in %.3fs to %s' % (self.loggingId, str(ratio), core.getTime()-t0, newFile))
 
         # clean-up:
         if not keep:
@@ -293,10 +303,11 @@ class AdvAudioCapture(AudioCapture):
     See Coder demo > input > latencyFromTone.py
     """
     def __init__(self, name='advMic', filename='', saveDir='', sampletype=0,
-                 buffering=16, chnl=0, stereo=True):
+                 buffering=16, chnl=0, stereo=True, autoLog=True):
         AudioCapture.__init__(self, name=name, filename=filename, saveDir=saveDir,
                 sampletype=sampletype, buffering=buffering, chnl=chnl, stereo=stereo)
         self.setMarker()
+        self.autoLog = autoLog
 
     def record(self, sec, filename='', block=False):
         """Starts recording and plays an onset marker tone just prior
@@ -313,7 +324,7 @@ class AdvAudioCapture(AudioCapture):
         """
         self.filename = filename
 
-    def setMarker(self, tone=19000, secs=0.015, volume=0.03):
+    def setMarker(self, tone=19000, secs=0.015, volume=0.03, log=True):
         """Sets the onset marker, where `tone` is either in hz or a custom sound.
 
         The default tone (19000 Hz) is recommended for auto-detection, as being
@@ -332,14 +343,16 @@ class AdvAudioCapture(AudioCapture):
         if hasattr(tone, 'play'):
             self.marker_hz = 0
             self.marker = tone
-            logging.exp('custom sound set as marker; getMarkerOnset() will not be able to auto-detect onset')
+            if log and self.autoLog:
+                logging.exp('custom sound set as marker; getMarkerOnset() will not be able to auto-detect onset')
         else:
             self.marker_hz = float(tone)
             sampleRate = sound.pyoSndServer.getSamplingRate()
             if sampleRate < 2 * self.marker_hz:
                 # NyquistError
                 logging.warning("Recording rate (%i Hz) too slow for %i Hz-based marker detection." % (int(sampleRate), self.marker_hz))
-            logging.exp('frequency of recording onset marker: %.1f' % self.marker_hz)
+            if log and self.autoLog:
+                logging.exp('frequency of recording onset marker: %.1f' % self.marker_hz)
             self.marker = sound.Sound(self.marker_hz, secs, volume=volume, name=self.name+'.marker_tone')
 
     def playMarker(self):
