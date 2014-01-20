@@ -699,6 +699,8 @@ class TrialHandler(_BaseTrialHandler):
 
         """
         self.name=name
+        self.autoLog = autoLog
+
         if trialList in [None, []]:#user wants an empty trialList
             self.trialList = [None]#which corresponds to a list with a single empty entry
         else:
@@ -734,7 +736,6 @@ class TrialHandler(_BaseTrialHandler):
 
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp = None#the experiment handler that owns me!
-        self.autoLog = autoLog
 
     def __iter__(self):
         return self
@@ -2015,7 +2016,7 @@ class QuestHandler(StairHandler):
 
         # Initialize using parent class first
         StairHandler.__init__(self, startVal, nTrials=nTrials, extraInfo=extraInfo, method=method,
-                                stepType=stepType, minVal=minVal, maxVal=maxVal, name=name)
+                                stepType=stepType, minVal=minVal, maxVal=maxVal, name=name, autoLog=autoLog)
 
         # Setup additional values
         self.stopInterval = stopInterval

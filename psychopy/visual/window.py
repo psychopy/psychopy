@@ -1522,7 +1522,7 @@ class Window:
             showVisual = False
             showText = True
             myMsg = TextStim(self, text=msg, italic=True,
-                             color=(.7, .6, .5), colorSpace='rgb', height=0.1)
+                             color=(.7, .6, .5), colorSpace='rgb', height=0.1, autoLog=False)
         else:
             showText = False
         if showVisual:
