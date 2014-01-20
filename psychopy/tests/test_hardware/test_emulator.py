@@ -28,7 +28,7 @@ class _baseEmulatorTest:
         sync_key = MR_settings['sync']
 
         # Call launchScan with MR Settings from test classes, in 'Test' mode with a short timeout.
-        vol = launchScan(win, MR_settings, globalClock=globalClock, mode='Test', wait_timeout= 5)
+        vol = launchScan(win, MR_settings, globalClock=globalClock, mode='Test', wait_timeout= 5, log=False)
 
         duration = MR_settings['volumes'] * MR_settings['TR']
         while globalClock.getTime() < duration:
@@ -45,7 +45,7 @@ class _baseEmulatorTest:
         win = self.win
         MR_settings = self.MR_settings
         try:
-            vol = launchScan(win, MR_settings, wait_timeout = 'cant_coerce_me!', mode='Test')
+            vol = launchScan(win, MR_settings, wait_timeout = 'cant_coerce_me!', mode='Test', log=False)
         except StandardError as e:
             assert e.__class__ == ValueError
 

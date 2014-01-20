@@ -62,9 +62,9 @@ class _baseVisualTest:
     def test_auto_draw(self):
         win = self.win
         stims=[]
-        stims.append(visual.PatchStim(win))
-        stims.append(visual.ShapeStim(win))
-        stims.append(visual.TextStim(win))
+        stims.append(visual.PatchStim(win, autoLog=False))
+        stims.append(visual.ShapeStim(win, autoLog=False))
+        stims.append(visual.TextStim(win, autoLog=False))
         for stim in stims:
             assert stim.status==visual.NOT_STARTED
             stim.setAutoDraw(True)
@@ -179,7 +179,7 @@ class _baseVisualTest:
         str(mov) #check that str(xxx) is working
     def test_rect(self):
         win = self.win
-        rect = visual.Rect(win)
+        rect = visual.Rect(win, autoLog=False)
         rect.draw()
         rect.setLineColor('blue', log=False)
         rect.setPos([1,1], log=False)
@@ -191,7 +191,7 @@ class _baseVisualTest:
         rect.setHeight(1, log=False)
     def test_circle(self):
         win = self.win
-        circle = visual.Circle(win)
+        circle = visual.Circle(win, autoLog=False)
         circle.setFillColor('red', log=False)
         circle.draw()
         circle.setLineColor('blue', log=False)
@@ -202,7 +202,7 @@ class _baseVisualTest:
         str(circle) #check that str(xxx) is working
     def test_line(self):
         win = self.win
-        line = visual.Line(win)
+        line = visual.Line(win, autoLog=False)
         line.setStart((0,0), log=False)
         line.setEnd((.1,.1), log=False)
         line.contains()  # pass

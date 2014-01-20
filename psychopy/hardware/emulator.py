@@ -217,15 +217,15 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     runInfo = "vol: %(volumes)d  TR: %(TR).3fs  skip: %(skip)d  sync: '%(sync)s'" % (settings)
     if log:
         logging.exp('launchScan: ' + runInfo)
-    instructions = visual.TextStim(win, text=instr, height=.05, pos=(0,0), color=.4)
-    parameters = visual.TextStim(win, text=runInfo, height=.05, pos=(0,-0.5), color=.4)
+    instructions = visual.TextStim(win, text=instr, height=.05, pos=(0,0), color=.4, autoLog=log)
+    parameters = visual.TextStim(win, text=runInfo, height=.05, pos=(0,-0.5), color=.4, autoLog=log)
 
     # if a valid mode was specified, use it; otherwise query:
     mode = mode.capitalize()
     if mode not in ['Scan', 'Test']:
         run_type = visual.RatingScale(win, choices=['Scan', 'Test'], markerStyle='circle',
             markerColor='DarkBlue', displaySizeFactor=.8, stretchHoriz=.3, pos=(0.8,-0.9),
-            markerStart='Test', escapeKeys=esc_key, lineColor='DarkGray')
+            markerStart='Test', escapeKeys=esc_key, lineColor='DarkGray', autoLog=log)
         while run_type.noResponse:
             instructions.draw()
             parameters.draw()
@@ -237,7 +237,7 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     win.setMouseVisible(False)
     if mode == 'Test':
         wait_msg += ' (simulation)'
-    msg = visual.TextStim(win, color='DarkGray', text=wait_msg)
+    msg = visual.TextStim(win, color='DarkGray', text=wait_msg, autoLog=log)
     msg.draw()
     win.flip()
     if wait_timeout is None or wait_timeout > 10:
