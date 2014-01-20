@@ -30,12 +30,12 @@ getTime = Computer.getTime
 class ioHubKeyboardDevice(Device):
     """
     The Keyboard device is used to receive events from a standard USB or PS2 keyboard
-    connected to the experiment computer. Only one keyboard device is supported in an 
-    experiment at this time, if multiple keyboards are connected to the computer, 
-    any keyboard events will be combined from all keyboard devices, appearing 
+    connected to the experiment computer. Only one keyboard device is supported in an
+    experiment at this time, if multiple keyboards are connected to the computer,
+    any keyboard events will be combined from all keyboard devices, appearing
     to originate from a single keyboard device in the experiment.
     """
-    
+
     EVENT_CLASS_NAMES=['KeyboardInputEvent','KeyboardKeyEvent','KeyboardPressEvent', 'KeyboardReleaseEvent','KeyboardCharEvent']
 
     DEVICE_TYPE_ID=DeviceConstants.KEYBOARD
@@ -52,11 +52,30 @@ class ioHubKeyboardDevice(Device):
     @classmethod
     def getModifierState(cls):
         return cls._modifier_value
-        
+
     def clearEvents(self):
         cEvents=self._getCharEvents()
         [self._addNativeEventToBuffer(e) for e in cEvents]
         Device.clearEvents(self)
+
+    def getPressedKeys(self):
+        """
+        Return the set of currently pressed keys on the keyboard device and the
+        time that each key was pressed, as a dict object ( dict key == keyboard
+        key, dict values == associated keypress time for each key).
+
+        Modifier keys are not included even if pressed when this method is called.
+
+        Args:
+            None
+
+        Returns:
+            dict: Dict of currently pressed keyboard keys.
+        """
+        r={}
+        for e in self.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS,clearEvents=False):
+            r[e[-3]]=e[DeviceEvent.EVENT_HUB_TIME_INDEX]
+        return r
 
     def _handleEvent(self,e):
         Device._handleEvent(self,e)
@@ -85,7 +104,7 @@ class ioHubKeyboardDevice(Device):
         release_events=[e for e in self.getEvents(event_type_id=EventConstants.KEYBOARD_RELEASE,clearEvents=False) if e[DeviceEvent.EVENT_ID_INDEX] > self._lastProcessedEventID]
 
         key_id_index=KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key_id')
-        
+
         keypress_events=[]
         keyrelease_events=[]
         if len(press_events)>0:
@@ -112,7 +131,7 @@ class ioHubKeyboardDevice(Device):
         charEvents=[]
 
         for e in keypress_events:
-            if e[key_id_index] not in self._key_states.keys():              
+            if e[key_id_index] not in self._key_states.keys():
                     self._key_states[e[key_id_index]]=[e,0]
             else:
                     self._key_states[e[key_id_index]][1]+=1
@@ -138,7 +157,7 @@ elif Computer.system == 'linux2':
     from linux2 import Keyboard
 elif Computer.system == 'darwin':
     from darwin import Keyboard
-   
+
 ############# OS independent Keyboard Event classes ####################
 
 from .. import DeviceEvent
@@ -148,7 +167,7 @@ class KeyboardInputEvent(DeviceEvent):
     The KeyboardInputEvent class is an abstract class that is the parent of all
     Keyboard related event types.
     """
-    
+
     PARENT_DEVICE=Keyboard
 
     # TODO: Determine real maximum key name string and modifiers string
@@ -177,30 +196,30 @@ class KeyboardInputEvent(DeviceEvent):
         #: The Linux and Windows ioHub interface provide's scan codes; the OS X implementation does not.
         #: int value
         self.scan_code=0
-        
+
         #: The keyboard independent, but OS dependent, representation of the key pressed.
         #: int value.
         self.key_id=0
-        
+
         #: The utf-8 coe point for the key present, if it has one and can be determined. 0 otherwise.
-        #: This value is, in most cases, calulated by taking the event.key value, 
+        #: This value is, in most cases, calulated by taking the event.key value,
         #: determining if it is a unicode utf-8 encoded char, and if so, calling the
         #: Python built in function unichr(event.key).
         #: int value between 0 and 2**16.
         self.ucode=''
 
         #: A string representation of what key was pressed. For standard character
-        #: ascii keys (a-z,A-Z,0-9, some punctuation values), and 
+        #: ascii keys (a-z,A-Z,0-9, some punctuation values), and
         #: unicode utf-8 encoded characters that have been successfully detected,
-        #: *key* will be the the actual key value pressed as a unicode character. 
-        #: For other keys, like the *up arrow key* or key modifiers like the 
+        #: *key* will be the the actual key value pressed as a unicode character.
+        #: For other keys, like the *up arrow key* or key modifiers like the
         #: left or right *shift key*, then a string representation
         #: of the key press is given, for example 'UP', 'SHIFT_LEFT', and 'SHIFT_RIGHT'.
         #: In the case of the lattr, ucode will generally be 0.
         self.key=''
-        
+
         #: List of the modifiers that were active when the key was pressed, provide in
-        #: online events as a list of the modifier constant labels specified in 
+        #: online events as a list of the modifier constant labels specified in
         #: iohub.ModifierConstants
         #: list: Empty if no modifiers are pressed, otherwise each elemnt is the string name of a modifier constant.
         self.modifiers=0
@@ -217,7 +236,7 @@ class KeyboardInputEvent(DeviceEvent):
         event_value_list[modifier_value_index]=KeyboardConstants._modifierCodes2Labels(event_value_list[modifier_value_index])
         key_value_index=cls.CLASS_ATTRIBUTE_NAMES.index('key')
         event_value_list[key_value_index]=event_value_list[key_value_index].decode('utf-8')
-        
+
     @classmethod
     def createEventAsDict(cls,values):
         cls._convertFields(values)
@@ -228,7 +247,7 @@ class KeyboardInputEvent(DeviceEvent):
     def createEventAsNamedTuple(cls,valueList):
         cls._convertFields(valueList)
         return cls.namedTupleClass(*valueList)
-        
+
 class KeyboardKeyEvent(KeyboardInputEvent):
     EVENT_TYPE_ID=EventConstants.KEYBOARD_KEY
     EVENT_TYPE_STRING='KEYBOARD_KEY'
@@ -245,18 +264,18 @@ class KeyboardKeyEvent(KeyboardInputEvent):
 class KeyboardPressEvent(KeyboardKeyEvent):
     """
     A KeyboardPressEvent is generated when a key is pressed down.
-    The event is created prior to the keyboard key being released. 
-    If a key is held down for an extended period of time, multiple 
+    The event is created prior to the keyboard key being released.
+    If a key is held down for an extended period of time, multiple
     KeyboardPressEvent events may be generated depending
     on your OS and the OS's settings for key repeat event creation.
-    
+
     If auto repeat key events are not desired at all, then the keyboard configuration
-    setting 'report_auto_repeat_press_events' can be used to disable these 
+    setting 'report_auto_repeat_press_events' can be used to disable these
     events by having the ioHub Server filter the unwanted events out. By default
     this keyboard configuartion parameter is set to True.
-    
+
     Event Type ID: EventConstants.KEYBOARD_PRESS
-    
+
     Event Type String: 'KEYBOARD_PRESS'
     """
     EVENT_TYPE_ID=EventConstants.KEYBOARD_PRESS
@@ -270,9 +289,9 @@ class KeyboardPressEvent(KeyboardKeyEvent):
 class KeyboardReleaseEvent(KeyboardKeyEvent):
     """
     A KeyboardReleaseEvent is generated when a key the keyboard is released.
-    
+
     Event Type ID: EventConstants.KEYBOARD_RELEASE
-    
+
     Event Type String: 'KEYBOARD_RELEASE'
     """
     EVENT_TYPE_ID=EventConstants.KEYBOARD_RELEASE
@@ -287,21 +306,21 @@ class KeyboardCharEvent(KeyboardReleaseEvent):
     A KeyboardCharEvent is generated when a key on the keyboard is pressed and then
     released. The KeyboardKeyEvent includes information about the key that was
     released, as well as a refernce to the KeyboardPressEvent that is associated
-    with the KeyboardReleaseEvent. Any auto-repeat functionality that may be 
+    with the KeyboardReleaseEvent. Any auto-repeat functionality that may be
     created by the OS keyboard driver is ignored regardless of the keyboard
     device 'report_auto_repeat_press_events' configuration setting.
-    
+
     ..note: A KeyboardCharEvent and the associated KeyboardReleaseEvent for it have
             the same event.time value, as should be expected. The cuurent event sorting
-            process result in the KeyboardCharEvent occuring right before the 
+            process result in the KeyboardCharEvent occuring right before the
             KeyboardReleaseEvent in an event list that has both together. While this
             is 'technically' valid since both events have the same event.time,
             it would be more intuitive and logical if the KeyboardReleaseEvent
             occurred just before the KeyboardCharEvent in an event list. This will be
             addressed at a later date.
-            
+
     Event Type ID: EventConstants.KEYBOARD_CHAR
-    
+
     Event Type String: 'KEYBOARD_CHAR'
     """
     _newDataTypes = [ ('press_event',KeyboardPressEvent.NUMPY_DTYPE),  # contains the keyboard press event that is
@@ -316,20 +335,20 @@ class KeyboardCharEvent(KeyboardReleaseEvent):
     def __init__(self,*args,**kwargs):
         """
         """
-        
+
         #: The pressEvent attribute of the KeyboardCharEvent contains a reference
         #: to the associated KeyboardPressEvent
         #: that the KeyboardCharEvent is based on. The press event is the *first*
         #: press of the key registered with the ioHub Server before the key is
         #: released, so any key auto repeat key events are always ignored.
-        #: KeyboardPressEvent class type.        
+        #: KeyboardPressEvent class type.
         self.press_event=None
-        
-        #: The ioHub time difference between the KeyboardReleaseEvent and 
+
+        #: The ioHub time difference between the KeyboardReleaseEvent and
         #: KeyboardPressEvent events that have formed the KeyboardCharEvent.
         #: float type. seconds.msec-usec format
         self.duration=None
-        
+
         KeyboardReleaseEvent.__init__(self,*args,**kwargs)
 
     @classmethod
