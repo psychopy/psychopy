@@ -64,16 +64,16 @@ def contains_overlaps(testType):
                     (-0.05*param['scaleFactor'],-0.24*param['scaleFactor']),
                     (-0.05*param['scaleFactor'], 0.24*param['scaleFactor'])]
 
-        shape = visual.ShapeStim(win, vertices=vertices)
+        shape = visual.ShapeStim(win, vertices=vertices, autoLog=False)
         testPoints = [visual.Circle(win, radius=0.02*param['scaleFactor'],
-                                    pos=p*param['scaleFactor'], units=param['units'])
+                                    pos=p*param['scaleFactor'], units=param['units'], autoLog=False)
                       for p in points]
         #message = visual.TextStim(win, text='test:%s  units:%s'%(testType,param['units']),
         #                          pos=(0,-0.4*param['scaleFactor']), height=0.04*param['scaleFactor'])
         for i in range(len(postures)):
-            shape.setOri(postures[i]['ori'])
-            shape.setSize(postures[i]['size'])
-            shape.setPos(postures[i]['pos']*param['scaleFactor'])
+            shape.setOri(postures[i]['ori'], log=False)
+            shape.setSize(postures[i]['size'], log=False)
+            shape.setPos(postures[i]['pos']*param['scaleFactor'], log=False)
             shape.draw()
             #message.draw()
             for j in range(len(testPoints)):
@@ -90,9 +90,9 @@ def contains_overlaps(testType):
                             postures[i]['size'], postures[i]['pos'], points[j],
                             correctResults[i][j])
                 if res:
-                    testPoints[j].setFillColor('green')
+                    testPoints[j].setFillColor('green', log=False)
                 else:
-                    testPoints[j].setFillColor('red')
+                    testPoints[j].setFillColor('red', log=False)
                 testPoints[j].draw()
             win.flip()
 
