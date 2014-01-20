@@ -176,12 +176,12 @@ class _baseTest:
 class TestPygletNorm(_baseTest):
     @classmethod
     def setup_class(self):
-        self.win = Window([128,128], winType='pyglet', pos=[50,50])
+        self.win = Window([128,128], winType='pyglet', pos=[50,50], autoLog=False)
         assert pygame.display.get_init() == 0
 
 class xxxTestPygameNorm(_baseTest):
     @classmethod
     def setup_class(self):
-        self.win = Window([128,128], winType='pygame', pos=[50,50])
+        self.win = Window([128,128], winType='pygame', pos=[50,50], autoLog=False)
         assert pygame.display.get_init() == 1
         assert event.havePygame

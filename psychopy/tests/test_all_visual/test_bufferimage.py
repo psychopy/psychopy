@@ -11,9 +11,9 @@ import pyglet
 class Test_BufferImage(object):
     @classmethod
     def setup_class(self):
-        self.win = Window([128,256])
-        self.winpix = Window([128,256], units='pix')
-        #self.winpygame = Window([128,256], winType='pygame')
+        self.win = Window([128,256], autoLog=False)
+        self.winpix = Window([128,256], units='pix', autoLog=False)
+        #self.winpygame = Window([128,256], winType='pygame', autoLog=False)
     @classmethod
     def teardown_class(self):
         for win in [self.win, self.winpix]:

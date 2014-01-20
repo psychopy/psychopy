@@ -10,7 +10,7 @@ import pytest
 @pytest.mark.textbox
 class Test_textbox(object):
     def setup_class(self):
-        self.win = Window([128,128], pos=[50,50], allowGUI=False)
+        self.win = Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
 
     def teardown_class(self):
         self.win.close()

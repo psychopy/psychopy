@@ -12,7 +12,7 @@ class Test_Custommouse(object):
     @classmethod
     def setup_class(self):
         self.win = Window([128,256])
-        self.winpix = Window([128,256], units='pix')
+        self.winpix = Window([128,256], units='pix', autoLog=False)
     @classmethod
     def teardown_class(self):
         for win in [self.win, self.winpix]:
@@ -20,7 +20,7 @@ class Test_Custommouse(object):
 
     def test_init(self):
         #for win in [self.win, self.winpix]:
-        m = CustomMouse(self.win, showLimitBox=True)
+        m = CustomMouse(self.win, showLimitBox=True, autoLog=False)
         assert (m.leftLimit, m.topLimit, m.rightLimit, m.bottomLimit) == (-1, 1, 0.99, -0.98)
         assert m.visible == True
         assert m.showLimitBox == True
@@ -38,7 +38,7 @@ class Test_Custommouse(object):
             m.setPointer('a')
         m.setPointer(TextStim(self.win, text='x'))
 
-        m = CustomMouse(self.winpix)
+        m = CustomMouse(self.winpix, autoLog=False)
         assert (m.leftLimit, m.topLimit, m.rightLimit, m.bottomLimit) == (-64.0, 128.0, 59.0, -118.0)
         assert m.visible == True
         assert m.showLimitBox == m.clickOnUp == False
@@ -47,4 +47,3 @@ class Test_Custommouse(object):
     def test_limits(self):
         # to-do: test setLimit
         pass
-

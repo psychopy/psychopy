@@ -54,7 +54,7 @@ mon.setWidth(40.0)
 mon.setSizePix([1024,768])
 
 dbgStr = '"%s" returns wrong value: unit=%s, ori=%.1f, size=%s, pos=%s, testpoint=%s, expected=%s'
-win = visual.Window([512,512], monitor=mon, winType='pyglet')
+win = visual.Window([512,512], monitor=mon, winType='pyglet', autoLog=False)
 
 def contains_overlaps(testType):
     for param in params:

@@ -19,11 +19,11 @@ class Test_Window:
     """
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-test_window')
-        self.win = visual.Window([128,128], pos=[50,50], allowGUI=False)
+        self.win = visual.Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
     def teardown_class(self):
         shutil.rmtree(self.temp_dir)
     def test_captureMovieFrames(self):
-        stim = visual.GratingStim(self.win, dkl=[0,0,1])
+        stim = visual.GratingStim(self.win, dkl=[0,0,1], autoLog=False)
         stim.setAutoDraw(True)
         for frameN in range(3):
             stim.setPhase(0.3,'+')
@@ -367,26 +367,26 @@ class _baseVisualTest:
 class TestPygletNorm(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True)
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
 class TestPygletHeight(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,64], winType='pyglet', pos=[50,50], allowStencil=False)
+        self.win = visual.Window([128,64], winType='pyglet', pos=[50,50], allowStencil=False, autoLog=False)
         self.contextName='height'
         self.scaleFactor=1#applied to size/pos values
 class TestPygletNormNoShaders(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True)
+        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
         self.win._haveShaders=False
         self.contextName='normNoShade'
         self.scaleFactor=1#applied to size/pos values
 class TestPygletNormStencil(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True)
+        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
         self.contextName='stencil'
         self.scaleFactor=1#applied to size/pos values
 class TestPygletPix(_baseVisualTest):
@@ -397,7 +397,7 @@ class TestPygletPix(_baseVisualTest):
         mon.setWidth(40.0)
         mon.setSizePix([1024,768])
         self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=True,
-            units='pix')
+            units='pix', autoLog=False)
         self.contextName='pix'
         self.scaleFactor=60#applied to size/pos values
 class TestPygletCm(_baseVisualTest):
@@ -408,7 +408,7 @@ class TestPygletCm(_baseVisualTest):
         mon.setWidth(40.0)
         mon.setSizePix([1024,768])
         self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=False,
-            units='cm')
+            units='cm', autoLog=False)
         self.contextName='cm'
         self.scaleFactor=2#applied to size/pos values
 class TestPygletDeg(_baseVisualTest):
@@ -419,13 +419,13 @@ class TestPygletDeg(_baseVisualTest):
         mon.setWidth(40.0)
         mon.setSizePix([1024,768])
         self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=True,
-            units='deg')
+            units='deg', autoLog=False)
         self.contextName='deg'
         self.scaleFactor=2#applied to size/pos values
 class TestPygameNorm(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], winType='pygame', allowStencil=True)
+        self.win = visual.Window([128,128], winType='pygame', allowStencil=True, autoLog=False)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
 class TestPygamePix(_baseVisualTest):
@@ -436,7 +436,7 @@ class TestPygamePix(_baseVisualTest):
         mon.setWidth(40.0)
         mon.setSizePix([1024,768])
         self.win = visual.Window([128,128], monitor=mon, winType='pygame', allowStencil=True,
-            units='pix')
+            units='pix', autoLog=False)
         self.contextName='pix'
         self.scaleFactor=60#applied to size/pos values
 #class TestPygameCm(_baseVisualTest):

@@ -158,13 +158,14 @@ class Monitor:
         useBits=None,
         verbose=True,
         currentCalib={},
-         ):
+        autoLog=True ):
         """
         """
 
         #make sure that all necessary settings have some value
         self.__type__ = 'psychoMonitor'
         self.name = name
+        self.autoLog = autoLog
         self.currentCalib = currentCalib
         self.currentCalibName = strFromDate(time.localtime())
         self.calibs = {}
@@ -177,7 +178,8 @@ class Monitor:
         else:
             self.newCalib()
 
-        logging.info(self.calibNames)
+        if self.autoLog:
+            logging.info(self.calibNames)
 
         #overide current monitor settings with the vals given
         if width: self.setWidth(width)
@@ -461,7 +463,8 @@ class Monitor:
             return False
 
         self.currentCalib = self.calibs[self.currentCalibName]      #do the import
-        logging.info("Loaded calibration from:%s" %self.currentCalibName)
+        if self.autoLog:
+            logging.info("Loaded calibration from:%s" %self.currentCalibName)
 
         return self.currentCalibName
 
@@ -506,7 +509,8 @@ class Monitor:
             if self._gammaInterpolator!=None and not newInterpolators:
                 pass #we already have an interpolator
             elif lumsPre != None:
-                logging.info('Creating linear interpolation for gamma')
+                if self.autoLog:
+                    logging.info('Creating linear interpolation for gamma')
                 #we can make an interpolator
                 self._gammaInterpolator, self._gammaInterpolator2 =[],[]
                 #each of these interpolators is a function!
@@ -544,7 +548,8 @@ class Monitor:
                 else: gamma = gammaGrid[1:4,2]
                 maxLumWhite = gammaGrid[0,1]
                 gammaWhite = gammaGrid[0,2]
-                logging.debug('using gamma grid'+str(gammaGrid))
+                if self.autoLog:
+                    logging.debug('using gamma grid'+str(gammaGrid))
             else:
                 #just do the calculation using gamma
                 minLum=0
@@ -851,16 +856,16 @@ def getLumSeries(lumLevels=8,
                 else:
                     #otherwise just this gun
                     lumsList[gun,valN] =  actualLum
-     
+
                 #check for quit request
                 for thisKey in psychopy.event.getKeys():
                     if thisKey in ['q', 'Q', 'escape']:
                         myWin.close()
                         return numpy.array([])
-     
+
             elif autoMode=='semi':
                 print "At DAC value %i" % DACval
-     
+
                 done = False
                 while not done:
                     #check for quit request

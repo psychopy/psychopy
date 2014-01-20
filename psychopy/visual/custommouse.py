@@ -33,7 +33,7 @@ class CustomMouse():
     def __init__(self, win, newPos=None, visible=True,
                  leftLimit=None, topLimit=None, rightLimit=None, bottomLimit=None,
                  showLimitBox=False, clickOnUp=False,
-                 pointer=None):
+                 pointer=None, autoLog=True):
         """Class for customizing the appearance and behavior of the mouse.
 
         Use a custom mouse for extra control over the pointer appearance and function.
@@ -72,6 +72,7 @@ class CustomMouse():
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
+        self.autoLog = False  # set properly at end of init
 
         self.win = win
         self.mouse = event.Mouse(win=self.win)
@@ -92,7 +93,8 @@ class CustomMouse():
         else:
             #self.pointer = TextStim(win, text='+')
             self.pointer = ImageStim(win,
-                    image=os.path.join(os.path.split(__file__)[0], 'pointer.png'))
+                    image=os.path.join(os.path.split(__file__)[0], 'pointer.png'),
+                    autoLog=False)
         self.mouse.setVisible(False) # hide the actual (system) mouse
         self.visible = visible # the custom (virtual) mouse
 
@@ -114,6 +116,7 @@ class CustomMouse():
         self.wasDown = False # state of mouse 1 frame prior to current frame, look for changes
         self.clicks = 0 # how many mouse clicks since last reset
         self.clickButton = 0 # which button to count clicks for; 0 = left
+        self.autoLog = autoLog
 
     def _setPos(self, pos=None):  # not implemented hence: # pragma: no cover
         """internal mouse position management. setting a position here leads to
@@ -203,7 +206,7 @@ class CustomMouse():
                     vertices=[[self.leftLimit,self.topLimit],[self.rightLimit,self.topLimit],
                         [self.rightLimit,self.bottomLimit],
                         [self.leftLimit,self.bottomLimit],[self.leftLimit,self.topLimit]],
-                    opacity=0.35)
+                    opacity=0.35, autoLog=False)
 
         # avoid accumulated relative-offsets producing a different effective limit:
         self.mouse.setVisible(True)

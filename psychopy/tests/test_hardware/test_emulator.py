@@ -14,7 +14,7 @@ BASE_MR_SETTINGS = {
 class _baseEmulatorTest:
     '''A base class to test launchScan with different MR_settings'''
     def setup(self):
-        self.win = visual.Window(fullscr=False)
+        self.win = visual.Window(fullscr=False, autoLog=False)
         self.globalClock = core.Clock()
 
     def test_launch_scan(self):
