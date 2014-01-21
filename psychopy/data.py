@@ -2271,6 +2271,7 @@ class MultiStairHandler(_BaseTrialHandler):
 
         """
         self.name=name
+        self.autoLog = autoLog
         self.type=stairType
         self.method=method #'random' or 'sequential'
         self.conditions=conditions
@@ -2291,7 +2292,6 @@ class MultiStairHandler(_BaseTrialHandler):
         #store the origin file and its path
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp = None#the experiment handler that owns me!
-        self.autoLog = autoLog
     def _checkArguments(self):
         #did we get a conditions parameter, correctly formatted
         if type(self.conditions) not in [list]:
