@@ -304,7 +304,7 @@ class Test_ExptComponents():
         for compName, compClass in allComponents.items():
             if compName in ['SettingsComponent']:
                 continue
-            print "testing with:", compName
+            #print "testing with:", compName
             thisComp = compClass(exp=self.exp, parentName='testRoutine', name=compName)
             self._checkCompileWith(thisComp)
     @classmethod

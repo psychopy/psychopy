@@ -217,14 +217,14 @@ class Window:
         # if we have a monitors.Monitor object (psychopy 0.54 onwards)
         # convert to a Monitor object
         if not monitor:
-            self.monitor = monitors.Monitor('__blank__')
+            self.monitor = monitors.Monitor('__blank__', autoLog=autoLog)
         if isinstance(monitor, basestring):
-            self.monitor = monitors.Monitor(monitor)
+            self.monitor = monitors.Monitor(monitor, autoLog=autoLog)
         elif hasattr(monitor, 'keys'):
             #convert into a monitor object
             self.monitor = monitors.Monitor('temp',
                                             currentCalib=monitor,
-                                            verbose=False)
+                                            verbose=False, autoLog=autoLog)
         else:
             self.monitor = monitor
 

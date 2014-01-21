@@ -374,7 +374,8 @@ class _BaseTrialHandler(object):
             fileCollisionMethod: Collision method passed to :func:`~psychopy.tools.fileerrortools.handleFileCollision`
         """
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
-            logging.info('.saveAsPickle() called but no trials completed. Nothing saved')
+            if self.autoLog:
+                logging.info('.saveAsPickle() called but no trials completed. Nothing saved')
             return -1
         #otherwise use default location
         if not fileName.endswith('.psydat'):
@@ -427,7 +428,8 @@ class _BaseTrialHandler(object):
 
         """
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
-            logging.info('TrialHandler.saveAsText called but no trials completed. Nothing saved')
+            if self.autoLog:
+                logging.info('TrialHandler.saveAsText called but no trials completed. Nothing saved')
             return -1
 
         dataArray = self._createOutputArray(stimOut=[],
@@ -466,7 +468,8 @@ class _BaseTrialHandler(object):
             f.write("\n")#add an EOL at end of each line
         if f != sys.stdout:
             f.close()
-            logging.info('saved data to %s' %f.name)
+            if self.autoLog:
+                logging.info('saved data to %s' %f.name)
     def printAsText(self, stimOut=[],
                     dataOut=('all_mean', 'all_std', 'all_raw'),
                     delim='\t',
@@ -524,7 +527,8 @@ class _BaseTrialHandler(object):
         """
 
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
-            logging.info('TrialHandler.saveAsExcel called but no trials completed. Nothing saved')
+            if self.autoLog:
+                logging.info('TrialHandler.saveAsExcel called but no trials completed. Nothing saved')
             return -1
 
         #NB this was based on the limited documentation (1 page wiki) for openpyxl v1.0
@@ -549,7 +553,8 @@ class _BaseTrialHandler(object):
             newWorkbook=False
         else:
             if not appendFile: #the file exists but we're not appending, so will be overwritten
-                logging.warning('Data file, %s, will be overwritten' %fileName)
+                if self.autoLog:
+                    logging.warning('Data file, %s, will be overwritten' %fileName)
             wb = Workbook()#create new workbook
             wb.properties.creator='PsychoPy'+psychopy.__version__
             newWorkbook=True
@@ -601,9 +606,11 @@ class _BaseTrialHandler(object):
         if originPath==None or not os.path.isfile(originPath):
             try:
                 originPath = inspect.getouterframes(inspect.currentframe())[1][1]
-                logging.debug("Using %s as origin file" %originPath)
+                if self.autoLog:
+                    logging.debug("Using %s as origin file" %originPath)
             except:
-                logging.debug("Failed to find origin file using inspect.getouterframes")
+                if self.autoLog:
+                    logging.debug("Failed to find origin file using inspect.getouterframes")
                 return '',''
         if os.path.isfile(originPath):#do we NOW have a path?
             origin = codecs.open(originPath,"r", encoding = "utf-8").read()
