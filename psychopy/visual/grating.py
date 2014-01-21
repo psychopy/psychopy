@@ -242,16 +242,16 @@ class GratingStim(BaseVisualStim):
         self.__dict__['mask'] = value
 
     def setSF(self, value, operation='', log=True):
-        """ Deprication Warning! Use 'stim.parameter = value' syntax instead"""
+        """ Deprecation Warning! Use 'stim.parameter = value' syntax instead"""
         self._set('sf', value, operation, log=log)
     def setPhase(self, value, operation='', log=True):
-        """ Deprication Warning! Use 'stim.parameter = value' syntax instead"""
+        """ Deprecation Warning! Use 'stim.parameter = value' syntax instead"""
         self._set('phase', value, operation, log=log)
     def setTex(self, value, log=True):
-        """ Deprication Warning! Use 'stim.parameter = value' syntax instead"""
+        """ Deprecation Warning! Use 'stim.parameter = value' syntax instead"""
         self.tex = value
     def setMask(self, value, log=True):
-        """ Deprication Warning! Use 'stim.parameter = value' syntax instead"""
+        """ Deprecation Warning! Use 'stim.parameter = value' syntax instead"""
         self.mask = value
 
     def draw(self, win=None):

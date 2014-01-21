@@ -118,7 +118,6 @@ class BufferImageStim(GratingStim):
         _clock = core.Clock()
         if stim: # draw all stim to the back buffer
             win.clearBuffer()
-            logging.debug('BufferImageStim.__init__: clearing back buffer')
             buffer = 'back'
             for stimulus in list(stim):
                 try:
@@ -153,7 +152,8 @@ class BufferImageStim(GratingStim):
         self.flipVert = flipVert
         self.autoLog = autoLog
 
-        logging.exp('BufferImageStim %s: took %.1fms to initialize' % (name, 1000 * _clock.getTime()))
+        if self.autoLog:
+            logging.exp('BufferImageStim %s: took %.1fms to initialize' % (name, 1000 * _clock.getTime()))
 
     @attributeSetter
     def tex(self, value):

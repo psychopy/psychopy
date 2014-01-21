@@ -132,7 +132,8 @@ class Window:
                  stereo=False,
                  name='window1',
                  checkTiming=True,
-                 useFBO=False):
+                 useFBO=False,
+                 autoLog=True):
         """
         :Parameters:
 
@@ -201,6 +202,7 @@ class Window:
             self._initParams.remove(unecess)
 
         self.name = name
+        self.autoLog = autoLog  # to suppress log msg during testing
         self.size = numpy.array(size, numpy.int)
         self.pos = pos
         # this will get overridden once the window is created
@@ -215,14 +217,14 @@ class Window:
         # if we have a monitors.Monitor object (psychopy 0.54 onwards)
         # convert to a Monitor object
         if not monitor:
-            self.monitor = monitors.Monitor('__blank__')
+            self.monitor = monitors.Monitor('__blank__', autoLog=autoLog)
         if isinstance(monitor, basestring):
-            self.monitor = monitors.Monitor(monitor)
+            self.monitor = monitors.Monitor(monitor, autoLog=autoLog)
         elif hasattr(monitor, 'keys'):
             #convert into a monitor object
             self.monitor = monitors.Monitor('temp',
                                             currentCalib=monitor,
-                                            verbose=False)
+                                            verbose=False, autoLog=autoLog)
         else:
             self.monitor = monitor
 
@@ -1053,9 +1055,11 @@ class Window:
             self.origGammaRamp = None
 
         if self.useNativeGamma:
-            logging.info('Using gamma table of operating system')
+            if self.autoLog:
+                logging.info('Using gamma table of operating system')
         else:
-            logging.info('Using gamma: self.gamma' + str(self.gamma))
+            if self.autoLog:
+                logging.info('Using gamma: self.gamma' + str(self.gamma))
             self.setGamma(self.gamma)  # using either pygame or bits++
 
     def setGamma(self, gamma):
@@ -1162,7 +1166,8 @@ class Window:
             thisScreen = allScrs[0]
         else:
             thisScreen = allScrs[self.screen]
-            logging.info('configured pyglet screen %i' % self.screen)
+            if self.autoLog:
+                logging.info('configured pyglet screen %i' % self.screen)
         #if fullscreen check screen size
         if self._isFullScr:
             self._checkMatchingSizes(self.size, [thisScreen.width,
@@ -1477,7 +1482,8 @@ class Window:
                     scrStr = ""
                 else:
                     scrStr = " (%i)" % self.screen
-                logging.debug('Screen%s actual frame rate measured at %.2f' %
+                if self.autoLog:
+                    logging.debug('Screen%s actual frame rate measured at %.2f' %
                               (scrStr, rate))
                 self.setRecordFrameIntervals(recordFrmIntsOrig)
                 self.frameIntervals = []
@@ -1522,7 +1528,7 @@ class Window:
             showVisual = False
             showText = True
             myMsg = TextStim(self, text=msg, italic=True,
-                             color=(.7, .6, .5), colorSpace='rgb', height=0.1)
+                             color=(.7, .6, .5), colorSpace='rgb', height=0.1, autoLog=False)
         else:
             showText = False
         if showVisual:
@@ -1552,10 +1558,10 @@ class Window:
         for i in range(nFrames):  # ... and go for real this time
             clockt.append(core.getTime())
             if showVisual:
-                myStim.phase += 1.0/nFrames
-                myStim.sf += 3./nFrames
-                myStim.ori += 12./nFrames
-                myStim.setOpacity(.9/nFrames, '+')
+                myStim.setPhase(1.0/nFrames, '+', log=False)
+                myStim.setSF(3./nFrames, '+', log=False)
+                myStim.setOri(12./nFrames, '+', log=False)
+                myStim.setOpacity(.9/nFrames, '+', log=False)
                 myStim.draw()
             elif showText:
                 myMsg.draw()

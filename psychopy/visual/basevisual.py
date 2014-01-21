@@ -40,7 +40,7 @@ class BaseVisualStim(object):
         self.units = units
         self._verticesBase = [[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]] #sqr
         self._rotationMatrix = [[1.,0.],[0.,1.]] #no rotation as a default
-        if autoLog:
+        if self.autoLog:
             logging.warning("%s is calling BaseVisualStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
                             %(self.__class__.__name__))
 
@@ -200,9 +200,9 @@ class BaseVisualStim(object):
                     self.tex = self.tex
                 if self.__class__.__name__ in ('ShapeStim','DotStim'):
                     pass # They work fine without shaders?
-                else:
+                elif self.autoLog:
                     logging.warning('Tried to set contrast while useShaders = False but stimulus was not rebuild. Contrast might remain unchanged.')
-        elif log:
+        elif self.autoLog:
             logging.warning('Contrast was set on class where useShaders was undefined. Contrast might remain unchanged')
 
     @attributeSetter

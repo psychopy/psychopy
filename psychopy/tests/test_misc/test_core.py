@@ -3,7 +3,6 @@
 Created on Tue Apr 23 11:18:47 2013
 
 Tests the psychopy.core.getTime Function:
-
   On Windows:
     1) Checks that the currently used core.getTime() implementation gives duration results
        consistent with directly using the Python high resolution timer.
@@ -12,20 +11,26 @@ Tests the psychopy.core.getTime Function:
     4) Tries to assess the resolution of the underlying core.getTime() time base and the Python high resolution timer.
     5) Tests MonotonicClock, Clock, CountdownTimer, wait
 @author: Sol
+
+-----
+Jan 2014, Jeremy Gray:
+- Coverage of .quit, .shellCall, and increased coverage of StaticPeriod()
 """
+
 import time
 import sys
 import numpy as np
 import psychopy
 import psychopy.logging as logging
-from psychopy.core import getTime, MonotonicClock, Clock, CountdownTimer, wait, StaticPeriod
+from psychopy.visual import Window
+from psychopy.core import getTime, MonotonicClock, Clock, CountdownTimer, wait, StaticPeriod, shellCall
 from psychopy.clock import monotonicClock
 import gc
 
 import pytest
 
 def testEmptyFunction():
-        pass
+    pass
 
 PRINT_TEST_RESULTS=False
 
@@ -45,11 +50,11 @@ else:
     py_timer_name='time.time'
 
 def printExceptionDetails():
-        import traceback,pprint
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        pprint.pprint(exc_type, indent=1, width=80, depth=None)
-        pprint.pprint(exc_value, indent=1, width=80, depth=None)
-        pprint.pprint(traceback.format_tb(exc_traceback), indent=1, width=80, depth=None)
+    import traceback,pprint
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    pprint.pprint(exc_type, indent=1, width=80, depth=None)
+    pprint.pprint(exc_value, indent=1, width=80, depth=None)
+    pprint.pprint(traceback.format_tb(exc_traceback), indent=1, width=80, depth=None)
 
 @pytest.mark.slow
 def testDelayDurationAccuracy(sample_size=100):
@@ -98,7 +103,6 @@ def testDelayDurationAccuracy(sample_size=100):
     except:
         printf("\nDuration Difference Test: FAILED")
     printf("-------------------------------------\n")
-
 
 @pytest.mark.slow
 def testTimebaseQuality(sample_size=1000):
@@ -258,7 +262,6 @@ def testClock():
 
     printf("-------------------------------------\n")
 
-
 def testCountdownTimer():
     try:
         cdt = CountdownTimer(5.0)
@@ -330,6 +333,7 @@ def testLoggingDefaultClock():
 
     printf("-------------------------------------\n")
 
+@pytest.mark.staticperiod
 def testStaticPeriod():
     static = StaticPeriod()
     static.start(0.1)
@@ -339,6 +343,31 @@ def testStaticPeriod():
     wait(0.11)
     assert static.complete()==0
 
+    win = Window(autoLog=False)
+    static = StaticPeriod(screenHz=60, win=win)
+    static.start(.002)
+    assert win.recordFrameIntervals == False
+    static.complete()
+    assert static._winWasRecordingIntervals == win.recordFrameIntervals
+
+@pytest.mark.quit
+def test_quit():
+    # to-do: make some active threads
+    with pytest.raises(SystemExit):
+        psychopy.core.quit()
+
+@pytest.mark.shellCall
+def test_shellCall():
+    msg = 'echo'
+    cmd = ('grep', 'findstr')[sys.platform == 'win32']
+
+    for arg1 in [[cmd, msg],  cmd+' '+msg]:
+        echo = shellCall(arg1, stdin=msg)
+        assert echo == msg
+        echo, se = shellCall(arg1, stdin=msg, stderr=True)
+        assert echo == msg
+    echo, se = shellCall(12, stdin=msg)
+    assert echo == None
 
 if __name__ == '__main__':
     testMonotonicClock()

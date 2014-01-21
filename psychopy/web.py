@@ -135,7 +135,7 @@ def getWpadFiles():
         pacURLs.append("http://wpad."+domain+"/wpad.dat")
     return list(set(pacURLs)) # remove redundant ones
 
-def proxyFromPacFiles(pacURLs=[], URL=None):
+def proxyFromPacFiles(pacURLs=[], URL=None, log=True):
     """Attempts to locate and setup a valid proxy server from pac file URLs
 
     :Parameters:
@@ -162,11 +162,13 @@ def proxyFromPacFiles(pacURLs=[], URL=None):
         pacURLs = getWpadFiles()
         #for each file search for valid urls and test them as proxies
     for thisPacURL in pacURLs:
-        logging.debug('proxyFromPacFiles is searching file:\n  %s' %thisPacURL)
+        if log:
+            logging.debug('proxyFromPacFiles is searching file:\n  %s' %thisPacURL)
         try:
             response = urllib2.urlopen(thisPacURL, timeout=2)
         except urllib2.URLError:
-            logging.debug("Failed to find PAC URL '%s' " %thisPacURL)
+            if log:
+                logging.debug("Failed to find PAC URL '%s' " %thisPacURL)
             continue
         pacStr = response.read()
         #find the candidate PROXY strings (valid URLS), numeric and non-numeric:
@@ -175,12 +177,13 @@ def proxyFromPacFiles(pacURLs=[], URL=None):
             proxUrl = 'http://' + thisPoss
             handler=urllib2.ProxyHandler({'http':proxUrl})
             if tryProxy(handler)==True:
-                logging.debug('successfully loaded: %s' %proxUrl)
+                if log:
+                    logging.debug('successfully loaded: %s' %proxUrl)
                 urllib2.install_opener(urllib2.build_opener(handler))
                 return handler
     return False
 
-def setupProxy():
+def setupProxy(log=True):
     """Set up the urllib proxy if possible.
 
      The function will use the following methods in order to try and determine proxies:
@@ -201,7 +204,8 @@ def setupProxy():
     #try doing nothing
     proxies=urllib2.ProxyHandler(urllib2.getproxies())
     if tryProxy(proxies) is True:
-        logging.debug("Using standard urllib2 (static proxy or no proxy required)")
+        if log:
+            logging.debug("Using standard urllib2 (static proxy or no proxy required)")
         urllib2.install_opener(urllib2.build_opener(proxies))#this will now be used globally for ALL urllib2 opening
         return 1
 
@@ -209,21 +213,25 @@ def setupProxy():
     if len(prefs.connections['proxy'])>0:
         proxies=urllib2.ProxyHandler({'http': prefs.connections['proxy']})
         if tryProxy(proxies) is True:
-            logging.debug('Using %s (from prefs)' %(prefs.connections['proxy']))
+            if log:
+                logging.debug('Using %s (from prefs)' %(prefs.connections['proxy']))
             urllib2.install_opener(urllib2.build_opener(proxies))#this will now be used globally for ALL urllib2 opening
             return 1
         else:
-            logging.debug("Found a previous proxy but it didn't work")
+            if log:
+                logging.debug("Found a previous proxy but it didn't work")
 
     #try finding/using a proxy.pac file
     pacURLs=getPacFiles()
-    logging.debug("Found proxy PAC files: %s" %pacURLs)
+    if log:
+        logging.debug("Found proxy PAC files: %s" %pacURLs)
     proxies=proxyFromPacFiles(pacURLs) # installs opener, if successful
     if proxies and hasattr(proxies, 'proxies') and len(proxies.proxies['http'])>0:
         #save that proxy for future
         prefs.connections['proxy']=proxies.proxies['http']
         prefs.saveUserPrefs()
-        logging.debug('Using %s (from proxy PAC file)' %(prefs.connections['proxy']))
+        if log:
+            logging.debug('Using %s (from proxy PAC file)' %(prefs.connections['proxy']))
         return 1
 
     #try finding/using 'auto-detect proxy'
@@ -233,7 +241,8 @@ def setupProxy():
         #save that proxy for future
         prefs.connections['proxy']=proxies.proxies['http']
         prefs.saveUserPrefs()
-        logging.debug('Using %s (from proxy auto-detect)' %(prefs.connections['proxy']))
+        if log:
+            logging.debug('Using %s (from proxy auto-detect)' %(prefs.connections['proxy']))
         return 1
 
     proxies=0
@@ -318,7 +327,7 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIM
 
     ## end of http://code.activestate.com/recipes/146306/ }}}
 
-def upload(selector, filename, basicAuth=None, host=None, https=False):
+def upload(selector, filename, basicAuth=None, host=None, https=False, log=True):
     """Upload a local file over the internet to a configured http server.
 
     This method handshakes with a php script on a remote server to transfer a local
@@ -395,12 +404,13 @@ def upload(selector, filename, basicAuth=None, host=None, https=False):
         raise ValueError('upload: need a selector, http://<host>/path/to/up.php')
     if not host:
         host = selector.split('/')[2]
-        logging.info('upload: host extracted from selector = %s' % host)
+        if log:
+            logging.info('upload: host extracted from selector = %s' % host)
     if selector.startswith('https'):
         if https is not True:
             logging.error('upload: https not explicitly requested. use https=True to proceed anyway (see API for security caveats).')
             raise ValueError('upload: https not fully supported (see API for caveats and usage), exiting.')
-        else:
+        elif log:
             logging.exp('upload: https requested; note that security is not fully assured (see API)')
     elif https:
         msg = 'upload: to use https, the selector URL must start with "https"'
@@ -413,7 +423,8 @@ def upload(selector, filename, basicAuth=None, host=None, https=False):
     file = [('file_1', filename, contents)]
 
     # initiate the POST:
-    logging.exp('upload: uploading file %s to %s' % (os.path.abspath(filename), selector))
+    if log:
+        logging.exp('upload: uploading file %s to %s' % (os.path.abspath(filename), selector))
     try:
         status, reason, result = _post_multipart(host, selector, fields, file,
                                                  basicAuth=basicAuth, https=https)
@@ -448,7 +459,8 @@ def upload(selector, filename, basicAuth=None, host=None, https=False):
         logging.error('upload: ' + outcome[:102])
     else:
         if outcome.startswith('success'):
-            logging.info('upload: ' + outcome[:102])
+            if log:
+                logging.info('upload: ' + outcome[:102])
         else:
             logging.error('upload: ' + outcome[:102])
     return outcome

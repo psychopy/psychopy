@@ -57,9 +57,9 @@ def test_ExperimentHandler():
             exp.addData('id',id)
             exp.nextEntry()
     #exp should then automatically save the pickle and csv data files
-    for e in exp.entries:
-        print e
-    print 'done'
+    #for e in exp.entries:
+    #    print e
+    #print 'done'
 
 if __name__=='__main__':
     test_ExperimentHandler()
