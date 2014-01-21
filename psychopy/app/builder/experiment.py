@@ -793,9 +793,11 @@ class MultiStairHandler:
         self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
             hint="An xlsx or csv file specifying the parameters for each condition")
     def writeInitCode(self,buff):
-        #also a 'thisName' for use in "for thisTrial in trials:"
+        pass #don't initialise at start of exp, create when needed
+    def writeLoopStartCode(self,buff):
+        #create a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
-        #write the code
+        #create the MultistairHander
         buff.writeIndentedLines("\n# set up handler to look after randomisation of trials etc\n")
         buff.writeIndentedLines("conditions = data.importConditions(%s)" %self.params['conditionsFile'])
         buff.writeIndented("%(name)s = data.MultiStairHandler(stairType=%(stairType)s, name='%(name)s',\n" %(self.params))
@@ -807,8 +809,7 @@ class MultiStairHandler:
         buff.writeIndented("# initialise values for first condition\n")
         buff.writeIndented("level = %(name)s._nextIntensity  # initialise some vals\n" %(self.params))
         buff.writeIndented("condition = %(name)s.currentStaircase.condition\n" %(self.params))
-    def writeLoopStartCode(self,buff):
-        #work out a name for e.g. thisTrial in trials:
+        #start the loop
         buff.writeIndented("\n")
         buff.writeIndented("for level, condition in %(name)s:\n" %(self.params))
         buff.setIndentLevel(1, relative=True)
