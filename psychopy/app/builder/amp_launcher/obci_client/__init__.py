@@ -132,7 +132,8 @@ class ExperimentSettings(object):
                     "sentry_log_level": "info",
                     "file_log_level": "info",
                     "mx_log_level": "info",
-                    "log_dir": "~/.obci/logs"
+                    "log_dir": "~/.obci/logs",
+                    "experiment_uuid": ""
                 }
             },
             'path': self.amp_config["exec_file"]
