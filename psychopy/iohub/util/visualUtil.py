@@ -201,8 +201,7 @@ class ScreenState(object):
         ftime=self.window().flip()
         ScreenState._currentState=self
         if text is not None:
-            flipText="%s : flip_time [%.6f]"%(text,ftime)
-            self.sendMessage(flipText,ftime)
+            self.sendMessage(text,ftime)
         return ftime
 
     def sendMessage(self, text, mtime=None):
