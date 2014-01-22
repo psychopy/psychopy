@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''Deprecated (as of version 1.74.00):
 please use the :class:`~psychopy.visual.GratingStim`

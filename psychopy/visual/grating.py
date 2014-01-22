@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in either dimension
 One of the main stimuli for PsychoPy'''

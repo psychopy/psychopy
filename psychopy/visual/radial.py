@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''Stimulus object for drawing radial stimuli, like an annulus, a rotating wedge,
     a checkerboard etc...'''

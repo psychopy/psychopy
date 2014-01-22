@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 """ demo for the class psychopy.visual.RatingScale()
 author: Jeremy Gray, Example 4 by Henrik Singmann

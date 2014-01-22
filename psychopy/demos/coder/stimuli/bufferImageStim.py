@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 """Demo of class psychopy.visual.BufferImageStim():
     - take a snapshot of a multi-item screen image

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """This script demonstrates the use of the ElementArrayStim, a highly optimised stimulus for generating 
 arrays of similar (but not identical) elements, such as in global form arrays or random dot stimuli.
 

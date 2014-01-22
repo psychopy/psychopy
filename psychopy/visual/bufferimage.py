@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''Take a "screen-shot" (full or partial), save to a ImageStim()-like
 RBGA object.`'''

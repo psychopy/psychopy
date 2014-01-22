@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''This stimulus class defines a field of elements whose behaviour can be
 independently controlled. Suitable for creating 'global form' stimuli or more

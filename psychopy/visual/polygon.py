@@ -1,5 +1,5 @@
 
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''Creates a regular polygon (triangles, pentagrams, ...)
 as a special case of a :class:`~psychopy.visual.ShapeStim`'''

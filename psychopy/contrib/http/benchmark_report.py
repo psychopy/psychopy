@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 """
 Go from multiple flat raw data files (.pkl) to html page, save .cache.pkl

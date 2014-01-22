@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 from psychopy import visual, core, event
 """
 Text rendering has changed a lot (for the better) under pyglet. This
