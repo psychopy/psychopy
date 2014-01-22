@@ -130,7 +130,7 @@ class Experiment:
         else:
             localDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
 
-        script.write('#!/usr/bin/env python\n' +
+        script.write('#!/usr/bin/env python2\n' +
                     '# -*- coding: utf-8 -*-\n' +
                     '"""\nThis experiment was created using PsychoPy2 Experiment Builder (v%s), %s\n' % (
                         self.psychopyVersion, localDateTime ) +
