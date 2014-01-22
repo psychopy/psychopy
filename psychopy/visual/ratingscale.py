@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''A class for getting numeric or categorical ratings, e.g., a 1-to-7 scale.'''
 

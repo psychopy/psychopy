@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''Class for more control over the mouse,
 including the pointer graphic and bounding box.'''

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
 '''

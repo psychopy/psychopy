@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''This stimulus class defines a field of dots with an update rule that
 determines how they change on every call to the .draw() method.'''

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """
 %        Maximum length sequence assuming distinct values = baseVal
 %

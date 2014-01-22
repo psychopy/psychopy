@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """Determine screen gamma using motion-nulling method 
 of Ledgeway and Smith, 1994, Vision Research, 34, 2727–2740

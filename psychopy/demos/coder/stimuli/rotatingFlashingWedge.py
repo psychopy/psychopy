@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #rotate flashing wedge
 from psychopy import visual, event, core
 

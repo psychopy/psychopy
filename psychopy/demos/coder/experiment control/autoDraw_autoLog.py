@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 from psychopy import visual, core, event
 
 """One easy way to handle stimuli that are drawn repeatedly is to 

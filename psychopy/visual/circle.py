@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''Creates a Circle with a given radius
 as a special case of a :class:`~psychopy.visual.Polygon`'''

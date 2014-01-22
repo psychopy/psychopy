@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy.'''
 

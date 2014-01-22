@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 """This demo allows for automated testing of the sound latency on your system.
 To use it you need a labjack (or adapt for a similar device) and a cable to 

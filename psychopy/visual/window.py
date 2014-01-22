@@ -1,4 +1,4 @@
-##!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''A class representing a window for displaying one or more stimuli'''
 

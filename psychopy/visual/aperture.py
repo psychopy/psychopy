@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''Restrict a stimulus visibility area to a basic shape
 (circle, square, triangle)'''
