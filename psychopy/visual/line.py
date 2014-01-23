@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''Creates a Line between two points
 as a special case of a :class:`~psychopy.visual.ShapeStim`'''
 
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import psychopy  # so we can get the __path__
@@ -35,6 +35,13 @@ class Line(ShapeStim):
                 Specifies the position of the end of the line
 
         """
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
+        #kwargs isn't a parameter, but a list of params
+        self._initParams.remove('kwargs')
+        self._initParams.extend(kwargs)
+
         self.start = start
         self.end = end
         self.vertices = [start, end]

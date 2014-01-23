@@ -1,7 +1,7 @@
 """To build simple dialogues etc. (requires wxPython)
 """
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 from psychopy import logging
 #from wxPython import wx
@@ -28,11 +28,12 @@ class Dlg(wx.Dialog):
         myDlg.addText('Experiment Info')
         myDlg.addField('Grating Ori:',45)
         myDlg.addField('Group:', choices=["Test", "Control"])
-        myDlg.show()#show dialog and wait for OK or Cancel
-        if gui.OK:#then the user pressed OK
+        myDlg.show()  # show dialog and wait for OK or Cancel
+        if myDlg.OK:  # then the user pressed OK
             thisInfo = myDlg.data
             print thisInfo
-        else: print 'user cancelled'
+        else:
+            print 'user cancelled'
     """
     def __init__(self,title='PsychoPy dialogue',
             pos=None, size=wx.DefaultSize,

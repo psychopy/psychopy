@@ -1,10 +1,10 @@
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
 Created on Sun May 19 15:22:54 2013
 
 @author: isolver
 """
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 #  FreeType high-level python API - Copyright 2011 Nicolas P. Rougier
@@ -123,7 +123,7 @@ def get_name_id( name_id ):
     elif name_id == TT_NAME_ID_TRADEMARK:
         return "trademark"
 
-    # the following values are from the OpenType spec 
+    # the following values are from the OpenType spec
     elif name_id == TT_NAME_ID_MANUFACTURER:
         return "manufacturer"
     elif name_id == TT_NAME_ID_DESIGNER:
@@ -268,7 +268,7 @@ def dump(font_name,name_tables=False,verbose=False):
         if name_tables and face.is_sfnt:
             print( )
             Print_Sfnt_Names( face )
-            
+
         if face.num_fixed_sizes:
             print(  )
             Print_Fixed( face )
@@ -283,7 +283,7 @@ if __name__ == '__main__':
 
     if len(sys.argv) < 2:
         usage( execname )
-    
+
     try:
         opts, args = getopt.getopt(sys.argv[1:], ':nv')
     except getopt.GetoptError, err:
@@ -298,6 +298,5 @@ if __name__ == '__main__':
         else:           usage( execname )
 
     font_name=args[0]
-    
-    dump(font_name,name_tables,verbose)
 
+    dump(font_name,name_tables,verbose)

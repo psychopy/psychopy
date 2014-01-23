@@ -3,7 +3,7 @@
 Style-guide for coder demos
 ===========================
 
-**OpenHatchers:** Welcome! Each coder demo is intended to illustrate a key PsychoPy feature (or two), especially in ways that show usage in practice, and go beyond the description in the API. The aim is not to illustrate every aspect, but to get people up to speed quickly, so they understand how basic usage works, and could then play around with advanced features.
+Each coder demo is intended to illustrate a key PsychoPy feature (or two), especially in ways that show usage in practice, and go beyond the description in the API. The aim is not to illustrate every aspect, but to get people up to speed quickly, so they understand how basic usage works, and could then play around with advanced features.
 
 As a newcomer to PsychoPy, you are in a great position to judge whether the comments and documentation are clear enough or not. If something is not clear, you may need to ask a PsychoPy contributor for a description; email psychopy-dev@googlegroups.com.
 
@@ -13,9 +13,9 @@ The idea is to have clean code that looks and works the same way across demos, w
 
 - Generally, when you run the demo, does it look good and help you understand the feature? Where might there be room for improvement? You can either leave notes in the code in a comment, or include them in a commit message.
 
-- Standardize the top stuff to have 1) a shbang, 2) utf-8 encoding, and 3) a comment::
+- Standardize the top stuff to have 1) a shbang with python2 (not just python), 2) utf-8 encoding, and 3) a comment::
 
-    #!/usr/bin/env python
+    #!/usr/bin/env python2
     # -*- coding: utf-8 -*-
     """Demo name, purpose, description (1-2 sentences, although some demos need more explanation).
     """
@@ -36,7 +36,7 @@ For the comment / description, it's a good idea to read and be informed by the r
 
   - remove any unnecessary ones
 
-  - replace `import time` with `from psychopy import core`. and then use `core.time()` instead of `time.time()`, for all time-related functions or methods not just `time()`.
+  - replace `import time` with `from psychopy import core`. Use `core.getTime()` (= ms since the script started) or `core.getAbsTime()` (= seconds, unix-style) instead of `time.time()`, for all time-related functions or methods not just `time()`.
 
   - add `from __future__ import division`, even if not needed. And make sure that doing so does not break the demo!
 
@@ -68,4 +68,3 @@ For the comment / description, it's a good idea to read and be informed by the r
     logging.console.setLevel(logging.INFO)  # or logging.DEBUG for even more stuff
 
 - End a script with `win.close()` (assuming the script used a `visual.Window`), and then `core.quit()` even though it's not strictly necessary
-

@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from _visual import * #to get the template visual component
@@ -29,7 +29,8 @@ class PatchComponent(VisualComponent):
         self.url="http://www.psychopy.org/builder/components/patch.html"
         self.exp.requirePsychopyLibs(['visual'])
         #params
-        self.params['advancedParams']=['color', 'colorSpace','sf','phase','texture resolution','interpolate']
+        self.params['color'].categ = "Advanced"
+        self.params['colorSpace'].categ = "Advanced"
         self.params['image']=Param(image, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="The image to be displayed - 'sin','sqr'... or a filename (including path)",
@@ -41,19 +42,19 @@ class PatchComponent(VisualComponent):
         self.params['sf']=Param(sf, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]",
-            label="SF")
+            label="SF", categ="Advanced")
         self.params['phase']=Param(phase, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="Spatial positioning of the image on the patch (in range 0-1.0)",
-            label="Phase")
+            label="Phase", categ="Advanced")
         self.params['texture resolution']=Param(texRes, valType='code', allowedVals=['32','64','128','256','512'],
             updates='constant', allowedUpdates=[],
             hint="Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice",
-            label="Texture resolution")
+            label="Texture resolution", categ="Advanced")
         self.params['interpolate']=Param(mask, valType='str', allowedVals=['linear','nearest'],
             updates='constant', allowedUpdates=[],
             hint="How should the image be interpolated if/when rescaled",
-            label="Interpolate")
+            label="Interpolate", categ="Advanced")
 
     def writeInitCode(self,buff):
         #do we need units code?

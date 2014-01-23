@@ -48,32 +48,32 @@ correctResults = [
     (False, False, False, True, True, False),
     (True, False, False, False, True, False) ]
 
-
 mon = monitors.Monitor('testMonitor')
 mon.setDistance(57)
 mon.setWidth(40.0)
 mon.setSizePix([1024,768])
 
 dbgStr = '"%s" returns wrong value: unit=%s, ori=%.1f, size=%s, pos=%s, testpoint=%s, expected=%s'
+win = visual.Window([512,512], monitor=mon, winType='pyglet', autoLog=False)
 
 def contains_overlaps(testType):
     for param in params:
+        win.units = param['units']
         vertices = [( 0.05*param['scaleFactor'], 0.24*param['scaleFactor']),
                     ( 0.05*param['scaleFactor'],-0.24*param['scaleFactor']),
                     (-0.05*param['scaleFactor'],-0.24*param['scaleFactor']),
                     (-0.05*param['scaleFactor'], 0.24*param['scaleFactor'])]
-        win = visual.Window([512,512], monitor=mon, winType='pyglet', units=param['units'])
-        shape = visual.ShapeStim(win, vertices=vertices)
+
+        shape = visual.ShapeStim(win, vertices=vertices, autoLog=False)
         testPoints = [visual.Circle(win, radius=0.02*param['scaleFactor'],
-                                    pos=p*param['scaleFactor'], units=param['units'])
+                                    pos=p*param['scaleFactor'], units=param['units'], autoLog=False)
                       for p in points]
         #message = visual.TextStim(win, text='test:%s  units:%s'%(testType,param['units']),
         #                          pos=(0,-0.4*param['scaleFactor']), height=0.04*param['scaleFactor'])
-
         for i in range(len(postures)):
-            shape.setOri(postures[i]['ori'])
-            shape.setSize(postures[i]['size'])
-            shape.setPos(postures[i]['pos']*param['scaleFactor'])
+            shape.setOri(postures[i]['ori'], log=False)
+            shape.setSize(postures[i]['size'], log=False)
+            shape.setPos(postures[i]['pos']*param['scaleFactor'], log=False)
             shape.draw()
             #message.draw()
             for j in range(len(testPoints)):
@@ -90,17 +90,22 @@ def contains_overlaps(testType):
                             postures[i]['size'], postures[i]['pos'], points[j],
                             correctResults[i][j])
                 if res:
-                    testPoints[j].setFillColor('green')
+                    testPoints[j].setFillColor('green', log=False)
                 else:
-                    testPoints[j].setFillColor('red')
+                    testPoints[j].setFillColor('red', log=False)
                 testPoints[j].draw()
             win.flip()
-            #core.wait(0.2)
-
-        win.close()
 
 mpl_version = matplotlib.__version__
-from matplotlib import nxutils
+try:
+    from matplotlib import nxutils
+    have_nxutils = True
+except:
+    have_nxutils = False
+
+# if matplotlib.__version__ > '1.2': try to use matplotlib Path objects
+# else: try to use nxutils
+# else: fall through to pure python
 
 @pytest.mark.polygon
 def test_point():
@@ -110,10 +115,11 @@ def test_point():
     assert helpers.pointInPolygon(12, 12, poly1) == False
     assert helpers.pointInPolygon(0, 0, [(0,0), (1,1)]) == False
 
-    helpers.nxutils = nxutils
-    matplotlib.__version__ = '1.1'  # matplotlib.nxutils
-    assert helpers.polygonsOverlap(poly1, poly2)
-    del(helpers.nxutils)
+    if have_nxutils:
+        helpers.nxutils = nxutils
+        matplotlib.__version__ = '1.1'  # matplotlib.nxutils
+        assert helpers.polygonsOverlap(poly1, poly2)
+        del(helpers.nxutils)
 
     matplotlib.__version__ = '0.0'    # pure python
     assert helpers.polygonsOverlap(poly1, poly2)
@@ -122,10 +128,11 @@ def test_point():
 @pytest.mark.polygon
 def test_contains():
     contains_overlaps('contains')  # matplotlib.path.Path
-    helpers.nxutils = nxutils
-    matplotlib.__version__ = '1.1'  # matplotlib.nxutils
-    contains_overlaps('overlaps')
-    del(helpers.nxutils)
+    if have_nxutils:
+        helpers.nxutils = nxutils
+        matplotlib.__version__ = '1.1'  # matplotlib.nxutils
+        contains_overlaps('contains')
+        del(helpers.nxutils)
     matplotlib.__version__ = '0.0'  # pure python
     contains_overlaps('contains')
     matplotlib.__version__ = mpl_version
@@ -133,10 +140,11 @@ def test_contains():
 @pytest.mark.polygon
 def test_overlaps():
     contains_overlaps('overlaps')  # matplotlib.path.Path
-    helpers.nxutils = nxutils
-    matplotlib.__version__ = '1.1'  # matplotlib.nxutils
-    contains_overlaps('overlaps')
-    del(helpers.nxutils)
+    if have_nxutils:
+        helpers.nxutils = nxutils
+        matplotlib.__version__ = '1.1'  # matplotlib.nxutils
+        contains_overlaps('overlaps')
+        del(helpers.nxutils)
     matplotlib.__version__ = '0.0'  # pure python
     contains_overlaps('overlaps')
     matplotlib.__version__ = mpl_version

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """
 There are many ways to generate counter-phase e.g. 
 vary the contrast of a grating sinusoidally between 1 and -1, 

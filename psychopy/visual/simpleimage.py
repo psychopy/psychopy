@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''A simple stimulus for loading images from a file and presenting at exactly
 the resolution and color in the file (subject to gamma correction if set).'''
 
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os
@@ -36,7 +36,7 @@ global currWindow
 currWindow = None
 
 
-class SimpleImageStim:
+class SimpleImageStim(object):
     """A simple stimulus for loading images from a file and presenting at exactly
     the resolution and color in the file (subject to gamma correction if set).
 
@@ -80,17 +80,19 @@ class SimpleImageStim:
                 The name of the object to be using during logged messages about
                 this stim
         """
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
+
         #NB most stimuli use BaseVisualStim for the _set method and for
         # setting up win, name, units and autolog in __init__ but SimpleImage
         # shares very little with _Base so we do it manually here
+        self.autoLog=False #this will be set later
         self.win=win
         self.name=name
-        self.autoLog=autoLog
         #unit conversions
         if units!=None and len(units): self.units = units
         else: self.units = win.units
-        if self.units in ['norm','height']: self._winScale=self.units
-        else: self._winScale='pix' #set the window to have pixels coords
 
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 
@@ -114,6 +116,12 @@ class SimpleImageStim:
         self.setFlipVert(flipVert)
 
         self._calcPosRendered()
+
+        #set autoLog (now that params have been initialised)
+        self.autoLog= autoLog
+        if autoLog:
+            logging.exp("Created %s = %s" %(self.name, repr(self)))
+
     def setFlipHoriz(self,newVal=True, log=True):
         """If set to True then the image will be flipped horiztonally (left-to-right).
         Note that this is relative to the original image, not relative to the current state.
@@ -183,7 +191,7 @@ class SimpleImageStim:
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
-        #move to centre of stimulus and rotate
+        #move to centre of stimulus
         GL.glRasterPos2f(self.win.size[0]/2.0 - self.size[0]/2.0 + self._posRendered[0],
             self.win.size[1]/2.0 - self.size[1]/2.0 + self._posRendered[1])
 
@@ -224,10 +232,18 @@ class SimpleImageStim:
     def setDepth(self,newDepth, operation='', log=True):
         self._set('depth', newDepth, operation, log=log)
     def _calcPosRendered(self):
-        """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
-        if self.units in ['pix', 'pixels', 'height', 'norm']: self._posRendered=self.pos
-        elif self.units in ['deg', 'degs']: self._posRendered=deg2pix(self.pos, self.win.monitor)
-        elif self.units=='cm': self._posRendered=cm2pix(self.pos, self.win.monitor)
+        """Calculate the pos of the stimulus in pixels"""
+        if self.units == 'pix':
+            self._posRendered = self.pos
+        elif self.units == 'cm':
+            self._posRendered = cm2pix(self.pos, self.win.monitor)
+        elif self.units =='deg':
+            self._posRendered = deg2pix(self.pos, self.win.monitor)
+        elif self.units == 'norm':
+            self._posRendered = self.pos * self.win.size/2.0
+        elif self.units == 'height':
+            self._posRendered = self.pos * self.win.size[1]
+
     def setImage(self,filename=None, log=True):
         """Set the image to be drawn.
 

@@ -1,5 +1,4 @@
 
-
 :class:`Aperture`
 ------------------------------------
 .. autoclass:: psychopy.visual.Aperture

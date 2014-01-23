@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''Deprecated (as of version 1.74.00):
 please use the :class:`~psychopy.visual.GratingStim`
 or the :class:`~psychopy.visual.ImageStim` classes.'''
 
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy.visual.grating import GratingStim

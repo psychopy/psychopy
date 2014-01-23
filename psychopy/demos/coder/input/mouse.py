@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 from psychopy import visual, core, event
 """
 As of version 1.51 the mouse coordinates for

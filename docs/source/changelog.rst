@@ -16,8 +16,51 @@ Changelog
 
 :blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
+
+PsychoPy 1.80
+------------------------------
+
+PsychoPy 1.80.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ADDED: RatingScale markerStart position can be arbitrary, e.g., can start between items or beyond the end of scale
+* ADDED: RatingScale tickHeight can be used to control the height of tickMarks, including no tick marks (tickHeight=0)
+* ADDED: RatingScale marker='hover' is similar to HTML-style hovering over clickable elements
+
+*psychopy.visual.RatingScale Changes* :
+
+* :blue:`CHANGED: Builder: remove option: choiceLabelsAboveLine; change lowAnchorText, highAnchorText -> labels`
+* :blue:`CHANGED: skipping a rating now adds None as the final element in the history`
+* :blue:`CHANGED: the default minTime is shorter, now 0.4s`
+* :blue:`CHANGED: more info in the log when creating a rating scale object`
+* :blue:`CHANGED: removed showAnchors: now use labels=None (instead of showAnchors=False)`
+* :blue:`CHANGED: removed lowAnchorText & highAnchorText: now use labels=['leftAnchor', 'rightAnchor'] or with optional 3rd midpoint label`
+* :blue:`CHANGED: renamed several parameters: stretchHoriz -> stretch, textSizeFactor -> textSize, ticksAboveLine -> tickHeight, displaySizeFactor -> size, markerStyle -> marker, customMarker -> marker`
+* :blue:`CHANGED: removed showScale: now use scale=None (instead of showScale=False)`
+* :blue:`CHANGED: removed allowSkip: now use skipKeys=None (instead of allowSkip=False)`
+* :blue:`CHANGED: removed escapeKeys; no longer supported but it's easy to implement (as now done in the coder demo)`
+
 PsychoPy 1.79
 ------------------------------
+
+PsychoPy 1.79.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED: startup crash in 1.79.00
+* FIXED: long-standing memory leak in MovieStim
+* FIXED: fixed problem with MovieStim not displaying the image but playing the audio
+* ADDED: volume attribute to MovieStim (Frank Papenmeier)
+* FIXED: experiments were crashing if first line of a conditions file contained a float but the rest were integers
+* FIXED: QuestHandler.addResponse() should not try to replace existing intensity on first trial (Richard Höchenberger)
+* FIXED: Window's viewPos and viewScale attributes could not be changed
+* FIXED: Builder code generation for Cedrus Box when user provided a limited set of available buttons
+* FIXED: multiple issues causing fatal errors when setting stimulus parameters (Pieter Moors and Damien Mannion)
+* FIXED: Builder experiments would crash under certain conditions when there was no 'participant' in the info dialog box (Philipp Wiesemann)
+* FIXED: bug toggling readme file window in Builder (Philipp Wiesemann)
+* FIXED: further fix to the Coder raising excessive 'this file has changed' warnings
+* FIXED: Component names now update on the Routine panel after being changed in a dialog (Philipp Wiesemann)
+* FIXED: bug importing conditions if the first row of numbers was the only float. (importFromConditions now uses numpy instead of matplotlib)
+* FIXED: further fix to the extra "file close" queries during shut-down
 
 PsychoPy 1.79.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -35,8 +78,9 @@ PsychoPy 1.79.00
         * Two demos in psychopy.coder.visual.textbox
         * Requires: freetype lib (included in Standalone)
         * Advantages: Very fast update following text change; very precise character placement.
-        * Disadvantages: Supports monospace fonts only. 
+        * Disadvantages: Supports monospace fonts only.
         * IMPORTANT: TextBox is still being finalized and completed; expect to find (and please report) issues. API changes guaranteed.
+* FIXED: misaligned responses in csv output for QuestHandler (Zhili Zheng)
 * FIXED: bug when using ElementArrayStim with numpy 1.7.1. Most elements were receiving SF=0
 * FIXED: 'semi-automatic' calibration (thanks Flip Phillips)
 * FIXED: shut-down issues. Builder now remembers its last experiment and you don't get multiple messages about the scripts that have changed
@@ -50,7 +94,6 @@ PsychoPy 1.79.00
     * pyxid now includes Jared's upstream bug-fix
 * FIXED: many user interface tweaks, documentation and help string corrections (Philip Wiesemann)
 * FIXED: PsychoPy Coder view now closes the iohub process when the experiment script is terminated using 'Stop'. (Sol Simpson)
-* FIXED: bug importing conditions if the first row of numbers was the only float. (importFromConditions now uses numpy instead of matplotlib)
 * FIXED: Builder use of single staircase loops now respects the min/max values
 * CHANGED: data curve fitting functions are now using scipy.optimise.curve_fit and should hopefully be more robust to local minima(?)
 
@@ -87,7 +130,7 @@ PsychoPy 1.79.00
             * filter Mouse, Eye Tracker, and Touch device events based on screen location.
             * circle, ellipse, rectangle, and general polygon ROI shapes supported. (ROI functionality is dependent on the shapely python package)
         * IMPORTANT: The ioDataStore->DataFrame API is still being designed and developed. Expect to find issues. API changes guaranteed.
-                  
+
 PsychoPy 1.78
 ------------------------------
 

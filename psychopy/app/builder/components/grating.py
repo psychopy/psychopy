@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from _visual import * #to get the template visual component
@@ -30,7 +30,6 @@ class GratingComponent(VisualComponent):
         self.exp.requirePsychopyLibs(['visual'])
         self.order=['tex','mask']
         #params
-        self.params['advancedParams']=['texture resolution','interpolate']
         self.params['tex']=Param(image, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename (including path)",
@@ -50,11 +49,11 @@ class GratingComponent(VisualComponent):
         self.params['texture resolution']=Param(texRes, valType='code', allowedVals=['32','64','128','256','512'],
             updates='constant', allowedUpdates=[],
             hint="Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice",
-            label="Texture resolution")
+            label="Texture resolution", categ="Advanced")
         self.params['interpolate']=Param(interpolate, valType='str', allowedVals=['linear','nearest'],
             updates='constant', allowedUpdates=[],
             hint="How should the image be interpolated if/when rescaled",
-            label="Interpolate")
+            label="Interpolate", categ="Advanced")
 
     def writeInitCode(self,buff):
         #do we need units code?

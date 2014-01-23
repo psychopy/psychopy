@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''Take a "screen-shot" (full or partial), save to a ImageStim()-like
 RBGA object.`'''
 
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -110,10 +110,14 @@ class BufferImageStim(GratingStim):
         """
         # depends on: window._getRegionOfFrame
 
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
+
+        self.autoLog=False #set this False first and change after attribs are set
         _clock = core.Clock()
         if stim: # draw all stim to the back buffer
             win.clearBuffer()
-            logging.debug('BufferImageStim.__init__: clearing back buffer')
             buffer = 'back'
             for stimulus in list(stim):
                 try:
@@ -139,7 +143,7 @@ class BufferImageStim(GratingStim):
         if win.units in ['norm']:
             pos *= win.size/2.
         GratingStim.__init__(self, win, tex=region, units='pix', mask=mask, pos=pos,
-                             interpolate=interpolate, name=name, autoLog=autoLog)
+                             interpolate=interpolate, name=name, autoLog=False)
 
         # to improve drawing speed, move these out of draw:
         self.desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
@@ -148,7 +152,8 @@ class BufferImageStim(GratingStim):
         self.flipVert = flipVert
         self.autoLog = autoLog
 
-        logging.exp('BufferImageStim %s: took %.1fms to initialize' % (name, 1000 * _clock.getTime()))
+        if self.autoLog:
+            logging.exp('BufferImageStim %s: took %.1fms to initialize' % (name, 1000 * _clock.getTime()))
 
     @attributeSetter
     def tex(self, value):
@@ -241,8 +246,6 @@ class BufferImageStim(GratingStim):
                     self.thisScale[1] * (1,-1)[self.flipVert], 1.0)
 
         # enable dynamic position, orientation, opacity; depth not working?
-        GL.glTranslatef(self._posRendered[0], self._posRendered[1], 0)
-        GL.glRotatef(-self.ori, 0.0, 0.0, 1.0)
         GL.glColor4f(self.desiredRGB[0], self.desiredRGB[1], self.desiredRGB[2], self.opacity)
 
         GL.glCallList(self._listID) # make it happen

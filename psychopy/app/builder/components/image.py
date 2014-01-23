@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from _visual import * #to get the template visual component
@@ -30,7 +30,8 @@ class ImageComponent(VisualComponent):
         self.url="http://www.psychopy.org/builder/components/image.html"
         self.exp.requirePsychopyLibs(['visual'])
         #params
-        self.params['advancedParams']=['color', 'colorSpace','texture resolution','interpolate']
+        self.params['color'].categ = "Advanced" #was set by BaseVisual but for this stim it's advanced
+        self.params['colorSpace'].categ = "Advanced"
         self.params['image']=Param(image, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="The image to be displayed - a filename, including path",
@@ -38,15 +39,15 @@ class ImageComponent(VisualComponent):
         self.params['mask']=Param(mask, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="An image to define the alpha mask through which the image is seen - gauss, circle, None or a filename (including path)",
-            label="Mask")
+            label="Mask", categ="Advanced")
         self.params['texture resolution']=Param(texRes, valType='code', allowedVals=['32','64','128','256','512'],
             updates='constant', allowedUpdates=[],
             hint="Resolution of the mask if one is used.",
-            label="Texture resolution")
+            label="Texture resolution", categ="Advanced")
         self.params['interpolate']=Param(mask, valType='str', allowedVals=['linear','nearest'],
             updates='constant', allowedUpdates=[],
             hint="How should the image be interpolated if/when rescaled",
-            label="Interpolate")
+            label="Interpolate", categ="Advanced")
         self.params['flipVert']=Param(flipVert, valType='bool',
             updates='constant', allowedUpdates=[],
             hint="Should the image be flipped vertically (top to bottom)?",
@@ -65,6 +66,7 @@ class ImageComponent(VisualComponent):
         buff.writeIndented("    image=%(image)s, mask=%(mask)s,\n" %(inits))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s,\n" %(inits) )
         buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" %(inits) )
+        buff.writeIndented("    flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s,\n" %(inits) )
         buff.writeIndented("    texRes=%(texture resolution)s" %(inits))# no newline - start optional parameters
         if self.params['interpolate'].val=='linear':
             buff.write(", interpolate=True")

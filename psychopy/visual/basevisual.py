@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''A base class that is subclassed to produce specific visual stimuli'''
 
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import copy
@@ -16,7 +16,7 @@ from psychopy import logging
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import attributeSetter, setWithOperation
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb
-from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
+from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg, convertToPix
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
                                      setColor, setTexIfNoShaders)
 
@@ -33,26 +33,58 @@ class BaseVisualStim(object):
     Not finished...?
     """
     def __init__(self, win, units=None, name='', autoLog=True):
+        self.autoLog = autoLog
         self.win = win
         self.name = name
-        self.autoLog = autoLog
         self.status = NOT_STARTED
         self.units = units
+        self._verticesBase = [[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]] #sqr
+        self._rotationMatrix = [[1.,0.],[0.,1.]] #no rotation as a default
+        if self.autoLog:
+            logging.warning("%s is calling BaseVisualStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
+                            %(self.__class__.__name__))
+
+    def __str__(self, complete=False):
+        """
+        """
+        if hasattr(self, '_initParams'):
+            className = self.__class__.__name__
+            paramStrings = []
+            for param in self._initParams:
+                if hasattr(self, param):
+                    val = getattr(self, param)
+                    valStr = repr(getattr(self, param))
+                    if len(repr(valStr))>50 and not complete:
+                        if val.__class__.__name__ == 'attributeSetter':
+                            valStr = "%s(...)" %val.__getattribute__.__class__.__name__
+                        else:
+                            valStr = "%s(...)" %val.__class__.__name__
+                else:
+                    valStr = 'UNKNOWN'
+                paramStrings.append("%s=%s" %(param, valStr))
+            #this could be used if all params are known to exist:
+            # paramStrings = ["%s=%s" %(param, getattr(self, param)) for param in self._initParams]
+            params = ", ".join(paramStrings)
+            s = "%s(%s)" %(className, params)
+        else:
+            s = object.__repr__(self)
+        return s
 
     @attributeSetter
     def win(self, value):
-        """
-        a :class:`~psychopy.visual.Window` object (required)
+        """ The :class:`~psychopy.visual.Window` object in which the stimulus will be rendered
+        by default. (required)
 
-           Example, drawing same stimulus in two different windows and display
-           simultaneously. Assuming that you have two windows and a stimulus (win1, win2 and stim)::
+       Example, drawing same stimulus in two different windows and display
+       simultaneously. Assuming that you have two windows and a stimulus (win1, win2 and stim)::
 
-               stim.win = win1  # stimulus will be drawn in win1
-               stim.draw()  # stimulus is now drawn to win1
-               stim.win = win2  # stimulus will be drawn in win2
-               stim.draw()  # it is now drawn in win2
-               win1.flip(waitBlanking=False)  # do not wait for next monitor update
-               win2.flip()  # wait for vertical blanking.
+           stim.win = win1  # stimulus will be drawn in win1
+           stim.draw()  # stimulus is now drawn to win1
+           stim.win = win2  # stimulus will be drawn in win2
+           stim.draw()  # it is now drawn in win2
+           win1.flip(waitBlanking=False)  # do not wait for next monitor update
+           win2.flip()  # wait for vertical blanking.
+
         """
         self.__dict__['win'] = value
 
@@ -60,17 +92,25 @@ class BaseVisualStim(object):
     # appears in docs and that name setting and updating is logged.
     @attributeSetter
     def name(self, value):
-        """
-        String
+        """The name of the object to be using during logged messages about
+        this stim. If you have multiple stimuli in your experiment this really
+        helps to make sense of log files!
 
-            The name of the object to be using during logged messages about this stim.
-            Example::
+        type: String
 
-                stim = visual.TextStim(win, text='happy message', name='positive')
-                stim.draw(); win.flip();  # log will include name
-                stim.text = 'sad message'
-                stim.name = 'negative'
-                stim.draw(); win.flip()  # log will include name
+        Example::
+
+            upper = visual.TextStim(win, text='Monty', name='upperStim')
+            lower = visual.TextStim(win, text='Python', name='lowerStim')
+            upper.setAutoDraw(True)
+            for frameN in range(3):
+                win.flip()
+            # turn off top and turn on bottom
+            upper.setAutoDraw(False)
+            lower.setAutoDraw(True)
+            for frameN in range(3):
+                win.flip()
+            # log file will include names to identify which stim came on/off
         """
         self.__dict__['name'] = value
 
@@ -96,11 +136,6 @@ class BaseVisualStim(object):
         else:
             self.__dict__['units'] = self.win.units
 
-        if self.units in ['norm', 'height']:
-            self._winScale=self.units
-        else:
-            self._winScale='pix' #set the window to have pixels coords
-
         # Update size and position if they are defined. If not, this is probably
         # during some init and they will be defined later, given the new unit.
         if not isinstance(self.size, attributeSetter) and not isinstance(self.pos, attributeSetter):
@@ -109,10 +144,13 @@ class BaseVisualStim(object):
 
     @attributeSetter
     def opacity(self, value):
-        """
-        Float. :ref:`operations <attrib-operations>` supported.
-            Set the opacity of the stimulus.
-            Should be between 1.0 (opaque) and 0.0 (transparent).
+        """Determines how visible the stimulus is relative to background
+
+        The value should be a single float ranging 1.0 (opaque) to 0.0
+        (transparent).
+        :ref:`Operations <attrib-operations>` are supported.
+
+        Precisely how this is used depends on the :ref:`blendMode`
         """
         self.__dict__['opacity'] = value
 
@@ -126,23 +164,28 @@ class BaseVisualStim(object):
 
     @attributeSetter
     def contrast(self, value):
-        """
-        Float between -1 (negative) and 1 (unchanged). :ref:`operations <attrib-operations>` supported.
-            Set the contrast of the stimulus, i.e. scales how far the stimulus
-            deviates from the middle grey. (This is a multiplier for the values
-            given in the color description of the stimulus). Examples::
+        """A value that is simply multiplied by the color
 
-                stim.contrast = 1.0  # unchanged contrast
-                stim.contrast = 0.5  # decrease contrast
-                stim.contrast = 0.0  # uniform, no contrast
-                stim.contrast = -0.5 # slightly inverted
-                stim.contrast = -1   # totally inverted
+        Value should be: a float between -1 (negative) and 1 (unchanged).
+            :ref:`Operations <attrib-operations>` supported.
 
-            Setting contrast outside range -1 to 1 is possible, but may
-            produce strange results if color values exceeds the colorSpace limits.::
+        Set the contrast of the stimulus, i.e. scales how far the stimulus
+        deviates from the middle grey. You can also use the stimulus
+        `opacity` to control contrast, but that cannot be negative.
 
-                stim.contrast = 1.2 # increases contrast.
-                stim.contrast = -1.2  # inverts with increased contrast
+        Examples::
+
+            stim.contrast = 1.0  # unchanged contrast
+            stim.contrast = 0.5  # decrease contrast
+            stim.contrast = 0.0  # uniform, no contrast
+            stim.contrast = -0.5 # slightly inverted
+            stim.contrast = -1   # totally inverted
+
+        Setting contrast outside range -1 to 1 is permitted, but may
+        produce strange results if color values exceeds the monitor limits.::
+
+            stim.contrast = 1.2 # increases contrast.
+            stim.contrast = -1.2  # inverts with increased contrast
         """
         self.__dict__['contrast'] = value
 
@@ -157,16 +200,19 @@ class BaseVisualStim(object):
                     self.tex = self.tex
                 if self.__class__.__name__ in ('ShapeStim','DotStim'):
                     pass # They work fine without shaders?
-                else:
+                elif self.autoLog:
                     logging.warning('Tried to set contrast while useShaders = False but stimulus was not rebuild. Contrast might remain unchanged.')
-        elif log:
+        elif self.autoLog:
             logging.warning('Contrast was set on class where useShaders was undefined. Contrast might remain unchanged')
 
     @attributeSetter
     def useShaders(self, value):
-        """
-        True/False (default is *True*, if shaders are supported by the system)
-            Set whether shaders are used to render stimuli.
+        """Should shaders be used to render the stimulus (typically leave as `True`)
+
+        If the system support the use of OpenGL shader language then leaving
+        this set to True is highly recommended. If shaders cannot be used then
+        various operations will be slower (notably, changes to stimulus color
+        or contrast)
         """
         #NB TextStim overrides this function, so changes here may need changing there too
         self.__dict__['useShaders'] = value
@@ -183,21 +229,31 @@ class BaseVisualStim(object):
 
     @attributeSetter
     def ori(self, value):
-        """
-        :ref:`scalar <attrib-scalar>`. :ref:`operations <attrib-operations>` supported.
-            Set the stimulus orientation in degrees.
-            ori can be greater than 360 and smaller than 0.
+        """The orientation of the stimulus (in degrees).
+
+        Should be a single value (:ref:`scalar <attrib-scalar>`). :ref:`Operations <attrib-operations>` are supported.
+
+        Orientation convention is like a clock: 0 is vertical, and positive
+        values rotate clockwise. Beyond 360 and below zero values wrap
+        appropriately.
+
         """
         self.__dict__['ori'] = value
+        radians = value*0.017453292519943295
+        self._rotationMatrix = numpy.array([[numpy.cos(radians), -numpy.sin(radians)],
+                                [numpy.sin(radians), numpy.cos(radians)]])
+        self._needVertexUpdate=True #need to update update vertices
+        self._needUpdate = True
 
     @attributeSetter
     def autoDraw(self, value):
+        """Determines whether the stimulus should be automatically drawn on
+
+        Value should be: `True` or `False`
+
+        You do NOT need to set this on every frame flip!
         """
-        True or False.
-            Add or remove a stimulus from the list of stimuli that will be
-            automatically drawn on each flip. You do NOT need to call this on every frame flip!
-            True to add the stimulus to the draw list, False to remove it.
-        """
+        self.__dict__['autoDraw'] = value
         toDraw = self.win._toDraw
         toDrawDepths = self.win._toDrawDepths
         beingDrawn = (self in toDraw)
@@ -222,38 +278,40 @@ class BaseVisualStim(object):
 
     @attributeSetter
     def pos(self, value):
-        """
-        :ref:`x,y-pair <attrib-xy>`. :ref:`operations <attrib-operations>` supported.
-            Set the stimulus position in the `units` inherited from the stimulus.
-            Either list [x, y], tuple (x, y) or numpy.ndarray ([x, y]) with two elements.
+        """The position of the center of the stimulus in the stimulus :ref:`units <units>`
 
-            Example::
+        Value should be an :ref:`x,y-pair <attrib-xy>`. :ref:`Operations <attrib-operations>`
+        are also supported.
 
-                stim.pos = (0.5, 0)  # Slightly to the right
-                stim.pos += (0.5, -1)  # Move right and up. Is now (1.0, -1.0)
-                stim.pos *= 0.2  # Move towards the center. Is now (0.2, -0.2)
+        Example::
 
-            Tip: if you can see the actual pixel range this corresponds to by
-            looking at stim._posRendered
+            stim.pos = (0.5, 0)  # Set slightly to the right of center
+            stim.pos += (0.5, -1)  # Increment pos rightwards and upwards. Is now (1.0, -1.0)
+            stim.pos *= 0.2  # Move stim towards the center. Is now (0.2, -0.2)
+
+        Tip: if you can see the actual pixel range this corresponds to by
+        looking at `stim._posRendered`
         """
         self.__dict__['pos'] = val2array(value, False, False)
-        self._calcPosRendered()
+        self._needVertexUpdate=True
 
     @attributeSetter
     def size(self, value):
-        """
-        :ref:`x,y-pair <attrib-xy>`, :ref:`scalar <attrib-scalar>` or None (resets to default). Supports :ref:`operations <attrib-operations>`.
-            Units are inherited from the stimulus.
-            Sizes can be negative and can extend beyond the window.
+        """The size (w,h) of the stimulus in the stimulus :ref:`units <units>`
 
-            Example::
+        Value should be :ref:`x,y-pair <attrib-xy>`, :ref:`scalar <attrib-scalar>` (applies to both dimensions)
+        or None (resets to default). :ref:`Operations <attrib-operations>` are supported.
 
-                stim.size = 0.8  # Set size to (xsize, ysize) = (0.8, 0.8), quadratic.
-                print stim.size  # Outputs array([0.8, 0.8])
-                stim.size += (0,5, -0.5)  # make wider and flatter. Is now (1.3, 0.3)
+        Sizes can be negative (causes a flip) and can extend beyond the window.
 
-            Tip: if you can see the actual pixel range this corresponds to by
-            looking at stim._sizeRendered
+        Example::
+
+            stim.size = 0.8  # Set size to (xsize, ysize) = (0.8, 0.8), quadratic.
+            print stim.size  # Outputs array([0.8, 0.8])
+            stim.size += (0,5, -0.5)  # make wider and flatter. Is now (1.3, 0.3)
+
+        Tip: if you can see the actual pixel range this corresponds to by
+        looking at `stim._sizeRendered`
         """
         value = val2array(value)  # Check correct user input
         self._requestedSize = value  #to track whether we're just using a default
@@ -271,17 +329,19 @@ class BaseVisualStim(object):
                 elif self.units == 'norm': value = 2 * numpy.array(self._origSize, float) / self.win.size
                 elif self.units == 'height': value = numpy.array(self._origSize, float) / self.win.size[1]
         self.__dict__['size'] = value
-        self._calcSizeRendered()
+        self._needVertexUpdate=True
         if hasattr(self, '_calcCyclesPerStim'):
             self._calcCyclesPerStim()
-        self._needUpdate = True
 
     @attributeSetter
     def autoLog(self, value):
-        """
-        True or False.
-            Turn on (or off) autoLogging for this stimulus. This logs every
-            parameter change and other significant events.
+        """Whether every change in this stimulus should be logged automatically
+
+        Value should be: `True` or `False`
+
+        Set this to `False` if your stimulus is updating frequently (e.g.
+        updating its position every frame) or you will swamp the log file with
+        messages that aren't likely to be useful.
         """
         self.__dict__['autoLog'] = value
 
@@ -294,125 +354,110 @@ class BaseVisualStim(object):
 
     @attributeSetter
     def color(self, value):
-        """
-        String: color name or hex.
+        """Color of the stimulus
 
-        Scalar or sequence for rgb, dkl or other :ref:`colorspaces`. :ref:`operations <attrib-operations>` supported for these.
+        Value should be one of:
+            + string: to specify a :ref:`colorNames` or :ref:`hexColors`
+            + numerically: (scalar or triplet) for DKL, RGB or other :ref:`colorspaces`. For
+                these, :ref:`operations <attrib-operations>` are supported.
 
-            OBS: when color is specified using numbers, it is interpreted with
-            respect to the stimulus' current colorSpace.
+        When color is specified using numbers, it is interpreted with
+        respect to the stimulus' current colorSpace. If color is given as a
+        single value (scalar) then this wil be applied to all 3 channels.
 
-            Can be specified in one of many ways. If a string is given then it
-            is interpreted as the name of the color. Any of the standard html/X11
-            `color names <http://www.w3schools.com/html/html_colornames.asp>`_
-            can be used. e.g.::
+        Examples::
 
                 myStim.color = 'white'
                 myStim.color = 'RoyalBlue'  #(the case is actually ignored)
-
-            A hex value can be provided, also formatted as with web colors. This can be
-            provided as a string that begins with # (not using python's usual 0x000000 format)::
-
                 myStim.color = '#DDA0DD'  #DDA0DD is hexadecimal for plum
-
-            You can also provide a triplet of values, which refer to the coordinates
-            in one of the :ref:`colorspaces`. If no color space is specified then the color
-            space most recently used for this stimulus is used again.::
-
                 myStim.color = [1.0,-1.0,-1.0]  #if colorSpace='rgb': a red color in rgb space
                 myStim.color = [0.0,45.0,1.0] #if colorSpace='dkl': DKL space with elev=0, azimuth=45
                 myStim.color = [0,0,255] #if colorSpace='rgb255': a blue stimulus using rgb255 space
 
-            Lastly, a single number can be provided, x, which is equivalent to providing
-            [x,x,x].::
 
-                myStim.color = 255  #if colorSpace='rgb255': all guns o max
+        :ref:`Operations <attrib-operations>` work as normal. For example,
+        assuming that colorSpace='rgb'::
 
-            :ref:`Operations <attrib-operations>` work just like with x-y pairs,
-            but has a different meaning here. For colors specified as a triplet
-            of values (or single intensity value) the new value will perform
-            this operation on the previous color. Assuming that colorSpace='rgb'::
-
-                thisStim.color += [1,1,1]  #increment all guns by 1 value
-                thisStim.color *= -1  #multiply the color by -1 (which in this space inverts the contrast)
-                thisStim.color *= [0.5, 0, 1]  #decrease red, remove green, keep blue
+            thisStim.color += [1,1,1]  #increment all guns by 1 value
+            thisStim.color *= -1  #multiply the color by -1 (which in this space inverts the contrast)
+            thisStim.color *= [0.5, 0, 1]  #decrease red, remove green, keep blue
         """
         setColor(self, value, rgbAttrib='rgb', colorAttrib='color')
 
     @attributeSetter
     def colorSpace(self, value):
-        """
-        String or None
+        """The name of the color space currently being used (for numeric colors)
 
-            defining which of the :ref:`colorspaces` to use. For strings and hex
-            values this is not needed. If None the default colorSpace for the stimulus is
-            used (defined during initialisation).
+        Value should be: a string or None
 
-            Please note that changing colorSpace does not change stimulus parameters. Example::
+        For strings and hex values this is not needed.
+        If None the default colorSpace for the stimulus is
+        used (defined during initialisation).
 
-                # A light green text
-                stim = visual.TextStim(win, 'Color me!', color=(0, 1, 0), colorSpace='rgb')
+        Please note that changing colorSpace does not change stimulus parameters. Example::
 
-                # An almost-black text
-                stim.colorSpace = 'rgb255'
+            # A light green text
+            stim = visual.TextStim(win, 'Color me!', color=(0, 1, 0), colorSpace='rgb')
 
-                # Make it light green again
-                stim.color = (128, 255, 128)
+            # An almost-black text
+            stim.colorSpace = 'rgb255'
+
+            # Make it light green again
+            stim.color = (128, 255, 128)
         """
         self.__dict__['colorSpace'] = value
 
     def draw(self):
         raise NotImplementedError('Stimulus classes must overide _BaseVisualStim.draw')
     def setPos(self, newPos, operation='', log=True):
-        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
         self._set('pos', val=newPos, op=operation, log=log)
     def setDepth(self, newDepth, operation='', log=True):
-        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
         self._set('depth', newDepth, operation, log)
     def setSize(self, newSize, operation='', units=None, log=True):
-        """Set the stimulus size [X,Y] in the specified (or inherited) `units`
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
         """
         if units==None: units=self.units#need to change this to create several units from one
         self._set('size', newSize, op=operation, log=log)
     def setOri(self, newOri, operation='', log=True):
-        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
         self._set('ori',val=newOri, op=operation, log=log)
     def setOpacity(self, newOpacity, operation='', log=True):
-        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
         self._set('opacity', newOpacity, operation, log=log)
     def setContrast(self, newContrast, operation='', log=True):
-        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
         self._set('contrast', newContrast, operation, log=log)
     def setDKL(self, newDKL, operation=''):
-        """DEPRECATED since v1.60.05: Please use setColor
+        """DEPRECATED since v1.60.05: Please use the `color` attribute
         """
         self._set('dkl', val=newDKL, op=operation)
         self.setRGB(dkl2rgb(self.dkl, self.win.dkl_rgb))
     def setLMS(self, newLMS, operation=''):
-        """DEPRECATED since v1.60.05: Please use setColor
+        """DEPRECATED since v1.60.05: Please use the `color` attribute
         """
         self._set('lms', value=newLMS, op=operation)
         self.setRGB(lms2rgb(self.lms, self.win.lms_rgb))
     def setRGB(self, newRGB, operation=''):
-        """DEPRECATED since v1.60.05: Please use setColor
+        """DEPRECATED since v1.60.05: Please use the `color` attribute
         """
         self._set('rgb', newRGB, operation)
         setTexIfNoShaders(self)
     def setColor(self, color, colorSpace=None, operation='', log=True):
-        """
-        Set the color of the stimulus.
-        OBS: can be set using stim.color = value syntax instead.
-
-        :Parameters:
-
-        color :
-            see documentation for color.
-
-        colorSpace : string or None
-            see documentation for colorSpace
-
-        operation : one of '+','-','*','/', or '' for no operation (simply replace value)
-            see documentation for color.
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
         """
         setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='rgb', #or 'fillRGB' etc
@@ -444,7 +489,8 @@ class BaseVisualStim(object):
                 level=logging.EXP,obj=self)
 
     def setUseShaders(self, value=True):
-        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message"""
         self.useShaders = value
     def _selectWindow(self, win):
         global currWindow
@@ -464,30 +510,70 @@ class BaseVisualStim(object):
         else:
             self._updateListNoShaders()
     def _calcSizeRendered(self):
-        """Calculate the size of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
+        """DEPRECATED in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"""
+        #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This funtionality is nowhanded by _updateVertices() and verticesPix"
         if self.units in ['norm','pix', 'height']: self._sizeRendered=copy.copy(self.size)
         elif self.units in ['deg', 'degs']: self._sizeRendered=deg2pix(self.size, self.win.monitor)
         elif self.units=='cm': self._sizeRendered=cm2pix(self.size, self.win.monitor)
         else:
             logging.ERROR("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
     def _calcPosRendered(self):
-        """Calculate the pos of the stimulus in coords of the :class:`~psychopy.visual.Window` (normalised or pixels)"""
+        """DEPRECATED in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"""
+        #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"
         if self.units in ['norm','pix', 'height']: self._posRendered= copy.copy(self.pos)
         elif self.units in ['deg', 'degs']: self._posRendered=deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=cm2pix(self.pos, self.win.monitor)
+
+    @property
+    def verticesPix(self):
+        """This determines the coordinates of the vertices for the
+        current stimulus in pixels, accounting for size, ori, pos and units
+        """
+        #because this is a property getter we can check /on-access/ if it needs updating :-)
+        if self._needVertexUpdate:
+            self._updateVertices()
+        return self.__dict__['verticesPix']
+    def _updateVertices(self):
+        """Sets Stim.verticesPix from pos and size
+        """
+        if hasattr(self, 'vertices'):
+            verts = self.vertices
+        else:
+            verts = self._verticesBase
+        #check wheher stimulus needs flipping in either direction
+        flip = numpy.array([1,1])
+        if hasattr(self, 'flipHoriz'):
+            flip[0] = self.flipHoriz*(-2)+1#True=(-1), False->(+1)
+        if hasattr(self, 'flipVert'):
+            flip[1] = self.flipVert*(-2)+1#True=(-1), False->(+1)
+        # set size and orientation
+        verts = numpy.dot(self.size*verts*flip, self._rotationMatrix)
+        #then combine with position and convert to pix
+        verts = convertToPix(vertices=verts, pos=self.pos, win=self.win, units=self.units)
+        #assign to self attrbute
+        self.__dict__['verticesPix'] = verts
+        self._needVertexUpdate = False
+        self._needUpdate = True #but we presumably need to update the list
+
     def setAutoDraw(self, value, log=True):
-        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message"""
         self.autoDraw = value
     def setAutoLog(self, value=True):
-        """ Deprecated. Use 'stim.attribute = value' syntax instead"""
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message"""
         self.autoLog = value
-    def contains(self, x, y=None):
+    def contains(self, x, y=None, units=None):
         """Determines if a point x,y is inside the extent of the stimulus.
 
-        Can accept: a) two args, x and y; b) one arg, as a point (x,y) that is
-        list-like; or c) an object with a getPos() method that returns x,y, such
-        as a mouse. Returns True if the point is within the area defined by `vertices`.
-        This handles complex shapes, including concavities and self-crossings.
+        Can accept variety of input options:
+            + two separate args, x and y
+            + one arg (list, tuple or array) containing two vals (x,y)
+            + an object with a getPos() method that returns x,y, such
+                as a :class:`~psychopy.event.Mouse`. Returns `True` if the point is
+                within the area defined by `vertices`.
+
+        This method handles complex shapes, including concavities and self-crossings.
 
         Note that, if your stimulus uses a mask (such as a Gaussian blob) then
         this is not accounted for by the `contains` method; the extent of the
@@ -496,25 +582,28 @@ class BaseVisualStim(object):
 
         See coder demo, shapeContains.py
         """
-        if self.needVertexUpdate:
-            self._calcVerticesRendered()
-        if hasattr(x, 'getPos'):
-            x, y = x.getPos()
+        #get the object in pixels
+        if hasattr(x, 'verticesPix'):
+            xy = x.verticesPix #access only once - this is a property (slower to access)
+            units = 'pix' #we can forget about the units
+        elif hasattr(x, 'getPos'):
+            xy = x.getPos()
+            units = x.units
         elif type(x) in [list, tuple, numpy.ndarray]:
-            x, y = x[0], x[1]
-        if self.units in ['deg','degs']:
-            x, y = deg2pix(numpy.array((x, y)), self.win.monitor)
-        elif self.units == 'cm':
-            x, y = cm2pix(numpy.array((x, y)), self.win.monitor)
-        if self.ori:
-            oriRadians = numpy.radians(self.ori)
-            sinOri = numpy.sin(oriRadians)
-            cosOri = numpy.cos(oriRadians)
-            x0, y0 = x-self._posRendered[0], y-self._posRendered[1]
-            x = x0 * cosOri - y0 * sinOri + self._posRendered[0]
-            y = x0 * sinOri + y0 * cosOri + self._posRendered[1]
-
-        return pointInPolygon(x, y, self)
+            xy = numpy.array(x)
+        else:
+            xy = numpy.array((x,y))
+        #try to work out what units x,y has
+        if units is None:
+            if hasattr(xy, 'units'):
+                units = xy.units
+            else:
+                units = self.units
+        if units != 'pix':
+            xy = convertToPix(xy, pos=0, units=units, win=self.win)
+        # ourself in pixels
+        selfVerts = self.verticesPix
+        return pointInPolygon(xy[0], xy[1], poly = selfVerts)
 
     def _getPolyAsRendered(self):
         """return a list of vertices as rendered; used by overlaps()
@@ -539,13 +628,7 @@ class BaseVisualStim(object):
 
         See coder demo, shapeContains.py
         """
-        if self.needVertexUpdate:
-            self._calcVerticesRendered()
-        if self.ori:
-            polyRendered = self._getPolyAsRendered()
-            return polygonsOverlap(polyRendered, polygon)
-        else:
-            return polygonsOverlap(self, polygon)
+        return polygonsOverlap(self, polygon)
 
     def _getDesiredRGB(self, rgb, colorSpace, contrast):
         """ Convert color to RGB while adding contrast
@@ -555,11 +638,12 @@ class BaseVisualStim(object):
             rgb = (rgb / 255.0) * 2 - 1
 
         # Convert to RGB in range 0:1 and scaled for contrast
+        # although the shader then has to convert it back it gets clamped en route otherwise
         desiredRGB = (rgb * contrast + 1) / 2.0
-
-        # Check that boundaries are not exceeded
-        if numpy.any(desiredRGB > 1.0) or numpy.any(desiredRGB < 0):
-            logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead'%desiredRGB) #AOH
-            desiredRGB=[0.0, 0.0, 1.0]
+        if not self.win.useFBO:
+            # Check that boundaries are not exceeded. If we have an FBO that can handle this
+            if numpy.any(desiredRGB > 1.0) or numpy.any(desiredRGB < 0):
+                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead' %desiredRGB) #AOH
+                desiredRGB=[0.0, 0.0, 1.0]
 
         return desiredRGB

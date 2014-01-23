@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 """Illustrates using psychopy.web.upload() to send a file over the internet to a configured server.
 

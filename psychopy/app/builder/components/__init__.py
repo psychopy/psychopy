@@ -1,7 +1,7 @@
 """Extensible set of components for the PsychoPy Builder view
 """
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os, glob, copy
@@ -157,7 +157,7 @@ def getInitVals(params):
             inits[name].val="norm"
             inits[name].valType='str'
         elif name == 'text':
-            inits[name].val="nonsense"
+            inits[name].val="default text"
             inits[name].valType='str'
         elif name == 'flip':
             inits[name].val=""

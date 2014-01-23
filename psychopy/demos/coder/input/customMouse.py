@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # demo of CustomMouse()
 # author Jeremy Gray

@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from _base import *
@@ -17,7 +17,7 @@ class KeyboardComponent(BaseComponent):
     def __init__(self, exp, parentName, name='key_resp', allowedKeys="'y','n','left','right','space'",store='last key',
                 forceEndRoutine=True,storeCorrect=False,correctAns="", discardPrev=True,
                 startType='time (s)', startVal=0.0,
-                stopType='duration (s)', stopVal=1.0,
+                stopType='duration (s)', stopVal='',
                 startEstim='', durationEstim=''):
         self.type='Keyboard'
         self.url="http://www.psychopy.org/builder/components/keyboard.html"
@@ -110,7 +110,7 @@ class KeyboardComponent(BaseComponent):
         if store != 'nothing':
             buff.writeIndented("%(name)s.clock.reset()  # now t=0\n" % self.params)
         if self.params['discard previous'].val:
-            buff.writeIndented("event.clearEvents()\n")
+            buff.writeIndented("event.clearEvents(eventType='keyboard')\n")
         buff.setIndentLevel(-1, relative=True)#to get out of the if statement
         #test for stop (only if there was some setting for duration or stop)
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
@@ -136,6 +136,10 @@ class KeyboardComponent(BaseComponent):
             keyListStr= "keyList=%s" %(repr(keyList))
         #check for keypresses
         buff.writeIndented("theseKeys = event.getKeys(%s)\n" %(keyListStr))
+        if self.exp.settings.params['Enable Escape'].val:
+            buff.writeIndentedLines('\n# check for quit:')
+            buff.writeIndented('if "escape" in theseKeys:\n')
+            buff.writeIndented('    endExpNow = True\n')
 
         #how do we store it?
         if store!='nothing' or forceEnd:
@@ -201,4 +205,3 @@ class KeyboardComponent(BaseComponent):
                 buff.writeIndented("if %(name)s.keys != None:  # we had a response\n" %(self.params))
                 buff.writeIndented("    %s.addData('%s.rt', %s.rt)\n" \
                                    %(currLoop.params['name'], name, name))
-

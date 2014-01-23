@@ -84,11 +84,14 @@ Commit messages
 Informative commit messages are really useful when we have to go back through the repository finding the time that a particular change to the code occurred. Precede your message with one or more of the following to help us spot easily if this is a bug fix (which might need pulling into other development branches) or new feature (which we might want to avoid pulling in if it might disrupt existing code).
 
   * *BF* : bug fix
+  * *FF* : 'feature' fix. This is for fixes to code that hasn't been released
   * *RF* : refactoring
   * *NF* : new feature
   * *ENH* : enhancement (improvement to existing code)
   * *DOC*: for all kinds of documentation related commits
   * *TEST*: for adding or changing tests
+  
+NB: The difference between BF and FF is that BF indicates a fix that is appropriate for back-porting to earlier versions, whereas FF indicates a fix to code that has not been released, and so cannot be back-ported.
 
 .. _pullRequest:
 

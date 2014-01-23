@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 """This demo requires a graphics card that supports OpenGL2 extensions. 
 

@@ -12,6 +12,7 @@ These are issues that users should be aware of, whether they are using Builder o
    prefs
    dataOutputs
    gamma
+   rendering
 
 .. toctree::
    :maxdepth: 2
