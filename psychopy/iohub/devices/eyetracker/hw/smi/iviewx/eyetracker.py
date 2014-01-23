@@ -49,6 +49,8 @@ class EyeTracker(EyeTrackerDevice):
     # <<<
 
     def __init__(self, *args,**kwargs):
+        print2err(" ---- SMI EyeTracker Initialization START ---- ")
+        
         EyeTrackerDevice.__init__(self,*args,**kwargs)
         try:             
             self._ioKeyboard=None
@@ -121,6 +123,7 @@ class EyeTracker(EyeTrackerDevice):
                 self._runtime_settings['sampling_rate']=sampling_rate
             
             self._last_setup_result=EyeTrackerConstants.EYETRACKER_OK
+            print2err(" ---- SMI EyeTracker Initialization DONE ---- ")
         except:
             print2err(" ---- Error during EyeLink EyeTracker Initialization ---- ")
             printExceptionDetailsToStdErr()
@@ -173,9 +176,11 @@ class EyeTracker(EyeTrackerDevice):
                 return EyeTrackerConstants.EYETRACKER_ERROR
             return connected            
         except Exception, e:
-            return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-                    error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    method="EyeTracker.isConnected", error=e)            
+            print2err(" ---- SMI EyeTracker isConnected ERROR ---- ")
+            printExceptionDetailsToStdErr()
+#            return createErrorResult("IOHUB_DEVICE_EXCEPTION",
+#                    error_message="An unhandled exception occurred on the ioHub Server Process.",
+#                    method="EyeTracker.isConnected", error=e)            
 
     def setConnectionState(self,enable):
         """
@@ -208,9 +213,13 @@ class EyeTracker(EyeTrackerDevice):
                         print2err("iViewX ERROR disconnecting from tracker: {0}".format(r))
                     return self.isConnected()
             else:
-                return createErrorResult("INVALID_METHOD_ARGUMENT_VALUE",error_message="The enable arguement value provided is not recognized",method="EyeTracker.setConnectionState",arguement='enable', value=enable)            
+                print2err(" ---- SMI EyeTracker setConnectionState INVALID_METHOD_ARGUMENT_VALUE ---- ")
+                printExceptionDetailsToStdErr()
+                #return createErrorResult("INVALID_METHOD_ARGUMENT_VALUE",error_message="The enable arguement value provided is not recognized",method="EyeTracker.setConnectionState",arguement='enable', value=enable)            
         except Exception,e:
-                return createErrorResult("IOHUB_DEVICE_EXCEPTION",error_message="An unhandled exception occurred on the ioHub Server Process.",method="EyeTracker.setConnectionState",arguement='enable', value=enable, error=e)            
+            print2err(" ---- SMI EyeTracker isConnected ERROR ---- ")
+            printExceptionDetailsToStdErr()
+                #return createErrorResult("IOHUB_DEVICE_EXCEPTION",error_message="An unhandled exception occurred on the ioHub Server Process.",method="EyeTracker.setConnectionState",arguement='enable', value=enable, error=e)            
             
     def sendMessage(self,message_contents,time_offset=None):
         """
@@ -230,9 +239,9 @@ class EyeTracker(EyeTrackerDevice):
             return EyeTrackerConstants.EYETRACKER_OK     
 
         except Exception, e:
-            return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-                    error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    method="EyeTracker.sendMessage", message_contents=message_contents,time_offset=time_offset, error=e)            
+            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
+            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
+            #        method="EyeTracker.sendMessage", message_contents=message_contents,time_offset=time_offset, error=e)            
 
     def sendCommand(self, key, value=None):
         """
@@ -330,11 +339,11 @@ class EyeTracker(EyeTrackerDevice):
             return self._last_setup_result
         except Exception,e:
             self._unregisterKeyboardMonitor()
-            return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-                    error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    method="EyeTracker.runSetupProcedure", 
-                    starting_state=starting_state,
-                    error=e)   
+            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
+            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
+            #        method="EyeTracker.runSetupProcedure", 
+            #        starting_state=starting_state,
+            #        error=e)   
 
     def _showSimpleWin32Dialog(self,message,caption):
         import win32gui
@@ -565,9 +574,9 @@ class EyeTracker(EyeTrackerDevice):
         try:
             return self.isConnected() and self.isReportingEvents()
         except Exception, e:
-            return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-                    error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    method="EyeTracker.isRecordingEnabled", error=e)
+            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
+            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
+            #        method="EyeTracker.isRecordingEnabled", error=e)
 
     def setRecordingState(self,recording):
         """
@@ -578,9 +587,9 @@ class EyeTracker(EyeTrackerDevice):
         """
         try:
             if not isinstance(recording,bool):
-                return createErrorResult("INVALID_METHOD_ARGUMENT_VALUE",
-                    error_message="The recording arguement value provided is not a boolean.",
-                    method="EyeTracker.setRecordingState",arguement='recording', value=recording)             
+                printExceptionDetailsToStdErr()#return createErrorResult("INVALID_METHOD_ARGUMENT_VALUE",
+                #    error_message="The recording arguement value provided is not a boolean.",
+                #    method="EyeTracker.setRecordingState",arguement='recording', value=recording)             
 
             if recording is True and not self.isRecordingEnabled(): 
                 pyViewX.SetSampleCallback(self._handle_sample_callback)
@@ -621,9 +630,9 @@ class EyeTracker(EyeTrackerDevice):
                     return EyeTrackerConstants.EYETRACKER_ERROR
 
         except Exception, e:
-            return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-                    error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    method="EyeTracker.setRecordingState", error=e)            
+            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
+            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
+            #        method="EyeTracker.setRecordingState", error=e)            
 
     def enableEventReporting(self,enabled=True):
         """
@@ -634,9 +643,9 @@ class EyeTracker(EyeTrackerDevice):
             enabled=EyeTrackerDevice.enableEventReporting(self,enabled)
             return self.setRecordingState(enabled)
         except Exception, e:
-            return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-                    error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    method="EyeTracker.enableEventReporting", error=e)            
+            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
+            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
+            #        method="EyeTracker.enableEventReporting", error=e)            
 
     def getLastSample(self):
         """
@@ -648,9 +657,9 @@ class EyeTracker(EyeTrackerDevice):
         try:
             return self._latest_sample
         except Exception, e:
-            return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-                    error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    method="EyeTracker.getLastSample", error=e)            
+            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
+            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
+            #        method="EyeTracker.getLastSample", error=e)            
 
     def getLastGazePosition(self):
         """
@@ -663,9 +672,9 @@ class EyeTracker(EyeTrackerDevice):
         try:
             return self._latest_gaze_position
         except Exception, e:
-            return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-                    error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    method="EyeTracker.getLastGazePosition", error=e)             
+            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
+            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
+            #        method="EyeTracker.getLastGazePosition", error=e)             
         
     def _handleNativeEvent(self,*args,**kwargs):
         """
@@ -1190,10 +1199,10 @@ class EyeTracker(EyeTrackerDevice):
             x,y=left+w*gaze_x,bottom+h*(1.0-gaze_y) 
             return x,y
         except Exception,e:
-            return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-                    error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    method="EyeTracker._eyeTrackerToDisplayCoords", 
-                    error=e)            
+            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
+            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
+            #        method="EyeTracker._eyeTrackerToDisplayCoords", 
+            #        error=e)            
         
     def _displayToEyeTrackerCoords(self,display_x,display_y):
         """
@@ -1209,10 +1218,10 @@ class EyeTracker(EyeTrackerDevice):
             return cxn*dw,  cyn*dh          
            
         except Exception,e:
-            return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-                    error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    method="EyeTracker._displayToEyeTrackerCoords", 
-                    error=e)
+            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
+            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
+            #        method="EyeTracker._displayToEyeTrackerCoords", 
+            #        error=e)
 
     def _TrackerSystemInfo(self):
         try:
@@ -1234,10 +1243,10 @@ class EyeTracker(EyeTrackerDevice):
             print2err("GetSystemInfo FAILED: " + str(res))  
             return EyeTrackerConstants.EYETRACKER_ERROR         
         except Exception,e:
-            return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-                    error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    method="EyeTracker._eyeLinkHardwareAndSoftwareVersion", 
-                    error=e)            
+            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
+            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
+            #        method="EyeTracker._eyeLinkHardwareAndSoftwareVersion", 
+            #        error=e)            
 
     def _close(self):
         self.setRecordingState(False)
