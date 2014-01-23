@@ -1,3 +1,9 @@
+psychopy-openbci (1.78.0.0.6-1) unstable; urgency=low
+
+  * Fix comunication with openbci.
+
+ -- Karol Auguštin <karol@augustin.pl>  Thu, 23 Jan 2014 11:28:18 +0100
+
 psychopy-openbci (1.78.0.0.5-1) unstable; urgency=low
 
   * Fixed amp manager error with ZMQ2.
