@@ -940,8 +940,9 @@ class Device(ioObject):
         Clears any DeviceEvents that have occurred since the last call to the device's getEvents(),
         or clearEvents() methods.
             
-        Note that calling clearEvents() atthe device level only clears the 
-        given device's event buffer. The ioHub Process's Global Event Buffer is unchanged.
+        Note that calling clearEvents() at the device level only clears the 
+        given device's event buffer. The ioHub Process's Global Event Buffer 
+        is unchanged.
         
         Args: 
             None
