@@ -97,7 +97,15 @@ def contains_overlaps(testType):
             win.flip()
 
 mpl_version = matplotlib.__version__
-from matplotlib import nxutils
+try:
+    from matplotlib import nxutils
+    have_nxutils = True
+except:
+    have_nxutils = False
+
+# if matplotlib.__version__ > '1.2': try to use matplotlib Path objects
+# else: try to use nxutils
+# else: fall through to pure python
 
 @pytest.mark.polygon
 def test_point():
@@ -107,10 +115,11 @@ def test_point():
     assert helpers.pointInPolygon(12, 12, poly1) == False
     assert helpers.pointInPolygon(0, 0, [(0,0), (1,1)]) == False
 
-    helpers.nxutils = nxutils
-    matplotlib.__version__ = '1.1'  # matplotlib.nxutils
-    assert helpers.polygonsOverlap(poly1, poly2)
-    del(helpers.nxutils)
+    if have_nxutils:
+        helpers.nxutils = nxutils
+        matplotlib.__version__ = '1.1'  # matplotlib.nxutils
+        assert helpers.polygonsOverlap(poly1, poly2)
+        del(helpers.nxutils)
 
     matplotlib.__version__ = '0.0'    # pure python
     assert helpers.polygonsOverlap(poly1, poly2)
@@ -119,10 +128,11 @@ def test_point():
 @pytest.mark.polygon
 def test_contains():
     contains_overlaps('contains')  # matplotlib.path.Path
-    helpers.nxutils = nxutils
-    matplotlib.__version__ = '1.1'  # matplotlib.nxutils
-    contains_overlaps('overlaps')
-    del(helpers.nxutils)
+    if have_nxutils:
+        helpers.nxutils = nxutils
+        matplotlib.__version__ = '1.1'  # matplotlib.nxutils
+        contains_overlaps('contains')
+        del(helpers.nxutils)
     matplotlib.__version__ = '0.0'  # pure python
     contains_overlaps('contains')
     matplotlib.__version__ = mpl_version
@@ -130,10 +140,11 @@ def test_contains():
 @pytest.mark.polygon
 def test_overlaps():
     contains_overlaps('overlaps')  # matplotlib.path.Path
-    helpers.nxutils = nxutils
-    matplotlib.__version__ = '1.1'  # matplotlib.nxutils
-    contains_overlaps('overlaps')
-    del(helpers.nxutils)
+    if have_nxutils:
+        helpers.nxutils = nxutils
+        matplotlib.__version__ = '1.1'  # matplotlib.nxutils
+        contains_overlaps('overlaps')
+        del(helpers.nxutils)
     matplotlib.__version__ = '0.0'  # pure python
     contains_overlaps('overlaps')
     matplotlib.__version__ = mpl_version
