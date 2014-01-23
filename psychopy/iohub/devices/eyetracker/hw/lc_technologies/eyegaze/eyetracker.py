@@ -431,7 +431,7 @@ class EyeTracker(EyeTrackerDevice):
 
 
                 elif self._camera_count == 2: #binocular
-                    event_type=EventConstants.MONOCULAR_EYE_SAMPLE
+                    event_type=EventConstants.BINOCULAR_EYE_SAMPLE
 
                     sample_data1=self._eyegaze_control.pstEgData[1]
                     sample_data4=self._eyegaze_control.pstEgData[4]
