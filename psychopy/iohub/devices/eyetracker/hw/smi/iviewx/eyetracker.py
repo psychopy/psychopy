@@ -48,9 +48,7 @@ class EyeTracker(EyeTrackerDevice):
                '_enable_data_filter','_ioKeyboard','_kbEventQueue','_last_setup_result','_handle_sample_callback']
     # <<<
 
-    def __init__(self, *args,**kwargs):
-        print2err(" ---- SMI EyeTracker Initialization START ---- ")
-        
+    def __init__(self, *args,**kwargs):        
         EyeTrackerDevice.__init__(self,*args,**kwargs)
         try:             
             self._ioKeyboard=None
@@ -123,7 +121,6 @@ class EyeTracker(EyeTrackerDevice):
                 self._runtime_settings['sampling_rate']=sampling_rate
             
             self._last_setup_result=EyeTrackerConstants.EYETRACKER_OK
-            print2err(" ---- SMI EyeTracker Initialization DONE ---- ")
         except:
             print2err(" ---- Error during EyeLink EyeTracker Initialization ---- ")
             printExceptionDetailsToStdErr()
