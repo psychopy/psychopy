@@ -200,7 +200,7 @@ class PsychoPyApp(wx.App):
                 os.environ['OBCI_INSTALL_DIR'] = obci_path
                 obci_script = os.path.join(obci_path, 'control/launcher/obci_script.py')
                 print 'Launching OBCI'
-                subprocess.Popen(['python', obci_script, "srv"]).wait()
+                subprocess.Popen(['python', obci_script, "srv", "--win-silent"])
                 self.launched_obci = True
             except Exception:
                 print "OBCI not installed"
