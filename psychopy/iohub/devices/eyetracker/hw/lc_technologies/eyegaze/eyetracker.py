@@ -116,7 +116,7 @@ class EyeTracker(EyeTrackerDevice):
                     return False
             else:
                 return print2err("INVALID_METHOD_ARGUMENT_VALUE. ","EyeTracker.setConnectionState: ",enable)
-         except Exception,e:
+        except Exception,e:
                 return printExceptionDetailsToStdErr()#("IOHUB_DEVICE_EXCEPTION",error_message="An unhandled exception occurred on the ioHub Server Process.",method="EyeTracker.setConnectionState",arguement='enable', value=enable, error=e)            
             
     def isConnected(self):
@@ -469,7 +469,7 @@ class EyeTracker(EyeTrackerDevice):
                                  EyeTrackerConstants.UNDEFINED, # uncalibrated x eye pos
                                  EyeTrackerConstants.UNDEFINED, # uncalibrated y eye pos
                                  left_pupil_measure1,
-                                 pupil_measure_type,
+                                 pupil_measure1_type,
                                  EyeTrackerConstants.UNDEFINED,  # pupil measure 2
                                  EyeTrackerConstants.UNDEFINED,  # pupil measure 2 type  
                                  EyeTrackerConstants.UNDEFINED,  # pixels per degree x
@@ -488,7 +488,7 @@ class EyeTracker(EyeTrackerDevice):
                                  EyeTrackerConstants.UNDEFINED, # uncalibrated x eye pos
                                  EyeTrackerConstants.UNDEFINED, # uncalibrated y eye pos
                                  right_pupil_measure1,
-                                 pupil_measure_type,
+                                 pupil_measure1_type,
                                  EyeTrackerConstants.UNDEFINED,  # pupil measure 2
                                  EyeTrackerConstants.UNDEFINED,  # pupil measure 2 type  
                                  EyeTrackerConstants.UNDEFINED,  # pixels per degree x
