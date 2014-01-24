@@ -82,13 +82,14 @@ class EventBasedIP(InterestPeriodDefinition):
 
     """
     next_ipid=1
-    def __init__(self,name=None,start_source_df=None,start_criteria=None,end_source_df=None,end_criteria=None):
+    def __init__(self,name=None,start_source_df=None,start_criteria=None,end_source_df=None,end_criteria=None,exact=True):
         InterestPeriodDefinition.__init__(self,name)
 
         self._start_source_df=start_source_df
         self._end_source_df=end_source_df
         self._start_criteria=start_criteria
         self._end_criteria=end_criteria
+        self._exact=exact
 
             
     @property
@@ -110,6 +111,20 @@ class EventBasedIP(InterestPeriodDefinition):
             ip_id
             ip_id_num
         """
+        def _extract_criteria_match(source, criteria, return_cols, exact):
+            col = criteria.keys()[0] # eventually we'll want to allow for
+            val = criteria[col]      # multiple criteria matches
+            
+            if exact:
+                matches = (source[col] == val)
+            else:
+                matches = (source[col].str.contains(val))
+            
+            if not isinstance(return_cols, dict):
+                return_cols = dict(zip(return_cols,return_cols))
+            
+            return source[matches][return_cols.keys()].rename(return_columns)
+        
         if self._ip_df is None:
             # Match start_source_df[start_criteria.key]==start_criteria.value
             # Currently only support ip criteria in the form of 
@@ -121,24 +136,22 @@ class EventBasedIP(InterestPeriodDefinition):
             # and rows from end_source_df will be selected when:
             #
             #   start_source_df[start_df_col_name] == start_df_col_value
-            start_source_df=self.start_source_df
-            start_criteria_col=self.start_criteria.keys()[0]
-            start_criteria_val=self.start_criteria[start_criteria_col]
-            self._ip_df = start_source_df[start_source_df[start_criteria_col] == start_criteria_val][['time','event_id']]
-            self._ip_df = self._ip_df.rename(columns={'time': 'start_time', 'event_id': 'start_event_id'})
             
-            # Add ip end cols to rows
-            # TODO: Is this really a safe way to add ip start time 
-            #       and end time matches ??
-            end_source_df=self.end_source_df
-            if end_source_df is None:
-                end_source_df=start_source_df
-            end_criteria_col=self.end_criteria.keys()[0]
-            end_criteria_val=self.end_criteria[end_criteria_col]
-            self._ip_df[['end_time','end_event_id']]=end_source_df \
-                        [end_source_df[end_criteria_col] == end_criteria_val] \
-                        [['time','event_id']]
+            start_cols = {'time':'start_time', 'event_id':'start_event_id'}
+            start_ip_df = _extract_criteria_match(self.start_source_df, 
+                                                  criteria=self.start_criteria,
+                                                  return_cols=start_cols,
+                                                  exact=self._exact)
             
+            end_cols = {'time':'end_time', 'event_id':'end_event_id'}
+            end_ip_df = _extract_criteria_match(self.end_source_df, 
+                                                criteria=self.end_criteria,
+                                                return_cols=end_cols,
+                                                exact=self._exact)
+                              
+            self._ip_df = pd.merge(start_ip_df, end_ip_df, left_index=True,
+                                   right_index=True)
+                              
             # Add ip identifier cols
             self._ip_df['ip_name']=self.name            
             self._ip_df['ip_id']=self.ipid            
