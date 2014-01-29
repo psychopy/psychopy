@@ -17,6 +17,7 @@ def getSerialPorts():
             '/dev/tty.Key*', #some are Keyspan.1 or Keyserial.1
             '/dev/tty.modem*',
             '/dev/cu.usbmodem*', #for PR650
+            '/dev/tty.usbserial*', #for the 'Plugable' converter, according to Tushar Chauhan
         ]
     elif sys.platform.startswith("linux"):
         ports = [
