@@ -116,14 +116,26 @@ class EventBasedIP(InterestPeriodDefinition):
             val = criteria[col]      # multiple criteria matches
             
             if exact:
-                matches = (source[col] == val)
+                is_match = (source[col] == val)
             else:
-                matches = (source[col].str.contains(val))
+                is_match = (source[col].str.contains(val))
             
             if not isinstance(return_cols, dict):
                 return_cols = dict(zip(return_cols,return_cols))
             
-            return source[matches][return_cols.keys()].rename(return_columns)
+            keep_cols = return_cols.keys()
+            matches = source[is_match][keep_cols].rename(columns=return_cols)
+            matches['ip_id_num'] = range(len(matches))
+            
+            return matches
+        
+        def _ip_zipper(start, end, temp_index='ip_id_num'):
+            # TODO: make sure the two dfs "zip" nicely
+            _start = start.set_index(temp_index, append=True)
+            _end = end.set_index(temp_index, append=True)
+            
+            _all = pd.merge(_start, _end, left_index=True, right_index=True)
+            return _all.reset_index(temp_index)
         
         if self._ip_df is None:
             # Match start_source_df[start_criteria.key]==start_criteria.value
@@ -149,14 +161,12 @@ class EventBasedIP(InterestPeriodDefinition):
                                                 return_cols=end_cols,
                                                 exact=self._exact)
                               
-            self._ip_df = pd.merge(start_ip_df, end_ip_df, left_index=True,
-                                   right_index=True)
+            self._ip_df = _ip_zipper(start_ip_df, end_ip_df)
                               
             # Add ip identifier cols
             self._ip_df['ip_name']=self.name            
             self._ip_df['ip_id']=self.ipid            
-            self._ip_df['ip_id_num']=range(1,len(self._ip_df)+1)   
-            
+                        
         return self._ip_df  
 
 
@@ -196,6 +206,44 @@ class EventBasedIP(InterestPeriodDefinition):
         self._end_criteria=v
         self._ip_df=None
 
+
+##########################################
+
+class IntervalBasedIP(EventBasedIP):
+    next_ipid=1
+    def __init__(self, name=None, start_source_df=None, start_criteria=None,
+                 end_source_df=None, end_criteria=None, exact=True):
+        EventBasedIP.__init__(self, name, start_source_df, start_criteria, 
+                              end_source_df, end_criteria, exact)
+    
+    def _filter_group(self, target_group):
+        group_id = target_group.index[0]
+        group_ips = self.ip_df.ix[group_id]
+        
+        
+        
+        if len(group_ips) > 0:
+            overlapping = []
+            for index, ip in group_ips.iterrows():
+                in_ip = ((target_group['time'] >= ip['start_time']) &
+                         (target_group['time'] <= ip['end_time']))
+                target_in_ip = target_group[in_ip]
+                target_in_ip['ip_id_num'] = ip['ip_id_num']
+                target_in_ip['ip_id'] = ip['ip_id']
+                target_in_ip['ip_name'] = ip['ip_name']
+                overlapping += [target_in_ip]
+            target_filtered = pd.concat(overlapping)
+        else:
+            target_filtered = target_group[[False]*len(target_group)]
+        return target_filtered
+        
+    def filter(self, target_df):
+        filtered_df = target_df[:]
+        filtered_df['ip_id_num'] = np.nan        
+        filtered_df['ip_id'] = np.nan
+        filtered_df['ip_name'] = np.nan
+        filtered_df_grouped = filtered_df.groupby(level=[0,1], group_keys=False)
+        return filtered_df_grouped.apply(self._filter_group)
 
 ##########################################
 
