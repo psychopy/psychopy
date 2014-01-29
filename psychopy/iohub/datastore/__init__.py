@@ -309,7 +309,7 @@ class ioHubpyTablesFile():
         exp_session=[('EXPERIMENT_ID','i4'),('SESSION_ID','i4')]
         exp_session.extend(np_dtype)
         np_dtype=exp_session
-        print2err('np_dtype: ',np_dtype,' ',type(np_dtype))
+        #print2err('np_dtype: ',np_dtype,' ',type(np_dtype))
         self._EXP_COND_DTYPE=N.dtype(np_dtype)
         try:
             expCondTableName="EXP_CV_%d"%(experiment_id)
@@ -337,7 +337,7 @@ class ioHubpyTablesFile():
             data=temp            
             try:
                 etable=self.TABLES['EXP_CV']
-                print2err('data: ',data,' ',type(data))
+                #print2err('data: ',data,' ',type(data))
 
                 for i,d in enumerate(data):
                     if isinstance(d,(list,tuple)):
