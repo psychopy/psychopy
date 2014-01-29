@@ -676,7 +676,11 @@ class TobiiPsychopyCalibrationGraphics(object):
                     spos=self.calibrationPointOUTER.pos
                     #self.calibrationPointOUTER.setPos(tp)            
                     #self.calibrationPointINNER.setPos(tp) 
-                    self.moveTarget(spos,tp,TARG_VELOCITY)
+                    if TARG_VELOCITY > 0.0:
+                        self.moveTarget(spos,tp,TARG_VELOCITY)
+                    else:
+                        self.calibrationPointOUTER.setPos(tp)          
+                        self.calibrationPointINNER.setPos(tp)                         
                     self.setTargetDefaults()
                     if CONTRACT_ONLY is False:
                         self.expandTarget(TARG_RAD_MULTIPLIER,EXPANSION_RATE)
