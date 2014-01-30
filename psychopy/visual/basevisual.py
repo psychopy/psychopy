@@ -294,6 +294,7 @@ class BaseVisualStim(object):
         """
         self.__dict__['pos'] = val2array(value, False, False)
         self._needVertexUpdate=True
+        self._needUpdate = True
 
     @attributeSetter
     def size(self, value):
@@ -330,6 +331,7 @@ class BaseVisualStim(object):
                 elif self.units == 'height': value = numpy.array(self._origSize, float) / self.win.size[1]
         self.__dict__['size'] = value
         self._needVertexUpdate=True
+        self._needUpdate = True
         if hasattr(self, '_calcCyclesPerStim'):
             self._calcCyclesPerStim()
 
@@ -554,7 +556,6 @@ class BaseVisualStim(object):
         self.__dict__['verticesPix'] = verts
         self._needVertexUpdate = False
         self._needUpdate = True #but we presumably need to update the list
-
     def setAutoDraw(self, value, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
