@@ -39,7 +39,9 @@ while True: #continue until keypress
         grating.setSF(mouse_dX, '+')
     elif (mouse3):
         grating.setPos([mouse_dX, mouse_dY], '+')
-        
+    else:
+        fixSpot.setPos(myMouse.getPos())
+    
     #Handle the wheel(s):
     # Y is the normal mouse wheel, but some (e.g. mighty mouse) have an x as well
     wheel_dX, wheel_dY = myMouse.getWheelRel()

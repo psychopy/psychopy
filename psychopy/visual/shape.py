@@ -217,7 +217,7 @@ class ShapeStim(BaseVisualStim):
         if log and self.autoLog:
             self.win.logOnFlip("Set %s vertices=%s" %(self.name, value),
                 level=logging.EXP,obj=self)
-    def draw(self, win=None):
+    def draw(self, win=None, keepMatrix=False): #keepMatrix option is needed by Aperture
         """
         Draw the stimulus in its relevant window. You must call
         this method after every MyWin.flip() if you want the
@@ -230,8 +230,9 @@ class ShapeStim(BaseVisualStim):
         vertsPix = self.verticesPix #will check if it needs updating (check just once)
         nVerts = vertsPix.shape[0]
         #scale the drawing frame etc...
-        GL.glPushMatrix()#push before drawing, pop after
-        win.setScale('pix')
+        if not keepMatrix:
+            GL.glPushMatrix()#push before drawing, pop after
+            win.setScale('pix')
         #load Null textures into multitexteureARB - or they modulate glColor
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -264,4 +265,5 @@ class ShapeStim(BaseVisualStim):
             if self.closeShape: GL.glDrawArrays(GL.GL_LINE_LOOP, 0, nVerts)
             else: GL.glDrawArrays(GL.GL_LINE_STRIP, 0, nVerts)
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-        GL.glPopMatrix()
+        if not keepMatrix:
+            GL.glPopMatrix()
