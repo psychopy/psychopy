@@ -2800,11 +2800,11 @@ class FitCumNormal(_baseFunctionFit):
     """Fit a Cumulative Normal function (aka error function or erf)
     of the form::
 
-        y = chance + (1-chance)*(special.erf(xx*xScale - xShift)/2.0+0.5)
+        y = chance + (1-chance)*((special.erf((xx-xShift)/(sqrt(2)*sd))+1)*0.5)
 
     and with inverse::
 
-        x = (erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale
+        x = xShift+sqrt(2)*sd*(erfinv(((yy-chance)/(1-chance)-.5)*2))
 
     After fitting the function you can evaluate an array of x-values
     with fit.eval(x), retrieve the inverse of the function with
@@ -2823,14 +2823,14 @@ class FitCumNormal(_baseFunctionFit):
     def _eval(xx, xShift, sd):
         global _chance
         xx = numpy.asarray(xx)
-        yy = _chance + (1-_chance)*(special.erf((xx-xShift)/sd)/2.0+0.5)#NB numpy.special.erf() goes from -1:1
+        yy = _chance + (1-_chance)*((special.erf((xx-xShift)/(numpy.sqrt(2)*sd))+1)*0.5)#NB numpy.special.erf() goes from -1:1
         return yy
     @staticmethod
     def _inverse(yy, xShift, sd):
         global _chance
         yy = numpy.asarray(yy)
         #xx = (special.erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale#NB numpy.special.erfinv() goes from -1:1
-        xx = xShift+sd*special.erfinv(( (yy-_chance)/(1-_chance) - 0.5 )*2)
+        xx = xShift+numpy.sqrt(2)*sd*special.erfinv(( (yy-_chance)/(1-_chance) - 0.5 )*2)
         return xx
 
 ########################## End psychopy.data classes ##########################
