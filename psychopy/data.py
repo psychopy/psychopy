@@ -2800,11 +2800,11 @@ class FitCumNormal(_baseFunctionFit):
     """Fit a Cumulative Normal function (aka error function or erf)
     of the form::
 
-        y = chance + (1-chance)*(special.erf(xx*xScale - xShift)/2.0+0.5)
+        y = chance + (1-chance)*((special.erf((xx-xShift)/(sqrt(2)*sd))+1)*0.5)
 
     and with inverse::
 
-        x = (erfinv((yy-chance)/(1-chance)*2.0-1)+xShift)/xScale
+        x = xShift+sqrt(2)*sd*(erfinv(((yy-chance)/(1-chance)-.5)*2))
 
     After fitting the function you can evaluate an array of x-values
     with fit.eval(x), retrieve the inverse of the function with
