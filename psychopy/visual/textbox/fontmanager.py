@@ -141,20 +141,49 @@ class FontManager(object):
         script starts.
         """
 
-        fi=None
-        for fp in  font_paths:
+        fi_list=[]
+        for fp in font_paths:
             if os.path.isfile(fp) and os.path.exists(fp):
                 try:
                     face=Face(fp)
                     if monospace_only:
                         if face.is_fixed_width:
-                            fi=self._createFontInfo(fp,face)
+                            fi_list.append(self._createFontInfo(fp,face))
                     else:
-                        fi=self._createFontInfo(fp,face)
+                        fi_list.append(self._createFontInfo(fp,face))
                 except Exception, e:
                     logging.debug('Error during FontManager.updateFontInfo(): %s\nFont File: %s'%(str(e),fp))
 
         self.font_family_styles.sort()
+
+        return fi_list
+
+    def addFontDirectory(self,font_dir,monospace_only=True,recursive=False):
+        """
+        Add any font files found in font_dir to the FontManger font search 
+        space. Each element of the font_paths list must be a valid path 
+        including the font file name. Relative paths can be used, with the 
+        current working directory being the origin.
+
+        If monospace_only is True, each font file will only be added if it is a
+        monospace font (as only monospace fonts are currently supported by
+        TextBox).
+
+        Adding fonts to the FontManager is not persistant across runs of
+        the script, so any extra font paths need to be added each time the
+        script starts.
+        """
+
+        from os import walk
+
+        font_paths = []
+        for (dirpath, dirnames, filenames) in walk(font_dir):
+            ttf_files=[os.path.join(dirpath,fname) for fname in filenames if fname.lower().endswith('.ttf')]
+            font_paths.extend(ttf_files)
+            if not recursive:
+                break
+            
+        return self.addFontFiles(font_paths)
 
         return fi
 

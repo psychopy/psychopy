@@ -40,8 +40,15 @@ class InterestPeriodDefinition(object):
     @property
     def ipid(self):
         return self._ipid
-        
-    def _filter_group(self, target_group):
+    
+    def find(self, target_df):
+        df = target_df[:]
+        df['ip_id_num'] = np.nan        
+        df['ip_id'] = np.nan
+        df['ip_name'] = np.nan
+        return df.groupby(level=[0,1], group_keys=False).apply(self.__find)
+    
+    def __find(self, target_group):
         group_id = target_group.index[0]
         group_ips = self.ip_df.ix[group_id]
         if len(group_ips) > 0:
@@ -58,13 +65,51 @@ class InterestPeriodDefinition(object):
         else:
             target_filtered = target_group[[False]*len(target_group)]
         return target_filtered
+    
+    def filter(self, target):
+        df = target.groupby(level=[0,1], group_keys=False).apply(self.__filter)
+        df['ip_id'] = self.ipid
+        df['ip_name'] = self.name
+        return df
+    
+    def __filter(self, group):
+        """
+        HT http://stackoverflow.com/a/21370058/2506078
+        """
+        ips = self.ip_df.ix[group.index[0]]
+        start_idx = np.searchsorted(ips['start_time'], group['time'])-1
+        end_idx = np.searchsorted(ips['end_time'], group['time'])
+        mask = (start_idx == end_idx)
+        group['ip_id_num'] = np.nan
+        group['ip_id_num'][mask] = start_idx
+        return group[mask]
+    
+    def _extract_criteria_match(self, source, criteria, return_cols, exact):
+        col = criteria.keys()[0] # eventually we'll want to allow for
+        val = criteria[col]      # multiple criteria matches
         
-    def filter(self, target_df):
-        filtered_df = target_df[:]
-        filtered_df['ip_id_num'] = np.nan        
-        filtered_df['ip_id'] = np.nan
-        filtered_df['ip_name'] = np.nan
-        return filtered_df.groupby(level=[0,1], group_keys=False).apply(self._filter_group)
+        if exact:
+            is_match = (source[col] == val)
+        else:
+            is_match = (source[col].str.contains(val))
+        
+        if not isinstance(return_cols, dict):
+            return_cols = dict(zip(return_cols,return_cols))
+        
+        keep_cols = return_cols.keys()
+        matches = source[is_match][keep_cols].rename(columns=return_cols)
+        
+        matches['ip_id_num'] = range(len(matches)) # add num here to help merge
+                                                   # later on, e.g., _ip_zipper
+        return matches
+    
+    def _ip_zipper(self, start, end, temp_index='ip_id_num'):
+        # TODO: make sure the two dfs "zip" nicely
+        _start = start.set_index(temp_index, append=True)
+        _end = end.set_index(temp_index, append=True)
+        
+        _all = pd.merge(_start, _end, left_index=True, right_index=True)
+        return _all.reset_index(temp_index)
         
         
 #############################################
@@ -86,7 +131,7 @@ class EventBasedIP(InterestPeriodDefinition):
         InterestPeriodDefinition.__init__(self,name)
 
         self._start_source_df=start_source_df
-        self._end_source_df=end_source_df
+        self._end_source_df=end_source_df or start_source_df[:]
         self._start_criteria=start_criteria
         self._end_criteria=end_criteria
         self._exact=exact
@@ -111,20 +156,6 @@ class EventBasedIP(InterestPeriodDefinition):
             ip_id
             ip_id_num
         """
-        def _extract_criteria_match(source, criteria, return_cols, exact):
-            col = criteria.keys()[0] # eventually we'll want to allow for
-            val = criteria[col]      # multiple criteria matches
-            
-            if exact:
-                matches = (source[col] == val)
-            else:
-                matches = (source[col].str.contains(val))
-            
-            if not isinstance(return_cols, dict):
-                return_cols = dict(zip(return_cols,return_cols))
-            
-            return source[matches][return_cols.keys()].rename(return_columns)
-        
         if self._ip_df is None:
             # Match start_source_df[start_criteria.key]==start_criteria.value
             # Currently only support ip criteria in the form of 
@@ -138,25 +169,23 @@ class EventBasedIP(InterestPeriodDefinition):
             #   start_source_df[start_df_col_name] == start_df_col_value
             
             start_cols = {'time':'start_time', 'event_id':'start_event_id'}
-            start_ip_df = _extract_criteria_match(self.start_source_df, 
+            start_ip_df = self._extract_criteria_match(self.start_source_df, 
                                                   criteria=self.start_criteria,
                                                   return_cols=start_cols,
                                                   exact=self._exact)
             
             end_cols = {'time':'end_time', 'event_id':'end_event_id'}
-            end_ip_df = _extract_criteria_match(self.end_source_df, 
+            end_ip_df = self._extract_criteria_match(self.end_source_df, 
                                                 criteria=self.end_criteria,
                                                 return_cols=end_cols,
                                                 exact=self._exact)
                               
-            self._ip_df = pd.merge(start_ip_df, end_ip_df, left_index=True,
-                                   right_index=True)
+            self._ip_df = self._ip_zipper(start_ip_df, end_ip_df)
                               
             # Add ip identifier cols
             self._ip_df['ip_name']=self.name            
             self._ip_df['ip_id']=self.ipid            
-            self._ip_df['ip_id_num']=range(1,len(self._ip_df)+1)   
-            
+                        
         return self._ip_df  
 
 
@@ -196,6 +225,17 @@ class EventBasedIP(InterestPeriodDefinition):
         self._end_criteria=v
         self._ip_df=None
 
+
+##########################################
+
+class MessageBasedIP(EventBasedIP):
+    next_ipid=1
+    def __init__(self, name=None, message_df=None, start_text='TRIAL_START', 
+                 end_text='TRIAL_END', exact=True):
+        EventBasedIP.__init__(self, name, message_df, 
+                              start_criteria={'text':start_text},
+                              end_criteria={'text':end_text},
+                              exact=exact)
 
 ##########################################
 
