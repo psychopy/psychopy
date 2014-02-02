@@ -12,7 +12,7 @@ Show info dlg:
     If this box is checked then a dialog will appear at the beginning of the experiment allowing the `Experiment Info` to be changed.
 	
 Experiment Info:
-    This is a python dictionary object that stores information about the current experiment (up to 7 fields can be used). This information will be saved with any data files and so can be used for storing information about the current run of the study. The information stored here can also be used within the experiment. For example, if the `Experiment Info` was {'participant':'jwp', 'ori':10} then Builder :doc:`components` could access ExpInfo['ori'] to retrieve the orientation set here. Obviously this is a useful way to run essentially the same experiment, but with different conditions set at run time.
+    This is a python dictionary object that stores information about the current experiment (up to 7 fields can be used). This information will be saved with any data files and so can be used for storing information about the current run of the study. The information stored here can also be used within the experiment. For example, if the `Experiment Info` was {'participant':'jwp', 'ori':10} then Builder :doc:`components` could access expInfo['ori'] to retrieve the orientation set here. Obviously this is a useful way to run essentially the same experiment, but with different conditions set at run time.
 
 Save Excel file:
 	If this box is checked an Excel data file (.xlsx) will be stored.
