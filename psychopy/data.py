@@ -279,7 +279,7 @@ class ExperimentHandler(object):
             for name in names:
                 entry.keys()
                 if name in entry.keys():
-                    if ',' in unicode(entry[name]):
+                    if ',' in unicode(entry[name]) or '\n' in unicode(entry[name]):
                         f.write(u'"%s"%s' %(entry[name],delim))
                     else:
                         f.write(u'%s%s' %(entry[name],delim))
