@@ -68,8 +68,11 @@ class Aperture:
             self.nVert = nVert
         regularPolygon = True
         self.shape = shape
-        if type(shape) in [str, unicode]:
-            if shape == None or shape.lower() == 'circle':
+        unrecognized = False
+        if shape is None:
+            pass #just use the nVert we were given
+        elif type(shape) in [str, unicode]:
+            if shape.lower() == 'circle':
                 pass #just use the nVert we were given
             elif shape.lower() == 'square':
                 regularPolygon = False # if we use polygon then we have to hack the orientation
@@ -77,11 +80,15 @@ class Aperture:
             elif shape.lower() == 'triangle':
                 regularPolygon = False # if we use polygon then we have to hack the orientation
                 vertices = [[0.5,-0.5],[0,0.5],[-0.5,-0.5]]
-            elif type(shape) in [tuple, list, numpy.ndarray]:
-                regularPolygon = False
-                vertices = shape
             else:
-                logging.warn("Unrecognised shape for aperture. Expected 'circle','square','triangle', vertices or None but got %s" %(repr(shape)))
+                unrecognized = True
+        elif type(shape) in [tuple, list, numpy.ndarray]:
+            regularPolygon = False
+            vertices = shape
+        else:
+            unrecognized = True
+        if unrecognized:
+            logging.warn("Unrecognized shape for aperture. Expected 'circle', 'square', 'triangle', vertices or None but got %s" %(repr(shape)))
         if regularPolygon:
             self._shape = polygon.Polygon(win=self.win, edges=self.nVert,
                                           fillColor=1, lineColor=None,
