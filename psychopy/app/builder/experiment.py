@@ -399,8 +399,11 @@ class Experiment:
                     elif thisParam.updates and "during:" in thisParam.updates:
                         updates = thisParam.updates.split(': ')[1] #remove the part that says 'during'
                         routine, static =  updates.split('.')
-                        self.routines[routine].getComponentFromName(static).addComponentUpdate(
-                            routine, thisComp.params['name'], thisParamName)
+                        if routine not in self.routines:
+                            logging.warning("%s was set to update during %s Static Component, but that component no longer exists" %(thisParamName, static))
+                        else:
+                            self.routines[routine].getComponentFromName(static).addComponentUpdate(
+                                routine, thisComp.params['name'], thisParamName)
         #fetch flow settings
         flowNode=root.find('Flow')
         loops={}

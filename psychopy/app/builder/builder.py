@@ -2543,9 +2543,10 @@ class _BaseParamsDlg(wx.Dialog):
         if hasattr(updates, 'startswith') and "during:" in updates:
             updates = updates.split(': ')[1] #remove the part that says 'during'
             origRoutine, origStatic =  updates.split('.')
-            exp.routines[origRoutine].getComponentFromName(origStatic).remComponentUpdate(
-                origRoutine, compName, fieldName)
-        if hasattr(newUpdates, 'startswith') and  "during:" in newUpdates:
+            if exp.routines[origRoutine].getComponentFromName(origStatic) != None:
+                exp.routines[origRoutine].getComponentFromName(origStatic).remComponentUpdate(
+                    origRoutine, compName, fieldName)
+        if hasattr(newUpdates, 'startswith') and "during:" in newUpdates:
             newUpdates = newUpdates.split(': ')[1] #remove the part that says 'during'
             newRoutine, newStatic =  newUpdates.split('.')
             exp.routines[newRoutine].getComponentFromName(newStatic).addComponentUpdate(
