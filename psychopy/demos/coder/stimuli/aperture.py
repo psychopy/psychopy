@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 """Demo for the class psychopy.visual.Aperture().
-Draw two gabor circles, one without an irregular aperture and one with no aperture.
+Draw two gabor circles, one with an irregular aperture and one with no aperture.
 """
 
 from psychopy import visual, event
