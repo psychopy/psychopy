@@ -1,20 +1,25 @@
-from psychopy import visual, core, event
+#!/usr/bin/env python2
 
-win = visual.Window([400,400],allowStencil=True,units='norm')
-gabor1 = visual.GratingStim(win, mask='circle', pos=[0.2, 0.2], 
-    sf=4, size=.4,
-    color=[0.5,-0.5,1])
-gabor2 = visual.GratingStim(win, mask='circle', pos=[-0.2, -0.2], 
-    sf=4, size=.4,
-    color=[-0.5,-0.5,-1])
+"""Demo for the class psychopy.visual.Aperture().
+Draw two gabor circles, one without an irregular aperture and one with no aperture.
+"""
 
-# NOTE: size in Aperture refers to the diameter of the circle on which the
-# vertices would lie. If you use a square aperture this will not be the same as
-# the w,h of the square!
-aperture = visual.Aperture(win, size=.5,pos=[0.16, 0.16],shape='square')
-aperture.enable()#actually is enabled by default when created
+from psychopy import visual, event
+
+win = visual.Window([400,400], allowStencil=True, units='norm')
+instr = visual.TextStim(win, text="Any key to quit", pos=(0,-.7))
+gabor1 = visual.GratingStim(win, mask='circle', sf=4, size=1.2, color=[0.5,-0.5,1])
+gabor2 = visual.GratingStim(win, mask='circle', sf=4, size=1.2, color=[-0.5,-0.5,-1])
+vertices=[(-0.02, -0.0), (-.8,.2), (0,.6), (.1,0.06), (.8, .3), (.6,-.4)]
+
+# NOTE: size in Aperture refers to the diameter when shape='circle';
+# vertices or other shapes are scaled accordingly
+aperture = visual.Aperture(win, size=.9, shape=vertices)  # or try shape='square'
+
+aperture.disable()  # enabled by default when created
 gabor1.draw()
-aperture.disable()#drawing from here ignores aperture
+instr.draw()
+aperture.enable()  # drawing is now restricted to be within the aperture shape
 gabor2.draw()
 
 win.flip()
