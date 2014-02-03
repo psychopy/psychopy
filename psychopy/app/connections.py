@@ -145,7 +145,7 @@ class SuggestUpdateDialog(wx.Dialog):
 
         #info about current version
         msg1 = wx.StaticText(self,-1,style=wx.ALIGN_CENTRE,
-            label="PsychoPy v%s is available (you are running %s)." %(latest['version'],runningVersion))
+            label="PsychoPy v%s is available (you are running %s).\n\n(To disable this check, see Preferences > connections > checkForUpdates)" %(latest['version'],runningVersion))
         if latest['lastCompatible']>runningVersion:
             msg2 = wx.StaticText(self,-1,style=wx.ALIGN_CENTRE,
             label="This version MAY require you to modify your\nscripts/exps slightly. Read the changelog carefully.")
@@ -496,4 +496,3 @@ def sendUsageStats():
     except:
         logging.warning("Couldn't connect to psychopy.org\n"+\
             "Check internet settings (and proxy setting in PsychoPy Preferences.")
-
