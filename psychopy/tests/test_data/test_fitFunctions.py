@@ -9,13 +9,13 @@ if PLOTTING:
 
 from psychopy import data
 
-def cumNorm(xx, noise, thresh, chance=0.5):
+def cumNorm(xx, sd, thresh, chance=0.5):
     """For a given x value (e.g. contrast) returns the probability (y) of
     the subject responding yes (or 'correctly')
     """
-    slope=1.0/noise
     xx=numpy.asarray(xx)
-    y = special.erf((xx - thresh)*slope)/2.0+0.5 #cum norm from 0-1
+    y = (special.erf((xx-thresh)/(numpy.sqrt(2)*sd))+1)*0.5#NB numpy.special.erf() goes from -1:1
+#    y = special.erf((xx - thresh)*slope)/2.0+0.5 #cum norm from 0-1
     y = y*(1-chance)+chance #scale to be from chance to 1
     return y
 
@@ -23,7 +23,7 @@ def cumNorm(xx, noise, thresh, chance=0.5):
 thresh=0.2
 sd=0.1
 contrasts = numpy.linspace(0.0,0.5,10)
-responses = cumNorm(contrasts, noise=sd, thresh=thresh)
+responses = cumNorm(contrasts, sd=sd, thresh=thresh)
 
 def plotFit(fittedResps, thresh, title):
     pylab.figure()
@@ -37,7 +37,7 @@ def plotFit(fittedResps, thresh, title):
 def test_fitNakaRushton():
     #the data are actually from a cum norm so this should be exact
     fit = data.FitNakaRushton(contrasts, responses)
-    assert numpy.allclose([ 0.20079013,  4.6946005,   0.51007665,  1.01628589], fit.params)
+    assert numpy.allclose([ 0.21105363, 3.19840356, 0.5233062, 1.04135427 ], fit.params)
     modResps = fit.eval(contrasts)
     #check that inverse works too
     invs = fit.inverse(modResps)
@@ -63,7 +63,7 @@ def test_weibull():
     #fit to the fake data
     fit = data.FitWeibull(contrasts, responses, display=0, expectedMin=0.5)
     #check threshold is close (maybe not identical because not same function)
-    assert thresh-fit.inverse(0.75)<0.001
+    assert thresh-fit.inverse(0.75)<0.01
     #check that inverse works too
     modResps = fit.eval(contrasts)
     invs = fit.inverse(modResps)
