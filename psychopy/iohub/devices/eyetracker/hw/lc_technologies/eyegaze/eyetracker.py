@@ -24,6 +24,9 @@ import pEyeGaze
 import sys
 from ctypes import byref, sizeof
 
+def localfunc():
+    pass
+
 class EyeTracker(EyeTrackerDevice):
     """The EyeGaze EyeTracker class implements support of the LC Technologies
     eye tracker lines for the ioHub Common Eye Tracker Interface. 
@@ -216,9 +219,12 @@ class EyeTracker(EyeTrackerDevice):
                 # and reconnect after calibration is done.
                 self.setConnectionState(False)
                 
-                import subprocess,gevent
+                import subprocess,gevent,os
                 #p = subprocess.Popen(('calibrate.exe', ''), env={"PATH": "/usr/bin"})
-                p = subprocess.Popen(('calibrate.exe', ''))
+
+                from psychopy.iohub import module_directory     
+                runthis=os.path.join(module_directory(localfunc),'calibrate_lc.bat')
+                p = subprocess.Popen((runthis, ''))
                 while p.poll() is None:
                     gevent.sleep(0.05)
                 self.setConnectionState(True)

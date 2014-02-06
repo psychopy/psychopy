@@ -1,0 +1,1 @@
+START "" /DC:\Eyegaze\ /B /W calibrate.exe
