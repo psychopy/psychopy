@@ -1,9 +1,9 @@
 """
 ioHub
 Common Eye Tracker Interface
-.. file: ioHub/devices/eyetracker/hw/tobii/TobiiCalibrationGraphics.py
+.. file: ioHub/devices/eyetracker/hw/theeyetribe/TETCalibrationGraphics.py
 
-Copyright (C) 2012-2013 iSolver Software Solutions
+Copyright (C) 2012-2014 iSolver Software Solutions
 Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
 
 .. moduleauthor:: ??
@@ -21,11 +21,10 @@ import numpy as np
 from ..... import print2err,printExceptionDetailsToStdErr,convertCamelToSnake
 from .... import Computer,DeviceEvent
 from .....constants import EventConstants
-from . tobiiclasses import Point2D
 
 currentTime=Computer.getTime
 
-class TobiiPsychopyCalibrationGraphics(object):
+class TETPsychopyCalibrationGraphics(object):
     IOHUB_HEARTBEAT_INTERVAL=0.050   # seconds between forced run through of
                                      # micro threads, since one is blocking
                                      # on camera setup.
@@ -39,7 +38,7 @@ class TobiiPsychopyCalibrationGraphics(object):
     def __init__(self, eyetrackerInterface,screenColor=None,
                  calibrationPointList=None):
         self._eyetrackerinterface=eyetrackerInterface
-        self._tobii = eyetrackerInterface._tobii._eyetracker
+        self._eyetribe_connection = eyetrackerInterface._eyetribe_connection
         self.screenSize = eyetrackerInterface._display_device.getPixelResolution()
         self.width=self.screenSize[0]
         self.height=self.screenSize[1]
@@ -50,7 +49,7 @@ class TobiiPsychopyCalibrationGraphics(object):
         self._lastCalibrationReturnCode=0
         self._lastCalibration=None
         
-        TobiiPsychopyCalibrationGraphics.WINDOW_BACKGROUND_COLOR=screenColor
+        TETPsychopyCalibrationGraphics.WINDOW_BACKGROUND_COLOR=screenColor
 
 
         if calibrationPointList is not None:
@@ -119,7 +118,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             self._ioKeyboard=kbDevice
             self._ioKeyboard._addEventListener(self,eventIDs)
         else:
-            print2err("Warning: Tobii Cal GFX could not connect to Keyboard device for events.")
+            print2err("Warning: TheEyeTribe Cal GFX could not connect to Keyboard device for events.")
 
     def _unregisterEventMonitors(self):
         if self._ioKeyboard:
@@ -208,7 +207,7 @@ class TobiiPsychopyCalibrationGraphics(object):
                                                         units='pix',
                                                         wrapWidth=self.width*0.9)
         
-        # create Tobii eye position feedback graphics
+        # create TheEyeTribe eye position feedback graphics
         #
         sw,sh=self.screenSize
         self.hbox_bar_length=hbox_bar_length=sw/4
@@ -299,10 +298,7 @@ class TobiiPsychopyCalibrationGraphics(object):
         cal_target_list.insert(0,self.CALIBRATION_POINT_LIST[0])
         cal_target_list.append(self.CALIBRATION_POINT_LIST[-1])
                 
-        self._tobii.StartCalibration(self.on_start_calibration)   
-
-        if hasattr(self._tobii,'ClearCalibration'):
-            self._tobii.ClearCalibration()
+        ## TODO Add TET Start Calibration Code here
 
         i=0
         for pt in cal_target_list:
@@ -331,7 +327,7 @@ class TobiiPsychopyCalibrationGraphics(object):
                 self.MsgPump()
                         
             pt2D=Point2D(pt[0],pt[1])
-            self._tobii.AddCalibrationPoint(pt2D,self.on_add_calibration_point)
+            # TODO Add TET add calibration point logic here
             time.sleep(0.5)            
             self.clearCalibrationWindow()
             self.clearAllEventBuffers()
@@ -341,111 +337,25 @@ class TobiiPsychopyCalibrationGraphics(object):
                 calibration_sequence_completed=True
         
         if calibration_sequence_completed:
-            self._tobii.ComputeCalibration(self.on_compute_calibration)
+            # TODO Add TET calculate calibration here
+            pass
  
             msg=1
             while msg not in ["CALIBRATION_COMPUTATION_COMPLETE","CALIBRATION_COMPUTATION_FAILED"]:        
                 msg=self.getNextMsg()
             
-        self._tobii.StopCalibration(self.on_stop_calibration)  
+        # TODO Add TET code to stop calibration process here
         msg=1
         while msg is not "CALIBRATION_FINISHED":        
             msg=self.getNextMsg()
 
         if self._lastCalibrationOK is True:
-            self._tobii.GetCalibration(self.on_calibration_result)
-
+            # TODO Add TET code to get the calibration result here and determine
+            # if it was successful or not.
             msg=1
             while msg is not "CALIBRATION_RESULT_RECEIVED":        
                 msg=self.getNextMsg()
-            
-            cal_data_dict={}
 
-            import math
-                
-            if self._lastCalibration:
-                for cal_point_result in self._lastCalibration.plot_data:
-                    left_eye_data=cal_point_result.left.map_point
-                    
-                    lval=None
-                    if hasattr(cal_point_result.left,'validity'):
-                        lval=cal_point_result.left.validity
-                    elif hasattr(cal_point_result.left,'status'):
-                        lval=cal_point_result.left.quality
-                    left_eye_data=(left_eye_data.x*self.width,left_eye_data.y*self.height),lval
-                    
-                    rval=None
-                    if hasattr(cal_point_result.right,'validity'):
-                        rval=cal_point_result.right.validity
-                    elif hasattr(cal_point_result.right,'status'):
-                        rval=cal_point_result.right.status
-                    right_eye_data=cal_point_result.right.map_point
-                    right_eye_data=(right_eye_data.x*self.width,right_eye_data.y*self.height),rval
-                    
-                    target_pos=cal_point_result.true_point.x*self.width,cal_point_result.true_point.y*self.height
-                    
-                    if target_pos not in cal_data_dict:
-                        cal_data_dict[target_pos]=[]
-                    cal_data_dict[target_pos].append((left_eye_data,right_eye_data))
-    
-                cal_stats=dict()
-                for (targ_x,targ_y),eye_cal_result_list in cal_data_dict.iteritems():
-                    left_stats=dict(pos_sample_count=0,invalid_sample_count=0,avg_err=0.0,min_err=100000.0,max_err=0.0)
-                    right_stats=dict(pos_sample_count=0,invalid_sample_count=0,avg_err=0.0,min_err=100000.0,max_err=0.0)
-                    
-                    for ((left_x,left_y),left_validity),((right_x,right_y),right_validity) in eye_cal_result_list:
-                        left_stats['pos_sample_count']+=1.0
-                        right_stats['pos_sample_count']+=1.0
-                        
-                        if left_validity==1:
-                            x_err=targ_x-left_x
-                            y_err=targ_y-left_y
-                            left_err=math.sqrt(x_err*x_err+y_err*y_err)
-                            if left_err<left_stats['min_err']:
-                                left_stats['min_err']=left_err
-                            elif left_err>left_stats['max_err']:
-                                left_stats['max_err']=left_err
-                            left_stats['avg_err']+=left_err
-                        else:
-                            left_stats['invalid_sample_count']+=1.0
-    
-                            
-                        if right_validity==1:
-                            x_err=targ_x-right_x
-                            y_err=targ_y-right_y                        
-                            right_err=math.sqrt(x_err*x_err+y_err*y_err)
-                            if right_err<right_stats['min_err']:
-                                right_stats['min_err']=right_err
-                            elif right_err>right_stats['max_err']:
-                                right_stats['max_err']=right_err
-                            right_stats['avg_err']+=right_err
-                        else:
-                            right_stats['invalid_sample_count']+=1.0
-                        
-                    if right_stats['invalid_sample_count']==0:
-                        right_stats['valid_sample_percentage']=100.0
-                    else:
-                        right_stats['valid_sample_percentage']=(1.0-right_stats['invalid_sample_count']/right_stats['pos_sample_count'])*100.0
-                    
-                    if left_stats['invalid_sample_count']==0:
-                        left_stats['valid_sample_percentage']=100.0
-                    else:
-                        left_stats['valid_sample_percentage']=(1.0-left_stats['invalid_sample_count']/left_stats['pos_sample_count'])*100.0
-                 
-                    if int(right_stats['pos_sample_count']-right_stats['invalid_sample_count'])>0:
-                        right_stats['avg_err']=right_stats['avg_err']/(right_stats['pos_sample_count']-right_stats['invalid_sample_count'])
-                    else:
-                        right_stats['avg_err']=-1.0
-                        
-                    if int(left_stats['pos_sample_count']-left_stats['invalid_sample_count'])>0:
-                        left_stats['avg_err']=left_stats['avg_err']/(left_stats['pos_sample_count']-left_stats['invalid_sample_count'])
-                    else:
-                        left_stats['avg_err']=-1.0
-                   
-                    cal_stats[(targ_x,targ_y)]=dict(left=left_stats,right=right_stats)
-            else:
-                print2err("WARNING: Calibration results are NULL.")
-            
             instuction_text="Calibration Passed. PRESS 'SPACE' KEY TO CONTINUE."     
             continue_method=self.showSystemSetupMessageScreen(instuction_text,True,msg_types=['SPACE_KEY_ACTION'])
             if continue_method is False:
@@ -474,25 +384,12 @@ class TobiiPsychopyCalibrationGraphics(object):
             for e in self._eyetrackerinterface.getEvents(EventConstants.BINOCULAR_EYE_SAMPLE):
                 event_named_tuples.append(EventConstants.getClass(EventConstants.BINOCULAR_EYE_SAMPLE).createEventAsNamedTuple(e))
             #print2err(event_named_tuples)    
-            leye_box_pos,reye_box_pos=self.getHeadBoxPosition(event_named_tuples)
-            lx,ly,lz=leye_box_pos        
-            rx,ry,rz=reye_box_pos
-            eye_positions=(lx,ly,lz,rx,ry,rz)
-            marker_names=('left_hbox_marker_x','left_hbox_marker_y','left_hbox_marker_z',
-                          'right_hbox_marker_x','right_hbox_marker_y','right_hbox_marker_z')
-            marker_heights=self.marker_heights
-            hbox_bar_length=self.hbox_bar_length
-            
-            for i,p in enumerate(eye_positions):
-                if p is not None:
-                    mpoint=hbox_bar_length*p-hbox_bar_length/2.0,marker_heights[i]
-                    self.feedback_resources[marker_names[i]].setPos(mpoint)
-                    self.feedback_resources[marker_names[i]].setOpacity(1.0)
-                else:
-                    self.feedback_resources[marker_names[i]].setOpacity(0.0)
-    
+
+            # TODO If TET can give head position info so it can be visualized
+            # here to aid in head positioning in space, add the logic here
+
             self.textLineStim.draw()
-            [r.draw() for r in self.feedback_resources.values()]
+            #[r.draw() for r in self.feedback_resources.values()]
             self.window.flip()
                  
             msg=self.getNextMsg()
@@ -509,36 +406,39 @@ class TobiiPsychopyCalibrationGraphics(object):
             self.MsgPump()
             gevent.sleep()
             
-        
-    def getHeadBoxPosition(self,events):
-        #KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key_id')
-        left_eye_cam_x=None
-        left_eye_cam_y=None
-        left_eye_cam_z=None
-        right_eye_cam_x=None
-        right_eye_cam_y=None
-        right_eye_cam_z=None
-
-        if len(events)==0:
-            return (left_eye_cam_x,left_eye_cam_y,left_eye_cam_z),(right_eye_cam_x,right_eye_cam_y,right_eye_cam_z)
-        
-        event=events[-1]                
-        if event.left_eye_cam_x != -1.0:
-            left_eye_cam_x=1.0-event.left_eye_cam_x
-        if event.left_eye_cam_y != -1.0:
-            left_eye_cam_y=event.left_eye_cam_y
-        if event.left_eye_cam_z != 0.0:
-            left_eye_cam_z=event.left_eye_cam_z
-        if event.right_eye_cam_x != -1.0:
-            right_eye_cam_x=1.0-event.right_eye_cam_x
-        if event.right_eye_cam_y != -1.0:
-            right_eye_cam_y=event.right_eye_cam_y
-        if event.right_eye_cam_z != 0.0:
-            right_eye_cam_z=event.right_eye_cam_z
-        return (left_eye_cam_x,left_eye_cam_y,left_eye_cam_z),(right_eye_cam_x,right_eye_cam_y,right_eye_cam_z)
+# TODO Reuse method if possible for TET; else delete
+#    def getHeadBoxPosition(self,events):
+#        #KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key_id')
+#        left_eye_cam_x=None
+#        left_eye_cam_y=None
+#        left_eye_cam_z=None
+#        right_eye_cam_x=None
+#        right_eye_cam_y=None
+#        right_eye_cam_z=None
+#
+#        if len(events)==0:
+#            return (left_eye_cam_x,left_eye_cam_y,left_eye_cam_z),(right_eye_cam_x,right_eye_cam_y,right_eye_cam_z)
+#
+#        event=events[-1]
+#        if event.left_eye_cam_x != -1.0:
+#            left_eye_cam_x=1.0-event.left_eye_cam_x
+#        if event.left_eye_cam_y != -1.0:
+#            left_eye_cam_y=event.left_eye_cam_y
+#        if event.left_eye_cam_z != 0.0:
+#            left_eye_cam_z=event.left_eye_cam_z
+#        if event.right_eye_cam_x != -1.0:
+#            right_eye_cam_x=1.0-event.right_eye_cam_x
+#        if event.right_eye_cam_y != -1.0:
+#            right_eye_cam_y=event.right_eye_cam_y
+#        if event.right_eye_cam_z != 0.0:
+#            right_eye_cam_z=event.right_eye_cam_z
+#        return (left_eye_cam_x,left_eye_cam_y,left_eye_cam_z),(right_eye_cam_x,right_eye_cam_y,right_eye_cam_z)
 
     def setTargetDefaults(self):
         """
+            TODO: Determine TET calibration graphics requirements
+                and change code as necessary.
+
             outer_diameter: 35
             outer_stroke_width: 5
             outer_fill_color: [255,255,255]
@@ -567,6 +467,7 @@ class TobiiPsychopyCalibrationGraphics(object):
         return self.window.flip(clearBuffer=True)                                                   
 
     def moveTarget(self,start_pt,end_pt,TARG_VELOCITY):
+        # TODO Update for TET interface, or delete method
         sx,sy=start_pt
         ex,ey=end_pt
         dist = np.linalg.norm(end_pt-start_pt)
@@ -584,6 +485,7 @@ class TobiiPsychopyCalibrationGraphics(object):
         self.setTargetDefaults()            
 
     def expandTarget(self,TARG_RAD_MULTIPLIER,EXPANSION_RATE):
+        # TODO Update for TET interface, or delete method
         calibration_prefs=self._eyetrackerinterface.getConfiguration()['calibration']['target_attributes']
         orad=calibration_prefs['outer_diameter']/2.0
         self.calibrationPointOUTER.lineWidth=int(calibration_prefs['outer_stroke_width'])
@@ -612,6 +514,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             ftime=self.window.flip(clearBuffer=True)
 
     def contractTarget(self,TARG_RAD_MULTIPLIER,EXPANSION_RATE):
+        # TODO Update for TET interface, or delete method
         calibration_prefs=self._eyetrackerinterface.getConfiguration()['calibration']['target_attributes']
         orad=calibration_prefs['outer_diameter']/2.0
         self.calibrationPointOUTER.lineWidth=int(calibration_prefs['outer_stroke_width'])
@@ -641,6 +544,8 @@ class TobiiPsychopyCalibrationGraphics(object):
        
     def drawCalibrationTarget(self,target_number,tp): 
         """
+            # TODO Update for TET interface
+
             outer_diameter: 35
             outer_stroke_width: 5
             outer_fill_color: [255,255,255]
@@ -694,21 +599,25 @@ class TobiiPsychopyCalibrationGraphics(object):
             printExceptionDetailsToStdErr()                    
 
     def on_start_calibration(self,*args,**kwargs):
+        # TODO Update for TET interface, or delete method
         #ioHub.print2err('on_start_calibration: ',args,kwargs)
         pass
     
     def on_add_calibration_point(self,*args,**kwargs):
+        # TODO Update for TET interface, or delete method
         #ioHub.print2err('on_add_calibration_point: ',args,kwargs)
         self._msg_queue.put('DRAW_NEXT')
 
     def on_stop_calibration(self,*args,**kwargs):
+        # TODO Update for TET interface, or delete method
         #ioHub.print2err('on_stop_calibration: ',args,kwargs)
         self._msg_queue.put("CALIBRATION_FINISHED")
         
     def on_compute_calibration(self,*args,**kwargs):
+        # TODO Update for TET interface, or delete method
         self._lastCalibrationReturnCode=args[0]
         if self._lastCalibrationReturnCode!=0:
-            print2err("ERROR: Tobii Calibration Calculation Failed. Error code: {0}".format(self._lastCalibrationReturnCode))
+            print2err("ERROR: TheEyeTribe Calibration Calculation Failed. Error code: {0}".format(self._lastCalibrationReturnCode))
             self._lastCalibrationOK=False
             self._msg_queue.put("CALIBRATION_COMPUTATION_FAILED")
             
@@ -717,6 +626,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             self._lastCalibrationOK=True
 
     def on_calibration_result(self,*args,**kwargs):
+        # TODO Update for TET interface, or delete method
         self._lastCalibration=args[1]
         self._msg_queue.put("CALIBRATION_RESULT_RECEIVED")
         
