@@ -1081,15 +1081,20 @@ class RatingScale(object):
                     logging.data('RatingScale %s: (mouse response) rating=%s' %
                             (self.name, unicode(self.getRating())) )
 
-        if (self.markerStyle == 'hover' and self.markerPlaced and
-                self.markerPlacedAt != self.markerPlacedAtLast):
-            if hasattr(self, 'targetWord'):
+        if self.markerStyle == 'hover' and self.markerPlaced:
+            nearLine = pointInPolygon(mouseX, mouseY, self.nearLine)
+            if (self.markerPlacedAt != self.markerPlacedAtLast or
+                nearLine):
+                if hasattr(self, 'targetWord'):
+                    self.targetWord.setColor(self.textColor, log=False)
+                    self.targetWord.setHeight(self.textSizeSmall, log=False)
+                self.targetWord = self.labels[int(self.markerPlacedAt)]
+                self.targetWord.setColor(self.markerColor, log=False)
+                self.targetWord.setHeight(1.05 * self.textSizeSmall, log=False)
+                self.markerPlacedAtLast = self.markerPlacedAt
+            elif not nearLine:
                 self.targetWord.setColor(self.textColor, log=False)
                 self.targetWord.setHeight(self.textSizeSmall, log=False)
-            self.targetWord = self.labels[int(self.markerPlacedAt)]
-            self.targetWord.setColor(self.markerColor, log=False)
-            self.targetWord.setHeight(1.05 * self.textSizeSmall, log=False)
-            self.markerPlacedAtLast = self.markerPlacedAt
 
         # decision time = secs from first .draw() to when first 'accept' value:
         if not self.noResponse and self.decisionTime == 0:
