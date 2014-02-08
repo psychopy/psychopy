@@ -1083,8 +1083,7 @@ class RatingScale(object):
 
         if self.markerStyle == 'hover' and self.markerPlaced:
             nearLine = pointInPolygon(mouseX, mouseY, self.nearLine)
-            if (self.markerPlacedAt != self.markerPlacedAtLast or
-                nearLine):
+            if nearLine or self.markerPlacedAt != self.markerPlacedAtLast:
                 if hasattr(self, 'targetWord'):
                     self.targetWord.setColor(self.textColor, log=False)
                     self.targetWord.setHeight(self.textSizeSmall, log=False)
@@ -1092,9 +1091,10 @@ class RatingScale(object):
                 self.targetWord.setColor(self.markerColor, log=False)
                 self.targetWord.setHeight(1.05 * self.textSizeSmall, log=False)
                 self.markerPlacedAtLast = self.markerPlacedAt
-            elif not nearLine:
+            elif not nearLine and self.wasNearLine:
                 self.targetWord.setColor(self.textColor, log=False)
                 self.targetWord.setHeight(self.textSizeSmall, log=False)
+            self.wasNearLine = nearLine
 
         # decision time = secs from first .draw() to when first 'accept' value:
         if not self.noResponse and self.decisionTime == 0:
@@ -1133,6 +1133,7 @@ class RatingScale(object):
             self.markerPlaced = True
             self.markerPlacedAt = self.markerStart - self.low # __init__ assures this is valid
         self.markerPlacedAtLast = -1  # unplaced
+        self.wasNearLine = False
         self.firstDraw = True # triggers self.clock.reset() at start of draw()
         self.decisionTime = 0
         self.markerPosFixed = False
