@@ -972,6 +972,7 @@ class RatingScale(object):
             return  # makes the marker unresponsive
 
         mouseX, mouseY = self.myMouse.getPos() # norm units
+        mouseNearLine = pointInPolygon(mouseX, mouseY, self.nearLine)
 
         # draw a dynamic marker:
         if self.markerPlaced or self.singleClick:
@@ -987,7 +988,7 @@ class RatingScale(object):
                 self.marker.setSize(self.markerBaseSize + newSize, log=False)
                 self.marker.setOpacity(min(1, max(0, newOpacity)), log=False)
             # update position:
-            if self.singleClick and pointInPolygon(mouseX, mouseY, self.nearLine):
+            if self.singleClick and mouseNearLine:
                 self.setMarkerPos(self._getMarkerFromPos(mouseX))
             elif not hasattr(self, 'markerPlacedAt'):
                 self.markerPlacedAt = False
@@ -1063,7 +1064,7 @@ class RatingScale(object):
         if self.myMouse.getPressed()[0]:
             #mouseX, mouseY = self.myMouse.getPos() # done above
             # if click near the line, place the marker there:
-            if pointInPolygon(mouseX, mouseY, self.nearLine):
+            if mouseNearLine:
                 self.markerPlaced = True
                 self.markerPlacedBySubject = True
                 self.markerPlacedAt = self._getMarkerFromPos(mouseX)
@@ -1082,8 +1083,7 @@ class RatingScale(object):
                             (self.name, unicode(self.getRating())) )
 
         if self.markerStyle == 'hover' and self.markerPlaced:
-            nearLine = pointInPolygon(mouseX, mouseY, self.nearLine)
-            if nearLine or self.markerPlacedAt != self.markerPlacedAtLast:
+            if mouseNearLine or self.markerPlacedAt != self.markerPlacedAtLast:
                 if hasattr(self, 'targetWord'):
                     self.targetWord.setColor(self.textColor, log=False)
                     self.targetWord.setHeight(self.textSizeSmall, log=False)
@@ -1091,10 +1091,10 @@ class RatingScale(object):
                 self.targetWord.setColor(self.markerColor, log=False)
                 self.targetWord.setHeight(1.05 * self.textSizeSmall, log=False)
                 self.markerPlacedAtLast = self.markerPlacedAt
-            elif not nearLine and self.wasNearLine:
+            elif not mouseNearLine and self.wasNearLine:
                 self.targetWord.setColor(self.textColor, log=False)
                 self.targetWord.setHeight(self.textSizeSmall, log=False)
-            self.wasNearLine = nearLine
+            self.wasNearLine = mouseNearLine
 
         # decision time = secs from first .draw() to when first 'accept' value:
         if not self.noResponse and self.decisionTime == 0:
