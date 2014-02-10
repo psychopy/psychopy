@@ -28,6 +28,8 @@ def convertToPix(vertices, pos, units, win):
         verts = (pos+vertices) * win.size/2.0
     elif units == 'height':
         verts = (pos+vertices) * win.size[1]
+    else:
+        raise AttributeError, "Unknown unit '%s'"
     return verts
 
 def cm2deg(cm, monitor):
