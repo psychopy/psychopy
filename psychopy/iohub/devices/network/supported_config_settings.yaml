@@ -28,7 +28,7 @@ network.EventPublisher:
     device_number:
         IOHUB_INT:
             min: 0
-            max: 32
+            max: 256
     remote_iohub_address:
         IOHUB_LIST: 
             valid_values: []

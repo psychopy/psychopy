@@ -15,7 +15,7 @@ import msgpack
 import struct
 from weakref import proxy
 from psychopy.iohub.util import NumPyRingBuffer as RingBuffer
-from psychopy.iohub import Computer
+from psychopy.iohub import Computer, print2err, printExceptionDetailsToStdErr
 getTime=Computer.getTime
 
 MAX_PACKET_SIZE=64*1024
@@ -53,6 +53,7 @@ class SocketConnection(object):
 
     def sendTo(self,data,address=None):
         if address is None:
+            #print2err('{0}: {1}'.format(self.__class__.__name__,address))
             address=self._remote_host, self._remote_port
         d=self.pack(data)
         byte_count=len(d)
@@ -77,8 +78,8 @@ class SocketConnection(object):
                 result=self.unpack()
             return result,address
         except Exception as e:
-            print "Error during SocketConnection.receive: ",e
-            raise e
+            printExceptionDetailsToStdErr()
+            #raise e
 
     def close(self):
         self.sock.close()
@@ -102,7 +103,10 @@ class ioHubTimeSyncConnection(UDPClientConnection):
     def __init__(self,remote_address):        
         self.remote_iohub_address=tuple(remote_address)
         
-        UDPClientConnection.__init__(self,remote_host=self.remote_iohub_address[0],remote_port=self.remote_iohub_address[1],rcvBufferLength=MAX_PACKET_SIZE,broadcast=False,blocking=1, timeout=1)
+        UDPClientConnection.__init__(self,remote_host=self.remote_iohub_address[0],
+                                     remote_port=self.remote_iohub_address[1],
+                                    rcvBufferLength=MAX_PACKET_SIZE,
+                                    broadcast=False,blocking=1, timeout=1)
 
         self.sync_batch_size=5
     
@@ -155,41 +159,57 @@ class ioHubTimeGreenSyncManager(Greenlet):
     """
     
     def __init__(self,remote_address,sync_state_target):
-        Greenlet.__init__(self)
-        self.initial_sync_interval=0.2
-        self._remote_address=remote_address
-        self._sync_socket=ioHubTimeSyncConnection(remote_address)
-        self.sync_state_target=proxy(sync_state_target)
-
+        try:                
+            Greenlet.__init__(self)
+            self._sync_socket=None
+            self.initial_sync_interval=0.2
+            self._remote_address=remote_address
+            while self._sync_socket is None:
+                self._sync_socket=ioHubTimeSyncConnection(remote_address)
+                sleep(1)
+            self.sync_state_target=proxy(sync_state_target)
+        except Exception, e:
+            print2err("** Exception during ioHubTimeGreenSyncManager.__init__: ",self._remote_address)
+            printExceptionDetailsToStdErr()
+            
     def _run(self):
         self._running=True
-
-        self._sync(False)
+        while self._sync(False) is False:
+            sleep(0.5)
         self._sync(False)
         while self._running is True:
             sleep(self.initial_sync_interval)
-            self._sync()
+            r=self._sync()
+            if r is False:
+                print2err("SYNC FAILED: ioHubTimeGreenSyncManager {0}.".format(self._remote_address))              
         self._close()
         
     def _sync(self,calc_drift_and_offset=True):
-        if self._sync_socket:
-            min_delay, min_local_time, min_remote_time=self._sync_socket.sync()     
-            sync_state_target=self.sync_state_target
-            sync_state_target.RTTs.append(min_delay)
-            sync_state_target.L_times.append(min_local_time)
-            sync_state_target.R_times.append(min_remote_time)
-            
-            if calc_drift_and_offset is True:
-                l1=sync_state_target.L_times[-2]
-                l2=sync_state_target.L_times[-1]
-                r1=sync_state_target.R_times[-2]
-                r2=sync_state_target.R_times[-1]
-                self.sync_state_target.drifts.append((r2-r1)/(l2-l1))
-    
-                l=sync_state_target.L_times[-1]
-                r=sync_state_target.R_times[-1]
-                self.sync_state_target.offsets=(r-l)
-
+        try:
+            if self._sync_socket:
+                min_delay, min_local_time, min_remote_time=self._sync_socket.sync()     
+                sync_state_target=self.sync_state_target
+                sync_state_target.RTTs.append(min_delay)
+                sync_state_target.L_times.append(min_local_time)
+                sync_state_target.R_times.append(min_remote_time)
+                
+                if calc_drift_and_offset is True:
+                    l1=sync_state_target.L_times[-2]
+                    l2=sync_state_target.L_times[-1]
+                    r1=sync_state_target.R_times[-2]
+                    r2=sync_state_target.R_times[-1]
+                    self.sync_state_target.drifts.append((r2-r1)/(l2-l1))
+        
+                    l=sync_state_target.L_times[-1]
+                    r=sync_state_target.R_times[-1]
+                    self.sync_state_target.offsets=(r-l)
+                return True
+        except Exception, e:
+            return False            
+            #print2err("** Exception during ioHubTimeGreenSyncManager._sync: ",self._remote_address,' ',e)
+            #printExceptionDetailsToStdErr()
+        return False
+        
     def _close(self):           
         if self._sync_socket:        
             self._running=False
