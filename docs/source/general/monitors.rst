@@ -39,3 +39,5 @@ Note that, if you don't have a photometer to hand then there is a method for det
 The two additional tables in the Calibration box of the Monitor Center provide conversion from :ref:`DKL <DKL>` and :ref:`LMS <LMS>` colour spaces to :ref:`RGB <RGB>`. 
 
 .. |MC| replace:: Monitor Center 
+
+.. _windows:
