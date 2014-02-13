@@ -16,6 +16,7 @@ from psychopy.visual.patch import PatchStim
 from psychopy.visual.shape import ShapeStim
 from psychopy.visual.text import TextStim
 from psychopy.visual.helpers import pointInPolygon, groupFlipVert
+from psychopy.tools.attributetools import attributeSetter, setWithOperation
 from psychopy.constants import FINISHED, STARTED, NOT_STARTED
 
 
@@ -120,6 +121,7 @@ class RatingScale(object):
                 minTime=0.4,
                 maxTime=0.0,
                 flipVert=False,
+                depth=0,
                 name='',
                 autoLog=True,
                 **kwargs  # catch obsolete args
@@ -262,6 +264,7 @@ class RatingScale(object):
         # internally work in norm units, restore to orig units at the end of __init__:
         self.savedWinUnits = self.win.units
         self.win.units = 'norm'
+        self.depth = depth
 
         # 'hover' style = like hyperlink with hover over choices:
         if marker == 'hover':
@@ -905,6 +908,42 @@ class RatingScale(object):
         if log and self.autoLog:
             self.win.logOnFlip("Set %s flipVert=%s" % (self.name, self.flipVert),
                 level=logging.EXP, obj=self)
+
+    @attributeSetter
+    def autoDraw(self, value):
+        """Determines whether the stimulus should be automatically drawn on
+
+        Value should be: `True` or `False`
+
+        You do NOT need to set this on every frame flip!
+        """
+        self.__dict__['autoDraw'] = value
+        toDraw = self.win._toDraw
+        toDrawDepths = self.win._toDrawDepths
+        beingDrawn = (self in toDraw)
+        if value == beingDrawn:
+            return #nothing to do
+        elif value:
+            #work out where to insert the object in the autodraw list
+            depthArray = numpy.array(toDrawDepths)
+            iis = numpy.where(depthArray < self.depth)[0]#all indices where true
+            if len(iis):#we featured somewhere before the end of the list
+                toDraw.insert(iis[0], self)
+                toDrawDepths.insert(iis[0], self.depth)
+            else:
+                toDraw.append(self)
+                toDrawDepths.append(self.depth)
+            self.status = STARTED
+        elif value == False:
+            #remove from autodraw lists
+            toDrawDepths.pop(toDraw.index(self))  #remove from depths
+            toDraw.remove(self)  #remove from draw list
+            self.status = STOPPED
+
+    def setAutoDraw(self, value, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message"""
+        self.autoDraw = value
 
     def draw(self, log=True):
         """Update the visual display, check for response (key, mouse, skip).
