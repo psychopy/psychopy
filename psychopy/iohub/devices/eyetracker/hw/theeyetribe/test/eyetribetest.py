@@ -63,6 +63,10 @@ class TheEyeTribe(object):
         'screenpsyh'
     ]
 
+    tracker_calibration_values = [
+        'startpoint',
+        'endpoint'
+    ]
     # tracker status states
     TRACKER_CONNECTED = 0 # Tracker device is detected and working
     TRACKER_NOT_CONNECTED = 1 #	Tracker device is not detected
@@ -115,7 +119,14 @@ class TheEyeTribe(object):
 
         self._heartbeat = HeartbeatPump(self._transport_manager)
         self._heartbeat.start()
-    
+        
+        self.sendGetMessage(*self.tracker_get_values)
+        
+    @property
+    def tracker_status(self):
+        self.sendGetMessage('trackerstate')
+        return self._tracker_state.get('trackerstate','Unknown')   
+        
     @property
     def serverResponseCount(self):
         return self._transport_manager.server_response_count
@@ -124,6 +135,26 @@ class TheEyeTribe(object):
     def tracker_state(self):
         return self._tracker_state
         
+    def sendCalibrationMessage(self, request_type, **kwargs):
+        """
+        Examples:
+            sendCalibrationMessage('pointstart',x=500,y=200)
+            sendCalibrationMessage('pointend')
+        """
+        # TODO How to handle getting calibration response values from tracker
+        
+        if request_type not in self.tracker_set_values:
+            # Throw error, return error code??
+            print 'Unknown calibration request_type:',request_type
+            return False
+            
+        calreq=dict(category='calibration',request=request_type)
+        if kwargs:
+            calreq['values']=kwargs
+        send_str=json.dumps(calreq)
+        self._transport_manager.send(send_str)
+        
+
     def sendSetMessage(self, **kwargs):
         """
         Send a Set Tracker msg to the server. any kwargs passed into this method
@@ -232,6 +263,7 @@ class EyeTribeTransportManager(gevent.Greenlet):
     def _run(self):
         self._running = True
         self.server_response_count=0
+        msg_fragment=''
         while self._running:
             # used to know if the socket.sendall call timed out or not.
             tx_count=-1
@@ -245,39 +277,60 @@ class EyeTribeTransportManager(gevent.Greenlet):
                 pass
             except Exception, e:
                 print 'MANAGER ERROR SENDING MSG:',e 
-            finally:
+            #finally:
                 # Yield to any other greenlets that are waiting to run.
-                gevent.sleep(0.0)
+                #gevent.sleep(0.0)
             
             # if a message was sent over the socket to the server, check
             # to see if any msg replies have been received from the server.
-            if tx_count != -1:
-                try:
-                    reply=self._socket.recv(1024)
-                    if reply:
-                        # The dummy server sometimes sends >1 server response
-                        # in a single packet; to work around this the server
-                        # puts '\r\n' at the end of each json string reply.
-                        # This can then be used to split the text received 
-                        # here into the correct number of msg json strs that
-                        # should be converted to dict objects for processing.
-                        # THE '\r\n' HACK SHOULD NOT BE NEEDED WHEN TALKING 
-                        # TO THE REAL EYETRIBE SERVER.
-                        #
-                        multiple_msgs=reply.split('\r\n')
-                        multiple_msgs=[json.loads(m) for m in multiple_msgs if len(m)>0]
-                        self.server_response_count+=len(multiple_msgs)
-                        
-                        for mdict in multiple_msgs:
+            reply=None
+            try:
+#                print 'rx looped'
+                reply=self._socket.recv(512)
+#                print 'rx recv done'
+                if reply:
+                    # The dummy server sometimes sends >1 server response
+                    # in a single packet; to work around this the server
+                    # puts '\r\n' at the end of each json string reply.
+                    # This can then be used to split the text received 
+                    # here into the correct number of msg json strs that
+                    # should be converted to dict objects for processing.
+                    # THE '\r\n' HACK SHOULD NOT BE NEEDED WHEN TALKING 
+                    # TO THE REAL EYETRIBE SERVER.
+                    #
+#                    print 'org reply:', '%r'%(reply)
+                    multiple_msgs=reply.split('\n')
+                    multiple_msgs=[m for m in multiple_msgs if len(m)>0]
+#                        print 'multiple_msgs:',len(multiple_msgs)
+                    for m in multiple_msgs:
+                        m='%s%s'%(msg_fragment,m)
+                        try:
+                            mdict=json.loads(m)
+                            #print 'handleServerMsg:',mdict
                             self.handleServerMsg(mdict)
-                except Exception, e:
-                    print 'MANAGER ERROR RECEIVING REPLY MSG:',e
-                    print '>>>>>>>>>>>>'
-                    print reply
-                    print '<<<<<<<<<<<<'
-                finally:
-                    # Yield to any other greenlets that are waiting to run.
-                    gevent.sleep(0.0)
+                            msg_fragment=''
+                            self.server_response_count+=1
+                        except:
+                            msg_fragment=m
+            except socket.timeout:
+                pass#print 'socket.timeout'
+            except socket.error, e:
+                if e.errno==10035:
+                    pass#print 'socket.error10035',e
+                else:
+                    #print ' socket.error: ',e
+                    raise e
+            except Exception, e:    
+                print 'MANAGER ERROR RECEIVING REPLY MSG:',e
+                print '>>>>>>>>>>>>'
+                print type(e),dir(e)
+                print  '%r'%(reply)
+                if reply:  
+                    print type(reply), len(reply)
+                print '<<<<<<<<<<<<'
+            finally:
+                # Yield to any other greenlets that are waiting to run.
+                gevent.sleep(0.001)
         
         # Greenlet has stopped running so close socket.
         self._running=False
@@ -295,13 +348,29 @@ class EyeTribeTransportManager(gevent.Greenlet):
         
     def handleServerMsg(self,msg):
         msg_category=msg.get('category')
+        msg_statuscode=msg.get('statuscode')
+        if msg_statuscode != 200:
+            if msg_statuscode == 802:
+                # get updated eye tracker values
+                self._client_interface.sendGetMessage(*self._client_interface.tracker_get_values)
+            else:
+                    
+                # TODO Handle msg status code error values
+                print '========'
+                print 'SERVER REPLY ERROR:',msg_statuscode
+                print msg
+                print 'Server Msg not being processed due to error.'
+                print '========'
+                return False
+            
         if msg_category == u'heartbeat':
-            # TODO check status field for any errors
             return True
         if msg_category == u'tracker':
             request_type=msg.get('request') 
             if request_type == u'get': 
-                print 'GET Rx received from server.'
+                if msg.get('values',{}).get('frame'): 
+                    return self._client_interface.processSample(msg)        
+                print 'GET Rx received from server but unhandled.'
                 # TODO : check statuscode field of get response for any errors
                 # TODO : update theeyetribe classes .tracker_state dict with
                 #        the key : value pairs in the values field.
@@ -314,10 +383,7 @@ class EyeTribeTransportManager(gevent.Greenlet):
             if request_type == u'set': 
                 print 'SET Rx received from server.'
                 # TODO check status field for any errors
-                return True
-            if msg.get('values',{}).get('frame'): 
-                return self._client_interface.processSample(msg)
-        
+                return True        
         print '>> Warning: Unhandled Server packet category [{0}] received by client. Full msg contents:\n\n{1}\n<<'.format(msg_category,msg)
         
     def createConnection(self, host='localhost', port=6555):
@@ -325,13 +391,16 @@ class EyeTribeTransportManager(gevent.Greenlet):
         try:
             hbp = socket.socket()
             hbp.connect((host, port))
+            #print 'current timeout:',hbp.gettimeout()
+            hbp.settimeout(0.01)
+            #print 'current timeout2:',hbp.gettimeout()
             return hbp
         except Exception, e:
+            print 'Error creating exception:',e
             return None
 
     def stop(self):
-        self._running=False
-
+        self._socket.close()
 #
 ########
 #
@@ -378,6 +447,7 @@ class HeartbeatPump(gevent.Greenlet):
         """
         Send a heartbeat msg to the server.
         """
+        #print 'HB Queued.'
         self._transport_manager.send(self.heartbeat)  
         
     def _run(self):
@@ -399,7 +469,7 @@ class HeartbeatPump(gevent.Greenlet):
 ##### MAIN SCRIPT
 #
 
-TEST_WITH_DUMMY_SERVER=True
+TEST_WITH_DUMMY_SERVER=False
         
 if __name__ == '__main__':
     # run client connected to a very stupid fake server if the real one is
@@ -415,7 +485,7 @@ if __name__ == '__main__':
     # have been received by the client.
     while tracker.serverResponseCount < 100:
         #print 'main app loop:',getTime()
-        sleep(0.001)
+        sleep(1.00)
 
     # Close the tracker client interface.
     tracker.close()
