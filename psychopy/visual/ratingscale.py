@@ -15,11 +15,13 @@ from psychopy.visual.circle import Circle
 from psychopy.visual.patch import PatchStim
 from psychopy.visual.shape import ShapeStim
 from psychopy.visual.text import TextStim
+from psychopy.visual.basevisual import MinimalStim
 from psychopy.visual.helpers import pointInPolygon, groupFlipVert
+from psychopy.tools.attributetools import attributeSetter, setWithOperation
 from psychopy.constants import FINISHED, STARTED, NOT_STARTED
 
 
-class RatingScale(object):
+class RatingScale(MinimalStim):
     """A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale.
 
     A RatingScale instance is a re-usable visual object having a ``draw()``
@@ -120,6 +122,7 @@ class RatingScale(object):
                 minTime=0.4,
                 maxTime=0.0,
                 flipVert=False,
+                depth=0,
                 name='',
                 autoLog=True,
                 **kwargs  # catch obsolete args
@@ -262,6 +265,7 @@ class RatingScale(object):
         # internally work in norm units, restore to orig units at the end of __init__:
         self.savedWinUnits = self.win.units
         self.win.units = 'norm'
+        self.depth = depth
 
         # 'hover' style = like hyperlink with hover over choices:
         if marker == 'hover':
@@ -316,26 +320,7 @@ class RatingScale(object):
             logging.exp("Created %s = %s" %(self.name, repr(self)))
 
     def __repr__(self, complete=False):
-        """copied from basevisual.BaseVisualStim.__str__
-        """
-        className = self.__class__.__name__
-        paramStrings = []
-        for param in self._initParams:
-            if param in ['self', 'kwargs']:
-                continue  # typos or obsolete kwargs for RatingScale
-            if hasattr(self, param):
-                val = getattr(self, param)
-                valStr = repr(getattr(self, param))
-                if len(repr(valStr))>50 and not complete:
-                    if val.__class__.__name__ == 'attributeSetter':
-                        valStr = "%s(...)" %val.__getattribute__.__class__.__name__
-                    else:
-                        valStr = "%s(...)" %val.__class__.__name__
-            else:
-                valStr = 'UNKNOWN'
-            paramStrings.append("%s=%s" %(param, valStr))
-        params = ", ".join(paramStrings)
-        return "%s(%s)" %(className, params)
+        return self.__str__(complete=complete)  # from MinimalVisualStim
 
     def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys,
                    marker, markerStart, low, high, precision, choices,
@@ -906,6 +891,8 @@ class RatingScale(object):
             self.win.logOnFlip("Set %s flipVert=%s" % (self.name, self.flipVert),
                 level=logging.EXP, obj=self)
 
+    # autoDraw and setAutoDraw are inherited from MinimalVisualStim
+
     def draw(self, log=True):
         """Update the visual display, check for response (key, mouse, skip).
 
@@ -1025,7 +1012,7 @@ class RatingScale(object):
                     self.markerPlacedBySubject = True
                     resp = self.tickFromKeyPress[key]
                     self.markerPlacedAt = self._getMarkerFromTick(resp)
-                    #proportion = self.markerPlacedAt / self.tickMarks
+                    proportion = self.markerPlacedAt / self.tickMarks
                     self.marker.setPos([self.size * (-0.5 + proportion), 0], log=False)
                 if self.markerPlaced and self.beyondMinTime:
                     # can be placed by experimenter (markerStart) or by subject
