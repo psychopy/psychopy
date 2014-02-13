@@ -1025,7 +1025,7 @@ class RatingScale(object):
                     self.markerPlacedBySubject = True
                     resp = self.tickFromKeyPress[key]
                     self.markerPlacedAt = self._getMarkerFromTick(resp)
-                    #proportion = self.markerPlacedAt / self.tickMarks
+                    proportion = self.markerPlacedAt / self.tickMarks
                     self.marker.setPos([self.size * (-0.5 + proportion), 0], log=False)
                 if self.markerPlaced and self.beyondMinTime:
                     # can be placed by experimenter (markerStart) or by subject
