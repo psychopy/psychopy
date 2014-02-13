@@ -15,12 +15,13 @@ from psychopy.visual.circle import Circle
 from psychopy.visual.patch import PatchStim
 from psychopy.visual.shape import ShapeStim
 from psychopy.visual.text import TextStim
+from psychopy.visual.basevisual import MinimalStim
 from psychopy.visual.helpers import pointInPolygon, groupFlipVert
 from psychopy.tools.attributetools import attributeSetter, setWithOperation
 from psychopy.constants import FINISHED, STARTED, NOT_STARTED
 
 
-class RatingScale(object):
+class RatingScale(MinimalStim):
     """A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale.
 
     A RatingScale instance is a re-usable visual object having a ``draw()``
@@ -319,26 +320,7 @@ class RatingScale(object):
             logging.exp("Created %s = %s" %(self.name, repr(self)))
 
     def __repr__(self, complete=False):
-        """copied from basevisual.BaseVisualStim.__str__
-        """
-        className = self.__class__.__name__
-        paramStrings = []
-        for param in self._initParams:
-            if param in ['self', 'kwargs']:
-                continue  # typos or obsolete kwargs for RatingScale
-            if hasattr(self, param):
-                val = getattr(self, param)
-                valStr = repr(getattr(self, param))
-                if len(repr(valStr))>50 and not complete:
-                    if val.__class__.__name__ == 'attributeSetter':
-                        valStr = "%s(...)" %val.__getattribute__.__class__.__name__
-                    else:
-                        valStr = "%s(...)" %val.__class__.__name__
-            else:
-                valStr = 'UNKNOWN'
-            paramStrings.append("%s=%s" %(param, valStr))
-        params = ", ".join(paramStrings)
-        return "%s(%s)" %(className, params)
+        return self.__str__(complete=complete)  # from MinimalVisualStim
 
     def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys,
                    marker, markerStart, low, high, precision, choices,
@@ -909,40 +891,7 @@ class RatingScale(object):
             self.win.logOnFlip("Set %s flipVert=%s" % (self.name, self.flipVert),
                 level=logging.EXP, obj=self)
 
-    @attributeSetter
-    def autoDraw(self, value):
-        """Attribute indicates whether the scale should be drawn automatically.
-
-        Set to: `True` or `False`. If `True`, the scale will be drawn on every flip,
-        based on its `depth` value.
-        """
-        self.__dict__['autoDraw'] = value
-        toDraw = self.win._toDraw
-        toDrawDepths = self.win._toDrawDepths
-        beingDrawn = (self in toDraw)
-        if value == beingDrawn:
-            return #nothing to do
-        elif value:
-            #work out where to insert the object in the autodraw list
-            depthArray = numpy.array(toDrawDepths)
-            iis = numpy.where(depthArray < self.depth)[0]#all indices where true
-            if len(iis):#we featured somewhere before the end of the list
-                toDraw.insert(iis[0], self)
-                toDrawDepths.insert(iis[0], self.depth)
-            else:
-                toDraw.append(self)
-                toDrawDepths.append(self.depth)
-            self.status = STARTED
-        elif value == False:
-            #remove from autodraw lists
-            toDrawDepths.pop(toDraw.index(self))  #remove from depths
-            toDraw.remove(self)  #remove from draw list
-            self.status = STOPPED
-
-    def setAutoDraw(self, value, log=True):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message"""
-        self.autoDraw = value
+    # autoDraw and setAutoDraw are inherited from MinimalVisualStim
 
     def draw(self, log=True):
         """Update the visual display, check for response (key, mouse, skip).
