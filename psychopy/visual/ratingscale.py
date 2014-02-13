@@ -911,11 +911,10 @@ class RatingScale(object):
 
     @attributeSetter
     def autoDraw(self, value):
-        """Determines whether the stimulus should be automatically drawn on
+        """Attribute indicates whether the scale should be drawn automatically.
 
-        Value should be: `True` or `False`
-
-        You do NOT need to set this on every frame flip!
+        Set to: `True` or `False`. If `True`, the scale will be drawn on every flip,
+        based on its `depth` value.
         """
         self.__dict__['autoDraw'] = value
         toDraw = self.win._toDraw
