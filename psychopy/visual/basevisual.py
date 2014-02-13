@@ -27,21 +27,28 @@ currWindow = None
 
 from psychopy.constants import NOT_STARTED, STARTED, STOPPED
 
+"""
+There are three 'levels' of base visual stim classes:
+  - MinimalStim:          non-visual house-keeping code common to all visual stim (name, autoLog, etc)
+  - LegacyBaseVisualStim: extends Minimal with deprecated visual methods (eg, setRGB)
+  - BaseVisualStim:       extends Legacy plus preferred visual methods
+"""
 
-class BaseVisualStim(object):
-    """A template for a stimulus class, on which GratingStim, TextStim etc... are based.
-    Not finished...?
+class MinimalStim(object):
+    """Non-visual methods and attributes for BaseVisualStim and RatingScale
+
+    Include here: name, autoDraw, depth, autoLog, __str__
+
+    autoDraw seems to need depth
+
+    Goal: Want a class for RatingScale to inherit from, without visual bits
     """
-    def __init__(self, win, units=None, name='', autoLog=True):
-        self.autoLog = autoLog
-        self.win = win
+    def __init__(self, name='', autoLog=True):
         self.name = name
         self.status = NOT_STARTED
-        self.units = units
-        self._verticesBase = [[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]] #sqr
-        self._rotationMatrix = [[1.,0.],[0.,1.]] #no rotation as a default
+        self.autoLog = autoLog
         if self.autoLog:
-            logging.warning("%s is calling BaseVisualStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
+            logging.warning("%s is calling MinimalStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
                             %(self.__class__.__name__))
 
     def __str__(self, complete=False):
@@ -70,24 +77,6 @@ class BaseVisualStim(object):
             s = object.__repr__(self)
         return s
 
-    @attributeSetter
-    def win(self, value):
-        """ The :class:`~psychopy.visual.Window` object in which the stimulus will be rendered
-        by default. (required)
-
-       Example, drawing same stimulus in two different windows and display
-       simultaneously. Assuming that you have two windows and a stimulus (win1, win2 and stim)::
-
-           stim.win = win1  # stimulus will be drawn in win1
-           stim.draw()  # stimulus is now drawn to win1
-           stim.win = win2  # stimulus will be drawn in win2
-           stim.draw()  # it is now drawn in win2
-           win1.flip(waitBlanking=False)  # do not wait for next monitor update
-           win2.flip()  # wait for vertical blanking.
-
-        """
-        self.__dict__['win'] = value
-
     # Might seem simple at first, but this ensures that "name" attribute
     # appears in docs and that name setting and updating is logged.
     @attributeSetter
@@ -113,6 +102,136 @@ class BaseVisualStim(object):
             # log file will include names to identify which stim came on/off
         """
         self.__dict__['name'] = value
+
+    @attributeSetter
+    def autoDraw(self, value):
+        """Determines whether the stimulus should be automatically drawn on
+
+        Value should be: `True` or `False`
+
+        You do NOT need to set this on every frame flip!
+        """
+        self.__dict__['autoDraw'] = value
+        toDraw = self.win._toDraw
+        toDrawDepths = self.win._toDrawDepths
+        beingDrawn = (self in toDraw)
+        if value == beingDrawn:
+            return #nothing to do
+        elif value:
+            #work out where to insert the object in the autodraw list
+            depthArray = numpy.array(toDrawDepths)
+            iis = numpy.where(depthArray < self.depth)[0]#all indices where true
+            if len(iis):#we featured somewhere before the end of the list
+                toDraw.insert(iis[0], self)
+                toDrawDepths.insert(iis[0], self.depth)
+            else:
+                toDraw.append(self)
+                toDrawDepths.append(self.depth)
+            self.status = STARTED
+        elif value == False:
+            #remove from autodraw lists
+            toDrawDepths.pop(toDraw.index(self))  #remove from depths
+            toDraw.remove(self)  #remove from draw list
+            self.status = STOPPED
+
+    def setAutoDraw(self, value, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message"""
+        self.autoDraw = value
+
+    @attributeSetter
+    def autoLog(self, value):
+        """Whether every change in this stimulus should be logged automatically
+
+        Value should be: `True` or `False`
+
+        Set this to `False` if your stimulus is updating frequently (e.g.
+        updating its position every frame) or you will swamp the log file with
+        messages that aren't likely to be useful.
+        """
+        self.__dict__['autoLog'] = value
+
+    def setAutoLog(self, value=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message"""
+        self.autoLog = value
+
+    @attributeSetter
+    def depth(self, value):
+        """
+        Deprecated. Depth is now controlled simply by drawing order.
+        """
+        self.__dict__['depth'] = value
+
+class LegacyBaseVisualStim(MinimalStim):
+    """Class for deprecated visual methods and attributes
+
+    Intended only for use as a base class for BaseVisualStim.
+    """
+    def _calcSizeRendered(self):
+        """DEPRECATED in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"""
+        #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This funtionality is nowhanded by _updateVertices() and verticesPix"
+        if self.units in ['norm','pix', 'height']: self._sizeRendered=copy.copy(self.size)
+        elif self.units in ['deg', 'degs']: self._sizeRendered=deg2pix(self.size, self.win.monitor)
+        elif self.units=='cm': self._sizeRendered=cm2pix(self.size, self.win.monitor)
+        else:
+            logging.ERROR("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
+    def _calcPosRendered(self):
+        """DEPRECATED in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"""
+        #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"
+        if self.units in ['norm','pix', 'height']: self._posRendered= copy.copy(self.pos)
+        elif self.units in ['deg', 'degs']: self._posRendered=deg2pix(self.pos, self.win.monitor)
+        elif self.units=='cm': self._posRendered=cm2pix(self.pos, self.win.monitor)
+
+    def setDKL(self, newDKL, operation=''):
+        """DEPRECATED since v1.60.05: Please use the `color` attribute
+        """
+        self._set('dkl', val=newDKL, op=operation)
+        self.setRGB(dkl2rgb(self.dkl, self.win.dkl_rgb))
+    def setLMS(self, newLMS, operation=''):
+        """DEPRECATED since v1.60.05: Please use the `color` attribute
+        """
+        self._set('lms', value=newLMS, op=operation)
+        self.setRGB(lms2rgb(self.lms, self.win.lms_rgb))
+    def setRGB(self, newRGB, operation=''):
+        """DEPRECATED since v1.60.05: Please use the `color` attribute
+        """
+        self._set('rgb', newRGB, operation)
+        setTexIfNoShaders(self)
+
+class BaseVisualStim(LegacyBaseVisualStim):
+    """A template for a stimulus class, on which GratingStim, TextStim etc... are based.
+    Not finished...?
+    """
+    def __init__(self, win, units=None, name='', autoLog=True):
+        self.autoLog = False  # just to start off during init, set at end
+        self.win = win
+        self.units = units
+        self._verticesBase = [[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]] #sqr
+        self._rotationMatrix = [[1.,0.],[0.,1.]] #no rotation as a default
+        # self.autoLog gets set at end of MinimalVisualStim
+        LegacyBaseVisualStim.__init__(self, name=name, autoLog=autoLog)
+        if self.autoLog:
+            logging.warning("%s is calling BaseVisualStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
+                            %(self.__class__.__name__))
+
+    @attributeSetter
+    def win(self, value):
+        """ The :class:`~psychopy.visual.Window` object in which the stimulus will be rendered
+        by default. (required)
+
+       Example, drawing same stimulus in two different windows and display
+       simultaneously. Assuming that you have two windows and a stimulus (win1, win2 and stim)::
+
+           stim.win = win1  # stimulus will be drawn in win1
+           stim.draw()  # stimulus is now drawn to win1
+           stim.win = win2  # stimulus will be drawn in win2
+           stim.draw()  # it is now drawn in win2
+           win1.flip(waitBlanking=False)  # do not wait for next monitor update
+           win2.flip()  # wait for vertical blanking.
+
+        """
+        self.__dict__['win'] = value
 
     @attributeSetter
     def units(self, value):
@@ -246,57 +365,6 @@ class BaseVisualStim(object):
         self._needUpdate = True
 
     @attributeSetter
-    def autoDraw(self, value):
-        """Determines whether the stimulus should be automatically drawn on
-
-        Value should be: `True` or `False`
-
-        You do NOT need to set this on every frame flip!
-        """
-        self.__dict__['autoDraw'] = value
-        toDraw = self.win._toDraw
-        toDrawDepths = self.win._toDrawDepths
-        beingDrawn = (self in toDraw)
-        if value == beingDrawn:
-            return #nothing to do
-        elif value:
-            #work out where to insert the object in the autodraw list
-            depthArray = numpy.array(toDrawDepths)
-            iis = numpy.where(depthArray < self.depth)[0]#all indices where true
-            if len(iis):#we featured somewhere before the end of the list
-                toDraw.insert(iis[0], self)
-                toDrawDepths.insert(iis[0], self.depth)
-            else:
-                toDraw.append(self)
-                toDrawDepths.append(self.depth)
-            self.status = STARTED
-        elif value == False:
-            #remove from autodraw lists
-            toDrawDepths.pop(toDraw.index(self))  #remove from depths
-            toDraw.remove(self)  #remove from draw list
-            self.status = STOPPED
-
-    @attributeSetter
-    def pos(self, value):
-        """The position of the center of the stimulus in the stimulus :ref:`units <units>`
-
-        Value should be an :ref:`x,y-pair <attrib-xy>`. :ref:`Operations <attrib-operations>`
-        are also supported.
-
-        Example::
-
-            stim.pos = (0.5, 0)  # Set slightly to the right of center
-            stim.pos += (0.5, -1)  # Increment pos rightwards and upwards. Is now (1.0, -1.0)
-            stim.pos *= 0.2  # Move stim towards the center. Is now (0.2, -0.2)
-
-        Tip: if you can see the actual pixel range this corresponds to by
-        looking at `stim._posRendered`
-        """
-        self.__dict__['pos'] = val2array(value, False, False)
-        self._needVertexUpdate=True
-        self._needUpdate = True
-
-    @attributeSetter
     def size(self, value):
         """The size (w,h) of the stimulus in the stimulus :ref:`units <units>`
 
@@ -336,23 +404,24 @@ class BaseVisualStim(object):
             self._calcCyclesPerStim()
 
     @attributeSetter
-    def autoLog(self, value):
-        """Whether every change in this stimulus should be logged automatically
+    def pos(self, value):
+        """The position of the center of the stimulus in the stimulus :ref:`units <units>`
 
-        Value should be: `True` or `False`
+        Value should be an :ref:`x,y-pair <attrib-xy>`. :ref:`Operations <attrib-operations>`
+        are also supported.
 
-        Set this to `False` if your stimulus is updating frequently (e.g.
-        updating its position every frame) or you will swamp the log file with
-        messages that aren't likely to be useful.
-        """
-        self.__dict__['autoLog'] = value
+        Example::
 
-    @attributeSetter
-    def depth(self, value):
+            stim.pos = (0.5, 0)  # Set slightly to the right of center
+            stim.pos += (0.5, -1)  # Increment pos rightwards and upwards. Is now (1.0, -1.0)
+            stim.pos *= 0.2  # Move stim towards the center. Is now (0.2, -0.2)
+
+        Tip: if you can see the actual pixel range this corresponds to by
+        looking at `stim._posRendered`
         """
-        Deprecated. Depth is now controlled simply by drawing order.
-        """
-        self.__dict__['depth'] = value
+        self.__dict__['pos'] = val2array(value, False, False)
+        self._needVertexUpdate=True
+        self._needUpdate = True
 
     @attributeSetter
     def color(self, value):
@@ -410,7 +479,7 @@ class BaseVisualStim(object):
         self.__dict__['colorSpace'] = value
 
     def draw(self):
-        raise NotImplementedError('Stimulus classes must overide _BaseVisualStim.draw')
+        raise NotImplementedError('Stimulus classes must overide visual.BaseVisualStim.draw')
     def setPos(self, newPos, operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
@@ -442,21 +511,6 @@ class BaseVisualStim(object):
         but use this method if you need to suppress the log message
         """
         self._set('contrast', newContrast, operation, log=log)
-    def setDKL(self, newDKL, operation=''):
-        """DEPRECATED since v1.60.05: Please use the `color` attribute
-        """
-        self._set('dkl', val=newDKL, op=operation)
-        self.setRGB(dkl2rgb(self.dkl, self.win.dkl_rgb))
-    def setLMS(self, newLMS, operation=''):
-        """DEPRECATED since v1.60.05: Please use the `color` attribute
-        """
-        self._set('lms', value=newLMS, op=operation)
-        self.setRGB(lms2rgb(self.lms, self.win.lms_rgb))
-    def setRGB(self, newRGB, operation=''):
-        """DEPRECATED since v1.60.05: Please use the `color` attribute
-        """
-        self._set('rgb', newRGB, operation)
-        setTexIfNoShaders(self)
     def setColor(self, color, colorSpace=None, operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
@@ -511,20 +565,6 @@ class BaseVisualStim(object):
             self._updateListShaders()
         else:
             self._updateListNoShaders()
-    def _calcSizeRendered(self):
-        """DEPRECATED in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"""
-        #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This funtionality is nowhanded by _updateVertices() and verticesPix"
-        if self.units in ['norm','pix', 'height']: self._sizeRendered=copy.copy(self.size)
-        elif self.units in ['deg', 'degs']: self._sizeRendered=deg2pix(self.size, self.win.monitor)
-        elif self.units=='cm': self._sizeRendered=cm2pix(self.size, self.win.monitor)
-        else:
-            logging.ERROR("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
-    def _calcPosRendered(self):
-        """DEPRECATED in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"""
-        #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"
-        if self.units in ['norm','pix', 'height']: self._posRendered= copy.copy(self.pos)
-        elif self.units in ['deg', 'degs']: self._posRendered=deg2pix(self.pos, self.win.monitor)
-        elif self.units=='cm': self._posRendered=cm2pix(self.pos, self.win.monitor)
 
     @property
     def verticesPix(self):
@@ -556,14 +596,6 @@ class BaseVisualStim(object):
         self.__dict__['verticesPix'] = verts
         self._needVertexUpdate = False
         self._needUpdate = True #but we presumably need to update the list
-    def setAutoDraw(self, value, log=True):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message"""
-        self.autoDraw = value
-    def setAutoLog(self, value=True):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message"""
-        self.autoLog = value
     def contains(self, x, y=None, units=None):
         """Determines if a point x,y is inside the extent of the stimulus.
 
