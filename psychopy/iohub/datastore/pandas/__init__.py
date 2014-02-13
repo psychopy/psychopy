@@ -12,7 +12,7 @@ Distributed under the terms of the GNU General Public License
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> and
                   Pierce Edmiston <pierce.edmiston@gmail.com>
 """
-
+import json
 import numpy as np
 import pandas as pd
 #import matplotlib as mpl
@@ -106,8 +106,16 @@ class ioHubPandasDataView(object):
         if self._session_meta_data is None:
             self._session_meta_data=self._hdf_store.select('/data_collection/session_meta_data')
             self._session_meta_data.replace('', np.nan,inplace=True)
-            self._session_meta_data.set_index(['session_id'],inplace=True)
-        return self._session_meta_data
+            self._session_meta_data.set_index(['experiment_id','session_id'],inplace=True)
+        
+        if 'user_variables' in self._session_meta_data.columns:
+            self._session_meta_data['user_variables'] = self._session_meta_data['user_variables'].apply(json.loads)
+            user_vars = self._session_meta_data['user_variables'].ix[self._session_meta_data.index[0]].keys()
+            for var in user_vars:
+                self._session_meta_data[var] = self._session_meta_data['user_variables'].apply(lambda x: x[var])
+            self._session_meta_data = self._session_meta_data.drop('user_variables', axis=1)
+        
+        return self._session_meta_data[:]
 
     @property
     def condition_variables(self):
