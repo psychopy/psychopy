@@ -891,7 +891,7 @@ class RatingScale(MinimalStim):
             self.win.logOnFlip("Set %s flipVert=%s" % (self.name, self.flipVert),
                 level=logging.EXP, obj=self)
 
-    # autoDraw and setAutoDraw are inherited from MinimalVisualStim
+    # autoDraw and setAutoDraw are inherited from basevisual.MinimalStim
 
     def draw(self, log=True):
         """Update the visual display, check for response (key, mouse, skip).

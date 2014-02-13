@@ -31,17 +31,15 @@ from psychopy.constants import NOT_STARTED, STARTED, STOPPED
 There are three 'levels' of base visual stim classes:
   - MinimalStim:          non-visual house-keeping code common to all visual stim (name, autoLog, etc)
   - LegacyBaseVisualStim: extends Minimal with deprecated visual methods (eg, setRGB)
-  - BaseVisualStim:       extends Legacy plus preferred visual methods
+  - BaseVisualStim:       extends Legacy with preferred visual methods
 """
 
 class MinimalStim(object):
-    """Non-visual methods and attributes for BaseVisualStim and RatingScale
+    """Non-visual methods and attributes for BaseVisualStim and RatingScale.
 
-    Include here: name, autoDraw, depth, autoLog, __str__
+    Include here: name, autoDraw, autoLog, __str__
 
-    autoDraw seems to need depth
-
-    Goal: Want a class for RatingScale to inherit from, without visual bits
+    Goal: Want a class for RatingScale to inherit from, without visual bits.
     """
     def __init__(self, name='', autoLog=True):
         self.name = name
@@ -156,12 +154,6 @@ class MinimalStim(object):
         but use this method if you need to suppress the log message"""
         self.autoLog = value
 
-    @attributeSetter
-    def depth(self, value):
-        """
-        Deprecated. Depth is now controlled simply by drawing order.
-        """
-        self.__dict__['depth'] = value
 
 class LegacyBaseVisualStim(MinimalStim):
     """Class for deprecated visual methods and attributes
@@ -176,6 +168,7 @@ class LegacyBaseVisualStim(MinimalStim):
         elif self.units=='cm': self._sizeRendered=cm2pix(self.size, self.win.monitor)
         else:
             logging.ERROR("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
+
     def _calcPosRendered(self):
         """DEPRECATED in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"""
         #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"
@@ -198,6 +191,14 @@ class LegacyBaseVisualStim(MinimalStim):
         """
         self._set('rgb', newRGB, operation)
         setTexIfNoShaders(self)
+
+    @attributeSetter
+    def depth(self, value):
+        """
+        Deprecated. Depth is now controlled simply by drawing order.
+        """
+        self.__dict__['depth'] = value
+
 
 class BaseVisualStim(LegacyBaseVisualStim):
     """A template for a stimulus class, on which GratingStim, TextStim etc... are based.
@@ -371,13 +372,13 @@ class BaseVisualStim(LegacyBaseVisualStim):
         Value should be :ref:`x,y-pair <attrib-xy>`, :ref:`scalar <attrib-scalar>` (applies to both dimensions)
         or None (resets to default). :ref:`Operations <attrib-operations>` are supported.
 
-        Sizes can be negative (causes a flip) and can extend beyond the window.
+        Sizes can be negative (causing a mirror-image reversal) and can extend beyond the window.
 
         Example::
 
             stim.size = 0.8  # Set size to (xsize, ysize) = (0.8, 0.8), quadratic.
             print stim.size  # Outputs array([0.8, 0.8])
-            stim.size += (0,5, -0.5)  # make wider and flatter. Is now (1.3, 0.3)
+            stim.size += (0.5, -0.5)  # make wider and flatter. Is now (1.3, 0.3)
 
         Tip: if you can see the actual pixel range this corresponds to by
         looking at `stim._sizeRendered`
