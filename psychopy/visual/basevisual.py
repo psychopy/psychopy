@@ -30,16 +30,14 @@ from psychopy.constants import NOT_STARTED, STARTED, STOPPED
 """
 There are three 'levels' of base visual stim classes:
   - MinimalStim:          non-visual house-keeping code common to all visual stim (name, autoLog, etc)
-  - LegacyBaseVisualStim: extends Minimal with deprecated visual methods (eg, setRGB)
-  - BaseVisualStim:       extends Legacy with preferred visual methods
+  - LegacyBaseVisualStim: extends Minimal, adds deprecated visual methods (eg, setRGB)
+  - BaseVisualStim:       extends Legacy, adds current / preferred visual methods
 """
 
 class MinimalStim(object):
     """Non-visual methods and attributes for BaseVisualStim and RatingScale.
 
-    Include here: name, autoDraw, autoLog, __str__
-
-    Goal: Want a class for RatingScale to inherit from, without visual bits.
+    Includes: name, autoDraw, autoLog, status, __str__
     """
     def __init__(self, name='', autoLog=True):
         self.name = name
@@ -156,9 +154,10 @@ class MinimalStim(object):
 
 
 class LegacyBaseVisualStim(MinimalStim):
-    """Class for deprecated visual methods and attributes
+    """Class to hold deprecated visual methods and attributes.
 
-    Intended only for use as a base class for BaseVisualStim.
+    Intended only for use as a base class for BaseVisualStim, to maintain
+    backwards compatibility while reducing clutter in class BaseVisualStim.
     """
     def _calcSizeRendered(self):
         """DEPRECATED in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"""
@@ -201,7 +200,9 @@ class LegacyBaseVisualStim(MinimalStim):
 
 
 class BaseVisualStim(LegacyBaseVisualStim):
-    """A template for a stimulus class, on which GratingStim, TextStim etc... are based.
+    """A template for a visual stimulus class.
+
+    Actual visual stim like GratingStim, TextStim etc... are based on this.
     Not finished...?
     """
     def __init__(self, win, units=None, name='', autoLog=True):
@@ -210,7 +211,7 @@ class BaseVisualStim(LegacyBaseVisualStim):
         self.units = units
         self._verticesBase = [[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]] #sqr
         self._rotationMatrix = [[1.,0.],[0.,1.]] #no rotation as a default
-        # self.autoLog gets set at end of MinimalVisualStim
+        # self.autoLog is set at end of MinimalStim.__init__
         LegacyBaseVisualStim.__init__(self, name=name, autoLog=autoLog)
         if self.autoLog:
             logging.warning("%s is calling BaseVisualStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
@@ -239,17 +240,17 @@ class BaseVisualStim(LegacyBaseVisualStim):
         """
         None, 'norm', 'cm', 'deg' or 'pix'
 
-            If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-            See :ref:`units` for explanation of other options.
+        If None then the current units of the :class:`~psychopy.visual.Window` will be used.
+        See :ref:`units` for explanation of other options.
 
-            Note that when you change units, you don't change the stimulus parameters
-            and it is likely to change appearance. Example::
+        Note that when you change units, you don't change the stimulus parameters
+        and it is likely to change appearance. Example::
 
-                # This stimulus is 20% wide and 50% tall with respect to window
-                stim = visual.PatchStim(win, units='norm', size=(0.2, 0.5)
+            # This stimulus is 20% wide and 50% tall with respect to window
+            stim = visual.PatchStim(win, units='norm', size=(0.2, 0.5)
 
-                # This stimulus is 0.2 degrees wide and 0.5 degrees tall.
-                stim.units = 'deg'
+            # This stimulus is 0.2 degrees wide and 0.5 degrees tall.
+            stim.units = 'deg'
         """
         if value != None and len(value):
             self.__dict__['units'] = value
@@ -481,6 +482,7 @@ class BaseVisualStim(LegacyBaseVisualStim):
 
     def draw(self):
         raise NotImplementedError('Stimulus classes must overide visual.BaseVisualStim.draw')
+
     def setPos(self, newPos, operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message

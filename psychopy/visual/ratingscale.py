@@ -320,7 +320,7 @@ class RatingScale(MinimalStim):
             logging.exp("Created %s = %s" %(self.name, repr(self)))
 
     def __repr__(self, complete=False):
-        return self.__str__(complete=complete)  # from MinimalVisualStim
+        return self.__str__(complete=complete)  # from MinimalStim
 
     def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys,
                    marker, markerStart, low, high, precision, choices,
