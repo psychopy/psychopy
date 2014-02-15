@@ -99,19 +99,23 @@ class InterestPeriodDefinition(object):
         keep_cols = return_cols.keys()
         matches = source[is_match][keep_cols].rename(columns=return_cols)
         
-        matches['ip_id_num'] = range(len(matches)) # add num here to help merge
-                                                   # later on, e.g., _ip_zipper
         return matches
+    
+    def __enumerate_ips(self, group):
+        group['ip_id_num'] = range(len(group))
+        return group
     
     def _ip_zipper(self, start, end, temp_index='ip_id_num'):
         # TODO: make sure the two dfs "zip" nicely
-        _start = start.set_index(temp_index, append=True)
-        _end = end.set_index(temp_index, append=True)
+        _start = start.groupby(level=[0,1]).apply(self.__enumerate_ips)
+        _end = end.groupby(level=[0,1]).apply(self.__enumerate_ips)
+        
+        _start.set_index(temp_index, append=True, inplace=True)
+        _end.set_index(temp_index, append=True, inplace=True)
         
         _all = pd.merge(_start, _end, left_index=True, right_index=True)
         return _all.reset_index(temp_index)
-        
-        
+
 #############################################
 
 class EventBasedIP(InterestPeriodDefinition):
