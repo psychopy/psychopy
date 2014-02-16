@@ -12,13 +12,17 @@ Distributed under the terms of the GNU General Public License
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> and
                   Pierce Edmiston <pierce.edmiston@gmail.com>
 """
-import json
+try:
+    import ujson as json
+except ImportError:
+    import json
+
 import numpy as np
 import pandas as pd
 #import matplotlib as mpl
 #import matplotlib.pyplot as plt
 
-from interestarea import Polygon
+#from interestarea import Polygon
 
 #from interestperiod import InterestPeriodDefinition
 
