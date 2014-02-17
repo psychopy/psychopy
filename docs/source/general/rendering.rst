@@ -10,6 +10,12 @@ to calculate pixel values is performed by the graphics card :term:`GPU` rather t
 pixel values should result, and any interpolation that is needed, are determined by the
 graphics card automatically.
 
+In the double-buffered system, stimuli are initially drawn into a piece of memory on the graphics card called the 'back buffer', while the screen presents the 'front buffer'. The back buffer initially starts blank (all pixels are set to the window's defined color) and as stimuli are 'rendered' they are gradually added to this back buffer. The way in which stimuli are combined according to transparency rules is determined by the :ref:`blend mode <blendModes>` of the window. At some point in time, when we have rendered to this buffer all the objects that we wish to be presented, the buffers are 'flipped' such that the stimuli we have been drawing are presented simultaneously. The monitor updates at a very precise fixed rate and the flipping of the window will be synchronised to this monitor update if possible (see :ref:`waitBlanking`). 
+
+Each update of the window is referred to as a 'frame' and this ultimately determines the temporal resolution with which stimuli can be presented (you cannot present your stimulus for any duration other than a multiple of the frame duration). In addition to synchronising flips to the frame refresh rate, PsychoPy can optionally go a further step of not allowing the code to continue until a screen flip has occurred on the screen, which is useful in ascertaining exactly when the frame refresh occurred (and, thus, when your stimulus actually appeared to the subject). These timestamps are very precise on most computers. For further information about synchronising and waiting for the refresh see :ref:`waitBlanking`.
+
+If the code/processing required to render all you stimuli to the screen takes longer to complete than one screen refresh then you will 'drop/skip a frame'. In this case the previous frame will be left on screen for a further frame period and the flip will only take effect on the following screen update. As a result, time-consuming operations such as disk accesses or execution of many lines of code, should be avoided while stimuli are being dynamically updated (if you care about the precise timing of your stimuli). For further information see the sections on :ref:`detectDroppedFrames` and :ref:`reducingDroppedFrames`.
+
 .. _fastAndSlow:
 
 Fast and slow functions
@@ -110,18 +116,13 @@ combined with existing pixels in the 'frame buffer'.
 blendMode = 'avg'
 ~~~~~~~~~~~~~~~~~~~~
 
-Up until PsychoPy v1.79 this was the only available blend mode. With this mode new
-stimuli are rendered using a weighted average with the background, using a ratio
-of stimulus `opacity*stimulus` and `(1-opacity)*background`. As a result new objects
-being drawn can complete occlude the background (with opacity=1) or be left completely transparent (opacity=0).
-
-Intuitively this is akin to having a real-world object that can be more or less opaque.
+This mode is exactly akin to the real-world scenario of objects with varying degrees of transparency being placed in front of each other; increasingly transparent objects allow increasing amounts of the underlying stimuli to show through. Opaque stimuli will simply occlude previously drawn objects. With each increasing semi-transparent object to be added, the visibility of the first object becomes increasingly weak. The order in which stimuli are rendered is very important since it determines the ordering of the layers. Mathematically, each pixel colour is constructed from opacity*stimRGB + (1-opacity)*backgroundRGB. This was the only mode available before PsychoPy version 1.80 and remains the default for the sake of backwards compatibility. 
 
 blendMode = 'add'
 ~~~~~~~~~~~~~~~~~~~~
 
-If the blendMode is set to 'add' then the value of the new stimulus does not *replace* 
-that of the existing stimuli that have been drawn; it is added to them. In this case the 
+If the the window `blendMode` is set to 'add' then the value of the new stimulus does not in any way *replace* 
+that of the existing stimuli that have been drawn; it is added to it. In this case the 
 value of `opacity` still affects the weighting of the new stimulus being drawn but the
 first stimulus to be drawn is never 'occluded' as such. The sum is performed using the
 signed values of the color representation in PsychoPy, with the mean grey being represented by zero. So a dark patch added to a dark background will get even darker. For grating stimuli this means that contrast is summed correctly.
@@ -131,3 +132,12 @@ the sum of two potentially overlapping stimuli. It is also needed for rendering
 stereo/dichoptic stimuli to be viewed through colored anaglyph glasses.
 
 If stimuli are combined in such a way that an impossible luminance value is requested of any of the monitor guns then that pixel will be out of bounds. In this case the pixel can either be clipped to provide the nearest possible colour, or can be artificially colored with noise, highlighting the problem if the user would prefer to know that this has happened.
+
+.. _waitBlanking:
+
+Sync to VBL and wait for VBL
+---------------------------------
+
+PsychoPy will always, if the graphics card allows it, synchronise the flipping of the window with the vertical blank interval (VBL aka VBI) of the screen. This prevents visual artefacts such as 'tearing' of moving stimuli. This does not, itself, indicate that the script also waits for the physical frame flip to occur before continuing. If the `waitBlanking` window argument is set to False then, although the window refreshes themselves will only occur in sync with the screen VBL, the `win.flip()` call will not actually wait for this to occur, such that preparations can continue immediately for the next frame. For rendering purposes this is actually optimal and will reduce the likelihood of frames being dropped during rendering.
+
+By default the PsychoPy Window will also wait for the VBL (`waitBlanking=True`) . Although this is slightly less efficient for rendering purposes it is necessary if we need to know exactly when a frame flip occurred (e.g. to timestamp when the stimulus was physically presented). On most systems this will provide a very accurate measure of when the stimulus was presented (with a variance typically well below 1ms but this should be tested on your system).

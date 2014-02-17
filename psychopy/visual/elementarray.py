@@ -605,27 +605,33 @@ class ElementArrayStim(object):
         #Handle the orientation, size and location of each element in native units
         #
         radians = 0.017453292519943295
-        verts = numpy.zeros([self.nElements*4, 3],'d')
-        #rotate 'width' and 'height' and find their effects on X and Y
+
+        #so we can do matrix rotation of coords we need shape=[n*4,3]
+        #but we'll convert to [n,4,3] after matrix math
+        verts=numpy.zeros([self.nElements*4, 3],'d')
         wx = -self.sizes[:,0]*numpy.cos(self.oris[:]*radians)/2
         wy = self.sizes[:,0]*numpy.sin(self.oris[:]*radians)/2
         hx = self.sizes[:,1]*numpy.sin(self.oris[:]*radians)/2
         hy = self.sizes[:,1]*numpy.cos(self.oris[:]*radians)/2
+
         #X
-        verts[0::4,0] = + wx + hx#TopR
-        verts[1::4,0] = - wx + hx#TopL
-        verts[2::4,0] = - wx - hx#BotL
-        verts[3::4,0] = + wx - hx#BotR
+        verts[0::4,0] = self.xys[:,0] -wx - hx
+        verts[1::4,0] = self.xys[:,0] +wx - hx
+        verts[2::4,0] = self.xys[:,0] +wx + hx
+        verts[3::4,0] = self.xys[:,0] -wx + hx
+
         #Y
-        verts[0::4,1] = + wy + hy
-        verts[1::4,1] = - wy + hy
-        verts[2::4,1] = - wy - hy
-        verts[3::4,1] = + wy - hy
-        #Z
-        verts[:,2] = 1#self.depths + self.fieldDepth
-        #Now shift by fieldPos and convert to appropriate units
-        pos = numpy.tile(self.xys+self.fieldPos, (1,4)).reshape([self.nElements*4,2])
-        verts[:,:2] = convertToPix(vertices = verts[:,:2], pos = pos, units=self.units, win = self.win)
+        verts[0::4,1] = self.xys[:,1] -wy - hy
+        verts[1::4,1] = self.xys[:,1] +wy - hy
+        verts[2::4,1] = self.xys[:,1] +wy + hy
+        verts[3::4,1] = self.xys[:,1] -wy + hy
+
+        #depth
+        verts[:,2] = self.depths + self.fieldDepth
+        #rotate, translate, scale by units
+        verts[:,:2] = convertToPix(vertices = verts[:,:2], pos = self.fieldPos, units=self.units, win=self.win)
+        verts = verts.reshape([self.nElements,4,3])
+
         #assign to self attrbute
         self.__dict__['verticesPix'] = numpy.require(verts,requirements=['C'])#make sure it's contiguous
         self._needVertexUpdate = False
@@ -653,7 +659,7 @@ class ElementArrayStim(object):
         """Create a new array of self._maskCoords"""
 
         N=self.nElements
-        self._maskCoords=numpy.array([[0,1],[1,1],[1,0],[0,0]],'d').reshape([1,4,2])
+        self._maskCoords=numpy.array([[1,0],[0,0],[0,1],[1,1]],'d').reshape([1,4,2])
         self._maskCoords = self._maskCoords.repeat(N,0)
 
         #for the main texture
@@ -669,7 +675,7 @@ class ElementArrayStim(object):
             B = -self.sfs[:,1]*self.sizes[:,1]/2 - self.phases[:,1]+0.5
 
         #self._texCoords=numpy.array([[1,1],[1,0],[0,0],[0,1]],'d').reshape([1,4,2])
-        self._texCoords=numpy.concatenate([[L,T],[R,T],[R,B],[L,B]]) \
+        self._texCoords=numpy.concatenate([[R,B],[L,B],[L,T],[R,T]]) \
             .transpose().reshape([N,4,2]).astype('d')
         self._texCoords = numpy.ascontiguousarray(self._texCoords)
         self._needTexCoordUpdate=False

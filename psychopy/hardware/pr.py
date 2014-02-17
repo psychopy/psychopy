@@ -212,11 +212,11 @@ class PR650:
             power=[[],[],[]]
             for n in range(nPoints):
                 #each entry in list is a string like this:
-                thisNm, thisR = string.split(rawR[n],',')
+                thisNm, thisR = rawR[n].split(',')
                 thisR = thisR.replace('\r\n','')
-                thisNm, thisG = string.split(rawG[n],',')
+                thisNm, thisG = rawG[n].split(',')
                 thisG = thisG.replace('\r\n','')
-                thisNm, thisB = string.split(rawB[n],',')
+                thisNm, thisB = rawB[n].split(',')
                 thisB = thisB.replace('\r\n','')
                 exec('nm.append(%s)' %thisNm)
                 exec('power[0].append(%s)' %thisR)
@@ -227,7 +227,7 @@ class PR650:
             power = []
             for n, point in enumerate(rawStr):
                 #each entry in list is a string like this:
-                thisNm, thisPower = string.split(point,',')
+                thisNm, thisPower = point.split(',')
                 nm.append(thisNm)
                 power.append(thisPower.replace('\r\n',''))
             if progDlg: progDlg.Update(n)

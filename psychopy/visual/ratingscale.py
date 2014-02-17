@@ -15,11 +15,13 @@ from psychopy.visual.circle import Circle
 from psychopy.visual.patch import PatchStim
 from psychopy.visual.shape import ShapeStim
 from psychopy.visual.text import TextStim
+from psychopy.visual.basevisual import MinimalStim
 from psychopy.visual.helpers import pointInPolygon, groupFlipVert
+from psychopy.tools.attributetools import attributeSetter, setWithOperation
 from psychopy.constants import FINISHED, STARTED, NOT_STARTED
 
 
-class RatingScale(object):
+class RatingScale(MinimalStim):
     """A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale.
 
     A RatingScale instance is a re-usable visual object having a ``draw()``
@@ -120,6 +122,7 @@ class RatingScale(object):
                 minTime=0.4,
                 maxTime=0.0,
                 flipVert=False,
+                depth=0,
                 name='',
                 autoLog=True,
                 **kwargs  # catch obsolete args
@@ -262,6 +265,7 @@ class RatingScale(object):
         # internally work in norm units, restore to orig units at the end of __init__:
         self.savedWinUnits = self.win.units
         self.win.units = 'norm'
+        self.depth = depth
 
         # 'hover' style = like hyperlink with hover over choices:
         if marker == 'hover':
@@ -316,26 +320,7 @@ class RatingScale(object):
             logging.exp("Created %s = %s" %(self.name, repr(self)))
 
     def __repr__(self, complete=False):
-        """copied from basevisual.BaseVisualStim.__str__
-        """
-        className = self.__class__.__name__
-        paramStrings = []
-        for param in self._initParams:
-            if param in ['self', 'kwargs']:
-                continue  # typos or obsolete kwargs for RatingScale
-            if hasattr(self, param):
-                val = getattr(self, param)
-                valStr = repr(getattr(self, param))
-                if len(repr(valStr))>50 and not complete:
-                    if val.__class__.__name__ == 'attributeSetter':
-                        valStr = "%s(...)" %val.__getattribute__.__class__.__name__
-                    else:
-                        valStr = "%s(...)" %val.__class__.__name__
-            else:
-                valStr = 'UNKNOWN'
-            paramStrings.append("%s=%s" %(param, valStr))
-        params = ", ".join(paramStrings)
-        return "%s(%s)" %(className, params)
+        return self.__str__(complete=complete)  # from MinimalVisualStim
 
     def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys,
                    marker, markerStart, low, high, precision, choices,
@@ -906,6 +891,8 @@ class RatingScale(object):
             self.win.logOnFlip("Set %s flipVert=%s" % (self.name, self.flipVert),
                 level=logging.EXP, obj=self)
 
+    # autoDraw and setAutoDraw are inherited from MinimalVisualStim
+
     def draw(self, log=True):
         """Update the visual display, check for response (key, mouse, skip).
 
@@ -972,6 +959,7 @@ class RatingScale(object):
             return  # makes the marker unresponsive
 
         mouseX, mouseY = self.myMouse.getPos() # norm units
+        mouseNearLine = pointInPolygon(mouseX, mouseY, self.nearLine)
 
         # draw a dynamic marker:
         if self.markerPlaced or self.singleClick:
@@ -987,7 +975,7 @@ class RatingScale(object):
                 self.marker.setSize(self.markerBaseSize + newSize, log=False)
                 self.marker.setOpacity(min(1, max(0, newOpacity)), log=False)
             # update position:
-            if self.singleClick and pointInPolygon(mouseX, mouseY, self.nearLine):
+            if self.singleClick and mouseNearLine:
                 self.setMarkerPos(self._getMarkerFromPos(mouseX))
             elif not hasattr(self, 'markerPlacedAt'):
                 self.markerPlacedAt = False
@@ -1024,7 +1012,7 @@ class RatingScale(object):
                     self.markerPlacedBySubject = True
                     resp = self.tickFromKeyPress[key]
                     self.markerPlacedAt = self._getMarkerFromTick(resp)
-                    #proportion = self.markerPlacedAt / self.tickMarks
+                    proportion = self.markerPlacedAt / self.tickMarks
                     self.marker.setPos([self.size * (-0.5 + proportion), 0], log=False)
                 if self.markerPlaced and self.beyondMinTime:
                     # can be placed by experimenter (markerStart) or by subject
@@ -1063,7 +1051,7 @@ class RatingScale(object):
         if self.myMouse.getPressed()[0]:
             #mouseX, mouseY = self.myMouse.getPos() # done above
             # if click near the line, place the marker there:
-            if pointInPolygon(mouseX, mouseY, self.nearLine):
+            if mouseNearLine:
                 self.markerPlaced = True
                 self.markerPlacedBySubject = True
                 self.markerPlacedAt = self._getMarkerFromPos(mouseX)
@@ -1081,15 +1069,19 @@ class RatingScale(object):
                     logging.data('RatingScale %s: (mouse response) rating=%s' %
                             (self.name, unicode(self.getRating())) )
 
-        if (self.markerStyle == 'hover' and self.markerPlaced and
-                self.markerPlacedAt != self.markerPlacedAtLast):
-            if hasattr(self, 'targetWord'):
+        if self.markerStyle == 'hover' and self.markerPlaced:
+            if mouseNearLine or self.markerPlacedAt != self.markerPlacedAtLast:
+                if hasattr(self, 'targetWord'):
+                    self.targetWord.setColor(self.textColor, log=False)
+                    self.targetWord.setHeight(self.textSizeSmall, log=False)
+                self.targetWord = self.labels[int(self.markerPlacedAt)]
+                self.targetWord.setColor(self.markerColor, log=False)
+                self.targetWord.setHeight(1.05 * self.textSizeSmall, log=False)
+                self.markerPlacedAtLast = self.markerPlacedAt
+            elif not mouseNearLine and self.wasNearLine:
                 self.targetWord.setColor(self.textColor, log=False)
                 self.targetWord.setHeight(self.textSizeSmall, log=False)
-            self.targetWord = self.labels[int(self.markerPlacedAt)]
-            self.targetWord.setColor(self.markerColor, log=False)
-            self.targetWord.setHeight(1.05 * self.textSizeSmall, log=False)
-            self.markerPlacedAtLast = self.markerPlacedAt
+            self.wasNearLine = mouseNearLine
 
         # decision time = secs from first .draw() to when first 'accept' value:
         if not self.noResponse and self.decisionTime == 0:
@@ -1128,6 +1120,7 @@ class RatingScale(object):
             self.markerPlaced = True
             self.markerPlacedAt = self.markerStart - self.low # __init__ assures this is valid
         self.markerPlacedAtLast = -1  # unplaced
+        self.wasNearLine = False
         self.firstDraw = True # triggers self.clock.reset() at start of draw()
         self.decisionTime = 0
         self.markerPosFixed = False
