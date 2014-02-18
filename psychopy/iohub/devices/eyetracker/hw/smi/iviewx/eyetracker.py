@@ -70,7 +70,7 @@ class EyeTracker(EyeTrackerDevice):
             ####
             # Callback sample notification support.
             # Sept 24, 2013: Callback approach may now work.
-            # Causes python to sig term after 1 - 5 mointes recording. 
+            # Causes python to sig term after 1 - 5 minutes recording.
             # Use polling method instead!
             ####
             self._handle_sample_callback=pyViewX.pDLLSetSample(self._handleNativeEvent)            
@@ -78,17 +78,17 @@ class EyeTracker(EyeTrackerDevice):
             ####
             # Set the filtering level......
             ####            
-            filter_type,filter_level=self._runtime_settings['sample_filtering'].items()[0]
+            filter_type, filter_level = self._runtime_settings['sample_filtering'].items()[0]
             if filter_type == 'FILTER_ALL':
-                level_int=EyeTrackerConstants.getID(filter_level)                
-                if level_int==0:
+                level_int = EyeTrackerConstants.getID(filter_level)
+                if not level_int:
                     pyViewX.DisableGazeDataFilter()
-                elif level_int <= EyeTrackerConstants.FILTER_ALL:
+                elif 0 < level_int <= EyeTrackerConstants.FILTER_ALL:
                     pyViewX.EnableGazeDataFilter()
                 else:
-                    print2err("Warning: Unsupported iViewX sample filter level value: ",filter_level,"=",level_int)
+                    print2err("Warning: Unsupported iViewX sample filter level value: ",filter_level, "=", level_int)
             else:
-                    print2err("Warning: Unsupported iViewX sample filter type: ",filter_type,". Only FILTER_ALL is supported.")
+                    print2err("Warning: Unsupported iViewX sample filter type: ", filter_type, ". Only FILTER_ALL is supported.")
                 
             ####
             # Native file saving...
