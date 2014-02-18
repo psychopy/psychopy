@@ -301,6 +301,7 @@ class Window:
             self.blendMode = 'avg'
         else:
             self.blendMode = blendMode
+            self.setBlendMode(self.blendMode)
 
         self.allowStencil = allowStencil
         #setup context and openGL()

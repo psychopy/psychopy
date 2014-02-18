@@ -9,7 +9,7 @@ class SettingsComponent:
     """This component stores general info about how to run the experiment"""
     def __init__(self, parentName, exp, expName='', fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor', showMouse=False,
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
-                 logging='exp', color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
+                 logging='exp', color='$[0,0,0]', colorSpace='rgb', enableEscape=True, blendMode='avg',
                  saveXLSXFile=False, saveCSVFile=False, saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='', filename="'xxxx/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])"):
         self.type='Settings'
@@ -57,6 +57,11 @@ class SettingsComponent:
         self.params['Units']=Param(units, valType='str', allowedTypes=[],
             allowedVals=['use prefs', 'deg','pix','cm','norm','height'],
             hint="Units to use for window/stimulus coordinates (e.g. cm, pix, deg)",
+            categ='Screen')
+        self.params['blendMode']=Param(blendMode, valType='str', allowedTypes=[],
+            label='Blend mode',
+            allowedVals=['add','avg'],
+            hint="Should new stimuli be added or averaged with the stimuli that have been drawn already",
             categ='Screen')
         self.params['Show mouse']=Param(showMouse, valType='bool', allowedTypes=[],
             hint="Should the mouse be visible on screen?",
@@ -188,7 +193,7 @@ class SettingsComponent:
             size=self.params['Window size (pixels)']
         buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                            (size, fullScr, screenNumber, allowGUI, allowStencil))
-        buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
+        buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s, blendMode=%(blendMode)s" %(self.params))
 
         if self.params['Units'].val=='use prefs': unitsCode=""
         else: unitsCode=", units=%s" %self.params['Units']
