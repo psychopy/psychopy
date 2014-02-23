@@ -334,9 +334,11 @@ class Window:
 
         # over several frames with no drawing
         self._monitorFrameRate=None
+        self.monitorFramePeriod=0.0 #for testing  when to stop drawing a stim
         if checkTiming:
             self._monitorFrameRate = self.getActualFrameRate()
         if self._monitorFrameRate is not None:
+            self.monitorFramePeriod=1.0/self._monitorFrameRate
             self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
         else:
             self._refreshThreshold = (1.0/60)*1.2  # guess its a flat panel

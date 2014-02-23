@@ -79,10 +79,10 @@ class BaseComponent(object):
         """Test whether we need to stop
         """
         if self.params['stopType'].val=='time (s)':
-            buff.writeIndented("elif %(name)s.status == STARTED and t >= %(stopVal)s:\n" %(self.params))
+            buff.writeIndented("elif %(name)s.status == STARTED and t >= (%(stopVal)s-win.monitorFramePeriod*0.75): #most of one frame period left\n" %(self.params))
         #duration in time (s)
         elif self.params['stopType'].val=='duration (s)' and self.params['startType'].val=='time (s)':
-            buff.writeIndented("elif %(name)s.status == STARTED and t >= (%(startVal)s + %(stopVal)s):\n" %(self.params))
+            buff.writeIndented("elif %(name)s.status == STARTED and t >= (%(startVal)s + (%(stopVal)s-win.monitorFramePeriod*0.75)): #most of one frame period left\n" %(self.params))
         elif self.params['stopType'].val=='duration (s)':#start at frame and end with duratio (need to use approximate)
             buff.writeIndented("elif %(name)s.status == STARTED and t >= (%(name)s.tStart + %(stopVal)s):\n" %(self.params))
         #duration in frames
