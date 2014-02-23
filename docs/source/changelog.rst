@@ -23,6 +23,21 @@ PsychoPy 1.80
 PsychoPy 1.80.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* Improvements to user interface:
+    * the glitch that prevented scrolling the Routine view is gone (win32)
+    * dialog boxes in the Builder now have tabs for categories of controls
+    * Code Components have much more space for each piece of code (again due to tabs)
+* ADDED: support for advanced rendering modes. Can now 'add' rather than average when using transparency. This is better for visual compound stimuli like plaids, and essential for colored anaglyph stimuli where the resulting image needs to be the sum of the left and right eye images.
+* ADDED: new visual unit options: 'degFlatPos' and 'degFlat' provide more accurate conversions from degrees to pixels for drawing stimuli (although they're more accurate, accounting for the flat screen, they may look strange because 1 degree gets larger with greater eccentricity on a flat screen). The previous unit 'deg' still exists and remains default as, for many studies, these remain desirable
+* ADDED: wider support for the functions `contains` and `overlaps`. Most stimuli now have these methods. Also they can now be used irrespective of whether the stimulus and other object have the same units (they used only to work for units of pix)
+* ADDED: support for other shapes in the Aperture stimulus (and its Builder Component). You can either specify the number of vertices `nVert` and a `size` to get a regular polygon aperture. 
+* :blue:`CHANGED: Size of 'square' or 'triangle' apertures used to represent the radius of the circle on which their vertices lay. It is now a height/width as you would more likely expect. This means aperture code in scripts may need rewriting to be smaller.`
+* IMPROVED: stimulus duration is now more precise when using `duration (s)` or `time (s)` although using `nFrames` option is still advised for brief stimuli
+* IMPROVED: there are now fewer irrelevant lines in the log file as stimuli are initially created
+* FIXED: variable names in Builder are now case-sensitive again (they were being forced to lower case when importing csv files)
+* FIXED: incorrect equation for the Cumulative Normal fitting function
+* FIXED: If your variable had a new line character in it this was causing a new line to be started in the csv data file. These are now handled correctly
+
 * ADDED: RatingScale markerStart position can be arbitrary, e.g., can start between items or beyond the end of scale
 * ADDED: RatingScale tickHeight can be used to control the height of tickMarks, including no tick marks (tickHeight=0)
 * ADDED: RatingScale marker='hover' is similar to HTML-style hovering over clickable elements
