@@ -14,9 +14,9 @@ from psychopy import monitors
 _unit2PixMappings = dict()
 
 #the following are to be used by convertToPix
-def pix2pix(vertices, pos, win = None):
+def _pix2pix(vertices, pos, win = None):
     return pos+vertices
-_unit2PixMappings['pix'] = pix2pix
+_unit2PixMappings['pix'] = _pix2pix
 
 def _cm2pix(vertices, pos, win):
     return cm2pix(pos+vertices, win.monitor)
@@ -38,11 +38,11 @@ _unit2PixMappings['degFlat'] = _degFlat2pix
 
 def _norm2pix(vertices, pos, win):
     return (pos+vertices) * win.size/2.0
-_unit2PixMappings['norm'] = norm2pix
+_unit2PixMappings['norm'] = _norm2pix
 
 def _height2pix(vertices, pos, win):
     return (pos+vertices) * win.size[1]
-_unit2PixMappings['height'] = height2pix
+_unit2PixMappings['height'] = _height2pix
 
 def convertToPix(vertices, pos, units, win):
     """Takes vertices and position, combines and converts to pixels from any unit
@@ -93,11 +93,22 @@ def cm2deg(cm, monitor):
     #check they all exist
     if dist==None:
         raise ValueError("Monitor %s has no known distance (SEE MONITOR CENTER)" %monitor.name)
-    return cm/(dist*0.017455)
+    if correctFlat:
+        return np.arctan(np.radians(cm/dist))
+    else:
+        return cm/(dist*0.017455)
 
+def deg2cm(degrees, monitor, correctFlat=False):
+    """Convert size in degrees to size in pixels for a given Monitor object.
 
-def deg2cm(degrees, monitor):
-    """Convert size in degrees to size in pixels for a given Monitor object"""
+    If correctFlat==False then the screen will be treated as if all points are
+    equal distance from the eye. This means that each "degree" will be the same
+    size irrespective of its position.
+
+    Otherwise the units will account for the non-flat screen, using standard:
+        cm = distance*tan(theta)
+    This may look strange because more eccentric vertices will be spaced further apart.
+    """
     #check we have a monitor
     if not isinstance(monitor, monitors.Monitor):
         raise ValueError("deg2cm requires a monitors.Monitor object as the second argument but received %s" %str(type(monitor)))
@@ -106,7 +117,10 @@ def deg2cm(degrees, monitor):
     #check they all exist
     if dist==None:
         raise ValueError("Monitor %s has no known distance (SEE MONITOR CENTER)" %monitor.name)
-    return degrees*dist*0.017455
+    if correctFlat:
+        return np.tan(np.radians(deg))*dist
+    else:
+        return degrees*dist*0.017455
 
 
 def cm2pix(cm, monitor):
@@ -139,8 +153,7 @@ def pix2cm(pixels, monitor):
         raise ValueError("Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name)
     return pixels*float(scrWidthCm)/scrSizePix[0]
 
-
-def deg2pix(degrees, monitor):
+def deg2pix(degrees, monitor, correctFlat=False):
     """Convert size in degrees to size in pixels for a given Monitor object"""
     #get monitor params and raise error if necess
     scrWidthCm = monitor.getWidth()
@@ -150,11 +163,10 @@ def deg2pix(degrees, monitor):
     if scrWidthCm==None:
         raise ValueError("Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name)
 
-    cmSize = deg2cm(degrees, monitor)
+    cmSize = deg2cm(degrees, monitor, correctFlat)
     return cmSize*scrSizePix[0]/float(scrWidthCm)
 
-
-def pix2deg(pixels, monitor):
+def pix2deg(pixels, monitor, correctFlat=False):
     """Convert size in pixels to size in degrees for a given Monitor object"""
     #get monitor params and raise error if necess
     scrWidthCm = monitor.getWidth()
@@ -164,4 +176,4 @@ def pix2deg(pixels, monitor):
     if scrWidthCm==None:
         raise ValueError("Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name)
     cmSize=pixels*float(scrWidthCm)/scrSizePix[0]
-    return cm2deg(cmSize, monitor)
+    return cm2deg(cmSize, monitor, correctFlat)
