@@ -8,6 +8,7 @@
 monitor'''
 
 from psychopy import monitors
+import numpy as np
 
 # Maps supported coordinate unit type names to the function that converts
 # the given unit type to PsychoPy OpenGL pix unit space.
@@ -118,7 +119,7 @@ def deg2cm(degrees, monitor, correctFlat=False):
     if dist==None:
         raise ValueError("Monitor %s has no known distance (SEE MONITOR CENTER)" %monitor.name)
     if correctFlat:
-        return np.tan(np.radians(deg))*dist
+        return np.tan(np.radians(degrees))*dist
     else:
         return degrees*dist*0.017455
 
