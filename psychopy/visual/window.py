@@ -293,6 +293,7 @@ class Window:
             colorSpace = 'lms'
         self.setColor(color, colorSpace=colorSpace)
 
+        self.allowStencil = allowStencil
         #check whether FBOs are supported
         if blendMode == 'add' and not self.useFBO:
             logging.warning('User requested a blendmode of "add" but '
@@ -301,14 +302,15 @@ class Window:
             self.blendMode = 'avg'
         else:
             self.blendMode = blendMode
-            self.setBlendMode(self.blendMode)
+            #then set up gl context and then call self.setBlendMode
 
-        self.allowStencil = allowStencil
         #setup context and openGL()
         if winType is None:  # choose the default windowing
             winType = prefs.general['winType']
         self.winType = winType
         self._setupGL()
+
+        self.setBlendMode(self.blendMode)
 
         # gamma
         self.gamma = gamma
@@ -932,8 +934,14 @@ class Window:
         self.blendMode = blendMode
         if blendMode=='avg':
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+            self._progSignedTex = self._shaders['signedTex']
+            self._progSignedTexMask = self._shaders['signedTexMask']
+            self._progSignedTexMask1D = self._shaders['signedTexMask1D']
         elif blendMode=='add':
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE)
+            self._progSignedTex = self._shaders['signedTex_adding']
+            self._progSignedTexMask = self._shaders['signedTexMask_adding']
+            self._progSignedTexMask1D = self._shaders['signedTexMask1D_adding']
 
     def setColor(self, color, colorSpace=None, operation=''):
         """Set the color of the window.
@@ -1345,7 +1353,6 @@ class Window:
         #GL.glEnable(GL.GL_DEPTH_TEST)  # Enables Depth Testing
         #GL.glDepthFunc(GL.GL_LESS)  # The Type Of Depth Test To Do
         GL.glEnable(GL.GL_BLEND)
-        GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
 
         GL.glShadeModel(GL.GL_SMOOTH)  # Color Shading (FLAT or SMOOTH)
         GL.glEnable(GL.GL_POINT_SMOOTH)
@@ -1373,14 +1380,13 @@ class Window:
     def _setupShaders(self):
         self._progSignedTexFont = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexFont)
         self._progFBOtoFrame = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragFBOtoFrame)
-        if self.useFBO:
-            self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask_withFBO)
-            self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex_withFBO)
-            self._progSignedTexMask1D = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask1D_withFBO)
-        else:
-            self._progSignedTexMask = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)
-            self._progSignedTex = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
-            self._progSignedTexMask1D = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask1D)
+        self._shaders = {}
+        self._shaders['signedTex'] = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
+        self._shaders['signedTexMask'] = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)
+        self._shaders['signedTexMask1D'] = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask1D)
+        self._shaders['signedTex_adding'] = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex_adding)
+        self._shaders['signedTexMask_adding'] = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask_adding)
+        self._shaders['signedTexMask1D_adding'] = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask1D_adding)
 
     def _setupFrameBuffer(self):
         # Setup framebuffer

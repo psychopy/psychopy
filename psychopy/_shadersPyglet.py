@@ -82,9 +82,11 @@ fragFBOtoFrame = '''
     void main() {
         vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
         gl_FragColor.rgb = textureFrag.rgb;
+        //! if too high then show red/black noise
         if ( gl_FragColor.r>1.0 || gl_FragColor.g>1.0 || gl_FragColor.b>1.0) {
             gl_FragColor.rgb = vec3 (rand(gl_TexCoord[0].st), 0, 0);
         }
+        //! if too low then show red/black noise
         else if ( gl_FragColor.r<0.0 || gl_FragColor.g<0.0 || gl_FragColor.b<0.0) {
             gl_FragColor.rgb = vec3 (0, 0, rand(gl_TexCoord[0].st));
         }
@@ -106,11 +108,11 @@ fragSignedColorTex = '''
         gl_FragColor.a = gl_Color.a*textureFrag.a;
     }
     '''
-fragSignedColorTex_withFBO = '''
+fragSignedColorTex_adding = '''
     uniform sampler2D texture;
     void main() {
         vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
-        gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0);
+        gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0)*0.5;
         gl_FragColor.a = gl_Color.a * textureFrag.a;
     }
     '''
@@ -133,13 +135,13 @@ fragSignedColorTexMask = '''
         gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;
     }
     '''
-fragSignedColorTexMask_withFBO = '''
+fragSignedColorTexMask_adding = '''
     uniform sampler2D texture, mask;
     void main() {
         vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
         vec4 maskFrag = texture2D(mask,gl_TexCoord[1].st);
         gl_FragColor.a = gl_Color.a * maskFrag.a * textureFrag.a;
-        gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0);
+        gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0)*0.5;
     }
     '''
 fragSignedColorTexMask1D = '''
@@ -152,14 +154,14 @@ fragSignedColorTexMask1D = '''
         gl_FragColor.rgb = (textureFrag.rgb* (gl_Color.rgb*2.0-1.0)+1.0)/2.0;
     }
     '''
-fragSignedColorTexMask1D_withFBO = '''
+fragSignedColorTexMask1D_adding = '''
     uniform sampler2D texture;
     uniform sampler1D mask;
     void main() {
         vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
         vec4 maskFrag = texture1D(mask,gl_TexCoord[1].s);
         gl_FragColor.a = gl_Color.a * maskFrag.a*textureFrag.a;
-        gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0);
+        gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0)*0.5;
     }
     '''
 vertSimple = """
