@@ -193,11 +193,14 @@ class SettingsComponent:
             size=self.params['Window size (pixels)']
         buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                            (size, fullScr, screenNumber, allowGUI, allowStencil))
-        buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s, blendMode=%(blendMode)s" %(self.params))
+        buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n" %(self.params))
+        if self.params['blendMode'].val:
+            buff.writeIndented("    blendMode=%(blendMode)s, useFBO=True,\n" %(self.params))
 
-        if self.params['Units'].val=='use prefs': unitsCode=""
-        else: unitsCode=", units=%s" %self.params['Units']
-        buff.write(unitsCode+")\n")
+        if self.params['Units'].val=='use prefs':
+            buff.write("    )\n")
+        else:
+            unitsCode="    units=%s)\n" %self.params['Units']
 
         if 'microphone' in self.exp.psychopyLibs: # need a pyo Server
             buff.writeIndentedLines("\n# Enable sound input/output:\n"+
