@@ -84,7 +84,7 @@ def addUnitTypeConversion(unit_label, mapping_func):
 # Built in conversion functions follow ...
 #
 
-def cm2deg(cm, monitor):
+def cm2deg(cm, monitor, correctFlat=False):
     """Convert size in cm to size in degrees for a given Monitor object"""
     #check we have a monitor
     if not isinstance(monitor, monitors.Monitor):

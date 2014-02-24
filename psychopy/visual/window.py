@@ -934,14 +934,16 @@ class Window:
         self.blendMode = blendMode
         if blendMode=='avg':
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
-            self._progSignedTex = self._shaders['signedTex']
-            self._progSignedTexMask = self._shaders['signedTexMask']
-            self._progSignedTexMask1D = self._shaders['signedTexMask1D']
+            if hasattr(self, '_shaders'):
+                self._progSignedTex = self._shaders['signedTex']
+                self._progSignedTexMask = self._shaders['signedTexMask']
+                self._progSignedTexMask1D = self._shaders['signedTexMask1D']
         elif blendMode=='add':
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE)
-            self._progSignedTex = self._shaders['signedTex_adding']
-            self._progSignedTexMask = self._shaders['signedTexMask_adding']
-            self._progSignedTexMask1D = self._shaders['signedTexMask1D_adding']
+            if hasattr(self, '_shaders'):
+                self._progSignedTex = self._shaders['signedTex_adding']
+                self._progSignedTexMask = self._shaders['signedTexMask_adding']
+                self._progSignedTexMask1D = self._shaders['signedTexMask1D_adding']
 
     def setColor(self, color, colorSpace=None, operation=''):
         """Set the color of the window.
