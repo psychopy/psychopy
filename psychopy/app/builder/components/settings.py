@@ -200,7 +200,7 @@ class SettingsComponent:
         if self.params['Units'].val=='use prefs':
             buff.write("    )\n")
         else:
-            unitsCode="    units=%s)\n" %self.params['Units']
+            buff.write("    units=%s)\n" %self.params['Units'])
 
         if 'microphone' in self.exp.psychopyLibs: # need a pyo Server
             buff.writeIndentedLines("\n# Enable sound input/output:\n"+
