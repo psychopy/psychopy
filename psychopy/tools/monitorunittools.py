@@ -9,7 +9,7 @@ monitor'''
 
 from psychopy import monitors
 import numpy as np
-from np import sin, cos, tan, pi, radians, degrees, hypot
+from numpy import sin, cos, tan, pi, radians, degrees, hypot
 
 # Maps supported coordinate unit type names to the function that converts
 # the given unit type to PsychoPy OpenGL pix unit space.
