@@ -10,7 +10,7 @@
 from psychopy.constants import *
 
 # window, should always be loaded first
-from psychopy.visual.window import Window, getMsPerFrame
+from psychopy.visual.window import Window, getMsPerFrame, openWindows
 
 # non-private helpers
 from psychopy.visual.helpers import (createTexture,
@@ -52,4 +52,4 @@ try:
     from textbox import TextBox
 except:
     pass
-    
+

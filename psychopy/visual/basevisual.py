@@ -674,7 +674,7 @@ class BaseVisualStim(LegacyBaseVisualStim):
             rgb = (rgb / 255.0) * 2 - 1
 
         # Convert to RGB in range 0:1 and scaled for contrast
-        # although the shader then has to convert it back it gets clamped en route otherwise
+        # NB glColor will clamp it to be 0-1 (whether or not we use FBO)
         desiredRGB = (rgb * contrast + 1) / 2.0
         if not self.win.useFBO:
             # Check that boundaries are not exceeded. If we have an FBO that can handle this
