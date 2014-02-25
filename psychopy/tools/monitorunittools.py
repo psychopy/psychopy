@@ -102,27 +102,40 @@ def cm2deg(cm, monitor, correctFlat=False):
 def deg2cm(degrees, monitor, correctFlat=False):
     """Convert size in degrees to size in pixels for a given Monitor object.
 
-    If correctFlat==False then the screen will be treated as if all points are
+    If `correctFlat==False` then the screen will be treated as if all points are
     equal distance from the eye. This means that each "degree" will be the same
     size irrespective of its position.
 
-    Otherwise the units will account for the non-flat screen, using standard:
-        cm = distance*tan(theta)
-    This may look strange because more eccentric vertices will be spaced further apart.
+    If `correctFlat==True` then the `degrees` argument must be an Nx2 matrix for X and Y values
+    (the two cannot be calculated separately in this case).
+
+    With correctFlat==True the positions may look strange because more eccentric vertices will be spaced further apart.
     """
     #check we have a monitor
-    if not isinstance(monitor, monitors.Monitor):
+    if not hasattr(monitor, 'getDistance'):
         raise ValueError("deg2cm requires a monitors.Monitor object as the second argument but received %s" %str(type(monitor)))
     #get monitor dimensions
     dist = monitor.getDistance()
     #check they all exist
     if dist==None:
         raise ValueError("Monitor %s has no known distance (SEE MONITOR CENTER)" %monitor.name)
+    rads = radians(degrees)
     if correctFlat:
-        return np.tan(np.radians(degrees))*dist
+        if len(degrees.shape)<2 or degrees.shape[1]!=2:
+            raise ValueError("If using deg2cm with correctedFlat==True then degrees arg must have shape [N,2], not %s" %degrees.shape)
+        cmXY = np.zeros(degrees.shape, 'f')
+        cmXY[:,0] = hypot(dist, tan(rads[:,1])*dist) * tan(rads[:,0])
+        cmXY[:,1] = hypot(dist, tan(rads[:,0])*dist) * tan(rads[:,1])
+        # derivation:
+        #    if hypotY is line from eyeball to [x,0] given by hypot(dist, tan(degX))
+        #    then cmY is distance from [x,0] to [x,y] given by hypotY*tan(degY)
+        #    similar for hypotX to get cmX
+        # alternative:
+        #    we could do this by converting to polar coords, converting to cm and then
+        #    going back to cartesian, but this would be slower(?)
+        return cmXY
     else:
-        return degrees*dist*0.017455
-
+        return degrees*dist*0.017455 #the size of 1 deg at screen centre
 
 def cm2pix(cm, monitor):
     """Convert size in degrees to size in pixels for a given Monitor object"""
