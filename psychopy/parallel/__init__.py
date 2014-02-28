@@ -1,15 +1,20 @@
 """
 This module provides read/write access to the parallel port for Linux or Windows.
 
-There is a legacy API which consists of the routines which are directly in this
-module.  This API assumes you only ever want to use a single parallel port at once.
-These routines will attempt to autodetect the method which should be used to
-access your parallel port from those available.
+The :class:`~psychopy.parallel.Parallel` class described below will attempt to
+load whichever parallel port driver is first found on your system and should
+suffice in most instances. If you need to use a specific driver then, instead of
+using :class:`~psychopy.parallel.ParallelPort` shown below you can use one of the following as
+drop-in replacemnts, forcing the use of a specific driver:
+    - `psychopy.parallel.PParallelInpOut32`
+    - `psychopy.parallel.PParallelDLPortIO`
+    - `psychopy.parallel.PParallelLinux`
 
-There is also a newer, class-based API exposed in the classes
-:class:`PParallelLinux`, :class:`PParallelInpOut32` and
-:class:`PParallelDLPortIO`.  Each instance of these classes can be used to
-access a different parallel port.
+Either way, each instance of the class can provide access to a different parallel
+port.
+
+There is also a legacy API which consists of the routines which are directly in this
+module.  That API assumes you only ever want to use a single parallel port at once.
 """
 from psychopy import logging
 import sys
@@ -37,7 +42,7 @@ else:
     #OS X doesn't have a parallel port but write the class for doc purps
     class ParallelPort(object):
         """
-        This class provides r/w access to the parallel port on Windows & Linux
+        This class provides read/write access to the parallel port on Windows & Linux
 
         Usage::
 
