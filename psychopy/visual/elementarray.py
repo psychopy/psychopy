@@ -614,22 +614,26 @@ class ElementArrayStim(object):
         hx = self.sizes[:,1]*numpy.sin(self.oris[:]*radians)/2
         hy = self.sizes[:,1]*numpy.cos(self.oris[:]*radians)/2
 
-        #X
-        verts[0::4,0] = self.xys[:,0] -wx - hx
-        verts[1::4,0] = self.xys[:,0] +wx - hx
-        verts[2::4,0] = self.xys[:,0] +wx + hx
-        verts[3::4,0] = self.xys[:,0] -wx + hx
+        #X vals of each vertex relative to the element's centroid
+        verts[0::4,0] = -wx - hx
+        verts[1::4,0] = +wx - hx
+        verts[2::4,0] = +wx + hx
+        verts[3::4,0] = -wx + hx
 
-        #Y
-        verts[0::4,1] = self.xys[:,1] -wy - hy
-        verts[1::4,1] = self.xys[:,1] +wy - hy
-        verts[2::4,1] = self.xys[:,1] +wy + hy
-        verts[3::4,1] = self.xys[:,1] -wy + hy
+        #Y vals of each vertex relative to the element's centroid
+        verts[0::4,1] = -wy - hy
+        verts[1::4,1] = +wy - hy
+        verts[2::4,1] = +wy + hy
+        verts[3::4,1] = -wy + hy
+
+        positions = self.xys+self.fieldPos #set of positions across elements
 
         #depth
         verts[:,2] = self.depths + self.fieldDepth
         #rotate, translate, scale by units
-        verts[:,:2] = convertToPix(vertices = verts[:,:2], pos = self.fieldPos, units=self.units, win=self.win)
+        if positions.shape[0]*4 == verts.shape[0]:
+            positions = positions.repeat(4,0)
+        verts[:,:2] = convertToPix(vertices = verts[:,:2], pos = positions, units=self.units, win=self.win)
         verts = verts.reshape([self.nElements,4,3])
 
         #assign to self attrbute
