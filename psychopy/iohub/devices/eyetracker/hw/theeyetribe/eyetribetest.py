@@ -5,18 +5,29 @@ Created on Mon Feb 10 17:13:14 2014
 @author: zahm
 """
 
-import gevent
+import logging
+import gevent, time
+from collections import OrderedDict
 from gevent import sleep, socket, queue
 from gevent.server import StreamServer
 import json
 from timeit import default_timer as getTime
 from weakref import proxy
 
+logging.basicConfig(filename='output.log',level=logging.DEBUG)
+start = time.time()
+tic = lambda: 'at %1.1f seconds' % (time.time() - start)    
+
 class TheEyeTribe(object):
     """
     TheEyeTribe class is the client side interface to the TheEyeTribe 
     eye tracking device server.
     """
+    sleepInterval = 0.1    
+    sw = 1024
+    sh = 768
+    calibrationPoints = 9 
+
     # define the dict format for tracker set msgs
     set_tracker_prototype = {
         "category": 'tracker',
@@ -64,8 +75,10 @@ class TheEyeTribe(object):
     ]
 
     tracker_calibration_values = [
-        'startpoint',
-        'endpoint'
+        'start',        
+        'pointstart',
+        'pointend',
+        'clear'
     ]
     # tracker status states
     TRACKER_CONNECTED = 0 # Tracker device is detected and working
@@ -115,12 +128,15 @@ class TheEyeTribe(object):
         self._transport_manager.start()
         
         self.sendSetMessage(push=True, version=1)
-        self.sendGetMessage('push', 'version')
+        self.sendGetMessage('push', 'version', 'screenresw', 'screenresh')
 
         self._heartbeat = HeartbeatPump(self._transport_manager)
         self._heartbeat.start()
         
         self.sendGetMessage(*self.tracker_get_values)
+        
+        self.calibrate()        
+
         
     @property
     def tracker_status(self):
@@ -138,23 +154,44 @@ class TheEyeTribe(object):
     def sendCalibrationMessage(self, request_type, **kwargs):
         """
         Examples:
+            sendCalibrationMessage('start', pts=9)
             sendCalibrationMessage('pointstart',x=500,y=200)
             sendCalibrationMessage('pointend')
         """
         # TODO How to handle getting calibration response values from tracker
         
-        if request_type not in self.tracker_set_values:
+        if request_type not in self.tracker_calibration_values:
             # Throw error, return error code??
             print 'Unknown calibration request_type:',request_type
             return False
             
-        calreq=dict(category='calibration',request=request_type)
+        calreq=OrderedDict(category='calibration', request = request_type)
         if kwargs:
-            calreq['values']=kwargs
+            calreq['values'] = OrderedDict(sorted(kwargs.items(), key = lambda t:t[0]))
         send_str=json.dumps(calreq)
+        print send_str
+        logging.info(send_str)
         self._transport_manager.send(send_str)
         
+        
+    def calibrate(self):
+        """
+        Runs complete calibration process according to the TheEyeTribe APIs
+        """
+        self.sendCalibrationMessage('clear')
+        gevent.sleep(self.sleepInterval)        
+        self.sendCalibrationMessage('start', pointcount=self.calibrationPoints)
+        gevent.sleep(self.sleepInterval)        
+        sx_pos= [self.sw*0.25,self.sw*0.5,self.sw*0.75]
+        sy_pos= [self.sh*0.25,self.sh*0.5,self.sh*0.75]
 
+        for lx in sx_pos:
+            for ly in sy_pos:
+                self.sendCalibrationMessage('pointstart', x = int(lx), y = int(ly))
+                gevent.sleep(self.sleepInterval)        
+                self.sendCalibrationMessage('pointend')
+            #gevent.sleep(self.sleepInterval)
+        
     def sendSetMessage(self, **kwargs):
         """
         Send a Set Tracker msg to the server. any kwargs passed into this method
@@ -213,6 +250,13 @@ class TheEyeTribe(object):
         #TODO proper handling of sample data
         sample_frame=frame_dict.get('values',{}).get('frame')
         print '!! Eye Sample Received:\n\tTime: {0}\n\tstate: {1}\n'.format(sample_frame['time'],sample_frame['state'])
+        logging.info('!! Eye Sample Received:\n\tTime: {0}\n\tstate: {1}\n'.format(sample_frame['time'],sample_frame['state']))
+        
+    def processCalibrationResult(self, calibrationResult):
+        """
+        Process the calibration result
+        """
+        return True
         
     def close(self):
         """
@@ -309,7 +353,7 @@ class EyeTribeTransportManager(gevent.Greenlet):
                             #print 'handleServerMsg:',mdict
                             self.handleServerMsg(mdict)
                             msg_fragment=''
-                            self.server_response_count+=1
+                            self.server_response_count += 1
                         except:
                             msg_fragment=m
             except socket.timeout:
@@ -365,11 +409,40 @@ class EyeTribeTransportManager(gevent.Greenlet):
             
         if msg_category == u'heartbeat':
             return True
+
+        if msg_category == u'calibration':
+            request_type=msg.get('request') 
+            #print '::::::::::: Calibration Result: ', msg.get('values',{}).get('calibresult')            
+            if request_type == u'pointend': 
+                if msg.get('values',{}).get('calibresult'): 
+                    print '::::::::::: Calibration Result: ', msg
+                    logging.info('::::::::::: Calibration Result: {0}'.format(msg))                    
+                    return self._client_interface.processCalibrationResult(msg)
+                    return True
+
+        if msg_category == u'calibration':
+            request_type=msg.get('request') 
+            if request_type == u'pointstart': 
+                print '==========Calibration response: ', msg
+                logging.info('==========Calibration response: {0}'.format(msg))
+                return True
+            if request_type == u'pointend': 
+                print '+++++++++++ Calibration response: ', msg
+                logging.info('+++++++++++ Calibration response: {0}'.format(msg))
+                return True
+
         if msg_category == u'tracker':
             request_type=msg.get('request') 
             if request_type == u'get': 
                 if msg.get('values',{}).get('frame'): 
-                    return self._client_interface.processSample(msg)        
+                    return self._client_interface.processSample(msg)
+                
+                if msg.get('values',{}).get('screenresw') and msg.get('values',{}).get('screenresh'): 
+                    self.sw = msg.get('values',{}).get('screenresw')
+                    self.sh = msg.get('values',{}).get('screenresh')
+                    #print 'Screen width: ', self.sw
+                    #print 'Screen height: ', self.sh
+                    return True
                 print 'GET Rx received from server but unhandled.'
                 # TODO : check statuscode field of get response for any errors
                 # TODO : update theeyetribe classes .tracker_state dict with
@@ -384,8 +457,8 @@ class EyeTribeTransportManager(gevent.Greenlet):
                 print 'SET Rx received from server.'
                 # TODO check status field for any errors
                 return True        
-        print '>> Warning: Unhandled Server packet category [{0}] received by client. Full msg contents:\n\n{1}\n<<'.format(msg_category,msg)
-        
+        print '>> Warning: Unhandled Server packet category [{0}] received by client. Full msg contents:\n\n{1}\n<<'.format(msg_category,msg)                
+
     def createConnection(self, host='localhost', port=6555):
         # Open a socket to the eye tracker server
         try:
@@ -480,12 +553,15 @@ if __name__ == '__main__':
     
     # create an instance of the client interface to theeyetribe eye tracker.
     tracker = TheEyeTribe()
-
+   
     # in this silly example, just wait until 100 responses or sample frames 
     # have been received by the client.
     while tracker.serverResponseCount < 100:
         #print 'main app loop:',getTime()
+        #tracker.calibrate()        
         sleep(1.00)
+        
+    
 
     # Close the tracker client interface.
     tracker.close()
