@@ -34,6 +34,15 @@ class EyeTracker(EyeTrackerDevice):
         
         eyetracker.hw.smi.iviewx.EyeTracker
     """
+        
+    pyviewx2ivewxParamMappings={
+                EyeTrackerConstants.LEFT_EYE: pyViewX.ET_PARAM_EYE_LEFT,
+                EyeTrackerConstants.RIGHT_EYE: pyViewX.ET_PARAM_EYE_RIGHT,
+                EyeTrackerConstants.BINOCULAR: pyViewX.ET_PARAM_EYE_BOTH,
+                EyeTrackerConstants.BINOCULAR_CUSTOM: pyViewX.ET_PARAM_SMARTBINOCULAR,
+                EyeTrackerConstants.MONOCULAR: pyViewX.ET_PARAM_MONOCULAR
+                }
+
     # >>> Overwritten class attributes
     DEVICE_TIMEBASE_TO_SEC=0.000001
     
@@ -70,8 +79,6 @@ class EyeTracker(EyeTrackerDevice):
             ####
             # Callback sample notification support.
             # Sept 24, 2013: Callback approach may now work.
-            # Causes python to sig term after 1 - 5 minutes recording.
-            # Use polling method instead!
             ####
             self._handle_sample_callback=pyViewX.pDLLSetSample(self._handleNativeEvent)            
                         
@@ -242,37 +249,87 @@ class EyeTracker(EyeTrackerDevice):
 
     def sendCommand(self, key, value=None):
         """
-        The sendCommand method is currently not supported by the SMI iViewX 
-        implementation of the Common Eye Tracker Interface.
+        The sendCommand method can be used to make calls to the 
+        iViewX iV_SetTrackingParameter function. The sendCommand method requires
+        valid key and value arguements.
+        
+        Currently supported 'key' arguement values, with their mapping to the 
+        associated iViewX API constant, are:
+        
+        EyeTrackerConstants.LEFT_EYE:   pyViewX.ET_PARAM_EYE_LEFT
+        EyeTrackerConstants.RIGHT_EYE:  pyViewX.ET_PARAM_EYE_RIGHT
+        EyeTrackerConstants.BINOCULAR:  pyViewX.ET_PARAM_EYE_BOTH
+        
+        If the key arguement supplied does not match one of the three 
+        EyeTrackerConstants values listed above, the method will return:
+        
+        EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT
+        
+        Currently supported 'value' arguement values, with their mapping to the 
+        associated iViewX API constant, are:
+
+        EyeTrackerConstants.BINOCULAR_CUSTOM:  pyViewX.ET_PARAM_SMARTBINOCULAR
+        EyeTrackerConstants.MONOCULAR:         pyViewX.ET_PARAM_MONOCULAR
+        
+        If the value arguement supplied does not match one of the two 
+        SMI iView ioHub interface specific constants listed above, 
+        the method will return:
+        
+        EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT
+        
+        Possible return values from the method are:
+        
+        EyeTrackerConstants.EYETRACKER_OK:  intended functionality has been fulfilled
+        EyeTrackerConstants.EYETRACKER_NOT_CONNECTED:  no connection established
+        EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT:  parameter out of range
+        
+        If the iV_* function returns a code that is not expected, then the 
+        invalid (or undocumented) return code from the iV_* function call is 
+        returned as is by sendCommand.   
+        
+        Examples, assuming an eyetracker device called 'tracker' has been
+        created by ioHub:
+        
+        tracker = <iohub connection variable name>.devices.tracker
+        
+        tracker.sendCommand(EyeTrackerConstants.BINOCULAR,EyeTrackerConstants.BINOCULAR_CUSTOM)
+
+        tracker.sendCommand(EyeTrackerConstants.LEFT_EYE,EyeTrackerConstants.BINOCULAR_CUSTOM)
+
+        tracker.sendCommand(EyeTrackerConstants.RIGHT_EYE,EyeTrackerConstants.BINOCULAR_CUSTOM)
+
+        tracker.sendCommand(EyeTrackerConstants.LEFT_EYE,EyeTrackerConstants.MONOCULAR)
+
+        tracker.sendCommand(EyeTrackerConstants.RIGHT_EYE,EyeTrackerConstants.MONOCULAR)
+        
         """
 
-#        TODO: Add support using the sendCommand method for:
-#            SetEventDetectionParameter
-#            SetConnectionTimeout
-#            
-#        * Also see page 28 of iViewX SDK Manual.pfd, which lists a set
-#          of defines that can be used with SetTrackingParameter(),
-#          TODO: Determine which of these are safe to expose via this method:
-#              
-#              ET_PARAM_EYE_LEFT 0
-#              ET_PARAM_EYE_RIGHT 1
-#              ET_PARAM_PUPIL_THRESHOLD 0
-#              ET_PARAM_REFLEX_THRESHOLD 1
-#              ET_PARAM_SHOW_AOI 2
-#              ET_PARAM_SHOW_CONTOUR 3
-#              ET_PARAM_SHOW_PUPIL 4
-#              ET_PARAM_SHOW_REFLEX 5
-#              ET_PARAM_DYNAMIC_THRESHOLD 6
-#              ET_PARAM_PUPIL_AREA 11
-#              ET_PARAM_PUPIL_PERIMETER 12
-#              ET_PARAM_PUPIL_DENSITY 13
-#              ET_PARAM_REFLEX_PERIMETER 14
-#              ET_PARAM_RELFEX_PUPIL_DISTANCE 15
-#              ET_PARAM_MONOCULAR 16
-#              ET_PARAM_SMARTBINOCULAR 17
+        if self.isConnected() is False:
+            return EyeTrackerConstants.EYETRACKER_NOT_CONNECTED
 
-        print2err("iViewX sendCommand is not implemented yet.")
-        return EyeTrackerConstants.FUNCTIONALITY_NOT_SUPPORTED
+        if key not in [EyeTrackerConstants.LEFT_EYE,
+                       EyeTrackerConstants.RIGHT_EYE,
+                       EyeTrackerConstants.BINOCULAR]:
+            return EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT 
+            
+        if value not in [EyeTrackerConstants.BINOCULAR_CUSTOM,EyeTrackerConstants.MONOCULAR]:
+            return EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT      
+        
+        result=pyViewX.SetTrackingParameter(self.pyviewx2ivewxParamMappings[key],
+                                            self.pyviewx2ivewxParamMappings[value],
+                                            0)
+                                            
+        if result == pyViewX.RET_SUCCESS:
+            return EyeTrackerConstants.EYETRACKER_OK
+        if result == pyViewX.ERR_NOT_CONNECTED:
+            return EyeTrackerConstants.EYETRACKER_NOT_CONNECTED
+        if result == pyViewX.ERR_WRONG_PARAMETER:
+            return EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT
+
+        # if the return code does not map to one of the valid return codes
+        # based on the iViewX SDK docs, then return the native error code
+        # so it can be figured out.
+        return result
 
     def runSetupProcedure(self,starting_state=EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE):
         """
