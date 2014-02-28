@@ -73,6 +73,10 @@ class HookManager(threading.Thread):
         threading.Thread.__init__(self)
         self.finished = threading.Event()
 
+        # Window handle tracking
+        self.last_windowvar = None
+        self.last_xwindowinfo = None
+                        
         # Give these some initial values
         self.mouse_position_x = 0
         self.mouse_position_y = 0
@@ -248,6 +252,7 @@ class HookManager(threading.Thread):
 
         matchto_sym=self.local_dpy.keycode_to_keysym(event.detail, 0)
         matchto = self.lookup_keysym(matchto_sym)
+
         if self.key_states.get(matchto_sym,None):
             del self.key_states[matchto_sym]
         if self.isshift.match(matchto.upper()):
@@ -368,7 +373,6 @@ class HookManager(threading.Thread):
             auto_repeat=self.isKeyPressed(self.local_dpy.keycode_to_keysym(event.detail, 0))-1
         elif event.type == X.KeyRelease:
             ioHubEventID =EventConstants.KEYBOARD_RELEASE
-
         
         return [[0,
                 0,
@@ -520,7 +524,7 @@ class HookManager(threading.Thread):
             self.scroll_y,
             0, #mod state, filled in when event received by iohub
             int(storewm["handle"], base=16)],]
-      # TO DO: Implement multimonitor location based on mouse location support.
+        # TO DO: Implement multimonitor location based on mouse location support.
         # Currently always uses monitor index 0
 
 
@@ -530,57 +534,25 @@ class HookManager(threading.Thread):
             windowvar = self.local_dpy.get_input_focus().focus
             wmname = windowvar.get_wm_name()
             wmclass = windowvar.get_wm_class()
-            wmhandle = str(windowvar)[20:30]
-        except:
-            ## This is to keep things running smoothly. It almost never happens, but still...
-            return {"name":None, "class":None, "handle":'0x00'}
-        if (wmname == None) and (wmclass == None):
-            try:
+            if wmname is None and wmclass is None:
                 windowvar = windowvar.query_tree().parent
                 wmname = windowvar.get_wm_name()
                 wmclass = windowvar.get_wm_class()
-                wmhandle = str(windowvar)[20:30]
-            except:
-                ## This is to keep things running smoothly. It almost never happens, but still...
-                return {"name":None, "class":None, "handle":'0x00'}
-        if wmhandle is None:
-            wmhandle='0x00'
-        if wmclass == None:
-            return {"name":wmname, "class":wmclass, "handle":wmhandle}
-        else:
-            return {"name":wmname, "class":wmclass[0], "handle":wmhandle}
-
-
+            if self.last_windowvar == windowvar:
+                return self.last_xwindowinfo
+            else:
+                self.last_windowvar=windowvar                
+            wmhandle = str(windowvar).split('(')[-1][:-1]            
+            if wmhandle is None:
+                wmhandle = '0x00'
+            if wmclass:
+                wmclass = wmclass[0]
+            self.last_xwindowinfo = {"name":wmname, "class":wmclass, "handle":wmhandle}
+        except:
+            self.last_windowvar=None
+            self.last_xwindowinfo = {"name":None, "class":None, "handle":'0x00'}
+        return self.last_xwindowinfo
+ 
+#
+#
 #######################################################################
-#########################END CLASS DEF#################################
-#######################################################################
-
-def handle_key_press_event(event):
-    print 'handle_key_press_event:\n',event
-
-def handle_key_release_event(event):
-    print 'handle_key_release_event:\n',event
-
-def handle_mouse_press_event(event):
-    print 'handle_mouse_press_event:\n',event
-
-def handle_mouse_release_event(event):
-    print 'handle_mouse_release_event:\n',event
-
-def handle_mouse_movement_event(event):
-    print 'handle_mouse_movement_event:\n',event
-
-if __name__ == '__main__':
-    hm = HookManager()
-    hm.HookKeyboard()
-    hm.HookMouse()
-    hm.KeyDown = handle_key_press_event
-    hm.KeyUp = handle_key_release_event
-    hm.MouseAllButtonsDown = handle_mouse_press_event
-    hm.MouseAllButtonsUp = handle_mouse_release_event
-    hm.MouseAllMotion = handle_mouse_movement_event
-    hm.start()
-    while 1:
-        time.sleep(0.1)
-    print 'Exiting.....'
-    hm.cancel()
