@@ -59,7 +59,7 @@ class MouseDevice(Device):
         self._clipRectsForDisplayID={}
         self._lock_mouse_to_display_id=None
         self._scrollPositionY=0
-        self._position=0,0
+        self._position=None
         self._lastPosition=0,0
         self._isVisible=0
         self._display_index=None
@@ -133,7 +133,32 @@ class MouseDevice(Device):
         return self._clipRectsForDisplayID[display_id][1]
 
     def getlockedMouseDisplayID(self):
-        return self._lock_mouse_to_display_id   
+        return self._lock_mouse_to_display_id
+
+    def _initialMousePos(self):
+        """
+        If getPosition is called prior to any mouse events being received, this
+        method gets the current system cursor pos using ctypes.
+
+        Windows only
+        TODO: Add OS X and Linux support
+        """
+        if self._position is None:
+            if Computer.system == 'win32':
+                import ctypes
+                _user32=ctypes.windll.user32
+                class POINT(ctypes.Structure):
+                    _fields_ = [ ('x',ctypes.c_long),
+                                 ('y',ctypes.c_long)]
+                mpos=POINT()
+                ok = GetCursorPos(ctypes.byref(mpos))
+                if ok:
+                    self._position = [mpos.x,mpos.y]
+                    self._lastPosition = self._position
+            else:
+                # TODO : Handle OS X and Linux in this case.
+                self._position = 0.0,0.0
+                self._lastPosition = 0.0,0.0
 
     def getPosition(self,return_display_index=False):
         """
@@ -146,7 +171,8 @@ class MouseDevice(Device):
         Returns:
             tuple: If return_display_index is false (default), return (x,y) position of mouse. If return_display_index is True return ( (x,y), display_index). 
         """
-        if return_display_index is True:        
+        self._initialMousePos()
+        if return_display_index is True:
             return (tuple(self._position), self._display_index)       
         return tuple(self._position)
 
@@ -178,6 +204,7 @@ class MouseDevice(Device):
             tuple: ( (x,y), (dx,dy) ) position of mouse, change in mouse position, both in Display coordinate space.
         """
         try:
+            self._initialMousePos()
             cpos=self._position
             lpos=self._lastPosition
             change_x=cpos[0]-lpos[0]
@@ -417,7 +444,7 @@ class MouseInputEvent(DeviceEvent):
         #: (window does not need to have focus)
         self.window_id=None
 
-        DeviceEvent.__init__(self,*args,**kwargs)
+        DeviceEvent.__init__(self, *args, **kwargs)
 
     @classmethod
     def _convertFields(cls,event_value_list):
