@@ -335,8 +335,6 @@ class _baseVisualTest:
         grating.setOri(90, log=False)
         grating.setColor('black', log=False)
         grating.draw()
-#        if utils._under_xvfb:
-#            pytest.xfail("not clear why fails under Xvfb") # skip late so we smoke test t
         utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win)
         #aperture should automatically disable on exit
     def test_rating_scale(self):
@@ -350,8 +348,6 @@ class _baseVisualTest:
                         marker='glow', markerStart=0.7, markerColor='darkBlue', autoLog=False)
         str(rs) #check that str(xxx) is working
         rs.draw()
-        if self.win.winType=='pyglet' and utils._under_xvfb:
-            pytest.xfail("not clear why fails under Xvfb") # skip late so we smoke test the code
         utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=30.0)
         win.flip()#AFTER compare screenshot
     def test_refresh_rate(self):
