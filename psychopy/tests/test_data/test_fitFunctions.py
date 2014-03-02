@@ -37,7 +37,7 @@ def plotFit(fittedResps, thresh, title):
 def test_fitNakaRushton():
     #the data are actually from a cum norm so this should be exact
     fit = data.FitNakaRushton(contrasts, responses)
-    assert numpy.allclose([ 0.21105363, 3.19840356, 0.5233062, 1.04135427 ], fit.params)
+    assert numpy.allclose([ 0.21105363, 3.19844141, 0.5233062, 1.04135427 ], fit.params)
     modResps = fit.eval(contrasts)
     #check that inverse works too
     invs = fit.inverse(modResps)
