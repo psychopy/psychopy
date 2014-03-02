@@ -2869,30 +2869,32 @@ def bootStraps(dat, n=1):
     return resamples
 
 def functionFromStaircase(intensities, responses, bins = 10):
-    """Create a psychometric function by binning data from a staircase procedure
+    """Create a psychometric function by binning data from a staircase procedure.
+    Although the default is 10 bins Jon now always uses 'unique' bins
+    (fewer bins looks pretty but leads to errors in slope estimation)
 
     usage::
 
-        [intensity, meanCorrect, n] = functionFromStaircase(intensities, responses, bins)
+        intensity, meanCorrect, n = functionFromStaircase(intensities, responses, bins)
 
     where:
             intensities
-                are a list of intensities to be binned
+                are a list (or array) of intensities to be binned
 
             responses
                 are a list of 0,1 each corresponding to the equivalent intensity value
 
             bins
-                can be an integer (giving that number of bins) or 'unique' (where each bin is made from ALL data for exactly one intensity value)
+                can be an integer (giving that number of bins) or 'unique' (each bin is made from aa data for exactly one intensity value)
 
             intensity
-                is the center of an intensity bin
+                a numpy array of intensity values (where each is the center of an intensity bin)
 
             meanCorrect
-                is mean % correct in that bin
+                a numpy aray of mean % correct in each bin
 
             n
-                is number of responses contributing to that mean
+                a numpy array of number of responses contributing to each mean
     """
     #convert to arrays
     try:#concatenate if multidimensional
