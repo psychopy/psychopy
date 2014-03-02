@@ -335,8 +335,8 @@ class _baseVisualTest:
         grating.setOri(90, log=False)
         grating.setColor('black', log=False)
         grating.draw()
-        if utils._under_xvfb:
-            pytest.xfail("not clear why fails under Xvfb") # skip late so we smoke test t
+#        if utils._under_xvfb:
+#            pytest.xfail("not clear why fails under Xvfb") # skip late so we smoke test t
         utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win)
         #aperture should automatically disable on exit
     def test_rating_scale(self):
