@@ -6,6 +6,7 @@ from _base import *
 from os import path
 
 from psychopy.app.builder.experiment import CodeGenerationException, _valid_var_re
+from psychopy.app.builder.experiment import TrialHandler
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'keyboard.png')
@@ -175,33 +176,37 @@ class KeyboardComponent(BaseComponent):
         #some shortcuts
         name = self.params['name']
         store=self.params['store'].val
+        if store == 'nothing':
+            return
         if len(self.exp.flow._loopList):
-            currLoop=self.exp.flow._loopList[-1]#last (outer-most) loop
-        else: currLoop=None
+            currLoop=self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._implicitLoop
 
         #write the actual code
-        if (store!='nothing') and currLoop:#need a loop to do the storing of data!
-            buff.writeIndented("# check responses\n" %self.params)
-            buff.writeIndented("if %(name)s.keys in ['', [], None]:  # No response was made\n"%self.params)
-            buff.writeIndented("   %(name)s.keys=None\n" %(self.params))
-            if self.params['storeCorrect'].val:#check for correct NON-repsonse
-                buff.writeIndented("   # was no response the correct answer?!\n" %(self.params))
-                buff.writeIndented("   if str(%(correctAns)s).lower() == 'none': %(name)s.corr = 1  # correct non-response\n" %(self.params))
-                buff.writeIndented("   else: %(name)s.corr = 0  # failed to respond (incorrectly)\n" %(self.params))
-            buff.writeIndented("# store data for %s (%s)\n" %(currLoop.params['name'], currLoop.type))
-            if currLoop.type in ['StairHandler', 'MultiStairHandler']:
-                #data belongs to a Staircase-type of object
-                if self.params['storeCorrect'].val==True:
-                    buff.writeIndented("%s.addResponse(%s.corr)\n" %(currLoop.params['name'], name))
-                    buff.writeIndented("%s.addOtherData('%s.rt', %s.rt)\n" %(currLoop.params['name'], name, name))
-            else:
-                #always add keys
-                buff.writeIndented("%s.addData('%s.keys',%s.keys)\n" \
-                   %(currLoop.params['name'],name,name))
-                if self.params['storeCorrect'].val==True:
-                    buff.writeIndented("%s.addData('%s.corr', %s.corr)\n" \
-                                       %(currLoop.params['name'], name, name))
-                #only add an RT if we had a response
-                buff.writeIndented("if %(name)s.keys != None:  # we had a response\n" %(self.params))
-                buff.writeIndented("    %s.addData('%s.rt', %s.rt)\n" \
+        buff.writeIndented("# check responses\n" %self.params)
+        buff.writeIndented("if %(name)s.keys in ['', [], None]:  # No response was made\n"%self.params)
+        buff.writeIndented("   %(name)s.keys=None\n" %(self.params))
+        if self.params['storeCorrect'].val:#check for correct NON-repsonse
+            buff.writeIndented("   # was no response the correct answer?!\n" %(self.params))
+            buff.writeIndented("   if str(%(correctAns)s).lower() == 'none': %(name)s.corr = 1  # correct non-response\n" %(self.params))
+            buff.writeIndented("   else: %(name)s.corr = 0  # failed to respond (incorrectly)\n" %(self.params))
+        buff.writeIndented("# store data for %s (%s)\n" %(currLoop.params['name'], currLoop.type))
+        if currLoop.type in ['StairHandler', 'MultiStairHandler']:
+            #data belongs to a Staircase-type of object
+            if self.params['storeCorrect'].val==True:
+                buff.writeIndented("%s.addResponse(%s.corr)\n" %(currLoop.params['name'], name))
+                buff.writeIndented("%s.addOtherData('%s.rt', %s.rt)\n" %(currLoop.params['name'], name, name))
+        else:
+            #always add keys
+            buff.writeIndented("%s.addData('%s.keys',%s.keys)\n" \
+               %(currLoop.params['name'],name,name))
+            if self.params['storeCorrect'].val==True:
+                buff.writeIndented("%s.addData('%s.corr', %s.corr)\n" \
                                    %(currLoop.params['name'], name, name))
+            #only add an RT if we had a response
+            buff.writeIndented("if %(name)s.keys != None:  # we had a response\n" %(self.params))
+            buff.writeIndented("    %s.addData('%s.rt', %s.rt)\n" \
+                               %(currLoop.params['name'], name, name))
+        if currLoop.params['name'].val == self.exp._implicitLoop.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._implicitLoop.name)

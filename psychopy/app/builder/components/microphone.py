@@ -79,18 +79,17 @@ class MicrophoneComponent(BaseComponent):
         name = self.params['name']
         if len(self.exp.flow._loopList):
             currLoop = self.exp.flow._loopList[-1] #last (outer-most) loop
-        else: currLoop=None
+        else:
+            currLoop = self.exp._implicitLoop
 
         #write the actual code
-        if currLoop: #need a loop to do the storing of data!
-            buff.writeIndented("# check responses\n" %self.params)
-            buff.writeIndented("if not %(name)s.savedFile:\n"%self.params)
-            buff.writeIndented("    %(name)s.savedFile = None\n" %(self.params))
-            buff.writeIndented("# store data for %s (%s)\n" %(currLoop.params['name'], currLoop.type))
+        buff.writeIndented("# check responses\n" %self.params)
+        buff.writeIndented("if not %(name)s.savedFile:\n"%self.params)
+        buff.writeIndented("    %(name)s.savedFile = None\n" %(self.params))
+        buff.writeIndented("# store data for %s (%s)\n" %(currLoop.params['name'], currLoop.type))
 
-            #always add saved file name
-            buff.writeIndented("%s.addData('%s.filename', %s.savedFile)\n" % (currLoop.params['name'],name,name))
-            #only add loudness / rms if we have a file
-            #buff.writeIndented("if %(name)s.savedFile != None:\n" %(self.params))
-            #buff.writeIndented("    %s.addData('%s.rms', %s.rms)\n" \
-            #                   %(currLoop.params['name'], name, name))
+        #always add saved file name
+        buff.writeIndented("%s.addData('%s.filename', %s.savedFile)\n" % (currLoop.params['name'],name,name))
+        if currLoop.params['name'].val == self.exp._implicitLoop.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._implicitLoop.name)
+        # best not to do loudness / rms or other processing here
