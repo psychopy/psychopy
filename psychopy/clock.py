@@ -142,6 +142,7 @@ class CountdownTimer(Clock):
     """
     def __init__(self, start=0):
         Clock.__init__(self)
+        self._countdown_duration=start
         if start:
             self.add(start)
 
@@ -149,6 +150,13 @@ class CountdownTimer(Clock):
         """Returns the current time left on this timer in secs (sub-ms precision)
         """
         return self._timeAtLastReset-getTime()
+
+    def reset(self, t=None):
+        if t is None:
+            Clock.reset(self, self._countdown_duration)
+        else:
+            self._countdown_duration = t
+            Clock.reset(self, t)
 
 def wait(secs, hogCPUperiod=0.2):
     """Wait for a given time period.
