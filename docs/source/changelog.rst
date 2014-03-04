@@ -23,6 +23,8 @@ PsychoPy 1.80
 PsychoPy 1.80.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Released Mar 2014
+
 * Improvements to user interface:
     * the glitch that prevented scrolling the Routine view is gone (win32)
     * dialog boxes in the Builder now have tabs for categories of controls
@@ -35,6 +37,7 @@ PsychoPy 1.80.00
 * :blue:`CHANGED: Size of 'square' or 'triangle' apertures used to represent the radius of the circle on which their vertices lay. It is now a height/width as you would more likely expect. This means aperture code in scripts may need rewriting to be smaller.`
 * IMPROVED: stimulus duration is now more precise when using `duration (s)` or `time (s)` although using `nFrames` option is still advised for brief stimuli
 * IMPROVED: there are now fewer irrelevant lines in the log file as stimuli are initially created
+* IMPROVED: Staircase loops in Builder now initialise just before the staircase is run, rather than at the start of the experiment. This means they can be controlled by an outer loop and, effectively, restarted
 * FIXED: ElementArrayStim can take Nx3 or 1x3 values for colors again
 * FIXED: variable names in Builder are now case-sensitive again (they were being forced to lower case when importing csv files)
 * FIXED: incorrect equation for the Cumulative Normal fitting function
@@ -63,6 +66,8 @@ PsychoPy 1.79
 PsychoPy 1.79.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Released Dec 2013
+
 * FIXED: startup crash in 1.79.00
 * FIXED: long-standing memory leak in MovieStim
 * FIXED: fixed problem with MovieStim not displaying the image but playing the audio
@@ -81,6 +86,8 @@ PsychoPy 1.79.01
 
 PsychoPy 1.79.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Dec 2013
 
 * ADDED: attributes for some stimuli can now be updated using e.g. `stim.pos = newPos` rather than using `stim.setPos(newPos)` to make things more like standard Python (thanks Jonas Lindeløv). This version also involved some major restructuring behind the scenes that should not be visible to users (thanks Todd Jennings)
 * ADDED: Builder Components for
