@@ -151,7 +151,7 @@ class MouseDevice(Device):
                     _fields_ = [ ('x',ctypes.c_long),
                                  ('y',ctypes.c_long)]
                 mpos=POINT()
-                ok = GetCursorPos(ctypes.byref(mpos))
+                ok = _user32.GetCursorPos(ctypes.byref(mpos))
                 if ok:
                     self._position = [mpos.x,mpos.y]
                     self._lastPosition = self._position
