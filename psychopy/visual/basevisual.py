@@ -392,11 +392,20 @@ class BaseVisualStim(LegacyBaseVisualStim):
                 value = numpy.array([0.5, 0.5])  #this was PsychoPy's original default
             else:
                 #we have an image - calculate the size in `units` that matches original pixel size
-                if self.units == 'pix': value = numpy.array(self._origSize)
-                elif self.units == 'deg': value = pix2deg(numpy.array(self._origSize, float), self.win.monitor)
-                elif self.units == 'cm': value = pix2cm(numpy.array(self._origSize, float), self.win.monitor)
-                elif self.units == 'norm': value = 2 * numpy.array(self._origSize, float) / self.win.size
-                elif self.units == 'height': value = numpy.array(self._origSize, float) / self.win.size[1]
+                if self.units == 'pix':
+                    value = numpy.array(self._origSize)
+                elif self.units in ['deg', 'degFlatPos', 'degFlat']:
+                    #NB when no size has been set (assume to use orig size in pix) this should not
+                    #be corrected for flat anyway, so degFlat==degFlatPos
+                    value = pix2deg(numpy.array(self._origSize, float), self.win.monitor)
+                elif self.units == 'norm':
+                    value = 2 * numpy.array(self._origSize, float) / self.win.size
+                elif self.units == 'height':
+                    value = numpy.array(self._origSize, float) / self.win.size[1]
+                elif self.units == 'cm':
+                    value = pix2cm(numpy.array(self._origSize, float), self.win.monitor)
+                else:
+                    raise AttributeError, "Failed to create default size for ImageStim. Unsupported unit, %s" %(repr(self.units))
         self.__dict__['size'] = value
         self._needVertexUpdate=True
         self._needUpdate = True

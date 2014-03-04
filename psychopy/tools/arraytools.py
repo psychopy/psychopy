@@ -149,16 +149,14 @@ def val2array(value, withNone=True, withScalar=True, length=2):
             return None
         else:
             raise ValueError('Invalid parameter. None is not accepted as value.')
-    value = numpy.asarray(value, float)
+    value = numpy.array(value, float)
     if numpy.product(value.shape)==1:
         if withScalar:
             return numpy.repeat(value, length)  # e.g. 5 becomes array([5.0, 5.0, 5.0]) for length=3
         else:
             raise ValueError('Invalid parameter. Single numbers are not accepted. Should be tuple/list/array of length ' + str(length))
-    elif type(value) in (tuple, list, numpy.ndarray):
-        if len(value) is length:
+    elif value.shape[-1]==length:
             return numpy.array(value, float)
-        else:
-            raise ValueError('Invalid parameter. Should be length ' + str(length) + 'but got length ' + str(len(value)))
     else:
-        raise ValueError('Invalid parameter.')
+        raise ValueError('Invalid parameter. Should be length ' + str(length) + 'but got length ' + str(len(value)))
+

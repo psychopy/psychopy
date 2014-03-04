@@ -22,7 +22,7 @@ from psychopy import core, logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.tools.monitorunittools import cm2pix, deg2pix
+from psychopy.tools.monitorunittools import convertToPix
 from psychopy.tools.attributetools import setWithOperation
 
 try:
@@ -233,16 +233,7 @@ class SimpleImageStim(object):
         self._set('depth', newDepth, operation, log=log)
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in pixels"""
-        if self.units == 'pix':
-            self._posRendered = self.pos
-        elif self.units == 'cm':
-            self._posRendered = cm2pix(self.pos, self.win.monitor)
-        elif self.units =='deg':
-            self._posRendered = deg2pix(self.pos, self.win.monitor)
-        elif self.units == 'norm':
-            self._posRendered = self.pos * self.win.size/2.0
-        elif self.units == 'height':
-            self._posRendered = self.pos * self.win.size[1]
+        self._posRendered = convertToPix(pos = self.pos, vertices=numpy.array([0,0]), units=self.units, win=self.win)
 
     def setImage(self,filename=None, log=True):
         """Set the image to be drawn.

@@ -53,7 +53,7 @@ setup(app=['psychopy/app/psychopyApp.py'],
                                     'pandas','tables',#'cython',
                                     'msgpack','yaml','gevent',#for ioHub
                                     #these aren't needed, but liked
-                                    'psychopy_ext','pyfilesec',
+                                    'psychopy_ext','pyfilesec','rusocsci',
                                     ],
                                   iconfile='psychopy/app/Resources/psychopy.icns',
                                   plist=dict(

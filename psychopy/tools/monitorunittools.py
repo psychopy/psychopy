@@ -9,7 +9,7 @@ monitor'''
 
 from psychopy import monitors
 import numpy as np
-from numpy import sin, cos, tan, pi, radians, degrees, hypot
+from numpy import array, sin, cos, tan, pi, radians, degrees, hypot
 
 # Maps supported coordinate unit type names to the function that converts
 # the given unit type to PsychoPy OpenGL pix unit space.
@@ -19,6 +19,7 @@ _unit2PixMappings = dict()
 def _pix2pix(vertices, pos, win = None):
     return pos+vertices
 _unit2PixMappings['pix'] = _pix2pix
+_unit2PixMappings['pixels'] = _pix2pix
 
 def _cm2pix(vertices, pos, win):
     return cm2pix(pos+vertices, win.monitor)
@@ -27,6 +28,7 @@ _unit2PixMappings['cm'] = _cm2pix
 def _deg2pix(vertices, pos, win):
     return deg2pix(pos+vertices, win.monitor)
 _unit2PixMappings['deg'] = _deg2pix
+_unit2PixMappings['degs'] = _deg2pix
 
 def _degFlatPos2pix(vertices, pos, win):
     posCorrected = deg2pix(pos, win.monitor, correctFlat=True)
@@ -35,7 +37,7 @@ def _degFlatPos2pix(vertices, pos, win):
 _unit2PixMappings['degFlatPos'] = _degFlatPos2pix
 
 def _degFlat2pix(vertices, pos, win):
-    return deg2pix(pos+vertices, win.monitor, correctFlat=True)
+    return deg2pix(array(pos)+array(vertices), win.monitor, correctFlat=True)
 _unit2PixMappings['degFlat'] = _degFlat2pix
 
 def _norm2pix(vertices, pos, win):
@@ -120,23 +122,28 @@ def deg2cm(degrees, monitor, correctFlat=False):
     #check they all exist
     if dist==None:
         raise ValueError("Monitor %s has no known distance (SEE MONITOR CENTER)" %monitor.name)
-    rads = radians(degrees)
     if correctFlat:
-        if len(degrees.shape)<2 or degrees.shape[1]!=2:
-            raise ValueError("If using deg2cm with correctedFlat==True then degrees arg must have shape [N,2], not %s" %degrees.shape)
-        cmXY = np.zeros(degrees.shape, 'f')
-        cmXY[:,0] = hypot(dist, tan(rads[:,1])*dist) * tan(rads[:,0])
-        cmXY[:,1] = hypot(dist, tan(rads[:,0])*dist) * tan(rads[:,1])
+        rads = radians(degrees)
+        cmXY = np.zeros(rads.shape, 'd') #must be a double (not float)
+        if rads.shape == (2,):
+            x,y = rads
+            cmXY[0] = hypot(dist, tan(y)*dist) * tan(x)
+            cmXY[1] = hypot(dist, tan(x)*dist) * tan(y)
+        elif len(rads.shape)>1 and rads.shape[1]==2:
+            cmXY[:,0] = hypot(dist, tan(rads[:,1])*dist) * tan(rads[:,0])
+            cmXY[:,1] = hypot(dist, tan(rads[:,0])*dist) * tan(rads[:,1])
+        else:
+            raise ValueError("If using deg2cm with correctedFlat==True then degrees arg must have shape [N,2], not %s" %(repr(rads.shape)))
         # derivation:
         #    if hypotY is line from eyeball to [x,0] given by hypot(dist, tan(degX))
         #    then cmY is distance from [x,0] to [x,y] given by hypotY*tan(degY)
         #    similar for hypotX to get cmX
         # alternative:
-        #    we could do this by converting to polar coords, converting to cm and then
+        #    we could do this by converting to polar coords, converting deg2cm and then
         #    going back to cartesian, but this would be slower(?)
         return cmXY
     else:
-        return degrees*dist*0.017455 #the size of 1 deg at screen centre
+        return np.array(degrees)*dist*0.017455 #the size of 1 deg at screen centre
 
 def cm2pix(cm, monitor):
     """Convert size in degrees to size in pixels for a given Monitor object"""
@@ -152,7 +159,6 @@ def cm2pix(cm, monitor):
         raise ValueError("Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name)
 
     return cm*scrSizePix[0]/float(scrWidthCm)
-
 
 def pix2cm(pixels, monitor):
     """Convert size in pixels to size in cm for a given Monitor object"""

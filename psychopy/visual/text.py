@@ -36,6 +36,26 @@ try:
 except:
     havePygame = False
 
+defaultLetterHeight = {'cm': 1.0,
+                     'deg': 1.0,
+                     'degs': 1.0,
+                     'degFlatPos': 1.0,
+                     'degFlat': 1.0,
+                     'norm': 0.1,
+                     'height': 0.2,
+                     'pix': 20,
+                     'pixels': 20,
+                     }
+defaultWrapWidth = {'cm': 15.0,
+                     'deg': 15.0,
+                     'degs': 15.0,
+                     'degFlatPos': 15.0,
+                     'degFlat': 15.0,
+                     'norm': 1,
+                     'height': 1,
+                     'pix': 500,
+                     'pixels': 500,
+                     }
 
 class TextStim(BaseVisualStim):
     """Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
@@ -106,7 +126,6 @@ class TextStim(BaseVisualStim):
         self.text='' #NB just a placeholder - real value set below
         self.depth=depth
         self.ori=ori
-        self.wrapWidth=wrapWidth
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
         self._pygletTextObj=None
@@ -114,38 +133,20 @@ class TextStim(BaseVisualStim):
         self.pos= numpy.array(pos, float)
 
         #height in pix (needs to be done after units which is done during _Base.__init__)
-        if self.units=='cm':
-            if height==None: self.height = 1.0#default text height
-            else: self.height = height
-            self.heightPix = cm2pix(self.height, win.monitor)
-        elif self.units in ['deg', 'degs']:
-            if height==None: self.height = 1.0
-            else: self.height = height
-            self.heightPix = deg2pix(self.height, win.monitor)
-        elif self.units=='norm':
-            if height==None: self.height = 0.1
-            else: self.height = height
-            self.heightPix = self.height*win.size[1]/2
-        elif self.units=='height':
-            if height==None: self.height = 0.2
-            else: self.height = height
-            self.heightPix = self.height*win.size[1]
-        else: #treat units as pix
-            if height==None: self.height = 20
-            else: self.height = height
-            self.heightPix = self.height
+        if height==None:
+            if self.units in defaultLetterHeight:
+                height = defaultLetterHeight[self.units]
+            else:
+                raise AttributeError, "TextStim does now know a default letter height for units %s" %(repr(self.units))
+        if wrapWidth==None:
+            if self.units in defaultWrapWidth:
+                wrapWidth = defaultWrapWidth[self.units]
+            else:
+                raise AttributeError, "TextStim does now know a default wrap width for units %s" %(repr(self.units))
 
-        if self.wrapWidth ==None:
-            if self.units in ['height','norm']: self.wrapWidth=1
-            elif self.units in ['deg', 'degs']: self.wrapWidth=15
-            elif self.units=='cm': self.wrapWidth=15
-            elif self.units in ['pix', 'pixels']: self.wrapWidth=500
-        if self.units=='norm': self._wrapWidthPix= self.wrapWidth*win.size[0]/2
-        elif self.units=='height': self._wrapWidthPix= self.wrapWidth*win.size[0]
-        elif self.units in ['deg', 'degs']: self._wrapWidthPix= deg2pix(self.wrapWidth, win.monitor)
-        elif self.units=='cm': self._wrapWidthPix= cm2pix(self.wrapWidth, win.monitor)
-        elif self.units in ['pix', 'pixels']: self._wrapWidthPix=self.wrapWidth
-
+        #treat letter height and wrapWidth as vertices (in degFlatPos they should not be 'corrected')
+        wh = convertToPix(pos = numpy.array([0,0]), vertices=numpy.array([wrapWidth,height]), units=self.units, win=self.win)
+        self._wrapWidthPix, self.heightPix = wh
         #generate the texture and list holders
         self._listID = GL.glGenLists(1)
         if not self.win.winType=="pyglet":#pygame text needs a surface to render to
@@ -165,7 +166,7 @@ class TextStim(BaseVisualStim):
         self.setFont(font, log=False)
         self.opacity = float(opacity)
         self.contrast = float(contrast)
-        self.setText(text, log=False) #self.width and self.height get set with text and calcSizeRednered is called
+        self.setText(text, log=False) #self.width and self.height get set with text and calcSizeRendered is called
         self._needUpdate = True
 
         #set autoLog (now that params have been initialised)
@@ -180,27 +181,9 @@ class TextStim(BaseVisualStim):
         """Set the height of the letters (including the entire box that surrounds the letters
         in the font). The width of the letters is then defined by the font.
         """
-        #height in pix (needs to be done after units)
-        if self.units=='cm':
-            if height==None: self.height = 1.0#default text height
-            else: self.height = height
-            self.heightPix = cm2pix(self.height, self.win.monitor)
-        elif self.units in ['deg', 'degs']:
-            if height==None: self.height = 1.0
-            else: self.height = height
-            self.heightPix = deg2pix(self.height, self.win.monitor)
-        elif self.units=='norm':
-            if height==None: self.height = 0.1
-            else: self.height = height
-            self.heightPix = self.height*self.win.size[1]/2
-        elif self.units=='height':
-            if height==None: self.height = 0.2
-            else: self.height = height
-            self.heightPix = self.height*self.win.size[1]
-        else: #treat units as pix
-            if height==None: self.height = 20
-            else: self.height = height
-            self.heightPix = self.height
+        self.heightPix = convertToPix(pos = numpy.array([0,0]),
+                                      vertices=numpy.array([0,height]),
+                                      units=self.units, win=self.win)[1]
         #need to update the font to reflect the change
         self.setFont(self.fontname, log=False)
         if log and self.autoLog:
