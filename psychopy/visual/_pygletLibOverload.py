@@ -116,6 +116,8 @@ class LibraryLoader(object):
                 if _debug_trace:
                     lib = _TraceLibrary(lib)
                 return lib
+            except WindowsError:
+                pass
             except OSError, o:
                 if ((self.platform == "win32" and o.winerror != 126) or
                     (self.platform.startswith("linux") and
