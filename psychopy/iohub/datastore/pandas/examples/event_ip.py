@@ -10,6 +10,7 @@ can be used for filtering.
 
 @author: Sol
 """
+import timeit
 
 from psychopy.iohub.datastore.pandas import ioHubPandasDataView
 from psychopy.iohub.datastore.pandas.interestperiod import EventBasedIP
@@ -47,11 +48,38 @@ print
 # Any events that do not occur within one of the interest periods found in the
 # data will be removed.  
 #
-ip_events=ip.filter(exp_data.KEYBOARD_PRESS)
+
+ip_events_filter=ip.filter(exp_data.KEYBOARD_PRESS)
 
 print '** KEYBOARD_PRESS events which occurred during an IP:'
 print 
-print ip_events.head(20)
+print ip_events_filter.head(20)
 print 
+
+ip_events_find=ip.find(exp_data.KEYBOARD_PRESS)
+
+print '** Can use both filter and find'
+print
+print ip_events_find.head(20)
+
+def using_filter():
+    ip.filter(exp_data.KEYBOARD_PRESS)
+
+def using_find():
+    ip.find(exp_data.KEYBOARD_PRESS)
+
+print
+print '** Compare performance'
+print '100 runs using filter', timeit.timeit(using_filter, number=100)
+print '100 runs using find', timeit.timeit(using_find, number=100)
+
+print
+print 'Can also retain any ip cols in the filter/find output using ip_cols'
+print ip.filter(exp_data.KEYBOARD_PRESS, ip_cols='start_time')[['ip_id_num','start_time']].head(20)
+
+print
+print 'Also can rename'
+print ip.find(exp_data.KEYBOARD_PRESS, ip_cols={'end_time':'end_of_ip_time'})[['ip_id_num','end_of_ip_time']].head(20)
+
 
 exp_data.close()

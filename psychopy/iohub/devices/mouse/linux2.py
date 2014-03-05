@@ -84,9 +84,14 @@ class Mouse(MouseDevice):
     def _nativeEventCallback(self,event):
         try:
            if self.isReportingEvents():
-                logged_time=currentSec()
-                
+                logged_time=currentSec()                
                 event_array=event[0]
+
+                psychowins=self._iohub_server._pyglet_window_hnds
+                report_all=self.getConfiguration().get('report_system_wide_events',True)
+                if psychowins and event_array[-1] not in psychowins and report_all is False:
+                    return True
+
                 event_array[3]=Computer._getNextEventID()
                 
                 display_index=self._display_device.getIndex()                

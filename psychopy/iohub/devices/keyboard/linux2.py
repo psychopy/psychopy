@@ -26,6 +26,15 @@ class Keyboard(ioHubKeyboardDevice):
             if self.isReportingEvents():             
                 logged_time=getTime()
                 event_array=event[0]
+        
+                psychowins=self._iohub_server._pyglet_window_hnds
+                report_all=self.getConfiguration().get('report_system_wide_events',True)
+                if psychowins and event_array[-1] not in psychowins and report_all is False:
+                    # For keyboard, when report_system_wide_events is false
+                    # do not record kb events that are not targeted for
+                    # a PsychoPy window, still allow them to pass to the desktop 
+                    # apps.
+                    return True
                 
                 if event_array[4] == EventConstants.KEYBOARD_PRESS:
                     repeat_pressed_count=event_array[-7]

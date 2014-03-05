@@ -1033,7 +1033,7 @@ try:
         BINOCULAR_CUSTOM=26
         SIMULATED_MONOCULAR=27
         SIMULATED_BINOCULAR=28
-    
+        MONOCULAR=29
         #
         ## Calibration / Validation Related Constants
         #

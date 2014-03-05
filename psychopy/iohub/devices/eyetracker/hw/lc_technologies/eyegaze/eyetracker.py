@@ -221,13 +221,21 @@ class EyeTracker(EyeTrackerDevice):
                 
                 import subprocess,gevent,os
                 #p = subprocess.Popen(('calibrate.exe', ''), env={"PATH": "/usr/bin"})
-
-                from psychopy.iohub import module_directory     
-                runthis=os.path.join(module_directory(localfunc),'calibrate_lc.bat')
-                p = subprocess.Popen((runthis, ''))
+                #from psychopy.iohub import module_directory
+                #runthis=os.path.join(module_directory(localfunc),'calibrate_lc.bat')
+                #runthis=os.path.join(module_directory(localfunc),'calibrate_lc.bat')
+                org_cwd = os.getcwdu()
+                print2err("==========")
+                print2err("CWD Prior to calibrate.exe launch: ",org_cwd)
+                p = subprocess.Popen((u'calibrate.exe', u''), cwd = u'c:\\eyegaze\\' )
                 while p.poll() is None:
                     gevent.sleep(0.05)
                 self.setConnectionState(True)
+                new_cwd=os.getcwdu()
+                print2err("CWD after calibrate.exe: ",new_cwd)
+                print2err("==========")
+
+
           
 #            circle_attributes=calibration_properties.get('circle_attributes')
 #            targetForegroundColor=circle_attributes.get('outer_color') # [r,g,b] of outer circle of targets
