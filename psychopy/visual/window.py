@@ -32,9 +32,12 @@ if sys.platform == 'win32':
         from pyglet.media import avbin
         haveAvbin = True
     except ImportError:
+        haveAvbin = False        
         # either avbin isn't installed or scipy.stats has been imported
         # (prevents avbin loading)
+    except WindowsError, e:
         haveAvbin = False
+
 
 import psychopy  # so we can get the __path__
 from psychopy import core, platform_specific, logging, prefs, monitors, event

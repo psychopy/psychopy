@@ -30,6 +30,11 @@ if sys.platform == 'win32':
         # either avbin isn't installed or scipy.stats has been imported
         # (prevents avbin loading)
         haveAvbin = False
+    except WindowsError, e:
+        # Windows memory access error
+        # (prevents avbin loading)
+        haveAvbin = False    
+
 
 import psychopy  # so we can get the __path__
 from psychopy import core, logging, event
