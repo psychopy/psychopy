@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 ioHub
 Common Eye Tracker Interface
@@ -644,6 +645,11 @@ class EyeTracker(EyeTrackerDevice):
                 self._latest_sample=None
                 self._latest_gaze_position=None
 
+                # just incase recording is running , 
+                # try to stop it and clear the smi memory buffers.
+                pyViewX.StopRecording()
+                pyViewX.ClearRecordingBuffer()
+
                 r=pyViewX.StartRecording()
                 if r == pyViewX.RET_SUCCESS or r == pyViewX.ERR_RECORDING_DATA_BUFFER or r == pyViewX.ERR_FULL_DATA_BUFFER:
                     EyeTrackerDevice.enableEventReporting(self,True)
@@ -661,9 +667,11 @@ class EyeTracker(EyeTrackerDevice):
                 self._latest_sample=None
                 self._latest_gaze_position=None
                 
+                # clear the smi memory buffers.
+                pyViewX.ClearRecordingBuffer()
                 r=pyViewX.StopRecording() 
+                
                 pyViewX.SetSampleCallback(pyViewX.pDLLSetSample(0))    
-
                 
                 if r == pyViewX.RET_SUCCESS or r == pyViewX.ERR_EMPTY_DATA_BUFFER or r == pyViewX.ERR_FULL_DATA_BUFFER:
                     EyeTrackerDevice.enableEventReporting(self,False)
@@ -770,7 +778,6 @@ class EyeTracker(EyeTrackerDevice):
         try:
             poll_time=Computer.getTime()
             tracker_time=self.trackerSec()
-            
             # TODO: The switch from polling to event based means CI calc need to be changed.
             # Setting to 0 for now.
             confidence_interval=0.0#poll_time-self._last_poll_time
@@ -867,6 +874,7 @@ class EyeTracker(EyeTrackerDevice):
                          plane_number    # Since the sample struct has not status field
                          ]               # we are using it to hold the 
                                          # 'plane number' from the iViewX native sample.
+
             self._addNativeEventToBuffer(binocSample)
         except Exception:
             print2err("ERROR occurred during iViewX Sample Callback.")
