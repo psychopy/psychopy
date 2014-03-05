@@ -457,7 +457,7 @@ class AdvAudioCapture(AudioCapture):
             self.savedFile = flac2wav(self.savedFile, keep=keep)
 
 def readWavFile(filename):
-    """Return (data, sampleRate) as read from a wav file
+    """Return (data, sampleRate) as read from a wav file, expects int16 data.
     """
     try:
         sampleRate, data = wavfile.read(filename)
@@ -468,6 +468,8 @@ def readWavFile(filename):
             sampleRate, data = wavfile.read(filename)
         except:
             raise SoundFileError('Failed to open wav sound file "%s"' % filename)
+    if data.dtype != 'int16':
+        raise AttributeError('expected `int16` data in .wav file %s' % filename)
     if len(data.shape) == 2 and data.shape[1] == 2:
         data = data.transpose()
         data = data[0]  # left channel only? depends on how the file was made
