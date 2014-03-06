@@ -108,34 +108,50 @@ class LibraryLoader(object):
                 platform_names.append(libname or 'lib%s.so' % name)
 
         platform_names.extend(names)
-        for name in platform_names:
-            try:
-                lib = ctypes.cdll.LoadLibrary(name)
-                if _debug_lib:
-                    print name
-                if _debug_trace:
-                    lib = _TraceLibrary(lib)
-                return lib
-            except OSError, o:
-                if ((self.platform == "win32" and o.winerror != 126) or
-                    (self.platform.startswith("linux") and
-                     self.linux_not_found_error not in o.args[0]) or
-                    (self.platform == "darwin" and
-                     self.darwin_not_found_error not in o.args[0])):
-                    print "Unexpected error loading library %s: %s" % (name, str(o))
-                    raise
-                path = self.find_library(name)
-                if path:
-                    try:
-                        lib = ctypes.cdll.LoadLibrary(path)
-                        if _debug_lib:
-                            print path
-                        if _debug_trace:
-                            lib = _TraceLibrary(lib)
-                        return lib
-                    except OSError:
-                        pass
-        raise ImportError('Library "%s" not found.' % names[0])
+
+        if self.platform == "win32":
+            for name in platform_names:
+                try:
+                    lib = ctypes.cdll.LoadLibrary(name)
+                    if _debug_lib:
+                        print name
+                    if _debug_trace:
+                        lib = _TraceLibrary(lib)
+                    return lib             
+                except WindowsError:
+                    pass
+                except:
+                    pass
+            raise ImportError('Library "%s" not found.' % names[0])
+        else:            
+            for name in platform_names:
+                try:
+                    lib = ctypes.cdll.LoadLibrary(name)
+                    if _debug_lib:
+                        print name
+                    if _debug_trace:
+                        lib = _TraceLibrary(lib)
+                    return lib
+                except OSError, o:
+                    if ((self.platform == "win32" and o.winerror != 126) or
+                        (self.platform.startswith("linux") and
+                         self.linux_not_found_error not in o.args[0]) or
+                        (self.platform == "darwin" and
+                         self.darwin_not_found_error not in o.args[0])):
+                        print "Unexpected error loading library %s: %s" % (name, str(o))
+                        raise
+                    path = self.find_library(name)
+                    if path:
+                        try:
+                            lib = ctypes.cdll.LoadLibrary(path)
+                            if _debug_lib:
+                                print path
+                            if _debug_trace:
+                                lib = _TraceLibrary(lib)
+                            return lib
+                        except OSError:
+                            pass
+            raise ImportError('Library "%s" not found.' % names[0])
 
     find_library = lambda self, name: ctypes.util.find_library(name)
 
