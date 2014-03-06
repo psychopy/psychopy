@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''Wrapper for iViewXAPI.h
 
 Generated with:
