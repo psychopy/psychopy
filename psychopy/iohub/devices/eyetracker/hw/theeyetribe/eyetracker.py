@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 ioHub
 Common Eye Tracker Interface for the TheEyeTribe system.
@@ -12,18 +13,18 @@ Distributed under the terms of the GNU General Public License
 """
 
 import numpy as np 
-from ..... import print2err,printExceptionDetailsToStdErr, createErrorResult
+from ..... import print2err,printExceptionDetailsToStdErr
 from .....constants import EventConstants, EyeTrackerConstants
 from .... import Computer
 from ... import EyeTrackerDevice
 from ...eye_events import *
 from gevent import socket
-
-try:
-    from tetCalibrationGraphics import TETPsychopyCalibrationGraphics
-except:
-    print2err("Error importing TETPsychopyCalibrationGraphics")
-    printExceptionDetailsToStdErr()
+from pyTribe import TheEyeTribe
+#try:
+#    from tetCalibrationGraphics import TETPsychopyCalibrationGraphics
+#except:
+#    print2err("Error importing TETPsychopyCalibrationGraphics")
+#    printExceptionDetailsToStdErr()
 
 
 class EyeTracker(EyeTrackerDevice):
@@ -45,35 +46,14 @@ class EyeTracker(EyeTrackerDevice):
                          'FixationEndEvent', 'SaccadeStartEvent', 'SaccadeEndEvent',
                          'BlinkStartEvent', 'BlinkEndEvent']
 
-    # This should be set in the __init__ to be the TCPIP socket that will be used
-    # communicate with TET.
-    _eyetribe_connection=None
-
+    # Set in the __init__ to to be the instance of the pyTribe.TheEyeTribe
+    # interface.
+    _eyetribe=None
+    _recording=False
     __slots__=[]
 
     def __init__(self,*args,**kwargs):        
         EyeTrackerDevice.__init__(self,*args,**kwargs)
-
-        model_name=self.model_name
-        serial_num=self.serial_number
-        
-        if model_name and len(model_name)==0:
-            model_name = None
-        if serial_num and len(serial_num)==0:
-            serial_num = None
-                
-        
-        try:
-            # IMPORTANT: ioHub uses a non blocking, asynchronous design.
-            # Therefore, for any network related code, use gevent module
-            # instead of core python socket module. The gevent socket
-            # class is API compatible with the std lib socket class.
-            #
-            EyeTracker._eyetribe_connection=None#socket
-        except:
-            print2err("Error connecting to TheEyeTribe Device.")
-            printExceptionDetailsToStdErr()
-        
         # Could do any TET device config based on device config settings in yaml
         # file here.
         # ...
@@ -87,6 +67,12 @@ class EyeTracker(EyeTrackerDevice):
         # position, then this is set to None
         #
         self._latest_gaze_position=None
+
+        print2err("TET setConnectionState....")
+        
+        r=self.setConnectionState(True)
+        
+        print2err("TET init complete:", r)
         
     def trackerTime(self):
         """
@@ -99,7 +85,7 @@ class EyeTracker(EyeTrackerDevice):
         Returns:
             float: current native eye tracker time. (in usec for the TET)
         """
-        if self._eyetribe_connection:
+        if self._eyetribe:
             return 0.0 # TODO Replace with TET code to get crrent device's time.
         return EyeTrackerConstants.EYETRACKER_ERROR
         
@@ -113,7 +99,7 @@ class EyeTracker(EyeTrackerDevice):
         Returns:
             float: current native eye tracker time in sec.msec-usec format.
         """
-        if self._eyetribe_connection:
+        if self._eyetribe:
             return 0.0 # TODO *self.DEVICE_TIMEBASE_TO_SEC
         return EyeTrackerConstants.EYETRACKER_ERROR
 
@@ -130,10 +116,28 @@ class EyeTracker(EyeTrackerDevice):
         Return:
             bool: indicates the current connection state to the eye tracking hardware.
         """
-        if self._eyetribe_connection:
-            return False # TODO TET Implementation
-        return False
-            
+        if enable is True and self._eyetribe is None:
+            try:
+                EyeTracker._eyetribe=TheEyeTribe()
+                # set the iohub eyetracker _handleNativeEvent to be what
+                # id called by TheEyeTribe when a sample is received.
+                self._eyetribe.processSample=self._handleNativeEvent
+                return True
+            except:
+                print2err("Error connecting to TheEyeTribe Device.")
+                printExceptionDetailsToStdErr()            
+        elif enable is False and self._eyetribe is not None:
+            try:
+                EyeTracker._eyetribe.close()
+                self._eyetribe.processSample=None
+                EyeTracker._eyetribe=None
+                return False
+            except:
+                print2err("Error disconnecting from TheEyeTribe Device.")
+                printExceptionDetailsToStdErr()            
+        return EyeTrackerConstants.EYETRACKER_ERROR    
+        
+        
     def isConnected(self):
         """
         isConnected returns whether the TheEyeTribe is connected to the experiment PC
@@ -148,10 +152,10 @@ class EyeTracker(EyeTrackerDevice):
             bool:  True = the eye tracking hardware is connected. False otherwise.
 
         """
-        if self._eyetribe_connection:
-            # TODO TET Implementation
-            return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
-
+        if self._eyetribe:
+            return True
+        return False
+ 
     def sendMessage(self,message_contents,time_offset=None):
         """
         The sendMessage method is not supported by the TheEyeTribe implementation
@@ -169,34 +173,34 @@ class EyeTracker(EyeTrackerDevice):
         # TODO TET Implementation
         return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
 
-    def runSetupProcedure(self,starting_state=EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE):
-        """
-        runSetupProcedure performs a calibration routine for the TheEyeTribe
-        eye tracking system.
-        
-        Result:
-            bool: True if setup / calibration procedure passed, False otherwise. If false, should likely exit experiment.
-        """
-        try:
-            # TODO TET Implementation
-            calibration_properties=self.getConfiguration().get('calibration')
-            screenColor=calibration_properties.get('screen_background_color')
-            # [r,g,b] of screen
-
-            #genv=TETPsychopyCalibrationGraphics(self,screenColor=screenColor)
-
-            #calibrationOK=genv.runCalibration()
-            #genv.window.close()
-            
-            #genv._unregisterEventMonitors()
-            #genv.clearAllEventBuffers()
-            
-            return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
-            
-        except:
-            print2err("Error during runSetupProcedure")
-            printExceptionDetailsToStdErr()
-        return EyeTrackerConstants.EYETRACKER_ERROR
+#    def runSetupProcedure(self,starting_state=EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE):
+#        """
+#        runSetupProcedure performs a calibration routine for the TheEyeTribe
+#        eye tracking system.
+#        
+#        Result:
+#            bool: True if setup / calibration procedure passed, False otherwise. If false, should likely exit experiment.
+#        """
+#        try:
+#            # TODO TET Implementation
+#            calibration_properties=self.getConfiguration().get('calibration')
+#            screenColor=calibration_properties.get('screen_background_color')
+#            # [r,g,b] of screen
+#
+#            #genv=TETPsychopyCalibrationGraphics(self,screenColor=screenColor)
+#
+#            #calibrationOK=genv.runCalibration()
+#            #genv.window.close()
+#            
+#            #genv._unregisterEventMonitors()
+#            #genv.clearAllEventBuffers()
+#            
+#            return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
+#            
+#        except:
+#            print2err("Error during runSetupProcedure")
+#            printExceptionDetailsToStdErr()
+#        return EyeTrackerConstants.EYETRACKER_ERROR
 
     def enableEventReporting(self,enabled=True):
         """
@@ -211,7 +215,7 @@ class EyeTracker(EyeTrackerDevice):
         except Exception, e:
             return createErrorResult("IOHUB_DEVICE_EXCEPTION",
                     error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    method="EyeTracker.enableEventReporting", error=e)
+                    method="EyeTracker.enself._eyetribe.ableEventReporting", error=e)
 
     def setRecordingState(self,recording):
         """
@@ -235,14 +239,18 @@ class EyeTracker(EyeTrackerDevice):
         Return:
             bool: the current recording state of the eye tracking device
         """
-        if self._eyetribe_connection and recording is True and not self.isRecordingEnabled():
+        if self._eyetribe and recording is True and not self.isRecordingEnabled():
             # TODO TET Implementation
+            self._eyetribe.sendSetMessage(push=True, version=1)
+            EyeTracker._recording=True
             return EyeTrackerDevice.enableEventReporting(self,True)
-        elif self._eyetribe_connection and recording is False and self.isRecordingEnabled():
+        elif self._eyetribe and recording is False and self.isRecordingEnabled():
             # TODO TET Implementation
             self._latest_sample=None
             self._latest_gaze_position=None
-            return EyeTrackerDevice.enableEventReporting(self,False)
+            EyeTracker._recording=False
+            return self._eyetribe.sendSetMessage(push=False, version=1)
+
         return self.isRecordingEnabled() 
 
     def isRecordingEnabled(self):
@@ -256,8 +264,8 @@ class EyeTracker(EyeTrackerDevice):
         Return:
             bool: True == the device is recording data; False == Recording is not occurring
         """
-        if self._eyetribe_connection:
-            return # TODO TET Implementation
+        if self._eyetribe:
+            return self._recording# TODO TET Implementation
         return False
         
     def getLastSample(self):
@@ -318,14 +326,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         return self._latest_gaze_position
 
-    def _poll(self):
-        """
-        The TheEyeTribe system uses a callback approach to providing new eye data as
-        it becomes available, so polling (and therefore this method) are not used.
-        """
-        # TODO TET Implementation ????
-        return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
-    
+
     def _handleNativeEvent(self,*args,**kwargs):
         """
         This method is called every time there is new eye data available from
@@ -335,9 +336,66 @@ class EyeTracker(EyeTrackerDevice):
         callback. Therefore this method simply puts the event data received from 
         the eye tracker device, and the local ioHub time the callback was
         called, into a buffer for processing by the ioHub event system.
+        
+        Native sample format:
+        
+            {
+                "category": "tracker",
+                "statuscode": 200,
+                "values": {
+                    "frame" : {
+                        "time": int,              //timestamp
+                        "fix": bool,           //is fixated?
+                        "state": int,             //32bit masked state integer
+                        "raw": {                  //raw gaze coordinates in pixels
+                            "x": int,
+                            "y": int
+                        },
+                        "avg": {                  //smoothed gaze coordinates in pix
+                            "x": int,
+                            "y": int
+                        },
+            
+                        "lefteye": {
+                            "raw": {              //raw coordinates in pixels
+                                "x": int,
+                                "y": int
+                            },
+            
+                            "avg": {              //smoothed coordinates in pix
+                                "x": int,
+                                "y": int
+                            },
+                            "psize": float,       //pupil size
+                            "pcenter": {          //pupil coordinates normalized
+                                "x": float,
+                                "y": float
+                            }
+                        },
+            
+                        "righteye": {
+                            "raw": {             //raw coordinates in pixels
+                                "x": int,
+                                "y": int
+                            },
+                            "avg": {             //smoothed coordinates in pix
+                                "x": int,
+                                "y": int
+                            },
+                            "psize": float,     //pupil size
+                            "pcenter": {        //pupil coordinates normalized
+                                "x": float,
+                                "y": float
+                            }
+                        }
+                    }
+                }
+            }        
         """
+        native_sample=args[0]
+        print2err("iohub TET got:", native_sample)
         # TODO TET Implementation ?????
-        return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
+        return True#EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
 
 #        if self.isReportingEvents():
 #            try:
@@ -499,7 +557,7 @@ class EyeTracker(EyeTrackerDevice):
 #        return (left-display_x)/w,(top-display_y)/h
 
     def _close(self):
-        if self._eyetribe_connection:
+        if self._eyetribe:
             # TODO TET Implementation
-            return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
+            self.setConnectionState(False)
         EyeTrackerDevice._close(self)
