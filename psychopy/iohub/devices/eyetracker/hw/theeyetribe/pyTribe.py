@@ -8,10 +8,10 @@ from weakref import proxy
 import gevent
 from gevent import sleep, socket, queue
 from gevent.server import StreamServer
-#try:
-#    import ujson as json
-#except:
-import json
+try:
+    import ujson as json
+except:
+    import json
 from ..... import print2err,printExceptionDetailsToStdErr,Computer,OrderedDict
 
 getTime=Computer.getTime
@@ -112,6 +112,12 @@ class TheEyeTribe(object):
                               # false: ((staself._eyetribe.te & mask) == 0)
     # Tracker has failed to detect anything and tracking is now lost.
     STATE_TRACKING_LOST = 0x10 # true: ((state & mask) != 0)
+                               # false: ((state & mask) == 0)
+    # STATE_TRACKING_FIXATED state is not standard for eyetribe; added for iohub
+    # integration so that the eyetribe frame.fix bool can be combined
+    # with frame.state, which is then stored in the iohub sample state field.
+    # Tracker has failed to detect anything and tracking is now lost.
+    STATE_TRACKING_FIXATED = 0x20 # true: ((state & mask) != 0)
                                # false: ((state & mask) == 0)
 
     def __init__(self):
