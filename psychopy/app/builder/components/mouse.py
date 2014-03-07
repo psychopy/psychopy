@@ -135,15 +135,21 @@ class MouseComponent(BaseComponent):
         #some shortcuts
         name = self.params['name']
         store = self.params['saveMouseState'].val#do this because the param itself is not a string!
+        if store == 'nothing':
+            return
+
         forceEnd = self.params['forceEndRoutineOnPress'].val
-        #check if we're in a loop (so saving is possible)
         if len(self.exp.flow._loopList):
-            currLoop=self.exp.flow._loopList[-1]#last (outer-most) loop
-        else: currLoop=None
-        if store!='nothing' and currLoop and currLoop.type=='StairHandler':
-            buff.writeIndented("# NB PsychoPy doesn't handle a 'correct answer' for mouse events so doesn't know how to handle mouse with StairHandler")
-        if store == 'final' and currLoop!=None:
-            buff.writeIndented("# get info about the %(name)s\n" %(self.params))
+            currLoop=self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._implicitLoop
+
+        if currLoop.type=='StairHandler':
+            buff.writeIndented("# NB PsychoPy doesn't handle a 'correct answer' for mouse events so doesn't know how to handle mouse with StairHandler\n")
+        else:
+            buff.writeIndented("# store data for %s (%s)\n" %(currLoop.params['name'], currLoop.type))
+        if store == 'final':
+            #buff.writeIndented("# get info about the %(name)s\n" %(self.params))
             buff.writeIndented("x, y = %(name)s.getPos()\n" %(self.params))
             buff.writeIndented("buttons = %(name)s.getPressed()\n" %(self.params))
             if currLoop.type!='StairHandler':
@@ -152,11 +158,13 @@ class MouseComponent(BaseComponent):
                 buff.writeIndented("%s.addData('%s.leftButton', buttons[0])\n" %(currLoop.params['name'], name))
                 buff.writeIndented("%s.addData('%s.midButton', buttons[1])\n" %(currLoop.params['name'], name))
                 buff.writeIndented("%s.addData('%s.rightButton', buttons[2])\n" %(currLoop.params['name'], name))
-        elif store != 'never' and currLoop!=None:
-            buff.writeIndented("# save %(name)s data\n" %(self.params))
+        elif store != 'never':
+            #buff.writeIndented("# save %(name)s data\n" %(self.params))
             for property in ['x','y','leftButton','midButton','rightButton','time']:
                 if store=='every frame' or not forceEnd:
                     buff.writeIndented("%s.addData('%s.%s', %s.%s)\n" %(currLoop.params['name'], name,property,name,property))
                 else:
                     #we only had one click so don't return a list
                     buff.writeIndented("%s.addData('%s.%s', %s.%s[0])\n" %(currLoop.params['name'], name,property,name,property))
+        if currLoop.params['name'].val == self.exp._implicitLoop.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._implicitLoop.name)

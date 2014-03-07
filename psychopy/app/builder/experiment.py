@@ -98,6 +98,16 @@ class Experiment:
         self.settings=getComponents(fetchIcons=False)['SettingsComponent'](parentName='', exp=self)
         self._doc=None#this will be the xml.dom.minidom.doc object for saving
         self.namespace = NameSpace(self) # manage variable names
+
+        #  _implicitLoop is a hack to allow saving data from components not inside
+        # a loop. data-saving machinery relies on loops, not worth rewriting.
+        # `thisExp` will be an ExperimentHandler when used in the generated script, but
+        # its easier to use treat it as a TrialHandler during script generation
+        # to avoid effectively duplicating code just to work around any differences
+        # in writeRoutineEndCode
+        self._implicitLoop = TrialHandler(exp=self, name='thisExp')
+        self._implicitLoop.type = 'ExperimentHandler'  # true at run-time
+        self._implicitLoop.name = self._implicitLoop.params['name'].val  # thisExp
     def requirePsychopyLibs(self, libs=[]):
         """Add a list of top-level psychopy libs that the experiment will need.
         e.g. [visual, event]

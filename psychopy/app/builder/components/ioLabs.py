@@ -199,12 +199,12 @@ class ioLabsButtonBoxComponent(BaseComponent):
         # some shortcuts
         name = self.params['name']
         store = self.params['store'].val
+        if store == 'nothing':
+            return
         if len(self.exp.flow._loopList):
             currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
         else:
-            currLoop = None
-        if store == 'nothing' or not currLoop:  # need a loop to store any data!
-            return
+            currLoop = self.exp._implicitLoop
 
         # write the actual code
         lines = ''
@@ -231,6 +231,8 @@ class ioLabsButtonBoxComponent(BaseComponent):
                 buff.writeIndented("%s.addData('%s.corr', %s.corr)\n" % loopnamename)
             buff.writeIndented("if %(name)s.btns != None:  # add RTs if there are responses\n" % self.params)
             buff.writeIndented("    %s.addData('%s.rt', %s.rt)\n" % loopnamename)
+        if currLoop.params['name'].val == self.exp._implicitLoop.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._implicitLoop.name)
 
     def writeExperimentEndCode(self, buff):
         buff.writeIndented('%(name)s.standby()  # lights out etc\n' % self.params)
