@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 from psychopy import visual, core
 """
 Text rendering has changed a lot (for the better) under pyglet. This
@@ -29,22 +29,21 @@ psychopyTxt = visual.TextStim(myWin, color='#FFFFFF',
                         units='norm', height=0.2,
                         pos=[0.95, 0.95], alignHoriz='right',alignVert='top',
                         font=fancy)
-longSentence = visual.TextStim(myWin, 
+longSentence = visual.TextStim(myWin,
                         text = u"Very long sentences can wrap", wrapWidth=0.8,
                         units='norm', height=0.15,color='DarkSlateBlue',
-                        pos=[0.95, -0.95], alignHoriz='right',alignVert='bottom') 
+                        pos=[0.95, -0.95], alignHoriz='right',alignVert='bottom')
 trialClock = core.Clock()
 t=lastFPSupdate=0;
 while t<20:#quits after 20 secs
     t=trialClock.getTime()
-    
+
     rotating.setOri(1,"+")
     rotating.draw()
-    
+
     unicodeStuff.draw()
     longSentence.draw()
-    
-    psychopyTxt.draw()
-    
-    myWin.flip()
 
+    psychopyTxt.draw()
+
+    myWin.flip()

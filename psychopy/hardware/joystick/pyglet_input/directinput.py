@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 # $Id:$
 
 import ctypes
@@ -18,7 +18,7 @@ _abs_instance_names = {
     0: 'x',
     1: 'y',
     2: 'z',
-    3: 'rx', 
+    3: 'rx',
     4: 'ry',
     5: 'rz',
 }
@@ -46,14 +46,14 @@ def _create_control(object_instance):
         name = _btn_instance_names.get(instance)
         control = base.Button(name, raw_name)
     elif type & dinput.DIDFT_POV:
-        control = base.AbsoluteAxis(base.AbsoluteAxis.HAT, 
+        control = base.AbsoluteAxis(base.AbsoluteAxis.HAT,
                                     0, 0xffffffff, raw_name)
     else:
         return
 
     control._type = object_instance.dwType
     return control
-        
+
 class DirectInputDevice(base.Device):
     def __init__(self, display, device, device_instance):
         name = device_instance.tszInstanceName
@@ -69,13 +69,13 @@ class DirectInputDevice(base.Device):
     def _init_controls(self):
         self.controls = []
         self._device.EnumObjects(
-            dinput.LPDIENUMDEVICEOBJECTSCALLBACK(self._object_enum), 
+            dinput.LPDIENUMDEVICEOBJECTSCALLBACK(self._object_enum),
             None, dinput.DIDFT_ALL)
 
     def _object_enum(self, object_instance, arg):
         control = _create_control(object_instance.contents)
         if control:
-            self.controls.append(control)        
+            self.controls.append(control)
         return dinput.DIENUM_CONTINUE
 
     def _set_format(self):
@@ -88,7 +88,7 @@ class DirectInputDevice(base.Device):
             object_format.dwOfs = offset
             object_format.dwType = control._type
             offset += 4
-             
+
         format = dinput.DIDATAFORMAT()
         format.dwSize = ctypes.sizeof(format)
         format.dwObjSize = ctypes.sizeof(dinput.DIOBJECTDATAFORMAT)
@@ -105,7 +105,7 @@ class DirectInputDevice(base.Device):
         prop.diph.dwObj = 0
         prop.diph.dwHow = dinput.DIPH_DEVICE
         prop.dwData = 64 * ctypes.sizeof(dinput.DIDATAFORMAT)
-        self._device.SetProperty(dinput.DIPROP_BUFFERSIZE, 
+        self._device.SetProperty(dinput.DIPROP_BUFFERSIZE,
                                  ctypes.byref(prop.diph))
 
     def open(self, window=None, exclusive=False):
@@ -124,10 +124,10 @@ class DirectInputDevice(base.Device):
             flags |= dinput.DISCL_EXCLUSIVE
         else:
             flags |= dinput.DISCL_NONEXCLUSIVE
-        
+
         self._wait_object = _kernel32.CreateEventW(None, False, False, None)
         self._device.SetEventNotification(self._wait_object)
-        app.platform_event_loop.add_wait_object(self._wait_object, 
+        app.platform_event_loop.add_wait_object(self._wait_object,
                                                        self._dispatch_events)
 
         self._device.SetCooperativeLevel(window._hwnd, flags)
@@ -150,11 +150,11 @@ class DirectInputDevice(base.Device):
     def _dispatch_events(self):
         if not self.controls:
             return
-        
+
         events = (dinput.DIDEVICEOBJECTDATA * 64)()
         n_events = win32.DWORD(len(events))
         self._device.GetDeviceData(ctypes.sizeof(dinput.DIDEVICEOBJECTDATA),
-                                   ctypes.cast(ctypes.pointer(events), 
+                                   ctypes.cast(ctypes.pointer(events),
                                                dinput.LPDIDEVICEOBJECTDATA),
                                    ctypes.byref(n_events),
                                    0)
@@ -168,11 +168,11 @@ def _init_directinput():
     global _i_dinput
     if _i_dinput:
         return
-    
+
     _i_dinput = dinput.IDirectInput8()
     module = _kernel32.GetModuleHandleW(None)
     dinput.DirectInput8Create(module, dinput.DIRECTINPUT_VERSION,
-                              dinput.IID_IDirectInput8W, 
+                              dinput.IID_IDirectInput8W,
                               ctypes.byref(_i_dinput), None)
 
 def get_devices(display=None):
@@ -184,18 +184,18 @@ def get_devices(display=None):
         _i_dinput.CreateDevice(device_instance.contents.guidInstance,
                                ctypes.byref(device),
                                None)
-        _devices.append(DirectInputDevice(display, 
+        _devices.append(DirectInputDevice(display,
                                           device, device_instance.contents))
-        
+
         return dinput.DIENUM_CONTINUE
 
-    _i_dinput.EnumDevices(dinput.DI8DEVCLASS_ALL, 
-                          dinput.LPDIENUMDEVICESCALLBACK(_device_enum), 
+    _i_dinput.EnumDevices(dinput.DI8DEVCLASS_ALL,
+                          dinput.LPDIENUMDEVICESCALLBACK(_device_enum),
                           None, dinput.DIEDFL_ATTACHEDONLY)
     return _devices
 
 def _create_joystick(device):
-    if device._type in (dinput.DI8DEVTYPE_JOYSTICK, 
+    if device._type in (dinput.DI8DEVTYPE_JOYSTICK,
                         dinput.DI8DEVTYPE_GAMEPAD):
         return base.Joystick(device)
 
