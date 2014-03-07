@@ -1,4 +1,4 @@
-#! /usr/local/bin/python
+#!/usr/bin/env python2
 from psychopy import visual, core, event
 
 #create a window to draw in
@@ -23,12 +23,10 @@ while t<20:#quits after 20 secs
 
     grating2.setPhase(2*t)    #drift at 2Hz
     grating2.draw()  #redraw it
-    
+
     myWin.flip()          #update the screen
 
     #handle key presses each frame
     for keys in event.getKeys():
         if keys in ['escape','q']:
             core.quit()
-
-
