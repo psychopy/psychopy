@@ -1047,33 +1047,36 @@ class Window:
                         1.0)
 
     def _setupGamma(self):
+        """A private method to work out how to handle gamma for this Window
+        given that the user might have specified an explicit value, or maybe
+        gave a Monitor
+        """
+        self.origGammaRamp = None
+        # determine which gamma value to use (or native ramp)
         if self.gamma is not None:
             self._checkGamma()
             self.useNativeGamma = False
-        elif self.monitor.getGamma() is not None:
-            if hasattr(self.monitor.getGammaGrid(), 'dtype'):
+        elif not self.monitor.gammaIsDefault():
+            if self.monitor.getGammaGrid():
                 self.gamma = self.monitor.getGammaGrid()[1:, 2]
-                # are we using the default gamma for all monitors?
-                if self.monitor.gammaIsDefault():
-                    self.useNativeGamma = True
-                else:
-                    self.useNativeGamma = False
-            else:
+                self.useNativeGamma = False
+            elif self.monitor.getGamma() is not None:
                 self.gamma = self.monitor.getGamma()
                 self.useNativeGamma = False
         else:
             self.gamma = None  # gamma wasn't set anywhere
             self.useNativeGamma = True
-
-        try:
-            self.origGammaRamp = getGammaRamp(self.winHandle)
-        except:
-            self.origGammaRamp = None
-
+        #then try setting it
         if self.useNativeGamma:
             if self.autoLog:
                 logging.info('Using gamma table of operating system')
         else:
+            #try to retrieve previous so we can reset later
+            try:
+                self.origGammaRamp = getGammaRamp(self.winHandle)
+            except:
+                self.origGammaRamp = None
+
             if self.autoLog:
                 logging.info('Using gamma: self.gamma' + str(self.gamma))
             self.setGamma(self.gamma)  # using either pygame or bits++

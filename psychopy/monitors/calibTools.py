@@ -286,7 +286,9 @@ class Monitor:
         calibTools.strFromDate"""
         return self.currentCalib['calibDate']
     def getGamma(self):
-        if 'gamma' in self.currentCalib:
+        if 'gammaGrid' in self.currentCalib:
+            return self.monitor.getGammaGrid()[1:, 2]
+        elif 'gamma' in self.currentCalib:
             return self.currentCalib['gamma']
         else:
             return None
