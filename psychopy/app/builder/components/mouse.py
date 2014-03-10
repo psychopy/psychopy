@@ -142,7 +142,7 @@ class MouseComponent(BaseComponent):
         if len(self.exp.flow._loopList):
             currLoop=self.exp.flow._loopList[-1]  # last (outer-most) loop
         else:
-            currLoop = self.exp._implicitLoop
+            currLoop = self.exp._expHandler
 
         if currLoop.type=='StairHandler':
             buff.writeIndented("# NB PsychoPy doesn't handle a 'correct answer' for mouse events so doesn't know how to handle mouse with StairHandler\n")
@@ -166,5 +166,5 @@ class MouseComponent(BaseComponent):
                 else:
                     #we only had one click so don't return a list
                     buff.writeIndented("%s.addData('%s.%s', %s.%s[0])\n" %(currLoop.params['name'], name,property,name,property))
-        if currLoop.params['name'].val == self.exp._implicitLoop.name:
-            buff.writeIndented("%s.nextEntry()\n" % self.exp._implicitLoop.name)
+        if currLoop.params['name'].val == self.exp._expHandler.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)

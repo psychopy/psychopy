@@ -181,7 +181,7 @@ class KeyboardComponent(BaseComponent):
         if len(self.exp.flow._loopList):
             currLoop=self.exp.flow._loopList[-1]  # last (outer-most) loop
         else:
-            currLoop = self.exp._implicitLoop
+            currLoop = self.exp._expHandler
 
         #write the actual code
         buff.writeIndented("# check responses\n" %self.params)
@@ -208,5 +208,5 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("if %(name)s.keys != None:  # we had a response\n" %(self.params))
             buff.writeIndented("    %s.addData('%s.rt', %s.rt)\n" \
                                %(currLoop.params['name'], name, name))
-        if currLoop.params['name'].val == self.exp._implicitLoop.name:
-            buff.writeIndented("%s.nextEntry()\n" % self.exp._implicitLoop.name)
+        if currLoop.params['name'].val == self.exp._expHandler.name:
+            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
