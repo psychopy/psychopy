@@ -152,9 +152,9 @@ class PsychoPyApp(wx.App):
         #then override the prev files by command options and passed files
         if len(sys.argv)>1:
             if sys.argv[1]==__name__:
-                args = sys.argv[2:] # program was excecuted as "python.exe PsychoPyIDE.py %1'
+                args = sys.argv[2:] # program was executed as "python.exe PsychoPyIDE.py %1'
             else:
-                args = sys.argv[1:] # program was excecuted as "PsychoPyIDE.py %1'
+                args = sys.argv[1:] # program was executed as "PsychoPyIDE.py %1'
             #choose which frame to start with
             if args[0] in ['builder', '--builder', '-b']:
                     mainFrame='builder'
