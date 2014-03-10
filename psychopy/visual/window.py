@@ -32,7 +32,7 @@ if sys.platform == 'win32':
         from pyglet.media import avbin
         haveAvbin = True
     except ImportError:
-        haveAvbin = False        
+        haveAvbin = False
         # either avbin isn't installed or scipy.stats has been imported
         # (prevents avbin loading)
     except WindowsError, e:
@@ -1212,10 +1212,13 @@ class Window:
         if self.stereo and not GL.gl_info.have_extension('GL_STEREO'):
             logging.warning('A stereo window was requested but the graphics '
                             'card does not appear to support GL_STEREO')
-
-        if self.useFBO and not GL.gl_info.have_extension('GL_EXT_framebuffer_object'):
-            logging.warn("Trying to use a framebuffer pbject but GL_EXT_framebuffer_object is not supported. Disabling")
-            self.useFBO=False
+        if self.useFBO: #check for necessary extensions
+            if not GL.gl_info.have_extension('GL_EXT_framebuffer_object'):
+                logging.warn("Trying to use a framebuffer pbject but GL_EXT_framebuffer_object is not supported. Disabling")
+                self.useFBO=False
+            if not GL.gl_info.have_extension('GL_ARB_texture_float'):
+                logging.warn("Trying to use a framebuffer pbject but GL_ARB_texture_float is not supported. Disabling")
+                self.useFBO=False
         #add these methods to the pyglet window
         self.winHandle.setGamma = setGamma
         self.winHandle.setGammaRamp = setGammaRamp
@@ -1417,11 +1420,6 @@ class Window:
         GL.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT,
                                      GL.GL_COLOR_ATTACHMENT0_EXT,
                                      GL.GL_TEXTURE_2D, self.frameTexture, 0)
-
-        status = GL.glCheckFramebufferStatusEXT (GL.GL_FRAMEBUFFER_EXT);
-        if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
-            print "Error in framebuffer activation"
-            return
         status = GL.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT)
         if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
             logging.error("Error in framebuffer activation")
