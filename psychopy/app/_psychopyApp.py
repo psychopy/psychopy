@@ -7,6 +7,9 @@
 import sys, psychopy
 import copy
 
+if not hasattr(sys, 'frozen'):
+    import wxversion
+    wxversion.ensureMinimal('2.8') # because this version has agw
 import wx
 try:
     from agw import advancedsplash as AS
