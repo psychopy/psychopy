@@ -306,7 +306,7 @@ class _baseVisualTest:
             "dots.verticesPix failed to change after dots.setPos()"
     def test_element_array(self):
         win = self.win
-        if not win._haveShaders or utils._under_xvfb:
+        if not win._haveShaders:
             pytest.skip("ElementArray requires shaders, which aren't available")
         #using init
         thetas = numpy.arange(0,360,10)
@@ -355,7 +355,7 @@ class _baseVisualTest:
             pytest.skip("getMsPerFrame seems to crash the testing of pygame")
         #make sure that we're successfully syncing to the frame rate
         msPFavg, msPFstd, msPFmed = visual.getMsPerFrame(self.win,nFrames=60, showVisual=True)
-        utils.skip_under_xvfb()             # skip late so we smoke test the code
+        utils.skip_under_travis()             # skip late so we smoke test the code
         assert (1000/150.0 < msPFavg < 1000/40.0), \
             "Your frame period is %.1fms which suggests you aren't syncing to the frame" %msPFavg
 

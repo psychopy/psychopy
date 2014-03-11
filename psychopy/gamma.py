@@ -19,7 +19,7 @@ elif sys.platform.startswith('linux'):
     #we need XF86VidMode
     xf86vm=ctypes.CDLL(ctypes.util.find_library('Xxf86vm'))
 
-_virtualFramebuffer = 'xvfb-run' in os.environ.get('XAUTHORITY', '') #probably in Travis-CI testing
+_TravisTesting = os.environ.get('TRAVIS')=='true' #in Travis-CI testing
 
 def setGamma(pygletWindow=None, newGamma=1.0, rampType=None):
     #make sure gamma is 3x1 array
@@ -66,8 +66,8 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
                     newRamp[0,:].ctypes, newRamp[1,:].ctypes, newRamp[2,:].ctypes)
         assert success, 'XF86VidModeSetGammaRamp failed'
 
-    elif _virtualFramebuffer:
-        logging.warn("Using virtual framebuffer. Hardware gamma table cannot be set")
+    elif _TravisTesting:
+        logging.warn("It looks like we're running in the Travis-CI testing environment. Hardware gamma table cannot be set")
 
 def getGammaRamp(pygletWindow):
     """Ramp will be returned as 3x256 array in range 0:1
