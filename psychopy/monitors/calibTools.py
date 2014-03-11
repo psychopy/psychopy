@@ -191,12 +191,10 @@ class Monitor:
     def gammaIsDefault(self):
         """Determine whether we're using the default gamma values
         """
-        thisGrid = self.getGammaGrid()
-        #the old default (for simple gamma eq)
-        oldGrid = numpy.array([[0,1,1],[0,1,1],[0,1,1],[0,1,1]])
+        thisGamma = self.getGamma()
         #run the test just on this
-        if thisGrid==None \
-            or numpy.alltrue(thisGrid[:4,:3]==oldGrid):
+        if thisGamma == None \
+            or numpy.alltrue(numpy.array(thisGamma)==numpy.array([1,1,1])):
             return True
         else:
             return False
@@ -286,8 +284,8 @@ class Monitor:
         calibTools.strFromDate"""
         return self.currentCalib['calibDate']
     def getGamma(self):
-        if 'gammaGrid' in self.currentCalib:
-            return self.monitor.getGammaGrid()[1:, 2]
+        if 'gammaGrid' in self.currentCalib and not numpy.alltrue(self.getGammaGrid()[1:, 2]==1):
+            return self.getGammaGrid()[1:, 2]
         elif 'gamma' in self.currentCalib:
             return self.currentCalib['gamma']
         else:

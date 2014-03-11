@@ -1057,10 +1057,7 @@ class Window:
             self._checkGamma()
             self.useNativeGamma = False
         elif not self.monitor.gammaIsDefault():
-            if self.monitor.getGammaGrid():
-                self.gamma = self.monitor.getGammaGrid()[1:, 2]
-                self.useNativeGamma = False
-            elif self.monitor.getGamma() is not None:
+            if self.monitor.getGamma() is not None:
                 self.gamma = self.monitor.getGamma()
                 self.useNativeGamma = False
         else:
@@ -1218,7 +1215,7 @@ class Window:
         if self.useFBO: #check for necessary extensions
             if not GL.gl_info.have_extension('GL_EXT_framebuffer_object'):
                 logging.warn("Trying to use a framebuffer pbject but GL_EXT_framebuffer_object is not supported. Disabling")
-                self.useFBO=False
+            self.useFBO=False
             if not GL.gl_info.have_extension('GL_ARB_texture_float'):
                 logging.warn("Trying to use a framebuffer pbject but GL_ARB_texture_float is not supported. Disabling")
                 self.useFBO=False
