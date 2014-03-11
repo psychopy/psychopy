@@ -8,6 +8,7 @@
 import numpy, sys, platform, ctypes, ctypes.util
 import pyglet
 from psychopy import logging
+import os
 
 #import platform specific C++ libs for controlling gamma
 if sys.platform=='win32':
