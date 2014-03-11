@@ -18,6 +18,8 @@ elif sys.platform.startswith('linux'):
     #we need XF86VidMode
     xf86vm=ctypes.CDLL(ctypes.util.find_library('Xxf86vm'))
 
+_virtualFramebuffer = 'xvfb-run' in os.environ.get('XAUTHORITY', '') #probably in Travis-CI testing
+
 def setGamma(pygletWindow=None, newGamma=1.0, rampType=None):
     #make sure gamma is 3x1 array
     if type(newGamma) in [float,int]:
@@ -57,11 +59,14 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
                    newRamp[0,:].ctypes, newRamp[1,:].ctypes, newRamp[2,:].ctypes)
         assert not error, 'CGSetDisplayTransferByTable failed'
 
-    if sys.platform.startswith('linux'):
+    if sys.platform.startswith('linux') and not _virtualFramebuffer:
         newRamp= (65535*newRamp).astype(numpy.uint16)
         success = xf86vm.XF86VidModeSetGammaRamp(pygletWindow._x_display, pygletWindow._x_screen_id, 256,
                     newRamp[0,:].ctypes, newRamp[1,:].ctypes, newRamp[2,:].ctypes)
         assert success, 'XF86VidModeSetGammaRamp failed'
+
+    elif _virtualFramebuffer:
+        logging.warn("Using virtual framebuffer. Hardware gamma table cannot be set")
 
 def getGammaRamp(pygletWindow):
     """Ramp will be returned as 3x256 array in range 0:1
