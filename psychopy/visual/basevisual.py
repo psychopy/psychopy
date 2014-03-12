@@ -14,7 +14,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import attributeSetter, setWithOperation
+from psychopy.tools.attributetools import attributeSetter, setWithOperation, logAttrib
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg, convertToPix
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
@@ -556,10 +556,7 @@ class BaseVisualStim(LegacyBaseVisualStim):
 
         # Handle operations
         setWithOperation(self, attrib, val, op)
-
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, attrib)
 
     def setUseShaders(self, value=True):
         """Usually you can use 'stim.attribute = value' syntax instead,

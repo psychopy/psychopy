@@ -72,3 +72,14 @@ def setWithOperation(self, attrib, value, operation, stealth=False):
             self.__dict__[attrib] = newValue
         else:
             setattr(self, attrib, newValue)
+
+def logAttrib(self, log, attrib, value=None):
+    """
+    Logs a change of a visual attribute on the next window.flip.
+    If value=None, it will take the value of self.attrib.
+    """
+    if log or log is None and self.autoLog:
+        if value is None:
+            value = getattr(self, attrib)
+        self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, value),
+            level=logging.EXP,obj=self)

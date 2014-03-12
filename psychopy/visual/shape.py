@@ -20,7 +20,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix
-from psychopy.tools.attributetools import attributeSetter, setWithOperation
+from psychopy.tools.attributetools import attributeSetter, setWithOperation, logAttrib
 from psychopy.visual.basevisual import BaseVisualStim
 from psychopy.visual.helpers import setColor
 
@@ -212,11 +212,9 @@ class ShapeStim(BaseVisualStim):
                 raise ValueError("New value for setXYs should be 2x1 or Nx2")
         #set value and log
         setWithOperation(self, 'vertices', value, operation)
+        logAttrib(self, log, 'vertices', value)
         self._needVertexUpdate=True
 
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s vertices=%s" %(self.name, value),
-                level=logging.EXP,obj=self)
     def draw(self, win=None, keepMatrix=False): #keepMatrix option is needed by Aperture
         """
         Draw the stimulus in its relevant window. You must call
