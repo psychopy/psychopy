@@ -232,6 +232,11 @@ class BaseVisualStim(LegacyBaseVisualStim):
            win1.flip(waitBlanking=False)  # do not wait for next monitor update
            win2.flip()  # wait for vertical blanking.
 
+        Note that this just changes **default** window for stimulus.
+        You could also specify window-to-draw-to when drawing::
+
+           stim.draw(win1)
+           stim.draw(win2)
         """
         self.__dict__['win'] = value
 
