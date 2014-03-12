@@ -315,11 +315,11 @@ class BaseVisualStim(LegacyBaseVisualStim):
             if not self.useShaders:
                 if self.__class__.__name__ == 'TextStim':
                     self.setText(self.text)
-                if self.__class__.__name__ == 'ImageStim':
+                elif self.__class__.__name__ == 'ImageStim':
                     self.setImage(self._imName)
-                if self.__class__.__name__ in ('GratingStim', 'RadialStim'):
+                elif self.__class__.__name__ in ('GratingStim', 'RadialStim'):
                     self.tex = self.tex
-                if self.__class__.__name__ in ('ShapeStim','DotStim'):
+                elif self.__class__.__name__ in ('ShapeStim','DotStim'):
                     pass # They work fine without shaders?
                 elif self.autoLog:
                     logging.warning('Tried to set contrast while useShaders = False but stimulus was not rebuild. Contrast might remain unchanged.')
