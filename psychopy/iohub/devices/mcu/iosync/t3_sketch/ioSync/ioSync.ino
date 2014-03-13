@@ -2,6 +2,11 @@
 /*
 ioSync Sketch for Teensy 3.0 / 3.1
 
+Copyright (C) 2013-2014 iSolver Software Solutions
+Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
+
+.. author:: Sol Simpson <sol@isolver-software.com>
+
 - Maintains a 48 bit microsecond clock so rollover will only occur if MCU is running without reset for ~ 8.9 years.
 - Handles serial requests from the host PC and sends necessary reply.
 - If analog input events are enabled, handles reading analog input lines and streaming analog samples to Host PC

@@ -35,7 +35,7 @@ class MCU(Device):
     DEVICE_TYPE_STRING="MCU"    
     __slots__=[e[0] for e in _newDataTypes]
     def __init__(self, *args, **kwargs):
-        print2err("TODO: Handle MCU Replies")        
+        #print2err("TODO: Handle MCU Replies")        
         self.serial_port=None   
         Device.__init__(self,*args,**kwargs['dconfig'])
         self.setConnectionState(True)
@@ -51,6 +51,13 @@ class MCU(Device):
                 else:
                     serial_id= self.serial_port.strip()   
                 MCU._mcu = T3MC(serial_id)
+                # get sync timing running
+                #for i in range(12):
+                #    self.requestTime()
+                #    self._mcu.getSerialRx()
+                #    self.getRequestResponse()
+                #    self._mcu.getSerialRx()
+                   
         elif enable is False:
             if MCU._mcu:
                 MCU._mcu.close()
@@ -60,7 +67,7 @@ class MCU(Device):
 
     def isConnected(self):
         return self._mcu != None
-        
+           
     def getDeviceTime(self):
         return MCU._last_mcu_time+(getTime()-MCU._received_last_mcu_time)*100000.0
         
@@ -90,10 +97,13 @@ class MCU(Device):
             event_types=self.getConfiguration().get('monitor_event_types',[])    
             enable_analog = 'AnalogInputEvent' in event_types
             enable_digital = 'DigitalInputEvent' in event_types
-            self._enableInputEvents(enable_analog,enable_digital)
+            #print2err("enable_analog: {0}, enable_digital: {1}".format(enable_analog,enable_digital))
+            self._mcu.flushSerialInput()
+            self._enableInputEvents(enable_digital,enable_analog)
         elif enabled is False and self.isReportingEvents() is True:
             if self.isConnected():
                 self._enableInputEvents(False,False)
+                
         return Device.enableEventReporting(self,enabled)
 
     def isReportingEvents(self):
@@ -107,6 +117,13 @@ class MCU(Device):
         """
         return Device.isReportingEvents(self)
 
+    # ioSync Request Type Wrappers below...
+    #
+    def requestTime(self):
+        request = self._mcu.requestTime()
+        self._request_dict[request.getID()]=request
+        return request.asdict()
+ 
     def getDigitalInputs(self):
         request=self._mcu.getDigitalInputs()
         self._request_dict[request.getID()]=request
@@ -127,22 +144,29 @@ class MCU(Device):
         self._request_dict[request.getID()]=request
         return request.asdict()
 
-    def getRequestResponse(self,rid):
-        response=self._response_dict.get(rid)
-        if response:
-            del self._response_dict[rid]
-            return response.asdict()
-        
+    def getRequestResponse(self,rid=None):
+        if rid:
+            response=self._response_dict.get(rid)
+            if response:
+                del self._response_dict[rid]
+                return response.asdict()
+        else:
+            resp_return=[]
+            responses=self._response_dict.values()
+            self._response_dict.clear()
+            for response in responses:
+                resp_return.append(response.asdict())
+            return resp_return
+
     def _enableInputEvents(self,enable_digital,enable_analog):
         self._mcu.enableInputEvents(enable_digital,enable_analog)
 
     def _poll(self):
         try:
             logged_time=getTime()
-            self._mcu.getSerialRx()
             if not self.isReportingEvents():
                 return False
-
+            self._mcu.getSerialRx()
             MCU._received_last_mcu_time=getTime()
             confidence_interval=logged_time-self._last_callback_time
     
@@ -159,6 +183,7 @@ class MCU(Device):
                     elist= [EventConstants.UNDEFINED,]*12
                     elist[4]=DigitalInputEvent.EVENT_TYPE_ID
                     elist[-1]=event.getDigitalInputByte()
+                    #print2err('DIN Event: ',elist)
                 elif event.getTypeInt()==T3Event.ANALOG_INPUT_EVENT:
                     elist= [EventConstants.UNDEFINED,]*19
                     elist[4]=AnalogInputEvent.EVENT_TYPE_ID
@@ -179,7 +204,8 @@ class MCU(Device):
                     
                     self._addNativeEventToBuffer(elist)
             
-            for reply in self._mcu.getRequestReplies():
+            replies = self._mcu.getRequestReplies(True)
+            for reply in replies:
                 rid=reply.getID()
                 if rid in self._request_dict.keys():
                     MCU._last_mcu_time=reply.getUsec()
