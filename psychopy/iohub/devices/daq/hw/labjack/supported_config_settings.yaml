@@ -23,6 +23,10 @@ daq.hw.labjack.AnalogInput:
         IOHUB_INT:
             min: 0
             max: 6
+    delay_offset:
+        IOHUB_FLOAT:
+            min: 0.0
+            max: 10.0
     input_channel_count: 8
     save_events: IOHUB_BOOL
     stream_events: IOHUB_BOOL
