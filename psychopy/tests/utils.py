@@ -161,17 +161,17 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
         logging.warning("xlsxActual!=xlsxCorr: Saving local copy to %s" %pathToLocal)
         raise IOError, error
 
-_under_xvfb = 'xvfb-run' in os.environ.get('XAUTHORITY', '')
+_travisTesting = os.environ.get('TRAVIS').lower()=='true' # in Travis-CI testing
 
-def skip_under_xvfb(fn=None):
-    """Skip if a test is executed under Xvfb (via xvfb-run only atm)
+def skip_under_travis(fn=None):
+    """Skip if a test is executed under Travis testing environment
 
     Could also be used as a decorator (if argument provided) or
     unparametrized in the code
     """
     # TODO: ad-hoc check ATM -- there might be better ways
-    if _under_xvfb:
-        skip, msg = pytest.skip, "Cannot be tested under Xvfb"
+    if _travisTesting:
+        skip, msg = pytest.skip, "Cannot be tested under Travis-CI"
         if fn is not None:
             def _inner():
                 skip(msg)

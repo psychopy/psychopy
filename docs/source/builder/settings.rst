@@ -38,7 +38,7 @@ Data filename: (new in version 1.80.00):
         'data/%s/%s-%s' %(expInfo['participant'], expName, expInfo['date'])
         
         # put into dropbox: ~/dropbox/data/memoryTask/JWP-2014_Feb_15_1648
-        # on windows you may need to replace ~ with your hom directory
+        # on Windows you may need to replace ~ with your home directory
         '~/dropbox/data/%s/%s-%s' %(expName, expInfo['participant'], expInfo['date'])
 
 Save Excel file:

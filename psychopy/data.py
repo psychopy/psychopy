@@ -1265,6 +1265,8 @@ def importConditions(fileName, returnFieldNames=False):
         #use csv import library to fetch the fieldNames
         f = open(fileName, 'rU')#the U converts line endings to os.linesep (not unicode!)
         trialsArr = numpy.recfromcsv(f, case_sensitive=True)
+        if trialsArr.shape == ():  # convert 0-D to 1-D with one element:
+            trialsArr = trialsArr[numpy.newaxis]
         fieldNames = trialsArr.dtype.names
         _assertValidVarNames(fieldNames, fileName)
         f.close()
