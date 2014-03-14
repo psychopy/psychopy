@@ -4,7 +4,7 @@
 
 import sys, time, types, re
 import wx, wx.stc, wx.aui, wx.richtext
-import keyword, os, sys, string, StringIO, glob, platform
+import keyword, os, sys, string, StringIO, glob, platform, io
 import threading, traceback, bdb, cPickle
 import psychoParser
 import introspect, py_compile
@@ -1753,7 +1753,9 @@ class CoderFrame(wx.Frame):
 
             #load text from document
             if os.path.isfile(filename):
-                self.currentDoc.SetText(open(filename).read().decode('utf8'))
+                with open(filename, 'rU') as f:
+                    self.currentDoc.SetText(f.read().decode('utf8'))
+                    self.currentDoc.newlines = f.newlines
                 self.currentDoc.fileModTime = os.path.getmtime(filename)
                 self.fileHistory.AddFileToHistory(filename)
             else:
@@ -1862,9 +1864,25 @@ class CoderFrame(wx.Frame):
             try:
                 if failToSave: raise
                 self.SetStatusText('Saving file')
-                f = open(filename,'w')
-                f.write( doc.GetText().encode('utf-8'))
-                f.close()
+                newlines = None # system default, os.linesep
+                try:
+                    # this will fail when doc.newlines was not set (new file)
+                    if self.prefs['newlineConvention'] == 'keep':
+                        if doc.newlines == '\r\n' and not doc.GetText().lstrip(u'\ufeff').startswith("#!"):
+                            # '\r\n' and document has no shebang (ignore byte-order-marker)
+                            newlines = '\r\n'
+                        else: 
+                            # None, \n, tuple or document has shebang
+                            newlines = '\n'
+                    elif self.prefs['newlineConvention'] == 'dos':
+                        newlines = '\r\n'
+                    elif self.prefs['newlineConvention'] == 'unix':
+                        newlines = '\n'
+                except:
+                    pass
+                    
+                with io.open(filename,'w', encoding='utf-8', newline=newlines) as f:
+                    f.write(doc.GetText())
                 self.setFileModified(False)
                 doc.fileModTime = os.path.getmtime(filename) # JRG
             except:
