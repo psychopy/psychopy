@@ -2241,7 +2241,7 @@ class MultiStairHandler(_BaseTrialHandler):
 
             conditions: a list of dictionaries specifying conditions
                 Can be used to control parameters for the different staicases.
-                Can be imported from an Excel file using `psychopy.data.importTrialTypes`
+                Can be imported from an Excel file using `psychopy.data.importConditions`
                 MUST include keys providing, 'startVal', 'label' and 'startValSd' (QUEST only).
                 The 'label' will be used in data file saving so should be unique.
                 See Example Usage below.
