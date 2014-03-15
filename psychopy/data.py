@@ -367,7 +367,7 @@ class _BaseTrialHandler(object):
     def saveAsPickle(self,fileName, fileCollisionMethod = 'rename'):
         """Basically just saves a copy of the handler (with data) to a pickle file.
 
-        This can be reloaded if necessesary and further analyses carried out.
+        This can be reloaded if necessary and further analyses carried out.
 
         :Parameters:
 
@@ -1542,7 +1542,7 @@ class StairHandler(_BaseTrialHandler):
         self.calculateNextIntensity()
 
     def addOtherData(self, dataName, value):
-        """Add additonal data to the handler, to be tracked alongside the result
+        """Add additional data to the handler, to be tracked alongside the result
         data but not affecting the value of the staircase
         """
         if not dataName in self.otherData: #init the list
@@ -1967,7 +1967,7 @@ class QuestHandler(StairHandler):
             pThreshold
                 Your threshold criterion expressed as probability of response==1. An intensity
                 offset is introduced into the psychometric function so that the threshold (i.e.,
-                the midpoint of the table) yields pThreshold..
+                the midpoint of the table) yields pThreshold.
 
             nTrials: *None* or a number
                 The maximum number of trials to be conducted.
@@ -2427,7 +2427,7 @@ class MultiStairHandler(_BaseTrialHandler):
             self.getExp().addData(self.name+".response", result)
         self.totalTrials+=1
     def addOtherData(self, name, value):
-        """Add some data about the curent trial that will not be used to control the
+        """Add some data about the current trial that will not be used to control the
         staircase(s) such as reaction time data
         """
         self.currentStaircase.addOtherData(name, value)
