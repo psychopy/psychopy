@@ -2723,7 +2723,7 @@ class FitWeibull(_baseFunctionFit):
     with ``fit.eval(x)``, retrieve the inverse of the function with
     ``fit.inverse(y)`` or retrieve the parameters from ``fit.params``
     (a list with ``[alpha, beta]``)"""
-    #static mathods have no `self` and this is important for optimise.curve_fit
+    #static methods have no `self` and this is important for optimise.curve_fit
     @staticmethod
     def _eval(xx, alpha, beta):
         global _chance
@@ -2750,7 +2750,7 @@ class FitNakaRushton(_baseFunctionFit):
     Note that this differs from most of the other functions in
     not using a value for the expected minimum. Rather, it fits this
     as one of the parameters of the model."""
-    #static mathods have no `self` and this is important for optimise.curve_fit
+    #static methods have no `self` and this is important for optimise.curve_fit
     @staticmethod
     def _eval(xx, c50, n, rMin, rMax):
         xx = numpy.asarray(xx)
@@ -2783,7 +2783,7 @@ class FitLogistic(_baseFunctionFit):
     ``fit.inverse(y)`` or retrieve the parameters from ``fit.params``
     (a list with ``[PSE, JND]``)
     """
-    #static mathods have no `self` and this is important for optimise.curve_fit
+    #static methods have no `self` and this is important for optimise.curve_fit
     @staticmethod
     def _eval(xx, PSE, JND):
         global _chance
@@ -2820,7 +2820,7 @@ class FitCumNormal(_baseFunctionFit):
     1.74.00 the parameters became the [centre,sd] of the normal distribution.
 
     """
-    #static mathods have no `self` and this is important for optimise.curve_fit
+    #static methods have no `self` and this is important for optimise.curve_fit
     @staticmethod
     def _eval(xx, xShift, sd):
         global _chance
