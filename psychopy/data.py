@@ -432,7 +432,7 @@ class _BaseTrialHandler(object):
                 logging.info('TrialHandler.saveAsText called but no trials completed. Nothing saved')
             return -1
 
-        dataArray = self._createOutputArray(stimOut=[],
+        dataArray = self._createOutputArray(stimOut=stimOut,
             dataOut=dataOut,
             matrixOnly=matrixOnly)
 
@@ -537,7 +537,7 @@ class _BaseTrialHandler(object):
             return -1
 
         #create the data array to be sent to the Excel file
-        dataArray = self._createOutputArray(stimOut=[],
+        dataArray = self._createOutputArray(stimOut=stimOut,
             dataOut=dataOut,
             matrixOnly=matrixOnly)
 
