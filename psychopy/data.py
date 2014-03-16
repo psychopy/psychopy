@@ -367,7 +367,7 @@ class _BaseTrialHandler(object):
     def saveAsPickle(self,fileName, fileCollisionMethod = 'rename'):
         """Basically just saves a copy of the handler (with data) to a pickle file.
 
-        This can be reloaded if necessesary and further analyses carried out.
+        This can be reloaded if necessary and further analyses carried out.
 
         :Parameters:
 
@@ -432,7 +432,7 @@ class _BaseTrialHandler(object):
                 logging.info('TrialHandler.saveAsText called but no trials completed. Nothing saved')
             return -1
 
-        dataArray = self._createOutputArray(stimOut=[],
+        dataArray = self._createOutputArray(stimOut=stimOut,
             dataOut=dataOut,
             matrixOnly=matrixOnly)
 
@@ -537,7 +537,7 @@ class _BaseTrialHandler(object):
             return -1
 
         #create the data array to be sent to the Excel file
-        dataArray = self._createOutputArray(stimOut=[],
+        dataArray = self._createOutputArray(stimOut=stimOut,
             dataOut=dataOut,
             matrixOnly=matrixOnly)
 
@@ -1542,7 +1542,7 @@ class StairHandler(_BaseTrialHandler):
         self.calculateNextIntensity()
 
     def addOtherData(self, dataName, value):
-        """Add additonal data to the handler, to be tracked alongside the result
+        """Add additional data to the handler, to be tracked alongside the result
         data but not affecting the value of the staircase
         """
         if not dataName in self.otherData: #init the list
@@ -1967,7 +1967,7 @@ class QuestHandler(StairHandler):
             pThreshold
                 Your threshold criterion expressed as probability of response==1. An intensity
                 offset is introduced into the psychometric function so that the threshold (i.e.,
-                the midpoint of the table) yields pThreshold..
+                the midpoint of the table) yields pThreshold.
 
             nTrials: *None* or a number
                 The maximum number of trials to be conducted.
@@ -2241,7 +2241,7 @@ class MultiStairHandler(_BaseTrialHandler):
 
             conditions: a list of dictionaries specifying conditions
                 Can be used to control parameters for the different staicases.
-                Can be imported from an Excel file using `psychopy.data.importTrialTypes`
+                Can be imported from an Excel file using `psychopy.data.importConditions`
                 MUST include keys providing, 'startVal', 'label' and 'startValSd' (QUEST only).
                 The 'label' will be used in data file saving so should be unique.
                 See Example Usage below.
@@ -2427,7 +2427,7 @@ class MultiStairHandler(_BaseTrialHandler):
             self.getExp().addData(self.name+".response", result)
         self.totalTrials+=1
     def addOtherData(self, name, value):
-        """Add some data about the curent trial that will not be used to control the
+        """Add some data about the current trial that will not be used to control the
         staircase(s) such as reaction time data
         """
         self.currentStaircase.addOtherData(name, value)
@@ -2723,7 +2723,7 @@ class FitWeibull(_baseFunctionFit):
     with ``fit.eval(x)``, retrieve the inverse of the function with
     ``fit.inverse(y)`` or retrieve the parameters from ``fit.params``
     (a list with ``[alpha, beta]``)"""
-    #static mathods have no `self` and this is important for optimise.curve_fit
+    #static methods have no `self` and this is important for optimise.curve_fit
     @staticmethod
     def _eval(xx, alpha, beta):
         global _chance
@@ -2750,7 +2750,7 @@ class FitNakaRushton(_baseFunctionFit):
     Note that this differs from most of the other functions in
     not using a value for the expected minimum. Rather, it fits this
     as one of the parameters of the model."""
-    #static mathods have no `self` and this is important for optimise.curve_fit
+    #static methods have no `self` and this is important for optimise.curve_fit
     @staticmethod
     def _eval(xx, c50, n, rMin, rMax):
         xx = numpy.asarray(xx)
@@ -2783,7 +2783,7 @@ class FitLogistic(_baseFunctionFit):
     ``fit.inverse(y)`` or retrieve the parameters from ``fit.params``
     (a list with ``[PSE, JND]``)
     """
-    #static mathods have no `self` and this is important for optimise.curve_fit
+    #static methods have no `self` and this is important for optimise.curve_fit
     @staticmethod
     def _eval(xx, PSE, JND):
         global _chance
@@ -2820,7 +2820,7 @@ class FitCumNormal(_baseFunctionFit):
     1.74.00 the parameters became the [centre,sd] of the normal distribution.
 
     """
-    #static mathods have no `self` and this is important for optimise.curve_fit
+    #static methods have no `self` and this is important for optimise.curve_fit
     @staticmethod
     def _eval(xx, xShift, sd):
         global _chance
