@@ -955,12 +955,14 @@ def flac2wav(path, keep=True):
     else:
         return wav_files
 
-def wav2flac(path, keep=True):
+def wav2flac(path, keep=True, level=5):
     """Lossless compression: convert .wav file (on disk) to .flac format.
 
     If `path` is a directory name, convert all .wav files in the directory.
 
     `keep` to retain the original .wav file(s), default `True`.
+
+    `level` is compression level: 0 is fastest but larger, 8 is slightly smaller but much slower.
     """
     flac_path = _getFlacPath()
     wav_files = []
@@ -974,7 +976,7 @@ def wav2flac(path, keep=True):
     flac_files = []
     for wavfile in wav_files:
         flacfile = wavfile.replace('.wav', '.flac')
-        flac_cmd = [flac_path, "-8", "-f", "--totally-silent", "-o", flacfile, wavfile]
+        flac_cmd = [flac_path, "-%d" % level, "-f", "--totally-silent", "-o", flacfile, wavfile]
         __, se = core.shellCall(flac_cmd, stderr=True)
         if se or not os.path.isfile(flacfile): # just try again
             # ~2% incidence when recording for 1s, 650+ trials
