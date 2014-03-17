@@ -1,3 +1,4 @@
+
 from psychopy import microphone, core, web
 from psychopy.microphone import *
 from psychopy.microphone import _getFlacPath
@@ -94,13 +95,15 @@ class TestMicrophone(object):
 #@pytest.mark.needs_sound
 @pytest.mark.microphone
 @pytest.mark.speech
-@pytest.mark.slow
+@pytest.mark.mic_utils
 class TestMicrophoneNoSound(object):
     @classmethod
     def setup_class(self):
         try:
             assert _getFlacPath()
         except:
+            # some of the utils could be designed not to need flac but they
+            # currently work on a file that is distributed in flac format
             pytest.skip()
         self.tmp = mkdtemp(prefix='psychopy-tests-microphone')
         for testFile in ['red_16000.flac.dist', 'green_48000.flac.dist']:
@@ -125,9 +128,6 @@ class TestMicrophoneNoSound(object):
         microphone.FLAC_PATH = 'flac'
         assert microphone.FLAC_PATH
 
-    def test_misc(self):
-        getRMS([1,2,3,4,5])
-
     def test_wav_flac(self):
         filename = os.path.join(self.tmp, 'test_bad_readWav')
         with open(filename, 'wb') as fd:
@@ -135,26 +135,23 @@ class TestMicrophoneNoSound(object):
         with pytest.raises(SoundFileError):
             readWavFile(filename)
 
-        testFile = join(self.tmp, 'red_16000.wav')
+        testFile = join(self.tmp, 'green_48000.wav')
         newFile = wav2flac(testFile, keep=True)
         flac2wav(newFile, keep=True)
+
+        c = core.Clock()
+        newFile0 = wav2flac(testFile, keep=True, level=0)
+        t0 = c.getTime()
+        c.reset()
+        newFile8 = wav2flac(testFile, keep=True, level=8)
+        t8 = c.getTime()
+        assert os.path.getsize(newFile0) >= os.path.getsize(newFile8)
+        assert t0 < t8
+
         wav2flac('.', keep=True)
         flac2wav('.', keep=True)
         wav2flac('', keep=True)
         flac2wav('', keep=True)
-
-    def test_DFT(self):
-        testFile = join(self.tmp, 'red_16000.wav')
-        data, sampleRate = readWavFile(testFile)
-
-        with pytest.raises(OverflowError):
-            getDft([])
-        getDft(data)
-        getDftBins(data)
-        getDftBins(data, sampleRate=16000)
-        getDft(data, sampleRate=sampleRate)
-        getDft(data, wantPhase=True)
-
 
     def test_Speech2Text(self):
         try:
@@ -170,5 +167,38 @@ class TestMicrophoneNoSound(object):
         assert resp.word == 'red'
 
         bs = BatchSpeech2Text(files=glob.glob(join(self.tmp, 'red_*.wav')))
-        os.unlink(join(self.tmp, 'green_48000.wav'))
-        bs = BatchSpeech2Text(files=self.tmp, threads=1)
+        while bs._activeCount():
+            core.wait(.1, 0)
+        resp = bs[0][1]
+        assert resp.confidence == 0.68801856
+        assert resp.word == 'red'
+
+    def test_DFT(self):
+        testFile = join(self.tmp, 'red_16000.wav')
+        data, sampleRate = readWavFile(testFile)
+
+        with pytest.raises(OverflowError):
+            getDft([])
+        getDft(data)
+        getDftBins(data)
+        getDftBins(data, sampleRate=16000)
+        getDft(data, sampleRate=sampleRate)
+        getDft(data, wantPhase=True)
+
+    def test_RMS(self):
+        testFile = join(self.tmp, 'red_16000.wav')
+        data, sampleRate = readWavFile(testFile)
+
+        rms = getRMS(data)
+        assert 588.60 < rms < 588.61
+
+        rmsb = getRMSBins(data, chunk=64)
+        assert 10.2 < rmsb[0] < 10.3
+        assert len(rmsb) == 480
+
+    def test_marker(self):
+        testFile = join(self.tmp, 'green_48000.wav')
+
+        marker = getMarkerOnset(testFile)  # 19kHz marker sound
+        assert 0.0666 < marker[0] < 0.06677  # start
+        assert 0.0773 < marker[1] < 0.07734  # end
