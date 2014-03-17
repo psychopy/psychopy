@@ -40,21 +40,69 @@ mcu.enableEventReporting(True)
 
 print 'Running Test. Please wait.'
 print   
-core.wait(1.0,0.0) 
 old_stuff=mcu.getRequestResponse()
-
 io.clearEvents("all")  
-    
+
+labels=(# 'offset' ,
+        # 'drift',
+        # 'sync_accuracy' ,
+         'tx_time',
+         'iohub_time',
+         'rx_time',
+         'rx_time - tx_time' ,
+         'iohub_time - tx_time' ,
+         'rx_time - iohub_time' ,
+        # 'last_rtt' ,
+        # 'last_local_dt' ,    
+        # 'last_remote_dt' ,            
+        # 'mean_rtt' ,
+        # 'mean_local_dt' ,   
+        # 'mean_remote_dt' ,              
+        # 'stdev_rtt' ,  
+        # 'stdev_local_dt' , 
+        # 'stdev_remote_dt'
+         )    
+print '\t'.join(labels)
+print
+
 for i in range(repetitions):      
     r=mcu.requestTime()
     stime=getTime()
-    while getTime()-stime < 0.5 and results[i,0] == 0.0:
+    time.sleep(0.1)
+    hitFound=False
+    while getTime()-stime < 0.5 and hitFound is False:
         responses = mcu.getRequestResponse()
-        for resp in responses:
-            print '>>>>'
-            print 'ioSync Response:'            
-            pprint(resp)
-            print '<<<<'
+        for r in responses:
+            if r['iohub_time']:
+                vals=(#r['offset']*1000.0,
+                    #r['drift'],
+                    #(r['sync_accuracy'])*1000.0,
+                    (r['tx_time'])*1000.0,
+                    (r['iohub_time'])*1000.0,
+                    (r['rx_time'])*1000.0,
+                    (r['rx_time']-r['tx_time'])*1000.0,
+                    (r['iohub_time']-r['tx_time'])*1000.0,
+                    (r['rx_time']-r['iohub_time'])*1000.0,
+                    #r['last_rtt']*1000.0,
+                    #r['last_local_dt']*1000.0,    
+                    #r['last_remote_dt']*1000.0,            
+                    #r['mean_rtt']*1000.0,
+                    #r['mean_local_dt']*1000.0,   
+                    #r['mean_remote_dt']*1000.0,              
+                    #r['stdev_rtt']*1000.0,  
+                    #r['stdev_local_dt']*1000.0, 
+                    #r['stdev_remote_dt']*1000.0
+                    )
+                
+                valstr=['%.3f'%(v) for v in vals]
+                print '\t'.join(valstr)            
+#            print '>>>>'
+#            print 'ioSync Response:'            
+#            pprint(resp)
+#            print '<<<<'
+            hitFound=True
+            break
+        
 #print '----'                 
 #core.wait(0.1,0.0)
 #srtime=getTime()*1000.0

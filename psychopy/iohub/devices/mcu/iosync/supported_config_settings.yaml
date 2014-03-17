@@ -21,6 +21,10 @@ mcu.iosync.MCU:
         IOHUB_STRING:
             min_length: 1
             max_length: 32
+    time_sync_interval:
+            IOHUB_FLOAT:
+                min: 0.05
+                max: 5.0
     device_timer:
         interval:
             IOHUB_FLOAT:

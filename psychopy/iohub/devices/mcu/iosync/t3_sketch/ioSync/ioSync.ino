@@ -1,4 +1,4 @@
-
+ 
 /*
 ioSync Sketch for Teensy 3.0 / 3.1
 
@@ -28,7 +28,7 @@ byte bytePow(byte x, byte p)
   if (p == 1) return x;
 
   byte tmp = bytePow(x, p/2);
-  if (p%2 == 0) return tmp * tmp;
+  if (p%2 == 0) return tmp * tmp;  
   else return x * tmp * tmp;
 }
 
@@ -97,7 +97,7 @@ const double DIGITAL_ANALOG_10_STEP = 0.001171875;
 
 #define AIN_RES 16
 #define AIN_AVERAGING 16
-#define AIN_REF INTERNAL //EXTERNAL
+#define AIN_REF EXTERNAL //INTERNAL //EXTERNAL
 #define AIN_RATE 1000
 
 // I2C pins
@@ -131,15 +131,15 @@ void updateUsecTime(){
   if(t3_usec_time.usecs<t3_usec_time.prev_usecs) // its rolled over
     t3_usec_time.rolls++; // increment 2 byte roll counter
   t3_usec_time.prev_usecs=t3_usec_time.usecs; 
-}
-
-void updateUsecTimeBytes(){
+  
+  // update byte stream rep of current time
   t3_usec_time.bytes[0] = ( (t3_usec_time.usecs) >> 24) & 0xff; //event time bits 24..31
   t3_usec_time.bytes[1] = ( (t3_usec_time.usecs) >> 16) & 0xff; //event time bits 16..23
   t3_usec_time.bytes[2] = ( (t3_usec_time.usecs) >> 8) & 0xff; //event time bits 8..15
   t3_usec_time.bytes[3] = ( (t3_usec_time.usecs) & 0xff);    //event time bits 0..7  
   t3_usec_time.bytes[4] = ( (t3_usec_time.rolls) >> 8) & 0xff; //roll counter bits 40..47
   t3_usec_time.bytes[5] = ( (t3_usec_time.rolls) & 0xff);    //roll counter bits 32..39
+  
 }
 
 //----------------------------------------------------
@@ -172,8 +172,8 @@ byte writeByteBufferToSerial(){
 #define GET_DIGITAL_IN_STATE 4
 #define GET_AIN_CHANNELS 5
 #define SET_T3_INPUTS_STREAMING_STATE 6
-
-#define REQUEST_TYPE_COUNT 7
+#define SYNC_TIME_BASE 7
+#define REQUEST_TYPE_COUNT 8
 
 #define REQUEST_TX_HEADER_BYTE_COUNT 8
 
@@ -185,6 +185,7 @@ byte request_tx_byte_length[REQUEST_TYPE_COUNT]={
   REQUEST_TX_HEADER_BYTE_COUNT+1,
   REQUEST_TX_HEADER_BYTE_COUNT+sizeof(AIN_PINS)*2,
   REQUEST_TX_HEADER_BYTE_COUNT,
+  REQUEST_TX_HEADER_BYTE_COUNT  
 };
 
 void NullHandlerRx(byte request_type,byte request_id,byte request_rx_byte_count);
@@ -194,6 +195,7 @@ void handleSetDigitalOutStateRx(byte request_type,byte request_id,byte request_r
 void handleGetDigitalInStateRx(byte request_type,byte request_id,byte request_rx_byte_count);
 void handleGetAnalogInChannelsRx(byte request_type,byte request_id,byte request_rx_byte_count);
 void handleEnableInputStreamingRx(byte request_type,byte request_id,byte request_rx_byte_count);
+void handleSyncTimebaseRx(byte request_type,byte request_id,byte request_rx_byte_count);
 
 void (*requestHandlerFP[REQUEST_TYPE_COUNT])(byte request_type,byte request_id,byte request_rx_byte_count)={
   NullHandlerRx,
@@ -202,8 +204,13 @@ void (*requestHandlerFP[REQUEST_TYPE_COUNT])(byte request_type,byte request_id,b
   handleSetDigitalOutStateRx,
   handleGetDigitalInStateRx,
   handleGetAnalogInChannelsRx,
-  handleEnableInputStreamingRx
+  handleEnableInputStreamingRx,
+  handleSyncTimebaseRx
 };
+
+elapsedMicros sinceLastSerialTx;
+elapsedMicros sinceLastInputRead;
+#define MAX_TX_BUFFERING_INTERVAL 700
 
 //---------------------------------------
 // Host PC Request Processor, sets Request Tx reply
@@ -212,7 +219,7 @@ void (*requestHandlerFP[REQUEST_TYPE_COUNT])(byte request_type,byte request_id,b
 
 unsigned int handleHostSerialRequests(){
   char rx_info[3];
-  byte rtype,rid,rx_count;
+  byte rtype,rid,rx_count,usec_time_start_byte_index;
 
   if (Serial.available() >=3) {  
     Serial.readBytes(rx_info,3);
@@ -221,8 +228,7 @@ unsigned int handleHostSerialRequests(){
     rx_count=rx_info[2];
 
     updateUsecTime();
-    updateUsecTimeBytes();
-
+    
     tx_byte_buffer[tx_byte_buffer_index]=rid;
     tx_byte_buffer[tx_byte_buffer_index+1]=request_tx_byte_length[rtype];
     tx_byte_buffer[tx_byte_buffer_index+2]=t3_usec_time.bytes[0];
@@ -231,7 +237,6 @@ unsigned int handleHostSerialRequests(){
     tx_byte_buffer[tx_byte_buffer_index+5]=t3_usec_time.bytes[3];
     tx_byte_buffer[tx_byte_buffer_index+6]=t3_usec_time.bytes[4];
     tx_byte_buffer[tx_byte_buffer_index+7]=t3_usec_time.bytes[5];
-
     tx_byte_buffer_index=tx_byte_buffer_index+8;
 
     requestHandlerFP[rtype](rtype,rid,rx_count-8);
@@ -249,6 +254,11 @@ void NullHandlerRx(byte request_type,byte request_id,byte request_rx_byte_count)
 
 void handleUsecTimeRx(byte request_type,byte request_id,byte request_rx_byte_count){
   //nothing to do here
+}
+
+void handleSyncTimebaseRx(byte request_type,byte request_id,byte request_rx_byte_count){
+  //force immediate tx of response.
+  sinceLastSerialTx = sinceLastSerialTx + MAX_TX_BUFFERING_INTERVAL;
 }
 
 void handleSetDigitalOutStateRx(byte request_type,byte request_id,byte request_rx_byte_count){
@@ -345,8 +355,8 @@ void handleGetAnalogInChannelsRx(byte request_type,byte request_id,byte request_
   unsigned int v=0;
   for (int i=0;i<sizeof(AIN_PINS);i++){
     v=analogRead(AIN_PINS[i]);
-    tx_byte_buffer[tx_byte_buffer_index+8+i*2] = (v >> 8) & 0xff; //event time bits 8..15
-    tx_byte_buffer[tx_byte_buffer_index+9+i*2] = (v & 0xff);    //event time bits 0..7  
+    tx_byte_buffer[tx_byte_buffer_index+8+i*2] = (v >> 8) & 0xff; //ain bits 8..15
+    tx_byte_buffer[tx_byte_buffer_index+9+i*2] = (v & 0xff);    //ain time bits 0..7  
     }
   tx_byte_buffer_index+=16; 
 }
@@ -365,19 +375,14 @@ void handleEnableInputStreamingRx(byte request_type,byte request_id,byte request
 //---------------------------------------
 //
 // IntervalTimer for reading digital and analog inputs
-#define INPUT_LINES_READ_RATE 500
+#define INPUT_LINES_READ_RATE AIN_RATE
 
 byte  last_digital_input_state=0;
 byte current_digital_input_state=0;
 
 void inputLineReadTimerCallback(void){
   if (digital_input_streaming_enabled>0){
-    // Check for digital input state changes
-    current_digital_input_state=0;
-    for (byte i=0;i<sizeof(DIN_PINS);i++)
-      current_digital_input_state+=(bytePow(2,i)*digitalRead(DIN_PINS[i]));
-    if (current_digital_input_state!=last_digital_input_state)
-      addDigitalEventToByteBuffer(); // create digital input change event
+      addDigitalEventToByteBuffer(); // check for digital input change event
   }
 
   if (analog_input_streaming_enabled>0){
@@ -397,24 +402,28 @@ void inputLineReadTimerCallback(void){
 #define ANALOG_EVENT_TX_BYTE_COUNT 24
 
 byte addDigitalEventToByteBuffer(){
-  updateUsecTime();
-  updateUsecTimeBytes();
+    // Check for digital input state changes
+    current_digital_input_state=0;
+    for (byte i=0;i<sizeof(DIN_PINS);i++)
+      current_digital_input_state+=(bytePow(2,i)*digitalRead(DIN_PINS[i]));
 
-  if (byteBufferFreeSize()<DIGITAL_EVENT_TX_BYTE_COUNT)
-    return 0;
-
-  tx_byte_buffer[tx_byte_buffer_index]=DIGITAL_INPUT_EVENT;
-  tx_byte_buffer[tx_byte_buffer_index+1]=DIGITAL_EVENT_TX_BYTE_COUNT;
-  tx_byte_buffer[tx_byte_buffer_index+2]=t3_usec_time.bytes[0];
-  tx_byte_buffer[tx_byte_buffer_index+3]=t3_usec_time.bytes[1];
-  tx_byte_buffer[tx_byte_buffer_index+4]=t3_usec_time.bytes[2];
-  tx_byte_buffer[tx_byte_buffer_index+5]=t3_usec_time.bytes[3];
-  tx_byte_buffer[tx_byte_buffer_index+6]=t3_usec_time.bytes[4];
-  tx_byte_buffer[tx_byte_buffer_index+7]=t3_usec_time.bytes[5];
-  tx_byte_buffer[tx_byte_buffer_index+8]=current_digital_input_state;
-  last_digital_input_state=current_digital_input_state;       
-  tx_byte_buffer_index=tx_byte_buffer_index+DIGITAL_EVENT_TX_BYTE_COUNT;
-
+    updateUsecTime();
+      
+    if (current_digital_input_state!=last_digital_input_state){
+      if (byteBufferFreeSize()<DIGITAL_EVENT_TX_BYTE_COUNT)
+        return 0;
+      tx_byte_buffer[tx_byte_buffer_index]=DIGITAL_INPUT_EVENT;
+      tx_byte_buffer[tx_byte_buffer_index+1]=DIGITAL_EVENT_TX_BYTE_COUNT;
+      tx_byte_buffer[tx_byte_buffer_index+2]=t3_usec_time.bytes[0];
+      tx_byte_buffer[tx_byte_buffer_index+3]=t3_usec_time.bytes[1];
+      tx_byte_buffer[tx_byte_buffer_index+4]=t3_usec_time.bytes[2];
+      tx_byte_buffer[tx_byte_buffer_index+5]=t3_usec_time.bytes[3];
+      tx_byte_buffer[tx_byte_buffer_index+6]=t3_usec_time.bytes[4];
+      tx_byte_buffer[tx_byte_buffer_index+7]=t3_usec_time.bytes[5];
+      tx_byte_buffer[tx_byte_buffer_index+8]=current_digital_input_state;
+      last_digital_input_state=current_digital_input_state;       
+      tx_byte_buffer_index=tx_byte_buffer_index+DIGITAL_EVENT_TX_BYTE_COUNT;
+    }
 }
 
 byte addAnalogEventToByteBuffer(){
@@ -426,7 +435,6 @@ byte addAnalogEventToByteBuffer(){
     ain_readings[i]=analogRead(AIN_PINS[i]);
 
   updateUsecTime();
-  updateUsecTimeBytes();
 
   tx_byte_buffer[tx_byte_buffer_index]=ANALOG_INPUT_EVENT;
   tx_byte_buffer[tx_byte_buffer_index+1]=ANALOG_EVENT_TX_BYTE_COUNT;
@@ -467,18 +475,20 @@ void initAnalogInputs(){
   for (int i=0;i<sizeof(AIN_PINS);i++){
     pinMode(AIN_PINS[i], INPUT);
   }
-  // Analog input bit resolution 10 - 16 bits are supported
-  analogReadRes(AIN_RES);
-
-  // HW Analog Input Sample Averaging. 1 = No Averaging to 32 = average 32 samples in HW, max value is 32
-  analogReadAveraging(AIN_AVERAGING);
-
   // What should be used as the analog reference source.
   // Options: 
   //  DEFAULT: ??
   //  INTERNAL:  1.0 ±0.3V (0.97 to 1.03 V) (source http://www.pjrc.com/teensy/K20P64M50SF0.pdf)
   //  EXTERNAL: Use the input applied to the AGND. See here from some considerations if this is used. http://forum.pjrc.com/threads/23585-AREF-is-making-me-lose-my-hair 
   analogReference(AIN_REF);
+
+  // Analog input bit resolution 10 - 16 bits are supported
+  analogReadRes(AIN_RES);
+
+  // HW Analog Input Sample Averaging. 1 = No Averaging to 32 = average 32 samples in HW, max value is 32
+  analogReadAveraging(AIN_AVERAGING);
+
+
 }
 
 void initUsec48(){
@@ -497,24 +507,23 @@ void setup()
   initDigitalOutputs();
   initDigitalInputs();
   initAnalogInputs();
+  
+  sinceLastInputRead=0;
+  sinceLastSerialTx=0;
   //  initIntervalTimers();
 }
 
 //---------------------------------------
 // Main loop()
 // Repeatedly called while microcontroller is running.
-#define MAX_TX_BUFFERING_INTERVAL 700
-
-elapsedMicros sinceLastSerialTx;
-elapsedMicros sinceLastInputRead;
 void loop()
 {
-  handleHostSerialRequests();
-
   if (sinceLastInputRead>=INPUT_LINES_READ_RATE){
     inputLineReadTimerCallback();   
     sinceLastInputRead=sinceLastInputRead-INPUT_LINES_READ_RATE;
   }
+
+  handleHostSerialRequests();
 
   if ( tx_byte_buffer_index>0 && (byteBufferFreeSize()<24 || sinceLastSerialTx>=MAX_TX_BUFFERING_INTERVAL) ){
     writeByteBufferToSerial();
@@ -522,5 +531,6 @@ void loop()
     Serial.send_now();
     sinceLastSerialTx = sinceLastSerialTx - MAX_TX_BUFFERING_INTERVAL;
   }
+
 }
 

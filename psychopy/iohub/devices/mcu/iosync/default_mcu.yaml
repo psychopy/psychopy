@@ -35,6 +35,8 @@ mcu.iosync.MCU:
     #
     serial_port: COM2
 
+    time_sync_interval: 0.333333
+
     # device_timer: Devices that require polling to read any new native events
     #   that have become available must specifiy a device_timer property, with an
     #   interval sub property that specifies how frequently the device would be polled

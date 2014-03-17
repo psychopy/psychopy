@@ -122,19 +122,28 @@ class T3Event(object):
     ANALOG_INPUT_EVENT =2
     def __init__(self,event_type,event_time_bytes,remaining_bytes):
         self._type=event_type              
-        self._t3_usec_time= (event_time_bytes[4] << 40) + (event_time_bytes[5] << 32) \
+        self.usec_device_time = (event_time_bytes[4] << 40) + (event_time_bytes[5] << 32) \
         + (event_time_bytes[0] << 24) + (event_time_bytes[1] << 16) \
         + (event_time_bytes[2] << 8) + event_time_bytes[3]
+        self.device_time = self.usec_device_time/1000000.0
+        self.local_time=T3Request.sync_state.remote2LocalTime(self.device_time)
+#        local_time_dt=0.0        
+#        ctime=getTime()
+#        if self.local_time:
+#            local_time_dt=(ctime-self.local_time)*1000.0
+#        print2err("Creating event: ",ctime,' : ',self.usec_device_time,' : ',
+#                  self.device_time,' : ',self.local_time,' : ',
+#                  local_time_dt," msec")
         self._parseRemainingBytes(remaining_bytes)
         
     def getTypeInt(self):
         return self._type
-        
-    def getUsec(self):
-        return self._t3_usec_time
 
     def asdict(self):
-        pass
+        return dict(event_type=self.getTypeInt(),
+                    device_time=self.device_time,
+                    device_usec_time=self.device_usec_time,
+                    local_time=self.local_time)
 
     def _parseRemainingBytes(self,remaining_bytes):
         raise AttributeError("T3Event._parseRemainingBytes must be extended")
@@ -150,7 +159,9 @@ class DigitalInputEvent(T3Event):
         return self._value
         
     def asdict(self):
-        return dict(event_type=self.getTypeInt(),time=self.getUsec(),value=self.getDigitalInputByte())
+        rdict=T3Event.asdict(self)
+        rdict['value']=self.getDigitalInputByte()
+        return rdict
 
 class AnalogInputEvent(T3Event):
     def __init__(self,event_type,event_time_bytes,analog_data):
@@ -159,53 +170,13 @@ class AnalogInputEvent(T3Event):
     def _parseRemainingBytes(self,analog_data):
         self.ain_channels=[]
         for i in range (0,len(analog_data),2):
-            self.ain_channels.append((analog_data[i] << 8) + analog_data[i+1])
-
-    @classmethod
-    def normalize2dAnalogData(cls,X,Y,INPUT_DEADZONE=512):
-        #print '---'
-        #print 'pre:',X,Y
-        X=X-32768            
-        Y=Y-32768            
-        #print 'post:',X,Y
-        magnitude = np.sqrt(X*X + Y*Y)
-        #print 'mag:',magnitude
-
-        normalizedX=0
-        normalizedY=0
-    
-        if magnitude != 0:
-            #determine the direction the controller is pushed
-            normalizedX = X / magnitude;
-            normalizedY = Y / magnitude;
-            #print 'normalized:',normalizedX,normalizedY    
-        normalizedMagnitude = 0;
-    
-        #check if the controller is outside a circular dead zone
-        if (magnitude > INPUT_DEADZONE):
-    
-            #clip the magnitude at its expected maximum value
-            if (magnitude > 32767.0):
-                magnitude = 32767.0;
-      
-            #adjust magnitude relative to the end of the dead zone
-            magnitude -= INPUT_DEADZONE;
-            #print 'mag-dead:',magnitude    
-            # normalize the magnitude with respect to its expected range
-            # giving a magnitude value of 0.0 to 1.0
-            normalizedMagnitude = magnitude / (32767.0 - INPUT_DEADZONE)
-            #print 'mag normed:',normalizedMagnitude
-            #print 'returning',  normalizedX,normalizedY,normalizedMagnitude          
-            return normalizedX,normalizedY,normalizedMagnitude
-    
-        else: #if the controller is in the deadzone zero out the magnitude
-            #print 'returning', 0,0,0
-            magnitude = 0.0
-            normalizedMagnitude = 0.0
-            return 0,0,0
+            aval=(analog_data[i] << 8) + analog_data[i+1]
+            self.ain_channels.append(aval)
 
     def asdict(self):
-        return dict(event_type=self.getTypeInt(),time=self.getUsec(),value=self.ain_channels)
+        rdict=T3Event.asdict(self)
+        rdict['channels']=self.ain_channels
+        return rdict
 
 EVENT_TYPE_2_CLASS=dict()
 EVENT_TYPE_2_CLASS[T3Event.DIGITAL_INPUT_EVENT]=DigitalInputEvent
@@ -221,12 +192,11 @@ class T3Request(object):
     GET_DIGITAL_IN_STATE =4
     GET_AIN_CHANNELS =5
     SET_T3_INPUTS_STREAMING_STATE=6
+    SYNC_TIME_BASE =7
     
-    REQ_COUNTER_START=32
+    REQ_COUNTER_START=8
     _request_counter=REQ_COUNTER_START
     sync_state=None
-    sync_run_data=np.zeros((3,3),dtype=np.float32)
-    sync_point_counter=0
     def __init__(self,request_type,user_byte_array=None):
         self._id=T3Request._request_counter
         T3Request._request_counter+=1
@@ -243,22 +213,33 @@ class T3Request(object):
         self._rx_byte_count=0
         
         if T3Request.sync_state is None:
-            T3Request.sync_state=TimeSyncState()
+            T3Request.sync_state=TimeSyncState(5)
             
-        self._tx_time=None
-        self._rx_time=None
+        self.tx_time=None
+        self.rx_time=None
+        self.usec_device_time=None
+        self.device_time=None
+        self.iohub_time=None
         
-        self._t3_usec_time=None
-        
+#        self.drift=None
+#        self.offset=None
+#        self.sync_accuracy=None       
+#        self.last_rtt=None
+#        self.last_local_dt=None    
+#        self.last_remote_dt=None 
+#        self.mean_rtt=None   
+#        self.mean_local_dt=None    
+#        self.mean_remote_dt=None  
+#        self.stdev_rtt=None  
+#        self.stdev_local_dt=None  
+#        self.stdev_remote_dt=None 
+            
     def getTypeInt(self):
         return self._type
         
     def getID(self):
         return self._id
 
-    def getUsec(self):
-        return self._t3_usec_time
-        
     def getTxByteArray(self):
         return self._tx_data
 
@@ -274,79 +255,67 @@ class T3Request(object):
     def setRxByteArray(self,d):
         self._rx_data=d
         self._rx_byte_count=len(d)
-        self._parseRequestProcTime()
-        
-    def syncWithT3Time(self):
-        if self.sync_point_counter == 3:
-            # calc sync run min, update state, and clear sync_run_data            
-            min_rtt_point_index=self.sync_run_data[:,2].argmin()
-            L2,R2,RTT2=self.sync_run_data[min_rtt_point_index,:]
-
-            if len(self.sync_state.RTTs)>0:
-                RTT1=self.sync_state.RTTs[-1]    
-                L1=self.sync_state.L_times[-1]    
-                R1=self.sync_state.R_times[-1]    
-                drift=(R2-R1)/(L2-L1)
-                self.sync_state.drifts.append(drift)
-
-            self.sync_state.RTTs.append(RTT2)
-            self.sync_state.L_times.append(L2)
-            self.sync_state.R_times.append(R2)
-            self.sync_state.offsets.append(R2-L2)
-
-            T3Request.sync_point_counter=0
-            
-        else:
-            i = T3Request.sync_point_counter
-            self.sync_run_data[i,0]=((self._rx_time+self._tx_time)/2.0) # L
-            self.sync_run_data[i,1]=self.getUsec()/1000000.0 # R
-            self.sync_run_data[i,2]=(self._rx_time-self._tx_time) # rtt
-
-            T3Request.sync_point_counter+=1                                
-     
+        if self._rx_byte_count<8:
+            raise AttributeError("Request Rx Byte Size to short: {0}".format(self._rx_data))
+        self.usec_device_time = (d[6] << 40) + (d[7] << 32) + (d[2] << 24) + (d[3] << 16) \
+                + (d[4] << 8) + d[5]
+        self.device_time=self.usec_device_time/1000000.0
 
     @classmethod
     def _readRequestReply(cls,t3,request_id):
         request=t3.getActiveRequests().pop(request_id,None)
         if request is None:
-            #print2err( "ERROR: _readRequestReply received an unknown request_id:", request_id)
             return None
+
+        request.rx_time=getTime()
         rx_data=[request_id,ord(t3.getSerialPort().read(1))]
         if rx_data[1]>0:
             rx_data.extend([ord(c) for c in t3.getSerialPort().read(rx_data[1]-2)] )
         request.setRxByteArray(rx_data)
-        return request
         
-    def _parseRequestProcTime(self):
-        rx_data=self._rx_data
-        if self._rx_byte_count<8:
-            raise AttributeError("Request Rx Byte Size to short: {0}".format(self._rx_data))
-        self._t3_usec_time= (rx_data[6] << 40) + (rx_data[7] << 32) + (rx_data[2] << 24) + (rx_data[3] << 16) \
-                + (rx_data[4] << 8) + rx_data[5]
+        syncstate=cls.sync_state
+        #request.drift=syncstate.getDrift()
+        #request.offset=syncstate.getOffset()
+        #request.sync_accuracy=syncstate.getAccuracy()
+                        
+        request.iohub_time=None
+        if syncstate.getOffset() is not None:
+            request.iohub_time=float(syncstate.remote2LocalTime(request.device_time))
 
+            #request.last_rtt=float(syncstate.RTTs[-1])    
+            #request.last_local_dt=float(syncstate.L_times[-1])    
+            #request.last_remote_dt=float(syncstate.R_times[-1]) 
+
+            #request.mean_rtt=float(syncstate.RTTs.mean())   
+            #request.mean_local_dt=float(syncstate.L_times.mean())    
+            #request.mean_remote_dt=float(syncstate.R_times.mean())  
+
+            #request.stdev_rtt=float(syncstate.RTTs.std(ddof=1))   
+            #request.stdev_local_dt=float(syncstate.L_times.std(ddof=1))    
+            #request.stdev_remote_dt=float(syncstate.R_times.std(ddof=1))  
+            
+        return request
 
     def asdict(self):
-        remote_time=self.getUsec()
-        syncstate=self.sync_state
-        hub_time=None
-        if remote_time:
-            remote_time=remote_time/1000000.0
-            hub_time=syncstate.remote2LocalTime(remote_time)
-        return dict(request_type=self.getTypeInt(),
-                    device_time=remote_time,
-                    hub_time=hub_time,
-                    tx_time=self._tx_time,
-                    rx_time=self._rx_time,   
-                    #remote_tx_time=syncstate.local2RemoteTime(self._tx_time),
-                    #remote_rx_time=syncstate.local2RemoteTime(self._rx_time),   
-                    #drift=syncstate.getDrift(),
-                    #offset=syncstate.getOffset(),
-                    accuracy=syncstate.getAccuracy(),
-                    id=self.getID(),
-                    #rx_count=self.getRxByteCount(),
-                    #tx_count=self.getTxByteCount(),
-                    #rx_bytes=str(self.getRxByteArray()),
-                    #tx_bytes=str(self.getTxByteArray())
+        return dict(id=self.getID(),
+                    request_type=self.getTypeInt(),
+                    device_time=self.device_time,
+                    usec_device_time=self.usec_device_time,
+                    iohub_time=self.iohub_time,
+                    tx_time=self.tx_time,
+                    rx_time=self.rx_time,   
+                    #drift=self.drift,
+                    #offset=self.offset,
+                    #sync_accuracy=self.sync_accuracy,
+                    #last_rtt=self.last_rtt,
+                    #last_local_dt=self.last_local_dt,    
+                    #last_remote_dt=self.last_remote_dt ,
+                    #mean_rtt=self.mean_rtt   ,
+                    #mean_local_dt=self.mean_local_dt ,   
+                    #mean_remote_dt=self.mean_remote_dt,  
+                    #stdev_rtt=self.stdev_rtt,  
+                    #stdev_local_dt=self.stdev_local_dt , 
+                    #stdev_remote_dt=self.stdev_remote_dt 
                     )
 
 class EnableT3InputStreaming(T3Request):
@@ -356,6 +325,40 @@ class EnableT3InputStreaming(T3Request):
 class GetT3UsecRequest(T3Request):
     def __init__(self):
         T3Request.__init__(self,T3Request.GET_USEC_TIME)
+
+class SyncTimebaseRequest(T3Request):
+    sync_point_counter=0
+    sync_run_data=np.zeros((3,3),dtype=np.float64)
+
+    def __init__(self):
+        T3Request.__init__(self,T3Request.SYNC_TIME_BASE)
+
+    def syncWithT3Time(self):
+        if self.sync_point_counter == 3:
+            # calc sync run min, update state, and clear sync_run_data            
+            min_rtt_point_index=self.sync_run_data[:,2].argmin()
+            L2,R2,RTT2=self.sync_run_data[min_rtt_point_index,:]
+            drift=0.0
+            if len(self.sync_state.RTTs)>0:
+                #RTT1=self.sync_state.RTTs[-1]    
+                L1=self.sync_state.L_times[-1]    
+                R1=self.sync_state.R_times[-1]    
+                #drift=(R2-R1)/(L2-L1)
+                #self.sync_state.drifts.append(drift)
+                self.sync_state.offsets.append(R2-L2)
+            #self.sync_state.RTTs.append(RTT2)
+            self.sync_state.L_times.append(L2)
+            self.sync_state.R_times.append(R2)
+
+            SyncTimebaseRequest.sync_point_counter=0
+            
+        else:
+            i = SyncTimebaseRequest.sync_point_counter
+            self.sync_run_data[i,0]=((self.rx_time+self.tx_time)/2.0) # L
+            self.sync_run_data[i,1]=self.device_time # R
+            self.sync_run_data[i,2]=(self.rx_time-self.tx_time) # rtt
+
+            SyncTimebaseRequest.sync_point_counter+=1                                
 
 class GetT3DigitalInputStateRequest(T3Request):
     def __init__(self):
@@ -377,7 +380,7 @@ class SetT3DigitalOutputPinRequest(T3Request):
 
 class T3MC(object):    
 
-    def __init__(self,port_num, baud=115200, timeout=1):
+    def __init__(self,port_num, baud=115200, timeout=0):
         self._port_num=port_num-1
         self._baud=baud
         self._timeout=timeout       
@@ -423,49 +426,32 @@ class T3MC(object):
         #  self._serial_port.read(self._serial_port.inWaiting())
 
     def _sendT3Request(self,request):
+        request.tx_time=getTime()
         tx_count=self._serial_port.write(request.getTxByteArray())
         self._serial_port.flush()
-        request._tx_time=getTime()
         self._active_requests[request.getID()]=request
         return tx_count
 
     def getSerialRx(self):
         while self._serial_port.inWaiting()>=2:
-            rx_time=getTime()
             request_id=ord(self._serial_port.read(1))
             if request_id<T3Request.REQ_COUNTER_START:
-                #print2err('***********************')
-                # handle T3 event data
-                #print2err('>>> EVENT')
-                #print2err('event_id: ',request_id)
                 event_byte_count=ord(self._serial_port.read(1))
-                #print2err('event_byte_count: ',event_byte_count)
                 time_bytes=[ord(c) for c in self._serial_port.read(6)]
-                #print2err('time_bytes: ',time_bytes)
                 remaining_byte_count= event_byte_count-(len(time_bytes)+2)
                 remaining_bytes=[]
                 if remaining_byte_count>0:
                     remaining_bytes=[ord(c) for c in self._serial_port.read(remaining_byte_count)]
-                #print2err('remaining_bytes:',remaining_bytes,len(remaining_bytes))
                 if request_id in EVENT_TYPE_2_CLASS.keys():
                     event=EVENT_TYPE_2_CLASS[request_id](request_id,time_bytes,remaining_bytes)
-                    #print2err('event: ',event.asdict())                
                     self._rx_events.append(event)
-            
-                #else:
-                #    print2err( "ERROR RECEIVING T3 EVENT, unknown event type:",request_id)
-                #print2err(  '<<<<')
-                #print2err('***********************')
-            else:
-                #print2err('---------------------------')
-                request=T3Request._readRequestReply(self,request_id)
-                if request:
-                    request._rx_time=rx_time
-                    #print2err('request_reply:',request.asdict()) 
-                    # request.syncWithT3Time(getTime())
-                    request.syncWithT3Time() 
-                    self._request_replies.append(request)
-                #print2err('---------------------------')
+            else:               
+                reply=T3Request._readRequestReply(self,request_id)
+                if reply:
+                    if reply._type==T3Request.SYNC_TIME_BASE:
+                        reply.syncWithT3Time()
+                    else:
+                        self._request_replies.append(reply)
                 else:
                     print2err("INVAID REQUEST ID in reply:",  request_id )                  
     def closeSerial(self):
@@ -494,6 +480,11 @@ class T3MC(object):
         r=GetT3UsecRequest()
         self._sendT3Request(r)
         return r
+        
+    def _runTimeSync(self):
+        for i in (0,1,2):
+            r=SyncTimebaseRequest()
+            self._sendT3Request(r)
 
     def getDigitalInputs(self):
         r=GetT3DigitalInputStateRequest()
@@ -711,23 +702,33 @@ class TimeSyncState(object):
         """
         Current drift between two time bases.
         """
-        if len(self.RTTs) <= 1:
-            return None
-        r = self.drifts.mean()
-        if r is np.nan:
-            return None
-        return float(r)
+        if len(self.R_times) <= 1:
+            return None          
+        return float((self.R_times[-1] - self.R_times[-2]) / \
+                     (self.L_times[-1] - self.L_times[-2]))
+
+#
+#        if len(self.RTTs) <= 1:
+#            return None
+#        r = self.drifts.mean()
+#        if r is np.nan:
+#            return None
+#        return float(r)
         
     def getOffset(self):
         """
         Current offset between two time bases.
         """
-        if len(self.RTTs) <= 1:
+        if len(self.R_times) < 1:
             return None
-        r = self.offsets.mean()
-        if r is np.nan:
-            return None
-        return float(r)
+        return float(self.R_times[-1] - self.L_times[-1])
+
+#        if len(self.RTTs) <= 1:
+#            return None
+#        r = self.offsets.mean()
+#        if r is np.nan:
+#            return None
+#        return float(r)
 
     def getAccuracy(self):
         """
@@ -735,33 +736,39 @@ class TimeSyncState(object):
         average of the last 10 round trip time sync request - response delays
         divided by two.
         """
-        if len(self.RTTs) <= 1:
-            return None
-        r = self.RTTs.mean()/2.0
-        if r is np.nan:
-            return None
-        return float(r)
+        if len(self.R_times) < 1:
+            return None 
+        return float(self.RTTs[-1]/2.0)
+#
+#        if len(self.RTTs) <= 1:
+#            return None
+#        r = self.RTTs.mean()/2.0
+#        if r is np.nan:
+#            return None
+#        return float(r)
         
     def local2RemoteTime(self,local_time=None):
         """
         Converts a local time (sec.msec format) to the corresponding remote
         computer time, using the current offset and drift measures.
         """        
-        drift=self.getDrift()
+        #drift=self.getDrift()
         offset=self.getOffset()
-        if drift is None or offset is None:
+        if offset is None:
             return None
         if local_time is None:
             local_time=getTime()
-        return drift*local_time+offset
+        #local_dt=0.0#local_time-self.L_times[-1]
+        return (local_time+offset)#+local_dt#drift*local_time+offset
           
     def remote2LocalTime(self,remote_time):
         """
         Converts a remote computer time (sec.msec format) to the corresponding local
         time, using the current offset and drift measures.       
         """
-        drift=self.getDrift()
+        #drift=self.getDrift()
         offset=self.getOffset()
-        if drift is None or offset is None:
+        if offset is None:
             return None
-        return (remote_time-offset)/drift
+        #local_dt=0.0#getTime()-self.L_times[-1]
+        return (remote_time-offset)#+local_dt#(remote_time-offset)/drift
