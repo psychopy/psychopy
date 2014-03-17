@@ -1868,11 +1868,14 @@ class CoderFrame(wx.Frame):
                 try:
                     # this will fail when doc.newlines was not set (new file)
                     if self.prefs['newlineConvention'] == 'keep':
-                        if doc.newlines == '\r\n' and not doc.GetText().lstrip(u'\ufeff').startswith("#!"):
-                            # '\r\n' and document has no shebang (ignore byte-order-marker)
+                        if doc.GetText().lstrip(u'\ufeff').startswith("#!"):
+                            # document has shebang (ignore byte-order-marker)
+                            newlines = '\n'
+                        elif doc.newlines == '\r\n':
+                            # document had '\r\n' newline on load
                             newlines = '\r\n'
                         else: 
-                            # None, \n, tuple or document has shebang
+                            # None, \n, tuple
                             newlines = '\n'
                     elif self.prefs['newlineConvention'] == 'dos':
                         newlines = '\r\n'
