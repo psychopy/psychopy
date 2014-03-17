@@ -161,7 +161,7 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
         logging.warning("xlsxActual!=xlsxCorr: Saving local copy to %s" %pathToLocal)
         raise IOError, error
 
-_travisTesting = os.environ.get('TRAVIS').lower()=='true' # in Travis-CI testing
+_travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')  # in Travis-CI testing
 
 def skip_under_travis(fn=None):
     """Skip if a test is executed under Travis testing environment
