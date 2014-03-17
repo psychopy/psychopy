@@ -1,0 +1,35 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Mar 07 09:18:49 2014
+
+@author: Sol
+"""
+
+Still TODO for eyetribe interface:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Determine what config file settings (and associated values) will be supported.
+     - Modify default_eyetracker.yaml and supported_config_settings.yaml
+       in theeyetribe folder as necessary
+
+- In theeyetribe/eyetracker.py make changes as necessary to use the eye tracker
+  config settings.
+
+- Convert native eyetroibe samples into iohub binocular sample event arrays.
+
+- implement other incomplete iohub eyetracker interface methods:
+      - list them here
+
+- create framework for monitoring and handling error codes from the eyetribe.
+
+- handle situtations:
+    - eyetribe can not be connected at startup
+    - eye tribe is disonnected during runtime of experiment
+    - eyetribe does not send samples when it is set to.
+    - other ????
+ 
+- implement calibration routine
+      - backend logic
+      - graphics for calibration display. 
+        (would like to try to do a psychopy process side graphics implementation)
+

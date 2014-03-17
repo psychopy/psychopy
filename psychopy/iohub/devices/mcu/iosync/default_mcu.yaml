@@ -1,63 +1,51 @@
-# This file includes all valid labjack.AnalogInput Device
+# This file includes all valid mcu.iosync.ioSync Device
 # settings that can be specified in an iohub_config.yaml
 # or in a Python dictionary form and passed to the quickStartHubServer
 # method. Any device parameters not specified when the device class is
 # created by the ioHub Process will be assigned the default value
 # indicated here.
 #
-daq.hw.labjack.AnalogInput:
+mcu.iosync.MCU:
     
     # name: The unique name to assign to the device instance created.
     #   The device is accessed from within the PsychoPy script 
     #   using the name's value; therefore it must be a valid Python
     #   variable name as well.
     #
-    name: ain
+    name: mcu
 
     # model_name:The labjack.AnalogInput device model name is used to alter
     #   internal Device logic based on which version of the labjack
     #   device is going to be used. 
     #   Currently, only the U6 model is officially supported.
     #
-    model_name: U6
+    model_name: ioSync
 
     # monitor_event_types: Specify which of the device's supported event
     #   types you would like the ioHub to monitor for.
     #
-    monitor_event_types: [MultiChannelAnalogInputEvent,]
+    monitor_event_types: [AnalogInputEvent, DigitalInputEvent]
 
-    # channel_sampling_rate: The sampling rate, in Hz, of each of the eight
-    #   analog input channels that are monitored. The channel_sampling_rate * 8
-    #   equals the number of samples per second that the ioHub will 
-    #   receive overall. Values between 125 and 1000 hz are suggested.
+    # serial_port: The serial port the MCU is using to interface with the 
+    #    ioHub computer. On Windows, serial ports will be in the form
+    #    'COMx', where x is the serial port number, usually ranging between 1 
+    #    and 32. For example, COM6 would indicate the MCU to be used is 
+    #    to serial port 6. 
+    #    For Linux and OS X, serial ports are usually specified as ... TBC
     #
-    channel_sampling_rate: 1000
+    serial_port: COM2
 
-    # resolution_index: The resolution index to set the device to when aquiring
-    #   the analog input signals. Please refer to your device's documentation 
-    #   for a detailed explaination of what resolution_index does.
-    #
-    resolution_index: 1
-
-    # settling_factor: The settling_factor to set the device to when aquiring
-    #    the analog input signals. Please refer to your device's documentation
-    #    for a detailed explaination of what settling_factor does.
-    #
-    settling_factor: 1
-
-    # delay_offset: The AnalogInput device calculates sample delay by subtracting
-    #    the time analog streaming was enabled from the current time when the 
-    #    sample is received. This is not a precise calculation as hardware dependent
-    #    factors may make the actual event delay different than what is calculated.
-    #    By emphirically testing the analog input event timing error, a 
-    #    delay_offset can be calculated and set here. The delay_offset is added
-    #    to analog input event iohub times, and is subtracted from the auto
-    #    calculated analog input event delay. 
-    #    delay_offset can also be set from a psychopy.iohub script by using the
-    #    device's setDelayOffset(x) and can be read using the getDelayOffset()
-    #    method
-    #
-    delay_offset: 0.0
+    # device_timer: Devices that require polling to read any new native events
+    #   that have become available must specifiy a device_timer property, with an
+    #   interval sub property that specifies how frequently the device would be polled
+    #   by the ioHub Server. The time is specified in sec.msec format and is a 'requested'
+    #   polling interval. The actual polling interval will vary from this somewhat, the 
+    #   magnitude of which depends on the computer hardware and OS being used and the
+    #   number of other polled devices being monitored. The 'configdence_interval'
+    #   attribute of events that have a parent device that is polled often can be used to
+    #   determine the actual polling rate being achieved by the ioHub Process.
+    device_timer:
+        interval: 0.001
 
     # enable: Specifies if the device should be enabled by ioHub and monitored
     #   for events.
@@ -99,15 +87,10 @@ daq.hw.labjack.AnalogInput:
     #
     event_buffer_length: 1024
 
-    # input_channel_count: The number of analog to digital channels to monitor
-    #   in parrallel. Currently this value is fixed at 8 channels.
+    # The MCU device manufacturer's name.
+    # N/A
     #
-    input_channel_count: 8
-
-    # The AnalogInput device manufacturer's name.
-    #   LabJack Corporation.
-    #
-    manufacturer_name: LabJack Corporation
+    manufacturer_name: N/A
 
     # The serial number for the specific isnstance of device used
     #   can be specified here. It is not used by the ioHub, so is FYI only.

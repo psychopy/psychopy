@@ -131,6 +131,9 @@ try:
         GAMEPAD_STATE_CHANGE=81
         GAMEPAD_DISCONNECT=82
         
+        DIGITAL_INPUT=101
+        ANALOG_INPUT=102
+        
         MULTI_CHANNEL_ANALOG_INPUT=122
     
         MESSAGE=151
@@ -206,6 +209,12 @@ try:
             #: Constant for a Gamepad Event.
             GAMEPAD_STATE_CHANGE=81
 
+            #: Constant for MCU digital input Event.
+            DIGITAL_INPUT=101
+
+            #: Constant for MCU analog input Event.
+            ANALOG_INPUT=102
+
             #: Constant for an Eight Channel Analog Input Sample Event.
             MULTI_CHANNEL_ANALOG_INPUT=122
         
@@ -275,6 +284,7 @@ try:
         
         XINPUT= 70
         GAMEPAD=80
+        MCU=100
         ANALOGINPUT = 120
         EXPERIMENT = 150
         DISPLAY = 190
@@ -308,6 +318,9 @@ try:
 
             #: Constant for Gamepad Device.
             GAMEPAD=80
+
+            #: Constant for a MCU Device.
+            MCU = 100
 
             #: Constant for an AnalogInput Device.
             ANALOGINPUT = 120

@@ -4,35 +4,29 @@ Created on Mon Feb 10 17:13:14 2014
 
 @author: zahm
 """
-
-import logging
-import gevent, time
-from collections import OrderedDict
+from weakref import proxy
+import gevent
 from gevent import sleep, socket, queue
 from gevent.server import StreamServer
-import json
-from timeit import default_timer as getTime
-from weakref import proxy
+try:
+    import ujson as json
+except:
+    import json
+from ..... import print2err,printExceptionDetailsToStdErr,Computer,OrderedDict
 
-logging.basicConfig(filename='output.log',level=logging.DEBUG)
-start = time.time()
-tic = lambda: 'at %1.1f seconds' % (time.time() - start)    
+getTime=Computer.getTime
 
 class TheEyeTribe(object):
     """
     TheEyeTribe class is the client side interface to the TheEyeTribe 
     eye tracking device server.
     """
-    sleepInterval = 0.1    
-    sw = 1024
-    sh = 768
-    calibrationPoints = 9 
 
     # define the dict format for tracker set msgs
     set_tracker_prototype = {
-        "category": 'tracker',
-        "request": 'set',
-        "values": {}
+        u"category": u'tracker',
+        u"request": u'set',
+        u"values": {}
         }
         
     # define the dict format for tracker get msgs
@@ -87,33 +81,48 @@ class TheEyeTribe(object):
     TRACKER_CONNECTED_NOUSB3 = 3 # Tracker device is detected but not working due to unsupported USB host
     TRACKER_CONNECTED_NOSTREAM = 4 # Tracker device is detected but not working due to no stream could be received
 
+    # Tracker reply status codes (other than standard http response codes):
+    #
+    # Calibration state has changed. Connected clients should update 
+    # themselves.	    
+    CALIBRATION_CHANGED = 800    
+    # Active display index has changed in multi screen setup. Connected 
+    # clients should update themselves.
+    DISPLAY_CHANGE = 801
+    # The state of the connected tracker device has changed. 
+    # Connected clients should update themselves.	
+    TRACKER_STATE_CHANGE = 802
+    
     # Tracker sample (frame) states
-
+    #
     # Tracker is calibrated and producing on-screen gaze coordinates.
     # Eye control is enabled.
     STATE_TRACKING_GAZE	= 0x1 # true: ((state & mask) != 0)
                               # false: ((state & mask) == 0)
-
     # Tracker possibly calibrated and is tracking both eyes,
     # including pupil and glint.
     STATE_TRACKING_EYES = 0x2 # true: ((state & mask) != 0)
                               # false: ((state & mask) == 0)
-
     # Tracker possibly calibrated and is tracking presence of user.
     # Presence defined as face or single eye.
     STATE_TRACKING_PRESENCE = 0x4 # true: ((state & mask) != 0)
                                   # false: ((state & mask) == 0)
-
     # Tracker failed to track anything in this frame.
     STATE_TRACKING_FAIL = 0x8 # true: ((state & mask) != 0)
-                              # false: ((state & mask) == 0)
+                              # false: ((staself._eyetribe.te & mask) == 0)
     # Tracker has failed to detect anything and tracking is now lost.
     STATE_TRACKING_LOST = 0x10 # true: ((state & mask) != 0)
+                               # false: ((state & mask) == 0)
+    # STATE_TRACKING_FIXATED state is not standard for eyetribe; added for iohub
+    # integration so that the eyetribe frame.fix bool can be combined
+    # with frame.state, which is then stored in the iohub sample state field.
+    # Tracker has failed to detect anything and tracking is now lost.
+    STATE_TRACKING_FIXATED = 0x20 # true: ((state & mask) != 0)
                                # false: ((state & mask) == 0)
 
     def __init__(self):
         """
-        When an instance of TheEyeTribe client interface is createdm,
+        When an instance of TheEyeTribe client interface is created,
         it creates two greenlets, a EyeTribeTransportManager and a 
         HeartbeatPump.
         """
@@ -127,16 +136,12 @@ class TheEyeTribe(object):
         self._transport_manager = EyeTribeTransportManager(self)
         self._transport_manager.start()
         
-        self.sendSetMessage(push=True, version=1)
-        self.sendGetMessage('push', 'version', 'screenresw', 'screenresh')
+        #self.sendSetMessage(push=True, version=1)
 
         self._heartbeat = HeartbeatPump(self._transport_manager)
         self._heartbeat.start()
         
-        self.sendGetMessage(*self.tracker_get_values)
-        
-        self.calibrate()        
-
+        #self.sendGetMessage(*self.tracker_get_values)
         
     @property
     def tracker_status(self):
@@ -144,53 +149,66 @@ class TheEyeTribe(object):
         return self._tracker_state.get('trackerstate','Unknown')   
         
     @property
-    def serverResponseCount(self):
+    def server_response_count(self):
         return self._transport_manager.server_response_count
         
     @property
     def tracker_state(self):
         return self._tracker_state
         
-    def sendCalibrationMessage(self, request_type, **kwargs):
-        """
-        Examples:
-            sendCalibrationMessage('start', pts=9)
-            sendCalibrationMessage('pointstart',x=500,y=200)
-            sendCalibrationMessage('pointend')
-        """
-        # TODO How to handle getting calibration response values from tracker
-        
-        if request_type not in self.tracker_calibration_values:
-            # Throw error, return error code??
-            print 'Unknown calibration request_type:',request_type
-            return False
-            
-        calreq=OrderedDict(category='calibration', request = request_type)
-        if kwargs:
-            calreq['values'] = OrderedDict(sorted(kwargs.items(), key = lambda t:t[0]))
-        send_str=json.dumps(calreq)
-        print send_str
-        logging.info(send_str)
-        self._transport_manager.send(send_str)
-        
-        
-    def calibrate(self):
-        """
-        Runs complete calibration process according to the TheEyeTribe APIs
-        """
-        self.sendCalibrationMessage('clear')
-        gevent.sleep(self.sleepInterval)        
-        self.sendCalibrationMessage('start', pointcount=self.calibrationPoints)
-        gevent.sleep(self.sleepInterval)        
-        sx_pos= [self.sw*0.25,self.sw*0.5,self.sw*0.75]
-        sy_pos= [self.sh*0.25,self.sh*0.5,self.sh*0.75]
+    def handleServerMsg(self,msg):
+        #print2err("<<<<<<<<<<<<<<<<<<<<<")
+        #print2err("handleServerMsg:\nTime: ",getTime())
+        #print2err("Message: ",msg)
+        #print2err("<<<<<<<<<<<<<<<<<<<<\n")
+        msg_category=msg.get('category')
+        msg_statuscode=msg.get('statuscode')
+        if msg_statuscode != 200:            
+            if msg_statuscode == self.TRACKER_STATE_CHANGE:
+                # get updated eye tracker values
+                self.sendGetMessage(*self.tracker_get_values)
+            elif msg_statuscode == self.DISPLAY_CHANGE:
+                print2err("DISPLAY_CHANGE REPLY CODE: NOT HANDLED")
+            elif msg_statuscode == self.CALIBRATION_CHANGED:
+                print2err("CALIBRATION_CHANGED REPLY CODE: NOT HANDLED")
+            else:
+                # TODO Handle msg status code error values
+                print2err( '***********')
+                print2err( 'SERVER REPLY ERROR: ',msg_statuscode)
+                print2err( msg)
+                print2err( 'Server Msg not being processed due to error.')
+                print2err( '***********\n')
+                return False
 
-        for lx in sx_pos:
-            for ly in sy_pos:
-                self.sendCalibrationMessage('pointstart', x = int(lx), y = int(ly))
-                gevent.sleep(self.sleepInterval)        
-                self.sendCalibrationMessage('pointend')
-            #gevent.sleep(self.sleepInterval)
+        if msg_category == u'heartbeat':
+            return True
+        elif msg_category == u'tracker':
+            request_type=msg.get('request') 
+            if request_type == u'get': 
+                if msg.get('values',{}).get('frame'): 
+                    return self.processSample(msg)
+                for k,v in msg.get('values',{}).iteritems():
+                    #print2err('* Updating client.tracker_state[{0}] = {1}'.format(k,v))
+                    self.tracker_state[k]=v
+                    return True    
+            elif request_type == u'set': 
+                #print2err( 'SET Rx received from server: ',msg)
+                # TODO check status field for any errors
+                return True        
+        elif msg_category == u'calibration':
+            request_type=msg.get('request') 
+            #print2err( '::::::::::: Calibration Result: ', msg.get('values',{}).get('calibresult'))            
+            if request_type == u'pointend': 
+                if msg.get('values',{}).get('calibresult'): 
+                    #print2err('::::::::::: Calibration Result: ', msg)                   
+                    return self.processCalibrationResult(msg)
+            elif request_type == u'pointstart': 
+                #print2err( '==========Calibration response: ', msg)
+                return True
+
+        print2err('!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        print2err('Unhandled Server packet category [{0}] received by client. Full msg contents:\n\n{1}\n<<'.format(msg_category,msg))               
+        print2err('!!!!!!!!!!!!!!!!!!!!!!!!!!')
         
     def sendSetMessage(self, **kwargs):
         """
@@ -207,8 +225,8 @@ class TheEyeTribe(object):
         send_values={}
         for k, v in kwargs.iteritems():
             if k not in self.tracker_set_values:
-                print 'setTrackerMsg warning": Invalid tracker set value key \
-                    [{0}] with value [{1}]. Ignoring'.format(k, v)
+                print2err('**setTrackerMsg warning": Invalid tracker set value key \
+                    [{0}] with value [{1}]. Ignoring'.format(k, v))
             else:
                 send_values[k] = v
 
@@ -233,8 +251,8 @@ class TheEyeTribe(object):
         send_values=[]
         for k in args:
             if k not in self.tracker_get_values:
-                print 'getTrackerMsg warning": Invalid tracker get value key \
-                    [{0}]. Ignoring'.format(k)
+                print2err('**getTrackerMsg warning": Invalid tracker get value key \
+                    [{0}]. Ignoring'.format(k))
             else:
                 send_values.append(k)
 
@@ -248,10 +266,52 @@ class TheEyeTribe(object):
         Process an eye tracker sample frame that has been received.
         """
         #TODO proper handling of sample data
-        sample_frame=frame_dict.get('values',{}).get('frame')
-        print '!! Eye Sample Received:\n\tTime: {0}\n\tstate: {1}\n'.format(sample_frame['time'],sample_frame['state'])
-        logging.info('!! Eye Sample Received:\n\tTime: {0}\n\tstate: {1}\n'.format(sample_frame['time'],sample_frame['state']))
+        print2err('++++++++++++++++')
+        print2err('Received Sample:\nTime: ',getTime())
+        print2err('Frame: ',frame_dict)
+        print2err('++++++++++++++++')
+        #sample_frame=frame_dict.get('values',{}).get('frame')
         
+    def sendCalibrationMessage(self, request_type, **kwargs):
+        """
+        Examples:
+            sendCalibrationMessage('start', pts=9)
+            sendCalibrationMessage('pointstart',x=500,y=200)
+            sendCalibrationMessage('pointend')
+        """
+        # TODO How to handle getting calibration response values from tracker
+        
+        if request_type not in self.tracker_calibration_values:
+            # Throw error, return error code??
+            print2err('Unknown calibration request_type: ',request_type)
+            return False
+            
+        calreq=OrderedDict(category='calibration', request = request_type)
+        if kwargs:
+            calreq['values'] = OrderedDict(sorted(kwargs.items(), key = lambda t:t[0]))
+        send_str=json.dumps(calreq)
+        print2err("send_str: ",send_str)
+        self._transport_manager.send(send_str)
+        
+        
+    def calibrate(self):
+        """
+        Runs complete calibration process according to the TheEyeTribe APIs
+        """
+        self.sendCalibrationMessage('clear')
+        gevent.sleep(self.sleepInterval)        
+        self.sendCalibrationMessage('start', pointcount=self.calibrationPoints)
+        gevent.sleep(self.sleepInterval)        
+        sx_pos= [self.sw*0.25,self.sw*0.5,self.sw*0.75]
+        sy_pos= [self.sh*0.25,self.sh*0.5,self.sh*0.75]
+
+        for lx in sx_pos:
+            for ly in sy_pos:
+                self.sendCalibrationMessage('pointstart', x = int(lx), y = int(ly))
+                gevent.sleep(self.sleepInterval)        
+                self.sendCalibrationMessage('pointend')
+            #gevent.sleep(self.sleepInterval)
+
     def processCalibrationResult(self, calibrationResult):
         """
         Process the calibration result
@@ -316,11 +376,16 @@ class EyeTribeTransportManager(gevent.Greenlet):
             # Send them if found.
             try:
                 to_send=self._tracker_requests_queue.get_nowait()
+                #print2err('>>>>>>>>>>>>')
+                #print2err("SENDING TO TET:\nTime: ",getTime())
+                #print2err("Message: ",to_send)
                 tx_count=self._socket.sendall(to_send)
+                #print2err('>>>>>>>>>>>>\n')
+                
             except gevent.queue.Empty, e:
                 pass
             except Exception, e:
-                print 'MANAGER ERROR SENDING MSG:',e 
+                print2err('MANAGER ERROR WHEN SENDING MSG:',e)
             #finally:
                 # Yield to any other greenlets that are waiting to run.
                 #gevent.sleep(0.0)
@@ -329,51 +394,33 @@ class EyeTribeTransportManager(gevent.Greenlet):
             # to see if any msg replies have been received from the server.
             reply=None
             try:
-#                print 'rx looped'
                 reply=self._socket.recv(512)
-#                print 'rx recv done'
                 if reply:
-                    # The dummy server sometimes sends >1 server response
-                    # in a single packet; to work around this the server
-                    # puts '\r\n' at the end of each json string reply.
-                    # This can then be used to split the text received 
-                    # here into the correct number of msg json strs that
-                    # should be converted to dict objects for processing.
-                    # THE '\r\n' HACK SHOULD NOT BE NEEDED WHEN TALKING 
-                    # TO THE REAL EYETRIBE SERVER.
-                    #
-#                    print 'org reply:', '%r'%(reply)
                     multiple_msgs=reply.split('\n')
                     multiple_msgs=[m for m in multiple_msgs if len(m)>0]
-#                        print 'multiple_msgs:',len(multiple_msgs)
                     for m in multiple_msgs:
                         m='%s%s'%(msg_fragment,m)
                         try:
                             mdict=json.loads(m)
-                            #print 'handleServerMsg:',mdict
-                            self.handleServerMsg(mdict)
+                            self._client_interface.handleServerMsg(mdict)
                             msg_fragment=''
                             self.server_response_count += 1
                         except:
                             msg_fragment=m
             except socket.timeout:
-                pass#print 'socket.timeout'
+                pass
             except socket.error, e:
-                if e.errno==10035:
-                    pass#print 'socket.error10035',e
+                if e.errno==10035 or e.errno==9:
+                    pass
                 else:
-                    #print ' socket.error: ',e
+                    print2err( ' socket.error: ',type(e))
                     raise e
             except Exception, e:    
-                print 'MANAGER ERROR RECEIVING REPLY MSG:',e
-                print '>>>>>>>>>>>>'
-                print type(e),dir(e)
-                print  '%r'%(reply)
-                if reply:  
-                    print type(reply), len(reply)
-                print '<<<<<<<<<<<<'
+                print2err('>>>>>>>>>>>>')
+                print2err('MANAGER ERROR RECEIVING REPLY MSG:',e)
+                print2err('reply: ',reply)
+                print2err( '<<<<<<<<<<<<')
             finally:
-                # Yield to any other greenlets that are waiting to run.
                 gevent.sleep(0.001)
         
         # Greenlet has stopped running so close socket.
@@ -388,77 +435,8 @@ class EyeTribeTransportManager(gevent.Greenlet):
         """
         if not isinstance(msg,basestring):
             msg=json.dumps(msg)
-        self._tracker_requests_queue.put(msg)
+        self._tracker_requests_queue.put(msg)        
         
-    def handleServerMsg(self,msg):
-        msg_category=msg.get('category')
-        msg_statuscode=msg.get('statuscode')
-        if msg_statuscode != 200:
-            if msg_statuscode == 802:
-                # get updated eye tracker values
-                self._client_interface.sendGetMessage(*self._client_interface.tracker_get_values)
-            else:
-                    
-                # TODO Handle msg status code error values
-                print '========'
-                print 'SERVER REPLY ERROR:',msg_statuscode
-                print msg
-                print 'Server Msg not being processed due to error.'
-                print '========'
-                return False
-            
-        if msg_category == u'heartbeat':
-            return True
-
-        if msg_category == u'calibration':
-            request_type=msg.get('request') 
-            #print '::::::::::: Calibration Result: ', msg.get('values',{}).get('calibresult')            
-            if request_type == u'pointend': 
-                if msg.get('values',{}).get('calibresult'): 
-                    print '::::::::::: Calibration Result: ', msg
-                    logging.info('::::::::::: Calibration Result: {0}'.format(msg))                    
-                    return self._client_interface.processCalibrationResult(msg)
-                    return True
-
-        if msg_category == u'calibration':
-            request_type=msg.get('request') 
-            if request_type == u'pointstart': 
-                print '==========Calibration response: ', msg
-                logging.info('==========Calibration response: {0}'.format(msg))
-                return True
-            if request_type == u'pointend': 
-                print '+++++++++++ Calibration response: ', msg
-                logging.info('+++++++++++ Calibration response: {0}'.format(msg))
-                return True
-
-        if msg_category == u'tracker':
-            request_type=msg.get('request') 
-            if request_type == u'get': 
-                if msg.get('values',{}).get('frame'): 
-                    return self._client_interface.processSample(msg)
-                
-                if msg.get('values',{}).get('screenresw') and msg.get('values',{}).get('screenresh'): 
-                    self.sw = msg.get('values',{}).get('screenresw')
-                    self.sh = msg.get('values',{}).get('screenresh')
-                    #print 'Screen width: ', self.sw
-                    #print 'Screen height: ', self.sh
-                    return True
-                print 'GET Rx received from server but unhandled.'
-                # TODO : check statuscode field of get response for any errors
-                # TODO : update theeyetribe classes .tracker_state dict with
-                #        the key : value pairs in the values field.
-                #        i.e. something like the following 3 commented out lines: 
-                #
-                # for k,v in msg.get('values',{}).iteritems():
-                #    print '* Updating client.tracker_state[{0}] = {1}'.format(k,v)
-                #    self._client_interface.tracker_state[k]=v
-                return True
-            if request_type == u'set': 
-                print 'SET Rx received from server.'
-                # TODO check status field for any errors
-                return True        
-        print '>> Warning: Unhandled Server packet category [{0}] received by client. Full msg contents:\n\n{1}\n<<'.format(msg_category,msg)                
-
     def createConnection(self, host='localhost', port=6555):
         # Open a socket to the eye tracker server
         try:
@@ -469,7 +447,7 @@ class EyeTribeTransportManager(gevent.Greenlet):
             #print 'current timeout2:',hbp.gettimeout()
             return hbp
         except Exception, e:
-            print 'Error creating exception:',e
+            print2err('** Error creating exception:', e)
             return None
 
     def stop(self):
@@ -487,7 +465,7 @@ class HeartbeatPump(gevent.Greenlet):
                         "values": [ "heartbeatinterval" ]
                         }
     heartbeat={ 'category' : 'heartbeat' }                    
-    def __init__(self,transport_manager,sleep_interval=0.25):
+    def __init__(self,transport_manager,sleep_interval=3.0):
         """
         HeartbeatPump is used by TheEyeTribe client class to keep the server
         running. 
@@ -509,6 +487,7 @@ class HeartbeatPump(gevent.Greenlet):
         #
         HeartbeatPump.get_heartbeat_rate=json.dumps(self.get_heartbeat_rate)
         HeartbeatPump.heartbeat=json.dumps(self.heartbeat)
+        self.pump()
     
     def getHeartbeatRate(self):
         '''
@@ -520,12 +499,11 @@ class HeartbeatPump(gevent.Greenlet):
         """
         Send a heartbeat msg to the server.
         """
-        #print 'HB Queued.'
         self._transport_manager.send(self.heartbeat)  
         
     def _run(self):
         self._running = True
-        self.getHeartbeatRate() # get the heartbeet interval. TODO : use the
+        #self.getHeartbeatRate() # get the heartbeet interval. TODO : use the
                                 # val returned to override the default
                                 # sleep_interval.
         while self._running:
@@ -537,33 +515,3 @@ class HeartbeatPump(gevent.Greenlet):
         Stops the Greenlet from sending heartbeat msg's.
         """
         self._running=False
-
-#
-##### MAIN SCRIPT
-#
-
-TEST_WITH_DUMMY_SERVER=False
-        
-if __name__ == '__main__':
-    # run client connected to a very stupid fake server if the real one is
-    # not available.
-    if TEST_WITH_DUMMY_SERVER:
-        from dummyserver import startDummyServer
-        server = startDummyServer(('',6555))
-    
-    # create an instance of the client interface to theeyetribe eye tracker.
-    tracker = TheEyeTribe()
-   
-    # in this silly example, just wait until 100 responses or sample frames 
-    # have been received by the client.
-    while tracker.serverResponseCount < 100:
-        #print 'main app loop:',getTime()
-        #tracker.calibrate()        
-        sleep(1.00)
-        
-    
-
-    # Close the tracker client interface.
-    tracker.close()
-    
-    print 'End of Test!'
