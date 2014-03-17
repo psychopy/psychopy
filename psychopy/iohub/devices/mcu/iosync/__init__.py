@@ -86,23 +86,20 @@ class MCU(Device):
     _mcu=None 
     _request_dict={}
     _response_dict={}  
-    _last_mcu_time=0;
-    _received_last_mcu_time=0.0;
-    
-    DEVICE_TIMEBASE_TO_SEC=0.000001
-    _newDataTypes = [('serial_port',N.str,32),                     ]
+    _last_sync_time=0.0
+    DEVICE_TIMEBASE_TO_SEC=1.0
+    _newDataTypes = [('serial_port',N.str,32),('time_sync_interval',N.float32)]
     EVENT_CLASS_NAMES=['AnalogInputEvent','DigitalInputEvent']
     DEVICE_TYPE_ID=DeviceConstants.MCU
     DEVICE_TYPE_STRING="MCU"    
     __slots__=[e[0] for e in _newDataTypes]
     def __init__(self, *args, **kwargs):
-        #print2err("TODO: Handle MCU Replies")        
         self.serial_port=None   
+        self.time_sync_interval=None   
         Device.__init__(self,*args,**kwargs['dconfig'])
+        
         self.setConnectionState(True)
         
-        
-
     def setConnectionState(self,enable):
         if enable is True:
             if MCU._mcu is None:
@@ -112,16 +109,14 @@ class MCU(Device):
                 else:
                     serial_id= self.serial_port.strip()   
                 MCU._mcu = T3MC(serial_id)
-                # get sync timing running
-                #for i in range(12):
-                #    self.requestTime()
-                #    self._mcu.getSerialRx()
-                #    self.getRequestResponse()
-                #    self._mcu.getSerialRx()
+                
+                self._mcu._runTimeSync()
+
+                MCU._last_sync_time=getTime()
                    
         elif enable is False:
-            if MCU._mcu:
-                MCU._mcu.close()
+            if self._mcu:
+                self._mcu.close()
                 MCU._mcu=None
                 
         return self.isConnected()
@@ -130,14 +125,14 @@ class MCU(Device):
         return self._mcu != None
            
     def getDeviceTime(self):
-        return MCU._last_mcu_time+(getTime()-MCU._received_last_mcu_time)*100000.0
+        return T3Request.sync_state.local2RemoteTime(getTime())
         
     def getSecTime(self):
         """
         Returns current device time in sec.msec format. 
         Relies on a functioning getDeviceTime() method.
         """
-        return self.getDeviceTime()*self.DEVICE_TIMEBASE_TO_SEC
+        return self.getDeviceTime()#*self.DEVICE_TIMEBASE_TO_SEC
 
     def enableEventReporting(self,enabled=True):
         """
@@ -225,32 +220,38 @@ class MCU(Device):
     def _poll(self):
         try:
             logged_time=getTime()
+
+            if self.isConnected():            
+                self._mcu.getSerialRx()
+                if logged_time-self._last_sync_time>=self.time_sync_interval:
+                    self._mcu._runTimeSync()
+                    MCU._last_sync_time=logged_time
+
             if not self.isReportingEvents():
                 return False
-            self._mcu.getSerialRx()
-            MCU._received_last_mcu_time=getTime()
+
             confidence_interval=logged_time-self._last_callback_time
     
             events=self._mcu.getRxEvents()
-                                
-            for event in events:
-                MCU._last_mcu_time=event.getUsec()
-                current_MCU_time=self.getSecTime()               
-                device_time=event.getUsec()*self.DEVICE_TIMEBASE_TO_SEC
-                delay=current_MCU_time-device_time
-                iohub_time=logged_time-delay
+            for event in events:             
+                current_MCU_time=event.device_time#self.getSecTime()
+                device_time=event.device_time
+                if event.local_time is None:
+                    event.local_time=logged_time
+                delay=logged_time-event.local_time#current_MCU_time-device_time
+                # local_time is in iohub time space already, so delay does not
+                # need to be used to adjust iohub time
+                iohub_time=event.local_time
                 elist=None
                 if event.getTypeInt()==T3Event.DIGITAL_INPUT_EVENT:
                     elist= [EventConstants.UNDEFINED,]*12
                     elist[4]=DigitalInputEvent.EVENT_TYPE_ID
                     elist[-1]=event.getDigitalInputByte()
-                    #print2err('DIN Event: ',elist)
                 elif event.getTypeInt()==T3Event.ANALOG_INPUT_EVENT:
                     elist= [EventConstants.UNDEFINED,]*19
                     elist[4]=AnalogInputEvent.EVENT_TYPE_ID
                     for i,v in enumerate(event.ain_channels):
-                        elist[-(i+1)]=v            
-                
+                        elist[(i+11)]=v            
                 if elist:
                     elist[0]=0
                     elist[1]=0
@@ -262,17 +263,16 @@ class MCU(Device):
                     elist[8]=confidence_interval
                     elist[9]=delay
                     elist[10]=0
-                    
+                   
                     self._addNativeEventToBuffer(elist)
-            
+                
             replies = self._mcu.getRequestReplies(True)
             for reply in replies:
                 rid=reply.getID()
                 if rid in self._request_dict.keys():
-                    MCU._last_mcu_time=reply.getUsec()
                     self._response_dict[rid]=reply
                     del self._request_dict[rid]
-                        
+            
             self._last_callback_time=logged_time
             return True
         except Exception, e:
