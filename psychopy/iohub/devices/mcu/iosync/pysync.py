@@ -153,7 +153,6 @@ class DigitalInputEvent(T3Event):
         T3Event.__init__(self,event_type,event_time_bytes,din_value)
 
     def _parseRemainingBytes(self,din_value):
-        print2err('DIN: ',din_value)
         self._value=din_value[0]
         
     def getDigitalInputByte(self):
