@@ -469,6 +469,7 @@ void initDigitalInputs(){
   for (int i=0;i<sizeof(DIN_PINS);i++){
     pinMode(DIN_PINS[i], INPUT);
   }
+  pinMode(DIN_8, INPUT);
 }
 
 void initAnalogInputs(){

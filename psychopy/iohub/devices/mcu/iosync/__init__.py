@@ -306,11 +306,12 @@ class AnalogInputEvent(DeviceEvent):
         DeviceEvent.__init__(self,*args,**kwargs)
 
 class DigitalInputEvent(DeviceEvent):
-    _newDataTypes = [ ('state',N.uint8),  # the value of the 8 digital input lines as an uint8.
+    _newDataTypes = [ ('state',N.uint8)  # the value of the 8 digital input lines as an uint8.
                     ]
     EVENT_TYPE_ID=EventConstants.DIGITAL_INPUT
     EVENT_TYPE_STRING='DIGITAL_INPUT'
     IOHUB_DATA_TABLE=EVENT_TYPE_STRING
     __slots__=[e[0] for e in _newDataTypes]    
     def __init__(self,*args,**kwargs):        
+        self.state=0
         DeviceEvent.__init__(self,*args,**kwargs)
