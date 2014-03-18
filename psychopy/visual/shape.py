@@ -243,10 +243,10 @@ class ShapeStim(BaseVisualStim):
 
         if self.interpolate:
             GL.glEnable(GL.GL_LINE_SMOOTH)
-            GL.glEnable(GL.GL_POLYGON_SMOOTH)
+            GL.glEnable(GL.GL_MULTISAMPLE)
         else:
             GL.glDisable(GL.GL_LINE_SMOOTH)
-            GL.glDisable(GL.GL_POLYGON_SMOOTH)
+            GL.glDisable(GL.GL_MULTISAMPLE)
         GL.glVertexPointer(2, GL.GL_DOUBLE, 0, vertsPix.ctypes)#.data_as(ctypes.POINTER(ctypes.c_float)))
 
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
