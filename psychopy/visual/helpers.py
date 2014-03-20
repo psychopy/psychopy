@@ -149,19 +149,16 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None,
     elif tex == "circle":
         rad=makeRadialMatrix(res)
         intensity = (rad<=1)*2-1
-        fromFile=0
         wasLum=True
     elif tex == "gauss":
         rad=makeRadialMatrix(res)
         sigma = 1/3.0;
         intensity = numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )*2-1 #3sd.s by the edge of the stimulus
-        fromFile=0
         wasLum=True
     elif tex == "radRamp":#a radial ramp
         rad=makeRadialMatrix(res)
         intensity = 1-2*rad
         intensity = numpy.where(rad<-1, intensity, -1)#clip off the corners (circular)
-        fromFile=0
         wasLum=True
     elif tex == "raisedCos": # A raised cosine
         wasLum=True
@@ -254,22 +251,20 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None,
                     im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
 
         #is it Luminance or RGB?
-        if im.mode=='L' and pixFormat==GL.GL_ALPHA:
-            wasLum = True
-        elif pixFormat==GL.GL_ALPHA:#we have RGB and need Lum
+        if pixFormat==GL.GL_ALPHA and im.mode!='L':#we have RGB and need Lum
             wasLum = True
             im = im.convert("L")#force to intensity (in case it was rgb)
-        elif pixFormat==GL.GL_RGB:#we have RGB and keep it that way
+        elif im.mode=='L': #we have lum and no need to change
+            wasLum = True
+        elif pixFormat==GL.GL_RGB: #we want RGB and might need to convert from CMYK or Lm
             #texture = im.tostring("raw", "RGB", 0, -1)
-            im = im.convert("RGBA")#force to rgb (in case it was CMYK or L)
+            im = im.convert("RGBA")
             wasLum=False
         if dataType==GL.GL_FLOAT:
             #convert from ubyte to float
             intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # much faster to avoid division 2/255
         else:
             intensity = numpy.array(im)
-        if wasLum and intensity.shape!=im.size:
-            intensity.shape=im.size
 
     if pixFormat==GL.GL_RGB and wasLum and dataType==GL.GL_FLOAT: #grating stim on good machine
         #keep as float32 -1:1
@@ -282,13 +277,23 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None,
         data[:,:,0] = intensity#R
         data[:,:,1] = intensity#G
         data[:,:,2] = intensity#B
-    elif pixFormat==GL.GL_RGB and wasLum: #Grating on legacy hardware, or ImageStim with wasLum=True
+    elif pixFormat==GL.GL_RGB and wasLum and dataType!=GL.GL_FLOAT:
+        #was a lum image: stick with ubyte for speed
+        internalFormat = GL.GL_RGB
+        data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.ubyte)#initialise data array as a float
+        data[:,:,0] = intensity#R
+        data[:,:,1] = intensity#G
+        data[:,:,2] = intensity#B
+    elif pixFormat==GL.GL_RGB and not stim.useShaders: #Grating on legacy hardware, or ImageStim with wasLum=True
         #scale by rgb and convert to ubyte
         internalFormat = GL.GL_RGB
         if stim.colorSpace in ['rgb', 'dkl', 'lms','hsv']:
             rgb=stim.rgb
         else:
             rgb=stim.rgb/127.5-1.0#colour is not a float - convert to float to do the scaling
+        # if wasImage it will also have ubyte values for the intensity
+        if wasImage:
+            intensity = intensity/127.5-1.0
         #scale by rgb
         data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
         data[:,:,0] = intensity*rgb[0]  + stim.rgbPedestal[0]#R
@@ -313,7 +318,6 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None,
         if pixFormat==GL.GL_RGB: pixFormat=GL.GL_RGBA
         if internalFormat==GL.GL_RGB: internalFormat=GL.GL_RGBA
         elif internalFormat==GL.GL_RGB32F_ARB: internalFormat=GL.GL_RGBA32F_ARB
-
     texture = data.ctypes#serialise
     #bind the texture in openGL
     GL.glEnable(GL.GL_TEXTURE_2D)
