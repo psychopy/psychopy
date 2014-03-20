@@ -32,7 +32,6 @@ class TestMicrophone(object):
         switchOff()  # not needed, just get code coverage
 
     def test_AudioCapture_basics(self):
-        os.chdir(self.tmp)
         microphone.haveMic = False
         with pytest.raises(MicrophoneError):
             AdvAudioCapture(autoLog=False)
@@ -47,11 +46,11 @@ class TestMicrophone(object):
         mic.stop()
 
     def test_AdvAudioCapture(self):
-        os.chdir(self.tmp)
+        filename = os.path.join(self.tmp, 'test_mic.wav')
         mic = AdvAudioCapture(autoLog=False)
         tone = sound.Sound(440, secs=.02, autoLog=False)
         mic.setMarker(tone=tone)
-        mic = AdvAudioCapture(filename='test_mic.wav', saveDir=self.tmp, autoLog=False)
+        mic = AdvAudioCapture(filename=filename, saveDir=self.tmp, autoLog=False)
 
         mic.record(1, block=True)
         mic.setFile(mic.savedFile)  # same file name
@@ -170,7 +169,7 @@ class TestMicrophoneNoSound(object):
         while bs._activeCount():
             core.wait(.1, 0)
         resp = bs[0][1]
-        assert resp.confidence == 0.68801856
+        assert 0.6 < resp.confidence < 0.75  # 0.68801856
         assert resp.word == 'red'
 
     def test_DFT(self):
