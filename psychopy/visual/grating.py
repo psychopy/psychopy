@@ -227,6 +227,7 @@ class GratingStim(BaseVisualStim):
         if hasattr(self, '_requestedSize') and self._requestedSize == None:
             self.size = None  # Reset size do default
         self.__dict__['tex'] = value
+        self._needTextureUpdate = False
 
     @attributeSetter
     def mask(self, value):
@@ -272,6 +273,8 @@ class GratingStim(BaseVisualStim):
         desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
+        if self._needTextureUpdate:
+            self.setTex(value=self.tex, log=False)
         if self._needUpdate:
             self._updateList()
         GL.glCallList(self._listID)

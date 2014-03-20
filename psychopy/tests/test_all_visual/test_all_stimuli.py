@@ -80,6 +80,11 @@ class _baseVisualTest:
         imageStim.draw()
         utils.compareScreenshot('greyscale_%s.png' %(self.contextName), win)
         str(imageStim) #check that str(xxx) is working
+        win.flip()
+        imageStim.setColor([0.1,0.1,0.1])
+        imageStim.draw()
+        utils.compareScreenshot('greyscaleLowContr_%s.png' %(self.contextName), win)
+
     def test_gabor(self):
         win = self.win
         #using init

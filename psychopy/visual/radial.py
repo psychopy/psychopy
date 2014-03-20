@@ -344,6 +344,8 @@ class RadialStim(GratingStim):
             GL.glUseProgram(0)
         else:
             #the list does the texture mapping
+            if self._needTextureUpdate:
+                self.setTex(value=self.tex, log=False)
             if self._needUpdate:
                 self._updateList()
             GL.glCallList(self._listID)

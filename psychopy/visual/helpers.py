@@ -344,6 +344,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None,
                         data.shape[1],data.shape[0], 0, # [JRG] for non-square, want data.shape[1], data.shape[0]
                         pixFormat, dataType, texture)
     GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
+
     return wasLum
 
 def pointInPolygon(x, y, poly):
@@ -435,9 +436,13 @@ def polygonsOverlap(poly1, poly2):
 
 def setTexIfNoShaders(obj):
     """Useful decorator for classes that need to update Texture after other properties
+    This doesn't actually perform the update, but sets a flag so the update occurs
+    at draw time (in case multiple changes all need updates only do it once)
     """
-    if hasattr(obj, 'setTex') and hasattr(obj, 'tex') and not obj.useShaders:
-        obj.setTex(obj.tex)
+    if hasattr(obj, 'useShaders') and not obj.useShaders:
+        #we aren't using shaders
+        if hasattr(obj, '_needTextureUpdate'):
+            obj._needTextureUpdate = True
 
 def setColor(obj, color, colorSpace=None, operation='',
                 rgbAttrib='rgb', #or 'fillRGB' etc

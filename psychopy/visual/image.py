@@ -250,7 +250,7 @@ class ImageStim(BaseVisualStim):
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
         if self._needTextureUpdate:
-            self.setImage(value=self.image, log=False)
+            self.setImage(value=self._imName, log=False)
         if self._needUpdate:
             self._updateList()
         GL.glCallList(self._listID)

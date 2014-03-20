@@ -318,12 +318,12 @@ class BaseVisualStim(LegacyBaseVisualStim):
         # If we don't have shaders we need to rebuild the stimulus
         if hasattr(self, 'useShaders'):
             if not self.useShaders:
+                #we'll need to update the textures for the stimulus
+                #(sometime before drawing but not now)
                 if self.__class__.__name__ == 'TextStim':
                     self.setText(self.text)
-                elif self.__class__.__name__ == 'ImageStim':
-                    self.setImage(self._imName)
-                elif self.__class__.__name__ in ('GratingStim', 'RadialStim'):
-                    self.tex = self.tex
+                elif hasattr(self,'_needTextureUpdate'): #GratingStim, RadialStim, ImageStim etc
+                    self._needTextureUpdate = True
                 elif self.__class__.__name__ in ('ShapeStim','DotStim'):
                     pass # They work fine without shaders?
                 elif self.autoLog:
