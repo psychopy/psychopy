@@ -18,6 +18,7 @@ GL = pyglet.gl
 import psychopy  # so we can get the __path__
 from psychopy import logging
 
+from psychopy.tools.attributetools import logAttrib
 from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import BaseVisualStim
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
@@ -268,9 +269,7 @@ class ImageStim(BaseVisualStim):
         #if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize==None:
             self.size = None  # set size to default
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s image=%s" %(self.name, value),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, 'image', value)
         #if we switched to/from lum image then need to update shader rule
         if wasLumImage != self.isLumImage:
             self._needUpdate=True
@@ -282,6 +281,4 @@ class ImageStim(BaseVisualStim):
             pixFormat=GL.GL_ALPHA,dataType=GL.GL_UNSIGNED_BYTE,
             stim=self,
             res=self.texRes, maskParams=self.maskParams)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, 'mask')

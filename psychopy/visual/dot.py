@@ -21,7 +21,7 @@ from psychopy import logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.tools.attributetools import setWithOperation
+from psychopy.tools.attributetools import setWithOperation, logAttrib
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import cm2pix, deg2pix
 from psychopy.visual.basevisual import BaseVisualStim
@@ -190,10 +190,8 @@ class DotStim(BaseVisualStim):
         #update the actual coherence for the requested coherence and nDots
         if attrib in ['nDots','coherence']:
             self.coherence=round(self.coherence*self.nDots)/self.nDots
-
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
-                level=logging.EXP)
+        
+        logAttrib(self, log, attrib)
 
     def set(self, attrib, val, op='', log=True):
         """DotStim.set() is obsolete and may not be supported in future

@@ -43,6 +43,7 @@ import psychopy.event
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
+from psychopy.tools.attributetools import logAttrib
 from psychopy import makeMovies
 from psychopy.visual.basevisual import BaseVisualStim
 
@@ -200,9 +201,7 @@ class MovieStim(BaseVisualStim):
         self.status=NOT_STARTED
         self._player.pause()#start 'playing' on the next draw command
         self.filename=filename
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s movie=%s" %(self.name, filename),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, 'movie', filename)
 
     def pause(self, log=True):
         """Pause the current point in the movie (sound will stop, current frame
@@ -239,25 +238,19 @@ class MovieStim(BaseVisualStim):
         NB this does not seem very robust as at version 1.62 and may cause crashes!
         """
         self._player.seek(float(timestamp))
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s seek=%f" %(self.name,timestamp),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, 'seek', timestamp)
     def setFlipHoriz(self, newVal=True, log=True):
         """If set to True then the movie will be flipped horizontally (left-to-right).
         Note that this is relative to the original, not relative to the current state.
         """
         self.flipHoriz = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipHoriz=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
+        logAttrib(self, log, 'flipHoriz')
     def setFlipVert(self, newVal=True, log=True):
         """If set to True then the movie will be flipped vertically (top-to-bottom).
         Note that this is relative to the original, not relative to the current state.
         """
         self.flipVert = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
+        logAttrib(self, log, 'flipVert')
 
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the

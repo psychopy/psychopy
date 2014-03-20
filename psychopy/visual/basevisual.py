@@ -14,7 +14,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import attributeSetter, setWithOperation
+from psychopy.tools.attributetools import attributeSetter, setWithOperation, logAttrib
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg, convertToPix
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
@@ -232,6 +232,11 @@ class BaseVisualStim(LegacyBaseVisualStim):
            win1.flip(waitBlanking=False)  # do not wait for next monitor update
            win2.flip()  # wait for vertical blanking.
 
+        Note that this just changes **default** window for stimulus.
+        You could also specify window-to-draw-to when drawing::
+
+           stim.draw(win1)
+           stim.draw(win2)
         """
         self.__dict__['win'] = value
 
@@ -315,11 +320,11 @@ class BaseVisualStim(LegacyBaseVisualStim):
             if not self.useShaders:
                 if self.__class__.__name__ == 'TextStim':
                     self.setText(self.text)
-                if self.__class__.__name__ == 'ImageStim':
+                elif self.__class__.__name__ == 'ImageStim':
                     self.setImage(self._imName)
-                if self.__class__.__name__ in ('GratingStim', 'RadialStim'):
+                elif self.__class__.__name__ in ('GratingStim', 'RadialStim'):
                     self.tex = self.tex
-                if self.__class__.__name__ in ('ShapeStim','DotStim'):
+                elif self.__class__.__name__ in ('ShapeStim','DotStim'):
                     pass # They work fine without shaders?
                 elif self.autoLog:
                     logging.warning('Tried to set contrast while useShaders = False but stimulus was not rebuild. Contrast might remain unchanged.')
@@ -551,10 +556,7 @@ class BaseVisualStim(LegacyBaseVisualStim):
 
         # Handle operations
         setWithOperation(self, attrib, val, op)
-
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, attrib)
 
     def setUseShaders(self, value=True):
         """Usually you can use 'stim.attribute = value' syntax instead,

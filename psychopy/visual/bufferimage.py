@@ -20,7 +20,7 @@ from psychopy import core, logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.tools.attributetools import attributeSetter
+from psychopy.tools.attributetools import attributeSetter, logAttrib
 from psychopy.tools.typetools import float_uint8
 from psychopy.visual.grating import GratingStim
 
@@ -217,18 +217,13 @@ class BufferImageStim(GratingStim):
         Note that this is relative to the original image, not relative to the current state.
         """
         self.flipHoriz = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipHoriz=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
+        logAttrib(self, log, 'flipHoriz')
     def setFlipVert(self, newVal=True, log=True):
         """If set to True then the image will be flipped vertically (top-to-bottom).
         Note that this is relative to the original image, not relative to the current state.
         """
         self.flipVert = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
-
+        logAttrib(self, log, 'flipVert')
     def draw(self, win=None):
         """
         Draws the BufferImage on the screen, similar to :class:`~psychopy.visual.ImageStim` `.draw()`.

@@ -23,7 +23,7 @@ from psychopy import core, logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import convertToPix
-from psychopy.tools.attributetools import setWithOperation
+from psychopy.tools.attributetools import setWithOperation, logAttrib
 
 try:
     from PIL import Image
@@ -129,10 +129,8 @@ class SimpleImageStim(object):
         if newVal!=self.flipHoriz: #we need to make the flip
             self.imArray = numpy.flipud(self.imArray)#numpy and pyglet disagree about ori so ud<=>lr
         self.flipHoriz=newVal
+        logAttrib(self, log, 'flipHoriz')
         self._needStrUpdate=True
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipHoriz=%s" %(self.name, newVal),
-                level=logging.EXP,obj=self)
     def setFlipVert(self,newVal=True, log=True):
         """If set to True then the image will be flipped vertically (top-to-bottom).
         Note that this is relative to the original image, not relative to the current state.
@@ -140,10 +138,8 @@ class SimpleImageStim(object):
         if newVal!=self.flipVert: #we need to make the flip
             self.imArray = numpy.fliplr(self.imArray)#numpy and pyglet disagree about ori so ud<=>lr
         self.flipVert=newVal
+        logAttrib(self, log, 'flipVert')
         self._needStrUpdate=True
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipVert=%s" %(self.name, newVal),
-                level=logging.EXP,obj=self)
     def setUseShaders(self, val=True):
         """Set this stimulus to use shaders if possible.
         """
@@ -222,10 +218,7 @@ class SimpleImageStim(object):
             val=numpy.array(val, float)
 
         setWithOperation(self, attrib, val, op)
-
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, attrib)
     def setPos(self, newPos, operation='', units=None, log=True):
         self._set('pos', val=newPos, op=operation, log=log)
         self._calcPosRendered()
@@ -275,7 +268,4 @@ class SimpleImageStim(object):
              self.internalFormat = GL.GL_RGB
         self.dataType = GL.GL_UNSIGNED_BYTE
         self._needStrUpdate = True
-
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s image=%s" %(self.name, filename),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, 'image', filename)
