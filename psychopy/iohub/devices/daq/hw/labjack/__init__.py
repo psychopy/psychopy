@@ -42,6 +42,10 @@ class AnalogInput(AnalogInputDevice):
                                            ResolutionIndex = self.resolution_index,
                                            SampleFrequency = self.channel_sampling_rate)
     
+                delay_offset=self.getConfiguration().get('delay_offset')
+                if delay_offset is not None:
+                    self.setDelayOffset(delay_offset)
+                    
                 self._data_streaming_thread=LabJackDataReader(self)
                 self._data_streaming_thread.start()
             except:
@@ -185,8 +189,8 @@ class AnalogInput(AnalogInputDevice):
 
             multi_channel_event[3]=Computer._getNextEventID()
             multi_channel_event[5]=float(self._scan_count)/float(self.channel_sampling_rate) #device_time
-            multi_channel_event[7]=multi_channel_event[5]+start_post # iohub time
-            multi_channel_event[9]=logged_time-multi_channel_event[7] #delay
+            multi_channel_event[7]=multi_channel_event[5]+start_post+self.getDelayOffset() # iohub time
+            multi_channel_event[9]=(logged_time-multi_channel_event[7])-self.getDelayOffset() #delay
 
             multi_channel_event.extend([ain[a][s] for a in channel_index_list])
             self._addNativeEventToBuffer(multi_channel_event)

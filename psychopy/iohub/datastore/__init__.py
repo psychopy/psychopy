@@ -148,6 +148,18 @@ class ioHubpyTablesFile():
             pass
 
         try:
+            self.TABLES['ANALOG_INPUT']=self.emrtFile.root.data_collection.events.mcu.AnalogInputEvent
+        except:
+            # Just means the table for this event type has not been created as the event type is not being recorded
+            pass
+
+        try:
+            self.TABLES['DIGITAL_INPUT']=self.emrtFile.root.data_collection.events.mcu.DigitalInputEvent
+        except:
+            # Just means the table for this event type has not been created as the event type is not being recorded
+            pass
+
+        try:
             self.TABLES['MONOCULAR_EYE_SAMPLE']=self.emrtFile.root.data_collection.events.eyetracker.MonocularEyeSampleEvent
         except:
             # Just means the table for this event type has not been created as the event type is not being recorded
@@ -228,6 +240,7 @@ class ioHubpyTablesFile():
         self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'gamepad', title='GamePad Device Events.')
         self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'analog_input', title='AnalogInput Device Events.')
         self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'eyetracker', title='EyeTracker Device Events.')
+        self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'mcu', title='MCU Device Events.')
         self.flush()
 
         self._buildEventGroupMappingDict()
@@ -240,6 +253,8 @@ class ioHubpyTablesFile():
         self._eventGroupMappings['TOUCH']=self.emrtFile.root.data_collection.events.touch
         self._eventGroupMappings['GAMEPAD_STATE_CHANGE']=self.emrtFile.root.data_collection.events.gamepad
         self._eventGroupMappings['MULTI_CHANNEL_ANALOG_INPUT']=self.emrtFile.root.data_collection.events.analog_input
+        self._eventGroupMappings['ANALOG_INPUT']=self.emrtFile.root.data_collection.events.mcu
+        self._eventGroupMappings['DIGITAL_INPUT']=self.emrtFile.root.data_collection.events.mcu
         self._eventGroupMappings['MESSAGE']=self.emrtFile.root.data_collection.events.experiment
         self._eventGroupMappings['LOG']=self.emrtFile.root.data_collection.events.experiment
         self._eventGroupMappings['MONOCULAR_EYE_SAMPLE']=self.emrtFile.root.data_collection.events.eyetracker

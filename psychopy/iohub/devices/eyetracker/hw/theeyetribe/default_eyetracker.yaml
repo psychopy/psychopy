@@ -29,7 +29,7 @@ eyetracker.hw.theyetribe.EyeTracker:
     # The model name of the TheEyeTribe device that you wish to connect to can be specified here,
     # and only TheEyeTribe systems matching that model name will be considered as possible candidates for connection.
     # If you only have one TheEyeTribe system connected to the computer, this field can just be left empty.
-    model_name:
+    model_name: TheEyeTribe
 
     # The serial number of the TheEyeTribe device that you wish to connect to can be specified here,
     # and only the TheEyeTribe system matching that serial number will be connected to, if found.
@@ -152,8 +152,8 @@ eyetracker.hw.theyetribe.EyeTracker:
     
     runtime_settings:
         # The supported sampling rates for TheEyeTribe are model dependent.
-        # Using a defualt of 60 Hz, with the assumption it is the most common.
-        sampling_rate: 60
+        # Using a defualt of 30 Hz, with the assumption it is the most common.
+        sampling_rate: 30
 
         # TheEyeTribe supports BINOCULAR tracking mode only.
         track_eyes: BINOCULAR

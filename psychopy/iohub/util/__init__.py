@@ -159,13 +159,8 @@ class NumPyRingBuffer(object):
     number of elements,  that the buffer can hold *must* be specified. When 
     the buffer becomes full, each element added to the buffer removes the oldest
     element from the buffer so that max_size is never exceeded. 
-    
-    The class supports simple slice type access to the buffer contents
-    with the following restrictions / considerations:
-    
-    #. Negative indexing is not supported.
  
-    Items area dded to the ring buffer using the classes append method.
+    Items are added to the ring buffer using the classes append method.
     
     The current number of elements in the buffer can be retrieved using the 
     getLength() method of the class. 

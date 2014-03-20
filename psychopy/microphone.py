@@ -738,7 +738,8 @@ class Speech2Text(object):
                  timeout=10,
                  samplingrate=16000,
                  pro_filter=2,
-                 quiet=True):
+                 quiet=True,
+                 level=0):
         """
             :Parameters:
 
@@ -759,6 +760,8 @@ class Speech2Text(object):
                     profanity filter level; default 2 (e.g., f***)
                 `quiet` :
                     no reporting intermediate details; default `True` (non-verbose)
+                `level` :
+                    flac compression level (0 less compression but fastest)
         """
         # set up some key parameters:
         results = 5 # how many words wanted
@@ -784,7 +787,7 @@ class Speech2Text(object):
             filetype = "x-speex-with-header-byte"
         elif ext == ".wav": # convert to .flac
             filetype = "x-flac"
-            filename = wav2flac(filename)
+            filename = wav2flac(filename, level=level)  # opt for speed
         logging.info("Loading: %s as %s, audio/%s" % (self.filename, lang, filetype))
         c = 0 # occasional error; core.wait(.1) is not always enough; better slow than fail
         while not os.path.isfile(filename) and c < 10:
@@ -888,7 +891,7 @@ class BatchSpeech2Text(list):
             fileList = list(files)
         web.requireInternetAccess()  # needed to access google's speech API
         for i, filename in enumerate(fileList):
-            gs = Speech2Text(filename)
+            gs = Speech2Text(filename, level=5)
             self.append( (filename, gs.getThread()) ) # tuple
             if verbose:
                 logging.info("%i %s" % (i, filename))
@@ -955,12 +958,14 @@ def flac2wav(path, keep=True):
     else:
         return wav_files
 
-def wav2flac(path, keep=True):
+def wav2flac(path, keep=True, level=5):
     """Lossless compression: convert .wav file (on disk) to .flac format.
 
     If `path` is a directory name, convert all .wav files in the directory.
 
     `keep` to retain the original .wav file(s), default `True`.
+
+    `level` is compression level: 0 is fastest but larger, 8 is slightly smaller but much slower.
     """
     flac_path = _getFlacPath()
     wav_files = []
@@ -974,7 +979,7 @@ def wav2flac(path, keep=True):
     flac_files = []
     for wavfile in wav_files:
         flacfile = wavfile.replace('.wav', '.flac')
-        flac_cmd = [flac_path, "-8", "-f", "--totally-silent", "-o", flacfile, wavfile]
+        flac_cmd = [flac_path, "-%d" % level, "-f", "--totally-silent", "-o", flacfile, wavfile]
         __, se = core.shellCall(flac_cmd, stderr=True)
         if se or not os.path.isfile(flacfile): # just try again
             # ~2% incidence when recording for 1s, 650+ trials
