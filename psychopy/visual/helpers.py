@@ -277,7 +277,7 @@ def createTexture(tex, id, pixFormat, stim, res=128, maskParams=None,
         data[:,:,0] = intensity#R
         data[:,:,1] = intensity#G
         data[:,:,2] = intensity#B
-    elif pixFormat==GL.GL_RGB and wasLum and dataType!=GL.GL_FLOAT:
+    elif pixFormat==GL.GL_RGB and wasLum and dataType!=GL.GL_FLOAT and stim.useShaders:
         #was a lum image: stick with ubyte for speed
         internalFormat = GL.GL_RGB
         data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.ubyte)#initialise data array as a float

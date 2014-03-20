@@ -131,9 +131,9 @@ class ImageStim(BaseVisualStim):
         GL.glNewList(self._listID,GL.GL_COMPILE)
 
         #setup the shaderprogram
-        GL.glUseProgram(self.win._progSignedTexMask)
-        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "texture"), 0) #set the texture to be texture unit 0
-        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
+        GL.glUseProgram(self.win._progImageStim)
+        GL.glUniform1i(GL.glGetUniformLocation(self.win._progImageStim, "texture"), 0) #set the texture to be texture unit 0
+        GL.glUniform1i(GL.glGetUniformLocation(self.win._progImageStim, "mask"), 1)  # mask is texture unit 1
 
         #mask
         GL.glActiveTexture(GL.GL_TEXTURE1)
