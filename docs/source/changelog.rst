@@ -25,6 +25,7 @@ PsychoPy 1.80.01
 
 Released Mar 2014
 
+* FIXED: buglet with movie glPopAttrib() on Intel gfx cards (thanks Bryan Cort)
 * FIXED: problem trying to use FrameBufferObject (FBO) on Intel GMA graphics cards
 * FIXED: problem with ImageStim not respecting setColor() and setContrast()
 * FIXED: some stimuli were failing to switch to a second window when requested

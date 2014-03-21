@@ -33,7 +33,7 @@ if sys.platform == 'win32':
     except WindowsError, e:
         # Windows memory access error
         # (prevents avbin loading)
-        haveAvbin = False    
+        haveAvbin = False
 
 
 import psychopy  # so we can get the __path__
@@ -304,7 +304,7 @@ class MovieStim(BaseVisualStim):
         GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array) #2D texture array, 3D vertex array
         GL.glDrawArrays(GL.GL_QUADS, 0, 4)
         GL.glPopClientAttrib()
-        GL.glPopAttrib(GL.GL_ENABLE_BIT)
+        GL.glPopAttrib()
         GL.glPopMatrix()
 
     def setContrast(self):
