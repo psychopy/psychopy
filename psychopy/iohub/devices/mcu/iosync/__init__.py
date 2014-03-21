@@ -83,41 +83,57 @@ getTime= Computer.getTime
 class MCU(Device):
     """
     """
-    _mcu=None 
-    _request_dict={}
-    _response_dict={}  
-    _last_sync_time=0.0
     DEVICE_TIMEBASE_TO_SEC=1.0
     _newDataTypes = [('serial_port',N.str,32),('time_sync_interval',N.float32)]
     EVENT_CLASS_NAMES=['AnalogInputEvent','DigitalInputEvent']
     DEVICE_TYPE_ID=DeviceConstants.MCU
-    DEVICE_TYPE_STRING="MCU"    
-    __slots__=[e[0] for e in _newDataTypes]
+    DEVICE_TYPE_STRING="MCU"
+    _mcu_slots=['serial_port',
+                'time_sync_interval',
+                '_mcu',
+                '_request_dict',
+                '_response_dict',
+                '_last_sync_time'
+                ]
+    __slots__=[e for e in _mcu_slots]
     def __init__(self, *args, **kwargs):
         self.serial_port=None   
         self.time_sync_interval=None   
+
         Device.__init__(self,*args,**kwargs['dconfig'])
-        
+
+        self._mcu=None
+        self._request_dict={}
+        self._response_dict={}
+        self._last_sync_time=0.0
+
+        if self.serial_port.lower() == 'auto':
+            syncPorts = T3MC.findSyncs()
+            if len(syncPorts) == 1:
+                self.serial_port = syncPorts[0]
+            elif len(syncPorts) > 1:
+                self.serial_port = syncPorts[0]
+            else:
+                    print2err("ioSync ERROR: No ioSync Devices found. Check cabling and serial device driver. ")
+
         self.setConnectionState(True)
-        
+
     def setConnectionState(self,enable):
         if enable is True:
-            if MCU._mcu is None:
+            if self._mcu is None:
                 serial_id=None
                 if self.serial_port.upper().strip().startswith('COM'):
                      serial_id=int(self.serial_port.strip()[3:])
                 else:
                     serial_id= self.serial_port.strip()   
-                MCU._mcu = T3MC(serial_id)
-                
-                self._mcu._runTimeSync()
+                self._mcu = T3MC(serial_id)
+                self._resetLocalState()
 
-                MCU._last_sync_time=getTime()
-                   
         elif enable is False:
             if self._mcu:
+                self._mcu.resetState()
                 self._mcu.close()
-                MCU._mcu=None
+                self._mcu=None
                 
         return self.isConnected()
 
@@ -200,6 +216,19 @@ class MCU(Device):
         self._request_dict[request.getID()]=request
         return request.asdict()
 
+    def _resetLocalState(self):
+        self._request_dict.clear()
+        self._response_dict.clear()
+        self._last_sync_time=0.0
+        self._mcu._runTimeSync()
+        self._last_sync_time=getTime()
+
+    def resetState(self):
+        request = self._mcu.resetState()
+        self._resetLocalState()
+        self._request_dict[request.getID()]=request
+        return request.asdict()
+
     def getRequestResponse(self,rid=None):
         if rid:
             response=self._response_dict.get(rid)
@@ -225,7 +254,7 @@ class MCU(Device):
                 self._mcu.getSerialRx()
                 if logged_time-self._last_sync_time>=self.time_sync_interval:
                     self._mcu._runTimeSync()
-                    MCU._last_sync_time=logged_time
+                    self._last_sync_time=logged_time
 
             if not self.isReportingEvents():
                 return False
@@ -283,6 +312,7 @@ class MCU(Device):
             
     def _close(self):
         if self._mcu:
+            self.resetState()
             self.setConnectionState(False)
             
         Device._close(self)
