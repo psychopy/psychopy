@@ -173,7 +173,8 @@ byte writeByteBufferToSerial(){
 #define GET_AIN_CHANNELS 5
 #define SET_T3_INPUTS_STREAMING_STATE 6
 #define SYNC_TIME_BASE 7
-#define REQUEST_TYPE_COUNT 8
+#define RESET_STATE 8
+#define REQUEST_TYPE_COUNT 9
 
 #define REQUEST_TX_HEADER_BYTE_COUNT 8
 
@@ -184,6 +185,7 @@ byte request_tx_byte_length[REQUEST_TYPE_COUNT]={
   REQUEST_TX_HEADER_BYTE_COUNT+2,
   REQUEST_TX_HEADER_BYTE_COUNT+1,
   REQUEST_TX_HEADER_BYTE_COUNT+sizeof(AIN_PINS)*2,
+  REQUEST_TX_HEADER_BYTE_COUNT,
   REQUEST_TX_HEADER_BYTE_COUNT,
   REQUEST_TX_HEADER_BYTE_COUNT  
 };
@@ -196,6 +198,7 @@ void handleGetDigitalInStateRx(byte request_type,byte request_id,byte request_rx
 void handleGetAnalogInChannelsRx(byte request_type,byte request_id,byte request_rx_byte_count);
 void handleEnableInputStreamingRx(byte request_type,byte request_id,byte request_rx_byte_count);
 void handleSyncTimebaseRx(byte request_type,byte request_id,byte request_rx_byte_count);
+void handleResetStateRx(byte request_type,byte request_id,byte request_rx_byte_count);
 
 void (*requestHandlerFP[REQUEST_TYPE_COUNT])(byte request_type,byte request_id,byte request_rx_byte_count)={
   NullHandlerRx,
@@ -205,7 +208,8 @@ void (*requestHandlerFP[REQUEST_TYPE_COUNT])(byte request_type,byte request_id,b
   handleGetDigitalInStateRx,
   handleGetAnalogInChannelsRx,
   handleEnableInputStreamingRx,
-  handleSyncTimebaseRx
+  handleSyncTimebaseRx,
+  handleResetStateRx
 };
 
 elapsedMicros sinceLastSerialTx;
@@ -252,14 +256,20 @@ void NullHandlerRx(byte request_type,byte request_id,byte request_rx_byte_count)
   //nothing to do here
 }
 
+//------------------------
+
 void handleUsecTimeRx(byte request_type,byte request_id,byte request_rx_byte_count){
   //nothing to do here
 }
+
+//------------------------
 
 void handleSyncTimebaseRx(byte request_type,byte request_id,byte request_rx_byte_count){
   //force immediate tx of response.
   sinceLastSerialTx = sinceLastSerialTx + MAX_TX_BUFFERING_INTERVAL;
 }
+
+//------------------------
 
 void handleSetDigitalOutStateRx(byte request_type,byte request_id,byte request_rx_byte_count){
   /*
@@ -285,6 +295,8 @@ void handleSetDigitalOutStateRx(byte request_type,byte request_id,byte request_r
     i++;
   }
 }
+
+//------------------------
 
 void handleSetDigitalOutPinRx(byte request_type,byte request_id,byte request_rx_byte_count){
   /*
@@ -314,6 +326,8 @@ void handleSetDigitalOutPinRx(byte request_type,byte request_id,byte request_rx_
   digitalWrite(DOUT_PINS[pin_value[0]],pin_value[1]);
 }
 
+//------------------------
+
 void handleGetDigitalInStateRx(byte request_type,byte request_id,byte request_rx_byte_count){
   /*
   GET_DIGITAL_IN_STATE: Gets all 8 digital in pins.
@@ -336,6 +350,8 @@ void handleGetDigitalInStateRx(byte request_type,byte request_id,byte request_rx
   tx_byte_buffer[tx_byte_buffer_index]=din_value;
   tx_byte_buffer_index+=1; 
 }
+
+//------------------------
 
 void handleGetAnalogInChannelsRx(byte request_type,byte request_id,byte request_rx_byte_count){
   /*
@@ -360,6 +376,8 @@ void handleGetAnalogInChannelsRx(byte request_type,byte request_id,byte request_
     }
   tx_byte_buffer_index+=16; 
 }
+
+//------------------------
 
 byte digital_input_streaming_enabled=0;
 byte analog_input_streaming_enabled=0;
@@ -511,7 +529,6 @@ void setup()
   
   sinceLastInputRead=0;
   sinceLastSerialTx=0;
-  //  initIntervalTimers();
 }
 
 //---------------------------------------
@@ -534,4 +551,39 @@ void loop()
   }
 
 }
+
+//------------------------
+
+void handleResetStateRx(byte request_type,byte request_id,byte request_rx_byte_count){
+  /*
+  */
+  sinceLastInputRead=0;
+  sinceLastSerialTx=0;
+
+  initDigitalOutputs();  
+
+  analog_input_streaming_enabled=0;
+
+  digital_input_streaming_enabled=0;
+  last_digital_input_state=0;
+  current_digital_input_state=0;
+  for (byte i=0;i<sizeof(DIN_PINS);i++)
+      current_digital_input_state+=(bytePow(2,i)*digitalRead(DIN_PINS[i]));
+  last_digital_input_state=current_digital_input_state;
+
+  initUsec48();
+  updateUsecTime();
+  
+  tx_byte_buffer_index=0;
+  tx_byte_buffer[tx_byte_buffer_index]=request_id;
+  tx_byte_buffer[tx_byte_buffer_index+1]=request_tx_byte_length[request_type];
+  tx_byte_buffer[tx_byte_buffer_index+2]=t3_usec_time.bytes[0];
+  tx_byte_buffer[tx_byte_buffer_index+3]=t3_usec_time.bytes[1];
+  tx_byte_buffer[tx_byte_buffer_index+4]=t3_usec_time.bytes[2];
+  tx_byte_buffer[tx_byte_buffer_index+5]=t3_usec_time.bytes[3];
+  tx_byte_buffer[tx_byte_buffer_index+6]=t3_usec_time.bytes[4];
+  tx_byte_buffer[tx_byte_buffer_index+7]=t3_usec_time.bytes[5];
+  tx_byte_buffer_index=tx_byte_buffer_index+8;
+}
+
 
