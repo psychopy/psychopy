@@ -582,7 +582,7 @@ class TrialHandler:
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
     def __init__(self, exp, name, loopType='random', nReps=5,
-        conditions=[], conditionsFile='',endPoints=[0,1],randomSeed='', selectedRows=''):
+        conditions=[], conditionsFile='',endPoints=[0,1],randomSeed=''):
         """
         @param name: name of the loop e.g. trials
         @type name: string
@@ -609,11 +609,12 @@ class TrialHandler:
             hint="Name of a file specifying the parameters for each condition (.csv, .xlsx, or .pkl). Browse to select a file. Right-click to preview file contents, or create a new file.")
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
             hint="The start and end of the loop (see flow timeline)")
-        self.params['Selected rows']=Param(selectedRows, valType='code', updates=None, allowedUpdates=None,
-            hint="Select the rows form you condition file (the first is 0 not 1!). Examples: 0:5, 5:-1, randint(5)")
         self.params['loopType']=Param(loopType, valType='str',
             allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
             hint="How should the next condition value(s) be chosen?")#NB staircase is added for the sake of the loop properties dialog
+        #these two are really just for making the dialog easier (they won't be used to generate code)
+        self.params['endPoints']=Param(endPoints,valType='num',
+            hint='Where to loop from and to (see values currently shown in the flow view)')
         self.params['random seed']=Param(randomSeed, valType='code', updates=None, allowedUpdates=None,
             hint="To have a fixed random sequence provide an integer of your choosing here. Leave blank to have a new random sequence on each run of the experiment.")
     def writeInitCode(self,buff):
@@ -628,12 +629,7 @@ class TrialHandler:
         #import conditions from file
         if self.params['conditionsFile'].val in ['None',None,'none','']:
             condsStr="[None]"
-        elif self.params['Selected rows'].val in ['None',None,'none','']:
-            # just a conditions file with no sub-selection
-            condsStr="data.importConditions(%s)" %self.params['conditionsFile']
-        else:
-            # a subset of a conditions file
-            condsStr="data.importConditions(%(conditionsFile)s)[%(Selected rows)s]" %(self.params)
+        else: condsStr="data.importConditions(%s)" %self.params['conditionsFile']
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         #write the code
