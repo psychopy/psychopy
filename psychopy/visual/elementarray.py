@@ -26,9 +26,7 @@ from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import setWithOperation, logAttrib
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.visual.helpers import setColor, createTexture
-
-global currWindow
-currWindow = None
+from . import glob_vars
 
 import numpy
 
@@ -220,11 +218,10 @@ class ElementArrayStim(object):
             logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def _selectWindow(self, win):
-        global currWindow
         #don't call switch if it's already the curr window
-        if win!=currWindow and win.winType=='pyglet':
+        if win!=glob_vars.currWindow and win.winType=='pyglet':
             win.winHandle.switch_to()
-            currWindow = win
+            glob_vars.currWindow = win
 
     def setXYs(self,value=None, operation='', log=True):
         """Set the xy values of the element centres (relative to the centre of the field).

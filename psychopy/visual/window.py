@@ -1039,10 +1039,11 @@ class Window:
     def setRGB(self, newRGB):
         """Deprecated: As of v1.61.00 please use `setColor()` instead
         """
-        global GL, currWindow
+        global GL
         self.rgb = val2array(newRGB, False, length=3)
         if self.winType == 'pyglet' and currWindow != self:
             self.winHandle.switch_to()
+            glob_vars.currWindow = self
         GL.glClearColor((self.rgb[0]+1.0)/2.0,
                         (self.rgb[1]+1.0)/2.0,
                         (self.rgb[2]+1.0)/2.0,

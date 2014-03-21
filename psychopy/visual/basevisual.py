@@ -19,11 +19,9 @@ from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg, convertToPix
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
                                      setColor, setTexIfNoShaders)
+from . import glob_vars
 
 import numpy
-
-global currWindow
-currWindow = None
 
 from psychopy.constants import NOT_STARTED, STARTED, STOPPED
 
@@ -563,11 +561,10 @@ class BaseVisualStim(LegacyBaseVisualStim):
         but use this method if you need to suppress the log message"""
         self.useShaders = value
     def _selectWindow(self, win):
-        global currWindow
         #don't call switch if it's already the curr window
-        if win!=currWindow and win.winType=='pyglet':
+        if win!=glob_vars.currWindow and win.winType=='pyglet':
             win.winHandle.switch_to()
-            currWindow = win
+            glob_vars.currWindow = win
 
     def _updateList(self):
         """

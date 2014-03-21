@@ -24,6 +24,7 @@ from psychopy import core, logging
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.tools.attributetools import setWithOperation, logAttrib
+from . import glob_vars
 
 try:
     from PIL import Image
@@ -31,9 +32,6 @@ except ImportError:
     import Image
 
 import numpy
-
-global currWindow
-currWindow = None
 
 
 class SimpleImageStim(object):
@@ -153,11 +151,10 @@ class SimpleImageStim(object):
         self._imStr=self.imArray.tostring()
         self._needStrUpdate=False
     def _selectWindow(self, win):
-        global currWindow
         #don't call switch if it's already the curr window
-        if win!=currWindow and win.winType=='pyglet':
+        if win!=glob_vars.currWindow and win.winType=='pyglet':
             win.winHandle.switch_to()
-            currWindow = win
+            glob_vars.currWindow = win
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
