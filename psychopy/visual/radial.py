@@ -22,7 +22,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import attributeSetter
+from psychopy.tools.attributetools import attributeSetter, logAttrib
 from psychopy.visual.basevisual import BaseVisualStim
 from psychopy.visual.grating import GratingStim
 
@@ -344,6 +344,8 @@ class RadialStim(GratingStim):
             GL.glUseProgram(0)
         else:
             #the list does the texture mapping
+            if self._needTextureUpdate:
+                self.setTex(value=self.tex, log=False)
             if self._needUpdate:
                 self._updateList()
             GL.glCallList(self._listID)
@@ -487,9 +489,7 @@ class RadialStim(GratingStim):
         """Change the alpha-mask for the stimulus
         """
         self.mask = value
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, 'mask')
 
     def __del__(self):
         if not self.useShaders:

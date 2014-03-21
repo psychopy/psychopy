@@ -227,14 +227,13 @@ class TestExpt():
 
     def test_Run_FastStroopPsyExp(self):
         # start from a psyexp file, loadXML, execute, get keypresses from a emulator thread
+
         pytest.skip()  # test is stalling, hangs up before any text is displayed
 
         if sys.platform.startswith('linux'):
             pytest.skip("response emulation thread not working on linux yet")
 
-        os.chdir(self.tmp_dir)
-
-        file = path.join(self.exp.prefsPaths['tests'], 'data', 'ghost_stroop.psyexp')
+        expfile = path.join(self.exp.prefsPaths['tests'], 'data', 'ghost_stroop.psyexp')
         f = codecs.open(file, 'r', 'utf-8')
         text = f.read()
         f.close()
@@ -247,12 +246,12 @@ class TestExpt():
         text = text.replace("'Arial'","'"+tests.utils.TESTS_FONT+"'")
         #text = text.replace("Arial",tests.utils.TESTS_FONT) # fails
 
-        file = path.join(self.tmp_dir, 'ghost_stroop.psyexp')
-        f = codecs.open(file, 'w', 'utf-8')
+        expfile = path.join(self.tmp_dir, 'ghost_stroop.psyexp')
+        f = codecs.open(expfile, 'w', 'utf-8')
         f.write(text)
         f.close()
 
-        self.exp.loadFromXML(file) # reload the edited file
+        self.exp.loadFromXML(expfile) # reload the edited file
         lastrun = path.join(self.tmp_dir, 'ghost_stroop_lastrun.py')
         script = self.exp.writeScript(expPath=file)
 

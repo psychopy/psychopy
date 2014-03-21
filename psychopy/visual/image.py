@@ -18,6 +18,7 @@ GL = pyglet.gl
 import psychopy  # so we can get the __path__
 from psychopy import logging
 
+from psychopy.tools.attributetools import logAttrib
 from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import BaseVisualStim
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
@@ -128,11 +129,11 @@ class ImageStim(BaseVisualStim):
         """
         self._needUpdate = False
         GL.glNewList(self._listID,GL.GL_COMPILE)
+
         #setup the shaderprogram
-        if self.isLumImage:
-            GL.glUseProgram(self.win._progSignedTexMask)
-            GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "texture"), 0) #set the texture to be texture unit 0
-            GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
+        GL.glUseProgram(self.win._progImageStim)
+        GL.glUniform1i(GL.glGetUniformLocation(self.win._progImageStim, "texture"), 0) #set the texture to be texture unit 0
+        GL.glUniform1i(GL.glGetUniformLocation(self.win._progImageStim, "mask"), 1)  # mask is texture unit 1
 
         #mask
         GL.glActiveTexture(GL.GL_TEXTURE1)
@@ -225,7 +226,8 @@ class ImageStim(BaseVisualStim):
 
 
     def __del__(self):
-        GL.glDeleteLists(self._listID, 1)
+        if hasattr(self, '_listID'):
+            GL.glDeleteLists(self._listID, 1)
         self.clearTextures()#remove textures from graphics card to prevent crash
 
     def clearTextures(self):
@@ -234,8 +236,9 @@ class ImageStim(BaseVisualStim):
         As of v1.61.00 this is called automatically during garbage collection of
         your stimulus, so doesn't need calling explicitly by the user.
         """
-        GL.glDeleteTextures(1, self._texID)
-        GL.glDeleteTextures(1, self._maskID)
+        if hasattr(self, '_texID'):
+            GL.glDeleteTextures(1, self._texID)
+            GL.glDeleteTextures(1, self._maskID)
     def draw(self, win=None):
         if win==None: win=self.win
         self._selectWindow(win)
@@ -246,6 +249,8 @@ class ImageStim(BaseVisualStim):
         desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
+        if self._needTextureUpdate:
+            self.setImage(value=self._imName, log=False)
         if self._needUpdate:
             self._updateList()
         GL.glCallList(self._listID)
@@ -268,12 +273,11 @@ class ImageStim(BaseVisualStim):
         #if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize==None:
             self.size = None  # set size to default
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s image=%s" %(self.name, value),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, 'image', value)
         #if we switched to/from lum image then need to update shader rule
         if wasLumImage != self.isLumImage:
             self._needUpdate=True
+        self._needTextureUpdate = False
     def setMask(self,value, log=True):
         """Change the image to be used as an alpha-mask for the image
         """
@@ -282,6 +286,4 @@ class ImageStim(BaseVisualStim):
             pixFormat=GL.GL_ALPHA,dataType=GL.GL_UNSIGNED_BYTE,
             stim=self,
             res=self.texRes, maskParams=self.maskParams)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, 'mask')

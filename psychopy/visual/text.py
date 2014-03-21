@@ -26,6 +26,7 @@ import psychopy.event
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
+from psychopy.tools.attributetools import logAttrib
 from psychopy.visual.basevisual import BaseVisualStim
 
 import numpy
@@ -186,9 +187,7 @@ class TextStim(BaseVisualStim):
                                       units=self.units, win=self.win)[1]
         #need to update the font to reflect the change
         self.setFont(self.fontname, log=False)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s height=%.2f" %(self.name, height),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, 'height', height)
     def setFont(self, font, log=True):
         """Set the font to be used for text rendering.
         font should be a string specifying the name of the font (in system resources)
@@ -231,9 +230,7 @@ class TextStim(BaseVisualStim):
                     self._font = pygame.font.SysFont(self.fontname, int(self.heightPix), italic=self.italic, bold=self.bold)
         #re-render text after a font change
         self._needSetText=True
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s font=%s" %(self.name, self.fontname),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, 'font', self.fontname)
 
     def setText(self,text=None, log=True):
         """Set the text to be rendered using the current font
@@ -245,9 +242,7 @@ class TextStim(BaseVisualStim):
         else:
             self._setTextNoShaders(text)
         self._needSetText=False
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s text=%s" %(self.name, text),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, 'text', text)
     def setRGB(self, text, operation='', log=True):
         self._set('rgb', text, operation, log=log)
         if not self.useShaders:
@@ -504,17 +499,13 @@ class TextStim(BaseVisualStim):
         Note that this is relative to the original, not relative to the current state.
         """
         self.flipHoriz = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipHoriz=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
+        logAttrib(self, log, 'flipHoriz')
     def setFlipVert(self, newVal=True, log=True):
         """If set to True then the text will be flipped vertically (top-to-bottom).
         Note that this is relative to the original, not relative to the current state.
         """
         self.flipVert = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
+        logAttrib(self, log, 'flipVert')
     def setFlip(self, direction, log=True):
         """(used by Builder to simplify the dialog)"""
         if direction == 'vert':

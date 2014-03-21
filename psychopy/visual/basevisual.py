@@ -14,16 +14,14 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import attributeSetter, setWithOperation
+from psychopy.tools.attributetools import attributeSetter, setWithOperation, logAttrib
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg, convertToPix
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
                                      setColor, setTexIfNoShaders)
+from . import glob_vars
 
 import numpy
-
-global currWindow
-currWindow = None
 
 from psychopy.constants import NOT_STARTED, STARTED, STOPPED
 
@@ -232,6 +230,11 @@ class BaseVisualStim(LegacyBaseVisualStim):
            win1.flip(waitBlanking=False)  # do not wait for next monitor update
            win2.flip()  # wait for vertical blanking.
 
+        Note that this just changes **default** window for stimulus.
+        You could also specify window-to-draw-to when drawing::
+
+           stim.draw(win1)
+           stim.draw(win2)
         """
         self.__dict__['win'] = value
 
@@ -313,13 +316,13 @@ class BaseVisualStim(LegacyBaseVisualStim):
         # If we don't have shaders we need to rebuild the stimulus
         if hasattr(self, 'useShaders'):
             if not self.useShaders:
+                #we'll need to update the textures for the stimulus
+                #(sometime before drawing but not now)
                 if self.__class__.__name__ == 'TextStim':
                     self.setText(self.text)
-                if self.__class__.__name__ == 'ImageStim':
-                    self.setImage(self._imName)
-                if self.__class__.__name__ in ('GratingStim', 'RadialStim'):
-                    self.tex = self.tex
-                if self.__class__.__name__ in ('ShapeStim','DotStim'):
+                elif hasattr(self,'_needTextureUpdate'): #GratingStim, RadialStim, ImageStim etc
+                    self._needTextureUpdate = True
+                elif self.__class__.__name__ in ('ShapeStim','DotStim'):
                     pass # They work fine without shaders?
                 elif self.autoLog:
                     logging.warning('Tried to set contrast while useShaders = False but stimulus was not rebuild. Contrast might remain unchanged.')
@@ -551,21 +554,17 @@ class BaseVisualStim(LegacyBaseVisualStim):
 
         # Handle operations
         setWithOperation(self, attrib, val, op)
-
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, attrib)
 
     def setUseShaders(self, value=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
         self.useShaders = value
     def _selectWindow(self, win):
-        global currWindow
         #don't call switch if it's already the curr window
-        if win!=currWindow and win.winType=='pyglet':
+        if win!=glob_vars.currWindow and win.winType=='pyglet':
             win.winHandle.switch_to()
-            currWindow = win
+            glob_vars.currWindow = win
 
     def _updateList(self):
         """

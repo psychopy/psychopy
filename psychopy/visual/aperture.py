@@ -22,6 +22,7 @@ import psychopy.event
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
+from psychopy.tools.attributetools import logAttrib
 from psychopy.visual import polygon, shape
 ShapeStim = shape.ShapeStim
 
@@ -133,9 +134,7 @@ class Aperture:
         self._shape.size = size
         if needReset:
             self._reset()
-        if log and self.autoLog:
-             self.win.logOnFlip("Set %s size=%s" %(self.name, size),
-                 level=logging.EXP,obj=self)
+        logAttrib(self, log, 'size')
     def setOri(self, ori, needReset=True, log=True):
         """Set the orientation of the Aperture
         """
@@ -143,9 +142,7 @@ class Aperture:
         self._shape.ori = ori
         if needReset:
             self._reset()
-        if log and self.autoLog:
-             self.win.logOnFlip("Set %s ori=%s" %(self.name, ori),
-                 level=logging.EXP,obj=self)
+        logAttrib(self, log, 'ori')
     def setPos(self, pos, needReset=True, log=True):
         """Set the pos (centre) of the Aperture
         """
@@ -153,9 +150,7 @@ class Aperture:
         self._shape.pos = self.pos
         if needReset:
             self._reset()
-        if log and self.autoLog:
-             self.win.logOnFlip("Set %s pos=%s" %(self.name, pos),
-                 level=logging.EXP,obj=self)
+        logAttrib(self, log, 'pos')
     @property
     def posPix(self):
         """The position of the aperture in pixels

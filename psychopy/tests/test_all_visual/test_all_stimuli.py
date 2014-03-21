@@ -80,6 +80,43 @@ class _baseVisualTest:
         imageStim.draw()
         utils.compareScreenshot('greyscale_%s.png' %(self.contextName), win)
         str(imageStim) #check that str(xxx) is working
+        win.flip()
+        imageStim.setColor([0.1,0.1,0.1])
+        imageStim.draw()
+        utils.compareScreenshot('greyscaleLowContr_%s.png' %(self.contextName), win)
+        win.flip()
+        imageStim.color = 1
+        imageStim.contrast = 0.1#should have identical effect to color=0.1
+        imageStim.draw()
+        utils.compareScreenshot('greyscaleLowContr_%s.png' %(self.contextName), win)
+
+    def test_numpyTexture(self):
+        win = self.win
+        grating = filters.makeGrating(res=64, ori=20.0,
+                                     cycles=3.0, phase=0.5,
+                                     gratType='sqr', contr=1.0)
+        imageStim = visual.ImageStim(win, image=grating, autoLog=False,
+                                     size = 3*self.scaleFactor,
+                                     interpolate=True)
+        imageStim.draw()
+
+        if self.win.winType=='pygame':
+            pytest.xfail("Numpy texture is wrong polarity on pygame?")
+        utils.compareScreenshot('numpyImage_%s.png' %(self.contextName), win)
+        str(imageStim) #check that str(xxx) is working
+        win.flip()
+        #set lowcontrast using color
+        imageStim.setColor([0.1,0.1,0.1])
+        imageStim.draw()
+        utils.compareScreenshot('numpyLowContr_%s.png' %(self.contextName), win)
+        win.flip()
+        #now try low contrast using contr
+        imageStim.color = 1
+        imageStim.contrast = 0.1#should have identical effect to color=0.1
+        imageStim.draw()
+        utils.compareScreenshot('numpyLowContr_%s.png' %(self.contextName), win)
+        win.flip()
+
     def test_gabor(self):
         win = self.win
         #using init

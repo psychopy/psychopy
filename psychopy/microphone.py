@@ -738,7 +738,8 @@ class Speech2Text(object):
                  timeout=10,
                  samplingrate=16000,
                  pro_filter=2,
-                 quiet=True):
+                 quiet=True,
+                 level=0):
         """
             :Parameters:
 
@@ -759,6 +760,8 @@ class Speech2Text(object):
                     profanity filter level; default 2 (e.g., f***)
                 `quiet` :
                     no reporting intermediate details; default `True` (non-verbose)
+                `level` :
+                    flac compression level (0 less compression but fastest)
         """
         # set up some key parameters:
         results = 5 # how many words wanted
@@ -784,7 +787,7 @@ class Speech2Text(object):
             filetype = "x-speex-with-header-byte"
         elif ext == ".wav": # convert to .flac
             filetype = "x-flac"
-            filename = wav2flac(filename)
+            filename = wav2flac(filename, level=level)  # opt for speed
         logging.info("Loading: %s as %s, audio/%s" % (self.filename, lang, filetype))
         c = 0 # occasional error; core.wait(.1) is not always enough; better slow than fail
         while not os.path.isfile(filename) and c < 10:
@@ -888,7 +891,7 @@ class BatchSpeech2Text(list):
             fileList = list(files)
         web.requireInternetAccess()  # needed to access google's speech API
         for i, filename in enumerate(fileList):
-            gs = Speech2Text(filename)
+            gs = Speech2Text(filename, level=5)
             self.append( (filename, gs.getThread()) ) # tuple
             if verbose:
                 logging.info("%i %s" % (i, filename))

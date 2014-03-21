@@ -145,4 +145,4 @@ For developers:
 - `pytest` and `coverage` for running unit tests
 - `sphinx` for building documentation
 
-.. _download : http://code.google.com/p/psychopy
+.. _download : https://sourceforge.net/projects/psychpy/files/
