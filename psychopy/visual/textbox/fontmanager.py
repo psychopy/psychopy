@@ -12,9 +12,8 @@ from psychopy.core import getTime
 from psychopy import logging
 try:
     from textureatlas import TextureAtlas
-    from fontstore import FontStore
 except Exception, e:
-        print 'error importing fontstore:',e
+        print 'error importing TextureAtlas:',e
 from pyglet.gl import (glGenLists,glNewList,GL_COMPILE,GL_QUADS,
                       glBegin,glTexCoord2f,glVertex2f,glEnd,glDeleteLists,
                       glEndList,glTranslatef,glDeleteTextures
@@ -67,7 +66,6 @@ class FontManager(object):
 
         self.load_monospace_only=monospace_only
         self.updateFontInfo(monospace_only)
-        #self.enableFontStore()
 
     def getFontFamilyNames(self):
         """
@@ -204,11 +202,6 @@ class FontManager(object):
         fm=getFontManager()
 
         if fm:
-            if fm.font_store:
-                # should be loading from font store if requested font settings
-                # have been saved to the hdf5 file (assuming it is faster)
-                pass
-                #print "TODO: Check if requested font is in FontStore"
             font_infos=fm.getFontsMatching(font_family_name,bold,italic)
             if len(font_infos) == 0:
                 return False

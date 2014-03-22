@@ -20,6 +20,13 @@ def main():
     Main demo logic. Called at the end of the script so locally defined
     functions and globals are loaded prior to demo starting.
     """
+    mcu = None
+    io = None
+    kb = None
+    iomouse=None
+    digital_input_state=0
+    digital_output_state=0
+    last_analog_in_event=None
     try:
         # create display graphics
         #
@@ -83,13 +90,6 @@ def main():
         # forces pyglet to get events from the windows event queue
         core.wait(0.05)
 
-        mcu = None
-        io = None
-        kb = None
-        iomouse=None
-        digital_input_state=0
-        digital_output_state=0
-        last_analog_in_event=None
         pymouse=event.Mouse()
 
         # Try to start up the ioHub and connect to an ioSync device.
