@@ -1391,7 +1391,10 @@ class StairHandler(_BaseTrialHandler):
 
     The staircase will terminate when *nTrials* AND *nReversals* have been exceeded. If *stepSizes* was an array
     and has been exceeded before nTrials is exceeded then the staircase will continue
-    to reverse
+    to reverse.
+    
+    *nUp* and *nDown* are always considered as 1 until the first reversal is reached. The values entered as arguments
+    are then used.
 
     """
     def __init__(self,
@@ -1498,6 +1501,7 @@ class StairHandler(_BaseTrialHandler):
         self.minVal = minVal
         self.maxVal = maxVal
         self.autoLog = autoLog
+        self.initialRule = 0  #a flag for the 1-up 1-down initial rule
 
         #self.originPath and self.origin (the contents of the origin file)
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
@@ -1570,7 +1574,6 @@ class StairHandler(_BaseTrialHandler):
             #always using a 1-down, 1-up rule initially
             if self.data[-1]==1:    #last answer correct
                 #got it right
-                self._intensityDec()
                 if self.currentDirection=='up':
                     reversal=True
                 else:#direction is 'down' or 'start'
@@ -1578,7 +1581,6 @@ class StairHandler(_BaseTrialHandler):
                 self.currentDirection='down'
             else:
                 #got it wrong
-                self._intensityInc()
                 if self.currentDirection=='down':
                     reversal=True
                 else:#direction is 'up' or 'start'
@@ -1587,8 +1589,6 @@ class StairHandler(_BaseTrialHandler):
                 self.currentDirection='up'
 
         elif self.correctCounter >= self.nDown: #n right, time to go down!
-            #make it harder
-            self._intensityDec()
             if self.currentDirection!='down':
                 reversal=True
             else:
@@ -1596,8 +1596,6 @@ class StairHandler(_BaseTrialHandler):
             self.currentDirection='down'
 
         elif self.correctCounter <= -self.nUp: #n wrong, time to go up!
-            #make it easier
-            self._intensityInc()
             #note current direction
             if self.currentDirection!='up':
                 reversal=True
@@ -1613,18 +1611,32 @@ class StairHandler(_BaseTrialHandler):
         #add reversal info
         if reversal:
             self.reversalPoints.append(self.thisTrialN)
+            if len(self.reversalIntensities)<1:
+                self.initialRule=1
             self.reversalIntensities.append(self.intensities[-1])
         #test if we're done
         if len(self.reversalIntensities)>=self.nReversals and \
             len(self.intensities)>=self.nTrials:
                 self.finished=True
         #new step size if necessary
-        if reversal and self._variableStep and self.finished==False:
+        if reversal and self._variableStep:
             if len(self.reversalIntensities) >= len(self.stepSizes):
                 #we've gone beyond the list of step sizes so just use the last one
                 self.stepSizeCurrent = self.stepSizes[-1]
             else:
                 self.stepSizeCurrent = self.stepSizes[len(self.reversalIntensities)]
+
+        #apply new step size        
+        if len(self.reversalIntensities)<1 or self.initialRule==1:
+            self.initialRule=0 #reset the flag
+            if self.data[-1]==1:
+                self._intensityDec()
+            else:
+                self._intensityInc()
+        elif self.correctCounter >= self.nDown: #n right, so going down
+            self._intensityDec()
+        elif self.correctCounter <= -self.nUp:  #n wrong, so going up
+            self._intensityInc()
 
 
     def next(self):
