@@ -8,7 +8,6 @@
 
 import sys
 import os
-import weakref
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -347,13 +346,14 @@ class Window:
             self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
         else:
             self._refreshThreshold = (1.0/60)*1.2  # guess its a flat panel
-        openWindows.append(weakref.ref(self))
+        openWindows.append(self)
 
     def __del__(self):
-        if self.useFBO:
+        try:
             GL.glDeleteTextures(1, self.frameTexture)
             GL.glDeleteFramebuffersEXT( 1, self.frameBuffer)
-
+        except:
+            pass
     def __str__(self):
         className = 'Window'
         paramStrings = []
@@ -480,7 +480,7 @@ class Window:
             GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
             GL.glDisable(GL.GL_BLEND)
 
-            if hasattr(self.bits, '_prepareFBOrender'):
+            if self.bits != None:
                 self.bits._prepareFBOrender()
 
             # before flipping need to copy the renderBuffer to the frameBuffer
@@ -508,9 +508,8 @@ class Window:
             GL.glUseProgram(0)
 
         #update the bits++ LUT
-        if hasattr(self.bits, '_prepareFBOrender'): #try using modern BitsBox/BitsSharp class in pycrsltd
+        if self.bits!=None: #try using modern BitsBox/BitsSharp class in pycrsltd
             self.bits._finishFBOrender()
-
         if self.winType == "pyglet":
             #make sure this is current context
             if glob_vars.currWindow != self:
@@ -1211,7 +1210,7 @@ class Window:
         if self.useFBO: #check for necessary extensions
             if not GL.gl_info.have_extension('GL_EXT_framebuffer_object'):
                 logging.warn("Trying to use a framebuffer pbject but GL_EXT_framebuffer_object is not supported. Disabling")
-            self.useFBO=False
+                self.useFBO=False
             if not GL.gl_info.have_extension('GL_ARB_texture_float'):
                 logging.warn("Trying to use a framebuffer pbject but GL_ARB_texture_float is not supported. Disabling")
                 self.useFBO=False
@@ -1229,7 +1228,7 @@ class Window:
             # make mouse invisible. Could go further and make it 'exclusive'
             # (but need to alter x,y handling then)
             self.winHandle.set_mouse_visible(False)
-        self.winHandle.on_resize = _onResize #must be a weakref or circular and Window.__del__ never called
+        self.winHandle.on_resize = _onResize #avoid circular reference with self
         if not self.pos:
             # work out where the centre should be
             self.pos = [(thisScreen.width-self.size[0])/2,
@@ -1421,10 +1420,11 @@ class Window:
         if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
             logging.error("Error in framebuffer activation")
             return
+        else:
+            logging.info("Successfully set up FBO")
         GL.glDisable(GL.GL_TEXTURE_2D)
         #clear the buffer (otherwise the texture memory can contain junk)
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
-
     def setMouseVisible(self, visibility):
         """Sets the visibility of the mouse cursor.
 
