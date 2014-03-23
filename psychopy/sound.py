@@ -626,7 +626,10 @@ def initPyo(rate=44100, stereo=True, buffer=128):
             #check for output device/driver
             devNames, devIDs=pyo.pa_get_output_devices()
             audioDriver,outputID=_bestDriver(devNames, devIDs)
-            if outputID:
+            if outputID is None:
+                audioDriver = 'Windows Default Output' #using the default output because we didn't find the one(s) requested
+                outputID = pyo.pa_get_default_output()
+            if outputID is not None:
                 logging.info('Using sound driver: %s (ID=%i)' %(audioDriver, outputID))
                 maxOutputChnls = pyo.pa_get_output_max_channels(outputID)
             else:
@@ -635,6 +638,9 @@ def initPyo(rate=44100, stereo=True, buffer=128):
             #check for valid input (mic)
             devNames, devIDs = pyo.pa_get_input_devices()
             audioInputName, inputID = _bestDriver(devNames, devIDs)
+            if inputID is None:
+                audioInputName = 'Windows Default Input' #using the default input because we didn't find the one(s) requested
+                inputID = pyo.pa_get_default_input()
             if inputID is not None:
                 logging.info('Using sound-input driver: %s (ID=%i)' %(audioInputName, inputID))
                 maxInputChnls = pyo.pa_get_input_max_channels(inputID)
