@@ -573,16 +573,17 @@ def _bestDriver(devNames, devIDs):
     preferredDrivers = prefs.general['audioDriver']
     outputID=None
     audioDriver=None
+    osEncoding=sys.getfilesystemencoding()
     for prefDriver in preferredDrivers:
-        if prefDriver.lower()=='directsound':
-            prefDriver = 'Primary Sound'
+        if prefDriver.lower() == 'directsound':
+            prefDriver = u'Primary Sound'
         #look for that driver in available devices
         for devN, devString in enumerate(devNames):
             try:
-                if prefDriver.encode('utf-8') in devString.encode('utf-8'):
-                    audioDriver=devString
+                if prefDriver.encode('utf-8').lower() in devString.decode(osEncoding).encode('utf-8').lower():
+                    audioDriver=devString.decode(osEncoding).encode('utf-8')
                     outputID=devIDs[devN]
-                    return audioDriver, outputID #we found an asio driver don'w look for others
+                    return audioDriver, outputID #we found a driver don't look for others
             except (UnicodeDecodeError, UnicodeEncodeError):
                 logging.warn('find best sound driver - could not interpret unicode in driver name')
     else:
