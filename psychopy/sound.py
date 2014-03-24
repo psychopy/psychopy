@@ -674,7 +674,7 @@ def initPyo(rate=44100, stereo=True, buffer=128):
         pyoSndServer.setVerbosity(1)
         if platform=='win32':
             pyoSndServer.setOutputDevice(outputID)
-            if inputID:
+            if inputID is not None:
                 pyoSndServer.setInputDevice(inputID)
         #do other config here as needed (setDuplex? setOutputDevice?)
         pyoSndServer.setDuplex(duplex)
