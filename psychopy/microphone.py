@@ -620,10 +620,10 @@ class _GSQueryThread(threading.Thread):
         else: # whether timed-out or not:
             return self.duration
     def _unpackRaw(self):
-        # parse raw string response from google, expose via data fields (see _reset):
-        try:
+        # parse raw url response from google, expose via data fields (see _reset):
+        if type(self.raw) != str:
             self.json = json.load(self.raw)
-        except ValueError:
+        else:
             self._reset()
             self.status = 'FAILED'
             self.stop()
@@ -652,7 +652,8 @@ class _GSQueryThread(threading.Thread):
         self.duration = 0
         try:
             self.raw = urllib2.urlopen(self.request)
-        except: # yeah, its the internet, stuff happens
+        except: # pragma: no cover
+            # yeah, its the internet, stuff happens
             # maybe temporary HTTPError: HTTP Error 502: Bad Gateway
             try:
                 self.raw = urllib2.urlopen(self.request)
@@ -768,13 +769,13 @@ class Speech2Text(object):
         self.timeout = timeout
         useragent = PSYCHOPY_USERAGENT
         host = "www.google.com/speech-api/v1/recognize"
-        flac_path = _getFlacPath()
+        #flac_path = _getFlacPath()
 
         # determine file type, convert wav to flac if needed:
         if not os.path.isfile(filename):
             raise IOError("Cannot find file: %s" % filename)
         ext = os.path.splitext(filename)[1]
-        if ext not in ['.flac', '.spx', '.wav']:
+        if ext not in ['.flac', '.wav']:
             raise SoundFormatNotSupported("Unsupported filetype: %s\n" % ext)
         if ext == '.wav':
             __, samplingrate = readWavFile(filename)
@@ -783,8 +784,6 @@ class Speech2Text(object):
         self.filename = filename
         if ext == ".flac":
             filetype = "x-flac"
-        elif ext == ".spx":
-            filetype = "x-speex-with-header-byte"
         elif ext == ".wav": # convert to .flac
             filetype = "x-flac"
             filename = wav2flac(filename, level=level)  # opt for speed
@@ -793,16 +792,10 @@ class Speech2Text(object):
         while not os.path.isfile(filename) and c < 10:
             core.wait(.1, 0)
             c += 1
-        try:
-            audio = open(filename, 'rb').read()
-        except:
-            msg = "Can't read file %s from %s.\n" % (filename, self.filename)
-            logging.error(msg)
-            raise SoundFileError(msg)
-        finally:
-            if ext == '.wav' and filename.endswith('.flac'):
-                try: os.remove(filename)
-                except: pass
+        audio = open(filename, 'rb').read()
+        if ext == '.wav' and filename.endswith('.flac'):
+            try: os.remove(filename)
+            except: pass
 
         # urllib2 makes no attempt to validate the server certificate. here's an idea:
         # http://thejosephturner.com/blog/2011/03/19/https-certificate-verification-in-python-with-urllib2/
@@ -817,7 +810,8 @@ class Speech2Text(object):
         web.requireInternetAccess()  # needed to access google's speech API
         try:
             self.request = urllib2.Request(url, audio, header)
-        except: # try again before accepting defeat
+        except: # pragma: no cover
+            # try again before accepting defeat
             logging.info("https request failed. %s, %s. trying again..." % (filename, self.filename))
             core.wait(0.2, 0)
             self.request = urllib2.Request(url, audio, header)
@@ -945,11 +939,8 @@ def flac2wav(path, keep=True):
         wavfile = flacfile.strip('.flac') + '.wav'
         flac_cmd = [flac_path, "-d", "--totally-silent", "-f", "-o", wavfile, flacfile]
         __, se = core.shellCall(flac_cmd, stderr=True)
-        if se or not os.path.isfile(flacfile): # just try again
-            logging.warn('Failed to convert to .wav; trying again')
-            __, se = core.shellCall(flac_cmd, stderr=True)
-            if se:
-                logging.error(se)
+        if se:
+            logging.error(se)
         if not keep:
             os.unlink(flacfile)
         wav_files.append(wavfile)
@@ -1024,7 +1015,7 @@ def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
         from pyo import getVersion, pa_get_input_devices, pa_get_output_devices, downsamp, upsamp
         global haveMic
         haveMic = True
-    except ImportError:
+    except ImportError: # pragma: no cover
         msg = 'Microphone class not available, needs pyo; see http://code.google.com/p/pyo/'
         logging.error(msg)
         raise ImportError(msg)
