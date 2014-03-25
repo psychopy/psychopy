@@ -53,7 +53,7 @@ global IO_HUB_DIRECTORY
 IO_HUB_DIRECTORY=module_directory(_localFunc)
 
 #version info for ioHub
-__version__='0.8.1'
+__version__='0.9'
 __license__='GNU GPLv3 (or more recent equivalent)'
 __author__='iSolver Software Solutions'
 __author_email__='sol@isolver-software.com'
