@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-'''A base class that is subclassed to produce specific visual stimuli'''
+'''Provides class BaseVisualStim; subclass it to produce specific visual stimuli'''
 
 # Part of the PsychoPy library
 # Copyright (C) 2014 Jonathan Peirce
@@ -26,10 +26,10 @@ import numpy
 from psychopy.constants import NOT_STARTED, STARTED, STOPPED
 
 """
-There are three 'levels' of base visual stim classes:
-  - MinimalStim:          non-visual house-keeping code common to all visual stim (name, autoLog, etc)
-  - LegacyBaseVisualStim: extends Minimal, adds deprecated visual methods (eg, setRGB)
-  - BaseVisualStim:       extends Legacy, adds current / preferred visual methods
+There is one base visual stim class, which extends Minimal and Legacy classes:
+  - BaseVisualStim:    subclass this to create new visual stim classes
+  - MinimalStim:       non-visual house-keeping code common to all visual stim
+  - LegacyVisualMixin: deprecated visual methods (eg, setRGB)
 """
 
 class MinimalStim(object):
@@ -151,10 +151,10 @@ class MinimalStim(object):
         self.autoLog = value
 
 
-class LegacyBaseVisualStim(MinimalStim):
+class LegacyVisualMixin(object):
     """Class to hold deprecated visual methods and attributes.
 
-    Intended only for use as a base class for BaseVisualStim, to maintain
+    Intended only for use as a mixin class for BaseVisualStim, to maintain
     backwards compatibility while reducing clutter in class BaseVisualStim.
     """
     def _calcSizeRendered(self):
@@ -197,11 +197,14 @@ class LegacyBaseVisualStim(MinimalStim):
         self.__dict__['depth'] = value
 
 
-class BaseVisualStim(LegacyBaseVisualStim):
+class BaseVisualStim(MinimalStim, LegacyVisualMixin):
     """A template for a visual stimulus class.
 
     Actual visual stim like GratingStim, TextStim etc... are based on this.
     Not finished...?
+
+    Methods defined here will override LegacyVisualMixin, but best to avoid
+    that for simplicity & clarity.
     """
     def __init__(self, win, units=None, name='', autoLog=True):
         self.autoLog = False  # just to start off during init, set at end
@@ -210,7 +213,7 @@ class BaseVisualStim(LegacyBaseVisualStim):
         self._verticesBase = [[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]] #sqr
         self._rotationMatrix = [[1.,0.],[0.,1.]] #no rotation as a default
         # self.autoLog is set at end of MinimalStim.__init__
-        LegacyBaseVisualStim.__init__(self, name=name, autoLog=autoLog)
+        super(BaseVisualStim, self).__init__(name=name, autoLog=autoLog)
         if self.autoLog:
             logging.warning("%s is calling BaseVisualStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
                             %(self.__class__.__name__))
@@ -536,9 +539,8 @@ class BaseVisualStim(LegacyBaseVisualStim):
                     log=log)
     def _set(self, attrib, val, op='', log=True):
         """
-        Deprecated. Use methods specific to the parameter you want to set
-
-        e.g. ::
+        Use this method when you want to be able to suppress logging (e.g., in
+        tests). Typically better to use methods specific to the parameter, e.g. ::
 
              stim.pos = [3,2.5]
              stim.ori = 45

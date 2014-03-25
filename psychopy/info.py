@@ -27,14 +27,14 @@ import locale
 
 class RunTimeInfo(dict):
     """Returns a snapshot of your configuration at run-time, for immediate or archival use.
-    
+
     Returns a dict-like object with info about PsychoPy, your experiment script, the system & OS,
     your window and monitor settings (if any), python & packages, and openGL.
-    
+
     If you want to skip testing the refresh rate, use 'refreshTest=None'
-    
+
     Example usage: see runtimeInfo.py in coder demos.
-    
+
     :Author:
         - 2010 written by Jeremy Gray, with input from Jon Peirce and Alex Holcombe
     """
@@ -42,69 +42,69 @@ class RunTimeInfo(dict):
                  userProcsDetailed=False, verbose=False, randomSeed=None ):
         """
         :Parameters:
-            
+
             win : *None*, False, :class:`~psychopy.visual.Window` instance
                 what window to use for refresh rate testing (if any) and settings. None -> temporary window using
                 defaults; False -> no window created, used, nor profiled; a Window() instance you have already created
-            
+
             author : *None*, string
                 None = try to autodetect first __author__ in sys.argv[0]; string = user-supplied author info (of an experiment)
-            
+
             version : *None*, string
                 None = try to autodetect first __version__ in sys.argv[0]; string = user-supplied version info (of an experiment)
-            
+
             verbose : *False*, True; how much detail to assess
-            
+
             refreshTest : None, False, True, *'grating'*
                 True or 'grating' = assess refresh average, median, and SD of 60 win.flip()s, using visual.getMsPerFrame()
                 'grating' = show a visual during the assessment; True = assess without a visual
-                
+
             userProcsDetailed: *False*, True
                 get details about concurrent user's processses (command, process-ID)
-                
+
             randomSeed: *None*
                 a way for the user to record, and optionally set, a random seed for making reproducible random sequences
                 'set:XYZ' will both record the seed, 'XYZ', and set it: random.seed('XYZ'); numpy.random.seed() is NOT set
                 None defaults to python default;
                 'time' = use time.time() as the seed, as obtained during RunTimeInfo()
                 randomSeed='set:time' will give a new random seq every time the script is run, with the seed recorded.
-                
-        :Returns: 
+
+        :Returns:
             a flat dict (but with several groups based on key names):
-            
+
             psychopy : version, rush() availability
                 psychopyVersion, psychopyHaveExtRush, git branch and current commit hash if available
-                
-            experiment : author, version, directory, name, current time-stamp, 
+
+            experiment : author, version, directory, name, current time-stamp,
                 SHA1 digest, VCS info (if any, svn or hg only),
                 experimentAuthor, experimentVersion, ...
-                
+
             system : hostname, platform, user login, count of users, user process info (count, cmd + pid), flagged processes
                 systemHostname, systemPlatform, ...
-                
+
             window : (see output; many details about the refresh rate, window, and monitor; units are noted)
                 windowWinType, windowWaitBlanking, ...windowRefreshTimeSD_ms, ... windowMonitor.<details>, ...
-                
+
             python : version of python, versions of key packages (wx, numpy, scipy, matplotlib, pyglet, pygame)
                 pythonVersion, pythonScipyVersion, ...
-                
+
             openGL : version, vendor, rendering engine, plus info on whether several extensions are present
                 openGLVersion, ..., openGLextGL_EXT_framebuffer_object, ...
         """
-        
+
         dict.__init__(self)  # this will cause an object to be created with all the same methods as a dict
-        
+
         self['psychopyVersion'] = psychopyVersion
         self['psychopyHaveExtRush'] = rush(False) # NB: this looks weird, but avoids setting high-priority incidentally
         d = os.path.abspath(os.path.dirname(__file__))
         githash = _getHashGitHead(dir=d) # should be .../psychopy/psychopy/
-        if githash: 
+        if githash:
             self['psychopyGitHead'] = githash
-        
+
         self._setExperimentInfo(author, version, verbose, randomSeed)
         self._setSystemInfo() # current user, locale, other software
         self._setCurrentProcessInfo(verbose, userProcsDetailed)
-        
+
         # need a window for frame-timing, and some openGL drivers want a window open
         if win == None: # make a temporary window, later close it
             win = visual.Window(fullscr=True, monitor="testMonitor")
@@ -112,16 +112,16 @@ class RunTimeInfo(dict):
             usingTempWin = True
         else: # either False, or we were passed a window instance, use it for timing and profile it:
             usingTempWin = False
-        if win: 
+        if win:
             self._setWindowInfo(win, verbose, refreshTest, usingTempWin)
-       
+
         self['pythonVersion'] = sys.version.split()[0]
         if verbose:
             self._setPythonInfo()
             if win: self._setOpenGLInfo()
         if usingTempWin:
             win.close() # close after doing openGL
-            
+
     def _setExperimentInfo(self, author, version, verbose, randomSeedFlag=None):
         # try to auto-detect __author__ and __version__ in sys.argv[0] (= the users's script)
         if not author or not version:
@@ -148,12 +148,12 @@ class RunTimeInfo(dict):
                     version = str(eval(ver[ver.find('=')+1 :]))
                 except:
                     pass
-        
-        if author or verbose:  
+
+        if author or verbose:
             self['experimentAuthor'] = author
-        if version or verbose: 
+        if version or verbose:
             self['experimentAuthVersion'] = version
-        
+
         # script identity & integrity information:
         self['experimentScript'] = os.path.basename(sys.argv[0])  # file name
         scriptDir = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -171,18 +171,18 @@ class RunTimeInfo(dict):
             pass
         # mercurical revision?
         try:
-            hgChangeSet = _getHgVersion(os.path.abspath(sys.argv[0])) 
+            hgChangeSet = _getHgVersion(os.path.abspath(sys.argv[0]))
             if hgChangeSet: # or verbose:
                 self['experimentScript.hgChangeSet'] = hgChangeSet
         except:
             pass
-        
+
         # when was this run?
         self['experimentRunTime.epoch'] = core.getAbsTime()  # basis for default random.seed()
         self['experimentRunTime'] = data.getDateStr(format="%Y_%m_%d %H:%M (Year_Month_Day Hour:Min)")
-        
+
         # random.seed -- record the value, and initialize random.seed() if 'set:'
-        if randomSeedFlag: 
+        if randomSeedFlag:
             randomSeedFlag = str(randomSeedFlag)
             while randomSeedFlag.find('set: ') == 0:
                 randomSeedFlag = randomSeedFlag.replace('set: ','set:',1) # spaces between set: and value could be confusing after deleting 'set:'
@@ -198,20 +198,20 @@ class RunTimeInfo(dict):
         else:
             self['experimentRandomSeed.string'] = None
             self['experimentRandomSeed.isSet'] = False
-            
+
     def _setSystemInfo(self):
         # machine name
         self['systemHostName'] = platform.node()
-        
+
         self['systemMemTotalRAM'], self['systemMemFreeRAM'] = getRAM()
-        
+
         # locale information:
         import locale
         loc = '.'.join(map(str,locale.getlocale()))  # (None, None) -> str
         if loc == 'None.None':
             loc = locale.setlocale(locale.LC_ALL,'')
         self['systemLocale'] = loc  # == the locale in use, from OS or user-pref
-        
+
         # platform name, etc
         if sys.platform in ['darwin']:
             OSXver, junk, architecture = platform.mac_ver()
@@ -228,7 +228,7 @@ class RunTimeInfo(dict):
             # powerSource = ...
         self['systemPlatform'] = platInfo
         #self['systemPowerSource'] = powerSource
-        
+
         # count all unique people (user IDs logged in), and find current user name & UID
         self['systemUser'],self['systemUserID'] = _getUserNameUID()
         try:
@@ -236,7 +236,7 @@ class RunTimeInfo(dict):
             self['systemUsersCount'] = len(set(users))
         except:
             self['systemUsersCount'] = False
-        
+
         # when last rebooted?
         try:
             lastboot = shellCall("who -b").split()
@@ -246,7 +246,7 @@ class RunTimeInfo(dict):
             lastboot = [line for line in sysInfo if line.find("System Up Time") == 0 or line.find("System Boot Time") == 0]
             lastboot += ['[?]'] # put something in the list just in case
             self['systemRebooted'] = lastboot[0].strip()
-        
+
         # R (and r2py) for stats:
         try:
             Rver,err = shellCall("R --version",stderr=True)
@@ -260,7 +260,7 @@ class RunTimeInfo(dict):
                 pass
         except:
             pass
-        
+
         # encryption / security tools:
         try:
             vers, se = shellCall('openssl version', stderr=True)
@@ -284,7 +284,7 @@ class RunTimeInfo(dict):
             self['systemSec.pythonSSL'] = True
         except ImportError:
             self['systemSec.pythonSSL'] = False
-        
+
         # pyo for sound:
         try:
             import pyo
@@ -298,7 +298,7 @@ class RunTimeInfo(dict):
                 pass
         except ImportError:
             pass
-        
+
         # flac (free lossless audio codec) for google-speech:
         flacv = ''
         if sys.platform == 'win32':
@@ -311,7 +311,7 @@ class RunTimeInfo(dict):
                 flacv = core.shellCall('flac --version')
         if flacv:
             self['systemFlacVersion'] = flacv
-        
+
         # detect internet access or fail quickly:
         #web.setupProxy() & web.testProxy(web.proxies)  # can take a long time to fail if there's no connection
         self['systemHaveInternetAccess'] = web.haveInternetAccess()
@@ -332,7 +332,7 @@ class RunTimeInfo(dict):
             'VMware'] # just a guess
         appIgnoreList = [# always ignore these, exact match:
             'ps','login','-tcsh','bash', 'iTunesHelper']
-        
+
         # assess concurrently active processes owner by the current user:
         try:
             # ps = process status, -c to avoid full path (potentially having spaces) & args, -U for user
@@ -344,15 +344,15 @@ class RunTimeInfo(dict):
                     logging.error('tasklist error:', err)
                     #raise
             systemProcPsu = []
-            systemProcPsuFlagged = [] 
+            systemProcPsuFlagged = []
             systemUserProcFlaggedPID = []
-            procLines = proc.splitlines() 
+            procLines = proc.splitlines()
             headerLine = procLines.pop(0) # column labels
             if sys.platform not in ['win32']:
                 try:
                     cmd = headerLine.upper().split().index('CMD') # columns and column labels can vary across platforms
                 except ValueError:
-                    cmd = headerLine.upper().split().index('COMMAND') 
+                    cmd = headerLine.upper().split().index('COMMAND')
                 pid = headerLine.upper().split().index('PID')  # process id's extracted in case you want to os.kill() them from psychopy
             else: # this works for win XP, for output from 'tasklist'
                 procLines.pop(0) # blank
@@ -373,7 +373,7 @@ class RunTimeInfo(dict):
                     systemUserProcFlaggedPID.append(pr[pid])
             self['systemUserProcCount'] = len(systemProcPsu)
             self['systemUserProcFlagged'] = systemProcPsuFlagged
-            
+
             if verbose and userProcsDetailed:
                 self['systemUserProcCmdPid'] = systemProcPsu
                 self['systemUserProcFlaggedPID'] = systemUserProcFlaggedPID
@@ -381,7 +381,7 @@ class RunTimeInfo(dict):
             if verbose:
                 self['systemUserProcCmdPid'] = None
                 self['systemUserProcFlagged'] = None
-        
+
         # CPU speed (will depend on system busy-ness)
         d = numpy.array(numpy.linspace(0., 1., 1000000))
         t0 = core.getTime()
@@ -389,7 +389,7 @@ class RunTimeInfo(dict):
         t = core.getTime() - t0
         del d
         self['systemTimeNumpySD1000000_sec'] = t
-    
+
     def _setWindowInfo(self, win, verbose=False, refreshTest='grating', usingTempWin=True):
         """find and store info about the window: refresh rate, configuration info
         """
@@ -401,14 +401,14 @@ class RunTimeInfo(dict):
             self['windowRefreshTimeSD_ms'] = msPFstd
         if usingTempWin:
             return
-        
+
         # These 'configuration lists' control what attributes are reported.
         # All desired attributes/properties need a legal internal name, e.g., win.winType.
         # If an attr is callable, its gets called with no arguments, e.g., win.monitor.getWidth()
         winAttrList = ['winType', '_isFullScr', 'units', 'monitor', 'pos', 'screen', 'rgb', 'size']
         winAttrListVerbose = ['allowGUI', 'useNativeGamma', 'recordFrameIntervals','waitBlanking', '_haveShaders', '_refreshThreshold']
         if verbose: winAttrList += winAttrListVerbose
-        
+
         monAttrList = ['name', 'getDistance', 'getWidth', 'currentCalibName']
         monAttrListVerbose = ['_gammaInterpolator', '_gammaInterpolator2']
         if verbose: monAttrList += monAttrListVerbose
@@ -418,7 +418,7 @@ class RunTimeInfo(dict):
             for monAttr in monAttrList:
                 winAttrList.insert(i, 'monitor.' + monAttr)
                 i += 1
-        for winAttr in winAttrList: 
+        for winAttr in winAttrList:
             try:
                 attrValue = eval('win.'+winAttr)
             except AttributeError:
@@ -442,7 +442,7 @@ class RunTimeInfo(dict):
             if winAttr in ['RefreshThreshold']:
                 winAttr += '_sec'
             self['window'+winAttr] = attrValue
-        
+
     def _setPythonInfo(self):
         # External python packages:
         self['pythonNumpyVersion'] = numpy.__version__
@@ -453,11 +453,11 @@ class RunTimeInfo(dict):
         try: from pygame import __version__ as pygameVersion
         except: pygameVersion = '(no pygame)'
         self['pythonPygameVersion'] = pygameVersion
-            
+
         # Python gory details:
         self['pythonFullVersion'] = sys.version.replace('\n',' ')
         self['pythonExecutable'] = sys.executable
-        
+
     def _setOpenGLInfo(self):
         # OpenGL info:
         self['openGLVendor'] = gl_info.get_vendor()
@@ -466,14 +466,14 @@ class RunTimeInfo(dict):
         GLextensionsOfInterest=['GL_ARB_multitexture', 'GL_EXT_framebuffer_object',
              'GL_ARB_fragment_program', 'GL_ARB_shader_objects','GL_ARB_vertex_shader',
              'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float', 'GL_STEREO']
-    
+
         for ext in GLextensionsOfInterest:
             self['openGLext.'+ext] = bool(gl_info.have_extension(ext))
-        
+
         maxVerts = GLint()
         glGetIntegerv(GL_MAX_ELEMENTS_VERTICES, maxVerts)
         self['openGLmaxVerticesInVertexArray'] = maxVerts.value
-        
+
     def __repr__(self):
         """ Return a string that is a legal python (dict), and close to YAML, .ini, and configObj syntax
         """
@@ -505,13 +505,13 @@ class RunTimeInfo(dict):
                         prSet += [pr[0]] # first item in sublist is proc name (CMD)
                     selfk = ' '.join(list(set(prSet)))
                 if k not in ['systemUserProcFlaggedPID']: # suppress display PID info -- useful at run-time, never useful in an archive
-                    #if type(selfk) == type('abc'): 
-                        info += '    "%s": "%s",\n' % (k, selfk) 
+                    #if type(selfk) == type('abc'):
+                        info += '    "%s": "%s",\n' % (k, selfk)
                     #else:
                     #    info += '    "%s": %s,\n' % (k, selfk)
         info += '#[ PsychoPy2 RuntimeInfoEnd ]\n}\n'
         return info
-    
+
     def __str__(self):
         """ Return a string intended for printing to a log file
         """
@@ -524,7 +524,7 @@ class RunTimeInfo(dict):
             info[i] = info[i].rstrip(',')
         info = '\n'.join(info).replace('"','')+'\n'
         return info
-    
+
     def _type(self):
         # for debugging
         sk = self.keys()
@@ -550,12 +550,12 @@ def _getHashGitHead(dir=''):
         return git_branch[0] + ' ' + git_hash.strip()
     else: # dir is not a git repo
         return None
-    
+
 def _getSvnVersion(file):
     """Tries to discover the svn version (revision #) for a file.
-    
+
     Not thoroughly tested; completely untested on Windows Vista, Win 7, FreeBSD
-    
+
     :Author:
         - 2010 written by Jeremy Gray
     """
@@ -588,9 +588,9 @@ def _getSvnVersion(file):
 
 def _getHgVersion(file):
     """Tries to discover the mercurial (hg) parent and id of a file.
-    
+
     Not thoroughly tested; completely untested on Windows Vista, Win 7, FreeBSD
-    
+
     :Author:
         - 2010 written by Jeremy Gray
     """
@@ -605,7 +605,7 @@ def _getHgVersion(file):
         hgID,err = shellCall('hg id -nibt "'+os.path.dirname(file)+'"', stderr=True)
     except:
         if err: hgID = ''
-    
+
     if len(hgID) or len(changeset):
         return hgID.strip()+' | parent: '+changeset.strip()
     else:
@@ -613,10 +613,10 @@ def _getHgVersion(file):
 
 def _getUserNameUID():
     """Return user name, UID.
-    
+
     UID values can be used to infer admin-level:
     -1=undefined, 0=full admin/root, >499=assume non-admin/root (>999 on debian-based)
-    
+
     :Author:
         - 2010 written by Jeremy Gray
     """
@@ -624,7 +624,7 @@ def _getUserNameUID():
         user = os.environ['USER']
     except KeyError:
         user = os.environ['USERNAME']
-    uid = '-1' 
+    uid = '-1'
     if sys.platform not in ['win32']:
         uid = shellCall('id -u')
     else:
@@ -636,7 +636,7 @@ def _getUserNameUID():
 def _getSha1hexDigest(thing, file=False):
     """Returns base64 / hex encoded sha1 digest of str(thing), or of a file contents
     return None if a file is requested but no such file exists
-    
+
     :Author:
         - 2010 Jeremy Gray; updated 2011 to be more explicit, 2012 to remove sha.new()
 
@@ -661,11 +661,11 @@ def _getSha1hexDigest(thing, file=False):
 
 def getRAM():
     """Return system's physical RAM & available RAM, in M.
-    
+
     Slow on Mac and Linux; fast on Windows. psutils is good but another dep."""
     freeRAM = 'unknown'
     totalRAM = 'unknown'
-    
+
     if sys.platform == 'darwin':
         so,se = core.shellCall('vm_stat', stderr=True)
         lines = so.splitlines()
