@@ -22,7 +22,7 @@ The Builder and Coder views are the two main aspects of the PsychoPy application
 For experienced python programmers, it's possible to use PsychoPy without ever opening the Builder or Coder. Install the PsychoPy libraries and dependencies, and use your favorite IDE instead of the Coder.
 
 Builder
-========================
+------------
 
 When learning a new computer language, `the classic first program <http://en.wikipedia.org/wiki/Hello_world_program>`_ is simply to print or display "Hello world!". Lets do it.
 
@@ -71,7 +71,7 @@ You could stop here, and just use the Builder for creating your experiments. It 
 
 
 Builder-to-coder
-=========================
+---------------------
 
 Whenever you run a Builder experiment, PsychoPy will first translate it into python code, and then execute that code.
 
@@ -88,7 +88,7 @@ It is always possible to go from the Builder to python code in this way. You can
 To switch quickly between Builder and Coder views, you can type `Ctrl-L` / `Cmd-L`.
 
 Coder
-=================
+--------------
 
 Being able to inspect Builder-generated code is nice, but it's possible to write code yourself, directly. With the Coder and various libraries, you can do virtually anything that your computer is capable of doing, using a full-featured modern programming language (python).
 

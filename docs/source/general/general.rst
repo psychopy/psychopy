@@ -18,4 +18,4 @@ These are issues that users should be aware of, whether they are using Builder o
    :maxdepth: 2
 
    timing/timing
-   
+   glossary
