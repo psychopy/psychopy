@@ -912,7 +912,7 @@ class Window:
         else:
             #pygame.quit()
             pygame.display.quit()
-        if self.bitsMode is not None:
+        if self.bits is not None:
             self.bits.reset()
         openWindows.remove(self)
         logging.flush()
@@ -1078,7 +1078,7 @@ class Window:
 
         self._checkGamma(gamma)
 
-        if self.bitsMode is not None:
+        if self.bits is not None:
             #first ensure that window gamma is 1.0
             if self.winType == 'pygame':
                 pygame.display.set_gamma(1.0, 1.0, 1.0)
