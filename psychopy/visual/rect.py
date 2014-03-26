@@ -47,7 +47,7 @@ class Rect(ShapeStim):
         kwargs['closeShape'] = True # Make sure nobody messes around here
         kwargs['vertices'] = self.vertices
 
-        ShapeStim.__init__(self, win, **kwargs)
+        super(Rect, self).__init__(win, **kwargs)
 
     def _calcVertices(self):
         self.vertices = numpy.array([

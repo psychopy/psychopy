@@ -45,6 +45,7 @@ import psychopy.event
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib
 from psychopy import makeMovies
+from psychopy.visual.basevisual import ContainerMixin
 from psychopy.visual.basevisual import BaseVisualStim
 
 if sys.platform == 'win32' and not haveAvbin:
@@ -64,7 +65,7 @@ except:
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 
 
-class MovieStim(BaseVisualStim):
+class MovieStim(BaseVisualStim, ContainerMixin):
     """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy.
 
     **Example**::
@@ -114,7 +115,7 @@ class MovieStim(BaseVisualStim):
         self._initParams = dir()
         self._initParams.remove('self')
 
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)
+        super(MovieStim, self).__init__(win, units=units, name=name, autoLog=False)
 
         if not havePygletMedia:
             raise ImportError, """pyglet.media is needed for MovieStim and could not be imported.
@@ -138,8 +139,6 @@ class MovieStim(BaseVisualStim):
         self.depth=depth
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
-        self.colorSpace=colorSpace
-        self.setColor(color, colorSpace=colorSpace, log=False)
         self.opacity = float(opacity)
         self.status=NOT_STARTED
 
@@ -279,8 +278,7 @@ class MovieStim(BaseVisualStim):
         if frameTexture==None:
             return
 
-        desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, 1)  #Contrast=1
-        GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2],self.opacity)
+        GL.glColor4f(1,1,1, self.opacity)  # sets opacity (1,1,1 = RGB placeholder)
         GL.glPushMatrix()
         self.win.setScale('pix')
         #move to centre of stimulus and rotate

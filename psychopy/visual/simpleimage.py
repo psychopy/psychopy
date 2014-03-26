@@ -81,6 +81,7 @@ class SimpleImageStim(object):
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
+        super(SimpleImageStim, self).__init__()
 
         #NB most stimuli use BaseVisualStim for the _set method and for
         # setting up win, name, units and autolog in __init__ but SimpleImage

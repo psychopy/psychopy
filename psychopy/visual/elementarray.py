@@ -25,12 +25,13 @@ from psychopy import logging
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import setWithOperation, logAttrib
 from psychopy.tools.monitorunittools import convertToPix
-from psychopy.visual.helpers import setColor, createTexture
+from psychopy.visual.helpers import setColor
+from psychopy.visual.basevisual import MinimalStim, TextureMixin
 from . import glob_vars
 
 import numpy
 
-class ElementArrayStim(object):
+class ElementArrayStim(MinimalStim, TextureMixin):
     """
     This stimulus class defines a field of elements whose behaviour can be independently
     controlled. Suitable for creating 'global form' stimuli or more detailed random dot
@@ -154,6 +155,7 @@ class ElementArrayStim(object):
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
+        super(ElementArrayStim, self).__init__(name=name, autoLog=False)
 
         self.autoLog=False #until all params are set
         self.win=win
@@ -662,14 +664,14 @@ class ElementArrayStim(object):
         graphics card can be time-consuming.
         """
         self.tex = value
-        createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
+        self.createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
         logAttrib(self, log, 'tex')
     def setMask(self,value, log=True):
         """Change the mask (all elements have the same mask). Avoid doing this
         during time-critical points in your script. Uploading new textures to the
         graphics card can be time-consuming."""
         self.mask = value
-        createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self, res=self.texRes)
+        self.createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self, res=self.texRes)
         logAttrib(self, log, 'mask')
     def __del__(self):
         self.clearTextures()#remove textures from graphics card to prevent crash
