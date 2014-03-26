@@ -24,6 +24,7 @@ import psychopy.event
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import logAttrib
 from psychopy.visual import polygon, shape
+from psychopy.visual.basevisual import MinimalStim, ContainerMixin
 ShapeStim = shape.ShapeStim
 
 import numpy
@@ -31,7 +32,7 @@ import numpy
 from psychopy.constants import STARTED, STOPPED
 
 
-class Aperture:
+class Aperture(MinimalStim, ContainerMixin):
     """Restrict a stimulus visibility area to a basic shape (circle, square, triangle)
 
     When enabled, any drawing commands will only operate on pixels within the
@@ -53,6 +54,8 @@ class Aperture:
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
+        super(Aperture, self).__init__(name=name, autoLog=False)
+
         #set self params
         self.autoLog=False #set this False first and change after attribs are set
         self.win=win

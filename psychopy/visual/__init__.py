@@ -13,15 +13,12 @@ from psychopy.constants import *
 from psychopy.visual.window import Window, getMsPerFrame, openWindows
 
 # non-private helpers
-from psychopy.visual.helpers import (createTexture,
-                                     pointInPolygon, polygonsOverlap)
+from psychopy.visual.helpers import pointInPolygon, polygonsOverlap
 
-# non-stimulus classes only derived from Object
+# stimuli derived from object or MinimalStim
+from psychopy.visual.basevisual import BaseVisualStim
 from psychopy.visual.aperture import Aperture
 from psychopy.visual.custommouse import CustomMouse
-
-# stimuli only derived from Object
-from psychopy.visual.basevisual import BaseVisualStim
 from psychopy.visual.elementarray import ElementArrayStim
 from psychopy.visual.ratingscale import RatingScale
 from psychopy.visual.simpleimage import SimpleImageStim
@@ -52,4 +49,3 @@ try:
     from textbox import TextBox
 except:
     pass
-

@@ -28,6 +28,7 @@ import psychopy.event
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import logAttrib
 from psychopy.visual.basevisual import BaseVisualStim
+from psychopy.visual.basevisual import ColorMixin
 
 import numpy
 
@@ -58,7 +59,7 @@ defaultWrapWidth = {'cm': 15.0,
                      'pixels': 500,
                      }
 
-class TextStim(BaseVisualStim):
+class TextStim(BaseVisualStim, ColorMixin):
     """Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
     """
     def __init__(self, win,
@@ -115,7 +116,7 @@ class TextStim(BaseVisualStim):
         self._initParams = dir()
         self._initParams.remove('self')
 
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)
+        super(TextStim, self).__init__(win, units=units, name=name, autoLog=False)
 
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
         self._needUpdate = True
@@ -161,7 +162,6 @@ class TextStim(BaseVisualStim):
         else:
             self.setColor(color, log=False)
 
-        self._calcPosRendered()
         for thisFont in fontFiles:
             pyglet.font.add_file(thisFont)
         self.setFont(font, log=False)
@@ -295,8 +295,8 @@ class TextStim(BaseVisualStim):
                 thisStim.setColor(-1, 'rgb', '*') #multiply the color by -1 (which in this space inverts the contrast)
                 thisStim.setColor([10,0,0], 'dkl', '+')#raise the elevation from the isoluminant plane by 10 deg
         """
-        #call setColor from super class
-        BaseVisualStim.setColor(self, color, colorSpace=colorSpace,
+        #call setColor from super class to avoid recursion:
+        ColorMixin.setColor(self, color, colorSpace=colorSpace,
             operation=operation, log=log)
         #but then update text objects if necess
         if not self.useShaders:
