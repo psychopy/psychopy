@@ -369,7 +369,8 @@ class ContainerMixin(object):
     """
     def __init__(self):
         super(ContainerMixin, self).__init__()
-        self._verticesBase = [[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]] #sqr
+        self._verticesBase = numpy.array([[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]]) #sqr
+        self._rotationMatrix = [[1.,0.],[0.,1.]] #no rotation as a default
 
     @property
     def verticesPix(self):

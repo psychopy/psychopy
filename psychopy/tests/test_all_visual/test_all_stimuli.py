@@ -374,6 +374,11 @@ class _baseVisualTest:
         grating.draw()
         utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win)
         #aperture should automatically disable on exit
+        for shape, nVert, pos in [(None, 120, (0,0)), ('circle', 17, (.2, -.7)),
+                                  ('square', 4, (-.5,-.5)), ('triangle', 3, (1,1))]:
+            aperture = visual.Aperture(win, pos=pos, shape=shape, nVert=nVert, autoLog=False)
+            assert len(aperture.vertices) == nVert
+            assert aperture.contains(pos)
     def test_rating_scale(self):
         if self.win.winType=='pygame':
             pytest.skip("RatingScale not available on pygame")
