@@ -45,8 +45,7 @@ import psychopy.event
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib
 from psychopy import makeMovies
-from psychopy.visual.basevisual import ContainerMixin
-from psychopy.visual.basevisual import BaseVisualStim
+from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 
 if sys.platform == 'win32' and not haveAvbin:
     logging.error("""avbin.dll failed to load.

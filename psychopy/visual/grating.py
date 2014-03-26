@@ -160,11 +160,14 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         #generate a displaylist ID
         self._listID = GL.glGenLists(1)
 
-        # doing updateList here means MRO issues in multiple inheritance for
-        # RadialStim, which inherits from GratingStim but has its own _updateList code.
-        # So don't want to update here (because here is ALSO the init of RadialStim):
-        #self._updateList()#ie refresh display list
-        # instead trigger the update on the first .draw():
+        # JRG: doing self._updateList() here means MRO issues for RadialStim,
+        # which inherits from GratingStim but has its own _updateList code.
+        # So don't want to do the update here (= ALSO the init of RadialStim).
+        # Could potentially define a BaseGrating class without updateListShaders
+        # code, and have GratingStim and RadialStim inherit from it and add their
+        # own _updateList stuff. Seems unnecessary.
+        # Instead, simply defer the update to the first .draw(), should be fast:
+        #self._updateList()  #ie refresh display list
         self._needUpdate = True
 
         #set autoLog (now that params have been initialised)

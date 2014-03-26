@@ -27,8 +27,7 @@ import psychopy.event
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import logAttrib
-from psychopy.visual.basevisual import BaseVisualStim
-from psychopy.visual.basevisual import ColorMixin
+from psychopy.visual.basevisual import BaseVisualStim, ColorMixin
 
 import numpy
 
