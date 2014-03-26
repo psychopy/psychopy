@@ -21,8 +21,7 @@ from psychopy import logging
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix
 from psychopy.tools.attributetools import attributeSetter, setWithOperation, logAttrib
-from psychopy.visual.basevisual import BaseVisualStim
-from psychopy.visual.basevisual import ColorMixin, ContainerMixin
+from psychopy.visual.basevisual import BaseVisualStim, ColorMixin, ContainerMixin
 from psychopy.visual.helpers import setColor
 
 import numpy

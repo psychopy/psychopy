@@ -473,8 +473,8 @@ class TextureMixin(object):
 
     Could move visual.helpers.setTexIfNoShaders() into here
     """
-    def __init__(self):
-        super(TextureMixin, self).__init__()
+    #def __init__(self):
+    #    super(TextureMixin, self).__init__()
 
     def createTexture(self, tex, id, pixFormat, stim, res=128, maskParams=None,
                       forcePOW2=True, dataType=None):
@@ -774,14 +774,13 @@ class TextureMixin(object):
 
         return wasLum
 
-
 class BaseVisualStim(MinimalStim, LegacyVisualMixin):
     """A template for a visual stimulus class.
 
     Actual visual stim like GratingStim, TextStim etc... are based on this.
     Not finished...?
 
-    Methods defined here will override base classes, but best to avoid
+    Methods defined here will override Minimal & Legacy, but best to avoid
     that for simplicity & clarity.
     """
     def __init__(self, win, units=None, name='', autoLog=True):

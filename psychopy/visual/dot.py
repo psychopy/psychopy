@@ -24,8 +24,7 @@ from psychopy import logging
 from psychopy.tools.attributetools import setWithOperation, logAttrib
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import cm2pix, deg2pix
-from psychopy.visual.basevisual import BaseVisualStim
-from psychopy.visual.basevisual import ColorMixin, ContainerMixin
+from psychopy.visual.basevisual import BaseVisualStim, ColorMixin, ContainerMixin
 
 import numpy
 from numpy import pi

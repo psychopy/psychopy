@@ -91,23 +91,6 @@ class RadialStim(GratingStim):
 
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 
-        # JRG: hack to dodge method-resolution-order issues:
-        # work-around #1 (not currently implemented: ugly, and lead to test failures on travis-ci)
-        # self._updateList() is defined in BaseVisualStim and calls _updateListShaders or NoShaders
-        # as needed. However, this also gets called in GratingStim.__init__, which is
-        # called above by super(RadialStim, self).__init__()
-        # so strategy: let GratingStim.__init__ do its thing, THEN rearrange the
-        # namespace so that BaseVisualStim._updateList can do its thing during
-        # the normal operation of RadialStim. There's got to be a better way:
-        # initially hide _updateListShadersRadial and _updateListNoShadersRadial
-        # now unhide them, since will not need GratingStim.__init__ again:
-
-        # uncomment these lines to implement #1, and change _updataListShaders to _updateListShadersRadial, etc
-        #self._updateListShaders = self._updateListShadersRadial
-        #self._updateListNoShaders = self._updateListNoShadersRadial
-
-        # workaround #2: comment out self._updateList() in GratingStim.__init__ line 162
-
         # UGLY HACK again. (See same section in GratingStim for ideas)
         self.__dict__['contrast'] = 1
         self.__dict__['size'] = 1
