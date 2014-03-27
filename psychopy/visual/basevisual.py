@@ -439,7 +439,7 @@ class ContainerMixin(object):
             else:
                 units = self.units
         if units != 'pix':
-            xy = convertToPix(xy, pos=0, units=units, win=self.win)
+            xy = convertToPix(xy, pos=(0,0), units=units, win=self.win)
         # ourself in pixels
         selfVerts = self.verticesPix
         return pointInPolygon(xy[0], xy[1], poly = selfVerts)
