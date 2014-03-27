@@ -1,7 +1,6 @@
 #!/usr/bin/env python2
 
-'''Restrict a stimulus visibility area to a basic shape
-(circle, square, triangle)'''
+'''Restrict a stimulus visibility area to a basic shape or list of vertices'''
 
 # Part of the PsychoPy library
 # Copyright (C) 2014 Jonathan Peirce
@@ -27,13 +26,13 @@ from psychopy.visual.shape import ShapeStim
 from psychopy.visual.basevisual import MinimalStim, ContainerMixin
 
 import numpy
-from numpy import cos, sin, pi
+from numpy import cos, sin, radians
 
 from psychopy.constants import STARTED, STOPPED
 
 
 class Aperture(MinimalStim, ContainerMixin):
-    """Restrict a stimulus visibility area to a basic shape (circle, square, triangle)
+    """Restrict a stimulus visibility area to a basic shape or list of vertices.
 
     When enabled, any drawing commands will only operate on pixels within the
     Aperture. Once disabled, subsequent draw operations affect the whole screen
@@ -74,7 +73,8 @@ class Aperture(MinimalStim, ContainerMixin):
         if hasattr(shape, 'lower'):
             shape = shape.lower()
         if shape is None or shape == 'circle':
-            vertices = [(0.5*sin(theta*pi/180), 0.5*cos(theta*pi/180))
+            # NB: pentagon etc point upwards by setting x,y to be y,x (sin,cos):
+            vertices = [(0.5*sin(radians(theta)), 0.5*cos(radians(theta)))
                         for theta in numpy.linspace(0, 360, nVert, False)]
         elif shape == 'square':
             vertices = [[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]]
