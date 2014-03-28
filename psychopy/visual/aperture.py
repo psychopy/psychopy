@@ -15,7 +15,7 @@ pyglet.options['debug_gl'] = False
 GL = pyglet.gl
 
 import psychopy  # so we can get the __path__
-from psychopy import logging
+from psychopy import logging, core
 import psychopy.event
 
 # tools must only be imported *after* event or MovieStim breaks on win32
@@ -59,6 +59,9 @@ class Aperture(MinimalStim, ContainerMixin):
         #set self params
         self.autoLog=False #set this False first and change after attribs are set
         self.win=win
+        if not win.allowStencil:
+            logging.error('Aperture has no effect in a window created without allowStencil=True')
+            core.quit()
         self.size = size
         self.pos = pos
         self.name = name
