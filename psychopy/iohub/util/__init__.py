@@ -1,5 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
+"""
+ioHub
+.. file: iohub/util/__init__.py
+
+Copyright (C) 2012-2014 iSolver Software Solutions
+Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
+
+.. moduleauthor:: Sol Simpson <sol@isolver-software.com>
+.. fileauthor:: Sol Simpson <sol@isolver-software.com>
+
+"""
 import datetime
 import warnings
 import scipy, numpy
@@ -101,7 +112,7 @@ def convertCamelToSnake(name,lower_snake=True):
         return all_cap_re.sub(r'\1_\2', s1).lower()
     return all_cap_re.sub(r'\1_\2', s1).upper()
     
-if  sys.version_info[0] != 2 or sys.version_info[1] < 7:
+if sys.version_info[0] != 2 or sys.version_info[1] < 7:
     from ..ordereddict import OrderedDict
 else:
     from collections import OrderedDict
@@ -109,8 +120,8 @@ else:
 from variableProvider import ExperimentVariableProvider
 
 from visualUtil import SinusoidalMotion
-from visualUtil import TimeTrigger,DeviceEventTrigger
-from visualUtil import ScreenState,ClearScreen,InstructionScreen,ImageScreen
+from visualUtil import Trigger, TimeTrigger, DeviceEventTrigger
+from visualUtil import ScreenState, ClearScreen, InstructionScreen, ImageScreen
 
 ###############################################################################
 #
@@ -361,10 +372,6 @@ from visualUtil import TimeTrigger,DeviceEventTrigger
 from visualUtil import ScreenState,ClearScreen,InstructionScreen,ImageScreen
 from dialogs import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
 
-
-
-
-
 ###############################################################################
 #
 ## Verify the validity of a given Python release number
@@ -386,29 +393,3 @@ try:
 except:
     # just use the version provided if verlib is not installed.
     validate_version=lambda version: version
-
-
-
-###############################################################################
-#
-## Test code
-#    
-
-if __name__ == '__main__':
-    import pylab
-    plot   = pylab.plot
-    show   = pylab.show
-    axis   = pylab.axis
-    grid   = pylab.grid
-    title  = pylab.title
-
-    #the code for test
-    pts = ar([[0,0],[1,0],[1,1],[0.5,1.5],[0,1]])
-    plot(*pts.T,lw=5,color='k')                     #points (poly) to be rotated
-    for ang in arange(0,2*pi,pi/8):
-        ots = rotate2D(pts,ar([0.5,0.5]),ang)       #the results
-        plot(*ots.T)
-    axis('image')
-    grid(True)
-    title('Rotate2D about a point')
-    show()
