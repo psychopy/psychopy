@@ -491,9 +491,8 @@ class MonospaceFontAtlas(object):
 
 try:
     from psychopy.visual.textbox.freetype_bf import Face,FT_LOAD_RENDER,FT_LOAD_FORCE_AUTOHINT
-    #print "FreeType Imports OK."
 except Exception, e:
-    print "FreeType import Failed:",e
+    print "FreeType import Failed:", e
     import traceback
     traceback.format_exc()
     FontManager.freetype_import_error=e
