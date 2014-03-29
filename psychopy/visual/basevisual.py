@@ -189,6 +189,16 @@ class LegacyVisualMixin(object):
         elif self.units in ['deg', 'degs']: self._posRendered=deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=cm2pix(self.pos, self.win.monitor)
 
+    def _getPolyAsRendered(self):
+        """DEPRECATED. Return a list of vertices as rendered; used by overlaps()
+        """
+        oriRadians = numpy.radians(self.ori)
+        sinOri = numpy.sin(-oriRadians)
+        cosOri = numpy.cos(-oriRadians)
+        x = self._verticesRendered[:,0] * cosOri - self._verticesRendered[:,1] * sinOri
+        y = self._verticesRendered[:,0] * sinOri + self._verticesRendered[:,1] * cosOri
+        return numpy.column_stack((x,y)) + self._posRendered
+
     def setDKL(self, newDKL, operation=''):
         """DEPRECATED since v1.60.05: Please use the `color` attribute
         """
@@ -426,16 +436,6 @@ class ContainerMixin(object):
         # ourself in pixels
         selfVerts = self.verticesPix
         return pointInPolygon(xy[0], xy[1], poly = selfVerts)
-
-    def _getPolyAsRendered(self):
-        """return a list of vertices as rendered; used by overlaps()
-        """
-        oriRadians = numpy.radians(self.ori)
-        sinOri = numpy.sin(-oriRadians)
-        cosOri = numpy.cos(-oriRadians)
-        x = self._verticesRendered[:,0] * cosOri - self._verticesRendered[:,1] * sinOri
-        y = self._verticesRendered[:,0] * sinOri + self._verticesRendered[:,1] * cosOri
-        return numpy.column_stack((x,y)) + self._posRendered
 
     def overlaps(self, polygon):
         """Returns `True` if this stimulus intersects another one.

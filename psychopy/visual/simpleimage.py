@@ -22,7 +22,7 @@ from psychopy import core, logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.tools.monitorunittools import convertToPix
+from psychopy.visual.basevisual import MinimalStim
 from psychopy.tools.attributetools import setWithOperation, logAttrib
 from . import glob_vars
 
@@ -34,7 +34,7 @@ except ImportError:
 import numpy
 
 
-class SimpleImageStim(object):
+class SimpleImageStim(MinimalStim):
     """A simple stimulus for loading images from a file and presenting at exactly
     the resolution and color in the file (subject to gamma correction if set).
 
@@ -42,13 +42,8 @@ class SimpleImageStim(object):
     masked (although flipping horizontally or vertically is possible). Drawing will
     also tend to be marginally slower, because the image isn't preloaded to the
     graphics card. The slight advantage, however is that the stimulus will always be in its
-    original aspect ratio, with no interplotation or other transformation.
-
-    SimpleImageStim does not support a depth parameter (the OpenGL method
-    that draws the pixels does not support it). Simple images will obscure any other
-    stimulus type.
-
-
+    original aspect ratio, with no interplotation or other transformation, and
+    it is slightly faster to load into PsychoPy.
     """
     def __init__(self,
                  win,
@@ -65,14 +60,14 @@ class SimpleImageStim(object):
             image :
                 The filename, including relative or absolute path. The image
                 can be any format that the Python Imagin Library can import
-                (which is almost all).
+                (almost any). Can also be an image already loaded by PIL.
             units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'
                 If None then the current units of the :class:`~psychopy.visual.Window` will be used.
                 See :ref:`units` for explanation of other options.
             pos :
-                a tuple (0.0,0.0) or a list [0.0,0.0] for the x and y of the centre of the stimulus.
+                The centre of the stimulus, as a tuple (0., 0.) or a list [0., 0.] for the x and y.
                 The origin is the screen centre, the units are determined
-                by units (see above). Stimuli can be position beyond the
+                by units (see above). Stimuli can be positioned off-screen, beyond the
                 window!
             name : string
                 The name of the object to be using during logged messages about
@@ -81,14 +76,9 @@ class SimpleImageStim(object):
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
-        super(SimpleImageStim, self).__init__()
-
-        #NB most stimuli use BaseVisualStim for the _set method and for
-        # setting up win, name, units and autolog in __init__ but SimpleImage
-        # shares very little with _Base so we do it manually here
-        self.autoLog=False #this will be set later
         self.win=win
-        self.name=name
+        super(SimpleImageStim, self).__init__(name=name, autoLog=False)
+
         #unit conversions
         if units!=None and len(units): self.units = units
         else: self.units = win.units
@@ -103,10 +93,10 @@ class SimpleImageStim(object):
 
         #check position with size, warn if stimuli not fully drawn
         if ((self.pos[0]+(self.size[0]/2.0) > self.win.size[0]/2.0) or (self.pos[0]-(self.size[0]/2.0) < -self.win.size[0]/2.0)):
-            logging.warning("Image position and width mean the stimuli does not fit the window in the X direction.")
+            logging.warning("The image does not completely fit inside the window in the X direction.")
 
         if ((self.pos[1]+(self.size[1]/2.0) > self.win.size[1]/2.0) or (self.pos[1]-(self.size[1]/2.0) < -self.win.size[1]/2.0)):
-            logging.warning("Image position and height mean the stimuli does not fit the window in the Y direction.")
+            logging.warning("The image does not completely fit inside the window in the Y direction.")
 
         #flip if necessary
         self.flipHoriz=False#initially it is false, then so the flip according to arg above
@@ -114,10 +104,8 @@ class SimpleImageStim(object):
         self.flipVert=False#initially it is false, then so the flip according to arg above
         self.setFlipVert(flipVert)
 
-        self._calcPosRendered()
-
         #set autoLog (now that params have been initialised)
-        self.autoLog= autoLog
+        self.autoLog = autoLog
         if autoLog:
             logging.exp("Created %s = %s" %(self.name, repr(self)))
 
@@ -186,8 +174,8 @@ class SimpleImageStim(object):
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
         #move to centre of stimulus
-        GL.glRasterPos2f(self.win.size[0]/2.0 - self.size[0]/2.0 + self._posRendered[0],
-            self.win.size[1]/2.0 - self.size[1]/2.0 + self._posRendered[1])
+        GL.glRasterPos2f(self.win.size[0]/2.0 - self.size[0]/2.0 + self.pos[0],
+            self.win.size[1]/2.0 - self.size[1]/2.0 + self.pos[1])
 
         #GL.glDrawPixelsub(GL.GL_RGB, self.imArr)
         GL.glDrawPixels(self.size[0],self.size[1],
@@ -197,34 +185,6 @@ class SimpleImageStim(object):
         GL.glMatrixMode( GL.GL_PROJECTION )
         GL.glPopMatrix()
         GL.glMatrixMode( GL.GL_MODELVIEW )
-    def _set(self, attrib, val, op='', log=True):
-        """
-        Deprecated. Use methods specific to the parameter you want to set
-
-        e.g. ::
-
-             stim.pos = [3,2.5]
-             stim.ori = 45
-             stim.phase += 0.5
-
-        NB this method does not flag the need for updates any more - that is
-        done by specific methods as described above.
-        """
-        if op==None: op=''
-        #format the input value as float vectors
-        if type(val) in (tuple, list):
-            val=numpy.array(val, float)
-
-        setWithOperation(self, attrib, val, op)
-        logAttrib(self, log, attrib)
-    def setPos(self, newPos, operation='', units=None, log=True):
-        self._set('pos', val=newPos, op=operation, log=log)
-        self._calcPosRendered()
-    def setDepth(self,newDepth, operation='', log=True):
-        self._set('depth', newDepth, operation, log=log)
-    def _calcPosRendered(self):
-        """Calculate the pos of the stimulus in pixels"""
-        self._posRendered = convertToPix(pos = self.pos, vertices=numpy.array([0,0]), units=self.units, win=self.win)
 
     def setImage(self,filename=None, log=True):
         """Set the image to be drawn.
@@ -233,11 +193,10 @@ class SimpleImageStim(object):
             - filename:
                 The filename, including relative or absolute path if necessary.
                 Can actually also be an image loaded by PIL.
-
         """
         self.image=filename
         if type(filename) in [str, unicode]:
-        #is a string - see if it points to a file
+            #is a string - see if it points to a file
             if os.path.isfile(filename):
                 self.filename=filename
                 im = Image.open(self.filename)
@@ -247,7 +206,7 @@ class SimpleImageStim(object):
                 core.quit()
                 raise #so thatensure we quit
         else:
-        #not a string - have we been passed an image?
+            #not a string - have we been passed an image?
             try:
                 im = filename.copy().transpose(Image.FLIP_TOP_BOTTOM)
             except AttributeError: # ...but apparently not
