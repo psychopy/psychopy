@@ -65,7 +65,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
             maskParams: Various types of input. Default to None.
                 This is used to pass additional parameters to the mask if those
                 are needed.
-                - For the 'raisedCos' mask, pass a dict: {'fringeWidth':0.2},
+                - For the 'raisedCos' mask, pass a dict: ``{'fringeWidth':0.2}``,
                 where 'fringeWidth' is a parameter (float, 0-1), determining
                 the proportion of the patch that will be blurred by the raised
                 cosine edge.

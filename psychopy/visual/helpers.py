@@ -34,13 +34,13 @@ except:
     haveMatplotlib = False
 
 def pointInPolygon(x, y, poly):
-    """Determine if a point (`x`, `y`) is inside a polygon, using the ray casting method.
+    """Determine if a point is inside a polygon; returns True if inside.
 
-    `poly` is a list of 3+ vertices as (x,y) pairs.
-    If given a `ShapeStim`-based object, will use the
-    rendered vertices and position as the polygon.
+    (`x`, `y`) is the point to test. `poly` is a list of 3 or more vertices as
+    (x,y) pairs. If given an object, such as a `ShapeStim`, will try to use its
+    vertices and position as the polygon.
 
-    Returns True (inside) or False (outside). Used by :class:`~psychopy.visual.ShapeStim` `.contains()`
+    Same as the `.contains()` method elsewhere.
     """
     try: #do this using try:...except rather than hasattr() for speed
         poly = poly.verticesPix #we want to access this only once
@@ -79,16 +79,13 @@ def pointInPolygon(x, y, poly):
     return inside
 
 def polygonsOverlap(poly1, poly2):
-    """Determine if two polygons intersect; can fail for pointy polygons.
+    """Determine if two polygons intersect; can fail for very pointy polygons.
 
-    Accepts two polygons, as lists of vertices (x,y) pairs. If given `ShapeStim`-based
-    instances, will use rendered (vertices + pos) as the polygon.
+    Accepts two polygons, as lists of vertices (x,y) pairs. If given an object
+    with with (vertices + pos), will try to use that as the polygon.
 
-    Checks if any vertex of one polygon is inside the other polygon; will fail in
-    some cases, especially for pointy polygons. "crossed-swords" configurations
-    overlap but may not be detected by the algorithm.
-
-    Used by :class:`~psychopy.visual.ShapeStim` `.overlaps()`
+    Checks if any vertex of one polygon is inside the other polygon. Same as
+    the `.overlaps()` method elsewhere.
     """
     try: #do this using try:...except rather than hasattr() for speed
         poly1 = poly1.verticesPix #we want to access this only once
