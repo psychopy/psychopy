@@ -266,7 +266,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
             datatype = GL.GL_FLOAT
         else:
             datatype = GL.GL_UNSIGNED_BYTE
-        self.isLumImage = self.createTexture(value, id=self._texID, stim=self,
+        self.isLumImage = self._createTexture(value, id=self._texID, stim=self,
             pixFormat=GL.GL_RGB, dataType=datatype,
             maskParams=self.maskParams, forcePOW2=False)
         #if user requested size=None then update the size for new stim here
@@ -281,7 +281,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         """Change the image to be used as an alpha-mask for the image
         """
         self.mask = value
-        self.createTexture(value, id=self._maskID,
+        self._createTexture(value, id=self._maskID,
             pixFormat=GL.GL_ALPHA,dataType=GL.GL_UNSIGNED_BYTE,
             stim=self,
             res=self.texRes, maskParams=self.maskParams)

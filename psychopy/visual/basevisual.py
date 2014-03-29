@@ -51,9 +51,9 @@ There are several base and mix-in visual classes for mulitple inheritance:
         color-related methods and attribs
   - ContainerMixin:    for stim that need polygon .contains() methods (most, not Text)
         .contains(), .overlaps()
-  - TextureMixin:      for texture methods namely createTexture (Grating, not Text)
+  - TextureMixin:      for texture methods namely _createTexture (Grating, not Text)
         seems to work; caveat: There were issues in earlier (non-MI) versions
-        of useing createTexture so it was pulled out of classes. Now its inside
+        of using _createTexture so it was pulled out of classes. Now its inside
         classes again. Should be watched.
   - BaseVisualStim:    = Minimal + Legacy
 
@@ -108,28 +108,12 @@ class MinimalStim(object):
         """The name of the object to be using during logged messages about
         this stim. If you have multiple stimuli in your experiment this really
         helps to make sense of log files!
-
-        type: String
-
-        Example::
-
-            upper = visual.TextStim(win, text='Monty', name='upperStim')
-            lower = visual.TextStim(win, text='Python', name='lowerStim')
-            upper.setAutoDraw(True)
-            for frameN in range(3):
-                win.flip()
-            # turn off top and turn on bottom
-            upper.setAutoDraw(False)
-            lower.setAutoDraw(True)
-            for frameN in range(3):
-                win.flip()
-            # log file will include names to identify which stim came on/off
         """
         self.__dict__['name'] = value
 
     @attributeSetter
     def autoDraw(self, value):
-        """Determines whether the stimulus should be automatically drawn on
+        """Determines whether the stimulus should be automatically drawn on every frame flip.
 
         Value should be: `True` or `False`
 
@@ -224,8 +208,7 @@ class LegacyVisualMixin(object):
 
     @attributeSetter
     def depth(self, value):
-        """
-        Deprecated. Depth is now controlled simply by drawing order.
+        """DEPRECATED. Depth is now controlled simply by drawing order.
         """
         self.__dict__['depth'] = value
 
@@ -303,16 +286,16 @@ class ColorMixin(object):
 
         Examples::
 
-            stim.contrast = 1.0  # unchanged contrast
-            stim.contrast = 0.5  # decrease contrast
-            stim.contrast = 0.0  # uniform, no contrast
-            stim.contrast = -0.5 # slightly inverted
-            stim.contrast = -1   # totally inverted
+            stim.contrast =  1.0  # unchanged contrast
+            stim.contrast =  0.5  # decrease contrast
+            stim.contrast =  0.0  # uniform, no contrast
+            stim.contrast = -0.5  # slightly inverted
+            stim.contrast = -1.0  # totally inverted
 
         Setting contrast outside range -1 to 1 is permitted, but may
         produce strange results if color values exceeds the monitor limits.::
 
-            stim.contrast = 1.2 # increases contrast.
+            stim.contrast =  1.2  # increases contrast
             stim.contrast = -1.2  # inverts with increased contrast
         """
         self.__dict__['contrast'] = value
@@ -455,10 +438,12 @@ class ContainerMixin(object):
         return numpy.column_stack((x,y)) + self._posRendered
 
     def overlaps(self, polygon):
-        """Determines if this stimulus intersects another one. If `polygon` is
+        """Returns `True` if this stimulus intersects another one.
+
+        If `polygon` is
         another stimulus instance, then the vertices and location of that stimulus
-        will be used as the polygon. Overlap detection is only approximate; it
-        can fail with pointy shapes. Returns `True` if the two shapes overlap.
+        will be used as the polygon. Overlap detection is typically very good, but it
+        can fail with very pointy shapes in a crossed-swords configuration.
 
         Note that, if your stimulus uses a mask (such as a Gaussian blob) then
         this is not accounted for by the `overlaps` method; the extent of the
@@ -477,32 +462,25 @@ class TextureMixin(object):
     #def __init__(self):
     #    super(TextureMixin, self).__init__()
 
-    def createTexture(self, tex, id, pixFormat, stim, res=128, maskParams=None,
+    def _createTexture(self, tex, id, pixFormat, stim, res=128, maskParams=None,
                       forcePOW2=True, dataType=None):
         """
         :params:
-
             id:
                 is the texture ID
-
             pixFormat:
                 GL.GL_ALPHA, GL.GL_RGB
-
             useShaders:
                 bool
-
             interpolate:
                 bool (determines whether texture will use GL_LINEAR or GL_NEAREST
-
             res:
                 the resolution of the texture (unless a bitmap image is used)
-
             dataType:
                 None, GL.GL_UNSIGNED_BYTE, GL_FLOAT. Only affects image files (numpy arrays will be float)
 
         For grating stimuli (anything that needs multiple cycles) forcePOW2 should
         be set to be True. Otherwise the wrapping of the texture will not work.
-
         """
 
         """
@@ -821,7 +799,7 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
     @attributeSetter
     def units(self, value):
         """
-        None, 'norm', 'cm', 'deg' or 'pix'
+        None, 'norm', 'cm', 'deg', 'degFlat', 'degFlatPos', or 'pix'
 
         If None then the current units of the :class:`~psychopy.visual.Window` will be used.
         See :ref:`units` for explanation of other options.
@@ -851,10 +829,8 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
         """Determines how visible the stimulus is relative to background
 
         The value should be a single float ranging 1.0 (opaque) to 0.0
-        (transparent).
-        :ref:`Operations <attrib-operations>` are supported.
-
-        Precisely how this is used depends on the :ref:`blendMode`
+        (transparent). :ref:`Operations <attrib-operations>` are supported.
+        Precisely how this is used depends on the :ref:`blendMode`.
         """
         self.__dict__['opacity'] = value
 
@@ -908,7 +884,7 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
 
     @attributeSetter
     def size(self, value):
-        """The size (w,h) of the stimulus in the stimulus :ref:`units <units>`
+        """The size (width, height) of the stimulus in the stimulus :ref:`units <units>`
 
         Value should be :ref:`x,y-pair <attrib-xy>`, :ref:`scalar <attrib-scalar>` (applies to both dimensions)
         or None (resets to default). :ref:`Operations <attrib-operations>` are supported.

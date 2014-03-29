@@ -599,11 +599,3 @@ class TextStim(BaseVisualStim, ColorMixin):
             self.useShaders=val
             self._needSetText=True
             self._needUpdate = True
-    def overlaps(self, polygon):
-        """Not implemented for TextStim
-        """
-        pass
-    def contains(self, polygon):
-        """Not implemented for TextStim
-        """
-        pass

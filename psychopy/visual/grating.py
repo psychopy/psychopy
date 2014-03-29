@@ -107,7 +107,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
-        # TO DO: postpone calls to createTexture, setColor and _calcCyclesPerStim whin initiating stimulus
+        # TO DO: postpone calls to _createTexture, setColor and _calcCyclesPerStim whin initiating stimulus
         self.__dict__['contrast'] = 1
         self.__dict__['size'] = 1
         self.__dict__['sf'] = 1
@@ -230,7 +230,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         If not then PsychoPy will upsample your stimulus to the next larger
         power of two.
         """
-        self.createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self,
+        self._createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self,
             res=self.texRes, maskParams=self.maskParams)
         #if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize == None:
@@ -247,21 +247,21 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
             + the name of an image file (most formats supported)
             + a numpy array (1xN or NxN) ranging -1:1
         """
-        self.createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self,
+        self._createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self,
             res=self.texRes, maskParams=self.maskParams)
         self.__dict__['mask'] = value
 
     def setSF(self, value, operation='', log=True):
-        """ Deprecation Warning! Use 'stim.parameter = value' syntax instead"""
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self._set('sf', value, operation, log=log)
     def setPhase(self, value, operation='', log=True):
-        """ Deprecation Warning! Use 'stim.parameter = value' syntax instead"""
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self._set('phase', value, operation, log=log)
     def setTex(self, value, log=True):
-        """ Deprecation Warning! Use 'stim.parameter = value' syntax instead"""
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self.tex = value
     def setMask(self, value, log=True):
-        """ Deprecation Warning! Use 'stim.parameter = value' syntax instead"""
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self.mask = value
 
     def draw(self, win=None):
