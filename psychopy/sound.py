@@ -68,10 +68,22 @@ for thisLibName in prefs.general['audioLib']:
         continue #to try next audio lib
     #if we got this far we were sucessful in loading the lib
     audioLib=thisLibName
+    logging.info('sound is using audioLib: %s' % audioLib)
     break
 
 if audioLib==None:
     logging.warning('No audio lib could be loaded. Sounds will not be available.')
+
+stepsFromA = {
+    'C' : -9, 'Csh' : -8,
+    'Dfl' : -8, 'D' : -7, 'Dsh' : -6,
+    'Efl' : -6, 'E' : -5,
+    'F' : -4, 'Fsh' : -3,
+    'Gfl' : -3, 'G' : -2, 'Gsh' : -1,
+    'Afl': -1, 'A': 0, 'Ash':+1,
+    'Bfl': +1, 'B': +2, 'Bsh': +2
+    }
+knownNoteNames = sorted(stepsFromA.keys())
 
 class _SoundBase:
     """Create a sound object, from one of many ways.
@@ -131,25 +143,37 @@ class _SoundBase:
 
         try:#could be '440' meaning 440
             value = float(value)
-        except:
-            pass#this is a string that can't be a number
-
-        if type(value) in [str, unicode]:
-            #try to open the file
-            OK = self._fromNoteName(value,secs,octave, hamming=hamming)
-            #or use as a note name
-            if not OK: self._fromFile(value)
-
-        elif type(value)==float:
             #we've been asked for a particular Hz
+        except (ValueError, TypeError):
+            pass  #this is a string that can't be a number
+        else:
             self._fromFreq(value, secs, hamming=hamming)
 
+        if isinstance(value, basestring):
+            if capitalize(value) in knownNoteNames:
+                if not self._fromNoteName(capitalize(value), secs, octave, hamming=hamming):
+                    self._snd = None
+            else:
+                #try finding the file
+                self.fileName=None
+                for filePath in ['', mediaLocation]:
+                    p = path.join(filePath, value)
+                    if path.isfile(p):
+                        self.fileName = p
+                    elif path.isfile(p + '.wav'):
+                        self.fileName = p + '.wav'
+                if self.fileName is None:
+                    raise IOError, "setSound: could not find a sound file named " + value
+                elif not self._fromFile(value):
+                    self._snd = None
         elif type(value) in [list,numpy.ndarray]:
             #create a sound from the input array/list
-            self._fromArray(value)
+            if not self._fromArray(value):
+                self._snd = None
+
         #did we succeed?
         if self._snd is None:
-            raise RuntimeError, "I dont know how to make a "+value+" sound"
+            raise RuntimeError, "Could not make a "+value+" sound"
         else:
             if log and self.autoLog:
                 logging.exp("Set %s sound=%s" %(self.name, value), obj=self)
@@ -183,36 +207,13 @@ class _SoundBase:
         pass #should be overridden
     def _fromFile(self, fileName):
         pass #should be overridden
-    def _fromNoteName(self, name, secs, octave, hamming=True):
-        #get a mixer.Sound object from an note name
+    def _fromNoteName(self, thisNote, secs, octave, hamming=True):
+        #get freq from a note name & get a sound _fromFreq
         A=440.0
-        thisNote=capitalize(name)
-        stepsFromA = {
-            'C' : -9,
-            'Csh' : -8,
-            'Dfl' : -8,
-            'D' : -7,
-            'Dsh' : -6,
-            'Efl' : -6,
-            'E' : -5,
-            'F' : -4,
-            'Fsh' : -3,
-            'Gfl' : -3,
-            'G' : -2,
-            'Gsh' : -1,
-            'Afl': -1,
-            'A': 0,
-            'Ash':+1,
-            'Bfl': +1,
-            'B': +2,
-            'Bsh': +2,
-            }
-        if thisNote not in stepsFromA.keys():
-            return False
-
         thisOctave = octave-4
         thisFreq = A * 2.0**(stepsFromA[thisNote]/12.0) * 2.0**thisOctave
         self._fromFreq(thisFreq, secs, hamming=hamming)
+        return True
 
     def _fromFreq(self, thisFreq, secs, hamming=True):
         nSamples = int(secs*self.sampleRate)
@@ -221,7 +222,7 @@ class _SoundBase:
         outArr = numpy.sin(outArr)
         if hamming and nSamples > 30:
             outArr = apodize(outArr, self.sampleRate)
-        self._fromArray(outArr)
+        return self._fromArray(outArr)
 
     def _fromArray(self, thisArray):
         pass #should be overridden
@@ -321,18 +322,8 @@ class SoundPygame(_SoundBase):
             logging.exp("Set Sound %s volume=%.3f" %(self.name, newVol), obj=self)
 
     def _fromFile(self, fileName):
-
-        #try finding the file
-        self.fileName=None
-        for filePath in ['', mediaLocation]:
-            if path.isfile(path.join(filePath,fileName)):
-                self.fileName=path.join(filePath,fileName)
-            elif path.isfile(path.join(filePath,fileName+'.wav')):
-                self.fileName=path.join(filePath,fileName+'.wav')
-        if self.fileName is None:
-            return False
-
         #load the file
+        self.fileName = fileName
         self._snd = mixer.Sound(self.fileName)
         return True
 
@@ -515,16 +506,8 @@ class SoundPyo(_SoundBase):
         self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(),
                                   loop=doLoop, mul=self.volume)
     def _fromFile(self, fileName):
-        #try finding the file
-        self.fileName=None
-        for filePath in ['', mediaLocation]:
-            if path.isfile(path.join(filePath,fileName)):
-                self.fileName=path.join(filePath,fileName)
-            elif path.isfile(path.join(filePath,fileName+'.wav')):
-                self.fileName=path.join(filePath,fileName+'.wav')
-        if self.fileName is None:
-            return False
         # want mono sound file played to both speakers, not just left / 0
+        self.fileName = fileName
         self._sndTable = pyo.SndTable(initchnls=self.channels)
         self._sndTable.setSound(self.fileName)  # mono file loaded to all chnls
         self._updateSnd()
@@ -553,7 +536,7 @@ def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
     """
     global Sound, audioDriver
     Sound = SoundPygame
-    audioDriver='n/a'
+    #audioDriver='n/a'
     if stereo==True: stereoChans=2
     else:   stereoChans=0
     if bits==16: bits=-16 #for pygame bits are signed for 16bit, signified by the minus
