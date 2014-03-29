@@ -48,6 +48,11 @@ def _height2pix(vertices, pos, win):
     return (pos+vertices) * win.size[1]
 _unit2PixMappings['height'] = _height2pix
 
+def posToPix(stim):
+    """Returns the stim's position to pixels, based on its pos, units, and win.
+    """
+    return convertToPix([0,0], stim.pos, stim.win.units, stim.win)
+
 def convertToPix(vertices, pos, units, win):
     """Takes vertices and position, combines and converts to pixels from any unit
 
@@ -55,7 +60,7 @@ def convertToPix(vertices, pos, units, win):
     the conversion from deg to apply flat-screen correction to each separately.
 
     The reason that these use function args rather than relying on self.pos
-    is that some stimuli (e.g. ElementArrayStim use other terms like fieldPos)
+    is that some stimuli use other terms (e.g. ElementArrayStim uses fieldPos).
     """
     unit2pix_func = _unit2PixMappings.get(units)
     if unit2pix_func:

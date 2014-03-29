@@ -115,9 +115,7 @@ class MinimalStim(object):
     def autoDraw(self, value):
         """Determines whether the stimulus should be automatically drawn on every frame flip.
 
-        Value should be: `True` or `False`
-
-        You do NOT need to set this on every frame flip!
+        Value should be: `True` or `False`. You do NOT need to set this on every frame flip!
         """
         self.__dict__['autoDraw'] = value
         toDraw = self.win._toDraw
@@ -143,7 +141,7 @@ class MinimalStim(object):
             self.status = STOPPED
 
     def setAutoDraw(self, value, log=True):
-        """Usually you can use 'stim.attribute = value' syntax instead,
+        """Sets autoDraw. Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
         self.autoDraw = value
 
@@ -151,10 +149,8 @@ class MinimalStim(object):
     def autoLog(self, value):
         """Whether every change in this stimulus should be logged automatically
 
-        Value should be: `True` or `False`
-
-        Set this to `False` if your stimulus is updating frequently (e.g.
-        updating its position every frame) or you will swamp the log file with
+        Value should be: `True` or `False`. Set to `False` if your stimulus is updating frequently (e.g.
+        updating its position every frame) and you want to avoid swamping the log file with
         messages that aren't likely to be useful.
         """
         self.__dict__['autoLog'] = value
@@ -396,20 +392,20 @@ class ContainerMixin(object):
         self._needVertexUpdate = False
         self._needUpdate = True #but we presumably need to update the list
     def contains(self, x, y=None, units=None):
-        """Determines if a point x,y is inside the extent of the stimulus.
+        """Returns True if a point x,y is inside the extent of the stimulus.
 
         Can accept variety of input options:
             + two separate args, x and y
             + one arg (list, tuple or array) containing two vals (x,y)
             + an object with a getPos() method that returns x,y, such
-                as a :class:`~psychopy.event.Mouse`. Returns `True` if the point is
-                within the area defined by `vertices`.
+                as a :class:`~psychopy.event.Mouse`.
 
+        Returns `True` if the point is within the area defined by `vertices`.
         This method handles complex shapes, including concavities and self-crossings.
 
-        Note that, if your stimulus uses a mask (such as a Gaussian blob) then
+        Note that, if your stimulus uses a mask (such as a Gaussian) then
         this is not accounted for by the `contains` method; the extent of the
-        stmulus is determined purely by the size, pos and orientation settings
+        stimulus is determined purely by the size, position (pos), and orientation (ori) settings
         (and by the vertices for shape stimuli).
 
         See coder demo, shapeContains.py
@@ -934,7 +930,7 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
     def pos(self, value):
         """The position of the center of the stimulus in the stimulus :ref:`units <units>`
 
-        Value should be an :ref:`x,y-pair <attrib-xy>`. :ref:`Operations <attrib-operations>`
+        `value` should be an :ref:`x,y-pair <attrib-xy>`. :ref:`Operations <attrib-operations>`
         are also supported.
 
         Example::
@@ -943,8 +939,10 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
             stim.pos += (0.5, -1)  # Increment pos rightwards and upwards. Is now (1.0, -1.0)
             stim.pos *= 0.2  # Move stim towards the center. Is now (0.2, -0.2)
 
-        Tip: if you can see the actual pixel range this corresponds to by
-        looking at `stim._posRendered`
+        Tip: If you need the position of stim in pixels, you can obtain it like this:
+
+            from psychopy.tools.monitorunittools import posToPix
+            posPix = posToPix(stim)
         """
         self.__dict__['pos'] = val2array(value, False, False)
         self._needVertexUpdate=True
