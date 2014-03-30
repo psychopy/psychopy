@@ -35,7 +35,8 @@ from .. import ioHubConnection
 from weakref import proxy
 import numpy as np
 from time import sleep
-
+import os, sys
+from PIL import Image
 getTime = core.getTime
 
 class TargetStim(object):
@@ -421,6 +422,70 @@ class TargetPosSequenceStim(object):
     stored and are available at the end of the display() period, grouped by
     position index and device event types.
     """
+    TARGET_STATIONARY=1
+    TARGET_MOVING=2
+    TARGET_EXPANDING=4
+    TARGET_CONTRACTING=8
+
+    # Experiment Message text field types and tokens
+    #
+    message_types=dict(
+        # position_count
+        BEGIN_SEQUENCE = ("BEGIN_SEQUENCE", '', int),        
+        # position_count
+        DONE_SEQUENCE = ("DONE_SEQUENCE", '', int),        
+        # event_type_id event_time
+        NEXT_POS_TRIG = ("NEXT_POS_TRIG", '', int,float),
+        # position_count from_x,from_y to_x,to_y         
+        START_DRAW = ("START_DRAW", ',', int, float, float, float, float),
+        # position_count from_x,from_y to_x,to_y         
+        SYNCTIME = ("SYNCTIME", ',', int, float, float, float, float),        
+        # current_radius original_radius         
+        EXPAND_SIZE = ("EXPAND_SIZE", '', float, float),
+        # current_radius original_radius         
+        CONTRACT_SIZE = ("CONTRACT_SIZE", '', float, float),
+        # current_x,current_y         
+        POS_UPDATE = ("POS_UPDATE", ',', float, float),
+        # final_x,final_y         
+        TARGET_POS = ("TARGET_POS", ',', float, float)
+        )    
+    max_msg_type_length=max([len(s) for s in message_types.keys()])
+
+    binocular_sample_message_element=[
+                    ('targ_pos_ix',np.int),
+                    ('last_msg_time',np.float32),
+                    ('last_msg_type',np.str, max_msg_type_length),
+                    ('next_msg_time',np.float32),
+                    ('next_msg_type',np.str, max_msg_type_length),
+                    ('targ_pos_x',np.float32),
+                    ('targ_pos_y',np.float32),
+                    ('targ_state',np.int),
+                    ('eye_time',np.float32),
+                    ('eye_status',np.int),
+                    ('left_eye_x',np.float32),
+                    ('left_eye_y',np.float32),
+                    ('left_pupil_size',np.float32),
+                    ('right_eye_x',np.float32),
+                    ('right_eye_y',np.float32),
+                    ('right_pupil_size',np.float32)
+                   ]
+                   
+    monocular_sample_message_element=[
+                    ('targ_pos_ix',np.int),
+                    ('last_msg_time',np.float32),
+                    ('last_msg_type',np.str, max_msg_type_length),
+                    ('next_msg_time',np.float32),
+                    ('next_msg_type',np.str, max_msg_type_length),
+                    ('targ_pos_x',np.float32),
+                    ('targ_pos_y',np.float32),
+                    ('targ_state',np.int),
+                    ('eye_time',np.float32),
+                    ('eye_status',np.int),
+                    ('eye_x',np.float32),
+                    ('eye_y',np.float32),
+                    ('pupil_size',np.float32)
+                   ]
+                           
     def __init__(self,
                  target,            # The TargetStim instance to use.
                  positions,         # The PositionGrid instance to use.
@@ -429,12 +494,13 @@ class TargetPosSequenceStim(object):
                                     # events for.
                  triggers=None,     # The triggers to use for controlling target
                                     # position progression.
-                 msgcategory=""     # As the display() process is preformed,
+                 msgcategory="",     # As the display() process is preformed,
                                     # iohub experiment messages are generated
                                     # providing information on the state of the
                                     # target and position. msgcategory can be
                                     # used to define the category string to
                                     # assign to each message.
+                 io=None            # The ioHubConnection instance to use.
                 ):
         self.win = target.win
         self.target = target
@@ -442,6 +508,10 @@ class TargetPosSequenceStim(object):
         self.positions = positions
         self.storeevents=storeeventsfor
         self.msgcategory=msgcategory
+        
+        if io is None:
+            io=ioHubConnection.getActiveConnection()
+        self.io=io
 
         # If storeevents is True, targetdata will be a list of dict's.
         # Each dict, among other things, contains all ioHub events that occurred
@@ -450,8 +520,8 @@ class TargetPosSequenceStim(object):
         #
         self.targetdata=[]
         self.triggers = None
-        io = self.getIO()
 
+        # Handle different valid trigger object types
         if isinstance(triggers, (list, tuple)):
             # Support is provided for a list of Trigger objects or a list of
             # strings.
@@ -475,13 +545,11 @@ class TargetPosSequenceStim(object):
             else:
                 # Assume triggers is a list of Trigger objects
                 self.triggers = triggers
-
         elif isinstance(triggers, (int, float, long)):
             # triggers is a number, so assume a TimeTrigger is wanted where
             # the delay == triggers. start time will be the fliptime of the
             # last update for drawing to the new target position.
             self.triggers = (TimeTrigger(start_time=None, delay=triggers),)
-
         elif isinstance(triggers, basestring):
             # triggers is a string, so try and create a
             # DeviceEventTrigger using keyboard device, KEYBOARD_CHAR
@@ -490,7 +558,6 @@ class TargetPosSequenceStim(object):
                                 event_type=EventConstants.KEYBOARD_CHAR,
                                 event_attribute_conditions={'key':
                                                                 triggers}),)
-
         elif isinstance(triggers, Trigger):
             # A single Trigger object was provided
             self.triggers = (triggers,)
@@ -502,7 +569,7 @@ class TargetPosSequenceStim(object):
         """
         Get the active ioHubConnection instance.
         """
-        return ioHubConnection.getActiveConnection()
+        return self.io
 
     def _draw(self):
         """
@@ -538,16 +605,15 @@ class TargetPosSequenceStim(object):
                     self.target.setPos(frompos*(1.0-mu)+topos*mu)
                     self._draw()
                     fliptime = self.win.flip()
-                    io.sendMessageEvent("POS_UPDATE\t%.2f,%.2f\t%.3f\t%3f"%(
-                                        tpos[0], tpos[1], starttime,
-                                        arrivetime), self.msgcategory,
+                    io.sendMessageEvent("POS_UPDATE %.2f,%.2f"%(
+                                        tpos[0], tpos[1]), self.msgcategory,
                                         sec_time=fliptime)
                     self._addDeviceEvents()
 
         self.target.setPos(topos)
         self._draw()
         fliptime = self.win.flip()
-        io.sendMessageEvent("TARGET_POS\t%.2f,%.2f"%(topos[0], topos[1]),
+        io.sendMessageEvent("TARGET_POS %.2f,%.2f"%(topos[0], topos[1]),
                             self.msgcategory, sec_time=fliptime)
         self._addDeviceEvents()
 
@@ -568,9 +634,8 @@ class TargetPosSequenceStim(object):
                     self.target.setRadius(cradius)
                     self._draw()
                     fliptime = self.win.flip()
-                    io.sendMessageEvent("EXPAND_SIZE\t%.2f\t%.2f\t"
-                                        "%.3f"%(initialradius, cradius,
-                                                starttime),
+                    io.sendMessageEvent("EXPAND_SIZE %.2f %.2f"%(
+                                        cradius, initialradius),
                                         self.msgcategory, sec_time=fliptime)
                     self._addDeviceEvents()
 
@@ -583,9 +648,8 @@ class TargetPosSequenceStim(object):
                     self.target.setRadius(cradius)
                     self._draw()
                     fliptime = self.win.flip()
-                    io.sendMessageEvent("CONTRACT_SIZE\t%.2f\t%.2f\t"
-                                        "%.3f"%(cradius, initialradius,
-                                                starttime),
+                    io.sendMessageEvent("CONTRACT_SIZE %.2f %.2f"%(
+                                        cradius, initialradius),
                                         self.msgcategory, sec_time=fliptime)
                     self._addDeviceEvents()
 
@@ -599,18 +663,19 @@ class TargetPosSequenceStim(object):
         directly. Instead, use the display() method to start the full target
         position presentation sequence.
         """
-        self._initTargetData(frompos, topos)
-
         io = self.getIO()
-        io.clearEvents('all')
-        io.sendMessageEvent("START_DRAW\t{0}\t{1}\t{2}".format(
-            self.positions.posIndex, frompos, topos), self.msgcategory)
+        fpx, fpy = -1, -1
+        if frompos is not None:
+            fpx, fpy = frompos[0], frompos[1]
+        io.sendMessageEvent("START_DRAW %d %.2f,%.2f %.2f,%.2f"%(
+            self.positions.posIndex, fpx, fpy, 
+            topos[0], topos[1]), self.msgcategory)
 
         fliptime=self._animateTarget(topos, frompos, **kwargs)
 
-        io.sendMessageEvent("SYNCTIME\t{0}\t{1}\t{2}".format(
-            self.positions.posIndex, frompos, topos), self.msgcategory,
-            sec_time=fliptime)
+        io.sendMessageEvent("SYNCTIME %d %.2f,%.2f %.2f,%.2f"%(
+            self.positions.posIndex, fpx, fpy, 
+            topos[0], topos[1]), self.msgcategory, sec_time=fliptime)
 
         # wait for trigger to fire
         last_pump_time=fliptime
@@ -618,8 +683,8 @@ class TargetPosSequenceStim(object):
             if getTime() - last_pump_time >= 0.250:
                 win32MessagePump()
                 last_pump_time = getTime()
-            sleep(0.005)
-
+            sleep(0.001)
+            
     def _hasTriggerFired(self, **kwargs):
         """
         Used internally to know when one of the triggers has occurred and the
@@ -633,6 +698,16 @@ class TargetPosSequenceStim(object):
                 break
         self._addDeviceEvents(trig.clearEventHistory(True))
         if triggered:
+            # assume it was a timer trigger,so use 255 as 'event type'
+            event_type_id=255
+            trig_evt=triggered.getTriggeringEvent()
+            if hasattr(trig_evt,'type'):
+                # actually it was a device event trigger
+                event_type_id=trig_evt.type
+            # get time trigger of trigger event
+            event_time = triggered.getTriggeringTime()
+            self.getIO().sendMessageEvent("NEXT_POS_TRIG %d %.3f"%(
+                            event_type_id, event_time), self.msgcategory)
             for trig in self.triggers:
                 trig.resetTrigger()
         return triggered
@@ -730,13 +805,450 @@ class TargetPosSequenceStim(object):
         """
         del self.targetdata[:]
         prevpos = None
+        
         io = self.getIO()
-        io.sendMessageEvent("BEGIN_SEQUENCE\t{0}".format(len(self.positions.positions)),
+        io.clearEvents('all')
+        io.sendMessageEvent("BEGIN_SEQUENCE {0}".format(len(self.positions.positions)),
                                 self.msgcategory)
+        turn_rec_off=[]
+        for d in self.storeevents:
+            if not d.isReportingEvents():
+                d.enableEventReporting(True)
+                turn_rec_off.append(d)
 
+        sleep(0.025)                
         for pos in self.positions:
+            self._initTargetData(prevpos,pos)        
+            self._addDeviceEvents()
             self.moveTo(pos, prevpos, **kwargs)
             prevpos = pos
+            self._addDeviceEvents()
 
-        io.sendMessageEvent("DONE_SEQUENCE\t{0}".format(len(self.positions.positions)),
+        for d in turn_rec_off:
+            d.enableEventReporting(False)
+
+        io.sendMessageEvent("DONE_SEQUENCE {0}".format(len(self.positions.positions)),
                             self.msgcategory)
+        sleep(0.025)        
+        self._addDeviceEvents()
+        io.clearEvents('all')        
+
+    def _processMessageEvents(self):
+        self.target_pos_msgs=[]   
+        self.saved_pos_samples=[]
+        for pd in self.targetdata:
+            frompos=pd.get('frompos')
+            topos=pd.get('topos')
+            events=pd.get('events')
+            
+            # create a dict of device labels as keys, device events as value
+            devlabel_events={}
+            for k,v in events.iteritems():
+                devlabel_events[k.getName()]=v
+            
+            samples = devlabel_events.get('tracker',[])
+            # remove any eyetracker events that are not samples
+            samples = [s for s in samples if s.type in (EventConstants.BINOCULAR_EYE_SAMPLE,EventConstants.MONOCULAR_EYE_SAMPLE)]
+            self.saved_pos_samples.append(samples)
+
+            self.sample_type= self.saved_pos_samples[0][0].type  
+            if  self.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
+                self.sample_msg_dtype=self.binocular_sample_message_element
+            else:
+                self.sample_msg_dtype=self.monocular_sample_message_element
+ 
+            messages = devlabel_events.get('experiment',[])
+            msg_lists=[]
+            for m in messages:
+                temp = m.text.strip().split()
+                msg_type= self.message_types.get(temp[0])
+                if msg_type:
+                    current_msg = [m.time,m.category]
+                    if msg_type[1]==',':                                                
+                        for t in temp:
+                            current_msg.extend(t.split(',')) 
+                    else:
+                        current_msg.extend(temp)
+
+                    for mi,dtype in enumerate(msg_type[2:]):
+                        current_msg[mi+3]=dtype(current_msg[mi+3])
+                        
+                    msg_lists.append(current_msg)
+            
+            if msg_lists[0][2] == 'NEXT_POS_TRIG':
+                # handle case where the trigger msg from the previous target
+                # message was not read until the start of the next pos.
+                # In which case, move msg to end of previous targ pos msgs
+                npm=msg_lists.pop(0)
+                self.target_pos_msgs[-1].append(npm)
+               
+            self.target_pos_msgs.append(msg_lists)
+        
+        for i in range(len( self.target_pos_msgs)):        
+            self.target_pos_msgs[i]=np.asarray(self.target_pos_msgs[i])
+  
+        return self.target_pos_msgs  
+        
+    def getSampleMessageData(self):
+        """
+        Return a list of numpy ndarrays, each containing joined eye sample
+        and previous / next experiment message data for the sample's time.
+        """
+        
+        #preprocess message events
+        self._processMessageEvents()
+        
+        # inline func to return sample field array based on sample namedtup                       
+        def getSampleData(s):
+            sampledata=[s.time,s.status]
+            if self.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
+                sampledata.extend((s.left_gaze_x,
+                                   s.left_gaze_y,
+                                   s.left_pupil_measure1,
+                                   s.right_gaze_x,
+                                   s.right_gaze_y,
+                                   s.right_pupil_measure1))
+                return sampledata
+
+            sampledata.extend((s.gaze_x,
+                               s.gaze_y,
+                               s.pupil_measure1))                   
+            return sampledata  
+            
+        ######
+
+        #
+        ## Process Samples
+        #
+        
+        current_target_pos=-1.0,-1.0
+        current_targ_state=0        
+        target_pos_samples=[]
+        for pindex,samples in enumerate( self.saved_pos_samples):       
+            last_msg,messages= self.target_pos_msgs[pindex][0], self.target_pos_msgs[pindex][1:]
+            samplesforposition=[]
+            pos_sample_count=len(samples)
+            si=0
+            for current_msg in messages:
+                last_msg_time=last_msg[0]
+                last_msg_type=last_msg[2]
+                if last_msg_type == 'START_DRAW':
+                    if not current_targ_state& self.TARGET_STATIONARY:
+                        current_targ_state+= self.TARGET_STATIONARY
+                    current_targ_state-=current_targ_state& self.TARGET_MOVING
+                    current_targ_state-=current_targ_state& self.TARGET_EXPANDING
+                    current_targ_state-=current_targ_state& self.TARGET_CONTRACTING                    
+                elif last_msg_type == 'EXPAND_SIZE':
+                    if not current_targ_state& self.TARGET_EXPANDING:
+                        current_targ_state+= self.TARGET_EXPANDING
+                    current_targ_state-=current_targ_state& self.TARGET_CONTRACTING                                        
+                elif last_msg_type == 'CONTRACT_SIZE':
+                    if not current_targ_state& self.TARGET_CONTRACTING:
+                        current_targ_state+= self.TARGET_CONTRACTING                                        
+                    current_targ_state-=current_targ_state& self.TARGET_EXPANDING
+                elif last_msg_type == 'TARGET_POS':
+                    current_target_pos=float(last_msg[3]),float(last_msg[4])
+                    current_targ_state-=current_targ_state& self.TARGET_MOVING
+                    if not current_targ_state& self.TARGET_STATIONARY:
+                        current_targ_state+= self.TARGET_STATIONARY
+                elif last_msg_type == 'POS_UPDATE':
+                    current_target_pos=float(last_msg[3]),float(last_msg[4])
+                    if not current_targ_state& self.TARGET_MOVING:
+                        current_targ_state+= self.TARGET_MOVING
+                    current_targ_state-=current_targ_state& self.TARGET_STATIONARY
+                elif last_msg_type == 'SYNCTIME':
+                    if not current_targ_state& self.TARGET_STATIONARY:
+                        current_targ_state+= self.TARGET_STATIONARY
+                    current_targ_state-=current_targ_state& self.TARGET_MOVING
+                    current_targ_state-=current_targ_state& self.TARGET_EXPANDING
+                    current_targ_state-=current_targ_state& self.TARGET_CONTRACTING
+                    current_target_pos=float(last_msg[6]),float(last_msg[7])
+                
+                while si < pos_sample_count:
+                    sample=samples[si]               
+                    if sample.time >= last_msg_time and sample.time < current_msg[0]:
+                        sarray=[pindex, last_msg_time, last_msg_type,
+                                current_msg[0], current_msg[2],
+                                current_target_pos[0], current_target_pos[1],
+                                current_targ_state]
+                        sarray.extend(getSampleData(sample))
+                        sndarray=np.asarray(tuple(sarray),dtype= self.sample_msg_dtype)
+                        samplesforposition.append(sndarray)
+                        si+=1
+                    elif sample.time >= current_msg[0]:
+                        break
+                    else:
+                        si+=1
+                last_msg=current_msg
+            target_pos_samples.append(np.asanyarray(samplesforposition))
+            
+        # So we now have a list len == number target positions. Each element 
+        # of the list is a list of all eye sample / message data for a
+        # target position. Each element of the data list for a single target 
+        # position is itself a list that that contains combined info about
+        # an eye sample and message info valid for when the sample time was.
+        
+        return np.asanyarray(target_pos_samples)
+
+################ Validation #######################
+
+class ValidationProcedure(object):
+    def __init__(self,
+                 target,
+                 positions,
+                 background=None,
+                 triggers=2.0,
+                 storeeventsfor=None,
+                 accuracy_period_start=0.350,
+                 accuracy_period_stop=.050
+                 ):
+        self.io=ioHubConnection.getActiveConnection()
+        self.win=target.win
+        self.display_size=target.win.size
+        self.accuracy_period_start=accuracy_period_start
+        self.accuracy_period_stop=accuracy_period_stop
+        
+        if storeeventsfor is None:
+            storeeventsfor=[self.io.devices.keyboard, 
+                            self.io.devices.mouse, 
+                            self.io.devices.tracker,
+                            self.io.devices.experiment
+                            ]            
+
+        # Create the TargetPosSequenceStim instance; used to control the sequential
+        # presentation of the target at each of the grid positions.
+        self.targetsequence = TargetPosSequenceStim(target=target,
+                                               positions=positions,
+                                               background=background,
+                                               triggers=triggers,
+                                               storeeventsfor=storeeventsfor
+                                               )
+        
+        # Stim for results screen
+        self.imagestim=None
+        self.textstim=None
+        
+        self.use_dpi=80
+
+    def _waitForTrigger(self, trigger_key):
+        # TODO: should process a Trigger object. Right now only kb 
+        # event supported.
+        self.io.clearEvents('all')        
+        show_screen=True
+        while show_screen:
+            kb_events=self.io.devices.keyboard.getEvents()
+            for kbe in kb_events:
+                if kbe.key==trigger_key:
+                    show_screen=False
+                    break
+            core.wait(0.2,0.025)
+        self.io.clearEvents('all')
+        
+    def display(self,**kwargs):
+        # Display Validation Intro Screen
+        #
+        self.showIntroScreen()
+        self._waitForTrigger(' ')
+
+
+        # Perform Validation.....
+        self.targetsequence.display(**kwargs)
+        self.io.clearEvents('all')
+
+        # Display Accuracy Results Plot
+        self.showResultsScreen()
+        self._waitForTrigger(' ')
+
+        return self.win.flip()
+        
+    def generateImageName(self):
+        from psychopy.iohub.util import getCurrentDateTimeString, normjoin
+        rootScriptPath = os.path.dirname(sys.argv[0])
+        file_name='fig_'+getCurrentDateTimeString().replace(' ','_').replace(':','_')+'.png'
+        return normjoin(rootScriptPath,file_name)
+    
+    def createPlot(self):
+        try:
+            sample_array=self.targetsequence.getSampleMessageData()
+            w,h=self.display_size
+            # Validation Accuracy Analysis
+            
+            from matplotlib import pyplot as pl
+            pl.clf()
+            fig=pl.gcf()  
+            fig.set_size_inches((w*.9)/self.use_dpi,(h*.8)/self.use_dpi)
+
+            cm = pl.cm.get_cmap('RdYlBu')
+    
+            min_error=100000.0
+            max_error=0.0
+            summed_error=0.0
+            point_count=0
+            for pindex,samplesforpos in enumerate(sample_array):
+            
+                stationary_samples=samplesforpos[samplesforpos['targ_state'] == 
+                                            self.targetsequence.TARGET_STATIONARY]
+            
+                last_stime=stationary_samples[-1]['eye_time']
+                first_stime=stationary_samples[0]['eye_time']
+            
+                filter_stime=last_stime- self.accuracy_period_start
+                filter_etime=last_stime- self.accuracy_period_stop
+                all_samples_for_accuracy_calc=stationary_samples[
+                                    stationary_samples['eye_time']>=filter_stime]    
+                all_samples_for_accuracy_calc=all_samples_for_accuracy_calc[
+                            all_samples_for_accuracy_calc['eye_time']<filter_etime]    
+                
+                print "NOTE: VALIDATION SAMPLE REJECTION IS TOBII SPECIFIC. FIX THIS."
+                # >> tobii specific
+                good_samples_for_accuracy_calc=all_samples_for_accuracy_calc[
+                                    all_samples_for_accuracy_calc['eye_status']<=1]
+                # << tobii specific
+            
+                all_samples_for_accuracy_count=all_samples_for_accuracy_calc.shape[0]
+                good_accuracy_sample_count= good_samples_for_accuracy_calc.shape[0]            
+                accuracy_calc_good_sample_perc=good_accuracy_sample_count/float(
+                                                    all_samples_for_accuracy_count)
+            
+                # stationary_period_sample_count=stationary_samples.shape[0]
+                # target_period_sample_count=samplesforpos.shape[0]
+                # print 'target_period_sample_count:',target_period_sample_count
+                # print 'stationary_period_sample_count:',stationary_period_sample_count
+                # print 'all_samples_for_accuracy_count:',all_samples_for_accuracy_count
+                # print 'good_accuracy_sample_count:',good_accuracy_sample_count
+                # print 'accuracy_calc_good_sample_perc:',accuracy_calc_good_sample_perc
+                          
+                if accuracy_calc_good_sample_perc != 0.0:
+                    time=good_samples_for_accuracy_calc[:]['eye_time']
+                
+                    target_x=good_samples_for_accuracy_calc[:]['targ_pos_x']
+                    target_y=good_samples_for_accuracy_calc[:]['targ_pos_y']
+                
+                    left_x=good_samples_for_accuracy_calc[:]['left_eye_x']
+                    left_y=good_samples_for_accuracy_calc[:]['left_eye_y']
+                    left_pupil=good_samples_for_accuracy_calc[:]['left_pupil_size']
+                    left_error_x=target_x-left_x
+                    left_error_y=target_y-left_y
+                    left_error_xy=np.hypot(left_error_x,left_error_y)
+                
+                    right_x=good_samples_for_accuracy_calc[:]['right_eye_x']
+                    right_y=good_samples_for_accuracy_calc[:]['right_eye_y']
+                    right_pupil=good_samples_for_accuracy_calc[:]['right_pupil_size']    
+                    right_error_x=target_x-right_x
+                    right_error_y=target_y-right_y    
+                    right_error_xy=np.hypot(right_error_x,right_error_y)
+                    
+                    lr_x=(left_x+right_x)/2.0
+                    lr_y=(left_y+right_y)/2.0
+                    lr_error=(right_error_xy+left_error_xy)/2.0
+                    lr_error_max=lr_error.max()
+                    lr_error_min=lr_error.min()
+                    lr_error_mean=lr_error.mean()
+
+                    min_error=min(min_error,lr_error_min)
+                    max_error=max(max_error,lr_error_max)
+                    summed_error+=lr_error_mean
+                    point_count+=1.0
+                    
+                    normed_error=lr_error/lr_error_max
+                    normed_time=(time-time.min())/(time.max()-time.min())
+                    
+                    pl.scatter(target_x[0], 
+                               target_y[0], 
+                               s=400, 
+                               c=[0.75,0.75,0.75], 
+                               alpha=0.5)
+    
+                    pl.text(target_x[0], target_y[0], 
+                            str(pindex), 
+                            size=11, 
+                            horizontalalignment='center',
+                            verticalalignment='center')
+            
+                    pl.scatter(lr_x, lr_y, 
+                               s=40, c=normed_time, 
+                               cmap=cm,alpha=0.75)
+                            
+            pl.xlim(-w/2, w/2)
+            pl.ylim(-h/2, h/2)
+            pl.xlabel("Horizontal Position")
+            pl.ylabel("Vertical Position")
+            
+            pl.title("Eye Sample Target Accuracy (Pixels)\nMin: %.2f, Max: %.2f, Mean %.2f"%(
+                                    min_error,max_error,summed_error/point_count))
+            pl.colorbar()
+            fig.tight_layout()
+            return fig 
+        except:
+            print "\nError While Calculating Accuracy Stats:"
+            import traceback
+            traceback.print_exc()
+            print
+        
+    def buildResultScreen(self,replot=False):
+        if replot or self.imagestim is None:        
+            fig=self.createPlot()
+            text_pos=(0,0)
+            text='Accuracy calculation not Possible. Press SPACE to continue.'
+            
+            if fig:
+                fig_name=self.generateImageName()
+                fig.savefig(fig_name,dpi=self.use_dpi)
+                
+                fig_image = Image.open(fig_name)
+        
+                if self.imagestim:
+                    self.imagestim.setImage(fig_image)
+                else:
+                    self.imagestim = visual.ImageStim(self.win, 
+                                                      image=fig_image, 
+                                                      units='pix', 
+                                                      pos=(0.0, 0.0))
+                    
+                text='Press ESCAPE to continue.'
+                text_pos=(0.0, -(self.display_size[1]/2.0)*.9)
+                       
+            if self.textstim is None:
+                self.textstim=visual.TextStim(self.win,
+                    text=text, pos=text_pos, 
+                    color=(0, 0, 0), colorSpace='rgb255', 
+                    opacity=1.0, contrast=1.0, units='pix', 
+                    ori=0.0, height=None, antialias=True, 
+                    bold=False, italic=False, alignHoriz='center', 
+                    alignVert='center', wrapWidth=self.display_size[0]*.8)        
+            else:
+                self.textstim.setText(text)
+                self.textstim.setPos(text_pos)
+                
+            return True
+        elif self.imagestim:
+                return True
+        return False        
+
+    def showResultsScreen(self):
+        self.buildResultScreen()
+        self.imagestim.draw()
+        self.textstim.draw()
+        return self.win.flip()
+
+    def showIntroScreen(self):
+        text = "Validation Intro Screen TBC.\nPress SPACE to Start...."
+        textpos=(0,0)
+        if self.textstim:
+            self.textstim.setText(text)
+            self.textstim.setPos(textpos)
+        else:
+            self.textstim=visual.TextStim(self.win,
+                text=text, pos=textpos, 
+                color=(0, 0, 0), colorSpace='rgb255', 
+                opacity=1.0, contrast=1.0, units='pix', 
+                ori=0.0, height=None, antialias=True, 
+                bold=False, italic=False, alignHoriz='center', 
+                alignVert='center', wrapWidth=self.display_size[0]*.8)        
+
+        self.textstim.draw()
+        return self.win.flip()
+            
+###############################################################################
+
+         
