@@ -331,13 +331,14 @@ class ImageScreen(ScreenState):
 
 class Trigger(object):
     __slots__ = ['trigger_function', 'user_kwargs', '_last_triggered_event',
-                 'repeat_count', 'triggered_count']
+                 'repeat_count', 'triggered_count','_last_triggered_time']
     
     def __init__(self, trigger_function=lambda a, b, c: True==True,
                  user_kwargs={}, repeat_count=0):
         self.trigger_function = trigger_function
         self.user_kwargs = user_kwargs
         self._last_triggered_event = None
+        self._last_triggered_time = None
         self.repeat_count = repeat_count
         self.triggered_count = 0
         
@@ -348,12 +349,16 @@ class Trigger(object):
 
     def getTriggeringEvent(self):
         return self._last_triggered_event
+
+    def getTriggeringTime(self):
+        return self._last_triggered_time
         
     def getTriggeredStateCallback(self):
         return self.trigger_function, self.user_kwargs
 
     def resetLastTriggeredInfo(self):
         self._last_triggered_event = None
+        self._last_triggered_time = None
         
     def resetTrigger(self):
         self.resetLastTriggeredInfo()
@@ -415,6 +420,7 @@ class TimeTrigger(Trigger):
 
         ct = getTime()
         if ct-start_time >= delay:
+            self._last_triggered_time = ct
             self._last_triggered_event = ct
             self.triggered_count += 1
             return True
@@ -474,6 +480,7 @@ class DeviceEventTrigger(Trigger):
                         foundEvent = False
                         
             if foundEvent is True:
+                self._last_triggered_time=getTime()
                 self._last_triggered_event = event
                 self.triggered_count += 1
                 return True
