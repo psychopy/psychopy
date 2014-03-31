@@ -29,7 +29,7 @@ To use this module, the following high level steps are generally preformed:
   each position.
 """
 from ... import visual, core
-from . import win32MessagePump, Trigger, TimeTrigger, DeviceEventTrigger
+from . import win32MessagePump, Trigger, TimeTrigger, DeviceEventTrigger, OrderedDict
 from ..constants import EventConstants
 from .. import ioHubConnection
 from weakref import proxy
@@ -621,8 +621,8 @@ class TargetPosSequenceStim(object):
         expansionduration=kwargs.get('expansionduration')
         contractionduration=kwargs.get('contractionduration')
 
+        initialradius=self.target.radius
         if expandedscale:
-            initialradius=self.target.radius
             expandedradius=self.target.radius*expandedscale
 
             if expansionduration:
@@ -993,21 +993,102 @@ class TargetPosSequenceStim(object):
 ################ Validation #######################
 
 class ValidationProcedure(object):
+    """
+    ValidationProcedure can be used to check the accuracy of a calibrated eye 
+    tracking system.
+    
+    One a ValidationProcedure class instance has been created, the 
+    display(**kwargs) method can be called to run the full validation process.
+    
+    The validation process consists of the following stages:
+    
+    1) Display an Introduction / Instruction screen. A key press is used to
+       move to the next stage.
+    2) The validation target presentation sequence. Based on the Target and 
+       PositionGrid objects provided when the ValidationProcedure was created,
+       a series of target positions are displayed. The progression from one
+       target position to the next is controlled by the triggers specified.
+       The target can simply jump from one position to the next, or optional
+       linear motion settings can be used to have the target move across the
+       screen from one point to the next. The Target graphic itself can also 
+       be configured to expand or contract once it has reached a location
+       defined in the position grid.
+    3) During stage 2), data is collected from the devices being monitored by
+       iohub. Specifically eye tracker samples and experiment messages are 
+       collected.
+    4) The data collected during the validation target sequence is used to 
+       calculate accuracy information for each target position presented.
+       The raw data as well as the computed accuracy data is available via the
+       ValidationProcedure class. Calculated measures are provided seperately
+       for each target position and include:
+       
+           a) An array of the samples used for the accuracy calculation. The
+              samples used are selected using the following criteria:
+                   i) Only samples where the target was stationary and 
+                      not expanding or contracting are selected.
+                   
+                   ii) Samples are selected that fall between:
+                   
+                          start_time_filter = last_sample_time - accuracy_period_start
+                          
+                       and
+                       
+                          end_time_filter = last_sample_time - accuracy_period_end
+                       
+                       Therefore, the duration of the selected sample period is:
+                       
+                          selection_period_dur = end_time_filter - start_time_filter
+                          
+                   iii) Sample that contain missing / invalid position data
+                        are then removed, providing the final set of samples
+                        used for accuracy calculations. The min, max, and mean
+                        values from each set of selected samples is calculated.
+                        
+           b) The x and y error of each samples gaze position relative to the
+              current target position. This data is in the same units as is 
+              used by the Target instance. Computations are done for each eye
+              being recorded. The values are signed floats.
+              
+           c) The xy distance error from the from each eye's gaze position to
+              the target position. This is also calculated as an average of 
+              both eyes when binocular data is available. The data is unsigned,
+              providing the absolute distance from gaze to target positions
+    
+    5) A 2D plot is created displaying each target position and the position of
+       each sample used for the accuracy calculation. The minimum, maximum, and
+       average error is displayed for all target positions. A key press is used
+       to remove the validation results plot, and control is returned to the 
+       script that started the validation display. Note that the plot is also 
+       saved as a png file in the same directory as the calling stript.
+    
+    See the validation.py demo in demos.coder.iohub.eyetracker for example usage.
+    """
     def __init__(self,
                  target,
                  positions,
+                 target_animation_params={},
                  background=None,
                  triggers=2.0,
                  storeeventsfor=None,
                  accuracy_period_start=0.350,
-                 accuracy_period_stop=.050
+                 accuracy_period_stop=.050,
+                 show_intro_screen=True,
+                 intro_text="Validation procedure is now going to be performed.",
+                 show_results_screen=True                
                  ):
         self.io=ioHubConnection.getActiveConnection()
         self.win=target.win
         self.display_size=target.win.size
+        if target_animation_params is None:
+            target_animation_params={}
+        self.animation_params=target_animation_params
         self.accuracy_period_start=accuracy_period_start
         self.accuracy_period_stop=accuracy_period_stop
+        self.show_intro_screen=show_intro_screen
+        self.intro_text=intro_text
+        self.show_results_screen=show_results_screen               
         
+        self.validation_results=None
         if storeeventsfor is None:
             storeeventsfor=[self.io.devices.keyboard, 
                             self.io.devices.mouse, 
@@ -1045,29 +1126,40 @@ class ValidationProcedure(object):
         self.io.clearEvents('all')
         
     def display(self,**kwargs):
-        # Display Validation Intro Screen
-        #
-        self.showIntroScreen()
-        self._waitForTrigger(' ')
-
+        """
+        Begin the validation procedure. The method returns after the full 
+        validation process is complete, including:
+            a) display of an instruction screen
+            b) display of the target position sequence used for validation
+               data collection.
+            c) display of a validation accuracy results plot.
+        """
+        
+        if self.show_intro_screen:
+            # Display Validation Intro Screen
+            #
+            self.showIntroScreen()
+            self._waitForTrigger(' ')
 
         # Perform Validation.....
-        self.targetsequence.display(**kwargs)
+        self.targetsequence.display(**self.animation_params)
         self.io.clearEvents('all')
 
-        # Display Accuracy Results Plot
-        self.showResultsScreen()
-        self._waitForTrigger(' ')
+        if self.show_results_screen:
+            # Display Accuracy Results Plot
+            self.showResultsScreen()
+            self._waitForTrigger(' ')
 
-        return self.win.flip()
         
-    def generateImageName(self):
+        return self.validation_results
+        
+    def _generateImageName(self):
         from psychopy.iohub.util import getCurrentDateTimeString, normjoin
         rootScriptPath = os.path.dirname(sys.argv[0])
         file_name='fig_'+getCurrentDateTimeString().replace(' ','_').replace(':','_')+'.png'
         return normjoin(rootScriptPath,file_name)
     
-    def createPlot(self):
+    def _createPlot(self):
         try:
             sample_array=self.targetsequence.getSampleMessageData()
             w,h=self.display_size
@@ -1084,16 +1176,23 @@ class ValidationProcedure(object):
             max_error=0.0
             summed_error=0.0
             point_count=0
-            for pindex,samplesforpos in enumerate(sample_array):
             
+            results=dict(display_size=self.display_size,
+                         position_count=len(sample_array),
+                         positions_failed_processing=0,
+                         target_positions=[p for p in self.targetsequence.positions],
+                         position_results=[])
+            for pindex,samplesforpos in enumerate(sample_array):
+                
                 stationary_samples=samplesforpos[samplesforpos['targ_state'] == 
                                             self.targetsequence.TARGET_STATIONARY]
             
                 last_stime=stationary_samples[-1]['eye_time']
                 first_stime=stationary_samples[0]['eye_time']
-            
+
                 filter_stime=last_stime- self.accuracy_period_start
                 filter_etime=last_stime- self.accuracy_period_stop
+            
                 all_samples_for_accuracy_calc=stationary_samples[
                                     stationary_samples['eye_time']>=filter_stime]    
                 all_samples_for_accuracy_calc=all_samples_for_accuracy_calc[
@@ -1114,8 +1213,35 @@ class ValidationProcedure(object):
                 # print 'all_samples_for_accuracy_count:',all_samples_for_accuracy_count
                 # print 'good_accuracy_sample_count:',good_accuracy_sample_count
                 # print 'accuracy_calc_good_sample_perc:',accuracy_calc_good_sample_perc
-                          
-                if accuracy_calc_good_sample_perc != 0.0:
+                
+                # Ordered dictionary of the different levels of samples 
+                # selected during filtering for valid samples to use in 
+                # accuracy calculations.
+                sample_msg_data_filtering=OrderedDict(
+                                      # All samples from target period.
+                                      all_samples=samplesforpos, 
+                                      # Sample during stationary period at 
+                                      # end of target presentation display.
+                                      stationary_samples=stationary_samples,
+                                      # Samples that occurred within the 
+                                      # defined time selection period. 
+                                      time_filtered_samples=all_samples_for_accuracy_calc,
+                                      # Samples from the selection period that 
+                                      # do not have missing data
+                                      used_samples=good_samples_for_accuracy_calc
+                                      )
+                                      
+                position_results=dict(pos_index=pindex,
+                                      sample_time_range=[first_stime,last_stime],
+                                      filter_samples_time_range=[filter_stime,filter_etime],
+                                      sample_from_filter_stages=sample_msg_data_filtering,
+                                      valid_filtered_sample_perc=accuracy_calc_good_sample_perc
+                                      )
+                
+                if accuracy_calc_good_sample_perc == 0.0:
+                    position_results['calculation_status']='FAILED'
+                    results['positions_failed_processing']+=1
+                else:
                     time=good_samples_for_accuracy_calc[:]['eye_time']
                 
                     target_x=good_samples_for_accuracy_calc[:]['targ_pos_x']
@@ -1141,11 +1267,19 @@ class ValidationProcedure(object):
                     lr_error_max=lr_error.max()
                     lr_error_min=lr_error.min()
                     lr_error_mean=lr_error.mean()
-
+                    lr_error_std=np.std(lr_error)
+                    
                     min_error=min(min_error,lr_error_min)
                     max_error=max(max_error,lr_error_max)
                     summed_error+=lr_error_mean
                     point_count+=1.0
+                    
+                    position_results['calculation_status']='PASSED'
+                    position_results['target_position']=(target_x[0],target_y[0])
+                    position_results['min_error']=lr_error_min
+                    position_results['max_error']=lr_error_max
+                    position_results['mean_error']=lr_error_mean
+                    position_results['stdev_error']=lr_error_std
                     
                     normed_error=lr_error/lr_error_max
                     normed_time=(time-time.min())/(time.max()-time.min())
@@ -1165,14 +1299,24 @@ class ValidationProcedure(object):
                     pl.scatter(lr_x, lr_y, 
                                s=40, c=normed_time, 
                                cmap=cm,alpha=0.75)
-                            
+           
+                    results['position_results'].append(position_results)
+                    
             pl.xlim(-w/2, w/2)
             pl.ylim(-h/2, h/2)
             pl.xlabel("Horizontal Position")
             pl.ylabel("Vertical Position")
             
+            mean_error=summed_error/point_count
             pl.title("Eye Sample Target Accuracy (Pixels)\nMin: %.2f, Max: %.2f, Mean %.2f"%(
-                                    min_error,max_error,summed_error/point_count))
+                                    min_error,max_error,mean_error))
+                                    
+            results['min_error']=min_error
+            results['max_error']=max_error
+            results['mean_error']=mean_error
+            
+            self.validation_results=results
+            
             pl.colorbar()
             fig.tight_layout()
             return fig 
@@ -1181,15 +1325,158 @@ class ValidationProcedure(object):
             import traceback
             traceback.print_exc()
             print
+    
+    def getValidationResults(self):
+        """
+        Returns the last calulationed validation accuracy results, including
+        event data used in calculations.
         
-    def buildResultScreen(self,replot=False):
+        Validation results dict structure:
+        
+        {
+        # Resolution of the display during validation.
+        'display_size': array([1280, 1024]),
+        # Minimum error for all target positions. In display coord units.
+        'min_error': 4.880888,
+        # Maximum error for all target positions. In display coord units.
+        'max_error': 43.408658,
+        # Mean error for all target positions. In display coord units.
+        'mean_error': 28.65743,
+        # Number of validation Target Positions displayed.
+        'position_count': 10,
+        # Number of validation Target Positions for which not valid samples could
+        # be found following sample selection process. 
+        'positions_failed_processing': 0,
+        # List of x,y target positions, in the order presented. Units in display
+        # unit space (PsychoPy 'pix' in this example).
+        'target_positions': [array([ 0.,  0.]),
+                              array([-544. ,  435.2]),
+                              array([-544.,    0.]),
+                              array([-544. , -435.2]),
+                              array([ 544. ,  435.2]),
+                              array([   0. ,  435.2]),
+                              array([ 544. , -435.2]),
+                              array([ 544.,    0.]),
+                              array([   0. , -435.2]),
+                              array([ 0.,  0.])]     
+         # Error calculations and raw sample-message evements used in those
+         # calculations for one of the target positions presented during the 
+         # validation process. The position_results list will have a  length
+         # = position_count - 
+         'position_results': [{
+                           # Index of the current target position in the position
+                           # display order
+                           'pos_index': 0,
+    
+                           # Window final position of the current target.
+                           'target_position': (0.0, 0.0),
+    
+                           # The proportion of samples that were selected for use
+                           # in the accuracy calculations that were valid.
+                           # Invalid samples were not included in accuracy 
+                           # calculations.
+                           'valid_filtered_sample_perc': 0.9583333333333334},
+    
+                           # Did the current validation target position
+                           # have data points for use in the accuracy calcs.
+                           # If valid_filtered_sample_perc == 0, this == FAILED
+                           'calculation_status': 'PASSED',
+    
+                           # Minimum error (in display units) for this position. 
+                           'min_error': 35.235695,
+    
+                           # maximum error (in display units) for this position. 
+                           'max_error': 126.20883,
+    
+                           # Mean error (in display units) for this position. 
+                           'mean_error': 49.254543,
+    
+                           # Stdev of error calculated for the current target pos. 
+                           'stdev_error': 17.085871,
+    
+                           # Time of first and last eye sample collected for 
+                           # current target position. 
+                           'sample_time_range': [62.145691, 63.626179],
+    
+                            # Time period used to filter sample-message data points
+                           'filter_samples_time_range': [63.076178741455081,
+                                                         63.47617874145508],
+    
+                           # Data collected from current target position period.
+                           'sample_from_filter_stages':
+                               # Each key provides sample-message data points
+                               # for a given stage of sample selection filtering.
+                               OrderedDict{
+                                   # All sample-message data points during the
+                                   # target point display. 
+                                   'all_samples': array([ 
+                                           # Each sample-message 
+                                           # data point combines data from an eye 
+                                           # sample with data about the experiment
+                                           # message prior to, and following, the 
+                                           # eye sample time.
+                                           (
+                                            0,                  # targ_pos_ix 
+                                            62.15571594238281,  # last_msg_time
+                                            'SYNCTIME',         # last_msg_type
+                                            63.66259002685547,  # next_msg_time
+                                            'NEXT_POS_TRIG',    # next_msg_type
+                                            0.0,                # targ_pos_x
+                                            0.0,                # targ_pos_y
+                                            1,                  # targ_state
+                                            63.07658386230469,  # eye_time
+                                            0,                  # eye_status
+                                            7.505566120147705,  # left_eye_x
+                                            -60.00013732910156, # left_eye_y
+                                            2.901397705078125,  # left_pupil_size
+                                            -20.609329223632812,# right_eye_x
+                                            -21.901472091674805,# right_eye_y
+                                            2.976409912109375   # right_pupil_size
+                                            ),
+                                            # ......
+                                            # for all samples in the current 
+                                            # selection level.
+                                            ]),
+                                   # Sample-Message elements that occurred when 
+                                   # target was stationary at end data of any 
+                                   # animation graphics. 
+                                   'stationary_samples': array([
+                                            # Array of Sample-message data elements.
+                                            # for current selection level.
+                                            # ......
+                                            ]),
+                                   # Sample-Message elements that occurred within 
+                                   # the specified time period prior to target 
+                                   # graphics removal.
+                                   'time_filtered_samples': array([
+                                            # Array of Sample-message data elements.
+                                            # for current selection level.
+                                            # ......
+                                            ]),
+                                   # Final set of data used in accuracy calculation. 
+                                   'used_samples': array([
+                                            # Array of Sample-message data elements.
+                                            # for current selection level.
+                                            # ......
+                                            ]),
+                                    }, # Completed sample_from_filter_stages dict
+                         }, #End of one entry in the position_results list.
+                         {
+                         # Next position_results list enty, ....
+                         },
+            ] # End of the position_results list.
+        } # End of validation results dict        
+        """
+        return self.validation_results
+        
+    def _buildResultScreen(self,replot=False):
         if replot or self.imagestim is None:        
-            fig=self.createPlot()
+            fig=self._createPlot()
             text_pos=(0,0)
             text='Accuracy calculation not Possible. Press SPACE to continue.'
             
             if fig:
-                fig_name=self.generateImageName()
+                fig_name=self._generateImageName()
                 fig.savefig(fig_name,dpi=self.use_dpi)
                 
                 fig_image = Image.open(fig_name)
@@ -1223,13 +1510,13 @@ class ValidationProcedure(object):
         return False        
 
     def showResultsScreen(self):
-        self.buildResultScreen()
+        self._buildResultScreen()
         self.imagestim.draw()
         self.textstim.draw()
         return self.win.flip()
 
     def showIntroScreen(self):
-        text = "Validation Intro Screen TBC.\nPress SPACE to Start...."
+        text = self.intro_text+"\nPress SPACE to Start...."
         textpos=(0,0)
         if self.textstim:
             self.textstim.setText(text)

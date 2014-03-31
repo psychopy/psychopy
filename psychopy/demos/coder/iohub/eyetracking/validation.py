@@ -65,7 +65,7 @@ positions.randomize()
 # Specifiy the Triggers to use to move from target point to point during
 # the validation sequence....
 
-# Using DeviceEventTrigger to create a keyboard char event trigger
+# Use DeviceEventTrigger to create a keyboard char event trigger
 #     which will fire when the space key is pressed.
 kb_trigger = DeviceEventTrigger(io.getDevice('keyboard'),
                                 event_type=EventConstants.KEYBOARD_CHAR,
@@ -75,31 +75,45 @@ kb_trigger = DeviceEventTrigger(io.getDevice('keyboard'),
 # Creating a list of Trigger instances. The first one that
 #     fires will cause the start of the next target position
 #     presentation.
-multi_trigger = (TimeTrigger(start_time=None, delay=1.0), kb_trigger)
+multi_trigger = (TimeTrigger(start_time=None, delay=1.5), kb_trigger)
 
 
 # run eyetracker calibration
 r=tracker.runSetupProcedure()
+
+# define a dict containing any animation params to be used
+
+targ_anim_param=dict(
+                    velocity=None,#800.0,
+                    expandedscale=None,#2.0,
+                    expansionduration=None,#0.1,
+                    contractionduration=None,#0.1
+                    )
                         
 # Run a validation procedure 
 validation_proc=ValidationProcedure(
                                     target,
                                     positions,
+                                    target_animation_params=targ_anim_param,
                                     background=None,
                                     triggers=multi_trigger,
                                     storeeventsfor=None,
-                                    accuracy_period_start=0.350,
-                                    accuracy_period_stop=.050
+                                    accuracy_period_start=0.550,
+                                    accuracy_period_stop=.150,
+                                    show_intro_screen=True,
+                                    intro_text="Validation procedure is now going to be performed.",
+                                    show_results_screen=True,
                                     )                        
-                        
-validation_proc.display(
-                        velocity=800.0,
-                        expandedscale=2.0,
-                        expansionduration=0.1,
-                        contractionduration=0.1
-                        )
 
-    
+# Run the validation process. The method does not return until the process
+# is complete.
+# Returns the validation calculation results and data collected for the
+# analysis.                       
+results = validation_proc.display()
+
+# The lasst calculated validation results can also be retrieved using
+results = validation_proc.getValidationResults() 
+
 io.quit()
 
 #################### Not used below
