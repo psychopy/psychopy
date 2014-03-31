@@ -810,19 +810,32 @@ class EyeTracker(EyeTrackerDevice):
             left_eye_data=sample.leftEye
             right_eye_data=sample.rightEye
     
+            status=0
+            
             left_pupil_measure=left_eye_data.diam
-            right_pupil_measure=right_eye_data.diam
-    
-            # TODO: ensure corrrect pupil measure type is being saved with pupl data to datastore.                    
+            right_pupil_measure=right_eye_data.diam                   
             pupil_measure_type=EyeTrackerConstants.PUPIL_DIAMETER
             
             left_gazeX=left_eye_data.gazeX
             right_gazeX=right_eye_data.gazeX
             left_gazeY=left_eye_data.gazeY
             right_gazeY=right_eye_data.gazeY
-       
-            right_gazeX,right_gazeY=self._eyeTrackerToDisplayCoords((right_gazeX,right_gazeY))
-            left_gazeX,left_gazeY=self._eyeTrackerToDisplayCoords((left_gazeX,left_gazeY))
+            
+            if right_pupil_measure > 0.0 and right_gazeX != 0.0 and right_gazeY != 0.0:
+                right_gazeX,right_gazeY=self._eyeTrackerToDisplayCoords((right_gazeX,right_gazeY))
+            else:
+                right_pupil_measure=0
+                right_gazeX=EyeTrackerConstants.UNDEFINED
+                right_gazeY=EyeTrackerConstants.UNDEFINED
+                status=2
+                
+            if left_pupil_measure > 0.0 and left_gazeX != 0.0 and left_gazeY != 0.0:
+                left_gazeX,left_gazeY=self._eyeTrackerToDisplayCoords((left_gazeX,left_gazeY))
+            else:
+                left_pupil_measure=0
+                left_gazeX=EyeTrackerConstants.UNDEFINED
+                left_gazeY=EyeTrackerConstants.UNDEFINED
+                status+=20
     
             left_eyePositionX=left_eye_data.eyePositionX
             right_eyePositionX=right_eye_data.eyePositionX
@@ -881,9 +894,9 @@ class EyeTracker(EyeTrackerDevice):
                          EyeTrackerConstants.UNDEFINED,
                          EyeTrackerConstants.UNDEFINED,
                          EyeTrackerConstants.UNDEFINED,
-                         plane_number    # Since the sample struct has no status field
-                         ]               # we are using it to hold the 
-                                         # 'plane number' from the iViewX native sample.
+                         status    
+                         ]             
+                                        
 
             self._addNativeEventToBuffer(binocSample)
         except Exception:

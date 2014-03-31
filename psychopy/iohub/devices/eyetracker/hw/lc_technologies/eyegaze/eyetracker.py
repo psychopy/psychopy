@@ -400,9 +400,16 @@ class EyeTracker(EyeTrackerDevice):
                 if self._camera_count == 1: #monocular
                     event_type=EventConstants.MONOCULAR_EYE_SAMPLE
                     eye = EyeTrackerConstants.UNKNOWN_MONOCULAR
-                    gaze_x, gaze_y = self._eyeTrackerToDisplayCoords((sample_data0.iIGaze, sample_data0.iJGaze))
+                    gaze_x, gaze_y = sample_data0.iIGaze, sample_data0.iJGaze
                     pupil_measure1 = sample_data0.fPupilRadiusMm
-                    status = int(sample_data0.bGazeVectorFound)
+                    status=0
+                    if gaze_x != 0.0 and gaze_y != 0.0 and pupil_measure1 > 0.0:                   
+                        gaze_x, gaze_y = self._eyeTrackerToDisplayCoords((gaze_x, gaze_y))
+                    else:
+                        status=2
+                        gaze_x, gaze_y = EyeTrackerConstants.UNDEFINED, EyeTrackerConstants.UNDEFINED
+                        pupil_measure1=0
+                    #status = int(sample_data0.bGazeVectorFound)
 
                     monoSample=[
                                 0,                            # experiment_id (filled in by ioHub)
@@ -438,8 +445,11 @@ class EyeTracker(EyeTrackerDevice):
                                 EyeTrackerConstants.UNDEFINED,  # 2D sample velocity
                                 status
                                 ]
-                                
-                    self._latest_gaze_position=gaze_x,gaze_y
+                    
+                    if status==0:            
+                        self._latest_gaze_position=gaze_x,gaze_y
+                    else:
+                        self._latest_gaze_position=None
                     self._latest_sample=monoSample
                     self._addNativeEventToBuffer(monoSample)
 
@@ -449,16 +459,30 @@ class EyeTracker(EyeTrackerDevice):
 
                     sample_data1=self._eyegaze_control.pstEgData[1]
                     sample_data4=self._eyegaze_control.pstEgData[4]
+                    
+                    status=0
 
-                    left_gaze_x, left_gaze_y = self._eyeTrackerToDisplayCoords(
-                                        (sample_data4.iIGaze,sample_data4.iJGaze))
-                    right_gaze_x, right_gaze_y = self._eyeTrackerToDisplayCoords(
-                                        (sample_data1.iIGaze,sample_data1.iJGaze))
-                                        
                     left_pupil_measure1 = sample_data4.fPupilRadiusMm
-                    right_pupil_measure1 = sample_data1.fPupilRadiusMm
+                    left_gaze_x, left_gaze_y = sample_data4.iIGaze,sample_data4.iJGaze     
+                    if left_gaze_x != 0.0 and left_gaze_y != 0.0 and left_pupil_measure1 > 0.0:
+                        left_gaze_x, left_gaze_y=self._eyeTrackerToDisplayCoords((left_gaze_x, left_gaze_y))
+                    else:
+                        status=20
+                        left_pupil_measure1=0
+                        left_gaze_x=EyeTrackerConstants.UNDEFINED
+                        left_gaze_y=EyeTrackerConstants.UNDEFINED
+                        
+                    right_gaze_x, right_gaze_y = sample_data1.iIGaze,sample_data1.iJGaze                                                            
+                    right_pupil_measure1 = sample_data1.fPupilRadiusMm                    
+                    if right_gaze_x != 0.0 and right_gaze_y != 0.0 and left_pupil_measure1 > 0.0:
+                        right_gaze_x, right_gaze_y=self._eyeTrackerToDisplayCoords((right_gaze_x, right_gaze_y))
+                    else:
+                        status+=2
+                        right_pupil_measure1=0
+                        right_gaze_x=EyeTrackerConstants.UNDEFINED
+                        right_gaze_y=EyeTrackerConstants.UNDEFINED
 
-                    status = int(sample_data4.bGazeVectorFound*2+sample_data1.bGazeVectorFound)
+                    #status = int(sample_data4.bGazeVectorFound*2+sample_data1.bGazeVectorFound)
                     binocSample=[
                                  0,                            # experiment_id (filled in by ioHub)
                                  0,                            # session_id (filled in by ioHub)
@@ -515,6 +539,7 @@ class EyeTracker(EyeTrackerDevice):
 
                     self._latest_sample=binocSample
 
+                    
                     g=[0.0,0.0]                    
                     if right_pupil_measure1>0.0 and left_pupil_measure1>0.0:
                         g=[(left_gaze_x+right_gaze_x)/2.0,(left_gaze_y+right_gaze_y)/2.0]
