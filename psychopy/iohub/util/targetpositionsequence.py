@@ -1099,11 +1099,8 @@ class ValidationProcedure(object):
                 all_samples_for_accuracy_calc=all_samples_for_accuracy_calc[
                             all_samples_for_accuracy_calc['eye_time']<filter_etime]    
                 
-                print "NOTE: VALIDATION SAMPLE REJECTION IS TOBII SPECIFIC. FIX THIS."
-                # >> tobii specific
                 good_samples_for_accuracy_calc=all_samples_for_accuracy_calc[
                                     all_samples_for_accuracy_calc['eye_status']<=1]
-                # << tobii specific
             
                 all_samples_for_accuracy_count=all_samples_for_accuracy_calc.shape[0]
                 good_accuracy_sample_count= good_samples_for_accuracy_calc.shape[0]            
