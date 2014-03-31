@@ -49,7 +49,7 @@ def _height2pix(vertices, pos, win):
 _unit2PixMappings['height'] = _height2pix
 
 def posToPix(stim):
-    """Returns the stim's position to pixels, based on its pos, units, and win.
+    """Returns the stim's position in pixels, based on its pos, units, and win.
     """
     return convertToPix([0,0], stim.pos, stim.win.units, stim.win)
 
