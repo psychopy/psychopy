@@ -1202,7 +1202,7 @@ class ValidationProcedure(object):
                                                       units='pix', 
                                                       pos=(0.0, 0.0))
                     
-                text='Press ESCAPE to continue.'
+                text='Press SPACE to continue.'
                 text_pos=(0.0, -(self.display_size[1]/2.0)*.9)
                        
             if self.textstim is None:
