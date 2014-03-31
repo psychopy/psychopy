@@ -22,7 +22,7 @@ from psychopy import core, logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.visual.basevisual import MinimalStim
+from psychopy.tools.monitorunittools import convertToPix
 from psychopy.tools.attributetools import setWithOperation, logAttrib
 from . import glob_vars
 
@@ -34,7 +34,7 @@ except ImportError:
 import numpy
 
 
-class SimpleImageStim(MinimalStim):
+class SimpleImageStim(object):
     """A simple stimulus for loading images from a file and presenting at exactly
     the resolution and color in the file (subject to gamma correction if set).
 
@@ -76,8 +76,10 @@ class SimpleImageStim(MinimalStim):
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
+        self.autoLog = False
         self.win=win
-        super(SimpleImageStim, self).__init__(name=name, autoLog=False)
+        self.name = name
+        super(SimpleImageStim, self).__init__()
 
         #unit conversions
         if units!=None and len(units): self.units = units
@@ -103,6 +105,8 @@ class SimpleImageStim(MinimalStim):
         self.setFlipHoriz(flipHoriz)
         self.flipVert=False#initially it is false, then so the flip according to arg above
         self.setFlipVert(flipVert)
+
+        self._calcPosRendered()
 
         #set autoLog (now that params have been initialised)
         self.autoLog = autoLog
@@ -174,8 +178,8 @@ class SimpleImageStim(MinimalStim):
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
         #move to centre of stimulus
-        GL.glRasterPos2f(self.win.size[0]/2.0 - self.size[0]/2.0 + self.pos[0],
-            self.win.size[1]/2.0 - self.size[1]/2.0 + self.pos[1])
+        GL.glRasterPos2f(self.win.size[0]/2.0 - self.size[0]/2.0 + self._posRendered[0],
+            self.win.size[1]/2.0 - self.size[1]/2.0 + self._posRendered[1])
 
         #GL.glDrawPixelsub(GL.GL_RGB, self.imArr)
         GL.glDrawPixels(self.size[0],self.size[1],
@@ -185,6 +189,34 @@ class SimpleImageStim(MinimalStim):
         GL.glMatrixMode( GL.GL_PROJECTION )
         GL.glPopMatrix()
         GL.glMatrixMode( GL.GL_MODELVIEW )
+    def _set(self, attrib, val, op='', log=True):
+        """
+        Deprecated. Use methods specific to the parameter you want to set
+
+        e.g. ::
+
+             stim.pos = [3,2.5]
+             stim.ori = 45
+             stim.phase += 0.5
+
+        NB this method does not flag the need for updates any more - that is
+        done by specific methods as described above.
+        """
+        if op==None: op=''
+        #format the input value as float vectors
+        if type(val) in (tuple, list):
+            val=numpy.array(val, float)
+
+        setWithOperation(self, attrib, val, op)
+        logAttrib(self, log, attrib)
+    def setPos(self, newPos, operation='', units=None, log=True):
+        self._set('pos', val=newPos, op=operation, log=log)
+        self._calcPosRendered()
+    def setDepth(self,newDepth, operation='', log=True):
+        self._set('depth', newDepth, operation, log=log)
+    def _calcPosRendered(self):
+        """Calculate the pos of the stimulus in pixels"""
+        self._posRendered = convertToPix(pos = self.pos, vertices=numpy.array([0,0]), units=self.units, win=self.win)
 
     def setImage(self,filename=None, log=True):
         """Set the image to be drawn.
