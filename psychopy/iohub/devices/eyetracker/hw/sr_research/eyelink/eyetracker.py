@@ -577,6 +577,7 @@ class EyeTracker(EyeTrackerDevice):
 
                     if ne.isBinocular():
                         # binocular sample
+                        status=0
                         event_type=EventConstants.BINOCULAR_EYE_SAMPLE
                         myeye=EyeTrackerConstants.BINOCULAR
                         leftData=ne.getLeftEye()
@@ -585,12 +586,46 @@ class EyeTracker(EyeTrackerDevice):
                         leftPupilSize=leftData.getPupilSize()
                         leftRawPupil=leftData.getRawPupil()
                         leftHref=leftData.getHREF()
-                        leftGaze=self._eyeTrackerToDisplayCoords(leftData.getGaze())
+                        leftGaze=EyeTrackerConstants.UNDEFINED,EyeTrackerConstants.UNDEFINED
+                        gx,gy=leftData.getGaze()
+                        if gx == pylink.MISSING_DATA or gy == pylink.MISSING_DATA or leftPupilSize==0:
+                            status=20
+                            leftPupilSize
+                        else:    
+                            leftGaze=self._eyeTrackerToDisplayCoords((gx,gy))
 
                         rightPupilSize=rightData.getPupilSize()
                         rightRawPupil=rightData.getRawPupil()
                         rightHref=rightData.getHREF()
-                        rightGaze=self._eyeTrackerToDisplayCoords(rightData.getGaze())
+                        
+                        rightGaze=EyeTrackerConstants.UNDEFINED,EyeTrackerConstants.UNDEFINED
+                        gx,gy=rightData.getGaze()
+                        if gx == pylink.MISSING_DATA or gy == pylink.MISSING_DATA or leftPupilSize==0:
+                            status+=2
+                            rightPupilSize=0
+                        else:    
+                            rightGaze=self._eyeTrackerToDisplayCoords((gx,gy))
+
+                        if status == 0:
+                            g=[pylink.MISSING_DATA,pylink.MISSING_DATA]
+                            for i in range(2):
+                                ic=0
+                                if leftGaze[i] != pylink.MISSING_DATA:
+                                    g[i]+=leftGaze[i]
+                                    ic+=1                                
+                                if rightGaze[i] != pylink.MISSING_DATA:
+                                    g[i]+=rightGaze[i]
+                                    ic+=1
+                                    
+                                # Missing data fix provided by Chencan QIAN    
+                                if ic == 2:
+                                    g[i]=g[i]/2.0
+                                elif ic == 0:
+                                    g[i]=pylink.MISSING_DATA
+                            
+                            self._latest_gaze_position=g
+                        else:
+                            self._latest_gaze_position=None
 
                         # TO DO: EyeLink pyLink does not expose sample velocity fields. Patch and fix.
                         vel_x=-1.0
@@ -647,28 +682,11 @@ class EyeTracker(EyeTrackerDevice):
                                      vel_x,
                                      vel_y,
                                      vel_xy,
-                                     0
+                                     status
                                      ]
 
                         self._latest_sample=binocSample
 
-                        g=[pylink.MISSING_DATA,pylink.MISSING_DATA]
-                        for i in range(2):
-                            ic=0
-                            if leftGaze[i] != pylink.MISSING_DATA:
-                                g[i]+=leftGaze[i]
-                                ic+=1                                
-                            if rightGaze[i] != pylink.MISSING_DATA:
-                                g[i]+=rightGaze[i]
-                                ic+=1
-                                
-                            # Missing data fix provided by Chencan QIAN    
-                            if ic == 2:
-                                g[i]=g[i]/2.0
-                            elif ic == 0:
-                                g[i]=pylink.MISSING_DATA
-                        
-                        self._latest_gaze_position=g
                         self._addNativeEventToBuffer(binocSample)
 
                     else:
@@ -686,7 +704,16 @@ class EyeTracker(EyeTrackerDevice):
                         pupilSize=eyeData.getPupilSize()
                         rawPupil=eyeData.getRawPupil()
                         href=eyeData.getHREF()
-                        gaze=self._eyeTrackerToDisplayCoords(eyeData.getGaze())
+                        gx,gy=eyeData.getGaze()
+                        status=0
+                        if gx == pylink.MISSING_DATA or gy == pylink.MISSING_DATA or pupilSize==0:
+                            gaze=EyeTrackerConstants.UNDEFINED,EyeTrackerConstants.UNDEFINED
+                            status=2
+                            self._latest_gaze_position=None
+                        else:    
+                            gaze=self._eyeTrackerToDisplayCoords((gx,gy))
+                            self._latest_gaze_position=(gaze[0],gaze[1])
+
 
                         # TO DO: EyeLink pyLink does not expose sample velocity fields. Patch and fix.
                         vel_x=-1.0
@@ -724,10 +751,9 @@ class EyeTracker(EyeTrackerDevice):
                                     vel_x,
                                     vel_y,
                                     vel_xy,
-                                    0
+                                    status
                                     ]
                        #EyeTracker._eventArrayLengths['MONOC_EYE_SAMPLE']=len(monoSample)
-                        self._latest_gaze_position=(gaze[0],gaze[1])
                         self._latest_sample=monoSample
                         self._addNativeEventToBuffer(monoSample)
 

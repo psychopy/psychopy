@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Script can be used to test the error in the base analog input device delay
+This demo requires that an ioSync and LabJack U6 device are correctly connected
+to the computer running this script.
+
+This script can be used to test the error in the base analog input device delay
 calculated for multi channel analog input events.  It seems that default
 delay error is quite constant for a specific computer and analog input device.
 Therefore, running this script and recording the calculated delay adjustment
@@ -14,7 +17,7 @@ An iohub script is run using a LabJack AnalogInput device (any supported
 AnalogInput device can be used though), as well as a mcu.ioSync device,
 which uses a Teensy 3 MCU running the ioSync Sketch.
 
-The script srarts recording data from the Analog Input Device and then 
+The script starts recording data from the Analog Input Device and then
 repeatedly alternates between setting ioSync DOUT_0 and DOUT_1 high, 
 noting the iohub PC time that each TTL state change occurred. Multi Channel
 Analog Input events are monitored after each TTL state change until the
@@ -72,28 +75,24 @@ changes will occur and will be used for the delay error correction calculation.
 analog_input_channels=[0,1]
 repetitions=5
 
-import numpy as np    
-import time
+import numpy as np
 from psychopy import core
-from psychopy.iohub import launchHubServer,Computer
+import time
+from psychopy.iohub import launchHubServer
 getTime=core.getTime
-
-io=None
-mcu=None
-ain=None
 
 try:
     ttl_bytes=[]
     for r in range(repetitions):
         ttl_bytes.extend(analog_input_channels)
-    
+    ai_event_results=np.zeros((len(ttl_bytes),6),dtype=np.float64)
+
     psychopy_mon_name='testMonitor'
     exp_code='events'
     sess_code='S_{0}'.format(long(time.mktime(time.localtime())))
-    
     iohub_config={
     "psychopy_monitor_name":psychopy_mon_name,
-    "mcu.iosync.MCU":dict(serial_port='COM8',monitor_event_types=[]),
+    "mcu.iosync.MCU":dict(serial_port='auto',monitor_event_types=[]),
     "daq.hw.labjack.AnalogInput": dict(name='ain',
                                        #delay_offset=0.0159915408328,
                                        channel_sampling_rate=1000,
@@ -103,27 +102,21 @@ try:
     "experiment_code":exp_code, 
     "session_code":sess_code
     }
-    
     io=launchHubServer(**iohub_config)
-    display=io.devices.display
     mcu=io.devices.mcu
     kb=io.devices.keyboard
     ain=io.devices.ain
     experiment=io.devices.experiment
-    
-    ai_event_results=np.zeros((len(ttl_bytes),6),dtype=np.float64)
-    
     mcu.setDigitalOutputByte(0)
     mcu.enableEventReporting(True)
     ain.enableEventReporting(True)
-    
     delay_offset=ain.getDelayOffset()
     
     print
     print '>> Running test using a delay_offset of',delay_offset
     print '>> Please wait.'    
     print
-    time.sleep(1.0) 
+    core.wait(1.0)
     mcu.getRequestResponse()
     io.clearEvents("all")   
     response_times=[]
@@ -168,13 +161,13 @@ try:
             print '*******\nTIMEOUT WAITING FOR REQUIRED INPUTS\n**********'
             io.sendMessageEvent("%d %d NO_RESPONSE"%(i,v),"DOUT")
     
-        time.sleep(0.2)
+        core.wait(0.2,.1)
         mcu.getRequestResponse()  
         io.clearEvents('all')
         
         
     mcu.setDigitalOutputByte(0)
-    time.sleep(0.1)
+    core.wait(0.2,.1)
     mcu.getRequestResponse()  
     mcu.enableEventReporting(False)  
     ain.enableEventReporting(False)  

@@ -331,7 +331,7 @@ class SetT3DigitalOutputPinRequest(T3Request):
 class T3MC(object):    
 
     def __init__(self,port_num, baud=115200, timeout=0):
-        self._port_num=port_num-1
+        self._port_num=port_num
         self._baud=baud
         self._timeout=timeout       
         self._active_requests=OrderedDict()  
@@ -350,17 +350,18 @@ class T3MC(object):
         import os
         available = []
         if os.name == 'nt': # Windows
-            for i in range(256):
+            for i in range(1, 256):
                 try:
-                    s = serial.Serial(i)
-                    available.append('COM'+str(i + 1))
+                    sport='COM'+str(i)
+                    s = serial.Serial(sport)
+                    available.append(sport)
                     s.close()
                 except serial.SerialException:
                     pass
         else: # Mac / Linux
             from serial.tools import list_ports
             available = [port[0] for port in list_ports.comports()]
-            available = [s for s in available if ".us" in s]
+            #available = [s for s in available if ".us" in s]
 
         if len(available) < 1:
             print2err('Error: unable to find ioSync. Check Teensy 3 drivers.')
@@ -410,7 +411,7 @@ class T3MC(object):
 
         self._serial_port = serial.Serial(self._port_num, self._baud, timeout=self._timeout)
         if self._serial_port is None:
-            raise ValueError("Error: Serial Port Connection Failed: %d"%(self._port_num+1))
+            raise ValueError("Error: Serial Port Connection Failed: %d"%(self._port_num))
         self._serial_port.flushInput()
         inBytes = self._serial_port.inWaiting()
         if inBytes > 0:
