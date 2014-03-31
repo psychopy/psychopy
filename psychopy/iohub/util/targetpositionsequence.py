@@ -229,37 +229,37 @@ class PositionGrid(object):
         if self.positions is None and (posCount or (rowCount and colCount)):
             # create posCount random grid positions within winSize
             if winSize is not None:
-                w, h = winSize
+                pixw, pixh = winSize
                 xmin = 0.0
                 xmax = 1.0
                 ymin = 0.0
                 ymax = 1.0
 
                 if leftMargin:
-                    if leftMargin < w:
-                        xmin = leftMargin/w
+                    if leftMargin < pixw:
+                        xmin = leftMargin/pixw
                     else:
                         raise ValueError('PositionGrid leftMargin kwarg must be'
                                      ' < winSize[0]')
                 if rightMargin:
-                    if rightMargin < w:
-                        xmax = 1.0-rightMargin/w
+                    if rightMargin < pixw:
+                        xmax = 1.0-rightMargin/pixw
                     else:
                         raise ValueError('PositionGrid rightMargin kwarg must be'
                                      ' < winSize[0]')
                 if topMargin:
-                    if topMargin < h:
-                        ymax = 1.0-topMargin/h
+                    if topMargin < pixh:
+                        ymax = 1.0-topMargin/pixh
                     else:
                         raise ValueError('PositionGrid topMargin kwarg must be'
                                      ' < winSize[1]')
                 if bottomMargin:
-                    if bottomMargin < h:
-                        ymin = bottomMargin/h
+                    if bottomMargin < pixh:
+                        ymin = bottomMargin/pixh
                     else:
                         raise ValueError('PositionGrid bottomMargin kwarg must be'
                                      ' < winSize[1]')
-                        ymin = bottomMargin/h
+                        ymin = bottomMargin/pixh
 
                 if horzScale:
                     if 0.0 < horzScale <= 1.0:
@@ -279,11 +279,11 @@ class PositionGrid(object):
                 if posCount:
                     colCount=int(np.sqrt(posCount))
                     rowCount=colCount
-                    xps = np.random.uniform(xmin, xmax, colCount)*w-w/2.0
-                    yps = np.random.uniform(ymin, ymax, rowCount)*h-h/2.0
+                    xps = np.random.uniform(xmin, xmax, colCount)*pixw-pixw/2.0
+                    yps = np.random.uniform(ymin, ymax, rowCount)*pixh-pixh/2.0
                 else:
-                    xps = np.linspace(xmin, xmax, colCount)*w-w/2.0
-                    yps = np.linspace(ymin, ymax, rowCount)*h-h/2.0
+                    xps = np.linspace(xmin, xmax, colCount)*pixw-pixw/2.0
+                    yps = np.linspace(ymin, ymax, rowCount)*pixh-pixh/2.0
 
                 xps, yps = np.meshgrid(xps, yps)
                 self.positions = np.column_stack((xps.flatten(), yps.flatten()))
@@ -319,11 +319,11 @@ class PositionGrid(object):
         from matplotlib import pyplot as pl
         x = [p[0] for p in self]
         y = [p[1] for p in self]
-        w , h = self.winSize
+        pixw , pixh = self.winSize
         pl.clf()
         pl.scatter(x, y, **kwargs)
-        pl.xlim(-w/2, w/2)
-        pl.ylim(-h/2, h/2)
+        pl.xlim(-pixw/2, pixw/2)
+        pl.ylim(-pixh/2, pixh/2)
         for i in range(len(x)):
             pl.text(x[i], y[i], str(i), size=11, horizontalalignment='center',
                     verticalalignment='center')
@@ -901,7 +901,7 @@ class TargetPosSequenceStim(object):
         # inline func to return sample field array based on sample namedtup                       
         def getSampleData(s):
             sampledata=[s.time,s.status]
-            if self.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
+            if self.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:                
                 sampledata.extend((s.left_gaze_x,
                                    s.left_gaze_y,
                                    s.left_pupil_measure1,
@@ -924,7 +924,7 @@ class TargetPosSequenceStim(object):
         current_target_pos=-1.0,-1.0
         current_targ_state=0        
         target_pos_samples=[]
-        for pindex,samples in enumerate( self.saved_pos_samples):       
+        for pindex,samples in enumerate(self.saved_pos_samples):       
             last_msg,messages= self.target_pos_msgs[pindex][0], self.target_pos_msgs[pindex][1:]
             samplesforposition=[]
             pos_sample_count=len(samples)
@@ -980,7 +980,10 @@ class TargetPosSequenceStim(object):
                     else:
                         si+=1
                 last_msg=current_msg
-            target_pos_samples.append(np.asanyarray(samplesforposition))
+            
+            # convert any position fields to degrees if needed
+            possamples=np.asanyarray(samplesforposition)
+            target_pos_samples.append(possamples)
             
         # So we now have a list len == number target positions. Each element 
         # of the list is a list of all eye sample / message data for a
@@ -1074,7 +1077,8 @@ class ValidationProcedure(object):
                  accuracy_period_stop=.050,
                  show_intro_screen=True,
                  intro_text="Validation procedure is now going to be performed.",
-                 show_results_screen=True                
+                 show_results_screen=True,
+                 results_in_degrees=False
                  ):
         self.io=ioHubConnection.getActiveConnection()
         self.win=target.win
@@ -1086,7 +1090,17 @@ class ValidationProcedure(object):
         self.accuracy_period_stop=accuracy_period_stop
         self.show_intro_screen=show_intro_screen
         self.intro_text=intro_text
-        self.show_results_screen=show_results_screen               
+        self.show_results_screen=show_results_screen
+        self.results_in_degrees=results_in_degrees
+        self.pix2deg=None        
+        if self.results_in_degrees:
+            display=self.io.devices.display
+            ddim=display.getPhysicalDimensions()
+            dhorz,dvert=ddim['width'],ddim['height']
+            self.pix2deg = VisualAngleCalc((dhorz,dvert),
+                                           self.display_size,
+                                           display.getDefaultEyeDistance()
+                                           ).pix2deg
         
         self.validation_results=None
         if storeeventsfor is None:
@@ -1162,13 +1176,25 @@ class ValidationProcedure(object):
     def _createPlot(self):
         try:
             sample_array=self.targetsequence.getSampleMessageData()
-            w,h=self.display_size
+            if self.results_in_degrees:
+                for postdat in sample_array:
+                    postdat['targ_pos_x'], postdat['targ_pos_y']=self.pix2deg(
+                    postdat['targ_pos_x'],postdat['targ_pos_y'])
+
+                    postdat['left_eye_x'], postdat['left_eye_y']=self.pix2deg(
+                    postdat['left_eye_x'],postdat['left_eye_y'])
+
+                    postdat['right_eye_x'], postdat['right_eye_y']=self.pix2deg(
+                    postdat['right_eye_x'],postdat['right_eye_y'])
+                
+                
+            pixw,pixh=self.display_size
             # Validation Accuracy Analysis
             
             from matplotlib import pyplot as pl
             pl.clf()
             fig=pl.gcf()  
-            fig.set_size_inches((w*.9)/self.use_dpi,(h*.8)/self.use_dpi)
+            fig.set_size_inches((pixw*.9)/self.use_dpi,(pixh*.8)/self.use_dpi)
 
             cm = pl.cm.get_cmap('RdYlBu')
     
@@ -1301,15 +1327,23 @@ class ValidationProcedure(object):
                                cmap=cm,alpha=0.75)
            
                     results['position_results'].append(position_results)
-                    
-            pl.xlim(-w/2, w/2)
-            pl.ylim(-h/2, h/2)
-            pl.xlabel("Horizontal Position")
-            pl.ylabel("Vertical Position")
+            
+            unit_type='pixels'
+            if self.results_in_degrees:            
+                ldeg,bdeg=self.pix2deg(-pixw/2,-pixh/2)
+                rdeg,tdeg=self.pix2deg(pixw/2,pixh/2)
+                pl.xlim(ldeg, rdeg)
+                pl.ylim(bdeg, tdeg)
+                unit_type='degrees'
+            else:
+                pl.xlim(-pixw/2, pixw/2)
+                pl.ylim(-pixh/2, pixh/2)                
+            pl.xlabel("Horizontal Position (%s)"%(unit_type))
+            pl.ylabel("Vertical Position (%s)"%(unit_type))
             
             mean_error=summed_error/point_count
-            pl.title("Eye Sample Target Accuracy (Pixels)\nMin: %.2f, Max: %.2f, Mean %.2f"%(
-                                    min_error,max_error,mean_error))
+            pl.title("Validation Accuracy (%s)\nMin: %.2f, Max: %.2f, Mean %.2f"%(
+                                    unit_type,min_error,max_error,mean_error))
                                     
             results['min_error']=min_error
             results['max_error']=max_error
@@ -1317,7 +1351,7 @@ class ValidationProcedure(object):
             
             self.validation_results=results
             
-            pl.colorbar()
+            #pl.colorbar()
             fig.tight_layout()
             return fig 
         except:
@@ -1523,16 +1557,15 @@ class ValidationProcedure(object):
             self.textstim.setPos(textpos)
         else:
             self.textstim=visual.TextStim(self.win,
-                text=text, pos=textpos, 
+                text=text, pos=textpos, height = 30,
                 color=(0, 0, 0), colorSpace='rgb255', 
                 opacity=1.0, contrast=1.0, units='pix', 
-                ori=0.0, height=None, antialias=True, 
+                ori=0.0, antialias=True, 
                 bold=False, italic=False, alignHoriz='center', 
                 alignVert='center', wrapWidth=self.display_size[0]*.8)        
 
         self.textstim.draw()
         return self.win.flip()
-            
-###############################################################################
 
+from visualangle import VisualAngleCalc
          
