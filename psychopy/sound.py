@@ -573,16 +573,17 @@ def _bestDriver(devNames, devIDs):
     preferredDrivers = prefs.general['audioDriver']
     outputID=None
     audioDriver=None
+    osEncoding=sys.getfilesystemencoding()
     for prefDriver in preferredDrivers:
-        if prefDriver.lower()=='directsound':
-            prefDriver = 'Primary Sound'
+        if prefDriver.lower() == 'directsound':
+            prefDriver = u'Primary Sound'
         #look for that driver in available devices
         for devN, devString in enumerate(devNames):
             try:
-                if prefDriver.encode('utf-8') in devString.encode('utf-8'):
-                    audioDriver=devString
+                if prefDriver.encode('utf-8').lower() in devString.decode(osEncoding).encode('utf-8').lower():
+                    audioDriver=devString.decode(osEncoding).encode('utf-8')
                     outputID=devIDs[devN]
-                    return audioDriver, outputID #we found an asio driver don'w look for others
+                    return audioDriver, outputID #we found a driver don't look for others
             except (UnicodeDecodeError, UnicodeEncodeError):
                 logging.warn('find best sound driver - could not interpret unicode in driver name')
     else:
@@ -626,7 +627,10 @@ def initPyo(rate=44100, stereo=True, buffer=128):
             #check for output device/driver
             devNames, devIDs=pyo.pa_get_output_devices()
             audioDriver,outputID=_bestDriver(devNames, devIDs)
-            if outputID:
+            if outputID is None:
+                audioDriver = 'Windows Default Output' #using the default output because we didn't find the one(s) requested
+                outputID = pyo.pa_get_default_output()
+            if outputID is not None:
                 logging.info('Using sound driver: %s (ID=%i)' %(audioDriver, outputID))
                 maxOutputChnls = pyo.pa_get_output_max_channels(outputID)
             else:
@@ -635,6 +639,9 @@ def initPyo(rate=44100, stereo=True, buffer=128):
             #check for valid input (mic)
             devNames, devIDs = pyo.pa_get_input_devices()
             audioInputName, inputID = _bestDriver(devNames, devIDs)
+            if inputID is None:
+                audioInputName = 'Windows Default Input' #using the default input because we didn't find the one(s) requested
+                inputID = pyo.pa_get_default_input()
             if inputID is not None:
                 logging.info('Using sound-input driver: %s (ID=%i)' %(audioInputName, inputID))
                 maxInputChnls = pyo.pa_get_input_max_channels(inputID)
@@ -667,7 +674,7 @@ def initPyo(rate=44100, stereo=True, buffer=128):
         pyoSndServer.setVerbosity(1)
         if platform=='win32':
             pyoSndServer.setOutputDevice(outputID)
-            if inputID:
+            if inputID is not None:
                 pyoSndServer.setInputDevice(inputID)
         #do other config here as needed (setDuplex? setOutputDevice?)
         pyoSndServer.setDuplex(duplex)

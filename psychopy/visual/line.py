@@ -49,7 +49,7 @@ class Line(ShapeStim):
         kwargs['closeShape'] = False # Make sure nobody messes around here
         kwargs['vertices'] = self.vertices
         kwargs['fillColor'] = None
-        ShapeStim.__init__(self, win, **kwargs)
+        super(Line, self).__init__(win, **kwargs)
 
     def setStart(self, start, log=True):
         """Changes the start point of the line. Argument should be

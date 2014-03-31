@@ -41,9 +41,14 @@ class TestMicrophone(object):
         switchOn(48000)
 
         mic = AdvAudioCapture(saveDir=self.tmp, autoLog=False)
+        mic = AdvAudioCapture(saveDir=self.tmp+'_test', autoLog=False)
         mic.record(.10, block=False)  # returns immediately
         core.wait(.02)
         mic.stop()
+        mic.reset()
+
+        mic.record(0.2, block=True)
+        assert os.path.isfile(mic.savedFile)
 
     def test_AdvAudioCapture(self):
         filename = os.path.join(self.tmp, 'test_mic.wav')
@@ -116,16 +121,18 @@ class TestMicrophoneNoSound(object):
             shutil.rmtree(self.tmp, ignore_errors=True)
 
     def test_getFlacPath(self):
-        #microphone.FLAC_PATH = None
-        #with pytest.raises(MicrophoneError):
-        #    _getFlacPath('this is not flac')
         microphone.FLAC_PATH = None
-        _getFlacPath()
+        with pytest.raises(MicrophoneError):
+            _getFlacPath('this is not the flac you are looking for')
+
         microphone.FLAC_PATH = None
         _getFlacPath('flac')
 
         microphone.FLAC_PATH = 'flac'
         assert microphone.FLAC_PATH
+
+        microphone.FLAC_PATH = None
+        _getFlacPath()
 
     def test_wav_flac(self):
         filename = os.path.join(self.tmp, 'test_bad_readWav')
@@ -152,6 +159,8 @@ class TestMicrophoneNoSound(object):
         wav2flac('', keep=True)
         flac2wav('', keep=True)
 
+        wav2flac(self.tmp, keep=True)
+
     def test_Speech2Text(self):
         try:
             web.requireInternetAccess()
@@ -164,6 +173,12 @@ class TestMicrophoneNoSound(object):
         gs = Speech2Text(filename=testFile)
         resp = gs.getResponse()
         assert resp.word == 'red'
+
+        # test batch-discover files in a directory
+        tmp = join(self.tmp, 'tmp')
+        os.mkdir(tmp)
+        shutil.copy(testFile, tmp)
+        bs = BatchSpeech2Text(files=tmp)
 
         bs = BatchSpeech2Text(files=glob.glob(join(self.tmp, 'red_*.wav')))
         while bs._activeCount():

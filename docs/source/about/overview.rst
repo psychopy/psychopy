@@ -11,6 +11,7 @@ Features
 There are many advantages to using PsychoPy, but here are some of the key ones
 
     - Simple install process
+    - Precise timing
     - Huge variety of stimuli (see screenshots) generated in real-time:
         - linear gratings, bitmaps constantly updating
         - radial gratings

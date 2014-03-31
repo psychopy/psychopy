@@ -355,6 +355,7 @@ class Experiment:
         self.routines={}
         self.namespace = NameSpace(self) # start fresh
         modified_names = []
+        duplicate_names = []
 
         #fetch exp settings
         settingsNode=root.find('Settings')
@@ -442,7 +443,7 @@ class Experiment:
                         _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
                         for fname in fieldNames:
                             if fname != self.namespace.makeValid(fname):
-                                logging.warning('loadFromXML namespace conflict: "%s" in file %s' % (fname, conditionsFile))
+                                duplicate_names.append(fname)
                             else:
                                 self.namespace.add(fname)
                     except:
@@ -454,7 +455,9 @@ class Experiment:
                 self.flow.append(self.routines[elementNode.get('name')])
 
         if modified_names:
-            logging.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names))
+            logging.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ', '.join(list(set(modified_names))))
+        if duplicate_names:
+            logging.warning('duplicate variable names: %s' % ', '.join(list(set(duplicate_names))))
 
     def setExpName(self, name):
         self.settings.params['expName'].val=name

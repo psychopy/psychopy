@@ -21,13 +21,13 @@ from psychopy import logging
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix
 from psychopy.tools.attributetools import attributeSetter, setWithOperation, logAttrib
-from psychopy.visual.basevisual import BaseVisualStim
+from psychopy.visual.basevisual import BaseVisualStim, ColorMixin, ContainerMixin
 from psychopy.visual.helpers import setColor
 
 import numpy
 
 
-class ShapeStim(BaseVisualStim):
+class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     """Create geometric (vector) shapes by defining vertex locations.
 
     Shapes can be outlines or filled, by setting lineRGB and fillRGB to
@@ -80,7 +80,7 @@ class ShapeStim(BaseVisualStim):
         self._initParams.remove('self')
 
         # Initialize inheritance and remove unwanted methods
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False) #autoLog is set later
+        super(ShapeStim, self).__init__(win, units=units, name=name, autoLog=False) #autoLog is set later
         self.__dict__['setColor'] = None
         self.__dict__['color'] = None
         self.__dict__['colorSpace'] = None

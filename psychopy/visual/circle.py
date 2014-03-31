@@ -46,7 +46,7 @@ class Circle(Polygon):
         #initialise parent class
         kwargs['edges'] = edges
         kwargs['radius'] = radius
-        Polygon.__init__(self, win, **kwargs)
+        super(Circle, self).__init__(win, **kwargs)
 
 
     def setRadius(self, radius, log=True):

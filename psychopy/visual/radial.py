@@ -23,7 +23,6 @@ from psychopy import logging
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import attributeSetter, logAttrib
-from psychopy.visual.basevisual import BaseVisualStim
 from psychopy.visual.grating import GratingStim
 
 try:
@@ -88,7 +87,8 @@ class RadialStim(GratingStim):
         self._initParams = dir()
         self._initParams.remove('self')
 
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False) #autolog should start off false
+        super(RadialStim, self).__init__(win, units=units, name=name, autoLog=False) #autolog should start off false
+
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 
         # UGLY HACK again. (See same section in GratingStim for ideas)
@@ -124,7 +124,6 @@ class RadialStim(GratingStim):
             self.setColor(lms, colorSpace='lms')
         else:
             self.setColor(color)
-
 
         self.ori = float(ori)
         self.angularRes = angularRes

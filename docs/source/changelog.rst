@@ -20,6 +20,21 @@ Changelog
 PsychoPy 1.80
 ------------------------------
 
+PsychoPy 1.80.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Mar 2014
+
+* FIXED: buglet with movie glPopAttrib() on Intel gfx cards (thanks Bryan Cort)
+* FIXED: problem trying to use FrameBufferObject (FBO) on Intel GMA graphics cards
+* FIXED: problem with ImageStim not respecting setColor() and setContrast()
+* FIXED: some stimuli were failing to switch to a second window when requested
+* FIXED: some rendering glitches with ShapeStim caused by interpolation settings (thanks to Soyogu Matsushita for finding this fix)
+* FIXED: automated import of gamma for known monitors, which was failing on some monitor calibration files
+* FIXED: a single-line conditions file is now imported correctly by Builder (Jeremy Gray)
+* IMPROVED: a Routine not included in a loop now saves its data to a default 'loop' (Jeremy Gray)
+* IMPROVED: Coder checks for consistency of end-of-line options (thanks Wilbert van Ham)
+
 PsychoPy 1.80.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

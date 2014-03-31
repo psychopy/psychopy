@@ -1,24 +1,24 @@
 Documentation
 =====================================
 
+A pdf copy of the current documentation is available at:
+    http://www.psychopy.org/PsychoPyManual.pdf
+    
 Contents:
 
 .. toctree::
    :maxdepth: 1
    
-   overview
-   contributing
-   credits
+   about/index
+   general/general
    installation
    gettingStarted
-   
-.. toctree::
-   :maxdepth: 2
-   
-   general/general
    Builder - building experiments in a GUI <builder/builder>
    Coder - writing experiments with scripts <coder/coder>
-   
+   api/api
+
+Further information:
+
 .. toctree::
    :maxdepth: 1
    
@@ -26,12 +26,17 @@ Contents:
    recipes/recipes
    faqs/faqs
    resources/resources
-   api/api
+
+For developers:
+
+.. toctree::
+   :maxdepth: 1
+   
    developers/developers
    psyexp
-   glossary
-   indices
 
-A pdf copy of the current documentation is available at:
-    
-    http://www.psychopy.org/PsychoPyManual.pdf
+Indices
+-----------
+
+	* :ref:`glossary`
+	* :ref:`genindex`

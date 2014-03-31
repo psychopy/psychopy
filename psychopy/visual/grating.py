@@ -21,13 +21,13 @@ from psychopy import logging
 
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import attributeSetter
-from psychopy.visual.basevisual import BaseVisualStim
-from psychopy.visual.helpers import createTexture
+from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
+                                        ContainerMixin, TextureMixin)
 
 import numpy
 
 
-class GratingStim(BaseVisualStim):
+class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in either dimension
     One of the main stimuli for PsychoPy.
 
@@ -103,7 +103,7 @@ class GratingStim(BaseVisualStim):
         for unecess in ['self', 'rgb', 'dkl', 'lms']:
             self._initParams.remove(unecess)
         #initialise parent class
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)
+        super(GratingStim, self).__init__(win, units=units, name=name, autoLog=False)
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
@@ -159,7 +159,16 @@ class GratingStim(BaseVisualStim):
 
         #generate a displaylist ID
         self._listID = GL.glGenLists(1)
-        self._updateList()#ie refresh display list
+
+        # JRG: doing self._updateList() here means MRO issues for RadialStim,
+        # which inherits from GratingStim but has its own _updateList code.
+        # So don't want to do the update here (= ALSO the init of RadialStim).
+        # Could potentially define a BaseGrating class without updateListShaders
+        # code, and have GratingStim and RadialStim inherit from it and add their
+        # own _updateList stuff. Seems unnecessary.
+        # Instead, simply defer the update to the first .draw(), should be fast:
+        #self._updateList()  #ie refresh display list
+        self._needUpdate = True
 
         #set autoLog (now that params have been initialised)
         self.autoLog= autoLog
@@ -221,7 +230,7 @@ class GratingStim(BaseVisualStim):
         If not then PsychoPy will upsample your stimulus to the next larger
         power of two.
         """
-        createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self,
+        self.createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self,
             res=self.texRes, maskParams=self.maskParams)
         #if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize == None:
@@ -238,7 +247,7 @@ class GratingStim(BaseVisualStim):
             + the name of an image file (most formats supported)
             + a numpy array (1xN or NxN) ranging -1:1
         """
-        createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self,
+        self.createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self,
             res=self.texRes, maskParams=self.maskParams)
         self.__dict__['mask'] = value
 

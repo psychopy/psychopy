@@ -50,6 +50,7 @@ from psychopy import makeMovies
 from psychopy.visual.text import TextStim
 from psychopy.visual.grating import GratingStim
 from psychopy.visual.helpers import setColor
+from . import glob_vars
 
 try:
     from PIL import Image
@@ -66,8 +67,6 @@ import numpy
 
 from psychopy.core import rush
 
-global currWindow
-currWindow = None
 reportNDroppedFrames = 5  # stop raising warning after this
 
 from psychopy.gamma import getGammaRamp, setGammaRamp, setGamma
@@ -177,10 +176,8 @@ class Window:
             gamma :
                 Monitor gamma for linearisation (will use Bits++ if possible).
                 Overrides monitor settings
-            bitsMode : None, 'fast', ('slow' mode is deprecated).
-                Defines how (and if) the Bits++ box will be used.
-                'fast' updates every frame by drawing a hidden line on
-                the top of the screen.
+            bitsMode :
+                DEPRECATED in 1.80.02. Use BitsSharp class from pycrsltd instead.
             allowStencil : True or *False*
                 When set to True, this allows operations that use
                 the OpenGL stencil buffer
@@ -198,7 +195,6 @@ class Window:
                 will take precedence over preferences.
 
         """
-
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         for unecess in ['self', 'checkTiming', 'rgb', 'dkl', ]:
@@ -214,7 +210,6 @@ class Window:
 
         self._toLog = []
         self._toCall = []
-
         # settings for the monitor: local settings (if available) override
         # monitor
         # if we have a monitors.Monitor object (psychopy 0.54 onwards)
@@ -261,9 +256,13 @@ class Window:
         self.viewOri = float(viewOri)
         self.stereo = stereo  # use quad buffer if requested (and if possible)
 
-        # setup bits++ if possible
-        self.bitsMode = bitsMode  # could be [None, 'fast', 'slow']
-        if self.bitsMode is not None:
+        # setup bits++ if needed. NB The new preferred method is for this to be
+        # handled by the bits class instead. (we pass the Window to bits not passing
+        # bits to the window)
+        self.bits = None
+        if bitsMode is not None:
+            logging.warn("Use of Window(bitsMode=******) is deprecated. See the Coder>Demos>Hardware demo for new methods")
+            self.bitsMode = bitsMode  # could be [None, 'fast', 'slow']
             from psychopy.hardware.crs import bits
             self.bits = bits.BitsBox(self)
             self.haveBits = True
@@ -347,16 +346,14 @@ class Window:
             self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
         else:
             self._refreshThreshold = (1.0/60)*1.2  # guess its a flat panel
-
-        global currWindow
-        currWindow = self
         openWindows.append(self)
 
     def __del__(self):
-        if self.useFBO:
+        try:
             GL.glDeleteTextures(1, self.frameTexture)
             GL.glDeleteFramebuffersEXT( 1, self.frameBuffer)
-
+        except:
+            pass
     def __str__(self):
         className = 'Window'
         paramStrings = []
@@ -425,15 +422,9 @@ class Window:
         Override this event handler with your own to create another
         projection, for example in perspective.
         '''
-        if height == 0:
-            height = 1
-        GL.glViewport(0, 0, width, height)
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
-        GL.glOrtho(-1, 1, -1, 1, -1, 1)
-        #GL.gluPerspective(90, 1.0*width/height, 0.1, 100.0)
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
+        #this has to be external so that pyglet can use it too without circular
+        #referencing
+        _onResize(width, height)
 
     def logOnFlip(self, msg, level, obj=None):
         """Send a log message that should be time-stamped at the next .flip()
@@ -478,7 +469,6 @@ class Window:
         win.flip(clearBuffer=False)#the screen is not cleared (so represent
         the previous screen)
         """
-        global currWindow
         for thisStim in self._toDraw:
             thisStim.draw()
 
@@ -489,6 +479,9 @@ class Window:
             # unbind the framebuffer as the render target
             GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
             GL.glDisable(GL.GL_BLEND)
+
+            if self.bits != None:
+                self.bits._prepareFBOrender()
 
             # before flipping need to copy the renderBuffer to the frameBuffer
             GL.glActiveTexture(GL.GL_TEXTURE0)
@@ -515,14 +508,13 @@ class Window:
             GL.glUseProgram(0)
 
         #update the bits++ LUT
-        if self.bitsMode in ['fast', 'bits++']:
-            self.bits._drawLUTtoScreen()
-
+        if self.bits!=None: #try using modern BitsBox/BitsSharp class in pycrsltd
+            self.bits._finishFBOrender()
         if self.winType == "pyglet":
             #make sure this is current context
-            if currWindow != self:
+            if glob_vars.currWindow != self:
                 self.winHandle.switch_to()
-                currWindow = self
+                glob_vars.currWindow = self
 
             GL.glTranslatef(0.0, 0.0, -5.0)
 
@@ -920,7 +912,7 @@ class Window:
         else:
             #pygame.quit()
             pygame.display.quit()
-        if self.bitsMode is not None:
+        if self.bits is not None:
             self.bits.reset()
         openWindows.remove(self)
         logging.flush()
@@ -1041,7 +1033,7 @@ class Window:
         """
         global GL
         self.rgb = val2array(newRGB, False, length=3)
-        if self.winType == 'pyglet' and currWindow != self:
+        if self.winType == 'pyglet' and glob_vars.currWindow != self:
             self.winHandle.switch_to()
             glob_vars.currWindow = self
         GL.glClearColor((self.rgb[0]+1.0)/2.0,
@@ -1086,7 +1078,7 @@ class Window:
 
         self._checkGamma(gamma)
 
-        if self.bitsMode is not None:
+        if self.bits is not None:
             #first ensure that window gamma is 1.0
             if self.winType == 'pygame':
                 pygame.display.set_gamma(1.0, 1.0, 1.0)
@@ -1218,7 +1210,7 @@ class Window:
         if self.useFBO: #check for necessary extensions
             if not GL.gl_info.have_extension('GL_EXT_framebuffer_object'):
                 logging.warn("Trying to use a framebuffer pbject but GL_EXT_framebuffer_object is not supported. Disabling")
-            self.useFBO=False
+                self.useFBO=False
             if not GL.gl_info.have_extension('GL_ARB_texture_float'):
                 logging.warn("Trying to use a framebuffer pbject but GL_ARB_texture_float is not supported. Disabling")
                 self.useFBO=False
@@ -1236,7 +1228,7 @@ class Window:
             # make mouse invisible. Could go further and make it 'exclusive'
             # (but need to alter x,y handling then)
             self.winHandle.set_mouse_visible(False)
-        self.winHandle.on_resize = self.onResize
+        self.winHandle.on_resize = _onResize #avoid circular reference with self
         if not self.pos:
             # work out where the centre should be
             self.pos = [(thisScreen.width-self.size[0])/2,
@@ -1334,7 +1326,6 @@ class Window:
             self._setupPygame()
         elif self.winType == "pyglet":
             self._setupPyglet()
-
         #check whether shaders are supported
         # also will need to check for ARB_float extension,
         # but that should be done after context is created
@@ -1429,10 +1420,11 @@ class Window:
         if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
             logging.error("Error in framebuffer activation")
             return
+        else:
+            logging.info("Successfully set up FBO")
         GL.glDisable(GL.GL_TEXTURE_2D)
         #clear the buffer (otherwise the texture memory can contain junk)
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
-
     def setMouseVisible(self, visibility):
         """Sets the visibility of the mouse cursor.
 
@@ -1638,3 +1630,24 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """
     return myWin.getMsPerFrame(nFrames=60, showVisual=showVisual, msg='',
                                msDelay=0.)
+def _onResize(width, height):
+        '''A default resize event handler.
+
+        This default handler updates the GL viewport to cover the entire
+        window and sets the ``GL_PROJECTION`` matrix to be orthagonal in
+        window space.  The bottom-left corner is (0, 0) and the top-right
+        corner is the width and height of the :class:`~psychopy.visual.Window`
+        in pixels.
+
+        Override this event handler with your own to create another
+        projection, for example in perspective.
+        '''
+        if height == 0:
+            height = 1
+        GL.glViewport(0, 0, width, height)
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+        GL.glOrtho(-1, 1, -1, 1, -1, 1)
+        #GL.gluPerspective(90, 1.0*width/height, 0.1, 100.0)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glLoadIdentity()
