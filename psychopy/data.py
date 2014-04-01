@@ -70,13 +70,18 @@ class ExperimentHandler(object):
                 If not provided this will be determined as the path of the
                 calling script.
 
-            dataFilename : string
+            dataFileName : string
                 This is defined in advance and the file will be saved at any
                 point that the handler is removed or discarded (unless .abort()
                 had been called in advance).
                 The handler will attempt to populate the file even in the
                 event of a (not too serious) crash!
 
+            savePickle : True (default) or False
+
+            saveWideText : True (default) or False
+
+            autoLog : True (default) or False
         """
         self.loops=[]
         self.loopsUnfinished=[]
