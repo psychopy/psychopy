@@ -223,9 +223,9 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     # if a valid mode was specified, use it; otherwise query:
     mode = mode.capitalize()
     if mode not in ['Scan', 'Test']:
-        run_type = visual.RatingScale(win, choices=['Scan', 'Test'], markerStyle='circle',
-            markerColor='DarkBlue', displaySizeFactor=.8, stretchHoriz=.3, pos=(0.8,-0.9),
-            markerStart='Test', escapeKeys=esc_key, lineColor='DarkGray', autoLog=log)
+        run_type = visual.RatingScale(win, choices=['Scan', 'Test'], marker='circle',
+            markerColor='DarkBlue', size=.8, stretch=.3, pos=(0.8,-0.9),
+            markerStart='Test', lineColor='DarkGray', autoLog=log)
         while run_type.noResponse:
             instructions.draw()
             parameters.draw()
