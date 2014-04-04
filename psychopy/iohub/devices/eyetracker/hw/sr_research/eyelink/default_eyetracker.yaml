@@ -223,7 +223,7 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     # model_name: The below parameters are not used by the EyeGaze eye tracker
     #   implementation, so they can be left as is, or filled out for FYI only.
     #
-    model_name: N/A
+    model_name: EYELINK
 
     # serial_number: The serial number for the specific isnstance of device used
     #   can be specified here. It is not used by the ioHub, so is FYI only.
