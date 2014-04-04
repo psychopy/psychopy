@@ -1616,10 +1616,9 @@ def launchHubServer(**kwargs):
 
 
     monitor_devices_config=None
-    if kwargs.get('iohub_config_name'):        
-        from psychopy.iohub import load, Loader    
+    if kwargs.get('iohub_config_name'):    
         # Load the specified iohub configuration file, converting it to a python dict.
-        io_config=load(kwargs.get('iohub_config_name'),'r', Loader=Loader)
+        io_config=load(file(kwargs.get('iohub_config_name'),'r'), Loader=Loader)
         monitor_devices_config=io_config.get('monitor_devices')
 
     ioConfig=None
