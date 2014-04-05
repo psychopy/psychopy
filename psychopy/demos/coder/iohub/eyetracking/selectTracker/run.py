@@ -67,8 +67,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         result=tracker.runSetupProcedure()
         if isinstance(result,dict):
             print "Validation Accuracy Results: ", result
-        elif result != EyeTrackerConstants.EYETRACKER_OK:
-            print "An error occurred during eye tracker user setup: ",EyeTrackerConstants.getName(result)
 
         # restore the psychopy experiment window
         #

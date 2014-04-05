@@ -103,6 +103,7 @@ validation_proc=ValidationProcedure(
                                     show_intro_screen=True,
                                     intro_text="Validation procedure is now going to be performed.",
                                     show_results_screen=True,
+                                    results_in_degrees=True
                                     )                        
 
 # Run the validation process. The method does not return until the process
