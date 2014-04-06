@@ -13,6 +13,8 @@ from psychopy.hardware.emulator import *
 
 # launchScan sound is not tested, nor included coverage
 
+travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
+
 BASE_MR_SETTINGS = {
     'TR': 0.2,    # duration (sec) per volume
     'volumes': 3, # number of whole-brain 3D volumes / frames
@@ -80,6 +82,8 @@ class TestLaunchScan:
         core.wait(.1, 0)
 
     def test_misc(self):
+        if travis:
+            pytest.skip()
         MR_settings = BASE_MR_SETTINGS.copy()
         MR_settings.update({'sync': 'equal'})
         vol = launchScan(self.win, MR_settings, globalClock=self.globalClock,
