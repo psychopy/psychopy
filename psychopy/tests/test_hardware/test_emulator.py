@@ -63,8 +63,23 @@ class TestLaunchScan:
         #event._onPygletKey(symbol='escape', modifiers=None, emulated=True)
         #core.wait(1, 0)
 
+    def test_sync_generator(self):
+        with pytest.raises(ValueError):
+            s = SyncGenerator(TR=0.01)
+        s = SyncGenerator(TR=0.1)
+        s.start()
+        s.stop()
+
+    def test_response_emulator(self):
+        # logs error but does not raise:
+        ResponseEmulator(simResponses=[(.1, 0.123)]).run()
+
+        r = ResponseEmulator()
+        r.start()
+        r.stop()
+        core.wait(.1, 0)
+
     def test_misc(self):
-        # long name for sync, simResponses
         MR_settings = BASE_MR_SETTINGS.copy()
         MR_settings.update({'sync': 'equal'})
         vol = launchScan(self.win, MR_settings, globalClock=self.globalClock,
@@ -78,20 +93,6 @@ class TestLaunchScan:
                          mode='Test', log=False)
         core.wait(1, 0)
 
-    def test_sync_generator(self):
-        with pytest.raises(ValueError):
-            s = SyncGenerator(TR=0.01)
-        s = SyncGenerator(TR=0.1)
-        s.run()
-        s.stop()
-
-    def test_response_emulator(self):
-        # logs error but does not raise:
-        ResponseEmulator(simResponses=[(.1, 0.123)]).run()
-
-        r = ResponseEmulator().run()
-        r.stop()
-        core.wait(.1, 0)
 
     def test_wait_timeout(self):
         '''Ensure that the wait_timeout happily rejects bad values.'''
