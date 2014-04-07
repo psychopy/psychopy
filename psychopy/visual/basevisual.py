@@ -583,6 +583,12 @@ class TextureMixin(object):
             sigma = 1/3.0;
             intensity = numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )*2-1 #3sd.s by the edge of the stimulus
             wasLum=True
+        elif tex == "cross":
+            X, Y = numpy.mgrid[-1:1:1j*res, -1:1:1j*res]
+            tf_neg_cross = ((X < -0.2) & (Y < -0.2)) | ((X < -0.2) & (Y > 0.2)) | ((X > 0.2) & (Y < -0.2)) | ((X > 0.2) & (Y > 0.2))
+            #tf_neg_cross == True at places where the cross is transparent, i.e. the four corners
+            intensity = numpy.where(tf_neg_cross, -1, 1)
+            wasLum = True
         elif tex == "radRamp":#a radial ramp
             rad=makeRadialMatrix(res)
             intensity = 1-2*rad
