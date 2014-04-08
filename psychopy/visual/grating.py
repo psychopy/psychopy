@@ -243,7 +243,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         """The alpha mask (forming the shape of the image)
 
         This can be one of various options:
-            + 'circle', 'gauss', 'raisedCos', **None** (resets to default)
+            + 'circle', 'gauss', 'raisedCos', 'cross', **None** (resets to default)
             + the name of an image file (most formats supported)
             + a numpy array (1xN or NxN) ranging -1:1
         """
