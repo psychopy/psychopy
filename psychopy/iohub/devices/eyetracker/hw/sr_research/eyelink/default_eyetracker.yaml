@@ -118,7 +118,7 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
             outer_diameter: 33
             inner_diameter: 6
             outer_color: [255,255,255]
-            inner_color: [0,0,0,255]
+            inner_color: [0,0,0]
 
     # network_settings: Specify the Host computer IP address. Normally
     #   leaving it set to the default value is fine.
