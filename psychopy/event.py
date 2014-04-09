@@ -75,7 +75,7 @@ def _onPygletText(text, emulated=False):
     logging.data("%s: %s" % (keySource, text))
 
 def _onPygletKey(symbol, modifiers, emulated=False):
-    """handler for on_key_press pyglet events, or call directly to emulate a key press
+    """handler for on_key_press pyglet events; call directly to emulate a key press
 
     Appends a tuple with (keyname, timepressed) into the global _keyBuffer. The
     _keyBuffer can then be accessed as normal using event.getKeys(), .waitKeys(),
@@ -83,9 +83,9 @@ def _onPygletKey(symbol, modifiers, emulated=False):
 
     J Gray 2012: Emulated means add a key (symbol) to the buffer virtually.
     This is useful for fMRI_launchScan, and for unit testing (in testTheApp)
-    Logging distinguished EmulatedKey events from real Keypress events.
+    Logging distinguishes EmulatedKey events from real Keypress events.
     For emulation, the key added to the buffer is unicode(symbol), instead of
-    pyglet.window.key.symbol_string(symbol)
+    pyglet.window.key.symbol_string(symbol).
 
     S Mathot 2012: Implement fallback to _onPygletText
     """

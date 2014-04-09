@@ -51,9 +51,9 @@ There are several base and mix-in visual classes for mulitple inheritance:
         color-related methods and attribs
   - ContainerMixin:    for stim that need polygon .contains() methods (most, not Text)
         .contains(), .overlaps()
-  - TextureMixin:      for texture methods namely createTexture (Grating, not Text)
+  - TextureMixin:      for texture methods namely _createTexture (Grating, not Text)
         seems to work; caveat: There were issues in earlier (non-MI) versions
-        of useing createTexture so it was pulled out of classes. Now its inside
+        of using _createTexture so it was pulled out of classes. Now its inside
         classes again. Should be watched.
   - BaseVisualStim:    = Minimal + Legacy
 
@@ -108,32 +108,14 @@ class MinimalStim(object):
         """The name of the object to be using during logged messages about
         this stim. If you have multiple stimuli in your experiment this really
         helps to make sense of log files!
-
-        type: String
-
-        Example::
-
-            upper = visual.TextStim(win, text='Monty', name='upperStim')
-            lower = visual.TextStim(win, text='Python', name='lowerStim')
-            upper.setAutoDraw(True)
-            for frameN in range(3):
-                win.flip()
-            # turn off top and turn on bottom
-            upper.setAutoDraw(False)
-            lower.setAutoDraw(True)
-            for frameN in range(3):
-                win.flip()
-            # log file will include names to identify which stim came on/off
         """
         self.__dict__['name'] = value
 
     @attributeSetter
     def autoDraw(self, value):
-        """Determines whether the stimulus should be automatically drawn on
+        """Determines whether the stimulus should be automatically drawn on every frame flip.
 
-        Value should be: `True` or `False`
-
-        You do NOT need to set this on every frame flip!
+        Value should be: `True` or `False`. You do NOT need to set this on every frame flip!
         """
         self.__dict__['autoDraw'] = value
         toDraw = self.win._toDraw
@@ -159,7 +141,7 @@ class MinimalStim(object):
             self.status = STOPPED
 
     def setAutoDraw(self, value, log=True):
-        """Usually you can use 'stim.attribute = value' syntax instead,
+        """Sets autoDraw. Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
         self.autoDraw = value
 
@@ -167,10 +149,8 @@ class MinimalStim(object):
     def autoLog(self, value):
         """Whether every change in this stimulus should be logged automatically
 
-        Value should be: `True` or `False`
-
-        Set this to `False` if your stimulus is updating frequently (e.g.
-        updating its position every frame) or you will swamp the log file with
+        Value should be: `True` or `False`. Set to `False` if your stimulus is updating frequently (e.g.
+        updating its position every frame) and you want to avoid swamping the log file with
         messages that aren't likely to be useful.
         """
         self.__dict__['autoLog'] = value
@@ -205,6 +185,16 @@ class LegacyVisualMixin(object):
         elif self.units in ['deg', 'degs']: self._posRendered=deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=cm2pix(self.pos, self.win.monitor)
 
+    def _getPolyAsRendered(self):
+        """DEPRECATED. Return a list of vertices as rendered; used by overlaps()
+        """
+        oriRadians = numpy.radians(self.ori)
+        sinOri = numpy.sin(-oriRadians)
+        cosOri = numpy.cos(-oriRadians)
+        x = self._verticesRendered[:,0] * cosOri - self._verticesRendered[:,1] * sinOri
+        y = self._verticesRendered[:,0] * sinOri + self._verticesRendered[:,1] * cosOri
+        return numpy.column_stack((x,y)) + self._posRendered
+
     def setDKL(self, newDKL, operation=''):
         """DEPRECATED since v1.60.05: Please use the `color` attribute
         """
@@ -224,8 +214,7 @@ class LegacyVisualMixin(object):
 
     @attributeSetter
     def depth(self, value):
-        """
-        Deprecated. Depth is now controlled simply by drawing order.
+        """DEPRECATED. Depth is now controlled simply by drawing order.
         """
         self.__dict__['depth'] = value
 
@@ -303,16 +292,16 @@ class ColorMixin(object):
 
         Examples::
 
-            stim.contrast = 1.0  # unchanged contrast
-            stim.contrast = 0.5  # decrease contrast
-            stim.contrast = 0.0  # uniform, no contrast
-            stim.contrast = -0.5 # slightly inverted
-            stim.contrast = -1   # totally inverted
+            stim.contrast =  1.0  # unchanged contrast
+            stim.contrast =  0.5  # decrease contrast
+            stim.contrast =  0.0  # uniform, no contrast
+            stim.contrast = -0.5  # slightly inverted
+            stim.contrast = -1.0  # totally inverted
 
         Setting contrast outside range -1 to 1 is permitted, but may
         produce strange results if color values exceeds the monitor limits.::
 
-            stim.contrast = 1.2 # increases contrast.
+            stim.contrast =  1.2  # increases contrast
             stim.contrast = -1.2  # inverts with increased contrast
         """
         self.__dict__['contrast'] = value
@@ -403,20 +392,20 @@ class ContainerMixin(object):
         self._needVertexUpdate = False
         self._needUpdate = True #but we presumably need to update the list
     def contains(self, x, y=None, units=None):
-        """Determines if a point x,y is inside the extent of the stimulus.
+        """Returns True if a point x,y is inside the extent of the stimulus.
 
         Can accept variety of input options:
             + two separate args, x and y
             + one arg (list, tuple or array) containing two vals (x,y)
             + an object with a getPos() method that returns x,y, such
-                as a :class:`~psychopy.event.Mouse`. Returns `True` if the point is
-                within the area defined by `vertices`.
+                as a :class:`~psychopy.event.Mouse`.
 
+        Returns `True` if the point is within the area defined by `vertices`.
         This method handles complex shapes, including concavities and self-crossings.
 
-        Note that, if your stimulus uses a mask (such as a Gaussian blob) then
+        Note that, if your stimulus uses a mask (such as a Gaussian) then
         this is not accounted for by the `contains` method; the extent of the
-        stmulus is determined purely by the size, pos and orientation settings
+        stimulus is determined purely by the size, position (pos), and orientation (ori) settings
         (and by the vertices for shape stimuli).
 
         See coder demo, shapeContains.py
@@ -444,21 +433,13 @@ class ContainerMixin(object):
         selfVerts = self.verticesPix
         return pointInPolygon(xy[0], xy[1], poly = selfVerts)
 
-    def _getPolyAsRendered(self):
-        """return a list of vertices as rendered; used by overlaps()
-        """
-        oriRadians = numpy.radians(self.ori)
-        sinOri = numpy.sin(-oriRadians)
-        cosOri = numpy.cos(-oriRadians)
-        x = self._verticesRendered[:,0] * cosOri - self._verticesRendered[:,1] * sinOri
-        y = self._verticesRendered[:,0] * sinOri + self._verticesRendered[:,1] * cosOri
-        return numpy.column_stack((x,y)) + self._posRendered
-
     def overlaps(self, polygon):
-        """Determines if this stimulus intersects another one. If `polygon` is
+        """Returns `True` if this stimulus intersects another one.
+
+        If `polygon` is
         another stimulus instance, then the vertices and location of that stimulus
-        will be used as the polygon. Overlap detection is only approximate; it
-        can fail with pointy shapes. Returns `True` if the two shapes overlap.
+        will be used as the polygon. Overlap detection is typically very good, but it
+        can fail with very pointy shapes in a crossed-swords configuration.
 
         Note that, if your stimulus uses a mask (such as a Gaussian blob) then
         this is not accounted for by the `overlaps` method; the extent of the
@@ -477,32 +458,25 @@ class TextureMixin(object):
     #def __init__(self):
     #    super(TextureMixin, self).__init__()
 
-    def createTexture(self, tex, id, pixFormat, stim, res=128, maskParams=None,
+    def _createTexture(self, tex, id, pixFormat, stim, res=128, maskParams=None,
                       forcePOW2=True, dataType=None):
         """
         :params:
-
             id:
                 is the texture ID
-
             pixFormat:
                 GL.GL_ALPHA, GL.GL_RGB
-
             useShaders:
                 bool
-
             interpolate:
                 bool (determines whether texture will use GL_LINEAR or GL_NEAREST
-
             res:
                 the resolution of the texture (unless a bitmap image is used)
-
             dataType:
                 None, GL.GL_UNSIGNED_BYTE, GL_FLOAT. Only affects image files (numpy arrays will be float)
 
         For grating stimuli (anything that needs multiple cycles) forcePOW2 should
         be set to be True. Otherwise the wrapping of the texture will not work.
-
         """
 
         """
@@ -827,7 +801,7 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
     @attributeSetter
     def units(self, value):
         """
-        None, 'norm', 'cm', 'deg' or 'pix'
+        None, 'norm', 'cm', 'deg', 'degFlat', 'degFlatPos', or 'pix'
 
         If None then the current units of the :class:`~psychopy.visual.Window` will be used.
         See :ref:`units` for explanation of other options.
@@ -857,10 +831,8 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
         """Determines how visible the stimulus is relative to background
 
         The value should be a single float ranging 1.0 (opaque) to 0.0
-        (transparent).
-        :ref:`Operations <attrib-operations>` are supported.
-
-        Precisely how this is used depends on the :ref:`blendMode`
+        (transparent). :ref:`Operations <attrib-operations>` are supported.
+        Precisely how this is used depends on the :ref:`blendMode`.
         """
         self.__dict__['opacity'] = value
 
@@ -914,7 +886,7 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
 
     @attributeSetter
     def size(self, value):
-        """The size (w,h) of the stimulus in the stimulus :ref:`units <units>`
+        """The size (width, height) of the stimulus in the stimulus :ref:`units <units>`
 
         Value should be :ref:`x,y-pair <attrib-xy>`, :ref:`scalar <attrib-scalar>` (applies to both dimensions)
         or None (resets to default). :ref:`Operations <attrib-operations>` are supported.
@@ -964,7 +936,7 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
     def pos(self, value):
         """The position of the center of the stimulus in the stimulus :ref:`units <units>`
 
-        Value should be an :ref:`x,y-pair <attrib-xy>`. :ref:`Operations <attrib-operations>`
+        `value` should be an :ref:`x,y-pair <attrib-xy>`. :ref:`Operations <attrib-operations>`
         are also supported.
 
         Example::
@@ -973,8 +945,10 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
             stim.pos += (0.5, -1)  # Increment pos rightwards and upwards. Is now (1.0, -1.0)
             stim.pos *= 0.2  # Move stim towards the center. Is now (0.2, -0.2)
 
-        Tip: if you can see the actual pixel range this corresponds to by
-        looking at `stim._posRendered`
+        Tip: If you need the position of stim in pixels, you can obtain it like this:
+
+            from psychopy.tools.monitorunittools import posToPix
+            posPix = posToPix(stim)
         """
         self.__dict__['pos'] = val2array(value, False, False)
         self._needVertexUpdate=True

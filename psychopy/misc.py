@@ -31,4 +31,4 @@ from psychopy.tools.plottools import plotFrameIntervals
 
 from psychopy.tools.typetools import float_uint8, float_uint16, uint8_float
 
-from psychopy.tools.unittools import radians
+from numpy import radians, degrees

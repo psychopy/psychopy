@@ -28,7 +28,8 @@ import numpy
 
 
 class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
-    """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in either dimension
+    """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in either dimension.
+
     One of the main stimuli for PsychoPy.
 
     Formally GratingStim is just a texture behind an optional
@@ -38,8 +39,8 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
     **Examples**::
 
-        myGrat = GratingStim(tex='sin',mask='circle') #gives a circular patch of grating
-        myGabor = GratingStim(tex='sin',mask='gauss') #gives a 'Gabor'
+        myGrat = GratingStim(tex='sin', mask='circle') #gives a circular patch of grating
+        myGabor = GratingStim(tex='sin', mask='gauss') #gives a 'Gabor'
 
     A GratingStim can be rotated scaled and shifted in position, its texture can
     be drifted in X and/or Y and it can have a spatial frequency in X and/or Y
@@ -48,12 +49,12 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     Also since transparency can be controlled two GratingStims can combine e.g.
     to form a plaid.
 
-    **Using GratingStim with images from disk (jpg, tif, png...)**
+    **Using GratingStim with images from disk (jpg, tif, png, ...)**
 
     Ideally texture images to be rendered should be square with 'power-of-2' dimensions
     e.g. 16x16, 128x128. Any image that is not will be upscaled (with linear interpolation)
     to the nearest such texture by PsychoPy. The size of the stimulus should be
-    specified in the normal way using the appropriate units (deg, pix, cm...). Be
+    specified in the normal way using the appropriate units (deg, pix, cm, ...). Be
     sure to get the aspect ratio the same as the image (if you don't want it
     stretched!).
 
@@ -107,7 +108,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
-        # TO DO: postpone calls to createTexture, setColor and _calcCyclesPerStim whin initiating stimulus
+        # TO DO: postpone calls to _createTexture, setColor and _calcCyclesPerStim whin initiating stimulus
         self.__dict__['contrast'] = 1
         self.__dict__['size'] = 1
         self.__dict__['sf'] = 1
@@ -230,7 +231,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         If not then PsychoPy will upsample your stimulus to the next larger
         power of two.
         """
-        self.createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self,
+        self._createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self,
             res=self.texRes, maskParams=self.maskParams)
         #if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize == None:
@@ -247,21 +248,21 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
             + the name of an image file (most formats supported)
             + a numpy array (1xN or NxN) ranging -1:1
         """
-        self.createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self,
+        self._createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self,
             res=self.texRes, maskParams=self.maskParams)
         self.__dict__['mask'] = value
 
     def setSF(self, value, operation='', log=True):
-        """ Deprecation Warning! Use 'stim.parameter = value' syntax instead"""
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self._set('sf', value, operation, log=log)
     def setPhase(self, value, operation='', log=True):
-        """ Deprecation Warning! Use 'stim.parameter = value' syntax instead"""
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self._set('phase', value, operation, log=log)
     def setTex(self, value, log=True):
-        """ Deprecation Warning! Use 'stim.parameter = value' syntax instead"""
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self.tex = value
     def setMask(self, value, log=True):
-        """ Deprecation Warning! Use 'stim.parameter = value' syntax instead"""
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self.mask = value
 
     def draw(self, win=None):

@@ -49,6 +49,7 @@ class ResponseEmulator(threading.Thread):
             last_onset = onset
             if self.stopflag: break
         self.running = False
+        return self
 
     def stop(self):
         self.stopflag = True
@@ -82,7 +83,7 @@ class SyncGenerator(threading.Thread):
         self.sync = sync
         self.skip = skip
         self.playSound = sound
-        if self.playSound:
+        if self.playSound:  # pragma: no cover
             self.sound1 = Sound(800, secs=self.TR-.08, volume=0.15, autoLog=False)
             self.sound2 = Sound(813, secs=self.TR-.08, volume=0.15, autoLog=False)
 
@@ -94,13 +95,13 @@ class SyncGenerator(threading.Thread):
         self.running = True
         if self.skip:
             for i in range(int(self.skip)):
-                if self.playSound:
+                if self.playSound:  # pragma: no cover
                     self.sound1.play()
                     self.sound2.play()
                 core.wait(self.TR, hogCPUperiod=0) # emulate T1 stabilization without data collection
         self.clock.reset()
         for vol in range(1, self.volumes+1):
-            if self.playSound:
+            if self.playSound:  # pragma: no cover
                 self.sound1.play()
                 self.sound2.play()
             if self.stopflag:
@@ -112,11 +113,12 @@ class SyncGenerator(threading.Thread):
             while self.clock.getTime() < vol * self.TR:
                 pass # hogs the CPU for tighter sync
         self.running = False
+        return self
     def stop(self):
         self.stopflag = True
 
 def launchScan(win, settings, globalClock=None, simResponses=None,
-               mode='None', esc_key='escape',
+               mode=None, esc_key='escape',
                instr='select Scan or Test, press enter',
                wait_msg="waiting for scanner...",
                wait_timeout=300, log=True):
@@ -207,7 +209,8 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
         settings.update({'sync': '5'})
     if not 'skip' in settings:
         settings.update({'skip': 0})
-    try: wait_timeout = max(0.01, float(wait_timeout))
+    try:
+        wait_timeout = max(0.01, float(wait_timeout))
     except ValueError:
         raise ValueError("wait_timeout must be number-like, but instead it was %s." % str(wait_timeout))
     settings['sync'] = unicode(settings['sync'])
@@ -215,33 +218,33 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     settings['volumes'] = int(settings['volumes'])
     settings['skip'] = int(settings['skip'])
     runInfo = "vol: %(volumes)d  TR: %(TR).3fs  skip: %(skip)d  sync: '%(sync)s'" % (settings)
-    if log:
+    if log:  # pragma: no cover
         logging.exp('launchScan: ' + runInfo)
-    instructions = visual.TextStim(win, text=instr, height=.05, pos=(0,0), color=.4, autoLog=log)
-    parameters = visual.TextStim(win, text=runInfo, height=.05, pos=(0,-0.5), color=.4, autoLog=log)
+    instructions = visual.TextStim(win, text=instr, height=.05, pos=(0,0), color=.4, autoLog=False)
+    parameters = visual.TextStim(win, text=runInfo, height=.05, pos=(0,-0.5), color=.4, autoLog=False)
 
-    # if a valid mode was specified, use it; otherwise query:
-    mode = mode.capitalize()
+    # if a valid mode was specified, use it; otherwise query via RatingScale:
+    mode = str(mode).capitalize()
     if mode not in ['Scan', 'Test']:
-        run_type = visual.RatingScale(win, choices=['Scan', 'Test'], markerStyle='circle',
-            markerColor='DarkBlue', displaySizeFactor=.8, stretchHoriz=.3, pos=(0.8,-0.9),
-            markerStart='Test', escapeKeys=esc_key, lineColor='DarkGray', autoLog=log)
+        run_type = visual.RatingScale(win, choices=['Scan', 'Test'], marker='circle',
+            markerColor='DarkBlue', size=.8, stretch=.3, pos=(0.8,-0.9),
+            markerStart='Test', lineColor='DarkGray', autoLog=False)
         while run_type.noResponse:
             instructions.draw()
             parameters.draw()
             run_type.draw()
             win.flip()
+            if event.getKeys([esc_key]):
+                break
         mode = run_type.getRating()
     doSimulation = bool(mode == 'Test')
 
     win.setMouseVisible(False)
-    if mode == 'Test':
+    if doSimulation:
         wait_msg += ' (simulation)'
-    msg = visual.TextStim(win, color='DarkGray', text=wait_msg, autoLog=log)
+    msg = visual.TextStim(win, color='DarkGray', text=wait_msg, autoLog=False)
     msg.draw()
     win.flip()
-    if wait_timeout is None or wait_timeout > 10:
-        core.wait(1.2) # show msg for a bit, wait for scanner start
 
     event.clearEvents() # do before starting the threads
     if doSimulation:
@@ -258,13 +261,13 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     allKeys = []
     while not settings['sync'] in allKeys:
         allKeys = event.getKeys()
-        if esc_key and esc_key in allKeys:
+        if esc_key and esc_key in allKeys:  # pragma: no cover
             core.quit()
         if timeoutClock.getTime() > wait_timeout:
             raise TimeoutError('Waiting for scanner has timed out in %.3f seconds.' % wait_timeout)
     if globalClock:
         globalClock.reset()
-    if log:
+    if log:  # pragma: no cover
         logging.exp('launchScan: start of scan')
     win.flip() # blank the screen on first sync pulse received
     elapsed = 1 # one sync pulse has been caught so far
