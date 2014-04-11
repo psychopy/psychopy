@@ -1078,7 +1078,8 @@ class ValidationProcedure(object):
                  show_intro_screen=True,
                  intro_text="Validation procedure is now going to be performed.",
                  show_results_screen=True,
-                 results_in_degrees=False
+                 results_in_degrees=False,
+                 save_figure=None
                  ):
         self.io=ioHubConnection.getActiveConnection()
         self.win=target.win
@@ -1092,7 +1093,8 @@ class ValidationProcedure(object):
         self.intro_text=intro_text
         self.show_results_screen=show_results_screen
         self.results_in_degrees=results_in_degrees
-        self.pix2deg=None        
+        self.pix2deg=None       
+        self.save_figure_path=save_figure
         if self.results_in_degrees:
             display=self.io.devices.display
             ddim=display.getPhysicalDimensions()
@@ -1169,8 +1171,10 @@ class ValidationProcedure(object):
         
     def _generateImageName(self):
         from psychopy.iohub.util import getCurrentDateTimeString, normjoin
-        rootScriptPath = os.path.dirname(sys.argv[0])
         file_name='fig_'+getCurrentDateTimeString().replace(' ','_').replace(':','_')+'.png'
+        if self.save_figure_path:
+            return normjoin(self.save_figure_path,file_name)    
+        rootScriptPath = os.path.dirname(sys.argv[0])
         return normjoin(rootScriptPath,file_name)
     
     def _createPlot(self):
