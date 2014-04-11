@@ -32,7 +32,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         exp_conditions=importConditions('trial_conditions.xlsx')
         trials = TrialHandler(exp_conditions,1)
 
-        # Inform the ioDataStore that the experiment is using a
+        # Inform the ioDataStore that the experiment is using ac
         # TrialHandler. The ioDataStore will create a table 
         # which can be used to record the actual trial variable values (DV or IV)
         # in the order run / collected.
