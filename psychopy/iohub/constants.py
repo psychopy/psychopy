@@ -1038,15 +1038,15 @@ try:
         #
         ## Eye Type Constants
         #
-        LEFT_EYE=21
-        RIGHT_EYE=22
-        UNKNOWN_MONOCULAR=24
-        BINOCULAR=23
-        BINOCULAR_AVERAGED=25
-        BINOCULAR_CUSTOM=26
-        SIMULATED_MONOCULAR=27
-        SIMULATED_BINOCULAR=28
-        MONOCULAR=29
+        LEFT_EYE = 21
+        RIGHT_EYE = 22
+        SIMULATED_MONOCULAR = 23
+        MONOCULAR = 24
+
+        BINOCULAR = 26
+        BINOCULAR_AVERAGED = 27
+        BINOCULAR_CUSTOM = 28
+        SIMULATED_BINOCULAR = 29
         #
         ## Calibration / Validation Related Constants
         #
