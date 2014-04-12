@@ -80,36 +80,38 @@ class EyeTracker(EyeTrackerDevice):
             if filter_type == 'FILTER_ALL':
                 level_int = EyeTrackerConstants.getID(filter_level)
                 if not level_int:
-                    # TODO: Get ConfigureFilter running. 3rd param causes exception.
-                    #print2err("DISABLE IVIEW FILTER:")
-                    #filter_state_set=INT_POINTER(c_int(0))#c_void_p(1)#c_int(0)
-                    #r=pyViewX.ConfigureFilter(pyViewX.etFilterType.get('Average_Enabled'), 
-                    #                        pyViewX.etFilterAction.get('Set'),
-                    #                        filter_state_set#byref(filter_state)
-                    #                        )
-                    #print2err("SET result: ",r," state: ",filter_state_set)
-                    #filter_state_get=INT_POINTER(c_int(1))#c_void_p(1)#c_int(0)
-                    #r=pyViewX.ConfigureFilter(pyViewX.etFilterType.get('Average_Enabled'), 
-                    #                        pyViewX.etFilterAction.get('Get'),
-                    #                        filter_state_get#byref(filter_state)
-                    #                        )
+                    try:
+                        # Try to disable any filtering using the
+                        # new ConfigureFilter function added in Feb 2014 SMI API
+                        # release.
+                        disable_it = c_int(0)
+                        filter_state_set = POINTER(c_int)(disable_it)
+                        pyViewX.ConfigureFilter(pyViewX.etFilterType.get('Average_Enabled'),
+                                                  pyViewX.etFilterAction.get('Set'),
+                                                  filter_state_set
+                                                )
+                    except Exception, e:
+                        print2err("Note: pyViewX.ConfigureFilter to disable filtering call failed.")
+
+                    # Try disabling filtering using the DisableGazeDataFilter
+                    # SMI C func. Not sure if this is 'officially' supported.
                     pyViewX.DisableGazeDataFilter()
-                    #print2err("GET result: ",r," state: ",filter_state_get)
                 elif 0 < level_int <= EyeTrackerConstants.FILTER_ALL:
-                    #print2err("ENABLE IVIEW FILTER:")
-                    #filter_state=c_int(1)
-                    #filter_state_set=INT_POINTER(c_int(1))#c_void_p(1)#c_int(0)
-                    #r=pyViewX.ConfigureFilter(pyViewX.etFilterType.get('Average_Enabled'), 
-                    #                        pyViewX.etFilterAction.get('Set'),
-                    #                        filter_state_set#byref(filter_state)
-                    #                        )
-                    #print2err("SET result: ",r," state: ",filter_state_set)
-                    #filter_state_get=INT_POINTER(c_int(0))#c_void_p(1)#c_int(0)
-                    #r=pyViewX.ConfigureFilter(pyViewX.etFilterType.get('Average_Enabled'), 
-                    #                        pyViewX.etFilterAction.get('Get'),
-                    #                        filter_state_get#byref(filter_state)
-                    #                        )
-                    #print2err("GET result: ",r," state: ",filter_state_get)
+                    # Try to enable filtering using the
+                    # new ConfigureFilter function added in Feb 2014 SMI API
+                    # release.
+                    try:
+                        enable_it = c_int(1)
+                        filter_state_set = POINTER(c_int)(enable_it)
+                        pyViewX.ConfigureFilter(pyViewX.etFilterType.get('Average_Enabled'),
+                                                  pyViewX.etFilterAction.get('Set'),
+                                                  filter_state_set
+                                                )
+                    except Exception, e:
+                        print2err("Note: pyViewX.ConfigureFilter to disable filtering call failed.")
+
+                    # Try enabling filtering using the DisableGazeDataFilter
+                    # SMI C func. Not sure if this is 'officially' supported.
                     pyViewX.EnableGazeDataFilter()
                 else:
                     print2err("Warning: Unsupported iViewX sample filter level value: ",filter_level, "=", level_int)
@@ -401,28 +403,28 @@ class EyeTracker(EyeTrackerDevice):
                 self._showEyeImageMonitor()
                 self._showTrackingMonitor()
             else:    
-                self._last_setup_result=EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT
+                self._last_setup_result = EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT
             self._unregisterKeyboardMonitor()
             
             return self._last_setup_result
-        except Exception,e:
+        except Exception, e:
             self._unregisterKeyboardMonitor()
             printExceptionDetailsToStdErr()
-        finally:
-            hide_funcs=[pyViewX.HideAccuracyMonitor,
+
+        try:
+            hide_funcs = [pyViewX.HideAccuracyMonitor,
                         pyViewX.HideEyeImageMonitor,
                         pyViewX.HideSceneVideoMonitor,
                         pyViewX.HideTrackingMonitor
                         ]
             for f in hide_funcs:
-                try:
                     f()
-                except:
-                    print2err('Exception while trying to call: {0}'.format(f))
+        except:
+            print2err('Exception while trying to call: {0}'.format(f))
                     
-    def _showSimpleWin32Dialog(self,message,caption):
+    def _showSimpleWin32Dialog(self, message, caption):
         import win32gui
-        win32gui.MessageBox(None,message,caption,0)
+        win32gui.MessageBox(None, message, caption, 0)
                     
     def _showSetupKeyOptionsDialog(self):
         msg_text="The following Keyboard Commands will be available during User Setup:\n"
@@ -627,24 +629,29 @@ class EyeTracker(EyeTrackerDevice):
 
             class KeyboardEventHandler(object):
                 def __init__(self,et,kb):
-                    import weakref
-                    self.et=weakref.proxy(et)
-                    self.kb=weakref.proxy(kb)
-                    self.kb._addEventListener(self,eventIDs)
-                    self.et._kbEventQueue=[]
+                    self.et = et
+                    self.kb = kb
+                    self.kb._addEventListener(self, eventIDs)
+                    self.et._kbEventQueue = []
 
                 def _handleEvent(self, ioe):
-                    event_type_index=DeviceEvent.EVENT_TYPE_ID_INDEX
+                    event_type_index = DeviceEvent.EVENT_TYPE_ID_INDEX
                     if ioe[event_type_index] == EventConstants.KEYBOARD_PRESS:
                         self.et._kbEventQueue.append(ioe)
+
+                def free(self):
+                    self.kb._removeEventListener(self)
+                    del self.et._kbEventQueue[:]
+                    self.et = None
+                    self.kb = None
 
             self._ioKeyboardHandler = KeyboardEventHandler(self, kbDevice)
              
     def _unregisterKeyboardMonitor(self):
         if self._ioKeyboardHandler:
-            self._ioKeyboardHandler.kb._removeEventListener(self)
-            self._ioKeyboardHandler=None
-            del self._kbEventQueue[:]
+            self._ioKeyboardHandler.free()
+            self._ioKeyboardHandler = None
+
             
 
     def isRecordingEnabled(self,*args,**kwargs):
