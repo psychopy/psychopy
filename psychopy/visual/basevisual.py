@@ -718,7 +718,7 @@ class TextureMixin(object):
             data[:,:,0] = intensity#R
             data[:,:,1] = intensity#G
             data[:,:,2] = intensity#B
-        elif pixFormat==GL.GL_RGB and not stim.useShaders: #Grating on legacy hardware, or ImageStim with wasLum=True
+        elif pixFormat==GL.GL_RGB and wasLum and not stim.useShaders: #Grating on legacy hardware, or ImageStim with wasLum=True
             #scale by rgb and convert to ubyte
             internalFormat = GL.GL_RGB
             if stim.colorSpace in ['rgb', 'dkl', 'lms','hsv']:
