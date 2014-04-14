@@ -1163,9 +1163,10 @@ class ValidationProcedure(object):
 
         if self.show_results_screen:
             # Display Accuracy Results Plot
-            self.showResultsScreen()
-            self._waitForTrigger(' ')
-
+            if self.showResultsScreen() is not None:
+                self._waitForTrigger(' ')
+                return True
+            return False
         
         return self.validation_results
         
@@ -1179,6 +1180,7 @@ class ValidationProcedure(object):
     
     def _createPlot(self):
         try:
+            self.validation_results=None
             sample_array=self.targetsequence.getSampleMessageData()
             if self.results_in_degrees:
                 for postdat in sample_array:
@@ -1206,14 +1208,21 @@ class ValidationProcedure(object):
             max_error=0.0
             summed_error=0.0
             point_count=0
-            
+
+            self.io.sendMessageEvent("Results",'VALIDATION')
             results=dict(display_size=self.display_size,
                          position_count=len(sample_array),
                          positions_failed_processing=0,
                          target_positions=[p for p in self.targetsequence.positions],
                          position_results=[])
+
+            self.io.sendMessageEvent("display_size: {0}".format(self.display_size), 'VALIDATION')
+            self.io.sendMessageEvent("target position_count: {0}".format(len(sample_array)), 'VALIDATION')
+            self.io.sendMessageEvent("target_positions: {0}".format([p for p in self.targetsequence.positions]), 'VALIDATION')
+
             for pindex,samplesforpos in enumerate(sample_array):
-                
+                self.io.sendMessageEvent("Target Position Results: {0}".format(pindex), 'VALIDATION')
+
                 stationary_samples=samplesforpos[samplesforpos['targ_state'] == 
                                             self.targetsequence.TARGET_STATIONARY]
             
@@ -1267,7 +1276,10 @@ class ValidationProcedure(object):
                                       sample_from_filter_stages=sample_msg_data_filtering,
                                       valid_filtered_sample_perc=accuracy_calc_good_sample_perc
                                       )
-                
+                self.io.sendMessageEvent("sample_time_range: {0}".format([first_stime,last_stime]), 'VALIDATION')
+                self.io.sendMessageEvent("filter_samples_time_range: {0}".format([filter_stime,filter_etime]), 'VALIDATION')
+                self.io.sendMessageEvent("valid_filtered_sample_perc: {0}".format(accuracy_calc_good_sample_perc), 'VALIDATION')
+
                 if accuracy_calc_good_sample_perc == 0.0:
                     position_results['calculation_status']='FAILED'
                     results['positions_failed_processing']+=1
@@ -1310,9 +1322,16 @@ class ValidationProcedure(object):
                     position_results['max_error']=lr_error_max
                     position_results['mean_error']=lr_error_mean
                     position_results['stdev_error']=lr_error_std
-                    
-                    normed_error=lr_error/lr_error_max
-                    normed_time=(time-time.min())/(time.max()-time.min())
+
+                    self.io.sendMessageEvent("calculation_status: {0}".format('PASSED'), 'VALIDATION')
+                    self.io.sendMessageEvent("target_position: {0}".format((target_x[0],target_y[0])), 'VALIDATION')
+                    self.io.sendMessageEvent("min_error: {0}".format(lr_error_min), 'VALIDATION')
+                    self.io.sendMessageEvent("max_error: {0}".format(lr_error_max), 'VALIDATION')
+                    self.io.sendMessageEvent("mean_error: {0}".format(lr_error_mean), 'VALIDATION')
+                    self.io.sendMessageEvent("stdev_error: {0}".format(lr_error_std), 'VALIDATION')
+                    self.io.sendMessageEvent("Done Target Position Results : {0}".format(pindex), 'VALIDATION')
+
+                    normed_time = (time-time.min())/(time.max()-time.min())
                     
                     pl.scatter(target_x[0], 
                                target_y[0], 
@@ -1352,7 +1371,12 @@ class ValidationProcedure(object):
             results['min_error']=min_error
             results['max_error']=max_error
             results['mean_error']=mean_error
-            
+
+            self.io.sendMessageEvent("Overall Results Coord Type: {0}".format(unit_type), 'VALIDATION')
+            self.io.sendMessageEvent("min_error: {0}".format(min_error), 'VALIDATION')
+            self.io.sendMessageEvent("max_error: {0}".format(max_error), 'VALIDATION')
+            self.io.sendMessageEvent("mean_error: {0}".format(mean_error), 'VALIDATION')
+
             self.validation_results=results
             
             #pl.colorbar()
@@ -1364,154 +1388,16 @@ class ValidationProcedure(object):
             traceback.print_exc()
             print
     
+        self.io.sendMessageEvent("Validation Report Complete", 'VALIDATION')
+
     def getValidationResults(self):
-        """
-        Returns the last calulationed validation accuracy results, including
-        event data used in calculations.
-        
-        Validation results dict structure:
-        
-        {
-        # Resolution of the display during validation.
-        'display_size': array([1280, 1024]),
-        # Minimum error for all target positions. In display coord units.
-        'min_error': 4.880888,
-        # Maximum error for all target positions. In display coord units.
-        'max_error': 43.408658,
-        # Mean error for all target positions. In display coord units.
-        'mean_error': 28.65743,
-        # Number of validation Target Positions displayed.
-        'position_count': 10,
-        # Number of validation Target Positions for which not valid samples could
-        # be found following sample selection process. 
-        'positions_failed_processing': 0,
-        # List of x,y target positions, in the order presented. Units in display
-        # unit space (PsychoPy 'pix' in this example).
-        'target_positions': [array([ 0.,  0.]),
-                              array([-544. ,  435.2]),
-                              array([-544.,    0.]),
-                              array([-544. , -435.2]),
-                              array([ 544. ,  435.2]),
-                              array([   0. ,  435.2]),
-                              array([ 544. , -435.2]),
-                              array([ 544.,    0.]),
-                              array([   0. , -435.2]),
-                              array([ 0.,  0.])]     
-         # Error calculations and raw sample-message evements used in those
-         # calculations for one of the target positions presented during the 
-         # validation process. The position_results list will have a  length
-         # = position_count - 
-         'position_results': [{
-                           # Index of the current target position in the position
-                           # display order
-                           'pos_index': 0,
-    
-                           # Window final position of the current target.
-                           'target_position': (0.0, 0.0),
-    
-                           # The proportion of samples that were selected for use
-                           # in the accuracy calculations that were valid.
-                           # Invalid samples were not included in accuracy 
-                           # calculations.
-                           'valid_filtered_sample_perc': 0.9583333333333334},
-    
-                           # Did the current validation target position
-                           # have data points for use in the accuracy calcs.
-                           # If valid_filtered_sample_perc == 0, this == FAILED
-                           'calculation_status': 'PASSED',
-    
-                           # Minimum error (in display units) for this position. 
-                           'min_error': 35.235695,
-    
-                           # maximum error (in display units) for this position. 
-                           'max_error': 126.20883,
-    
-                           # Mean error (in display units) for this position. 
-                           'mean_error': 49.254543,
-    
-                           # Stdev of error calculated for the current target pos. 
-                           'stdev_error': 17.085871,
-    
-                           # Time of first and last eye sample collected for 
-                           # current target position. 
-                           'sample_time_range': [62.145691, 63.626179],
-    
-                            # Time period used to filter sample-message data points
-                           'filter_samples_time_range': [63.076178741455081,
-                                                         63.47617874145508],
-    
-                           # Data collected from current target position period.
-                           'sample_from_filter_stages':
-                               # Each key provides sample-message data points
-                               # for a given stage of sample selection filtering.
-                               OrderedDict{
-                                   # All sample-message data points during the
-                                   # target point display. 
-                                   'all_samples': array([ 
-                                           # Each sample-message 
-                                           # data point combines data from an eye 
-                                           # sample with data about the experiment
-                                           # message prior to, and following, the 
-                                           # eye sample time.
-                                           (
-                                            0,                  # targ_pos_ix 
-                                            62.15571594238281,  # last_msg_time
-                                            'SYNCTIME',         # last_msg_type
-                                            63.66259002685547,  # next_msg_time
-                                            'NEXT_POS_TRIG',    # next_msg_type
-                                            0.0,                # targ_pos_x
-                                            0.0,                # targ_pos_y
-                                            1,                  # targ_state
-                                            63.07658386230469,  # eye_time
-                                            0,                  # eye_status
-                                            7.505566120147705,  # left_eye_x
-                                            -60.00013732910156, # left_eye_y
-                                            2.901397705078125,  # left_pupil_size
-                                            -20.609329223632812,# right_eye_x
-                                            -21.901472091674805,# right_eye_y
-                                            2.976409912109375   # right_pupil_size
-                                            ),
-                                            # ......
-                                            # for all samples in the current 
-                                            # selection level.
-                                            ]),
-                                   # Sample-Message elements that occurred when 
-                                   # target was stationary at end data of any 
-                                   # animation graphics. 
-                                   'stationary_samples': array([
-                                            # Array of Sample-message data elements.
-                                            # for current selection level.
-                                            # ......
-                                            ]),
-                                   # Sample-Message elements that occurred within 
-                                   # the specified time period prior to target 
-                                   # graphics removal.
-                                   'time_filtered_samples': array([
-                                            # Array of Sample-message data elements.
-                                            # for current selection level.
-                                            # ......
-                                            ]),
-                                   # Final set of data used in accuracy calculation. 
-                                   'used_samples': array([
-                                            # Array of Sample-message data elements.
-                                            # for current selection level.
-                                            # ......
-                                            ]),
-                                    }, # Completed sample_from_filter_stages dict
-                         }, #End of one entry in the position_results list.
-                         {
-                         # Next position_results list enty, ....
-                         },
-            ] # End of the position_results list.
-        } # End of validation results dict        
-        """
         return self.validation_results
         
     def _buildResultScreen(self,replot=False):
         if replot or self.imagestim is None:        
-            fig=self._createPlot()
+            fig = self._createPlot()
             text_pos=(0,0)
-            text='Accuracy calculation not Possible. Press SPACE to continue.'
+            text='Accuracy Calculation not Possible do to Analysis Error. Press SPACE to continue.'
             
             if fig:
                 fig_name=self._generateImageName()
@@ -1527,9 +1413,11 @@ class ValidationProcedure(object):
                                                       units='pix', 
                                                       pos=(0.0, 0.0))
                     
-                text='Press SPACE to continue.'
-                text_pos=(0.0, -(self.display_size[1]/2.0)*.9)
-                       
+                text = 'Press SPACE to continue.'
+                text_pos = (0.0, -(self.display_size[1]/2.0)*.9)
+            else:
+                self.imagestim = None
+
             if self.textstim is None:
                 self.textstim=visual.TextStim(self.win,
                     text=text, pos=text_pos, 
@@ -1541,15 +1429,15 @@ class ValidationProcedure(object):
             else:
                 self.textstim.setText(text)
                 self.textstim.setPos(text_pos)
-                
-            return True
+
         elif self.imagestim:
                 return True
         return False        
 
     def showResultsScreen(self):
         self._buildResultScreen()
-        self.imagestim.draw()
+        if self.imagestim:
+            self.imagestim.draw()
         self.textstim.draw()
         return self.win.flip()
 
