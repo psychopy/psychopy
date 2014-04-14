@@ -15,6 +15,4 @@ own testimonial then go to this
 but we'll try and remember to do it every now and then. Please don't swear!!)
 
 .. raw:: html
-
-    <hr>I found it helped but it does have issues. <br><br>keep it up! <p>
-    - <em>JonP, Assoc Prof, University of Nottingham, School of Psych </em><br>
+   :file: testimonialsText.html
