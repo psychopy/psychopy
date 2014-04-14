@@ -73,6 +73,29 @@ class _baseVisualTest:
             assert stim.status==visual.FINISHED
             assert stim.status==visual.STOPPED
             str(stim) #check that str(xxx) is working
+    def test_imageAndGauss(self):
+        win = self.win
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
+        #use image stim
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        image = visual.ImageStim(win, image=fileName, mask='gauss', 
+                                 size=size, flipHoriz=True, flipVert=True, autoLog=False)
+        image.draw()
+        utils.compareScreenshot('imageAndGauss%s.png' %(self.contextName), win)
+        win.flip()
+    def test_gratingImageAndGauss(self):
+        win = self.win
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        #generate identical image as test_imageAndGauss but using GratingStim
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
+        if win.units in ['norm','height']:
+            sf = -1.0
+        else:
+            sf = -1.0/size #this will do the flipping and get exactly one cycle
+        image = visual.GratingStim(win, tex=fileName, size=size, sf=sf, mask='gauss', autoLog=False)
+        image.draw()
+        utils.compareScreenshot('imageAndGauss_%s.png' %(self.contextName), win)
+        win.flip()
     def test_greyscaleImage(self):
         win = self.win
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'greyscale.jpg')
@@ -374,6 +397,11 @@ class _baseVisualTest:
         grating.draw()
         utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win)
         #aperture should automatically disable on exit
+        for shape, nVert, pos in [(None, 120, (0,0)), ('circle', 17, (.2, -.7)),
+                                  ('square', 4, (-.5,-.5)), ('triangle', 3, (1,1))]:
+            aperture = visual.Aperture(win, pos=pos, shape=shape, nVert=nVert, autoLog=False)
+            assert len(aperture.vertices) == nVert
+            assert aperture.contains(pos)
     def test_rating_scale(self):
         if self.win.winType=='pygame':
             pytest.skip("RatingScale not available on pygame")

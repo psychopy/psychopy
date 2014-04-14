@@ -77,7 +77,14 @@ Linux
 
   (Thanks to Yaroslav Halchenko for the Debian and NeuroDebian package.)
 
-**non-Debian** systems:
+**Gentoo**
+    PsychoPy is in the Gentoo Sceince Overlay (see `this link <https://github.com/gentoo-science/sci/tree/master/sci-biology/psychopy>`_ for the ebuild files).
+    After you have `enabled the overlay <http://wiki.gentoo.org/wiki/Overlay>`_ simply run::
+    
+    # emerge psychopy
+    
+
+**Other** systems:
   You need to install the dependencies below. Then install PsychoPy::
 
     $ sudo easy_install psychopy

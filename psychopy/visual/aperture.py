@@ -1,7 +1,6 @@
 #!/usr/bin/env python2
 
-'''Restrict a stimulus visibility area to a basic shape
-(circle, square, triangle)'''
+'''Restrict a stimulus visibility area to a basic shape or list of vertices'''
 
 # Part of the PsychoPy library
 # Copyright (C) 2014 Jonathan Peirce
@@ -16,24 +15,24 @@ pyglet.options['debug_gl'] = False
 GL = pyglet.gl
 
 import psychopy  # so we can get the __path__
-from psychopy import logging
+from psychopy import logging, core
 import psychopy.event
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import logAttrib
-from psychopy.visual import polygon, shape
+from psychopy.visual.shape import ShapeStim
 from psychopy.visual.basevisual import MinimalStim, ContainerMixin
-ShapeStim = shape.ShapeStim
 
 import numpy
+from numpy import cos, sin, radians
 
 from psychopy.constants import STARTED, STOPPED
 
 
 class Aperture(MinimalStim, ContainerMixin):
-    """Restrict a stimulus visibility area to a basic shape (circle, square, triangle)
+    """Restrict a stimulus visibility area to a basic shape or list of vertices.
 
     When enabled, any drawing commands will only operate on pixels within the
     Aperture. Once disabled, subsequent draw operations affect the whole screen
@@ -48,8 +47,9 @@ class Aperture(MinimalStim, ContainerMixin):
     :Author:
         2011, Yuri Spitsyn
         2011, Jon Peirce added units options, Jeremy Gray added shape & orientation
+        2014, Jeremy Gray added .contains() option
     """
-    def __init__(self, win, size, pos=(0,0), ori=0, nVert=120, shape='circle', units=None,
+    def __init__(self, win, size=1, pos=(0,0), ori=0, nVert=120, shape='circle', units=None,
             name='', autoLog=True):
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
@@ -59,6 +59,11 @@ class Aperture(MinimalStim, ContainerMixin):
         #set self params
         self.autoLog=False #set this False first and change after attribs are set
         self.win=win
+        if not win.allowStencil:
+            logging.error('Aperture has no effect in a window created without allowStencil=True')
+            core.quit()
+        self.size = size
+        self.pos = pos
         self.name = name
         self.ori = ori
         #unit conversions
@@ -67,45 +72,27 @@ class Aperture(MinimalStim, ContainerMixin):
         else:
             self.units = win.units
 
-        # ugly hack for setting vertices using combination of shape and nVerts
-        if type(nVert) == int:
-            self.nVert = nVert
-        regularPolygon = True
-        self.shape = shape
-        unrecognized = False
-        if shape is None:
-            pass #just use the nVert we were given
-        elif type(shape) in [str, unicode]:
-            if shape.lower() == 'circle':
-                pass #just use the nVert we were given
-            elif shape.lower() == 'square':
-                regularPolygon = False # if we use polygon then we have to hack the orientation
-                vertices = [[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]]
-            elif shape.lower() == 'triangle':
-                regularPolygon = False # if we use polygon then we have to hack the orientation
-                vertices = [[0.5,-0.5],[0,0.5],[-0.5,-0.5]]
-            else:
-                unrecognized = True
-        elif type(shape) in [tuple, list, numpy.ndarray]:
-            regularPolygon = False
+        # set vertices using shape, or default to a circle with nVerts edges
+        if hasattr(shape, 'lower'):
+            shape = shape.lower()
+        if shape is None or shape == 'circle':
+            # NB: pentagon etc point upwards by setting x,y to be y,x (sin,cos):
+            vertices = [(0.5*sin(radians(theta)), 0.5*cos(radians(theta)))
+                        for theta in numpy.linspace(0, 360, nVert, False)]
+        elif shape == 'square':
+            vertices = [[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]]
+        elif shape == 'triangle':
+            vertices = [[0.5,-0.5],[0,0.5],[-0.5,-0.5]]
+        elif type(shape) in [tuple, list, numpy.ndarray] and len(shape) > 2:
             vertices = shape
         else:
-            unrecognized = True
-        if unrecognized:
-            logging.warn("Unrecognized shape for aperture. Expected 'circle', 'square', 'triangle', vertices or None but got %s" %(repr(shape)))
-        if regularPolygon:
-            self._shape = polygon.Polygon(win=self.win, edges=self.nVert,
-                                          fillColor=1, lineColor=None,
-                                          interpolate=False,
-                                          pos=pos,
-                                          size=size)
-        else:
-            self._shape = ShapeStim(win=self.win, vertices=vertices,
-                                          fillColor=1, lineColor=None,
-                                          interpolate=False,
-                                          pos=pos,
-                                          size=size)
+            logging.error("Unrecognized shape for aperture. Expected 'circle', 'square', 'triangle', vertices, or None; got %s" %(repr(shape)))
+        self._shape = ShapeStim(win=self.win, vertices=vertices,
+                                fillColor=1, lineColor=None,
+                                interpolate=False, pos=pos, size=size,
+                                autoLog=False)
 
+        self.vertices = self._shape.vertices
         self._needVertexUpdate = True
         self._reset()#implicitly runs an self.enable()
         self.autoLog= autoLog

@@ -6,26 +6,7 @@
 
 '''Functions and classes related to unit conversion'''
 
-import numpy
+# This module is not used by psychopy; retained for backwards compatibility
+# for user-scripts.
 
-
-def radians(degrees):
-    """Convert degrees to radians
-
-    >>> radians(180)
-    3.1415926535897931
-    >>> radians(45)
-    0.78539816339744828
-    """
-    return degrees*0.017453292519943295 #0.017453292519943295 = pi/180
-
-def degrees(radians):
-    """Convert radians to degrees
-
-    >>> from numpy import pi
-    >>> degrees(pi/2)
-    90.0
-    >>> degrees(pi/2)
-    90.0
-    """
-    return radians/0.017453292519943295 #0.017453292519943295 = pi/180
+from numpy import radians, degrees

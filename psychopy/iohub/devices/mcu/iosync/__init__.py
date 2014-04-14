@@ -121,12 +121,7 @@ class MCU(Device):
     def setConnectionState(self,enable):
         if enable is True:
             if self._mcu is None:
-                serial_id=None
-                if self.serial_port.upper().strip().startswith('COM'):
-                     serial_id=int(self.serial_port.strip()[3:])
-                else:
-                    serial_id= self.serial_port.strip()   
-                self._mcu = T3MC(serial_id)
+                self._mcu = T3MC(self.serial_port)
                 self._resetLocalState()
 
         elif enable is False:

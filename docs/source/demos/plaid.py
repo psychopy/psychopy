@@ -5,10 +5,10 @@ from psychopy import visual, core, event
 myWin = visual.Window((600,600), allowGUI=False)
 
 #INITIALISE SOME STIMULI
-grating1 = visual.PatchStim(myWin,mask="gauss",
+grating1 = visual.GratingStim(myWin,mask="gauss",
     rgb=[1.0,1.0,1.0],opacity=1.0,
     size=(1.0,1.0), sf=(4,0), ori = 45)
-grating2 = visual.PatchStim(myWin,mask="gauss",
+grating2 = visual.GratingStim(myWin,mask="gauss",
     rgb=[1.0,1.0,1.0],opacity=0.5,
     size=(1.0,1.0), sf=(4,0), ori = 135)
 

@@ -42,7 +42,7 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
             # should be a value between 0 and 255. 0 == black, 255 == white. In general
             # the last value of the color list (alpha) can be left at 255, indicating
             # the color not mixed with the background color at all.
-            screen_background_color: [128,128,128,255]
+            screen_background_color: [128,128,128]
             # target type defines what form of calibration graphic should be used
             # during calibration, validation, etc. modes.
             # not all implementation will support all target types.
@@ -55,12 +55,12 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
             circle_attributes:
                 outer_diameter: 33
                 inner_diameter: 6
-                outer_color: [255,255,255,255]
-                inner_color: [0,0,0,255]
+                outer_color: [255,255,255]
+                inner_color: [0,0,0]
             crosshair_attributes:
                 line_length: 33
                 line_width: 3
-                line_color: [255,255,255,255]
+                line_color: [255,255,255]
             image_attributes:
                 name: calibration_target.png
                 # 0 means use original image width

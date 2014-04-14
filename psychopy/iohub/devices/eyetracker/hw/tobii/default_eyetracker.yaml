@@ -62,7 +62,7 @@ eyetracker.hw.tobii.EyeTracker:
         # be displayed before moving onto the next point when auto_pace is set to true.
         # If auto_pace is False, pacing_speed is ignored.
         #
-        pacing_speed: 1.5
+        pacing_speed: 1.0
         
         # screen_background_color specifies the r,g,b background color to 
         # set the calibration, validation, etc, screens to. Each element of the color
@@ -126,7 +126,7 @@ eyetracker.hw.tobii.EyeTracker:
                  # graphic should use when gliding from one calibration
                  # point to another. Always in pixels / second.
                  #
-                 movement_velocity: 600.0 
+                 movement_velocity: 900.0 
                  # expansion_ratio: The outer circle of the calibration target
                  # can expand (and contract) when displayed at each position.
                  # expansion_ratio gives the largest size of the outer circle 
@@ -139,7 +139,7 @@ eyetracker.hw.tobii.EyeTracker:
                  # expansion_speed: The rate at which the outer circle
                  # graphic should expand. Always in pixels / second. 
                  # 
-                 expansion_speed: 30.0
+                 expansion_speed: 60.0
                  # contract_only: If the calibration target should expand from
                  # the outer circle initial diameter to the larger diameter
                  # and then contract back to the original diameter, set 
