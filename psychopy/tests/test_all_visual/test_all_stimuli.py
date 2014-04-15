@@ -78,10 +78,10 @@ class _baseVisualTest:
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
         #use image stim
         size = numpy.array([2.0,2.0])*self.scaleFactor
-        image = visual.ImageStim(win, image=fileName, mask='gauss', 
+        image = visual.ImageStim(win, image=fileName, mask='gauss',
                                  size=size, flipHoriz=True, flipVert=True, autoLog=False)
         image.draw()
-        utils.compareScreenshot('imageAndGauss%s.png' %(self.contextName), win)
+        utils.compareScreenshot('imageAndGauss_%s.png' %(self.contextName), win)
         win.flip()
     def test_gratingImageAndGauss(self):
         win = self.win
@@ -332,6 +332,17 @@ class _baseVisualTest:
         str(image) #check that str(xxx) is working
         image.draw()
         utils.compareScreenshot('simpleimage1_%s.png' %(self.contextName), win, crit=5.0) # Should be exact replication
+    def test_dotsUnits(self):
+        #to test this create a small dense circle of dots and check the circle
+        #has correct dimensions
+        fieldSize = numpy.array([1.0,1.0])*self.scaleFactor
+        pos = numpy.array([0.5,0])*fieldSize
+        dotSize = 5
+        dots = visual.DotStim(self.win, color=[-1.0,0.0,0.5], dotSize=5,
+                              nDots=1000, fieldShape='circle', fieldPos=pos)
+        dots.draw()
+        utils.compareScreenshot('dots_%s.png' %(self.contextName), self.win, crit=20)
+        self.win.flip()
     def test_dots(self):
         #NB we can't use screenshots here - just check that no errors are raised
         win = self.win
