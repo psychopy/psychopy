@@ -354,7 +354,7 @@ class ColorMixin(object):
         return desiredRGB
 
 class ContainerMixin(object):
-    """Mixin class for visual stim that need polygon .contains() methods.
+    """Mixin class for visual stim that have verticesPix attrib and .contains() methods.
     """
     def __init__(self):
         super(ContainerMixin, self).__init__()

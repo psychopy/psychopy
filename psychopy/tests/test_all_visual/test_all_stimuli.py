@@ -232,9 +232,14 @@ class _baseVisualTest:
         if not os.path.isfile(fileName):
             raise IOError('Could not find movie file: %s' % os.path.abspath(fileName))
         #then do actual drawing
-        mov = visual.MovieStim(win, fileName)
+        pos = [0.6*self.scaleFactor, -0.6*self.scaleFactor]
+        mov = visual.MovieStim(win, fileName, pos=pos)
+        mov.setFlipVert(True)
+        mov.setFlipHoriz(True)
         for frameN in range(10):
             mov.draw()
+            if frameN==0:
+                utils.compareScreenshot('movFrame1_%s.png' %(self.contextName), win)
             win.flip()
         str(mov) #check that str(xxx) is working
     def test_rect(self):
