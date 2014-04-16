@@ -19,7 +19,7 @@ GL = pyglet.gl
 import ctypes
 
 #try to find avbin (we'll overload pyglet's load_library tool and then add some paths)
-if sys.platform == "darwin" and pyglet.version < "1.2":
+if pyglet.version < "1.2" or sys.platform != "darwin":
     import pyglet.lib
 
     # This piece of code does no longer work with pyglet 1.2alpha and results in the pyglet.gl
