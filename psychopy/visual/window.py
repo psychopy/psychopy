@@ -1381,7 +1381,7 @@ class Window:
         #identify gfx card vendor
         self.glVendor = GL.gl_info.get_vendor().lower()
 
-        if sys.platform == 'darwin' and pyglet.version < "1.2":
+        if pyglet.version < "1.2" or sys.platform != "darwin":
             platform_specific.syncSwapBuffers(1)
 
         if self.useFBO:
