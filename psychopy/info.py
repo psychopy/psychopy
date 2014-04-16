@@ -4,13 +4,13 @@
 # Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import sys, os, time, platform
+import sys, os, platform
 
 from psychopy import visual, logging, core, data, web
 from psychopy.core import shellCall
 from psychopy.platform_specific import rush
 from psychopy import __version__ as psychopyVersion
-from pyglet.gl import *
+from pyglet.gl import gl_info, GLint, glGetIntegerv, GL_MAX_ELEMENTS_VERTICES
 import numpy, scipy, matplotlib, pyglet
 try:
     import ctypes
@@ -39,7 +39,7 @@ class RunTimeInfo(dict):
         - 2010 written by Jeremy Gray, with input from Jon Peirce and Alex Holcombe
     """
     def __init__(self, author=None, version=None, win=None, refreshTest='grating',
-                 userProcsDetailed=False, verbose=False, randomSeed=None ):
+                 userProcsDetailed=False, verbose=False, randomSeed=None):
         """
         :Parameters:
 
@@ -125,20 +125,20 @@ class RunTimeInfo(dict):
     def _setExperimentInfo(self, author, version, verbose, randomSeedFlag=None):
         # try to auto-detect __author__ and __version__ in sys.argv[0] (= the users's script)
         if not author or not version:
-            f = open(sys.argv[0],'r')
+            f = open(sys.argv[0], 'r')
             lines = f.read()
             f.close()
-        if not author and lines.find('__author__')>-1:
+        if not author and '__author__' in lines:
             linespl = lines.splitlines()
             while linespl[0].find('__author__') == -1:
                 linespl.pop(0)
             auth = linespl[0]
-            if len(auth) and auth.find('=') > 0:
+            if len(auth) and '=' in auth:
                 try:
                     author = str(eval(auth[auth.find('=')+1 :]))
                 except:
                     pass
-        if not version and lines.find('__version__')>-1:
+        if not version and '__version__' in lines:
             linespl = lines.splitlines()
             while linespl[0].find('__version__') == -1:
                 linespl.pop(0)
@@ -159,10 +159,10 @@ class RunTimeInfo(dict):
         scriptDir = os.path.dirname(os.path.abspath(sys.argv[0]))
         self['experimentScript.directory'] = scriptDir
         # sha1 digest, text-format compatibility
-        self['experimentScript.digestSHA1'] = _getSha1hexDigest(os.path.abspath(sys.argv[0]), file=True)
+        self['experimentScript.digestSHA1'] = _getSha1hexDigest(os.path.abspath(sys.argv[0]), isfile=True)
         # subversion revision?
         try:
-            svnrev, last, url = _getSvnVersion(os.path.abspath(sys.argv[0])) # svn revision
+            svnrev, last, url = _getSvnVersion(os.path.abspath(sys.argv[0]))  # svn revision
             if svnrev: # or verbose:
                 self['experimentScript.svnRevision'] = svnrev
                 self['experimentScript.svnRevLast'] = last
@@ -185,13 +185,13 @@ class RunTimeInfo(dict):
         if randomSeedFlag:
             randomSeedFlag = str(randomSeedFlag)
             while randomSeedFlag.find('set: ') == 0:
-                randomSeedFlag = randomSeedFlag.replace('set: ','set:',1) # spaces between set: and value could be confusing after deleting 'set:'
-            randomSeed = randomSeedFlag.replace('set:','',1).strip()
+                randomSeedFlag = randomSeedFlag.replace('set: ', 'set:', 1)  # spaces between set: and value could be confusing after deleting 'set:'
+            randomSeed = randomSeedFlag.replace('set:', '', 1).strip()
             if randomSeed in ['time']:
                 randomSeed = self['experimentRunTime.epoch']
             self['experimentRandomSeed.string'] = randomSeed
             if randomSeedFlag.find('set:') == 0:
-                random.seed(self['experimentRandomSeed.string']) # seed it
+                random.seed(self['experimentRandomSeed.string'])  # seed it
                 self['experimentRandomSeed.isSet'] = True
             else:
                 self['experimentRandomSeed.isSet'] = False
@@ -200,28 +200,28 @@ class RunTimeInfo(dict):
             self['experimentRandomSeed.isSet'] = False
 
     def _setSystemInfo(self):
+        """system info"""
         # machine name
         self['systemHostName'] = platform.node()
 
         self['systemMemTotalRAM'], self['systemMemFreeRAM'] = getRAM()
 
         # locale information:
-        import locale
-        loc = '.'.join(map(str,locale.getlocale()))  # (None, None) -> str
+        loc = '.'.join([str(x) for x in locale.getlocale()])  # (None, None) -> str
         if loc == 'None.None':
-            loc = locale.setlocale(locale.LC_ALL,'')
+            loc = locale.setlocale(locale.LC_ALL, '')
         self['systemLocale'] = loc  # == the locale in use, from OS or user-pref
 
         # platform name, etc
         if sys.platform in ['darwin']:
-            OSXver, junk, architecture = platform.mac_ver()
-            platInfo = 'darwin '+OSXver+' '+architecture
+            OSXver, __, architecture = platform.mac_ver()
+            platInfo = 'darwin ' + OSXver + ' ' + architecture
             # powerSource = ...
         elif sys.platform.startswith('linux'):
-            platInfo = 'linux '+platform.release()
+            platInfo = 'linux ' + platform.release()
             # powerSource = ...
         elif sys.platform in ['win32']:
-            platInfo = 'windowsversion='+repr(sys.getwindowsversion())
+            platInfo = 'windowsversion=' + repr(sys.getwindowsversion())
             # powerSource = ...
         else:
             platInfo = ' [?]'
@@ -230,7 +230,7 @@ class RunTimeInfo(dict):
         #self['systemPowerSource'] = powerSource
 
         # count all unique people (user IDs logged in), and find current user name & UID
-        self['systemUser'],self['systemUserID'] = _getUserNameUID()
+        self['systemUser'], self['systemUserID'] = _getUserNameUID()
         try:
             users = shellCall("who -q").splitlines()[0].split()
             self['systemUsersCount'] = len(set(users))
@@ -243,20 +243,20 @@ class RunTimeInfo(dict):
             self['systemRebooted'] = ' '.join(lastboot[2:])
         except: # windows
             sysInfo = shellCall('systeminfo').splitlines()
-            lastboot = [line for line in sysInfo if line.find("System Up Time") == 0 or line.find("System Boot Time") == 0]
+            lastboot = [line for line in sysInfo if line.startswith("System Up Time") or line.startswith("System Boot Time")]
             lastboot += ['[?]'] # put something in the list just in case
             self['systemRebooted'] = lastboot[0].strip()
 
         # R (and r2py) for stats:
         try:
-            Rver,err = shellCall("R --version",stderr=True)
+            Rver = shellCall(["R", "--version"])
             Rversion = Rver.splitlines()[0]
             if Rversion.startswith('R version'):
                 self['systemRavailable'] = Rversion.strip()
             try:
                 import rpy2
                 self['systemRpy2'] = rpy2.__version__
-            except:
+            except ImportError:
                 pass
         except:
             pass
@@ -265,16 +265,16 @@ class RunTimeInfo(dict):
         try:
             vers, se = shellCall('openssl version', stderr=True)
             if se:
-                vers = str(vers) + se.replace('\n',' ')[:80]
+                vers = str(vers) + se.replace('\n', ' ')[:80]
             if vers.strip():
                 self['systemSec.OpenSSLVersion'] = vers
         except:
             pass
         try:
-            so, se = shellCall('gpg --version', stderr=True)
+            so = shellCall(['gpg', '--version'])
             if so.find('GnuPG') > -1:
                 self['systemSec.GPGVersion'] = so.splitlines()[0]
-                self['systemSec.GPGHome'] = ''.join([line.replace('Home:','').lstrip()
+                self['systemSec.GPGHome'] = ''.join([line.replace('Home:', '').lstrip()
                                                     for line in so.splitlines()
                                                     if line.startswith('Home:')])
         except:
@@ -319,19 +319,18 @@ class RunTimeInfo(dict):
             self['systemHaveInternetAccess'] = 'False (proxies not attempted)'
 
     def _setCurrentProcessInfo(self, verbose=False, userProcsDetailed=False):
-        # what other processes are currently active for this user?
-        profileInfo = ''
+        """what other processes are currently active for this user?"""
         appFlagList = [# flag these apps if active, case-insensitive match:
-            'Firefox','Safari','Explorer','Netscape', 'Opera', 'Google Chrome', # web browsers can burn CPU cycles
+            'Firefox', 'Safari', 'Explorer', 'Netscape', 'Opera', 'Google Chrome', # web browsers can burn CPU cycles
             'Dropbox', 'BitTorrent', 'iTunes', # but also matches iTunesHelper (add to ignore-list)
             'mdimport', 'mdworker', 'mds', # can have high CPU
             'Office', 'KeyNote', 'Pages', 'LaunchCFMApp', # productivity; on mac, MS Office (Word etc) can be launched by 'LaunchCFMApp'
             'Skype',
-            'VirtualBox','VBoxClient', # virtual machine as host or client
-            'Parallels', 'Coherence', 'prl_client_app','prl_tools_service',
+            'VirtualBox', 'VBoxClient', # virtual machine as host or client
+            'Parallels', 'Coherence', 'prl_client_app', 'prl_tools_service',
             'VMware'] # just a guess
         appIgnoreList = [# always ignore these, exact match:
-            'ps','login','-tcsh','bash', 'iTunesHelper']
+            'ps', 'login', '-tcsh', 'bash', 'iTunesHelper']
 
         # assess concurrently active processes owner by the current user:
         try:
@@ -364,10 +363,10 @@ class RunTimeInfo(dict):
                 if pr[cmd] in appIgnoreList:
                     continue
                 if sys.platform in ['win32']:  #allow for spaces in app names
-                    systemProcPsu.append([' '.join(pr[cmd:pid]),pr[pid]]) # later just count these unless want details
+                    systemProcPsu.append([' '.join(pr[cmd:pid]), pr[pid]]) # later just count these unless want details
                 else:
-                    systemProcPsu.append([' '.join(pr[cmd:]),pr[pid]]) #
-                matchingApp = [a for a in appFlagList if p.lower().find(a.lower())>-1]
+                    systemProcPsu.append([' '.join(pr[cmd:]), pr[pid]]) #
+                matchingApp = [a for a in appFlagList if a.lower() in p.lower()]
                 for app in matchingApp:
                     systemProcPsuFlagged.append([app, pr[pid]])
                     systemUserProcFlaggedPID.append(pr[pid])
@@ -395,7 +394,8 @@ class RunTimeInfo(dict):
         """
 
         if refreshTest in ['grating', True]:
-            msPFavg, msPFstd, msPFmd6 = visual.getMsPerFrame(win, nFrames=120, showVisual=bool(refreshTest=='grating'))
+            msPFavg, msPFstd, msPFmd6 = visual.getMsPerFrame(win, nFrames=120,
+                                                             showVisual=bool(refreshTest == 'grating'))
             self['windowRefreshTimeAvg_ms'] = msPFavg
             self['windowRefreshTimeMedian_ms'] = msPFmd6
             self['windowRefreshTimeSD_ms'] = msPFstd
@@ -406,56 +406,60 @@ class RunTimeInfo(dict):
         # All desired attributes/properties need a legal internal name, e.g., win.winType.
         # If an attr is callable, its gets called with no arguments, e.g., win.monitor.getWidth()
         winAttrList = ['winType', '_isFullScr', 'units', 'monitor', 'pos', 'screen', 'rgb', 'size']
-        winAttrListVerbose = ['allowGUI', 'useNativeGamma', 'recordFrameIntervals','waitBlanking', '_haveShaders', '_refreshThreshold']
+        winAttrListVerbose = ['allowGUI', 'useNativeGamma', 'recordFrameIntervals',
+                              'waitBlanking', '_haveShaders', '_refreshThreshold']
         if verbose: winAttrList += winAttrListVerbose
 
         monAttrList = ['name', 'getDistance', 'getWidth', 'currentCalibName']
         monAttrListVerbose = ['_gammaInterpolator', '_gammaInterpolator2']
-        if verbose: monAttrList += monAttrListVerbose
-        if 'monitor' in winAttrList: # replace 'monitor' with all desired monitor.<attribute>
-            i = winAttrList.index('monitor') # retain list-position info, put monitor stuff there
-            del(winAttrList[i])
+        if verbose:
+            monAttrList += monAttrListVerbose
+        if 'monitor' in winAttrList:  # replace 'monitor' with all desired monitor.<attribute>
+            i = winAttrList.index('monitor')  # retain list-position info, put monitor stuff there
+            del winAttrList[i]
             for monAttr in monAttrList:
                 winAttrList.insert(i, 'monitor.' + monAttr)
                 i += 1
         for winAttr in winAttrList:
             try:
-                attrValue = eval('win.'+winAttr)
+                attrValue = eval('win.' + winAttr)
             except AttributeError:
-                log.warning('AttributeError in RuntimeInfo._setWindowInfo(): Window instance has no attribute', winAttr)
+                logging.warning('AttributeError in RuntimeInfo._setWindowInfo(): Window instance has no attribute', winAttr)
                 continue
             if hasattr(attrValue, '__call__'):
                 try:
                     a = attrValue()
                     attrValue = a
                 except:
-                    print 'Warning: could not get a value from win.'+winAttr+'()  (expects arguments?)'
+                    print 'Warning: could not get a value from win.' + winAttr + '()  (expects arguments?)'
                     continue
-            while winAttr[0]=='_':
+            while winAttr[0] == '_':
                 winAttr = winAttr[1:]
-            winAttr = winAttr[0].capitalize()+winAttr[1:]
-            winAttr = winAttr.replace('Monitor._','Monitor.')
-            if winAttr in ['Pos','Size']:
+            winAttr = winAttr[0].capitalize() + winAttr[1:]
+            winAttr = winAttr.replace('Monitor._', 'Monitor.')
+            if winAttr in ['Pos', 'Size']:
                 winAttr += '_pix'
-            if winAttr in ['Monitor.getWidth','Monitor.getDistance']:
+            if winAttr in ['Monitor.getWidth', 'Monitor.getDistance']:
                 winAttr += '_cm'
             if winAttr in ['RefreshThreshold']:
                 winAttr += '_sec'
-            self['window'+winAttr] = attrValue
+            self['window' + winAttr] = attrValue
 
     def _setPythonInfo(self):
-        # External python packages:
+        """External python packages, python details"""
         self['pythonNumpyVersion'] = numpy.__version__
         self['pythonScipyVersion'] = scipy.__version__
         self['pythonWxVersion'] = wx.version()
         self['pythonMatplotlibVersion'] = matplotlib.__version__
         self['pythonPygletVersion'] = pyglet.version
-        try: from pygame import __version__ as pygameVersion
-        except: pygameVersion = '(no pygame)'
+        try:
+            from pygame import __version__ as pygameVersion
+        except ImportError:
+            pygameVersion = '(no pygame)'
         self['pythonPygameVersion'] = pygameVersion
 
         # Python gory details:
-        self['pythonFullVersion'] = sys.version.replace('\n',' ')
+        self['pythonFullVersion'] = sys.version.replace('\n', ' ')
         self['pythonExecutable'] = sys.executable
 
     def _setOpenGLInfo(self):
@@ -463,9 +467,9 @@ class RunTimeInfo(dict):
         self['openGLVendor'] = gl_info.get_vendor()
         self['openGLRenderingEngine'] = gl_info.get_renderer()
         self['openGLVersion'] = gl_info.get_version()
-        GLextensionsOfInterest=['GL_ARB_multitexture', 'GL_EXT_framebuffer_object',
-             'GL_ARB_fragment_program', 'GL_ARB_shader_objects','GL_ARB_vertex_shader',
-             'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float', 'GL_STEREO']
+        GLextensionsOfInterest = ['GL_ARB_multitexture', 'GL_EXT_framebuffer_object',
+             'GL_ARB_fragment_program', 'GL_ARB_shader_objects', 'GL_ARB_vertex_shader',
+             'GL_ARB_texture_non_power_of_two', 'GL_ARB_texture_float', 'GL_STEREO']
 
         for ext in GLextensionsOfInterest:
             self['openGLext.'+ext] = bool(gl_info.have_extension(ext))
@@ -488,27 +492,24 @@ class RunTimeInfo(dict):
                 selfk = self[k] # alter a copy for display purposes
                 try:
                     if type(selfk) == type('abc'):
-                        selfk = selfk.replace('"','').replace('\n',' ')
-                    elif k.find('_ms')> -1: #type(selfk) == type(0.123):
+                        selfk = selfk.replace('"', '').replace('\n', ' ')
+                    elif '_ms' in k: #type(selfk) == type(0.123):
                         selfk = "%.3f" % selfk
-                    elif k.find('_sec')> -1:
+                    elif '_sec' in k:
                         selfk = "%.4f" % selfk
-                    elif k.find('_cm')>-1:
+                    elif '_cm' in k:
                         selfk = "%.1f" % selfk
                 except:
                     pass
-                if k in ['systemUserProcFlagged','systemUserProcCmdPid'] and selfk is not None and len(selfk): # then strcat unique proc names
+                if k in ['systemUserProcFlagged', 'systemUserProcCmdPid'] and selfk is not None and len(selfk): # then strcat unique proc names
                     prSet = []
                     for pr in self[k]: # str -> list of lists
-                        if pr[0].find(' ')>-1: # add single quotes around file names that contain spaces
-                            pr[0] = "'"+pr[0]+"'"
+                        if ' ' in pr[0]: # add single quotes around file names that contain spaces
+                            pr[0] = "'" + pr[0] + "'"
                         prSet += [pr[0]] # first item in sublist is proc name (CMD)
                     selfk = ' '.join(list(set(prSet)))
                 if k not in ['systemUserProcFlaggedPID']: # suppress display PID info -- useful at run-time, never useful in an archive
-                    #if type(selfk) == type('abc'):
-                        info += '    "%s": "%s",\n' % (k, selfk)
-                    #else:
-                    #    info += '    "%s": %s,\n' % (k, selfk)
+                    info += '    "%s": "%s",\n' % (k, selfk)
         info += '#[ PsychoPy2 RuntimeInfoEnd ]\n}\n'
         return info
 
@@ -517,12 +518,12 @@ class RunTimeInfo(dict):
         """
         infoLines = self.__repr__()
         info = infoLines.splitlines()[1:-1] # remove enclosing braces from repr
-        for i,line in enumerate(info):
-            if line.find('openGLext')>-1: # swap order for OpenGL extensions -- much easier to read
+        for i, line in enumerate(info):
+            if 'openGLext' in line: # swap order for OpenGL extensions -- much easier to read
                 tmp = line.split(':')
-                info[i] = ': '.join(['   '+tmp[1].replace(',',''),tmp[0].replace('    ','')+','])
+                info[i] = ': '.join(['   ' + tmp[1].replace(',', ''), tmp[0].replace('    ', '') + ','])
             info[i] = info[i].rstrip(',')
-        info = '\n'.join(info).replace('"','')+'\n'
+        info = '\n'.join(info).replace('"', '') + '\n'
         return info
 
     def _type(self):
@@ -530,13 +531,13 @@ class RunTimeInfo(dict):
         sk = self.keys()
         sk.sort()
         for k in sk:
-            print k,type(self[k]),self[k]
-            
+            print k, type(self[k]), self[k]
+
 def _getHashGitHead(dir=''):
     origDir = os.getcwd()
     os.chdir(dir)
     try:
-        git_hash = shellCall("git rev-parse --verify HEAD")
+        git_hash = shellCall(['git', 'rev-parse', '--verify', 'HEAD'])
     except OSError:
         os.chdir(origDir)
         return None
@@ -544,14 +545,14 @@ def _getHashGitHead(dir=''):
         os.chdir(origDir)
         return None
     os.chdir(origDir)
-    git_branches = shellCall("git branch")
+    git_branches = shellCall(['git', 'branch'])
     git_branch = [line.split()[1] for line in git_branches.splitlines() if line.startswith('*')]
     if len(git_branch):
         return git_branch[0] + ' ' + git_hash.strip()
     else: # dir is not a git repo
         return None
 
-def _getSvnVersion(file):
+def _getSvnVersion(filename):
     """Tries to discover the svn version (revision #) for a file.
 
     Not thoroughly tested; completely untested on Windows Vista, Win 7, FreeBSD
@@ -559,34 +560,34 @@ def _getSvnVersion(file):
     :Author:
         - 2010 written by Jeremy Gray
     """
-    if not (os.path.exists(file) and os.path.isdir(os.path.join(os.path.dirname(file),'.svn'))):
+    if not (os.path.exists(filename) and os.path.isdir(os.path.join(os.path.dirname(filename), '.svn'))):
         return None, None, None
     svnRev, svnLastChangedRev, svnUrl = None, None, None
     if sys.platform in ['darwin', 'freebsd'] or sys.platform.startswith('linux'):
         try:
-            svninfo,stderr = shellCall('svn info "'+file+'"', stderr=True) # expects a filename, not dir
+            svninfo = shellCall(['svn', 'info', filename]) # expects a filename, not dir
         except:
             svninfo = ''
         for line in svninfo.splitlines():
-            if line.find('URL:') == 0:
+            if line.startswith('URL:'):
                 svnUrl = line.split()[1]
-            elif line.find('Revision: ') == 0:
+            elif line.startswith('Revision: '):
                 svnRev = line.split()[1]
-            elif line.find('Last Changed Rev') == 0:
+            elif line.startswith('Last Changed Rev'):
                 svnLastChangedRev = line.split()[3]
     else: # worked for me on Win XP sp2 with TortoiseSVN (SubWCRev.exe)
         try:
-            stdout,stderr = shellCall('subwcrev "'+file+'"', stderr=True)
+            stdout = shellCall(['subwcrev', filename])
         except:
             stdout = ''
         for line in stdout.splitlines():
-            if line.find('Last committed at revision') == 0:
+            if line.startswith('Last committed at revision'):
                 svnRev = line.split()[4]
-            elif line.find('Updated to revision') == 0:
+            elif line.startswith('Updated to revision'):
                 svnLastChangedRev = line.split()[3]
     return svnRev, svnLastChangedRev, svnUrl
 
-def _getHgVersion(file):
+def _getHgVersion(filename):
     """Tries to discover the mercurial (hg) parent and id of a file.
 
     Not thoroughly tested; completely untested on Windows Vista, Win 7, FreeBSD
@@ -594,20 +595,21 @@ def _getHgVersion(file):
     :Author:
         - 2010 written by Jeremy Gray
     """
-    if not os.path.exists(file) or not os.path.isdir(os.path.join(os.path.dirname(file),'.hg')):
+    if not os.path.exists(filename) or not os.path.isdir(os.path.join(os.path.dirname(filename), '.hg')):
         return None
     try:
-        hgParentLines,err = shellCall('hg parents "'+file+'"', stderr=True)
+        hgParentLines, err = shellCall(['hg', 'parents', filename], stderr=True)
         changeset = hgParentLines.splitlines()[0].split()[-1]
     except:
         changeset = ''
     try:
-        hgID,err = shellCall('hg id -nibt "'+os.path.dirname(file)+'"', stderr=True)
+        hgID, err = shellCall(['hg', 'id', '-nibt', os.path.dirname(filename)], stderr=True)
     except:
-        if err: hgID = ''
+        if err:
+            hgID = ''
 
     if len(hgID) or len(changeset):
-        return hgID.strip()+' | parent: '+changeset.strip()
+        return hgID.strip() + ' | parent: ' + changeset.strip()
     else:
         return None
 
@@ -633,7 +635,7 @@ def _getUserNameUID():
             uid = '0'
     return str(user), int(uid)
 
-def _getSha1hexDigest(thing, file=False):
+def _getSha1hexDigest(thing, isfile=False):
     """Returns base64 / hex encoded sha1 digest of str(thing), or of a file contents
     return None if a file is requested but no such file exists
 
@@ -646,11 +648,11 @@ def _getSha1hexDigest(thing, file=False):
     '356a192b7913b04c54574d18c28d46e6395428ab'
     """
     digester = hashlib.sha1()
-    if file:
+    if isfile:
         filename = thing
         if os.path.isfile(filename):
-            f = open(filename,'rb')
-            digester.update(f.read()) # check file size < available RAM first? or update in chunks?
+            f = open(filename, 'rb')
+            digester.update(f.read())  # check file size < available RAM first? or update in chunks?
             f.close()
         else:
             return None
@@ -667,15 +669,15 @@ def getRAM():
     totalRAM = 'unknown'
 
     if sys.platform == 'darwin':
-        so,se = core.shellCall('vm_stat', stderr=True)
+        so = core.shellCall('vm_stat')
         lines = so.splitlines()
         pageIndex = lines[0].find('page size of ')
         if  pageIndex > -1:
             pagesize = int(lines[0][pageIndex + len('page size of '):].split()[0])
             free = float(lines[1].split()[-1])
             freeRAM = int(free * pagesize / 1048576.)  # M
-            pieces = [lines[i].split()[-1] for i in range(1,6)]
-            total = sum(map(float, pieces))
+            pieces = [lines[i].split()[-1] for i in range(1, 6)]
+            total = sum([float(x) for x in pieces])
             totalRAM = int(total * pagesize / 1048576.)  # M
     elif sys.platform == 'win32':
         if not haveCtypes:
@@ -706,7 +708,7 @@ def getRAM():
             pass
     elif sys.platform.startswith('linux'):
         try:
-            so,se = core.shellCall('free', stderr=True)
+            so = core.shellCall('free')
             lines = so.splitlines()
             freeRAM = int(int(lines[1].split()[3]) / 1024.)  # M
             totalRAM = int(int(lines[1].split()[1]) / 1024.)
