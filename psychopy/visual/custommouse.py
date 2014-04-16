@@ -13,11 +13,12 @@ import psychopy  # so we can get the __path__
 from psychopy import event
 
 from psychopy.visual.image import ImageStim
+from psychopy.visual.basevisual import MinimalStim
 
 import numpy
 
 
-class CustomMouse():
+class CustomMouse(MinimalStim):
     """Class for more control over the mouse, including the pointer graphic and bounding box.
 
     Seems to work with pyglet or pygame. Not completely tested.
@@ -33,7 +34,7 @@ class CustomMouse():
     def __init__(self, win, newPos=None, visible=True,
                  leftLimit=None, topLimit=None, rightLimit=None, bottomLimit=None,
                  showLimitBox=False, clickOnUp=False,
-                 pointer=None, autoLog=True):
+                 pointer=None, name='', autoLog=True):
         """Class for customizing the appearance and behavior of the mouse.
 
         Use a custom mouse for extra control over the pointer appearance and function.
@@ -72,6 +73,7 @@ class CustomMouse():
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
+        super(CustomMouse, self).__init__(name=name, autoLog=False)
         self.autoLog = False  # set properly at end of init
 
         self.win = win

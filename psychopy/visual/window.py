@@ -347,7 +347,7 @@ class Window:
             self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
         else:
             self._refreshThreshold = (1.0/60)*1.2  # guess its a flat panel
-        openWindows.append(weakref.ref(self))
+        openWindows.append(self)
 
     def __del__(self):
         if self.useFBO:

@@ -77,18 +77,18 @@ class Aperture(MinimalStim, ContainerMixin):
             vertices = [(0.5*sin(theta*pi/180), 0.5*cos(theta*pi/180))
                         for theta in numpy.linspace(0, 360, nVert, False)]
         elif shape == 'square':
-            vertices = [[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]]
+                vertices = [[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]]
         elif shape == 'triangle':
-            vertices = [[0.5,-0.5],[0,0.5],[-0.5,-0.5]]
+                vertices = [[0.5,-0.5],[0,0.5],[-0.5,-0.5]]
         elif type(shape) in [tuple, list, numpy.ndarray] and len(shape) > 2:
             vertices = shape
         else:
             logging.error("Unrecognized shape for aperture. Expected 'circle', 'square', 'triangle', vertices, or None; got %s" %(repr(shape)))
-        self._shape = ShapeStim(win=self.win, vertices=vertices,
-                                fillColor=1, lineColor=None,
-                                interpolate=False, pos=pos, size=size,
-                                autoLog=False)
 
+        self._shape = ShapeStim(win=self.win, vertices=vertices,
+                fillColor=1, lineColor=None,
+                interpolate=False, pos=pos, size=size,
+                autoLog=False)
         self.vertices = self._shape.vertices
         self._needVertexUpdate = True
         self._reset()#implicitly runs an self.enable()

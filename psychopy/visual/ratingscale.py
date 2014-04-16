@@ -242,6 +242,7 @@ class RatingScale(MinimalStim):
     """
         # what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
+        super(RatingScale, self).__init__(name=name, autoLog=False)
 
         # warn about obsolete arguments; Jan 2014, for v1.80:
         obsoleted = set(['showScale', 'ticksAboveLine', 'displaySizeFactor', 'markerStyle',
