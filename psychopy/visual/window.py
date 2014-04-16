@@ -19,7 +19,7 @@ GL = pyglet.gl
 import ctypes
 
 #try to find avbin (we'll overload pyglet's load_library tool and then add some paths)
-if pyglet.version < "1.2" or sys.platform != "darwin":
+if pyglet.version < "1.2":
     import pyglet.lib
 
     # This piece of code does no longer work with pyglet 1.2alpha and results in the pyglet.gl
@@ -1381,7 +1381,7 @@ class Window:
         #identify gfx card vendor
         self.glVendor = GL.gl_info.get_vendor().lower()
 
-        if pyglet.version < "1.2" or sys.platform != "darwin":
+        if pyglet.version < "1.2" and sys.platform == 'darwin':
             platform_specific.syncSwapBuffers(1)
 
         if self.useFBO:
