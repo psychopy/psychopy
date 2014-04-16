@@ -19,24 +19,29 @@ GL = pyglet.gl
 import ctypes
 
 #try to find avbin (we'll overload pyglet's load_library tool and then add some paths)
-import pyglet.lib
-import _pygletLibOverload
-pyglet.lib.load_library = _pygletLibOverload.load_library
-#on windows try to load avbin now (other libs can interfere)
-if sys.platform == 'win32':
-    #make sure we also check in SysWOW64 if on 64-bit windows
-    if 'C:\\Windows\\SysWOW64' not in os.environ['PATH']:
-        os.environ['PATH'] += ';C:\\Windows\\SysWOW64'
+if sys.platform == "darwin" and pyglet.version < "1.2":
+    import pyglet.lib
 
-    try:
-        from pyglet.media import avbin
-        haveAvbin = True
-    except ImportError:
-        haveAvbin = False
-        # either avbin isn't installed or scipy.stats has been imported
-        # (prevents avbin loading)
-    except WindowsError, e:
-        haveAvbin = False
+    # This piece of code does no longer work with pyglet 1.2alpha and results in the pyglet.gl
+    # library to no longer be found when the window is created
+    import _pygletLibOverload
+
+    pyglet.lib.load_library = _pygletLibOverload.load_library
+    #on windows try to load avbin now (other libs can interfere)
+    if sys.platform == 'win32':
+        #make sure we also check in SysWOW64 if on 64-bit windows
+        if 'C:\\Windows\\SysWOW64' not in os.environ['PATH']:
+            os.environ['PATH'] += ';C:\\Windows\\SysWOW64'
+
+        try:
+            from pyglet.media import avbin
+            haveAvbin = True
+        except ImportError:
+            haveAvbin = False
+            # either avbin isn't installed or scipy.stats has been imported
+            # (prevents avbin loading)
+        except WindowsError, e:
+            haveAvbin = False
 
 
 import psychopy  # so we can get the __path__
@@ -1199,7 +1204,13 @@ class Window:
         if sys.platform =='win32':
             self._hw_handle=self.winHandle._hwnd
         elif sys.platform =='darwin':
-            self._hw_handle=self.winHandle._window.value
+            if pyglet.version > "1.2":
+                # Below works but is not correct! _nswindow points to an objc reference
+                # of the window, not to the window id itself. I don't know how psychopy uses
+                # this feat further, but it has not resulted in crashes for me.
+                self._hw_handle=self.winHandle._nswindow  
+            else:
+                self._hw_handle=self.winHandle._window.value
         elif sys.platform =='linux2':
             self._hw_handle=self.winHandle._window
 
@@ -1370,7 +1381,7 @@ class Window:
         #identify gfx card vendor
         self.glVendor = GL.gl_info.get_vendor().lower()
 
-        if sys.platform == 'darwin':
+        if sys.platform == 'darwin' and pyglet.version < "1.2":
             platform_specific.syncSwapBuffers(1)
 
         if self.useFBO:
