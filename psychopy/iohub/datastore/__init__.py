@@ -38,29 +38,29 @@ cores in your machine or, when your machine has many of them (e.g. > 4),
 perhaps one less than this.  < S. Simpson Note: These are 'not' GIL bound
 threads and therefore actually improve performance > """
 
-DATA_FILE_TITLE="ioHub DataStore - Experiment Data File."
-FILE_VERSION = '0.7.0'
-SCHEMA_AUTHORS='Sol Simpson'
-SCHEMA_MODIFIED_DATE='May 6th, 2013'
+DATA_FILE_TITLE = "ioHub DataStore - Experiment Data File."
+FILE_VERSION = '0.8.0.1'
+SCHEMA_AUTHORS = 'Sol Simpson'
+SCHEMA_MODIFIED_DATE = 'April 16th, 2014'
 
         
 class ioHubpyTablesFile():
     
-    def __init__(self,fileName,folderPath,fmode='a',ioHubsettings=None):
-        self.fileName=fileName
-        self.folderPath=folderPath
-        self.filePath=os.path.join(folderPath,fileName)
+    def __init__(self, fileName, folderPath, fmode='a', ioHubsettings=None):
+        self.fileName = fileName
+        self.folderPath = folderPath
+        self.filePath = os.path.join(folderPath, fileName)
 
-        self.settings=ioHubsettings
+        self.settings = ioHubsettings
 
-        self.active_experiment_id=None
-        self.active_session_id=None
+        self.active_experiment_id = None
+        self.active_session_id = None
         
-        self.flushCounter=self.settings.get('flush_interval',32)
-        self._eventCounter=0
+        self.flushCounter = self.settings.get('flush_interval', 32)
+        self._eventCounter = 0
         
-        self.TABLES=dict()
-        self._eventGroupMappings=dict()
+        self.TABLES = dict()
+        self._eventGroupMappings = dict()
         self.emrtFile = openFile(self.filePath, mode = fmode)
                
         atexit.register(close_open_data_files, False)
@@ -166,6 +166,12 @@ class ioHubpyTablesFile():
             pass
 
         try:
+            self.TABLES['SERIAL_BYTE_CHANGE'] = self.emrtFile.root.data_collection.events.serial.SerialByteChangeEvent
+        except:
+            # Just means the table for this event type has not been created as the event type is not being recorded
+            pass
+
+        try:
             self.TABLES['MONOCULAR_EYE_SAMPLE']=self.emrtFile.root.data_collection.events.eyetracker.MonocularEyeSampleEvent
         except:
             # Just means the table for this event type has not been created as the event type is not being recorded
@@ -263,6 +269,7 @@ class ioHubpyTablesFile():
         self._eventGroupMappings['ANALOG_INPUT']=self.emrtFile.root.data_collection.events.mcu
         self._eventGroupMappings['DIGITAL_INPUT']=self.emrtFile.root.data_collection.events.mcu
         self._eventGroupMappings['SERIAL_INPUT']=self.emrtFile.root.data_collection.events.serial
+        self._eventGroupMappings['SERIAL_BYTE_CHANGE']=self.emrtFile.root.data_collection.events.serial
         self._eventGroupMappings['MESSAGE']=self.emrtFile.root.data_collection.events.experiment
         self._eventGroupMappings['LOG']=self.emrtFile.root.data_collection.events.experiment
         self._eventGroupMappings['MONOCULAR_EYE_SAMPLE']=self.emrtFile.root.data_collection.events.eyetracker

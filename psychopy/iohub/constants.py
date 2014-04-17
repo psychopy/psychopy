@@ -135,6 +135,7 @@ try:
         ANALOG_INPUT=102
 
         SERIAL_INPUT = 105
+        SERIAL_BYTE_CHANGE = 106
 
         MULTI_CHANNEL_ANALOG_INPUT=122
     
@@ -222,6 +223,9 @@ try:
         
             #: Constant for a general purpose Serial Rx Event.
             SERIAL_INPUT = 105
+
+            #: Constant for a serial event due to a rx stream byte value change.
+            SERIAL_BYTE_CHANGE = 106
 
             #: Constant for an Experiment Message Event.
             MESSAGE=151

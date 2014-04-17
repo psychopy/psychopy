@@ -10,7 +10,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
 
-from psychopy.iohub import print2err,printExceptionDetailsToStdErr,Computer
+from psychopy.iohub import print2err, printExceptionDetailsToStdErr, Computer
 import serial
 from .. import Device, DeviceEvent
 from ...constants import DeviceConstants, EventConstants
@@ -25,11 +25,12 @@ class Serial(Device):
     """
     DEVICE_TIMEBASE_TO_SEC = 1.0
     _newDataTypes = [('port', N.str, 32), ('baud', N.str, 32),]
-    EVENT_CLASS_NAMES = ['SerialInputEvent',]
+    EVENT_CLASS_NAMES = ['SerialInputEvent','SerialByteChangeEvent']
     DEVICE_TYPE_ID = DeviceConstants.SERIAL
     DEVICE_TYPE_STRING = "SERIAL"
     _mcu_slots = ['port', 'baud', '_serial', '_timeout', '_rx_buffer',
-                  '_parser_config', '_parser_state', '_event_count']
+                  '_parser_config', '_parser_state', '_event_count',
+                  '_byte_diff_mode']
     __slots__ = [e for e in _mcu_slots]
     def __init__(self, *args, **kwargs):
         Device.__init__(self, *args, **kwargs['dconfig'])
@@ -44,11 +45,15 @@ class Serial(Device):
         self.baud = self.getConfiguration().get('baud')
 
         self._parser_config = self.getConfiguration().get('event_parser')
-        self._resetParserState()
+        self._byte_diff_mode = self._parser_config.get('byte_diff')
 
-        self._rx_buffer = ''
+        if self._byte_diff_mode:
+            self._rx_buffer = None
+        else:
+            self._resetParserState()
+            self._rx_buffer = ''
+
         self._event_count = 0
-
         self._timeout = None
         self._serial = None
         self.setConnectionState(True)
@@ -80,41 +85,43 @@ class Serial(Device):
 
     def _resetParserState(self):
         self._parser_state = dict(parsed_event='')
-        if self._parser_config:
-            fixed_length = self._parser_config.setdefault('fixed_length',None)
+        parser_state = self._parser_state
+        parser_config = self._parser_config
+        if parser_config:
+            fixed_length = parser_config.setdefault('fixed_length',None)
             if fixed_length:
-                self._parser_state['bytes_needed'] = fixed_length
+                parser_state['bytes_needed'] = fixed_length
             else:
-                self._parser_state['bytes_needed'] = 0
+                parser_state['bytes_needed'] = 0
 
-            prefix=self._parser_config.setdefault('prefix', None)
+            prefix = parser_config.setdefault('prefix', None)
             if prefix == r'\n':
-               self._parser_config['prefix'] = '\n'
+               parser_config['prefix'] = '\n'
             elif prefix == r'\t':
-               self._parser_config['prefix'] = '\t'
+               parser_config['prefix'] = '\t'
             elif prefix == r'\r':
-               self._parser_config['prefix'] = '\r'
+               parser_config['prefix'] = '\r'
             elif prefix == r'\r\n':
-               self._parser_config['prefix'] = '\r\n'
+               parser_config['prefix'] = '\r\n'
 
             if prefix:
-                self._parser_state['prefix_found'] = False
+                parser_state['prefix_found'] = False
             else:
-                self._parser_state['prefix_found'] = True
+                parser_state['prefix_found'] = True
 
-            delimiter = self._parser_config.setdefault('delimiter', None)
+            delimiter = parser_config.setdefault('delimiter', None)
             if delimiter == r'\n':
-               self._parser_config['delimiter'] = '\n'
+               parser_config['delimiter'] = '\n'
             elif delimiter  == r'\t':
-               self._parser_config['delimiter'] = '\t'
+               parser_config['delimiter'] = '\t'
             elif delimiter == r'\r':
-               self._parser_config['delimiter'] = '\r'
+               parser_config['delimiter'] = '\r'
             elif delimiter == r'\r\n':
-               self._parser_config['delimiter'] = '\r\n'
+               parser_config['delimiter'] = '\r\n'
             if delimiter:
-                self._parser_state['delimiter_found'] = False
+                parser_state['delimiter_found'] = False
             else:
-                self._parser_state['delimiter_found'] = True
+                parser_state['delimiter_found'] = True
 
     def setConnectionState(self, enable):
         if enable is True:
@@ -157,7 +164,10 @@ class Serial(Device):
             if not self.isConnected():
                 self.setConnectionState(True)
             self.flushInput()
-        self._rx_buffer = ''
+        if self._byte_diff_mode:
+            self._rx_buffer = None
+        else:
+            self._rx_buffer = ''
         self._event_count = 0
         return Device.enableEventReporting(self, enabled)
 
@@ -180,7 +190,10 @@ class Serial(Device):
         inBytes = self._serial.inWaiting()
         if inBytes > 0:
           self._serial.read(inBytes)
-        self._rx_buffer = ''
+        if self._byte_diff_mode:
+            self._rx_buffer = None
+        else:
+            self._rx_buffer = ''
 
     def flushInput(self):
         self._serial.flushInput()
@@ -217,8 +230,7 @@ class Serial(Device):
             pass
         self._serial_port = None
 
-    def _createSerialEvent(self, logged_time, read_time):
-        #TODO Generate Serial Event
+    def _createMultiByteSerialEvent(self, logged_time, read_time):
         self._event_count += 1
         confidence_interval = read_time - self._last_poll_time
         elist=[0, 0, 0, Computer._getNextEventID(),
@@ -235,6 +247,23 @@ class Serial(Device):
         self._addNativeEventToBuffer(elist)
         self._resetParserState()
 
+    def _createByteChangeSerialEvent(self, logged_time, read_time, prev_byte, new_byte):
+        self._event_count += 1
+        confidence_interval = read_time - self._last_poll_time
+        elist=[0, 0, 0, Computer._getNextEventID(),
+               EventConstants.SERIAL_BYTE_CHANGE,
+               read_time,
+               logged_time,
+               read_time,
+               confidence_interval,
+               0.0,
+               0,
+               self.port,
+               ord(prev_byte),
+               ord(new_byte)
+            ]
+        self._addNativeEventToBuffer(elist)
+
     def _poll(self):
         try:
             logged_time = getTime()
@@ -243,48 +272,65 @@ class Serial(Device):
                 return False
 
             if self.isConnected():
-                self._rx_buffer += self.read()
-                read_time = getTime()
-                prefix = self._parser_config['prefix']
-                delimiter = self._parser_config['delimiter']
+                if self._byte_diff_mode:
+                    rx = self.read()
 
-                if self._parser_state['prefix_found'] is False:
-                    if prefix and self._rx_buffer and len(self._rx_buffer) >= len(prefix):
-                        pindex = self._rx_buffer.find(prefix)
-                        if pindex >= 0:
-                            self._rx_buffer = self._rx_buffer[pindex+len(prefix):]
-                            self._parser_state['prefix_found'] = True
+                    read_time = getTime()
+                    for c in rx:
+                        if self._rx_buffer is not None and c != self._rx_buffer:
+                            self._createByteChangeSerialEvent(logged_time,
+                                                              read_time,
+                                                              self._rx_buffer,
+                                                              c)
+                        self._rx_buffer = c
+                else:
+                    parser_state = self._parser_state
+                    rx_buffer = self._rx_buffer + self.read()
+                    read_time = getTime()
+                    prefix = self._parser_config['prefix']
+                    delimiter = self._parser_config['delimiter']
 
-                if self._parser_state['delimiter_found'] is False:
-                    if delimiter and self._rx_buffer and len(self._rx_buffer) >= len(delimiter):
-                        dindex = self._rx_buffer.find(delimiter)
-                        if dindex >= 0:
-                            self._parser_state['delimiter_found'] = True
-                            sindex = dindex
-                            eindex = dindex+len(delimiter)
-                            self._parser_state['parsed_event'] += self._rx_buffer[:sindex]
-                            if len(self._rx_buffer) > eindex:
-                                self._rx_buffer = self._rx_buffer[eindex:]
-                            else:
-                                self._rx_buffer = ''
-                            self._createSerialEvent(logged_time, read_time)
-                            return True
+                    if parser_state['prefix_found'] is False:
+                        if prefix and rx_buffer and len(rx_buffer) >= len(prefix):
+                            pindex = rx_buffer.find(prefix)
+                            if pindex >= 0:
+                                rx_buffer = rx_buffer[pindex+len(prefix):]
+                                parser_state['prefix_found'] = True
 
-                if self._parser_state['bytes_needed'] > 0 and self._rx_buffer:
-                    rxlen = len(self._rx_buffer)
-                    #takebytes = rxlen - self._parser_state['bytes_needed']
-                    if rxlen > self._parser_state['bytes_needed']:
-                        self._parser_state['parsed_event'] += self._rx_buffer[:self._parser_state['bytes_needed']]
-                        self._parser_state['bytes_needed'] = 0
-                        self._rx_buffer = self._rx_buffer[self._parser_state['bytes_needed']:]
-                    else:
-                        self._parser_state['parsed_event'] += self._rx_buffer
-                        self._parser_state['bytes_needed'] -= rxlen
-                        self._rx_buffer = ''
+                    if parser_state['delimiter_found'] is False:
+                        if delimiter and self._rx_buffer and len(rx_buffer) >= len(delimiter):
+                            dindex = rx_buffer.find(delimiter)
+                            if dindex >= 0:
+                                parser_state['delimiter_found'] = True
+                                sindex = dindex
+                                eindex = dindex+len(delimiter)
+                                parser_state['parsed_event'] += rx_buffer[:sindex]
+                                if len(rx_buffer) > eindex:
+                                    rx_buffer = rx_buffer[eindex:]
+                                else:
+                                    rx_buffer = ''
+                                self._rx_buffer = rx_buffer
+                                self._createMultiByteSerialEvent(logged_time, read_time)
+                                return True
 
-                    if self._parser_state['bytes_needed'] == 0:
-                            self._createSerialEvent(logged_time, read_time)
-                            return True
+                    if parser_state['bytes_needed'] > 0 and rx_buffer:
+                        rxlen = len(rx_buffer)
+                        #takebytes = rxlen - parser_state['bytes_needed']
+                        if rxlen > parser_state['bytes_needed']:
+                            parser_state['parsed_event'] += rx_buffer[:parser_state['bytes_needed']]
+                            parser_state['bytes_needed'] = 0
+                            rx_buffer = rx_buffer[parser_state['bytes_needed']:]
+                        else:
+                            parser_state['parsed_event'] += rx_buffer
+                            parser_state['bytes_needed'] -= rxlen
+                            rx_buffer = ''
+
+                        if parser_state['bytes_needed'] == 0:
+                                self._rx_buffer = rx_buffer
+                                self._createMultiByteSerialEvent(logged_time, read_time)
+                                return True
+
+                    self._rx_buffer = rx_buffer
             else:
                 read_time = logged_time
             self._last_poll_time = read_time
@@ -306,6 +352,20 @@ class SerialInputEvent(DeviceEvent):
             ]
     EVENT_TYPE_ID = EventConstants.SERIAL_INPUT
     EVENT_TYPE_STRING = 'SERIAL_INPUT'
+    IOHUB_DATA_TABLE = EVENT_TYPE_STRING
+    __slots__ = [e[0] for e in _newDataTypes]
+
+    def __init__(self, *args, **kwargs):
+        DeviceEvent.__init__(self, *args, **kwargs)
+
+class SerialByteChangeEvent(DeviceEvent):
+    _newDataTypes = [
+            ('port', N.str, 32),
+            ('prev_byte', N.uint8),
+            ('current_byte', N.uint8)
+            ]
+    EVENT_TYPE_ID = EventConstants.SERIAL_BYTE_CHANGE
+    EVENT_TYPE_STRING = 'SERIAL_BYTE_CHANGE'
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING
     __slots__ = [e[0] for e in _newDataTypes]
 

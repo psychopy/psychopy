@@ -41,9 +41,9 @@ mcu.iosync.MCU:
     auto_report_events: False    
     monitor_event_types:
         IOHUB_LIST:
-            valid_values: [SerialInputEvent,]
+            valid_values: [SerialInputEvent, SerialByteChangeEvent]
             min_length: 0
-            max_length: 1
+            max_length: 2
     event_buffer_length:
         IOHUB_INT:
             min: 1
