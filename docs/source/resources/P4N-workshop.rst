@@ -22,28 +22,24 @@ Details
         
     Bookings can be made now at `Nottingham's online store <http://store.nottingham.ac.uk/browse/extra_info.asp?compid=1&modid=2&catid=49&prodid=323>`_. Places are limited but a waiting list will be maintained if you are unable to get onto the course.
 
-Beginner stream
-------------------------
+There will be two streams: 
 
-Suitable for non-programmers and for convertees from Matlab:
-
-    - basic Python programming 
-    - running experiments in PsychoPy using code
-    - analysing and plotting your data
+    - Beginner: you might have done some programming but you don't know Python syntax
+    - Intermediate: you know basic Python syntax but you have relatively little experience with PsychoPy code
     
-Intermediate stream
+Schedule
 ------------------------
 
-Assumes you already understand basic Python syntax). This is subject to change but we will be looking at topics like:
+Some sessions will be self-paced (shown in green) and some will be all together (shown in grey). We'll not start the first formal session until 10am on Day 1 (coffee available from 9am though) and we'll finish at 4pm on Day 3 to allow some travel flexibility. But you are welcome to hang around and continue working if you prefer.
 
-    - writing efficient code
-    - functions and classes
-    - extending PsychoPy Builder
-    - using source control
-    - data plotting
-    - some specific use-cases (e.g. eye-tracking, neuroimaging, EEG)
+[All sessions subject to change]
 
-Both streams will include a mixture of demonstrations, self-paced exercises and time for users to create their own experiments in the software. 
+.. image:: ../images/scheduleBeginner.png
+   :scale: 80 %
+
+.. image:: ../images/scheduleIntermed.png
+   :scale: 80 %
+   
 
 For any enquiries please email me at `jonathan.peirce at nottingham.ac.uk` (beware my strangely spelled surname when typing that in!)
 

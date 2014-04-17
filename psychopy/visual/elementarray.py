@@ -664,14 +664,14 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         graphics card can be time-consuming.
         """
         self.tex = value
-        self.createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
+        self._createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
         logAttrib(self, log, 'tex')
     def setMask(self,value, log=True):
         """Change the mask (all elements have the same mask). Avoid doing this
         during time-critical points in your script. Uploading new textures to the
         graphics card can be time-consuming."""
         self.mask = value
-        self.createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self, res=self.texRes)
+        self._createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self, res=self.texRes)
         logAttrib(self, log, 'mask')
     def __del__(self):
         self.clearTextures()#remove textures from graphics card to prevent crash

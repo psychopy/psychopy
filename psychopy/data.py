@@ -1392,12 +1392,12 @@ class StairHandler(_BaseTrialHandler):
     Calls to nextTrial() will fetch the next object given to this
     handler, according to the method specified.
 
-    See ``demo_trialHandler.py``
+    See ``Demos >> ExperimentalControl >> JND_staircase_exp.py``
 
     The staircase will terminate when *nTrials* AND *nReversals* have been exceeded. If *stepSizes* was an array
     and has been exceeded before nTrials is exceeded then the staircase will continue
     to reverse.
-    
+
     *nUp* and *nDown* are always considered as 1 until the first reversal is reached. The values entered as arguments
     are then used.
 
@@ -1631,7 +1631,7 @@ class StairHandler(_BaseTrialHandler):
             else:
                 self.stepSizeCurrent = self.stepSizes[len(self.reversalIntensities)]
 
-        #apply new step size        
+        #apply new step size
         if len(self.reversalIntensities)<1 or self.initialRule==1:
             self.initialRule=0 #reset the flag
             if self.data[-1]==1:

@@ -1,10 +1,13 @@
 Documentation
 =====================================
 
-A pdf copy of the current documentation is available at:
-    http://www.psychopy.org/PsychoPyManual.pdf
+
+.. only:: html
+
+    A pdf copy of the current documentation is available at:
+        http://www.psychopy.org/PsychoPyManual.pdf
     
-Contents:
+    Contents:
 
 .. toctree::
    :maxdepth: 1
@@ -35,8 +38,10 @@ For developers:
    developers/developers
    psyexp
 
-Indices
------------
+.. only:: html
 
-	* :ref:`glossary`
-	* :ref:`genindex`
+    Indices
+    -----------
+
+        * :ref:`glossary`
+        * :ref:`genindex`

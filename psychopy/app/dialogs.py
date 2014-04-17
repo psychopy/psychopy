@@ -30,6 +30,7 @@ class MessageDialog(wx.Dialog):
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_CANCEL)
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_YES)
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_NO)
+#            self.Bind(wx.EVT_CLOSE, self.onEscape)
             btnSizer.Add(self.noBtn, wx.ALIGN_LEFT)
             btnSizer.Add((60, 20), 0, wx.EXPAND)
             btnSizer.Add(self.cancelBtn, wx.ALIGN_RIGHT)
@@ -46,6 +47,8 @@ class MessageDialog(wx.Dialog):
         self.SetSizerAndFit(sizer)
     def onButton(self,event):
         self.EndModal(event.GetId())
+    def onEscape(self,event):
+        self.EndModal(wx.ID_CANCEL)
 
 
 from wx.lib.newevent import NewEvent

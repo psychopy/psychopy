@@ -6,8 +6,8 @@ Color spaces
 The color of stimuli can be specified when creating a stimulus and when using setColor() in a variety of ways. There are three basic color spaces that PsychoPy can use, RGB, DKL and LMS but colors can also be specified by a name (e.g. 'DarkSalmon') or by a hexadecimal string (e.g. '#00FF00').
 
 examples::
-	
-    stim = visual.PatchStim(win, color=[1,-1,-1], colorSpace='rgb') #will be red
+
+    stim = visual.GratingStim(win, color=[1,-1,-1], colorSpace='rgb') #will be red
     stim.setColor('Firebrick')#one of the web/X11 color names
     stim.setColor('#FFFAF0')#an off-white
     stim.setColor([0,90,1], colorSpace='dkl')#modulate along S-cone axis in isoluminant plane
@@ -19,7 +19,7 @@ examples::
 
 Colors by name
 ----------------
-Any of the `web/X11 color names <http://www.w3schools.com/html/html_colornames.asp>`_ can be used to specify a color. These are then converted into RGB space by PsychoPy. 
+Any of the `web/X11 color names <http://www.w3schools.com/html/html_colornames.asp>`_ can be used to specify a color. These are then converted into RGB space by PsychoPy.
 
 These are not case sensitive, but should not include any spaces.
 
@@ -33,7 +33,7 @@ This is really just another way of specifying the r,g,b values of a color, where
 
 RGB color space
 -------------------
-This is the simplest color space, in which colors are represented by a triplet of values that specify the red green and blue intensities. These three values each range between -1 and 1. 
+This is the simplest color space, in which colors are represented by a triplet of values that specify the red green and blue intensities. These three values each range between -1 and 1.
 
 Examples:
 
@@ -42,7 +42,7 @@ Examples:
     * [-1,-1,-1] is black
     * [1.0,-1,-1] is red
     * [1.0,0.6,0.6] is pink
-    
+
 The reason that these colors are expressed ranging between 1 and -1 (rather than 0:1 or 0:255) is that many experiments, particularly in visual science where PsychoPy has its roots, express colors as deviations from a grey screen. Under that scheme a value of -1 is the maximum decrement from grey and +1 is the maximum increment above grey.
 
 Note that Psychopy will use your monitor calibration to linearize this for each gun. E.g., 0 will be halfway between the minimum luminance and maximum luminance for each gun, if your monitor gammaGrid is set correctly.
@@ -55,14 +55,14 @@ HSV color space
 Another way to specify colors is in terms of their Hue, Saturation and 'Value' (HSV). For a description of the color space see the `Wikipedia HSV entry <http://en.wikipedia.org/wiki/HSL_and_HSV>`_. The Hue in this case is specified in degrees, the saturation ranging 0:1 and the 'value' also ranging 0:1.
 
 Examples:
-    
+
     * [0,1,1] is red
     * [0,0.5,1] is pink
     * [90,1,1] is cyan
     * [anything, 0, 1] is white
     * [anything, 0, 0.5] is grey
     * [anything, anything,0] is black
-    
+
 Note that colors specified in this space (like in RGB space) are not going to be the same another monitor; they are device-specific. They simply specify the intensity of the 3 primaries of your monitor, but these differ between monitors. As with the RGB space gamma correction is automatically applied if available.
 
 .. _DKL:
@@ -85,7 +85,7 @@ Examples:
     * [0,0,1] is an isoluminant stimulus, with azimuth 0 (S-axis)
     * [0,45,1] is an isoluminant stimulus,with an oblique azimuth
 
-.. [#dkl1984] Derrington, A.M., Krauskopf, J., & Lennie, P. (1984). Chromatic Mechanisms in Lateral Geniculate Nucleus of Macaque. Journal of Physiology, 357, 241-265. 
+.. [#dkl1984] Derrington, A.M., Krauskopf, J., & Lennie, P. (1984). Chromatic Mechanisms in Lateral Geniculate Nucleus of Macaque. Journal of Physiology, 357, 241-265.
 
 .. [#mb1979] MacLeod, D. I. A. & Boynton, R. M. (1979). Chromaticity diagram showing cone excitation by stimuli of equal luminance. Journal of the Optical Society of America, 69(8), 1183-1186.
 

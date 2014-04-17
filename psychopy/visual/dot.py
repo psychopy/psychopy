@@ -286,9 +286,9 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                 new=numpy.random.uniform(-1, 1, [nDots*2,2])#fetch twice as many as needed
                 inCircle= (numpy.hypot(new[:,0],new[:,1])<1)
                 if sum(inCircle)>=nDots:
-                    return new[inCircle,:][:nDots,:]*self.fieldSize/2.0
+                    return new[inCircle,:][:nDots,:]*0.5
         else:
-            return numpy.random.uniform(-self.fieldSize/2.0, self.fieldSize/2.0, [nDots,2])
+            return numpy.random.uniform(-0.5, 0.5, [nDots,2])
 
     def _update_dotsXY(self):
         """
@@ -336,12 +336,12 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         #handle boundaries of the field
         if self.fieldShape in  [None, 'square', 'sqr']:
-            dead = dead+(numpy.abs(self._verticesBase[:,0])>(self.fieldSize[0]/2.0))+(numpy.abs
+            dead = dead+(numpy.abs(self._verticesBase[:,0])>0.5)+(numpy.abs
                                                                                   (self
-                                                                                   ._verticesBase[:,1])>(self.fieldSize[1]/2.0))
+                                                                                   ._verticesBase[:,1])>0.5)
         elif self.fieldShape == 'circle':
             #transform to a normalised circle (radius = 1 all around) then to polar coords to check
-            normXY = self._verticesBase/(self.fieldSize/2.0)#the normalised XY position (where radius should be <1)
+            normXY = self._verticesBase/0.5#the normalised XY position (where radius should be <1)
             dead = dead + (numpy.hypot(normXY[:,0],normXY[:,1])>1) #add out-of-bounds to those that need replacing
 
         #update any dead dots
