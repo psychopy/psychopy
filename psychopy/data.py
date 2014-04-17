@@ -11,7 +11,7 @@ import psychopy
 import cPickle, string, sys, platform, os, time, copy, csv
 import numpy
 from scipy import optimize, special
-from contrib.quest import *    #used for QuestHandler
+from contrib.quest import QuestObject  # used for QuestHandler
 import inspect #so that Handlers can find the script that called them
 import codecs, locale
 import weakref

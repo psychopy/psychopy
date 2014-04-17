@@ -14,7 +14,7 @@ import tempfile, glob
 import numpy as np
 from scipy.io import wavfile
 from psychopy import core, logging, sound, web, prefs
-from psychopy.constants import *
+from psychopy.constants import NOT_STARTED, PLAYING, PSYCHOPY_USERAGENT
 # import pyo is done within switchOn to better encapsulate it, because it can be very slow
 # idea: don't want to delay up to 3 sec when importing microphone
 # downside: to make this work requires some trickiness with globals

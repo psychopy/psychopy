@@ -12,7 +12,7 @@ import sys, time, copy
 import psychopy.core
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 from psychopy import logging
-from psychopy.constants import *
+from psychopy.constants import NOT_STARTED
 import string, numpy
 
 #try to import pyglet & pygame and hope the user has at least one of them!
