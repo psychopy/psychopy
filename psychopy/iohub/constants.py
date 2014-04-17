@@ -133,7 +133,9 @@ try:
         
         DIGITAL_INPUT=101
         ANALOG_INPUT=102
-        
+
+        SERIAL_INPUT = 105
+
         MULTI_CHANNEL_ANALOG_INPUT=122
     
         MESSAGE=151
@@ -218,6 +220,9 @@ try:
             #: Constant for an Eight Channel Analog Input Sample Event.
             MULTI_CHANNEL_ANALOG_INPUT=122
         
+            #: Constant for a general purpose Serial Rx Event.
+            SERIAL_INPUT = 105
+
             #: Constant for an Experiment Message Event.
             MESSAGE=151
 
@@ -276,15 +281,16 @@ try:
         OTHER = 1
         KEYBOARD = 20
         MOUSE = 30
-        TOUCH=40
+        TOUCH = 40
         EYETRACKER = 50
-        NETWORK=60
-        EVENTPUBLISHER=61
-        REMOTEEVENTSUBSCRIBER=62
+        NETWORK = 60
+        EVENTPUBLISHER = 61
+        REMOTEEVENTSUBSCRIBER = 62
         
-        XINPUT= 70
-        GAMEPAD=80
-        MCU=100
+        XINPUT = 70
+        GAMEPAD = 80
+        MCU = 100
+        SERIAL = 110
         ANALOGINPUT = 120
         EXPERIMENT = 150
         DISPLAY = 190
@@ -321,6 +327,9 @@ try:
 
             #: Constant for a MCU Device.
             MCU = 100
+
+            #: Constant for a General Purpose Serial Interface Device.
+            MCU = 110
 
             #: Constant for an AnalogInput Device.
             ANALOGINPUT = 120
