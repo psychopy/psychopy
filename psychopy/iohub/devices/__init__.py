@@ -861,7 +861,7 @@ class Device(ioObject):
         
         ioObject.__init__(self,*args,**kwargs)
 
-        self._is_reporting_events=kwargs.get('auto_report_events')
+        self._is_reporting_events = kwargs.get('auto_report_events', False)
         self._iohub_event_buffer=dict()
         self._event_listeners=dict()
         self._configuration=kwargs

@@ -55,11 +55,11 @@ class EyeTracker(EyeTrackerDevice):
                          'BlinkStartEvent', 'BlinkEndEvent']
 
     __slots__=['_api_pc_ip','_api_pc_port','_et_pc_ip','_et_pc_port',
-               '_enable_data_filter','_ioKeyboard','_kbEventQueue','_last_setup_result','_handle_sample_callback']
+               '_enable_data_filter','_ioKeyboardHandler','_kbEventQueue','_last_setup_result','_handle_sample_callback']
     def __init__(self, *args,**kwargs):        
         EyeTrackerDevice.__init__(self,*args,**kwargs)
         try:             
-            self._ioKeyboard=None
+            self._ioKeyboardHandler=None
 
             # Get network config (used in setConnectionState(True).
             iviewx_network_config=self.getConfiguration().get('network_settings')
@@ -80,36 +80,38 @@ class EyeTracker(EyeTrackerDevice):
             if filter_type == 'FILTER_ALL':
                 level_int = EyeTrackerConstants.getID(filter_level)
                 if not level_int:
-                    # TODO: Get ConfigureFilter running. 3rd param causes exception.
-                    #print2err("DISABLE IVIEW FILTER:")
-                    #filter_state_set=INT_POINTER(c_int(0))#c_void_p(1)#c_int(0)
-                    #r=pyViewX.ConfigureFilter(pyViewX.etFilterType.get('Average_Enabled'), 
-                    #                        pyViewX.etFilterAction.get('Set'),
-                    #                        filter_state_set#byref(filter_state)
-                    #                        )
-                    #print2err("SET result: ",r," state: ",filter_state_set)
-                    #filter_state_get=INT_POINTER(c_int(1))#c_void_p(1)#c_int(0)
-                    #r=pyViewX.ConfigureFilter(pyViewX.etFilterType.get('Average_Enabled'), 
-                    #                        pyViewX.etFilterAction.get('Get'),
-                    #                        filter_state_get#byref(filter_state)
-                    #                        )
+                    try:
+                        # Try to disable any filtering using the
+                        # new ConfigureFilter function added in Feb 2014 SMI API
+                        # release.
+                        disable_it = c_int(0)
+                        filter_state_set = POINTER(c_int)(disable_it)
+                        pyViewX.ConfigureFilter(pyViewX.etFilterType.get('Average_Enabled'),
+                                                  pyViewX.etFilterAction.get('Set'),
+                                                  filter_state_set
+                                                )
+                    except Exception, e:
+                        print2err("Note: pyViewX.ConfigureFilter to disable filtering call failed.")
+
+                    # Try disabling filtering using the DisableGazeDataFilter
+                    # SMI C func. Not sure if this is 'officially' supported.
                     pyViewX.DisableGazeDataFilter()
-                    #print2err("GET result: ",r," state: ",filter_state_get)
                 elif 0 < level_int <= EyeTrackerConstants.FILTER_ALL:
-                    #print2err("ENABLE IVIEW FILTER:")
-                    #filter_state=c_int(1)
-                    #filter_state_set=INT_POINTER(c_int(1))#c_void_p(1)#c_int(0)
-                    #r=pyViewX.ConfigureFilter(pyViewX.etFilterType.get('Average_Enabled'), 
-                    #                        pyViewX.etFilterAction.get('Set'),
-                    #                        filter_state_set#byref(filter_state)
-                    #                        )
-                    #print2err("SET result: ",r," state: ",filter_state_set)
-                    #filter_state_get=INT_POINTER(c_int(0))#c_void_p(1)#c_int(0)
-                    #r=pyViewX.ConfigureFilter(pyViewX.etFilterType.get('Average_Enabled'), 
-                    #                        pyViewX.etFilterAction.get('Get'),
-                    #                        filter_state_get#byref(filter_state)
-                    #                        )
-                    #print2err("GET result: ",r," state: ",filter_state_get)
+                    # Try to enable filtering using the
+                    # new ConfigureFilter function added in Feb 2014 SMI API
+                    # release.
+                    try:
+                        enable_it = c_int(1)
+                        filter_state_set = POINTER(c_int)(enable_it)
+                        pyViewX.ConfigureFilter(pyViewX.etFilterType.get('Average_Enabled'),
+                                                  pyViewX.etFilterAction.get('Set'),
+                                                  filter_state_set
+                                                )
+                    except Exception, e:
+                        print2err("Note: pyViewX.ConfigureFilter to disable filtering call failed.")
+
+                    # Try enabling filtering using the DisableGazeDataFilter
+                    # SMI C func. Not sure if this is 'officially' supported.
                     pyViewX.EnableGazeDataFilter()
                 else:
                     print2err("Warning: Unsupported iViewX sample filter level value: ",filter_level, "=", level_int)
@@ -157,7 +159,7 @@ class EyeTracker(EyeTrackerDevice):
         trackerTime returns the current iViewX Application or Server time in 
         usec format as a long integer.        
         """
-        tracker_time=c_longlong(0)
+        tracker_time = c_longlong(0)
         r=pyViewX.GetCurrentTimestamp(byref(tracker_time))
         if r == pyViewX.RET_SUCCESS:    
             return tracker_time.value
@@ -189,18 +191,20 @@ class EyeTracker(EyeTrackerDevice):
         isConnected() == True and when isRecordingEnabled() == True.
         """
         try:
-            r=pyViewX.IsConnected()
+            r = pyViewX.IsConnected()
             if r == pyViewX.RET_SUCCESS:
-                connected=True
+                connected = True
             elif r == pyViewX.ERR_NOT_CONNECTED:
-                connected=False
+                connected = False
             else:
                 print2err("iViewX isConnected() returned unexpected value {0}".format(r))
-                return EyeTrackerConstants.EYETRACKER_ERROR
-            return connected            
+                connected= EyeTrackerConstants.EYETRACKER_ERROR
+            return connected
         except Exception, e:
             print2err(" ---- SMI EyeTracker isConnected ERROR ---- ")
             printExceptionDetailsToStdErr()
+        print2err("isConnected error!!: ", connected)
+        return False
 
     def setConnectionState(self,enable):
         """
@@ -223,7 +227,6 @@ class EyeTracker(EyeTrackerDevice):
                                         self._et_pc_port)
                     if r != pyViewX.RET_SUCCESS:
                         print2err("iViewX ERROR connecting to tracker: {0}".format(r))
-                        sys.exit(0)
                     return self.isConnected()
                 elif enable is False and self.isConnected():
                     if self.isRecordingEnabled():
@@ -400,28 +403,28 @@ class EyeTracker(EyeTrackerDevice):
                 self._showEyeImageMonitor()
                 self._showTrackingMonitor()
             else:    
-                self._last_setup_result=EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT
+                self._last_setup_result = EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT
             self._unregisterKeyboardMonitor()
             
             return self._last_setup_result
-        except Exception,e:
+        except Exception, e:
             self._unregisterKeyboardMonitor()
             printExceptionDetailsToStdErr()
-        finally:
-            hide_funcs=[pyViewX.HideAccuracyMonitor,
+
+        try:
+            hide_funcs = [pyViewX.HideAccuracyMonitor,
                         pyViewX.HideEyeImageMonitor,
                         pyViewX.HideSceneVideoMonitor,
                         pyViewX.HideTrackingMonitor
                         ]
             for f in hide_funcs:
-                try:
                     f()
-                except:
-                    print2err('Exception while trying to call: {0}'.format(f))
+        except:
+            print2err('Exception while trying to call: {0}'.format(f))
                     
-    def _showSimpleWin32Dialog(self,message,caption):
+    def _showSimpleWin32Dialog(self, message, caption):
         import win32gui
-        win32gui.MessageBox(None,message,caption,0)
+        win32gui.MessageBox(None, message, caption, 0)
                     
     def _showSetupKeyOptionsDialog(self):
         msg_text="The following Keyboard Commands will be available during User Setup:\n"
@@ -624,21 +627,33 @@ class EyeTracker(EyeTrackerDevice):
             for event_class_name in kbDevice.__class__.EVENT_CLASS_NAMES:
                 eventIDs.append(getattr(EventConstants,convertCamelToSnake(event_class_name[:-5],False)))
 
-            self._ioKeyboard=kbDevice
-            self._ioKeyboard._addEventListener(self,eventIDs)
-            self._kbEventQueue=[]
+            class KeyboardEventHandler(object):
+                def __init__(self,et,kb):
+                    self.et = et
+                    self.kb = kb
+                    self.kb._addEventListener(self, eventIDs)
+                    self.et._kbEventQueue = []
+
+                def _handleEvent(self, ioe):
+                    event_type_index = DeviceEvent.EVENT_TYPE_ID_INDEX
+                    if ioe[event_type_index] == EventConstants.KEYBOARD_PRESS:
+                        self.et._kbEventQueue.append(ioe)
+
+                def free(self):
+                    self.kb._removeEventListener(self)
+                    del self.et._kbEventQueue[:]
+                    self.et = None
+                    self.kb = None
+
+            self._ioKeyboardHandler = KeyboardEventHandler(self, kbDevice)
              
     def _unregisterKeyboardMonitor(self):
-        if self._ioKeyboard:
-            self._ioKeyboard._removeEventListener(self)
-            self._ioKeyboard=None
-            del self._kbEventQueue[:]
+        if self._ioKeyboardHandler:
+            self._ioKeyboardHandler.free()
+            self._ioKeyboardHandler = None
+
             
-    def _handleEvent(self,ioe):
-        event_type_index=DeviceEvent.EVENT_TYPE_ID_INDEX
-        if ioe[event_type_index] == EventConstants.KEYBOARD_PRESS:
-            self._kbEventQueue.append(ioe)
-            
+
     def isRecordingEnabled(self,*args,**kwargs):
         """
         isRecordingEnabled returns True if the eye tracking device is currently connected and
@@ -650,7 +665,7 @@ class EyeTracker(EyeTrackerDevice):
         except Exception, e:
             printExceptionDetailsToStdErr()
 
-    def setRecordingState(self,recording):
+    def setRecordingState(self, recording):
         """
         setRecordingState enables (recording=True) or disables (recording=False)
         the recording of eye data by the eye tracker and the sending of any eye 
@@ -658,65 +673,69 @@ class EyeTracker(EyeTrackerDevice):
         by using the setConnectionState() method for recording to be possible.
         """
         try:
-            if not isinstance(recording,bool):
+            if not isinstance(recording, bool):
                 printExceptionDetailsToStdErr()
-            if recording is True and not self.isRecordingEnabled(): 
+
+            elif recording is True and not self.isRecordingEnabled():
                 pyViewX.SetSampleCallback(self._handle_sample_callback)
-                self._latest_sample=None
-                self._latest_gaze_position=None
+                self._latest_sample = None
+                self._latest_gaze_position = None
 
                 # just incase recording is running , 
                 # try to stop it and clear the smi memory buffers.
                 pyViewX.StopRecording()
                 pyViewX.ClearRecordingBuffer()
 
-                r=pyViewX.StartRecording()
+                r = pyViewX.StartRecording()
                 if r == pyViewX.RET_SUCCESS or r == pyViewX.ERR_RECORDING_DATA_BUFFER or r == pyViewX.ERR_FULL_DATA_BUFFER:
-                    EyeTrackerDevice.enableEventReporting(self,True)
+                    EyeTrackerDevice.enableEventReporting(self, True)
                     return self.isRecordingEnabled()
-                print2err("StartRecording FAILED: ",r)
-                pyViewX.SetSampleCallback(pyViewX.pDLLSetSample(0))    
                 if r == pyViewX.ERR_NOT_CONNECTED:
-                    print2err("iViewX setRecordingState True Failed: ERR_NOT_CONNECTED") 
-                    return EyeTrackerConstants.EYETRACKER_ERROR
+                    print2err("StartRecording FAILED: pyViewX.ERR_NOT_CONNECTED",r)
+                    pyViewX.SetSampleCallback(pyViewX.pDLLSetSample(0))
+                    EyeTrackerDevice.enableEventReporting(self, False)
+                    return False#EyeTrackerConstants.EYETRACKER_ERROR
                 if r == pyViewX.ERR_WRONG_DEVICE:
                     print2err("iViewX setRecordingState True Failed: ERR_WRONG_DEVICE") 
-                    return EyeTrackerConstants.EYETRACKER_ERROR
+                    pyViewX.SetSampleCallback(pyViewX.pDLLSetSample(0))
+                    EyeTrackerDevice.enableEventReporting(self, False)
+                    return False#EyeTrackerConstants.EYETRACKER_ERROR
                           
             elif recording is False and self.isRecordingEnabled():
                 self._latest_sample=None
                 self._latest_gaze_position=None
-                
                 # clear the smi memory buffers.
                 pyViewX.ClearRecordingBuffer()
-                r=pyViewX.StopRecording() 
-                
-                pyViewX.SetSampleCallback(pyViewX.pDLLSetSample(0))    
-                
+                r=pyViewX.StopRecording()
+
+                pyViewX.SetSampleCallback(pyViewX.pDLLSetSample(0))
+
                 if r == pyViewX.RET_SUCCESS or r == pyViewX.ERR_EMPTY_DATA_BUFFER or r == pyViewX.ERR_FULL_DATA_BUFFER:
-                    EyeTrackerDevice.enableEventReporting(self,False)
+                    EyeTrackerDevice.enableEventReporting(self, False)
                     return self.isRecordingEnabled()
                 
                 if r == pyViewX.ERR_NOT_CONNECTED:
                     print2err("iViewX setRecordingState(False) Failed: ERR_NOT_CONNECTED") 
-                    return EyeTrackerConstants.EYETRACKER_ERROR
+                    return False#EyeTrackerConstants.EYETRACKER_ERROR
                 if r == pyViewX.ERR_WRONG_DEVICE:
                     print2err("iViewX setRecordingState(False) Failed: ERR_WRONG_DEVICE") 
-                    return EyeTrackerConstants.EYETRACKER_ERROR
+                    return False #EyeTrackerConstants.EYETRACKER_ERROR
 
         except Exception, e:
             printExceptionDetailsToStdErr()
 
-    def enableEventReporting(self,enabled=True):
+    def enableEventReporting(self, enabled=True):
         """
         enableEventReporting is the device type independent method that is equivelent
         to the EyeTracker specific setRecordingState method.
         """
-        try:        
-            enabled=EyeTrackerDevice.enableEventReporting(self,enabled)
-            return self.setRecordingState(enabled)
+        try:
+            result2 = self.setRecordingState(enabled)
+            EyeTrackerDevice.enableEventReporting(self, enabled)
+            return result2
         except Exception, e:
             printExceptionDetailsToStdErr()
+        return False
 
     def getLastSample(self):
         """
@@ -742,7 +761,7 @@ class EyeTracker(EyeTrackerDevice):
             return self._latest_gaze_position
         except Exception, e:
             printExceptionDetailsToStdErr()
-        
+
     def _handleNativeEvent(self,*args,**kwargs):
         """
         TODO: Add support for Fixation events. Currently callback only supports samples.
@@ -950,8 +969,7 @@ class EyeTracker(EyeTrackerDevice):
             self._latest_gaze_position=(EyeTracker._gx,EyeTracker._gy)
         else:
             self._latest_gaze_position=None
-
-        return self._latest_sample
+        return native_event_data
 
     def _eyeTrackerToDisplayCoords(self,eyetracker_point):
         """
