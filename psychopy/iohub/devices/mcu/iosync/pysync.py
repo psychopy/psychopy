@@ -192,7 +192,8 @@ class T3Request(object):
     SET_T3_INPUTS_STREAMING_STATE=6
     SYNC_TIME_BASE =7
     RESET_STATE=8
-    REQ_COUNTER_START=9
+    GENERATE_KEYBOARD_EVENT=9
+    REQ_COUNTER_START=10
     _request_counter=REQ_COUNTER_START
     sync_state=None
     def __init__(self,request_type,user_byte_array=None):
@@ -314,9 +315,14 @@ class GetT3DigitalInputStateRequest(T3Request):
     def __init__(self):
         T3Request.__init__(self,T3Request.GET_DIGITAL_IN_STATE)
 
-class GetT3AnalogInputStateRequest(T3Request):
-    def __init__(self):
-        T3Request.__init__(self,T3Request.GET_AIN_CHANNELS)
+class GenerateKeyboardEventRequest(T3Request):
+    """
+    Requests the Teensy to generate a key press event and then a release event 
+    press_duration*100 msec later.use_char is not actually used currently.
+    The 
+    """
+    def __init__(self,use_char='v', press_duration=15):
+        T3Request.__init__(self,T3Request.GENERATE_KEYBOARD_EVENT,[use_char,press_duration])
 
 class SetT3DigitalOutputStateRequest(T3Request):
     def __init__(self,new_dout_byte=0):
@@ -498,6 +504,11 @@ class T3MC(object):
 
     def setDigitalOutputByte(self,new_dout_byte):
         r=SetT3DigitalOutputStateRequest(new_dout_byte)
+        self._sendT3Request(r)
+        return r
+
+    def generateKeyboardEvent(self, use_char, press_duration):
+        r=GenerateKeyboardEventRequest(use_char, press_duration)
         self._sendT3Request(r)
         return r
 
