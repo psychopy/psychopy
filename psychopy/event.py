@@ -245,6 +245,9 @@ def getKeys(keyList=None, timeStamped=False):
     elif hasattr(timeStamped, 'getLastResetTime'):
         relTuple = [(k[0],k[1]-timeStamped.getLastResetTime()) for k in targets]
         return relTuple
+    elif isinstance(timeStamped, (float, int, long)):
+        relTuple = [(k[0], k[1]-timeStamped) for k in targets]
+        return relTuple
     elif timeStamped==True:
         return targets
 
