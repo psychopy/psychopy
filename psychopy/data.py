@@ -2322,21 +2322,23 @@ class MultiStairHandler(_BaseTrialHandler):
                 ', not a list of %ss' %type(c0))
         #did conditions contain the things we need?
         params = c0.keys()
-        if self.type in ['simple','quest']:
+        if self.type in ['simple','quest','QUEST']:
             if 'startVal' not in params:
                 logging.error('MultiStairHandler needs a param called `startVal` in conditions')
             if 'label' not in params:
                 logging.error('MultiStairHandler needs a param called `label` in conditions')
-            if 'startValSd' not in params and self.type=='quest':
+            if 'startValSd' not in params and self.type in ['QUEST','quest']:
                 logging.error("MultiStairHandler('quest') needs a param called `startValSd` in conditions")
         else:
-            logging.error("MultiStairHandler `stairType` should be 'simple' or 'quest', not '%s'" %self.type)
+            logging.error("MultiStairHandler `stairType` should be 'simple', 'QUEST' or 'quest', not '%s'" %self.type)
     def _createStairs(self):
         if self.type=='simple':
             defaults = {'nReversals':None, 'stepSizes':4, 'nTrials':self.nTrials,
                 'nUp':1, 'nDown':3, 'extraInfo':None,
                 'stepType':'db', 'minVal':None, 'maxVal':None}
-        elif self.type=='quest':
+        elif self.type in ['QUEST','quest']:
+            # fp added alternatives since the builder creates 'QUEST' but
+            # the API spec wants 'quest'?
             defaults = {'pThreshold':0.82, 'nTrials':self.nTrials, 'stopInterval':None,
                 'method':'quantile', 'stepType':'log', 'beta':3.5, 'delta':0.01,
                 'gamma':0.5, 'grain':0.01, 'range':None, 'extraInfo':None,
@@ -2357,7 +2359,8 @@ class MultiStairHandler(_BaseTrialHandler):
                     stepSizes=stepSizes, nTrials=nTrials, nUp=nUp, nDown=nDown,
                     extraInfo=extraInfo,
                     stepType=stepType, minVal=minVal, maxVal=maxVal)
-            elif self.type=='quest':
+            elif self.type in ['QUEST','quest']:
+                # see above
                 thisStair = QuestHandler(startVal, startValSd=condition['startValSd'],
                     pThreshold=pThreshold, nTrials=nTrials, stopInterval=stopInterval,
                     method=method, stepType=stepType, beta=beta, delta=delta,
