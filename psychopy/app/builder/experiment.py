@@ -3,12 +3,11 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import StringIO, sys, codecs
-from components import *#getComponents('') and getAllComponents([])
+from components import getInitVals, getComponents, getAllComponents
 import psychopy
 from psychopy import data, __version__, logging
-from psychopy.constants import *
+from psychopy.constants import FOREVER
 from lxml import etree
-import numpy, numpy.random # want to query their name-spaces
 import re, os
 import locale
 
@@ -798,7 +797,7 @@ class MultiStairHandler:
         self.params['name']=Param(name, valType='code', hint="Name of this loop")
         self.params['nReps']=Param(nReps, valType='code',
             hint="(Minimum) number of trials in *each* staircase")
-        self.params['stairType']=Param(nReps, valType='str', allowedVals=['simple','QUEST'],
+        self.params['stairType']=Param(nReps, valType='str', allowedVals=['simple','QUEST','quest'],
             hint="How to select the next staircase to run")
         self.params['switchMethod']=Param(nReps, valType='str', allowedVals=['random','sequential','fullRandom'],
             hint="How to select the next staircase to run")

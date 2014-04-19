@@ -2,7 +2,7 @@
 # Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from ctypes import *
+from ctypes import byref, cast, c_int, c_char, c_char_p, POINTER, create_string_buffer
 import pyglet
 GL=pyglet.gl
 import sys
@@ -171,7 +171,7 @@ fragImageStim = '''
     void main() {
         vec4 textureFrag = texture2D(texture,gl_TexCoord[0].st);
         vec4 maskFrag = texture2D(mask,gl_TexCoord[1].st);
-        gl_FragColor.a = maskFrag.a;
+        gl_FragColor.a = gl_Color.a*maskFrag.a*textureFrag.a;
         gl_FragColor.rgb = ((textureFrag.rgb*2.0-1.0)*(gl_Color.rgb*2.0-1.0)+1.0)/2.0;
     }
     '''
