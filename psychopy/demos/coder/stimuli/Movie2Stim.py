@@ -31,10 +31,10 @@ code doc's seem a bit mixed in message.
 Current known issues:
 ~~~~~~~~~~~~~~~~~~~~~~
 
-1. Seek and loop functionality are known to be broken at this time.
+1. Loop functionality are known to be broken at this time.
 2. Auto draw not implemented.
 3. Video must have 3 color channels.
-4. Frame dropping (to keep video playing at expected rate on slow machines) is not yet implemented.
+4. Intentional Frame dropping (to keep video playing at expected rate on slow machines) is not yet implemented.
 
 What does work so far:
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,6 +42,7 @@ What does work so far:
 1. mov.setMovie(filename) / mov.loadMovie(filename)
 2. mov.play()
 3. mov.pause()
+4. mov.seek()
 4. mov.stop()
 5. mov.set/getVolume()
 6. Standard BaseVisualStim, ContainerMixin methods, unless noted above.
@@ -60,12 +61,26 @@ win = visual.Window([1024, 768])
 mov = visual.MovieStim2(win, videopath,
                        size=1024,
                        # pos specifies the /center/ of the movie stim location
-                       pos=[0,0],
+                       pos=[0, 100],
                        flipVert=False,
                        flipHoriz=False,
                        loop=True)
-print 'orig movie size=[%i,%i]' %(mov._video_width, mov._video_height)
-print 'duration=%.2fs' %(mov.duration)
+
+keystext = "PRESS 'q' or 'escape' to Quit.\n"
+keystext += "#     's': Stop/restart Movie.\n"
+keystext += "#     'p': Pause/Unpause Movie.\n"
+keystext += "#     '>': Seek Forward 1 Second.\n"
+keystext += "#     '<': Seek Backward 1 Second.\n"
+keystext += "#     '-': Decrease Movie Volume.\n"
+keystext += "#     '+': Increase Movie Volume."
+text = visual.TextBox(win,keystext, font_name=None, bold=False, italic=False,
+                      font_size=21, font_color=[-1, -1, -1, 1],
+                      textgrid_shape=(36, 7), pos=(0, -350), units = 'pix',
+                      grid_vert_justification='center',
+                      grid_horz_justification='left', align_horz='center',
+                      align_vert='bottom',
+                      autoLog=False, interpolate=True)
+text.draw()
 
 # Start the movie stim by preparing it to play and then calling flip()
 mov.play()
@@ -77,6 +92,7 @@ while mov.status != visual.FINISHED:
     # cuts CPU usage of the psychopy app. by almost 50%.
     shouldflip = mov.draw()
     if shouldflip:
+        text.draw()
         ftime=win.flip()
     else:
         time.sleep(0.001)
@@ -92,6 +108,7 @@ while mov.status != visual.FINISHED:
                 # play a moview again with the current mov instance, call
                 # the three methods as shown in the following else statement.
                 mov.stop()
+                text.draw()
                 win.flip()
             else:
                 # If the mov has been stopped; to start it again, you must
@@ -99,6 +116,7 @@ while mov.status != visual.FINISHED:
                 # first video frame.
                 mov.loadMovie(videopath)
                 mov.play()
+                text.draw()
                 win.flip()
         elif key in ['p',]:
             # If you want to pause the movie while it is playing, and then want
@@ -107,8 +125,33 @@ while mov.status != visual.FINISHED:
                 mov.pause()
             elif mov.status == visual.PAUSED:
                 mov.play()
+                text.draw()
                 win.flip()
+        elif key == 'period':
+            ntime = mov.getCurrentFrameTime()+1.0
+            if ntime >= mov.duration:
+                ntime = mov.duration
+            mov.seek(ntime)
+        elif key == 'comma':
+            ntime = mov.getCurrentFrameTime()-1.0
+            if ntime < 0.0:
+                ntime = 0.0
+            mov.seek(ntime)
+        elif key == 'minus':
+            cv = mov.getVolume()
+            cv -= 5
+            if cv < 0:
+                cv = 0
+            mov.setVolume(cv)
+        elif key == 'equal':
+            cv = mov.getVolume()
+            cv += 5
+            if cv > 100:
+                cv = 100
+            mov.setVolume(cv)
+            print 'Volume:', mov.getVolume()
         else:
+            print key
             #TODO: Add video seeking key shortcuts when seeking works.
             pass
 core.quit()

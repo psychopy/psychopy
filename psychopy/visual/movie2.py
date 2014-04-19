@@ -257,9 +257,9 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                 self._audio_stream_player.pause()
             self.status = PLAYING
             if log and self.autoLog:
-                    self.win.logOnFlip("Set %s paused" %(self.name),
+                    self.win.logOnFlip("Set %s playing" %(self.name),
                                        level=logging.EXP, obj=self)
-            print '### PLAY ###'
+            #print '### PLAY ###'
             self._video_track_clock.reset(-self._getNextFrame())
             self._updateFrameTexture()
             self.win.callOnFlip(self._flipCallback)
@@ -275,7 +275,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             if self._audio_stream_player.can_pause():
                 self.status = PAUSED
                 self._audio_stream_player.pause()
-                print '### PAUSE ###'
+                #print '### PAUSE ###'
                 if log and self.autoLog:
                     self.win.logOnFlip("Set %s paused" %(self.name), level=logging.EXP, obj=self)
                 return True
@@ -288,7 +288,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         will not advance). Once stopped the movie cannot be restarted - it must
         be loaded again. Use pause() if you may need to restart the movie.
         """
-        print '### STOP ###'
+        #print '### STOP ###'
         self.status = STOPPED
         self._unload()
         self._reset()
@@ -303,20 +303,15 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         Does not currently work.
         """
         if self._audio_stream_player:
-            if self._audio_stream_player.is_seekable():
-                stime = core.getTime()
-                self._audio_stream_player.pause()
+            if self.status in [PLAYING, PAUSED] and self._audio_stream_player.is_seekable():
+                if self.status == PLAYING:
+                    self.pause()
                 aresult = self._audio_stream_player.set_time(int(timestamp*1000.0))
-                atime = core.getTime()
                 vresult = self._video_stream.set(cv2.cv.CV_CAP_PROP_POS_MSEC,
                                         timestamp*1000.0)
-                self._getNextFrame()
-                self._audio_stream_player.pause()
-                vtime = core.getTime()
+                self.play()
                 if log:
                     logAttrib(self, log, 'seek', timestamp)
-                print 'SEEK:', atime-stime, vtime-atime, vtime-stime,aresult,vresult
-                return self._audio_stream_player.get_time(), self._next_frame_sec
 
     def setFlipHoriz(self, newVal=True, log=True):
         """If set to True then the movie will be flipped horizontally (left-to-right).
@@ -342,7 +337,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             v = int(v*100)
         else:
             v = int(v)
-        print 'setting volume:',v
+        #print 'setting volume:',v
         self.volume = v
         if self._audio_stream_player:
             self._audio_stream_player.audio_set_volume(v)
@@ -354,12 +349,12 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
 
     def getTimeToNextFrameDraw(self):
         try:
-            assert self._video_track_clock != None
-            assert self._next_frame_sec != None
-            assert self._retracerate != None
+            #assert self._video_track_clock != None
+            #assert self._next_frame_sec != None
+            #assert self._retracerate != None
             rt = (self._next_frame_sec - 1.0/self._retracerate) - self._video_track_clock.getTime()
-            if rt > 1.0/self._video_frame_rate or rt <= -1.0/self._retracerate:
-                print 'getTimeToNextFrameDraw:', rt
+            #if rt > self._inter_frame_interval or rt <= -1.0/self._retracerate:
+            #    print 'getTimeToNextFrameDraw:', rt
             return rt
         except:
             import traceback
@@ -391,15 +386,12 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             self._next_frame_index = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
             self._video_perc_done = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_AVI_RATIO)
             self._next_frame_displayed = False
-            #print 'Next Frame index / sec:',self._next_frame_index , self._next_frame_sec
             return self._next_frame_sec
         else:
             self.status = FINISHED
             if self._audio_stream_player:
                 self._audio_stream_player.stop()
             self._onEos()
-#        else:
-#            raise RuntimeError("Could not read next video frame meta-data.")
 
     def _updateFrameTexture(self):
         # decode frame into np array and move to opengl tex
