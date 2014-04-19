@@ -247,6 +247,9 @@ def getKeys(keyList=None, timeStamped=False):
         return relTuple
     elif timeStamped==True:
         return targets
+    elif isinstance(timeStamped, (float, int, long)):
+        relTuple = [(k[0], k[1]-timeStamped) for k in targets]
+        return relTuple
 
 def waitKeys(maxWait=float('inf'), keyList=None, timeStamped=False):
     """

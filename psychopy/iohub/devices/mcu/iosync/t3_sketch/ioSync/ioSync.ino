@@ -174,7 +174,8 @@ byte writeByteBufferToSerial(){
 #define SET_T3_INPUTS_STREAMING_STATE 6
 #define SYNC_TIME_BASE 7
 #define RESET_STATE 8
-#define REQUEST_TYPE_COUNT 9
+#define GENERATE_KEYBOARD_EVENT 9
+#define REQUEST_TYPE_COUNT 10
 
 #define REQUEST_TX_HEADER_BYTE_COUNT 8
 
@@ -187,7 +188,8 @@ byte request_tx_byte_length[REQUEST_TYPE_COUNT]={
   REQUEST_TX_HEADER_BYTE_COUNT+sizeof(AIN_PINS)*2,
   REQUEST_TX_HEADER_BYTE_COUNT,
   REQUEST_TX_HEADER_BYTE_COUNT,
-  REQUEST_TX_HEADER_BYTE_COUNT  
+  REQUEST_TX_HEADER_BYTE_COUNT,
+  REQUEST_TX_HEADER_BYTE_COUNT+2  
 };
 
 void NullHandlerRx(byte request_type,byte request_id,byte request_rx_byte_count);
@@ -199,6 +201,7 @@ void handleGetAnalogInChannelsRx(byte request_type,byte request_id,byte request_
 void handleEnableInputStreamingRx(byte request_type,byte request_id,byte request_rx_byte_count);
 void handleSyncTimebaseRx(byte request_type,byte request_id,byte request_rx_byte_count);
 void handleResetStateRx(byte request_type,byte request_id,byte request_rx_byte_count);
+void handleGenerateKeyboardEventRx(byte request_type,byte request_id,byte request_rx_byte_count);
 
 void (*requestHandlerFP[REQUEST_TYPE_COUNT])(byte request_type,byte request_id,byte request_rx_byte_count)={
   NullHandlerRx,
@@ -209,7 +212,8 @@ void (*requestHandlerFP[REQUEST_TYPE_COUNT])(byte request_type,byte request_id,b
   handleGetAnalogInChannelsRx,
   handleEnableInputStreamingRx,
   handleSyncTimebaseRx,
-  handleResetStateRx
+  handleResetStateRx,
+  handleGenerateKeyboardEventRx
 };
 
 elapsedMicros sinceLastSerialTx;
@@ -325,6 +329,43 @@ void handleSetDigitalOutPinRx(byte request_type,byte request_id,byte request_rx_
   //    digitalWrite(DOUT_PINS[pin_value[0]],HIGH); // set 1
   digitalWrite(DOUT_PINS[pin_value[0]],pin_value[1]);
 }
+
+//------------------------
+IntervalTimer resetKey1;
+volatile byte reset_key1_active = 0;
+
+void setResetKey1Active(void) {
+  reset_key1_active=1;
+}
+
+void handleGenerateKeyboardEventRx(byte request_type,byte request_id,byte request_rx_byte_count){
+  /*
+  GENERATE_KEYBOARD_EVENT: Generates a USB keyboard event on the Host PC.
+   
+   RX bytes ( 5 ):
+   0: SET_DIGITAL_OUT_PIN
+   1: Request ID
+   2: Rx Byte Count
+   3: send_char (0-255)
+   4: press_duration in msec (100 msec increments)
+   
+   
+   TX Bytes ( 7 ):
+   0: Request ID
+   1: Tx Byte Count
+   2 - 7: usec time that pin was set.    
+   */
+  char key_event_info[2]={
+    0,0}; // char to send, 8 bit msec duration (100 msec incremnents)
+  unsigned int usec_duration=0;
+  Serial.readBytes(key_event_info,2);
+  usec_duration=(unsigned int)(((byte)key_event_info[1])*100000);
+  Keyboard.set_key1(KEY_V);  
+  Keyboard.send_now();
+  
+  resetKey1.begin(setResetKey1Active, usec_duration);
+}
+
 
 //------------------------
 
@@ -536,6 +577,8 @@ void setup()
 // Repeatedly called while microcontroller is running.
 void loop()
 {
+  byte reset_key1_copy;  // holds a copy of the reset_key1_active
+
   if (sinceLastInputRead>=INPUT_LINES_READ_RATE){
     inputLineReadTimerCallback();   
     sinceLastInputRead=sinceLastInputRead-INPUT_LINES_READ_RATE;
@@ -543,6 +586,15 @@ void loop()
 
   handleHostSerialRequests();
 
+  noInterrupts();
+  reset_key1_copy = reset_key1_active;
+  interrupts();  
+  if (reset_key1_copy == 1){
+    Keyboard.set_key1(0);
+    Keyboard.send_now();
+    reset_key1_active=0;
+    resetKey1.end();
+  }
   if ( tx_byte_buffer_index>0 && (byteBufferFreeSize()<24 || sinceLastSerialTx>=MAX_TX_BUFFERING_INTERVAL) ){
     writeByteBufferToSerial();
     Serial.flush();
