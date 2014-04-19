@@ -3,12 +3,11 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import StringIO, sys, codecs
-from components import *#getComponents('') and getAllComponents([])
+from components import getInitVals, getComponents, getAllComponents
 import psychopy
 from psychopy import data, __version__, logging
-from psychopy.constants import *
+from psychopy.constants import FOREVER
 from lxml import etree
-import numpy, numpy.random # want to query their name-spaces
 import re, os
 import locale
 
