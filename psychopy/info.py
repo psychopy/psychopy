@@ -20,7 +20,6 @@ try:
 except ImportError:
     haveCtypes = False
 import hashlib
-import random
 import wx
 import locale
 
@@ -39,7 +38,7 @@ class RunTimeInfo(dict):
         - 2010 written by Jeremy Gray, with input from Jon Peirce and Alex Holcombe
     """
     def __init__(self, author=None, version=None, win=None, refreshTest='grating',
-                 userProcsDetailed=False, verbose=False, randomSeed=None):
+                 userProcsDetailed=False, verbose=False):
         """
         :Parameters:
 
@@ -61,13 +60,6 @@ class RunTimeInfo(dict):
 
             userProcsDetailed: *False*, True
                 get details about concurrent user's processses (command, process-ID)
-
-            randomSeed: *None*
-                a way for the user to record, and optionally set, a random seed for making reproducible random sequences
-                'set:XYZ' will both record the seed, 'XYZ', and set it: random.seed('XYZ'); numpy.random.seed() is NOT set
-                None defaults to python default;
-                'time' = use time.time() as the seed, as obtained during RunTimeInfo()
-                randomSeed='set:time' will give a new random seq every time the script is run, with the seed recorded.
 
         :Returns:
             a flat dict (but with several groups based on key names):
@@ -101,7 +93,7 @@ class RunTimeInfo(dict):
         if githash:
             self['psychopyGitHead'] = githash
 
-        self._setExperimentInfo(author, version, verbose, randomSeed)
+        self._setExperimentInfo(author, version, verbose)
         self._setSystemInfo() # current user, locale, other software
         self._setCurrentProcessInfo(verbose, userProcsDetailed)
 
@@ -122,7 +114,7 @@ class RunTimeInfo(dict):
         if usingTempWin:
             win.close() # close after doing openGL
 
-    def _setExperimentInfo(self, author, version, verbose, randomSeedFlag=None):
+    def _setExperimentInfo(self, author, version, verbose):
         # try to auto-detect __author__ and __version__ in sys.argv[0] (= the users's script)
         if not author or not version:
             f = open(sys.argv[0], 'r')
@@ -178,26 +170,8 @@ class RunTimeInfo(dict):
             pass
 
         # when was this run?
-        self['experimentRunTime.epoch'] = core.getAbsTime()  # basis for default random.seed()
+        self['experimentRunTime.epoch'] = core.getAbsTime()
         self['experimentRunTime'] = data.getDateStr(format="%Y_%m_%d %H:%M (Year_Month_Day Hour:Min)")
-
-        # random.seed -- record the value, and initialize random.seed() if 'set:'
-        if randomSeedFlag:
-            randomSeedFlag = str(randomSeedFlag)
-            while randomSeedFlag.find('set: ') == 0:
-                randomSeedFlag = randomSeedFlag.replace('set: ', 'set:', 1)  # spaces between set: and value could be confusing after deleting 'set:'
-            randomSeed = randomSeedFlag.replace('set:', '', 1).strip()
-            if randomSeed in ['time']:
-                randomSeed = self['experimentRunTime.epoch']
-            self['experimentRandomSeed.string'] = randomSeed
-            if randomSeedFlag.find('set:') == 0:
-                random.seed(self['experimentRandomSeed.string'])  # seed it
-                self['experimentRandomSeed.isSet'] = True
-            else:
-                self['experimentRandomSeed.isSet'] = False
-        else:
-            self['experimentRandomSeed.string'] = None
-            self['experimentRandomSeed.isSet'] = False
 
     def _setSystemInfo(self):
         """system info"""
@@ -214,7 +188,7 @@ class RunTimeInfo(dict):
 
         # platform name, etc
         if sys.platform in ['darwin']:
-            OSXver, __, architecture = platform.mac_ver()
+            OSXver, _, architecture = platform.mac_ver()
             platInfo = 'darwin ' + OSXver + ' ' + architecture
             # powerSource = ...
         elif sys.platform.startswith('linux'):
@@ -526,13 +500,6 @@ class RunTimeInfo(dict):
         info = '\n'.join(info).replace('"', '') + '\n'
         return info
 
-    def _type(self):
-        # for debugging
-        sk = self.keys()
-        sk.sort()
-        for k in sk:
-            print k, type(self[k]), self[k]
-
 def _getHashGitHead(dir=''):
     origDir = os.getcwd()
     os.chdir(dir)
@@ -664,7 +631,8 @@ def _getSha1hexDigest(thing, isfile=False):
 def getRAM():
     """Return system's physical RAM & available RAM, in M.
 
-    Slow on Mac and Linux; fast on Windows. psutils is good but another dep."""
+    Slow on Mac and Linux; fast on Windows. psutils is good but another dep.
+    """
     freeRAM = 'unknown'
     totalRAM = 'unknown'
 
