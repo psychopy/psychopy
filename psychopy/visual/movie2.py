@@ -1,12 +1,64 @@
 #!/usr/bin/env python2
+'''
+A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy.
+Demo using the experimental movie2 stim to play a video file. Path of video
+needs to updated to point to a video you have. movie2 does /not/ require
+avbin to be installed.
 
-'''A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy.'''
+Movie2 does require:
+~~~~~~~~~~~~~~~~~~~~~
+
+1. Python OpenCV package (so openCV libs and the cv2 python interface).
+    *. For Windows, a binary installer is available at http://www.lfd.uci.edu/~gohlke/pythonlibs/#opencv
+    *. For Linux, it is available via whatever package manager you use.
+    *. For OSX, ..... ?
+2. VLC application. Just install the standard VLC (32bit) for your OS. http://www.videolan.org/vlc/index.html
+
+To play a video, you /must/:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+a. Create a visual.MovieStim2(..) instance; pretend it is called mov.
+b. Call mov.play() when you want to start playing the video.
+c. Call win.flip(), which will display the first frame of the video.
+d. In the experiment loop, call mov.draw() followed by win.flip() to draw
+   the video frame again mov.draw() determines if the current frame,
+   or the next frame should be redrawn and does so accordingly. If the next
+   frame is drawn, mov.draw() will return the frame index just drawn. If
+   the same frame is drawn as before, None is returned.
+
+This method call sequence must be followed. This should be improved (I think)
+depending on how movie stim calls are actually made. The current movie stim
+code doc's seem a bit mixed in message.
+
+Current known issues:
+~~~~~~~~~~~~~~~~~~~~~~
+
+1. Loop functionality are known to be broken at this time.
+2. Auto draw not implemented.
+3. Video must have 3 color channels.
+4. Intentional Frame dropping (to keep video playing at expected rate on slow machines) is not yet implemented.
+
+What does work so far:
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. mov.setMovie(filename) / mov.loadMovie(filename)
+2. mov.play()
+3. mov.pause()
+4. mov.seek()
+4. mov.stop()
+5. mov.set/getVolume()
+6. Standard BaseVisualStim, ContainerMixin methods, unless noted above.
+
+Testing has only been done on Windows and Linux so far.
+'''
 
 # Part of the PsychoPy library
 # Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+#
+# Contributed by Sol Simpson, April 2014.
+# The MovieStim class was taken and rewritten to use cv2 and vlc instead of avbin
 
-import sys
 import os
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -18,14 +70,10 @@ pyglet.options['debug_gl'] = False
 GL = pyglet.gl
 
 import psychopy  # so we can get the __path__
-from psychopy import core, logging, event
-import psychopy.event
+from psychopy import core, logging
 
-# tools must only be imported *after* event or MovieStim breaks on win32
-# (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib
-from psychopy import makeMovies
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 
 import numpy
@@ -44,14 +92,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
 
     **Example**::
 
-        mov = visual.MovieStim(myWin, 'testMovie.mp4', flipVert=False)
-        print mov.duration
-        #give the original size of the movie in pixels
-        print mov.format.width, mov.format.height
-
-        mov.draw() #draw the current frame (automagically determined)
-
-    See Movie2Stim.py for demo.
+        See Movie2Stim.py for demo.
     """
     def __init__(self, win,
                  filename="",
@@ -73,14 +114,13 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         :Parameters:
 
             filename :
-                a string giving the relative or absolute path to the movie. Can be any movie that
-                AVbin can read (e.g. mpeg, DivX)
+                a string giving the relative or absolute path to the movie.
             flipVert : True or *False*
                 If True then the movie will be top-bottom flipped
             flipHoriz : True or *False*
                 If True then the movie will be right-left flipped
             volume :
-                The nominal level is 1.0, and 0.0 is silence, see pyglet.media.Player
+                The nominal level is 100, and 0 is silence.
             loop : bool, optional
                 Whether to start the movie over from the beginning if draw is
                 called and the movie is done.
