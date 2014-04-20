@@ -24,11 +24,6 @@ runInfo = psychopy.info.RunTimeInfo(
         refreshTest='grating', ## None, True, or 'grating' (eye-candy to avoid a blank screen)
         verbose=True, ## True means report on everything 
         userProcsDetailed=True,  ## if verbose and userProcsDetailed, return (command, process-ID) of the user's processes
-        randomSeed='set:time', ## a way to record, and optionally set, a random seed of type str for making reproducible random sequences
-            ## None -> default 
-            ## 'time' will use experimentRuntime.epoch as the value for the seed, different value each time the script is run
-            ##'set:time' --> seed value is set to experimentRuntime.epoch, and initialized: random.seed(info['randomSeed'])
-            ##'set:42' --> set & initialize to str('42'), and will give the same sequence of random.random() for all runs of the script
         )
 myWin.close()
 
@@ -54,7 +49,6 @@ try:
     runInfo["windowRefreshTimeAvg_ms"]  # just to raise exception here if no keys
     print "or from the test of the screen refresh rate:"
     print "  %.2f ms = average refresh time" % runInfo["windowRefreshTimeAvg_ms"]
-    print "  %.2f ms = median (average of 12 at the median, best estimate of monitor refresh rate)" % runInfo["windowRefreshTimeMedian_ms"]
     print "  %.3f ms = standard deviation" % runInfo["windowRefreshTimeSD_ms"]
 
     ## Once you have run-time info, you can fine-tune things with the values, prior to running your experiment.
