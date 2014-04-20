@@ -9,4 +9,7 @@
 # This module is not used by psychopy; retained for backwards compatibility
 # for user-scripts.
 
+# pylint: disable=W0611
+# W0611 = Unused import %s
+
 from numpy import radians, degrees

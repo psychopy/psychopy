@@ -6,6 +6,9 @@
 
 '''Wrapper for all miscellaneous functions and classes from psychopy.tools'''
 
+# pylint: disable=W0611
+# W0611 = Unused import %s
+
 from psychopy.tools.arraytools import (createXYs, extendArr, makeRadialMatrix,
                                        ratioRange, shuffleArray, val2array)
 
