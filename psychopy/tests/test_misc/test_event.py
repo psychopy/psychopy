@@ -68,6 +68,9 @@ class _baseTest:
 
         m = event.Mouse()
         assert m.mouseMoveTime() >= 0
+        t = 0.05
+        core.wait(t, 0)
+        assert t + 0.01 > m.mouseMoveTime() >= t
 
     def test_clearEvents(self):
         for t in ['mouse', 'joystick', 'keyboard', None]:
