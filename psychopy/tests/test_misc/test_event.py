@@ -66,6 +66,9 @@ class _baseTest:
         event.stopMoveClock()
         event.resetMoveClock()
 
+        m = event.Mouse()
+        assert m.mouseMoveTime() >= 0
+
     def test_clearEvents(self):
         for t in ['mouse', 'joystick', 'keyboard', None]:
             event.clearEvents(t)

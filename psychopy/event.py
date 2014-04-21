@@ -436,7 +436,7 @@ class Mouse:
     def mouseMoveTime(self):
         global mouseMove
         if mouseMove:
-                return psychopy.core.getTime()-mouseMove.getLastResetTime()
+                return mouseMove.getTime()
         else: return 0 # mouseMove clock not started
 
     def getRel(self):
