@@ -303,29 +303,27 @@ class SoundPyo(_SoundBase):
     """Create a sound object, from one of MANY ways.
     """
     def __init__(self, value="C", secs=0.5, octave=4, stereo=True, volume=1.0,
-                 loops=0, sampleRate=44100, bits=16, hamming=True,
+                 loops=0, sampleRate=44100, bits=16, hamming=True, start=0, stop=-1,
                  name='', autoLog=True):
         """
-        value: can be a number, string or an array.
+        value: can be a number, string or an array:
+            * If it's a number between 37 and 32767 then a tone will be generated at that frequency in Hz.
+            * It could be a string for a note ('A','Bfl','B','C','Csh'...). Then you may want to specify which octave as well
+            * Or a string could represent a filename in the current location, or mediaLocation, or a full path combo
+            * Or by giving an Nx2 numpy array of floats (-1:1) you can specify the sound yourself as a waveform
 
-            If it's a number between 37 and 32767 then a tone will be generated at
-            that frequency in Hz.
-            -----------------------------
-            It could be a string for a note ('A','Bfl','B','C','Csh'...)
-            - you may want to specify which octave as well
-            -----------------------------
-            Or a string could represent a filename in the current
-            location, or mediaLocation, or a full path combo
-            -----------------------------
-            Or by giving an Nx2 numpy array of floats (-1:1) you
-            can specify the sound yourself as a waveform
-
-            By default, a Hamming window (8ms duration) will be applied to the
+            By default, a Hamming window (5ms duration) will be applied to a
             generated tone, so that onset and offset are smoother (to avoid
             clicking). To disable the Hamming window, set `hamming=False`.
 
-        secs: is only relevant if the value is a note name or
-            a frequency value
+        secs:
+            Duration of a tone. Not used for sounds from a file.
+
+        start : float
+            Where to start playing a sound file; default = 0s (start of the file).
+
+        stop : float
+            Where to stop playing a sound file; default = end of file.
 
         octave: is only relevant if the value is a note name.
             Middle octave of a piano is 4. Most computers won't
@@ -347,8 +345,8 @@ class SoundPyo(_SoundBase):
 
         bits: has no effect for the pyo backend
 
-        hamming: whether to apply a Hamming window for generated tones. Has no
-            effect on sounds from files.
+        hamming: whether to apply a Hamming window (5ms) for generated tones.
+            Not applied to sounds from files.
         """
         global pyoSndServer
         if pyoSndServer==None or pyoSndServer.getIsBooted()==0:
@@ -359,6 +357,8 @@ class SoundPyo(_SoundBase):
         self.isStereo = stereo
         self.channels = 1 + int(stereo)
         self.secs=secs
+        self.startTime = start
+        self.stopTime = stop
         self.autoLog=autoLog
         self.name=name
 
@@ -370,16 +370,18 @@ class SoundPyo(_SoundBase):
         self.setSound(value=value, secs=secs, octave=octave, hamming=hamming)
         self.needsUpdate = False
 
-    def play(self, fromStart=True, loops=None, autoStop=True, log=True):
+    def play(self, loops=None, autoStop=True, log=True):
         """Starts playing the sound on an available channel.
-        If no sound channels are available, it will not play and return None.
 
         loops : int
             (same as above)
 
-        This runs off a separate thread i.e. your code won't wait for the
-        sound to finish before continuing. You need to use a
-        `psychopy.core.wait(mySound.getDuration())` if you want things to pause.
+        For playing a sound file, you cannot specify the start and stop times when
+        playing the sound, only when creating the sound initially.
+
+        Playing a sound runs in a separate thread i.e. your code won't wait for the
+        sound to finish before continuing. To pause while playing, you need to use a
+        `psychopy.core.wait(mySound.getDuration())`.
         If you call `play()` while something is already playing the sounds will
         be played over each other.
         """
@@ -454,7 +456,9 @@ class SoundPyo(_SoundBase):
         # want mono sound file played to both speakers, not just left / 0
         self.fileName = fileName
         self._sndTable = pyo.SndTable(initchnls=self.channels)
-        self._sndTable.setSound(self.fileName)  # mono file loaded to all chnls
+        # mono file loaded to all chnls:
+        self._sndTable.setSound(self.fileName,
+                                start=self.startTime, stop=self.stopTime)
         self._updateSnd()
         self.duration = self._sndTable.getDur()
 
