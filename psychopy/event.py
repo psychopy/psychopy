@@ -91,7 +91,7 @@ def _onPygletKey(symbol, modifiers, emulated=False):
     """
 
     global useText
-    keyTime=psychopy.clock.getTime() #capture when the key was pressed
+    keyTime=psychopy.core.getTime() #capture when the key was pressed
     if emulated:
         thisKey = unicode(symbol)
         keySource = 'EmulatedKey'
