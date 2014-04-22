@@ -205,6 +205,11 @@ class MCU(Device):
         request=self._mcu.setDigitalOutputByte(new_dout_byte)
         self._request_dict[request.getID()]=request
         return request.asdict()
+
+    def generateKeyboardEvent(self, use_char, press_duration):
+        request=self._mcu.generateKeyboardEvent(use_char, press_duration)
+        self._request_dict[request.getID()]=request
+        return request.asdict()
         
     def setDigitalOutputPin(self,dout_pin_index,new_pin_state):
         request=self._mcu.setDigitalOutputPin(dout_pin_index,new_pin_state)

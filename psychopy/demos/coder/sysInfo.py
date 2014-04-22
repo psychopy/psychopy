@@ -1,4 +1,6 @@
-from pyglet.gl import *
+#!/usr/bin/env python2
+
+from pyglet.gl import gl_info, GLint, glGetIntegerv, GL_MAX_ELEMENTS_VERTICES
 from psychopy import visual, preferences
 import sys, platform
 
@@ -34,7 +36,7 @@ print "vendor:", gl_info.get_vendor()
 print "rendering engine:", gl_info.get_renderer()
 print "OpenGL version:", gl_info.get_version()
 print "(Selected) Extensions:"
-extensionsOfInterest=['GL_ARB_multitexture', 
+extensionsOfInterest=['GL_ARB_multitexture',
     'GL_EXT_framebuffer_object','GL_ARB_fragment_program',
     'GL_ARB_shader_objects','GL_ARB_vertex_shader',
     'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float', 'GL_STEREO']

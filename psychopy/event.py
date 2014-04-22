@@ -12,7 +12,7 @@ import sys, time, copy
 import psychopy.core
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 from psychopy import logging
-from psychopy.constants import *
+from psychopy.constants import NOT_STARTED
 import string, numpy
 
 #try to import pyglet & pygame and hope the user has at least one of them!
@@ -91,7 +91,7 @@ def _onPygletKey(symbol, modifiers, emulated=False):
     """
 
     global useText
-    keyTime=psychopy.clock.getTime() #capture when the key was pressed
+    keyTime=psychopy.core.getTime() #capture when the key was pressed
     if emulated:
         thisKey = unicode(symbol)
         keySource = 'EmulatedKey'
@@ -247,6 +247,9 @@ def getKeys(keyList=None, timeStamped=False):
         return relTuple
     elif timeStamped==True:
         return targets
+    elif isinstance(timeStamped, (float, int, long)):
+        relTuple = [(k[0], k[1]-timeStamped) for k in targets]
+        return relTuple
 
 def waitKeys(maxWait=float('inf'), keyList=None, timeStamped=False):
     """
@@ -433,7 +436,7 @@ class Mouse:
     def mouseMoveTime(self):
         global mouseMove
         if mouseMove:
-                return psychopy.core.getTime()-mouseMove.getLastResetTime()
+                return mouseMove.getTime()
         else: return 0 # mouseMove clock not started
 
     def getRel(self):

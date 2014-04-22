@@ -1790,8 +1790,8 @@ etFilterType= dict(
 	#//! left and right gaze data channels are averaged
 	#//! the type of the parameter data from @ref iV_ConfigureFilter has to be converted to int*
 	#//! The value of data can be [0;1] where 0 means averaging is disabled and 1 means averaging is enabled
-	Average_Disabled = 0, 
-	Average_Enabled = 1)
+	Average_Disabled = c_int(0),
+	Average_Enabled = c_int(1))
 
 
 #/**
@@ -1802,9 +1802,9 @@ etFilterType= dict(
 #*/
 etFilterAction = dict(
 	#//! query the current filter status
-	Query = 0, 
+	Query = c_int(0),
 	#//! configure filter parameters
-	Set = 1)
+	Set = c_int(1))
 
 
 #/**

@@ -1759,33 +1759,33 @@ class ioHubExperimentRuntime(object):
 
         import random
         random.seed(Computer.getTime()*1000.123)
-        randomInt=random.randint(1,1000)
+        randomInt=random.randint(1, 1000)
         self.experimentConfig=dict()
-        self._experimentConfigKeys=['title','code','version','description']
-        self.experimentConfig.setdefault('title',self.experimentConfig.get('title','A Default Experiment Title'))
-        self.experimentConfig.setdefault('code',self.experimentConfig.get('code','EXP_%d'%(randomInt,)))
-        self.experimentConfig.setdefault('version',self.experimentConfig.get('version','1.0d'))
-        self.experimentConfig.setdefault('description',self.experimentConfig.get('description','A Default Experiment Description'))
+        self._experimentConfigKeys=['title', 'code', 'version', 'description']
+        self.experimentConfig.setdefault('title', self.experimentConfig.get('title', 'A Default Experiment Title'))
+        self.experimentConfig.setdefault('code', self.experimentConfig.get('code', 'Def_Exp_Code'))
+        self.experimentConfig.setdefault('version', self.experimentConfig.get('version', '0.0.0'))
+        self.experimentConfig.setdefault('description', self.experimentConfig.get('description', 'A Default Experiment Description'))
 #        self.experimentConfig.setdefault('total_sessions_to_run',self.experimentConfig.get('total_sessions_to_run',0))
 
         for key in self._experimentConfigKeys:
             if key in self.configuration:
-                self.experimentConfig[key]=self.configuration[key]
+                self.experimentConfig[key] = self.configuration[key]
  
-        self.experimentSessionDefaults=self.configuration['session_defaults']
-        self.sessionUserVariables=self.experimentSessionDefaults.get('user_variables',None)
+        self.experimentSessionDefaults = self.configuration.get('session_defaults', {})
+        self.sessionUserVariables = self.experimentSessionDefaults.get('user_variables', None)
         if self.sessionUserVariables is not None:
             del self.experimentSessionDefaults['user_variables']
         else:
-            self.sessionUserVariables={}
+            self.sessionUserVariables = {}
 
         # initialize the experiment object based on the configuration settings.
-        self.hub=self._initalizeConfiguration()
+        self.hub = self._initalizeConfiguration()
 
-        self.devices=self.hub.devices
-        self.devices.computer=Computer
+        self.devices = self.hub.devices
+        self.devices.computer = Computer
 
-    def run(self,*sys_argv):
+    def run(self, *sys_argv):
         """
         The run method must be overwritten by your subclass of ioHubExperimentRuntime,
         and would include the equivelent logic to what would be added to the
@@ -1883,7 +1883,7 @@ class ioHubExperimentRuntime(object):
         Returns:
             bool: True if the code given is already in use. False if it is not in use.
         """
-        r=self.hub._sendToHubServer(('RPC','checkIfSessionCodeExists',(current_sess_code,)))
+        r = self.hub._sendToHubServer(('RPC', 'checkIfSessionCodeExists', (current_sess_code,)))
         return r[2]
                     
     def prePostExperimentVariableCallback(self,experiment_meta_data):
@@ -1904,7 +1904,7 @@ class ioHubExperimentRuntime(object):
         """
         return experiment_meta_data
 
-    def prePostSessionVariableCallback(self,session_meta_data):
+    def prePostSessionVariableCallback(self, session_meta_data):
         """
         This method is called prior to the session meta data being sent to the ioHub
         DataStore to be saved as the details regarding the current session being run.
@@ -1920,12 +1920,13 @@ class ioHubExperimentRuntime(object):
         Returns:
             dict: The session_meta_data arg passed to the method.
         """
-        sess_code=session_meta_data['code']
-        scount=1
+        org_sess_code= session_meta_data.setdefault('code', 'default_sess')
+        scount = 1
+        sess_code = org_sess_code
         while self.isSessionCodeInUse(sess_code) is True:
-            sess_code='%s-%d'%(session_meta_data['code'],scount)
-            scount+=1
-        session_meta_data['code']=sess_code
+            sess_code = '%s-%d'%(org_sess_code, scount)
+            scount += 1
+        session_meta_data['code'] = sess_code
         return session_meta_data
 
     @staticmethod    
@@ -2007,7 +2008,7 @@ class ioHubExperimentRuntime(object):
         and should not be called directly.
         """
         display_experiment_dialog=self.configuration.get("display_experiment_dialog",False)
-        display_session_dialog=self.configuration.get("display_session_dialog",True)
+        display_session_dialog=self.configuration.get("display_session_dialog",False)
         
         
         if display_experiment_dialog is True:        
@@ -2022,16 +2023,16 @@ class ioHubExperimentRuntime(object):
 
         self.experimentConfig=self.prePostExperimentVariableCallback(self.experimentConfig)
 
-        ioHubInfo= self.configuration.get('ioHub',{})
+        ioHubInfo = self.configuration.get('ioHub', {})
         
         if ioHubInfo is None:
             print 'ioHub section of configuration file could not be found. Exiting.....'
             self._close()
             sys.exit(1)
         else:
-            ioHubConfigFileName=unicode(ioHubInfo.get('config','iohub_config.yaml'))
-            ioHubConfigAbsPath=os.path.join(self.configFilePath,unicode(ioHubConfigFileName))
-            self.hub=ioHubConnection(None,ioHubConfigAbsPath)
+            ioHubConfigFileName = unicode(ioHubInfo.get('config', 'iohub_config.yaml'))
+            ioHubConfigAbsPath = os.path.join(self.configFilePath, unicode(ioHubConfigFileName))
+            self.hub = ioHubConnection(None, ioHubConfigAbsPath)
 
             #print 'ioHubExperimentRuntime.hub: {0}'.format(self.hub)
             # A circular buffer used to hold events retrieved from self.getEvents() during
@@ -2046,7 +2047,7 @@ class ioHubExperimentRuntime(object):
             #print 'ioHubExperimentRuntime SENT experiment config.'
            
             allSessionDialogVariables = dict(self.experimentSessionDefaults, **self.sessionUserVariables)
-            sessionVariableOrder=self.configuration['session_variable_order']
+            sessionVariableOrder = self.configuration.get('session_variable_order',[])
             if 'user_variables' in allSessionDialogVariables:
                 del allSessionDialogVariables['user_variables']
     
@@ -2059,19 +2060,19 @@ class ioHubExperimentRuntime(object):
                     # User can enter correct values and hit OK to continue, or Cancel to end the experiment session.
     
                     allSessionDialogVariables = dict(self.experimentSessionDefaults, **self.sessionUserVariables)
-                    sessionVariableOrder=self.configuration['session_variable_order']
+                    sessionVariableOrder = self.configuration.get('session_variable_order',[])
                     if 'user_variables' in allSessionDialogVariables:
                         del allSessionDialogVariables['user_variables']
          
-                    tempdict=self._displayExperimentSessionSettingsDialog(allSessionDialogVariables,sessionVariableOrder)
+                    tempdict = self._displayExperimentSessionSettingsDialog(allSessionDialogVariables,sessionVariableOrder)
                     if tempdict is None:
                         print "User Cancelled Experiment Launch."
                         self._close()
                         sys.exit(1)
                 
-                    tempdict['user_variables']=self.sessionUserVariables
+                    tempdict['user_variables'] = self.sessionUserVariables
     
-                    r=self.isSessionCodeInUse(tempdict['code'])
+                    r = self.isSessionCodeInUse(tempdict['code'])
                      
                     if r is True:
                         display_device=self.hub.getDevice('display')

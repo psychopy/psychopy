@@ -28,6 +28,14 @@ from psychopy.visual.dot import DotStim
 from psychopy.visual.grating import GratingStim
 from psychopy.visual.image import ImageStim
 from psychopy.visual.movie import MovieStim
+
+try:
+    from psychopy.visual.movie2 import MovieStim2
+except:
+    print 'Movie2 stim could not be imported.'
+    import traceback
+    traceback.print_exc()
+
 from psychopy.visual.shape import ShapeStim
 from psychopy.visual.text import TextStim
 

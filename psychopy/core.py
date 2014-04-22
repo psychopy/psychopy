@@ -9,7 +9,7 @@ from clock import MonotonicClock, Clock, CountdownTimer, wait, monotonicClock, g
 # always safe to call rush, even if its not going to do anything for a particular OS
 from psychopy.platform_specific import rush
 from . import logging
-from constants import *
+from constants import STARTED, NOT_STARTED, FINISHED
 import subprocess, shlex
 
 runningThreads=[] # just for backwards compatibility?
