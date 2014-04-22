@@ -20,6 +20,14 @@ Changelog
 PsychoPy 1.80
 ------------------------------
 
+PsychoPy 1.80.03
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released April 2014
+
+* FIXED: Shader code was ignoring opacity setting for ImageStim
+* FIXED: Mouse clock was not the same as PsychoPy's general events clock (so out of sync) (Sol & Jeremy)
+
 PsychoPy 1.80.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
