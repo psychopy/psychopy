@@ -158,7 +158,7 @@ class MinimalStim(object):
     def setAutoLog(self, value=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
-        self.autoLog = value
+        self.__dict__['autoLog'] = value
 
 class LegacyVisualMixin(object):
     """Class to hold deprecated visual methods and attributes.
@@ -1001,7 +1001,7 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
 
         # Handle operations
         setWithOperation(self, attrib, val, op)
-        logAttrib(self, log, attrib)
+        # logAttrib(self, log, attrib, val) #setWithOperation calls logAttrib
 
     def setUseShaders(self, value=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
