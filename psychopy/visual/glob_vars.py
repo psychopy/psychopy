@@ -17,3 +17,4 @@ then if the variable changes your copy won't!
 """
 
 currWindow = None
+nImageResizes = 0 #for logging purposes, how many times have we resized an image
