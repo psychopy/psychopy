@@ -1,4 +1,3 @@
- 
 /*
 ioSync Sketch for Teensy 3.0 / 3.1
 
@@ -17,8 +16,24 @@ ioSync assigns the Teensy 3 pins in a fixed usage mapping. See below for what th
 TODO:
 
 - Allow some constants to be set by user. For example analog input related constants.
+- Add support for setting per channel analog input thresholds which can be used for voice key or light key event detection.
 
 */
+
+// Program control defines. Change based on desired usage of ioSync
+
+// GENERATE_KEYBOARD_EVENT support:
+//   To enable:
+//     - Uncomment the below KEYBOARD define.
+//     - Ensure Tools -> USB Type is set to "Serial + Keyboard + ....".
+//     - Rebuild the iosync sketch and upload it.
+//
+//   To disable:
+//     - Comment out the below KEYBOARD define.
+//     - Ensure Tools -> USB Type is set to "Serial" only.
+//     - Rebuild the iosync sketch and upload it.
+//
+//#define KEYBOARD
 
 // Misc. Util functions
 
@@ -67,7 +82,7 @@ byte DOUT_PINS[8]={
 byte DIN_PINS[8]={
   DI_0,DI_1,DI_2,DI_3,DI_4,DI_5,DI_6,DI_7};
 
-// currently Teensy has 9 DINs setup, so we have one extra stand alone. 
+// Update : now being used in PULLUP input mmode. ##currently Teensy has 9 DINs setup, so we have one extra stand alone. 
 #define DIN_8 33
 
 // SPI related pins
@@ -331,12 +346,13 @@ void handleSetDigitalOutPinRx(byte request_type,byte request_id,byte request_rx_
 }
 
 //------------------------
-IntervalTimer resetKey1;
-volatile byte reset_key1_active = 0;
-
-void setResetKey1Active(void) {
-  reset_key1_active=1;
-}
+#ifdef KEYBOARD
+  IntervalTimer resetKey1;
+  volatile byte reset_key1_active = 0;
+  
+  void setResetKey1Active(void) {
+    reset_key1_active=1;
+  }
 
 void handleGenerateKeyboardEventRx(byte request_type,byte request_id,byte request_rx_byte_count){
   /*
@@ -355,17 +371,22 @@ void handleGenerateKeyboardEventRx(byte request_type,byte request_id,byte reques
    1: Tx Byte Count
    2 - 7: usec time that pin was set.    
    */
+  unsigned int usec_duration;
   char key_event_info[2]={
     0,0}; // char to send, 8 bit msec duration (100 msec incremnents)
-  unsigned int usec_duration=0;
   Serial.readBytes(key_event_info,2);
+  
   usec_duration=(unsigned int)(((byte)key_event_info[1])*100000);
   Keyboard.set_key1(KEY_V);  
   Keyboard.send_now();
-  
   resetKey1.begin(setResetKey1Active, usec_duration);
 }
-
+#else
+void handleGenerateKeyboardEventRx(byte request_type,byte request_id,byte request_rx_byte_count){
+  char key_event_info[2]={0,0}; // char to send, 8 bit msec duration (100 msec incremnents)
+  Serial.readBytes(key_event_info,2);
+}
+#endif
 
 //------------------------
 
@@ -439,6 +460,10 @@ void handleEnableInputStreamingRx(byte request_type,byte request_id,byte request
 byte  last_digital_input_state=0;
 byte current_digital_input_state=0;
 
+//DIN_8 is set as a PULLUP. 
+byte  last_pullup_input_state=1;
+byte current_pullup_input_state=1;
+
 void inputLineReadTimerCallback(void){
   if (digital_input_streaming_enabled>0){
       addDigitalEventToByteBuffer(); // check for digital input change event
@@ -462,13 +487,9 @@ void inputLineReadTimerCallback(void){
 
 byte addDigitalEventToByteBuffer(){
     // Check for digital input state changes
-    current_digital_input_state=0;
-    for (byte i=0;i<sizeof(DIN_PINS);i++)
-      current_digital_input_state+=(bytePow(2,i)*digitalRead(DIN_PINS[i]));
-
-    updateUsecTime();
-      
-    if (current_digital_input_state!=last_digital_input_state){
+    current_pullup_input_state=digitalRead(DIN_8);
+    if (current_pullup_input_state!=last_pullup_input_state){
+      updateUsecTime();
       if (byteBufferFreeSize()<DIGITAL_EVENT_TX_BYTE_COUNT)
         return 0;
       tx_byte_buffer[tx_byte_buffer_index]=DIGITAL_INPUT_EVENT;
@@ -479,9 +500,32 @@ byte addDigitalEventToByteBuffer(){
       tx_byte_buffer[tx_byte_buffer_index+5]=t3_usec_time.bytes[3];
       tx_byte_buffer[tx_byte_buffer_index+6]=t3_usec_time.bytes[4];
       tx_byte_buffer[tx_byte_buffer_index+7]=t3_usec_time.bytes[5];
-      tx_byte_buffer[tx_byte_buffer_index+8]=current_digital_input_state;
-      last_digital_input_state=current_digital_input_state;       
+      tx_byte_buffer[tx_byte_buffer_index+8]=current_pullup_input_state;
+      last_pullup_input_state=current_pullup_input_state;       
       tx_byte_buffer_index=tx_byte_buffer_index+DIGITAL_EVENT_TX_BYTE_COUNT;
+    }
+    else{
+        current_digital_input_state=0;
+        for (byte i=0;i<sizeof(DIN_PINS);i++)
+          current_digital_input_state+=(bytePow(2,i)*digitalRead(DIN_PINS[i]));
+    
+        updateUsecTime();
+          
+        if (current_digital_input_state!=last_digital_input_state){
+          if (byteBufferFreeSize()<DIGITAL_EVENT_TX_BYTE_COUNT)
+            return 0;
+          tx_byte_buffer[tx_byte_buffer_index]=DIGITAL_INPUT_EVENT;
+          tx_byte_buffer[tx_byte_buffer_index+1]=DIGITAL_EVENT_TX_BYTE_COUNT;
+          tx_byte_buffer[tx_byte_buffer_index+2]=t3_usec_time.bytes[0];
+          tx_byte_buffer[tx_byte_buffer_index+3]=t3_usec_time.bytes[1];
+          tx_byte_buffer[tx_byte_buffer_index+4]=t3_usec_time.bytes[2];
+          tx_byte_buffer[tx_byte_buffer_index+5]=t3_usec_time.bytes[3];
+          tx_byte_buffer[tx_byte_buffer_index+6]=t3_usec_time.bytes[4];
+          tx_byte_buffer[tx_byte_buffer_index+7]=t3_usec_time.bytes[5];
+          tx_byte_buffer[tx_byte_buffer_index+8]=current_digital_input_state;
+          last_digital_input_state=current_digital_input_state;       
+          tx_byte_buffer_index=tx_byte_buffer_index+DIGITAL_EVENT_TX_BYTE_COUNT;
+        }
     }
 }
 
@@ -528,7 +572,7 @@ void initDigitalInputs(){
   for (int i=0;i<sizeof(DIN_PINS);i++){
     pinMode(DIN_PINS[i], INPUT);
   }
-  pinMode(DIN_8, INPUT);
+  pinMode(DIN_8, INPUT_PULLUP);
 }
 
 void initAnalogInputs(){
@@ -575,10 +619,9 @@ void setup()
 //---------------------------------------
 // Main loop()
 // Repeatedly called while microcontroller is running.
+
 void loop()
 {
-  byte reset_key1_copy;  // holds a copy of the reset_key1_active
-
   if (sinceLastInputRead>=INPUT_LINES_READ_RATE){
     inputLineReadTimerCallback();   
     sinceLastInputRead=sinceLastInputRead-INPUT_LINES_READ_RATE;
@@ -586,15 +629,19 @@ void loop()
 
   handleHostSerialRequests();
 
-  noInterrupts();
-  reset_key1_copy = reset_key1_active;
-  interrupts();  
-  if (reset_key1_copy == 1){
-    Keyboard.set_key1(0);
-    Keyboard.send_now();
-    reset_key1_active=0;
-    resetKey1.end();
-  }
+  #ifdef KEYBOARD
+    byte reset_key1_copy; // holds a copy of the reset_key1_active
+    noInterrupts();
+    reset_key1_copy = reset_key1_active;
+    interrupts();  
+    if (reset_key1_copy == 1){
+      Keyboard.set_key1(0);
+      Keyboard.send_now();
+      reset_key1_active=0;
+      resetKey1.end();
+     }
+  #endif
+  
   if ( tx_byte_buffer_index>0 && (byteBufferFreeSize()<24 || sinceLastSerialTx>=MAX_TX_BUFFERING_INTERVAL) ){
     writeByteBufferToSerial();
     Serial.flush();
@@ -622,7 +669,7 @@ void handleResetStateRx(byte request_type,byte request_id,byte request_rx_byte_c
   for (byte i=0;i<sizeof(DIN_PINS);i++)
       current_digital_input_state+=(bytePow(2,i)*digitalRead(DIN_PINS[i]));
   last_digital_input_state=current_digital_input_state;
-
+  
   initUsec48();
   updateUsecTime();
   
