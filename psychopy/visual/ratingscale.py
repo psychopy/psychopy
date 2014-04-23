@@ -386,6 +386,8 @@ class RatingScale(MinimalStim):
                 # label endpoints and middle tick
                 placeHolder = [''] * ((self.high-self.low-2)//2)
                 self.labelTexts = [labels[0]] + placeHolder + [labels[1]] + placeHolder + [labels[2]]
+            elif labels in [None, False]:
+                self.labelTexts = []
             else:
                 self.labelTexts = [unicode(self.low)] + [''] * (self.high-self.low - 1) + [unicode(self.high)]
 
