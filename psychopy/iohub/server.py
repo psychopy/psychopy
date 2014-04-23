@@ -624,7 +624,7 @@ class ioServer(object):
         
                     #print2err("Creating pyHook Monitor......")
                     self._hookDevice=pyHookDevice()
-                    hookMonitor=DeviceMonitor(self._hookDevice,0.00375)
+                    hookMonitor=DeviceMonitor(self._hookDevice, self.config.get('windows_msgpump_interval', 0.00375))
                     self.deviceMonitors.append(hookMonitor)
                 
                     #print2err("Created pyHook Monitor.")
