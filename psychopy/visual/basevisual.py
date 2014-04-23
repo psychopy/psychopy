@@ -482,7 +482,6 @@ class TextureMixin(object):
         """
         Create an intensity texture, ranging -1:1.0
         """
-        global _nImageResizes
         notSqr=False #most of the options will be creating a sqr texture
         wasImage=False #change this if image loading works
         useShaders = stim.useShaders
@@ -650,11 +649,11 @@ class TextureMixin(object):
                 if im.size[0]!=powerOf2 or im.size[1]!=powerOf2:
                     if not forcePOW2:
                         notSqr=True
-                    elif _nImageResizes<reportNImageResizes:
+                    elif glob_vars.nImageResizes<reportNImageResizes:
                         logging.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(tex, powerOf2, powerOf2))
-                        _nImageResizes+=1
+                        glob_vars.nImageResizes+=1
                         im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
-                    elif _nImageResizes==reportNImageResizes:
+                    elif glob_vars.nImageResizes==reportNImageResizes:
                         logging.warning("Multiple images have needed resizing - I'll stop bothering you!")
                         im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
 
