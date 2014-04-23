@@ -4,7 +4,7 @@ PsychoPy is an open-source application to allow the presentation of stimuli and 
 News
 ====================
 
-**Latest version**: 1.80.0 was released Mar 2014, with many improvements to the user interface (e.g. dialog boxes), more precise degrees of visual angle (optionally correct for flat panels) and 
+**Latest version**: 1.80.02 was released April 2014, with many improvements to the user interface (e.g. dialog boxes), more precise degrees of visual angle (optionally correct for flat panels) and many bug fixes
 
 See complete :doc:`changelog` for complete list of additions and fixes
 

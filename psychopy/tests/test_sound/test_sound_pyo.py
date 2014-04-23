@@ -36,6 +36,8 @@ class TestPyo(object):
         assert r == 48000
         assert len(d) == 92160
 
+        self.testFile = os.path.join(self.tmp, 'green_48000.wav')
+
     @classmethod
     def teardown_class(self):
         if hasattr(self, 'tmp'):
@@ -58,8 +60,7 @@ class TestPyo(object):
         points = 100
         snd = numpy.ones(points) / 20
 
-        testFile = os.path.join(self.tmp, 'green_48000.wav')
-        s = sound.Sound(testFile)
+        s = sound.Sound(self.testFile)
 
     def test_play(self):
         s = sound.Sound(secs=0.1)
@@ -69,6 +70,17 @@ class TestPyo(object):
         core.wait(s.getDuration()*2+.1)
         s.play(loops=-1)
         s.stop()
+
+    def test_start_stop(self):
+        """only relevant for sound from files"""
+        s1 = sound.Sound(self.testFile, start=0.5, stop=1.5)
+        assert s1.getDuration() == 1
+        s2 = sound.Sound(self.testFile, start=0.5)
+        s3 = sound.Sound(self.testFile)
+        assert s3.getDuration() > s2.getDuration() > s1.getDuration()
+
+        s4 = sound.Sound(self.testFile, start=-1, stop=10000)
+        assert s4.getDuration() == s3.getDuration()
 
     def test_methods(self):
         s = sound.Sound(secs=0.1)
