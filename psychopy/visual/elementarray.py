@@ -483,10 +483,11 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         #set value and log
         setWithOperation(self, 'fieldPos', value, operation)
         logAttrib(self, log, 'fieldPos', type(value))
+        self._needVertexUpdate = True
     def setPos(self, newPos=None, operation='', units=None, log=True):
         """Obselete - users should use setFieldPos or instead of setPos
         """
-        logging.error("User called ElementArrayStim.setPos(pos). Use ElementArrayStim.SetFieldPos(pos) instead.")
+        logging.error("User called ElementArrayStim.setPos(pos). Use ElementArrayStim.setFieldPos(pos) instead.")
 
     def setFieldSize(self,value,operation='', log=True):
         """Set the size of the array on the screen (will override
