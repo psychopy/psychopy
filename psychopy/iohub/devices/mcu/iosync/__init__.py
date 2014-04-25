@@ -85,7 +85,7 @@ class MCU(Device):
     """
     DEVICE_TIMEBASE_TO_SEC=1.0
     _newDataTypes = [('serial_port',N.str,32),('time_sync_interval',N.float32)]
-    EVENT_CLASS_NAMES=['AnalogInputEvent','DigitalInputEvent']
+    EVENT_CLASS_NAMES=['AnalogInputEvent','DigitalInputEvent','ThresholdEvent']
     DEVICE_TYPE_ID=DeviceConstants.MCU
     DEVICE_TYPE_STRING="MCU"
     _mcu_slots=['serial_port',
@@ -164,12 +164,13 @@ class MCU(Device):
             event_types=self.getConfiguration().get('monitor_event_types',[])    
             enable_analog = 'AnalogInputEvent' in event_types
             enable_digital = 'DigitalInputEvent' in event_types
+            enable_threshold = 'ThresholdEvent' in event_types
             #print2err("enable_analog: {0}, enable_digital: {1}".format(enable_analog,enable_digital))
             self._mcu.flushSerialInput()
-            self._enableInputEvents(enable_digital,enable_analog)
+            self._enableInputEvents(enable_digital, enable_analog, enable_threshold)
         elif enabled is False and self.isReportingEvents() is True:
             if self.isConnected():
-                self._enableInputEvents(False,False)
+                self._enableInputEvents(False,False,False)
                 
         return Device.enableEventReporting(self,enabled)
 
@@ -216,12 +217,17 @@ class MCU(Device):
         self._request_dict[request.getID()]=request
         return request.asdict()
 
+    def setAnalogThresholdValues(self, threshold_value_array):
+        request = self._mcu.setAnalogThresholdValues(threshold_value_array)
+        self._request_dict[request.getID()] = request
+        return request.asdict()
+
     def _resetLocalState(self):
         self._request_dict.clear()
         self._response_dict.clear()
-        self._last_sync_time=0.0
+        self._last_sync_time = 0.0
         self._mcu._runTimeSync()
-        self._last_sync_time=getTime()
+        self._last_sync_time = getTime()
 
     def resetState(self):
         request = self._mcu.resetState()
@@ -243,8 +249,8 @@ class MCU(Device):
                 resp_return.append(response.asdict())
             return resp_return
 
-    def _enableInputEvents(self,enable_digital,enable_analog):
-        self._mcu.enableInputEvents(enable_digital,enable_analog)
+    def _enableInputEvents(self, enable_digital, enable_analog, threshold_events):
+        self._mcu.enableInputEvents(enable_digital,enable_analog, threshold_events)
 
     def _poll(self):
         try:
@@ -261,37 +267,43 @@ class MCU(Device):
 
             confidence_interval=logged_time-self._last_callback_time
     
-            events=self._mcu.getRxEvents()
+            events = self._mcu.getRxEvents()
             for event in events:             
-                current_MCU_time=event.device_time#self.getSecTime()
-                device_time=event.device_time
+                current_MCU_time = event.device_time#self.getSecTime()
+                device_time = event.device_time
                 if event.local_time is None:
                     event.local_time=logged_time
                 delay=logged_time-event.local_time#current_MCU_time-device_time
                 # local_time is in iohub time space already, so delay does not
                 # need to be used to adjust iohub time
                 iohub_time=event.local_time
-                elist=None
-                if event.getTypeInt()==T3Event.DIGITAL_INPUT_EVENT:
-                    elist= [EventConstants.UNDEFINED,]*12
-                    elist[4]=DigitalInputEvent.EVENT_TYPE_ID
-                    elist[-1]=event.getDigitalInputByte()
-                elif event.getTypeInt()==T3Event.ANALOG_INPUT_EVENT:
-                    elist= [EventConstants.UNDEFINED,]*19
-                    elist[4]=AnalogInputEvent.EVENT_TYPE_ID
-                    for i,v in enumerate(event.ain_channels):
-                        elist[(i+11)]=v            
+                elist = None
+                if event.getTypeInt() == T3Event.ANALOG_INPUT_EVENT:
+                    elist = [EventConstants.UNDEFINED,]*19
+                    elist[4] = AnalogInputEvent.EVENT_TYPE_ID
+                    for i, v in enumerate(event.ain_channels):
+                        elist[(i+11)]=v
+                elif event.getTypeInt() == T3Event.DIGITAL_INPUT_EVENT:
+                    elist = [EventConstants.UNDEFINED,]*12
+                    elist[4] = DigitalInputEvent.EVENT_TYPE_ID
+                    elist[-1] = event.getDigitalInputByte()
+                elif event.getTypeInt() == T3Event.THRESHOLD_EVENT:
+                    elist = [EventConstants.UNDEFINED,]*19
+                    elist[4] = ThresholdEvent.EVENT_TYPE_ID
+                    for i, v in enumerate(event.threshold_state_changed):
+                        elist[(i+11)] = v
+
                 if elist:
-                    elist[0]=0
-                    elist[1]=0
-                    elist[2]=0
-                    elist[3]=Computer._getNextEventID()
-                    elist[5]=device_time
-                    elist[6]=logged_time
-                    elist[7]=iohub_time
-                    elist[8]=confidence_interval
-                    elist[9]=delay
-                    elist[10]=0
+                    elist[0] = 0
+                    elist[1] = 0
+                    elist[2] = 0
+                    elist[3] = Computer._getNextEventID()
+                    elist[5] = device_time
+                    elist[6] = logged_time
+                    elist[7] = iohub_time
+                    elist[8] = confidence_interval
+                    elist[9] = delay
+                    elist[10] = 0
                    
                     self._addNativeEventToBuffer(elist)
                 
@@ -333,6 +345,24 @@ class AnalogInputEvent(DeviceEvent):
     IOHUB_DATA_TABLE=EVENT_TYPE_STRING
     __slots__=[e[0] for e in _newDataTypes]
     def __init__(self,*args,**kwargs):        
+        DeviceEvent.__init__(self,*args,**kwargs)
+
+class ThresholdEvent(DeviceEvent):
+    _newDataTypes = [
+            ('AI_0', N.float32),
+            ('AI_1', N.float32),
+            ('AI_2', N.float32),
+            ('AI_3', N.float32),
+            ('AI_4', N.float32),
+            ('AI_5', N.float32),
+            ('AI_6', N.float32),
+            ('AI_7', N.float32)
+            ]
+    EVENT_TYPE_ID = EventConstants.THRESHOLD
+    EVENT_TYPE_STRING = 'THRESHOLD'
+    IOHUB_DATA_TABLE = EVENT_TYPE_STRING
+    __slots__=[e[0] for e in _newDataTypes]
+    def __init__(self,*args,**kwargs):
         DeviceEvent.__init__(self,*args,**kwargs)
 
 class DigitalInputEvent(DeviceEvent):

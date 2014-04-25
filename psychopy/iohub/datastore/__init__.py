@@ -154,6 +154,12 @@ class ioHubpyTablesFile():
             pass
 
         try:
+            self.TABLES['THRESHOLD']=self.emrtFile.root.data_collection.events.mcu.ThresholdEvent
+        except:
+            # Just means the table for this event type has not been created as the event type is not being recorded
+            pass
+
+        try:
             self.TABLES['DIGITAL_INPUT']=self.emrtFile.root.data_collection.events.mcu.DigitalInputEvent
         except:
             # Just means the table for this event type has not been created as the event type is not being recorded
@@ -267,6 +273,7 @@ class ioHubpyTablesFile():
         self._eventGroupMappings['GAMEPAD_STATE_CHANGE']=self.emrtFile.root.data_collection.events.gamepad
         self._eventGroupMappings['MULTI_CHANNEL_ANALOG_INPUT']=self.emrtFile.root.data_collection.events.analog_input
         self._eventGroupMappings['ANALOG_INPUT']=self.emrtFile.root.data_collection.events.mcu
+        self._eventGroupMappings['THRESHOLD']=self.emrtFile.root.data_collection.events.mcu
         self._eventGroupMappings['DIGITAL_INPUT']=self.emrtFile.root.data_collection.events.mcu
         self._eventGroupMappings['SERIAL_INPUT']=self.emrtFile.root.data_collection.events.serial
         self._eventGroupMappings['SERIAL_BYTE_CHANGE']=self.emrtFile.root.data_collection.events.serial

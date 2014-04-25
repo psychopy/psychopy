@@ -123,8 +123,9 @@ except:
 
 
 class T3Event(object):
-    DIGITAL_INPUT_EVENT =1
-    ANALOG_INPUT_EVENT =2
+    DIGITAL_INPUT_EVENT = 1
+    ANALOG_INPUT_EVENT = 2
+    THRESHOLD_EVENT = 3
     def __init__(self,event_type,event_time_bytes,remaining_bytes):
         self._type=event_type              
         self.usec_device_time = (event_time_bytes[4] << 40) + (event_time_bytes[5] << 32) \
@@ -176,9 +177,27 @@ class AnalogInputEvent(T3Event):
         rdict['channels']=self.ain_channels
         return rdict
 
+class ThresholdEvent(T3Event):
+    def __init__(self, event_type, event_time_bytes, threshold_values):
+        T3Event.__init__(self, event_type, event_time_bytes, threshold_values)
+
+    def _parseRemainingBytes(self, threshold_values):
+        self.threshold_state_changed = []
+        for i in range (0, len(threshold_values),2):
+            aval = (threshold_values[i] << 8) + threshold_values[i+1]
+            signed = (aval & 127) - (aval & 128)
+            self.threshold_state_changed.append(signed)
+
+    def asdict(self):
+        rdict=T3Event.asdict(self)
+        rdict['threshold_state_changed'] = self.threshold_state_changed
+        return rdict
+
+
 EVENT_TYPE_2_CLASS=dict()
-EVENT_TYPE_2_CLASS[T3Event.DIGITAL_INPUT_EVENT]=DigitalInputEvent
-EVENT_TYPE_2_CLASS[T3Event.ANALOG_INPUT_EVENT]=AnalogInputEvent
+EVENT_TYPE_2_CLASS[T3Event.DIGITAL_INPUT_EVENT] = DigitalInputEvent
+EVENT_TYPE_2_CLASS[T3Event.ANALOG_INPUT_EVENT] = AnalogInputEvent
+EVENT_TYPE_2_CLASS[T3Event.THRESHOLD_EVENT] = ThresholdEvent
 
 ################################
      
@@ -193,7 +212,8 @@ class T3Request(object):
     SYNC_TIME_BASE =7
     RESET_STATE=8
     GENERATE_KEYBOARD_EVENT=9
-    REQ_COUNTER_START=10
+    SET_ANALOG_THRESHOLDS=10
+    REQ_COUNTER_START=11
     _request_counter=REQ_COUNTER_START
     sync_state=None
     def __init__(self,request_type,user_byte_array=None):
@@ -275,8 +295,8 @@ class T3Request(object):
                     )
 
 class EnableT3InputStreaming(T3Request):
-    def __init__(self,enable_digital, enable_analog):
-        T3Request.__init__(self, T3Request.SET_T3_INPUTS_STREAMING_STATE,[enable_digital,enable_analog])
+    def __init__(self,enable_digital, enable_analog, enable_thresh):
+        T3Request.__init__(self, T3Request.SET_T3_INPUTS_STREAMING_STATE,[enable_digital,enable_analog,enable_thresh])
 
 class GetT3UsecRequest(T3Request):
     def __init__(self):
@@ -315,6 +335,10 @@ class GetT3DigitalInputStateRequest(T3Request):
     def __init__(self):
         T3Request.__init__(self,T3Request.GET_DIGITAL_IN_STATE)
 
+class GetT3AnalogInputStateRequest(T3Request):
+    def __init__(self):
+        T3Request.__init__(self,T3Request.GET_AIN_CHANNELS)
+
 class GenerateKeyboardEventRequest(T3Request):
     """
     Requests the Teensy to generate a key press event and then a release event 
@@ -332,6 +356,18 @@ class SetT3DigitalOutputPinRequest(T3Request):
     def __init__(self,dout_pin_index,new_pin_state):
         T3Request.__init__(self,T3Request.SET_DIGITAL_OUT_PIN,[dout_pin_index,new_pin_state])
 
+def int_to_bytes(val, num_bytes):
+    v=[(val & (0xff << pos*8)) >> pos*8 for pos in range(num_bytes)]
+    v.reverse()
+    return v
+
+class SetT3AnalogThresholdsRequest(T3Request):
+    def __init__(self,thresh_values):
+        thresh_byte_array=[]
+        for t in thresh_values:
+            thresh_byte_array.extend(int_to_bytes(t,2))
+        T3Request.__init__(self,T3Request.SET_ANALOG_THRESHOLDS, thresh_byte_array)
+
 ####################
 
 class T3MC(object):    
@@ -344,6 +380,7 @@ class T3MC(object):
         self._serial_port=None
         self._rx_events=[]
         self._request_replies=[]
+        self._analog_input_thresholds = [0,]*8
         self.connectSerial()
         self.resetState()
 
@@ -434,27 +471,27 @@ class T3MC(object):
         return tx_count
 
     def getSerialRx(self):
-        while self._serial_port.inWaiting()>=2:
-            request_id=ord(self._serial_port.read(1))
-            if request_id<T3Request.REQ_COUNTER_START:
-                event_byte_count=ord(self._serial_port.read(1))
-                time_bytes=[ord(c) for c in self._serial_port.read(6)]
+        while self._serial_port.inWaiting()>= 2:
+            request_id = ord(self._serial_port.read(1))
+            if request_id < T3Request.REQ_COUNTER_START:
+                event_byte_count = ord(self._serial_port.read(1))
+                time_bytes = [ord(c) for c in self._serial_port.read(6)]
                 remaining_byte_count= event_byte_count-(len(time_bytes)+2)
-                remaining_bytes=[]
-                if remaining_byte_count>0:
-                    remaining_bytes=[ord(c) for c in self._serial_port.read(remaining_byte_count)]
+                remaining_bytes = []
+                if remaining_byte_count > 0:
+                    remaining_bytes = [ord(c) for c in self._serial_port.read(remaining_byte_count)]
                 if request_id in EVENT_TYPE_2_CLASS.keys():
-                    event=EVENT_TYPE_2_CLASS[request_id](request_id,time_bytes,remaining_bytes)
+                    event = EVENT_TYPE_2_CLASS[request_id](request_id, time_bytes, remaining_bytes)
                     self._rx_events.append(event)
             else:               
-                reply=T3Request._readRequestReply(self,request_id)
+                reply=T3Request._readRequestReply(self, request_id)
                 if reply:
-                    if reply._type==T3Request.SYNC_TIME_BASE:
+                    if reply._type == T3Request.SYNC_TIME_BASE:
                         reply.syncWithT3Time()
                     else:
                         self._request_replies.append(reply)
                 else:
-                    print2err("INVAID REQUEST ID in reply:",  request_id )                  
+                    print2err("INVAID REQUEST ID in reply:",  request_id)
     def closeSerial(self):
         if self._serial_port:
             self._serial_port.close()
@@ -483,6 +520,7 @@ class T3MC(object):
         return r
 
     def resetState(self):
+        self._analog_input_thresholds = [0,]*8
         r=ResetStateRequest()
         self._sendT3Request(r)
         return r
@@ -502,6 +540,13 @@ class T3MC(object):
         self._sendT3Request(r)
         return r
 
+
+    def setAnalogThresholdValues(self, thresh_value_array):
+        self._analog_input_thresholds = thresh_value_array
+        r=SetT3AnalogThresholdsRequest(thresh_value_array)
+        self._sendT3Request(r)
+        return r
+
     def setDigitalOutputByte(self,new_dout_byte):
         r=SetT3DigitalOutputStateRequest(new_dout_byte)
         self._sendT3Request(r)
@@ -517,8 +562,8 @@ class T3MC(object):
         self._sendT3Request(r)
         return r
 
-    def enableInputEvents(self,enable_digital,enable_analog):
-        r=EnableT3InputStreaming(enable_digital,enable_analog)
+    def enableInputEvents(self,enable_digital,enable_analog, enable_thresh):
+        r=EnableT3InputStreaming(enable_digital,enable_analog, enable_thresh)
         self._sendT3Request(r)
         return r
         

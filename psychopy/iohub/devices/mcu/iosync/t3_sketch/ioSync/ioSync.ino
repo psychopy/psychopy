@@ -17,6 +17,10 @@ TODO:
 
 - Allow some constants to be set by user. For example analog input related constants.
 - Add support for setting per channel analog input thresholds which can be used for voice key or light key event detection.
+- Allow setting digital inputs as INPUT or PULLUP_INPUTs
+- Properly utilize (or remove) the 9th digital input bit.
+- Switch digital and analog input reads to use interupts, running at 5000 Hz if possible. **BACKUP CURRENT CODE BEFORE WORKING ON THIS. 
+
 
 */
 
@@ -103,6 +107,17 @@ byte DIN_PINS[8]={
 byte AIN_PINS[8]={
   AI_0,AI_1,AI_2,AI_3,AI_4,AI_5,AI_6,AI_7};
 
+// AIN_THRESHOLD_LEVELS are set by the user, specifying
+// the AIN value at which a THRESHOLD_EVENT should be triggered.
+// A THRESHOLD_EVENT is triggered each time the analog input for a 
+// AIN line goes above , or falls, below, the threshold
+unsigned int AIN_THRESHOLD_LEVELS[8]={0,0,0,0,0,0,0,0};
+
+// Stores the threshold state for each AIN line.
+// 0 == below threshold, 1 == above threshold.
+// When the threshold state changes for an analog input line, 
+// a threshold event is created.
+byte AIN_THRESHOLD_STATES[8]={0,0,0,0,0,0,0,0};
 
 const double AREF_INTERVAL_V = 1.2;
 const double DIGITAL_ANALOG_16_STEP = 0.00001831054687;
@@ -190,7 +205,8 @@ byte writeByteBufferToSerial(){
 #define SYNC_TIME_BASE 7
 #define RESET_STATE 8
 #define GENERATE_KEYBOARD_EVENT 9
-#define REQUEST_TYPE_COUNT 10
+#define SET_ANALOG_THRESHOLDS 10
+#define REQUEST_TYPE_COUNT 11
 
 #define REQUEST_TX_HEADER_BYTE_COUNT 8
 
@@ -204,7 +220,8 @@ byte request_tx_byte_length[REQUEST_TYPE_COUNT]={
   REQUEST_TX_HEADER_BYTE_COUNT,
   REQUEST_TX_HEADER_BYTE_COUNT,
   REQUEST_TX_HEADER_BYTE_COUNT,
-  REQUEST_TX_HEADER_BYTE_COUNT+2  
+  REQUEST_TX_HEADER_BYTE_COUNT+2,
+  REQUEST_TX_HEADER_BYTE_COUNT, 
 };
 
 void NullHandlerRx(byte request_type,byte request_id,byte request_rx_byte_count);
@@ -217,6 +234,7 @@ void handleEnableInputStreamingRx(byte request_type,byte request_id,byte request
 void handleSyncTimebaseRx(byte request_type,byte request_id,byte request_rx_byte_count);
 void handleResetStateRx(byte request_type,byte request_id,byte request_rx_byte_count);
 void handleGenerateKeyboardEventRx(byte request_type,byte request_id,byte request_rx_byte_count);
+void handleSetAnalogThresholdsEventRx(byte request_type,byte request_id,byte request_rx_byte_count);
 
 void (*requestHandlerFP[REQUEST_TYPE_COUNT])(byte request_type,byte request_id,byte request_rx_byte_count)={
   NullHandlerRx,
@@ -228,7 +246,8 @@ void (*requestHandlerFP[REQUEST_TYPE_COUNT])(byte request_type,byte request_id,b
   handleEnableInputStreamingRx,
   handleSyncTimebaseRx,
   handleResetStateRx,
-  handleGenerateKeyboardEventRx
+  handleGenerateKeyboardEventRx,
+  handleSetAnalogThresholdsEventRx
 };
 
 elapsedMicros sinceLastSerialTx;
@@ -439,17 +458,48 @@ void handleGetAnalogInChannelsRx(byte request_type,byte request_id,byte request_
   tx_byte_buffer_index+=16; 
 }
 
+
+//------------------------
+
+void handleSetAnalogThresholdsEventRx(byte request_type,byte request_id,byte request_rx_byte_count){
+  /*
+  SET_ANALOG_THRESHOLDS: Sets the threshold value for each analog input line.
+  
+  RX bytes ( 19 ):
+   0: SET_ANALOG_THRESHOLDS
+   1: request ID
+   2: Rx Byte Count
+   3-19: 8 * 16 bit analog input threshold values
+
+   TX Bytes ( 8 ):
+   0: Request ID
+   1: Tx Byte Count
+   2 - 7: usec time that pin was set.    
+   */
+  char threshold_data[sizeof(AIN_PINS)*2];   
+  Serial.readBytes(threshold_data,sizeof(AIN_PINS)*2);
+
+  for (int i=0;i<sizeof(AIN_PINS);i++){
+    
+    AIN_THRESHOLD_STATES[i]= 0;
+    AIN_THRESHOLD_LEVELS[i]=(unsigned int)((threshold_data[i*2] << 8) + threshold_data[i*2+1]);
+    }
+
+}
+
 //------------------------
 
 byte digital_input_streaming_enabled=0;
 byte analog_input_streaming_enabled=0;
+byte threshold_event_streaming_enabled=0;
 
 void handleEnableInputStreamingRx(byte request_type,byte request_id,byte request_rx_byte_count){
-  char inputStreaming[2]={
-    0,0  };
-  Serial.readBytes(inputStreaming,2);
+  char inputStreaming[3]={
+    0,0,0  };
+  Serial.readBytes(inputStreaming,3);
   digital_input_streaming_enabled=inputStreaming[0];
   analog_input_streaming_enabled=inputStreaming[1];
+  threshold_event_streaming_enabled=inputStreaming[2];
 }
 
 //---------------------------------------
@@ -469,7 +519,7 @@ void inputLineReadTimerCallback(void){
       addDigitalEventToByteBuffer(); // check for digital input change event
   }
 
-  if (analog_input_streaming_enabled>0){
+  if (analog_input_streaming_enabled>0 || threshold_event_streaming_enabled>0){
     // Add Analog Input Event
     addAnalogEventToByteBuffer();
   }
@@ -480,10 +530,12 @@ void inputLineReadTimerCallback(void){
 
 #define DIGITAL_INPUT_EVENT 1
 #define ANALOG_INPUT_EVENT 2
+#define THRESHOLD_EVENT 3
 
 #define EVENT_TX_HEADER_COUNT 8
 #define DIGITAL_EVENT_TX_BYTE_COUNT 9
 #define ANALOG_EVENT_TX_BYTE_COUNT 24
+#define THRESHOLD_EVENT_TX_BYTE_COUNT 24
 
 byte addDigitalEventToByteBuffer(){
     // Check for digital input state changes
@@ -530,17 +582,67 @@ byte addDigitalEventToByteBuffer(){
 }
 
 byte addAnalogEventToByteBuffer(){
-  if (byteBufferFreeSize()<ANALOG_EVENT_TX_BYTE_COUNT)
+  
+  if (byteBufferFreeSize()<(ANALOG_EVENT_TX_BYTE_COUNT*2))
     return 0;
-
+    
   unsigned int ain_readings[sizeof(AIN_PINS)];
   for (int i=0;i<sizeof(AIN_PINS);i++)
     ain_readings[i]=analogRead(AIN_PINS[i]);
 
   updateUsecTime();
 
-  tx_byte_buffer[tx_byte_buffer_index]=ANALOG_INPUT_EVENT;
-  tx_byte_buffer[tx_byte_buffer_index+1]=ANALOG_EVENT_TX_BYTE_COUNT;
+  if (analog_input_streaming_enabled>0){
+    tx_byte_buffer[tx_byte_buffer_index]=ANALOG_INPUT_EVENT;
+    tx_byte_buffer[tx_byte_buffer_index+1]=ANALOG_EVENT_TX_BYTE_COUNT;
+    tx_byte_buffer[tx_byte_buffer_index+2]=t3_usec_time.bytes[0];
+    tx_byte_buffer[tx_byte_buffer_index+3]=t3_usec_time.bytes[1];
+    tx_byte_buffer[tx_byte_buffer_index+4]=t3_usec_time.bytes[2];
+    tx_byte_buffer[tx_byte_buffer_index+5]=t3_usec_time.bytes[3];
+    tx_byte_buffer[tx_byte_buffer_index+6]=t3_usec_time.bytes[4];
+    tx_byte_buffer[tx_byte_buffer_index+7]=t3_usec_time.bytes[5];
+  
+    tx_byte_buffer_index=tx_byte_buffer_index+8;
+
+    for (int i=0;i<sizeof(AIN_PINS);i++){
+      tx_byte_buffer[tx_byte_buffer_index+(i*2)] = (byte)(ain_readings[i] >> 8) & 0xff; //event bits 8..15
+      tx_byte_buffer[tx_byte_buffer_index+1+(i*2)] = (byte)(ain_readings[i] & 0xff);    //event bits 0..7  
+    }
+  
+    tx_byte_buffer_index=tx_byte_buffer_index+sizeof(AIN_PINS)*2;
+  }
+  
+  if (threshold_event_streaming_enabled){
+    byte thresh_event_created=0;
+    int threshold_triggered_values[sizeof(AIN_PINS)];
+    for (int i=0;i<sizeof(AIN_PINS);i++){
+      threshold_triggered_values[i]=0;
+      if (AIN_THRESHOLD_LEVELS[i]>0){
+        if (ain_readings[i] >= AIN_THRESHOLD_LEVELS[i] && AIN_THRESHOLD_STATES[i]==0){
+          AIN_THRESHOLD_STATES[i]=1;
+          threshold_triggered_values[i]=ain_readings[i]-AIN_THRESHOLD_LEVELS[i];
+          thresh_event_created=1;
+        }
+        else if (ain_readings[i] < AIN_THRESHOLD_LEVELS[i] && AIN_THRESHOLD_STATES[i]==1){
+          AIN_THRESHOLD_STATES[i]=0;
+          threshold_triggered_values[i]=ain_readings[i]- AIN_THRESHOLD_LEVELS[i];
+          thresh_event_created=1;
+        }  
+      }
+    }
+    if (thresh_event_created == 1)
+      addThresholdEventToByteBuffer(threshold_triggered_values);
+
+    }  
+}
+
+byte addThresholdEventToByteBuffer(int *threshold_triggered_values){
+  /*
+  Func doc string TBC
+  */
+
+  tx_byte_buffer[tx_byte_buffer_index]=THRESHOLD_EVENT;
+  tx_byte_buffer[tx_byte_buffer_index+1]=THRESHOLD_EVENT_TX_BYTE_COUNT;
   tx_byte_buffer[tx_byte_buffer_index+2]=t3_usec_time.bytes[0];
   tx_byte_buffer[tx_byte_buffer_index+3]=t3_usec_time.bytes[1];
   tx_byte_buffer[tx_byte_buffer_index+4]=t3_usec_time.bytes[2];
@@ -549,10 +651,10 @@ byte addAnalogEventToByteBuffer(){
   tx_byte_buffer[tx_byte_buffer_index+7]=t3_usec_time.bytes[5];
 
   tx_byte_buffer_index=tx_byte_buffer_index+8;
-
+  //threshold_triggered_values
   for (int i=0;i<sizeof(AIN_PINS);i++){
-    tx_byte_buffer[tx_byte_buffer_index+(i*2)] = (byte)(ain_readings[i] >> 8) & 0xff; //event bits 8..15
-    tx_byte_buffer[tx_byte_buffer_index+1+(i*2)] = (byte)(ain_readings[i] & 0xff);    //event bits 0..7  
+    tx_byte_buffer[tx_byte_buffer_index+(i*2)] = (byte)(threshold_triggered_values[i] >> 8) & 0xff; //event bits 8..15
+    tx_byte_buffer[tx_byte_buffer_index+1+(i*2)] = (byte)(threshold_triggered_values[i] & 0xff);    //event bits 0..7  
   }
 
   tx_byte_buffer_index=tx_byte_buffer_index+sizeof(AIN_PINS)*2;
@@ -662,13 +764,18 @@ void handleResetStateRx(byte request_type,byte request_id,byte request_rx_byte_c
   initDigitalOutputs();  
 
   analog_input_streaming_enabled=0;
-
+  threshold_event_streaming_enabled=0;
   digital_input_streaming_enabled=0;
   last_digital_input_state=0;
   current_digital_input_state=0;
   for (byte i=0;i<sizeof(DIN_PINS);i++)
       current_digital_input_state+=(bytePow(2,i)*digitalRead(DIN_PINS[i]));
   last_digital_input_state=current_digital_input_state;
+  
+  for (byte i=0;i<sizeof(AIN_PINS);i++){
+    AIN_THRESHOLD_LEVELS[i]=0;
+    AIN_THRESHOLD_STATES[i]=0;
+  }
   
   initUsec48();
   updateUsecTime();
@@ -683,6 +790,7 @@ void handleResetStateRx(byte request_type,byte request_id,byte request_rx_byte_c
   tx_byte_buffer[tx_byte_buffer_index+6]=t3_usec_time.bytes[4];
   tx_byte_buffer[tx_byte_buffer_index+7]=t3_usec_time.bytes[5];
   tx_byte_buffer_index=tx_byte_buffer_index+8;
+  
 }
 
 
