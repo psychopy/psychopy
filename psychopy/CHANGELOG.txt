@@ -10,6 +10,15 @@ Changelog
 PsychoPy 1.80
 ------------------------------
 
+PsychoPy 1.80.04
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released April 2014
+
+* FIXED: buglets in logging. Logging wasn't encoding unicode correctly for console targets (but file targets were OK) and some duplicate messages were occurring for stimulus autologs
+* FIXED: buglet with GratingStim/PatchStim when texture was not a square power of two (was crashing due to incorrect global variable)
+* FIXED: ElementArrayStim was not updating its position using .setFieldPos()
+
 PsychoPy 1.80.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
