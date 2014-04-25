@@ -73,6 +73,29 @@ class _baseVisualTest:
             assert stim.status==visual.FINISHED
             assert stim.status==visual.STOPPED
             str(stim) #check that str(xxx) is working
+    def test_imageAndGauss(self):
+        win = self.win
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
+        #use image stim
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        image = visual.ImageStim(win, image=fileName, mask='gauss',
+                                 size=size, flipHoriz=True, flipVert=True, autoLog=False)
+        image.draw()
+        utils.compareScreenshot('imageAndGauss_%s.png' %(self.contextName), win)
+        win.flip()
+    def test_gratingImageAndGauss(self):
+        win = self.win
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        #generate identical image as test_imageAndGauss but using GratingStim
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
+        if win.units in ['norm','height']:
+            sf = -1.0
+        else:
+            sf = -1.0/size #this will do the flipping and get exactly one cycle
+        image = visual.GratingStim(win, tex=fileName, size=size, sf=sf, mask='gauss', autoLog=False)
+        image.draw()
+        utils.compareScreenshot('imageAndGauss_%s.png' %(self.contextName), win)
+        win.flip()
     def test_greyscaleImage(self):
         win = self.win
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'greyscale.jpg')
@@ -80,6 +103,43 @@ class _baseVisualTest:
         imageStim.draw()
         utils.compareScreenshot('greyscale_%s.png' %(self.contextName), win)
         str(imageStim) #check that str(xxx) is working
+        win.flip()
+        imageStim.setColor([0.1,0.1,0.1])
+        imageStim.draw()
+        utils.compareScreenshot('greyscaleLowContr_%s.png' %(self.contextName), win)
+        win.flip()
+        imageStim.color = 1
+        imageStim.contrast = 0.1#should have identical effect to color=0.1
+        imageStim.draw()
+        utils.compareScreenshot('greyscaleLowContr_%s.png' %(self.contextName), win)
+
+    def test_numpyTexture(self):
+        win = self.win
+        grating = filters.makeGrating(res=64, ori=20.0,
+                                     cycles=3.0, phase=0.5,
+                                     gratType='sqr', contr=1.0)
+        imageStim = visual.ImageStim(win, image=grating, autoLog=False,
+                                     size = 3*self.scaleFactor,
+                                     interpolate=True)
+        imageStim.draw()
+
+        if self.win.winType=='pygame':
+            pytest.xfail("Numpy texture is wrong polarity on pygame?")
+        utils.compareScreenshot('numpyImage_%s.png' %(self.contextName), win)
+        str(imageStim) #check that str(xxx) is working
+        win.flip()
+        #set lowcontrast using color
+        imageStim.setColor([0.1,0.1,0.1])
+        imageStim.draw()
+        utils.compareScreenshot('numpyLowContr_%s.png' %(self.contextName), win)
+        win.flip()
+        #now try low contrast using contr
+        imageStim.color = 1
+        imageStim.contrast = 0.1#should have identical effect to color=0.1
+        imageStim.draw()
+        utils.compareScreenshot('numpyLowContr_%s.png' %(self.contextName), win)
+        win.flip()
+
     def test_gabor(self):
         win = self.win
         #using init
@@ -172,9 +232,14 @@ class _baseVisualTest:
         if not os.path.isfile(fileName):
             raise IOError('Could not find movie file: %s' % os.path.abspath(fileName))
         #then do actual drawing
-        mov = visual.MovieStim(win, fileName)
+        pos = [0.6*self.scaleFactor, -0.6*self.scaleFactor]
+        mov = visual.MovieStim(win, fileName, pos=pos)
+        mov.setFlipVert(True)
+        mov.setFlipHoriz(True)
         for frameN in range(10):
             mov.draw()
+            if frameN==0:
+                utils.compareScreenshot('movFrame1_%s.png' %(self.contextName), win)
             win.flip()
         str(mov) #check that str(xxx) is working
     def test_rect(self):
@@ -272,6 +337,17 @@ class _baseVisualTest:
         str(image) #check that str(xxx) is working
         image.draw()
         utils.compareScreenshot('simpleimage1_%s.png' %(self.contextName), win, crit=5.0) # Should be exact replication
+    def test_dotsUnits(self):
+        #to test this create a small dense circle of dots and check the circle
+        #has correct dimensions
+        fieldSize = numpy.array([1.0,1.0])*self.scaleFactor
+        pos = numpy.array([0.5,0])*fieldSize
+        dotSize = 5
+        dots = visual.DotStim(self.win, color=[-1.0,0.0,0.5], dotSize=5,
+                              nDots=1000, fieldShape='circle', fieldPos=pos)
+        dots.draw()
+        utils.compareScreenshot('dots_%s.png' %(self.contextName), self.win, crit=20)
+        self.win.flip()
     def test_dots(self):
         #NB we can't use screenshots here - just check that no errors are raised
         win = self.win
@@ -337,6 +413,11 @@ class _baseVisualTest:
         grating.draw()
         utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win)
         #aperture should automatically disable on exit
+        for shape, nVert, pos in [(None, 120, (0,0)), ('circle', 17, (.2, -.7)),
+                                  ('square', 4, (-.5,-.5)), ('triangle', 3, (1,1))]:
+            aperture = visual.Aperture(win, pos=pos, shape=shape, nVert=nVert, autoLog=False)
+            assert len(aperture.vertices) == nVert
+            assert aperture.contains(pos)
     def test_rating_scale(self):
         if self.win.winType=='pygame':
             pytest.skip("RatingScale not available on pygame")

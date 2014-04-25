@@ -158,5 +158,4 @@ def val2array(value, withNone=True, withScalar=True, length=2):
     elif value.shape[-1]==length:
             return numpy.array(value, float)
     else:
-        raise ValueError('Invalid parameter. Should be length ' + str(length) + 'but got length ' + str(len(value)))
-
+        raise ValueError('Invalid parameter. Should be length ' + str(length) + ' but got length ' + str(len(value)))

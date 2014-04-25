@@ -21,10 +21,10 @@ The ``try:...except:...`` lines allow us to try and load a parameter file from a
    :lines: 6-10
 
 The last line adds the current date to whichever method was used.
-   
+
 .. _python dictionary :  `http://docs.python.org/tut/node7.html#SECTION007500000000000000000`
-   
-So having loaded those parameters, let's allow the user to change them in a dialogue box (which we'll call ``dlg``). This is the simplest form of dialogue, created directly from the dictionary above. the dialogue will be presented immediately to the user and the script will wait until they hit *OK* or *Cancel*. 
+
+So having loaded those parameters, let's allow the user to change them in a dialogue box (which we'll call ``dlg``). This is the simplest form of dialogue, created directly from the dictionary above. the dialogue will be presented immediately to the user and the script will wait until they hit *OK* or *Cancel*.
 
 If they hit *OK* then dlg.OK=True, in which case we'll use the updated values and save them straight to a parameters file (the one we try to load above).
 
@@ -41,15 +41,15 @@ We'll create a file to which we can output some data as text during each trial (
 .. literalinclude:: tutorial2.py
    :lines: 19-21
 
-PsychoPy allows us to set up an object to handle the presentation of stimuli in a staircase procedure, the :class:`~psychopy.data.StairHandler`. This will define the increment of the orientation (i.e. how far it is from the reference orientation). The staircase can be configured in many ways, but we'll set it up to begin with an increment of 20deg (very detectable) and home in on the 80% threshold value. We'll step up our increment every time the subject gets a wrong answer and step down if they get three right answers in a row. The step size will also decrease after every 2 reversals, starting with an 8dB step (large) and going down to 1dB steps (smallish). We'll finish after 50 trials. 
+PsychoPy allows us to set up an object to handle the presentation of stimuli in a staircase procedure, the :class:`~psychopy.data.StairHandler`. This will define the increment of the orientation (i.e. how far it is from the reference orientation). The staircase can be configured in many ways, but we'll set it up to begin with an increment of 20deg (very detectable) and home in on the 80% threshold value. We'll step up our increment every time the subject gets a wrong answer and step down if they get three right answers in a row. The step size will also decrease after every 2 reversals, starting with an 8dB step (large) and going down to 1dB steps (smallish). We'll finish after 50 trials.
 
 .. literalinclude:: tutorial2.py
    :lines: 24-27
-   
+
 Build your stimuli
 ---------------------------------
 
-Now we need to create a window, some stimuli and timers. We need a `~psychopy.visual.Window` in which to draw our stimuli, a fixation point and two `~psychopy.visual.PatchStim` stimuli (one for the target probe and one as the foil). We can have as many timers as we like and reset them at any time during the experiment, but I generally use one to measure the time since the experiment started and another that I reset at the beginning of each trial.
+Now we need to create a window, some stimuli and timers. We need a `~psychopy.visual.Window` in which to draw our stimuli, a fixation point and two `~psychopy.visual.GratingStim` stimuli (one for the target probe and one as the foil). We can have as many timers as we like and reset them at any time during the experiment, but I generally use one to measure the time since the experiment started and another that I reset at the beginning of each trial.
 
 .. literalinclude:: tutorial2.py
    :lines: 29-36
@@ -75,10 +75,10 @@ Wait for presentation time of 500ms and then blank the screen (by updating the s
 
 .. literalinclude:: tutorial2.py
    :lines: 64-68
-   
+
 Get input from the subject
 ---------------------------------
-Still within the for-loop (note the level of indentation is the same) we need to get the response from the subject. The method works by starting off assuming that there hasn't yet been a response and then waiting for a key press. For each key pressed we check if the answer was correct or incorrect and assign the response appropriately, which ends the trial. We always have to clear the event buffer if we're checking for key presses like this 
+Still within the for-loop (note the level of indentation is the same) we need to get the response from the subject. The method works by starting off assuming that there hasn't yet been a response and then waiting for a key press. For each key pressed we check if the answer was correct or incorrect and assign the response appropriately, which ends the trial. We always have to clear the event buffer if we're checking for key presses like this
 
 .. literalinclude:: tutorial2.py
    :lines: 71-83
@@ -103,4 +103,4 @@ While we're here, it's quite nice to give some immediate feedback to the user. L
 Having saved the data you can give your participant some feedback and quit!
 
 .. literalinclude:: tutorial2.py
-   :lines: 93-109   
+   :lines: 93-109

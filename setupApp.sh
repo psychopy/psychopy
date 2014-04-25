@@ -14,7 +14,7 @@ rm psychopy/prefSite.cfg
 
 rm -r dist/PsychoPy2.app
 rm -r ../dist/PsychoPy2.app
-python setupApp.py py2app #shouldn't need sudo for this
+python setupApp.py py2app
 chmod -R g+w dist/PsychoPy2.app
 #strip all other architectures from binaries and move both to ../dist
 ditto --rsrc --arch i386 dist/PsychoPy2.app ../dist/PsychoPy2.app

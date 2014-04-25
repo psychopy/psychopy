@@ -40,10 +40,10 @@ def is_sequence(arg):
 global _system_font_manager
 _system_font_manager=None
 
-def getFontManager():
+def getFontManager(mono_only=True):
     global _system_font_manager
     if _system_font_manager is None:
-        _system_font_manager = FontManager() 
+        _system_font_manager = FontManager(mono_only)
     return _system_font_manager
     
 def getGLInfo():

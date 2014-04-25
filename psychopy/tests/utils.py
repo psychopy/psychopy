@@ -45,12 +45,12 @@ def compareScreenshot(fileName, win, crit=5.0):
         expDat = np.array(expected.getdata())
         imgDat = np.array(frame.getdata())
         rms = (((imgDat-expDat)**2).sum()/len(imgDat))**0.5
+        filenameLocal = fileName.replace('.png','_local.png')
         if rms >= crit/2:
             #there was SOME discrepency
             logging.warning('PsychoPyTests: RMS=%.3g at threshold=%3.g'
                   % (rms, crit))
-        if rms>=crit:
-            filenameLocal = fileName.replace('.png','_local.png')
+        if not rms<crit: #don't do `if rms>=crit because that doesn't catch rms=nan
             frame.save(filenameLocal, optimize=1)
             logging.warning('PsychoPyTests: Saving local copy into %s' % filenameLocal)
         assert rms<crit, \

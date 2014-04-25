@@ -5,13 +5,13 @@ from psychopy import core, visual, event
 myWin = visual.Window((600,600), allowGUI=False, rgb=(-1,-1,-1))
 
 #INITIALISE SOME STIMULI
-faceRGB = visual.PatchStim(myWin,tex='face.jpg',
+faceRGB = visual.GratingStim(myWin,tex='face.jpg',
     mask=None,
     pos=(0.0,0.0),
     size=(1.0,1.0),
     sf=(1.0, 1.0))
 
-faceALPHA = visual.PatchStim(myWin,pos=(-0.5,0),
+faceALPHA = visual.GratingStim(myWin,pos=(-0.5,0),
     tex="sin",mask="face.jpg",
     rgb=[1.0,1.0,-1.0],
     size=(0.5,0.5), sf=1.0, units="norm")

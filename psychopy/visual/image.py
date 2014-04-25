@@ -21,13 +21,12 @@ from psychopy import logging
 from psychopy.tools.attributetools import logAttrib
 from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import BaseVisualStim
-from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
-                                     createTexture)
+from psychopy.visual.basevisual import ContainerMixin, ColorMixin, TextureMixin
 
 import numpy
 
 
-class ImageStim(BaseVisualStim):
+class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
     '''Display an image on a :class:`psychopy.visual.Window`'''
     def __init__(self,
                  win,
@@ -66,7 +65,7 @@ class ImageStim(BaseVisualStim):
             maskParams: Various types of input. Default to None.
                 This is used to pass additional parameters to the mask if those
                 are needed.
-                - For the 'raisedCos' mask, pass a dict: {'fringeWidth':0.2},
+                - For the 'raisedCos' mask, pass a dict: ``{'fringeWidth':0.2}``,
                 where 'fringeWidth' is a parameter (float, 0-1), determining
                 the proportion of the patch that will be blurred by the raised
                 cosine edge.
@@ -76,7 +75,7 @@ class ImageStim(BaseVisualStim):
         self._initParams = dir()
         self._initParams.remove('self')
 
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)#set autoLog at end of init
+        super(ImageStim, self).__init__(win, units=units, name=name, autoLog=False)#set autoLog at end of init
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 
         #initialise textures for stimulus
@@ -129,11 +128,11 @@ class ImageStim(BaseVisualStim):
         """
         self._needUpdate = False
         GL.glNewList(self._listID,GL.GL_COMPILE)
+
         #setup the shaderprogram
-        if self.isLumImage:
-            GL.glUseProgram(self.win._progSignedTexMask)
-            GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "texture"), 0) #set the texture to be texture unit 0
-            GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
+        GL.glUseProgram(self.win._progImageStim)
+        GL.glUniform1i(GL.glGetUniformLocation(self.win._progImageStim, "texture"), 0) #set the texture to be texture unit 0
+        GL.glUniform1i(GL.glGetUniformLocation(self.win._progImageStim, "mask"), 1)  # mask is texture unit 1
 
         #mask
         GL.glActiveTexture(GL.GL_TEXTURE1)
@@ -226,7 +225,8 @@ class ImageStim(BaseVisualStim):
 
 
     def __del__(self):
-        GL.glDeleteLists(self._listID, 1)
+        if hasattr(self, '_listID'):
+            GL.glDeleteLists(self._listID, 1)
         self.clearTextures()#remove textures from graphics card to prevent crash
 
     def clearTextures(self):
@@ -235,8 +235,9 @@ class ImageStim(BaseVisualStim):
         As of v1.61.00 this is called automatically during garbage collection of
         your stimulus, so doesn't need calling explicitly by the user.
         """
-        GL.glDeleteTextures(1, self._texID)
-        GL.glDeleteTextures(1, self._maskID)
+        if hasattr(self, '_texID'):
+            GL.glDeleteTextures(1, self._texID)
+            GL.glDeleteTextures(1, self._maskID)
     def draw(self, win=None):
         if win==None: win=self.win
         self._selectWindow(win)
@@ -247,6 +248,8 @@ class ImageStim(BaseVisualStim):
         desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
+        if self._needTextureUpdate:
+            self.setImage(value=self._imName, log=False)
         if self._needUpdate:
             self._updateList()
         GL.glCallList(self._listID)
@@ -263,7 +266,7 @@ class ImageStim(BaseVisualStim):
             datatype = GL.GL_FLOAT
         else:
             datatype = GL.GL_UNSIGNED_BYTE
-        self.isLumImage = createTexture(value, id=self._texID, stim=self,
+        self.isLumImage = self._createTexture(value, id=self._texID, stim=self,
             pixFormat=GL.GL_RGB, dataType=datatype,
             maskParams=self.maskParams, forcePOW2=False)
         #if user requested size=None then update the size for new stim here
@@ -273,11 +276,12 @@ class ImageStim(BaseVisualStim):
         #if we switched to/from lum image then need to update shader rule
         if wasLumImage != self.isLumImage:
             self._needUpdate=True
+        self._needTextureUpdate = False
     def setMask(self,value, log=True):
         """Change the image to be used as an alpha-mask for the image
         """
         self.mask = value
-        createTexture(value, id=self._maskID,
+        self._createTexture(value, id=self._maskID,
             pixFormat=GL.GL_ALPHA,dataType=GL.GL_UNSIGNED_BYTE,
             stim=self,
             res=self.texRes, maskParams=self.maskParams)

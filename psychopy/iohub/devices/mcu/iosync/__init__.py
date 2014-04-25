@@ -83,41 +83,52 @@ getTime= Computer.getTime
 class MCU(Device):
     """
     """
-    _mcu=None 
-    _request_dict={}
-    _response_dict={}  
-    _last_sync_time=0.0
     DEVICE_TIMEBASE_TO_SEC=1.0
     _newDataTypes = [('serial_port',N.str,32),('time_sync_interval',N.float32)]
-    EVENT_CLASS_NAMES=['AnalogInputEvent','DigitalInputEvent']
+    EVENT_CLASS_NAMES=['AnalogInputEvent','DigitalInputEvent','ThresholdEvent']
     DEVICE_TYPE_ID=DeviceConstants.MCU
-    DEVICE_TYPE_STRING="MCU"    
-    __slots__=[e[0] for e in _newDataTypes]
+    DEVICE_TYPE_STRING="MCU"
+    _mcu_slots=['serial_port',
+                'time_sync_interval',
+                '_mcu',
+                '_request_dict',
+                '_response_dict',
+                '_last_sync_time'
+                ]
+    __slots__=[e for e in _mcu_slots]
     def __init__(self, *args, **kwargs):
         self.serial_port=None   
         self.time_sync_interval=None   
+
         Device.__init__(self,*args,**kwargs['dconfig'])
-        
+
+        self._mcu=None
+        self._request_dict={}
+        self._response_dict={}
+        self._last_sync_time=0.0
+
+        if self.serial_port.lower() == 'auto':
+            syncPorts = T3MC.findSyncs()
+            if len(syncPorts) == 1:
+                self.serial_port = syncPorts[0]
+            elif len(syncPorts) > 1:
+                self.serial_port = syncPorts[0]
+            else:
+                    print2err("ioSync ERROR: No ioSync Devices found. Check cabling and serial device driver. ")
+
         self.setConnectionState(True)
-        
+
     def setConnectionState(self,enable):
         if enable is True:
-            if MCU._mcu is None:
-                serial_id=None
-                if self.serial_port.upper().strip().startswith('COM'):
-                     serial_id=int(self.serial_port.strip()[3:])
-                else:
-                    serial_id= self.serial_port.strip()   
-                MCU._mcu = T3MC(serial_id)
-                
-                self._mcu._runTimeSync()
+            if self._mcu is None:
+                self._mcu = T3MC(self.serial_port)
+                self._resetLocalState()
 
-                MCU._last_sync_time=getTime()
-                   
         elif enable is False:
             if self._mcu:
+                self._mcu.resetState()
                 self._mcu.close()
-                MCU._mcu=None
+                self._mcu=None
                 
         return self.isConnected()
 
@@ -153,12 +164,13 @@ class MCU(Device):
             event_types=self.getConfiguration().get('monitor_event_types',[])    
             enable_analog = 'AnalogInputEvent' in event_types
             enable_digital = 'DigitalInputEvent' in event_types
+            enable_threshold = 'ThresholdEvent' in event_types
             #print2err("enable_analog: {0}, enable_digital: {1}".format(enable_analog,enable_digital))
             self._mcu.flushSerialInput()
-            self._enableInputEvents(enable_digital,enable_analog)
+            self._enableInputEvents(enable_digital, enable_analog, enable_threshold)
         elif enabled is False and self.isReportingEvents() is True:
             if self.isConnected():
-                self._enableInputEvents(False,False)
+                self._enableInputEvents(False,False,False)
                 
         return Device.enableEventReporting(self,enabled)
 
@@ -194,9 +206,32 @@ class MCU(Device):
         request=self._mcu.setDigitalOutputByte(new_dout_byte)
         self._request_dict[request.getID()]=request
         return request.asdict()
+
+    def generateKeyboardEvent(self, use_char, press_duration):
+        request=self._mcu.generateKeyboardEvent(use_char, press_duration)
+        self._request_dict[request.getID()]=request
+        return request.asdict()
         
     def setDigitalOutputPin(self,dout_pin_index,new_pin_state):
         request=self._mcu.setDigitalOutputPin(dout_pin_index,new_pin_state)
+        self._request_dict[request.getID()]=request
+        return request.asdict()
+
+    def setAnalogThresholdValues(self, threshold_value_array):
+        request = self._mcu.setAnalogThresholdValues(threshold_value_array)
+        self._request_dict[request.getID()] = request
+        return request.asdict()
+
+    def _resetLocalState(self):
+        self._request_dict.clear()
+        self._response_dict.clear()
+        self._last_sync_time = 0.0
+        self._mcu._runTimeSync()
+        self._last_sync_time = getTime()
+
+    def resetState(self):
+        request = self._mcu.resetState()
+        self._resetLocalState()
         self._request_dict[request.getID()]=request
         return request.asdict()
 
@@ -214,8 +249,8 @@ class MCU(Device):
                 resp_return.append(response.asdict())
             return resp_return
 
-    def _enableInputEvents(self,enable_digital,enable_analog):
-        self._mcu.enableInputEvents(enable_digital,enable_analog)
+    def _enableInputEvents(self, enable_digital, enable_analog, threshold_events):
+        self._mcu.enableInputEvents(enable_digital,enable_analog, threshold_events)
 
     def _poll(self):
         try:
@@ -225,44 +260,50 @@ class MCU(Device):
                 self._mcu.getSerialRx()
                 if logged_time-self._last_sync_time>=self.time_sync_interval:
                     self._mcu._runTimeSync()
-                    MCU._last_sync_time=logged_time
+                    self._last_sync_time=logged_time
 
             if not self.isReportingEvents():
                 return False
 
             confidence_interval=logged_time-self._last_callback_time
     
-            events=self._mcu.getRxEvents()
+            events = self._mcu.getRxEvents()
             for event in events:             
-                current_MCU_time=event.device_time#self.getSecTime()
-                device_time=event.device_time
+                current_MCU_time = event.device_time#self.getSecTime()
+                device_time = event.device_time
                 if event.local_time is None:
                     event.local_time=logged_time
                 delay=logged_time-event.local_time#current_MCU_time-device_time
                 # local_time is in iohub time space already, so delay does not
                 # need to be used to adjust iohub time
                 iohub_time=event.local_time
-                elist=None
-                if event.getTypeInt()==T3Event.DIGITAL_INPUT_EVENT:
-                    elist= [EventConstants.UNDEFINED,]*12
-                    elist[4]=DigitalInputEvent.EVENT_TYPE_ID
-                    elist[-1]=event.getDigitalInputByte()
-                elif event.getTypeInt()==T3Event.ANALOG_INPUT_EVENT:
-                    elist= [EventConstants.UNDEFINED,]*19
-                    elist[4]=AnalogInputEvent.EVENT_TYPE_ID
-                    for i,v in enumerate(event.ain_channels):
-                        elist[(i+11)]=v            
+                elist = None
+                if event.getTypeInt() == T3Event.ANALOG_INPUT_EVENT:
+                    elist = [EventConstants.UNDEFINED,]*19
+                    elist[4] = AnalogInputEvent.EVENT_TYPE_ID
+                    for i, v in enumerate(event.ain_channels):
+                        elist[(i+11)]=v
+                elif event.getTypeInt() == T3Event.DIGITAL_INPUT_EVENT:
+                    elist = [EventConstants.UNDEFINED,]*12
+                    elist[4] = DigitalInputEvent.EVENT_TYPE_ID
+                    elist[-1] = event.getDigitalInputByte()
+                elif event.getTypeInt() == T3Event.THRESHOLD_EVENT:
+                    elist = [EventConstants.UNDEFINED,]*19
+                    elist[4] = ThresholdEvent.EVENT_TYPE_ID
+                    for i, v in enumerate(event.threshold_state_changed):
+                        elist[(i+11)] = v
+
                 if elist:
-                    elist[0]=0
-                    elist[1]=0
-                    elist[2]=0
-                    elist[3]=Computer._getNextEventID()
-                    elist[5]=device_time
-                    elist[6]=logged_time
-                    elist[7]=iohub_time
-                    elist[8]=confidence_interval
-                    elist[9]=delay
-                    elist[10]=0
+                    elist[0] = 0
+                    elist[1] = 0
+                    elist[2] = 0
+                    elist[3] = Computer._getNextEventID()
+                    elist[5] = device_time
+                    elist[6] = logged_time
+                    elist[7] = iohub_time
+                    elist[8] = confidence_interval
+                    elist[9] = delay
+                    elist[10] = 0
                    
                     self._addNativeEventToBuffer(elist)
                 
@@ -283,6 +324,7 @@ class MCU(Device):
             
     def _close(self):
         if self._mcu:
+            self.resetState()
             self.setConnectionState(False)
             
         Device._close(self)
@@ -303,6 +345,24 @@ class AnalogInputEvent(DeviceEvent):
     IOHUB_DATA_TABLE=EVENT_TYPE_STRING
     __slots__=[e[0] for e in _newDataTypes]
     def __init__(self,*args,**kwargs):        
+        DeviceEvent.__init__(self,*args,**kwargs)
+
+class ThresholdEvent(DeviceEvent):
+    _newDataTypes = [
+            ('AI_0', N.float32),
+            ('AI_1', N.float32),
+            ('AI_2', N.float32),
+            ('AI_3', N.float32),
+            ('AI_4', N.float32),
+            ('AI_5', N.float32),
+            ('AI_6', N.float32),
+            ('AI_7', N.float32)
+            ]
+    EVENT_TYPE_ID = EventConstants.THRESHOLD
+    EVENT_TYPE_STRING = 'THRESHOLD'
+    IOHUB_DATA_TABLE = EVENT_TYPE_STRING
+    __slots__=[e[0] for e in _newDataTypes]
+    def __init__(self,*args,**kwargs):
         DeviceEvent.__init__(self,*args,**kwargs)
 
 class DigitalInputEvent(DeviceEvent):

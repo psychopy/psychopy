@@ -32,7 +32,6 @@ class TestMicrophone(object):
         switchOff()  # not needed, just get code coverage
 
     def test_AudioCapture_basics(self):
-        os.chdir(self.tmp)
         microphone.haveMic = False
         with pytest.raises(MicrophoneError):
             AdvAudioCapture(autoLog=False)
@@ -42,16 +41,21 @@ class TestMicrophone(object):
         switchOn(48000)
 
         mic = AdvAudioCapture(saveDir=self.tmp, autoLog=False)
+        mic = AdvAudioCapture(saveDir=self.tmp+'_test', autoLog=False)
         mic.record(.10, block=False)  # returns immediately
         core.wait(.02)
         mic.stop()
+        mic.reset()
+
+        mic.record(0.2, block=True)
+        assert os.path.isfile(mic.savedFile)
 
     def test_AdvAudioCapture(self):
-        os.chdir(self.tmp)
+        filename = os.path.join(self.tmp, 'test_mic.wav')
         mic = AdvAudioCapture(autoLog=False)
         tone = sound.Sound(440, secs=.02, autoLog=False)
         mic.setMarker(tone=tone)
-        mic = AdvAudioCapture(filename='test_mic.wav', saveDir=self.tmp, autoLog=False)
+        mic = AdvAudioCapture(filename=filename, saveDir=self.tmp, autoLog=False)
 
         mic.record(1, block=True)
         mic.setFile(mic.savedFile)  # same file name
@@ -117,16 +121,18 @@ class TestMicrophoneNoSound(object):
             shutil.rmtree(self.tmp, ignore_errors=True)
 
     def test_getFlacPath(self):
-        #microphone.FLAC_PATH = None
-        #with pytest.raises(MicrophoneError):
-        #    _getFlacPath('this is not flac')
         microphone.FLAC_PATH = None
-        _getFlacPath()
+        with pytest.raises(MicrophoneError):
+            _getFlacPath('this is not the flac you are looking for')
+
         microphone.FLAC_PATH = None
         _getFlacPath('flac')
 
         microphone.FLAC_PATH = 'flac'
         assert microphone.FLAC_PATH
+
+        microphone.FLAC_PATH = None
+        _getFlacPath()
 
     def test_wav_flac(self):
         filename = os.path.join(self.tmp, 'test_bad_readWav')
@@ -153,6 +159,8 @@ class TestMicrophoneNoSound(object):
         wav2flac('', keep=True)
         flac2wav('', keep=True)
 
+        wav2flac(self.tmp, keep=True)
+
     def test_Speech2Text(self):
         try:
             web.requireInternetAccess()
@@ -166,11 +174,17 @@ class TestMicrophoneNoSound(object):
         resp = gs.getResponse()
         assert resp.word == 'red'
 
+        # test batch-discover files in a directory
+        tmp = join(self.tmp, 'tmp')
+        os.mkdir(tmp)
+        shutil.copy(testFile, tmp)
+        bs = BatchSpeech2Text(files=tmp)
+
         bs = BatchSpeech2Text(files=glob.glob(join(self.tmp, 'red_*.wav')))
         while bs._activeCount():
             core.wait(.1, 0)
         resp = bs[0][1]
-        assert resp.confidence == 0.68801856
+        assert 0.6 < resp.confidence < 0.75  # 0.68801856
         assert resp.word == 'red'
 
     def test_DFT(self):

@@ -24,7 +24,7 @@ mcu.iosync.MCU:
     # monitor_event_types: Specify which of the device's supported event
     #   types you would like the ioHub to monitor for.
     #
-    monitor_event_types: [AnalogInputEvent, DigitalInputEvent]
+    monitor_event_types: [AnalogInputEvent, DigitalInputEvent, ThresholdEvent]
 
     # serial_port: The serial port the MCU is using to interface with the 
     #    ioHub computer. On Windows, serial ports will be in the form
@@ -32,8 +32,8 @@ mcu.iosync.MCU:
     #    and 32. For example, COM6 would indicate the MCU to be used is 
     #    to serial port 6. 
     #    For Linux and OS X, serial ports are usually specified as ... TBC
-    #
-    serial_port: COM2
+    #    To autodetect an ioSync, set to 'auto'.
+    serial_port: auto
 
     time_sync_interval: 0.333333
 

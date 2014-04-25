@@ -21,14 +21,15 @@ from psychopy import logging
 
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import attributeSetter
-from psychopy.visual.basevisual import BaseVisualStim
-from psychopy.visual.helpers import createTexture
+from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
+                                        ContainerMixin, TextureMixin)
 
 import numpy
 
 
-class GratingStim(BaseVisualStim):
-    """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in either dimension
+class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
+    """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in either dimension.
+
     One of the main stimuli for PsychoPy.
 
     Formally GratingStim is just a texture behind an optional
@@ -38,8 +39,8 @@ class GratingStim(BaseVisualStim):
 
     **Examples**::
 
-        myGrat = GratingStim(tex='sin',mask='circle') #gives a circular patch of grating
-        myGabor = GratingStim(tex='sin',mask='gauss') #gives a 'Gabor'
+        myGrat = GratingStim(tex='sin', mask='circle') #gives a circular patch of grating
+        myGabor = GratingStim(tex='sin', mask='gauss') #gives a 'Gabor'
 
     A GratingStim can be rotated scaled and shifted in position, its texture can
     be drifted in X and/or Y and it can have a spatial frequency in X and/or Y
@@ -48,12 +49,12 @@ class GratingStim(BaseVisualStim):
     Also since transparency can be controlled two GratingStims can combine e.g.
     to form a plaid.
 
-    **Using GratingStim with images from disk (jpg, tif, png...)**
+    **Using GratingStim with images from disk (jpg, tif, png, ...)**
 
     Ideally texture images to be rendered should be square with 'power-of-2' dimensions
     e.g. 16x16, 128x128. Any image that is not will be upscaled (with linear interpolation)
     to the nearest such texture by PsychoPy. The size of the stimulus should be
-    specified in the normal way using the appropriate units (deg, pix, cm...). Be
+    specified in the normal way using the appropriate units (deg, pix, cm, ...). Be
     sure to get the aspect ratio the same as the image (if you don't want it
     stretched!).
 
@@ -103,11 +104,11 @@ class GratingStim(BaseVisualStim):
         for unecess in ['self', 'rgb', 'dkl', 'lms']:
             self._initParams.remove(unecess)
         #initialise parent class
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)
+        super(GratingStim, self).__init__(win, units=units, name=name, autoLog=False)
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
-        # TO DO: postpone calls to createTexture, setColor and _calcCyclesPerStim whin initiating stimulus
+        # TO DO: postpone calls to _createTexture, setColor and _calcCyclesPerStim whin initiating stimulus
         self.__dict__['contrast'] = 1
         self.__dict__['size'] = 1
         self.__dict__['sf'] = 1
@@ -159,7 +160,16 @@ class GratingStim(BaseVisualStim):
 
         #generate a displaylist ID
         self._listID = GL.glGenLists(1)
-        self._updateList()#ie refresh display list
+
+        # JRG: doing self._updateList() here means MRO issues for RadialStim,
+        # which inherits from GratingStim but has its own _updateList code.
+        # So don't want to do the update here (= ALSO the init of RadialStim).
+        # Could potentially define a BaseGrating class without updateListShaders
+        # code, and have GratingStim and RadialStim inherit from it and add their
+        # own _updateList stuff. Seems unnecessary.
+        # Instead, simply defer the update to the first .draw(), should be fast:
+        #self._updateList()  #ie refresh display list
+        self._needUpdate = True
 
         #set autoLog (now that params have been initialised)
         self.autoLog= autoLog
@@ -221,37 +231,38 @@ class GratingStim(BaseVisualStim):
         If not then PsychoPy will upsample your stimulus to the next larger
         power of two.
         """
-        createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self,
+        self._createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self,
             res=self.texRes, maskParams=self.maskParams)
         #if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize == None:
             self.size = None  # Reset size do default
         self.__dict__['tex'] = value
+        self._needTextureUpdate = False
 
     @attributeSetter
     def mask(self, value):
         """The alpha mask (forming the shape of the image)
 
         This can be one of various options:
-            + 'circle', 'gauss', 'raisedCos', **None** (resets to default)
+            + 'circle', 'gauss', 'raisedCos', 'cross', **None** (resets to default)
             + the name of an image file (most formats supported)
             + a numpy array (1xN or NxN) ranging -1:1
         """
-        createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self,
+        self._createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self,
             res=self.texRes, maskParams=self.maskParams)
         self.__dict__['mask'] = value
 
     def setSF(self, value, operation='', log=True):
-        """ Deprecation Warning! Use 'stim.parameter = value' syntax instead"""
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self._set('sf', value, operation, log=log)
     def setPhase(self, value, operation='', log=True):
-        """ Deprecation Warning! Use 'stim.parameter = value' syntax instead"""
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self._set('phase', value, operation, log=log)
     def setTex(self, value, log=True):
-        """ Deprecation Warning! Use 'stim.parameter = value' syntax instead"""
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self.tex = value
     def setMask(self, value, log=True):
-        """ Deprecation Warning! Use 'stim.parameter = value' syntax instead"""
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self.mask = value
 
     def draw(self, win=None):
@@ -272,6 +283,8 @@ class GratingStim(BaseVisualStim):
         desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
+        if self._needTextureUpdate:
+            self.setTex(value=self.tex, log=False)
         if self._needUpdate:
             self._updateList()
         GL.glCallList(self._listID)

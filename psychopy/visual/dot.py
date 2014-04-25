@@ -24,13 +24,13 @@ from psychopy import logging
 from psychopy.tools.attributetools import setWithOperation, logAttrib
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import cm2pix, deg2pix
-from psychopy.visual.basevisual import BaseVisualStim
+from psychopy.visual.basevisual import BaseVisualStim, ColorMixin, ContainerMixin
 
 import numpy
 from numpy import pi
 
 
-class DotStim(BaseVisualStim):
+class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
     """
     This stimulus class defines a field of dots with an update rule that determines how they change
     on every call to the .draw() method.
@@ -112,7 +112,7 @@ class DotStim(BaseVisualStim):
         self._initParams = __builtins__['dir']()
         self._initParams.remove('self')
 
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)#set autoLog at end of init
+        super(DotStim, self).__init__(win, units=units, name=name, autoLog=False)#set autoLog at end of init
 
         self.nDots = nDots
         #pos and size are ambiguous for dots so DotStim explicitly has
@@ -190,7 +190,7 @@ class DotStim(BaseVisualStim):
         #update the actual coherence for the requested coherence and nDots
         if attrib in ['nDots','coherence']:
             self.coherence=round(self.coherence*self.nDots)/self.nDots
-        
+
         logAttrib(self, log, attrib)
 
     def set(self, attrib, val, op='', log=True):
@@ -286,9 +286,9 @@ class DotStim(BaseVisualStim):
                 new=numpy.random.uniform(-1, 1, [nDots*2,2])#fetch twice as many as needed
                 inCircle= (numpy.hypot(new[:,0],new[:,1])<1)
                 if sum(inCircle)>=nDots:
-                    return new[inCircle,:][:nDots,:]*self.fieldSize/2.0
+                    return new[inCircle,:][:nDots,:]*0.5
         else:
-            return numpy.random.uniform(-self.fieldSize/2.0, self.fieldSize/2.0, [nDots,2])
+            return numpy.random.uniform(-0.5, 0.5, [nDots,2])
 
     def _update_dotsXY(self):
         """
@@ -336,12 +336,12 @@ class DotStim(BaseVisualStim):
 
         #handle boundaries of the field
         if self.fieldShape in  [None, 'square', 'sqr']:
-            dead = dead+(numpy.abs(self._verticesBase[:,0])>(self.fieldSize[0]/2.0))+(numpy.abs
+            dead = dead+(numpy.abs(self._verticesBase[:,0])>0.5)+(numpy.abs
                                                                                   (self
-                                                                                   ._verticesBase[:,1])>(self.fieldSize[1]/2.0))
+                                                                                   ._verticesBase[:,1])>0.5)
         elif self.fieldShape == 'circle':
             #transform to a normalised circle (radius = 1 all around) then to polar coords to check
-            normXY = self._verticesBase/(self.fieldSize/2.0)#the normalised XY position (where radius should be <1)
+            normXY = self._verticesBase/0.5#the normalised XY position (where radius should be <1)
             dead = dead + (numpy.hypot(normXY[:,0],normXY[:,1])>1) #add out-of-bounds to those that need replacing
 
         #update any dead dots

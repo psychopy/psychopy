@@ -9,12 +9,11 @@ import numpy as np
 import unicodedata as ud
 from matplotlib import font_manager
 from psychopy.core import getTime
-from psychopy import logging
+
 try:
     from textureatlas import TextureAtlas
-    from fontstore import FontStore
 except Exception, e:
-        print 'error importing fontstore:',e
+        print 'error importing TextureAtlas:',e
 from pyglet.gl import (glGenLists,glNewList,GL_COMPILE,GL_QUADS,
                       glBegin,glTexCoord2f,glVertex2f,glEnd,glDeleteLists,
                       glEndList,glTranslatef,glDeleteTextures
@@ -67,7 +66,6 @@ class FontManager(object):
 
         self.load_monospace_only=monospace_only
         self.updateFontInfo(monospace_only)
-        #self.enableFontStore()
 
     def getFontFamilyNames(self):
         """
@@ -152,8 +150,10 @@ class FontManager(object):
                     else:
                         fi_list.append(self._createFontInfo(fp,face))
                 except Exception, e:
-                    logging.debug('Error during FontManager.updateFontInfo(): %s\nFont File: %s'%(str(e),fp))
-
+                    import traceback
+                    traceback.print_exc()
+                    return None
+                    pass
         self.font_family_styles.sort()
 
         return fi_list
@@ -204,11 +204,6 @@ class FontManager(object):
         fm=getFontManager()
 
         if fm:
-            if fm.font_store:
-                # should be loading from font store if requested font settings
-                # have been saved to the hdf5 file (assuming it is faster)
-                pass
-                #print "TODO: Check if requested font is in FontStore"
             font_infos=fm.getFontsMatching(font_family_name,bold,italic)
             if len(font_infos) == 0:
                 return False
@@ -497,4 +492,7 @@ class MonospaceFontAtlas(object):
 try:
     from psychopy.visual.textbox.freetype_bf import Face,FT_LOAD_RENDER,FT_LOAD_FORCE_AUTOHINT
 except Exception, e:
+    print "FreeType import Failed:", e
+    import traceback
+    traceback.format_exc()
     FontManager.freetype_import_error=e

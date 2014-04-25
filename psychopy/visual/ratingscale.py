@@ -242,6 +242,7 @@ class RatingScale(MinimalStim):
     """
         # what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
+        super(RatingScale, self).__init__(name=name, autoLog=False)
 
         # warn about obsolete arguments; Jan 2014, for v1.80:
         obsoleted = set(['showScale', 'ticksAboveLine', 'displaySizeFactor', 'markerStyle',
@@ -385,6 +386,8 @@ class RatingScale(MinimalStim):
                 # label endpoints and middle tick
                 placeHolder = [''] * ((self.high-self.low-2)//2)
                 self.labelTexts = [labels[0]] + placeHolder + [labels[1]] + placeHolder + [labels[2]]
+            elif labels in [None, False]:
+                self.labelTexts = []
             else:
                 self.labelTexts = [unicode(self.low)] + [''] * (self.high-self.low - 1) + [unicode(self.high)]
 

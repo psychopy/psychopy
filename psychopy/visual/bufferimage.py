@@ -142,7 +142,7 @@ class BufferImageStim(GratingStim):
         # turn the RGBA region into a GratingStim()-like object:
         if win.units in ['norm']:
             pos *= win.size/2.
-        GratingStim.__init__(self, win, tex=region, units='pix', mask=mask, pos=pos,
+        super(BufferImageStim, self).__init__(win, tex=region, units='pix', mask=mask, pos=pos,
                              interpolate=interpolate, name=name, autoLog=False)
 
         # to improve drawing speed, move these out of draw:

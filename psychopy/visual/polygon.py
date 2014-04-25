@@ -47,7 +47,7 @@ class Polygon(ShapeStim):
         self._calcVertices()
         kwargs['closeShape'] = True # Make sure nobody messes around here
         kwargs['vertices'] = self.vertices
-        ShapeStim.__init__(self, win, **kwargs)
+        super(Polygon, self).__init__(win, **kwargs)
 
     def _calcVertices(self):
         d = numpy.pi*2/ self.edges

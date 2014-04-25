@@ -1,0 +1,70 @@
+# pylint can flag things that might (and only *might*) warrant extra scrutiny.
+# Many issues it finds do not pose a problem, and its best not to change them.
+
+# This rc file is an attempt to be explicit about what coding practices are
+# followed across the psychopy project, and what is worth changing. In general,
+# for new code, try to avoid the pylint score going lower than it already is.
+
+# To use pylint effectively, first get a bseline of the file you plan to work on:
+# $ pylint microphone.py
+
+# Make your code edits to that file. Then run pylint again to see the differences:
+# $ pylint microphone.py
+
+# Changing cosmetic issues is NOT worth doing because it can make it more
+# difficult to debug other issues (when using git-blame). Best not to "fix"
+# those merely to make the pylint score higher.
+
+# That said, please do fix these 3 issues in existing code: wildcard imports,
+#     bare excepts (when possible), dangerous default values
+# Some files deliberately have unused imports, e.g., psychopy.misc, and so Rule
+# W0611 is disabled within that file.
+# Try to avoid introducing issues in new code, but don't fix such issues in existing code.
+
+# The following rule-sets mean that most psychopy files get a pylint score above 8.0.
+# Using the following rules, the overall code base has a score of 6.7 as of this
+# writing, mostly due to unused wildcard imports (15495) and bad-indentation (666).
+# All naming conventions are not checked (C0103); follow existing code (= camelCase).
+# Whitespace conventions are not checked (C0326).
+
+[MASTER]
+ignore=.git,tests
+
+[BASIC]
+good-names=i,j,k,x,y,__,so,se
+
+[DESIGN]
+max-args=20
+max-locals=50
+# "public" means without leading _
+min-public-methods=0
+max-public-methods=50
+max-branches=36
+max-statements=150
+
+[FORMAT]
+indent-string='    '
+single-line-if-stmt=yes
+
+[MESSAGES CONTROL]
+# Disable the following PyLint messages:
+# C0103: invalid * name
+# C0301: line too long
+# C0302: too many lines in module (1000)
+# C0303: Trailing whitespace
+# C0326: %s space %s %s %s\n%s
+# C0111: Missing %s docstring
+# C1001: Old-style class defined.
+# W0142: Used * or ** magic
+# W0201: Attribute %r defined outside __init__
+# W0613: Unused argument %r
+# W0122: use of exec
+# W0212: Access to a protected member %s of a client class
+# R0902: Too many instance attributes (%s/%s)
+# E1101: %s %r has no %r member
+# E0602: Undefined variable %r
+
+disable=C0103,C0111,C0301,C0302,C0303,C0326,C1001,
+    W0122,W0142,W0201,W0212,W0613,
+    R0902,
+    E0602,E1101

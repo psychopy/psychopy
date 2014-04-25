@@ -24,7 +24,7 @@ if platform != 'darwin':
 
 import bdist_mpkg, py2app
 resources = glob.glob('psychopy/app/Resources/*')
-resources.append('/Library/Frameworks/Python.framework/Versions/2.6/include/python2.6/pyconfig.h')
+resources.append('/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/pyconfig.h')
 
 setup(app=['psychopy/app/psychopyApp.py'],
     options=dict(py2app=dict( includes=['Tkinter','FileDialog','tkFileDialog', 'imp', 'subprocess', 'shlex',
@@ -32,7 +32,7 @@ setup(app=['psychopy/app/psychopyApp.py'],
                                   '_elementtree', 'pyexpat',#these 2 are needed by xml, which is needed by openpyxl
                                   'ioLabs','hid',#'pypsignifit', #psignifit is not available on py2.7
                                   'pp','ppauto','ppcommon','pptransport','ppworker',#annoying non-standard structure of pp
-                                  'pyo','greenlet',
+                                  'pyo','greenlet','vlc',
                                   'PyQt4','zmq','tornado',
                                   ],
                                   excludes=[],#anything we need to forcibly exclude?
@@ -52,6 +52,7 @@ setup(app=['psychopy/app/psychopyApp.py'],
                                     'pyolib',
                                     'pandas','tables',#'cython',
                                     'msgpack','yaml','gevent',#for ioHub
+                                    'cv2',
                                     #these aren't needed, but liked
                                     'psychopy_ext','pyfilesec','rusocsci',
                                     ],
