@@ -24,7 +24,7 @@ mcu.iosync.MCU:
     # monitor_event_types: Specify which of the device's supported event
     #   types you would like the ioHub to monitor for.
     #
-    monitor_event_types: [AnalogInputEvent, DigitalInputEvent]
+    monitor_event_types: [AnalogInputEvent, DigitalInputEvent, ThresholdEvent]
 
     # serial_port: The serial port the MCU is using to interface with the 
     #    ioHub computer. On Windows, serial ports will be in the form

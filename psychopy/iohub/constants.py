@@ -133,6 +133,7 @@ try:
         
         DIGITAL_INPUT=101
         ANALOG_INPUT=102
+        THRESHOLD = 103
 
         SERIAL_INPUT = 105
         SERIAL_BYTE_CHANGE = 106
@@ -217,6 +218,9 @@ try:
 
             #: Constant for MCU analog input Event.
             ANALOG_INPUT=102
+
+            #: Constant for MCU analog threshold state change Event.
+            THRESHOLD=103
 
             #: Constant for an Eight Channel Analog Input Sample Event.
             MULTI_CHANNEL_ANALOG_INPUT=122
