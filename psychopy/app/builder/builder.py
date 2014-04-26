@@ -1448,7 +1448,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             yOffset = (3,3,0)[self.drawSize]
             h = self.componentStep/hSize
             xSt = self.timeXposStart + startTime / xScale
-            w = duration / xScale + 1.85  # +1.85 to compensate for border alpha=0 in dc.SetPen
+            w = duration / xScale + 1
             if w > 10000:
                 w = 10000 #limit width to 10000 pixels!
             if w < 2:
