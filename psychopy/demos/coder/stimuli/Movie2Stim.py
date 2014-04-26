@@ -43,22 +43,19 @@ text = visual.TextBox(win,keystext, font_name=None, bold=False, italic=False,
                       grid_horz_justification='left', align_horz='center',
                       align_vert='bottom',
                       autoLog=False, interpolate=True)
-text.draw()
 
 # Start the movie stim by preparing it to play and then calling flip()
-mov.play()
-win.flip()
-
+shouldflip = mov.play()
 while mov.status != visual.FINISHED:
     # if only a movie stim is being shown on the window, only flip when a new
     # frame should be displayed. On a 60 Hz monitor playing a 30 Hz video, this
     # cuts CPU usage of the psychopy app. by almost 50%.
-    shouldflip = mov.draw()
     if shouldflip:
         text.draw()
-        ftime=win.flip()
+        win.flip()
     else:
         time.sleep(0.001)
+    shouldflip = mov.draw()
 
     for key in event.getKeys():
         if key in ['escape', 'q']:
@@ -68,19 +65,17 @@ while mov.status != visual.FINISHED:
             if mov.status in [visual.PLAYING, visual.PAUSED]:
                 # Stop playing the movie stim. This also unloads the current
                 # movie resources, freeing the memory used. If you want to
-                # play a moview again with the current mov instance, call
+                # play a movie again with the current mov instance, call
                 # the three methods as shown in the following else statement.
                 mov.stop()
+                win.flip()
                 text.draw()
                 win.flip()
             else:
                 # If the mov has been stopped; to start it again, you must
-                # load the movie file, call play, and then flip() to show the
-                # first video frame.
+                # load the movie file, call play.
                 mov.loadMovie(videopath)
-                mov.play()
-                text.draw()
-                win.flip()
+                shouldflip = mov.play()
         elif key in ['p',]:
             # If you want to pause the movie while it is playing, and then want
             # to later resume playing from where the mov was paused, do this..
@@ -91,26 +86,21 @@ while mov.status != visual.FINISHED:
                 text.draw()
                 win.flip()
         elif key == 'period':
-            ntime = mov.getCurrentFrameTime()+1.0
-            if ntime >= mov.duration:
-                ntime = mov.duration
+            # skip ahead 1 second in movie.
+            ntime = min(mov.getCurrentFrameTime()+1.0, mov.duration)
             mov.seek(ntime)
         elif key == 'comma':
-            ntime = mov.getCurrentFrameTime()-1.0
-            if ntime < 0.0:
-                ntime = 0.0
+            # skip back 1 second in movie.
+            ntime = max(mov.getCurrentFrameTime()-1.0,0.0)
             mov.seek(ntime)
         elif key == 'minus':
-            cv = mov.getVolume()
-            cv -= 5
-            if cv < 0:
-                cv = 0
+            # decrease movie sound a bit
+            cv = max(mov.getVolume()-5, 0)
             mov.setVolume(cv)
         elif key == 'equal':
+            # increase movie sound a bit
             cv = mov.getVolume()
-            cv += 5
-            if cv > 100:
-                cv = 100
+            cv = min(mov.getVolume()+5, 100)
             mov.setVolume(cv)
 
 core.quit()
