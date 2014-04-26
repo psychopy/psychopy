@@ -27,7 +27,7 @@ mov = visual.MovieStim2(win, videopath,
                        pos=[0, 100],
                        flipVert=False,
                        flipHoriz=False,
-                       loop=True)
+                       loop=False)
 
 keystext = "PRESS 'q' or 'escape' to Quit.\n"
 keystext += "#     's': Stop/restart Movie.\n"
