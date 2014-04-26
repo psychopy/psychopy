@@ -143,17 +143,24 @@ class FontManager(object):
         for fp in font_paths:
             if os.path.isfile(fp) and os.path.exists(fp):
                 try:
-                    face=Face(fp)
+                    face = Face(fp)
                     if monospace_only:
                         if face.is_fixed_width:
                             fi_list.append(self._createFontInfo(fp,face))
                     else:
                         fi_list.append(self._createFontInfo(fp,face))
+                except FT_Exception, fte:
+                    pass
                 except Exception, e:
+                    print
+                    print ' --- Error --- '
+                    print 'Error opening font path:', fp
+                    print 'Loaded OK count:', len(fi_list)
                     import traceback
                     traceback.print_exc()
                     return None
-                    pass
+
+
         self.font_family_styles.sort()
 
         return fi_list
@@ -238,7 +245,8 @@ class FontManager(object):
     def updateFontInfo(self,monospace_only=True):
         self._available_font_info.clear()
         del self.font_family_styles[:]
-        self.addFontFiles(font_manager.findSystemFonts(),monospace_only)
+        fonts_found=font_manager.findSystemFonts()
+        self.addFontFiles(fonts_found,monospace_only)
 
     def booleansFromStyleName(self,style):
         """
@@ -490,7 +498,7 @@ class MonospaceFontAtlas(object):
 
 
 try:
-    from psychopy.visual.textbox.freetype_bf import Face,FT_LOAD_RENDER,FT_LOAD_FORCE_AUTOHINT
+    from psychopy.visual.textbox.freetype_bf import Face,FT_LOAD_RENDER,FT_LOAD_FORCE_AUTOHINT,FT_Exception
 except Exception, e:
     print "FreeType import Failed:", e
     import traceback
