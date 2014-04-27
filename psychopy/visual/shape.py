@@ -255,7 +255,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                 #then draw
                 GL.glColor4f(fillRGB[0], fillRGB[1], fillRGB[2], self.opacity)
                 GL.glDrawArrays(GL.GL_POLYGON, 0, nVerts)
-        if self.lineRGB!=None:
+        if self.lineRGB!=None and self.lineWidth!=0.0:
             lineRGB = self._getDesiredRGB(self.lineRGB, self.lineColorSpace, self.contrast)
             #then draw
             GL.glLineWidth(self.lineWidth)

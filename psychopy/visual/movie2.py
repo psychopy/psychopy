@@ -59,6 +59,10 @@ Testing has only been done on Windows and Linux so far.
 # Contributed by Sol Simpson, April 2014.
 # The MovieStim class was taken and rewritten to use cv2 and vlc instead of avbin
 
+# If True, a print will be done on each flip a new movie frame is displayed
+# giving the frame index, flip time, and time since last movie frame flip.
+PRINT_FRAME_FLIP_TIMES = False
+
 import os
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -109,7 +113,11 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                  name='',
                  loop=False,
                  autoLog=True,
-                 depth=0.0,):
+                 depth=0.0,
+                 noAudio=False,
+                 vframe_callback=None,
+                 fps=None
+        ):
         """
         :Parameters:
 
@@ -150,7 +158,12 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self.opacity = float(opacity)
         self.volume = volume
         self._av_stream_time_offset = 0.145
-
+        self._no_audio = noAudio
+        if self._no_audio:
+            self._requested_fps = fps
+        else:
+            self._requested_fps = None
+        self._vframe_callback = vframe_callback
         self._reset()
         self.loadMovie(self.filename)
         self.setVolume(volume)
@@ -196,10 +209,10 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._next_frame_displayed = False
         self._video_track_clock = Clock()
         self._vlc_instance = None
-        self._vlc_event_manager = None
         self._audio_stream = None
         self._audio_stream_player = None
         self._audio_stream_started = False
+        self._audio_stream_event_manager=None
         self._last_audio_callback_time = core.getTime()
         self._last_audio_stream_time = None
         self._first_audio_callback_time = None
@@ -223,9 +236,12 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         After the file is loaded MovieStim.duration is updated with the movie
         duration (in seconds).
         """
-        self._reset()
         self._unload()
-        self._createAudioStream()
+        self._reset()
+        if self._no_audio is False:
+            self._createAudioStream()
+
+        # Create Video Stream stuff
         self._video_stream = cv2.VideoCapture()
         self._video_stream.open(filename)
         if not self._video_stream.isOpened():
@@ -237,7 +253,10 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._format = self._video_stream.get(cv2.cv.CV_CAP_PROP_FORMAT)
         # TODO: Read depth from video source
         self._video_frame_depth = 3
-        self._video_frame_rate = self._video_stream.get(cv2.cv.CV_CAP_PROP_FPS)
+        if self._no_audio:
+            self._video_frame_rate = self._requested_fps
+        else:
+            self._video_frame_rate = self._video_stream.get(cv2.cv.CV_CAP_PROP_FPS)
         self._inter_frame_interval = 1.0/self._video_frame_rate
 
         # Create a numpy array that can hold one video frame, as returned by cv2.
@@ -275,13 +294,38 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                                                        vlc.libvlc_get_version()))
         self._audio_stream_player = self._vlc_instance.media_player_new()
         self._audio_stream_player.set_media(self._audio_stream)
-        self._vlc_event_manager = self._audio_stream_player.event_manager()
-        self._vlc_event_manager.event_attach(vlc.EventType.MediaPlayerTimeChanged, self._audio_time_callback, self._audio_stream_player)
-        self._vlc_event_manager.event_attach(vlc.EventType.MediaPlayerEndReached, self._audio_end_callback)
+        self._audio_stream_event_manager = self._audio_stream_player.event_manager()
+        self._audio_stream_event_manager.event_attach(vlc.EventType.MediaPlayerTimeChanged, self._audio_time_callback, self._audio_stream_player)
+        self._audio_stream_event_manager.event_attach(vlc.EventType.MediaPlayerEndReached, self._audio_end_callback)
+
+    def _releaseeAudioStream(self):
+        if self._audio_stream_player:
+            self._audio_stream_player.stop()
+
+        if self._audio_stream_event_manager:
+            self._audio_stream_event_manager.event_detach(vlc.EventType.MediaPlayerTimeChanged)
+            self._audio_stream_event_manager.event_detach(vlc.EventType.MediaPlayerEndReached)
+
+        if self._audio_stream:
+            self._audio_stream.release()
+
+        if self._vlc_instance:
+            self._vlc_instance.vlm_release()
+            self._vlc_instance.release()
+
+        self._audio_stream = None
+        self._audio_stream_event_manager = None
+        self._audio_stream_player = None
+        self._vlc_instance = None
 
     def _flipCallback(self):
         import inspect
         flip_time = inspect.currentframe().f_back.f_locals.get('now')
+        if PRINT_FRAME_FLIP_TIMES:
+            if self._last_video_flip_time is None:
+                self._last_video_flip_time=flip_time
+            print 'Frame %d\t%.4f\t%.4f'%(self.getCurrentFrameIndex(), flip_time,
+                                          flip_time-self._last_video_flip_time)
         if flip_time is None:
             raise RuntimeError("Movie2._flipCallback: Can not access the currect flip time.")
         self._last_video_flip_time = flip_time
@@ -294,7 +338,8 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
 
             if self.status == PAUSED:
                 # toggle audio pause
-                self._audio_stream_player.pause()
+                if self._audio_stream_player:
+                    self._audio_stream_player.pause()
             self.status = PLAYING
             if log and self.autoLog:
                     self.win.logOnFlip("Set %s playing" %(self.name),
@@ -304,37 +349,39 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             self._updateFrameTexture()
             self.win.callOnFlip(self._flipCallback)
             #self._player._on_eos=self._onEos
+            return self._next_frame_index
 
     def pause(self, log=True):
-        """Pause the current point in the movie (sound will stop, current frame
-        will not advance).  If play() is called again both will restart.
-
-        Completely untested in all regards.
         """
-        if self.status == PLAYING and self._audio_stream_player:
-            if self._audio_stream_player.can_pause():
-                self.status = PAUSED
+        Pause the current point in the movie (sound will stop, current frame
+        will not advance).  If play() is called again both will restart.
+        """
+        if self.status == PLAYING:
+            self.status = PAUSED
+            if self._audio_stream_player and self._audio_stream_player.can_pause():
                 self._audio_stream_player.pause()
                 #print '### PAUSE ###'
-                if log and self.autoLog:
-                    self.win.logOnFlip("Set %s paused" %(self.name), level=logging.EXP, obj=self)
-                return True
+            if log and self.autoLog:
+                self.win.logOnFlip("Set %s paused" %(self.name), level=logging.EXP, obj=self)
+            return True
         if log and self.autoLog:
             self.win.logOnFlip("Failed Set %s paused" %(self.name), level=logging.EXP, obj=self)
         return False
 
     def stop(self, log=True):
-        """Stop the current point in the movie (sound will stop, current frame
+        """
+        Stop the current point in the movie (sound will stop, current frame
         will not advance). Once stopped the movie cannot be restarted - it must
         be loaded again. Use pause() if you may need to restart the movie.
         """
         #print '### STOP ###'
-        self.status = STOPPED
-        self._unload()
-        self._reset()
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s stopped" %(self.name),
-                level=logging.EXP,obj=self)
+        if self.status != STOPPED:
+            self.status = STOPPED
+            self._unload()
+            self._reset()
+            if log and self.autoLog:
+                self.win.logOnFlip("Set %s stopped" %(self.name),
+                    level=logging.EXP,obj=self)
 
 
     def seek(self, timestamp, log=True):
@@ -342,11 +389,11 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         Completely untested in all regards.
         Does not currently work.
         """
-        if self._audio_stream_player:
-            if self.status in [PLAYING, PAUSED] and self._audio_stream_player.is_seekable():
-                if self.status == PLAYING:
-                    self.pause()
-                aresult = self._audio_stream_player.set_time(int(timestamp*1000.0))
+        if self.status in [PLAYING, PAUSED]:
+            if self.status == PLAYING:
+                self.pause()
+                if self._audio_stream_player and self._audio_stream_player.is_seekable():
+                    aresult = self._audio_stream_player.set_time(int(timestamp*1000.0))
                 vresult = self._video_stream.set(cv2.cv.CV_CAP_PROP_POS_MSEC,
                                         timestamp*1000.0)
                 self.play()
@@ -373,28 +420,51 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         between 0.0 and 1.0 are also accepted, and scaled to an int between 0
         and 100.
         """
-        if 0.0 <= v <= 1.0 and isinstance(v, (float,)):
-            v = int(v*100)
-        else:
-            v = int(v)
-        #print 'setting volume:',v
-        self.volume = v
         if self._audio_stream_player:
+            if 0.0 <= v <= 1.0 and isinstance(v, (float,)):
+                v = int(v*100)
+            else:
+                v = int(v)
+            #print 'setting volume:',v
+            self.volume = v
             self._audio_stream_player.audio_set_volume(v)
 
     def getVolume(self):
+        """
+        Returns the current movie audio volume. 0 is no audio, 100 is max audio
+        volume.
+        """
         if self._audio_stream_player:
             self.volume = self._audio_stream_player.audio_get_volume()
         return self.volume
 
+    def getFPS(self):
+        """
+        Returns the movie frames per second playback speed.
+        """
+        return self._video_frame_rate
+
+    def setFPS(self, fps):
+        """
+        If the movie was created with noAudio = True kwarg, then the movie
+        playback speed can be changed from the original frame rate. For example,
+        if the movie being played has 30 fps and you would like to play it at 2x
+        normal speed, setFPS(60) will do that.
+        """
+        if self._no_audio:
+            self._requested_fps = fps
+            self._video_frame_rate = fps
+            self._inter_frame_interval = 1.0/self._video_frame_rate
+            return
+        raise ValueError("Error calling movie.setFPS(): MovieStim must be created with kwarg noAudio=True.")
+
     def getTimeToNextFrameDraw(self):
+        """
+        Get the number of sec.msec remaining until the next movie video frame
+        should be drawn.
+        """
         try:
-            #assert self._video_track_clock != None
-            #assert self._next_frame_sec != None
-            #assert self._retracerate != None
             rt = (self._next_frame_sec - 1.0/self._retracerate) - self._video_track_clock.getTime()
-            #if rt > self._inter_frame_interval or rt <= -1.0/self._retracerate:
-            #    print 'getTimeToNextFrameDraw:', rt
             return rt
         except:
             import traceback
@@ -402,24 +472,47 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             return 0.0
 
     def shouldDrawVideoFrame(self):
+        """
+        True if the next movie frame should be drawn, False if it is not yet
+        time. See getTimeToNextFrameDraw().
+        """
         return self.getTimeToNextFrameDraw() <= 0.0
 
-    def getCurrentFrameIndex(self):
+    def getCurrentFrameNumber(self):
+        """
+        Get the current movie frame number. The first frame number in a file is
+        1.
+        """
         return self._next_frame_index
 
     def getCurrentFrameTime(self):
+        """
+        Get the time that the movie file specified the current video frame as
+        having.
+        """
         return self._next_frame_sec
 
     def getPercentageComplete(self):
+        """
+        Provides a value between 0.0 and 100.0, indicating the amount of the
+        movie that has been already played.
+        """
         return self._video_perc_done
 
-    def getCurrentFrameDisplayed(self):
+    def isCurrentFrameVisible(self):
+        """
+        The current video frame goes through two stages; the first being when
+        the movie frame is being loaded, but is not visible on the display.
+        The second is when the frame has actually been presented on the display.
+        Returns False if the frame is in the first stage, True when in stage 2.
+        """
         return self._next_frame_displayed
 
     def _getNextFrame(self):
         # get next frame info ( do not decode frame yet)
         # TODO: Implement frame skipping (multiple grabs) if _next_frame_sec < video_track_clock - framerate
         if self._video_stream.grab():
+
             self._prev_frame_index = self._next_frame_index
             self._prev_frame_sec = self._next_frame_sec
             self._next_frame_sec = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_MSEC)/1000.0
@@ -437,14 +530,23 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         # decode frame into np array and move to opengl tex
         ret, f = self._video_stream.retrieve()
         if ret:
+            frame_array = cv2.cvtColor(f, cv2.COLOR_BGR2RGB)
+            if callable(self._vframe_callback):
+                try:
+                    frame_array = self._vframe_callback(self._next_frame_index, frame_array)
+                except:
+                    print "MovieStim2 Error: vframe_callback raised an exception. Using original frame data."
+                    import traceback
+                    traceback.print_exc()
             #self._numpy_frame[:] = f[...,::-1]
-            numpy.copyto(self._numpy_frame, cv2.cvtColor(f, cv2.COLOR_BGR2RGB))
+            numpy.copyto(self._numpy_frame, frame_array)
             self._frame_data_interface.dirty()
         else:
             raise RuntimeError("Could not load video frame data.")
 
     def draw(self, win=None):
-        """Draw the current frame to a particular visual.Window (or to the
+        """
+        Draw the current frame to a particular visual.Window (or to the
         default win for this object if not specified). The current position in
         the movie will be determined automatically.
 
@@ -458,7 +560,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             win = self.win
         self._selectWindow(win)
 
-        if not self._audio_stream_started and self._video_track_clock.getTime() >= self._av_stream_time_offset:
+        if self._no_audio is False and not self._audio_stream_started and self._video_track_clock.getTime() >= self._av_stream_time_offset:
             self._startAudio()
         if self._next_frame_displayed:
             self._getNextFrame()
@@ -507,16 +609,19 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         """
         Start the audio playback stream.
         """
-        self._audio_stream_started = True
-        self._last_audio_callback_time = core.getTime()
-        self._audio_stream_player.play()
+        if self._audio_stream_player:
+            self._audio_stream_started = True
+            self._last_audio_callback_time = core.getTime()
+            self._audio_stream_player.play()
 
-    def getAudioStreamTime(self):
+    def _getAudioStreamTime(self):
         """
         Get the current sec.msec audio track time, by taking the last
         reported audio stream time and adding the time since the
         _audio_time_callback was last called.
         """
+        if self._no_audio is True:
+            return -1
         #TODO: This will not be correct is video is paused. Fix.
         return self._last_audio_stream_time + (core.getTime() -
                                                self._last_audio_callback_time)
@@ -547,12 +652,12 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
     def _unload(self):
         if self._video_stream:
             self._video_stream.release()
-        if self._audio_stream_player:
-            self._audio_stream_player.stop()
         self._video_stream = None
-        self._audio_stream_player = None
         self._frame_data_interface = None
         self._numpy_frame = None
+
+        self._releaseeAudioStream()
+
         self.status = FINISHED
 
     def __del__(self):
