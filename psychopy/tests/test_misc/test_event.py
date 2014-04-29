@@ -7,11 +7,14 @@ import pyglet, pygame
 import pytest
 import copy
 import threading
+import os
 
 """test with both pyglet and pygame:
     cd psychopy/psychopy/
     py.test -k event --cov-report term-missing --cov event.py
 """
+
+travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
 class DelayedFakeKey(threading.Thread):
     def __init__(self, key, delay=.01):
@@ -77,7 +80,8 @@ class _baseTest:
             event.clearEvents(t)
 
     def test_keys(self):
-        pytest.skip()  # failing on travis-ci
+        if travis:
+            pytest.skip()  # failing on travis-ci
         if self.win.winType == 'pygame':
             pytest.skip()
         event.clearEvents()
@@ -88,6 +92,16 @@ class _baseTest:
             assert k in event.getKeys()
             event._onPygletKey(symbol=17, modifiers=None, emulated=False)
             assert '17' in event.getKeys()
+
+            # test that key-based RT is about right
+            event.clearEvents()
+            c = core.Clock()
+            halfasnap = 0.05
+            core.wait(halfasnap, 0)
+            event._onPygletKey(symbol=k, modifiers=None, emulated=True)
+            resp = event.getKeys(timeStamped=c)
+            assert k in resp[0][0]
+            assert halfasnap < resp[0][1] < halfasnap + 0.01
 
             event._onPygletKey(symbol=k, modifiers=None, emulated=True)
             assert k in event.getKeys(timeStamped=True)[0]
@@ -117,7 +131,8 @@ class _baseTest:
         assert event.xydist([0,0], [1,1]) == sqrt(2)
 
     def test_mouseMoved(self):
-        pytest.skip()  # failing on travis-ci
+        if travis:
+            pytest.skip()  # failing on travis-ci
 
         m = event.Mouse()
         m.prevPos = [0,0]
@@ -155,7 +170,8 @@ class _baseTest:
         m.getPressed(getTime=True)
 
     def test_isPressedIn(self):
-        pytest.skip()
+        if travis:
+            pytest.skip()
 
         m = event.Mouse(self.win, newPos=(0,0))
         s = ShapeStim(self.win, vertices=[[10,10],[10,-10],[-10,-10],[-10,10]], autoLog=False)
