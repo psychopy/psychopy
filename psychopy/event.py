@@ -66,7 +66,7 @@ def _onPygletText(text, emulated=False):
     global useText
     if not useText: # _onPygletKey has handled the input
         return
-    keyTime=psychopy.core.getTime() #capture when the key was pressed
+    keyTime=psychopy.clock.getTime() #capture when the key was pressed
     if emulated:
         keySource = 'EmulatedKey'
     else:
@@ -91,7 +91,7 @@ def _onPygletKey(symbol, modifiers, emulated=False):
     """
 
     global useText
-    keyTime=psychopy.core.getTime() #capture when the key was pressed
+    keyTime=psychopy.clock.getTime() #capture when the key was pressed
     if emulated:
         thisKey = unicode(symbol)
         keySource = 'EmulatedKey'
