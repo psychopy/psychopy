@@ -72,8 +72,8 @@ class _baseTest:
         m = event.Mouse()
         assert m.mouseMoveTime() >= 0
         t = 0.05
-        core.wait(t, 0)
-        assert t + 0.01 > m.mouseMoveTime() >= t
+        core.wait(t)
+        assert t - 0.01 < m.mouseMoveTime() < t + 0.01
 
     def test_clearEvents(self):
         for t in ['mouse', 'joystick', 'keyboard', None]:
@@ -96,12 +96,12 @@ class _baseTest:
             # test that key-based RT is about right
             event.clearEvents()
             c = core.Clock()
-            halfasnap = 0.05
-            core.wait(halfasnap, 0)
+            t = 0.05
+            core.wait(t)
             event._onPygletKey(symbol=k, modifiers=None, emulated=True)
             resp = event.getKeys(timeStamped=c)
             assert k in resp[0][0]
-            assert halfasnap < resp[0][1] < halfasnap + 0.01
+            assert t - 0.01 < resp[0][1] < t + 0.01
 
             event._onPygletKey(symbol=k, modifiers=None, emulated=True)
             assert k in event.getKeys(timeStamped=True)[0]
