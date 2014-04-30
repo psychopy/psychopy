@@ -84,7 +84,7 @@ class Dlg(wx.Dialog):
         labelLength = wx.Size(9*len(label)+16,25)#was 8*until v0.91.4
         inputLabel = wx.StaticText(self,-1,label,
                                         size=labelLength,
-                                        style=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+                                        style=wx.ALIGN_RIGHT)
         if len(color): inputLabel.SetForegroundColour(color)
         container.Add(inputLabel, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         #create input control
