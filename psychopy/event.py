@@ -35,6 +35,8 @@ else: usePygame=False
 if havePyglet:
     global _keyBuffer
     _keyBuffer = []
+    global mouseButtons
+    mouseButtons = [0,0,0]
     global mousePressed
     mousePressed = [0,0,0]
     global mouseReleased
