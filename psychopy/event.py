@@ -37,6 +37,10 @@ if havePyglet:
     _keyBuffer = []
     global mouseButtons
     mouseButtons = [0,0,0]
+    global mousePressed
+    mousePressed = [0,0,0]
+    global mouseReleased
+    mouseReleased = [0,0,0]
     global mouseWheelRel
     mouseWheelRel = numpy.array([0.0,0.0])
     global mouseClick # list of 3 clocks that are reset on mouse button presses
@@ -111,31 +115,31 @@ def _onPygletKey(symbol, modifiers, emulated=False):
     logging.data("%s: %s" % (keySource, thisKey))
 
 def _onPygletMousePress(x,y, button, modifiers):
-    global mouseButtons, mouseClick, mouseTimes
+    global mousePressed, mouseClick, mouseTimes
     if button == pyglet.window.mouse.LEFT:
-        mouseButtons[0]=1
+        mousePressed[0]=1
         mouseTimes[0]= psychopy.clock.getTime()-mouseClick[0].getLastResetTime()
         label='Left'
     if button == pyglet.window.mouse.MIDDLE:
-        mouseButtons[1]=1
+        mousePressed[1]=1
         mouseTimes[1]= psychopy.clock.getTime()-mouseClick[1].getLastResetTime()
         label='Middle'
     if button == pyglet.window.mouse.RIGHT:
-        mouseButtons[2]=1
+        mousePressed[2]=1
         mouseTimes[2]= psychopy.clock.getTime()-mouseClick[2].getLastResetTime()
         label='Right'
     logging.data("Mouse: %s button down, pos=(%i,%i)" %(label, x,y))
 
 def _onPygletMouseRelease(x,y, button, modifiers):
-    global mouseButtons
+    global mouseReleased
     if button == pyglet.window.mouse.LEFT:
-        mouseButtons[0]=0
+        mouseReleased[0]=1
         label='Left'
     if button == pyglet.window.mouse.MIDDLE:
-        mouseButtons[1]=0
+        mouseReleased[1]=1
         label='Middle'
     if button == pyglet.window.mouse.RIGHT:
-        mouseButtons[2]=0
+        mouseReleased[2]=1
         label='Right'
     logging.data("Mouse: %s button up, pos=(%i,%i)" %(label, x,y))
 
@@ -335,8 +339,9 @@ class Mouse:
         if (havePygame and not pygame.display.get_init()):
             usePygame=False
         if not usePygame:
-            global mouseButtons
-            mouseButtons = [0,0,0]
+            global mousePressed, mouseReleased
+            mousePressed = [0,0,0]
+            mouseReleased = [0,0,0]
         self.setVisible(visible)
         if newPos is not None: self.setPos(newPos)
     @property
@@ -511,7 +516,7 @@ class Mouse:
         regardless of when the call to `getPressed()` was made.
 
         """
-        global mouseButtons,mouseTimes
+        global mouseReleased, mousePressed, mouseTimes
         if usePygame: return mouse.get_pressed()
         else:  #False: #havePyglet: # like in getKeys - pump the events
             #for each (pyglet) window, dispatch its events before checking event buffer
@@ -519,8 +524,14 @@ class Mouse:
             for win in wins: win.dispatch_events()#pump events on pyglet windows
 
             #else:
-            if not getTime: return mouseButtons
-            else: return mouseButtons, mouseTimes
+            mouseButtons = [x >=2 for x in list(map(sum, zip(mouseReleased, mousePressed)))]
+            if any(mouseButtons):
+                mouseReleased = [0, 0, 0]
+                mousePressed = [0, 0, 0]
+                if not getTime: return mouseButtons
+                else: return mouseButtons, mouseTimes
+            else:
+                return [0, 0, 0]
 
     def isPressedIn(self, shape, buttons=[0,1,2]):
         """Returns `True` if the mouse is currently inside the shape and one of the
