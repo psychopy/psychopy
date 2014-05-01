@@ -386,8 +386,6 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
 
     def seek(self, timestamp, log=True):
         """ Seek to a particular timestamp in the movie.
-        Completely untested in all regards.
-        Does not currently work.
         """
         if self.status in [PLAYING, PAUSED]:
             if self.status == PLAYING:
