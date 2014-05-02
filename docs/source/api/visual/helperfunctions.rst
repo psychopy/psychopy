@@ -1,4 +1,5 @@
 
+.. _visualhelperfunctions:
 
 Helper functions
 ------------------------------------
