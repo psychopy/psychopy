@@ -349,11 +349,8 @@ class Window:
         openWindows.append(self)
 
     def __del__(self):
-        try:
-            GL.glDeleteTextures(1, self.frameTexture)
-            GL.glDeleteFramebuffersEXT( 1, self.frameBuffer)
-        except:
-            pass
+        self.close()
+
     def __str__(self):
         className = 'Window'
         paramStrings = []
