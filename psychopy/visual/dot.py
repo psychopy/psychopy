@@ -115,7 +115,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.nDots = nDots
         #pos and size are ambiguous for dots so DotStim explicitly has
         #fieldPos = pos, fieldSize=size and then dotSize as additional param
-        self.fieldPos = self.pos = val2array(fieldPos, False, False)
+        self.fieldPos = fieldPos  # using the attributeSetter
+        self.pos = self.fieldPos
         self.fieldSize = self.size = val2array(fieldSize, False)
         if type(dotSize) in [tuple,list]:
             self.dotSize = numpy.array(dotSize)
@@ -144,14 +145,11 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         #initialise the dots themselves - give them all random dir and then
         #fix the first n in the array to have the direction specified
 
-        self.coherence=round(coherence*self.nDots)/self.nDots#store actual coherence
+        self.coherence = coherence  # using the attributeSetter
 
         self. _verticesBase = self._dotsXY = self._newDotsXY(self.nDots) #initialise a random array of X,Y
         self._dotsSpeed = numpy.ones(self.nDots, 'f')*self.speed#all dots have the same speed
         self._dotsLife = abs(dotLife)*numpy.random.rand(self.nDots)#abs() means we can ignore the -1 case (no life)
-        #determine which dots are signal
-        self._signalDots = numpy.zeros(self.nDots, dtype=bool)
-        self._signalDots[0:int(self.coherence*self.nDots)]=True
         #numpy.random.shuffle(self._signalDots)#not really necessary
         #set directions (only used when self.noiseDots='direction')
         self._dotsDir = numpy.random.rand(self.nDots)*2*pi
@@ -216,19 +214,28 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         self._set('fieldPos', val, op, log=log)
         self.__dict__['pos'] = self.fieldPos #we'll store this as both
-    def setFieldCoherence(self,val, op='', log=True):
-        """Change the coherence (%) of the DotStim. This will be rounded according
+    @attributeSetter
+    def coherence(self, coherence):
+        """Scalar. Change the coherence (%) of the DotStim. This will be rounded according
         to the number of dots in the stimulus.
         """
-        self._set('coherence', val, op, log=log)
-        self.coherence=round(self.coherence*self.nDots)/self.nDots#store actual coherence rounded by nDots
+        if not 0 <= coherence <= 1:
+            raise(ValueError('DotStim.coherence must be between 0 and 1'))
+        self.__dict__['coherence'] = round(coherence * self.nDots) / self.nDots
         self._signalDots = numpy.zeros(self.nDots, dtype=bool)
-        self._signalDots[0:int(self.coherence*self.nDots)]=True
+        self._signalDots[0:int(self.coherence * self.nDots)] = True
         #for 'direction' method we need to update the direction of the number
         #of signal dots immediately, but for other methods it will be done during updateXY
-        if self.noiseDots in ['direction','position']:
-            self._dotsDir=numpy.random.rand(self.nDots)*2*pi
-            self._dotsDir[self._signalDots]=self.dir*pi/180
+        if self.noiseDots in ['direction', 'position']:
+            self._dotsDir = numpy.random.rand(self.nDots) * 2 * pi
+            self._dotsDir[self._signalDots] = self.dir * pi / 180
+        
+    def setFieldCoherence(self, val, op='', log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
+        self._set('coherence', val, op, log=log)  # applies log and operation
+        self.coherence = self.coherence  # using the attribute setter
     def setDir(self,val, op='', log=True):
         """Change the direction of the signal dots (units in degrees)
         """
