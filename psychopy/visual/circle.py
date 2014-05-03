@@ -30,11 +30,6 @@ class Circle(Polygon):
             edges : float or int (default=32)
                 Specifies the resolution of the polygon that is approximating the
                 circle.
-
-            radius : float, int, tuple, list or 2x1 array
-                Radius of the Circle (distance from the center to the corners).
-                If radius is a 2-tuple or list, the values will be interpreted as semi-major and
-                semi-minor radii of an ellipse.
         """
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
@@ -42,6 +37,7 @@ class Circle(Polygon):
         #kwargs isn't a parameter, but a list of params
         self._initParams.remove('kwargs')
         self._initParams.extend(kwargs)
+        self.edges = edges
 
         #initialise parent class
         kwargs['edges'] = edges
@@ -50,8 +46,10 @@ class Circle(Polygon):
     
     @attributeSetter
     def radius(self, radius):
-        """Changes the radius of the Polygon. If radius is a 2-tuple or list, the values will be
-        interpreted as semi-major and semi-minor radii of an ellipse.
+        """float, int, tuple, list or 2x1 array
+        Radius of the Circle (distance from the center to the corners).
+        If radius is a 2-tuple or list, the values will be interpreted as semi-major and
+        semi-minor radii of an ellipse.
 
         :ref:`Operations <attrib-operations>` supported.
         
