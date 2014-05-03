@@ -212,15 +212,27 @@ class BufferImageStim(GratingStim):
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                             data.shape[1], data.shape[0], 0,
                             pixFormat, dataType, texture)
-    def setFlipHoriz(self, newVal=True, log=True):
+    @attributeSetter
+    def flipHoriz(self, flipHoriz):
         """If set to True then the image will be flipped horiztonally (left-to-right).
         Note that this is relative to the original image, not relative to the current state.
+        """
+        self.__dict__['flipHoriz'] = flipHoriz
+    @attributeSetter
+    def flipVert(self, flipVert):
+        """If set to True then the image will be flipped vertically (left-to-right).
+        Note that this is relative to the original image, not relative to the current state.
+        """
+        self.__dict__['flipVert'] = flipVert    
+    def setFlipHoriz(self, newVal=True, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
         """
         self.flipHoriz = newVal
         logAttrib(self, log, 'flipHoriz')
     def setFlipVert(self, newVal=True, log=True):
-        """If set to True then the image will be flipped vertically (top-to-bottom).
-        Note that this is relative to the original image, not relative to the current state.
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
         """
         self.flipVert = newVal
         logAttrib(self, log, 'flipVert')
