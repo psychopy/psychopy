@@ -86,8 +86,6 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                 specified in pixels (overridden if `element` is specified)
             dotLife : int
                 Number of frames each dot lives for (default=3, -1=infinite)
-            dir : float (degrees)
-                direction of the coherent dots
             speed : float
                 speed of the dots (in *units*/frame)
             signalDots : 'same' or *'different'*
@@ -123,7 +121,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         else:
             self.dotSize=dotSize
         self.fieldShape = fieldShape
-        self.dir = dir
+        self.__dict__['dir'] = dir
         self.speed = speed
         self.element = element
         self.dotLife = dotLife
@@ -203,6 +201,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
     def fieldPos(self, pos):
         """Specifying the location of the centre of the stimulus using a :ref:`x,y-pair <attrib-xy>`. 
         See e.g. :class:`.ShapeStim` for more documentation/examples on how to set position.
+        
+        :ref:`operations <attrib-operations>` are supported.
         """
         # Isn't there a way to use BaseVisualStim.pos.__doc__ as docstring here?
         self.pos = pos  # using BaseVisualStim. we'll store this as both
@@ -216,8 +216,10 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.__dict__['pos'] = self.fieldPos #we'll store this as both
     @attributeSetter
     def coherence(self, coherence):
-        """Scalar. Change the coherence (%) of the DotStim. This will be rounded according
+        """Scalar between 0 and 1. Change the coherence (%) of the DotStim. This will be rounded according
         to the number of dots in the stimulus.
+        
+        :ref:`operations <attrib-operations>` are supported.
         """
         if not 0 <= coherence <= 1:
             raise(ValueError('DotStim.coherence must be between 0 and 1'))
@@ -229,21 +231,31 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if self.noiseDots in ['direction', 'position']:
             self._dotsDir = numpy.random.rand(self.nDots) * 2 * pi
             self._dotsDir[self._signalDots] = self.dir * pi / 180
-        
     def setFieldCoherence(self, val, op='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        self._set('coherence', val, op, log=log)  # applies log and operation
-        self.coherence = self.coherence  # using the attribute setter
-    def setDir(self,val, op='', log=True):
-        """Change the direction of the signal dots (units in degrees)
+        self.autoLog = log
+        self._set('coherence', val, op, log=log)  # applies log and operation and attributeSetter
+        self.autoLog = True
+    
+    @attributeSetter
+    def dir(self, dir):
+        """float (degrees). direction of the coherent dots. :ref:`operations <attrib-operations>` are supported.
         """
-        #check which dots are signal
-        signalDots = self._dotsDir==(self.dir*pi/180)
-        self._set('dir', val, op, log=log)
+        signalDots = self._dotsDir == (self.dir * pi / 180)  #check which dots are signal before setting new dir
+        self.__dict__['dir'] = dir
+        
         #dots currently moving in the signal direction also need to update their direction
-        self._dotsDir[signalDots] = self.dir*pi/180
+        self._dotsDir[signalDots] = self.dir * pi / 180  
+    def setDir(self, val, op='', log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
+        self.autoLog = log
+        setWithOperation(self, 'dir', val, op)
+        self.autoLog = True
+    
     def setSpeed(self,val, op='', log=True):
         """Change the speed of the dots (in stimulus `units` per second)
         """

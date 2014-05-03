@@ -29,7 +29,8 @@ class attributeSetter(object):
 
 def setWithOperation(self, attrib, value, operation, stealth=False):
     """ Sets an object property (scalar or numpy array) with an operation.
-    if stealth is True, then use self.__dict[key] = value. Else use setattr().
+    if stealth is True, then use self.__dict[key] = value and avoid calling attributeSetters. 
+    Else use setattr().
     History: introduced in version 1.79 to avoid exec-calls"""
 
     # Handle cases where attribute is not defined yet.
