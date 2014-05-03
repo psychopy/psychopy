@@ -406,7 +406,7 @@ class _baseVisualTest:
         aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0], autoLog=False)
         aperture.disable()
         grating.draw()
-        aperture.enable()
+        aperture.enabled = True
         str(aperture) #check that str(xxx) is working
         grating.setOri(90, log=False)
         grating.setColor('black', log=False)

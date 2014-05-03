@@ -21,7 +21,7 @@ import psychopy.event
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
-from psychopy.tools.attributetools import logAttrib
+from psychopy.tools.attributetools import logAttrib, attributeSetter
 from psychopy.visual.shape import ShapeStim
 from psychopy.visual.basevisual import MinimalStim, ContainerMixin
 
@@ -94,12 +94,12 @@ class Aperture(MinimalStim, ContainerMixin):
 
         self.vertices = self._shape.vertices
         self._needVertexUpdate = True
-        self._reset()#implicitly runs an self.enable()
+        self._reset()  #implicitly runs a self.enabled = True
         self.autoLog= autoLog
         if autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
     def _reset(self):
-        self.enable()
+        self.enabled = True
         GL.glClearStencil(0)
         GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
 
@@ -116,7 +116,6 @@ class Aperture(MinimalStim, ContainerMixin):
         GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
 
         GL.glPopMatrix()
-
     def setSize(self, size, needReset=True, log=True):
         """Set the size (diameter) of the Aperture
         """
@@ -151,23 +150,28 @@ class Aperture(MinimalStim, ContainerMixin):
         """The size of the aperture in pixels
         """
         return self._shape.sizePix
-    def enable(self):
-        """Enable the aperture so that it is used in future drawing operations
+    @attributeSetter
+    def enabled(self, value):
+        """True / False. Enable or disable the aperture. 
+        Determines whether it is used in future drawing operations.
 
         NB. The Aperture is enabled by default, when created.
-
         """
-        if self._shape._needVertexUpdate:
-            self._shape._updateVertices()
-        GL.glEnable(GL.GL_STENCIL_TEST)
-        self.enabled=True#by default
-        self.status=STARTED
+        if value:
+            if self._shape._needVertexUpdate:
+                self._shape._updateVertices()
+            GL.glEnable(GL.GL_STENCIL_TEST)
+            self.status = STARTED
+        else:
+            GL.glDisable(GL.GL_STENCIL_TEST)
+            self.status = STOPPED
+        
+        self.__dict__['enabled'] = value
+    def enable(self):
+        """Use Aperture.enabled = True instead."""
+        self.enabled = True
     def disable(self):
-        """Disable the Aperture. Any subsequent drawing operations will not be
-        affected by the aperture until re-enabled.
-        """
-        GL.glDisable(GL.GL_STENCIL_TEST)
-        self.enabled=False
-        self.status=STOPPED
+        """Use Aperture.enabled = False instead."""
+        self.enabled = False
     def __del__(self):
-        self.disable()
+        self.enabled = False
