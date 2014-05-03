@@ -7,73 +7,74 @@ Script can be used to test the accuracy of the conversion from ioSync time
 stamps to iohub the time base.
 """
 
-repetitions = 100
+repetitions = 1000
 
-import numpy as np    
+import numpy as np
 import time
 from psychopy import core
 from psychopy.iohub import launchHubServer
 getTime = core.getTime
 
-results=np.zeros((repetitions,5),dtype=np.float64)
-
-psychopy_mon_name = 'testMonitor'
-exp_code = 'events'
-sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
+results = np.zeros((repetitions,3),dtype=np.float64)
 
 iohub_config = {
-"psychopy_monitor_name": psychopy_mon_name,
 "mcu.iosync.MCU": dict(serial_port='auto', monitor_event_types=[]),
-"experiment_code": exp_code,
-"session_code": sess_code
 }
-
-io=launchHubServer(**iohub_config)
-display=io.devices.display
-mcu=io.devices.mcu
-kb=io.devices.keyboard
-experiment=io.devices.experiment
-
-core.wait(0.5)
-
+io = launchHubServer(**iohub_config)
+mcu = io.devices.mcu
 mcu.enableEventReporting(True)
 
-print 'Running Test. Please wait.'
-print   
-old_stuff=mcu.getRequestResponse()
-io.clearEvents("all")  
-
-labels=('tx_time',
-         'iohub_time',
-         'rx_time',
-         'rx_time - tx_time' ,
-         'iohub_time - tx_time' ,
-         'rx_time - iohub_time'
-         )
-print '\t'.join(labels)
-print
+old_stuff = mcu.getRequestResponse()
+io.clearEvents("all")
 
 for i in range(repetitions):      
-    r=mcu.requestTime()
-    stime=getTime()
-    core.wait(0.1)
-    hitFound=False
-    while getTime()-stime < 0.5 and hitFound is False:
-        responses = mcu.getRequestResponse()
-        for r in responses:
-            if r['iohub_time']:
-                vals=(
-                    (r['tx_time'])*1000.0,
-                    (r['iohub_time'])*1000.0,
-                    (r['rx_time'])*1000.0,
-                    (r['rx_time']-r['tx_time'])*1000.0,
-                    (r['iohub_time']-r['tx_time'])*1000.0,
-                    (r['rx_time']-r['iohub_time'])*1000.0
-                    )
-                valstr=['%.3f'%(v) for v in vals]
-                print '\t'.join(valstr)
-            hitFound=True
-            break
+    request = mcu.requestTime()
+    response = None
+    while response is None:
+        response = mcu.getRequestResponse(request['id'])
+        if response:
+            if response['id'] != request['id']:
+                print "ERROR: Got REsponse %d; looking for %d"%(response['id'] ,request['id'] )
+                response = None
+            results[i][0] = response['tx_time']*1000.0
+            results[i][1] = response.get('iohub_time', ((response['rx_time']*1000.0+response['tx_time']*1000.0)/2.0))
+            results[i][2] = response['rx_time']*1000.0
 
+
+    time.sleep(0.00075)
 mcu.enableEventReporting(False)
 io.quit()
+
+txtimes = results[:, 0]
+iotimes = results[:, 1]
+rxtimes = results[:, 2]
+
+e2edelays = rxtimes - txtimes
+msgintervals = txtimes[1:]-txtimes[:-1]
+#print e2edelays
+#print msgintervals
+mintime = min(txtimes.min(), iotimes.min(), rxtimes.min())
+maxtime = max(txtimes.max(), iotimes.max(), rxtimes.max())
+
+from matplotlib import pylab as pl
+
+pl.xlim(mintime-1.0, maxtime+1.0)
+
+#print 'txtimes:',txtimes.shape
+#print 'e2edelays:',e2edelays.shape
+#print 'msgintervals:',msgintervals.shape
+
+
+pl.plot(txtimes, e2edelays, label="Round Trip Delay")
+pl.plot(txtimes[1:], msgintervals, label="Msg Tx Intervals")
+pl.xlabel("Time (msec)")
+pl.ylabel("Duration (msec)")
+pl.legend()
+
+statstr = "Min: %.3f, Max: %.3f, Mean: %.3f, Std: %.3f"
+rtdstats = statstr%(e2edelays.min(), e2edelays.max(), e2edelays.mean(),
+                    e2edelays.std())
+mtistats = statstr%(msgintervals.min(), msgintervals.max(), msgintervals.mean(),
+                    msgintervals.std())
+pl.title("Round Trip Delay:: %s\nMsg Tx Interval:: %s"%(rtdstats, mtistats))
+pl.show()
