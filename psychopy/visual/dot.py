@@ -21,7 +21,7 @@ from psychopy import logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.tools.attributetools import setWithOperation, logAttrib
+from psychopy.tools.attributetools import setWithOperation, logAttrib, attributeSetter
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import cm2pix, deg2pix
 from psychopy.visual.basevisual import BaseVisualStim, ColorMixin, ContainerMixin
@@ -78,8 +78,6 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
             nDots : int
                 number of dots to be generated
-            fieldPos : (x,y) or [x,y]
-                specifying the location of the centre of the stimulus.
             fieldSize : (x,y) or [x,y] or single value (applied to both dimensions)
                 Sizes can be negative and can extend beyond the window.
             fieldShape : *'sqr'* or 'circle'
@@ -203,9 +201,21 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Obsolete - users should use setFieldPos instead of setPos
         """
         logging.error("User called DotStim.setPos(pos). Use DotStim.SetFieldPos(pos) instead.")
-    def setFieldPos(self,val, op='', log=True):
+    @attributeSetter
+    def fieldPos(self, pos):
+        """Specifying the location of the centre of the stimulus using a :ref:`x,y-pair <attrib-xy>`. 
+        See e.g. :class:`.ShapeStim` for more documentation/examples on how to set position.
+        """
+        # Isn't there a way to use BaseVisualStim.pos.__doc__ as docstring here?
+        self.pos = pos  # using BaseVisualStim. we'll store this as both
+        self.__dict__['fieldPos'] = self.pos
+    
+    def setFieldPos(self, val, op='', log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
         self._set('fieldPos', val, op, log=log)
-        self.pos = self.fieldPos #we'll store this as both
+        self.__dict__['pos'] = self.fieldPos #we'll store this as both
     def setFieldCoherence(self,val, op='', log=True):
         """Change the coherence (%) of the DotStim. This will be rounded according
         to the number of dots in the stimulus.
