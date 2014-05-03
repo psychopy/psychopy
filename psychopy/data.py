@@ -720,6 +720,8 @@ class TrialHandler(_BaseTrialHandler):
 
         if trialList in [None, []]:#user wants an empty trialList
             self.trialList = [None]#which corresponds to a list with a single empty entry
+        elif isinstance(trialList, basestring) and os.path.isfile(trialList): #user has hopefully specified a filename
+            self.trialList = data.importConditions(trialList) #import conditions from that file
         else:
             self.trialList =trialList
         #convert any entry in the TrialList into a TrialType object (with obj.key or obj[key] access)
