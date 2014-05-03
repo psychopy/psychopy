@@ -404,7 +404,7 @@ class _baseVisualTest:
             pytest.skip("Don't run aperture test when no stencil is available")
         grating = visual.GratingStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm', autoLog=False)
         aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0], autoLog=False)
-        aperture.disable()
+        aperture.enabled = False
         grating.draw()
         aperture.enabled = True
         str(aperture) #check that str(xxx) is working

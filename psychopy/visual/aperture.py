@@ -62,10 +62,10 @@ class Aperture(MinimalStim, ContainerMixin):
         if not win.allowStencil:
             logging.error('Aperture has no effect in a window created without allowStencil=True')
             core.quit()
-        self.size = size
-        self.pos = pos
+        self.__dict__['size'] = size
+        self.__dict__['pos'] = pos
+        self.__dict__['ori'] = ori
         self.name = name
-        self.ori = ori
         #unit conversions
         if units!=None and len(units):
             self.units = units
@@ -95,6 +95,7 @@ class Aperture(MinimalStim, ContainerMixin):
         self.vertices = self._shape.vertices
         self._needVertexUpdate = True
         self._reset()  #implicitly runs a self.enabled = True
+        self._needReset = True  # Default when setting attributes
         self.autoLog= autoLog
         if autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
@@ -116,29 +117,70 @@ class Aperture(MinimalStim, ContainerMixin):
         GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
 
         GL.glPopMatrix()
+    
+    @attributeSetter
+    def size(self, size):
+        """Set the size (diameter) of the Aperture. 
+        
+        This essentially controls a :class:`.ShapeStim` so see documentation for ShapeStim.size.
+        
+        :ref:`Operations <attrib-operations>` supported here as well as ShapeStim.
+        
+        Use setSize() if you want to control 0logging and resetting."""
+        self.__dict__['size'] = size
+        self._shape.size = size  # a ShapeStim
+        if self._needReset:
+            self._reset()
     def setSize(self, size, needReset=True, log=True):
-        """Set the size (diameter) of the Aperture
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
         """
+        self._needReset = needReset
         self.size = size
-        self._shape.size = size
-        if needReset:
-            self._reset()
+        self._needReset = True  # back to default
         logAttrib(self, log, 'size')
+    @attributeSetter
+    def ori(self, ori):
+        """Set the orientation of the Aperture.
+        
+        This essentially controls a :class:`.ShapeStim` so see documentation for ShapeStim.ori.
+        
+        :ref:`Operations <attrib-operations>` supported here as well as ShapeStim.
+        
+        Use setOri() if you want to control logging and resetting."""
+        self.__dict__['ori'] = ori
+        self._shape.ori = ori  # a ShapeStim
+        if self._needReset:
+            self._reset()
     def setOri(self, ori, needReset=True, log=True):
-        """Set the orientation of the Aperture
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
         """
+        self._needReset = needReset
         self.ori = ori
-        self._shape.ori = ori
-        if needReset:
-            self._reset()
+        self._needReset = True  # back to default
         logAttrib(self, log, 'ori')
-    def setPos(self, pos, needReset=True, log=True):
-        """Set the pos (centre) of the Aperture
+    @attributeSetter
+    def pos(self, pos):
+        """Set the pos (centre) of the Aperture. :ref:`Operations <attrib-operations>` supported.
+                
+        This essentially controls a :class:`.ShapeStim` so see documentation for ShapeStim.pos.
+        
+        :ref:`Operations <attrib-operations>` supported here as well as ShapeStim.
+
+        Use setPos() if you want to control logging and resetting.
         """
-        self.pos = numpy.array(pos)
-        self._shape.pos = self.pos
-        if needReset:
+        self.__dict__['pos'] = numpy.array(pos)
+        self._shape.pos = self.pos  # a ShapeStim
+        if self._needReset:
             self._reset()
+    def setPos(self, pos, needReset=True, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
+        self._needReset = needReset
+        self.pos = pos
+        self._needReset = True  # back to default
         logAttrib(self, log, 'pos')
     @property
     def posPix(self):
