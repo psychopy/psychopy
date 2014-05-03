@@ -607,7 +607,7 @@ class TrialHandler:
             hint="Number of repeats (for each condition)")
         self.params['conditions']=Param(conditions, valType='str', updates=None, allowedUpdates=None,
             hint="A list of dictionaries describing the parameters in each condition")
-        self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
+        self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None, label='Conditions',
             hint="Name of a file specifying the parameters for each condition (.csv, .xlsx, or .pkl). Browse to select a file. Right-click to preview file contents, or create a new file.")
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
             hint="The start and end of the loop (see flow timeline)")
