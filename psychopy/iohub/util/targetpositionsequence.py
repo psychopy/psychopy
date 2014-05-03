@@ -97,7 +97,7 @@ class TargetStim(object):
         """
         Update the radius of the target stim.
         """
-        self.stim[0].setRadius(r)
+        self.stim[0].radius = r
 
     def setPos(self, pos):
         """

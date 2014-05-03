@@ -552,12 +552,12 @@ class TobiiPsychopyCalibrationGraphics(object):
         """
         calibration_prefs=self._eyetrackerinterface.getConfiguration()['calibration']['target_attributes']
 
-        self.calibrationPointOUTER.setRadius(calibration_prefs['outer_diameter']/2.0)
+        self.calibrationPointOUTER.radius = calibration_prefs['outer_diameter'] / 2.0
         self.calibrationPointOUTER.setLineColor(calibration_prefs['outer_line_color'])
         self.calibrationPointOUTER.setFillColor(calibration_prefs['outer_fill_color'])
         self.calibrationPointOUTER.lineWidth=int(calibration_prefs['outer_stroke_width'])
 
-        self.calibrationPointINNER.setRadius(calibration_prefs['inner_diameter']/2.0)
+        self.calibrationPointINNER.radius = calibration_prefs['inner_diameter'] / 2.0
         self.calibrationPointINNER.setLineColor(calibration_prefs['inner_line_color'])
         self.calibrationPointINNER.setFillColor(calibration_prefs['inner_fill_color'])
         self.calibrationPointINNER.lineWidth=int(calibration_prefs['inner_stroke_width'])
@@ -595,7 +595,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             EXPANSION_RATE=1.0
 
         stime=Computer.getTime()
-        self.calibrationPointOUTER.setRadius(orad)
+        self.calibrationPointOUTER.radius = orad
         self.calibrationPointOUTER.draw()          
         self.calibrationPointINNER.draw() 
         ftime=self.window.flip(clearBuffer=True)
@@ -606,7 +606,7 @@ class TobiiPsychopyCalibrationGraphics(object):
                 sec_dur=0.0
             stime=ftime
             current_size+= sec_dur*EXPANSION_RATE  
-            self.calibrationPointOUTER.setRadius(current_size)
+            self.calibrationPointOUTER.radius = current_size
             self.calibrationPointOUTER.draw()          
             self.calibrationPointINNER.draw()            
             ftime=self.window.flip(clearBuffer=True)
@@ -623,7 +623,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             EXPANSION_RATE=1.0
 
         stime=Computer.getTime()
-        self.calibrationPointOUTER.setRadius(max_osize)
+        self.calibrationPointOUTER.radius = max_osize
         self.calibrationPointOUTER.draw()          
         self.calibrationPointINNER.draw() 
         ftime=self.window.flip(clearBuffer=True)
@@ -634,7 +634,7 @@ class TobiiPsychopyCalibrationGraphics(object):
                 sec_dur=0.0
             stime=ftime
             current_size-= sec_dur*EXPANSION_RATE  
-            self.calibrationPointOUTER.setRadius(current_size)
+            self.calibrationPointOUTER.radius = current_size
             self.calibrationPointOUTER.draw()          
             self.calibrationPointINNER.draw()            
             ftime=self.window.flip(clearBuffer=True)  
