@@ -212,8 +212,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        self._set('fieldPos', val, op, log=log)
-        self.__dict__['pos'] = self.fieldPos #we'll store this as both
+        setWithOperation(self, 'fieldPos', val, op, autoLog=log)  # calls attributeSetter
     @attributeSetter
     def coherence(self, coherence):
         """Scalar between 0 and 1. Change the coherence (%) of the DotStim. This will be rounded according
@@ -235,9 +234,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        self.autoLog = log
-        self._set('coherence', val, op, log=log)  # applies log and operation and attributeSetter
-        self.autoLog = True
+        setWithOperation(self, 'coherence', val, op, autoLog=log)  # calls attributeSetter
     
     @attributeSetter
     def dir(self, dir):
@@ -252,9 +249,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        self.autoLog = log
-        setWithOperation(self, 'dir', val, op)
-        self.autoLog = True
+        setWithOperation(self, 'dir', val, op, autoLog=log)
     
     def setSpeed(self,val, op='', log=True):
         """Change the speed of the dots (in stimulus `units` per second)

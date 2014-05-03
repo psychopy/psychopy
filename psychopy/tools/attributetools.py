@@ -27,10 +27,15 @@ class attributeSetter(object):
     def __repr__(self):
         return repr(self.__getattribute__)
 
-def setWithOperation(self, attrib, value, operation, stealth=False):
+def setWithOperation(self, attrib, value, operation, stealth=False, autoLog=True):
     """ Sets an object property (scalar or numpy array) with an operation.
-    if stealth is True, then use self.__dict[key] = value and avoid calling attributeSetters. 
-    Else use setattr().
+    If stealth is True, then use self.__dict[key] = value and avoid calling attributeSetters. 
+    
+    If stealth is False, use setattr(). autoLog controls the value of autoLog during this setattr().
+    This is useful to translate the old set* functions to the new @attributeSetters. In set*, just do:
+    
+        setWithOperation(self, attrib='size', operation=op, autoLog=log)
+    
     History: introduced in version 1.79 to avoid exec-calls"""
 
     # Handle cases where attribute is not defined yet.
@@ -68,11 +73,15 @@ def setWithOperation(self, attrib, value, operation, stealth=False):
         else:
             raise TypeError
     finally:
-        # Set new value, with or without callback
+        # Set new value, with or without callback to attributeSetters
         if stealth:
             self.__dict__[attrib] = newValue
         else:
+            # Control logging with self.autoLog in case an attributeSetter is listening
+            autoLogOrig = self.autoLog
+            self.autoLog = autoLog
             setattr(self, attrib, newValue)
+            self.autoLog = autoLogOrig
 
 def logAttrib(self, log, attrib, value=None):
     """
