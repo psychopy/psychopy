@@ -119,14 +119,17 @@ class BufferImageStim(GratingStim):
         if stim: # draw all stim to the back buffer
             win.clearBuffer()
             buffer = 'back'
-            for stimulus in list(stim):
-                try:
-                    if stimulus.win == win:
-                        stimulus.draw()
-                    else:
-                        logging.warning('BufferImageStim.__init__: user requested "%s" drawn in another window' % repr(stimulus))
-                except AttributeError:
-                    logging.warning('BufferImageStim.__init__: "%s" failed to draw' % repr(stimulus))
+            if hasattr(stim, '__iter__'):
+                for stimulus in stim:
+                    try:
+                        if stimulus.win == win:
+                            stimulus.draw()
+                        else:
+                            logging.warning('BufferImageStim.__init__: user requested "%s" drawn in another window' % repr(stimulus))
+                    except AttributeError:
+                        logging.warning('BufferImageStim.__init__: "%s" failed to draw' % repr(stimulus))
+            else:
+                raise(ValueError('Stim is not iterable in BufferImageStim. It should be a list of stimuli.'))
 
         # take a screenshot of the buffer using win._getRegionOfFrame():
         glversion = pyglet.gl.gl_info.get_version()

@@ -419,8 +419,9 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         GL.glEndList()
 
     def __del__(self):
-        GL.glDeleteLists(self._listID, 1)
-        self.clearTextures()#remove textures from graphics card to prevent crash
+        if hasattr(self, '_listID'):
+            GL.glDeleteLists(self._listID, 1)
+            self.clearTextures()#remove textures from graphics card to prevent crash
 
     def clearTextures(self):
         """
