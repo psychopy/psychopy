@@ -75,34 +75,9 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  name='', autoLog=True):
         """
         :Parameters:
-
-            nDots : int
-                number of dots to be generated
+        
             fieldSize : (x,y) or [x,y] or single value (applied to both dimensions)
                 Sizes can be negative and can extend beyond the window.
-            fieldShape : *'sqr'* or 'circle'
-                Defines the envelope used to present the dots
-            dotSize
-                specified in pixels (overridden if `element` is specified)
-            dotLife : int
-                Number of frames each dot lives for (default=3, -1=infinite)
-            speed : float
-                speed of the dots (in *units*/frame)
-            signalDots : 'same' or *'different'*
-                If 'same' then the signal and noise dots are constant. If different
-                then the choice of which is signal and which is noise gets
-                randomised on each frame. This corresponds to Scase et al's (1996) categories of RDK.
-            noiseDots : *'direction'*, 'position' or 'walk'
-                Determines the behaviour of the noise dots, taken directly from
-                Scase et al's (1996) categories. For 'position', noise dots take a
-                random position every frame. For 'direction' noise dots follow a
-                random, but constant direction. For 'walk' noise dots vary their
-                direction every frame, but keep a constant speed.
-
-            element : *None* or a visual stimulus object
-                This can be any object that has a ``.draw()`` method and a
-                ``.setPos([x,y])`` method (e.g. a GratingStim, TextStim...)!!
-                See `ElementArrayStim` for a faster implementation of this idea.
             """
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = __builtins__['dir']()
@@ -126,7 +101,6 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.element = element
         self.dotLife = dotLife
         self.signalDots = signalDots
-        self.noiseDots = noiseDots
         self.opacity = float(opacity)
         self.contrast = float(contrast)
 
@@ -144,6 +118,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         #fix the first n in the array to have the direction specified
 
         self.coherence = coherence  # using the attributeSetter
+        self.noiseDots = noiseDots
 
         self. _verticesBase = self._dotsXY = self._newDotsXY(self.nDots) #initialise a random array of X,Y
         self._dotsSpeed = numpy.ones(self.nDots, 'f')*self.speed#all dots have the same speed
@@ -193,10 +168,63 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         (e.g. setFieldPos(), setCoherence()...)
         """
         self._set(attrib, val, op, log=log)
-    def setPos(self, newPos=None, operation='', units=None, log=True):
-        """Obsolete - users should use setFieldPos instead of setPos
+
+    @attributeSetter
+    def fieldShape(self, fieldShape):
+        """*'sqr'* or 'circle'. Defines the envelope used to present the dots.
+        If changed while drawing, dots outside new envelope will be respawned.
         """
-        logging.error("User called DotStim.setPos(pos). Use DotStim.SetFieldPos(pos) instead.")
+        self.__dict__['fieldShape'] = fieldShape
+
+    @attributeSetter
+    def dotSize(self, dotSize):
+        """Float specified in pixels (overridden if `element` is specified).
+        :ref:`operations <attrib-operations>` are supported."""
+        self.__dict__['dotSize'] = dotSize
+        
+    @attributeSetter
+    def dotLife(self, dotLife):
+        """Int. Number of frames each dot lives for (-1=infinite).
+        Dot lives are initiated randomly from a uniform distribution from 0 to dotLife. 
+        If changed while drawing, the lives of all dots will be randomly initiated again.
+        
+        :ref:`operations <attrib-operations>` are supported."""
+        self.__dict__['dotLife'] = dotLife
+        self._dotsLife = abs(self.dotLife) * numpy.random.rand(self.nDots)
+
+    @attributeSetter
+    def signalDots(self, signalDots):
+        """str - 'same' or *'different'*
+        If 'same' then the signal and noise dots are constant. If different
+        then the choice of which is signal and which is noise gets
+        randomised on each frame. This corresponds to Scase et al's (1996) categories of RDK.
+        """
+        self.__dict__['signalDots'] = signalDots
+    
+    @attributeSetter
+    def noiseDots(self, noiseDots):
+        """Str. *'direction'*, 'position' or 'walk'
+        Determines the behaviour of the noise dots, taken directly from
+        Scase et al's (1996) categories. For 'position', noise dots take a
+        random position every frame. For 'direction' noise dots follow a
+        random, but constant direction. For 'walk' noise dots vary their
+        direction every frame, but keep a constant speed.
+        """
+        self.__dict__['noiseDots'] = noiseDots
+        self.coherence = self.coherence  # update using attributeSetter
+        
+    @attributeSetter
+    def element(self, element):
+        """*None* or a visual stimulus object
+        This can be any object that has a ``.draw()`` method and a
+        ``.setPos([x,y])`` method (e.g. a GratingStim, TextStim...)!!
+        DotStim assumes that the element uses pixels as units.
+        ``None`` defaults to dots.
+        
+        See `ElementArrayStim` for a faster implementation of this idea.
+        """
+        self.__dict__['element'] = element
+
     @attributeSetter
     def fieldPos(self, pos):
         """Specifying the location of the centre of the stimulus using a :ref:`x,y-pair <attrib-xy>`. 
@@ -207,13 +235,17 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # Isn't there a way to use BaseVisualStim.pos.__doc__ as docstring here?
         self.pos = pos  # using BaseVisualStim. we'll store this as both
         self.__dict__['fieldPos'] = self.pos
-    
     def setFieldPos(self, val, op='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         setWithOperation(self, 'fieldPos', val, op, autoLog=log)  # calls attributeSetter
-    @attributeSetter
+    def setPos(self, newPos=None, operation='', units=None, log=True):
+        """Obsolete - users should use setFieldPos instead of setPos
+        """
+        logging.error("User called DotStim.setPos(pos). Use DotStim.SetFieldPos(pos) instead.")    
+    
+    @attributeSetter    
     def coherence(self, coherence):
         """Scalar between 0 and 1. Change the coherence (%) of the DotStim. This will be rounded according
         to the number of dots in the stimulus.
@@ -251,10 +283,16 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         setWithOperation(self, 'dir', val, op, autoLog=log)
     
-    def setSpeed(self,val, op='', log=True):
-        """Change the speed of the dots (in stimulus `units` per second)
+    @attributeSetter
+    def speed(self, speed):
+        """float. speed of the dots (in *units*/frame). :ref:`operations <attrib-operations>` are supported.
         """
-        self._set('speed', val, op, log=log)
+        self.__dict__['speed'] = speed
+    def setSpeed(self,val, op='', log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
+        setWithOperation(self, 'speed', val, op, autoLog=log)
     def draw(self, win=None):
         """Draw the stimulus in its relevant window. You must call
         this method after every MyWin.flip() if you want the
