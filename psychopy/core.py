@@ -81,7 +81,7 @@ class StaticPeriod(object):
         win.flip()
         ISI = StaticPeriod(screenHz=60)
         ISI.start(0.5) #start a period of 0.5s
-        stim.setImage('largeFile.bmp') #could take some time
+        stim.image = 'largeFile.bmp' #could take some time
         ISI.complete() #finish the 0.5s, taking into account one 60Hz frame
 
         stim.draw()

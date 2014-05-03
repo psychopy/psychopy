@@ -27,6 +27,14 @@ class attributeSetter(object):
     def __repr__(self):
         return repr(self.__getattribute__)
 
+def callAttributeSetter(self, attrib, value, log=True):
+    """Often, the get*() functions just add the ability to log compared to attributeSetter.
+    As attributeSetter respects self.autoLog, we can do the following to control logging"""
+    autoLogOrig = self.autoLog  # save original value
+    self.autoLog = log  # set to desired logging
+    setattr(self, attrib, value)  # set attribute, calling attributeSetter
+    self.autoLog = autoLogOrig  # return autoLog to original
+
 def setWithOperation(self, attrib, value, operation, stealth=False, autoLog=True):
     """ Sets an object property (scalar or numpy array) with an operation.
     If stealth is True, then use self.__dict[key] = value and avoid calling attributeSetters. 
@@ -78,10 +86,7 @@ def setWithOperation(self, attrib, value, operation, stealth=False, autoLog=True
             self.__dict__[attrib] = newValue
         else:
             # Control logging with self.autoLog in case an attributeSetter is listening
-            autoLogOrig = self.autoLog
-            self.autoLog = autoLog
-            setattr(self, attrib, newValue)
-            self.autoLog = autoLogOrig
+            callAttributeSetter(self, attrib, newValue, autoLog)
 
 def logAttrib(self, log, attrib, value=None):
     """
