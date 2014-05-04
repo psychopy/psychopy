@@ -318,7 +318,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         # Set value and log
         setWithOperation(self, 'sfs', value, operation)
         logAttrib(self, log, 'sfs', type(value))
-
+        self._needTexCoordUpdate=True
     def setOpacities(self,value,operation='', log=True):
         """Set the opacity for each element.
         Should either be a single value or an Nx1 array/list
@@ -334,10 +334,11 @@ class ElementArrayStim(MinimalStim, TextureMixin):
             pass #is already Nx1
         else:
             raise ValueError("New value for setOpacities should be either Nx1 or a single value")
-
+        
         #set value and log
         setWithOperation(self, 'opacities', value, operation)
         logAttrib(self, log, 'opacities', type(value))
+        self._needColorUpdate=True
     def setSizes(self,value,operation='', log=True):
         """Set the size for each element.
         Should either be:

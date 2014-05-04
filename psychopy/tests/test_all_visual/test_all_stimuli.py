@@ -387,11 +387,16 @@ class _baseVisualTest:
         #using init
         thetas = numpy.arange(0,360,10)
         N=len(thetas)
+
         radii = numpy.linspace(0,1.0,N)*self.scaleFactor
         x, y = pol2cart(theta=thetas, radius=radii)
         xys = numpy.array([x,y]).transpose()
-        spiral = visual.ElementArrayStim(win, nElements=N,sizes=0.5*self.scaleFactor,
-            sfs=3.0, xys=xys, oris=-thetas, autoLog=False)
+        spiral = visual.ElementArrayStim(win, opacities = 0, nElements=N,sizes=0.5*self.scaleFactor,
+            sfs=1.0, xys=xys, oris=-thetas, autoLog=False)
+        spiral.draw()
+        #check that the update function is working by changing vals after first draw() call
+        spiral.setOpacities(1.0)
+        spiral.setSfs(3.0)
         spiral.draw()
         str(spiral) #check that str(xxx) is working
         win.flip()
