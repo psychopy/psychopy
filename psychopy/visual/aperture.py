@@ -21,7 +21,7 @@ import psychopy.event
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
-from psychopy.tools.attributetools import logAttrib, attributeSetter, setWithOperation
+from psychopy.tools.attributetools import attributeSetter, setWithOperation, callAttributeSetter
 from psychopy.visual.shape import ShapeStim
 from psychopy.visual.basevisual import MinimalStim, ContainerMixin
 
@@ -94,29 +94,34 @@ class Aperture(MinimalStim, ContainerMixin):
 
         self.vertices = self._shape.vertices
         self._needVertexUpdate = True
-        self._reset()  #implicitly runs a self.enabled = True
         self._needReset = True  # Default when setting attributes
+        self._reset()  #implicitly runs a self.enabled = True. Also sets self._needReset = True on every call
         self.autoLog= autoLog
         if autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
     def _reset(self):
-        self.enabled = True
-        GL.glClearStencil(0)
-        GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
-
-        GL.glPushMatrix()
-        self.win.setScale('pix')
-
-        GL.glDisable(GL.GL_LIGHTING)
-        GL.glDisable(GL.GL_DEPTH_TEST)
-        GL.glDepthMask(GL.GL_FALSE)
-        GL.glStencilFunc(GL.GL_NEVER, 0, 0)
-        GL.glStencilOp(GL.GL_INCR, GL.GL_INCR, GL.GL_INCR)
-        self._shape.draw(keepMatrix=True) #draw without push/pop matrix
-        GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
-        GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
-
-        GL.glPopMatrix()
+        """Internal method to rebuild the shape - shouldn't be called by the user.
+        You have to explicitly turn resetting off by setting self._needReset = False"""
+        if not self._needReset:
+            self._needReset = True
+        else:
+            self.enabled = True  # attributeSetter, turns on.
+            GL.glClearStencil(0)
+            GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
+    
+            GL.glPushMatrix()
+            self.win.setScale('pix')
+    
+            GL.glDisable(GL.GL_LIGHTING)
+            GL.glDisable(GL.GL_DEPTH_TEST)
+            GL.glDepthMask(GL.GL_FALSE)
+            GL.glStencilFunc(GL.GL_NEVER, 0, 0)
+            GL.glStencilOp(GL.GL_INCR, GL.GL_INCR, GL.GL_INCR)
+            self._shape.draw(keepMatrix=True) #draw without push/pop matrix
+            GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
+            GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
+    
+            GL.glPopMatrix()
     
     @attributeSetter
     def size(self, size):
@@ -129,15 +134,13 @@ class Aperture(MinimalStim, ContainerMixin):
         Use setSize() if you want to control 0logging and resetting."""
         self.__dict__['size'] = size
         self._shape.size = size  # a ShapeStim
-        if self._needReset:
-            self._reset()
+        self._reset()
     def setSize(self, size, needReset=True, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         self._needReset = needReset
-        setWithOperation(self, 'size', size, '', autoLog=log)
-        self._needReset = True  # back to default
+        callAttributeSetter(self, 'size', size, log)
     @attributeSetter
     def ori(self, ori):
         """Set the orientation of the Aperture.
@@ -149,15 +152,13 @@ class Aperture(MinimalStim, ContainerMixin):
         Use setOri() if you want to control logging and resetting."""
         self.__dict__['ori'] = ori
         self._shape.ori = ori  # a ShapeStim
-        if self._needReset:
-            self._reset()
+        self._reset()
     def setOri(self, ori, needReset=True, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
         self._needReset = needReset
-        setWithOperation(self, 'ori', ori, '', autoLog=log)
-        self._needReset = True  # back to default
+        callAttributeSetter(self, 'ori', ori, log)
     @attributeSetter
     def pos(self, pos):
         """Set the pos (centre) of the Aperture. :ref:`Operations <attrib-operations>` supported.
@@ -170,15 +171,13 @@ class Aperture(MinimalStim, ContainerMixin):
         """
         self.__dict__['pos'] = numpy.array(pos)
         self._shape.pos = self.pos  # a ShapeStim
-        if self._needReset:
-            self._reset()
+        self._reset()
     def setPos(self, pos, needReset=True, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         self._needReset = needReset
-        setWithOperation(self, 'pos', pos, '', autoLog=log)
-        self._needReset = True  # back to default
+        callAttributeSetter(self, 'pos', pos, log)
     @property
     def posPix(self):
         """The position of the aperture in pixels
