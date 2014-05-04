@@ -423,15 +423,6 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
             GL.glDeleteLists(self._listID, 1)
             self.clearTextures()#remove textures from graphics card to prevent crash
 
-    def clearTextures(self):
-        """
-        Clear all textures associated with the stimulus.
-        As of v1.61.00 this is called automatically during garbage collection of
-        your stimulus, so doesn't need calling explicitly by the user.
-        """
-        GL.glDeleteTextures(1, self._texID)
-        GL.glDeleteTextures(1, self._maskID)
-
     def _calcCyclesPerStim(self):
         if self.units in ['norm', 'height']:
             self._cycles = self.sf  #this is the only form of sf that is not size dependent
