@@ -20,16 +20,18 @@ is high, state will equal 1, DI_1 = 2,  DI_2 = 4 etc.
 So digital input state = sum(2**di), where di is the index of an input that
 is high, bound by 0 <= di <= 7.
 
-Digital inputs which have a open ended wire connected to it (i.e. the input 
-wire is not also connected to a stable digital input source) will 'float'; 
-which will cause rapid random toggling of the digital input state. Only connect
-a lead to a digital input if it is also connected to a stable digital input 
-source.
+If the ioSync program (iosync.ino) running on the teensy 3 shuld be compiled
+with the following define setting:
+
+#define DIGITAL_INPUT_TYPE INPUT_PULLUP
+
+This turns on the internal pullup resistors on the T3. If the define is set
+to INPUT, then you will need to provide a resistor between the ground pin and
+the digital input ground wire.
 
 IMPORTANT: Input voltage to a digital input pin must be between 0.0 V and 3.3 V 
 or you may damage the Teensy 3. The Teensy 3.1 supports digital inputs up to
-5 V. 
-
+5 V.
 """
 import time
 from psychopy import core
@@ -54,7 +56,7 @@ try:
     mcu.enableEventReporting(True)
     io.clearEvents("all")
     while not kb.getEvents():   
-        mcu_events=  mcu.getEvents()  
+        mcu_events=  mcu.getEvents()
         for mcu_evt in mcu_events:
             print'{0}\t{1}'.format(mcu_evt.time,mcu_evt.state)
         core.wait(0.002,0)

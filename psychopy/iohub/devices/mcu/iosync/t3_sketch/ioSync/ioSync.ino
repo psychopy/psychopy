@@ -39,6 +39,9 @@ TODO:
 //
 //#define KEYBOARD
 
+// Setting Digital Input Type ( INPUT or INPUT_PULLUP )
+#define DIGITAL_INPUT_TYPE INPUT_PULLUP
+
 // Misc. Util functions
 
 byte bytePow(byte x, byte p)
@@ -126,8 +129,8 @@ const double DIGITAL_ANALOG_12_STEP = 0.00029296875;
 const double DIGITAL_ANALOG_10_STEP = 0.001171875;
 
 #define AIN_RES 16
-#define AIN_AVERAGING 16
-#define AIN_REF EXTERNAL //INTERNAL //EXTERNAL
+#define AIN_AVERAGING 8
+#define AIN_REF DEFAULT//EXTERNAL//DEFAULT //EXTERNAL //INTERNAL //EXTERNAL
 #define AIN_RATE 1000
 
 // I2C pins
@@ -672,7 +675,7 @@ void initDigitalOutputs(){
  
 void initDigitalInputs(){
   for (int i=0;i<sizeof(DIN_PINS);i++){
-    pinMode(DIN_PINS[i], INPUT);
+    pinMode(DIN_PINS[i], DIGITAL_INPUT_TYPE);
   }
   pinMode(DIN_8, INPUT_PULLUP);
 }
