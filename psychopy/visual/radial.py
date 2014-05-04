@@ -70,13 +70,8 @@ class RadialStim(GratingStim):
                  rgbPedestal = (0.0,0.0,0.0),
                  interpolate=False,
                  name='', 
-                 autoLog=True):
-        """
-        :Parameters:
-
-            texRes : (default= *128* )
-                resolution of the texture (if not loading from an image file)
-        """
+                 autoLog=True):        
+        """ """ # Empty docstring on __init__, Simply inherits methods from GratingStim
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')

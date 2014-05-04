@@ -144,10 +144,6 @@ class ElementArrayStim(MinimalStim, TextureMixin):
                 the mask, to be used by all elements (e.g. 'circle', 'gauss',... ,
                 'myTexture.tif', numpy.ones([48,48]))
 
-            texRes :
-                the number of pixels in the textures (overridden if an array
-                or image is provided)
-
             name : string
                 The name of the objec to be using during logged messages about
                 this stim
@@ -161,6 +157,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self.autoLog=False #until all params are set
         self.win=win
         self.name=name
+
+        self.__dict__['texRes'] = texRes  # Not pretty (redefined later) but it works!
 
         #unit conversions
         if units!=None and len(units): self.units = units
@@ -200,12 +198,12 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self.fieldSize = val2array(fieldSize, False)
 
         #create textures
-        self.texRes = texRes
         self._texID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._texID))
         self._maskID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._maskID))
         self.setMask(elementMask, log=False)
+        self.texRes = texRes
         self.setTex(elementTex, log=False)
 
         self.setContrs(contrs, log=False)

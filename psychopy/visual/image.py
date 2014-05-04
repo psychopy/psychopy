@@ -286,10 +286,3 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         but use this method if you need to suppress the log message.
         """
         callAttributeSetter(self, 'mask', value, log)
-        
-    @attributeSetter
-    def texRes(self, value):
-        """Sets the resolution of the mask (this is independent of the image resolution).
-        """
-        self.__dict__['texRes'] = value
-        self.mask = self.mask

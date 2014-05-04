@@ -784,6 +784,20 @@ class TextureMixin(object):
         but use this method if you need to suppress the log message.
         """
         callAttributeSetter(self, 'mask', value, log)
+    
+    @attributeSetter
+    def texRes(self, value):
+        """Sets the resolution of the mask (overridden if an array or image is provided as mask).
+        
+        :ref:`Operations <attrib-operations>` supported.
+        """
+        self.__dict__['texRes'] = value
+        self.mask = self.mask
+    def setTexRes(self, value, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
+        """
+        callAttributeSetter(self, 'texRes', value, log)
 
 class BaseVisualStim(MinimalStim, LegacyVisualMixin):
     """A template for a visual stimulus class.

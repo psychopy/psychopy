@@ -86,10 +86,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
                  maskParams=None):
         """
         :Parameters:
-
-            texRes:
-                resolution of the texture (if not loading from an image file)
-
+        
             maskParams: Various types of input. Default to None.
                 This is used to pass additional parameters to the mask if those
                 are needed.
