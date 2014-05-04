@@ -1,5 +1,5 @@
 """
-Demo using the experimental MovieStim2 to play a video file. Path of video
+Demo using the new (beta) MovieStim2 to play a video file. Path of video
 needs to updated to point to a video you have. MovieStim2 does /not/ require
 avbin to be installed. But...
 
@@ -16,7 +16,8 @@ Movie2 does require:
 from psychopy import visual, core, event
 import time
 
-videopath=r'D:\Dropbox\WinPython-32bit-2.7.6.0\my-code\pycvlcmovie\Epic.mp4'
+videopath=r''
+assert len(videopath) > 0
 
 win = visual.Window([1024, 768])
 
@@ -27,7 +28,7 @@ mov = visual.MovieStim2(win, videopath,
                        pos=[0, 100],
                        flipVert=False,
                        flipHoriz=False,
-                       loop=False)
+                       loop=True)
 
 keystext = "PRESS 'q' or 'escape' to Quit.\n"
 keystext += "#     's': Stop/restart Movie.\n"
@@ -44,61 +45,62 @@ text = visual.TextBox(win,keystext, font_name=None, bold=False, italic=False,
                       align_vert='bottom',
                       autoLog=False, interpolate=True)
 
-# Start the movie stim by preparing it to play and then calling flip()
+# Start the movie stim by preparing it to play
 shouldflip = mov.play()
 while mov.status != visual.FINISHED:
-    # if only a movie stim is being shown on the window, only flip when a new
-    # frame should be displayed. On a 60 Hz monitor playing a 30 Hz video, this
-    # cuts CPU usage of the psychopy app. by almost 50%.
+    # Only flip when a new frame should be displayed. This only makes sense if the movie is the only /dynamic/ stim being displayed.
+    # On a 60 Hz monitor playing a 30 Hz video, this cuts CPU usage of the psychopy app. by almost 50%.
     if shouldflip:
+        # Movie has already been drawn , so just draw text stim and flip
         text.draw()
         win.flip()
     else:
+        # Give the OS a break if a flip is not needed
         time.sleep(0.001)
+    # Drawn movie stim again. Updating of movie stim frames as necessary is handled internally.
     shouldflip = mov.draw()
 
+    # Check for action keys.....
     for key in event.getKeys():
         if key in ['escape', 'q']:
             win.close()
             core.quit()
         elif key in ['s',]:
             if mov.status in [visual.PLAYING, visual.PAUSED]:
-                # Stop playing the movie stim. This also unloads the current
-                # movie resources, freeing the memory used. If you want to
-                # play a movie again with the current mov instance, call
-                # the three methods as shown in the following else statement.
+                # To stop the movie being played.....
                 mov.stop()
+                # Clear screen of last displayed frame.
                 win.flip()
+                # When movie stops, clear screen of last displayed frame, and display text stim only....
                 text.draw()
                 win.flip()
             else:
-                # If the mov has been stopped; to start it again, you must
-                # load the movie file, call play.
+                # To replay a movie that was stopped.....
                 mov.loadMovie(videopath)
                 shouldflip = mov.play()
         elif key in ['p',]:
-            # If you want to pause the movie while it is playing, and then want
-            # to later resume playing from where the mov was paused, do this..
+            # To pause the movie while it is playing....
             if mov.status == visual.PLAYING:
                 mov.pause()
             elif mov.status == visual.PAUSED:
+                # To /unpause/ the movie if pause has been called....
                 mov.play()
                 text.draw()
                 win.flip()
         elif key == 'period':
-            # skip ahead 1 second in movie.
+            # To skip ahead 1 second in movie.
             ntime = min(mov.getCurrentFrameTime()+1.0, mov.duration)
             mov.seek(ntime)
         elif key == 'comma':
-            # skip back 1 second in movie.
+            # To skip back 1 second in movie ....
             ntime = max(mov.getCurrentFrameTime()-1.0,0.0)
             mov.seek(ntime)
         elif key == 'minus':
-            # decrease movie sound a bit
+            # To decrease movie sound a bit ....
             cv = max(mov.getVolume()-5, 0)
             mov.setVolume(cv)
         elif key == 'equal':
-            # increase movie sound a bit
+            # To increase movie sound a bit ....
             cv = mov.getVolume()
             cv = min(mov.getVolume()+5, 100)
             mov.setVolume(cv)
