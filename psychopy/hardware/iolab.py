@@ -20,7 +20,6 @@ except ImportError:
         python (not the Standalone distribution of PsychoPy) then try installing it with:
            > pip install ioLabs""".replace('    ', '')
     logging.error(msg)
-    core.quit()
 
 from psychopy.constants import PRESSED, RELEASED
 btn2str = {0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7',

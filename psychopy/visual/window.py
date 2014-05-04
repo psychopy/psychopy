@@ -354,6 +354,7 @@ class Window:
             GL.glDeleteFramebuffersEXT( 1, self.frameBuffer)
         except:
             pass
+
     def __str__(self):
         className = 'Window'
         paramStrings = []

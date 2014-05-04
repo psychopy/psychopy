@@ -11,7 +11,7 @@ import psychopy  # so we can get the __path__
 from psychopy import logging
 
 from psychopy.visual.polygon import Polygon
-from psychopy.tools.attributetools import logAttrib
+from psychopy.tools.attributetools import logAttrib, attributeSetter
 
 import numpy
 
@@ -30,11 +30,6 @@ class Circle(Polygon):
             edges : float or int (default=32)
                 Specifies the resolution of the polygon that is approximating the
                 circle.
-
-            radius : float, int, tuple, list or 2x1 array
-                Radius of the Circle (distance from the center to the corners).
-                If radius is a 2-tuple or list, the values will be interpreted as semi-major and
-                semi-minor radii of an ellipse.
         """
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
@@ -42,17 +37,28 @@ class Circle(Polygon):
         #kwargs isn't a parameter, but a list of params
         self._initParams.remove('kwargs')
         self._initParams.extend(kwargs)
+        self.edges = edges
 
         #initialise parent class
         kwargs['edges'] = edges
         kwargs['radius'] = radius
         super(Circle, self).__init__(win, **kwargs)
+    
+    @attributeSetter
+    def radius(self, radius):
+        """float, int, tuple, list or 2x1 array
+        Radius of the Circle (distance from the center to the corners).
+        If radius is a 2-tuple or list, the values will be interpreted as semi-major and
+        semi-minor radii of an ellipse.
 
-
-    def setRadius(self, radius, log=True):
-        """Changes the radius of the Polygon. If radius is a 2-tuple or list, the values will be
-        interpreted as semi-major and semi-minor radii of an ellipse."""
-        self.radius = numpy.asarray(radius)
+        :ref:`Operations <attrib-operations>` supported.
+        
+        Usually there's a setAttribute(value, log=False) method for each attribute. Use this if you want to disable logging."""
+        self.__dict__['radius'] = numpy.asarray(radius)
         self._calcVertices()
         self.setVertices(self.vertices, log=False)
+    def setRadius(self, radius, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message"""
+        self.radius = radius
         logAttrib(self, log, 'radius', radius)

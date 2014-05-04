@@ -158,8 +158,8 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
                 te=touch_events[-1]
                 rad_range=self.max_touch_stim_radius- self.min_touch_stim_radius
                 touch_stim_radius=self.min_touch_stim_radius+(te.pressure/255.0)*rad_range
-                self.touch_contingent_stim.setPos((te.x_position,te.y_position))
-                self.touch_contingent_stim.setRadius(touch_stim_radius)
+                self.touch_contingent_stim.pos = (te.x_position, te.y_position)
+                self.touch_contingent_stim.radius = touch_stim_radius
                 self.cal_instruct_stim.draw()
                 self.touch_contingent_stim.draw()
                 window.flip()

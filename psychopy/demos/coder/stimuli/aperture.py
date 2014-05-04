@@ -16,10 +16,10 @@ vertices=[(-0.02, -0.0), (-.8,.2), (0,.6), (.1,0.06), (.8, .3), (.6,-.4)]
 # vertices or other shapes are scaled accordingly
 aperture = visual.Aperture(win, size=.9, shape=vertices)  # or try shape='square'
 
-aperture.disable()  # enabled by default when created
+aperture.enabled = False  # enabled by default when created
 gabor1.draw()
 instr.draw()
-aperture.enable()  # drawing is now restricted to be within the aperture shape
+aperture.enabled = True  # drawing is now restricted to be within the aperture shape
 gabor2.draw()
 
 win.flip()

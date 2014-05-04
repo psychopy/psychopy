@@ -21,7 +21,7 @@ import psychopy.event
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
-from psychopy.tools.attributetools import logAttrib
+from psychopy.tools.attributetools import logAttrib, attributeSetter, setWithOperation
 from psychopy.visual.shape import ShapeStim
 from psychopy.visual.basevisual import MinimalStim, ContainerMixin
 
@@ -62,10 +62,10 @@ class Aperture(MinimalStim, ContainerMixin):
         if not win.allowStencil:
             logging.error('Aperture has no effect in a window created without allowStencil=True')
             core.quit()
-        self.size = size
-        self.pos = pos
+        self.__dict__['size'] = size
+        self.__dict__['pos'] = pos
+        self.__dict__['ori'] = ori
         self.name = name
-        self.ori = ori
         #unit conversions
         if units!=None and len(units):
             self.units = units
@@ -94,12 +94,13 @@ class Aperture(MinimalStim, ContainerMixin):
 
         self.vertices = self._shape.vertices
         self._needVertexUpdate = True
-        self._reset()#implicitly runs an self.enable()
+        self._reset()  #implicitly runs a self.enabled = True
+        self._needReset = True  # Default when setting attributes
         self.autoLog= autoLog
         if autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
     def _reset(self):
-        self.enable()
+        self.enabled = True
         GL.glClearStencil(0)
         GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
 
@@ -116,31 +117,68 @@ class Aperture(MinimalStim, ContainerMixin):
         GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
 
         GL.glPopMatrix()
-
+    
+    @attributeSetter
+    def size(self, size):
+        """Set the size (diameter) of the Aperture. 
+        
+        This essentially controls a :class:`.ShapeStim` so see documentation for ShapeStim.size.
+        
+        :ref:`Operations <attrib-operations>` supported here as well as ShapeStim.
+        
+        Use setSize() if you want to control 0logging and resetting."""
+        self.__dict__['size'] = size
+        self._shape.size = size  # a ShapeStim
+        if self._needReset:
+            self._reset()
     def setSize(self, size, needReset=True, log=True):
-        """Set the size (diameter) of the Aperture
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
         """
-        self.size = size
-        self._shape.size = size
-        if needReset:
+        self._needReset = needReset
+        setWithOperation(self, 'size', size, '', autoLog=log)
+        self._needReset = True  # back to default
+    @attributeSetter
+    def ori(self, ori):
+        """Set the orientation of the Aperture.
+        
+        This essentially controls a :class:`.ShapeStim` so see documentation for ShapeStim.ori.
+        
+        :ref:`Operations <attrib-operations>` supported here as well as ShapeStim.
+        
+        Use setOri() if you want to control logging and resetting."""
+        self.__dict__['ori'] = ori
+        self._shape.ori = ori  # a ShapeStim
+        if self._needReset:
             self._reset()
-        logAttrib(self, log, 'size')
     def setOri(self, ori, needReset=True, log=True):
-        """Set the orientation of the Aperture
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
         """
-        self.ori = ori
-        self._shape.ori = ori
-        if needReset:
+        self._needReset = needReset
+        setWithOperation(self, 'ori', ori, '', autoLog=log)
+        self._needReset = True  # back to default
+    @attributeSetter
+    def pos(self, pos):
+        """Set the pos (centre) of the Aperture. :ref:`Operations <attrib-operations>` supported.
+                
+        This essentially controls a :class:`.ShapeStim` so see documentation for ShapeStim.pos.
+        
+        :ref:`Operations <attrib-operations>` supported here as well as ShapeStim.
+
+        Use setPos() if you want to control logging and resetting.
+        """
+        self.__dict__['pos'] = numpy.array(pos)
+        self._shape.pos = self.pos  # a ShapeStim
+        if self._needReset:
             self._reset()
-        logAttrib(self, log, 'ori')
     def setPos(self, pos, needReset=True, log=True):
-        """Set the pos (centre) of the Aperture
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
         """
-        self.pos = numpy.array(pos)
-        self._shape.pos = self.pos
-        if needReset:
-            self._reset()
-        logAttrib(self, log, 'pos')
+        self._needReset = needReset
+        setWithOperation(self, 'pos', pos, '', autoLog=log)
+        self._needReset = True  # back to default
     @property
     def posPix(self):
         """The position of the aperture in pixels
@@ -151,23 +189,28 @@ class Aperture(MinimalStim, ContainerMixin):
         """The size of the aperture in pixels
         """
         return self._shape.sizePix
-    def enable(self):
-        """Enable the aperture so that it is used in future drawing operations
+    @attributeSetter
+    def enabled(self, value):
+        """True / False. Enable or disable the aperture. 
+        Determines whether it is used in future drawing operations.
 
         NB. The Aperture is enabled by default, when created.
-
         """
-        if self._shape._needVertexUpdate:
-            self._shape._updateVertices()
-        GL.glEnable(GL.GL_STENCIL_TEST)
-        self.enabled=True#by default
-        self.status=STARTED
+        if value:
+            if self._shape._needVertexUpdate:
+                self._shape._updateVertices()
+            GL.glEnable(GL.GL_STENCIL_TEST)
+            self.status = STARTED
+        else:
+            GL.glDisable(GL.GL_STENCIL_TEST)
+            self.status = STOPPED
+        
+        self.__dict__['enabled'] = value
+    def enable(self):
+        """Use Aperture.enabled = True instead."""
+        self.enabled = True
     def disable(self):
-        """Disable the Aperture. Any subsequent drawing operations will not be
-        affected by the aperture until re-enabled.
-        """
-        GL.glDisable(GL.GL_STENCIL_TEST)
-        self.enabled=False
-        self.status=STOPPED
+        """Use Aperture.enabled = False instead."""
+        self.enabled = False
     def __del__(self):
-        self.disable()
+        self.enabled = False

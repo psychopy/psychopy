@@ -18,7 +18,7 @@ GL = pyglet.gl
 import psychopy  # so we can get the __path__
 from psychopy import logging
 
-from psychopy.tools.attributetools import logAttrib
+from psychopy.tools.attributetools import logAttrib, attributeSetter, callAttributeSetter
 from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import BaseVisualStim
 from psychopy.visual.basevisual import ContainerMixin, ColorMixin, TextureMixin
@@ -48,20 +48,11 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                  name='', autoLog=True,
                  maskParams=None):
         """
-        :Parameters:
+        All parameters init parameters have corresponding properties. Thus any 
+        parameter can be set/changed at initialization and after initialization.        
 
-            image :
-                The image file to be presented (most formats supported)
-            mask :
-                The alpha mask that can be used to control the outer shape of the stimulus
-
-                + **None**, 'circle', 'gauss', 'raisedCos'
-                + or the name of an image file (most formats supported)
-                + or a numpy array (1xN or NxN) ranging -1:1
-
-            texRes:
-                Sets the resolution of the mask (this is independent of the image resolution)
-
+        :Can only be set at initialization:        
+        
             maskParams: Various types of input. Default to None.
                 This is used to pass additional parameters to the mask if those
                 are needed.
@@ -84,8 +75,9 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self._maskID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._maskID))
         self.maskParams= maskParams
-        self.texRes=texRes
-
+        self.__dict__['mask'] = mask
+        self.__dict__['texRes'] = texRes  # Not pretty (redefined later) but it works!
+        
         # Other stuff
         self._imName = image
         self.isLumImage = None
@@ -106,9 +98,9 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self.setColor(color, colorSpace=colorSpace, log=False)
         self.rgbPedestal=[0,0,0]#does an rgb pedestal make sense for an image?
 
-        # Set the image and mask
+        # Set the image and mask-
         self.setImage(image, log=False)
-        self.setMask(mask, log=False)
+        self.texRes = texRes  # rebuilds the mask
 
         #generate a displaylist ID
         self._listID = GL.glGenLists(1)
@@ -256,10 +248,12 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
 
         #return the view to previous state
         GL.glPopMatrix()
-    def setImage(self, value, log=True):
-        """Set the image to be used for the stimulus to this new value
+    
+    @attributeSetter
+    def image(self, value):
+        """The image file to be presented (most formats supported)
         """
-        self._imName = value
+        self.__dict__['image'] = self._imName = value
 
         wasLumImage = self.isLumImage
         if value==None:
@@ -272,17 +266,39 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         #if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize==None:
             self.size = None  # set size to default
-        logAttrib(self, log, 'image', value)
         #if we switched to/from lum image then need to update shader rule
         if wasLumImage != self.isLumImage:
             self._needUpdate=True
         self._needTextureUpdate = False
-    def setMask(self,value, log=True):
-        """Change the image to be used as an alpha-mask for the image
+    def setImage(self, value, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
         """
-        self.mask = value
+        callAttributeSetter(self, 'image', value, log)
+    
+    @attributeSetter
+    def mask(self, value):
+        """The alpha mask that can be used to control the outer shape of the stimulus
+        
+                + **None**, 'circle', 'gauss', 'raisedCos'
+                + or the name of an image file (most formats supported)
+                + or a numpy array (1xN or NxN) ranging -1:1
+        """
+        self.__dict__['mask'] = value
         self._createTexture(value, id=self._maskID,
             pixFormat=GL.GL_ALPHA,dataType=GL.GL_UNSIGNED_BYTE,
             stim=self,
             res=self.texRes, maskParams=self.maskParams)
-        logAttrib(self, log, 'mask')
+    
+    def setMask(self, value, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
+        """
+        callAttributeSetter(self, 'mask', value, log)
+        
+    @attributeSetter
+    def texRes(self, value):
+        """Sets the resolution of the mask (this is independent of the image resolution).
+        """
+        self.__dict__['texRes'] = value
+        self.mask = self.mask
