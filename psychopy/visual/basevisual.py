@@ -28,7 +28,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import attributeSetter, setWithOperation, logAttrib
+from psychopy.tools.attributetools import attributeSetter, setWithOperation, callAttributeSetter
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg, convertToPix
 from psychopy.visual.helpers import pointInPolygon, polygonsOverlap, setColor
@@ -762,6 +762,28 @@ class TextureMixin(object):
         """
         GL.glDeleteTextures(1, self._texID)
         GL.glDeleteTextures(1, self._maskID)
+    
+    @attributeSetter
+    def mask(self, value):
+        """The alpha mask (forming the shape of the image)
+
+        This can be one of various options:
+            + 'circle', 'gauss', 'raisedCos', 'cross', **None** (resets to default)
+            + the name of an image file (most formats supported)
+            + a numpy array (1xN or NxN) ranging -1:1
+        """
+        self.__dict__['mask'] = value
+        if self.__class__.__name__ == 'ImageStim':
+            dataType = GL.GL_UNSIGNED_BYTE
+        else:
+            dataType = None
+        self._createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, dataType=dataType,
+            stim=self, res=self.texRes, maskParams=self.maskParams)
+    def setMask(self, value, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
+        """
+        callAttributeSetter(self, 'mask', value, log)
 
 class BaseVisualStim(MinimalStim, LegacyVisualMixin):
     """A template for a visual stimulus class.

@@ -63,7 +63,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
                  elementMask='gauss',
                  texRes=48,
                  interpolate=True,
-                 name='', autoLog=True):
+                 name='', 
+                 autoLog=True):
 
         """
         :Parameters:
@@ -178,6 +179,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self._needVertexUpdate=True
         self._needColorUpdate=True
         self.useShaders=True
+        self.maskParams = None  # does nothing but makes texture setters happy.
         self.interpolate=interpolate
         self.fieldDepth=fieldDepth
         self.depths=depths
@@ -668,12 +670,5 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self.tex = value
         self._createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
         logAttrib(self, log, 'tex')
-    def setMask(self,value, log=True):
-        """Change the mask (all elements have the same mask). Avoid doing this
-        during time-critical points in your script. Uploading new textures to the
-        graphics card can be time-consuming."""
-        self.mask = value
-        self._createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self, res=self.texRes)
-        logAttrib(self, log, 'mask')
     def __del__(self):
         self.clearTextures()#remove textures from graphics card to prevent crash

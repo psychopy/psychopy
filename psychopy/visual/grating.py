@@ -239,19 +239,6 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.__dict__['tex'] = value
         self._needTextureUpdate = False
 
-    @attributeSetter
-    def mask(self, value):
-        """The alpha mask (forming the shape of the image)
-
-        This can be one of various options:
-            + 'circle', 'gauss', 'raisedCos', 'cross', **None** (resets to default)
-            + the name of an image file (most formats supported)
-            + a numpy array (1xN or NxN) ranging -1:1
-        """
-        self._createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self,
-            res=self.texRes, maskParams=self.maskParams)
-        self.__dict__['mask'] = value
-
     def setSF(self, value, operation='', log=True):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self._set('sf', value, operation, log=log)
@@ -261,9 +248,6 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     def setTex(self, value, log=True):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self.tex = value
-    def setMask(self, value, log=True):
-        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
-        self.mask = value
 
     def draw(self, win=None):
         """
