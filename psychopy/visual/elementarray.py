@@ -64,7 +64,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
                  texRes=48,
                  interpolate=True,
                  name='', 
-                 autoLog=True):
+                 autoLog=True,
+                 maskParams=None):
 
         """
         :Parameters:
@@ -177,7 +178,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self._needVertexUpdate=True
         self._needColorUpdate=True
         self.useShaders=True
-        self.maskParams = None  # does nothing but makes texture setters happy.
+        self.maskParams = maskParams  # does nothing but makes texture setters happy.
         self.interpolate=interpolate
         self.fieldDepth=fieldDepth
         self.depths=depths
@@ -666,7 +667,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         graphics card can be time-consuming.
         """
         self.tex = value
-        self._createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
+        self._createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes, maskParams=self.maskParams)
         logAttrib(self, log, 'tex')
     def __del__(self):
         self.clearTextures()#remove textures from graphics card to prevent crash
