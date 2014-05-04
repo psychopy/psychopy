@@ -119,7 +119,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         GL.glGenTextures(1, ctypes.byref(self._texID))
         self._maskID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._maskID))
-        self.texRes = texRes  #must be power of 2
+        self.__dict__['texRes'] = texRes  #must be power of 2
         self.maskParams = maskParams
         self.interpolate = interpolate
 
