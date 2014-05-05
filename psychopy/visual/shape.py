@@ -20,7 +20,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix
-from psychopy.tools.attributetools import attributeSetter, setWithOperation, logAttrib
+from psychopy.tools.attributetools import attributeSetter, setWithOperation
 from psychopy.visual.basevisual import BaseVisualStim, ColorMixin, ContainerMixin
 from psychopy.visual.helpers import setColor
 
@@ -65,9 +65,6 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
             lineWidth : int (or float?)
                 specifying the line width in **pixels**
-
-            vertices : a list of lists or a numpy array (Nx2)
-                specifying xy positions of each vertex
 
             closeShape : True or False
                 Do you want the last vertex to be automatically connected to the first?
@@ -203,25 +200,24 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         setWithOperation(self, 'size', value, operation, autoLog=log)  # calls attributeSetter
 
-    def setVertices(self,value=None, operation='', log=True):
-        """Set the xy values of the vertices (relative to the centre of the field).
-        Values should be:
-
-            - an array/list of Nx2 coordinates.
-
+    @attributeSetter
+    def vertices(self, value):
+        """a list of lists or a numpy array (Nx2) specifying xy positions of 
+        each vertex, relative to the centre of the field.
+        
+        :ref:`Operations <attrib-operations>` supported.
         """
-        #make into an array
-        if type(value) in [int, float, list, tuple]:
-            value = numpy.array(value, dtype=float)
-        #check shape
-        if not (value.shape==(2,) \
-            or (len(value.shape)==2 and value.shape[1]==2)
-            ):
-                raise ValueError("New value for setXYs should be 2x1 or Nx2")
-        #set value and log
-        setWithOperation(self, 'vertices', value, operation)
-        logAttrib(self, log, 'vertices', value)
+        self.__dict__['vertices'] = numpy.array(value)
+        
+        # Check shape
+        if not (self.vertices.shape==(2,) or (len(self.vertices.shape) == 2 and self.vertices.shape[1] == 2)):
+            raise ValueError("New value for setXYs should be 2x1 or Nx2")
         self._needVertexUpdate=True
+    def setVertices(self, value=None, operation='', log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
+        setWithOperation(self, 'vertices', value, operation, autoLog=log)
 
     def draw(self, win=None, keepMatrix=False): #keepMatrix option is needed by Aperture
         """
