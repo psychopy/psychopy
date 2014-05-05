@@ -59,19 +59,9 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  interpolate=True,
                  lineRGB=None,
                  fillRGB=None,
-                 name='', autoLog=True):
-        """
-        :Parameters:
-
-            lineWidth : int (or float?)
-                specifying the line width in **pixels**
-
-            closeShape : True or False
-                Do you want the last vertex to be automatically connected to the first?
-
-            interpolate : True or False
-                If True the edge of the line will be antialiased.
-                """
+                 name='', 
+                 autoLog=True):
+        """ """  # all doc is in the attributes
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
@@ -85,9 +75,9 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.contrast = float(contrast)
         self.opacity = float(opacity)
         self.pos = numpy.array(pos, float)
-        self.closeShape=closeShape
-        self.lineWidth=lineWidth
-        self.interpolate=interpolate
+        self.closeShape = closeShape
+        self.lineWidth = lineWidth
+        self.interpolate = interpolate
 
         # Color stuff
         self.useShaders=False#since we don't ned to combine textures with colors
@@ -116,6 +106,29 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.autoLog= autoLog
         if autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
+
+    @attributeSetter
+    def lineWidth(self, value):
+        """int or float
+        specifying the line width in **pixels**
+        
+        :ref:`Operations <attrib-operations>` supported.
+        """
+        self.__dict__['lineWidth'] = value
+
+    @attributeSetter
+    def closeShape(self, value):
+        """True or False
+        Do you want the last vertex to be automatically connected to the first?
+        """
+        self.__dict__['closeShape'] = value
+
+    @attributeSetter
+    def interpolate(self, value):
+        """True or False
+        If True the edge of the line will be antialiased.
+        """
+        self.__dict__['interpolate'] = value
 
     @attributeSetter
     def fillColor(self, color):
