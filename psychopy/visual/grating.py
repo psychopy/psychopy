@@ -91,7 +91,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
             self._initParams.remove(unecess)
         #initialise parent class
         super(GratingStim, self).__init__(win, units=units, name=name, autoLog=False)
-        self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
+        self.__dict__['useShaders'] = win._haveShaders  #use shaders if available by default, this is a good thing
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
         # TO DO: postpone calls to _createTexture, setColor and _calcCyclesPerStim whin initiating stimulus

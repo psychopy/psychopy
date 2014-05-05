@@ -53,7 +53,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self._initParams.remove('self')
 
         super(ImageStim, self).__init__(win, units=units, name=name, autoLog=False)#set autoLog at end of init
-        self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
+        self.__dict__['useShaders'] = win._haveShaders  #use shaders if available by default, this is a good thing
 
         #initialise textures for stimulus
         self._texID = GL.GLuint()

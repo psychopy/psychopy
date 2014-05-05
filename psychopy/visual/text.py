@@ -85,10 +85,6 @@ class TextStim(BaseVisualStim, ColorMixin):
                  name='', autoLog=True):
         """
         :Parameters:
-            text:
-                The text to be rendered
-            height:
-                Height of the characters (including the ascent of the letter and the descent)
             antialias:
                 boolean to allow (or not) antialiasing the text
             bold:
@@ -103,10 +99,6 @@ class TextStim(BaseVisualStim, ColorMixin):
                 A list of additional files if the font is not in the standard system location (include the full path)
             wrapWidth:
                 The width the text should run before wrapping
-            flipHoriz : boolean
-                Mirror-reverse the text in the left-right direction
-            flipVert : boolean
-                Mirror-reverse the text in the up-down direction
         """
 
         #what local vars are defined (these are the init params) for use by __repr__
@@ -562,12 +554,3 @@ class TextStim(BaseVisualStim, ColorMixin):
 
         #GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth Testing
         GL.glPopMatrix()
-    def setUseShaders(self, val=True):
-        """Set this stimulus to use shaders if possible.
-        """
-        if val==True and self.win._haveShaders==False:
-            logging.warn("Shaders were requested but aren;t available. Shaders need OpenGL 2.0+ drivers")
-        if val!=self.useShaders:
-            self.useShaders=val
-            self._needSetText=True
-            self._needUpdate = True

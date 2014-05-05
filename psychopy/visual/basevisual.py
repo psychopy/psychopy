@@ -256,7 +256,7 @@ class ColorMixin(object):
             thisStim.color *= -1  #multiply the color by -1 (which in this space inverts the contrast)
             thisStim.color *= [0.5, 0, 1]  #decrease red, remove green, keep blue
         """
-        setColor(self, value, rgbAttrib='rgb', colorAttrib='color')
+        self.setColor(value)
 
     @attributeSetter
     def colorSpace(self, value):
@@ -325,8 +325,10 @@ class ColorMixin(object):
             logging.warning('Contrast was set on class where useShaders was undefined. Contrast might remain unchanged')
     def setColor(self, color, colorSpace=None, operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message
+        but use this method if you need to suppress the log message 
+        and/or set colorSpace simultaneously.
         """
+        # NB: the setColor helper function! Not this function itself :-)
         setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='rgb', #or 'fillRGB' etc
                     colorAttrib='color',
@@ -912,17 +914,18 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
         various operations will be slower (notably, changes to stimulus color
         or contrast)
         """
-        #NB TextStim overrides this function, so changes here may need changing there too
-        self.__dict__['useShaders'] = value
         if value == True and self.win._haveShaders == False:
             logging.error("Shaders were requested but aren't available. Shaders need OpenGL 2.0+ drivers")
-        if value != self.useShaders:
-            self.useShaders = value
+        if value != self.useShaders:  # if there's a change...
+            self.__dict__['useShaders'] = value
             if hasattr(self,'tex'):
-                self.tex = self.tex
-            elif hasattr(self,'_imName'):
+                self.tex = self.tex  # calling attributeSetter
+            elif hasattr(self, 'mask'):
+                self.mask = self.mask  # calling attributeSetter (does the same as mask)
+            if hasattr(self,'_imName'):
                 self.setIm(self._imName, log=False)
-            self.mask = self.mask
+            if self.__class__.__name__ == 'TextStim':
+                self._needSetText = True
             self._needUpdate = True
 
     @attributeSetter
