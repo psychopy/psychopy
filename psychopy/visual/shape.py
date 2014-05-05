@@ -197,8 +197,6 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         Use a tuple or list of two values to scale asymmetrically.
         """
         setWithOperation(self, 'size', value, operation, autoLog=log)  # calls attributeSetter
-        self._set('size', numpy.asarray(value), operation, log=log)
-        self._needVertexUpdate=True
 
     def setVertices(self,value=None, operation='', log=True):
         """Set the xy values of the vertices (relative to the centre of the field).
