@@ -187,58 +187,62 @@ class TextStim(BaseVisualStim, ColorMixin):
                                       vertices=numpy.array([0, self.height]),
                                       units=self.units, win=self.win)[1]
         #need to update the font to reflect the change
-        self.setFont(self.fontname, log=False)    
-
+        self.setFont(self.font, log=False)    
     def setHeight(self, height, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         callAttributeSetter(self, 'height', height, log)
     
-    def setFont(self, font, log=True):
-        """Set the font to be used for text rendering.
-        font should be a string specifying the name of the font (in system resources)
+    @attributeSetter
+    def font(self, font):
+        """String. Set the font to be used for text rendering.
+        font should be a string specifying the name of the font (in system resources).
         """
-        self.fontname=None#until we find one
+        self.__dict__['font'] = None  #until we find one
         if self.win.winType=="pyglet":
             self._font = pyglet.font.load(font, int(self._heightPix), dpi=72, italic=self.italic, bold=self.bold)
-            self.fontname=font
+            self.__dict__['font'] = font
         else:
-            if font==None or len(font)==0:
-                self.fontname = pygame.font.get_default_font()
+            if font == None or len(font) == 0:
+                self.__dict__['font'] = pygame.font.get_default_font()
             elif font in pygame.font.get_fonts():
-                self.fontname = font
-            elif type(font)==str:
+                self.__dict__['font'] = font
+            elif type(font) == str:
                 #try to find a xxx.ttf file for it
-                fontFilenames = glob.glob(font+'*')#check for possible matching filenames
-                if len(fontFilenames)>0:
+                fontFilenames = glob.glob(font + '*')  #check for possible matching filenames
+                if len(fontFilenames) > 0:
                     for thisFont in fontFilenames:
                         if thisFont[-4:] in ['.TTF', '.ttf']:
-                            self.fontname = thisFont#take the first match
+                            self.__dict__['font'] = thisFont  #take the first match
                             break #stop at the first one we find
                     #trhen check if we were successful
-                    if self.fontname == None and font!="":
+                    if self.font == None and font != "":
                         #we didn't find a ttf filename
                         logging.warning("Found %s but it doesn't end .ttf. Using default font." %fontFilenames[0])
-                        self.fontname = pygame.font.get_default_font()
+                        self.__dict__['font'] = pygame.font.get_default_font()
 
-            if self.fontname is not None and os.path.isfile(self.fontname):
-                self._font = pygame.font.Font(self.fontname, int(self._heightPix), italic=self.italic, bold=self.bold)
+            if self.font is not None and os.path.isfile(self.font):
+                self._font = pygame.font.Font(self.font, int(self._heightPix), italic=self.italic, bold=self.bold)
             else:
                 try:
-                    self._font = pygame.font.SysFont(self.fontname, int(self._heightPix), italic=self.italic, bold=self.bold)
-                    self.fontname = font
+                    self._font = pygame.font.SysFont(self.font, int(self._heightPix), italic=self.italic, bold=self.bold)
+                    self.__dict__['font'] = font
                     logging.info('using sysFont ' + str(font))
                 except:
-                    self.fontname = pygame.font.get_default_font()
+                    self.__dict__['font'] = pygame.font.get_default_font()
                     logging.error("Couldn't find font %s on the system. Using %s instead!\n \
                               Font names should be written as concatenated names all in lower case.\n \
-                              e.g. 'arial', 'monotypecorsiva', 'rockwellextra'..." %(font, self.fontname))
-                    self._font = pygame.font.SysFont(self.fontname, int(self._heightPix), italic=self.italic, bold=self.bold)
+                              e.g. 'arial', 'monotypecorsiva', 'rockwellextra'..." %(font, self.font))
+                    self._font = pygame.font.SysFont(self.font, int(self._heightPix), italic=self.italic, bold=self.bold)
         #re-render text after a font change
         self._needSetText=True
-        logAttrib(self, log, 'font', self.fontname)
-
+    def setFont(self, font, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
+        callAttributeSetter(self, 'font', font, log)        
+    
     @attributeSetter
     def text(self, text):
         if text != None:  #make sure we have unicode object to render
@@ -252,6 +256,7 @@ class TextStim(BaseVisualStim, ColorMixin):
         """Set the text to be rendered using the current font
         """
         callAttributeSetter(self, 'text', text, log)
+    
     def setRGB(self, text, operation='', log=True):
         self._set('rgb', text, operation, log=log)
         if not self.useShaders:
@@ -318,7 +323,7 @@ class TextStim(BaseVisualStim, ColorMixin):
                                                        halign=self.alignHoriz, valign=self.alignVert,
                                                        color = (1.0,1.0,1.0, self.opacity),
                                                        width=self._wrapWidthPix)#width of the frame
-#            self._pygletTextObj = pyglet.text.Label(self.text,self.fontname, int(self._heightPix),
+#            self._pygletTextObj = pyglet.text.Label(self.text,self.font, int(self._heightPix),
 #                                                       anchor_x=self.alignHoriz, anchor_y=self.alignVert,#the point we rotate around
 #                                                       halign=self.alignHoriz,
 #                                                       color = (int(127.5*self.rgb[0]+127.5),
