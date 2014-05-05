@@ -70,7 +70,8 @@ class RadialStim(GratingStim):
                  rgbPedestal = (0.0,0.0,0.0),
                  interpolate=False,
                  name='', 
-                 autoLog=True):        
+                 autoLog=True,
+                 maskParams=None):        
         """ """ # Empty docstring on __init__, Simply inherits methods from GratingStim
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
@@ -91,7 +92,7 @@ class RadialStim(GratingStim):
         GL.glGenTextures(1, ctypes.byref(self._texID))
         self._maskID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._maskID))
-        self.maskParams = None
+        self.__dict__['maskParams'] = maskParams
         self.maskRadialPhase = 0
         self.texRes = texRes #must be power of 2
         self.interpolate = interpolate
@@ -154,6 +155,7 @@ class RadialStim(GratingStim):
         specifying the luminance profile extending outwards from the
         center of the stimulus, rather than a 2D array
         """
+        print 'mask is', value
         self.__dict__['mask'] = value
         res = self.texRes#resolution of texture - 128 is bearable
         step = 1.0/res
@@ -172,7 +174,11 @@ class RadialStim(GratingStim):
             intensity = 255.0*(rad<=1)
             fromFile=0
         elif self.mask == "gauss":
-            sigma = 1/3.0;
+            # Set SD if specified
+            if self.maskParams == None:    
+                sigma = 1.0 / 3
+            else:
+                sigma = 1.0 / self.maskParams['sd']
             intensity = 255.0*numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )#3sd.s by the edge of the stimulus
             fromFile=0
         elif self.mask == "radRamp":#a radial ramp
@@ -184,6 +190,7 @@ class RadialStim(GratingStim):
             intensity = 255.0*numpy.ones(res,float)
             fromFile=0
         else:#might be a filename of a tiff
+            print value
             try:
                 im = Image.open(self.mask)
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)

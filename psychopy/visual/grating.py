@@ -84,18 +84,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
                  autoLog=True,
                  autoDraw=False,
                  maskParams=None):
-        """
-        :Parameters:
-        
-            maskParams: Various types of input. Default to None.
-                This is used to pass additional parameters to the mask if those
-                are needed.
-                - For the 'raisedCos' mask, pass a dict: {'fringeWidth':0.2},
-                where 'fringeWidth' is a parameter (float, 0-1), determining
-                the proportion of the patch that will be blurred by the raised
-                cosine edge.
-
-        """
+        """ """  # Empty docstring. All doc is in attributes
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         for unecess in ['self', 'rgb', 'dkl', 'lms']:
@@ -110,6 +99,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.__dict__['size'] = 1
         self.__dict__['sf'] = 1
         self.__dict__['tex'] = tex
+        self.__dict__['maskParams'] = maskParams
 
         #initialise textures and masks for stimulus
         self._texID = GL.GLuint()
@@ -117,7 +107,6 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self._maskID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._maskID))
         self.__dict__['texRes'] = texRes  #must be power of 2
-        self.maskParams = maskParams
         self.interpolate = interpolate
 
         #NB Pedestal isn't currently being used during rendering - this is a place-holder

@@ -553,7 +553,11 @@ class TextureMixin(object):
             wasLum=True
         elif tex == "gauss":
             rad=makeRadialMatrix(res)
-            sigma = 1/3.0;
+            # Set SD if specified
+            if maskParams == None:    
+                sigma = 1.0 / 3
+            else:
+                sigma = 1.0 / maskParams['sd']
             intensity = numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )*2-1 #3sd.s by the edge of the stimulus
             wasLum=True
         elif tex == "cross":
@@ -793,11 +797,18 @@ class TextureMixin(object):
         """
         self.__dict__['texRes'] = value
         self.mask = self.mask
-    def setTexRes(self, value, log=True):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message.
-        """
-        callAttributeSetter(self, 'texRes', value, log)
+    
+    @attributeSetter
+    def maskParams(self, value):
+        """Various types of input. Default to None.
+        This is used to pass additional parameters to the mask if those are needed.
+        
+            - For the 'raisedCos' mask, pass a dict: {'fringeWidth':0.2},
+                where 'fringeWidth' is a parameter (float, 0-1), determining
+                the proportion of the patch that will be blurred by the raised
+                cosine edge."""
+        self.__dict__['maskParams'] = value
+        self.mask = self.mask  # call attributeSetter
 
 class BaseVisualStim(MinimalStim, LegacyVisualMixin):
     """A template for a visual stimulus class.

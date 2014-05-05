@@ -23,7 +23,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import setWithOperation, logAttrib
+from psychopy.tools.attributetools import setWithOperation, logAttrib, attributeSetter
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.visual.helpers import setColor
 from psychopy.visual.basevisual import MinimalStim, TextureMixin
@@ -160,6 +160,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self.name=name
 
         self.__dict__['texRes'] = texRes  # Not pretty (redefined later) but it works!
+        self.__dict__['maskParams'] = maskParams
 
         #unit conversions
         if units!=None and len(units): self.units = units
@@ -178,7 +179,6 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self._needVertexUpdate=True
         self._needColorUpdate=True
         self.useShaders=True
-        self.maskParams = maskParams  # does nothing but makes texture setters happy.
         self.interpolate=interpolate
         self.fieldDepth=fieldDepth
         self.depths=depths
