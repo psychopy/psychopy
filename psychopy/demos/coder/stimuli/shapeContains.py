@@ -24,15 +24,15 @@ while not mouse.isPressedIn(shape):
     bufzone.setSize(mouse.getWheelRel()[1]/20., '+')  # vert scroll adjusts radius, can go negative
     # is the mouse inside the shape (hovering over it)?
     if shape.contains(mouse):
-        msg.setText('inside')
+        msg.text = 'inside'
         shape.setOpacity(1)
         bufzone.setOpacity(1)
     elif shape.overlaps(bufzone):
-        msg.setText('near')
+        msg.text = 'near'
         shape.setOpacity(.6)
         bufzone.setOpacity(.6)
     else:
-        msg.setText('far away')
+        msg.text = 'far away'
         shape.setOpacity(0.2)
         bufzone.setOpacity(0.2)
     bufzone.draw()  # drawing helps visualize the mechanics

@@ -55,7 +55,7 @@ while t < 20 and not 'escape' in event.getKeys():#quits after 20 secs
     longSentence.draw()
     
     if t-lastFPSupdate>1:#update the fps every second
-        fpsText.setText("%i fps" %myWin.fps())
+        fpsText.text = "%i fps" %myWin.fps()
         lastFPSupdate+=1
     fpsText.draw()
     psychopyTxt.draw()

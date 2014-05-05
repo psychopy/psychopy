@@ -37,7 +37,7 @@ while True:
     if t-lastFPSupdate>1.0:
         lastFPS = myWin.fps()
         lastFPSupdate=t
-        message.setText("%ifps, [Esc] to quit" %lastFPS)
+        message.text = "%ifps, [Esc] to quit" %lastFPS
     message.draw()
 
     myWin.flip()
