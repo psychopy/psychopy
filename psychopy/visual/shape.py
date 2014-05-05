@@ -189,12 +189,17 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     
     @attributeSetter
     def size(self, value):
+        """Int/Float or :ref:`x,y-pair <attrib-xy>`. 
+        Sets the size of the shape.
+        Size is independent of the units of shape and will simply scale the shape's vertices by the factor given.
+        Use a tuple or list of two values to scale asymmetrically.
+ 
+        :ref:`Operations <attrib-operations>` supported."""
         self.__dict__['size'] = numpy.array(value)
         self._needVertexUpdate = True
     def setSize(self, value, operation='', log=True):
-        """ Sets the size of the shape.
-        Size is independent of the units of shape and will simply scale the shape's vertices by the factor given.
-        Use a tuple or list of two values to scale asymmetrically.
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
         """
         setWithOperation(self, 'size', value, operation, autoLog=log)  # calls attributeSetter
 
