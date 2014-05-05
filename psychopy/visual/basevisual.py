@@ -205,12 +205,14 @@ class LegacyVisualMixin(object):
         """
         self._set('lms', value=newLMS, op=operation)
         self.setRGB(lms2rgb(self.lms, self.win.lms_rgb))
-    def setRGB(self, newRGB, operation=''):
+    def setRGB(self, newRGB, operation='', log=True):
         """DEPRECATED since v1.60.05: Please use the `color` attribute
         """
         from psychopy.visual.helpers import setTexIfNoShaders
         self._set('rgb', newRGB, operation)
         setTexIfNoShaders(self)
+        if self.__class__.__name__ == 'TextStim' and not self.useShaders:
+            self._needSetText=True
 
     @attributeSetter
     def depth(self, value):
@@ -329,6 +331,8 @@ class ColorMixin(object):
                     rgbAttrib='rgb', #or 'fillRGB' etc
                     colorAttrib='color',
                     log=log)
+        if self.__class__.__name__ == 'TextStim' and not self.useShaders:
+            self._needSetText = True
     def setContrast(self, newContrast, operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message

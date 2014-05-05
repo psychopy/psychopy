@@ -245,6 +245,8 @@ class TextStim(BaseVisualStim, ColorMixin):
     
     @attributeSetter
     def text(self, text):
+        """String
+        The text to be rendered. Use \n to make new lines."""
         if text != None:  #make sure we have unicode object to render
             self.__dict__['text'] = unicode(text)
         if self.useShaders:
@@ -253,68 +255,11 @@ class TextStim(BaseVisualStim, ColorMixin):
             self._setTextNoShaders(text)
         self._needSetText = False
     def setText(self, text=None, log=True):
-        """Set the text to be rendered using the current font
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
         """
         callAttributeSetter(self, 'text', text, log)
     
-    def setRGB(self, text, operation='', log=True):
-        self._set('rgb', text, operation, log=log)
-        if not self.useShaders:
-            self._needSetText=True
-    def setColor(self, color, colorSpace=None, operation='', log=True):
-        """Set the color of the stimulus. See :ref:`colorspaces` for further information
-        about the various ways to specify colors and their various implications.
-
-        :Parameters:
-
-        color :
-            Can be specified in one of many ways. If a string is given then it
-            is interpreted as the name of the color. Any of the standard html/X11
-            `color names <http://www.w3schools.com/html/html_colornames.asp>`
-            can be used. e.g.::
-
-                myStim.setColor('white')
-                myStim.setColor('RoyalBlue')#(the case is actually ignored)
-
-            A hex value can be provided, also formatted as with web colors. This can be
-            provided as a string that begins with # (not using python's usual 0x000000 format)::
-
-                myStim.setColor('#DDA0DD')#DDA0DD is hexadecimal for plum
-
-            You can also provide a triplet of values, which refer to the coordinates
-            in one of the :ref:`colorspaces`. If no color space is specified then the color
-            space most recently used for this stimulus is used again.
-
-                myStim.setColor([1.0,-1.0,-1.0], 'rgb')#a red color in rgb space
-                myStim.setColor([0.0,45.0,1.0], 'dkl') #DKL space with elev=0, azimuth=45
-                myStim.setColor([0,0,255], 'rgb255') #a blue stimulus using rgb255 space
-
-            Lastly, a single number can be provided, x, which is equivalent to providing
-            [x,x,x].
-
-                myStim.setColor(255, 'rgb255') #all guns o max
-
-        colorSpace : string or None
-
-            defining which of the :ref:`colorspaces` to use. For strings and hex
-            values this is not needed. If None the default colorSpace for the stimulus is
-            used (defined during initialisation).
-
-        operation : one of '+','-','*','/', or '' for no operation (simply replace value)
-
-            for colors specified as a triplet of values (or single intensity value)
-            the new value will perform this operation on the previous color
-
-                thisStim.setColor([1,1,1],'rgb255','+')#increment all guns by 1 value
-                thisStim.setColor(-1, 'rgb', '*') #multiply the color by -1 (which in this space inverts the contrast)
-                thisStim.setColor([10,0,0], 'dkl', '+')#raise the elevation from the isoluminant plane by 10 deg
-        """
-        #call setColor from super class to avoid recursion:
-        ColorMixin.setColor(self, color, colorSpace=colorSpace,
-            operation=operation, log=log)
-        #but then update text objects if necess
-        if not self.useShaders:
-            self._needSetText=True
     def _setTextShaders(self,value=None):
         """Set the text to be rendered using the current font
         """
