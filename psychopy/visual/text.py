@@ -26,7 +26,7 @@ import psychopy.event
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
-from psychopy.tools.attributetools import logAttrib
+from psychopy.tools.attributetools import logAttrib, attributeSetter, callAttributeSetter
 from psychopy.visual.basevisual import BaseVisualStim, ColorMixin
 
 import numpy
@@ -85,8 +85,6 @@ class TextStim(BaseVisualStim, ColorMixin):
                  name='', autoLog=True):
         """
         :Parameters:
-            win: A :class:`Window` object.
-                Required - the stimulus must know where to draw itself
             text:
                 The text to be rendered
             height:
@@ -124,7 +122,7 @@ class TextStim(BaseVisualStim, ColorMixin):
         self.antialias = antialias
         self.bold=bold
         self.italic=italic
-        self.text='' #NB just a placeholder - real value set below
+        self.__dict__['text'] = '' #NB just a placeholder - real value set below
         self.depth=depth
         self.ori=ori
         self.flipHoriz = flipHoriz
@@ -231,17 +229,19 @@ class TextStim(BaseVisualStim, ColorMixin):
         self._needSetText=True
         logAttrib(self, log, 'font', self.fontname)
 
-    def setText(self,text=None, log=True):
-        """Set the text to be rendered using the current font
-        """
-        if text!=None:#make sure we have unicode object to render
-            self.text = unicode(text)
+    @attributeSetter
+    def text(self, text):
+        if text != None:  #make sure we have unicode object to render
+            self.__dict__['text'] = unicode(text)
         if self.useShaders:
             self._setTextShaders(text)
         else:
             self._setTextNoShaders(text)
-        self._needSetText=False
-        logAttrib(self, log, 'text', text)
+        self._needSetText = False
+    def setText(self, text=None, log=True):
+        """Set the text to be rendered using the current font
+        """
+        callAttributeSetter(self, 'text', text, log)
     def setRGB(self, text, operation='', log=True):
         self._set('rgb', text, operation, log=log)
         if not self.useShaders:
