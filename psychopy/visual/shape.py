@@ -112,8 +112,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # Other stuff
         self.depth=depth
         self.ori = numpy.array(ori,float)
-        self.size = numpy.array([0.0,0.0])
-        self.setSize(size, log=False)
+        self.size = numpy.array([0.0, 0.0]) + size  # make sure that it's 2D
         self.setVertices(vertices, log=False)
 
         #set autoLog (now that params have been initialised)
@@ -187,11 +186,17 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                     rgbAttrib='fillRGB',#the name for this rgb value
                     colorAttrib='fillColor',#the name for this color
                     log=log)
+    
+    @attributeSetter
+    def size(self, value):
+        self.__dict__['size'] = numpy.array(value)
+        self._needVertexUpdate = True
     def setSize(self, value, operation='', log=True):
         """ Sets the size of the shape.
         Size is independent of the units of shape and will simply scale the shape's vertices by the factor given.
         Use a tuple or list of two values to scale asymmetrically.
         """
+        setWithOperation(self, 'size', value, operation, autoLog=log)  # calls attributeSetter
         self._set('size', numpy.asarray(value), operation, log=log)
         self._needVertexUpdate=True
 
