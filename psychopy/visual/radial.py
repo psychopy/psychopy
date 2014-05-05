@@ -155,7 +155,6 @@ class RadialStim(GratingStim):
         specifying the luminance profile extending outwards from the
         center of the stimulus, rather than a 2D array
         """
-        print 'mask is', value
         self.__dict__['mask'] = value
         res = self.texRes#resolution of texture - 128 is bearable
         step = 1.0/res
