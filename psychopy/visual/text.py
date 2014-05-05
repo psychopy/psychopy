@@ -145,7 +145,7 @@ class TextStim(BaseVisualStim, ColorMixin):
 
         #treat letter height and wrapWidth as vertices (in degFlatPos they should not be 'corrected')
         wh = convertToPix(pos = numpy.array([0,0]), vertices=numpy.array([wrapWidth,height]), units=self.units, win=self.win)
-        self._wrapWidthPix, self.heightPix = wh
+        self._wrapWidthPix, self._heightPix = wh
         #generate the texture and list holders
         self._listID = GL.glGenLists(1)
         if not self.win.winType=="pyglet":#pygame text needs a surface to render to
@@ -164,7 +164,7 @@ class TextStim(BaseVisualStim, ColorMixin):
         self.setFont(font, log=False)
         self.opacity = float(opacity)
         self.contrast = float(contrast)
-        self.setText(text, log=False) #self.width and self.height get set with text and calcSizeRendered is called
+        self.setText(text, log=False) #self.width and self._fontHeightPix get set with text and calcSizeRendered is called
         self._needUpdate = True
 
         #set autoLog (now that params have been initialised)
@@ -175,23 +175,33 @@ class TextStim(BaseVisualStim, ColorMixin):
     def __del__(self):
         GL.glDeleteLists(self._listID, 1)
 
-    def setHeight(self,height, log=True):
-        """Set the height of the letters (including the entire box that surrounds the letters
+    @attributeSetter
+    def height(self, height):
+        """Float or int.
+        The height of the letters (including the entire box that surrounds the letters
         in the font). The width of the letters is then defined by the font.
-        """
-        self.heightPix = convertToPix(pos = numpy.array([0,0]),
-                                      vertices=numpy.array([0,height]),
+        
+        :ref:`Operations <attrib-operations>` supported."""
+        self.__dict__['height'] = height
+        self._heightPix = convertToPix(pos = numpy.array([0, 0]),
+                                      vertices=numpy.array([0, self.height]),
                                       units=self.units, win=self.win)[1]
         #need to update the font to reflect the change
-        self.setFont(self.fontname, log=False)
-        logAttrib(self, log, 'height', height)
+        self.setFont(self.fontname, log=False)    
+
+    def setHeight(self, height, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
+        callAttributeSetter(self, 'height', height, log)
+    
     def setFont(self, font, log=True):
         """Set the font to be used for text rendering.
         font should be a string specifying the name of the font (in system resources)
         """
         self.fontname=None#until we find one
         if self.win.winType=="pyglet":
-            self._font = pyglet.font.load(font, int(self.heightPix), dpi=72, italic=self.italic, bold=self.bold)
+            self._font = pyglet.font.load(font, int(self._heightPix), dpi=72, italic=self.italic, bold=self.bold)
             self.fontname=font
         else:
             if font==None or len(font)==0:
@@ -213,10 +223,10 @@ class TextStim(BaseVisualStim, ColorMixin):
                         self.fontname = pygame.font.get_default_font()
 
             if self.fontname is not None and os.path.isfile(self.fontname):
-                self._font = pygame.font.Font(self.fontname, int(self.heightPix), italic=self.italic, bold=self.bold)
+                self._font = pygame.font.Font(self.fontname, int(self._heightPix), italic=self.italic, bold=self.bold)
             else:
                 try:
-                    self._font = pygame.font.SysFont(self.fontname, int(self.heightPix), italic=self.italic, bold=self.bold)
+                    self._font = pygame.font.SysFont(self.fontname, int(self._heightPix), italic=self.italic, bold=self.bold)
                     self.fontname = font
                     logging.info('using sysFont ' + str(font))
                 except:
@@ -224,7 +234,7 @@ class TextStim(BaseVisualStim, ColorMixin):
                     logging.error("Couldn't find font %s on the system. Using %s instead!\n \
                               Font names should be written as concatenated names all in lower case.\n \
                               e.g. 'arial', 'monotypecorsiva', 'rockwellextra'..." %(font, self.fontname))
-                    self._font = pygame.font.SysFont(self.fontname, int(self.heightPix), italic=self.italic, bold=self.bold)
+                    self._font = pygame.font.SysFont(self.fontname, int(self._heightPix), italic=self.italic, bold=self.bold)
         #re-render text after a font change
         self._needSetText=True
         logAttrib(self, log, 'font', self.fontname)
@@ -308,7 +318,7 @@ class TextStim(BaseVisualStim, ColorMixin):
                                                        halign=self.alignHoriz, valign=self.alignVert,
                                                        color = (1.0,1.0,1.0, self.opacity),
                                                        width=self._wrapWidthPix)#width of the frame
-#            self._pygletTextObj = pyglet.text.Label(self.text,self.fontname, int(self.heightPix),
+#            self._pygletTextObj = pyglet.text.Label(self.text,self.fontname, int(self._heightPix),
 #                                                       anchor_x=self.alignHoriz, anchor_y=self.alignVert,#the point we rotate around
 #                                                       halign=self.alignHoriz,
 #                                                       color = (int(127.5*self.rgb[0]+127.5),
@@ -316,17 +326,17 @@ class TextStim(BaseVisualStim, ColorMixin):
 #                                                            int(127.5*self.rgb[2]+127.5),
 #                                                            int(255*self.opacity)),
 #                                                       multiline=True, width=self._wrapWidthPix)#width of the frame
-            self.width, self.height = self._pygletTextObj.width, self._pygletTextObj.height
+            self.width, self._fontHeightPix = self._pygletTextObj.width, self._pygletTextObj.height
         else:
             self._surf = self._font.render(value, self.antialias, [255,255,255])
-            self.width, self.height = self._surf.get_size()
+            self.width, self._fontHeightPix = self._surf.get_size()
 
             if self.antialias: smoothing = GL.GL_LINEAR
             else: smoothing = GL.GL_NEAREST
             #generate the textures from pygame surface
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)  #bind that name to the target
-            GL.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, 4, self.width,self.height,
+            GL.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, 4, self.width,self._fontHeightPix,
                                   GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring( self._surf, "RGBA",1))
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)    #linear smoothing if texture is stretched?
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
@@ -354,9 +364,9 @@ class TextStim(BaseVisualStim, ColorMixin):
         elif self.alignHoriz =='right':    left = -self.width;    right = 0.0
         else: left = 0.0; right = self.width
         #how much to move bottom
-        if self.alignVert in ['center', 'centre']: bottom=-self.height/2.0; top=self.height/2.0
-        elif self.alignVert =='top': bottom=-self.height; top=0
-        else: bottom=0.0; top=self.height
+        if self.alignVert in ['center', 'centre']: bottom=-self._fontHeightPix/2.0; top=self._fontHeightPix/2.0
+        elif self.alignVert =='top': bottom=-self._fontHeightPix; top=0
+        else: bottom=0.0; top=self._fontHeightPix
         Btex, Ttex, Ltex, Rtex = -0.01, 0.98, 0,1.0#there seems to be a rounding err in pygame font textures
 
         #unbind the mask texture regardless
@@ -413,20 +423,20 @@ class TextStim(BaseVisualStim, ColorMixin):
                                                        color = (desiredRGB[0],desiredRGB[1], desiredRGB[2], self.opacity),
                                                        width=self._wrapWidthPix,#width of the frame
                                                        )
-            self.width, self.height = self._pygletTextObj.width, self._pygletTextObj.height
+            self.width, self._fontHeightPix = self._pygletTextObj.width, self._pygletTextObj.height
         else:
             self._surf = self._font.render(value, self.antialias,
                                            [desiredRGB[0]*255,
                                             desiredRGB[1]*255,
                                             desiredRGB[2]*255])
-            self.width, self.height = self._surf.get_size()
+            self.width, self._fontHeightPix = self._surf.get_size()
             if self.antialias: smoothing = GL.GL_LINEAR
             else: smoothing = GL.GL_NEAREST
             #generate the textures from pygame surface
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)  #bind that name to the target
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA,
-                            self.width,self.height,0,
+                            self.width,self._fontHeightPix,0,
                             GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring( self._surf, "RGBA",1))
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,smoothing)    #linear smoothing if texture is stretched?
             GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,smoothing)    #but nearest pixel value if it's compressed?
@@ -449,9 +459,9 @@ class TextStim(BaseVisualStim, ColorMixin):
         elif self.alignHoriz =='right':    left = -self.width;    right = 0.0
         else: left = 0.0; right = self.width
         #how much to move bottom
-        if self.alignVert in ['center', 'centre']: bottom=-self.height/2.0; top=self.height/2.0
-        elif self.alignVert =='top': bottom=-self.height; top=0
-        else: bottom=0.0; top=self.height
+        if self.alignVert in ['center', 'centre']: bottom=-self._fontHeightPix/2.0; top=self._fontHeightPix/2.0
+        elif self.alignVert =='top': bottom=-self._fontHeightPix; top=0
+        else: bottom=0.0; top=self._fontHeightPix
         Btex, Ttex, Ltex, Rtex = -0.01, 0.98, 0,1.0#there seems to be a rounding err in pygame font textures
         if self.win.winType=="pyglet":
             #unbind the mask texture
