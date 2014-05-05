@@ -38,6 +38,7 @@ def callAttributeSetter(self, attrib, value, log=True):
 def setWithOperation(self, attrib, value, operation, stealth=False, autoLog=True):
     """ Sets an object property (scalar or numpy array) with an operation.
     If stealth is True, then use self.__dict[key] = value and avoid calling attributeSetters. 
+    Will always return a numpy array of floats.
     
     If stealth is False, use setattr(). autoLog controls the value of autoLog during this setattr().
     This is useful to translate the old set* functions to the new @attributeSetters. In set*, just do:
@@ -50,9 +51,9 @@ def setWithOperation(self, attrib, value, operation, stealth=False, autoLog=True
     try:
         oldValue = getattr(self, attrib)
         if oldValue is None:
-            newValue = value
+            newValue = numpy.array(value, float)
         else:
-            oldValue = numpy.asarray(oldValue, float)
+            oldValue = numpy.array(oldValue, float)
 
             # Calculate new value using operation
             if operation in ('', None):
@@ -73,11 +74,11 @@ def setWithOperation(self, attrib, value, operation, stealth=False, autoLog=True
                 raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
     except AttributeError:
         # attribute is not set yet. Do it now in a non-updating manner
-        newValue = value
+        newValue = numpy.array(value, float)
     except TypeError:
         # Attribute is "None" or unset and decorated. This is a sign that we are just initing
         if oldValue is None or isinstance(oldValue, attributeSetter):
-            newValue = value
+            newValue = numpy.array(value, float)
         else:
             raise TypeError
     finally:
