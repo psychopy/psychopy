@@ -453,18 +453,30 @@ class TextStim(BaseVisualStim, ColorMixin):
         GL.glEndList()
         self._needUpdate = False
 
-    def setFlipHoriz(self, newVal=True, log=True):
+    @attributeSetter
+    def flipHoriz(self, value):
         """If set to True then the text will be flipped horiztonally (left-to-right).
         Note that this is relative to the original, not relative to the current state.
         """
-        self.flipHoriz = newVal
-        logAttrib(self, log, 'flipHoriz')
-    def setFlipVert(self, newVal=True, log=True):
+        self.__dict__['flipHoriz'] = value
+    def setFlipHoriz(self, newVal=True, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
+        callAttributeSetter(self, 'flipHoriz', newVal, log)
+    
+    @attributeSetter
+    def flipVert(self, value):
         """If set to True then the text will be flipped vertically (top-to-bottom).
         Note that this is relative to the original, not relative to the current state.
         """
-        self.flipVert = newVal
-        logAttrib(self, log, 'flipVert')
+        self.__dict__['flipVert'] = value
+    def setFlipVert(self, newVal=True, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
+        callAttributeSetter(self, 'flipVert', newVal, log)
+
     def setFlip(self, direction, log=True):
         """(used by Builder to simplify the dialog)"""
         if direction == 'vert':
