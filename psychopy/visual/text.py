@@ -477,8 +477,6 @@ class TextStim(BaseVisualStim, ColorMixin):
         self.__dict__['italic'] = value
         self.font = self.font  # call attributeSetter
     
-    # Commented out because of general bug with these attributes. See
-    # https://github.com/psychopy/psychopy/issues/595
     @attributeSetter
     def alignVert(self, value):
         """The vertical alignment ('top', 'bottom' or 'center')"""
