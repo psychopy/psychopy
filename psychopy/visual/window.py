@@ -45,6 +45,7 @@ import psychopy.event
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
+from psychopy.tools.attributetools import attributeSetter, callAttributeSetter
 from psychopy.tools.arraytools import val2array
 from psychopy import makeMovies
 from psychopy.visual.text import TextStim
@@ -368,7 +369,8 @@ class Window:
         s = "%s(%s)" %(className, params)
         return s
 
-    def setRecordFrameIntervals(self, value=True):
+    @attributeSetter
+    def recordFrameIntervals(self, value):
         """To provide accurate measures of frame intervals, to determine
         whether frames are being dropped. The intervals are the times between
         calls to `.flip()`. Set to `True` only during the time-critical parts
@@ -385,9 +387,13 @@ class Window:
             self.recordFrameIntervalsJustTurnedOn = True
         else:
             self.recordFrameIntervalsJustTurnedOn = False
-        self.recordFrameIntervals = value
-
+        self.__dict__['recordFrameIntervals'] = value
         self.frameClock.reset()
+
+    def setRecordFrameIntervals(self, value=True, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message."""
+        callAttributeSetter(self, 'recordFrameIntervals', value, log)
 
     def saveFrameIntervals(self, fileName=None, clear=True):
         """Save recorded screen frame intervals to disk, as comma-separated
@@ -1477,11 +1483,11 @@ class Window:
                              'less than nMaxFrames')
         recordFrmIntsOrig = self.recordFrameIntervals
         #run warm-ups
-        self.setRecordFrameIntervals(False)
+        self.recordFrameIntervals = False
         for frameN in range(nWarmUpFrames):
             self.flip()
         #run test frames
-        self.setRecordFrameIntervals(True)
+        self.recordFrameIntervals = True
         for frameN in range(nMaxFrames):
             self.flip()
             if (len(self.frameIntervals) >= nIdentical and
@@ -1495,7 +1501,7 @@ class Window:
                 if self.autoLog:
                     logging.debug('Screen%s actual frame rate measured at %.2f' %
                               (scrStr, rate))
-                self.setRecordFrameIntervals(recordFrmIntsOrig)
+                self.recordFrameIntervals = recordFrmIntsOrig
                 self.frameIntervals = []
                 return rate
         #if we got here we reached end of maxFrames with no consistent value

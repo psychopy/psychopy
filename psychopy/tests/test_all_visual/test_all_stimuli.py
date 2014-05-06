@@ -33,8 +33,8 @@ class Test_Window:
         self.win.saveMovieFrames(os.path.join(self.temp_dir, 'junkFrames.gif'))
         region = self.win._getRegionOfFrame()
     def test_multiFlip(self):
-        self.win.setRecordFrameIntervals(False) #does a reset
-        self.win.setRecordFrameIntervals(True)
+        self.win.recordFrameIntervals = False #does a reset
+        self.win.recordFrameIntervals = True
         self.win.multiFlip(3)
         self.win.multiFlip(3,clearBuffer=False)
         self.win.saveFrameIntervals(os.path.join(self.temp_dir, 'junkFrameInts'))

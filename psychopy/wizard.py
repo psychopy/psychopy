@@ -217,7 +217,7 @@ class ConfigWizard(object):
         avg, sd, median = visual.getMsPerFrame(win)
         dots100 = visual.DotStim(win, nDots=100, speed=0.005, dotLife=12, dir=90,
             coherence=0.2, dotSize=8, fieldShape='circle')
-        win.setRecordFrameIntervals(True)
+        win.recordFrameIntervals = True
         win.frameIntervals = []
         win.flip()
         for i in xrange(180):
@@ -230,7 +230,7 @@ class ConfigWizard(object):
         if nDropped:
             msg = 'Warning: could not keep up during <a href="http://www.psychopy.org/api/visual/dotstim.html">DotStim</a> with 100 random dots.'
         report.append(('no dropped frames', '%i / %i' % (nDropped, nTotal), msg))
-        win.setRecordFrameIntervals(False)
+        win.recordFrameIntervals = False
         try:
             from pyglet.media import avbin
             ver = avbin.get_version()
@@ -586,7 +586,7 @@ class BenchmarkWizard(ConfigWizard):
         baseline = known frames per second; None means measure it here
         """
 
-        win.setRecordFrameIntervals(True)
+        win.recordFrameIntervals = True
         secs = 1  # how long to draw them for, at least 1s
 
         # baseline frames per second:
@@ -640,7 +640,7 @@ class BenchmarkWizard(ConfigWizard):
                         fieldShape=fieldShape, nDots=dotCount)
                 frameCount = 0
                 win.fps()  # reset
-        win.setRecordFrameIntervals(False)
+        win.recordFrameIntervals = False
         win.flip()
         return tuple(dotsInfo)
 
