@@ -1172,7 +1172,10 @@ class ValidationProcedure(object):
         
     def _generateImageName(self):
         from psychopy.iohub.util import getCurrentDateTimeString, normjoin
-        file_name='fig_'+getCurrentDateTimeString().replace(' ','_').replace(':','_')+'.png'
+        file_name='validation_'+getCurrentDateTimeString().replace(' ',
+                                                            '_').replace(':',
+                                                            '_').replace('-',
+                                                            '_')+'.png'
         if self.save_figure_path:
             return normjoin(self.save_figure_path,file_name)    
         rootScriptPath = os.path.dirname(sys.argv[0])
@@ -1381,7 +1384,11 @@ class ValidationProcedure(object):
             
             #pl.colorbar()
             fig.tight_layout()
-            return fig 
+
+            fig_name = self._generateImageName()
+            fig.savefig(fig_name, dpi=self.use_dpi)
+            self.io.sendMessageEvent("Validation Plot: %s"%(fig_name), 'VALIDATION')
+            return fig, fig_name
         except:
             print "\nError While Calculating Accuracy Stats:"
             import traceback
@@ -1395,15 +1402,12 @@ class ValidationProcedure(object):
         
     def _buildResultScreen(self,replot=False):
         if replot or self.imagestim is None:        
-            fig = self._createPlot()
+            fig, fig_image_path = self._createPlot()
             text_pos=(0,0)
             text='Accuracy Calculation not Possible do to Analysis Error. Press SPACE to continue.'
             
             if fig:
-                fig_name=self._generateImageName()
-                fig.savefig(fig_name,dpi=self.use_dpi)
-                
-                fig_image = Image.open(fig_name)
+                fig_image = Image.open(fig_image_path)
         
                 if self.imagestim:
                     self.imagestim.setImage(fig_image)
