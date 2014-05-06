@@ -138,6 +138,10 @@ class Window(object):
                  useFBO=False,
                  autoLog=True):
         """
+        These attributes can only be set at initialization. See further down
+        for a list of attributes which can be changed after initialization
+        of the Window, e.g. color, colorSpace, gamma etc.
+        
         :Parameters:
 
             size : (800,600)
@@ -156,11 +160,6 @@ class Window(object):
                 If None then PsychoPy will revert to user/site preferences
             monitor : *None*, string or a `~psychopy.monitors.Monitor` object
                 The monitor to be used during the experiment
-            units :  *None*, 'height' (of the window), 'norm' (normalised),
-                'deg', 'cm', 'pix'
-                Defines the default units of stimuli drawn in the window
-                (can be overridden by each stimulus)
-                See :ref:`units` for explanation of options.
             screen : *0*, 1 (or higher if you have many screens)
                 Specifies the physical screen that stimuli will appear on
                 (pyglet winType only)
@@ -171,11 +170,11 @@ class Window(object):
                 If not None, redefines the origin for the window
             viewOri : *0* or any numeric value
                 A single value determining the orientation of the view in degs
-            waitBlanking : *None*, True or False.
-                After a call to flip() should we wait for the blank before
-                the script continues
             bitsMode :
                 DEPRECATED in 1.80.02. Use BitsSharp class from pycrsltd instead.
+            checkTiming: True of False
+                Whether to calculate frame duration on initialization. Estimated
+                duration is saved in [Window].monitorFramePeriod.
             allowStencil : True or *False*
                 When set to True, this allows operations that use
                 the OpenGL stencil buffer
@@ -365,6 +364,21 @@ class Window(object):
         params = ", ".join(paramStrings)
         s = "%s(%s)" %(className, params)
         return s
+
+    @attributeSetter
+    def units(self, value):
+        """*None*, 'height' (of the window), 'norm' (normalised), 'deg', 'cm', 'pix'
+        Defines the default units of stimuli initialized in the window. I.e. if you
+        change units, already initialized stimuli won't change their units.
+        
+        Can be overridden by each stimulus, if units is specified on initialization.
+        See :ref:`units` for explanation of options."""
+        self.__dict__['units'] = value
+    @attributeSetter
+    def waitBlanking(self, value):
+        """*None*, True or False.
+        After a call to flip() should we wait for the blank before the script continues"""
+        self.__dict__['waitBlanking'] = value
 
     @attributeSetter
     def recordFrameIntervals(self, value):
