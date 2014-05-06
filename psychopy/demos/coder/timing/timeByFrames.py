@@ -25,7 +25,7 @@ myStim = visual.PatchStim(win, tex='sin', mask='gauss',
     autoLog=False)
 #logging.console.setLevel(logging.INFO)#uncomment if you want to print every frame time
 
-win.setRecordFrameIntervals()
+win.recordFrameIntervals = True
 for frameN in range(nIntervals+1):
     progBar.setSize([2.0*frameN/nIntervals, 0.05])
     progBar.draw()

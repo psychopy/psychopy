@@ -23,7 +23,7 @@ message = visual.TextStim(myWin,pos=(-0.95,-0.95),
 
 trialClock = core.Clock()
 t=lastFPSupdate=0
-myWin.setRecordFrameIntervals()
+myWin.recordFrameIntervals = True
 while True:
     t=trialClock.getTime()
     #Images can be manipulated on the fly

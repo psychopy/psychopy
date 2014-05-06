@@ -12,7 +12,7 @@ import psychopy.info
 
 # When creating an experiment, first define your window (& monitor):
 myWin = visual.Window(fullscr=False,size=[200,200], monitor='testMonitor')
-myWin.setRecordFrameIntervals(True)
+myWin.recordFrameIntervals = True
 logging.console.setLevel(logging.DEBUG)
 
 # Then gather run-time info. All parameters are optional:
