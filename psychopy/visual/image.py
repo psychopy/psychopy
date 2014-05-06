@@ -47,34 +47,20 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                  texRes=128,
                  name='', autoLog=True,
                  maskParams=None):
-        """
-        All parameters init parameters have corresponding properties. Thus any 
-        parameter can be set/changed at initialization and after initialization.        
-
-        :Can only be set at initialization:        
-        
-            maskParams: Various types of input. Default to None.
-                This is used to pass additional parameters to the mask if those
-                are needed.
-                - For the 'raisedCos' mask, pass a dict: ``{'fringeWidth':0.2}``,
-                where 'fringeWidth' is a parameter (float, 0-1), determining
-                the proportion of the patch that will be blurred by the raised
-                cosine edge.
-
-        """
+        """ """  # Empty docstring. All doc is in attributes
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
 
         super(ImageStim, self).__init__(win, units=units, name=name, autoLog=False)#set autoLog at end of init
-        self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
+        self.__dict__['useShaders'] = win._haveShaders  #use shaders if available by default, this is a good thing
 
         #initialise textures for stimulus
         self._texID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._texID))
         self._maskID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._maskID))
-        self.maskParams= maskParams
+        self.__dict__['maskParams'] = maskParams
         self.__dict__['mask'] = mask
         self.__dict__['texRes'] = texRes  # Not pretty (redefined later) but it works!
         
@@ -221,15 +207,6 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
             GL.glDeleteLists(self._listID, 1)
         self.clearTextures()#remove textures from graphics card to prevent crash
 
-    def clearTextures(self):
-        """
-        Clear the textures associated with the given stimulus.
-        As of v1.61.00 this is called automatically during garbage collection of
-        your stimulus, so doesn't need calling explicitly by the user.
-        """
-        if hasattr(self, '_texID'):
-            GL.glDeleteTextures(1, self._texID)
-            GL.glDeleteTextures(1, self._maskID)
     def draw(self, win=None):
         if win==None: win=self.win
         self._selectWindow(win)
@@ -295,10 +272,3 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         but use this method if you need to suppress the log message.
         """
         callAttributeSetter(self, 'mask', value, log)
-        
-    @attributeSetter
-    def texRes(self, value):
-        """Sets the resolution of the mask (this is independent of the image resolution).
-        """
-        self.__dict__['texRes'] = value
-        self.mask = self.mask

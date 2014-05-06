@@ -55,7 +55,7 @@ def setWithOperation(self, attrib, value, operation, stealth=False, autoLog=True
             oldValue = numpy.asarray(oldValue, float)
 
             # Calculate new value using operation
-            if operation == '':
+            if operation in ('', None):
                 newValue = oldValue * 0 + value  # Preserves dimensions, if array
             elif operation == '+':
                 newValue = oldValue + value

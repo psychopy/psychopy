@@ -42,7 +42,7 @@ while True:
     stim1.draw()
     
     sqrVertices[1] = [ -0.2-sin(clock.getTime())/6.0, -0.2-cos(clock.getTime())/6.0 ]#change one of the vertices
-    stim2.setVertices(sqrVertices)
+    stim2.vertices = sqrVertices
     stim2.draw()
  
     win.flip()
