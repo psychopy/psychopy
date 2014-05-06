@@ -78,20 +78,27 @@ def _setupRequested(requestedVersion):
 def _checkoutRequested(requestedVersion):
     """Look for a path matching the request, return it if found or return None for the search"""
     with os.chdir(os.path.join(VERSIONSDIR,'psychopy')):
-        cmd = ['git','describe','--always','--tag']
-        vers = subprocess.check_output(cmd).split('-')[0]
-        if _versionOk(vers,requestedVersion):
-            return os.path.join(searchPath,child)
-        else:
+        # Grab new tags
+        cmd = 'git fetch github'
+        print cmd
+        out = subprocess.check_output(cmd.split())
+
+        # Check tag of repo
+        cmd = 'git describe --always --tag'
+        print cmd
+        vers = subprocess.check_output(cmd.split()).split('-')[0]
+
+        # Checkout the requested tag if required
+        if not _versionOk(vers,requestedVersion):
             _, requestVers = _getComparator(requestedVersion)
-            cmd = ['git','checkout',requestVers]
-            out = subprocess.check_output(cmd)
+            cmd = 'git checkout %s' % requestVers
+            out = subprocess.check_output(cmd.split())
 
 
 def _cloneRequested(requestedVersion):
     """Check out a new copy of the requested version"""
     with os.chdir(VERSIONSDIR):
-        cmd = 'git clone https://github.com/psychopy/psychopy'
+        cmd = 'git clone -o github https://github.com/psychopy/psychopy'
         print 'Cloning Psychopy Library from Github - this may take a while'
         print cmd
         out = subprocess.check_output(cmd.split())
