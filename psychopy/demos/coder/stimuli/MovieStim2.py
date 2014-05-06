@@ -16,19 +16,18 @@ Movie2 does require:
 from psychopy import visual, core, event
 import time
 
-videopath=r''
-assert len(videopath) > 0
+videopath=r'./jwpIntro.mov'
 
 win = visual.Window([1024, 768])
 
 # Create your movie stim.
 mov = visual.MovieStim2(win, videopath,
-                       size=1024,
+                       size=640,
                        # pos specifies the /center/ of the movie stim location
                        pos=[0, 100],
                        flipVert=False,
                        flipHoriz=False,
-                       loop=True)
+                       loop=False)
 
 keystext = "PRESS 'q' or 'escape' to Quit.\n"
 keystext += "#     's': Stop/restart Movie.\n"
@@ -37,19 +36,14 @@ keystext += "#     '>': Seek Forward 1 Second.\n"
 keystext += "#     '<': Seek Backward 1 Second.\n"
 keystext += "#     '-': Decrease Movie Volume.\n"
 keystext += "#     '+': Increase Movie Volume."
-text = visual.TextBox(win,keystext, font_name=None, bold=False, italic=False,
-                      font_size=21, font_color=[-1, -1, -1, 1],
-                      textgrid_shape=(36, 7), pos=(0, -350), units = 'pix',
-                      grid_vert_justification='center',
-                      grid_horz_justification='left', align_horz='center',
-                      align_vert='bottom',
-                      autoLog=False, interpolate=True)
+text = visual.TextStim(win, keystext, pos=(0, -250), units = 'pix')
 
 # Start the movie stim by preparing it to play
 shouldflip = mov.play()
 while mov.status != visual.FINISHED:
-    # Only flip when a new frame should be displayed. This only makes sense if the movie is the only /dynamic/ stim being displayed.
-    # On a 60 Hz monitor playing a 30 Hz video, this cuts CPU usage of the psychopy app. by almost 50%.
+    # Only flip when a new frame should be displayed. Can significantly reduce
+    # CPU usage. This only makes sense if the movie is the only /dynamic/ stim
+    # displayed.
     if shouldflip:
         # Movie has already been drawn , so just draw text stim and flip
         text.draw()
@@ -57,7 +51,8 @@ while mov.status != visual.FINISHED:
     else:
         # Give the OS a break if a flip is not needed
         time.sleep(0.001)
-    # Drawn movie stim again. Updating of movie stim frames as necessary is handled internally.
+    # Drawn movie stim again. Updating of movie stim frames as necessary
+    # is handled internally.
     shouldflip = mov.draw()
 
     # Check for action keys.....
@@ -71,7 +66,8 @@ while mov.status != visual.FINISHED:
                 mov.stop()
                 # Clear screen of last displayed frame.
                 win.flip()
-                # When movie stops, clear screen of last displayed frame, and display text stim only....
+                # When movie stops, clear screen of last displayed frame,
+                # and display text stim only....
                 text.draw()
                 win.flip()
             else:
