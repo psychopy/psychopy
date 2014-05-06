@@ -325,7 +325,7 @@ class ioHubConnection(object):
         
     """
     ACTIVE_CONNECTION=None
-    _replyDictionary=dict()
+    #_replyDictionary=dict()
     def __init__(self,ioHubConfig=None,ioHubConfigAbsPath=None):        
         if ioHubConfig:
             if not isinstance(ioHubConfig,dict):
@@ -964,7 +964,11 @@ class ioHubConnection(object):
         self.udp_client=UDPClientConnection(remote_port=ioHubConfig.get('udp_port',9000))
 
         run_script=os.path.join(IO_HUB_DIRECTORY,'launchHubProcess.py')
-        subprocessArgList=[sys.executable,run_script,"%.6f"%Computer.globalClock.getLastResetTime(),rootScriptPath,ioHubConfigAbsPath]
+        subprocessArgList=[sys.executable,
+                           run_script,
+                           "%.6f"%Computer.globalClock.getLastResetTime(),
+                           rootScriptPath, ioHubConfigAbsPath,
+                           str(Computer.currentProcess.pid)]
 
         # check for existing ioHub Process based on process if saved to file
         iopFileName=os.path.join(rootScriptPath ,'.iohpid')
@@ -1231,15 +1235,28 @@ class ioHubConnection(object):
 
         Return (object): the message response from the ioHub Server process.
         """
+        try:
+            # send request to host, return is # bytes sent.
+            bytes_sent = self.udp_client.sendTo(ioHubMessage)
+        except Exception, e:
+            import traceback
+            traceback.print_exc()
+            self.shutdown()
+            raise e
 
-        # send request to host, return is # bytes sent.
-        bytes_sent=self.udp_client.sendTo(ioHubMessage)
-
-        # wait for response from ioHub server, return is result ( decoded already ), and Hub address (ip4,port).
-        result,address=self.udp_client.receive()
+        try:
+            # wait for response from ioHub server, return is result ( decoded already ), and Hub address (ip4,port).
+            result = self.udp_client.receive()
+            if result:
+                result, address = result
+        except Exception, e:
+            import traceback
+            traceback.print_exc()
+            self.shutdown()
+            raise e
 
         # store result received in an address based dictionary (incase we ever support multiple ioHub Servers)
-        ioHubConnection._addResponseToHistory(result,bytes_sent,address)
+        #ioHubConnection._addResponseToHistory(result,bytes_sent,address)
 
         # check if the reply is an error or not. If it is, raise the error.
         errorReply=self._isErrorReply(result)
@@ -1249,19 +1266,19 @@ class ioHubConnection(object):
         #Otherwise return the result
         return result
 
-    @classmethod
-    def _addResponseToHistory(cls,result,bytes_sent,address):
-        """
-        Adds a response from the ioHub to an ip:port based dictionary. 
-        Not used right now, but may be useful if we ever support
-        a client connecting to > 1 ioHub.
-        """
-        address=str(address)
-        if address in cls._replyDictionary:
-            cls._replyDictionary[address].append((result,bytes_sent))
-        else:
-            cls._replyDictionary[address]=deque(maxlen=128)
-            cls._replyDictionary[address].append((result,bytes_sent))
+#    @classmethod
+#    def _addResponseToHistory(cls,result,bytes_sent,address):
+#        """
+#        Adds a response from the ioHub to an ip:port based dictionary.
+#        Not used right now, but may be useful if we ever support
+#        a client connecting to > 1 ioHub.
+#        """
+#        address=str(address)
+#        if address in cls._replyDictionary:
+#            cls._replyDictionary[address].append((result,bytes_sent))
+#        else:
+#            cls._replyDictionary[address]=deque(maxlen=128)
+#            cls._replyDictionary[address].append((result,bytes_sent))
 
 
 
@@ -1432,7 +1449,7 @@ class ioHubConnection(object):
                     return ioHubServerError(data)
                 return False
         else:
-            raise ioHubConnectionException('Response from ioHub should always be iterable and have a length > 0')
+            return ioHubServerError("Invalid Response Received from ioHub Server")
 
     def _osxKillAndFreePort(self):
         p = subprocess.Popen(['lsof', '-i:9000', '-P'], stdout=subprocess.PIPE)

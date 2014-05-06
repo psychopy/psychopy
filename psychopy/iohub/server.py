@@ -23,7 +23,11 @@ currentSec= Computer.currentSec
 
 import json
 import msgpack
-    
+try:
+    import psutil
+except:
+    pass
+
 class udpServer(DatagramServer):
     def __init__(self,ioHubServer,address,coder='msgpack'):
         self.iohub=ioHubServer
@@ -867,10 +871,23 @@ class ioServer(object):
         self.eventBuffer.clear()
         return l
 
+    def checkForPsychopyProcess(self, sleep_interval):
+        while self._running:
+            if Computer.psychopy_process:
+                try:
+                    if Computer.psychopy_process.is_running() is False:
+                        Computer.psychopy_process = None
+                        psychopy.iohub.MessageDialog("PsychoPy Process dead. Should shut down.")
+                        self.shutdown()
+                        sys.exit(1)
+                except:
+                        sys.exit(2)
+            gevent.sleep(sleep_interval)
+
     def shutdown(self):
         try:
             self._running=False
-    
+
             if Computer.system=='linux2':
                 if self._hookManager:
                     self._hookManager.cancel()
@@ -878,12 +895,15 @@ class ioServer(object):
             while len(self.deviceMonitors) > 0:
                 m=self.deviceMonitors.pop(0)
                 m.running=False
+
             if self.eventBuffer:
                 self.clearEventBuffer()
+
             try:
                 self.closeDataStoreFile()
             except:
                 pass
+
             while len(self.devices) > 0:
                 d=self.devices.pop(0)
                 try:
@@ -891,7 +911,6 @@ class ioServer(object):
                         d._close()
                 except:
                         pass
-            gevent.sleep()
         except:
             print2err("Error in ioSever.shutdown():")
             printExceptionDetailsToStdErr()

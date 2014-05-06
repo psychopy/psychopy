@@ -180,7 +180,13 @@ class Computer(object):
     #: True if the current process is the ioHub Server Process. False if the
     #: current process is the Experiment Runtime Process.
     isIoHubProcess=False
-    
+
+    #: If Computer class is on the iohub server process, psychopy_process is
+    #: the psychopy process created from the pid passed to iohub on startup.
+    #: The iohub server checks that this process exists
+    #: (server.checkForPsychopyProcess()) and shuts down if it does not.
+    psychopy_process = None
+
     #: True if the current process is currently in high or real-time priority mode
     #: (enabled by calling Computer.enableHighPriority() or Computer.enableRealTimePriority() )
     #: False otherwise.
@@ -208,16 +214,16 @@ class Computer(object):
         processingUnitCount=multiprocessing.cpu_count()
     
     #: The OS processes ID of the current Python process.
-    currentProcessID=os.getpid()
+    # currentProcessID=os.getpid()
     
     #: Access to the psutil.Process class for the current system Process.
     #: On OS X, this is the returned value from multiprocessing.current_process()
     if _psutil_available:
-        currentProcess=psutil.Process(currentProcessID)
+        currentProcess = psutil.Process()
     else:
         
         import multiprocessing
-        currentProcess=multiprocessing.current_process()
+        currentProcess = multiprocessing.current_process()
         
     #: The OS process ID of the ioHub Process.
     ioHubServerProcessID=None
