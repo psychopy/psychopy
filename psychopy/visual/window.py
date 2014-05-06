@@ -174,9 +174,6 @@ class Window(object):
             waitBlanking : *None*, True or False.
                 After a call to flip() should we wait for the blank before
                 the script continues
-            gamma :
-                Monitor gamma for linearisation (will use Bits++ if possible).
-                Overrides monitor settings
             bitsMode :
                 DEPRECATED in 1.80.02. Use BitsSharp class from pycrsltd instead.
             allowStencil : True or *False*
@@ -1103,7 +1100,8 @@ class Window(object):
 
     @attributeSetter
     def gamma(self, gamma):
-        """Set the monitor gamma, using Bits++ if possible"""
+        """Set the monitor gamma for linearisation, using Bits++ if possible.
+        Overrides monitor settings"""
 
         self._checkGamma(gamma)
 
