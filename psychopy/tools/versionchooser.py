@@ -10,6 +10,8 @@ import psychopy     # For currently loaded version
 import re           # Version comparison parsing
 import subprocess   # Simple git commandline management
 
+VERSIONSDIR = os.path.expanduser('~/.psychopy/versions')
+
 def useVersion(requestedVersion):
     """Manage paths and checkout psychopy libraries for requested versions of psychopy.
 
@@ -39,8 +41,8 @@ def useVersion(requestedVersion):
     if not _gitPresent():  # Switching required, so make sure `git` is available.
         raise ScriptError("Please install git to specify a version with useVersion()")
 
-    # Find/Create Versions as required
-    requestedPath = _findOrCreateRequestedPath(requestedVersion)
+    # Setup Requested Version
+    requestedPath = _setupRequested(requestedVersion)
     _switchVersionTo(requestedPath)
 
     # Reload!
@@ -63,52 +65,42 @@ def _comparator(requested):
     else:
         return ('==', requested)  # Default to identity comparison
 
-def _findOrCreateRequestedVersion(requestedVersion):
-    """Look for a path matching the request, return it if found or checkout new if not found"""
-    requestedDir = _findRequested(requestedVersion)
-    if not requestedDir:
-        # Checkout a new copy if an exisitng one couldn't be found.
-        requestedDir = _createRequestedVersion(requestedVersion)
+def _setupRequested(requestedVersion):
+    """Checkout or Clone requested version."""
+    repoPath = os.path.join(VERSIONSDIR,'psychopy')
+    if os.path.exists(repoPath):
+        _checkoutRequested(requestedVersion)
+    else:
+        _cloneRequested(requestedVersion)
 
-    return requestedDir
+    return repoPath
 
-
-def _findRequested(requestedVersion):
+def _checkoutRequested(requestedVersion):
     """Look for a path matching the request, return it if found or return None for the search"""
-    searchPaths = _getSearchPaths()
-    for searchPath in searchPaths:
-        for child in os.listdir(searchPath):
-            vers_file = os.path.join(searchPath,child,'version')
-            if os.path.exists(vers_file)
-                with open(vers_file,'r') as f:
-                    vers = f.read().strip()
-                if _versionOk(vers,requestedVersion):
-                    return os.path.join(searchPath,child)
+    with os.chdir(os.path.join(VERSIONSDIR,'psychopy')):
+        cmd = ['git','describe','--always','--tag']
+        vers = subprocess.check_output(cmd).split('-')[0]
+        if _versionOk(vers,requestedVersion):
+            return os.path.join(searchPath,child)
+        else:
+            _, requestVers = _getComparator(requestedVersion)
+            cmd = ['git','checkout',requestVers]
+            out = subprocess.check_output(cmd)
 
-    return None  # if no matching dirs found
 
-def _createRequested(requestedVersion):
+def _cloneRequested(requestedVersion):
     """Check out a new copy of the requested version"""
-    versionsDir = os.path.expanduser('~/.psychopy2/versions')
-    with os.chdir(versionsDir):
-        _, requestVers = _getComparator(requestedVersion)
-        checkoutName = 'psychopy-%s' % requestVers
-        checkoutCommand = ';'.join([
-            'git clone -o github https://github.com/psychopy/psychopy %s;' % checkoutName,
-            'git checkout --tag %s' % requestVers
-        ])
-        proc = subprocess.Popen(checkoutCommand,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                cwd='.', shell=True)
-        log, _ = proc.communicate()
-    return os.path.join(versionsDir,checkoutName)
+    with os.chdir(VERSIONSDIR):
+        cmd = 'git clone https://github.com/psychopy/psychopy'
+        print 'Cloning Psychopy Library from Github - this may take a while'
+        print cmd
+        out = subprocess.check_output(cmd.split())
 
-def _getSearchPaths():
-    """Define where to look for verions"""
-    return [
-        os.path.expanduser('~/.psychopy2/versions'),
-    ]  # Possibly expand this later with prefs? Or leave as-is
+        _, requestVers = _getComparator(requestedVersion)
+        cmd = 'git checkout --tag %s' % requestVers
+        print cmd
+        out = subprocess.check_output(cmd.split())
+
 
 def _gitPresent():
     """Check for git on command-line"""
