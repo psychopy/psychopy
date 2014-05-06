@@ -70,7 +70,7 @@ CFLAGS='-arch i386' LDFLAGS='-arch i386' ./configure --prefix=/usr/local/ make
 sudo make install
 
 #ioHub also requires
-# greenlet, gevent, msgpack, pyYAML
+# greenlet, gevent, msgpack-python, pyYAML
 
 
 System python
