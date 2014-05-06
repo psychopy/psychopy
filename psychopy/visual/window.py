@@ -97,7 +97,7 @@ openWindows = []
 psychopy.event.visualOpenWindows = openWindows
 
 
-class Window:
+class Window(object):
     """Used to set up a context in which to draw objects,
     using either PyGame (python's SDL binding) or pyglet.
 
@@ -302,9 +302,9 @@ class Window:
             logging.warning('User requested a blendmode of "add" but '
                             'framebuffer objects not available.')
             # resort to the simpler blending without float rendering
-            self.blendMode = 'avg'
+            self.__dict__['blendMode'] = 'avg'
         else:
-            self.blendMode = blendMode
+            self.__dict__['blendMode'] = blendMode
             #then set up gl context and then call self.setBlendMode
 
         #setup context and openGL()
@@ -393,7 +393,8 @@ class Window:
     def setRecordFrameIntervals(self, value=True, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        callAttributeSetter(self, 'recordFrameIntervals', value, log)
+        self.recordFrameIntervals = value
+        #callAttributeSetter(self, 'recordFrameIntervals', value, log)
 
     def saveFrameIntervals(self, fileName=None, clear=True):
         """Save recorded screen frame intervals to disk, as comma-separated
@@ -932,8 +933,9 @@ class Window:
         self.frames = 0
         return fps
 
-    def setBlendMode(self, blendMode):
-        self.blendMode = blendMode
+    @attributeSetter
+    def blendMode(self, blendMode):
+        self.__dict__['blendMode'] = blendMode
         if blendMode=='avg':
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
             if hasattr(self, '_shaders'):
@@ -948,6 +950,11 @@ class Window:
                 self._progSignedTexMask = self._shaders['signedTexMask_adding']
                 self._progSignedTexMask1D = self._shaders['signedTexMask1D_adding']
                 self._progImageStim = self._shaders['imageStim_adding']
+    
+    def setBlendMode(self, blendMode, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message."""
+        callAttributeSetter(self, 'blendMode', blendMode, log)
 
     def setColor(self, color, colorSpace=None, operation=''):
         """Set the color of the window.
