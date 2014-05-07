@@ -983,7 +983,7 @@ class Window(object):
         self.setColor(color)
     @attributeSetter
     def colorSpace(self, colorSpace):
-        """string or None
+        """string
         
         See the documentation for colorSpace in the stimuli, e.g. :ref:`GratingStim.colorSpace`.
         
@@ -993,12 +993,16 @@ class Window(object):
             win.color = [0, 0, 255]  # clear blue in rgb255
         """
         self.__dict__['colorSpace'] = colorSpace
-        # these spaces are 0-centred
-        if self.colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
+        
+        # These spaces are 0-centred
+        if colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
             # RGB in range 0:1 and scaled for contrast
-            desiredRGB = (self.rgb+1)/2.0
-        else:
-            desiredRGB = (self.rgb)/255.0
+            desiredRGB = (self.rgb + 1) / 2.0
+        # rgb255 and named are not...
+        elif type(colorSpace) is str:
+            desiredRGB = (self.rgb) / 255.0
+        else:  # some array/numeric stuff)
+            raise ValueError('invalid value "%s" for Window.colorSpace' %colorSpace)
 
         # if it is None then this will be done during window setup
         if self.winHandle is not None:
@@ -1009,12 +1013,19 @@ class Window(object):
     def setColor(self, color, colorSpace=None, operation=''):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you want to set color and colorSpace simultaneously.
-        See `Window.color` for documentation on `Window.setColor()`.
+        See `Window.color` for documentation on colors.
         """
+        
+        # Set color
         setColor(self, color, colorSpace=colorSpace, operation=operation,
                  rgbAttrib='rgb',  # or 'fillRGB' etc
                  colorAttrib='color')
-        self.colorSpace = self.colorSpace  # call attributeSetter with the output from setColor
+        
+        # Set colorSpace to not-None
+        if colorSpace is None:
+            self.colorSpace = self.colorSpace  #Use current colorSpace if None
+        else:
+            self.colorSpace = colorSpace  # calling attributeSetter
 
     def setRGB(self, newRGB):
         """Deprecated: As of v1.61.00 please use `setColor()` instead
