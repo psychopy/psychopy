@@ -1,48 +1,51 @@
-#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+from __future__ import division
+
+""" DESCRIPTION:
+This demo shows you different image presentation using visual.ImageStim and
+visual.GratinGstim. It introduces some of the many attributes of these stimulus
+types.
+"""
+
+# Import the modules that we need in this script
 from psychopy import core, visual, event
 
-#create a window to draw in
-myWin = visual.Window((600,600), allowGUI=False, color=(-1,-1,-1), 
-        monitor='testMonitor',winType='pyglet', units='norm')
-myWin.recordFrameIntervals = True
-#INITIALISE SOME STIMULI
-faceRGB = visual.ImageStim(myWin,image='face.jpg',
+# Create a window to draw in
+win = visual.Window(
+        size=(600, 600),
+        color=(-1, -1, -1))
+
+# An image using ImageStim.
+image = visual.ImageStim(win,  # you don't have to use new lines for each attribute, but sometime it's easier to read that way
+    image='face.jpg',
     mask=None,
-    pos=(0.0,0.0),
-    size=(1.0,1.0))
+    pos=(0.0, 0.0),
+    size=(1.0, 1.0),
+    ori=1)
 
-#can also use the face image as a mask for a grating!
-faceALPHA = visual.GratingStim(myWin,pos=(-0.5,0),
-    tex="sin",mask="face.jpg",
-    color='green',
-    size=(0.5,0.5), sf=1.0, units="norm")
-    
-message = visual.TextStim(myWin,pos=(-0.95,-0.95),
-    text='[Esc] to quit', color='white', alignHoriz='left', alignVert='bottom')
+# We can also use the image as a mask (mask="face.jpg") for a grating!
+grating = visual.GratingStim(win,
+    pos=(-0.5, 0),
+    tex='sin',
+    mask='face.jpg',
+    color='green')
+grating.size = (0.5, 0.5)  # attributes can be changed after initialization
+grating.sf = 1.0
 
-trialClock = core.Clock()
-t=lastFPSupdate=0
-while True:
-    t=trialClock.getTime()
-    faceRGB.ori += 1  #advance ori by 1 degree
-    faceRGB.draw()
+# Initiate clock and use "t" to keep track of time
+clock = core.Clock()
+while clock.getTime() < 20 and not event.getKeys(keyList=['escape','q']):  # until response or timeout
 
-    faceALPHA.phase += 0.01  #advance phase by 1/100th of a cycle
-    faceALPHA.draw()
-    
-    #update fps every second
-    if t-lastFPSupdate>1.0:
-        lastFPS = myWin.fps()
-        lastFPSupdate=t
-        message.text = "%ifps, [Esc] to quit" %lastFPS
-    message.draw()
+    # Set new attributes. There's a lot of different possibilities.
+    # so try playing around here.
+    grating.phase += 0.01  # Advance phase by 1/100th of a cycle
+    grating.pos += (0.001, 0)  # Advance on x but not y
+    image.ori *= 1.01  # Accelerating orientation (1% on every frame)
+    image.size -= 0.001  # Decrease size uniformly on x and y
+    if image.opacity >= 0:  # attributes can be referenced
+        image.opacity -= 0.001  # Decrease opacity
 
-    myWin.flip()
-
-    #handle key presses each frame
-    for keys in event.getKeys():
-        if keys in ['escape','q']:
-            print myWin.fps()
-            myWin.close()
-            core.quit()
-    event.clearEvents('mouse')#only really needed for pygame windows
+    # Show the result of all the above
+    image.draw()
+    grating.draw()
+    win.flip()
