@@ -23,7 +23,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import setWithOperation, logAttrib
+from psychopy.tools.attributetools import setWithOperation, logAttrib, attributeSetter
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.visual.helpers import setColor
 from psychopy.visual.basevisual import MinimalStim, TextureMixin
@@ -63,7 +63,9 @@ class ElementArrayStim(MinimalStim, TextureMixin):
                  elementMask='gauss',
                  texRes=48,
                  interpolate=True,
-                 name='', autoLog=True):
+                 name='', 
+                 autoLog=True,
+                 maskParams=None):
 
         """
         :Parameters:
@@ -143,10 +145,6 @@ class ElementArrayStim(MinimalStim, TextureMixin):
                 the mask, to be used by all elements (e.g. 'circle', 'gauss',... ,
                 'myTexture.tif', numpy.ones([48,48]))
 
-            texRes :
-                the number of pixels in the textures (overridden if an array
-                or image is provided)
-
             name : string
                 The name of the objec to be using during logged messages about
                 this stim
@@ -160,6 +158,9 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self.autoLog=False #until all params are set
         self.win=win
         self.name=name
+
+        self.__dict__['texRes'] = texRes  # Not pretty (redefined later) but it works!
+        self.__dict__['maskParams'] = maskParams
 
         #unit conversions
         if units!=None and len(units): self.units = units
@@ -198,12 +199,12 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self.fieldSize = val2array(fieldSize, False)
 
         #create textures
-        self.texRes = texRes
         self._texID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._texID))
         self._maskID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._maskID))
         self.setMask(elementMask, log=False)
+        self.texRes = texRes
         self.setTex(elementTex, log=False)
 
         self.setContrs(contrs, log=False)
@@ -666,22 +667,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         graphics card can be time-consuming.
         """
         self.tex = value
-        self._createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes)
+        self._createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes, maskParams=self.maskParams)
         logAttrib(self, log, 'tex')
-    def setMask(self,value, log=True):
-        """Change the mask (all elements have the same mask). Avoid doing this
-        during time-critical points in your script. Uploading new textures to the
-        graphics card can be time-consuming."""
-        self.mask = value
-        self._createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self, res=self.texRes)
-        logAttrib(self, log, 'mask')
     def __del__(self):
         self.clearTextures()#remove textures from graphics card to prevent crash
-    def clearTextures(self):
-        """
-        Clear the textures associated with the given stimulus.
-        As of v1.61.00 this is called automatically during garbage collection of
-        your stimulus, so doesn't need calling explicitly by the user.
-        """
-        GL.glDeleteTextures(1, self._texID)
-        GL.glDeleteTextures(1, self._maskID)

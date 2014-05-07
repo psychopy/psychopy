@@ -28,7 +28,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import attributeSetter, setWithOperation, logAttrib
+from psychopy.tools.attributetools import attributeSetter, setWithOperation, callAttributeSetter
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg, convertToPix
 from psychopy.visual.helpers import pointInPolygon, polygonsOverlap, setColor
@@ -205,12 +205,14 @@ class LegacyVisualMixin(object):
         """
         self._set('lms', value=newLMS, op=operation)
         self.setRGB(lms2rgb(self.lms, self.win.lms_rgb))
-    def setRGB(self, newRGB, operation=''):
+    def setRGB(self, newRGB, operation='', log=True):
         """DEPRECATED since v1.60.05: Please use the `color` attribute
         """
         from psychopy.visual.helpers import setTexIfNoShaders
         self._set('rgb', newRGB, operation)
         setTexIfNoShaders(self)
+        if self.__class__.__name__ == 'TextStim' and not self.useShaders:
+            self._needSetText=True
 
     @attributeSetter
     def depth(self, value):
@@ -254,7 +256,7 @@ class ColorMixin(object):
             thisStim.color *= -1  #multiply the color by -1 (which in this space inverts the contrast)
             thisStim.color *= [0.5, 0, 1]  #decrease red, remove green, keep blue
         """
-        setColor(self, value, rgbAttrib='rgb', colorAttrib='color')
+        self.setColor(value)
 
     @attributeSetter
     def colorSpace(self, value):
@@ -323,12 +325,16 @@ class ColorMixin(object):
             logging.warning('Contrast was set on class where useShaders was undefined. Contrast might remain unchanged')
     def setColor(self, color, colorSpace=None, operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message
+        but use this method if you need to suppress the log message 
+        and/or set colorSpace simultaneously.
         """
+        # NB: the setColor helper function! Not this function itself :-)
         setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='rgb', #or 'fillRGB' etc
                     colorAttrib='color',
                     log=log)
+        if self.__class__.__name__ == 'TextStim' and not self.useShaders:
+            self._needSetText = True
     def setContrast(self, newContrast, operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
@@ -553,7 +559,11 @@ class TextureMixin(object):
             wasLum=True
         elif tex == "gauss":
             rad=makeRadialMatrix(res)
-            sigma = 1/3.0;
+            # Set SD if specified
+            if maskParams == None:    
+                sigma = 1.0 / 3
+            else:
+                sigma = 1.0 / maskParams['sd']
             intensity = numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )*2-1 #3sd.s by the edge of the stimulus
             wasLum=True
         elif tex == "cross":
@@ -753,6 +763,58 @@ class TextureMixin(object):
         GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
 
         return wasLum
+    
+    def clearTextures(self):
+        """
+        Clear all textures associated with the stimulus.
+        As of v1.61.00 this is called automatically during garbage collection of
+        your stimulus, so doesn't need calling explicitly by the user.
+        """
+        GL.glDeleteTextures(1, self._texID)
+        GL.glDeleteTextures(1, self._maskID)
+    
+    @attributeSetter
+    def mask(self, value):
+        """The alpha mask (forming the shape of the image)
+
+        This can be one of various options:
+            + 'circle', 'gauss', 'raisedCos', 'cross', **None** (resets to default)
+            + the name of an image file (most formats supported)
+            + a numpy array (1xN or NxN) ranging -1:1
+        """
+        self.__dict__['mask'] = value
+        if self.__class__.__name__ == 'ImageStim':
+            dataType = GL.GL_UNSIGNED_BYTE
+        else:
+            dataType = None
+        self._createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, dataType=dataType,
+            stim=self, res=self.texRes, maskParams=self.maskParams)
+    def setMask(self, value, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
+        """
+        callAttributeSetter(self, 'mask', value, log)
+    
+    @attributeSetter
+    def texRes(self, value):
+        """Sets the resolution of the mask (overridden if an array or image is provided as mask).
+        
+        :ref:`Operations <attrib-operations>` supported.
+        """
+        self.__dict__['texRes'] = value
+        self.mask = self.mask
+    
+    @attributeSetter
+    def maskParams(self, value):
+        """Various types of input. Default to None.
+        This is used to pass additional parameters to the mask if those are needed.
+        
+            - For the 'raisedCos' mask, pass a dict: {'fringeWidth':0.2},
+                where 'fringeWidth' is a parameter (float, 0-1), determining
+                the proportion of the patch that will be blurred by the raised
+                cosine edge."""
+        self.__dict__['maskParams'] = value
+        self.mask = self.mask  # call attributeSetter
 
 class BaseVisualStim(MinimalStim, LegacyVisualMixin):
     """A template for a visual stimulus class.
@@ -852,17 +914,18 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
         various operations will be slower (notably, changes to stimulus color
         or contrast)
         """
-        #NB TextStim overrides this function, so changes here may need changing there too
-        self.__dict__['useShaders'] = value
         if value == True and self.win._haveShaders == False:
             logging.error("Shaders were requested but aren't available. Shaders need OpenGL 2.0+ drivers")
-        if value != self.useShaders:
-            self.useShaders = value
+        if value != self.useShaders:  # if there's a change...
+            self.__dict__['useShaders'] = value
             if hasattr(self,'tex'):
-                self.tex = self.tex
-            elif hasattr(self,'_imName'):
+                self.tex = self.tex  # calling attributeSetter
+            elif hasattr(self, 'mask'):
+                self.mask = self.mask  # calling attributeSetter (does the same as mask)
+            if hasattr(self,'_imName'):
                 self.setIm(self._imName, log=False)
-            self.mask = self.mask
+            if self.__class__.__name__ == 'TextStim':
+                self._needSetText = True
             self._needUpdate = True
 
     @attributeSetter

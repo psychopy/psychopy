@@ -753,7 +753,7 @@ class RatingScale(MinimalStim):
             pos=[self.offsetHoriz, 0.22 * self.size + self.offsetVert],
             color=self.textColor, wrapWidth=2 * self.hStretchTotal,
             font=textFont, autoLog=False)
-        self.scaleDescription.setFont(textFont)
+        self.scaleDescription.font = textFont
         self.labels = []
         if self.labelTexts:
             if self.markerStyle == 'hover':
@@ -836,7 +836,7 @@ class RatingScale(MinimalStim):
         self.accept = TextStim(win=self.win, text=self.keyClick, font=self.textFont,
             pos=[self.offsetHoriz, (acceptBoxtop + acceptBoxbot) / 2.],
             italic=True, height=textSizeSmall, color=self.textColor, autoLog=False)
-        self.accept.setFont(textFont)
+        self.accept.font = textFont
 
         self.acceptTextColor = markerColor
         if markerColor in ['White']:

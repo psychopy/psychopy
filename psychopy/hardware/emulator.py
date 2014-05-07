@@ -239,7 +239,7 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
         mode = run_type.getRating()
     doSimulation = bool(mode == 'Test')
 
-    win.setMouseVisible(False)
+    win.mouseVisible = False
     if doSimulation:
         wait_msg += ' (simulation)'
     msg = visual.TextStim(win, color='DarkGray', text=wait_msg, autoLog=False)

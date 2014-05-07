@@ -84,28 +84,14 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
                  autoLog=True,
                  autoDraw=False,
                  maskParams=None):
-        """
-        :Parameters:
-
-            texRes:
-                resolution of the texture (if not loading from an image file)
-
-            maskParams: Various types of input. Default to None.
-                This is used to pass additional parameters to the mask if those
-                are needed.
-                - For the 'raisedCos' mask, pass a dict: {'fringeWidth':0.2},
-                where 'fringeWidth' is a parameter (float, 0-1), determining
-                the proportion of the patch that will be blurred by the raised
-                cosine edge.
-
-        """
+        """ """  # Empty docstring. All doc is in attributes
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         for unecess in ['self', 'rgb', 'dkl', 'lms']:
             self._initParams.remove(unecess)
         #initialise parent class
         super(GratingStim, self).__init__(win, units=units, name=name, autoLog=False)
-        self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
+        self.__dict__['useShaders'] = win._haveShaders  #use shaders if available by default, this is a good thing
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
         # TO DO: postpone calls to _createTexture, setColor and _calcCyclesPerStim whin initiating stimulus
@@ -113,14 +99,14 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.__dict__['size'] = 1
         self.__dict__['sf'] = 1
         self.__dict__['tex'] = tex
+        self.__dict__['maskParams'] = maskParams
 
         #initialise textures and masks for stimulus
         self._texID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._texID))
         self._maskID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._maskID))
-        self.texRes = texRes  #must be power of 2
-        self.maskParams = maskParams
+        self.__dict__['texRes'] = texRes  #must be power of 2
         self.interpolate = interpolate
 
         #NB Pedestal isn't currently being used during rendering - this is a place-holder
@@ -239,19 +225,6 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.__dict__['tex'] = value
         self._needTextureUpdate = False
 
-    @attributeSetter
-    def mask(self, value):
-        """The alpha mask (forming the shape of the image)
-
-        This can be one of various options:
-            + 'circle', 'gauss', 'raisedCos', 'cross', **None** (resets to default)
-            + the name of an image file (most formats supported)
-            + a numpy array (1xN or NxN) ranging -1:1
-        """
-        self._createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, stim=self,
-            res=self.texRes, maskParams=self.maskParams)
-        self.__dict__['mask'] = value
-
     def setSF(self, value, operation='', log=True):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self._set('sf', value, operation, log=log)
@@ -261,9 +234,6 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     def setTex(self, value, log=True):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self.tex = value
-    def setMask(self, value, log=True):
-        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
-        self.mask = value
 
     def draw(self, win=None):
         """
@@ -422,15 +392,6 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         if hasattr(self, '_listID'):
             GL.glDeleteLists(self._listID, 1)
             self.clearTextures()#remove textures from graphics card to prevent crash
-
-    def clearTextures(self):
-        """
-        Clear all textures associated with the stimulus.
-        As of v1.61.00 this is called automatically during garbage collection of
-        your stimulus, so doesn't need calling explicitly by the user.
-        """
-        GL.glDeleteTextures(1, self._texID)
-        GL.glDeleteTextures(1, self._maskID)
 
     def _calcCyclesPerStim(self):
         if self.units in ['norm', 'height']:

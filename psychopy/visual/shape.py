@@ -20,7 +20,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix
-from psychopy.tools.attributetools import attributeSetter, setWithOperation, logAttrib
+from psychopy.tools.attributetools import attributeSetter, setWithOperation
 from psychopy.visual.basevisual import BaseVisualStim, ColorMixin, ContainerMixin
 from psychopy.visual.helpers import setColor
 
@@ -59,22 +59,9 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  interpolate=True,
                  lineRGB=None,
                  fillRGB=None,
-                 name='', autoLog=True):
-        """
-        :Parameters:
-
-            lineWidth : int (or float?)
-                specifying the line width in **pixels**
-
-            vertices : a list of lists or a numpy array (Nx2)
-                specifying xy positions of each vertex
-
-            closeShape : True or False
-                Do you want the last vertex to be automatically connected to the first?
-
-            interpolate : True or False
-                If True the edge of the line will be antialiased.
-                """
+                 name='', 
+                 autoLog=True):
+        """ """  # all doc is in the attributes
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
@@ -88,9 +75,9 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.contrast = float(contrast)
         self.opacity = float(opacity)
         self.pos = numpy.array(pos, float)
-        self.closeShape=closeShape
-        self.lineWidth=lineWidth
-        self.interpolate=interpolate
+        self.closeShape = closeShape
+        self.lineWidth = lineWidth
+        self.interpolate = interpolate
 
         # Color stuff
         self.useShaders=False#since we don't ned to combine textures with colors
@@ -112,14 +99,36 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # Other stuff
         self.depth=depth
         self.ori = numpy.array(ori,float)
-        self.size = numpy.array([0.0,0.0])
-        self.setSize(size, log=False)
+        self.size = numpy.array([0.0, 0.0]) + size  # make sure that it's 2D
         self.setVertices(vertices, log=False)
 
         #set autoLog (now that params have been initialised)
         self.autoLog= autoLog
         if autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
+
+    @attributeSetter
+    def lineWidth(self, value):
+        """int or float
+        specifying the line width in **pixels**
+        
+        :ref:`Operations <attrib-operations>` supported.
+        """
+        self.__dict__['lineWidth'] = value
+
+    @attributeSetter
+    def closeShape(self, value):
+        """True or False
+        Do you want the last vertex to be automatically connected to the first?
+        """
+        self.__dict__['closeShape'] = value
+
+    @attributeSetter
+    def interpolate(self, value):
+        """True or False
+        If True the edge of the line will be antialiased.
+        """
+        self.__dict__['interpolate'] = value
 
     @attributeSetter
     def fillColor(self, color):
@@ -160,11 +169,11 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         raise AttributeError, 'ShapeStim does not support setColor method. Please use setFillColor or setLineColor instead'
     def setLineRGB(self, value, operation=''):
-        """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.setLineColor`
+        """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.lineColor`
         """
         self._set('lineRGB', value, operation)
     def setFillRGB(self, value, operation=''):
-        """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.setFillColor`
+        """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.fillColor`
         """
         self._set('fillRGB', value, operation)
     def setLineColor(self, color, colorSpace=None, operation='', log=True):
@@ -187,33 +196,41 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                     rgbAttrib='fillRGB',#the name for this rgb value
                     colorAttrib='fillColor',#the name for this color
                     log=log)
-    def setSize(self, value, operation='', log=True):
-        """ Sets the size of the shape.
+    
+    @attributeSetter
+    def size(self, value):
+        """Int/Float or :ref:`x,y-pair <attrib-xy>`. 
+        Sets the size of the shape.
         Size is independent of the units of shape and will simply scale the shape's vertices by the factor given.
         Use a tuple or list of two values to scale asymmetrically.
+ 
+        :ref:`Operations <attrib-operations>` supported."""
+        self.__dict__['size'] = numpy.array(value)
+        self._needVertexUpdate = True
+    def setSize(self, value, operation='', log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
         """
-        self._set('size', numpy.asarray(value), operation, log=log)
-        self._needVertexUpdate=True
+        setWithOperation(self, 'size', value, operation, autoLog=log)  # calls attributeSetter
 
-    def setVertices(self,value=None, operation='', log=True):
-        """Set the xy values of the vertices (relative to the centre of the field).
-        Values should be:
-
-            - an array/list of Nx2 coordinates.
-
+    @attributeSetter
+    def vertices(self, value):
+        """a list of lists or a numpy array (Nx2) specifying xy positions of 
+        each vertex, relative to the centre of the field.
+        
+        :ref:`Operations <attrib-operations>` supported.
         """
-        #make into an array
-        if type(value) in [int, float, list, tuple]:
-            value = numpy.array(value, dtype=float)
-        #check shape
-        if not (value.shape==(2,) \
-            or (len(value.shape)==2 and value.shape[1]==2)
-            ):
-                raise ValueError("New value for setXYs should be 2x1 or Nx2")
-        #set value and log
-        setWithOperation(self, 'vertices', value, operation)
-        logAttrib(self, log, 'vertices', value)
+        self.__dict__['vertices'] = numpy.array(value)
+        
+        # Check shape
+        if not (self.vertices.shape==(2,) or (len(self.vertices.shape) == 2 and self.vertices.shape[1] == 2)):
+            raise ValueError("New value for setXYs should be 2x1 or Nx2")
         self._needVertexUpdate=True
+    def setVertices(self, value=None, operation='', log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
+        setWithOperation(self, 'vertices', value, operation, autoLog=log)
 
     def draw(self, win=None, keepMatrix=False): #keepMatrix option is needed by Aperture
         """
