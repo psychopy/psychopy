@@ -49,7 +49,7 @@ while True:
     if frameN<len(maskIndices):
         ii = maskIndices[frameN]#select the next index to make transparent
         opacs[ii]=0
-        mask.setOpacities(opacs)
+        mask.opacities = opacs
     mask.draw()
     
     myWin.flip()

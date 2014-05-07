@@ -39,7 +39,7 @@ def makeCoherentOris(XYs, coherence, formAngle):
     newOris[coherentIndices] = formAngle-theta[coherentIndices]
     return newOris
     
-globForm.setOris( makeCoherentOris(globForm.xys, coherence, 45) )
+globForm.oris = makeCoherentOris(globForm.xys, coherence, 45)
 
 #let's give each element a life of 10 frames and give it a new position after that
 lives = random(N)*10 #this will be the current life of each element
@@ -55,8 +55,8 @@ while True:
     new = makeCoherentOris(newXYs[deadElements,:], coherence, 45)#for new elements we still want same % coherent
     newOris[deadElements] = new
     #update the oris and xys of the new elements
-    globForm.setXYs( newXYs )
-    globForm.setOris( newOris )
+    globForm.xys = newXYs
+    globForm.pris = newOris
     
     globForm.draw()
     
