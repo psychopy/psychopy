@@ -44,11 +44,13 @@ mirror = visual.TextStim(myWin, text="mirror mirror",
                         pos=[0, -0.5], alignHoriz='center', flipHoriz=True)
 trialClock = core.Clock()
 t=lastFPSupdate=0;
-while t < 20 and not 'escape' in event.getKeys():#quits after 20 secs
+
+# Continues the loop until one of these keys are pressed
+while not event.getKeys(keyList=['escape', 'q']):
     t=trialClock.getTime()
     
     mirror.draw()
-    rotating.setOri(1,"+")
+    rotating.ori += 1
     rotating.draw()
     
     unicodeStuff.draw()
@@ -61,4 +63,3 @@ while t < 20 and not 'escape' in event.getKeys():#quits after 20 secs
     psychopyTxt.draw()
     
     myWin.flip()
-

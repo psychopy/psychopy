@@ -42,7 +42,7 @@ numpy.random.shuffle(maskIndices)
 frameN=0
 while True:
     t=trialClock.getTime()
-    gabor.setOri(1,'+')#advance ori by 1 degree
+    gabor.ori += 1  #advance ori by 1 degree
     gabor.draw()
 
     #update mask b ymaking one element transparent
@@ -55,7 +55,6 @@ while True:
     myWin.flip()
     frameN+=1
     #handle key presses each frame
-    for keys in event.getKeys():
-        if keys in ['escape','q']:
-            myWin.close()
-            core.quit()
+    if event.getKeys(keyList=['escape','q']):
+        myWin.close()
+        core.quit()

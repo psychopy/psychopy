@@ -30,7 +30,7 @@ t = lastFPSupdate = 0
 while t<20:#quits after 20 secs
     t=trialClock.getTime()
     
-    grating1.setContrast(sin(t*pi*2))
+    grating1.contrast = sin(t*pi*2)
     grating1.draw()  #redraw it
     
     message.draw()

@@ -41,7 +41,7 @@ while True:
     t=globalClock.getTime()
     
     bigStim.draw()
-    subStim.setOri(np.sin(t*2*np.pi)*20) #control speed 
+    subStim.ori = np.sin(t * 2 * np.pi) * 20 #control speed 
     subStim.draw()
     win.flip()
     

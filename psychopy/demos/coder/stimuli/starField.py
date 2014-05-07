@@ -40,6 +40,5 @@ while True:
     win.flip()
     
     # Exit on escape
-    response = event.getKeys(keyList=['escape'])
-    if response:
+    if event.getKeys(keyList=['escape', 'q']):
         break

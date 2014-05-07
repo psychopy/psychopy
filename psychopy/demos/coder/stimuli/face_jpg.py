@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 from psychopy import core, visual, event
-import psychopy.sound
+
 #create a window to draw in
 myWin = visual.Window((600,600), allowGUI=False, color=(-1,-1,-1), 
         monitor='testMonitor',winType='pyglet', units='norm')
@@ -24,10 +24,10 @@ trialClock = core.Clock()
 t=lastFPSupdate=0
 while True:
     t=trialClock.getTime()
-    faceRGB.setOri(1,'+')#advance ori by 1 degree
+    faceRGB.ori += 1  #advance ori by 1 degree
     faceRGB.draw()
 
-    faceALPHA.setPhase(0.01,"+")#advance phase by 1/100th of a cycle
+    faceALPHA.phase += 0.01  #advance phase by 1/100th of a cycle
     faceALPHA.draw()
     
     #update fps every second
