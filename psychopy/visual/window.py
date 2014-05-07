@@ -1014,7 +1014,7 @@ class Window(object):
         setColor(self, color, colorSpace=colorSpace, operation=operation,
                  rgbAttrib='rgb',  # or 'fillRGB' etc
                  colorAttrib='color')
-        self.colorSpace = colorSpace  # call attributeSetter
+        self.colorSpace = self.colorSpace  # call attributeSetter with the output from setColor
 
     def setRGB(self, newRGB):
         """Deprecated: As of v1.61.00 please use `setColor()` instead
