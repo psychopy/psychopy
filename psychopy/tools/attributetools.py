@@ -86,8 +86,8 @@ def setWithOperation(self, attrib, value, operation, stealth=False, autoLog=True
         # Set new value, with or without callback to attributeSetters
         if stealth:
             self.__dict__[attrib] = newValue
+        # Control logging with self.autoLog in case an attributeSetter is listening
         else:
-            # Control logging with self.autoLog in case an attributeSetter is listening
             callAttributeSetter(self, attrib, newValue, autoLog)
 
 def logAttrib(self, log, attrib, value=None):
