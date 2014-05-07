@@ -344,10 +344,10 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         Should be Nx1 (different intensities), Nx3 (different colors) or 
         1x3 (for a single color).
         
-        See other stimuli (e.g. :ref:`GratingStim.color`) for more info on how
-        to set colors of individual elements. Remember that they describe just
-        this case but here you can provide a list of colors - one color for 
-        each element.
+        See other stimuli (e.g. :ref:`GratingStim.color`) for more info on the
+        color attribute which essentially works the same on all PsychoPy stimuli.
+        Remember that they describe just this case but here you can provide a 
+        list of colors - one color for each element.
         
         Use ``setColors()`` if you want to set colors and colorSpace simultaneously
         or use operations on colors."""

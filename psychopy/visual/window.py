@@ -974,74 +974,23 @@ class Window(object):
         next clear operation. As a result it effectively takes TWO `flip()`
         operations to become visible (the first uses the color to create the
         new screen, the second presents that screen to the viewer).
+        
+        See other stimuli (e.g. :ref:`GratingStim.color`) for more info on the
+        color attribute which essentially works the same on all PsychoPy stimuli.
 
         See :ref:`colorspaces` for further information about the ways to
-        specify colors and their various implications.
-        
-        Can be specified in one of many ways. If a string is given then it
-        is interpreted as the name of the color. Any of the standard
-        html/X11 `color names <http://www.w3schools.com/html/html_colornames.asp>`
-        can be used. e.g.::
-
-            myStim.color = 'white'
-            myStim.color = 'RoyalBlue'  #(the case is actually ignored)
-
-        A hex value can be provided, also formatted as with web colors.
-        This can be provided as a string that begins with
-        (not using python's usual 0x000000 format)::
-
-            myStim.color = '#DDA0DD'  #DDA0DD is hexadecimal for plum
-
-        You can also provide a triplet of values, which refer to the
-        coordinates in one of the :ref:`colorspaces`. If no color space is
-        specified then the color space most recently used for this
-        stimulus is used again.
-        
-        You can use :ref:`operations <attrib-operations>` for all numeric color 
-        specifications. Examples::
-
-            # a red color in rgb space
-            myStim.colorSpace = 'rgb'  # not really necessary since this is the default
-            myStim.color = [1.0, -1.0, -1.0]  # clear red
-            myStim.color *= -1  # inverts color in the rgb colorspace
-
-            # DKL space with elev=0, azimuth=45
-            myStim.colorSpace = 'dkl'
-            myStim.color = [0.0, 45.0, 1.0]
-            myStim.color -= [0, 0, 1]  # subtract 1 from radius in DKL
-
-            # a blue stimulus using rgb255 space
-            myStim.colorSpace = 'rgb255'
-            myStim.color = [0, 0, 255]  # clear blue
-            myStim.color += [255, 128, 0]  # add red and a bit of green
-            
-            # A shorter way of all the above if you change colorSpace often:
-            myStim.setColor([1.0, -1.0, -1.0], 'rgb', '*')  # clear red, then invert
-            myStim.setColor([0.0, 45.0, 1.0], 'dkl')
-            myStim.setColor([0, 0, 255], 'rgb255')  # clear blue
-
-        Lastly, a single number can be provided, x,
-        which is equivalent to providing [x,x,x].
-
-            myStim.setColor(255, 'rgb255')  # [255, 255, 255] = white (all guns o max)"""
+        specify colors and their various implications."""
         self.setColor(color)
     @attributeSetter
     def colorSpace(self, colorSpace):
         """string or None
-
-        defining which of the :ref:`colorspaces` to use. For strings and
-        hex values this is not needed. If None the default colorSpace for
-        the stimulus is used (defined during initialisation).
         
-        See :ref:`colorspaces` for further information about the ways to
-        specify colors and their various implications.
+        See the documentation for colorSpace in the stimuli, e.g. :ref:`GratingStim.colorSpace`.
         
-        Usually used in conjunction with :ref:`color` like this::
+        Usually used in conjunction with ``color`` like this::
         
             win.colorSpace = 'rgb255'  # changes colorSpace but not the value of win.color
             win.color = [0, 0, 255]  # clear blue in rgb255
-        
-        See more examples in the documentation for ``Window.color``.
         """
         self.__dict__['colorSpace'] = colorSpace
         # these spaces are 0-centred

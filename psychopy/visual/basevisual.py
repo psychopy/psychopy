@@ -231,7 +231,10 @@ class ColorMixin(object):
         """Color of the stimulus
 
         Value should be one of:
-            + string: to specify a :ref:`colorNames` or :ref:`hexColors`
+            + string: to specify a :ref:`colorNames`. Any of the standard
+              html/X11 `color names <http://www.w3schools.com/html/html_colornames.asp>`
+              can be used.
+            + :ref:`hexColors`
             + numerically: (scalar or triplet) for DKL, RGB or other :ref:`colorspaces`. For
                 these, :ref:`operations <attrib-operations>` are supported.
 
@@ -255,6 +258,10 @@ class ColorMixin(object):
             thisStim.color += [1,1,1]  #increment all guns by 1 value
             thisStim.color *= -1  #multiply the color by -1 (which in this space inverts the contrast)
             thisStim.color *= [0.5, 0, 1]  #decrease red, remove green, keep blue
+        
+        Lastly, a single number can be provided, x, which is equivalent to providing [x,x,x].::
+
+            myStim.setColor(128, 'rgb255')  # equivalent to [128, 128, 128] or gray
         """
         self.setColor(value)
 
@@ -268,7 +275,8 @@ class ColorMixin(object):
         If None the default colorSpace for the stimulus is
         used (defined during initialisation).
 
-        Please note that changing colorSpace does not change stimulus parameters. Example::
+        Please note that changing colorSpace does not change stimulus parameters. 
+        Thus you usually want to specify colorSpace before setting the color. Example::
 
             # A light green text
             stim = visual.TextStim(win, 'Color me!', color=(0, 1, 0), colorSpace='rgb')
