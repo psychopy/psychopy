@@ -23,7 +23,7 @@ image = visual.ImageStim(win,  # you don't have to use new lines for each attrib
     size=(1.0, 1.0),
     ori=1)
 
-# We can also use the image as a mask (mask="face.jpg") for a grating!
+# We can also use the image as a mask (mask="face.jpg") for other stimuli!
 grating = visual.GratingStim(win,
     pos=(-0.5, 0),
     tex='sin',
@@ -32,12 +32,12 @@ grating = visual.GratingStim(win,
 grating.size = (0.5, 0.5)  # attributes can be changed after initialization
 grating.sf = 1.0
 
-# Initiate clock and use "t" to keep track of time
+# Initiate clock to keep track of time
 clock = core.Clock()
 while clock.getTime() < 20 and not event.getKeys(keyList=['escape','q']):  # until response or timeout
 
     # Set new attributes. There's a lot of different possibilities.
-    # so try playing around here.
+    # so look at the documentation and try playing around here.
     grating.phase += 0.01  # Advance phase by 1/100th of a cycle
     grating.pos += (0.001, 0)  # Advance on x but not y
     image.ori *= 1.01  # Accelerating orientation (1% on every frame)
