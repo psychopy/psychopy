@@ -5,7 +5,7 @@ import sys
 #create a window to draw in
 myWin = visual.Window((800.0,800.0),allowGUI=False,
             monitor='testMonitor', units ='cm', winType='pygame')
-myWin.setRecordFrameIntervals(True)
+myWin.recordFrameIntervals = True
 
 if sys.platform=='win32':
     fancy = 'c:\\windows\\fonts\\brush' #this will find brush script

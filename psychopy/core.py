@@ -114,7 +114,7 @@ class StaticPeriod(object):
         self.countdown.reset(duration)
         #turn off recording of frame intervals throughout static period
         if self.win:
-            self.win.setRecordFrameIntervals(False)
+            self.win.recordFrameIntervals = False
             self._winWasRecordingIntervals = self.win.recordFrameIntervals
     def complete(self):
         """Completes the period, using up whatever time is remaining with a call to wait()
@@ -124,7 +124,7 @@ class StaticPeriod(object):
         self.status=FINISHED
         timeRemaining = self.countdown.getTime()
         if self.win:
-            self.win.setRecordFrameIntervals(self._winWasRecordingIntervals)
+            self.win.recordFrameIntervals = self._winWasRecordingIntervals
         if timeRemaining<0:
             import logging#we only do this if we need it - circular import
             logging.warn('We overshot the intended duration of %s by %.4fs. The intervening code took too long to execute.' %(self.name, abs(timeRemaining)))

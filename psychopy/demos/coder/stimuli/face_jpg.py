@@ -4,7 +4,7 @@ import psychopy.sound
 #create a window to draw in
 myWin = visual.Window((600,600), allowGUI=False, color=(-1,-1,-1), 
         monitor='testMonitor',winType='pyglet', units='norm')
-myWin.setRecordFrameIntervals()
+myWin.recordFrameIntervals = True
 #INITIALISE SOME STIMULI
 faceRGB = visual.ImageStim(myWin,image='face.jpg',
     mask=None,

@@ -19,9 +19,11 @@ class attributeSetter(object):
     def __set__(self, obj, value):
         newValue = self.func(obj, value)
         if (obj.autoLog is True) and (self.func.__name__ is not 'autoLog'):
-            obj.win.logOnFlip("%s: %s = %s" % (obj.__class__.__name__,
-                                               self.func.__name__, value),
-                              level=logging.EXP, obj=obj)
+            message = "%s: %s = %s" % (obj.__class__.__name__, self.func.__name__, value)
+            try:
+                obj.win.logOnFlip(message, level=logging.EXP, obj=obj)
+            except AttributeError:  # this is probably a Window, having no "win" attribute
+                logging.log(message, level=logging.EXP, obj=obj)
         return newValue
 
     def __repr__(self):
