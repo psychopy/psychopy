@@ -143,7 +143,7 @@ class MinimalStim(object):
     def setAutoDraw(self, value, log=True):
         """Sets autoDraw. Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
-        self.autoDraw = value
+        callAttributeSetter(self, 'autoDraw', value, log)
 
     @attributeSetter
     def autoLog(self, value):
@@ -155,10 +155,10 @@ class MinimalStim(object):
         """
         self.__dict__['autoLog'] = value
 
-    def setAutoLog(self, value=True):
+    def setAutoLog(self, value=True, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
-        self.__dict__['autoLog'] = value
+        callAttributeSetter(self, 'autoLog', value, log)
 
 class LegacyVisualMixin(object):
     """Class to hold deprecated visual methods and attributes.
@@ -322,7 +322,7 @@ class ColorMixin(object):
                 #we'll need to update the textures for the stimulus
                 #(sometime before drawing but not now)
                 if self.__class__.__name__ == 'TextStim':
-                    self.setText(self.text)
+                    self.text = self.text  # call attributeSetter to rebuild text
                 elif hasattr(self,'_needTextureUpdate'): #GratingStim, RadialStim, ImageStim etc
                     self._needTextureUpdate = True
                 elif self.__class__.__name__ in ('ShapeStim','DotStim'):
@@ -810,7 +810,7 @@ class TextureMixin(object):
         :ref:`Operations <attrib-operations>` supported.
         """
         self.__dict__['texRes'] = value
-        self.mask = self.mask
+        self.mask = self.mask  # call attributeSetter
     
     @attributeSetter
     def maskParams(self, value):
@@ -911,7 +911,7 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
         #opacity is coded by the texture, if not using shaders
         if hasattr(self, 'useShaders') and not self.useShaders:
             if hasattr(self,'mask'):
-                self.mask = self.mask
+                self.mask = self.mask  # call attributeSetter
 
     @attributeSetter
     def useShaders(self, value):
@@ -1071,13 +1071,12 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
             val = val2array(val)
 
         # Handle operations
-        setWithOperation(self, attrib, val, op)
-        # logAttrib(self, log, attrib, val) #setWithOperation calls logAttrib
+        setWithOperation(self, attrib, val, op, autoLog=log)
 
     def setUseShaders(self, value=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
-        self.useShaders = value
+        self.useShaders = value  # call attributeSetter
     def _selectWindow(self, win):
         #don't call switch if it's already the curr window
         if win!=glob_vars.currWindow and win.winType=='pyglet':
