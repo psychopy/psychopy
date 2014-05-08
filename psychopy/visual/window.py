@@ -133,7 +133,8 @@ class Window:
                  name='window1',
                  checkTiming=True,
                  useFBO=False,
-                 autoLog=True):
+                 autoLog=True,
+                 interface=None):
         """
         :Parameters:
 
@@ -208,7 +209,14 @@ class Window:
         # this will get overridden once the window is created
         self.winHandle = None
         self.useFBO = useFBO
-
+        if interface is not None:
+            self.interface = interface
+            #monkey-patch any of our functions to use the interface
+            if hasattr(interface, '_prepareFBOrender'):
+                self._prepareFBOrender = interface._prepareFBOrender
+            if hasattr(interface, '_endFBOrender'):
+                self._endFBOrender = interface._endFBOrender
+        
         self._toLog = []
         self._toCall = []
 
@@ -261,8 +269,9 @@ class Window:
         # setup bits++ if possible
         self.bitsMode = bitsMode  # could be [None, 'fast', 'slow']
         if self.bitsMode is not None:
+            logging.warn("calling Window(...,bitsMode='fast') is deprecated. XXX provide further info")
             from psychopy.hardware.crs import bits
-            self.bits = bits.BitsBox(self)
+            self.bits = self.interface = bits.BitsBox(self)
             self.haveBits = True
             if hasattr(self.monitor, 'lineariseLums'):
                 #rather than a gamma value we could use bits++ and provide a
@@ -465,7 +474,12 @@ class Window:
         self._toCall.append({'function': function,
                              'args': args,
                              'kwargs': kwargs})
-
+                             
+    def _prepareFBOrender(self):
+        GL.glUseProgram(self._progFBOtoFrame)
+    def _finishFBOrender(self):
+        GL.glUseProgram(0)
+        
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your
         frame. (This replaces the win.update() method, better reflecting what
@@ -480,7 +494,7 @@ class Window:
             thisStim.draw()
 
         if self.useFBO:
-            GL.glUseProgram(self._progFBOtoFrame)
+            self._prepareFBOrender()
             #need blit the frambuffer object to the actual back buffer
 
             # unbind the framebuffer as the render target
@@ -509,7 +523,7 @@ class Window:
 
             GL.glEnd()
             GL.glEnable(GL.GL_BLEND)
-            GL.glUseProgram(0)
+            self._finishFBOrender()
 
         #update the bits++ LUT
         if self.bitsMode in ['fast', 'bits++']:
