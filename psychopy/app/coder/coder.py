@@ -1874,7 +1874,7 @@ class CoderFrame(wx.Frame):
                         elif doc.newlines == '\r\n':
                             # document had '\r\n' newline on load
                             newlines = '\r\n'
-                        else: 
+                        else:
                             # None, \n, tuple
                             newlines = '\n'
                     elif self.prefs['newlineConvention'] == 'dos':
@@ -1883,7 +1883,7 @@ class CoderFrame(wx.Frame):
                         newlines = '\n'
                 except:
                     pass
-                    
+
                 with io.open(filename,'w', encoding='utf-8', newline=newlines) as f:
                     f.write(doc.GetText())
                 self.setFileModified(False)
@@ -1989,8 +1989,6 @@ class CoderFrame(wx.Frame):
         fullPath = self.currentDoc.filename
         path, scriptName = os.path.split(fullPath)
         importName, ext = os.path.splitext(scriptName)
-        #set the directory and add to path
-        os.chdir(path)
         sys.path.insert(0, path)
 
         #update toolbar
@@ -2006,10 +2004,6 @@ class CoderFrame(wx.Frame):
     def _runFileInDbg(self):
         #setup a debugger and then runFileAsImport
         fullPath = self.currentDoc.filename
-        path, scriptName = os.path.split(fullPath)
-        importName, ext = os.path.splitext(scriptName)
-        #set the directory and add to path
-        os.chdir(path)
 
         self.db = PsychoDebugger()
         #self.db.set_break(fullPath, 8)
@@ -2018,10 +2012,6 @@ class CoderFrame(wx.Frame):
 
     def _runFileAsProcess(self):
         fullPath = self.currentDoc.filename
-        path, scriptName = os.path.split(fullPath)
-        importName, ext = os.path.splitext(scriptName)
-        #set the directory and add to path
-        os.chdir(path)
         self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
         self.scriptProcess.Redirect()#catch the stdout/stdin
 
@@ -2258,4 +2248,3 @@ class CoderFrame(wx.Frame):
         else:
             self.unitTestFrame=UnitTestFrame(app = self.app)
 #        UnitTestFrame.Show()
-

@@ -22,6 +22,7 @@ except ImportError:
 import hashlib
 import wx
 import locale
+import subprocess
 
 
 class RunTimeInfo(dict):
@@ -89,7 +90,7 @@ class RunTimeInfo(dict):
         self['psychopyVersion'] = psychopyVersion
         self['psychopyHaveExtRush'] = rush(False) # NB: this looks weird, but avoids setting high-priority incidentally
         d = os.path.abspath(os.path.dirname(__file__))
-        githash = _getHashGitHead(dir=d) # should be .../psychopy/psychopy/
+        githash = _getHashGitHead(d) # should be .../psychopy/psychopy/
         if githash:
             self['psychopyGitHead'] = githash
 
@@ -500,24 +501,21 @@ class RunTimeInfo(dict):
         info = '\n'.join(info).replace('"', '') + '\n'
         return info
 
-def _getHashGitHead(dir=''):
-    origDir = os.getcwd()
-    os.chdir(dir)
+def _getHashGitHead(gdir='.'):
+    if not os.path.isdir(gdir):
+        raise OSError('not a directory')
     try:
-        git_hash = shellCall(['git', 'rev-parse', '--verify', 'HEAD'])
-    except OSError:
-        os.chdir(origDir)
-        return None
-    except WindowsError: # not defined on mac; OSError should catch lack of git
-        os.chdir(origDir)
-        return None
-    os.chdir(origDir)
-    git_branches = shellCall(['git', 'branch'])
-    git_branch = [line.split()[1] for line in git_branches.splitlines() if line.startswith('*')]
+        git_hash = subprocess.check_output('git rev-parse --verify HEAD', cwd=gdir,
+                                           shell=True, stderr=subprocess.PIPE)
+    except subprocess.CalledProcessError:
+        return None  # no git
+    git_branches = subprocess.check_output('git branch', cwd=gdir, shell=True)
+    git_branch = [line.split()[1] for line in git_branches.splitlines()
+                  if line.startswith('*')]
     if len(git_branch):
         return git_branch[0] + ' ' + git_hash.strip()
-    else: # dir is not a git repo
-        return None
+    else:
+        return '(unknown branch)'
 
 def _getSvnVersion(filename):
     """Tries to discover the svn version (revision #) for a file.
