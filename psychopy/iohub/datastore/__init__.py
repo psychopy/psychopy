@@ -39,9 +39,9 @@ perhaps one less than this.  < S. Simpson Note: These are 'not' GIL bound
 threads and therefore actually improve performance > """
 
 DATA_FILE_TITLE = "ioHub DataStore - Experiment Data File."
-FILE_VERSION = '0.8.0.1'
+FILE_VERSION = '0.8.0.2'
 SCHEMA_AUTHORS = 'Sol Simpson'
-SCHEMA_MODIFIED_DATE = 'April 16th, 2014'
+SCHEMA_MODIFIED_DATE = 'May 4th, 2014'
 
         
 class ioHubpyTablesFile():
@@ -99,17 +99,13 @@ class ioHubpyTablesFile():
         
         # create tables dict of hdf5 path mappings
 
+
         try:
             self.TABLES['KEYBOARD_KEY']=self.emrtFile.root.data_collection.events.keyboard.KeyboardKeyEvent
         except:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
-        
-        try:
-            self.TABLES['KEYBOARD_CHAR']=self.emrtFile.root.data_collection.events.keyboard.KeyboardCharEvent
-        except:
-            # Just means the table for this event type has not been created as the event type is not being recorded
-            pass
+
 
         try:
             self.TABLES['MOUSE_INPUT']=self.emrtFile.root.data_collection.events.mouse.MouseInputEvent
@@ -267,7 +263,7 @@ class ioHubpyTablesFile():
 
     def _buildEventGroupMappingDict(self):
         self._eventGroupMappings['KEYBOARD_KEY']=self.emrtFile.root.data_collection.events.keyboard
-        self._eventGroupMappings['KEYBOARD_CHAR']=self.emrtFile.root.data_collection.events.keyboard
+        #self._eventGroupMappings['KEYBOARD_CHAR']=self.emrtFile.root.data_collection.events.keyboard
         self._eventGroupMappings['MOUSE_INPUT']=self.emrtFile.root.data_collection.events.mouse
         self._eventGroupMappings['TOUCH']=self.emrtFile.root.data_collection.events.touch
         self._eventGroupMappings['GAMEPAD_STATE_CHANGE']=self.emrtFile.root.data_collection.events.gamepad

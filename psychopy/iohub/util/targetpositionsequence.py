@@ -528,15 +528,15 @@ class TargetPosSequenceStim(object):
             t1 = triggers[0]
             if isinstance(t1, basestring):
                 # triggers is a list of strings, so try and create a list of
-                # DeviceEventTrigger's using keyboard device, KEYBOARD_CHAR
+                # DeviceEventTrigger's using keyboard device, KEYBOARD_RELEASE
                 # event type, and the triggers list elements each as the
                 # event.key.
                 kbtriggers=[]
                 kbdevice = io.getDevice('keyboard')
-                KEYBOARD_CHAR = EventConstants.KEYBOARD_CHAR
+                KEYBOARD_RELEASE = EventConstants.KEYBOARD_RELEASE
                 for c in triggers:
                     kbtriggers.append(DeviceEventTrigger(kbdevice,
-                                      event_type=KEYBOARD_CHAR,
+                                      event_type=KEYBOARD_RELEASE,
                                       event_attribute_conditions={'key':
                                                                   c}
                                                          )
@@ -552,10 +552,10 @@ class TargetPosSequenceStim(object):
             self.triggers = (TimeTrigger(start_time=None, delay=triggers),)
         elif isinstance(triggers, basestring):
             # triggers is a string, so try and create a
-            # DeviceEventTrigger using keyboard device, KEYBOARD_CHAR
+            # DeviceEventTrigger using keyboard device, KEYBOARD_RELEASE
             # event type, and triggers as the event.key.
             self.triggers = (DeviceEventTrigger(io.getDevice('keyboard'),
-                                event_type=EventConstants.KEYBOARD_CHAR,
+                                event_type=EventConstants.KEYBOARD_RELEASE,
                                 event_attribute_conditions={'key':
                                                                 triggers}),)
         elif isinstance(triggers, Trigger):

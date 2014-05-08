@@ -128,7 +128,7 @@ class TobiiPsychopyCalibrationGraphics(object):
     def _handleEvent(self,ioe):
         event=copy.deepcopy(ioe)
         event_type_index=DeviceEvent.EVENT_TYPE_ID_INDEX
-        if event[event_type_index] == EventConstants.KEYBOARD_CHAR:
+        if event[event_type_index] == EventConstants.KEYBOARD_RELEASE:
             if event[-5] == u' ':
                 self._msg_queue.put("SPACE_KEY_ACTION")
                 self.clearAllEventBuffers()

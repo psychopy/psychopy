@@ -151,7 +151,7 @@ while QUIT_EXP is False:
         key_text_stim.setText(event.key)
         ucode_stim.setText('{0:#06x} = {1}'.format(event.ucode,unichr(event.ucode)))
         modifiers_stim.setText(str(event.modifiers))
-        if event.type == EventConstants.KEYBOARD_CHAR:
+        if event.type == EventConstants.KEYBOARD_RELEASE:
             keypress_duration_stim.setText("%.6f"%(event.duration))
         event_type_stim.setText(EventConstants.getName(event.type))
 

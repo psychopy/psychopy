@@ -41,10 +41,10 @@ class Keyboard(ioHubKeyboardDevice):
                  win32_vk.VK_NUMLOCK : 'NUMLOCK' 
                  }           
     
-    __slots__=['_user32','_keyboard_state','_unichar']
+    __slots__=['_user32', '_keyboard_state', '_unichar']
     
     def __init__(self,*args,**kwargs):                        
-        ioHubKeyboardDevice.__init__(self,*args,**kwargs['dconfig'])
+        ioHubKeyboardDevice.__init__(self, *args, **kwargs['dconfig'])
         self._user32=ctypes.windll.user32
         self._keyboard_state=(ctypes.c_byte*256)()
         for i in range(256):
@@ -72,32 +72,25 @@ class Keyboard(ioHubKeyboardDevice):
             if event.Message in [pyHook.HookConstants.WM_KEYDOWN,pyHook.HookConstants.WM_SYSKEYDOWN]:
                 event.Type = EventConstants.KEYBOARD_PRESS
 
-            self._last_callback_time=notifiedTime
+            self._last_callback_time = notifiedTime
             
-            event.RepeatCount=0
-            key_already_pressed=self._key_states.get(event.KeyID,None)
+            event.RepeatCount = 0
+            key_already_pressed = self._key_states.get(event.KeyID,None)
             if key_already_pressed and event.Type == EventConstants.KEYBOARD_PRESS:
-                event.RepeatCount=key_already_pressed[1]+1
+                event.RepeatCount = key_already_pressed[1]+1
                 if self._report_auto_repeats is False and event.RepeatCount>0:
                     return True
-            elif key_already_pressed and event.Type == EventConstants.KEYBOARD_RELEASE:
-                if 'KeyboardReleaseEvent' not in self.getConfiguration().get('monitor_event_types'):
-                    event.RepeatCount=0
-                    self._key_states.pop(event.KeyID)
-                    
+
             self._addNativeEventToBuffer((notifiedTime,event))
-            
-        #endtime=getTime()
-        #print2err("callback dur: %.3f msec"%((endtime-notifiedTime)*1000.0))
-        # pyHook require the callback to return True to inform the windows 
+        # pyHook require the callback to return True to inform the windows
         # low level hook functionality to pass the event on.
         return True
 
     def _getIOHubEventObject(self,native_event_data):
         try:
-            if  len(native_event_data) >2:
-                # it is a KeyboardCharEvent
-                return native_event_data
+            #if  len(native_event_data) >2:
+            #    # it is a KeyboardCharEvent
+            #    return native_event_data
     
     #        stime=getTime()
             notifiedTime, event=native_event_data
@@ -230,14 +223,8 @@ class Keyboard(ioHubKeyboardDevice):
                 lookupkey,_=KeyboardConstants._getKeyNameAndModsForEvent(event)
                 if lookupkey and len(lookupkey)>0:
                     key=lookupkey
-            
-            #import ctypes
-            #_dll=ctypes.windll.user32   
-            #kstatus=ctypes.c_short(_dll.GetAsyncKeyState(ctypes.c_int(k.key_id)))
-            #print k.key, ' status is %x pressed=%d was_pressed=%d'%(kstatus.value,(kstatus.value&0x80)>0,(kstatus.value&0x01)>0)
-        
-                        
-            return [0,
+
+            kb_event= [0,
                     0,
                     0, #device id (not currently used)
                     Computer._getNextEventID(),
@@ -254,7 +241,13 @@ class Keyboard(ioHubKeyboardDevice):
                     uchar,
                     key,
                     event.Modifiers,
-                    event.Window
+                    event.Window,
+                    '', # .char
+                    0.0,  # duration
+                    0   # press_event_id
                     ]
+
+            ioHubKeyboardDevice._updateKeyboardEventState(self, kb_event, is_press=(etype == EventConstants.KEYBOARD_PRESS))
+            return kb_event
         except:
             printExceptionDetailsToStdErr()
