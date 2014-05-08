@@ -158,7 +158,9 @@ class RatingScaleComponent(BaseComponent):
             # type of scale:
             choices = unicode(self.params['categoryChoices'].val)
             if self.params['visualAnalogScale'].val:
-                init_str += ", low=0, high=1, precision=100, marker='glow', showValue=False, markerExpansion=0"
+                init_str += ", low=0, high=1, precision=100, showValue=False, markerExpansion=0"
+                if not self.params['marker'].val:
+                    init_str += ", marker='glow'"
             elif len(choices):
                 if ',' in choices:
                     ch_list = choices.split(',')
