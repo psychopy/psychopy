@@ -18,15 +18,15 @@ GL = pyglet.gl
 import psychopy  # so we can get the __path__
 from psychopy import logging
 
+from psychopy.tools.attributetools import logAttrib, attributeSetter, callAttributeSetter
 from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import BaseVisualStim
-from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
-                                     createTexture)
+from psychopy.visual.basevisual import ContainerMixin, ColorMixin, TextureMixin
 
 import numpy
 
 
-class ImageStim(BaseVisualStim):
+class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
     '''Display an image on a :class:`psychopy.visual.Window`'''
     def __init__(self,
                  win,
@@ -47,45 +47,23 @@ class ImageStim(BaseVisualStim):
                  texRes=128,
                  name='', autoLog=True,
                  maskParams=None):
-        """
-        :Parameters:
-
-            image :
-                The image file to be presented (most formats supported)
-            mask :
-                The alpha mask that can be used to control the outer shape of the stimulus
-
-                + **None**, 'circle', 'gauss', 'raisedCos'
-                + or the name of an image file (most formats supported)
-                + or a numpy array (1xN or NxN) ranging -1:1
-
-            texRes:
-                Sets the resolution of the mask (this is independent of the image resolution)
-
-            maskParams: Various types of input. Default to None.
-                This is used to pass additional parameters to the mask if those
-                are needed.
-                - For the 'raisedCos' mask, pass a dict: {'fringeWidth':0.2},
-                where 'fringeWidth' is a parameter (float, 0-1), determining
-                the proportion of the patch that will be blurred by the raised
-                cosine edge.
-
-        """
+        """ """  # Empty docstring. All doc is in attributes
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
 
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)#set autoLog at end of init
-        self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
+        super(ImageStim, self).__init__(win, units=units, name=name, autoLog=False)#set autoLog at end of init
+        self.__dict__['useShaders'] = win._haveShaders  #use shaders if available by default, this is a good thing
 
         #initialise textures for stimulus
         self._texID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._texID))
         self._maskID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._maskID))
-        self.maskParams= maskParams
-        self.texRes=texRes
-
+        self.__dict__['maskParams'] = maskParams
+        self.__dict__['mask'] = mask
+        self.__dict__['texRes'] = texRes  # Not pretty (redefined later) but it works!
+        
         # Other stuff
         self._imName = image
         self.isLumImage = None
@@ -106,9 +84,9 @@ class ImageStim(BaseVisualStim):
         self.setColor(color, colorSpace=colorSpace, log=False)
         self.rgbPedestal=[0,0,0]#does an rgb pedestal make sense for an image?
 
-        # Set the image and mask
+        # Set the image and mask-
         self.setImage(image, log=False)
-        self.setMask(mask, log=False)
+        self.texRes = texRes  # rebuilds the mask
 
         #generate a displaylist ID
         self._listID = GL.glGenLists(1)
@@ -128,11 +106,11 @@ class ImageStim(BaseVisualStim):
         """
         self._needUpdate = False
         GL.glNewList(self._listID,GL.GL_COMPILE)
+
         #setup the shaderprogram
-        if self.isLumImage:
-            GL.glUseProgram(self.win._progSignedTexMask)
-            GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "texture"), 0) #set the texture to be texture unit 0
-            GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
+        GL.glUseProgram(self.win._progImageStim)
+        GL.glUniform1i(GL.glGetUniformLocation(self.win._progImageStim, "texture"), 0) #set the texture to be texture unit 0
+        GL.glUniform1i(GL.glGetUniformLocation(self.win._progImageStim, "mask"), 1)  # mask is texture unit 1
 
         #mask
         GL.glActiveTexture(GL.GL_TEXTURE1)
@@ -225,17 +203,10 @@ class ImageStim(BaseVisualStim):
 
 
     def __del__(self):
-        GL.glDeleteLists(self._listID, 1)
+        if hasattr(self, '_listID'):
+            GL.glDeleteLists(self._listID, 1)
         self.clearTextures()#remove textures from graphics card to prevent crash
 
-    def clearTextures(self):
-        """
-        Clear the textures associated with the given stimulus.
-        As of v1.61.00 this is called automatically during garbage collection of
-        your stimulus, so doesn't need calling explicitly by the user.
-        """
-        GL.glDeleteTextures(1, self._texID)
-        GL.glDeleteTextures(1, self._maskID)
     def draw(self, win=None):
         if win==None: win=self.win
         self._selectWindow(win)
@@ -246,42 +217,58 @@ class ImageStim(BaseVisualStim):
         desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
 
+        if self._needTextureUpdate:
+            self.setImage(value=self._imName, log=False)
         if self._needUpdate:
             self._updateList()
         GL.glCallList(self._listID)
 
         #return the view to previous state
         GL.glPopMatrix()
-    def setImage(self, value, log=True):
-        """Set the image to be used for the stimulus to this new value
+    
+    @attributeSetter
+    def image(self, value):
+        """The image file to be presented (most formats supported)
         """
-        self._imName = value
+        self.__dict__['image'] = self._imName = value
 
         wasLumImage = self.isLumImage
         if value==None:
             datatype = GL.GL_FLOAT
         else:
             datatype = GL.GL_UNSIGNED_BYTE
-        self.isLumImage = createTexture(value, id=self._texID, stim=self,
+        self.isLumImage = self._createTexture(value, id=self._texID, stim=self,
             pixFormat=GL.GL_RGB, dataType=datatype,
             maskParams=self.maskParams, forcePOW2=False)
         #if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize==None:
             self.size = None  # set size to default
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s image=%s" %(self.name, value),
-                level=logging.EXP,obj=self)
         #if we switched to/from lum image then need to update shader rule
         if wasLumImage != self.isLumImage:
             self._needUpdate=True
-    def setMask(self,value, log=True):
-        """Change the image to be used as an alpha-mask for the image
+        self._needTextureUpdate = False
+    def setImage(self, value, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
         """
-        self.mask = value
-        createTexture(value, id=self._maskID,
+        callAttributeSetter(self, 'image', value, log)
+    
+    @attributeSetter
+    def mask(self, value):
+        """The alpha mask that can be used to control the outer shape of the stimulus
+        
+                + **None**, 'circle', 'gauss', 'raisedCos'
+                + or the name of an image file (most formats supported)
+                + or a numpy array (1xN or NxN) ranging -1:1
+        """
+        self.__dict__['mask'] = value
+        self._createTexture(value, id=self._maskID,
             pixFormat=GL.GL_ALPHA,dataType=GL.GL_UNSIGNED_BYTE,
             stim=self,
             res=self.texRes, maskParams=self.maskParams)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s mask=%s" %(self.name, value),
-                level=logging.EXP,obj=self)
+    
+    def setMask(self, value, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
+        """
+        callAttributeSetter(self, 'mask', value, log)

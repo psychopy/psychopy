@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 """
 ioHub
 Common Eye Tracker Interface
 .. file: ioHub/devices/eyetracker/hw/smi/iViewX/eyetracker.py
 
-Copyright (C) 2012-2013 ???????, iSolver Software Solutions
+Copyright (C) 2012-2014, iSolver Software Solutions
 Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com>
@@ -22,7 +23,7 @@ from .... import EyeTrackerDevice
 from ....eye_events import *
 
 import pyViewX
-from ctypes import byref, c_longlong ,c_int
+from ctypes import byref, c_longlong ,c_int, c_void_p,POINTER
 
 import gevent
 
@@ -34,6 +35,15 @@ class EyeTracker(EyeTrackerDevice):
         
         eyetracker.hw.smi.iviewx.EyeTracker
     """
+        
+    pyviewx2ivewxParamMappings={
+                EyeTrackerConstants.LEFT_EYE: pyViewX.ET_PARAM_EYE_LEFT,
+                EyeTrackerConstants.RIGHT_EYE: pyViewX.ET_PARAM_EYE_RIGHT,
+                EyeTrackerConstants.BINOCULAR: pyViewX.ET_PARAM_EYE_BOTH,
+                EyeTrackerConstants.BINOCULAR_CUSTOM: pyViewX.ET_PARAM_SMARTBINOCULAR,
+                EyeTrackerConstants.MONOCULAR: pyViewX.ET_PARAM_MONOCULAR
+                }
+
     # >>> Overwritten class attributes
     DEVICE_TIMEBASE_TO_SEC=0.000001
     
@@ -45,50 +55,68 @@ class EyeTracker(EyeTrackerDevice):
                          'BlinkStartEvent', 'BlinkEndEvent']
 
     __slots__=['_api_pc_ip','_api_pc_port','_et_pc_ip','_et_pc_port',
-               '_enable_data_filter','_ioKeyboard','_kbEventQueue','_last_setup_result','_handle_sample_callback']
-    # <<<
-
+               '_enable_data_filter','_ioKeyboardHandler','_kbEventQueue','_last_setup_result','_handle_sample_callback']
     def __init__(self, *args,**kwargs):        
         EyeTrackerDevice.__init__(self,*args,**kwargs)
         try:             
-            self._ioKeyboard=None
-            
-            ####
+            self._ioKeyboardHandler=None
+
             # Get network config (used in setConnectionState(True).
-            ####
             iviewx_network_config=self.getConfiguration().get('network_settings')
             self._api_pc_ip=iviewx_network_config['send_ip_address']
             self._api_pc_port=iviewx_network_config['send_port']
             self._et_pc_ip=iviewx_network_config['receive_ip_address']
             self._et_pc_port=iviewx_network_config['receive_port']
 
-            ####
             # Connect to the iViewX.
-            ####
             self.setConnectionState(True)
 
-            ####
             # Callback sample notification support.
-            # Sept 24, 2013: Callback approach may now work.
-            # Causes python to sig term after 1 - 5 mointes recording. 
-            # Use polling method instead!
-            ####
             self._handle_sample_callback=pyViewX.pDLLSetSample(self._handleNativeEvent)            
-                        
-            ####
+
             # Set the filtering level......
-            ####            
-            filter_type,filter_level=self._runtime_settings['sample_filtering'].items()[0]
+            filter_type, filter_level = self._runtime_settings['sample_filtering'].items()[0]
+            INT_POINTER=POINTER(c_int)
             if filter_type == 'FILTER_ALL':
-                level_int=EyeTrackerConstants.getID(filter_level)                
-                if level_int==0:
+                level_int = EyeTrackerConstants.getID(filter_level)
+                if not level_int:
+                    try:
+                        # Try to disable any filtering using the
+                        # new ConfigureFilter function added in Feb 2014 SMI API
+                        # release.
+                        disable_it = c_int(0)
+                        filter_state_set = POINTER(c_int)(disable_it)
+                        pyViewX.ConfigureFilter(pyViewX.etFilterType.get('Average_Enabled'),
+                                                  pyViewX.etFilterAction.get('Set'),
+                                                  filter_state_set
+                                                )
+                    except Exception, e:
+                        print2err("Note: pyViewX.ConfigureFilter to disable filtering call failed.")
+
+                    # Try disabling filtering using the DisableGazeDataFilter
+                    # SMI C func. Not sure if this is 'officially' supported.
                     pyViewX.DisableGazeDataFilter()
-                elif level_int <= EyeTrackerConstants.FILTER_ALL:
+                elif 0 < level_int <= EyeTrackerConstants.FILTER_ALL:
+                    # Try to enable filtering using the
+                    # new ConfigureFilter function added in Feb 2014 SMI API
+                    # release.
+                    try:
+                        enable_it = c_int(1)
+                        filter_state_set = POINTER(c_int)(enable_it)
+                        pyViewX.ConfigureFilter(pyViewX.etFilterType.get('Average_Enabled'),
+                                                  pyViewX.etFilterAction.get('Set'),
+                                                  filter_state_set
+                                                )
+                    except Exception, e:
+                        print2err("Note: pyViewX.ConfigureFilter to disable filtering call failed.")
+
+                    # Try enabling filtering using the DisableGazeDataFilter
+                    # SMI C func. Not sure if this is 'officially' supported.
                     pyViewX.EnableGazeDataFilter()
                 else:
-                    print2err("Warning: Unsupported iViewX sample filter level value: ",filter_level,"=",level_int)
+                    print2err("Warning: Unsupported iViewX sample filter level value: ",filter_level, "=", level_int)
             else:
-                    print2err("Warning: Unsupported iViewX sample filter type: ",filter_type,". Only FILTER_ALL is supported.")
+                    print2err("Warning: Unsupported iViewX sample filter type: ", filter_type, ". Only FILTER_ALL is supported.")
                 
             ####
             # Native file saving...
@@ -122,16 +150,16 @@ class EyeTracker(EyeTrackerDevice):
             
             self._last_setup_result=EyeTrackerConstants.EYETRACKER_OK
         except:
-            print2err(" ---- Error during EyeLink EyeTracker Initialization ---- ")
+            print2err(" ---- Error during SMI iView EyeTracker Initialization ---- ")
             printExceptionDetailsToStdErr()
-            print2err(" ---- Error during EyeLink EyeTracker Initialization ---- ")
+            print2err(" ---- Error during SMI iView EyeTracker Initialization ---- ")
                     
     def trackerTime(self):
         """
         trackerTime returns the current iViewX Application or Server time in 
         usec format as a long integer.        
         """
-        tracker_time=c_longlong(0)
+        tracker_time = c_longlong(0)
         r=pyViewX.GetCurrentTimestamp(byref(tracker_time))
         if r == pyViewX.RET_SUCCESS:    
             return tracker_time.value
@@ -163,21 +191,20 @@ class EyeTracker(EyeTrackerDevice):
         isConnected() == True and when isRecordingEnabled() == True.
         """
         try:
-            r=pyViewX.IsConnected()
+            r = pyViewX.IsConnected()
             if r == pyViewX.RET_SUCCESS:
-                connected=True
+                connected = True
             elif r == pyViewX.ERR_NOT_CONNECTED:
-                connected=False
+                connected = False
             else:
                 print2err("iViewX isConnected() returned unexpected value {0}".format(r))
-                return EyeTrackerConstants.EYETRACKER_ERROR
-            return connected            
+                connected= EyeTrackerConstants.EYETRACKER_ERROR
+            return connected
         except Exception, e:
             print2err(" ---- SMI EyeTracker isConnected ERROR ---- ")
             printExceptionDetailsToStdErr()
-#            return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-#                    error_message="An unhandled exception occurred on the ioHub Server Process.",
-#                    method="EyeTracker.isConnected", error=e)            
+        print2err("isConnected error!!: ", connected)
+        return False
 
     def setConnectionState(self,enable):
         """
@@ -194,13 +221,12 @@ class EyeTracker(EyeTrackerDevice):
         try:
             if enable is True or enable is False:
                 if enable is True and not self.isConnected():
-                    r = pyViewX.Connect(pyViewX.StringBuffer(self._api_pc_ip,16),
+                    r = pyViewX.Connect(pyViewX.String(self._api_pc_ip),
                                         self._api_pc_port,
-                                        pyViewX.StringBuffer(self._et_pc_ip,16),
+                                        pyViewX.String(self._et_pc_ip),
                                         self._et_pc_port)
                     if r != pyViewX.RET_SUCCESS:
                         print2err("iViewX ERROR connecting to tracker: {0}".format(r))
-                        sys.exit(0)
                     return self.isConnected()
                 elif enable is False and self.isConnected():
                     if self.isRecordingEnabled():
@@ -212,11 +238,9 @@ class EyeTracker(EyeTrackerDevice):
             else:
                 print2err(" ---- SMI EyeTracker setConnectionState INVALID_METHOD_ARGUMENT_VALUE ---- ")
                 printExceptionDetailsToStdErr()
-                #return createErrorResult("INVALID_METHOD_ARGUMENT_VALUE",error_message="The enable arguement value provided is not recognized",method="EyeTracker.setConnectionState",arguement='enable', value=enable)            
         except Exception,e:
             print2err(" ---- SMI EyeTracker isConnected ERROR ---- ")
             printExceptionDetailsToStdErr()
-                #return createErrorResult("IOHUB_DEVICE_EXCEPTION",error_message="An unhandled exception occurred on the ioHub Server Process.",method="EyeTracker.setConnectionState",arguement='enable', value=enable, error=e)            
             
     def sendMessage(self,message_contents,time_offset=None):
         """
@@ -229,50 +253,98 @@ class EyeTracker(EyeTrackerDevice):
             #
             # RET_SUCCESS - intended functionality has been fulfilled
             # ERR_NOT_CONNECTED - no connection established
-            r=pyViewX.SendImageMessage(pyViewX.StringBuffer(message_contents,256))
+            r=pyViewX.SendImageMessage(pyViewX.String(message_contents))
             if r != pyViewX.RET_SUCCESS:
                 print2err("iViewX ERROR {0} when sendMessage to tracker: {1}".format(r,message_contents))
                 return EyeTrackerConstants.EYETRACKER_ERROR           
             return EyeTrackerConstants.EYETRACKER_OK     
 
         except Exception, e:
-            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
-            #        method="EyeTracker.sendMessage", message_contents=message_contents,time_offset=time_offset, error=e)            
+            printExceptionDetailsToStdErr()
 
     def sendCommand(self, key, value=None):
         """
-        The sendCommand method is currently not supported by the SMI iViewX 
-        implementation of the Common Eye Tracker Interface.
+        The sendCommand method can be used to make calls to the 
+        iViewX iV_SetTrackingParameter function. The sendCommand method requires
+        valid key and value arguements.
+        
+        Currently supported 'key' arguement values, with their mapping to the 
+        associated iViewX API constant, are:
+        
+        EyeTrackerConstants.LEFT_EYE:   pyViewX.ET_PARAM_EYE_LEFT
+        EyeTrackerConstants.RIGHT_EYE:  pyViewX.ET_PARAM_EYE_RIGHT
+        EyeTrackerConstants.BINOCULAR:  pyViewX.ET_PARAM_EYE_BOTH
+        
+        If the key arguement supplied does not match one of the three 
+        EyeTrackerConstants values listed above, the method will return:
+        
+        EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT
+        
+        Currently supported 'value' arguement values, with their mapping to the 
+        associated iViewX API constant, are:
+
+        EyeTrackerConstants.BINOCULAR_CUSTOM:  pyViewX.ET_PARAM_SMARTBINOCULAR
+        EyeTrackerConstants.MONOCULAR:         pyViewX.ET_PARAM_MONOCULAR
+        
+        If the value arguement supplied does not match one of the two 
+        SMI iView ioHub interface specific constants listed above, 
+        the method will return:
+        
+        EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT
+        
+        Possible return values from the method are:
+        
+        EyeTrackerConstants.EYETRACKER_OK:  intended functionality has been fulfilled
+        EyeTrackerConstants.EYETRACKER_NOT_CONNECTED:  no connection established
+        EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT:  parameter out of range
+        
+        If the iV_* function returns a code that is not expected, then the 
+        invalid (or undocumented) return code from the iV_* function call is 
+        returned as is by sendCommand.   
+        
+        Examples, assuming an eyetracker device called 'tracker' has been
+        created by ioHub:
+        
+        tracker = <iohub connection variable name>.devices.tracker
+        
+        tracker.sendCommand(EyeTrackerConstants.BINOCULAR,EyeTrackerConstants.BINOCULAR_CUSTOM)
+
+        tracker.sendCommand(EyeTrackerConstants.LEFT_EYE,EyeTrackerConstants.BINOCULAR_CUSTOM)
+
+        tracker.sendCommand(EyeTrackerConstants.RIGHT_EYE,EyeTrackerConstants.BINOCULAR_CUSTOM)
+
+        tracker.sendCommand(EyeTrackerConstants.LEFT_EYE,EyeTrackerConstants.MONOCULAR)
+
+        tracker.sendCommand(EyeTrackerConstants.RIGHT_EYE,EyeTrackerConstants.MONOCULAR)
+        
         """
 
-#        TODO: Add support using the sendCommand method for:
-#            SetEventDetectionParameter
-#            SetConnectionTimeout
-#            
-#        * Also see page 28 of iViewX SDK Manual.pfd, which lists a set
-#          of defines that can be used with SetTrackingParameter(),
-#          TODO: Determine which of these are safe to expose via this method:
-#              
-#              ET_PARAM_EYE_LEFT 0
-#              ET_PARAM_EYE_RIGHT 1
-#              ET_PARAM_PUPIL_THRESHOLD 0
-#              ET_PARAM_REFLEX_THRESHOLD 1
-#              ET_PARAM_SHOW_AOI 2
-#              ET_PARAM_SHOW_CONTOUR 3
-#              ET_PARAM_SHOW_PUPIL 4
-#              ET_PARAM_SHOW_REFLEX 5
-#              ET_PARAM_DYNAMIC_THRESHOLD 6
-#              ET_PARAM_PUPIL_AREA 11
-#              ET_PARAM_PUPIL_PERIMETER 12
-#              ET_PARAM_PUPIL_DENSITY 13
-#              ET_PARAM_REFLEX_PERIMETER 14
-#              ET_PARAM_RELFEX_PUPIL_DISTANCE 15
-#              ET_PARAM_MONOCULAR 16
-#              ET_PARAM_SMARTBINOCULAR 17
+        if self.isConnected() is False:
+            return EyeTrackerConstants.EYETRACKER_NOT_CONNECTED
 
-        print2err("iViewX sendCommand is not implemented yet.")
-        return EyeTrackerConstants.FUNCTIONALITY_NOT_SUPPORTED
+        if key not in [EyeTrackerConstants.LEFT_EYE,
+                       EyeTrackerConstants.RIGHT_EYE,
+                       EyeTrackerConstants.BINOCULAR]:
+            return EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT 
+            
+        if value not in [EyeTrackerConstants.BINOCULAR_CUSTOM,EyeTrackerConstants.MONOCULAR]:
+            return EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT      
+        
+        result=pyViewX.SetTrackingParameter(self.pyviewx2ivewxParamMappings[key],
+                                            self.pyviewx2ivewxParamMappings[value],
+                                            0)
+                                            
+        if result == pyViewX.RET_SUCCESS:
+            return EyeTrackerConstants.EYETRACKER_OK
+        if result == pyViewX.ERR_NOT_CONNECTED:
+            return EyeTrackerConstants.EYETRACKER_NOT_CONNECTED
+        if result == pyViewX.ERR_WRONG_PARAMETER:
+            return EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT
+
+        # if the return code does not map to one of the valid return codes
+        # based on the iViewX SDK docs, then return the native error code
+        # so it can be figured out.
+        return result
 
     def runSetupProcedure(self,starting_state=EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE):
         """
@@ -331,20 +403,28 @@ class EyeTracker(EyeTrackerDevice):
                 self._showEyeImageMonitor()
                 self._showTrackingMonitor()
             else:    
-                self._last_setup_result=EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT
+                self._last_setup_result = EyeTrackerConstants.EYETRACKER_RECEIVED_INVALID_INPUT
             self._unregisterKeyboardMonitor()
+            
             return self._last_setup_result
-        except Exception,e:
+        except Exception, e:
             self._unregisterKeyboardMonitor()
-            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
-            #        method="EyeTracker.runSetupProcedure", 
-            #        starting_state=starting_state,
-            #        error=e)   
+            printExceptionDetailsToStdErr()
 
-    def _showSimpleWin32Dialog(self,message,caption):
+        try:
+            hide_funcs = [pyViewX.HideAccuracyMonitor,
+                        pyViewX.HideEyeImageMonitor,
+                        pyViewX.HideSceneVideoMonitor,
+                        pyViewX.HideTrackingMonitor
+                        ]
+            for f in hide_funcs:
+                    f()
+        except:
+            print2err('Exception while trying to call: {0}'.format(f))
+                    
+    def _showSimpleWin32Dialog(self, message, caption):
         import win32gui
-        win32gui.MessageBox(None,message,caption,0)
+        win32gui.MessageBox(None, message, caption, 0)
                     
     def _showSetupKeyOptionsDialog(self):
         msg_text="The following Keyboard Commands will be available during User Setup:\n"
@@ -547,21 +627,33 @@ class EyeTracker(EyeTrackerDevice):
             for event_class_name in kbDevice.__class__.EVENT_CLASS_NAMES:
                 eventIDs.append(getattr(EventConstants,convertCamelToSnake(event_class_name[:-5],False)))
 
-            self._ioKeyboard=kbDevice
-            self._ioKeyboard._addEventListener(self,eventIDs)
-            self._kbEventQueue=[]
+            class KeyboardEventHandler(object):
+                def __init__(self,et,kb):
+                    self.et = et
+                    self.kb = kb
+                    self.kb._addEventListener(self, eventIDs)
+                    self.et._kbEventQueue = []
+
+                def _handleEvent(self, ioe):
+                    event_type_index = DeviceEvent.EVENT_TYPE_ID_INDEX
+                    if ioe[event_type_index] == EventConstants.KEYBOARD_PRESS:
+                        self.et._kbEventQueue.append(ioe)
+
+                def free(self):
+                    self.kb._removeEventListener(self)
+                    del self.et._kbEventQueue[:]
+                    self.et = None
+                    self.kb = None
+
+            self._ioKeyboardHandler = KeyboardEventHandler(self, kbDevice)
              
     def _unregisterKeyboardMonitor(self):
-        if self._ioKeyboard:
-            self._ioKeyboard._removeEventListener(self)
-            self._ioKeyboard=None
-            del self._kbEventQueue[:]
+        if self._ioKeyboardHandler:
+            self._ioKeyboardHandler.free()
+            self._ioKeyboardHandler = None
+
             
-    def _handleEvent(self,ioe):
-        event_type_index=DeviceEvent.EVENT_TYPE_ID_INDEX
-        if ioe[event_type_index] == EventConstants.KEYBOARD_PRESS:
-            self._kbEventQueue.append(ioe)
-            
+
     def isRecordingEnabled(self,*args,**kwargs):
         """
         isRecordingEnabled returns True if the eye tracking device is currently connected and
@@ -571,11 +663,9 @@ class EyeTracker(EyeTrackerDevice):
         try:
             return self.isConnected() and self.isReportingEvents()
         except Exception, e:
-            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
-            #        method="EyeTracker.isRecordingEnabled", error=e)
+            printExceptionDetailsToStdErr()
 
-    def setRecordingState(self,recording):
+    def setRecordingState(self, recording):
         """
         setRecordingState enables (recording=True) or disables (recording=False)
         the recording of eye data by the eye tracker and the sending of any eye 
@@ -583,66 +673,69 @@ class EyeTracker(EyeTrackerDevice):
         by using the setConnectionState() method for recording to be possible.
         """
         try:
-            if not isinstance(recording,bool):
-                printExceptionDetailsToStdErr()#return createErrorResult("INVALID_METHOD_ARGUMENT_VALUE",
-                #    error_message="The recording arguement value provided is not a boolean.",
-                #    method="EyeTracker.setRecordingState",arguement='recording', value=recording)             
+            if not isinstance(recording, bool):
+                printExceptionDetailsToStdErr()
 
-            if recording is True and not self.isRecordingEnabled(): 
+            elif recording is True and not self.isRecordingEnabled():
                 pyViewX.SetSampleCallback(self._handle_sample_callback)
-                self._latest_sample=None
-                self._latest_gaze_position=None
+                self._latest_sample = None
+                self._latest_gaze_position = None
 
-                r=pyViewX.StartRecording()
-                
-                if r == pyViewX.RET_SUCCESS or r == pyViewX.ERR_RECORDING_DATA_BUFFER:
-                    EyeTrackerDevice.enableEventReporting(self,True)
+                # just incase recording is running , 
+                # try to stop it and clear the smi memory buffers.
+                pyViewX.StopRecording()
+                pyViewX.ClearRecordingBuffer()
+
+                r = pyViewX.StartRecording()
+                if r == pyViewX.RET_SUCCESS or r == pyViewX.ERR_RECORDING_DATA_BUFFER or r == pyViewX.ERR_FULL_DATA_BUFFER:
+                    EyeTrackerDevice.enableEventReporting(self, True)
                     return self.isRecordingEnabled()
-                
-                pyViewX.SetSampleCallback(pyViewX.pDLLSetSample(0))    
                 if r == pyViewX.ERR_NOT_CONNECTED:
-                    print2err("iViewX setRecordingState True Failed: ERR_NOT_CONNECTED") 
-                    return EyeTrackerConstants.EYETRACKER_ERROR
+                    print2err("StartRecording FAILED: pyViewX.ERR_NOT_CONNECTED",r)
+                    pyViewX.SetSampleCallback(pyViewX.pDLLSetSample(0))
+                    EyeTrackerDevice.enableEventReporting(self, False)
+                    return False#EyeTrackerConstants.EYETRACKER_ERROR
                 if r == pyViewX.ERR_WRONG_DEVICE:
                     print2err("iViewX setRecordingState True Failed: ERR_WRONG_DEVICE") 
-                    return EyeTrackerConstants.EYETRACKER_ERROR
-                            
+                    pyViewX.SetSampleCallback(pyViewX.pDLLSetSample(0))
+                    EyeTrackerDevice.enableEventReporting(self, False)
+                    return False#EyeTrackerConstants.EYETRACKER_ERROR
+                          
             elif recording is False and self.isRecordingEnabled():
                 self._latest_sample=None
                 self._latest_gaze_position=None
+                # clear the smi memory buffers.
+                pyViewX.ClearRecordingBuffer()
+                r=pyViewX.StopRecording()
 
-                r=pyViewX.StopRecording() 
-                pyViewX.SetSampleCallback(pyViewX.pDLLSetSample(0))    
+                pyViewX.SetSampleCallback(pyViewX.pDLLSetSample(0))
 
-                
-                if r == pyViewX.RET_SUCCESS or r == pyViewX.ERR_EMPTY_DATA_BUFFER:
-                    EyeTrackerDevice.enableEventReporting(self,False)
+                if r == pyViewX.RET_SUCCESS or r == pyViewX.ERR_EMPTY_DATA_BUFFER or r == pyViewX.ERR_FULL_DATA_BUFFER:
+                    EyeTrackerDevice.enableEventReporting(self, False)
                     return self.isRecordingEnabled()
                 
                 if r == pyViewX.ERR_NOT_CONNECTED:
                     print2err("iViewX setRecordingState(False) Failed: ERR_NOT_CONNECTED") 
-                    return EyeTrackerConstants.EYETRACKER_ERROR
+                    return False#EyeTrackerConstants.EYETRACKER_ERROR
                 if r == pyViewX.ERR_WRONG_DEVICE:
                     print2err("iViewX setRecordingState(False) Failed: ERR_WRONG_DEVICE") 
-                    return EyeTrackerConstants.EYETRACKER_ERROR
+                    return False #EyeTrackerConstants.EYETRACKER_ERROR
 
         except Exception, e:
-            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
-            #        method="EyeTracker.setRecordingState", error=e)            
+            printExceptionDetailsToStdErr()
 
-    def enableEventReporting(self,enabled=True):
+    def enableEventReporting(self, enabled=True):
         """
         enableEventReporting is the device type independent method that is equivelent
         to the EyeTracker specific setRecordingState method.
         """
-        try:        
-            enabled=EyeTrackerDevice.enableEventReporting(self,enabled)
-            return self.setRecordingState(enabled)
+        try:
+            result2 = self.setRecordingState(enabled)
+            EyeTrackerDevice.enableEventReporting(self, enabled)
+            return result2
         except Exception, e:
-            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
-            #        method="EyeTracker.enableEventReporting", error=e)            
+            printExceptionDetailsToStdErr()
+        return False
 
     def getLastSample(self):
         """
@@ -654,9 +747,7 @@ class EyeTracker(EyeTrackerDevice):
         try:
             return self._latest_sample
         except Exception, e:
-            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
-            #        method="EyeTracker.getLastSample", error=e)            
+            printExceptionDetailsToStdErr()
 
     def getLastGazePosition(self):
         """
@@ -669,10 +760,8 @@ class EyeTracker(EyeTrackerDevice):
         try:
             return self._latest_gaze_position
         except Exception, e:
-            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
-            #        method="EyeTracker.getLastGazePosition", error=e)             
-        
+            printExceptionDetailsToStdErr()
+
     def _handleNativeEvent(self,*args,**kwargs):
         """
         TODO: Add support for Fixation events. Currently callback only supports samples.
@@ -718,17 +807,12 @@ class EyeTracker(EyeTrackerDevice):
             None
         """
         try:
-                
             poll_time=Computer.getTime()
             tracker_time=self.trackerSec()
-            
-            # TODO: The switch from polling to event based means CI calc need to be changed.
-            # Setting to 0 for now.
-            confidence_interval=0.0#poll_time-self._last_poll_time
+            confidence_interval=0.0
             DEVICE_TIMEBASE_TO_SEC=EyeTracker.DEVICE_TIMEBASE_TO_SEC  
                   
             sample = args[0]
-            #print2err('sample: ',sample.timestamp)
     
             event_type=EventConstants.BINOCULAR_EYE_SAMPLE
             # TODO: Detrmine if binocular data is averaged or not for 
@@ -745,19 +829,32 @@ class EyeTracker(EyeTrackerDevice):
             left_eye_data=sample.leftEye
             right_eye_data=sample.rightEye
     
+            status=0
+            
             left_pupil_measure=left_eye_data.diam
-            right_pupil_measure=right_eye_data.diam
-    
-            # TODO: ensure corrrect pupil measure type is being saved with pupl data to datastore.                    
+            right_pupil_measure=right_eye_data.diam                   
             pupil_measure_type=EyeTrackerConstants.PUPIL_DIAMETER
             
             left_gazeX=left_eye_data.gazeX
             right_gazeX=right_eye_data.gazeX
             left_gazeY=left_eye_data.gazeY
             right_gazeY=right_eye_data.gazeY
-       
-            right_gazeX,right_gazeY=self._eyeTrackerToDisplayCoords((right_gazeX,right_gazeY))
-            left_gazeX,left_gazeY=self._eyeTrackerToDisplayCoords((left_gazeX,left_gazeY))
+            
+            if right_pupil_measure > 0.0 and right_gazeX != 0.0 and right_gazeY != 0.0:
+                right_gazeX,right_gazeY=self._eyeTrackerToDisplayCoords((right_gazeX,right_gazeY))
+            else:
+                right_pupil_measure=0
+                right_gazeX=EyeTrackerConstants.UNDEFINED
+                right_gazeY=EyeTrackerConstants.UNDEFINED
+                status=2
+                
+            if left_pupil_measure > 0.0 and left_gazeX != 0.0 and left_gazeY != 0.0:
+                left_gazeX,left_gazeY=self._eyeTrackerToDisplayCoords((left_gazeX,left_gazeY))
+            else:
+                left_pupil_measure=0
+                left_gazeX=EyeTrackerConstants.UNDEFINED
+                left_gazeY=EyeTrackerConstants.UNDEFINED
+                status+=20
     
             left_eyePositionX=left_eye_data.eyePositionX
             right_eyePositionX=right_eye_data.eyePositionX
@@ -816,10 +913,10 @@ class EyeTracker(EyeTrackerDevice):
                          EyeTrackerConstants.UNDEFINED,
                          EyeTrackerConstants.UNDEFINED,
                          EyeTrackerConstants.UNDEFINED,
-                         plane_number    # Since the sample struct has not status field
-                         ]               # we are using it to hold the 
-                                         # 'plane number' from the iViewX native sample.
-            
+                         status    
+                         ]             
+                                        
+
             self._addNativeEventToBuffer(binocSample)
         except Exception:
             print2err("ERROR occurred during iViewX Sample Callback.")
@@ -872,316 +969,7 @@ class EyeTracker(EyeTrackerDevice):
             self._latest_gaze_position=(EyeTracker._gx,EyeTracker._gy)
         else:
             self._latest_gaze_position=None
-
-        return self._latest_sample
-        
-#    def _poll(self):
-#        if self.isRecordingEnabled():        
-#            try:
-#                poll_time=Computer.getTime()
-#                tracker_time=self.trackerSec()
-#                native_tracker_time=self.trackerTime()
-#                confidence_interval=poll_time-self._last_poll_time
-#               
-#                #print2err('-------------iview poll-------------')
-#                #print2err('poll_time, confidence_interval: ',(poll_time,confidence_interval))
-#                #print2err('tracker_time_sec, native_tracker_time: ',(tracker_time,native_tracker_time))
-#                DEVICE_TIMEBASE_TO_SEC=EyeTracker.DEVICE_TIMEBASE_TO_SEC
-#    
-#                nSamples=[]
-#                while 1:
-#                    sample=pyViewX.SampleStruct()
-#                    r=pyViewX.GetSample(byref(sample))	
-#                    if r == pyViewX.RET_SUCCESS:
-#                        nSamples.append(sample)
-#                    elif r == pyViewX.RET_NO_VALID_DATA:
-#                        break
-#                    elif r == pyViewX.ERR_NOT_CONNECTED:
-#                        break
-#                
-#                nEvents=[]
-#                while 1:
-#                    eventDataSample=pyViewX.EventStruct()
-#                    r=pyViewX.GetEvent(byref(eventDataSample))	
-#                    if r == pyViewX.RET_SUCCESS:
-#                        nEvents.append(eventDataSample)
-#                    elif r == pyViewX.RET_NO_VALID_DATA:
-#                        break
-#                    elif r == pyViewX.ERR_NOT_CONNECTED:
-#                        break
-#    
-#                    
-#                # process any sample events we got.....     
-#                if nSamples:                    
-#                    while nSamples:
-#                        sample=nSamples.pop(0)
-#    
-#                        event_type=EventConstants.BINOCULAR_EYE_SAMPLE
-#                        # TODO: Detrmine if binocular data is averaged or not for 
-#                        #       given model , tracking params, and indicate 
-#                        #       so using the recording_eye_type
-#                        #       EyeTrackerConstants.BINOCULAR or EyeTrackerConstants.BINOCULAR_AVERAGED
-#                        logged_time=poll_time
-#                        event_timestamp=sample.timestamp*DEVICE_TIMEBASE_TO_SEC
-#                        event_delay=tracker_time-event_timestamp
-#                        iohub_time=poll_time-event_delay
-# 
-#                        plane_number=sample.planeNumber
-#                        
-#                        left_eye_data=sample.leftEye
-#                        right_eye_data=sample.rightEye
-#    
-#                        left_pupil_measure=left_eye_data.diam
-#                        right_pupil_measure=right_eye_data.diam
-#
-#                        # TODO: ensure corrrect pupil measure type is being saved with pupl data to datastore.                    
-#                        pupil_measure_type=EyeTrackerConstants.PUPIL_DIAMETER
-#                        
-#                        left_gazeX=left_eye_data.gazeX
-#                        right_gazeX=right_eye_data.gazeX
-#                        left_gazeY=left_eye_data.gazeY
-#                        right_gazeY=right_eye_data.gazeY
-#   
-#                        right_gazeX,right_gazeY=self._eyeTrackerToDisplayCoords((right_gazeX,right_gazeY))
-#                        left_gazeX,left_gazeY=self._eyeTrackerToDisplayCoords((left_gazeX,left_gazeY))
-#                
-#                        left_eyePositionX=left_eye_data.eyePositionX
-#                        right_eyePositionX=right_eye_data.eyePositionX
-#                        left_eyePositionY=left_eye_data.eyePositionY
-#                        right_eyePositionY=right_eye_data.eyePositionY
-#                        left_eyePositionZ=left_eye_data.eyePositionZ
-#                        right_eyePositionZ=right_eye_data.eyePositionZ
-#   
-#                        binocSample=[
-#                                     0,
-#                                     0,
-#                                     0, #device id (not currently used)
-#                                     Computer._getNextEventID(),
-#                                     event_type,
-#                                     event_timestamp,
-#                                     logged_time,
-#                                     iohub_time,
-#                                     confidence_interval,
-#                                     event_delay,
-#                                     0,
-#                                     left_gazeX,
-#                                     left_gazeY,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     left_eyePositionX,
-#                                     left_eyePositionY,
-#                                     left_eyePositionZ,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     left_pupil_measure,
-#                                     pupil_measure_type,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     right_gazeX,
-#                                     right_gazeY,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     right_eyePositionX,
-#                                     right_eyePositionY,
-#                                     right_eyePositionZ,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     right_pupil_measure,
-#                                     pupil_measure_type,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     EyeTrackerConstants.UNDEFINED,
-#                                     plane_number    # Since the sample struct has not status field
-#                                     ]               # we are using it to hold the 
-#                                                     # 'plane number' from the iViewX native sample.
-#    
-#                        self._latest_sample=binocSample
-#            
-#            
-#                        ic=0
-#                        EyeTracker._gx=0.0
-#                        EyeTracker._gy=0.0  
-#                        if right_pupil_measure>0.0 and right_eye_data.gazeX != 0.0 and  right_eye_data.gazeY != 0.0:
-#                            EyeTracker._gx=EyeTracker._gx+right_gazeX
-#                            EyeTracker._gy=EyeTracker._gy+right_gazeY
-#                            ic+=1
-#
-#                        if left_pupil_measure>0.0 and left_eye_data.gazeX != 0.0 and  left_eye_data.gazeY != 0.0:
-#                            EyeTracker._gx=EyeTracker._gx+left_gazeX
-#                            EyeTracker._gy=EyeTracker._gy+left_gazeY
-#                            ic+=1
-#                            
-#                        if ic == 2:
-#                            EyeTracker._gx= EyeTracker._gx/2.0
-#                            EyeTracker._gy= EyeTracker._gy/2.0
-#
-#                        if ic > 0:
-#                            self._latest_gaze_position=(EyeTracker._gx,EyeTracker._gy)
-#                        else:
-#                            self._latest_gaze_position=None
-#                            
-#                        self._addNativeEventToBuffer(binocSample)
-#    
-#                # process any fixation events we got.....
-#                if nEvents:
-#                    # each fixation event is both a start and end fixation, so we will
-#                    # create both a STartFix and EndFix ioHub event for each fix event
-#                    # we get from the iViewX
-#                    
-#                    while nEvents:
-#                        fix_event=nEvents.pop(0)
-#                        
-#                        # common fields
-#                        logged_time=poll_time
-#                        confidence_interval=poll_time-self._last_poll_time
-#    
-#                        if fix_event.eye == 'r':
-#                            which_eye=EyeTrackerConstants.RIGHT_EYE
-#                        elif fix_event.eye == 'l':
-#                            which_eye=EyeTrackerConstants.LEFT_EYE
-#    
-#                        event_start_time=fix_event.startTime*DEVICE_TIMEBASE_TO_SEC
-#                        event_end_time=fix_event.endTime*DEVICE_TIMEBASE_TO_SEC
-#                        event_duration=fix_event.duration*DEVICE_TIMEBASE_TO_SEC
-#    
-#                        event_avg_x=fix_event.positionX
-#                        event_avg_y=fix_event.positionY
-#                        
-#                        event_avg_x,event_avg_y=self._eyeTrackerToDisplayCoords((event_avg_x,event_avg_y))
-#                        start_event_delay=tracker_time-event_start_time
-#                        end_event_delay=tracker_time-event_end_time
-#                        
-#                        start_iohub_time=poll_time-start_event_delay
-#                        end_iohub_time=poll_time-end_event_delay
-#                        
-#                        # create fix start event......
-#                        event_type=EventConstants.FIXATION_START
-#    
-#                        se=[
-#                            0,                              # exp ID
-#                            0,                              # sess ID
-#                            0, #device id (not currently used)
-#                            Computer._getNextEventID(),     # event ID
-#                            event_type,                     # event type
-#                            event_start_time,
-#                            logged_time,
-#                            start_iohub_time,
-#                            confidence_interval,
-#                            start_event_delay,
-#                            0,                                      # ioHub filter ID
-#                            which_eye,                              # eye
-#                            EyeTrackerConstants.UNDEFINED,          # gaze x
-#                            EyeTrackerConstants.UNDEFINED,          # gaze y
-#                            EyeTrackerConstants.UNDEFINED,          # gaze z
-#                            EyeTrackerConstants.UNDEFINED,          # angle x
-#                            EyeTrackerConstants.UNDEFINED,          # angle y
-#                            EyeTrackerConstants.UNDEFINED,          # raw x
-#                            EyeTrackerConstants.UNDEFINED,          # raw y
-#                            EyeTrackerConstants.UNDEFINED,          # pupil area
-#                            EyeTrackerConstants.UNDEFINED,          # pupil measure type 1
-#                            EyeTrackerConstants.UNDEFINED,          # pupil measure 2
-#                            EyeTrackerConstants.UNDEFINED,          # pupil measure 2 type
-#                            EyeTrackerConstants.UNDEFINED,          # ppd x
-#                            EyeTrackerConstants.UNDEFINED,          # ppd y
-#                            EyeTrackerConstants.UNDEFINED,          # velocity x
-#                            EyeTrackerConstants.UNDEFINED,          # velocity y
-#                            EyeTrackerConstants.UNDEFINED,          # velocity xy
-#                            EyeTrackerConstants.UNDEFINED           # status
-#                            ]
-#        
-#                        self._addNativeEventToBuffer(se)
-#                    
-#                    
-#                        # create fix end event........
-#    
-#                        event_type=EventConstants.FIXATION_END
-#    
-#                        fee=[0,
-#                             0,
-#                             0, #device id (not currently used)
-#                             Computer._getNextEventID(),
-#                             event_type,
-#                             event_end_time,
-#                             logged_time,
-#                             end_iohub_time,
-#                             confidence_interval,
-#                             end_event_delay,
-#                             0,
-#                             which_eye,
-#                             event_duration,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             event_avg_x,
-#                             event_avg_y,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED,
-#                             EyeTrackerConstants.UNDEFINED
-#                             ]
-#                        
-#                        self._addNativeEventToBuffer(fee)
-#                self._last_poll_time=poll_time
-#                return True
-#            
-#            except Exception:
-#                print2err("ERROR occurred during poll:")
-#                printExceptionDetailsToStdErr()
-                
+        return native_event_data
 
     def _eyeTrackerToDisplayCoords(self,eyetracker_point):
         """
@@ -1196,10 +984,7 @@ class EyeTracker(EyeTrackerDevice):
             x,y=left+w*gaze_x,bottom+h*(1.0-gaze_y) 
             return x,y
         except Exception,e:
-            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
-            #        method="EyeTracker._eyeTrackerToDisplayCoords", 
-            #        error=e)            
+            printExceptionDetailsToStdErr()
         
     def _displayToEyeTrackerCoords(self,display_x,display_y):
         """
@@ -1215,10 +1000,7 @@ class EyeTracker(EyeTrackerDevice):
             return cxn*dw,  cyn*dh          
            
         except Exception,e:
-            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
-            #        method="EyeTracker._displayToEyeTrackerCoords", 
-            #        error=e)
+            printExceptionDetailsToStdErr()
 
     def _TrackerSystemInfo(self):
         try:
@@ -1240,11 +1022,7 @@ class EyeTracker(EyeTrackerDevice):
             print2err("GetSystemInfo FAILED: " + str(res))  
             return EyeTrackerConstants.EYETRACKER_ERROR         
         except Exception,e:
-            printExceptionDetailsToStdErr()#return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-            #        error_message="An unhandled exception occurred on the ioHub Server Process.",
-            #        method="EyeTracker._eyeLinkHardwareAndSoftwareVersion", 
-            #        error=e)            
-
+            printExceptionDetailsToStdErr()
     def _close(self):
         self.setRecordingState(False)
         self.setConnectionState(False)
@@ -1288,7 +1066,7 @@ class _iViewConfigMappings(object):
             calibration_struct.targetSize=c_int(target_settings.get('target_size',30))
 
         elif calibration_config['target_type'] =='IMAGE_TARGET':
-            calibration_struct.targetFilename=pyViewX.StringBuffer(calibration_config['image_attributes'].get('file_name',b''))
+            calibration_struct.targetFilename=pyViewX.String(calibration_config['image_attributes'].get('file_name',b''))
             calibration_struct.targetSize=c_int(calibration_config['image_attributes'].get('target_size',30))
         
         elif calibration_config['target_type'] == 'CROSSHAIR_TARGET':

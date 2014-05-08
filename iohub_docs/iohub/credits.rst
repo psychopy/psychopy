@@ -13,16 +13,9 @@ The following people (listed alphabetically) have contributed to the overall ioH
 * **Pierce Edmiston** - University of Wisconsin-Madison - Help with implementing and proofing ioHub Documentation, general functional testing and improvement / enhancement feedback, and EyeLink Common Eye Tracker Implementation testing.
 * **Jeremy Gray** - Michigan State University - OS X Implementation input and testing. Example script optimizations.
 * **Jeff Pelz** - R.I.T. - Input on functional priorities, the Common Eye Tracker Interface,  and active 'real lab use' test site.
+* **Jon Pierce** - Nottingham University - Overall input and support.
 * **Dong Wang** - R.I.T. - System functionality feedback, input, and testing support.
-
-I would also like to extend a special thank you to `Jonathan Pierce <http://www.psychology.nottingham.ac.uk/research/vision/jwp/home.html>`_, creator of `PsychoPy <http://www.psychopy.org>`_, who has been kind enough 
-to provide me with feedback on the ioHub specifications, but to me more importantly, invaluable input on the great world of open-source projects and his experience working within it. 
-I really can not say enough about how much his input has meant to me and how much it has been appreciated. You are a genuine scholar and teacher Jon. Thank You. 
-
-This thanks is extended to the PsychoPy developer and user group as a whole; many members of which have made important points and debate that I always find informative and useful.
-
-It is also so important to thank and recognize all the incredible open source Python packages and modules that the ioHub uses to do what it does. 
-Without the hard work of these project teams, this project would not exist either.  The list of current dependencies for ioHub can be found in the Installation Section of this manual.
+* **Raimondas Zemblys** - Lund University - Lots of usage feedback, extensive testing of AnalogInput and EyeTracker devices.
 
 Common Eye Tracker Interface Contributions
 ===========================================

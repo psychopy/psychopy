@@ -12,6 +12,7 @@ import psychopy  # so we can get the __path__
 from psychopy import logging
 
 from psychopy.visual.shape import ShapeStim
+from psychopy.tools.attributetools import attributeSetter, callAttributeSetter
 
 import numpy
 
@@ -24,15 +25,6 @@ class Polygon(ShapeStim):
     def __init__(self, win, edges=3, radius=.5, **kwargs):
         """
         Polygon accepts all input parameters that :class:`~psychopy.visual.ShapeStim` accepts, except for vertices and closeShape.
-
-        :Parameters:
-
-            edges : int
-                Number of edges of the polygon
-
-            radius : float, int, tuple, list or 2x1 array
-                Radius of the Polygon (distance from the center to the corners).
-                May be a -2tuple or list to stretch the polygon asymmetrically
         """
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
@@ -41,12 +33,12 @@ class Polygon(ShapeStim):
         self._initParams.remove('kwargs')
         self._initParams.extend(kwargs)
         self.autoLog = False #but will be changed if needed at end of init
-        self.edges = edges
+        self.__dict__['edges'] = edges
         self.radius = numpy.asarray(radius)
         self._calcVertices()
         kwargs['closeShape'] = True # Make sure nobody messes around here
         kwargs['vertices'] = self.vertices
-        ShapeStim.__init__(self, win, **kwargs)
+        super(Polygon, self).__init__(win, **kwargs)
 
     def _calcVertices(self):
         d = numpy.pi*2/ self.edges
@@ -56,20 +48,30 @@ class Polygon(ShapeStim):
             ) * self.radius
             for e in xrange(self.edges)
         ])
-    def setEdges(self,edges, log=True):
-        "Set the number of edges to a new value"
-        self.edges=edges
+    
+    @attributeSetter
+    def edges(self, edges):
+        "Int. Number of edges of the polygon. :ref:`Operations <attrib-operations>` supported."
+        self.__dict__['edges'] = edges
         self._calcVertices()
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s edges=%s" %(self.name, edges),
-                level=logging.EXP,obj=self)
-    def setRadius(self, radius, log=True):
-        """Changes the radius of the Polygon. Parameter should be
+    def setEdges(self, edges, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message"""
+        callAttributeSetter(self, 'edges', edges, log)
 
-            - float, int, tuple, list or 2x1 array"""
-        self.radius = numpy.asarray(radius)
+    @attributeSetter
+    def radius(self, radius):
+        """float, int, tuple, list or 2x1 array
+        Radius of the Polygon (distance from the center to the corners).
+        May be a -2tuple or list to stretch the polygon asymmetrically.
+
+        :ref:`Operations <attrib-operations>` supported.
+        
+        Usually there's a setAttribute(value, log=False) method for each attribute. Use this if you want to disable logging."""
+        self.__dict__['radius'] = numpy.array(radius)
         self._calcVertices()
         self.setVertices(self.vertices, log=False)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s radius=%s" %(self.name, radius),
-                level=logging.EXP,obj=self)
+    def setRadius(self, radius, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message"""
+        callAttributeSetter(self, 'radius', radius, log)

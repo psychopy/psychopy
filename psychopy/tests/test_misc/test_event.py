@@ -7,11 +7,14 @@ import pyglet, pygame
 import pytest
 import copy
 import threading
+import os
 
 """test with both pyglet and pygame:
     cd psychopy/psychopy/
     py.test -k event --cov-report term-missing --cov event.py
 """
+
+travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
 class DelayedFakeKey(threading.Thread):
     def __init__(self, key, delay=.01):
@@ -66,12 +69,19 @@ class _baseTest:
         event.stopMoveClock()
         event.resetMoveClock()
 
+        m = event.Mouse()
+        assert m.mouseMoveTime() >= 0
+        t = 0.05
+        core.wait(t)
+        assert t - 0.01 < m.mouseMoveTime() < t + 0.01
+
     def test_clearEvents(self):
         for t in ['mouse', 'joystick', 'keyboard', None]:
             event.clearEvents(t)
 
     def test_keys(self):
-        pytest.skip()  # failing on travis-ci
+        if travis:
+            pytest.skip()  # failing on travis-ci
         if self.win.winType == 'pygame':
             pytest.skip()
         event.clearEvents()
@@ -82,6 +92,16 @@ class _baseTest:
             assert k in event.getKeys()
             event._onPygletKey(symbol=17, modifiers=None, emulated=False)
             assert '17' in event.getKeys()
+
+            # test that key-based RT is about right
+            event.clearEvents()
+            c = core.Clock()
+            t = 0.05
+            core.wait(t)
+            event._onPygletKey(symbol=k, modifiers=None, emulated=True)
+            resp = event.getKeys(timeStamped=c)
+            assert k in resp[0][0]
+            assert t - 0.01 < resp[0][1] < t + 0.01
 
             event._onPygletKey(symbol=k, modifiers=None, emulated=True)
             assert k in event.getKeys(timeStamped=True)[0]
@@ -111,7 +131,8 @@ class _baseTest:
         assert event.xydist([0,0], [1,1]) == sqrt(2)
 
     def test_mouseMoved(self):
-        pytest.skip()  # failing on travis-ci
+        if travis:
+            pytest.skip()  # failing on travis-ci
 
         m = event.Mouse()
         m.prevPos = [0,0]

@@ -60,10 +60,10 @@ class ApertureComponent(VisualComponent):
         buff.writeIndented("\n")
         buff.writeIndented("# *%s* updates\n" %(self.params['name']))
         self.writeStartTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.writeIndented("%(name)s.enable()\n" %(self.params))
+        buff.writeIndented("%(name)s.enabled = True\n" %(self.params))
         buff.setIndentLevel(-1, relative=True)#to get out of the if statement
         self.writeStopTestCode(buff)#writes an if statement to determine whether to draw etc
-        buff.writeIndented("%(name)s.disable()\n" %(self.params))
+        buff.writeIndented("%(name)s.enabled = False\n" %(self.params))
         buff.setIndentLevel(-1, relative=True)#to get out of the if statement
         #set parameters that need updating every frame
         if self.checkNeedToUpdate('set every frame'):#do any params need updating? (this method inherited from _base)
@@ -73,5 +73,5 @@ class ApertureComponent(VisualComponent):
             buff.setIndentLevel(-1, relative=True)#to exit the if block
 
     def writeRoutineEndCode(self, buff):
-        buff.writeIndented("%(name)s.disable()  # just in case it was left enabled\n" % (self.params))
+        buff.writeIndented("%(name)s.enabled = False  # just in case it was left enabled\n" % (self.params))
 

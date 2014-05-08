@@ -125,9 +125,6 @@ class ExperimentDataAccessUtility(object):
 
         try:
             self.hdfFile=openHubFile(hdfFilePath,hdfFileName,mode)
-            global _hubFiles
-            self.hdfFile=openFile(os.path.join(hdfFilePath,hdfFileName), mode)
-            _hubFiles.append(self.hdfFile)            
         except Exception as e:
             print e
             raise ExperimentDataAccessException(e)

@@ -20,7 +20,7 @@ from psychopy import core, logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.tools.attributetools import attributeSetter
+from psychopy.tools.attributetools import attributeSetter, logAttrib
 from psychopy.tools.typetools import float_uint8
 from psychopy.visual.grating import GratingStim
 
@@ -119,14 +119,17 @@ class BufferImageStim(GratingStim):
         if stim: # draw all stim to the back buffer
             win.clearBuffer()
             buffer = 'back'
-            for stimulus in list(stim):
-                try:
-                    if stimulus.win == win:
-                        stimulus.draw()
-                    else:
-                        logging.warning('BufferImageStim.__init__: user requested "%s" drawn in another window' % repr(stimulus))
-                except AttributeError:
-                    logging.warning('BufferImageStim.__init__: "%s" failed to draw' % repr(stimulus))
+            if hasattr(stim, '__iter__'):
+                for stimulus in stim:
+                    try:
+                        if stimulus.win == win:
+                            stimulus.draw()
+                        else:
+                            logging.warning('BufferImageStim.__init__: user requested "%s" drawn in another window' % repr(stimulus))
+                    except AttributeError:
+                        logging.warning('BufferImageStim.__init__: "%s" failed to draw' % repr(stimulus))
+            else:
+                raise(ValueError('Stim is not iterable in BufferImageStim. It should be a list of stimuli.'))
 
         # take a screenshot of the buffer using win._getRegionOfFrame():
         glversion = pyglet.gl.gl_info.get_version()
@@ -142,7 +145,7 @@ class BufferImageStim(GratingStim):
         # turn the RGBA region into a GratingStim()-like object:
         if win.units in ['norm']:
             pos *= win.size/2.
-        GratingStim.__init__(self, win, tex=region, units='pix', mask=mask, pos=pos,
+        super(BufferImageStim, self).__init__(win, tex=region, units='pix', mask=mask, pos=pos,
                              interpolate=interpolate, name=name, autoLog=False)
 
         # to improve drawing speed, move these out of draw:
@@ -212,23 +215,30 @@ class BufferImageStim(GratingStim):
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                             data.shape[1], data.shape[0], 0,
                             pixFormat, dataType, texture)
-    def setFlipHoriz(self, newVal=True, log=True):
+    @attributeSetter
+    def flipHoriz(self, flipHoriz):
         """If set to True then the image will be flipped horiztonally (left-to-right).
         Note that this is relative to the original image, not relative to the current state.
         """
-        self.flipHoriz = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipHoriz=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
-    def setFlipVert(self, newVal=True, log=True):
-        """If set to True then the image will be flipped vertically (top-to-bottom).
+        self.__dict__['flipHoriz'] = flipHoriz
+    @attributeSetter
+    def flipVert(self, flipVert):
+        """If set to True then the image will be flipped vertically (left-to-right).
         Note that this is relative to the original image, not relative to the current state.
         """
+        self.__dict__['flipVert'] = flipVert    
+    def setFlipHoriz(self, newVal=True, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
+        """
+        self.flipHoriz = newVal
+        logAttrib(self, log, 'flipHoriz')
+    def setFlipVert(self, newVal=True, log=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message.
+        """
         self.flipVert = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
-
+        logAttrib(self, log, 'flipVert')
     def draw(self, win=None):
         """
         Draws the BufferImage on the screen, similar to :class:`~psychopy.visual.ImageStim` `.draw()`.

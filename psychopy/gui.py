@@ -84,7 +84,7 @@ class Dlg(wx.Dialog):
         labelLength = wx.Size(9*len(label)+16,25)#was 8*until v0.91.4
         inputLabel = wx.StaticText(self,-1,label,
                                         size=labelLength,
-                                        style=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+                                        style=wx.ALIGN_RIGHT)
         if len(color): inputLabel.SetForegroundColour(color)
         container.Add(inputLabel, 1, wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         #create input control
@@ -221,14 +221,14 @@ class DlgFromDict(Dlg):
 def fileSaveDlg(initFilePath="", initFileName="",
                 prompt="Select file to save",
                 allowed=None):
-    """A simple dialogue allowing access to the file system.
+    """A simple dialogue allowing write access to the file system.
     (Useful in case you collect an hour of data and then try to
     save to a non-existent directory!!)
 
     :parameters:
         initFilePath: string
             default file path on which to open the dialog
-        initFilePath: string
+        initFileName: string
             default file name, as suggested file
         prompt: string (default "Select file to open")
             can be set to custom prompts
@@ -268,14 +268,12 @@ def fileOpenDlg(tryFilePath="",
                 tryFileName="",
                 prompt="Select file to open",
                 allowed=None):
-    """A simple dialogue allowing access to the file system.
-    (Useful in case you collect an hour of data and then try to
-    save to a non-existent directory!!)
+    """A simple dialogue allowing read access to the file system.
 
     :parameters:
         tryFilePath: string
             default file path on which to open the dialog
-        tryFilePath: string
+        tryFileName: string
             default file name, as suggested file
         prompt: string (default "Select file to open")
             can be set to custom prompts

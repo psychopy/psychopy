@@ -6,11 +6,7 @@ eyetracker.hw.theeyetribe.EyeTracker:
             max_length: 32
             first_char_alpha: True
     enable: IOHUB_BOOL
-    model_name:
-        IOHUB_LIST:
-            valid_values: [TheEyeTribe, None]
-            min_length: 0
-            max_length: 1
+    model_name: TheEyeTribe
     serial_number:
         IOHUB_STRING:
             min_length: 0
@@ -29,7 +25,7 @@ eyetracker.hw.theeyetribe.EyeTracker:
             min_length: 1
             max_length: 1
     runtime_settings:
-        sampling_rate: [25,30,60,120,400]
+        sampling_rate: [30,60]
         track_eyes: [BINOCULAR,]
     calibration:
         minimize_psychopy_win: IOHUB_BOOL

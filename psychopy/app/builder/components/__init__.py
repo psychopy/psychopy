@@ -10,7 +10,7 @@ try:
     from PIL import Image
 except ImportError:
     import Image
-from os.path import *
+from os.path import join, dirname, abspath
 
 excludeComponents = ['VisualComponent', 'BaseComponent', #these are templates, not for use
                      'EyetrackerComponent', #this one isn't ready yet
@@ -24,25 +24,25 @@ def pilToBitmap(pil,scaleFactor=1.0):
     return image.ConvertToBitmap()#wx.Image and wx.Bitmap are different
 
 def getIcons(filename=None):
-        """Creates wxBitmaps ``self.icon`` and ``self.iconAdd`` based on the the image.
-        The latter has a plus sign added over the top.
+    """Creates wxBitmaps ``self.icon`` and ``self.iconAdd`` based on the the image.
+    The latter has a plus sign added over the top.
 
-        png files work best, but anything that wx.Image can import should be fine
-        """
-        icons={}
-        if filename==None:
-            filename=join(dirname(abspath(__file__)),'base.png')
-        im = Image.open(filename)
-        icons['48'] = pilToBitmap(im)
-        icons['24'] = pilToBitmap(im, scaleFactor=0.5)
-        #add the plus sign
-        add = Image.open(join(dirname(abspath(__file__)),'add.png'))
-        im.paste(add, [0,0,add.size[0], add.size[1]], mask=add)
-        #im.paste(add, [im.size[0]-add.size[0], im.size[1]-add.size[1],im.size[0], im.size[1]], mask=add)
-        icons['48add'] = pilToBitmap(im)
-        icons['24add'] = pilToBitmap(im, scaleFactor=0.5)
+    png files work best, but anything that wx.Image can import should be fine
+    """
+    icons={}
+    if filename==None:
+        filename=join(dirname(abspath(__file__)),'base.png')
+    im = Image.open(filename)
+    icons['48'] = pilToBitmap(im)
+    icons['24'] = pilToBitmap(im, scaleFactor=0.5)
+    #add the plus sign
+    add = Image.open(join(dirname(abspath(__file__)),'add.png'))
+    im.paste(add, [0,0,add.size[0], add.size[1]], mask=add)
+    #im.paste(add, [im.size[0]-add.size[0], im.size[1]-add.size[1],im.size[0], im.size[1]], mask=add)
+    icons['48add'] = pilToBitmap(im)
+    icons['24add'] = pilToBitmap(im, scaleFactor=0.5)
 
-        return icons
+    return icons
 
 def getComponents(folder=None, fetchIcons=True):
     """Get a dictionary of available component objects for the Builder experiments.
@@ -168,5 +168,6 @@ def getInitVals(params):
         else:
             print "I don't know the appropriate default value for a '%s' parameter. Please email the mailing list about this error" %name
     return inits
+
 tooltips = {}
-icons={}
+icons = {}

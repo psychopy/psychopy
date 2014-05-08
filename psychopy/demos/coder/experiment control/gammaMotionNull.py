@@ -137,7 +137,7 @@ for trialN in range(info['nTrials']):
     for stairCase in stairCases:
         thisGamma=stairCase.next()
         t = globalClock.getTime()
-        myWin.setGamma([thisGamma,thisGamma,thisGamma])
+        myWin.gamma = [thisGamma,thisGamma,thisGamma]
         
         direction=num.random.randint(0,2)*2-1 # a random number -1 or 1 
         presentStimulus(direction)

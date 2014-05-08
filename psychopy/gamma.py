@@ -8,6 +8,7 @@
 import numpy, sys, platform, ctypes, ctypes.util
 import pyglet
 from psychopy import logging
+import os
 
 #import platform specific C++ libs for controlling gamma
 if sys.platform=='win32':
@@ -17,6 +18,8 @@ elif sys.platform=='darwin':
 elif sys.platform.startswith('linux'):
     #we need XF86VidMode
     xf86vm=ctypes.CDLL(ctypes.util.find_library('Xxf86vm'))
+
+_TravisTesting = os.environ.get('TRAVIS')=='true' #in Travis-CI testing
 
 def setGamma(pygletWindow=None, newGamma=1.0, rampType=None):
     #make sure gamma is 3x1 array
@@ -57,11 +60,14 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
                    newRamp[0,:].ctypes, newRamp[1,:].ctypes, newRamp[2,:].ctypes)
         assert not error, 'CGSetDisplayTransferByTable failed'
 
-    if sys.platform.startswith('linux'):
+    if sys.platform.startswith('linux') and not _TravisTesting:
         newRamp= (65535*newRamp).astype(numpy.uint16)
         success = xf86vm.XF86VidModeSetGammaRamp(pygletWindow._x_display, pygletWindow._x_screen_id, 256,
                     newRamp[0,:].ctypes, newRamp[1,:].ctypes, newRamp[2,:].ctypes)
         assert success, 'XF86VidModeSetGammaRamp failed'
+
+    elif _TravisTesting:
+        logging.warn("It looks like we're running in the Travis-CI testing environment. Hardware gamma table cannot be set")
 
 def getGammaRamp(pygletWindow):
     """Ramp will be returned as 3x256 array in range 0:1

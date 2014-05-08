@@ -22,14 +22,14 @@ Writing optimal scripts
    #. run in full-screen mode (rather than simply filling the screen with your window). This way the OS doesn't have to spend time working out what application is currently getting keyboard/mouse events.
    #. don't generate your stimuli when you need them. Generate them in advance and then just modify them later with the methods like setContrast(), setOrientation() etc...
    #. calls to the following functions are comparatively slow; they require more cpu time than most other functions and then have to send a large amount of data to the graphics card. Try to use these methods in inter-trial intervals. This is especially true when you need to load an image from disk too as the texture.
-         #. PatchStim.setTexture()
+         #. GratingStim.setTexture()
          #. RadialStim.setTexture()
-         #. TextStim.setText() 
+         #. TextStim.setText()
    #. if you don't have OpenGL 2.0 then calls to setContrast, setRGB and setOpacity will also be slow, because they also make a call to setTexture(). If you have shader support then this call is not necessary and a large speed increase will result.
    #. avoid loops in your python code (use numpy arrays to do maths with lots of elements)
-   #. if you need to create a large number (e.g. greater than 10) similar stimuli, then try the ElementArrayStim 
+   #. if you need to create a large number (e.g. greater than 10) similar stimuli, then try the ElementArrayStim
 
-Possible good ideas 
+Possible good ideas
 ~~~~~~~~~~~~~~~~~~~~~
 
 It isn't clear that these actually make a difference, but they might).
@@ -37,4 +37,3 @@ It isn't clear that these actually make a difference, but they might).
    #. disconnect the internet cable (to prevent programs performing auto-updates?)
    #. on Macs you can actually shut down the Finder. It might help. See Alex Holcombe's page `here <http://openwetware.org/wiki/Holcombe:VerifyTiming>`_
    #. use a single screen rather than two (probably there is some graphics card overhead in managing double the number of pixels?)
-

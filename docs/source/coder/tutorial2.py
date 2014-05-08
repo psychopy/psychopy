@@ -26,19 +26,19 @@ staircase = data.StairHandler(startVal = 20.0,
                           stepType = 'db', stepSizes=[8,4,4,2,2,1,1],
                           nUp=1, nDown=3,  #will home in on the 80% threshold
                           nTrials=1)
-                          
+
 #create window and stimuli
 win = visual.Window([800,600],allowGUI=True, monitor='testMonitor', units='deg')
-foil = visual.PatchStim(win, sf=1, size=4, mask='gauss', ori=expInfo['refOrientation'])
-target = visual.PatchStim(win, sf=1,  size=4, mask='gauss', ori=expInfo['refOrientation'])
-fixation = visual.PatchStim(win, color=-1, colorSpace='rgb', tex=None, mask='circle',size=0.2)
+foil = visual.GratingStim(win, sf=1, size=4, mask='gauss', ori=expInfo['refOrientation'])
+target = visual.GratingStim(win, sf=1,  size=4, mask='gauss', ori=expInfo['refOrientation'])
+fixation = visual.GratingStim(win, color=-1, colorSpace='rgb', tex=None, mask='circle',size=0.2)
 #and some handy clocks to keep track of time
 globalClock = core.Clock()
 trialClock = core.Clock()
 
 #display instructions and wait
 message1 = visual.TextStim(win, pos=[0,+3],text='Hit a key when ready.')
-message2 = visual.TextStim(win, pos=[0,-3], 
+message2 = visual.TextStim(win, pos=[0,-3],
     text="Then press left or right to identify the %.1f deg probe." %expInfo['refOrientation'])
 message1.draw()
 message2.draw()
@@ -103,7 +103,7 @@ feedback1 = visual.TextStim(win, pos=[0,+3],
 (numpy.average(staircase.reversalIntensities[-6:])))
 feedback1.draw()
 fixation.draw()
-win.flip() 
+win.flip()
 event.waitKeys() #wait for participant to respond
 
 win.close()

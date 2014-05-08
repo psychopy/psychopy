@@ -131,6 +131,13 @@ try:
         GAMEPAD_STATE_CHANGE=81
         GAMEPAD_DISCONNECT=82
         
+        DIGITAL_INPUT=101
+        ANALOG_INPUT=102
+        THRESHOLD = 103
+
+        SERIAL_INPUT = 105
+        SERIAL_BYTE_CHANGE = 106
+
         MULTI_CHANNEL_ANALOG_INPUT=122
     
         MESSAGE=151
@@ -206,9 +213,24 @@ try:
             #: Constant for a Gamepad Event.
             GAMEPAD_STATE_CHANGE=81
 
+            #: Constant for MCU digital input Event.
+            DIGITAL_INPUT=101
+
+            #: Constant for MCU analog input Event.
+            ANALOG_INPUT=102
+
+            #: Constant for MCU analog threshold state change Event.
+            THRESHOLD=103
+
             #: Constant for an Eight Channel Analog Input Sample Event.
             MULTI_CHANNEL_ANALOG_INPUT=122
         
+            #: Constant for a general purpose Serial Rx Event.
+            SERIAL_INPUT = 105
+
+            #: Constant for a serial event due to a rx stream byte value change.
+            SERIAL_BYTE_CHANGE = 106
+
             #: Constant for an Experiment Message Event.
             MESSAGE=151
 
@@ -267,14 +289,16 @@ try:
         OTHER = 1
         KEYBOARD = 20
         MOUSE = 30
-        TOUCH=40
+        TOUCH = 40
         EYETRACKER = 50
-        NETWORK=60
-        EVENTPUBLISHER=61
-        REMOTEEVENTSUBSCRIBER=62
+        NETWORK = 60
+        EVENTPUBLISHER = 61
+        REMOTEEVENTSUBSCRIBER = 62
         
-        XINPUT= 70
-        GAMEPAD=80
+        XINPUT = 70
+        GAMEPAD = 80
+        MCU = 100
+        SERIAL = 110
         ANALOGINPUT = 120
         EXPERIMENT = 150
         DISPLAY = 190
@@ -308,6 +332,12 @@ try:
 
             #: Constant for Gamepad Device.
             GAMEPAD=80
+
+            #: Constant for a MCU Device.
+            MCU = 100
+
+            #: Constant for a General Purpose Serial Interface Device.
+            MCU = 110
 
             #: Constant for an AnalogInput Device.
             ANALOGINPUT = 120
@@ -1025,15 +1055,15 @@ try:
         #
         ## Eye Type Constants
         #
-        LEFT_EYE=21
-        RIGHT_EYE=22
-        UNKNOWN_MONOCULAR=24
-        BINOCULAR=23
-        BINOCULAR_AVERAGED=25
-        BINOCULAR_CUSTOM=26
-        SIMULATED_MONOCULAR=27
-        SIMULATED_BINOCULAR=28
-    
+        LEFT_EYE = 21
+        RIGHT_EYE = 22
+        SIMULATED_MONOCULAR = 23
+        MONOCULAR = 24
+
+        BINOCULAR = 26
+        BINOCULAR_AVERAGED = 27
+        BINOCULAR_CUSTOM = 28
+        SIMULATED_BINOCULAR = 29
         #
         ## Calibration / Validation Related Constants
         #

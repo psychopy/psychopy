@@ -3,12 +3,11 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import StringIO, sys, codecs
-from components import *#getComponents('') and getAllComponents([])
+from components import getInitVals, getComponents, getAllComponents
 import psychopy
 from psychopy import data, __version__, logging
-from psychopy.constants import *
+from psychopy.constants import FOREVER
 from lxml import etree
-import numpy, numpy.random # want to query their name-spaces
 import re, os
 import locale
 
@@ -98,6 +97,16 @@ class Experiment:
         self.settings=getComponents(fetchIcons=False)['SettingsComponent'](parentName='', exp=self)
         self._doc=None#this will be the xml.dom.minidom.doc object for saving
         self.namespace = NameSpace(self) # manage variable names
+
+        #  _expHandler is a hack to allow saving data from components not inside
+        # a loop. data-saving machinery relies on loops, not worth rewriting.
+        # `thisExp` will be an ExperimentHandler when used in the generated script, but
+        # its easier to use treat it as a TrialHandler during script generation
+        # to avoid effectively duplicating code just to work around any differences
+        # in writeRoutineEndCode
+        self._expHandler = TrialHandler(exp=self, name='thisExp')
+        self._expHandler.type = 'ExperimentHandler'  # true at run-time
+        self._expHandler.name = self._expHandler.params['name'].val  # thisExp
     def requirePsychopyLibs(self, libs=[]):
         """Add a list of top-level psychopy libs that the experiment will need.
         e.g. [visual, event]
@@ -345,6 +354,7 @@ class Experiment:
         self.routines={}
         self.namespace = NameSpace(self) # start fresh
         modified_names = []
+        duplicate_names = []
 
         #fetch exp settings
         settingsNode=root.find('Settings')
@@ -432,7 +442,7 @@ class Experiment:
                         _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
                         for fname in fieldNames:
                             if fname != self.namespace.makeValid(fname):
-                                logging.warning('loadFromXML namespace conflict: "%s" in file %s' % (fname, conditionsFile))
+                                duplicate_names.append(fname)
                             else:
                                 self.namespace.add(fname)
                     except:
@@ -444,7 +454,9 @@ class Experiment:
                 self.flow.append(self.routines[elementNode.get('name')])
 
         if modified_names:
-            logging.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ' '.join(modified_names))
+            logging.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ', '.join(list(set(modified_names))))
+        if duplicate_names:
+            logging.warning('duplicate variable names: %s' % ', '.join(list(set(duplicate_names))))
 
     def setExpName(self, name):
         self.settings.params['expName'].val=name
@@ -572,7 +584,7 @@ class TrialHandler:
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
     def __init__(self, exp, name, loopType='random', nReps=5,
-        conditions=[], conditionsFile='',endPoints=[0,1],randomSeed=''):
+        conditions=[], conditionsFile='',endPoints=[0,1],randomSeed='', selectedRows=''):
         """
         @param name: name of the loop e.g. trials
         @type name: string
@@ -595,16 +607,15 @@ class TrialHandler:
             hint="Number of repeats (for each condition)")
         self.params['conditions']=Param(conditions, valType='str', updates=None, allowedUpdates=None,
             hint="A list of dictionaries describing the parameters in each condition")
-        self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
+        self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None, label='Conditions',
             hint="Name of a file specifying the parameters for each condition (.csv, .xlsx, or .pkl). Browse to select a file. Right-click to preview file contents, or create a new file.")
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
             hint="The start and end of the loop (see flow timeline)")
+        self.params['Selected rows']=Param(selectedRows, valType='code', updates=None, allowedUpdates=None,
+            hint="Select the rows form you condition file (the first is 0 not 1!). Examples: 0:5, 5:-1, randint(5)")
         self.params['loopType']=Param(loopType, valType='str',
             allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
             hint="How should the next condition value(s) be chosen?")#NB staircase is added for the sake of the loop properties dialog
-        #these two are really just for making the dialog easier (they won't be used to generate code)
-        self.params['endPoints']=Param(endPoints,valType='num',
-            hint='Where to loop from and to (see values currently shown in the flow view)')
         self.params['random seed']=Param(randomSeed, valType='code', updates=None, allowedUpdates=None,
             hint="To have a fixed random sequence provide an integer of your choosing here. Leave blank to have a new random sequence on each run of the experiment.")
     def writeInitCode(self,buff):
@@ -619,7 +630,12 @@ class TrialHandler:
         #import conditions from file
         if self.params['conditionsFile'].val in ['None',None,'none','']:
             condsStr="[None]"
-        else: condsStr="data.importConditions(%s)" %self.params['conditionsFile']
+        elif self.params['Selected rows'].val in ['None',None,'none','']:
+            # just a conditions file with no sub-selection
+            condsStr="data.importConditions(%s)" %self.params['conditionsFile']
+        else:
+            # a subset of a conditions file
+            condsStr="data.importConditions(%(conditionsFile)s)[%(Selected rows)s]" %(self.params)
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         #write the code
@@ -781,7 +797,7 @@ class MultiStairHandler:
         self.params['name']=Param(name, valType='code', hint="Name of this loop")
         self.params['nReps']=Param(nReps, valType='code',
             hint="(Minimum) number of trials in *each* staircase")
-        self.params['stairType']=Param(nReps, valType='str', allowedVals=['simple','QUEST'],
+        self.params['stairType']=Param(nReps, valType='str', allowedVals=['simple','QUEST','quest'],
             hint="How to select the next staircase to run")
         self.params['switchMethod']=Param(nReps, valType='str', allowedVals=['random','sequential','fullRandom'],
             hint="How to select the next staircase to run")

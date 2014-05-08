@@ -1,25 +1,10 @@
 #!/usr/bin/env python
 #coding=utf-8
 
-# Copyright (c) Cambridge Research Systems (CRS) Ltd
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+""
+# Part of the PsychoPy library
+# Copyright (C) 2014 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
 
 #Acknowledgements:
 #    This code written by Jon Peirce <jon@peirce.org.uk>. The BitsPlusPlus code was
@@ -39,6 +24,7 @@ except:
     import logging
 import serial
 from OpenGL import GL
+import OpenGL.GL.ARB.multitexture as GL_multitexture
 try:
     from psychopy.ext import _bits
     haveBitsDLL=True
@@ -232,9 +218,8 @@ class BitsSharp(object):
 
 class BitsPlusPlus(object):
     """The main class to control a bits++ box.
-
-    If you're using PsychoPy you can usually access Bits++ functions directly
-    from your PsychoPy Window
+    
+    This is usually a class added within the window object and is typically accessed from there.
     e.g.::
 
         from psychopy import visual
@@ -251,16 +236,9 @@ class BitsPlusPlus(object):
         self.win = win
         self.contrast=contrast
         self.nEntries=nEntries
-        #set standardised name for mode
-        if mode in ['bits','bits++']:
-            self.mode = 'bits++'
-        elif mode in ['color','color++','colour','colour++']:
-            self.mode = 'color++'
-        elif mode in ['mono','mono++']:
-            self.mode = 'mono++'
-        else:
-            logging.error("Unknown mode '%s' for BitsBox" %mode)
-
+        self.bitsType=bitsType
+        self.method = 'fast'
+        
         if len(gamma)>2: # [Lum,R,G,B] or [R,G,B]
             self.gamma=gamma[-3:]
         else:
@@ -274,36 +252,16 @@ class BitsPlusPlus(object):
             self.initialised=False
             logging.warning("couldn't initialise bits++")
 
-        if self.mode == 'bits++':
-            #do the processing
-            self._HEADandLUT = numpy.zeros((524,1,3),numpy.uint8)
-            self._HEADandLUT[:12,:,0] = numpy.asarray([ 36, 63, 8, 211, 3, 112, 56, 34,0,0,0,0]).reshape([12,1])#R
-            self._HEADandLUT[:12,:,1] = numpy.asarray([ 106, 136, 19, 25, 115, 68, 41, 159,0,0,0,0]).reshape([12,1])#G
-            self._HEADandLUT[:12,:,2] = numpy.asarray([ 133, 163, 138, 46, 164, 9, 49, 208,0,0,0,0]).reshape([12,1])#B
-            self.LUT=numpy.zeros((256,3),'d')#just a place holder
-            self.setLUT()#this will set self.LUT and update self._LUTandHEAD
-        elif haveShaders:
-            self.monoModeShader = shaders.compileProgram(fragment=shaders.bitsMonoModeFrag,
-                                   attachments=[shaders.gammaCorrectionFrag])
-            self.colorModeShader =shaders.compileProgram(fragment=shaders.bitsColorModeFrag,
-                                   attachments=[shaders.gammaCorrectionFrag])
-            GL.glUseProgram(self.colorModeShader)
-            prog = self.colorModeShader
-            GL.glUniform1f(GL.glGetUniformLocation(prog, 'sampleSpacing'), 1.0)
-            #Set default encoding gamma for power-law shader to (1.0, 1.0, 1.0):
-            GL.glUniform3f(GL.glGetUniformLocation(prog, 'ICMEncodingGamma'), 1.0, 1.0, 1.0)
-            # Default min and max luminance is 0.0 to 1.0, therefore reciprocal 1/range is also 1.0:
-            GL.glUniform3f(GL.glGetUniformLocation(prog, 'ICMMinInLuminance'), 0.0, 0.0, 0.0)
-            GL.glUniform3f(GL.glGetUniformLocation(prog, 'ICMMaxInLuminance'), 1.0, 1.0, 1.0)
-            GL.glUniform3f(GL.glGetUniformLocation(prog, 'ICMReciprocalLuminanceRange'), 1.0, 1.0, 1.0)
-            # Default gain to postmultiply is 1.0:
-            GL.glUniform3f(GL.glGetUniformLocation(prog, 'ICMOutputGain'), 1.0, 1.0, 1.0)
-            # Default bias to is 0.0:
-            GL.glUniform3f(GL.glGetUniformLocation(prog, 'ICMOutputBias'), 0.0, 0.0, 0.0)
-            GL.glUniform2f(GL.glGetUniformLocation(prog, 'ICMClampToColorRange'), 0.0, 1.0)
-            GL.glUseProgram(0)
+        #do the processing
+        self._HEADandLUT = numpy.zeros((524,1,3),numpy.uint8)
+        self._HEADandLUT[:12,:,0] = numpy.asarray([ 36, 63, 8, 211, 3, 112, 56, 34,0,0,0,0]).reshape([12,1])#R
+        self._HEADandLUT[:12,:,1] = numpy.asarray([ 106, 136, 19, 25, 115, 68, 41, 159,0,0,0,0]).reshape([12,1])#G
+        self._HEADandLUT[:12,:,2] = numpy.asarray([ 133, 163, 138, 46, 164, 9, 49, 208,0,0,0,0]).reshape([12,1])#B
+        self.LUT=numpy.zeros((256,3),'d')        #just a place holder
+        self.setLUT()#this will set self.LUT and update self._LUTandHEAD
+        
 
-    def setLUT(self,newLUT=None, gammaCorrect=True, LUTrange=1.0):
+    def setLUT(self,newLUT=None, gammaCorrect=True, LUTrange=1.0):        
         """Sets the LUT to a specific range of values.
 
         Note that, if you leave gammaCorrect=True then any LUT values you supply
@@ -381,27 +339,28 @@ class BitsPlusPlus(object):
                 self.LUT[startII:endII, : ] = self.win.monitor.lineariseLums(self.LUT[startII:endII, : ], overrideGamma=gamma)
 
         #update the bits++ box with new LUT
-        #get bits into correct order, shape and add to header
-        ramp16 = (self.LUT*(2**16-1)).astype(numpy.uint16) #go from ubyte to uint16
-        ramp16 = numpy.reshape(ramp16,(256,1,3))
-        #set most significant bits
-        self._HEADandLUT[12::2,:,:] = (ramp16[:,:,:]>>8).astype(numpy.uint8)
-        #set least significant bits
-        self._HEADandLUT[13::2,:,:] = (ramp16[:,:,:]&255).astype(numpy.uint8)
-        self._HEADandLUTstr = self._HEADandLUT.tostring()
-
+        if self.method=='fast':
+            #get bits into correct order, shape and add to header
+            ramp16 = (self.LUT*(2**16-1)).astype(numpy.uint16) #go from ubyte to uint16
+            ramp16 = numpy.reshape(ramp16,(256,1,3))
+            #set most significant bits 
+            self._HEADandLUT[12::2,:,:] = (ramp16[:,:,:]>>8).astype(numpy.uint8)
+            #set least significant bits
+            self._HEADandLUT[13::2,:,:] = (ramp16[:,:,:]&255).astype(numpy.uint8)
+            self._HEADandLUTstr = self._HEADandLUT.tostring()
+            
     def _drawLUTtoScreen(self):
         """(private) Used to set the LUT on the Bits++.
-        Used to draw the LUT to the screen when in 'bits++' mode (not mono++ or colour++).
+        Used to draw the LUT to the screen when in 'fast' mode. 
         Should not be needed by user if attached to a ``psychopy.visual.Window()``
         since this will automatically draw the LUT as part of the screen refresh.
         """
         #push the projection matrix and set to orthorgaphic
-
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glPushMatrix()
-        GL.glLoadIdentity()
-        GL.glOrtho( 0, self.win.size[0],self.win.size[1], 0, 0, 1 )	#this also sets the 0,0 to be top-left
+        
+        GL.glMatrixMode(GL.GL_PROJECTION)                        
+        GL.glPushMatrix()                                    
+        GL.glLoadIdentity()                
+        GL.glOrtho( 0, self.win.size[0],self.win.size[1], 0, 0, 1 )    #this also sets the 0,0 to be top-left
         #but return to modelview for rendering
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
@@ -420,7 +379,9 @@ class BitsPlusPlus(object):
         GL.glMatrixMode( GL.GL_PROJECTION )
         GL.glPopMatrix()
         GL.glMatrixMode( GL.GL_MODELVIEW )
+        
 
+        
     def setContrast(self,contrast,LUTrange=1.0):
         """Optional parameter LUTrange determines which entries of the LUT
         will be set to this contrast
@@ -458,37 +419,10 @@ class BitsPlusPlus(object):
         new one?"""
         self.gamma=newGamma
         self.setLUT() #easiest way to update
-    def loadShader(self):
-        """Load the shader for the current Bits mode (mono++ or color++)
-        """
-        self.lastShaderProg = GL.glGetIntegerv(GL.GL_CURRENT_PROGRAM)
-        if self.mode == 'color++':
-            GL.glUseProgram(self.colorModeShader)
-            print 'using color shader'
-        elif self.mode == 'mono++':
-            GL.glUseProgram(self.monoModeShader)
-            print 'using mono shader'
-        else:
-            logging.error('Bits.loadShader() called, but Bits is in %s mode' %self.mode)
-    def revertShader(self):
-        """Reverts OpenGL to use the shader being used at the point that
-        Bits.loadShader() was last called.
-        """
-        GL.glUseProgram(self.lastShaderProg)
-    #hooks for psychopy.visual.Window'
-    def _prepareFBOrender(self):
-        self.loadShader()
-    def _endFBOrender(self):
-        self.revertShader()
-
-BitsBox = BitsPlusPlus #for compatibility
-
-#The following all require access to the dll and aren't likely to have any effect
-try:
-    import _bits
-    haveBitsDLL=True
-except:
-    haveBitsDLL=False
+    def reset(self):
+        reset()
+        
+    
 def init():
     """initialise the bits++ box
     Note that, by default, bits++ will perform gamma correction
@@ -506,13 +440,13 @@ def init():
 
 def setVideoMode(videoMode):
     """set the video mode of the bits++ (win32 only)
-
-    bits8BITPALETTEMODE=  0x00000001  #normal vsg mode
-
-    NOGAMMACORRECT  =  0x00004000  #No gamma correction mode
-
-    GAMMACORRECT    =  0x00008000  #Gamma correction mode
-
+    
+    bits8BITPALETTEMODE         =  0x00000001  #normal vsg mode
+    
+    NOGAMMACORRECT      =  0x00004000  #No gamma correction mode
+    
+    GAMMACORRECT            =  0x00008000  #Gamma correction mode
+    
     VIDEOENCODEDCOMMS =  0x00080000
 
     (Recommended that you use the BitsLUT class rather than

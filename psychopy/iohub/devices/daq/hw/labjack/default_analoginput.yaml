@@ -45,6 +45,20 @@ daq.hw.labjack.AnalogInput:
     #
     settling_factor: 1
 
+    # delay_offset: The AnalogInput device calculates sample delay by subtracting
+    #    the time analog streaming was enabled from the current time when the 
+    #    sample is received. This is not a precise calculation as hardware dependent
+    #    factors may make the actual event delay different than what is calculated.
+    #    By emphirically testing the analog input event timing error, a 
+    #    delay_offset can be calculated and set here. The delay_offset is added
+    #    to analog input event iohub times, and is subtracted from the auto
+    #    calculated analog input event delay. 
+    #    delay_offset can also be set from a psychopy.iohub script by using the
+    #    device's setDelayOffset(x) and can be read using the getDelayOffset()
+    #    method
+    #
+    delay_offset: 0.0
+
     # enable: Specifies if the device should be enabled by ioHub and monitored
     #   for events.
     #   True = Enable the device on the ioHub Server Process

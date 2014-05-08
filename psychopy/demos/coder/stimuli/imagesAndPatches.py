@@ -23,7 +23,7 @@ message = visual.TextStim(myWin,pos=(-0.95,-0.95),
 
 trialClock = core.Clock()
 t=lastFPSupdate=0
-myWin.setRecordFrameIntervals()
+myWin.recordFrameIntervals = True
 while True:
     t=trialClock.getTime()
     #Images can be manipulated on the fly
@@ -37,7 +37,7 @@ while True:
     if t-lastFPSupdate>1.0:
         lastFPS = myWin.fps()
         lastFPSupdate=t
-        message.setText("%ifps, [Esc] to quit" %lastFPS)
+        message.text = "%ifps, [Esc] to quit" %lastFPS
     message.draw()
 
     myWin.flip()

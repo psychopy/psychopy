@@ -93,9 +93,8 @@ class MovieComponent(VisualComponent):
             buff.writeIndented("if %(name)s.status == STARTED:  # only update if being drawn\n" %(self.params))
             buff.setIndentLevel(+1, relative=True)#to enter the if block
             self.writeParamUpdates(buff, 'set every frame')
-            buff.setIndentLevel(+1, relative=True)#to exit the if block
+            buff.setIndentLevel(-1, relative=True)#to exit the if block
         #do force end of trial code
         if self.params['forceEndRoutine'].val==True:
             buff.writeIndented("if %s.status == FINISHED:  # force-end the routine\n" % (self.params['name']))
             buff.writeIndented("    continueRoutine = False\n")
-

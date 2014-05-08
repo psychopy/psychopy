@@ -7,10 +7,9 @@
 import sys, psychopy
 import copy
 
-# Ensure 2.8 version of wx
 if not hasattr(sys, 'frozen'):
     import wxversion
-    wxversion.select(['2.8.10', '2.8.11', '2.8.12'])
+    wxversion.ensureMinimal('2.8') # because this version has agw
 import wx
 try:
     from agw import advancedsplash as AS
@@ -153,9 +152,9 @@ class PsychoPyApp(wx.App):
         #then override the prev files by command options and passed files
         if len(sys.argv)>1:
             if sys.argv[1]==__name__:
-                args = sys.argv[2:] # program was excecuted as "python.exe PsychoPyIDE.py %1'
+                args = sys.argv[2:] # program was executed as "python.exe PsychoPyIDE.py %1'
             else:
-                args = sys.argv[1:] # program was excecuted as "PsychoPyIDE.py %1'
+                args = sys.argv[1:] # program was executed as "PsychoPyIDE.py %1'
             #choose which frame to start with
             if args[0] in ['builder', '--builder', '-b']:
                     mainFrame='builder'

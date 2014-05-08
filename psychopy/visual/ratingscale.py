@@ -17,7 +17,7 @@ from psychopy.visual.shape import ShapeStim
 from psychopy.visual.text import TextStim
 from psychopy.visual.basevisual import MinimalStim
 from psychopy.visual.helpers import pointInPolygon, groupFlipVert
-from psychopy.tools.attributetools import attributeSetter, setWithOperation
+from psychopy.tools.attributetools import attributeSetter, setWithOperation, logAttrib
 from psychopy.constants import FINISHED, STARTED, NOT_STARTED
 
 
@@ -242,6 +242,7 @@ class RatingScale(MinimalStim):
     """
         # what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
+        super(RatingScale, self).__init__(name=name, autoLog=False)
 
         # warn about obsolete arguments; Jan 2014, for v1.80:
         obsoleted = set(['showScale', 'ticksAboveLine', 'displaySizeFactor', 'markerStyle',
@@ -320,7 +321,7 @@ class RatingScale(MinimalStim):
             logging.exp("Created %s = %s" %(self.name, repr(self)))
 
     def __repr__(self, complete=False):
-        return self.__str__(complete=complete)  # from MinimalVisualStim
+        return self.__str__(complete=complete)  # from MinimalStim
 
     def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys,
                    marker, markerStart, low, high, precision, choices,
@@ -385,6 +386,8 @@ class RatingScale(MinimalStim):
                 # label endpoints and middle tick
                 placeHolder = [''] * ((self.high-self.low-2)//2)
                 self.labelTexts = [labels[0]] + placeHolder + [labels[1]] + placeHolder + [labels[2]]
+            elif labels in [None, False]:
+                self.labelTexts = []
             else:
                 self.labelTexts = [unicode(self.low)] + [''] * (self.high-self.low - 1) + [unicode(self.high)]
 
@@ -750,7 +753,7 @@ class RatingScale(MinimalStim):
             pos=[self.offsetHoriz, 0.22 * self.size + self.offsetVert],
             color=self.textColor, wrapWidth=2 * self.hStretchTotal,
             font=textFont, autoLog=False)
-        self.scaleDescription.setFont(textFont)
+        self.scaleDescription.font = textFont
         self.labels = []
         if self.labelTexts:
             if self.markerStyle == 'hover':
@@ -833,7 +836,7 @@ class RatingScale(MinimalStim):
         self.accept = TextStim(win=self.win, text=self.keyClick, font=self.textFont,
             pos=[self.offsetHoriz, (acceptBoxtop + acceptBoxbot) / 2.],
             italic=True, height=textSizeSmall, color=self.textColor, autoLog=False)
-        self.accept.setFont(textFont)
+        self.accept.font = textFont
 
         self.acceptTextColor = markerColor
         if markerColor in ['White']:
@@ -887,11 +890,9 @@ class RatingScale(MinimalStim):
             self.flipVert = not self.flipVert
             self.markerYpos *= -1
             groupFlipVert([self.nearLine, self.marker] + self.visualDisplayElements)
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, self.flipVert),
-                level=logging.EXP, obj=self)
+        logAttrib(self, log, 'flipVert')
 
-    # autoDraw and setAutoDraw are inherited from MinimalVisualStim
+    # autoDraw and setAutoDraw are inherited from basevisual.MinimalStim
 
     def draw(self, log=True):
         """Update the visual display, check for response (key, mouse, skip).
