@@ -930,7 +930,7 @@ class Device(ioObject):
         if eventTypeID:
             currentEvents=list(self._iohub_event_buffer.get(eventTypeID,[]))
             if clearEvents is True and len(currentEvents)>0:
-                self._iohub_event_buffer[eventTypeID]=[]
+                self.clearEvents(eventTypeID)
         else:
             [currentEvents.extend(l) for l in self._iohub_event_buffer.values()]
             if clearEvents is True and len(currentEvents)>0:
@@ -941,7 +941,7 @@ class Device(ioObject):
         return currentEvents
 
 
-    def clearEvents(self):
+    def clearEvents(self, event_type=None):
         """
         Clears any DeviceEvents that have occurred since the last call to the device's getEvents(),
         or clearEvents() methods.
@@ -956,7 +956,11 @@ class Device(ioObject):
         Returns:
             None
         """
-        self._iohub_event_buffer.clear()
+        if event_type:
+            self._iohub_event_buffer.setdefault(event_type,
+                                deque(maxlen=self.event_buffer_length)).clear()
+        else:
+            self._iohub_event_buffer.clear()
 
     def enableEventReporting(self,enabled=True):
         """
@@ -986,7 +990,8 @@ class Device(ioObject):
         return self._is_reporting_events
 
     def _handleEvent(self,e):
-        self._iohub_event_buffer.setdefault(e[DeviceEvent.EVENT_TYPE_ID_INDEX],[]).append(e)
+        self._iohub_event_buffer.setdefault(e[DeviceEvent.EVENT_TYPE_ID_INDEX],
+                               deque(maxlen=self.event_buffer_length)).append(e)
         
     def _getNativeEventBuffer(self):
         return self._native_event_buffer
@@ -1006,7 +1011,22 @@ class Device(ioObject):
             
     def _getEventListeners(self,forEventType):
         return self._event_listeners.get(forEventType,[])
-        
+
+    def getCurrentDeviceState(self, clear_events=True):
+        result_dict={}
+
+        events = {key:tuple(value) for key, value in self._iohub_event_buffer.items()}
+        result_dict['events'] = events
+        if clear_events:
+            self.clearEvents()
+
+        result_dict['reporting_events'] = self._is_reporting_events
+
+        return result_dict
+
+    def resetState(self):
+        self.clearEvents()
+
     def _poll(self):
         """
         The _poll method is used when an ioHub Device needs to periodically

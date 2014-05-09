@@ -78,19 +78,19 @@ key_text_label = visual.TextStim(window, units=unit_type, text=u'event.key:',
                          pos = [LABEL_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*0], height=TEXT_STIM_HEIGHT, 
                          color=[-1,-1,-1], colorSpace='rgb',alignHoriz='left',
                          alignVert='top',wrapWidth=LABEL_WRAP_LENGTH)
-ucode_label = visual.TextStim(window, units=unit_type, text=u'event.ucode:', 
-                         pos = [LABEL_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*1], height=TEXT_STIM_HEIGHT, 
-                         color=[-1,-1,-1], colorSpace='rgb',alignHoriz='left',
-                         alignVert='top',wrapWidth=LABEL_WRAP_LENGTH)
+#ucode_label = visual.TextStim(window, units=unit_type, text=u'event.ucode:',
+#                         pos = [LABEL_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*1], height=TEXT_STIM_HEIGHT,
+#                         color=[-1,-1,-1], colorSpace='rgb',alignHoriz='left',
+#                         alignVert='top',wrapWidth=LABEL_WRAP_LENGTH)
 modifiers_label = visual.TextStim(window, units=unit_type, text=u'event.modifiers', 
-                         pos = [LABEL_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*2], height=32, color=[-1,-1,-1], colorSpace='rgb', 
+                         pos = [LABEL_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*1], height=32, color=[-1,-1,-1], colorSpace='rgb',
                          alignHoriz='left',alignVert='top', wrapWidth=LABEL_WRAP_LENGTH)
 keypress_duration_label = visual.TextStim(window,units=unit_type, text=u'Last Pressed Duration:', 
-                         pos = [LABEL_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*3], height=32, color=[-1,-1,-1], 
+                         pos = [LABEL_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*2], height=32, color=[-1,-1,-1],
                          colorSpace='rgb', alignHoriz='left',alignVert='top',
                          wrapWidth=LABEL_WRAP_LENGTH)
 event_type_label = visual.TextStim(window,units=unit_type, text=u'Last Event Type:', 
-                         pos = [LABEL_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*4], height=TEXT_STIM_HEIGHT, color=[-1,-1,-1], 
+                         pos = [LABEL_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*3], height=TEXT_STIM_HEIGHT, color=[-1,-1,-1],
                          colorSpace='rgb', alignHoriz='left',alignVert='top',
                          wrapWidth=LABEL_WRAP_LENGTH)
 # dynamic stim
@@ -99,26 +99,26 @@ key_text_stim = visual.TextStim(window, units=unit_type, text=u'',
                          pos = [VALUE_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*0], 
                          height=TEXT_STIM_HEIGHT, color=[-1,-1,-1], colorSpace='rgb',
                          alignHoriz='left', alignVert='top',wrapWidth=VALUE_WRAP_LENGTH)
-ucode_stim = visual.TextStim(window, units=unit_type, text=u'', 
-                         pos = [VALUE_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*1], 
-                         height=TEXT_STIM_HEIGHT, color=[-1,-1,-1], colorSpace='rgb',
-                         alignHoriz='left', alignVert='top',wrapWidth=VALUE_WRAP_LENGTH)
+#ucode_stim = visual.TextStim(window, units=unit_type, text=u'',
+#                         pos = [VALUE_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*1],
+#                         height=TEXT_STIM_HEIGHT, color=[-1,-1,-1], colorSpace='rgb',
+#                         alignHoriz='left', alignVert='top',wrapWidth=VALUE_WRAP_LENGTH)
 modifiers_stim = visual.TextStim(window, units=unit_type, text=u'', 
-                         pos = [VALUE_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*2], 
+                         pos = [VALUE_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*1],
                          height=TEXT_STIM_HEIGHT*.66, color=[-1,-1,-1], colorSpace='rgb',
                          alignHoriz='left',alignVert='top', wrapWidth=VALUE_WRAP_LENGTH)
 keypress_duration_stim = visual.TextStim(window,units=unit_type, text=u'', 
-                         pos = [VALUE_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*3], height=TEXT_STIM_HEIGHT, color=[-1,-1,-1],
+                         pos = [VALUE_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*2], height=TEXT_STIM_HEIGHT, color=[-1,-1,-1],
                          colorSpace='rgb', alignHoriz='left',alignVert='top',
                          wrapWidth=VALUE_WRAP_LENGTH)
 event_type_stim = visual.TextStim(window,units=unit_type, text=u'', 
-                         pos = [VALUE_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*4], height=TEXT_STIM_HEIGHT, color=[-1,-1,-1], 
+                         pos = [VALUE_COLUMN_X,TEXT_ROWS_START_Y-TEXT_ROW_HEIGHT*3], height=TEXT_STIM_HEIGHT, color=[-1,-1,-1],
                          colorSpace='rgb', alignHoriz='left',alignVert='top',
                          wrapWidth=VALUE_WRAP_LENGTH)
 
 # Having all the stim to update / draw in a list makes drawing code more compact and reusable
-STIM_LIST=[title_label,title2_label,key_text_label,ucode_label,modifiers_label,keypress_duration_label,event_type_label,
-           key_text_stim,ucode_stim,modifiers_stim,keypress_duration_stim,event_type_stim]  
+STIM_LIST=[title_label,title2_label,key_text_label,modifiers_label,keypress_duration_label,event_type_label,
+           key_text_stim,modifiers_stim,keypress_duration_stim,event_type_stim]
 
 
 # Clear all events from the global and device level ioHub Event Buffers.
@@ -130,6 +130,9 @@ demo_timeout_start=core.getTime()
 
 # Loop until we get a CTRL+q event or until 120 seconds has passed 
 #
+import numpy as np
+data = np.zeros(300)
+i=0
 while QUIT_EXP is False:
     
     # Keep the ioHub global event buffer cleared since we are not using it.
@@ -138,22 +141,38 @@ while QUIT_EXP is False:
     io.clearEvents()
     
     # Redraw stim and window flip...
-    #
+    #n
     [s.draw() for s in STIM_LIST]
     flip_time=window.flip()
-
     # Update text fields based on all Keyboard Event types that have occurred
     # since the last call to getEvents of clearEvents(). This means that the most
     # recent event in the list of a given event type is what you will see.
-    #    
-    for event in keyboard.getEvents():
-        #print 'KB EVT: ',  event, '\n'
-        key_text_stim.setText(event.key)
-        ucode_stim.setText('{0:#06x} = {1}'.format(event.ucode,unichr(event.ucode)))
+    #
+    t1 = core.getTime()
+    events = keyboard.getKeys(chars=['a','b','C',' ','q'])
+    if len(events)>0:
+        print 'events:',events
+        t2 = core.getTime()
+        d=(t2-t1)*1000.0
+        data[i]  =d
+        i+=1
+        print i
+    if i == 300:
+        QUIT_EXP=True
+        break
+    for event in events:
+        key_text_stim.setText(event.char)
+
+        #ucode_stim.setText('{0:#06x} = {1}'.format(event.ucode,unichr(event.ucode)))
+
         modifiers_stim.setText(str(event.modifiers))
-        if event.type == EventConstants.KEYBOARD_RELEASE:
+
+        if event.type == "KEYBOARD_PRESS":
+            keypress_duration_stim.setText("")
+        else:
             keypress_duration_stim.setText("%.6f"%(event.duration))
-        event_type_stim.setText(EventConstants.getName(event.type))
+
+        event_type_stim.setText(event.type)
 
         demo_timeout_start=event.time
     
@@ -174,3 +193,8 @@ while QUIT_EXP is False:
 # Done demo loop, cleanup explicitly
 #
 io.quit()
+window.close()
+from matplotlib import  pyplot as plt
+plt.hist(data)
+plt.show()
+

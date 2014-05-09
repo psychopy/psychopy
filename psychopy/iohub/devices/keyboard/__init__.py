@@ -41,10 +41,9 @@ class ioHubKeyboardDevice(Device):
     DEVICE_TYPE_ID=DeviceConstants.KEYBOARD
     DEVICE_TYPE_STRING='KEYBOARD'
     _modifier_value=0
-    __slots__=['_key_states','_lastProcessedEventID','_modifier_states','_report_auto_repeats']
+    __slots__=['_key_states','_modifier_states','_report_auto_repeats']
     def __init__(self,*args,**kwargs):
         self._key_states=dict()
-        self._lastProcessedEventID=0
         self._modifier_states=dict(zip(ModifierKeyCodes._mod_names,[False]*len(ModifierKeyCodes._mod_names)))
         self._report_auto_repeats=kwargs.get('report_auto_repeat_press_events',False)
         Device.__init__(self,*args,**kwargs)
@@ -53,25 +52,28 @@ class ioHubKeyboardDevice(Device):
     def getModifierState(cls):
         return cls._modifier_value
 
+#    def getPressedKeys(self):
+#        """
+#        Return the set of currently pressed keys on the keyboard device and the
+#        time that each key was pressed, as a dict object ( dict key == keyboard
+#        key, dict values == associated keypress time for each key).
+#
+#        Modifier keys are not included even if pressed when this method is called.
+#
+#        Args:
+#            None
+#
+#        Returns:
+#            dict: Dict of currently pressed keyboard keys.
+#        """
+#        r={}
+#        for e in self.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS,clearEvents=False):
+#            r[e[-3]]=e[DeviceEvent.EVENT_HUB_TIME_INDEX]
+#        return r
 
-    def getPressedKeys(self):
-        """
-        Return the set of currently pressed keys on the keyboard device and the
-        time that each key was pressed, as a dict object ( dict key == keyboard
-        key, dict values == associated keypress time for each key).
-
-        Modifier keys are not included even if pressed when this method is called.
-
-        Args:
-            None
-
-        Returns:
-            dict: Dict of currently pressed keyboard keys.
-        """
-        r={}
-        for e in self.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS,clearEvents=False):
-            r[e[-3]]=e[DeviceEvent.EVENT_HUB_TIME_INDEX]
-        return r
+    def resetState(self):
+        Device.clearEvents()
+        self._key_states.clear()
 
     def _updateKeyboardEventState(self, kb_event, is_press):
         key_id_index=KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key_id')
@@ -89,6 +91,14 @@ class ioHubKeyboardDevice(Device):
                 kb_event[duration_index] = kb_event[DeviceEvent.EVENT_HUB_TIME_INDEX]-key_press[0][DeviceEvent.EVENT_HUB_TIME_INDEX]
                 kb_event[press_evt_id_index] = key_press[0][DeviceEvent.EVENT_ID_INDEX]
                 del self._key_states[kb_event[key_id_index]]
+
+    def getCurrentDeviceState(self, clear_events=True):
+        mods = self.getModifierState()
+        presses = self._key_states
+        dstate = Device.getCurrentDeviceState(self, clear_events)
+        dstate['modifiers'] = mods
+        dstate['pressed_keys'] = presses
+        return dstate
 
 if Computer.system == 'win32':
     from win32 import Keyboard
