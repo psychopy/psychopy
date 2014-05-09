@@ -109,24 +109,25 @@ def _cloneRequested(requestedVersion):
     try:
         os.chdir(VERSIONSDIR)
         print 'Cloning Psychopy Library from Github - this may take a while'
-        cmd = 'git clone -o github https://github.com/psychopy/psychopy'
-        print cmd
-        out = subprocess.check_output(cmd.split())
+        cmd = ['git', 'clone', '-o', 'github', 'https://github.com/psychopy/psychopy']
+        print ' '.join(cmd)
+        out = subprocess.check_output(cmd)
         
         os.chdir('psychopy')
-        cmd = 'git checkout %s' % requestedVersion
-        print cmd
-        out = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT)
+        cmd = ['git', 'checkout', requestedVersion]
+        print ' '.join(cmd)
+        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
     finally:
         os.chdir(prevPath)
 
 
 def _gitPresent():
     """Check for git on command-line"""
-    gitvers = subprocess.check_output(['git','--version'])
-    if gitvers.startswith('git version'):
-        return True
-    else:
+    try:
+        gitvers = subprocess.check_output(['git','--version'],stderr=subprocess.PIPE)
+        if gitvers.startswith('git version'):
+            return True
+    except OSError:
         return False
 
 def _psychopyComponentsImported():
