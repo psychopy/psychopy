@@ -6,23 +6,28 @@
 
 '''Psychopy Version Chooser to specify version within experiment scripts'''
 
-import psychopy     # For currently loaded version
-import re           # Version comparison parsing
+import os,sys,re
 import subprocess   # Simple git commandline management
+from subprocess import CalledProcessError
+import psychopy     # For currently loaded version
+from psychopy import preferences
 
-VERSIONSDIR = os.path.expanduser('~/.psychopy/versions')
+_p = preferences.preferences.Preferences()
+VERSIONSDIR = os.path.join(_p.paths['userPrefsDir'], 'version')
 
 def useVersion(requestedVersion):
     """Manage paths and checkout psychopy libraries for requested versions of psychopy.
 
     Inputs: 
         * requestedVersion : A string with the requested version of Psychopy to use 
-          (NB ">=1.80.04" is allowable.)
+          (NB Must be an exact version to checkout; ">=1.80.04" is NOT allowable yet.)
 
     Outputs:
         * Returns True if requested version was successfully loaded.
           Raises a ScriptError if git is needed and not present, or if other psychopy modules
-          have already been loaded.
+          have already been loaded. Raises a subprocess CalledProcessError if an invalid
+          git tag/version was checked out.
+
 
     Usage (at the top of an experiment script):
 
@@ -32,12 +37,12 @@ def useVersion(requestedVersion):
 
     """
     # Sanity Checks
-    imported = _psychopyComponentsImported():
+    imported = _psychopyComponentsImported()
     if len(imported):
         raise ScriptError(
             "Please request a version before importing any psychopy modules. "
             "Found: %s" % imported)
-    if version_ok(psychopy.__version__, requestedVersion): then return  # No switching needed
+    if _versionOk(psychopy.__version__, requestedVersion): return  # No switching needed
     if not _gitPresent():  # Switching required, so make sure `git` is available.
         raise ScriptError("Please install git to specify a version with useVersion()")
 
@@ -46,38 +51,40 @@ def useVersion(requestedVersion):
     _switchVersionTo(requestedPath)
 
     # Reload!
-    reload psychopy
+    reload(psychopy)
     # TODO Best way to check for other submodules that have already been imported?
 
     return True  # Success!
 
 def _versionOk(loaded,requested):
     """Check if loaded version is a valid fit for the requested version."""
-    requestComparator,requestVers = _getComparator(requested)
-    return eval("'%s' %s '%s'" % (loaded, requestComparator, requestVers))
-        # e.g. returns True if loaded > requested '1.80.05' > '1.80.04'
+    return loaded == requested
+    # requestComparator,requestVers = _getComparator(requested)
+    # return eval("'%s' %s '%s'" % (loaded, requestComparator, requestVers))
+    #     # e.g. returns True if loaded > requested '1.80.05' > '1.80.04'
 
-def _comparator(requested):
-    comparePat = re.compile('$(<|>|=)*(\d|\.)*')
-    search = comparePat.search(requested)
-    if search:
-        return (search.groups[0], search.groups[1])
-    else:
-        return ('==', requested)  # Default to identity comparison
 
 def _setupRequested(requestedVersion):
     """Checkout or Clone requested version."""
+    if not os.path.exists(VERSIONSDIR): os.mkdir(VERSIONSDIR)
     repoPath = os.path.join(VERSIONSDIR,'psychopy')
-    if os.path.exists(repoPath):
-        _checkoutRequested(requestedVersion)
-    else:
-        _cloneRequested(requestedVersion)
-
+    try:
+        if os.path.exists(repoPath):
+            _checkoutRequested(requestedVersion)
+        else:
+            _cloneRequested(requestedVersion)
+    except CalledProcessError as e:
+        if 'did not match any file(s) known to git' in e.output:
+            print "'%s' is not a valid Psychopy version." % requestedVersion
+            raise
+            
     return repoPath
 
 def _checkoutRequested(requestedVersion):
     """Look for a path matching the request, return it if found or return None for the search"""
-    with os.chdir(os.path.join(VERSIONSDIR,'psychopy')):
+    prevPath = os.getcwd()
+    try:
+        os.chdir(os.path.join(VERSIONSDIR,'psychopy'))
         # Grab new tags
         cmd = 'git fetch github'
         print cmd
@@ -90,51 +97,48 @@ def _checkoutRequested(requestedVersion):
 
         # Checkout the requested tag if required
         if not _versionOk(vers,requestedVersion):
-            _, requestVers = _getComparator(requestedVersion)
-            cmd = 'git checkout %s' % requestVers
-            out = subprocess.check_output(cmd.split())
+            cmd = 'git checkout %s' % requestedVersion
+            out = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT)
+    finally:
+        os.chdir(prevPath)
 
 
 def _cloneRequested(requestedVersion):
     """Check out a new copy of the requested version"""
-    with os.chdir(VERSIONSDIR):
-        cmd = 'git clone -o github https://github.com/psychopy/psychopy'
+    prevPath = os.getcwd()
+    try:
+        os.chdir(VERSIONSDIR)
         print 'Cloning Psychopy Library from Github - this may take a while'
+        cmd = 'git clone -o github https://github.com/psychopy/psychopy'
         print cmd
         out = subprocess.check_output(cmd.split())
-
-        _, requestVers = _getComparator(requestedVersion)
-        cmd = 'git checkout --tag %s' % requestVers
+        
+        os.chdir('psychopy')
+        cmd = 'git checkout %s' % requestedVersion
         print cmd
-        out = subprocess.check_output(cmd.split())
+        out = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT)
+    finally:
+        os.chdir(prevPath)
 
 
 def _gitPresent():
     """Check for git on command-line"""
-    proc = subprocess.Popen('git --version',
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            cwd='.', shell=True)
-    gitvers, _ = proc.communicate()
+    gitvers = subprocess.check_output(['git','--version'])
     if gitvers.startswith('git version'):
         return True
     else:
         return False
 
 def _psychopyComponentsImported():
-    imported = []
-    loaded = dir()
-    for mod in psychopy.__all__:
-        if mod in dir: imported.append(mod)
-    return imported
+     return [name for name in globals() if name in psychopy.__all__]
+
 
 def _switchVersionTo(requestedPath):
-    """Alter sys.path in place to remove current references to psychopy 
-       and replace them with ones to the requested path"""
-    # Remove Exisitng References
-    for p in sys.path:
-        if 'psychopy' in sys.path.downcase():
-            sys.path.remove(p)
-    # And replace them with the correct requested version.
+    """Alter sys.path in place to preprend new version"""
+    # NB When installed with pip/easy_install psychopy will live in
+    # a site-packages directory, which should *not* be removed as it may contain
+    # other relevant and needed packages.
+    # 
+    # Instead just prepend the current path to make sure it is loaded first.
     sys.path = [requestedPath] + sys.path
 
