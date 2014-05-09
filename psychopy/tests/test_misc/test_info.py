@@ -10,7 +10,7 @@ import pytest
 class TestInfo(object):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window(size=(100,100))
+        self.win = visual.Window(size=(100,100), autoLog=False)
     def teardown(self):
         self.win.close()
 

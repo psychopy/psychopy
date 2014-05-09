@@ -100,11 +100,13 @@ class RunTimeInfo(dict):
 
         # need a window for frame-timing, and some openGL drivers want a window open
         if win == None: # make a temporary window, later close it
-            win = visual.Window(fullscr=True, monitor="testMonitor")
+            win = visual.Window(fullscr=True, monitor="testMonitor", autoLog=False)
             refreshTest = 'grating'
             usingTempWin = True
         else: # either False, or we were passed a window instance, use it for timing and profile it:
             usingTempWin = False
+            self.winautoLog = win.autoLog
+            win.autoLog = False
         if win:
             self._setWindowInfo(win, verbose, refreshTest, usingTempWin)
 
@@ -114,6 +116,8 @@ class RunTimeInfo(dict):
             if win: self._setOpenGLInfo()
         if usingTempWin:
             win.close() # close after doing openGL
+        else:
+            win.autoLog = self.winautoLog  # restore
 
     def _setExperimentInfo(self, author, version, verbose):
         # try to auto-detect __author__ and __version__ in sys.argv[0] (= the users's script)

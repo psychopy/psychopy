@@ -1063,7 +1063,7 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
             val = val2array(val)
 
         # Handle operations
-        setWithOperation(self, attrib, val, op)
+        setWithOperation(self, attrib, val, op, autoLog=log)
         # logAttrib(self, log, attrib, val) #setWithOperation calls logAttrib
 
     def setUseShaders(self, value=True):
