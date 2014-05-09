@@ -162,6 +162,8 @@ class TestMicrophoneNoSound(object):
         wav2flac(self.tmp, keep=True)
 
     def test_Speech2Text(self):
+        pytest.skip()  # google speech API gives Error 400: Bad request
+
         try:
             web.requireInternetAccess()
         except web.NoInternetAccessError:
