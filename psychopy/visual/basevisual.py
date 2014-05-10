@@ -325,7 +325,7 @@ class ColorMixin(object):
             logging.warning('Contrast was set on class where useShaders was undefined. Contrast might remain unchanged')
     def setColor(self, color, colorSpace=None, operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message 
+        but use this method if you need to suppress the log message
         and/or set colorSpace simultaneously.
         """
         # NB: the setColor helper function! Not this function itself :-)
@@ -521,7 +521,6 @@ class TextureMixin(object):
                 powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
                 if forcePOW2 and (tex.shape[0]!=powerOf2 or tex.shape[1]!=powerOf2):
                     logging.error("Requiring a square power of two (e.g. 16x16, 256x256) texture but didn't receive one")
-                    core.quit()
                 res=tex.shape[0]
         elif tex in [None,"none", "None"]:
             res=1 #4x4 (2x2 is SUPPOSED to be fine but generates wierd colors!)
@@ -560,7 +559,7 @@ class TextureMixin(object):
         elif tex == "gauss":
             rad=makeRadialMatrix(res)
             # Set SD if specified
-            if maskParams == None:    
+            if maskParams == None:
                 sigma = 1.0 / 3
             else:
                 sigma = 1.0 / maskParams['sd']
@@ -763,7 +762,7 @@ class TextureMixin(object):
         GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
 
         return wasLum
-    
+
     def clearTextures(self):
         """
         Clear all textures associated with the stimulus.
@@ -772,7 +771,7 @@ class TextureMixin(object):
         """
         GL.glDeleteTextures(1, self._texID)
         GL.glDeleteTextures(1, self._maskID)
-    
+
     @attributeSetter
     def mask(self, value):
         """The alpha mask (forming the shape of the image)
@@ -794,21 +793,21 @@ class TextureMixin(object):
         but use this method if you need to suppress the log message.
         """
         callAttributeSetter(self, 'mask', value, log)
-    
+
     @attributeSetter
     def texRes(self, value):
         """Sets the resolution of the mask (overridden if an array or image is provided as mask).
-        
+
         :ref:`Operations <attrib-operations>` supported.
         """
         self.__dict__['texRes'] = value
         self.mask = self.mask
-    
+
     @attributeSetter
     def maskParams(self, value):
         """Various types of input. Default to None.
         This is used to pass additional parameters to the mask if those are needed.
-        
+
             - For the 'raisedCos' mask, pass a dict: {'fringeWidth':0.2},
                 where 'fringeWidth' is a parameter (float, 0-1), determining
                 the proportion of the patch that will be blurred by the raised

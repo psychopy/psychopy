@@ -1,32 +1,35 @@
 """Some classes to support import of data files
 """
 
-from pycrsltd import bits
+from psychopy.hardware import crs
+from psychopy import visual
 import sys, os, time
 from psychopy import logging
-#logging.console.setLevel(logging.DEBUG)
+logging.console.setLevel(logging.DEBUG)
 
 thisDir = os.path.split(__file__)[0]
+win = visual.Window()
 
 def test_BitsSharp():
     if sys.platform=='win32':
-        portname='COM7'
+        portName='COM7'
     else:
-        portname=None
-    bitsBox = bits.BitsSharp(portname)
-    assert bitsBox.OK == True
-    print bitsBox.getInfo()
+        portName=None
+    bitsBox = crs.BitsSharp(win=win, portName=portName, mode='mono++')
+    assert bitsBox.OK == True #make sure we were successful
+    print bitsBox.info
 
     ##status screen is slow
     bitsBox.mode = 'status'
     time.sleep(2)#time to switch
     ##get video line implicitly uses status screen
-    print bitsBox.getVideoLine(lineN=50, nPixels=5)
-    time.sleep(1)
+    print bitsBox.getVideoLine(lineN=1, nPixels=5)
+    time.sleep(0.1)
     #bitsBox.mode = 'massStorage' #if you test this you have to repower the box after
 
+    #check that we can switch to the different modes
     bitsBox.mode = 'color++'
-    time.sleep(5)
+    time.sleep(5) #give time to get back out of status screen
     bitsBox.mode = 'mono++'
     time.sleep(1)
     bitsBox.mode = 'bits++'

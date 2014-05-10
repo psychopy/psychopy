@@ -1,25 +1,13 @@
 #!/usr/bin/env python
 #coding=utf-8
 
-# Copyright (c) Cambridge Research Systems (CRS) Ltd
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# Part of the PsychoPy library
+# Copyright (C) 2014 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+
+#Acknowledgements:
+#    This code was mostly written by Jon Peirce.
+#    CRS Ltd provided support as needed.
 
 #Acknowledgements
 #    This code was written by Jon Peirce
@@ -27,40 +15,39 @@
 __docformat__ = "restructuredtext en"
 
 import sys
-try: import serial
-except: serial=False
+try:
+    import serial
+except:
+    serial=False
 import numpy
 
 #try to use psychopy logging but revert to system logging
-try:from psychopy import logging#from 1.73 onwards
-except ImportError:logging=None
-if logging is None:
-    try: from psychopy import log as logging#up to v1.73
-    except ImportError: logging=None
-if logging is None:
+try:
+    from psychopy import logging#from 1.73 onwards
+except ImportError:
     import logging #use the standard python logging
 eol = "\n\r"#unusual for a serial port?!
 
 class ColorCAL:
     """A class to handle the CRS Ltd ColorCAL device
     """
-    
+
     # PsychoPy uses these two variables for matching classes to photometers
     longName = "CRS ColorCAL"
     driverFor = ["colorcal"]
-    
+
     def __init__(self, port=None, maxAttempts=2):
         """Open serial port connection with Colorcal II device
 
         :Usage:
-            
+
             cc = ColorCAL(port, maxAttempts)
-       
-       If no port is provided then the following defaults will be tried:           
+
+       If no port is provided then the following defaults will be tried:
            - /dev/cu.usbmodem0001 (OSX)
            - /dev/ttyACM0
            - COM3 (windows)
-           
+
         """
 
         if not serial:
@@ -81,7 +68,7 @@ class ColorCAL:
         else:
             self.portString = port
             self.portNumber=None
-            
+
         self.isOpen=0
         self.lastLum=None
         self.lastCmd=''
@@ -171,7 +158,7 @@ class ColorCAL:
 
         """
         val = self.sendMessage('MES', timeout=5)#use a long timeout for measurement
-        
+
         vals=val.split(',')#separate into words
         ok = (vals[0]=='OK00')
         #transform raw x,y,z by calibration matrix
@@ -181,7 +168,7 @@ class ColorCAL:
         return ok, X,Y,Z
     def getLum(self):
         """Conducts a measurement and returns the measured luminance
-        
+
         .. note::
             The luminance is always also stored as .lastLum
         """
@@ -210,30 +197,30 @@ class ColorCAL:
         return ok, serialNum, firmware, firmBuild
     def getNeedsCalibrateZero(self):
         """Check whether the device needs a dark calibration
-        
+
         In initial versions of CRS ColorCAL mkII the device stored
         its zero calibration in volatile memory and needed to be
         calibrated in darkness each time you connected it to the USB
-        
+
         This function will check whether your device requires that (based
         on firmware build number and whether you've already done it
         since python connected to the device).
-        
+
         :returns: True or False
         """
         if self.firmBuild<'877' and not self._zeroCalibrated:
-            return True 
+            return True
         else:
             return False
     def calibrateZero(self):
         """Perform a calibration to zero light.
-        
+
         For early versions of the ColorCAL this had to be called after connecting
         to the device. For later versions the dark calibration was performed at
         the factory and stored in non-volatile memory.
-        
+
         You can check if you need to run a calibration with::
-            
+
             ColorCAL.getNeedsCalibrateZero()
         """
         val = self.sendMessage("UZC", timeout=1.0)
@@ -299,7 +286,7 @@ class ColorCAL:
             else:
                 break
         return bytes(line)
-        
+
 def _minolta2float(inVal):
     """Takes a number, or numeric array (any shape) and returns the appropriate
     float.

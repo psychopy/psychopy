@@ -136,13 +136,12 @@ class Window(object):
                  name='window1',
                  checkTiming=True,
                  useFBO=False,
-                 autoLog=True,
-                 interface=None):
+                 autoLog=True):
         """
         These attributes can only be set at initialization. See further down
         for a list of attributes which can be changed after initialization
         of the Window, e.g. color, colorSpace, gamma etc.
-        
+
         :Parameters:
 
             size : (800,600)
@@ -216,14 +215,7 @@ class Window(object):
         # this will get overridden once the window is created
         self.winHandle = None
         self.useFBO = useFBO
-        if interface is not None:
-            self.interface = interface
-            #monkey-patch any of our functions to use the interface
-            if hasattr(interface, '_prepareFBOrender'):
-                self._prepareFBOrender = interface._prepareFBOrender
-            if hasattr(interface, '_endFBOrender'):
-                self._endFBOrender = interface._endFBOrender
-        
+
         self._toLog = []
         self._toCall = []
         # settings for the monitor: local settings (if available) override
@@ -390,7 +382,7 @@ class Window(object):
         """*None*, 'height' (of the window), 'norm' (normalised), 'deg', 'cm', 'pix'
         Defines the default units of stimuli initialized in the window. I.e. if you
         change units, already initialized stimuli won't change their units.
-        
+
         Can be overridden by each stimulus, if units is specified on initialization.
         See :ref:`units` for explanation of options."""
         self.__dict__['units'] = value
@@ -498,12 +490,12 @@ class Window(object):
         self._toCall.append({'function': function,
                              'args': args,
                              'kwargs': kwargs})
-                             
+
     def _prepareFBOrender(self):
         GL.glUseProgram(self._progFBOtoFrame)
     def _finishFBOrender(self):
         GL.glUseProgram(0)
-        
+
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your
         frame. (This replaces the win.update() method, better reflecting what
@@ -1002,7 +994,7 @@ class Window(object):
 
         See :ref:`colorspaces` for further information about the ways to
         specify colors and their various implications.
-        
+
         Can be specified in one of many ways. If a string is given then it
         is interpreted as the name of the color. Any of the standard
         html/X11 `color names <http://www.w3schools.com/html/html_colornames.asp>`
@@ -1021,8 +1013,8 @@ class Window(object):
         coordinates in one of the :ref:`colorspaces`. If no color space is
         specified then the color space most recently used for this
         stimulus is used again.
-        
-        You can use :ref:`operations <attrib-operations>` for all numeric color 
+
+        You can use :ref:`operations <attrib-operations>` for all numeric color
         specifications. Examples::
 
             # a red color in rgb space
@@ -1039,7 +1031,7 @@ class Window(object):
             myStim.colorSpace = 'rgb255'
             myStim.color = [0, 0, 255]  # clear blue
             myStim.color += [255, 128, 0]  # add red and a bit of green
-            
+
             # A shorter way of all the above if you change colorSpace often:
             myStim.setColor([1.0, -1.0, -1.0], 'rgb', '*')  # clear red, then invert
             myStim.setColor([0.0, 45.0, 1.0], 'dkl')
@@ -1057,15 +1049,15 @@ class Window(object):
         defining which of the :ref:`colorspaces` to use. For strings and
         hex values this is not needed. If None the default colorSpace for
         the stimulus is used (defined during initialisation).
-        
+
         See :ref:`colorspaces` for further information about the ways to
         specify colors and their various implications.
-        
+
         Usually used in conjunction with :ref:`color` like this::
-        
+
             win.colorSpace = 'rgb255'  # changes colorSpace but not the value of win.color
             win.color = [0, 0, 255]  # clear blue in rgb255
-        
+
         See more examples in the documentation for ``Window.color``.
         """
         self.__dict__['colorSpace'] = colorSpace
@@ -1081,7 +1073,7 @@ class Window(object):
             if self.winType == 'pyglet':
                 self.winHandle.switch_to()
             GL.glClearColor(desiredRGB[0], desiredRGB[1], desiredRGB[2], 1.0)
-        
+
     def setColor(self, color, colorSpace=None, operation=''):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you want to set color and colorSpace simultaneously.
@@ -1490,7 +1482,7 @@ class Window(object):
         GL.glDisable(GL.GL_TEXTURE_2D)
         #clear the buffer (otherwise the texture memory can contain junk)
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
-    
+
     @attributeSetter
     def mouseVisible(self, visibility):
         """Sets the visibility of the mouse cursor.
@@ -1499,7 +1491,7 @@ class Window(object):
         set to invisible, otherwise it will initially be visible.
 
         Usage::
-        
+
             ``win.mouseVisible = False``
             ``win.mouseVisible = True``
         """
@@ -1512,7 +1504,7 @@ class Window(object):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         callAttributeSetter(self, 'mouseVisible', visibility, log)
-        
+
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
                            nWarmUpFrames=10, threshold=1):
         """Measures the actual fps for the screen.
