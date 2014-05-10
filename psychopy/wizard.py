@@ -526,7 +526,8 @@ class BenchmarkWizard(ConfigWizard):
             if itm[0].find('proxy setting') > -1 or not itm[1]:
                 continue
             itemsDict[itm[0]] = itm[1].replace('<strong>', '').replace('</strong>', '').replace('&nbsp;', '').replace('&nbsp', '')
-            print itm[0]+': ' + itemsDict[itm[0]]
+            if log:
+                print itm[0]+': ' + itemsDict[itm[0]]
 
         # present dialog, upload only if opt-in:
         dlg = gui.Dlg(title=self.name)
