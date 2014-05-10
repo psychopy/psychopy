@@ -79,7 +79,10 @@ class PreferencesDlg(wx.Dialog):
     def onApply(self, event=None):
         self.setPrefsFromCtrls()
         self.app.prefs.pageCurrent = self.nb.GetSelection()
-        locale.setlocale(locale.LC_ALL, str(self.app.prefs.app['locale']))
+        loc = str(self.app.prefs.app['locale'])  # 'danish', 'da_DK'
+        if loc in locale.locale_alias.keys():
+            loc = locale.locale_alias[loc]  # -> 'da_DK'
+        locale.setlocale(locale.LC_ALL, loc)
     def onCancel(self, event=None):
         self.Close()
     def onOK(self, event=None):
