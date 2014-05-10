@@ -69,7 +69,7 @@ def run(rootScriptPathDir,configFilePath):
             sys.stdout.write("IOHUB_READY\n\r\n\r")
             sys.stdout.flush()
 
-            print2err("Computer.psychopy_process: ", Computer.psychopy_process)
+            #print2err("Computer.psychopy_process: ", Computer.psychopy_process)
             if Computer.psychopy_process:
                  glets.append(gevent.spawn(s.checkForPsychopyProcess, 0.5))
 

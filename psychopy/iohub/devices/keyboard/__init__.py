@@ -183,7 +183,7 @@ class KeyboardInputEvent(DeviceEvent):
         # For standard character ascii keys (a-z,A-Z,0-9, some punctuation values), and
         #: unicode utf-8 encoded characters that have been successfully detected,
         #: *char* will be the the actual key value pressed as a unicode character.
-        self.char=None
+        self.char=u''
 
         #: The id or handle of the window that had focus when the key was pressed.
         #: long value.
@@ -200,8 +200,8 @@ class KeyboardInputEvent(DeviceEvent):
     def _convertFields(cls,event_value_list):
         modifier_value_index=cls.CLASS_ATTRIBUTE_NAMES.index('modifiers')
         event_value_list[modifier_value_index]=KeyboardConstants._modifierCodes2Labels(event_value_list[modifier_value_index])
-        key_value_index=cls.CLASS_ATTRIBUTE_NAMES.index('key')
-        event_value_list[key_value_index]=event_value_list[key_value_index].decode('utf-8')
+        char_value_index=cls.CLASS_ATTRIBUTE_NAMES.index('char')
+        event_value_list[char_value_index]=event_value_list[char_value_index].decode('utf-8')
 
     @classmethod
     def createEventAsDict(cls,values):

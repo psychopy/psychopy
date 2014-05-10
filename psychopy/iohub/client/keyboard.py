@@ -77,17 +77,22 @@ Numlock OFF
 
 """
 
+
 class KeyboardEvent(ioEvent):
     _attrib_index = dict()
     _attrib_index['key'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
-    _attrib_index['char'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('char')
-    _attrib_index['modifiers'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('modifiers')
+    _attrib_index['char'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index(
+        'char')
+    _attrib_index['modifiers'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index(
+        'modifiers')
 
     def __init__(self, ioe_array):
         super(KeyboardEvent, self).__init__(ioe_array)
         self._key = ioe_array[KeyboardEvent._attrib_index['key']]
-        self._char = ioe_array[KeyboardEvent._attrib_index['key']]
-        self._modifiers = KeyboardConstants._modifierCodes2Labels(ioe_array[KeyboardEvent._attrib_index['modifiers']])
+        self._char = ioe_array[KeyboardEvent._attrib_index['char']]
+        self._modifiers = KeyboardConstants._modifierCodes2Labels(
+            ioe_array[KeyboardEvent._attrib_index['modifiers']])
+
 
     @property
     def key(self):
@@ -98,6 +103,7 @@ class KeyboardEvent(ioEvent):
         """
         return self._key
 
+
     @property
     def char(self):
         """
@@ -106,6 +112,7 @@ class KeyboardEvent(ioEvent):
         :return: unicode
         """
         return self._char
+
 
     @property
     def modifiers(self):
@@ -122,23 +129,30 @@ class KeyboardEvent(ioEvent):
         return self._modifiers
 
     def __str__(self):
-        return "%s, key: %s char: %s, modifiers: %s"%(ioEvent.__str__(self), self.key,
-                                                      self.char,
-                                                      str(self.modifiers))
+        return "%s, key: %s char: %s, modifiers: %s" % (
+            ioEvent.__str__(self), self.key,
+            self.char,
+            str(self.modifiers))
+
 
 class KeyboardPress(KeyboardEvent):
     def __init__(self, ioe_array):
         super(KeyboardPress, self).__init__(ioe_array)
 
+
 class KeyboardRelease(KeyboardEvent):
     _attrib_index = dict()
-    _attrib_index['duration'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('duration')
-    _attrib_index['press_event_id'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('press_event_id')
+    _attrib_index['duration'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index(
+        'duration')
+    _attrib_index[
+        'press_event_id'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index(
+        'press_event_id')
 
     def __init__(self, ioe_array):
         super(KeyboardRelease, self).__init__(ioe_array)
         self._duration = ioe_array[self._attrib_index['duration']]
         self._press_event_id = ioe_array[self._attrib_index['press_event_id']]
+
 
     @property
     def duration(self):
@@ -156,6 +170,7 @@ class KeyboardRelease(KeyboardEvent):
         """
         return self._duration
 
+
     @property
     def pressEventID(self):
         """
@@ -170,8 +185,9 @@ class KeyboardRelease(KeyboardEvent):
         return self._press_event_id
 
     def __str__(self):
-        return "%s, duration: %.3f press_event_id: %d"%(
+        return "%s, duration: %.3f press_event_id: %d" % (
             KeyboardEvent.__str__(self), self.duration, self.press_event_id)
+
 
 class Keyboard(ioHubDeviceView):
     """
@@ -183,31 +199,41 @@ class Keyboard(ioHubDeviceView):
     _type2class = {KEY_PRESS: KeyboardPress, KEY_RELEASE: KeyboardRelease}
     # TODO: name and class args should just be auto generated in init.
     def __init__(self, ioclient, device_class_name, device_config):
-        super(Keyboard, self).__init__(ioclient, device_class_name, device_config)
+        super(Keyboard, self).__init__(ioclient, device_class_name,
+                                       device_config)
         self._events = dict()
         self._reporting = False
         self._modifiers = []
         self._pressed_keys = {}
         self._device_config = device_config
-        self._event_buffer_length = self._device_config.get('event_buffer_length')
+        self._event_buffer_length = self._device_config.get(
+            'event_buffer_length')
+
 
     def _syncDeviceState(self):
         """
         An optimized iohub server request that receives all device state and
         event information in one response.
+
         :return: None
         """
         kb_state = self.getCurrentDeviceState()
         self._reporting = kb_state.get('reporting_events')
-        self._modifiers = KeyboardConstants._modifierCodes2Labels(kb_state.get('modifiers',0))
+        self._modifiers = KeyboardConstants._modifierCodes2Labels(
+            kb_state.get('modifiers', 0))
 
         pressed_keys = kb_state.get('pressed_keys')
         self._pressed_keys.clear()
         for keyid, (key_array, repeatcount) in pressed_keys.items():
-            self._pressed_keys[key_array[KeyboardEvent._attrib_index['key']]] = key_array[DeviceEvent.EVENT_HUB_TIME_INDEX]
+            self._pressed_keys[key_array[KeyboardEvent._attrib_index['key']]]\
+                = \
+                key_array[DeviceEvent.EVENT_HUB_TIME_INDEX]
 
         for etype, event_arrays in kb_state.get('events').items():
-            self._events.setdefault(etype, deque(maxlen=self._event_buffer_length)).extend([self._type2class[etype](e) for e in event_arrays])
+            self._events.setdefault(etype, deque(
+                maxlen=self._event_buffer_length)).extend(
+                [self._type2class[etype](e) for e in event_arrays])
+
 
     @property
     def modifiers(self):
@@ -222,6 +248,7 @@ class Keyboard(ioHubDeviceView):
         self._syncDeviceState()
         return self._modifiers
 
+
     @property
     def pressed(self):
         """
@@ -234,6 +261,7 @@ class Keyboard(ioHubDeviceView):
         self._syncDeviceState()
         return self._pressed_keys
 
+
     @property
     def reporting(self):
         """
@@ -244,6 +272,7 @@ class Keyboard(ioHubDeviceView):
         :return: bool
         """
         return self._reportingEvents
+
 
     @reporting.setter
     def reporting(self, r):
@@ -257,7 +286,9 @@ class Keyboard(ioHubDeviceView):
         return self._reporting
 
 
-    def getKeys(self, keys=None, chars=None, mods=None, duration=None, clear=True, etype=None):
+
+    def getKeys(self, keys=None, chars=None, mods=None, duration=None,
+                clear=True, etype=None):
         """
         Returns a list of  KeyboardPress and Keyboard Release events that have
         occurred since the last time this method was called with
@@ -303,20 +334,30 @@ class Keyboard(ioHubDeviceView):
         """
         self._syncDeviceState()
 
+
         def filterEvent(e):
-            return (keys is None or e.key in keys) and (chars is None or e.char in chars) and (duration is None or (duration//abs(duration)*e.duration)>=duration) and (mods is None or len([m for m in mods if m in e.modifiers]) > 0)
+            return (keys is None or e.key in keys) and (
+                chars is None or e.char in chars) and (duration is None or (
+                duration // abs(duration) * e.duration) >= duration) and (
+                       mods is None or len(
+                           [m for m in mods if m in e.modifiers]) > 0)
 
         return_events = []
         if etype is None or etype == Keyboard.KEY_PRESS:
-            return_events.extend([e for e in self._events.get(self.KEY_PRESS, []) if filterEvent(e)])
+            return_events.extend(
+                [e for e in self._events.get(self.KEY_PRESS, []) if
+                 filterEvent(e)])
         if etype is None or etype == Keyboard.KEY_RELEASE:
-            return_events.extend([e for e in self._events.get(self.KEY_RELEASE, []) if filterEvent(e)])
+            return_events.extend(
+                [e for e in self._events.get(self.KEY_RELEASE, []) if
+                 filterEvent(e)])
 
         if return_events and clear is True:
             for e in return_events:
                 self._events[e._type].remove(e)
 
         return sorted(return_events, key=lambda x: x.time)
+
 
     def getPresses(self, keys=None, chars=None, mods=None, clear=True):
         """
@@ -331,7 +372,9 @@ class Keyboard(ioHubDeviceView):
         """
         return self.getKeys(keys, chars, mods, None, clear, self.KEY_PRESS)
 
-    def getReleases(self, keys=None, chars=None, mods=None, duration=None, clear=True):
+
+    def getReleases(self, keys=None, chars=None, mods=None, duration=None,
+                    clear=True):
         """
         See the getKeys() method documentation. This method is identical, but
         only returns KeyboardRelease events.
@@ -343,4 +386,5 @@ class Keyboard(ioHubDeviceView):
         :param clear: bool
         :return: tuple
         """
-        return self.getKeys(keys, chars, mods, duration, clear, self.KEY_RELEASE)
+        return self.getKeys(keys, chars, mods, duration, clear,
+                            self.KEY_RELEASE)
