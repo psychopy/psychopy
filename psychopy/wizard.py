@@ -20,7 +20,7 @@ import tempfile, pickle
 
 class ConfigWizard(object):
     """Walk through configuration diagnostics & generate report."""
-    def __init__(self, firstrun=False):
+    def __init__(self, firstrun=False, interactive=True, log=True):
         """Check drivers, show GUIs, run diagnostics, show report."""
         self.firstrun = firstrun
         self.prefs = prefs
@@ -93,7 +93,8 @@ class ConfigWizard(object):
 
         # show the first dialog:
         dlg.addText('')
-        dlg.show()
+        if interactive:
+            dlg.show()
         if fatalItemsList:
             self.htmlReport(fatal=fatalItemsList)
             self.save()
@@ -101,12 +102,13 @@ class ConfigWizard(object):
             url='file://' + self.reportPath
             wx.LaunchDefaultBrowser(url)
             return
-        if not dlg.OK:
+        if interactive and not dlg.OK:
             return  # no configuration tests run
 
         # run the diagnostics:
-        verbose = not self.firstrun and dlg.data[0]
-        win = visual.Window(fullscr=True, allowGUI=False, monitor='testMonitor')
+        verbose = interactive and not self.firstrun and dlg.data[0]
+        win = visual.Window(fullscr=interactive, allowGUI=False, monitor='testMonitor',
+                            autoLog=log)
         itemsList = self.runDiagnostics(win, verbose)  # sets self.warnings
         win.close()
         self.htmlReport(itemsList)
@@ -131,10 +133,12 @@ class ConfigWizard(object):
         dlg.addText('Click OK for full details (will open in a web-browser),')
         dlg.addText('or Cancel to stay in PsychoPy.')
         dlg.addText('')
-        dlg.show()
-        if dlg.OK:
-            url = 'file://' + self.reportPath
-            wx.LaunchDefaultBrowser(url)
+        if interactive:
+            dlg.show()
+            if dlg.OK:
+                url = 'file://' + self.reportPath
+                wx.LaunchDefaultBrowser(url)
+        return
 
     def runDiagnostics(self, win, verbose=False):
         """Return list of (key, val, msg) tuple, set self.warnings
@@ -216,7 +220,7 @@ class ConfigWizard(object):
         # first get baseline frame-rate (safe as possible, no drawing):
         avg, sd, median = visual.getMsPerFrame(win)
         dots100 = visual.DotStim(win, nDots=100, speed=0.005, dotLife=12, dir=90,
-            coherence=0.2, dotSize=8, fieldShape='circle')
+            coherence=0.2, dotSize=8, fieldShape='circle', autoLog=False)
         win.recordFrameIntervals = True
         win.frameIntervals = []
         win.flip()
@@ -474,7 +478,7 @@ class ConfigWizard(object):
 
 class BenchmarkWizard(ConfigWizard):
     """Class to get system info, run benchmarks, optional upload to psychopy.org"""
-    def __init__(self, fullscr=True):
+    def __init__(self, fullscr=True, interactive=True, log=True):
         self.firstrun = False
         self.prefs = prefs
         self.appName = 'PsychoPy2'
@@ -485,12 +489,14 @@ class BenchmarkWizard(ConfigWizard):
         dlg.addText('Benchmarking takes ~20-30 seconds to gather')
         dlg.addText('configuration and performance data. Begin?')
         dlg.addText('')
-        dlg.show()
-        if not dlg.OK:
-            return
+        if interactive:
+            dlg.show()
+            if not dlg.OK:
+                return
 
         self._prepare()
-        win = visual.Window(fullscr=fullscr, allowGUI=False, monitor='testMonitor')
+        win = visual.Window(fullscr=fullscr, allowGUI=False, monitor='testMonitor',
+                            autoLog=False)
 
         # do system info etc first to get fps, add to list later because
         # its nicer for benchmark results to appears at top of the report:
@@ -530,21 +536,22 @@ class BenchmarkWizard(ConfigWizard):
         dlg.addText('Only configuration and performance data are shared;')
         dlg.addText('No personally identifying information is sent.')
         dlg.addText('(Sharing requires an internet connection.)')
-        dlg.show()
-        if dlg.OK:
-            status = self.uploadReport(itemsDict)
-            dlg = gui.Dlg(title=self.name + ' result')
-            dlg.addText('')
-            if status and status.startswith('success good_upload'):
-                dlg.addText('Configutation data were successfully uploaded to')
-                dlg.addText('http://upload.psychopy.org/benchmark/report.html')
-                dlg.addText('Thanks for participating!')
-            else:
-                if not eval(info['internet access']):
-                    dlg.addText('Upload error: maybe no internet access?')
-                else:
-                    dlg.addText('Upload error status: %s' % status[:20])
+        if interactive:
             dlg.show()
+            if dlg.OK:
+                status = self.uploadReport(itemsDict)
+                dlg = gui.Dlg(title=self.name + ' result')
+                dlg.addText('')
+                if status and status.startswith('success good_upload'):
+                    dlg.addText('Configutation data were successfully uploaded to')
+                    dlg.addText('http://upload.psychopy.org/benchmark/report.html')
+                    dlg.addText('Thanks for participating!')
+                else:
+                    if not eval(info['internet access']):
+                        dlg.addText('Upload error: maybe no internet access?')
+                    else:
+                        dlg.addText('Upload error status: %s' % status[:20])
+                dlg.show()
 
         self.htmlReport(itemsList)
         self.reportPath = os.path.join(self.prefs.paths['userPrefsDir'], 'benchmarkReport.html')
@@ -554,10 +561,11 @@ class BenchmarkWizard(ConfigWizard):
         dlg.addText('Click OK to view full configuration and benchmark data.')
         dlg.addText('Click Cancel to stay in PsychoPy.')
         dlg.addText('')
-        dlg.show()
-        if dlg.OK:
-            url = 'file://' + self.reportPath
-            wx.LaunchDefaultBrowser(url)
+        if interactive:
+            dlg.show()
+            if dlg.OK:
+                url = 'file://' + self.reportPath
+                wx.LaunchDefaultBrowser(url)
 
     def _prepare(self):
         """Prep for bench-marking; currently just RAM-related on mac"""
@@ -603,11 +611,11 @@ class BenchmarkWizard(ConfigWizard):
         win.flip()
         bestDots = starting  # this might over-estimate the actual best
         dotCount = starting
-        count = visual.TextStim(win, text=str(dotCount))
+        count = visual.TextStim(win, text=str(dotCount), autoLog=False)
         count.draw()
         win.flip()
         dots = visual.DotStim(win, color=(1.0, 1.0, 1.0),
-                        fieldShape=fieldShape, nDots=dotCount)
+                        fieldShape=fieldShape, nDots=dotCount, autoLog=False)
         win.fps() # reset
         frameCount = 0
         while True:
@@ -633,11 +641,11 @@ class BenchmarkWizard(ConfigWizard):
                 if dotCount > 2400:
                     dotCount += 100
                 # show the dot count:
-                count.setText(str(dotCount))
+                count.setText(str(dotCount), log=False)
                 count.draw()
                 win.flip()
                 dots = visual.DotStim(win, color=(1.0, 1.0, 1.0),
-                        fieldShape=fieldShape, nDots=dotCount)
+                        fieldShape=fieldShape, nDots=dotCount, autoLog=False)
                 frameCount = 0
                 win.fps()  # reset
         win.recordFrameIntervals = False
