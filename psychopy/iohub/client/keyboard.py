@@ -1,10 +1,14 @@
 __author__ = 'Sol'
 
+from collections import deque
+import time
+
 from psychopy.iohub.client import ioHubDeviceView, ioEvent
 from psychopy.iohub.devices import DeviceEvent
 from psychopy.iohub.devices.keyboard import KeyboardInputEvent
 from psychopy.iohub.constants import EventConstants, KeyboardConstants
-from collections import deque
+from psychopy.core import getTime
+from psychopy.visual.window import Window
 
 """
 Discussed changes (from emails with Jon and Jonas)
@@ -286,8 +290,7 @@ class Keyboard(ioHubDeviceView):
         return self._reporting
 
 
-
-    def getKeys(self, keys=None, chars=None, mods=None, duration=None,
+    def getKey(self, keys=None, chars=None, mods=None, duration=None,
                 clear=True, etype=None):
         """
         Returns a list of  KeyboardPress and Keyboard Release events that have
@@ -359,7 +362,50 @@ class Keyboard(ioHubDeviceView):
         return sorted(return_events, key=lambda x: x.time)
 
 
-    def getPresses(self, keys=None, chars=None, mods=None, clear=True):
+    def waitForKey(self, maxWait=None, keys=None, chars=None, mods=None,
+                   duration=None, clear=True, etype=None, checkInterval=0.002):
+        """
+        Waits for up to maxWait seconds for a keyboard event that matches
+        the provided criteria. See getKey for a description of the arguments
+        shared between the two methods.
+
+        checkInterval is used to define how often geyKeys() should be called.
+        The method sleeps between keyboard event checks, up until
+        checkInterval*2.0 sec prior to the maxWait. After that time, keyboard
+        events are constantly checked until the method times out.
+
+        :param maxWait: float
+        :param checkInterval: float
+        :return: tuple
+        """
+        start_time = getTime()
+        timeout = start_time+maxWait
+        key = None
+
+        def pumpKeys():
+            key = self.geyKey(keys, chars, mods, duration, clear, etype)
+            if key:
+                return key
+            Window.dispatchAllWindowEvents()
+            return key
+
+        while getTime() < timeout - checkInterval*2:
+            # Pump events on pyglet windows if they exist
+            ltime=getTime()
+            key = pumpKeys()
+            if key:
+                return key
+            time.sleep(checkInterval-(getTime()-ltime))
+
+        while getTime() < timeout:
+            key = pumpKeys()
+            if key:
+                return key
+
+        return key
+
+
+    def getPress(self, keys=None, chars=None, mods=None, clear=True):
         """
         See the getKeys() method documentation. This method is identical, but
         only returns KeyboardPress events.
@@ -370,10 +416,18 @@ class Keyboard(ioHubDeviceView):
         :param clear: bool
         :return: tuple
         """
-        return self.getKeys(keys, chars, mods, None, clear, self.KEY_PRESS)
+        return self.getKey(keys, chars, mods, None, clear, self.KEY_PRESS)
 
+    def waitForPress(self, maxWait=None, keys=None, chars=None, mods=None,
+                   duration=None, clear=True, checkInterval=0.002):
+        """
+        See the waitForKey() method documentation. This method is identical, but
+        only returns KeyboardPress events.
+        """
+        return self.waitForKey(maxWait, keys, chars, mods, duration, clear,
+                               self.KEY_PRESS, checkInterval)
 
-    def getReleases(self, keys=None, chars=None, mods=None, duration=None,
+    def getRelease(self, keys=None, chars=None, mods=None, duration=None,
                     clear=True):
         """
         See the getKeys() method documentation. This method is identical, but
@@ -386,5 +440,14 @@ class Keyboard(ioHubDeviceView):
         :param clear: bool
         :return: tuple
         """
-        return self.getKeys(keys, chars, mods, duration, clear,
+        return self.getKey(keys, chars, mods, duration, clear,
                             self.KEY_RELEASE)
+
+    def waitForRelease(self, maxWait=None, keys=None, chars=None, mods=None,
+                   duration=None, clear=True, checkInterval=0.002):
+        """
+        See the waitForKey() method documentation. This method is identical, but
+        only returns KeyboardRelease events.
+        """
+        return self.waitForKey(maxWait, keys, chars, mods, duration, clear,
+                               self.KEY_RELEASE, checkInterval)
