@@ -119,7 +119,7 @@ class SettingsComponent:
 
         buff.writeIndented("# Store info about the experiment session\n")
         if self.params['expName'].val in [None,'']:
-            expName = ''
+            buff.writeIndented("expName = 'untitled.py'\n")
         else:
             buff.writeIndented("expName = %s  # from the Builder filename that created this script\n" %(self.params['expName']))
         expInfo = self.params['Experiment info'].val.strip()
