@@ -219,7 +219,7 @@ while QUIT_EXP is False:
     # recent event in the list of a given event type is what you will see.
     #
     t1 = core.getTime()
-    events = keyboard.getKeys()
+    events = keyboard.getKey()
 
     if len(events) > 0:
         t2 = core.getTime()
