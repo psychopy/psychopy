@@ -193,7 +193,6 @@ def setColor(obj, color, colorSpace=None, operation='',
             raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
                 %(operation, obj.colorSpace, colorSpace))
     else:#OK to update current color
-        print colorSpace, colorAttrib, color, operation
         if colorSpace == 'named':
             obj.__dict__[colorAttrib] = color  # operations don't make sense for named
         else:
