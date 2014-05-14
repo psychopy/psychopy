@@ -395,8 +395,8 @@ class _baseVisualTest:
             sfs=1.0, xys=xys, oris=-thetas, autoLog=False)
         spiral.draw()
         #check that the update function is working by changing vals after first draw() call
-        spiral.setOpacities(1.0)
-        spiral.setSfs(3.0)
+        spiral.opacities = 1.0
+        spiral.sfs = 3.0
         spiral.draw()
         str(spiral) #check that str(xxx) is working
         win.flip()

@@ -1,4 +1,4 @@
-from psychopy import visual, event, core
+from psychopy import visual, event
 import numpy
 
 win = visual.Window([600,600], rgb=-1)
@@ -10,24 +10,23 @@ fixSpot = visual.GratingStim(win,tex=None, mask="gauss", size=(0.05,0.05),color=
 myMouse=event.Mouse(win=win)
 
 t=0.0
-while True:
+while not event.getKeys(keyList=['escape', 'q']):
     #get mouse events
     mouse_dX,mouse_dY = myMouse.getRel()
     mouse1, mouse2, mouse3 = myMouse.getPressed()
     if (mouse1):
-        gabor.setOri(mouse_dY/10.0, '-')
-        text.setOri(mouse_dY/10.0, '+')
-        faceRGB.setOri(mouse_dY/10.0, '+')
-        movie.setOri(mouse_dY/10.0, '-')
+        gabor.ori -= mouse_dY * 10
+        text.ori += mouse_dY * 10
+        faceRGB.ori += mouse_dY * 10
+        movie.ori -= mouse_dY * 10
         
     t+=1/60.0
-    gabor.setPhase(t*2.0)
+    gabor.phase = t * 2.0
     gabor.draw()
-    text.setColor([numpy.sin(t), 0, 1])
+    text.color = [numpy.sin(t * 2), 0, 1]
     text.draw()
     fixSpot.draw()
     faceRGB.draw()
     movie.draw()
     
     win.flip()
-    

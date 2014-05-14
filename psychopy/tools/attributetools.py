@@ -24,16 +24,24 @@ class attributeSetter(object):
                 obj.win.logOnFlip(message, level=logging.EXP, obj=obj)
             except AttributeError:  # this is probably a Window, having no "win" attribute
                 logging.log(message, level=logging.EXP, obj=obj)
+        
+        # Useful for inspection/debugging. Keeps track of all settings of attributes.
+        """
+        import traceback
+        origin = traceback.extract_stack()[-2]
+        print '%s.%s = %s (line %i)' %(obj.__class__.__name__, self.func.__name__, value.__repr__(), origin[1])  # short
+        #print '%s.%s = %s (%s in in %s, line %i' %(obj.__class__.__name__, self.func.__name__, value.__repr__(), origin[1], origin[0].split('/')[-1], origin[1], origin[3].__repr__())  # long
+        """
         return newValue
 
     def __repr__(self):
         return repr(self.__getattribute__)
 
-def callAttributeSetter(self, attrib, value, log=True):
+def callAttributeSetter(self, attrib, value, log=None):
     """Often, the get*() functions just add the ability to log compared to attributeSetter.
     As attributeSetter respects self.autoLog, we can do the following to control logging"""
     autoLogOrig = self.autoLog  # save original value
-    self.autoLog = log  # set to desired logging
+    self.autoLog = log or autoLogOrig and log is None  # set to desired logging. None dafaults to autoLog
     setattr(self, attrib, value)  # set attribute, calling attributeSetter
     self.autoLog = autoLogOrig  # return autoLog to original
 
@@ -48,46 +56,55 @@ def setWithOperation(self, attrib, value, operation, stealth=False, autoLog=True
     
     History: introduced in version 1.79 to avoid exec-calls"""
 
-    # Handle cases where attribute is not defined yet.
+    # Handle cases where attribute does not support operations (is not defined or is str).
     try:
         oldValue = getattr(self, attrib)
-        if oldValue is None:
-            newValue = value
-        else:
-            oldValue = numpy.asarray(oldValue, float)
+        oldValue = numpy.asarray(oldValue, float)
 
-            # Calculate new value using operation
-            if operation in ('', None):
-                newValue = oldValue * 0 + value  # Preserves dimensions, if array
-            elif operation == '+':
-                newValue = oldValue + value
-            elif operation == '*':
-                newValue = oldValue * value
-            elif operation == '-':
-                newValue = oldValue - value
-            elif operation == '/':
-                newValue = oldValue / value
-            elif operation == '**':
-                newValue = oldValue ** value
-            elif operation == '%':
-                newValue = oldValue % value
-            else:
-                raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
-    except AttributeError:
+        # Calculate new value using operation
+        if operation in ('', None):
+            newValue = oldValue * 0 + value  # Preserves dimensions, if array
+        elif operation == '+':
+            newValue = oldValue + value
+        elif operation == '*':
+            newValue = oldValue * value
+        elif operation == '-':
+            newValue = oldValue - value
+        elif operation == '/':
+            newValue = oldValue / value
+        elif operation == '**':
+            newValue = oldValue ** value
+        elif operation == '%':
+            newValue = oldValue % value
+        else:
+            raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
+    except AttributeError as inst:
         # attribute is not set yet. Do it now in a non-updating manner
-        newValue = value
-    except TypeError:
-        # Attribute is "None" or unset and decorated. This is a sign that we are just initing
-        if oldValue is None or isinstance(oldValue, attributeSetter):
+        newValue = numpy.asarray(value, float)
+    except TypeError as inst:
+        # Attribute is "None" or an unset attributeSetter. This is a sign that we are just initing
+        if oldValue is None or isinstance(oldValue, attributeSetter) and operation in ('', None):
+            newValue = numpy.asarray(value, float)
+        elif value is None:
+            # Not an operation, but let's be friendly...
             newValue = value
         else:
             raise TypeError
+    except ValueError:
+        # The old value is a string, typical of a color change from named to e.g. rgb.
+        if type(oldValue) is str and operation in ('', None):
+            newValue = numpy.asarray(value, float)
+        else:
+            raise ValueError
+    except Exception:
+        # We do not accept other exceptions!
+        raise Exception
     finally:
         # Set new value, with or without callback to attributeSetters
         if stealth:
             self.__dict__[attrib] = newValue
+        # Control logging with self.autoLog in case an attributeSetter is listening
         else:
-            # Control logging with self.autoLog in case an attributeSetter is listening
             callAttributeSetter(self, attrib, newValue, autoLog)
 
 def logAttrib(self, log, attrib, value=None):

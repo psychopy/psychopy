@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 #demo arbitrary numpy array
 
-from psychopy import visual, core, event, logging
+from psychopy import visual, event, logging
 import scipy
 
 logging.console.setLevel(logging.DEBUG)
@@ -14,16 +14,10 @@ myPatch = visual.GratingStim(myWin, tex=noiseTexture,
     interpolate=False,
     autoLog=False)#this stim changes too much for autologging to be useful
 
-for n in range(200): #for 200 frames
-    myPatch.setPhase(1/128.0,'+')# increment by one pixel
-    #draw for two framess
+while not event.getKeys(keyList=['escape', 'q']):
+    myPatch.phase += (1 / 128.0, 0.5 / 128.0)  # increment by (1, 0.5) pixels per frame
+    
     myPatch.draw()
     myWin.flip()
-    myPatch.draw()
-    myWin.flip()
-    #handle key presses each frame
-    for keys in event.getKeys():
-        if keys in ['escape','q']:
-            core.quit()
 
 myWin.close()

@@ -17,15 +17,15 @@ while True: #ie forever
     t = time.localtime()
     
     minPos = numpy.floor(t[4])*360/60 #NB floor will round down to previous minute
-    minute.setOri(minPos)
+    minute.ori = minPos
     minute.draw()
     
     hourPos = (t[3])*360/12#this one can be smooth
-    hour.setOri(hourPos)
+    hour.ori = hourPos
     hour.draw()
     
     secPos = numpy.floor(t[5])*360/60#NB floor will round down to previous second
-    second.setOri(secPos)
+    second.ori = secPos
     second.draw()
     
     win.flip()

@@ -10,10 +10,9 @@ globalClock = core.Clock()
 while mov.status != visual.FINISHED:
     mov.draw()
     win.flip()
-    for key in event.getKeys():
-        if key in ['escape','q']:
-            win.close()
-            core.quit()
+    if event.getKeys(keyList=['escape','q']):
+        win.close()
+        core.quit()
 
 core.quit()
 
