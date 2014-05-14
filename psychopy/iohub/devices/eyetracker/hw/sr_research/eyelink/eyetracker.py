@@ -356,30 +356,19 @@ class EyeTracker(EyeTrackerDevice):
             screenColor=calibration_properties.get('screen_background_color')                     # [r,g,b] of screen
             targetOuterDiameter=circle_attributes.get('outer_diameter')     # diameter of outer target circle (in px)
             targetInnerDiameter=circle_attributes.get('inner_diameter')     # diameter of inner target circle (in px)
-            
-            dc_sounds=calibration_properties.get('dc_sounds',["","",""])                   # targetS, goodS, errorS for DC. "" ==
-                                                                           # use current defaults. "off" or None ==
-                                                                           # play no sound
-            cal_sounds=calibration_properties.get('cal_sounds',["","",""])                 # targetS, goodS, errorS for Cal / Val.
 
-            genv=EyeLinkCoreGraphicsIOHubPsychopy(self,targetForegroundColor=targetForegroundColor,
+            genv=EyeLinkCoreGraphicsIOHubPsychopy(self, targetForegroundColor=targetForegroundColor,
                                                         targetBackgroundColor=targetBackgroundColor,
                                                         screenColor=screenColor,
                                                         targetOuterDiameter=targetOuterDiameter,
-                                                        targetInnerDiameter=targetInnerDiameter,
-                                                        dc_sounds=dc_sounds, cal_sounds=cal_sounds)
+                                                        targetInnerDiameter=targetInnerDiameter)
 
-
-           # ioHub.print2err("monitor_event_types for eyelink: ", self.monitor_event_types, EyeTracker.ALL_EVENT_CLASSES)
-           # ioHub.print2err("self._iohub_server: ",self._iohub_server)
-           # genv._registerEventMonitors()
             pylink.openGraphicsEx(genv)
-
             self._eyelink.doTrackerSetup()
-
-            genv._unregisterEventMonitors() 
-            genv.window.close()
+            genv._unregisterEventMonitors()
             genv.clearAllEventBuffers()
+            genv.window.close()
+
             return EyeTrackerConstants.EYETRACKER_OK
 
         except Exception,e:
@@ -1247,19 +1236,20 @@ class EyeTracker(EyeTrackerDevice):
                         modes = self._readResultFromTracker("read_mode_list")
                         if modes is None or modes.strip() == 'Unknown Variable Name':
                             print2err("IOHUB_DEVICE_EXCEPTION.Error: Could not retrieve sample rate modes from EyeLink Host.",
-                                    " EyeTracker.setSamplingRate", str(e))            
-                        modes = modes.strip().split()
-    
-                        #ioHub.print2err("Modes = ", modes)
-                        for x in modes:
-                            m = x.replace('B',' ').strip()
-                            m = m.replace('R',' ').strip()
-                            x =int(m)
-                            rts.append(x)
-                        if srate in rts:
-                            self._eyelink.sendCommand("sample_rate = %d"%(srate))
+                                    " EyeTracker.setSamplingRate ",str(modes))
+                        else:
+                            modes = modes.strip().split()
+
+                            #ioHub.print2err("Modes = ", modes)
+                            for x in modes:
+                                m = x.replace('B',' ').strip()
+                                m = m.replace('R',' ').strip()
+                                x =int(m)
+                                rts.append(x)
+                            if srate in rts:
+                                self._eyelink.sendCommand("sample_rate = %d"%(srate))
                     else:
-                        if srate<=1000:
+                        if srate <= 1000:
                             self.sendCommand("sample_rate = %d"%(srate))
                 return self._getSamplingRate()
             return EyeTrackerConstants.EYETRACKER_ERROR
