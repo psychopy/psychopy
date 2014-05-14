@@ -131,7 +131,7 @@ def setColor(obj, color, colorSpace=None, operation='',
                 rgbAttrib='rgb', #or 'fillRGB' etc
                 colorAttrib='color', #or 'fillColor' etc
                 colorSpaceAttrib=None, #e.g. 'colorSpace' or 'fillColorSpace'
-                log=True):
+                log=None):
     """Provides the workings needed by setColor, and can perform this for
     any arbitrary color type (e.g. fillColor,lineColor etc)
     """
@@ -193,7 +193,11 @@ def setColor(obj, color, colorSpace=None, operation='',
             raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
                 %(operation, obj.colorSpace, colorSpace))
     else:#OK to update current color
-        setWithOperation(obj, colorAttrib, color, operation, True)
+        print colorSpace, colorAttrib, color, operation
+        if colorSpace == 'named':
+            obj.__dict__[colorAttrib] = color  # operations don't make sense for named
+        else:
+            setWithOperation(obj, colorAttrib, color, operation, stealth=True)
     #get window (for color conversions)
     if colorSpace in ['dkl','lms']: #only needed for these spaces
         if hasattr(obj,'dkl_rgb'):
@@ -235,7 +239,7 @@ def setColor(obj, color, colorSpace=None, operation='',
         autoLog = obj.autoLog
     else:
         autoLog = False
-    if autoLog and log:
+    if log or autoLog and log is None:
         if hasattr(obj,'win'):
             obj.win.logOnFlip("Set %s.%s=%s (%s)" %(obj.name,colorAttrib,newColor,colorSpace),
                 level=logging.EXP,obj=obj)

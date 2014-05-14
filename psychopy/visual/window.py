@@ -178,9 +178,6 @@ class Window(object):
             waitBlanking : *None*, True or False.
                 After a call to flip() should we wait for the blank before
                 the script continues
-            gamma :
-                Monitor gamma for linearisation (will use Bits++ if possible).
-                Overrides monitor settings
             bitsMode :
                 DEPRECATED in 1.80.02. Use BitsSharp class from pycrsltd instead.
             checkTiming: True of False
@@ -207,9 +204,13 @@ class Window(object):
         self._initParams = dir()
         for unecess in ['self', 'checkTiming', 'rgb', 'dkl', ]:
             self._initParams.remove(unecess)
-
+        
+        # Check autoLog value
+        if not autoLog in (True, False):
+            raise ValueError('autoLog must be either True or False for visual.Window')
+        
+        self.autoLog = False  # to suppress log msg during init
         self.name = name
-        self.autoLog = autoLog  # to suppress log msg during testing
         self.size = numpy.array(size, numpy.int)
         self.pos = pos
         # this will get overridden once the window is created
@@ -356,6 +357,7 @@ class Window(object):
         else:
             self._refreshThreshold = (1.0/60)*1.2  # guess its a flat panel
         openWindows.append(self)
+        self.autoLog = autoLog
 
     def __del__(self):
         try:
@@ -406,14 +408,11 @@ class Window(object):
             Window.saveFrameIntervals()
         """
         # was off, and now turning it on
-        if not self.recordFrameIntervals and value:
-            self.recordFrameIntervalsJustTurnedOn = True
-        else:
-            self.recordFrameIntervalsJustTurnedOn = False
+        self.recordFrameIntervalsJustTurnedOn = not self.recordFrameIntervals and value
         self.__dict__['recordFrameIntervals'] = value
         self.frameClock.reset()
 
-    def setRecordFrameIntervals(self, value=True, log=True):
+    def setRecordFrameIntervals(self, value=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         self.recordFrameIntervals = value
@@ -978,7 +977,7 @@ class Window(object):
                 self._progSignedTexMask = self._shaders['signedTexMask_adding']
                 self._progSignedTexMask1D = self._shaders['signedTexMask1D_adding']
                 self._progImageStim = self._shaders['imageStim_adding']
-    def setBlendMode(self, blendMode, log=True):
+    def setBlendMode(self, blendMode, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         callAttributeSetter(self, 'blendMode', blendMode, log)
@@ -1020,7 +1019,7 @@ class Window(object):
         # rgb255 and named are not...
         elif type(colorSpace) is str:
             desiredRGB = (self.rgb) / 255.0
-        else:  # some array/numeric stuff)
+        else:  # some array/numeric stuff
             raise ValueError('invalid value "%s" for Window.colorSpace' %colorSpace)
 
         # if it is None then this will be done during window setup
@@ -1029,7 +1028,7 @@ class Window(object):
                 self.winHandle.switch_to()
             GL.glClearColor(desiredRGB[0], desiredRGB[1], desiredRGB[2], 1.0)
 
-    def setColor(self, color, colorSpace=None, operation=''):
+    def setColor(self, color, colorSpace=None, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you want to set color and colorSpace simultaneously.
         See `Window.color` for documentation on colors.
@@ -1038,13 +1037,13 @@ class Window(object):
         # Set color
         setColor(self, color, colorSpace=colorSpace, operation=operation,
                  rgbAttrib='rgb',  # or 'fillRGB' etc
-                 colorAttrib='color')
+                 colorAttrib='color', log=log)
         
         # Set colorSpace to not-None
         if colorSpace is None:
-            self.colorSpace = self.colorSpace  #Use current colorSpace if None
+            callAttributeSetter(self, 'colorSpace', self.colorSpace, log)
         else:
-            self.colorSpace = colorSpace  # calling attributeSetter
+            callAttributeSetter(self, 'colorSpace', colorSpace, log)
 
     def setRGB(self, newRGB):
         """Deprecated: As of v1.61.00 please use `setColor()` instead
@@ -1113,7 +1112,7 @@ class Window(object):
         elif self.winType == 'pyglet':
             self.winHandle.setGamma(self.winHandle, self.gamma)
 
-    def setGamma(self, gamma, log=True):
+    def setGamma(self, gamma, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         callAttributeSetter(self, 'gamma', gamma, log)
@@ -1462,7 +1461,7 @@ class Window(object):
         elif self.winType == 'pyglet':
             self.winHandle.set_mouse_visible(visibility)
         self.__dict__['mouseVisible'] = visibility
-    def setMouseVisible(self, visibility, log=True):
+    def setMouseVisible(self, visibility, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         callAttributeSetter(self, 'mouseVisible', visibility, log)
