@@ -509,15 +509,19 @@ class ioHubpyTablesFile():
 
 def close_open_data_files(verbose):
     open_files = tables.file._open_files
-    are_open_files = len(open_files) > 0
-    if verbose and are_open_files:
-        print "Closing remaining open data files:"
-    for fileh in open_files.keys():
-        if verbose:
-            print "%s..." % (open_files[fileh].filename,)
-        open_files[fileh].close()
-        if verbose:
-            print "done"
+    clall = hasattr(open_files,'close_all')
+    if clall:
+        open_files.close_all()
+    else:
+        are_open_files = len(open_files) > 0
+        if verbose and are_open_files:
+            print2err("Closing remaining open data files:")
+        for fileh in open_files.keys():
+            if verbose:
+                print2err( "%s..." % (open_files[fileh].filename,))
+            open_files[fileh].close()
+            if verbose:
+                print2err("done")
 
 try:
     global registered_close_open_data_files
