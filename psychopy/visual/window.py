@@ -303,7 +303,7 @@ class Window(object):
                             "Please use color and colorSpace args instead")
             color = lms
             colorSpace = 'lms'
-        self.setColor(color, colorSpace=colorSpace)
+        self.setColor(color, colorSpace=colorSpace, log=False)
 
         self.allowStencil = allowStencil
         #check whether FBOs are supported
@@ -358,6 +358,8 @@ class Window(object):
             self._refreshThreshold = (1.0/60)*1.2  # guess its a flat panel
         openWindows.append(self)
         self.autoLog = autoLog
+        if self.autoLog:
+            logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def __del__(self):
         try:
@@ -1037,7 +1039,7 @@ class Window(object):
         # Set color
         setColor(self, color, colorSpace=colorSpace, operation=operation,
                  rgbAttrib='rgb',  # or 'fillRGB' etc
-                 colorAttrib='color', log=log)
+                 colorAttrib='color')
         
         # Set colorSpace to not-None
         if colorSpace is None:

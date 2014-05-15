@@ -18,18 +18,13 @@ class attributeSetter(object):
 
     def __set__(self, obj, value):
         newValue = self.func(obj, value)
-        if (obj.autoLog is True) and (self.func.__name__ is not 'autoLog'):
-            message = "%s: %s = %s" % (obj.__class__.__name__, self.func.__name__, value)
-            try:
-                obj.win.logOnFlip(message, level=logging.EXP, obj=obj)
-            except AttributeError:  # this is probably a Window, having no "win" attribute
-                logging.log(message, level=logging.EXP, obj=obj)
+        logAttrib(obj, log=None, attrib=self.func.__name__, value=value)  # log=None defaults to obj.autoLog
         
         # Useful for inspection/debugging. Keeps track of all settings of attributes.
         """
         import traceback
         origin = traceback.extract_stack()[-2]
-        print '%s.%s = %s (line %i)' %(obj.__class__.__name__, self.func.__name__, value.__repr__(), origin[1])  # short
+        #print '%s.%s = %s (line %i)' %(obj.__class__.__name__, self.func.__name__, value.__repr__(), origin[1])  # short
         #print '%s.%s = %s (%s in in %s, line %i' %(obj.__class__.__name__, self.func.__name__, value.__repr__(), origin[1], origin[0].split('/')[-1], origin[1], origin[3].__repr__())  # long
         """
         return newValue
@@ -45,7 +40,7 @@ def callAttributeSetter(self, attrib, value, log=None):
     setattr(self, attrib, value)  # set attribute, calling attributeSetter
     self.autoLog = autoLogOrig  # return autoLog to original
 
-def setWithOperation(self, attrib, value, operation, stealth=False, autoLog=True):
+def setWithOperation(self, attrib, value, operation, stealth=False, autoLog=None):
     """ Sets an object property (scalar or numpy array) with an operation.
     If stealth is True, then use self.__dict[key] = value and avoid calling attributeSetters. 
     
@@ -78,10 +73,10 @@ def setWithOperation(self, attrib, value, operation, stealth=False, autoLog=True
             newValue = oldValue % value
         else:
             raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
-    except AttributeError as inst:
+    except AttributeError:
         # attribute is not set yet. Do it now in a non-updating manner
         newValue = numpy.asarray(value, float)
-    except TypeError as inst:
+    except TypeError:
         # Attribute is "None" or an unset attributeSetter. This is a sign that we are just initing
         if oldValue is None or isinstance(oldValue, attributeSetter) and operation in ('', None):
             newValue = numpy.asarray(value, float)
@@ -107,13 +102,19 @@ def setWithOperation(self, attrib, value, operation, stealth=False, autoLog=True
         else:
             callAttributeSetter(self, attrib, newValue, autoLog)
 
-def logAttrib(self, log, attrib, value=None):
+def logAttrib(obj, log, attrib, value=None):
     """
     Logs a change of a visual attribute on the next window.flip.
     If value=None, it will take the value of self.attrib.
     """
-    if log or log is None and self.autoLog:
+    # Default to autoLog if log isn't set explicitly
+    if log or log is None and obj.autoLog:
         if value is None:
-            value = getattr(self, attrib)
-        self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, value),
-            level=logging.EXP,obj=self)
+            value = getattr(obj, attrib)
+        
+        # Log on next flip
+        message = "%s: %s = %s" % (obj.name, attrib, value.__repr__())
+        try:
+            obj.win.logOnFlip(message, level=logging.EXP, obj=obj)
+        except AttributeError:  # this is probably a Window, having no "win" attribute
+            logging.log(message, level=logging.EXP, obj=obj)

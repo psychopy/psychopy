@@ -28,7 +28,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import attributeSetter, setWithOperation, callAttributeSetter
+from psychopy.tools.attributetools import attributeSetter, setWithOperation, callAttributeSetter, logAttrib
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg, convertToPix
 from psychopy.visual.helpers import pointInPolygon, polygonsOverlap, setColor
@@ -331,7 +331,7 @@ class ColorMixin(object):
                     logging.warning('Tried to set contrast while useShaders = False but stimulus was not rebuild. Contrast might remain unchanged.')
         elif self.autoLog:
             logging.warning('Contrast was set on class where useShaders was undefined. Contrast might remain unchanged')
-    def setColor(self, color, colorSpace=None, operation='', log=True):
+    def setColor(self, color, colorSpace=None, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         and/or set colorSpace simultaneously.
@@ -339,10 +339,10 @@ class ColorMixin(object):
         # NB: the setColor helper function! Not this function itself :-)
         setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='rgb', #or 'fillRGB' etc
-                    colorAttrib='color',
-                    log=log)
+                    colorAttrib='color')
         if self.__class__.__name__ == 'TextStim' and not self.useShaders:
             self._needSetText = True
+        logAttrib(self, log, 'color', value='%s (%s)' %(self.color, self.colorSpace))
     def setContrast(self, newContrast, operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message

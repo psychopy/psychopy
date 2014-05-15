@@ -20,7 +20,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix
-from psychopy.tools.attributetools import attributeSetter, setWithOperation
+from psychopy.tools.attributetools import attributeSetter, setWithOperation, logAttrib
 from psychopy.visual.basevisual import BaseVisualStim, ColorMixin, ContainerMixin
 from psychopy.visual.helpers import setColor
 
@@ -60,7 +60,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  lineRGB=None,
                  fillRGB=None,
                  name='', 
-                 autoLog=True):
+                 autoLog=None):
         """ """  # all doc is in the attributes
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
@@ -86,15 +86,15 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         if lineRGB!=None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setLineColor(lineRGB, colorSpace='rgb')
+            self.setLineColor(lineRGB, colorSpace='rgb', log=None)
         else:
-            self.setLineColor(lineColor, colorSpace=lineColorSpace)
+            self.setLineColor(lineColor, colorSpace=lineColorSpace, log=None)
 
         if fillRGB!=None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setFillColor(fillRGB, colorSpace='rgb')
+            self.setFillColor(fillRGB, colorSpace='rgb', log=None)
         else:
-            self.setFillColor(fillColor, colorSpace=fillColorSpace)
+            self.setFillColor(fillColor, colorSpace=fillColorSpace, log=None)
 
         # Other stuff
         self.depth=depth
@@ -103,8 +103,8 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.setVertices(vertices, log=False)
 
         #set autoLog (now that params have been initialised)
-        self.autoLog= autoLog
-        if autoLog:
+        self.autoLog = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
 
     @attributeSetter
@@ -176,15 +176,16 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.fillColor`
         """
         self._set('fillRGB', value, operation)
-    def setLineColor(self, color, colorSpace=None, operation='', log=True):
+    def setLineColor(self, color, colorSpace=None, operation='', log=None):
         """Sets the color of the shape edge. See :meth:`psychopy.visual.GratingStim.color`
         for further details of how to use this function.
         """
         setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='lineRGB',#the name for this rgb value
                     colorAttrib='lineColor',#the name for this color
-                    log=log)
-    def setFillColor(self, color, colorSpace=None, operation='', log=True):
+                    )
+        logAttrib(self, log, 'lineColor', value='%s (%s)' %(self.lineColor, self.lineColorSpace))
+    def setFillColor(self, color, colorSpace=None, operation='', log=None):
         """Sets the color of the shape fill. See :meth:`psychopy.visual.GratingStim.color`
         for further details of how to use this function.
 
@@ -195,7 +196,8 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='fillRGB',#the name for this rgb value
                     colorAttrib='fillColor',#the name for this color
-                    log=log)
+                    )
+        logAttrib(self, log, 'fillColor', value='%s (%s)' %(self.fillColor, self.fillColorSpace))
     
     @attributeSetter
     def size(self, value):
@@ -207,7 +209,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         :ref:`Operations <attrib-operations>` supported."""
         self.__dict__['size'] = numpy.array(value)
         self._needVertexUpdate = True
-    def setSize(self, value, operation='', log=True):
+    def setSize(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
@@ -226,7 +228,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if not (self.vertices.shape==(2,) or (len(self.vertices.shape) == 2 and self.vertices.shape[1] == 2)):
             raise ValueError("New value for setXYs should be 2x1 or Nx2")
         self._needVertexUpdate=True
-    def setVertices(self, value=None, operation='', log=True):
+    def setVertices(self, value=None, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """

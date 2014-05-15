@@ -24,7 +24,7 @@ from psychopy.visual import Window
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import setWithOperation, attributeSetter, callAttributeSetter
+from psychopy.tools.attributetools import setWithOperation, attributeSetter, callAttributeSetter, logAttrib
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.visual.helpers import setColor
 from psychopy.visual.basevisual import MinimalStim, TextureMixin
@@ -332,10 +332,10 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         but use this method if you need to suppress the log message."""
         value = self._makeNx2(value)  # in the case of Nx1 list/array, setWithOperation would fail if not this
         setWithOperation(self, 'phases', value, operation, autoLog=log)  # call attributeSetter
-    def setRgbs(self,value,operation='', log=True):
+    def setRgbs(self,value,operation=''):
         """DEPRECATED (as of v1.74.00). Please use setColors() instead
         """
-        self.setColors(value,operation, log=log)
+        self.setColors(value,operation)
     
     
     @attributeSetter
@@ -367,7 +367,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         setColor(self, color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='rgbs', #or 'fillRGB' etc
                     colorAttrib='colors',
-                    colorSpaceAttrib='colorSpace',log=log)
+                    colorSpaceAttrib='colorSpace')
+        logAttrib(self, log, 'colors', value='%s (%s)' %(self.colors, self.colorSpace))
         
         #check shape
         if self.rgbs.shape in [(), (1,),(3,)]:

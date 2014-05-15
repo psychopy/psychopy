@@ -15,7 +15,7 @@ from psychopy import core, logging, colors
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import setWithOperation
+from psychopy.tools.attributetools import setWithOperation, logAttrib
 
 import numpy
 
@@ -131,11 +131,11 @@ def setColor(obj, color, colorSpace=None, operation='',
                 rgbAttrib='rgb', #or 'fillRGB' etc
                 colorAttrib='color', #or 'fillColor' etc
                 colorSpaceAttrib=None, #e.g. 'colorSpace' or 'fillColorSpace'
-                log=None):
+                ):
     """Provides the workings needed by setColor, and can perform this for
     any arbitrary color type (e.g. fillColor,lineColor etc)
     """
-
+    
     #how this works:
     #rather than using obj.rgb=rgb this function uses setattr(obj,'rgb',rgb)
     #color represents the color in the native space
@@ -233,18 +233,10 @@ def setColor(obj, color, colorSpace=None, operation='',
     obj.__dict__[colorSpaceAttrib] = colorSpace  #store name of colorSpace for future ref and for drawing
     #if needed, set the texture too
     setTexIfNoShaders(obj)
-
-    if hasattr(obj, 'autoLog'):
-        autoLog = obj.autoLog
-    else:
-        autoLog = False
-    if log or autoLog and log is None:
-        if hasattr(obj,'win'):
-            obj.win.logOnFlip("Set %s.%s=%s (%s)" %(obj.name,colorAttrib,newColor,colorSpace),
-                level=logging.EXP,obj=obj)
-        else:
-            obj.logOnFlip("Set Window %s=%s (%s)" %(colorAttrib,newColor,colorSpace),
-                level=logging.EXP,obj=obj)
+    
+    #if not hasattr(obj, 'autoLog'):
+    #    obj.autoLog = False
+    #logAttrib(obj, log, colorAttrib, '%s (%s)' %(newColor,colorSpace))
 
 
 # for groupFlipVert:

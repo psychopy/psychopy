@@ -108,9 +108,9 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.colorSpace=colorSpace
         if rgb!=None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(rgb, colorSpace='rgb')
+            self.setColor(rgb, colorSpace='rgb', log=False)
         else:
-            self.setColor(color)
+            self.setColor(color, log=False)
 
         self.depth=depth
 
