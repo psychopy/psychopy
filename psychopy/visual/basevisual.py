@@ -28,7 +28,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import attributeSetter, setWithOperation, callAttributeSetter, logAttrib
+from psychopy.tools.attributetools import attributeSetter, logAttrib, setAttribute
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg, convertToPix
 from psychopy.visual.helpers import pointInPolygon, polygonsOverlap, setColor
@@ -143,7 +143,7 @@ class MinimalStim(object):
     def setAutoDraw(self, value, log=None):
         """Sets autoDraw. Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
-        callAttributeSetter(self, 'autoDraw', value, log)
+        setAttribute(self, 'autoDraw', value, log)
 
     @attributeSetter
     def autoLog(self, value):
@@ -158,7 +158,7 @@ class MinimalStim(object):
     def setAutoLog(self, value=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
-        callAttributeSetter(self, 'autoLog', value, log)
+        setAttribute(self, 'autoLog', value, log)
 
 class LegacyVisualMixin(object):
     """Class to hold deprecated visual methods and attributes.
@@ -353,7 +353,7 @@ class ColorMixin(object):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        self._set('contrast', newContrast, operation, log=log)
+        setAttribute(self, 'contrast', newContrast, log, operation)
 
     def _getDesiredRGB(self, rgb, colorSpace, contrast):
         """ Convert color to RGB while adding contrast
@@ -806,7 +806,7 @@ class TextureMixin(object):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
-        callAttributeSetter(self, 'mask', value, log)
+        setAttribute(self, 'mask', value, log)
 
     @attributeSetter
     def texRes(self, value):
@@ -1036,30 +1036,32 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        self._set('pos', val=newPos, op=operation, log=log)
+        setAttribute(self, 'pos', val2array(newPos, False), log, operation)
     def setDepth(self, newDepth, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        self._set('depth', newDepth, operation, log)
+        setAttribute(self, 'depth', newDepth, log, operation)
     def setSize(self, newSize, operation='', units=None, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         if units==None: units=self.units#need to change this to create several units from one
-        self._set('size', newSize, op=operation, log=log)
+        setAttribute(self, 'size', val2array(newSize, False), log, operation)
     def setOri(self, newOri, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        self._set('ori',val=newOri, op=operation, log=log)
+        setAttribute(self, 'ori', newOri, log, operation)
     def setOpacity(self, newOpacity, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        self._set('opacity', newOpacity, operation, log=log)
+        setAttribute(self, 'opacity', newOpacity, log, operation)
     def _set(self, attrib, val, op='', log=None):
         """
+        DEPRECATED since 1.80.04 + 1. Use setAttrib() in combination with val2array instead.
+        
         Use this method when you want to be able to suppress logging (e.g., in
         tests). Typically better to use methods specific to the parameter, e.g. ::
 
@@ -1076,7 +1078,7 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
             val = val2array(val)
 
         # Handle operations
-        setWithOperation(self, attrib, val, op, autoLog=log)
+        setAttribute(self, attrib, val, log, op)
 
     def setUseShaders(self, value=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
