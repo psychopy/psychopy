@@ -243,25 +243,31 @@ class ColorMixin(object):
         single value (scalar) then this wil be applied to all 3 channels.
 
         Examples::
+                # ... for whatever stim you have, e.g. stim = visual.ShapeStim(win):                
+                stim.color = 'white'
+                stim.color = 'RoyalBlue'  # (the case is actually ignored)
+                stim.color = '#DDA0DD'  # DDA0DD is hexadecimal for plum
+                stim.color = [1.0, -1.0, -1.0]  # if stim.colorSpace='rgb': a red color in rgb space
+                stim.color = [0.0, 45.0, 1.0]  # if stim.colorSpace='dkl': DKL space with elev=0, azimuth=45
+                stim.color = [0, 0, 255]  # if stim.colorSpace='rgb255': a blue stimulus using rgb255 space
+                stim.color = 255  # interpreted as (255, 255, 255) which is white in rgb255.
 
-                myStim.color = 'white'
-                myStim.color = 'RoyalBlue'  #(the case is actually ignored)
-                myStim.color = '#DDA0DD'  #DDA0DD is hexadecimal for plum
-                myStim.color = [1.0,-1.0,-1.0]  #if colorSpace='rgb': a red color in rgb space
-                myStim.color = [0.0,45.0,1.0] #if colorSpace='dkl': DKL space with elev=0, azimuth=45
-                myStim.color = [0,0,255] #if colorSpace='rgb255': a blue stimulus using rgb255 space
 
+        :ref:`Operations <attrib-operations>` work as normal for all numeric
+        colorSpaces (e.g. 'rgb', 'hsv' and 'rgb255') but not for strings, like 
+        named and hex. For example, assuming that colorSpace='rgb'::
 
-        :ref:`Operations <attrib-operations>` work as normal. For example,
-        assuming that colorSpace='rgb'::
-
-            thisStim.color += [1,1,1]  #increment all guns by 1 value
-            thisStim.color *= -1  #multiply the color by -1 (which in this space inverts the contrast)
-            thisStim.color *= [0.5, 0, 1]  #decrease red, remove green, keep blue
+            stim.color += [1, 1, 1]  # increment all guns by 1 value
+            stim.color *= -1  # multiply the color by -1 (which in this space inverts the contrast)
+            stim.color *= [0.5, 0, 1]  # decrease red, remove green, keep blue
         
-        Lastly, a single number can be provided, x, which is equivalent to providing [x,x,x].::
+        You can use `setColor` if you want to set color and colorSpace in one
+        line. These two are equivalent::
 
-            myStim.setColor(128, 'rgb255')  # equivalent to [128, 128, 128] or gray
+            stim.setColor((0, 128, 255), 'rgb255')
+            # ... is equivalent to
+            stim.colorSpace = 'rgb255'
+            stim.color = (0, 128, 255)
         """
         self.setColor(value)
 

@@ -991,7 +991,11 @@ class Window(object):
         NB This command sets the color that the blank screen will have on the
         next clear operation. As a result it effectively takes TWO `flip()`
         operations to become visible (the first uses the color to create the
-        new screen, the second presents that screen to the viewer).
+        new screen, the second presents that screen to the viewer). For this
+        reason, if you want to changed background color of the window "on the 
+        fly", it might be a better idea to draw a `visual.Rect` that fills the
+        whole window with the desired `Rect.fillColor` attribute. 
+        That'll show up on first flip.
         
         See other stimuli (e.g. :ref:`GratingStim.color`) for more info on the
         color attribute which essentially works the same on all PsychoPy stimuli.
