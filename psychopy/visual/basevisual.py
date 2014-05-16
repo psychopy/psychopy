@@ -66,7 +66,7 @@ class MinimalStim(object):
 
     Includes: name, autoDraw, autoLog, status, __str__
     """
-    def __init__(self, name='', autoLog=True):
+    def __init__(self, name='', autoLog=None):
         self.name = name
         self.status = NOT_STARTED
         self.autoLog = autoLog
@@ -140,7 +140,7 @@ class MinimalStim(object):
             toDraw.remove(self)  #remove from draw list
             self.status = STOPPED
 
-    def setAutoDraw(self, value, log=True):
+    def setAutoDraw(self, value, log=None):
         """Sets autoDraw. Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
         callAttributeSetter(self, 'autoDraw', value, log)
@@ -155,7 +155,7 @@ class MinimalStim(object):
         """
         self.__dict__['autoLog'] = value
 
-    def setAutoLog(self, value=True, log=True):
+    def setAutoLog(self, value=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
         callAttributeSetter(self, 'autoLog', value, log)
@@ -205,7 +205,7 @@ class LegacyVisualMixin(object):
         """
         self._set('lms', value=newLMS, op=operation)
         self.setRGB(lms2rgb(self.lms, self.win.lms_rgb))
-    def setRGB(self, newRGB, operation='', log=True):
+    def setRGB(self, newRGB, operation='', log=None):
         """DEPRECATED since v1.60.05: Please use the `color` attribute
         """
         from psychopy.visual.helpers import setTexIfNoShaders
@@ -349,7 +349,7 @@ class ColorMixin(object):
         if self.__class__.__name__ == 'TextStim' and not self.useShaders:
             self._needSetText = True
         logAttrib(self, log, 'color', value='%s (%s)' %(self.color, self.colorSpace))
-    def setContrast(self, newContrast, operation='', log=True):
+    def setContrast(self, newContrast, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
@@ -802,7 +802,7 @@ class TextureMixin(object):
             dataType = None
         self._createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, dataType=dataType,
             stim=self, res=self.texRes, maskParams=self.maskParams)
-    def setMask(self, value, log=True):
+    def setMask(self, value, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
@@ -838,7 +838,7 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
     Methods defined here will override Minimal & Legacy, but best to avoid
     that for simplicity & clarity.
     """
-    def __init__(self, win, units=None, name='', autoLog=True):
+    def __init__(self, win, units=None, name='', autoLog=None):
         self.autoLog = False  # just to start off during init, set at end
         self.win = win
         self.units = units
@@ -1032,33 +1032,33 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
     def draw(self):
         raise NotImplementedError('Stimulus classes must overide visual.BaseVisualStim.draw')
 
-    def setPos(self, newPos, operation='', log=True):
+    def setPos(self, newPos, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         self._set('pos', val=newPos, op=operation, log=log)
-    def setDepth(self, newDepth, operation='', log=True):
+    def setDepth(self, newDepth, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         self._set('depth', newDepth, operation, log)
-    def setSize(self, newSize, operation='', units=None, log=True):
+    def setSize(self, newSize, operation='', units=None, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         if units==None: units=self.units#need to change this to create several units from one
         self._set('size', newSize, op=operation, log=log)
-    def setOri(self, newOri, operation='', log=True):
+    def setOri(self, newOri, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         self._set('ori',val=newOri, op=operation, log=log)
-    def setOpacity(self, newOpacity, operation='', log=True):
+    def setOpacity(self, newOpacity, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         self._set('opacity', newOpacity, operation, log=log)
-    def _set(self, attrib, val, op='', log=True):
+    def _set(self, attrib, val, op='', log=None):
         """
         Use this method when you want to be able to suppress logging (e.g., in
         tests). Typically better to use methods specific to the parameter, e.g. ::
