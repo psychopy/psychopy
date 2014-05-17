@@ -6,22 +6,20 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. author:: Sol Simpson <sol@isolver-software.com>
 
-- Maintains a 48 bit microsecond clock so rollover will only occur if MCU is running without reset for ~ 8.9 years.
-- Handles serial requests from the host PC and sends necessary reply.
-- If analog input events are enabled, handles reading analog input lines and streaming analog samples to Host PC
-- If digital input events are enabled, handles reading digital input lines and sending a digital input event whenever the digital input byte value has changed.
-
-ioSync assigns the Teensy 3 pins in a fixed usage mapping. See below for what that mapping is.
 
 TODO:
-
+- Switch analog reading to use ADC module so that dual AD converters can be used on teensy 3.1.
 - Allow some constants to be set by user. For example analog input related constants.
-- Add support for setting per channel analog input thresholds which can be used for voice key or light key event detection.
-- Allow setting digital inputs as INPUT or PULLUP_INPUTs
+- Add support for setting per channel analog input thresholds which can be used for voice key or light key event detection. (IMPLEMENTED, but buggy)
+- Allow setting digital inputs as INPUT or PULLUP_INPUTs (MUST change # define and recompile right now)
 - Properly utilize (or remove) the 9th digital input bit.
-- Switch digital and analog input reads to use interupts, running at 5000 Hz if possible. **BACKUP CURRENT CODE BEFORE WORKING ON THIS. 
-
-
+- Switch digital input reads to use interupts, running at 5000 Hz if possible. **BACKUP CURRENT CODE BEFORE WORKING ON THIS. 
+- Expand keyboard event generation to support any keys supported by Teensiduno.
+- Add support for setting what onboard led should be doing. Right now it does nothing. Perhaps have different alternatives that can be set:
+     - disabled (current mode)
+     - stable when program is running but no events are enabled.
+     - flashing when collecting analog inputs and / or digital inputs. (maybe a different flash for each of the 3 possibilities)
+     - Only flash when client connects or disconnects (again, maybe different flash for each) 
 */
 
 // Program control defines. Change based on desired usage of ioSync
@@ -89,8 +87,8 @@ byte DOUT_PINS[8]={
 byte DIN_PINS[8]={
   DI_0,DI_1,DI_2,DI_3,DI_4,DI_5,DI_6,DI_7};
 
-// Update : now being used in PULLUP input mmode. ##currently Teensy has 9 DINs setup, so we have one extra stand alone. 
-#define DIN_8 33
+// Connect to Reset so that SW resert of hardware can be done. 
+#define DOUT_RESET 33
 
 // SPI related pins
 #define SPI_SS CS0 // pin 10 on T3, Device Select
@@ -513,10 +511,6 @@ void handleEnableInputStreamingRx(byte request_type,byte request_id,byte request
 byte  last_digital_input_state=0;
 byte current_digital_input_state=0;
 
-//DIN_8 is set as a PULLUP. 
-byte  last_pullup_input_state=1;
-byte current_pullup_input_state=1;
-
 void inputLineReadTimerCallback(void){
   if (digital_input_streaming_enabled>0){
       addDigitalEventToByteBuffer(); // check for digital input change event
@@ -542,9 +536,13 @@ void inputLineReadTimerCallback(void){
 
 byte addDigitalEventToByteBuffer(){
     // Check for digital input state changes
-    current_pullup_input_state=digitalRead(DIN_8);
-    if (current_pullup_input_state!=last_pullup_input_state){
-      updateUsecTime();
+    current_digital_input_state=0;
+    for (byte i=0;i<sizeof(DIN_PINS);i++)
+      current_digital_input_state+=(bytePow(2,i)*digitalRead(DIN_PINS[i]));
+
+    updateUsecTime();
+      
+    if (current_digital_input_state!=last_digital_input_state){
       if (byteBufferFreeSize()<DIGITAL_EVENT_TX_BYTE_COUNT)
         return 0;
       tx_byte_buffer[tx_byte_buffer_index]=DIGITAL_INPUT_EVENT;
@@ -555,32 +553,9 @@ byte addDigitalEventToByteBuffer(){
       tx_byte_buffer[tx_byte_buffer_index+5]=t3_usec_time.bytes[3];
       tx_byte_buffer[tx_byte_buffer_index+6]=t3_usec_time.bytes[4];
       tx_byte_buffer[tx_byte_buffer_index+7]=t3_usec_time.bytes[5];
-      tx_byte_buffer[tx_byte_buffer_index+8]=current_pullup_input_state;
-      last_pullup_input_state=current_pullup_input_state;       
+      tx_byte_buffer[tx_byte_buffer_index+8]=current_digital_input_state;
+      last_digital_input_state=current_digital_input_state;       
       tx_byte_buffer_index=tx_byte_buffer_index+DIGITAL_EVENT_TX_BYTE_COUNT;
-    }
-    else{
-        current_digital_input_state=0;
-        for (byte i=0;i<sizeof(DIN_PINS);i++)
-          current_digital_input_state+=(bytePow(2,i)*digitalRead(DIN_PINS[i]));
-    
-        updateUsecTime();
-          
-        if (current_digital_input_state!=last_digital_input_state){
-          if (byteBufferFreeSize()<DIGITAL_EVENT_TX_BYTE_COUNT)
-            return 0;
-          tx_byte_buffer[tx_byte_buffer_index]=DIGITAL_INPUT_EVENT;
-          tx_byte_buffer[tx_byte_buffer_index+1]=DIGITAL_EVENT_TX_BYTE_COUNT;
-          tx_byte_buffer[tx_byte_buffer_index+2]=t3_usec_time.bytes[0];
-          tx_byte_buffer[tx_byte_buffer_index+3]=t3_usec_time.bytes[1];
-          tx_byte_buffer[tx_byte_buffer_index+4]=t3_usec_time.bytes[2];
-          tx_byte_buffer[tx_byte_buffer_index+5]=t3_usec_time.bytes[3];
-          tx_byte_buffer[tx_byte_buffer_index+6]=t3_usec_time.bytes[4];
-          tx_byte_buffer[tx_byte_buffer_index+7]=t3_usec_time.bytes[5];
-          tx_byte_buffer[tx_byte_buffer_index+8]=current_digital_input_state;
-          last_digital_input_state=current_digital_input_state;       
-          tx_byte_buffer_index=tx_byte_buffer_index+DIGITAL_EVENT_TX_BYTE_COUNT;
-        }
     }
 }
 
@@ -677,7 +652,7 @@ void initDigitalInputs(){
   for (int i=0;i<sizeof(DIN_PINS);i++){
     pinMode(DIN_PINS[i], DIGITAL_INPUT_TYPE);
   }
-  pinMode(DIN_8, INPUT_PULLUP);
+  pinMode(DOUT_RESET, INPUT_PULLUP);
 }
 
 void initAnalogInputs(){
