@@ -1989,6 +1989,8 @@ class CoderFrame(wx.Frame):
         fullPath = self.currentDoc.filename
         path, scriptName = os.path.split(fullPath)
         importName, ext = os.path.splitext(scriptName)
+        #set the directory and add to path
+        os.chdir(path)  # try to rewrite to avoid doing chdir in the coder
         sys.path.insert(0, path)
 
         #update toolbar
@@ -2004,6 +2006,10 @@ class CoderFrame(wx.Frame):
     def _runFileInDbg(self):
         #setup a debugger and then runFileAsImport
         fullPath = self.currentDoc.filename
+        path, scriptName = os.path.split(fullPath)
+        #importName, ext = os.path.splitext(scriptName)
+        #set the directory and add to path
+        os.chdir(path)  # try to rewrite to avoid doing chdir in the coder
 
         self.db = PsychoDebugger()
         #self.db.set_break(fullPath, 8)
@@ -2012,6 +2018,10 @@ class CoderFrame(wx.Frame):
 
     def _runFileAsProcess(self):
         fullPath = self.currentDoc.filename
+        path, scriptName = os.path.split(fullPath)
+        #importName, ext = os.path.splitext(scriptName)
+        #set the directory and add to path
+        os.chdir(path)  # try to rewrite to avoid doing chdir in the coder; do through wx.Shell?
         self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
         self.scriptProcess.Redirect()#catch the stdout/stdin
 
