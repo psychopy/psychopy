@@ -537,7 +537,7 @@ class TargetPosSequenceStim(object):
                 for c in triggers:
                     kbtriggers.append(DeviceEventTrigger(kbdevice,
                                       event_type=KEYBOARD_RELEASE,
-                                      event_attribute_conditions={'key':
+                                      event_attribute_conditions={'char':
                                                                   c}
                                                          )
                                       )
@@ -556,7 +556,7 @@ class TargetPosSequenceStim(object):
             # event type, and triggers as the event.key.
             self.triggers = (DeviceEventTrigger(io.getDevice('keyboard'),
                                 event_type=EventConstants.KEYBOARD_RELEASE,
-                                event_attribute_conditions={'key':
+                                event_attribute_conditions={'char':
                                                                 triggers}),)
         elif isinstance(triggers, Trigger):
             # A single Trigger object was provided
@@ -1135,7 +1135,7 @@ class ValidationProcedure(object):
         while show_screen:
             kb_events=self.io.devices.keyboard.getEvents()
             for kbe in kb_events:
-                if kbe.key==trigger_key:
+                if kbe.char==trigger_key:
                     show_screen=False
                     break
             core.wait(0.2,0.025)
