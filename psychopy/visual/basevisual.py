@@ -67,7 +67,7 @@ class MinimalStim(object):
     Includes: name, autoDraw, autoLog, status, __str__
     """
     def __init__(self, name=None, autoLog=None):
-        self.name = name if name not in (None, '') else 'unnamed %s' %self.__class__.__name__
+        self.__dict__['name'] = name if name not in (None, '') else 'unnamed %s' %self.__class__.__name__
         self.status = NOT_STARTED
         self.autoLog = autoLog
         super(MinimalStim, self).__init__()
