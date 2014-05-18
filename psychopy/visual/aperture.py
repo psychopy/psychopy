@@ -21,7 +21,7 @@ import psychopy.event
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
-from psychopy.tools.attributetools import attributeSetter, setWithOperation, callAttributeSetter
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.shape import ShapeStim
 from psychopy.visual.basevisual import MinimalStim, ContainerMixin
 
@@ -140,7 +140,7 @@ class Aperture(MinimalStim, ContainerMixin):
         but use this method if you need to suppress the log message
         """
         self._needReset = needReset
-        callAttributeSetter(self, 'size', size, log)
+        setAttribute(self, 'size', size, log)
     @attributeSetter
     def ori(self, ori):
         """Set the orientation of the Aperture.
@@ -158,7 +158,7 @@ class Aperture(MinimalStim, ContainerMixin):
         but use this method if you need to suppress the log message.
         """
         self._needReset = needReset
-        callAttributeSetter(self, 'ori', ori, log)
+        setAttribute(self, 'ori', ori, log)
     @attributeSetter
     def pos(self, pos):
         """Set the pos (centre) of the Aperture. :ref:`Operations <attrib-operations>` supported.
@@ -177,7 +177,7 @@ class Aperture(MinimalStim, ContainerMixin):
         but use this method if you need to suppress the log message
         """
         self._needReset = needReset
-        callAttributeSetter(self, 'pos', pos, log)
+        setAttribute(self, 'pos', pos, log)
     @property
     def posPix(self):
         """The position of the aperture in pixels

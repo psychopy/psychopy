@@ -12,7 +12,7 @@ from psychopy import logging
 import numpy
 
 from psychopy.visual.shape import ShapeStim
-from psychopy.tools.attributetools import attributeSetter, callAttributeSetter
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 
 
 class Line(ShapeStim):
@@ -54,7 +54,7 @@ class Line(ShapeStim):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        callAttributeSetter(self, 'start', start, log)
+        setAttribute(self, 'start', start, log)
 
     @attributeSetter
     def end(self, end):
@@ -67,7 +67,7 @@ class Line(ShapeStim):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        callAttributeSetter(self, 'end', end, log)
+        setAttribute(self, 'end', end, log)
 
     # Not meaningful for a line, thus deleted
     def contains(self):

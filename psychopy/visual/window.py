@@ -45,7 +45,7 @@ import psychopy.event
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.tools.attributetools import attributeSetter, callAttributeSetter
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy import makeMovies
 from psychopy.visual.text import TextStim
@@ -417,8 +417,7 @@ class Window(object):
     def setRecordFrameIntervals(self, value=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        self.recordFrameIntervals = value
-        #callAttributeSetter(self, 'recordFrameIntervals', value, log)
+        setAttribute(self, 'recordFrameIntervals', value, log)
 
     def saveFrameIntervals(self, fileName=None, clear=True):
         """Save recorded screen frame intervals to disk, as comma-separated
@@ -982,7 +981,7 @@ class Window(object):
     def setBlendMode(self, blendMode, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        callAttributeSetter(self, 'blendMode', blendMode, log)
+        setAttribute(self, 'blendMode', blendMode, log)
 
     @attributeSetter
     def color(self, color):
@@ -1047,9 +1046,9 @@ class Window(object):
         
         # Set colorSpace to not-None
         if colorSpace is None:
-            callAttributeSetter(self, 'colorSpace', self.colorSpace, log)
+            setAttribute(self, 'colorSpace', self.colorSpace, log)
         else:
-            callAttributeSetter(self, 'colorSpace', colorSpace, log)
+            setAttribute(self, 'colorSpace', colorSpace, log)
 
     def setRGB(self, newRGB):
         """Deprecated: As of v1.61.00 please use `setColor()` instead
@@ -1121,7 +1120,7 @@ class Window(object):
     def setGamma(self, gamma, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        callAttributeSetter(self, 'gamma', gamma, log)
+        setAttribute(self, 'gamma', gamma, log)
 
     def _checkGamma(self, gamma=None):
         if gamma is None:
@@ -1470,7 +1469,7 @@ class Window(object):
     def setMouseVisible(self, visibility, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        callAttributeSetter(self, 'mouseVisible', visibility, log)
+        setAttribute(self, 'mouseVisible', visibility, log)
 
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
                            nWarmUpFrames=10, threshold=1):

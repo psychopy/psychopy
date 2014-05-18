@@ -26,7 +26,7 @@ import psychopy.event
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
-from psychopy.tools.attributetools import attributeSetter, callAttributeSetter
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.basevisual import BaseVisualStim, ColorMixin
 
 import numpy
@@ -136,7 +136,7 @@ class TextStim(BaseVisualStim, ColorMixin):
         self.__dict__['fontFiles'] = []
         self.fontFiles = fontFiles  # calls attributeSetter
         self.setHeight(height, log=False)  # calls setFont() at some point
-        callAttributeSetter(self, 'wrapWidth', wrapWidth, log=False)  # calls attributeSetter without log
+        setAttribute(self, 'wrapWidth', wrapWidth, log=False)  # calls attributeSetter without log
         self.__dict__['opacity'] = float(opacity)
         self.__dict__['contrast'] = float(contrast)
         self.setText(text, log=False) #self.width and self._fontHeightPix get set with text and calcSizeRendered is called
@@ -171,7 +171,7 @@ class TextStim(BaseVisualStim, ColorMixin):
     def setHeight(self, height, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message. """
-        callAttributeSetter(self, 'height', height, log)
+        setAttribute(self, 'height', height, log)
     
     @attributeSetter
     def font(self, font):
@@ -218,7 +218,7 @@ class TextStim(BaseVisualStim, ColorMixin):
     def setFont(self, font, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        callAttributeSetter(self, 'font', font, log)        
+        setAttribute(self, 'font', font, log)        
     
     @attributeSetter
     def text(self, text):
@@ -234,7 +234,7 @@ class TextStim(BaseVisualStim, ColorMixin):
     def setText(self, text=None, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        callAttributeSetter(self, 'text', text, log)
+        setAttribute(self, 'text', text, log)
     
     def _setTextShaders(self,value=None):
         """Set the text to be rendered using the current font
@@ -437,7 +437,7 @@ class TextStim(BaseVisualStim, ColorMixin):
     def setFlipHoriz(self, newVal=True, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        callAttributeSetter(self, 'flipHoriz', newVal, log)
+        setAttribute(self, 'flipHoriz', newVal, log)
     
     @attributeSetter
     def flipVert(self, value):
@@ -447,7 +447,7 @@ class TextStim(BaseVisualStim, ColorMixin):
     def setFlipVert(self, newVal=True, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
-        callAttributeSetter(self, 'flipVert', newVal, log)
+        setAttribute(self, 'flipVert', newVal, log)
 
     def setFlip(self, direction, log=True):
         """(used by Builder to simplify the dialog)"""

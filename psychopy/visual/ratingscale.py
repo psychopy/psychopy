@@ -17,7 +17,7 @@ from psychopy.visual.shape import ShapeStim
 from psychopy.visual.text import TextStim
 from psychopy.visual.basevisual import MinimalStim
 from psychopy.visual.helpers import pointInPolygon, groupFlipVert
-from psychopy.tools.attributetools import attributeSetter, setWithOperation, logAttrib
+from psychopy.tools.attributetools import logAttrib
 from psychopy.constants import FINISHED, STARTED, NOT_STARTED
 
 

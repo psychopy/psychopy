@@ -21,7 +21,7 @@ from psychopy import logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.tools.attributetools import setWithOperation, logAttrib, attributeSetter
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import cm2pix, deg2pix
 from psychopy.visual.basevisual import BaseVisualStim, ColorMixin, ContainerMixin
@@ -154,13 +154,11 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             val=numpy.array(val,float)
 
         #change the attribute as requested
-        setWithOperation(self, attrib, val, op)
+        setAttribute(self, attrib, val, log, op)
 
         #update the actual coherence for the requested coherence and nDots
         if attrib in ['nDots','coherence']:
             self.coherence=round(self.coherence*self.nDots)/self.nDots
-
-        logAttrib(self, log, attrib)
 
     def set(self, attrib, val, op='', log=True):
         """DotStim.set() is obsolete and may not be supported in future
@@ -239,7 +237,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'fieldPos', val, op, autoLog=log)  # calls attributeSetter
+        setAttribute(self, 'fieldPos', val, log, op)  # calls attributeSetter
     def setPos(self, newPos=None, operation='', units=None, log=True):
         """Obsolete - users should use setFieldPos instead of setPos
         """
@@ -266,7 +264,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'coherence', val, op, autoLog=log)  # calls attributeSetter
+        setAttribute(self, 'coherence', val, log, op)  # calls attributeSetter
     
     @attributeSetter
     def dir(self, dir):
@@ -281,7 +279,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'dir', val, op, autoLog=log)
+        setAttribute(self, 'dir', val, log, op)
     
     @attributeSetter
     def speed(self, speed):
@@ -292,7 +290,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'speed', val, op, autoLog=log)
+        setAttribute(self, 'speed', val, log, op)
     def draw(self, win=None):
         """Draw the stimulus in its relevant window. You must call
         this method after every MyWin.flip() if you want the

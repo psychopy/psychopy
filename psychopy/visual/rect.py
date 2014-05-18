@@ -11,7 +11,7 @@ import psychopy  # so we can get the __path__
 from psychopy import logging
 
 from psychopy.visual.shape import ShapeStim
-from psychopy.tools.attributetools import attributeSetter, callAttributeSetter
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 
 import numpy
 
@@ -61,7 +61,7 @@ class Rect(ShapeStim):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        callAttributeSetter(self, 'width', width, log)
+        setAttribute(self, 'width', width, log)
 
     @attributeSetter
     def height(self, value):
@@ -77,4 +77,4 @@ class Rect(ShapeStim):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        callAttributeSetter(self, 'height', height, log)
+        setAttribute(self, 'height', height, log)

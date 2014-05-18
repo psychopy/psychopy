@@ -18,7 +18,7 @@ GL = pyglet.gl
 import psychopy  # so we can get the __path__
 from psychopy import logging
 
-from psychopy.tools.attributetools import logAttrib, attributeSetter, callAttributeSetter
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import BaseVisualStim
 from psychopy.visual.basevisual import ContainerMixin, ColorMixin, TextureMixin
@@ -251,7 +251,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
-        callAttributeSetter(self, 'image', value, log)
+        setAttribute(self, 'image', value, log)
     
     @attributeSetter
     def mask(self, value):
@@ -271,4 +271,4 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
-        callAttributeSetter(self, 'mask', value, log)
+        setAttribute(self, 'mask', value, log)

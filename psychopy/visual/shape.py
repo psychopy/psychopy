@@ -20,7 +20,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix
-from psychopy.tools.attributetools import attributeSetter, setWithOperation, logAttrib
+from psychopy.tools.attributetools import attributeSetter, logAttrib, setAttribute
 from psychopy.visual.basevisual import BaseVisualStim, ColorMixin, ContainerMixin
 from psychopy.visual.helpers import setColor
 
@@ -213,7 +213,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'size', value, operation, autoLog=log)  # calls attributeSetter
+        setAttribute(self, 'size', value, log, operation)  # calls attributeSetter
 
     @attributeSetter
     def vertices(self, value):
@@ -232,7 +232,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'vertices', value, operation, autoLog=log)
+        setAttribute(self, 'vertices', value, log, operation)
 
     def draw(self, win=None, keepMatrix=False): #keepMatrix option is needed by Aperture
         """

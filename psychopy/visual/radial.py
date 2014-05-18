@@ -22,7 +22,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import attributeSetter, callAttributeSetter, setWithOperation
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.grating import GratingStim
 
 try:
@@ -222,7 +222,7 @@ class RadialStim(GratingStim):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        callAttributeSetter(self, 'mask', value, log)
+        setAttribute(self, 'mask', value, log)
     
     def _setRadialAtribute(self, attr, value):
         """ Internal helper function to reduce redundancy """
@@ -241,7 +241,7 @@ class RadialStim(GratingStim):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'angularCycles', value, operation, autoLog=log)  # calls the attributeSetter
+        setAttribute(self, 'angularCycles', value, log, operation)  # calls the attributeSetter
     
     @attributeSetter
     def radialCycles(self, value):
@@ -254,7 +254,7 @@ class RadialStim(GratingStim):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'radialCycles', value, operation, autoLog=log)  # calls the attributeSetter
+        setAttribute(self, 'radialCycles', value, log, operation)  # calls the attributeSetter
         
     @attributeSetter
     def angularPhase(self, value):
@@ -270,7 +270,7 @@ class RadialStim(GratingStim):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'angularPhase', value, operation, autoLog=log)  # calls the attributeSetter
+        setAttribute(self, 'angularPhase', value, log, operation)  # calls the attributeSetter
 
     @attributeSetter
     def radialPhase(self, value):
@@ -284,7 +284,7 @@ class RadialStim(GratingStim):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'radialPhase', value, operation, autoLog=log)  # calls the attributeSetter
+        setAttribute(self, 'radialPhase', value, log, operation)  # calls the attributeSetter
     
     def _updateEverything(self):
         """Internal helper function for angularRes and visibleWedge (and init)"""

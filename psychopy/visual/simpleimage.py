@@ -23,7 +23,7 @@ from psychopy import core, logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import convertToPix
-from psychopy.tools.attributetools import setWithOperation, logAttrib
+from psychopy.tools.attributetools import logAttrib, setAttribute
 from . import glob_vars
 
 try:
@@ -207,8 +207,7 @@ class SimpleImageStim(object):
         if type(val) in (tuple, list):
             val=numpy.array(val, float)
 
-        setWithOperation(self, attrib, val, op)
-        logAttrib(self, log, attrib)
+        setAttribute(self, attrib, val, log, op)
     def setPos(self, newPos, operation='', units=None, log=True):
         self._set('pos', val=newPos, op=operation, log=log)
         self._calcPosRendered()

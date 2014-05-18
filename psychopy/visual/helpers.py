@@ -15,7 +15,7 @@ from psychopy import core, logging, colors
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import setWithOperation, logAttrib
+from psychopy.tools.attributetools import setAttribute
 
 import numpy
 
@@ -199,7 +199,7 @@ def setColor(obj, color, colorSpace=None, operation='',
         if colorSpace == 'named':
             obj.__dict__[colorAttrib] = color  # operations don't make sense for named
         else:
-            setWithOperation(obj, colorAttrib, color, operation, stealth=True)
+            setAttribute(obj, colorAttrib, color, log=False, operation=operation, stealth=True)
     #get window (for color conversions)
     if colorSpace in ['dkl','lms']: #only needed for these spaces
         if hasattr(obj,'dkl_rgb'):

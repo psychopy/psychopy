@@ -9,10 +9,9 @@ as a special case of a :class:`~psychopy.visual.ShapeStim`'''
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import psychopy  # so we can get the __path__
-from psychopy import logging
 
 from psychopy.visual.shape import ShapeStim
-from psychopy.tools.attributetools import attributeSetter, callAttributeSetter
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 
 import numpy
 
@@ -57,7 +56,7 @@ class Polygon(ShapeStim):
     def setEdges(self, edges, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
-        callAttributeSetter(self, 'edges', edges, log)
+        setAttribute(self, 'edges', edges, log)
 
     @attributeSetter
     def radius(self, radius):
@@ -74,4 +73,4 @@ class Polygon(ShapeStim):
     def setRadius(self, radius, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
-        callAttributeSetter(self, 'radius', radius, log)
+        setAttribute(self, 'radius', radius, log)

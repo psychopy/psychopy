@@ -24,7 +24,7 @@ from psychopy.visual import Window
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import setWithOperation, attributeSetter, callAttributeSetter, logAttrib
+from psychopy.tools.attributetools import attributeSetter, logAttrib, setAttribute
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.visual.helpers import setColor
 from psychopy.visual.basevisual import MinimalStim, TextureMixin
@@ -231,7 +231,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
     def setXYs(self, value=None, operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
-        setWithOperation(self, 'xys', value, operation, autoLog=log)  # call attributeSetter
+        setAttribute(self, 'xys', value, log, operation)  # call attributeSetter
 
     @attributeSetter
     def fieldShape(self, value):
@@ -258,7 +258,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
 
-        setWithOperation(self, 'oris', value, operation, autoLog=log)  # call attributeSetter
+        setAttribute(self, 'oris', value, log, operation)  # call attributeSetter
     
     @attributeSetter
     def sfs(self, value):
@@ -279,8 +279,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
     def setSfs(self, value, operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        value = self._makeNx2(value)  # in the case of Nx1 list/array, setWithOperation would fail if not this
-        setWithOperation(self, 'sfs', value, operation, autoLog=log)  # call attributeSetter
+        value = self._makeNx2(value)  # in the case of Nx1 list/array, setAttribute would fail if not this
+        setAttribute(self, 'sfs', value, log, operation)  # call attributeSetter
     
     @attributeSetter
     def opacities(self, value):
@@ -294,7 +294,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
     def setOpacities(self,value,operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        setWithOperation(self, 'opacities', value, operation, autoLog=log)  # call attributeSetter
+        setAttribute(self, 'opacities', value, log, operation)  # call attributeSetter
     
     @attributeSetter
     def sizes(self, value):
@@ -312,8 +312,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
     def setSizes(self, value, operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        value = self._makeNx2(value)  # in the case of Nx1 list/array, setWithOperation would fail if not this
-        setWithOperation(self, 'sizes', value, operation, autoLog=log)  # call attributeSetter
+        value = self._makeNx2(value)  # in the case of Nx1 list/array, setAttribute would fail if not this
+        setAttribute(self, 'sizes', value, log, operation)  # call attributeSetter
     
     @attributeSetter
     def phases(self, value):
@@ -330,8 +330,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
     def setPhases(self, value, operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        value = self._makeNx2(value)  # in the case of Nx1 list/array, setWithOperation would fail if not this
-        setWithOperation(self, 'phases', value, operation, autoLog=log)  # call attributeSetter
+        value = self._makeNx2(value)  # in the case of Nx1 list/array, setAttribute would fail if not this
+        setAttribute(self, 'phases', value, log, operation)  # call attributeSetter
     def setRgbs(self,value,operation=''):
         """DEPRECATED (as of v1.74.00). Please use setColors() instead
         """
@@ -396,7 +396,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
     def setContrs(self, value, operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        setWithOperation(self, 'contrs', value, operation, autoLog=log)  # call attributeSetter
+        setAttribute(self, 'contrs', value, log, operation)  # call attributeSetter
     
     @attributeSetter
     def fieldPos(self, value):
@@ -409,7 +409,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
     def setFieldPos(self, value, operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        setWithOperation(self, 'fieldPos', value, operation, autoLog=log)  # call attributeSetter
+        setAttribute(self, 'fieldPos', value, log, operation)  # call attributeSetter
     def setPos(self, newPos=None, operation='', units=None, log=True):
         """Obselete - users should use setFieldPos or instead of setPos."""
         logging.error("User called ElementArrayStim.setPos(pos). Use ElementArrayStim.setFieldPos(pos) instead.")
@@ -426,7 +426,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
     def setFieldSize(self, value, operation='', log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        setWithOperation(self, 'fieldSize', value, operation, autoLog=log)  # call attributeSetter
+        setAttribute(self, 'fieldSize', value, log, operation)  # call attributeSetter
     
     def draw(self, win=None):
         """
@@ -594,7 +594,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
     def setTex(self, value, log=True):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        callAttributeSetter(self, 'elementTex', value, log)
+        setAttribute(self, 'elementTex', value, log)
     
     @attributeSetter
     def depth(self, value):

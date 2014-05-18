@@ -12,7 +12,7 @@
 from psychopy.tools.arraytools import (createXYs, extendArr, makeRadialMatrix,
                                        ratioRange, shuffleArray, val2array)
 
-from psychopy.tools.attributetools import attributeSetter, setWithOperation
+from psychopy.tools.attributetools import attributeSetter, setAttribute, logAttrib
 
 from psychopy.tools.colorspacetools import (dkl2rgb, dklCart2rgb,
                                             hsv2rgb, lms2rgb,
