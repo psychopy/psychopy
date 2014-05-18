@@ -59,7 +59,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  interpolate=True,
                  lineRGB=None,
                  fillRGB=None,
-                 name='', 
+                 name=None, 
                  autoLog=None):
         """ """  # all doc is in the attributes
         #what local vars are defined (these are the init params) for use by __repr__

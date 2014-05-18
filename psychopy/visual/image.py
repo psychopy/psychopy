@@ -45,7 +45,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                  flipHoriz=False,
                  flipVert=False,
                  texRes=128,
-                 name='', 
+                 name=None,
                  autoLog=None,
                  maskParams=None):
         """ """  # Empty docstring. All doc is in attributes

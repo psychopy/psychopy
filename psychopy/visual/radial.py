@@ -69,7 +69,7 @@ class RadialStim(GratingStim):
                  depth=0,
                  rgbPedestal = (0.0,0.0,0.0),
                  interpolate=False,
-                 name='', 
+                 name=None, 
                  autoLog=None,
                  maskParams=None):        
         """ """ # Empty docstring on __init__, Simply inherits methods from GratingStim

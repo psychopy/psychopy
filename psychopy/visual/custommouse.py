@@ -10,7 +10,7 @@ including the pointer graphic and bounding box.'''
 import os
 
 import psychopy  # so we can get the __path__
-from psychopy import event
+from psychopy import event, logging
 
 from psychopy.visual.image import ImageStim
 from psychopy.visual.basevisual import MinimalStim
@@ -34,7 +34,7 @@ class CustomMouse(MinimalStim):
     def __init__(self, win, newPos=None, visible=True,
                  leftLimit=None, topLimit=None, rightLimit=None, bottomLimit=None,
                  showLimitBox=False, clickOnUp=False,
-                 pointer=None, name='', autoLog=True):
+                 pointer=None, name=None, autoLog=None):
         """Class for customizing the appearance and behavior of the mouse.
 
         Use a custom mouse for extra control over the pointer appearance and function.
@@ -118,7 +118,11 @@ class CustomMouse(MinimalStim):
         self.wasDown = False # state of mouse 1 frame prior to current frame, look for changes
         self.clicks = 0 # how many mouse clicks since last reset
         self.clickButton = 0 # which button to count clicks for; 0 = left
-        self.autoLog = autoLog
+        
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
+            logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def _setPos(self, pos=None):  # not implemented hence: # pragma: no cover
         """internal mouse position management. setting a position here leads to

@@ -66,8 +66,8 @@ class MinimalStim(object):
 
     Includes: name, autoDraw, autoLog, status, __str__
     """
-    def __init__(self, name='', autoLog=None):
-        self.name = name
+    def __init__(self, name=None, autoLog=None):
+        self.name = name if name not in (None, '') else 'unnamed %s' %self.__class__.__name__
         self.status = NOT_STARTED
         self.autoLog = autoLog
         super(MinimalStim, self).__init__()
@@ -105,9 +105,12 @@ class MinimalStim(object):
     # appears in docs and that name setting and updating is logged.
     @attributeSetter
     def name(self, value):
-        """The name of the object to be using during logged messages about
+        """String or None. The name of the object to be using during logged messages about
         this stim. If you have multiple stimuli in your experiment this really
         helps to make sense of log files!
+        
+        If name = None your stimulus will be called "unnamed <type>", e.g. 
+        visual.TextStim(win) will be called "unnamed TextStim" in the logs.
         """
         self.__dict__['name'] = value
 

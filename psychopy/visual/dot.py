@@ -72,7 +72,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  element=None,
                  signalDots='same',
                  noiseDots='direction',
-                 name='', 
+                 name=None, 
                  autoLog=None):
         """
         :Parameters:

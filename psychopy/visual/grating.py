@@ -80,7 +80,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
                  depth=0,
                  rgbPedestal=(0.0, 0.0, 0.0),
                  interpolate=False,
-                 name='',
+                 name=None,
                  autoLog=None,
                  autoDraw=False,
                  maskParams=None):

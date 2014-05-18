@@ -50,7 +50,7 @@ class Aperture(MinimalStim, ContainerMixin):
         2014, Jeremy Gray added .contains() option
     """
     def __init__(self, win, size=1, pos=(0,0), ori=0, nVert=120, shape='circle', units=None,
-            name='', autoLog=None):
+            name=None, autoLog=None):
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
@@ -65,7 +65,7 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['size'] = size
         self.__dict__['pos'] = pos
         self.__dict__['ori'] = ori
-        self.name = name
+        
         #unit conversions
         if units!=None and len(units):
             self.units = units

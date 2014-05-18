@@ -65,7 +65,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
                  elementMask='gauss',
                  texRes=48,
                  interpolate=True,
-                 name='', 
+                 name=None, 
                  autoLog=None,
                  maskParams=None):
 
@@ -89,7 +89,6 @@ class ElementArrayStim(MinimalStim, TextureMixin):
 
         self.autoLog=False #until all params are set
         self.win=win
-        self.name=name
 
         self.__dict__['texRes'] = texRes  # Not pretty (redefined later) but it works!
         self.__dict__['maskParams'] = maskParams

@@ -89,7 +89,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
                  colorSpace='rgb',
                  opacity=1.0,
                  volume=1.0,
-                 name='',
+                 name=None,
                  loop=False,
                  autoLog=None,
                  depth=0.0,):

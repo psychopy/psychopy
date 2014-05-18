@@ -83,7 +83,7 @@ class TextStim(BaseVisualStim, ColorMixin):
                  wrapWidth=None,
                  flipHoriz=False, 
                  flipVert=False,
-                 name='', 
+                 name=None, 
                  autoLog=None):
         """
         **Performance OBS:** in general, TextStim is slower than many other visual

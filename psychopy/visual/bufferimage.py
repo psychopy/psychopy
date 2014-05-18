@@ -80,7 +80,7 @@ class BufferImageStim(GratingStim):
     """
     def __init__(self, win, buffer='back', rect=(-1, 1, 1, -1), sqPower2=False,
         stim=(), interpolate=True, flipHoriz=False, flipVert=False, mask='None', pos=(0,0),
-        name='', autoLog=None):
+        name=None, autoLog=None):
         """
         :Parameters:
 
