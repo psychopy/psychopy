@@ -55,7 +55,9 @@ There are several base and mix-in visual classes for mulitple inheritance:
         seems to work; caveat: There were issues in earlier (non-MI) versions
         of using _createTexture so it was pulled out of classes. Now its inside
         classes again. Should be watched.
-  - BaseVisualStim:    = Minimal + Legacy
+  - WindowMixin:       for attributes and methods related to Windows.
+  - BaseVisualStim:    = Minimal + Window + Legacy. Furthermore adds common attributes
+        like orientation, opacity, contrast etc.
 
 Typically subclass BaseVisualStim to create new visual stim classes, and add
 mixin(s) as needed to add functionality.
@@ -832,25 +834,9 @@ class TextureMixin(object):
         self.__dict__['maskParams'] = value
         self.mask = self.mask  # call attributeSetter
 
-class BaseVisualStim(MinimalStim, LegacyVisualMixin):
-    """A template for a visual stimulus class.
-
-    Actual visual stim like GratingStim, TextStim etc... are based on this.
-    Not finished...?
-
-    Methods defined here will override Minimal & Legacy, but best to avoid
-    that for simplicity & clarity.
-    """
-    def __init__(self, win, units=None, name='', autoLog=None):
-        self.autoLog = False  # just to start off during init, set at end
-        self.win = win
-        self.units = units
-        self._rotationMatrix = [[1.,0.],[0.,1.]] #no rotation as a default
-        # self.autoLog is set at end of MinimalStim.__init__
-        super(BaseVisualStim, self).__init__(name=name, autoLog=autoLog)
-        if self.autoLog:
-            logging.warning("%s is calling BaseVisualStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
-                            %(self.__class__.__name__))
+class WindowMixin(object):
+    """Window-related attributes and methods.
+    Used by BaseVisualStim, SimpleImageStim and ElementArrayStim."""
 
     @attributeSetter
     def win(self, value):
@@ -904,24 +890,6 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
             self.pos = self.pos
 
     @attributeSetter
-    def opacity(self, value):
-        """Determines how visible the stimulus is relative to background
-
-        The value should be a single float ranging 1.0 (opaque) to 0.0
-        (transparent). :ref:`Operations <attrib-operations>` are supported.
-        Precisely how this is used depends on the :ref:`blendMode`.
-        """
-        self.__dict__['opacity'] = value
-
-        if not 0 <= value <= 1 and self.autoLog:
-            logging.warning('Setting opacity outside range 0.0 - 1.0 has no additional effect')
-
-        #opacity is coded by the texture, if not using shaders
-        if hasattr(self, 'useShaders') and not self.useShaders:
-            if hasattr(self,'mask'):
-                self.mask = self.mask  # call attributeSetter
-
-    @attributeSetter
     def useShaders(self, value):
         """Should shaders be used to render the stimulus (typically leave as `True`)
 
@@ -943,6 +911,68 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
             if self.__class__.__name__ == 'TextStim':
                 self._needSetText = True
             self._needUpdate = True
+    def setUseShaders(self, value=True, log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message"""
+        setAttribute(self, 'useShaders', value, log)  # call attributeSetter
+
+    def draw(self):
+        raise NotImplementedError('Stimulus classes must overide visual.BaseVisualStim.draw')
+        
+    def _selectWindow(self, win):
+        #don't call switch if it's already the curr window
+        if win!=glob_vars.currWindow and win.winType=='pyglet':
+            win.winHandle.switch_to()
+            glob_vars.currWindow = win
+
+    def _updateList(self):
+        """
+        The user shouldn't need this method since it gets called
+        after every call to .set()
+        Chooses between using and not using shaders each call.
+        """
+        if self.useShaders:
+            self._updateListShaders()
+        else:
+            self._updateListNoShaders()
+
+class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
+    """A template for a visual stimulus class.
+
+    Actual visual stim like GratingStim, TextStim etc... are based on this.
+    Not finished...?
+
+    Methods defined here will override Minimal & Legacy, but best to avoid
+    that for simplicity & clarity.
+    """
+    def __init__(self, win, units=None, name='', autoLog=None):
+        self.autoLog = False  # just to start off during init, set at end
+        self.win = win
+        self.units = units
+        self._rotationMatrix = [[1.,0.],[0.,1.]] #no rotation as a default
+        # self.autoLog is set at end of MinimalStim.__init__
+        super(BaseVisualStim, self).__init__(name=name, autoLog=autoLog)
+        if self.autoLog:
+            logging.warning("%s is calling BaseVisualStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
+                            %(self.__class__.__name__))
+
+    @attributeSetter
+    def opacity(self, value):
+        """Determines how visible the stimulus is relative to background
+
+        The value should be a single float ranging 1.0 (opaque) to 0.0
+        (transparent). :ref:`Operations <attrib-operations>` are supported.
+        Precisely how this is used depends on the :ref:`blendMode`.
+        """
+        self.__dict__['opacity'] = value
+
+        if not 0 <= value <= 1 and self.autoLog:
+            logging.warning('Setting opacity outside range 0.0 - 1.0 has no additional effect')
+
+        #opacity is coded by the texture, if not using shaders
+        if hasattr(self, 'useShaders') and not self.useShaders:
+            if hasattr(self,'mask'):
+                self.mask = self.mask  # call attributeSetter
 
     @attributeSetter
     def ori(self, value):
@@ -1032,9 +1062,6 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
         self._needVertexUpdate=True
         self._needUpdate = True
 
-    def draw(self):
-        raise NotImplementedError('Stimulus classes must overide visual.BaseVisualStim.draw')
-
     def setPos(self, newPos, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
@@ -1082,24 +1109,3 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
 
         # Handle operations
         setAttribute(self, attrib, val, log, op)
-
-    def setUseShaders(self, value=True):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message"""
-        self.useShaders = value  # call attributeSetter
-    def _selectWindow(self, win):
-        #don't call switch if it's already the curr window
-        if win!=glob_vars.currWindow and win.winType=='pyglet':
-            win.winHandle.switch_to()
-            glob_vars.currWindow = win
-
-    def _updateList(self):
-        """
-        The user shouldn't need this method since it gets called
-        after every call to .set()
-        Chooses between using and not using shaders each call.
-        """
-        if self.useShaders:
-            self._updateListShaders()
-        else:
-            self._updateListNoShaders()
