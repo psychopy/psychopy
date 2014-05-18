@@ -225,7 +225,7 @@ class Window(object):
         # convert to a Monitor object
         if not monitor:
             self.monitor = monitors.Monitor('__blank__', autoLog=autoLog)
-        if isinstance(monitor, basestring):
+        elif isinstance(monitor, basestring):
             self.monitor = monitors.Monitor(monitor, autoLog=autoLog)
         elif hasattr(monitor, 'keys'):
             #convert into a monitor object

@@ -269,7 +269,7 @@ class ColorMixin(object):
             stim.colorSpace = 'rgb255'
             stim.color = (0, 128, 255)
         """
-        self.setColor(value)
+        self.setColor(value, log=False)  # logging already done by attributeSettter
 
     @attributeSetter
     def colorSpace(self, value):

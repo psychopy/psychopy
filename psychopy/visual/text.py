@@ -150,7 +150,8 @@ class TextStim(BaseVisualStim, ColorMixin):
             logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def __del__(self):
-        GL.glDeleteLists(self._listID, 1)
+        if GL:  # because of pytest fail otherwise
+            GL.glDeleteLists(self._listID, 1)
 
     @attributeSetter
     def height(self, height):
