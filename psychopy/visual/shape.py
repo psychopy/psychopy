@@ -102,8 +102,8 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.size = numpy.array([0.0, 0.0]) + size  # make sure that it's 2D
         self.setVertices(vertices, log=False)
 
-        #set autoLog (now that params have been initialised)
-        self.autoLog = autoLog or autoLog is None and self.win.autoLog
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
         if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
 

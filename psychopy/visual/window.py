@@ -357,6 +357,7 @@ class Window(object):
         else:
             self._refreshThreshold = (1.0/60)*1.2  # guess its a flat panel
         openWindows.append(self)
+        
         self.autoLog = autoLog
         if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))

@@ -72,7 +72,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  element=None,
                  signalDots='same',
                  noiseDots='direction',
-                 name='', autoLog=True):
+                 name='', 
+                 autoLog=None):
         """
         :Parameters:
         
@@ -129,11 +130,13 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._dotsDir[self._signalDots] = self.dir*pi/180
 
         self._update_dotsXY()
-        self.autoLog= autoLog
-        if autoLog:
+        
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
-
-    def _set(self, attrib, val, op='', log=True):
+        
+    def _set(self, attrib, val, op='', log=None):
         """Use this to set attributes of your stimulus after initialising it.
 
         :Parameters:
@@ -160,7 +163,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if attrib in ['nDots','coherence']:
             self.coherence=round(self.coherence*self.nDots)/self.nDots
 
-    def set(self, attrib, val, op='', log=True):
+    def set(self, attrib, val, op='', log=None):
         """DotStim.set() is obsolete and may not be supported in future
         versions of PsychoPy. Use the specific method for each parameter instead
         (e.g. setFieldPos(), setCoherence()...)
@@ -233,12 +236,12 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # Isn't there a way to use BaseVisualStim.pos.__doc__ as docstring here?
         self.pos = pos  # using BaseVisualStim. we'll store this as both
         self.__dict__['fieldPos'] = self.pos
-    def setFieldPos(self, val, op='', log=True):
+    def setFieldPos(self, val, op='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         setAttribute(self, 'fieldPos', val, log, op)  # calls attributeSetter
-    def setPos(self, newPos=None, operation='', units=None, log=True):
+    def setPos(self, newPos=None, operation='', units=None, log=None):
         """Obsolete - users should use setFieldPos instead of setPos
         """
         logging.error("User called DotStim.setPos(pos). Use DotStim.SetFieldPos(pos) instead.")    
@@ -260,7 +263,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if self.noiseDots in ['direction', 'position']:
             self._dotsDir = numpy.random.rand(self.nDots) * 2 * pi
             self._dotsDir[self._signalDots] = self.dir * pi / 180
-    def setFieldCoherence(self, val, op='', log=True):
+    def setFieldCoherence(self, val, op='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
@@ -275,7 +278,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         
         #dots currently moving in the signal direction also need to update their direction
         self._dotsDir[signalDots] = self.dir * pi / 180  
-    def setDir(self, val, op='', log=True):
+    def setDir(self, val, op='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
@@ -286,7 +289,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """float. speed of the dots (in *units*/frame). :ref:`operations <attrib-operations>` are supported.
         """
         self.__dict__['speed'] = speed
-    def setSpeed(self,val, op='', log=True):
+    def setSpeed(self,val, op='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """

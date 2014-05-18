@@ -50,7 +50,7 @@ class Aperture(MinimalStim, ContainerMixin):
         2014, Jeremy Gray added .contains() option
     """
     def __init__(self, win, size=1, pos=(0,0), ori=0, nVert=120, shape='circle', units=None,
-            name='', autoLog=True):
+            name='', autoLog=None):
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
@@ -96,8 +96,10 @@ class Aperture(MinimalStim, ContainerMixin):
         self._needVertexUpdate = True
         self._needReset = True  # Default when setting attributes
         self._reset()  #implicitly runs a self.enabled = True. Also sets self._needReset = True on every call
-        self.autoLog= autoLog
-        if autoLog:
+        
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
     def _reset(self):
         """Internal method to rebuild the shape - shouldn't be called by the user.
@@ -135,7 +137,7 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['size'] = size
         self._shape.size = size  # a ShapeStim
         self._reset()
-    def setSize(self, size, needReset=True, log=True):
+    def setSize(self, size, needReset=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
@@ -153,7 +155,7 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['ori'] = ori
         self._shape.ori = ori  # a ShapeStim
         self._reset()
-    def setOri(self, ori, needReset=True, log=True):
+    def setOri(self, ori, needReset=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
@@ -172,7 +174,7 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['pos'] = numpy.array(pos)
         self._shape.pos = self.pos  # a ShapeStim
         self._reset()
-    def setPos(self, pos, needReset=True, log=True):
+    def setPos(self, pos, needReset=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """

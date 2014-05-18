@@ -53,7 +53,7 @@ class Polygon(ShapeStim):
         "Int. Number of edges of the polygon. :ref:`Operations <attrib-operations>` supported."
         self.__dict__['edges'] = edges
         self._calcVertices()
-    def setEdges(self, edges, log=True):
+    def setEdges(self, edges, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
         setAttribute(self, 'edges', edges, log)
@@ -70,7 +70,7 @@ class Polygon(ShapeStim):
         self.__dict__['radius'] = numpy.array(radius)
         self._calcVertices()
         self.setVertices(self.vertices, log=False)
-    def setRadius(self, radius, log=True):
+    def setRadius(self, radius, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
         setAttribute(self, 'radius', radius, log)

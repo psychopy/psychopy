@@ -90,12 +90,12 @@ def setAttribute(self, attrib, value, log, operation=False, stealth=False):
                 value = value
             else:
                 raise TypeError
-        except ValueError:
+        except ValueError as inst:
             # The old value is a string, typical of a color change from named to e.g. rgb.
             if type(oldValue) is str and operation in ('', None):
                 value = numpy.asarray(value, float)
             else:
-                raise ValueError
+                raise inst
     # Ok, operation or not, change the attribute in self without callback to attributeSetters
     if stealth:
         self.__dict__[attrib] = value  # without logging as well

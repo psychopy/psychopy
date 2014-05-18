@@ -66,7 +66,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
                  texRes=48,
                  interpolate=True,
                  name='', 
-                 autoLog=True,
+                 autoLog=None,
                  maskParams=None):
 
         """
@@ -142,8 +142,9 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self.setPhases(phases, log=False)
         self._updateVertices()
 
-        self.autoLog= autoLog
-        if autoLog:
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def _selectWindow(self, win):
@@ -228,7 +229,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
             self.__dict__['xys'] = self._makeNx2(value, ['Nx2'])
         self._xysAsNone = value == None  # to keep a record if we are to alter things later.
         self._needVertexUpdate=True
-    def setXYs(self, value=None, operation='', log=True):
+    def setXYs(self, value=None, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
         setAttribute(self, 'xys', value, log, operation)  # call attributeSetter
@@ -254,7 +255,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         """
         self.__dict__['oris'] = self._makeNx1(value)  # set self.oris
         self._needVertexUpdate = True
-    def setOris(self, value, operation='', log=True):
+    def setOris(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
 
@@ -276,7 +277,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         """
         self.__dict__['sfs'] = self._makeNx2(value)  # set self.sfs
         self._needTexCoordUpdate = True
-    def setSfs(self, value, operation='', log=True):
+    def setSfs(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         value = self._makeNx2(value)  # in the case of Nx1 list/array, setAttribute would fail if not this
@@ -291,7 +292,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         """
         self.__dict__['opacities'] = self._makeNx1(value)
         self._needColorUpdate=True
-    def setOpacities(self,value,operation='', log=True):
+    def setOpacities(self,value,operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'opacities', value, log, operation)  # call attributeSetter
@@ -309,7 +310,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self.__dict__['sizes'] = self._makeNx2(value)
         self._needVertexUpdate = True
         self._needTexCoordUpdate = True
-    def setSizes(self, value, operation='', log=True):
+    def setSizes(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         value = self._makeNx2(value)  # in the case of Nx1 list/array, setAttribute would fail if not this
@@ -327,7 +328,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         """
         self.__dict__['phases'] = self._makeNx2(value)
         self._needTexCoordUpdate = True
-    def setPhases(self, value, operation='', log=True):
+    def setPhases(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         value = self._makeNx2(value)  # in the case of Nx1 list/array, setAttribute would fail if not this
@@ -361,7 +362,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         Keeping this exception in mind, see :ref:`colorspaces` for more info."""
         self.__dict__['colorSpace'] = colorSpace
     
-    def setColors(self, color, colorSpace=None, operation='', log=True):
+    def setColors(self, color, colorSpace=None, operation='', log=None):
         """See ``color`` for more info on the color parameter  and 
         ``colorSpace`` for more info in the colorSpace parameter."""
         setColor(self, color, colorSpace=colorSpace, operation=operation,
@@ -393,7 +394,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         """
         self.__dict__['contrs'] = self._makeNx1(value)
         self._needColorUpdate = True
-    def setContrs(self, value, operation='', log=True):
+    def setContrs(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'contrs', value, log, operation)  # call attributeSetter
@@ -406,11 +407,11 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         :ref:`Operations <attrib-operations>` are supported."""
         self.__dict__['fieldPos'] = val2array(value, False, False)
         self._needVertexUpdate = True
-    def setFieldPos(self, value, operation='', log=True):
+    def setFieldPos(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'fieldPos', value, log, operation)  # call attributeSetter
-    def setPos(self, newPos=None, operation='', units=None, log=True):
+    def setPos(self, newPos=None, operation='', units=None, log=None):
         """Obselete - users should use setFieldPos or instead of setPos."""
         logging.error("User called ElementArrayStim.setPos(pos). Use ElementArrayStim.setFieldPos(pos) instead.")
 
@@ -423,7 +424,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         :ref:`Operations <attrib-operations>` are supported."""
         self.__dict__['fieldSize'] = val2array(value, False)
         self.setXYs(log=False)  # to reflect new settings, overriding individual xys
-    def setFieldSize(self, value, operation='', log=True):
+    def setFieldSize(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'fieldSize', value, log, operation)  # call attributeSetter
@@ -591,7 +592,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         graphics card can be time-consuming."""
         self.__dict__['tex'] = value
         self._createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self, res=self.texRes, maskParams=self.maskParams)
-    def setTex(self, value, log=True):
+    def setTex(self, value, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'elementTex', value, log)

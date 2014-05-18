@@ -81,8 +81,10 @@ class TextStim(BaseVisualStim, ColorMixin):
                  alignVert='center',
                  fontFiles=[],
                  wrapWidth=None,
-                 flipHoriz=False, flipVert=False,
-                 name='', autoLog=True):
+                 flipHoriz=False, 
+                 flipVert=False,
+                 name='', 
+                 autoLog=None):
         """
         **Performance OBS:** in general, TextStim is slower than many other visual
         stimuli, i.e. it takes longer to change some attributes. In general, it's
@@ -142,9 +144,9 @@ class TextStim(BaseVisualStim, ColorMixin):
         self.setText(text, log=False) #self.width and self._fontHeightPix get set with text and calcSizeRendered is called
         self._needUpdate = True
 
-        #set autoLog (now that params have been initialised)
-        self.autoLog= autoLog
-        if autoLog:
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def __del__(self):
@@ -168,7 +170,7 @@ class TextStim(BaseVisualStim, ColorMixin):
         
         #need to update the font to reflect the change
         self.setFont(self.font, log=False)    
-    def setHeight(self, height, log=True):
+    def setHeight(self, height, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message. """
         setAttribute(self, 'height', height, log)
@@ -215,7 +217,7 @@ class TextStim(BaseVisualStim, ColorMixin):
                     self._font = pygame.font.SysFont(self.font, int(self._heightPix), italic=self.italic, bold=self.bold)
         #re-render text after a font change
         self._needSetText=True
-    def setFont(self, font, log=True):
+    def setFont(self, font, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'font', font, log)        
@@ -231,7 +233,7 @@ class TextStim(BaseVisualStim, ColorMixin):
         else:
             self._setTextNoShaders(text)
         self._needSetText = False
-    def setText(self, text=None, log=True):
+    def setText(self, text=None, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'text', text, log)
@@ -434,7 +436,7 @@ class TextStim(BaseVisualStim, ColorMixin):
         """If set to True then the text will be flipped horiztonally (left-to-right).
         Note that this is relative to the original, not relative to the current state."""
         self.__dict__['flipHoriz'] = value
-    def setFlipHoriz(self, newVal=True, log=True):
+    def setFlipHoriz(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'flipHoriz', newVal, log)
@@ -444,12 +446,12 @@ class TextStim(BaseVisualStim, ColorMixin):
         """If set to True then the text will be flipped vertically (top-to-bottom).
         Note that this is relative to the original, not relative to the current state."""
         self.__dict__['flipVert'] = value
-    def setFlipVert(self, newVal=True, log=True):
+    def setFlipVert(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
         setAttribute(self, 'flipVert', newVal, log)
 
-    def setFlip(self, direction, log=True):
+    def setFlip(self, direction, log=None):
         """(used by Builder to simplify the dialog)"""
         if direction == 'vert':
             self.setFlipVert(True, log=log)

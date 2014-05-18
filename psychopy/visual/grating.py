@@ -81,7 +81,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
                  rgbPedestal=(0.0, 0.0, 0.0),
                  interpolate=False,
                  name='',
-                 autoLog=True,
+                 autoLog=None,
                  autoDraw=False,
                  maskParams=None):
         """ """  # Empty docstring. All doc is in attributes
@@ -157,9 +157,9 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         #self._updateList()  #ie refresh display list
         self._needUpdate = True
 
-        #set autoLog (now that params have been initialised)
-        self.autoLog= autoLog
-        if autoLog:
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
 
     @attributeSetter
@@ -225,13 +225,13 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.__dict__['tex'] = value
         self._needTextureUpdate = False
 
-    def setSF(self, value, operation='', log=True):
+    def setSF(self, value, operation='', log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self._set('sf', value, operation, log=log)
-    def setPhase(self, value, operation='', log=True):
+    def setPhase(self, value, operation='', log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self._set('phase', value, operation, log=log)
-    def setTex(self, value, log=True):
+    def setTex(self, value, log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self.tex = value
 

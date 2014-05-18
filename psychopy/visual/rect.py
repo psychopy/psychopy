@@ -57,7 +57,7 @@ class Rect(ShapeStim):
         self.__dict__['width'] = value
         self._calcVertices()
         self.setVertices(self.vertices, log=False)
-    def setWidth(self, width, log=True):
+    def setWidth(self, width, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
@@ -73,7 +73,7 @@ class Rect(ShapeStim):
         self._calcVertices()
         self.setVertices(self.vertices, log=False)
     
-    def setHeight(self, height, log=True):
+    def setHeight(self, height, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """

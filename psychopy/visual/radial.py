@@ -70,7 +70,7 @@ class RadialStim(GratingStim):
                  rgbPedestal = (0.0,0.0,0.0),
                  interpolate=False,
                  name='', 
-                 autoLog=True,
+                 autoLog=None,
                  maskParams=None):        
         """ """ # Empty docstring on __init__, Simply inherits methods from GratingStim
         #what local vars are defined (these are the init params) for use by __repr__
@@ -135,10 +135,10 @@ class RadialStim(GratingStim):
         #
         self._updateEverything()
         
-        #set autoLog (now that params have been initialised)
-        self.autoLog= autoLog
-        if autoLog:
-            logging.exp("Created %s = %s" %(self.name, repr(self)))
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
+            logging.exp("Created %s = %s" %(self.name, str(self)))
 
     @attributeSetter
     def mask(self, value):
@@ -218,7 +218,7 @@ class RadialStim(GratingStim):
         GL.glEnable(GL.GL_TEXTURE_1D)
 
         self._needUpdate = True
-    def setMask(self, value, log=True):
+    def setMask(self, value, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
@@ -237,7 +237,7 @@ class RadialStim(GratingStim):
         
         :ref:`Operations <attrib-operations>` supported."""
         self._setRadialAtribute('angularCycles', value)
-    def setAngularCycles(self, value, operation='', log=True):
+    def setAngularCycles(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
@@ -250,7 +250,7 @@ class RadialStim(GratingStim):
         
         :ref:`Operations <attrib-operations>` supported."""
         self._setRadialAtribute('radialCycles', value)
-    def setRadialCycles(self, value, operation='', log=True):
+    def setRadialCycles(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
@@ -266,7 +266,7 @@ class RadialStim(GratingStim):
        
         :ref:`Operations <attrib-operations>` supported."""
         self._setRadialAtribute('angularPhase', value)
-    def setAngularPhase(self, value, operation='', log=True):
+    def setAngularPhase(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
@@ -280,7 +280,7 @@ class RadialStim(GratingStim):
         
         :ref:`Operations <attrib-operations>` supported."""
         self._setRadialAtribute('radialPhase', value)
-    def setRadialPhase(self, value, operation='', log=True):
+    def setRadialPhase(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
