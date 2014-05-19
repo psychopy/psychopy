@@ -64,7 +64,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self.__dict__['maskParams'] = maskParams
         self.__dict__['mask'] = mask
         self.__dict__['texRes'] = texRes  # Not pretty (redefined later) but it works!
-        
+
         # Other stuff
         self._imName = image
         self.isLumImage = None
@@ -227,7 +227,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
 
         #return the view to previous state
         GL.glPopMatrix()
-    
+
     @attributeSetter
     def image(self, value):
         """The image file to be presented (most formats supported)
@@ -254,11 +254,11 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         but use this method if you need to suppress the log message.
         """
         setAttribute(self, 'image', value, log)
-    
+
     @attributeSetter
     def mask(self, value):
         """The alpha mask that can be used to control the outer shape of the stimulus
-        
+
                 + **None**, 'circle', 'gauss', 'raisedCos'
                 + or the name of an image file (most formats supported)
                 + or a numpy array (1xN or NxN) ranging -1:1
@@ -268,7 +268,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
             pixFormat=GL.GL_ALPHA,dataType=GL.GL_UNSIGNED_BYTE,
             stim=self,
             res=self.texRes, maskParams=self.maskParams)
-    
+
     def setMask(self, value, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.

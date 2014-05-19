@@ -41,6 +41,8 @@ from numpy import pi
 
 from psychopy.constants import NOT_STARTED, STARTED, STOPPED
 
+reportNImageResizes = 5 #permitted number of resizes
+
 """
 There are several base and mix-in visual classes for mulitple inheritance:
   - MinimalStim:       non-visual house-keeping code common to all visual stim
@@ -110,8 +112,8 @@ class MinimalStim(object):
         """String or None. The name of the object to be using during logged messages about
         this stim. If you have multiple stimuli in your experiment this really
         helps to make sense of log files!
-        
-        If name = None your stimulus will be called "unnamed <type>", e.g. 
+
+        If name = None your stimulus will be called "unnamed <type>", e.g.
         visual.TextStim(win) will be called "unnamed TextStim" in the logs.
         """
         self.__dict__['name'] = value
@@ -248,7 +250,7 @@ class ColorMixin(object):
         single value (scalar) then this wil be applied to all 3 channels.
 
         Examples::
-                # ... for whatever stim you have, e.g. stim = visual.ShapeStim(win):                
+                # ... for whatever stim you have, e.g. stim = visual.ShapeStim(win):
                 stim.color = 'white'
                 stim.color = 'RoyalBlue'  # (the case is actually ignored)
                 stim.color = '#DDA0DD'  # DDA0DD is hexadecimal for plum
@@ -259,13 +261,13 @@ class ColorMixin(object):
 
 
         :ref:`Operations <attrib-operations>` work as normal for all numeric
-        colorSpaces (e.g. 'rgb', 'hsv' and 'rgb255') but not for strings, like 
+        colorSpaces (e.g. 'rgb', 'hsv' and 'rgb255') but not for strings, like
         named and hex. For example, assuming that colorSpace='rgb'::
 
             stim.color += [1, 1, 1]  # increment all guns by 1 value
             stim.color *= -1  # multiply the color by -1 (which in this space inverts the contrast)
             stim.color *= [0.5, 0, 1]  # decrease red, remove green, keep blue
-        
+
         You can use `setColor` if you want to set color and colorSpace in one
         line. These two are equivalent::
 
@@ -286,7 +288,7 @@ class ColorMixin(object):
         If None the default colorSpace for the stimulus is
         used (defined during initialisation).
 
-        Please note that changing colorSpace does not change stimulus parameters. 
+        Please note that changing colorSpace does not change stimulus parameters.
         Thus you usually want to specify colorSpace before setting the color. Example::
 
             # A light green text
@@ -684,12 +686,11 @@ class TextureMixin(object):
                     elif glob_vars.nImageResizes==reportNImageResizes:
                         logging.warning("Multiple images have needed resizing - I'll stop bothering you!")
                         im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
-
             #is it Luminance or RGB?
             if pixFormat==GL.GL_ALPHA and im.mode!='L':#we have RGB and need Lum
                 wasLum = True
                 im = im.convert("L")#force to intensity (in case it was rgb)
-            elif im.mode=='L': #we have lum and no need to change
+            elif pixFormat==GL.GL_ALPHA and im.mode=='L': #we have lum and no need to change
                 wasLum = True
             elif pixFormat==GL.GL_RGB: #we want RGB and might need to convert from CMYK or Lm
                 #texture = im.tostring("raw", "RGB", 0, -1)
@@ -700,7 +701,6 @@ class TextureMixin(object):
                 intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # much faster to avoid division 2/255
             else:
                 intensity = numpy.array(im)
-
         if pixFormat==GL.GL_RGB and wasLum and dataType==GL.GL_FLOAT: #grating stim on good machine
             #keep as float32 -1:1
             if sys.platform!='darwin' and stim.win.glVendor.startswith('nvidia'):
@@ -918,7 +918,7 @@ class WindowMixin(object):
 
     def draw(self):
         raise NotImplementedError('Stimulus classes must overide visual.BaseVisualStim.draw')
-        
+
     def _selectWindow(self, win):
         #don't call switch if it's already the curr window
         if win!=glob_vars.currWindow and win.winType=='pyglet':
@@ -1091,7 +1091,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
     def _set(self, attrib, val, op='', log=None):
         """
         DEPRECATED since 1.80.04 + 1. Use setAttrib() in combination with val2array instead.
-        
+
         Use this method when you want to be able to suppress logging (e.g., in
         tests). Typically better to use methods specific to the parameter, e.g. ::
 
