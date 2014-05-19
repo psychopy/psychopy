@@ -23,10 +23,10 @@ class Test_Window:
     def teardown_class(self):
         shutil.rmtree(self.temp_dir)
     def test_captureMovieFrames(self):
-        stim = visual.GratingStim(self.win, dkl=[0,0,1], autoLog=False)
-        stim.setAutoDraw(True)
+        stim = visual.GratingStim(self.win, dkl=[0,0,1])
+        stim.autoDraw = True
         for frameN in range(3):
-            stim.setPhase(0.3,'+')
+            stim.phase += 0.3
             self.win.flip()
             self.win.getMovieFrame()
         self.win.saveMovieFrames(os.path.join(self.temp_dir, 'junkFrames.png'))
@@ -62,14 +62,14 @@ class _baseVisualTest:
     def test_auto_draw(self):
         win = self.win
         stims=[]
-        stims.append(visual.PatchStim(win, autoLog=False))
-        stims.append(visual.ShapeStim(win, autoLog=False))
-        stims.append(visual.TextStim(win, autoLog=False))
+        stims.append(visual.PatchStim(win))
+        stims.append(visual.ShapeStim(win))
+        stims.append(visual.TextStim(win))
         for stim in stims:
             assert stim.status==visual.NOT_STARTED
-            stim.setAutoDraw(True)
+            stim.autoDraw = True
             assert stim.status==visual.STARTED
-            stim.setAutoDraw(False)
+            stim.autoDraw = False
             assert stim.status==visual.FINISHED
             assert stim.status==visual.STOPPED
             str(stim) #check that str(xxx) is working
@@ -79,7 +79,7 @@ class _baseVisualTest:
         #use image stim
         size = numpy.array([2.0,2.0])*self.scaleFactor
         image = visual.ImageStim(win, image=fileName, mask='gauss',
-                                 size=size, flipHoriz=True, flipVert=True, autoLog=False)
+                                 size=size, flipHoriz=True, flipVert=True)
         image.draw()
         utils.compareScreenshot('imageAndGauss_%s.png' %(self.contextName), win)
         win.flip()
@@ -92,19 +92,19 @@ class _baseVisualTest:
             sf = -1.0
         else:
             sf = -1.0/size #this will do the flipping and get exactly one cycle
-        image = visual.GratingStim(win, tex=fileName, size=size, sf=sf, mask='gauss', autoLog=False)
+        image = visual.GratingStim(win, tex=fileName, size=size, sf=sf, mask='gauss')
         image.draw()
         utils.compareScreenshot('imageAndGauss_%s.png' %(self.contextName), win)
         win.flip()
     def test_greyscaleImage(self):
         win = self.win
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'greyscale.jpg')
-        imageStim = visual.ImageStim(win, fileName, autoLog=False)
+        imageStim = visual.ImageStim(win, fileName)
         imageStim.draw()
         utils.compareScreenshot('greyscale_%s.png' %(self.contextName), win)
         str(imageStim) #check that str(xxx) is working
         win.flip()
-        imageStim.setColor([0.1,0.1,0.1])
+        imageStim.color = [0.1,0.1,0.1]
         imageStim.draw()
         utils.compareScreenshot('greyscaleLowContr_%s.png' %(self.contextName), win)
         win.flip()
@@ -118,7 +118,7 @@ class _baseVisualTest:
         grating = filters.makeGrating(res=64, ori=20.0,
                                      cycles=3.0, phase=0.5,
                                      gratType='sqr', contr=1.0)
-        imageStim = visual.ImageStim(win, image=grating, autoLog=False,
+        imageStim = visual.ImageStim(win, image=grating,
                                      size = 3*self.scaleFactor,
                                      interpolate=True)
         imageStim.draw()
@@ -129,7 +129,7 @@ class _baseVisualTest:
         str(imageStim) #check that str(xxx) is working
         win.flip()
         #set lowcontrast using color
-        imageStim.setColor([0.1,0.1,0.1])
+        imageStim.color = [0.1,0.1,0.1]
         imageStim.draw()
         utils.compareScreenshot('numpyLowContr_%s.png' %(self.contextName), win)
         win.flip()
@@ -146,7 +146,7 @@ class _baseVisualTest:
         gabor = visual.PatchStim(win, mask='gauss', ori=-45,
             pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor],
             sf=2.0/self.scaleFactor, size=2*self.scaleFactor,
-            interpolate=True, autoLog=False)
+            interpolate=True)
         gabor.draw()
         utils.compareScreenshot('gabor1_%s.png' %(self.contextName), win)
         win.flip()#AFTER compare screenshot
@@ -158,13 +158,13 @@ class _baseVisualTest:
         #win.flip()
 
         #using .set()
-        gabor.setOri(45, log=False)
-        gabor.setSize(0.2*self.scaleFactor, '-', log=False)
-        gabor.setColor([45,30,0.3], colorSpace='dkl', log=False)
-        gabor.setSF(0.2/self.scaleFactor, '+', log=False)
-        gabor.setPos([-0.5*self.scaleFactor, 0.5*self.scaleFactor], '+', log=False)
-        gabor.setContrast(0.8, log=False)
-        gabor.setOpacity(0.8, log=False)
+        gabor.ori = 45
+        gabor.size -= 0.2 * self.scaleFactor
+        gabor.setColor([45,30,0.3], colorSpace='dkl')
+        gabor.sf += 0.2 / self.scaleFactor
+        gabor.pos += [-0.5*self.scaleFactor, 0.5*self.scaleFactor]
+        gabor.contrast = 0.8
+        gabor.opacity = 0.8
         gabor.draw()
         utils.compareScreenshot('gabor2_%s.png' %(self.contextName), win)
         win.flip()
@@ -196,25 +196,25 @@ class _baseVisualTest:
         #set font
         fontFile = os.path.join(prefs.paths['resources'], 'DejaVuSerif.ttf')
         #using init
-        stim = visual.TextStim(win,text=u'\u03A8a', color=[0.5,1.0,1.0], ori=15,
+        stim = visual.TextStim(win,text=u'\u03A8a', color=[0.5, 1.0, 1.0], ori=15,
             height=0.8*self.scaleFactor, pos=[0,0], font='DejaVu Serif',
-            fontFiles=[fontFile], autoLog=False)
+            fontFiles=[fontFile])
         stim.draw()
         #compare with a LIBERAL criterion (fonts do differ)
         utils.compareScreenshot('text1_%s.png' %(self.contextName), win, crit=20)
         win.flip()#AFTER compare screenshot
         #using set
-        stim.setText('y', log=False)
+        stim.text = 'y'
         if sys.platform=='win32':
-            stim.setFont('Courier New', log=False)
+            stim.font = 'Courier New'
         else:
-            stim.setFont('Courier', log=False)
-        stim.setOri(-30.5, log=False)
-        stim.setHeight(1.0*self.scaleFactor, log=False)
-        stim.setColor([0.1,-1,0.8], colorSpace='rgb', log=False)
-        stim.setPos([-0.5,0.5],'+', log=False)
-        stim.setContrast(0.8, log=False)
-        stim.setOpacity(0.8, log=False)
+            stim.font = 'Courier'
+        stim.ori = -30.5
+        stim.height = 1.0 * self.scaleFactor
+        stim.setColor([0.1, -1, 0.8], colorSpace='rgb')
+        stim.pos += [-0.5, 0.5]
+        stim.contrast = 0.8
+        stim.opacity = 0.8
         stim.draw()
         str(stim) #check that str(xxx) is working
         #compare with a LIBERAL criterion (fonts do differ)
@@ -244,32 +244,32 @@ class _baseVisualTest:
         str(mov) #check that str(xxx) is working
     def test_rect(self):
         win = self.win
-        rect = visual.Rect(win, autoLog=False)
+        rect = visual.Rect(win)
         rect.draw()
-        rect.setLineColor('blue', log=False)
-        rect.setPos([1,1], log=False)
-        rect.setOri(30, log=False)
-        rect.setFillColor('pink', log=False)
+        rect.lineColor = 'blue'
+        rect.pos = [1, 1]
+        rect.ori = 30
+        rect.fillColor = 'pink'
         rect.draw()
         str(rect) #check that str(xxx) is working
-        rect.setWidth(1, log=False)
-        rect.setHeight(1, log=False)
+        rect.width = 1
+        rect.height = 1
     def test_circle(self):
         win = self.win
-        circle = visual.Circle(win, autoLog=False)
-        circle.setFillColor('red', log=False)
+        circle = visual.Circle(win)
+        circle.fillColor = 'red'
         circle.draw()
-        circle.setLineColor('blue', log=False)
-        circle.setFillColor(None, log=False)
-        circle.setPos([0.5,-0.5], log=False)
-        circle.setOri(30, log=False)
+        circle.lineColor = 'blue'
+        circle.fillColor = None
+        circle.pos = [0.5, -0.5]
+        circle.ori = 30
         circle.draw()
         str(circle) #check that str(xxx) is working
     def test_line(self):
         win = self.win
-        line = visual.Line(win, autoLog=False)
-        line.setStart((0,0), log=False)
-        line.setEnd((.1,.1), log=False)
+        line = visual.Line(win)
+        line.start = (0, 0)
+        line.end = (0.1, 0.1)
         line.contains()  # pass
         line.overlaps()  # pass
         line.draw()
@@ -279,27 +279,27 @@ class _baseVisualTest:
         win = self.win
         cols = ['red','green','purple','orange','blue']
         for n, col in enumerate(cols):
-            poly = visual.Polygon(win, edges=n+5, lineColor=col, autoLog=False)
+            poly = visual.Polygon(win, edges=n + 5, lineColor=col)
             poly.draw()
         win.flip()
         str(poly) #check that str(xxx) is working
-        poly.setEdges(3, log=False)
-        poly.setRadius(1, log=False)
+        poly.edges = 3
+        poly.radius = 1
     def test_shape(self):
         win = self.win
 
         shape = visual.ShapeStim(win, lineColor=[1, 1, 1], lineWidth=1.0,
             fillColor=[0.80000000000000004, 0.80000000000000004, 0.80000000000000004],
             vertices=[[-0.5*self.scaleFactor, 0],[0, 0.5*self.scaleFactor],[0.5*self.scaleFactor, 0]],
-            closeShape=True, pos=[0, 0], ori=0.0, opacity=1.0, depth=0, interpolate=True, autoLog=False)
+            closeShape=True, pos=[0, 0], ori=0.0, opacity=1.0, depth=0, interpolate=True)
         shape.draw()
         #NB shape rendering can differ a little, depending on aliasing
         utils.compareScreenshot('shape1_%s.png' %(self.contextName), win, crit=12.5)
         win.flip()
 
         # Using .set()
-        shape.setContrast(0.8, log=False)
-        shape.setOpacity(0.8, log=False)
+        shape.contrast = 0.8
+        shape.opacity = 0.8
         shape.draw()
         str(shape) #check that str(xxx) is working
         utils.compareScreenshot('shape2_%s.png' %(self.contextName), win, crit=12.5)
@@ -309,22 +309,22 @@ class _baseVisualTest:
         win = self.win
         #using init
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
-            visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False, autoLog=False)
+            visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
         thresh = 10
         utils.compareScreenshot('wedge1_%s.png' %(self.contextName), win, crit=thresh)
         win.flip()#AFTER compare screenshot
 
         #using .set()
-        wedge.setMask('gauss', log=False)
-        wedge.setSize(3*self.scaleFactor, log=False)
-        wedge.setAngularCycles(3, log=False)
-        wedge.setRadialCycles(3, log=False)
-        wedge.setOri(180, log=False)
-        wedge.setContrast(0.8, log=False)
-        wedge.setOpacity(0.8, log=False)
-        wedge.setRadialPhase(0.1,operation='+', log=False)
-        wedge.setAngularPhase(0.1, log=False)
+        wedge.mask = 'gauss'
+        wedge.size = 3 * self.scaleFactor
+        wedge.angularCycles = 3
+        wedge.radialCycles = 3
+        wedge.ori = 180
+        wedge.contrast = 0.8
+        wedge.opacity = 0.8
+        wedge.radialPhase += 0.1
+        wedge.angularPhase = 0.1
         wedge.draw()
         str(wedge) #check that str(xxx) is working
         utils.compareScreenshot('wedge2_%s.png' %(self.contextName), win, crit=10.0)
@@ -333,7 +333,7 @@ class _baseVisualTest:
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
         if not os.path.isfile(fileName):
             raise IOError('Could not find image file: %s' % os.path.abspath(fileName))
-        image = visual.SimpleImageStim(win, image=fileName, flipHoriz=True, flipVert=True, autoLog=False)
+        image = visual.SimpleImageStim(win, image=fileName, flipHoriz=True, flipVert=True)
         str(image) #check that str(xxx) is working
         image.draw()
         utils.compareScreenshot('simpleimage1_%s.png' %(self.contextName), win, crit=5.0) # Should be exact replication
@@ -342,7 +342,6 @@ class _baseVisualTest:
         #has correct dimensions
         fieldSize = numpy.array([1.0,1.0])*self.scaleFactor
         pos = numpy.array([0.5,0])*fieldSize
-        dotSize = 5
         dots = visual.DotStim(self.win, color=[-1.0,0.0,0.5], dotSize=5,
                               nDots=1000, fieldShape='circle', fieldPos=pos)
         dots.draw()
@@ -357,7 +356,7 @@ class _baseVisualTest:
             dotLife=5, #number of frames for each dot to be drawn
             signalDots='same', #are the signal and noise dots 'different' or 'same' popns (see Scase et al)
             noiseDots='direction', #do the noise dots follow random- 'walk', 'direction', or 'position'
-            speed=0.01*self.scaleFactor, coherence=0.9, autoLog=False)
+            speed=0.01*self.scaleFactor, coherence=0.9)
         dots.draw()
         win.flip()
         str(dots) #check that str(xxx) is working
@@ -366,12 +365,12 @@ class _baseVisualTest:
         prevDirs = copy.copy(dots._dotsDir)
         prevSignals = copy.copy(dots._signalDots)
         prevVerticesPix = copy.copy(dots.verticesPix)
-        dots.setDir(20, log=False)
-        dots.setFieldCoherence(0.5, log=False)
-        dots.setFieldPos([-0.5,0.5], log=False)
-        dots.setSpeed(0.1*self.scaleFactor, log=False)
-        dots.setOpacity(0.8, log=False)
-        dots.setContrast(0.8, log=False)
+        dots.dir = 20
+        dots.coherence = 0.5
+        dots.fieldPos = [-0.5, 0.5]
+        dots.speed = 0.1 * self.scaleFactor
+        dots.opacity = 0.8
+        dots.contrast = 0.8
         dots.draw()
         #check that things changed
         assert (prevDirs-dots._dotsDir).sum()!=0, \
@@ -392,11 +391,11 @@ class _baseVisualTest:
         x, y = pol2cart(theta=thetas, radius=radii)
         xys = numpy.array([x,y]).transpose()
         spiral = visual.ElementArrayStim(win, opacities = 0, nElements=N,sizes=0.5*self.scaleFactor,
-            sfs=1.0, xys=xys, oris=-thetas, autoLog=False)
+            sfs=1.0, xys=xys, oris=-thetas)
         spiral.draw()
         #check that the update function is working by changing vals after first draw() call
-        spiral.setOpacities(1.0)
-        spiral.setSfs(3.0)
+        spiral.opacities = 1.0
+        spiral.sfs = 3.0
         spiral.draw()
         str(spiral) #check that str(xxx) is working
         win.flip()
@@ -407,20 +406,20 @@ class _baseVisualTest:
         win = self.win
         if not win.allowStencil:
             pytest.skip("Don't run aperture test when no stencil is available")
-        grating = visual.GratingStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm', autoLog=False)
-        aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0], autoLog=False)
+        grating = visual.GratingStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm')
+        aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0])
         aperture.enabled = False
         grating.draw()
         aperture.enabled = True
         str(aperture) #check that str(xxx) is working
-        grating.setOri(90, log=False)
-        grating.setColor('black', log=False)
+        grating.ori = 90
+        grating.color = 'black'
         grating.draw()
         utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win)
         #aperture should automatically disable on exit
         for shape, nVert, pos in [(None, 120, (0,0)), ('circle', 17, (.2, -.7)),
                                   ('square', 4, (-.5,-.5)), ('triangle', 3, (1,1))]:
-            aperture = visual.Aperture(win, pos=pos, shape=shape, nVert=nVert, autoLog=False)
+            aperture = visual.Aperture(win, pos=pos, shape=shape, nVert=nVert)
             assert len(aperture.vertices) == nVert
             assert aperture.contains(pos)
     def test_rating_scale(self):

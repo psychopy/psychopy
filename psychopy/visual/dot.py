@@ -21,7 +21,7 @@ from psychopy import logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.tools.attributetools import setWithOperation, logAttrib, attributeSetter
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import cm2pix, deg2pix
 from psychopy.visual.basevisual import BaseVisualStim, ColorMixin, ContainerMixin
@@ -72,7 +72,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  element=None,
                  signalDots='same',
                  noiseDots='direction',
-                 name='', autoLog=True):
+                 name=None, 
+                 autoLog=None):
         """
         :Parameters:
         
@@ -108,9 +109,9 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.colorSpace=colorSpace
         if rgb!=None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(rgb, colorSpace='rgb')
+            self.setColor(rgb, colorSpace='rgb', log=False)
         else:
-            self.setColor(color)
+            self.setColor(color, log=False)
 
         self.depth=depth
 
@@ -129,11 +130,13 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._dotsDir[self._signalDots] = self.dir*pi/180
 
         self._update_dotsXY()
-        self.autoLog= autoLog
-        if autoLog:
+        
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
-
-    def _set(self, attrib, val, op='', log=True):
+        
+    def _set(self, attrib, val, op='', log=None):
         """Use this to set attributes of your stimulus after initialising it.
 
         :Parameters:
@@ -154,15 +157,13 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
             val=numpy.array(val,float)
 
         #change the attribute as requested
-        setWithOperation(self, attrib, val, op)
+        setAttribute(self, attrib, val, log, op)
 
         #update the actual coherence for the requested coherence and nDots
         if attrib in ['nDots','coherence']:
             self.coherence=round(self.coherence*self.nDots)/self.nDots
 
-        logAttrib(self, log, attrib)
-
-    def set(self, attrib, val, op='', log=True):
+    def set(self, attrib, val, op='', log=None):
         """DotStim.set() is obsolete and may not be supported in future
         versions of PsychoPy. Use the specific method for each parameter instead
         (e.g. setFieldPos(), setCoherence()...)
@@ -235,12 +236,12 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # Isn't there a way to use BaseVisualStim.pos.__doc__ as docstring here?
         self.pos = pos  # using BaseVisualStim. we'll store this as both
         self.__dict__['fieldPos'] = self.pos
-    def setFieldPos(self, val, op='', log=True):
+    def setFieldPos(self, val, op='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'fieldPos', val, op, autoLog=log)  # calls attributeSetter
-    def setPos(self, newPos=None, operation='', units=None, log=True):
+        setAttribute(self, 'fieldPos', val, log, op)  # calls attributeSetter
+    def setPos(self, newPos=None, operation='', units=None, log=None):
         """Obsolete - users should use setFieldPos instead of setPos
         """
         logging.error("User called DotStim.setPos(pos). Use DotStim.SetFieldPos(pos) instead.")    
@@ -262,11 +263,11 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if self.noiseDots in ['direction', 'position']:
             self._dotsDir = numpy.random.rand(self.nDots) * 2 * pi
             self._dotsDir[self._signalDots] = self.dir * pi / 180
-    def setFieldCoherence(self, val, op='', log=True):
+    def setFieldCoherence(self, val, op='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'coherence', val, op, autoLog=log)  # calls attributeSetter
+        setAttribute(self, 'coherence', val, log, op)  # calls attributeSetter
     
     @attributeSetter
     def dir(self, dir):
@@ -277,22 +278,22 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         
         #dots currently moving in the signal direction also need to update their direction
         self._dotsDir[signalDots] = self.dir * pi / 180  
-    def setDir(self, val, op='', log=True):
+    def setDir(self, val, op='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'dir', val, op, autoLog=log)
+        setAttribute(self, 'dir', val, log, op)
     
     @attributeSetter
     def speed(self, speed):
         """float. speed of the dots (in *units*/frame). :ref:`operations <attrib-operations>` are supported.
         """
         self.__dict__['speed'] = speed
-    def setSpeed(self,val, op='', log=True):
+    def setSpeed(self,val, op='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'speed', val, op, autoLog=log)
+        setAttribute(self, 'speed', val, log, op)
     def draw(self, win=None):
         """Draw the stimulus in its relevant window. You must call
         this method after every MyWin.flip() if you want the

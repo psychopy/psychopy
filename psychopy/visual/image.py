@@ -18,7 +18,7 @@ GL = pyglet.gl
 import psychopy  # so we can get the __path__
 from psychopy import logging
 
-from psychopy.tools.attributetools import logAttrib, attributeSetter, callAttributeSetter
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import BaseVisualStim
 from psychopy.visual.basevisual import ContainerMixin, ColorMixin, TextureMixin
@@ -45,7 +45,8 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                  flipHoriz=False,
                  flipVert=False,
                  texRes=128,
-                 name='', autoLog=True,
+                 name=None,
+                 autoLog=None,
                  maskParams=None):
         """ """  # Empty docstring. All doc is in attributes
         #what local vars are defined (these are the init params) for use by __repr__
@@ -92,8 +93,9 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self._listID = GL.glGenLists(1)
         self._updateList()#ie refresh display list
 
-        self.autoLog= autoLog
-        if autoLog:
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def _updateListShaders(self):
@@ -247,11 +249,11 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         if wasLumImage != self.isLumImage:
             self._needUpdate=True
         self._needTextureUpdate = False
-    def setImage(self, value, log=True):
+    def setImage(self, value, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
-        callAttributeSetter(self, 'image', value, log)
+        setAttribute(self, 'image', value, log)
     
     @attributeSetter
     def mask(self, value):
@@ -267,8 +269,8 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
             stim=self,
             res=self.texRes, maskParams=self.maskParams)
     
-    def setMask(self, value, log=True):
+    def setMask(self, value, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
-        callAttributeSetter(self, 'mask', value, log)
+        setAttribute(self, 'mask', value, log)

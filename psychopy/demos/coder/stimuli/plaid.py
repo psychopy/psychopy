@@ -21,17 +21,16 @@ while t<20:#quits after 20 secs
 
     t=trialClock.getTime()
 
-    grating1.setPhase(1*t)  #drift at 1Hz
+    grating1.phase = 1 * t  #drift at 1Hz
     grating1.draw()  #redraw it
 
-    grating2.setPhase(2*t)    #drift at 2Hz
+    grating2.phase = 2 * t    #drift at 2Hz
     grating2.draw()  #redraw it
     
     myWin.flip()          #update the screen
 
     #handle key presses each frame
-    for keys in event.getKeys():
-        if keys in ['escape','q']:
-            core.quit()
+    if event.getKeys(keyList=['escape','q']):
+        core.quit()
 
 

@@ -26,7 +26,7 @@ import psychopy.event
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
-from psychopy.tools.attributetools import attributeSetter, callAttributeSetter
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.basevisual import BaseVisualStim, ColorMixin
 
 import numpy
@@ -81,8 +81,10 @@ class TextStim(BaseVisualStim, ColorMixin):
                  alignVert='center',
                  fontFiles=[],
                  wrapWidth=None,
-                 flipHoriz=False, flipVert=False,
-                 name='', autoLog=True):
+                 flipHoriz=False, 
+                 flipVert=False,
+                 name=None, 
+                 autoLog=None):
         """
         **Performance OBS:** in general, TextStim is slower than many other visual
         stimuli, i.e. it takes longer to change some attributes. In general, it's
@@ -136,19 +138,20 @@ class TextStim(BaseVisualStim, ColorMixin):
         self.__dict__['fontFiles'] = []
         self.fontFiles = fontFiles  # calls attributeSetter
         self.setHeight(height, log=False)  # calls setFont() at some point
-        callAttributeSetter(self, 'wrapWidth', wrapWidth, log=False)  # calls attributeSetter without log
+        setAttribute(self, 'wrapWidth', wrapWidth, log=False)  # calls attributeSetter without log
         self.__dict__['opacity'] = float(opacity)
         self.__dict__['contrast'] = float(contrast)
         self.setText(text, log=False) #self.width and self._fontHeightPix get set with text and calcSizeRendered is called
         self._needUpdate = True
 
-        #set autoLog (now that params have been initialised)
-        self.autoLog= autoLog
-        if autoLog:
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def __del__(self):
-        GL.glDeleteLists(self._listID, 1)
+        if GL:  # because of pytest fail otherwise
+            GL.glDeleteLists(self._listID, 1)
 
     @attributeSetter
     def height(self, height):
@@ -168,10 +171,10 @@ class TextStim(BaseVisualStim, ColorMixin):
         
         #need to update the font to reflect the change
         self.setFont(self.font, log=False)    
-    def setHeight(self, height, log=True):
+    def setHeight(self, height, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message. """
-        callAttributeSetter(self, 'height', height, log)
+        setAttribute(self, 'height', height, log)
     
     @attributeSetter
     def font(self, font):
@@ -215,10 +218,10 @@ class TextStim(BaseVisualStim, ColorMixin):
                     self._font = pygame.font.SysFont(self.font, int(self._heightPix), italic=self.italic, bold=self.bold)
         #re-render text after a font change
         self._needSetText=True
-    def setFont(self, font, log=True):
+    def setFont(self, font, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        callAttributeSetter(self, 'font', font, log)        
+        setAttribute(self, 'font', font, log)        
     
     @attributeSetter
     def text(self, text):
@@ -231,10 +234,10 @@ class TextStim(BaseVisualStim, ColorMixin):
         else:
             self._setTextNoShaders(text)
         self._needSetText = False
-    def setText(self, text=None, log=True):
+    def setText(self, text=None, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        callAttributeSetter(self, 'text', text, log)
+        setAttribute(self, 'text', text, log)
     
     def _setTextShaders(self,value=None):
         """Set the text to be rendered using the current font
@@ -434,22 +437,22 @@ class TextStim(BaseVisualStim, ColorMixin):
         """If set to True then the text will be flipped horiztonally (left-to-right).
         Note that this is relative to the original, not relative to the current state."""
         self.__dict__['flipHoriz'] = value
-    def setFlipHoriz(self, newVal=True, log=True):
+    def setFlipHoriz(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        callAttributeSetter(self, 'flipHoriz', newVal, log)
+        setAttribute(self, 'flipHoriz', newVal, log)
     
     @attributeSetter
     def flipVert(self, value):
         """If set to True then the text will be flipped vertically (top-to-bottom).
         Note that this is relative to the original, not relative to the current state."""
         self.__dict__['flipVert'] = value
-    def setFlipVert(self, newVal=True, log=True):
+    def setFlipVert(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
-        callAttributeSetter(self, 'flipVert', newVal, log)
+        setAttribute(self, 'flipVert', newVal, log)
 
-    def setFlip(self, direction, log=True):
+    def setFlip(self, direction, log=None):
         """(used by Builder to simplify the dialog)"""
         if direction == 'vert':
             self.setFlipVert(True, log=log)

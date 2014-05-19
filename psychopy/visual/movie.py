@@ -89,9 +89,9 @@ class MovieStim(BaseVisualStim, ContainerMixin):
                  colorSpace='rgb',
                  opacity=1.0,
                  volume=1.0,
-                 name='',
+                 name=None,
                  loop=False,
-                 autoLog=True,
+                 autoLog=None,
                  depth=0.0,):
         """
         :Parameters:
@@ -155,18 +155,18 @@ class MovieStim(BaseVisualStim, ContainerMixin):
             logging.error('Movie stimuli can only be used with a pyglet window')
             core.quit()
 
-        #set autoLog (now that params have been initialised)
-        self.autoLog= autoLog
-        if autoLog:
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
 
-    def setMovie(self, filename, log=True):
+    def setMovie(self, filename, log=None):
         """See `~MovieStim.loadMovie` (the functions are identical).
         This form is provided for syntactic consistency with other visual stimuli.
         """
         self.loadMovie(filename, log=log)
 
-    def loadMovie(self, filename, log=True):
+    def loadMovie(self, filename, log=None):
         """Load a movie from file
 
         :Parameters:
@@ -201,17 +201,17 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         self.filename=filename
         logAttrib(self, log, 'movie', filename)
 
-    def pause(self, log=True):
+    def pause(self, log=None):
         """Pause the current point in the movie (sound will stop, current frame
         will not advance).  If play() is called again both will restart.
         """
         self._player.pause()
         self._player._on_eos = self._player_default_on_eos
         self.status=PAUSED
-        if log and self.autoLog:
+        if log or log is None and self.autoLog:
             self.win.logOnFlip("Set %s paused" %(self.name),
                 level=logging.EXP,obj=self)
-    def stop(self, log=True):
+    def stop(self, log=None):
         """Stop the current point in the movie (sound will stop, current frame
         will not advance). Once stopped the movie cannot be restarted - it must
         be loaded again. Use pause() if you may need to restart the movie.
@@ -219,32 +219,32 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         self._player.stop()
         self._player._on_eos = self._player_default_on_eos
         self.status=STOPPED
-        if log and self.autoLog:
+        if log or log is None and self.autoLog:
             self.win.logOnFlip("Set %s stopped" %(self.name),
                 level=logging.EXP,obj=self)
-    def play(self, log=True):
+    def play(self, log=None):
         """Continue a paused movie from current position
         """
         self._player.play()
         self._player._on_eos=self._onEos
         self.status=PLAYING
-        if log and self.autoLog:
+        if log or log is None and self.autoLog:
             self.win.logOnFlip("Set %s playing" %(self.name),
                 level=logging.EXP,obj=self)
-    def seek(self,timestamp, log=True):
+    def seek(self,timestamp, log=None):
         """ Seek to a particular timestamp in the movie.
         NB this does not seem very robust as at version 1.62 and may cause crashes!
         """
         self._player.seek(float(timestamp))
         logAttrib(self, log, 'seek', timestamp)
-    def setFlipHoriz(self, newVal=True, log=True):
+    def setFlipHoriz(self, newVal=True, log=None):
         """If set to True then the movie will be flipped horizontally (left-to-right).
         Note that this is relative to the original, not relative to the current state.
         """
         self.flipHoriz = newVal
         logAttrib(self, log, 'flipHoriz')
         self._needVertexUpdate = True
-    def setFlipVert(self, newVal=True, log=True):
+    def setFlipVert(self, newVal=True, log=None):
         """If set to True then the movie will be flipped vertically (top-to-bottom).
         Note that this is relative to the original, not relative to the current state.
         """
@@ -321,7 +321,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         if self.autoLog:
             self.win.logOnFlip("Set %s finished" %(self.name),
                 level=logging.EXP,obj=self)
-    def setAutoDraw(self, val, log=True):
+    def setAutoDraw(self, val, log=None):
         """Add or remove a stimulus from the list of stimuli that will be
         automatically drawn on each flip
 
@@ -334,6 +334,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         else:
             self.pause(log=False)
         #add to drawing list and update status
-        self.autoDraw = val
+        self.__dict__['autoDraw'] = val
+        logAttrib(self, log, 'autoDraw')
     def __del__(self):
         self._player.next()
