@@ -545,6 +545,8 @@ class TextureMixin(object):
                     logging.error("Requiring a square power of two (e.g. 16x16, 256x256) texture but didn't receive one")
                     core.quit()
                 res=tex.shape[0]
+            if useShaders:
+                dataType=GL.GL_FLOAT
         elif tex in [None,"none", "None"]:
             res=1 #4x4 (2x2 is SUPPOSED to be fine but generates wierd colors!)
             intensity = numpy.ones([res,res],numpy.float32)
@@ -688,8 +690,10 @@ class TextureMixin(object):
             if pixFormat==GL.GL_ALPHA and im.mode!='L':#we have RGB and need Lum
                 wasLum = True
                 im = im.convert("L")#force to intensity (in case it was rgb)
-            elif pixFormat==GL.GL_ALPHA and im.mode=='L': #we have lum and no need to change
+            elif im.mode=='L': #we have lum and no need to change
                 wasLum = True
+                if useShaders:
+                    dataType=GL.GL_FLOAT
             elif pixFormat==GL.GL_RGB: #we want RGB and might need to convert from CMYK or Lm
                 #texture = im.tostring("raw", "RGB", 0, -1)
                 im = im.convert("RGBA")
@@ -699,6 +703,7 @@ class TextureMixin(object):
                 intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # much faster to avoid division 2/255
             else:
                 intensity = numpy.array(im)
+
         if pixFormat==GL.GL_RGB and wasLum and dataType==GL.GL_FLOAT: #grating stim on good machine
             #keep as float32 -1:1
             if sys.platform!='darwin' and stim.win.glVendor.startswith('nvidia'):

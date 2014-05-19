@@ -123,8 +123,6 @@ class _baseVisualTest:
                                      interpolate=True)
         imageStim.draw()
 
-        if self.win.winType=='pygame':
-            pytest.xfail("Numpy texture is wrong polarity on pygame?")
         utils.compareScreenshot('numpyImage_%s.png' %(self.contextName), win)
         str(imageStim) #check that str(xxx) is working
         win.flip()
