@@ -883,11 +883,14 @@ class WindowMixin(object):
         else:
             self.__dict__['units'] = self.win.units
 
-        # Update size and position if they are defined. If not, this is probably
+        # Update size and position if they are defined (tested as numeric). If not, this is probably
         # during some init and they will be defined later, given the new unit.
-        if not isinstance(self.size, attributeSetter) and not isinstance(self.pos, attributeSetter):
+        try:
+            self.size * self.pos  # qucik and dirty way to check that both are numeric. This avoids the heavier attributeSetter calls.
             self.size = self.size
             self.pos = self.pos
+        except:
+            pass
 
     @attributeSetter
     def useShaders(self, value):
