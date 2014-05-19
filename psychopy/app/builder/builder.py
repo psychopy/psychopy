@@ -4447,10 +4447,6 @@ class BuilderFrame(wx.Frame):
         if not script:
             return
 
-        #set the directory and add to path
-        folder, scriptName = os.path.split(fullPath)
-        if len(folder)>0:
-            os.chdir(folder)  # otherwise this is unsaved 'untitled.psyexp'
         f = codecs.open(fullPath, 'w', 'utf-8')
         f.write(script.getvalue())
         f.close()

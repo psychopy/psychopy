@@ -10,7 +10,7 @@ import shutil, os
 from tempfile import mkdtemp
 from psychopy import sound #, microphone
 
-import pyo
+#import pyo
 import numpy
 
 # py.test --cov-report term-missing --cov sound.py tests/test_sound/test_sound_pygame.py
