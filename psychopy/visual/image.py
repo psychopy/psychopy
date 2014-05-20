@@ -64,7 +64,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self.__dict__['maskParams'] = maskParams
         self.__dict__['mask'] = mask
         self.__dict__['texRes'] = texRes  # Not pretty (redefined later) but it works!
-        
+
         # Other stuff
         self._imName = image
         self.isLumImage = None
@@ -110,9 +110,14 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         GL.glNewList(self._listID,GL.GL_COMPILE)
 
         #setup the shaderprogram
-        GL.glUseProgram(self.win._progImageStim)
-        GL.glUniform1i(GL.glGetUniformLocation(self.win._progImageStim, "texture"), 0) #set the texture to be texture unit 0
-        GL.glUniform1i(GL.glGetUniformLocation(self.win._progImageStim, "mask"), 1)  # mask is texture unit 1
+        if self.isLumImage: #for a luminance image do recoloring
+            GL.glUseProgram(self.win._progSignedTexMask)
+            GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "texture"), 0) #set the texture to be texture unit 0
+            GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
+        else: #for an rgb image there is no recoloring
+            GL.glUseProgram(self.win._progImageStim)
+            GL.glUniform1i(GL.glGetUniformLocation(self.win._progImageStim, "texture"), 0) #set the texture to be texture unit 0
+            GL.glUniform1i(GL.glGetUniformLocation(self.win._progImageStim, "mask"), 1)  # mask is texture unit 1
 
         #mask
         GL.glActiveTexture(GL.GL_TEXTURE1)
@@ -227,7 +232,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
 
         #return the view to previous state
         GL.glPopMatrix()
-    
+
     @attributeSetter
     def image(self, value):
         """The image file to be presented (most formats supported)
@@ -254,11 +259,11 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         but use this method if you need to suppress the log message.
         """
         setAttribute(self, 'image', value, log)
-    
+
     @attributeSetter
     def mask(self, value):
         """The alpha mask that can be used to control the outer shape of the stimulus
-        
+
                 + **None**, 'circle', 'gauss', 'raisedCos'
                 + or the name of an image file (most formats supported)
                 + or a numpy array (1xN or NxN) ranging -1:1
@@ -268,7 +273,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
             pixFormat=GL.GL_ALPHA,dataType=GL.GL_UNSIGNED_BYTE,
             stim=self,
             res=self.texRes, maskParams=self.maskParams)
-    
+
     def setMask(self, value, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
