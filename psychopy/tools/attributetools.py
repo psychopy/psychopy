@@ -56,46 +56,46 @@ def setAttribute(self, attrib, value, log, operation=False, stealth=False):
     # Change the value of "value" if there is an operation. Even if it is '',
     # that indicates that this value could potentially be subjected to an operation.
     if operation is not False:
-        try:
-            oldValue = getattr(self, attrib)
-            oldValue = numpy.asarray(oldValue, float)
+        # Only apply operation if not None or str - they do strange things when converted to numpy arrays!
+        if not (value is None or type(value) is str) and operation in ('', None):
+            try:
+                oldValue = getattr(self, attrib)
+                oldValue = numpy.array(oldValue, float)
+        
+                # Calculate new value using operation
+                if operation in ('', None):
+                    value = oldValue * 0 + value  # Preserves dimensions, if array
+                elif operation == '+':
+                    value = oldValue + value
+                elif operation == '*':
+                    value = oldValue * value
+                elif operation == '-':
+                    value = oldValue - value
+                elif operation == '/':
+                    value = oldValue / value
+                elif operation == '**':
+                    value = oldValue ** value
+                elif operation == '%':
+                    value = oldValue % value
+                else:
+                    raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
+        
+            except AttributeError:
+                # attribute is not set yet. Do it now in a non-updating manner
+                value = numpy.array(value, float)
+            except TypeError as error:
+                # Attribute is "None" or an unset attributeSetter. This is a sign that we are just initing
+                if (oldValue is None or isinstance(oldValue, attributeSetter)) and operation in ('', None):
+                    value = numpy.array(value, float)
+                else:
+                    raise TypeError, error
+            except ValueError as error:
+                # The old value is a string, typical of a color change from named to e.g. rgb.
+                if type(oldValue) is str and operation in ('', None):
+                    value = numpy.array(value, float)
+                else:
+                    raise ValueError, error
     
-            # Calculate new value using operation
-            if operation in ('', None):
-                value = oldValue * 0 + value  # Preserves dimensions, if array
-            elif operation == '+':
-                value = oldValue + value
-            elif operation == '*':
-                value = oldValue * value
-            elif operation == '-':
-                value = oldValue - value
-            elif operation == '/':
-                value = oldValue / value
-            elif operation == '**':
-                value = oldValue ** value
-            elif operation == '%':
-                value = oldValue % value
-            else:
-                raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
-    
-        except AttributeError:
-            # attribute is not set yet. Do it now in a non-updating manner
-            value = numpy.asarray(value, float)
-        except TypeError:
-            # Attribute is "None" or an unset attributeSetter. This is a sign that we are just initing
-            if oldValue is None or isinstance(oldValue, attributeSetter) and operation in ('', None):
-                value = numpy.asarray(value, float)
-            elif value is None:
-                # Not an operation, but let's be friendly...
-                value = value
-            else:
-                raise TypeError
-        except ValueError as inst:
-            # The old value is a string, typical of a color change from named to e.g. rgb.
-            if type(oldValue) is str and operation in ('', None):
-                value = numpy.asarray(value, float)
-            else:
-                raise inst
     # Ok, operation or not, change the attribute in self without callback to attributeSetters
     if stealth:
         self.__dict__[attrib] = value  # without logging as well
