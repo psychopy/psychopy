@@ -28,7 +28,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import attributeSetter, logAttrib, setAttribute
+from psychopy.tools.attributetools import attributeSetter, setWithOperation, callAttributeSetter
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg, convertToPix
 from psychopy.visual.helpers import pointInPolygon, polygonsOverlap, setColor
@@ -1113,4 +1113,26 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
             val = val2array(val)
 
         # Handle operations
-        setAttribute(self, attrib, val, log, op)
+        setWithOperation(self, attrib, val, op, autoLog=log)
+        # logAttrib(self, log, attrib, val) #setWithOperation calls logAttrib
+
+    def setUseShaders(self, value=True):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message"""
+        self.useShaders = value
+    def _selectWindow(self, win):
+        #don't call switch if it's already the curr window
+        if win!=glob_vars.currWindow and win.winType=='pyglet':
+            win.winHandle.switch_to()
+            glob_vars.currWindow = win
+
+    def _updateList(self):
+        """
+        The user shouldn't need this method since it gets called
+        after every call to .set()
+        Chooses between using and not using shaders each call.
+        """
+        if self.useShaders:
+            self._updateListShaders()
+        else:
+            self._updateListNoShaders()

@@ -35,7 +35,11 @@ class Preferences:
         if str(self.app['locale']):
             locPref = str(self.app['locale'])
             try:
-                lc = locale.setlocale(locale.LC_ALL, locPref)
+                if locPref in locale.locale_alias.keys():
+                    loc = locale.locale_alias[locPref]
+                else:
+                    loc = locPref
+                lc = locale.setlocale(locale.LC_ALL, loc)
                 logging.info('locale set to preference: ' + lc)
             except locale.Error, e:
                 logging.warning('locale pref: '+ str(e) + " '" +
