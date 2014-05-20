@@ -57,7 +57,7 @@ def setAttribute(self, attrib, value, log, operation=False, stealth=False):
     # that indicates that this value could potentially be subjected to an operation.
     if operation is not False:
         # Only apply operation if not None or str - they do strange things when converted to numpy arrays!
-        if not (value is None or type(value) is str) and operation in ('', None):
+        if not ((value is None or type(value) is str) and operation in ('', None)):
             try:
                 oldValue = getattr(self, attrib)
                 oldValue = numpy.array(oldValue, float)
@@ -95,7 +95,10 @@ def setAttribute(self, attrib, value, log, operation=False, stealth=False):
                     value = numpy.array(value, float)
                 else:
                     raise ValueError, error
-    
+        # Not neccessary currently since no set*() functions other than setColor() accepts both strings and operations as arguments. setColor() handles it internally for now.
+        #elif (value is None or type(value) is str) and operation not in ('', None):
+        #    raise ValueError, 'operation %s is not valid for %s when setting %s.%s %s= %s' %(operation.__repr__(), type(value), self.__class__.__name__, attrib, operation, value)
+        
     # Ok, operation or not, change the attribute in self without callback to attributeSetters
     if stealth:
         self.__dict__[attrib] = value  # without logging as well
