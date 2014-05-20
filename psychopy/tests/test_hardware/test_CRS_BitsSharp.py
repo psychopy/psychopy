@@ -4,7 +4,7 @@ Created on Thu May  8 10:46:41 2014
 
 @author: jon.peirce
 """
-
+import pytest
 from psychopy import visual, core, event
 from psychopy.hardware import crs
 
@@ -12,6 +12,9 @@ win = visual.Window(screen=1, fullscr=True, useFBO=True)
 win.setGamma(1.0) #make sure gfx card LUT is identity
 #initialise BitsSharp
 bits = crs.BitsSharp(win=win, mode='color++')
+if not bits.OK:
+    win.close()
+    pytest.skip("No BitsSharp connected")
 print bits.info
 
 #switch to status screen (while keeping in mono 'mode')

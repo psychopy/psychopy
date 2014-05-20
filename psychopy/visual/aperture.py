@@ -21,7 +21,7 @@ import psychopy.event
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
-from psychopy.tools.attributetools import attributeSetter, setWithOperation, callAttributeSetter
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.shape import ShapeStim
 from psychopy.visual.basevisual import MinimalStim, ContainerMixin
 
@@ -50,7 +50,7 @@ class Aperture(MinimalStim, ContainerMixin):
         2014, Jeremy Gray added .contains() option
     """
     def __init__(self, win, size=1, pos=(0,0), ori=0, nVert=120, shape='circle', units=None,
-            name='', autoLog=True):
+            name=None, autoLog=None):
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
@@ -65,7 +65,7 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['size'] = size
         self.__dict__['pos'] = pos
         self.__dict__['ori'] = ori
-        self.name = name
+        
         #unit conversions
         if units!=None and len(units):
             self.units = units
@@ -96,8 +96,10 @@ class Aperture(MinimalStim, ContainerMixin):
         self._needVertexUpdate = True
         self._needReset = True  # Default when setting attributes
         self._reset()  #implicitly runs a self.enabled = True. Also sets self._needReset = True on every call
-        self.autoLog= autoLog
-        if autoLog:
+        
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
     def _reset(self):
         """Internal method to rebuild the shape - shouldn't be called by the user.
@@ -135,12 +137,12 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['size'] = size
         self._shape.size = size  # a ShapeStim
         self._reset()
-    def setSize(self, size, needReset=True, log=True):
+    def setSize(self, size, needReset=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         self._needReset = needReset
-        callAttributeSetter(self, 'size', size, log)
+        setAttribute(self, 'size', size, log)
     @attributeSetter
     def ori(self, ori):
         """Set the orientation of the Aperture.
@@ -153,12 +155,12 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['ori'] = ori
         self._shape.ori = ori  # a ShapeStim
         self._reset()
-    def setOri(self, ori, needReset=True, log=True):
+    def setOri(self, ori, needReset=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
         self._needReset = needReset
-        callAttributeSetter(self, 'ori', ori, log)
+        setAttribute(self, 'ori', ori, log)
     @attributeSetter
     def pos(self, pos):
         """Set the pos (centre) of the Aperture. :ref:`Operations <attrib-operations>` supported.
@@ -172,12 +174,12 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['pos'] = numpy.array(pos)
         self._shape.pos = self.pos  # a ShapeStim
         self._reset()
-    def setPos(self, pos, needReset=True, log=True):
+    def setPos(self, pos, needReset=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         self._needReset = needReset
-        callAttributeSetter(self, 'pos', pos, log)
+        setAttribute(self, 'pos', pos, log)
     @property
     def posPix(self):
         """The position of the aperture in pixels

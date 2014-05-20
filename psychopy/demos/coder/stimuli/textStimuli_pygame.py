@@ -51,10 +51,10 @@ psychopyTxt = visual.TextStim(myWin, rgb=+1,
                         
 trialClock = core.Clock()
 t=lastFPSupdate=0;
-while t<20:#quits after 20 secs
+while not event.getKeys(keyList=['q', 'escape']):
     t=trialClock.getTime()
     
-    rotating.setOri(1,"+")
+    rotating.ori += 1
     rotating.draw()
     
     unicodeStuff.draw()
@@ -65,12 +65,8 @@ while t<20:#quits after 20 secs
     fpsText.draw()
     psychopyTxt.draw()
     
-    for key in event.getKeys():
-        if key in ['q', 'Esc']:
-            core.quit()
     #in pygame mouse and key events share one buffer. Need to clear them 
     #in case the large number of mouse events fill the buffer preventing keys to be seen
     event.clearEvents('mouse')#only really needed for pygame windows
     
     myWin.flip()
-

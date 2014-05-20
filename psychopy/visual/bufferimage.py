@@ -80,7 +80,7 @@ class BufferImageStim(GratingStim):
     """
     def __init__(self, win, buffer='back', rect=(-1, 1, 1, -1), sqPower2=False,
         stim=(), interpolate=True, flipHoriz=False, flipVert=False, mask='None', pos=(0,0),
-        name='', autoLog=True):
+        name=None, autoLog=None):
         """
         :Parameters:
 
@@ -153,9 +153,11 @@ class BufferImageStim(GratingStim):
         self.thisScale = numpy.array([4, 4])
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
-        self.autoLog = autoLog
-
+        
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
         if self.autoLog:
+            logging.exp("Created %s = %s" %(self.name, str(self)))
             logging.exp('BufferImageStim %s: took %.1fms to initialize' % (name, 1000 * _clock.getTime()))
 
     @attributeSetter
@@ -227,13 +229,13 @@ class BufferImageStim(GratingStim):
         Note that this is relative to the original image, not relative to the current state.
         """
         self.__dict__['flipVert'] = flipVert    
-    def setFlipHoriz(self, newVal=True, log=True):
+    def setFlipHoriz(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
         self.flipHoriz = newVal
         logAttrib(self, log, 'flipHoriz')
-    def setFlipVert(self, newVal=True, log=True):
+    def setFlipVert(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """

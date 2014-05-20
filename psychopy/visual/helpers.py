@@ -15,7 +15,7 @@ from psychopy import core, logging, colors
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import setWithOperation
+from psychopy.tools.attributetools import setAttribute
 
 import numpy
 
@@ -133,9 +133,12 @@ def setColor(obj, color, colorSpace=None, operation='',
                 colorSpaceAttrib=None, #e.g. 'colorSpace' or 'fillColorSpace'
                 log=True):
     """Provides the workings needed by setColor, and can perform this for
-    any arbitrary color type (e.g. fillColor,lineColor etc)
+    any arbitrary color type (e.g. fillColor,lineColor etc).
+    
+    OBS: log argument is deprecated - has no effect now. Logging should be done
+    when setColor() is called.
     """
-
+    
     #how this works:
     #rather than using obj.rgb=rgb this function uses setattr(obj,'rgb',rgb)
     #color represents the color in the native space
@@ -166,9 +169,9 @@ def setColor(obj, color, colorSpace=None, operation='',
         else:
             raise AttributeError("PsychoPy can't interpret the color string '%s'" %color)
 
-    # If it wasn't a strin, do check and conversion of scalars, sequences and other stuff.
+    # If it wasn't a string, do check and conversion of scalars, sequences and other stuff.
     else:
-        color = val2array(color, length=3)
+        color = val2array(color, length=3)  # enforces length 1 or 3
 
         if color==None:
             setattr(obj,rgbAttrib,None)#e.g. obj.rgb=[0,0,0]
@@ -176,13 +179,13 @@ def setColor(obj, color, colorSpace=None, operation='',
             obj.__dict__[colorAttrib] = None  #e.g. obj.color='#000000'
             setTexIfNoShaders(obj)
 
-    #at this point we have a numpy array of 3 vals (actually we haven't checked that there are 3)
+    #at this point we have a numpy array of 3 vals
     #check if colorSpace is given and use obj.colorSpace if not
     if colorSpace==None:
         colorSpace=getattr(obj,colorSpaceAttrib)
         #using previous color space - if we got this far in the _stColor function
         #then we haven't been given a color name - we don't know what color space to use.
-        if colorSpace == 'named':
+        if colorSpace in ('named', 'hex'):
             logging.error("If you setColor with a numeric color value then you need to specify a color space, e.g. setColor([1,1,-1],'rgb'), unless you used a numeric value previously in which case PsychoPy will reuse that color space.)")
             return
     #check whether combining sensible colorSpaces (e.g. can't add things to hex or named colors)
@@ -193,7 +196,10 @@ def setColor(obj, color, colorSpace=None, operation='',
             raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"\
                 %(operation, obj.colorSpace, colorSpace))
     else:#OK to update current color
-        setWithOperation(obj, colorAttrib, color, operation, True)
+        if colorSpace == 'named':
+            obj.__dict__[colorAttrib] = color  # operations don't make sense for named
+        else:
+            setAttribute(obj, colorAttrib, color, log=False, operation=operation, stealth=True)
     #get window (for color conversions)
     if colorSpace in ['dkl','lms']: #only needed for these spaces
         if hasattr(obj,'dkl_rgb'):
@@ -230,19 +236,6 @@ def setColor(obj, color, colorSpace=None, operation='',
     obj.__dict__[colorSpaceAttrib] = colorSpace  #store name of colorSpace for future ref and for drawing
     #if needed, set the texture too
     setTexIfNoShaders(obj)
-
-    if hasattr(obj, 'autoLog'):
-        autoLog = obj.autoLog
-    else:
-        autoLog = False
-    if autoLog and log:
-        if hasattr(obj,'win'):
-            obj.win.logOnFlip("Set %s.%s=%s (%s)" %(obj.name,colorAttrib,newColor,colorSpace),
-                level=logging.EXP,obj=obj)
-        else:
-            obj.logOnFlip("Set Window %s=%s (%s)" %(colorAttrib,newColor,colorSpace),
-                level=logging.EXP,obj=obj)
-
 
 # for groupFlipVert:
 immutables = set([int, float, str, tuple, long, bool,

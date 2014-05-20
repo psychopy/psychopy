@@ -2,7 +2,7 @@
 """Using multiple screens and windows with PsychoPy
 """
 
-from psychopy import visual, event, core
+from psychopy import visual, event
 from numpy import sin, pi#numeric python for doing some maths
 
 if True: #use two positions on one screen
@@ -24,20 +24,25 @@ targetStimR= visual.GratingStim(winR, ori=20,tex='sin',mask='circle',size=0.4,sf
     autoLog=False)#this stim changes too much for autologging to be useful
 
 t=0.0
-while t<10:
+while True:
     t=t+0.01
     newX = sin(t*pi*2)*0.05+0.05#don't let it go behind the context (looks weird if it switches)
         
     contextPatchR.draw()
-    targetStimR.setPos([newX,0])#make this patch move the opposite way
+    targetStimR.pos = [newX, 0]  #make this patch move the opposite way
     targetStimR.draw()
         
     contextPatchL.draw()
-    targetStimL.setPos([-newX,0])
+    targetStimL.pos = [-newX, 0]
     targetStimL.draw()
     
     winL.flip()
     winR.flip()
     
+    # Break out of loop on escape/q
+    if event.getKeys(keyList=['escape', 'q']):
+        break
+    
+# Close windows
 winR.close()
 winL.close()

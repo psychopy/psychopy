@@ -12,7 +12,7 @@ from psychopy import logging
 import numpy
 
 from psychopy.visual.shape import ShapeStim
-from psychopy.tools.attributetools import attributeSetter, callAttributeSetter
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 
 
 class Line(ShapeStim):
@@ -37,7 +37,7 @@ class Line(ShapeStim):
 
         self.__dict__['start'] = numpy.array(start)
         self.__dict__['end'] = numpy.array(end)
-        self.vertices = [start, end]
+        self.__dict__['vertices'] = [start, end]
         kwargs['closeShape'] = False # Make sure nobody messes around here
         kwargs['vertices'] = self.vertices
         kwargs['fillColor'] = None
@@ -50,11 +50,11 @@ class Line(ShapeStim):
         Specifies the position of the start of the line. :ref:`Operations <attrib-operations>` supported."""
         self.__dict__['start'] = numpy.array(start)
         self.setVertices([self.start, self.end], log=False)
-    def setStart(self, start, log=True):
+    def setStart(self, start, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        callAttributeSetter(self, 'start', start, log)
+        setAttribute(self, 'start', start, log)
 
     @attributeSetter
     def end(self, end):
@@ -63,11 +63,11 @@ class Line(ShapeStim):
         Specifies the position of the end of the line. :ref:`Operations <attrib-operations>` supported."""
         self.__dict__['end'] = numpy.array(end)
         self.setVertices([self.start, self.end], log=False)
-    def setEnd(self, end, log=True):
+    def setEnd(self, end, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        callAttributeSetter(self, 'end', end, log)
+        setAttribute(self, 'end', end, log)
 
     # Not meaningful for a line, thus deleted
     def contains(self):

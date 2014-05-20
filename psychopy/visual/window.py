@@ -45,7 +45,7 @@ import psychopy.event
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.tools.attributetools import attributeSetter, callAttributeSetter
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy import makeMovies
 from psychopy.visual.text import TextStim
@@ -178,9 +178,6 @@ class Window(object):
             waitBlanking : *None*, True or False.
                 After a call to flip() should we wait for the blank before
                 the script continues
-            gamma :
-                Monitor gamma for linearisation (will use Bits++ if possible).
-                Overrides monitor settings
             bitsMode :
                 DEPRECATED in 1.80.02. Use BitsSharp class from pycrsltd instead.
             checkTiming: True of False
@@ -207,9 +204,13 @@ class Window(object):
         self._initParams = dir()
         for unecess in ['self', 'checkTiming', 'rgb', 'dkl', ]:
             self._initParams.remove(unecess)
-
+        
+        # Check autoLog value
+        if not autoLog in (True, False):
+            raise ValueError('autoLog must be either True or False for visual.Window')
+        
+        self.autoLog = False  # to suppress log msg during init
         self.name = name
-        self.autoLog = autoLog  # to suppress log msg during testing
         self.size = numpy.array(size, numpy.int)
         self.pos = pos
         # this will get overridden once the window is created
@@ -224,7 +225,7 @@ class Window(object):
         # convert to a Monitor object
         if not monitor:
             self.monitor = monitors.Monitor('__blank__', autoLog=autoLog)
-        if isinstance(monitor, basestring):
+        elif isinstance(monitor, basestring):
             self.monitor = monitors.Monitor(monitor, autoLog=autoLog)
         elif hasattr(monitor, 'keys'):
             #convert into a monitor object
@@ -302,7 +303,7 @@ class Window(object):
                             "Please use color and colorSpace args instead")
             color = lms
             colorSpace = 'lms'
-        self.setColor(color, colorSpace=colorSpace)
+        self.setColor(color, colorSpace=colorSpace, log=False)
 
         self.allowStencil = allowStencil
         #check whether FBOs are supported
@@ -356,6 +357,10 @@ class Window(object):
         else:
             self._refreshThreshold = (1.0/60)*1.2  # guess its a flat panel
         openWindows.append(self)
+        
+        self.autoLog = autoLog
+        if self.autoLog:
+            logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def __del__(self):
         try:
@@ -406,18 +411,14 @@ class Window(object):
             Window.saveFrameIntervals()
         """
         # was off, and now turning it on
-        if not self.recordFrameIntervals and value:
-            self.recordFrameIntervalsJustTurnedOn = True
-        else:
-            self.recordFrameIntervalsJustTurnedOn = False
+        self.recordFrameIntervalsJustTurnedOn = not self.recordFrameIntervals and value
         self.__dict__['recordFrameIntervals'] = value
         self.frameClock.reset()
 
-    def setRecordFrameIntervals(self, value=True, log=True):
+    def setRecordFrameIntervals(self, value=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        self.recordFrameIntervals = value
-        #callAttributeSetter(self, 'recordFrameIntervals', value, log)
+        setAttribute(self, 'recordFrameIntervals', value, log)
 
     def saveFrameIntervals(self, fileName=None, clear=True):
         """Save recorded screen frame intervals to disk, as comma-separated
@@ -985,10 +986,10 @@ class Window(object):
                 self._progSignedTexMask = self._shaders['signedTexMask_adding']
                 self._progSignedTexMask1D = self._shaders['signedTexMask1D_adding']
                 self._progImageStim = self._shaders['imageStim_adding']
-    def setBlendMode(self, blendMode, log=True):
+    def setBlendMode(self, blendMode, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        callAttributeSetter(self, 'blendMode', blendMode, log)
+        setAttribute(self, 'blendMode', blendMode, log)
 
     @attributeSetter
     def color(self, color):
@@ -997,83 +998,42 @@ class Window(object):
         NB This command sets the color that the blank screen will have on the
         next clear operation. As a result it effectively takes TWO `flip()`
         operations to become visible (the first uses the color to create the
-        new screen, the second presents that screen to the viewer).
+        new screen, the second presents that screen to the viewer). For this
+        reason, if you want to changed background color of the window "on the 
+        fly", it might be a better idea to draw a `visual.Rect` that fills the
+        whole window with the desired `Rect.fillColor` attribute. 
+        That'll show up on first flip.
+        
+        See other stimuli (e.g. :ref:`GratingStim.color`) for more info on the
+        color attribute which essentially works the same on all PsychoPy stimuli.
 
         See :ref:`colorspaces` for further information about the ways to
-        specify colors and their various implications.
-
-        Can be specified in one of many ways. If a string is given then it
-        is interpreted as the name of the color. Any of the standard
-        html/X11 `color names <http://www.w3schools.com/html/html_colornames.asp>`
-        can be used. e.g.::
-
-            myStim.color = 'white'
-            myStim.color = 'RoyalBlue'  #(the case is actually ignored)
-
-        A hex value can be provided, also formatted as with web colors.
-        This can be provided as a string that begins with
-        (not using python's usual 0x000000 format)::
-
-            myStim.color = '#DDA0DD'  #DDA0DD is hexadecimal for plum
-
-        You can also provide a triplet of values, which refer to the
-        coordinates in one of the :ref:`colorspaces`. If no color space is
-        specified then the color space most recently used for this
-        stimulus is used again.
-
-        You can use :ref:`operations <attrib-operations>` for all numeric color
-        specifications. Examples::
-
-            # a red color in rgb space
-            myStim.colorSpace = 'rgb'  # not really necessary since this is the default
-            myStim.color = [1.0, -1.0, -1.0]  # clear red
-            myStim.color *= -1  # inverts color in the rgb colorspace
-
-            # DKL space with elev=0, azimuth=45
-            myStim.colorSpace = 'dkl'
-            myStim.color = [0.0, 45.0, 1.0]
-            myStim.color -= [0, 0, 1]  # subtract 1 from radius in DKL
-
-            # a blue stimulus using rgb255 space
-            myStim.colorSpace = 'rgb255'
-            myStim.color = [0, 0, 255]  # clear blue
-            myStim.color += [255, 128, 0]  # add red and a bit of green
-
-            # A shorter way of all the above if you change colorSpace often:
-            myStim.setColor([1.0, -1.0, -1.0], 'rgb', '*')  # clear red, then invert
-            myStim.setColor([0.0, 45.0, 1.0], 'dkl')
-            myStim.setColor([0, 0, 255], 'rgb255')  # clear blue
-
-        Lastly, a single number can be provided, x,
-        which is equivalent to providing [x,x,x].
-
-            myStim.setColor(255, 'rgb255')  # [255, 255, 255] = white (all guns o max)"""
+        specify colors and their various implications."""
         self.setColor(color)
     @attributeSetter
     def colorSpace(self, colorSpace):
-        """string or None
-
-        defining which of the :ref:`colorspaces` to use. For strings and
-        hex values this is not needed. If None the default colorSpace for
-        the stimulus is used (defined during initialisation).
-
-        See :ref:`colorspaces` for further information about the ways to
-        specify colors and their various implications.
-
-        Usually used in conjunction with :ref:`color` like this::
-
+        """string
+        
+        See the documentation for colorSpace in the stimuli, e.g. :ref:`GratingStim.colorSpace`.
+        
+        Usually used in conjunction with ``color`` like this::
+        
             win.colorSpace = 'rgb255'  # changes colorSpace but not the value of win.color
             win.color = [0, 0, 255]  # clear blue in rgb255
 
-        See more examples in the documentation for ``Window.color``.
-        """
+        See :ref:`colorspaces` for further information about the ways to
+        specify colors and their various implications."""
         self.__dict__['colorSpace'] = colorSpace
-        # these spaces are 0-centred
-        if self.colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
+        
+        # These spaces are 0-centred
+        if colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
             # RGB in range 0:1 and scaled for contrast
-            desiredRGB = (self.rgb+1)/2.0
-        else:
-            desiredRGB = (self.rgb)/255.0
+            desiredRGB = (self.rgb + 1) / 2.0
+        # rgb255 and named are not...
+        elif type(colorSpace) is str:
+            desiredRGB = (self.rgb) / 255.0
+        else:  # some array/numeric stuff
+            raise ValueError('invalid value "%s" for Window.colorSpace' %colorSpace)
 
         # if it is None then this will be done during window setup
         if self.winHandle is not None:
@@ -1081,15 +1041,22 @@ class Window(object):
                 self.winHandle.switch_to()
             GL.glClearColor(desiredRGB[0], desiredRGB[1], desiredRGB[2], 1.0)
 
-    def setColor(self, color, colorSpace=None, operation=''):
+    def setColor(self, color, colorSpace=None, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you want to set color and colorSpace simultaneously.
-        See `Window.color` for documentation on `Window.setColor()`.
+        See `Window.color` for documentation on colors.
         """
+        
+        # Set color
         setColor(self, color, colorSpace=colorSpace, operation=operation,
                  rgbAttrib='rgb',  # or 'fillRGB' etc
                  colorAttrib='color')
-        self.colorSpace = colorSpace  # call attributeSetter
+        
+        # Set colorSpace to not-None
+        if colorSpace is None:
+            setAttribute(self, 'colorSpace', self.colorSpace, log)
+        else:
+            setAttribute(self, 'colorSpace', colorSpace, log)
 
     def setRGB(self, newRGB):
         """Deprecated: As of v1.61.00 please use `setColor()` instead
@@ -1158,10 +1125,10 @@ class Window(object):
         elif self.winType == 'pyglet':
             self.winHandle.setGamma(self.winHandle, self.gamma)
 
-    def setGamma(self, gamma, log=True):
+    def setGamma(self, gamma, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        callAttributeSetter(self, 'gamma', gamma, log)
+        setAttribute(self, 'gamma', gamma, log)
 
     def _checkGamma(self, gamma=None):
         if gamma is None:
@@ -1507,10 +1474,10 @@ class Window(object):
         elif self.winType == 'pyglet':
             self.winHandle.set_mouse_visible(visibility)
         self.__dict__['mouseVisible'] = visibility
-    def setMouseVisible(self, visibility, log=True):
+    def setMouseVisible(self, visibility, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        callAttributeSetter(self, 'mouseVisible', visibility, log)
+        setAttribute(self, 'mouseVisible', visibility, log)
 
     def getActualFrameRate(self, nIdentical=10, nMaxFrames=100,
                            nWarmUpFrames=10, threshold=1):

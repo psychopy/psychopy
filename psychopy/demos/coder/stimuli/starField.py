@@ -25,8 +25,7 @@ win = visual.Window([800,600],rgb=[-1,-1,-1])
 dots = visual.ElementArrayStim(win, elementTex=None, elementMask='circle', 
     nElements=nDots, sizes=dotSize)
 
-for frameN in range(400):
-    
+while True:
     #update radius
     dotsRadius = (dotsRadius+speed)
     #random radius where radius too large
@@ -35,7 +34,11 @@ for frameN in range(400):
     
     dotsX, dotsY = pol2cart(dotsTheta,dotsRadius)
     dotsX *= 0.75 #to account for wider aspect ratio
-    dots.setXYs(numpy.array([dotsX, dotsY]).transpose())
+    dots.xys = numpy.array([dotsX, dotsY]).transpose()
     dots.draw()
     
     win.flip()
+    
+    # Exit on escape
+    if event.getKeys(keyList=['escape', 'q']):
+        break

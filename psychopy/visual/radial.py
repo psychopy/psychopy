@@ -22,7 +22,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import attributeSetter, callAttributeSetter, setWithOperation
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.grating import GratingStim
 
 try:
@@ -69,8 +69,8 @@ class RadialStim(GratingStim):
                  depth=0,
                  rgbPedestal = (0.0,0.0,0.0),
                  interpolate=False,
-                 name='', 
-                 autoLog=True,
+                 name=None, 
+                 autoLog=None,
                  maskParams=None):        
         """ """ # Empty docstring on __init__, Simply inherits methods from GratingStim
         #what local vars are defined (these are the init params) for use by __repr__
@@ -105,15 +105,15 @@ class RadialStim(GratingStim):
         self.colorSpace=colorSpace
         if rgb!=None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(rgb, colorSpace='rgb')
+            self.setColor(rgb, colorSpace='rgb', log=False)
         elif dkl!=None:
             logging.warning("Use of dkl arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(dkl, colorSpace='dkl')
+            self.setColor(dkl, colorSpace='dkl', log=False)
         elif lms!=None:
             logging.warning("Use of lms arguments to stimuli are deprecated. Please use color and colorSpace args instead")
-            self.setColor(lms, colorSpace='lms')
+            self.setColor(lms, colorSpace='lms', log=False)
         else:
-            self.setColor(color)
+            self.setColor(color, log=False)
 
         self.ori = float(ori)
         self.__dict__['angularRes'] = angularRes
@@ -135,10 +135,10 @@ class RadialStim(GratingStim):
         #
         self._updateEverything()
         
-        #set autoLog (now that params have been initialised)
-        self.autoLog= autoLog
-        if autoLog:
-            logging.exp("Created %s = %s" %(self.name, repr(self)))
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
+            logging.exp("Created %s = %s" %(self.name, str(self)))
 
     @attributeSetter
     def mask(self, value):
@@ -218,11 +218,11 @@ class RadialStim(GratingStim):
         GL.glEnable(GL.GL_TEXTURE_1D)
 
         self._needUpdate = True
-    def setMask(self, value, log=True):
+    def setMask(self, value, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        callAttributeSetter(self, 'mask', value, log)
+        setAttribute(self, 'mask', value, log)
     
     def _setRadialAtribute(self, attr, value):
         """ Internal helper function to reduce redundancy """
@@ -237,11 +237,11 @@ class RadialStim(GratingStim):
         
         :ref:`Operations <attrib-operations>` supported."""
         self._setRadialAtribute('angularCycles', value)
-    def setAngularCycles(self, value, operation='', log=True):
+    def setAngularCycles(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'angularCycles', value, operation, autoLog=log)  # calls the attributeSetter
+        setAttribute(self, 'angularCycles', value, log, operation)  # calls the attributeSetter
     
     @attributeSetter
     def radialCycles(self, value):
@@ -250,11 +250,11 @@ class RadialStim(GratingStim):
         
         :ref:`Operations <attrib-operations>` supported."""
         self._setRadialAtribute('radialCycles', value)
-    def setRadialCycles(self, value, operation='', log=True):
+    def setRadialCycles(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'radialCycles', value, operation, autoLog=log)  # calls the attributeSetter
+        setAttribute(self, 'radialCycles', value, log, operation)  # calls the attributeSetter
         
     @attributeSetter
     def angularPhase(self, value):
@@ -266,11 +266,11 @@ class RadialStim(GratingStim):
        
         :ref:`Operations <attrib-operations>` supported."""
         self._setRadialAtribute('angularPhase', value)
-    def setAngularPhase(self, value, operation='', log=True):
+    def setAngularPhase(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'angularPhase', value, operation, autoLog=log)  # calls the attributeSetter
+        setAttribute(self, 'angularPhase', value, log, operation)  # calls the attributeSetter
 
     @attributeSetter
     def radialPhase(self, value):
@@ -280,11 +280,11 @@ class RadialStim(GratingStim):
         
         :ref:`Operations <attrib-operations>` supported."""
         self._setRadialAtribute('radialPhase', value)
-    def setRadialPhase(self, value, operation='', log=True):
+    def setRadialPhase(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        setWithOperation(self, 'radialPhase', value, operation, autoLog=log)  # calls the attributeSetter
+        setAttribute(self, 'radialPhase', value, log, operation)  # calls the attributeSetter
     
     def _updateEverything(self):
         """Internal helper function for angularRes and visibleWedge (and init)"""

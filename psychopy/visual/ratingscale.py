@@ -17,7 +17,7 @@ from psychopy.visual.shape import ShapeStim
 from psychopy.visual.text import TextStim
 from psychopy.visual.basevisual import MinimalStim
 from psychopy.visual.helpers import pointInPolygon, groupFlipVert
-from psychopy.tools.attributetools import attributeSetter, setWithOperation, logAttrib
+from psychopy.tools.attributetools import logAttrib
 from psychopy.constants import FINISHED, STARTED, NOT_STARTED
 
 
@@ -123,7 +123,7 @@ class RatingScale(MinimalStim):
                 maxTime=0.0,
                 flipVert=False,
                 depth=0,
-                name='',
+                name=None,
                 autoLog=True,
                 **kwargs  # catch obsolete args
                 ):
@@ -234,11 +234,6 @@ class RatingScale(MinimalStim):
             Can be useful when showing multiple scales.
         flipVert :
             Whether to mirror-reverse the rating scale in the vertical direction.
-        name : string
-            The name of the object to be using during logged messages about
-            this stim.
-        autolog :
-            Whether logging should be done automatically.
     """
         # what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
@@ -260,7 +255,6 @@ class RatingScale(MinimalStim):
 
         self.autoLog = False # needs to start off False
         self.win = win
-        self.name = name
         self.disappear = disappear
 
         # internally work in norm units, restore to orig units at the end of __init__:

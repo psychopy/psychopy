@@ -28,7 +28,7 @@ from psychopy import logging
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import attributeSetter, setWithOperation, callAttributeSetter
+from psychopy.tools.attributetools import attributeSetter, logAttrib, setAttribute
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg, convertToPix
 from psychopy.visual.helpers import pointInPolygon, polygonsOverlap, setColor
@@ -40,6 +40,8 @@ import numpy
 from numpy import pi
 
 from psychopy.constants import NOT_STARTED, STARTED, STOPPED
+
+reportNImageResizes = 5 #permitted number of resizes
 
 """
 There are several base and mix-in visual classes for mulitple inheritance:
@@ -55,7 +57,9 @@ There are several base and mix-in visual classes for mulitple inheritance:
         seems to work; caveat: There were issues in earlier (non-MI) versions
         of using _createTexture so it was pulled out of classes. Now its inside
         classes again. Should be watched.
-  - BaseVisualStim:    = Minimal + Legacy
+  - WindowMixin:       for attributes and methods related to Windows.
+  - BaseVisualStim:    = Minimal + Window + Legacy. Furthermore adds common attributes
+        like orientation, opacity, contrast etc.
 
 Typically subclass BaseVisualStim to create new visual stim classes, and add
 mixin(s) as needed to add functionality.
@@ -66,8 +70,8 @@ class MinimalStim(object):
 
     Includes: name, autoDraw, autoLog, status, __str__
     """
-    def __init__(self, name='', autoLog=True):
-        self.name = name
+    def __init__(self, name=None, autoLog=None):
+        self.__dict__['name'] = name if name not in (None, '') else 'unnamed %s' %self.__class__.__name__
         self.status = NOT_STARTED
         self.autoLog = autoLog
         super(MinimalStim, self).__init__()
@@ -105,9 +109,12 @@ class MinimalStim(object):
     # appears in docs and that name setting and updating is logged.
     @attributeSetter
     def name(self, value):
-        """The name of the object to be using during logged messages about
+        """String or None. The name of the object to be using during logged messages about
         this stim. If you have multiple stimuli in your experiment this really
         helps to make sense of log files!
+
+        If name = None your stimulus will be called "unnamed <type>", e.g.
+        visual.TextStim(win) will be called "unnamed TextStim" in the logs.
         """
         self.__dict__['name'] = value
 
@@ -140,10 +147,10 @@ class MinimalStim(object):
             toDraw.remove(self)  #remove from draw list
             self.status = STOPPED
 
-    def setAutoDraw(self, value, log=True):
+    def setAutoDraw(self, value, log=None):
         """Sets autoDraw. Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
-        self.autoDraw = value
+        setAttribute(self, 'autoDraw', value, log)
 
     @attributeSetter
     def autoLog(self, value):
@@ -155,10 +162,10 @@ class MinimalStim(object):
         """
         self.__dict__['autoLog'] = value
 
-    def setAutoLog(self, value=True):
+    def setAutoLog(self, value=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
-        self.__dict__['autoLog'] = value
+        setAttribute(self, 'autoLog', value, log)
 
 class LegacyVisualMixin(object):
     """Class to hold deprecated visual methods and attributes.
@@ -205,7 +212,7 @@ class LegacyVisualMixin(object):
         """
         self._set('lms', value=newLMS, op=operation)
         self.setRGB(lms2rgb(self.lms, self.win.lms_rgb))
-    def setRGB(self, newRGB, operation='', log=True):
+    def setRGB(self, newRGB, operation='', log=None):
         """DEPRECATED since v1.60.05: Please use the `color` attribute
         """
         from psychopy.visual.helpers import setTexIfNoShaders
@@ -231,7 +238,10 @@ class ColorMixin(object):
         """Color of the stimulus
 
         Value should be one of:
-            + string: to specify a :ref:`colorNames` or :ref:`hexColors`
+            + string: to specify a :ref:`colorNames`. Any of the standard
+              html/X11 `color names <http://www.w3schools.com/html/html_colornames.asp>`
+              can be used.
+            + :ref:`hexColors`
             + numerically: (scalar or triplet) for DKL, RGB or other :ref:`colorspaces`. For
                 these, :ref:`operations <attrib-operations>` are supported.
 
@@ -240,23 +250,33 @@ class ColorMixin(object):
         single value (scalar) then this wil be applied to all 3 channels.
 
         Examples::
+                # ... for whatever stim you have, e.g. stim = visual.ShapeStim(win):
+                stim.color = 'white'
+                stim.color = 'RoyalBlue'  # (the case is actually ignored)
+                stim.color = '#DDA0DD'  # DDA0DD is hexadecimal for plum
+                stim.color = [1.0, -1.0, -1.0]  # if stim.colorSpace='rgb': a red color in rgb space
+                stim.color = [0.0, 45.0, 1.0]  # if stim.colorSpace='dkl': DKL space with elev=0, azimuth=45
+                stim.color = [0, 0, 255]  # if stim.colorSpace='rgb255': a blue stimulus using rgb255 space
+                stim.color = 255  # interpreted as (255, 255, 255) which is white in rgb255.
 
-                myStim.color = 'white'
-                myStim.color = 'RoyalBlue'  #(the case is actually ignored)
-                myStim.color = '#DDA0DD'  #DDA0DD is hexadecimal for plum
-                myStim.color = [1.0,-1.0,-1.0]  #if colorSpace='rgb': a red color in rgb space
-                myStim.color = [0.0,45.0,1.0] #if colorSpace='dkl': DKL space with elev=0, azimuth=45
-                myStim.color = [0,0,255] #if colorSpace='rgb255': a blue stimulus using rgb255 space
 
+        :ref:`Operations <attrib-operations>` work as normal for all numeric
+        colorSpaces (e.g. 'rgb', 'hsv' and 'rgb255') but not for strings, like
+        named and hex. For example, assuming that colorSpace='rgb'::
 
-        :ref:`Operations <attrib-operations>` work as normal. For example,
-        assuming that colorSpace='rgb'::
+            stim.color += [1, 1, 1]  # increment all guns by 1 value
+            stim.color *= -1  # multiply the color by -1 (which in this space inverts the contrast)
+            stim.color *= [0.5, 0, 1]  # decrease red, remove green, keep blue
 
-            thisStim.color += [1,1,1]  #increment all guns by 1 value
-            thisStim.color *= -1  #multiply the color by -1 (which in this space inverts the contrast)
-            thisStim.color *= [0.5, 0, 1]  #decrease red, remove green, keep blue
+        You can use `setColor` if you want to set color and colorSpace in one
+        line. These two are equivalent::
+
+            stim.setColor((0, 128, 255), 'rgb255')
+            # ... is equivalent to
+            stim.colorSpace = 'rgb255'
+            stim.color = (0, 128, 255)
         """
-        self.setColor(value)
+        self.setColor(value, log=False)  # logging already done by attributeSettter
 
     @attributeSetter
     def colorSpace(self, value):
@@ -268,7 +288,8 @@ class ColorMixin(object):
         If None the default colorSpace for the stimulus is
         used (defined during initialisation).
 
-        Please note that changing colorSpace does not change stimulus parameters. Example::
+        Please note that changing colorSpace does not change stimulus parameters.
+        Thus you usually want to specify colorSpace before setting the color. Example::
 
             # A light green text
             stim = visual.TextStim(win, 'Color me!', color=(0, 1, 0), colorSpace='rgb')
@@ -314,7 +335,7 @@ class ColorMixin(object):
                 #we'll need to update the textures for the stimulus
                 #(sometime before drawing but not now)
                 if self.__class__.__name__ == 'TextStim':
-                    self.setText(self.text)
+                    self.text = self.text  # call attributeSetter to rebuild text
                 elif hasattr(self,'_needTextureUpdate'): #GratingStim, RadialStim, ImageStim etc
                     self._needTextureUpdate = True
                 elif self.__class__.__name__ in ('ShapeStim','DotStim'):
@@ -323,7 +344,7 @@ class ColorMixin(object):
                     logging.warning('Tried to set contrast while useShaders = False but stimulus was not rebuild. Contrast might remain unchanged.')
         elif self.autoLog:
             logging.warning('Contrast was set on class where useShaders was undefined. Contrast might remain unchanged')
-    def setColor(self, color, colorSpace=None, operation='', log=True):
+    def setColor(self, color, colorSpace=None, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         and/or set colorSpace simultaneously.
@@ -331,15 +352,15 @@ class ColorMixin(object):
         # NB: the setColor helper function! Not this function itself :-)
         setColor(self,color, colorSpace=colorSpace, operation=operation,
                     rgbAttrib='rgb', #or 'fillRGB' etc
-                    colorAttrib='color',
-                    log=log)
+                    colorAttrib='color')
         if self.__class__.__name__ == 'TextStim' and not self.useShaders:
             self._needSetText = True
-    def setContrast(self, newContrast, operation='', log=True):
+        logAttrib(self, log, 'color', value='%s (%s)' %(self.color, self.colorSpace))
+    def setContrast(self, newContrast, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        self._set('contrast', newContrast, operation, log=log)
+        setAttribute(self, 'contrast', newContrast, log, operation)
 
     def _getDesiredRGB(self, rgb, colorSpace, contrast):
         """ Convert color to RGB while adding contrast
@@ -522,6 +543,8 @@ class TextureMixin(object):
                 if forcePOW2 and (tex.shape[0]!=powerOf2 or tex.shape[1]!=powerOf2):
                     logging.error("Requiring a square power of two (e.g. 16x16, 256x256) texture but didn't receive one")
                 res=tex.shape[0]
+            if useShaders:
+                dataType=GL.GL_FLOAT
         elif tex in [None,"none", "None"]:
             res=1 #4x4 (2x2 is SUPPOSED to be fine but generates wierd colors!)
             intensity = numpy.ones([res,res],numpy.float32)
@@ -665,13 +688,14 @@ class TextureMixin(object):
                     elif glob_vars.nImageResizes==reportNImageResizes:
                         logging.warning("Multiple images have needed resizing - I'll stop bothering you!")
                         im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
-
             #is it Luminance or RGB?
             if pixFormat==GL.GL_ALPHA and im.mode!='L':#we have RGB and need Lum
                 wasLum = True
                 im = im.convert("L")#force to intensity (in case it was rgb)
             elif im.mode=='L': #we have lum and no need to change
                 wasLum = True
+                if useShaders:
+                    dataType=GL.GL_FLOAT
             elif pixFormat==GL.GL_RGB: #we want RGB and might need to convert from CMYK or Lm
                 #texture = im.tostring("raw", "RGB", 0, -1)
                 im = im.convert("RGBA")
@@ -788,11 +812,11 @@ class TextureMixin(object):
             dataType = None
         self._createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, dataType=dataType,
             stim=self, res=self.texRes, maskParams=self.maskParams)
-    def setMask(self, value, log=True):
+    def setMask(self, value, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
-        callAttributeSetter(self, 'mask', value, log)
+        setAttribute(self, 'mask', value, log)
 
     @attributeSetter
     def texRes(self, value):
@@ -801,7 +825,7 @@ class TextureMixin(object):
         :ref:`Operations <attrib-operations>` supported.
         """
         self.__dict__['texRes'] = value
-        self.mask = self.mask
+        self.mask = self.mask  # call attributeSetter
 
     @attributeSetter
     def maskParams(self, value):
@@ -815,25 +839,9 @@ class TextureMixin(object):
         self.__dict__['maskParams'] = value
         self.mask = self.mask  # call attributeSetter
 
-class BaseVisualStim(MinimalStim, LegacyVisualMixin):
-    """A template for a visual stimulus class.
-
-    Actual visual stim like GratingStim, TextStim etc... are based on this.
-    Not finished...?
-
-    Methods defined here will override Minimal & Legacy, but best to avoid
-    that for simplicity & clarity.
-    """
-    def __init__(self, win, units=None, name='', autoLog=True):
-        self.autoLog = False  # just to start off during init, set at end
-        self.win = win
-        self.units = units
-        self._rotationMatrix = [[1.,0.],[0.,1.]] #no rotation as a default
-        # self.autoLog is set at end of MinimalStim.__init__
-        super(BaseVisualStim, self).__init__(name=name, autoLog=autoLog)
-        if self.autoLog:
-            logging.warning("%s is calling BaseVisualStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
-                            %(self.__class__.__name__))
+class WindowMixin(object):
+    """Window-related attributes and methods.
+    Used by BaseVisualStim, SimpleImageStim and ElementArrayStim."""
 
     @attributeSetter
     def win(self, value):
@@ -887,24 +895,6 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
             self.pos = self.pos
 
     @attributeSetter
-    def opacity(self, value):
-        """Determines how visible the stimulus is relative to background
-
-        The value should be a single float ranging 1.0 (opaque) to 0.0
-        (transparent). :ref:`Operations <attrib-operations>` are supported.
-        Precisely how this is used depends on the :ref:`blendMode`.
-        """
-        self.__dict__['opacity'] = value
-
-        if not 0 <= value <= 1 and self.autoLog:
-            logging.warning('Setting opacity outside range 0.0 - 1.0 has no additional effect')
-
-        #opacity is coded by the texture, if not using shaders
-        if hasattr(self, 'useShaders') and not self.useShaders:
-            if hasattr(self,'mask'):
-                self.mask = self.mask
-
-    @attributeSetter
     def useShaders(self, value):
         """Should shaders be used to render the stimulus (typically leave as `True`)
 
@@ -926,6 +916,68 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
             if self.__class__.__name__ == 'TextStim':
                 self._needSetText = True
             self._needUpdate = True
+    def setUseShaders(self, value=True, log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message"""
+        setAttribute(self, 'useShaders', value, log)  # call attributeSetter
+
+    def draw(self):
+        raise NotImplementedError('Stimulus classes must overide visual.BaseVisualStim.draw')
+
+    def _selectWindow(self, win):
+        #don't call switch if it's already the curr window
+        if win!=glob_vars.currWindow and win.winType=='pyglet':
+            win.winHandle.switch_to()
+            glob_vars.currWindow = win
+
+    def _updateList(self):
+        """
+        The user shouldn't need this method since it gets called
+        after every call to .set()
+        Chooses between using and not using shaders each call.
+        """
+        if self.useShaders:
+            self._updateListShaders()
+        else:
+            self._updateListNoShaders()
+
+class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
+    """A template for a visual stimulus class.
+
+    Actual visual stim like GratingStim, TextStim etc... are based on this.
+    Not finished...?
+
+    Methods defined here will override Minimal & Legacy, but best to avoid
+    that for simplicity & clarity.
+    """
+    def __init__(self, win, units=None, name='', autoLog=None):
+        self.autoLog = False  # just to start off during init, set at end
+        self.win = win
+        self.units = units
+        self._rotationMatrix = [[1.,0.],[0.,1.]] #no rotation as a default
+        # self.autoLog is set at end of MinimalStim.__init__
+        super(BaseVisualStim, self).__init__(name=name, autoLog=autoLog)
+        if self.autoLog:
+            logging.warning("%s is calling BaseVisualStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
+                            %(self.__class__.__name__))
+
+    @attributeSetter
+    def opacity(self, value):
+        """Determines how visible the stimulus is relative to background
+
+        The value should be a single float ranging 1.0 (opaque) to 0.0
+        (transparent). :ref:`Operations <attrib-operations>` are supported.
+        Precisely how this is used depends on the :ref:`blendMode`.
+        """
+        self.__dict__['opacity'] = value
+
+        if not 0 <= value <= 1 and self.autoLog:
+            logging.warning('Setting opacity outside range 0.0 - 1.0 has no additional effect')
+
+        #opacity is coded by the texture, if not using shaders
+        if hasattr(self, 'useShaders') and not self.useShaders:
+            if hasattr(self,'mask'):
+                self.mask = self.mask  # call attributeSetter
 
     @attributeSetter
     def ori(self, value):
@@ -1015,37 +1067,36 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
         self._needVertexUpdate=True
         self._needUpdate = True
 
-    def draw(self):
-        raise NotImplementedError('Stimulus classes must overide visual.BaseVisualStim.draw')
-
-    def setPos(self, newPos, operation='', log=True):
+    def setPos(self, newPos, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        self._set('pos', val=newPos, op=operation, log=log)
-    def setDepth(self, newDepth, operation='', log=True):
+        setAttribute(self, 'pos', val2array(newPos, False), log, operation)
+    def setDepth(self, newDepth, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        self._set('depth', newDepth, operation, log)
-    def setSize(self, newSize, operation='', units=None, log=True):
+        setAttribute(self, 'depth', newDepth, log, operation)
+    def setSize(self, newSize, operation='', units=None, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         if units==None: units=self.units#need to change this to create several units from one
-        self._set('size', newSize, op=operation, log=log)
-    def setOri(self, newOri, operation='', log=True):
+        setAttribute(self, 'size', val2array(newSize, False), log, operation)
+    def setOri(self, newOri, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        self._set('ori',val=newOri, op=operation, log=log)
-    def setOpacity(self, newOpacity, operation='', log=True):
+        setAttribute(self, 'ori', newOri, log, operation)
+    def setOpacity(self, newOpacity, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        self._set('opacity', newOpacity, operation, log=log)
-    def _set(self, attrib, val, op='', log=True):
+        setAttribute(self, 'opacity', newOpacity, log, operation)
+    def _set(self, attrib, val, op='', log=None):
         """
+        DEPRECATED since 1.80.04 + 1. Use setAttrib() in combination with val2array instead.
+
         Use this method when you want to be able to suppress logging (e.g., in
         tests). Typically better to use methods specific to the parameter, e.g. ::
 
@@ -1062,26 +1113,4 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
             val = val2array(val)
 
         # Handle operations
-        setWithOperation(self, attrib, val, op)
-        # logAttrib(self, log, attrib, val) #setWithOperation calls logAttrib
-
-    def setUseShaders(self, value=True):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message"""
-        self.useShaders = value
-    def _selectWindow(self, win):
-        #don't call switch if it's already the curr window
-        if win!=glob_vars.currWindow and win.winType=='pyglet':
-            win.winHandle.switch_to()
-            glob_vars.currWindow = win
-
-    def _updateList(self):
-        """
-        The user shouldn't need this method since it gets called
-        after every call to .set()
-        Chooses between using and not using shaders each call.
-        """
-        if self.useShaders:
-            self._updateListShaders()
-        else:
-            self._updateListNoShaders()
+        setAttribute(self, attrib, val, log, op)

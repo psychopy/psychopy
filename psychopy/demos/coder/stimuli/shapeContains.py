@@ -20,21 +20,21 @@ bufzone = visual.Circle(win, radius=30, edges=13, units='pix')
 while not mouse.isPressedIn(shape):
     instr.draw()
     # dynamic buffer zone around mouse pointer:
-    bufzone.setPos(mouse.getPos()*win.size/2)  # follow the mouse
-    bufzone.setSize(mouse.getWheelRel()[1]/20., '+')  # vert scroll adjusts radius, can go negative
+    bufzone.pos = mouse.getPos() * win.size / 2  # follow the mouse
+    bufzone.size += mouse.getWheelRel()[1] / 20.0  # vert scroll adjusts radius, can go negative
     # is the mouse inside the shape (hovering over it)?
     if shape.contains(mouse):
         msg.text = 'inside'
-        shape.setOpacity(1)
-        bufzone.setOpacity(1)
+        shape.opacity = 1
+        bufzone.opacity = 1
     elif shape.overlaps(bufzone):
         msg.text = 'near'
-        shape.setOpacity(.6)
-        bufzone.setOpacity(.6)
+        shape.opacity = 0.6
+        bufzone.opacity = 0.6
     else:
         msg.text = 'far away'
-        shape.setOpacity(0.2)
-        bufzone.setOpacity(0.2)
+        shape.opacity = 0.2
+        bufzone.opacity = 0.2
     bufzone.draw()  # drawing helps visualize the mechanics
     msg.draw()
     shape.draw()

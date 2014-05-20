@@ -280,9 +280,15 @@ class BitsSharp(BitsPlusPlus):
     ON linux, if you don't specify a port then /dev/ttyS0 will be used
     """
     def __init__(self, win=None, portName=None, mode=''):
+        self.OK=False
         if portName==None:
             if sys.platform == 'darwin':
-                portName = glob.glob('/dev/tty.usbmodemfa*')[0]
+                portNames = glob.glob('/dev/tty.usbmodemfa*')
+                if not portNames:
+                    logging.error("Could not connect to Bits Sharp: No serial ports were found at /dev/tty.usbmodemfa*")
+                    return None
+                else:
+                    portName = portNames[0]
             elif sys.platform.startswith('linux'):
                 portName = '/dev/ttyACM0'
         self.portName = portName
@@ -290,8 +296,7 @@ class BitsSharp(BitsPlusPlus):
         if self._com:
             self.OK=True
         else:
-            self.OK=False
-            return
+            return None
         self.info = self.getInfo()
         self.mode = mode
         self.win = win
