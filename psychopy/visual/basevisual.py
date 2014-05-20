@@ -1097,23 +1097,13 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         """
         setAttribute(self, 'opacity', newOpacity, log, operation)
     def _set(self, attrib, val, op='', log=None):
-        """
-        DEPRECATED since 1.80.04 + 1. Use setAttrib() in combination with val2array instead.
-
-        Use this method when you want to be able to suppress logging (e.g., in
-        tests). Typically better to use methods specific to the parameter, e.g. ::
-
-             stim.pos = [3,2.5]
-             stim.ori = 45
-             stim.phase += 0.5
-
-        NB this method does not flag the need for updates any more - that is
-        done by specific methods as described above.
-        """
-        if op==None: op=''
+        """DEPRECATED since 1.80.04 + 1. Use setAttribute() and val2array() instead."""
         #format the input value as float vectors
         if type(val) in [tuple, list, numpy.ndarray]:
             val = val2array(val)
-
-        # Handle operations
+        # Set attribute with operation and log
         setAttribute(self, attrib, val, log, op)
+        
+        # For DotStim
+        if attrib in ['nDots','coherence']:
+            self.coherence=round(self.coherence*self.nDots)/self.nDots
