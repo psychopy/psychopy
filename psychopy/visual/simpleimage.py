@@ -22,8 +22,10 @@ from psychopy import core, logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
+from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
-from psychopy.tools.attributetools import logAttrib, setAttribute
+from psychopy.tools.attributetools import setAttribute, attributeSetter
+from psychopy.visual.basevisual import MinimalStim, WindowMixin
 from . import glob_vars
 
 try:
@@ -34,7 +36,7 @@ except ImportError:
 import numpy
 
 
-class SimpleImageStim(object):
+class SimpleImageStim(MinimalStim, WindowMixin):
     """A simple stimulus for loading images from a file and presenting at exactly
     the resolution and color in the file (subject to gamma correction if set).
 
@@ -52,43 +54,31 @@ class SimpleImageStim(object):
                  pos     =(0.0,0.0),
                  flipHoriz=False,
                  flipVert=False,
-                 name='', autoLog=True):
+                 name=None, 
+                 autoLog=None):
         """
         :Parameters:
-            win :
-                a :class:`~psychopy.visual.Window` object (required)
             image :
                 The filename, including relative or absolute path. The image
                 can be any format that the Python Imagin Library can import
                 (almost any). Can also be an image already loaded by PIL.
-            units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'
-                If None then the current units of the :class:`~psychopy.visual.Window` will be used.
-                See :ref:`units` for explanation of other options.
             pos :
                 The centre of the stimulus, as a tuple (0., 0.) or a list [0., 0.] for the x and y.
                 The origin is the screen centre, the units are determined
                 by units (see above). Stimuli can be positioned off-screen, beyond the
                 window!
-            name : string
-                The name of the object to be using during logged messages about
-                this stim
         """
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
         self.autoLog = False
-        self.win=win
-        self.name = name
-        super(SimpleImageStim, self).__init__()
-
-        #unit conversions
-        if units!=None and len(units): self.units = units
-        else: self.units = win.units
-
-        self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
-
-        self.pos = numpy.array(pos, float)
-        self.setImage(image)
+        self.__dict__['win'] = win
+        super(SimpleImageStim, self).__init__(name=name)
+        
+        self.units = units  # call attributeSetter
+        self.useShaders = win._haveShaders  # call attributeSetter. Use shaders if available by default, this is a good thing
+        self.pos = pos  # call attributeSetter
+        self.image = image  # call attributeSetter
         #check image size against window size
         if (self.size[0]>self.win.size[0]) or (self.size[1]>self.win.size[1]):
             logging.warning("Image size (%s, %s)  was larger than window size (%s, %s). Will draw black screen." % (self.size[0], self.size[1], self.win.size[0], self.win.size[1]))
@@ -101,53 +91,49 @@ class SimpleImageStim(object):
             logging.warning("The image does not completely fit inside the window in the Y direction.")
 
         #flip if necessary
-        self.flipHoriz=False#initially it is false, then so the flip according to arg above
-        self.setFlipHoriz(flipHoriz)
-        self.flipVert=False#initially it is false, then so the flip according to arg above
-        self.setFlipVert(flipVert)
+        self.__dict__['flipHoriz'] = False  # initially it is false, then so the flip according to arg above
+        self.flipHoriz = flipHoriz  # call attributeSetter
+        self.__dict__['flipVert'] = False  # initially it is false, then so the flip according to arg above
+        self.flipVert = flipVert  # call attributeSetter
 
         self._calcPosRendered()
 
         #set autoLog (now that params have been initialised)
-        self.autoLog = autoLog
-        if autoLog:
-            logging.exp("Created %s = %s" %(self.name, repr(self)))
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
+            logging.exp("Created %s = %s" %(self.name, str(self)))
 
-    def setFlipHoriz(self,newVal=True, log=True):
-        """If set to True then the image will be flipped horiztonally (left-to-right).
+    @attributeSetter
+    def flipHoriz(self, value):
+        """True/False. If set to True then the image will be flipped horiztonally (left-to-right).
+        Note that this is relative to the original image, not relative to the current state."""
+        if value != self.flipHoriz:  # We need to make the flip
+            self.imArray = numpy.flipud(self.imArray)  # Numpy and pyglet disagree about ori so ud<=>lr
+        self.__dict__['flipHoriz'] = value
+        self._needStrUpdate=True
+    
+    def setFlipHoriz(self, newVal=True, log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message."""
+        setAttribute(self, 'flipHoriz', newVal, log)
+    
+    @attributeSetter
+    def flipVert(self, value):
+        """True/False. If set to True then the image will be flipped vertically (top-to-bottom).
         Note that this is relative to the original image, not relative to the current state.
         """
-        if newVal!=self.flipHoriz: #we need to make the flip
-            self.imArray = numpy.flipud(self.imArray)#numpy and pyglet disagree about ori so ud<=>lr
-        self.flipHoriz=newVal
-        logAttrib(self, log, 'flipHoriz')
+        if value != self.flipVert:  # We need to make the flip
+            self.imArray = numpy.fliplr(self.imArray)  # Numpy and pyglet disagree about ori so ud<=>lr
+        self.__dict__['flipVert'] = value
         self._needStrUpdate=True
-    def setFlipVert(self,newVal=True, log=True):
-        """If set to True then the image will be flipped vertically (top-to-bottom).
-        Note that this is relative to the original image, not relative to the current state.
-        """
-        if newVal!=self.flipVert: #we need to make the flip
-            self.imArray = numpy.fliplr(self.imArray)#numpy and pyglet disagree about ori so ud<=>lr
-        self.flipVert=newVal
-        logAttrib(self, log, 'flipVert')
-        self._needStrUpdate=True
-    def setUseShaders(self, val=True):
-        """Set this stimulus to use shaders if possible.
-        """
-        #NB TextStim overrides this function, so changes here may need changing there too
-        if val==True and self.win._haveShaders==False:
-            logging.error("Shaders were requested but aren't available. Shaders need OpenGL 2.0+ drivers")
-        if val!=self.useShaders:
-            self.useShaders=val
-            self.setImage()
+    def setFlipVert(self, newVal=True, log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message."""
+        setAttribute(self, 'flipVert', newVal, log)
+    
     def _updateImageStr(self):
         self._imStr=self.imArray.tostring()
         self._needStrUpdate=False
-    def _selectWindow(self, win):
-        #don't call switch if it's already the curr window
-        if win!=glob_vars.currWindow and win.winType=='pyglet':
-            win.winHandle.switch_to()
-            glob_vars.currWindow = win
     def draw(self, win=None):
         """
         Draw the stimulus in its relevant window. You must call
@@ -208,16 +194,32 @@ class SimpleImageStim(object):
             val=numpy.array(val, float)
 
         setAttribute(self, attrib, val, log, op)
-    def setPos(self, newPos, operation='', units=None, log=True):
-        self._set('pos', val=newPos, op=operation, log=log)
+    
+    @attributeSetter
+    def pos(self, value):
+        """:ref:`x,y-pair <attrib-xy>`. The position of the center of the image.
+        :ref:`operations <attrib-operations>` are supported."""
+        self.__dict__['pos'] = val2array(value, withNone=False)
         self._calcPosRendered()
-    def setDepth(self,newDepth, operation='', log=True):
-        self._set('depth', newDepth, operation, log=log)
+    def setPos(self, newPos, operation='', log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message."""
+        setAttribute(self, 'pos', newPos, log, operation)
+    
+    @attributeSetter
+    def depth(self, value):
+        """DEPRECATED. Depth is now controlled simply by drawing order."""
+        self.__dict__['depth'] = value
+    def setDepth(self,newDepth, operation='', log=None):
+        """DEPRECATED. Depth is now controlled simply by drawing order."""
+        setAttribute(self, 'depth', log, operation)
+
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in pixels"""
         self._posRendered = convertToPix(pos = self.pos, vertices=numpy.array([0,0]), units=self.units, win=self.win)
 
-    def setImage(self,filename=None, log=True):
+    @attributeSetter
+    def image(self, filename):
         """Set the image to be drawn.
 
         :Parameters:
@@ -225,7 +227,7 @@ class SimpleImageStim(object):
                 The filename, including relative or absolute path if necessary.
                 Can actually also be an image loaded by PIL.
         """
-        self.image=filename
+        self.__dict__['image'] = filename
         if type(filename) in [str, unicode]:
             #is a string - see if it points to a file
             if os.path.isfile(filename):
@@ -256,4 +258,7 @@ class SimpleImageStim(object):
              self.internalFormat = GL.GL_RGB
         self.dataType = GL.GL_UNSIGNED_BYTE
         self._needStrUpdate = True
-        logAttrib(self, log, 'image', filename)
+    def setImage(self,filename=None, log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message."""
+        setAttribute(self, 'image', filename, log)

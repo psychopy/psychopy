@@ -175,11 +175,11 @@ class Monitor:
         self._loadAll()
         if len(self.calibNames)>0:
             self.setCurrent(-1) #will fetch previous vals if monitor exists
+            if self.autoLog:
+                logging.info('Loaded monitor calibration from %s' %self.calibNames)
         else:
             self.newCalib()
-
-        if self.autoLog:
-            logging.info(self.calibNames)
+            logging.warning("Monitor specification not found. Creating a temporary one...")
 
         #overide current monitor settings with the vals given
         if width: self.setWidth(width)
@@ -396,7 +396,6 @@ class Monitor:
             self.name+".calib")     #the name of the actual file
 
         if not os.path.exists(thisFileName):
-            logging.warning("Creating new monitor...")
             self.calibNames = []
         else:
             thisFile = open(thisFileName,'r')
@@ -463,10 +462,6 @@ class Monitor:
             return False
 
         self.currentCalib = self.calibs[self.currentCalibName]      #do the import
-        if self.autoLog:
-            logging.info("Loaded calibration from:%s" %self.currentCalibName)
-
-        return self.currentCalibName
 
     def delCalib(self,calibName):
         """Remove a specific calibration from the current monitor.
