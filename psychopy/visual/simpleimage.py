@@ -56,18 +56,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
                  flipVert=False,
                  name=None, 
                  autoLog=None):
-        """
-        :Parameters:
-            image :
-                The filename, including relative or absolute path. The image
-                can be any format that the Python Imagin Library can import
-                (almost any). Can also be an image already loaded by PIL.
-            pos :
-                The centre of the stimulus, as a tuple (0., 0.) or a list [0., 0.] for the x and y.
-                The origin is the screen centre, the units are determined
-                by units (see above). Stimuli can be positioned off-screen, beyond the
-                window!
-        """
+        """ """  # all doc is in the attributeSetter
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
         self._initParams.remove('self')
@@ -197,7 +186,10 @@ class SimpleImageStim(MinimalStim, WindowMixin):
     
     @attributeSetter
     def pos(self, value):
-        """:ref:`x,y-pair <attrib-xy>`. The position of the center of the image.
+        """:ref:`x,y-pair <attrib-xy>` specifying the he centre of the image
+        relative to the window center. Stimuli can be positioned off-screen, 
+        beyond the window! 
+        
         :ref:`operations <attrib-operations>` are supported."""
         self.__dict__['pos'] = val2array(value, withNone=False)
         self._calcPosRendered()
@@ -220,12 +212,9 @@ class SimpleImageStim(MinimalStim, WindowMixin):
 
     @attributeSetter
     def image(self, filename):
-        """Set the image to be drawn.
-
-        :Parameters:
-            - filename:
-                The filename, including relative or absolute path if necessary.
-                Can actually also be an image loaded by PIL.
+        """String. Filename, including relative or absolute path. The image
+        can be any format that the Python Imagin Library can import
+        (almost any). Can also be an image already loaded by PIL.
         """
         self.__dict__['image'] = filename
         if type(filename) in [str, unicode]:
