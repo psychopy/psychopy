@@ -1279,7 +1279,7 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_SAVEAS,  self.fileSaveAs)
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.fileClose)
         wx.EVT_MENU(self, self.IDs.filePrint,  self.filePrint)
-        item = self.fileMenu.Append(wx.ID_PREFERENCES, text = "&Preferences")
+        item = self.fileMenu.Append(wx.ID_PREFERENCES, text = "&Preferences\t%s" %self.app.keys['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         #-------------quit
         self.fileMenu.AppendSeparator()

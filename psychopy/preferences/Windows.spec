@@ -132,6 +132,8 @@
     close = string(default='Ctrl+W')
     # end the application (PsychoPy)
     quit = string(default='Alt+F4')
+    #open the preferences dlg
+    preferences = string(default='Ctrl+,')
 
     # Coder: cut
     cut = string(default='Ctrl+X')

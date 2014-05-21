@@ -66,15 +66,11 @@ class WindowFrozen(object):
     def __init__(self, ctrl):
         self.ctrl = ctrl
     def __enter__(self):#started the with... statement
-        if sys.platform!='darwin':#this is only tested on OSX
-            return self.ctrl
-        if self.ctrl is not None:#check it hasn't been deleted
+        if self.ctrl is not None and wx.__version__[:3]<='2.8':#check it hasn't been deleted
             self.ctrl.Freeze()
         return self.ctrl
     def __exit__(self, exc_type, exc_val, exc_tb):#ended the with... statement
-        if sys.platform!='darwin':#this is only tested on OSX
-            return
-        if self.ctrl is not None:#check it hasn't been deleted
+        if self.ctrl is not None and self.ctrl.IsFrozen():#check it hasn't been deleted
             self.ctrl.Thaw()
 
 class CodeBox(wx.stc.StyledTextCtrl):
@@ -1567,14 +1563,12 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         self.frame.addToUndoStack("REMOVE Routine `%s`" %(name))
     def increaseSize(self, event=None):
         self.appData['routineSize'] = min(self.routineMaxSize, self.appData['routineSize'] + 1)
-        self.frame.Freeze()
-        self.redrawRoutines()
-        self.frame.Thaw()
+        with WindowFrozen(self):
+            self.redrawRoutines()
     def decreaseSize(self, event=None):
         self.appData['routineSize'] = max(0, self.appData['routineSize'] - 1)
-        self.frame.Freeze()
-        self.redrawRoutines()
-        self.frame.Thaw()
+        with WindowFrozen(self):
+            self.redrawRoutines()
     def redrawRoutines(self):
         """Removes all the routines, adds them back and sets current back to orig
         """
@@ -2149,13 +2143,16 @@ class _BaseParamsDlg(wx.Dialog):
                     # set focus to the custom panel, because custom will trump others
                     page.SetFocus()
                     self.ctrls.SetSelection(self.ctrls.GetPageCount()-1)
-
+            else:
+                self.ctrls.GetPage(0).SetFocus()
+                self.ctrls.SetSelection(0)
+                self.paramCtrls['name'].valueCtrl.SetFocus()
     def addCategoryOfParams(self, paramNames, parent):
         """Add all the params for a single category (after its tab has been created)
         """
         #create the sizers to fit the params and set row to zero
         sizer= wx.GridBagSizer(vgap=2,hgap=2)
-        sizer.AddGrowableCol(1)#valueCtrl column
+        sizer.AddGrowableCol(0)#valueCtrl column
         currRow = 0
         self.useUpdates=False#does the dlg need an 'updates' row (do any params use it?)
 
@@ -2293,6 +2290,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.paramCtrls[fieldName] = ctrls
         if fieldName=='name':
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.checkName)
+            ctrls.valueCtrl.SetFocus()
         # self.valueCtrl = self.typeCtrl = self.updateCtrl
         sizer.Add(ctrls.nameCtrl, (currRow,0), border=5,
             flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTRE_VERTICAL|wx.LEFT|wx.RIGHT)
@@ -2384,6 +2382,7 @@ class _BaseParamsDlg(wx.Dialog):
         if type(self) == DlgLoopProperties:
             self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
         self.OKbtn.SetDefault()
+
         self.checkName() # disables OKbtn if bad name
         buttons.Add(self.OKbtn, 0, wx.ALL,border=3)
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
@@ -2398,6 +2397,7 @@ class _BaseParamsDlg(wx.Dialog):
         builderPos = self.frame.GetPosition()
         self.SetPosition((builderPos[0]+200,20))
 
+        self.paramCtrls['name'].valueCtrl.SetFocus()
         #do show and process return
         retVal = self.ShowModal()
         if retVal== wx.ID_OK:
@@ -3937,7 +3937,7 @@ class BuilderFrame(wx.Frame):
         self.fileMenu.Enable(wx.ID_SAVE, False)
         wx.EVT_MENU(self, wx.ID_SAVEAS,  self.fileSaveAs)
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.commandCloseFrame)
-        item = self.fileMenu.Append(wx.ID_PREFERENCES, text = "&Preferences")
+        item = self.fileMenu.Append(wx.ID_PREFERENCES, text = "&Preferences\t%s" %self.app.keys['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         #-------------quit
         self.fileMenu.AppendSeparator()
@@ -4089,7 +4089,7 @@ class BuilderFrame(wx.Frame):
             self.app.showCoder(fileList=[filename])
             return
         #NB this requires Python 2.5 to work because of with... statement
-        with WindowFrozen(self):#try to pause rendering until all panels updated
+        with WindowFrozen(ctrl=self):#try to pause rendering until all panels updated
             if closeCurrent:
                 if not self.fileClose(updateViews=False):
                     return False #close the existing (and prompt for save if necess)
