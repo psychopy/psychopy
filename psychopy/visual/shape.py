@@ -60,7 +60,8 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  lineRGB=None,
                  fillRGB=None,
                  name=None, 
-                 autoLog=None):
+                 autoLog=None,
+                 autoDraw=False):
         """ """  # all doc is in the attributes
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
@@ -100,7 +101,8 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.depth=depth
         self.ori = numpy.array(ori,float)
         self.size = numpy.array([0.0, 0.0]) + size  # make sure that it's 2D
-        self.setVertices(vertices, log=False)
+        self.vertices = vertices  # call attributeSetter
+        self.autoDraw = autoDraw  # call attributeSetter
 
         # set autoLog now that params have been initialised
         self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
@@ -115,6 +117,8 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         :ref:`Operations <attrib-operations>` supported.
         """
         self.__dict__['lineWidth'] = value
+    def setLineWidth(self, value, operation='', log=None):
+        setAttribute(self, 'lineWidth', value, log, operation)
 
     @attributeSetter
     def closeShape(self, value):
@@ -207,7 +211,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         Use a tuple or list of two values to scale asymmetrically.
  
         :ref:`Operations <attrib-operations>` supported."""
-        self.__dict__['size'] = numpy.array(value)
+        self.__dict__['size'] = numpy.array(value, float)
         self._needVertexUpdate = True
     def setSize(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -222,7 +226,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         
         :ref:`Operations <attrib-operations>` supported.
         """
-        self.__dict__['vertices'] = numpy.array(value)
+        self.__dict__['vertices'] = numpy.array(value, float)
         
         # Check shape
         if not (self.vertices.shape==(2,) or (len(self.vertices.shape) == 2 and self.vertices.shape[1] == 2)):
@@ -233,7 +237,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         but use this method if you need to suppress the log message
         """
         setAttribute(self, 'vertices', value, log, operation)
-
+    
     def draw(self, win=None, keepMatrix=False): #keepMatrix option is needed by Aperture
         """
         Draw the stimulus in its relevant window. You must call
