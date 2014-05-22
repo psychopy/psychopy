@@ -109,15 +109,17 @@ class SettingsComponent:
             saveToDir = self.params['Saved data folder'].val.strip()
             if not saveToDir: #it was blank so try preferences
                 saveToDir = self.exp.prefsBuilder['savedDataFolder'].strip()
-                if not saveToDir: #still blank so just use 'data' folder
-                    saveToDir = 'data'
         else:
-            saveToDir = os.path.split(self.params['Data filename'].val)[0]
-        return saveToDir
+            saveToDir = os.path.dirname(self.params['Data filename'].val)
+        return saveToDir or u'data'
     def writeStartCode(self,buff):
+        buff.writeIndentedLines("# Ensure that relative paths start from the same directory as this script\n"
+            "_thisDir = os.path.dirname(os.path.abspath(__file__))\n"
+            "os.chdir(_thisDir)\n\n")
+
         buff.writeIndented("# Store info about the experiment session\n")
         if self.params['expName'].val in [None,'']:
-            expName = ''
+            buff.writeIndented("expName = 'untitled.py'\n")
         else:
             buff.writeIndented("expName = %s  # from the Builder filename that created this script\n" %(self.params['expName']))
         expInfo = self.params['Experiment info'].val.strip()
@@ -137,7 +139,7 @@ class SettingsComponent:
         level=self.params['logging level'].val.upper()
 
         saveToDir = self.getSaveDataDir()
-        buff.writeIndentedLines("\n# Setup filename for saving\n")
+        buff.writeIndentedLines("\n# Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc\n")
         #deprecated code: before v1.80.00 we had 'Saved data folder' param but fairly fixed filename
         if 'Saved data folder' in self.params:
             participantField=''
@@ -145,14 +147,22 @@ class SettingsComponent:
                 if field in expInfoDict:
                     participantField=field
                     self.params['Data filename'].val = repr(saveToDir) + \
-                            " + os.path.sep + '%s_%s' %(expInfo['" + field + "'], expInfo['date'])"
+                            " + os.sep + '%s_%s' %(expInfo['" + field + "'], expInfo['date'])"
                     break
             if not participantField: #we didn't find a participant-type field so skip that part of filename
                 self.params['Data filename'].val = repr(saveToDir) + " + os.path.sep + expInfo['date']"
             del self.params['Saved data folder'] #so that we don't overwrite users changes doing this again
 
         #now write that data file name to the script
-        buff.writeIndented("filename = %s\n" %self.params['Data filename'])
+        if not self.params['Data filename'].val:  # i.e., the user deleted it
+            self.params['Data filename'].val = repr(saveToDir) +\
+                " + os.sep + u'psychopy_data_' + data.getDateStr()"
+        # detect if user wanted an absolute path -- else make absolute:
+        filename = self.params['Data filename'].val.lstrip('"\'')
+        if filename == os.path.abspath(filename): #(filename.startswith('/') or filename[1] == ':'):
+            buff.writeIndented("filename = %s\n" % self.params['Data filename'])
+        else:
+            buff.writeIndented("filename = _thisDir + os.sep + %s\n" % self.params['Data filename'])
 
         #set up the ExperimentHandler
         buff.writeIndentedLines("\n# An ExperimentHandler isn't essential but helps with data saving\n")

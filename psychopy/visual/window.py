@@ -204,11 +204,11 @@ class Window(object):
         self._initParams = dir()
         for unecess in ['self', 'checkTiming', 'rgb', 'dkl', ]:
             self._initParams.remove(unecess)
-        
+
         # Check autoLog value
         if not autoLog in (True, False):
             raise ValueError('autoLog must be either True or False for visual.Window')
-        
+
         self.autoLog = False  # to suppress log msg during init
         self.name = name
         self.size = numpy.array(size, numpy.int)
@@ -308,8 +308,8 @@ class Window(object):
         self.allowStencil = allowStencil
         #check whether FBOs are supported
         if blendMode == 'add' and not self.useFBO:
-            logging.warning('User requested a blendmode of "add" but '
-                            'framebuffer objects not available.')
+            logging.warning('User requested a blendmode of "add" but ' +\
+                            'window requires useFBO=True')
             # resort to the simpler blending without float rendering
             self.__dict__['blendMode'] = 'avg'
         else:
@@ -357,7 +357,7 @@ class Window(object):
         else:
             self._refreshThreshold = (1.0/60)*1.2  # guess its a flat panel
         openWindows.append(self)
-        
+
         self.autoLog = autoLog
         if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
@@ -999,11 +999,11 @@ class Window(object):
         next clear operation. As a result it effectively takes TWO `flip()`
         operations to become visible (the first uses the color to create the
         new screen, the second presents that screen to the viewer). For this
-        reason, if you want to changed background color of the window "on the 
+        reason, if you want to changed background color of the window "on the
         fly", it might be a better idea to draw a `visual.Rect` that fills the
-        whole window with the desired `Rect.fillColor` attribute. 
+        whole window with the desired `Rect.fillColor` attribute.
         That'll show up on first flip.
-        
+
         See other stimuli (e.g. :ref:`GratingStim.color`) for more info on the
         color attribute which essentially works the same on all PsychoPy stimuli.
 
@@ -1013,18 +1013,18 @@ class Window(object):
     @attributeSetter
     def colorSpace(self, colorSpace):
         """string
-        
+
         See the documentation for colorSpace in the stimuli, e.g. :ref:`GratingStim.colorSpace`.
-        
+
         Usually used in conjunction with ``color`` like this::
-        
+
             win.colorSpace = 'rgb255'  # changes colorSpace but not the value of win.color
             win.color = [0, 0, 255]  # clear blue in rgb255
 
         See :ref:`colorspaces` for further information about the ways to
         specify colors and their various implications."""
         self.__dict__['colorSpace'] = colorSpace
-        
+
         # These spaces are 0-centred
         if colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
             # RGB in range 0:1 and scaled for contrast
@@ -1046,12 +1046,12 @@ class Window(object):
         but use this method if you want to set color and colorSpace simultaneously.
         See `Window.color` for documentation on colors.
         """
-        
+
         # Set color
         setColor(self, color, colorSpace=colorSpace, operation=operation,
                  rgbAttrib='rgb',  # or 'fillRGB' etc
                  colorAttrib='color')
-        
+
         # Set colorSpace to not-None
         if colorSpace is None:
             setAttribute(self, 'colorSpace', self.colorSpace, log)
@@ -1404,12 +1404,21 @@ class Window(object):
         if sys.platform == 'darwin':
             platform_specific.syncSwapBuffers(1)
 
-        if self.useFBO:
-            self._setupFrameBuffer()
-
+        requestedFBO=self.useFBO
         if self._haveShaders: #do this after setting up FrameBufferObject
             self._setupShaders()
-
+        else:
+            self.useFBO=False
+        if self.useFBO:
+            success=self._setupFrameBuffer()
+            if not success:
+                self.useFBO=False
+        if requestedFBO and not self.useFBO:
+            logging.warning("Framebuffer object (FBO) not supported on this graphics card")
+        if self.blendMode == 'add' and not self.useFBO:
+            logging.warning("Framebuffer object (FBO) is required for blendMode='add'. "
+                "Reverting to blendMode='avg'")
+            self.blendMode='avg'
     def _setupShaders(self):
         self._progSignedTexFont = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexFont)
         self._progFBOtoFrame = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragFBOtoFrame)
@@ -1450,13 +1459,13 @@ class Window(object):
         status = GL.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT)
         if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
             logging.error("Error in framebuffer activation")
-            return
+            return False
         else:
             logging.info("Successfully set up FBO")
         GL.glDisable(GL.GL_TEXTURE_2D)
         #clear the buffer (otherwise the texture memory can contain junk)
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
-
+        return True
     @attributeSetter
     def mouseVisible(self, visibility):
         """Sets the visibility of the mouse cursor.

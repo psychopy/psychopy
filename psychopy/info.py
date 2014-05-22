@@ -22,6 +22,7 @@ except ImportError:
 import hashlib
 import wx
 import locale
+import subprocess
 
 
 class RunTimeInfo(dict):
@@ -89,7 +90,7 @@ class RunTimeInfo(dict):
         self['psychopyVersion'] = psychopyVersion
         self['psychopyHaveExtRush'] = rush(False) # NB: this looks weird, but avoids setting high-priority incidentally
         d = os.path.abspath(os.path.dirname(__file__))
-        githash = _getHashGitHead(dir=d) # should be .../psychopy/psychopy/
+        githash = _getHashGitHead(d) # should be .../psychopy/psychopy/
         if githash:
             self['psychopyGitHead'] = githash
 
@@ -99,11 +100,13 @@ class RunTimeInfo(dict):
 
         # need a window for frame-timing, and some openGL drivers want a window open
         if win == None: # make a temporary window, later close it
-            win = visual.Window(fullscr=True, monitor="testMonitor")
+            win = visual.Window(fullscr=True, monitor="testMonitor", autoLog=False)
             refreshTest = 'grating'
             usingTempWin = True
         else: # either False, or we were passed a window instance, use it for timing and profile it:
             usingTempWin = False
+            self.winautoLog = win.autoLog
+            win.autoLog = False
         if win:
             self._setWindowInfo(win, verbose, refreshTest, usingTempWin)
 
@@ -113,6 +116,8 @@ class RunTimeInfo(dict):
             if win: self._setOpenGLInfo()
         if usingTempWin:
             win.close() # close after doing openGL
+        else:
+            win.autoLog = self.winautoLog  # restore
 
     def _setExperimentInfo(self, author, version, verbose):
         # try to auto-detect __author__ and __version__ in sys.argv[0] (= the users's script)
@@ -500,24 +505,21 @@ class RunTimeInfo(dict):
         info = '\n'.join(info).replace('"', '') + '\n'
         return info
 
-def _getHashGitHead(dir=''):
-    origDir = os.getcwd()
-    os.chdir(dir)
+def _getHashGitHead(gdir='.'):
+    if not os.path.isdir(gdir):
+        raise OSError('not a directory')
     try:
-        git_hash = shellCall(['git', 'rev-parse', '--verify', 'HEAD'])
-    except OSError:
-        os.chdir(origDir)
-        return None
-    except WindowsError: # not defined on mac; OSError should catch lack of git
-        os.chdir(origDir)
-        return None
-    os.chdir(origDir)
-    git_branches = shellCall(['git', 'branch'])
-    git_branch = [line.split()[1] for line in git_branches.splitlines() if line.startswith('*')]
+        git_hash = subprocess.check_output('git rev-parse --verify HEAD', cwd=gdir,
+                                           shell=True, stderr=subprocess.PIPE)
+    except subprocess.CalledProcessError:
+        return None  # no git
+    git_branches = subprocess.check_output('git branch', cwd=gdir, shell=True)
+    git_branch = [line.split()[1] for line in git_branches.splitlines()
+                  if line.startswith('*')]
     if len(git_branch):
         return git_branch[0] + ' ' + git_hash.strip()
-    else: # dir is not a git repo
-        return None
+    else:
+        return '(unknown branch)'
 
 def _getSvnVersion(filename):
     """Tries to discover the svn version (revision #) for a file.

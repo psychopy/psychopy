@@ -115,6 +115,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         self._initParams.remove('self')
 
         super(MovieStim, self).__init__(win, units=units, name=name, autoLog=False)
+        self._verticesBase *= numpy.array([[-1,1]])#or the movie is flipped
 
         if not havePygletMedia:
             raise ImportError, """pyglet.media is needed for MovieStim and could not be imported.

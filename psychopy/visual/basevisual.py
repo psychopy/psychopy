@@ -705,7 +705,6 @@ class TextureMixin(object):
                 intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # much faster to avoid division 2/255
             else:
                 intensity = numpy.array(im)
-
         if pixFormat==GL.GL_RGB and wasLum and dataType==GL.GL_FLOAT: #grating stim on good machine
             #keep as float32 -1:1
             if sys.platform!='darwin' and stim.win.glVendor.startswith('nvidia'):
@@ -735,16 +734,17 @@ class TextureMixin(object):
             if wasImage:
                 intensity = intensity/127.5-1.0
             #scale by rgb
-            data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
+            data = numpy.ones((intensity.shape[0],intensity.shape[1],4),numpy.float32)#initialise data array as a float
             data[:,:,0] = intensity*rgb[0]  + stim.rgbPedestal[0]#R
             data[:,:,1] = intensity*rgb[1]  + stim.rgbPedestal[1]#G
             data[:,:,2] = intensity*rgb[2]  + stim.rgbPedestal[2]#B
+            data[:,:,:-1] = data[:,:,:-1]*stim.contrast
             #convert to ubyte
-            data = float_uint8(stim.contrast*data)
+            data = float_uint8(data)
         elif pixFormat==GL.GL_RGB and dataType==GL.GL_FLOAT: #probably a custom rgb array or rgb image
             internalFormat = GL.GL_RGB32F_ARB
             data = intensity
-        elif pixFormat==GL.GL_RGB:# not wasLum, not useShaders  - an RGB bitmap with no shader options
+        elif pixFormat==GL.GL_RGB:# not wasLum, not useShaders  - an RGB bitmap with no shader optionsintensity.min()
             internalFormat = GL.GL_RGB
             data = intensity #float_uint8(intensity)
         elif pixFormat==GL.GL_ALPHA:
@@ -754,10 +754,13 @@ class TextureMixin(object):
             else:
                 data = float_uint8(intensity)
         #check for RGBA textures
-        if len(intensity.shape)>2 and intensity.shape[2] == 4:
-            if pixFormat==GL.GL_RGB: pixFormat=GL.GL_RGBA
-            if internalFormat==GL.GL_RGB: internalFormat=GL.GL_RGBA
-            elif internalFormat==GL.GL_RGB32F_ARB: internalFormat=GL.GL_RGBA32F_ARB
+        if len(data.shape)>2 and data.shape[2] == 4:
+            if pixFormat==GL.GL_RGB:
+                pixFormat=GL.GL_RGBA
+            if internalFormat==GL.GL_RGB:
+                internalFormat=GL.GL_RGBA
+            elif internalFormat==GL.GL_RGB32F_ARB:
+                internalFormat=GL.GL_RGBA32F_ARB
         texture = data.ctypes#serialise
         #bind the texture in openGL
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -1111,6 +1114,5 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         #format the input value as float vectors
         if type(val) in [tuple, list, numpy.ndarray]:
             val = val2array(val)
-
         # Handle operations
         setAttribute(self, attrib, val, log, op)
