@@ -63,8 +63,8 @@ def setAttribute(self, attrib, value, log, operation=False, stealth=False):
             oldValue = None
             value = value
         
-        # Apply operation except for the case when new or old value are None or str
-        if None not in (value, oldValue) and str not in (type(value), type(oldValue)):
+        # Apply operation except for the case when new or old value are None or string-like
+        if None not in (value, oldValue) and type(value) not in (str, unicode) and type(oldValue) not in (str, unicode):
             value = numpy.array(value, float)
     
             # Calculate new value using operation
