@@ -124,6 +124,9 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     def closeShape(self, value):
         """True or False
         Do you want the last vertex to be automatically connected to the first?
+        
+        If you're using `Polygon`, `Circle` or `Rect`, closeShape=True is assumed
+        and shouldn't be changed.
         """
         self.__dict__['closeShape'] = value
 
@@ -223,6 +226,8 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     def vertices(self, value):
         """a list of lists or a numpy array (Nx2) specifying xy positions of 
         each vertex, relative to the centre of the field.
+        
+        If you're using `Polygon`, `Circle` or `Rect`, this shouldn't be used.
         
         :ref:`Operations <attrib-operations>` supported.
         """
