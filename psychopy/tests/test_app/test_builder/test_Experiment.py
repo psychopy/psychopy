@@ -199,7 +199,7 @@ class TestExpt():
         locale.setlocale(locale.LC_ALL, '') # default
         for file in test_psyexp:
             # test for any diffs using various locale's:
-            for loc in ['en_US', 'en_US.UTF-8', 'ru_RU', 'ja_JP']:
+            for loc in ['en_US', 'ja_JP']:
                 try:
                     locale.setlocale(locale.LC_ALL, loc)
                 except locale.Error:
