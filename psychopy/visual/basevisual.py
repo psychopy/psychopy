@@ -519,6 +519,12 @@ class TextureMixin(object):
             else:
                 dataType = GL.GL_UNSIGNED_BYTE
 
+        # Fill out unspecified portions of maskParams with default values
+        if maskParams == None:
+            maskParams = {}
+        allMaskParams = {'fringeWidth': 0.2, 'sd': 3}  # fringeWidth affects the proportion of the stimulus diameter that is devoted to the raised cosine.
+        allMaskParams.update(maskParams)
+
         if type(tex) == numpy.ndarray:
             #handle a numpy array
             #for now this needs to be an NxN intensity array
@@ -581,12 +587,7 @@ class TextureMixin(object):
             wasLum=True
         elif tex == "gauss":
             rad=makeRadialMatrix(res)
-            # Set SD if specified
-            if maskParams == None:
-                sigma = 1.0 / 3
-            else:
-                sigma = 1.0 / maskParams['sd']
-            intensity = numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )*2-1 #3sd.s by the edge of the stimulus
+            intensity = numpy.exp( -rad**2.0 / (2.0*(1.0 / allMaskParams['sd'])**2.0) )*2-1 #3sd.s by the edge of the stimulus
             wasLum=True
         elif tex == "cross":
             X, Y = numpy.mgrid[-1:1:1j*res, -1:1:1j*res]
@@ -603,22 +604,11 @@ class TextureMixin(object):
             wasLum=True
             hamming_len = 1000 # This affects the 'granularity' of the raised cos
 
-            # If no user input was provided:
-            if maskParams is None:
-                fringe_proportion = 0.2 # This one affects the proportion of the
-                                    # stimulus diameter that is devoted to the
-                                    # raised cosine.
-
-            # Users can provide the fringe proportion through a dict, maskParams
-            # input:
-            else:
-                fringe_proportion = maskParams['fringeWidth']
-
             rad = makeRadialMatrix(res)
             intensity = numpy.zeros_like(rad)
             intensity[numpy.where(rad < 1)] = 1
             raised_cos_idx = numpy.where(
-                [numpy.logical_and(rad <= 1, rad >= 1-fringe_proportion)])[1:]
+                [numpy.logical_and(rad <= 1, rad >= 1 - allMaskParams['fringeWidth'])])[1:]
 
             # Make a raised_cos (half a hamming window):
             raised_cos = numpy.hamming(hamming_len)[:hamming_len/2]
@@ -626,7 +616,7 @@ class TextureMixin(object):
             raised_cos /= numpy.max(raised_cos)
 
             # Measure the distance from the edge - this is your index into the hamming window:
-            d_from_edge = numpy.abs((1 - fringe_proportion)- rad[raised_cos_idx])
+            d_from_edge = numpy.abs((1 - allMaskParams['fringeWidth']) - rad[raised_cos_idx])
             d_from_edge /= numpy.max(d_from_edge)
             d_from_edge *= numpy.round(hamming_len/2)
 
@@ -835,6 +825,7 @@ class TextureMixin(object):
         """Various types of input. Default to None.
         This is used to pass additional parameters to the mask if those are needed.
 
+            - For 'gauss' mask, pass dict {'sd': 5} to control standard deviation.
             - For the 'raisedCos' mask, pass a dict: {'fringeWidth':0.2},
                 where 'fringeWidth' is a parameter (float, 0-1), determining
                 the proportion of the patch that will be blurred by the raised
