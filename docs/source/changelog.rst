@@ -38,7 +38,7 @@ PsychoPy 1.81.00
     * CHANGED: ``log=None`` and ``autoLog=None`` inherits from parents, with ``visual.Window`` at the top of the hierarchy. None is now default for all stimuli and setter methods.
     * FIXED: removed unneccessary (e.g. duplicate) logging.
     * IMPROVED: unnamed stimuli are now given a default name in the logs for easier identification, e.g. "unnamed ShapeStim".
-
+* IMPROVED: you can now specify the standard deviation (default=3) for gaussian mask in various stimuli by setting e.g. ``maskParams={'sd':5}`` during init or after init.
 
 PsychoPy 1.80
 ------------------------------
