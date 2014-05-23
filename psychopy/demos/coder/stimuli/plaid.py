@@ -5,6 +5,14 @@ from psychopy import visual, logging, event, core
 myWin = visual.Window((600,600), allowGUI=False, blendMode='add', useFBO=True)
 logging.console.setLevel(logging.DEBUG)
 
+"""For combining stimuli (e.g. to create a plaid) it's best to use blendMode='add'
+rather than blendMode='avg'. In this blendMode the background is not overwritten
+but added to, which is ideal in this instance.
+On the other hand, in this mode the opacity attribute is a slight
+misnomer; setting a high 'opacity' doesn't cause the background to be
+obscured; it just acts as a multiplier for the contrast of the stimulus being drawn.
+"""
+
 #INITIALISE SOME STIMULI
 grating1 = visual.GratingStim(myWin,mask="gauss",
     color=[1.0,1.0,1.0],contrast=0.5,

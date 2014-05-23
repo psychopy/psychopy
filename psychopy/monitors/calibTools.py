@@ -950,13 +950,10 @@ def DACrange(n):
 def getAllMonitors():
     """Find the names of all monitors for which calibration files exist
     """
-    currDir = os.getcwd()
-    os.chdir(monitorFolder)
-    monitorList=glob.glob('*.calib')
+    monitorList = glob.glob(os.path.join(monitorFolder, '*.calib'))
     for monitorN,thisName in enumerate(monitorList):
         monitorList[monitorN] = monitorList[monitorN][:-6]
 
-    os.chdir(currDir)
     return monitorList
 
 def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):

@@ -21,33 +21,9 @@ from psychopy import preferences, logging#needed by splash screen for the path t
 from psychopy.app import connections
 import sys, os, threading
 
-"""
-knowing if the user has admin priv is generally a good idea, but not actually needed.
-something below is messing with the unit-tests, probably subprocess; os.popen worked ok
-# get UID early; psychopy should never need anything except plain-vanilla user
-uid = '-1' # -1=undefined, 0=assumed to be root, 500+ = non-root (1000+ for debian-based?)
-try:
-    if sys.platform not in ['win32']:
-        #from psychopy.core import shellCall # messed with tests -- could not select a test (!?!)
-        import subprocess, shlex
-        #uid = shellCall('id -u')
-        proc = subprocess(shlex('id -u'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        uid, err = proc.communicate()
-        del proc
-    else:
-        try:
-            import ctypes # only if necessary
-            uid = '1000'
-            if ctypes.windll.shell32.IsUserAnAdmin():
-                uid = '0'
-        except:
-            pass
-except:
-    pass
-"""
-uidRootFlag = '.'
-#if int(uid) < 500: # 500+ is a normal user on darwin, rhel / fedora / centos; probably 1000+ for debian / ubuntu
-#    uidRootFlag = '!'
+# knowing if the user has admin priv is generally a good idea for security.
+# not actually needed; psychopy should never need anything except normal user
+# see older versions for code to detect admin (e.g., v 1.80.00)
 
 class MenuFrame(wx.Frame):
     """A simple, empty frame with a menubar that should be the last frame to close on a mac
@@ -98,13 +74,13 @@ class PsychoPyApp(wx.App):
             splash = AS.AdvancedSplash(None, bitmap=splashBitmap, timeout=3000, style=AS.AS_TIMEOUT|wx.FRAME_SHAPED,
                                       shadowcolour=wx.RED)#could use this in future for transparency
             splash.SetTextPosition((10,240))
-            splash.SetText("  Loading libraries..."+uidRootFlag)
+            splash.SetText("  Loading libraries...")
         else:
             splash=None
 
         #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
         #but then that they end up being local so keep track in self
-        if splash: splash.SetText("  Loading PsychoPy2..."+uidRootFlag)
+        if splash: splash.SetText("  Loading PsychoPy2...")
         from psychopy import compatibility
         from psychopy.app import coder, builder, dialogs, wxIDs, urls #import coder and builder here but only use them later
         self.keys = self.prefs.keys
@@ -176,7 +152,7 @@ class PsychoPyApp(wx.App):
         if not (50<self.dpi<120): self.dpi=80#dpi was unreasonable, make one up
 
         #create both frame for coder/builder as necess
-        if splash: splash.SetText("  Creating frames..."+uidRootFlag)
+        if splash: splash.SetText("  Creating frames...")
         self.coder = None
         self.builderFrames = []
         self.copiedRoutine=None
@@ -431,8 +407,8 @@ class PsychoPyApp(wx.App):
 
         msg = """For stimulus generation and experimental control in python.
 
-PsychoPy depends on your feedback. If something doesn't work then
-let me/us know at psychopy-users@googlegroups.com"""
+            PsychoPy depends on your feedback. If something doesn't work then
+            let me/us know at psychopy-users@googlegroups.com""".replace('    ', '')
         info = wx.AboutDialogInfo()
         #info.SetIcon(wx.Icon(os.path.join(self.prefs.paths['resources'], 'psychopy.png'),wx.BITMAP_TYPE_PNG))
         info.SetName('PsychoPy')
