@@ -26,11 +26,19 @@ PsychoPy 1.81.00
 * FIXED: further fixes to greyscale coloring (some images were not correctly detected as greyscale by PIL so tests weren't working)
 * FIXED: MovieStim was right-left flipping movies and this has been corrected. If you had been working around that by setting flipVertical=True then you'll need to undo that correction
 * IMPROVED: better unit tests for visual stimuli to prevent further regressions of the issues above
-* IMPROVED: All stimulus attributes now support new syntax, e.g. stim.pos = [0,0] as well as the previous stim.setPos([0,0])
+* IMPROVED: stimulus attributes: 
+    * All stimulus attributes now support new syntax, e.g. ``stim.pos = [0,0]`` as well as the previous ``stim.setPos([0,0])``. All docs are update to reflect this change.
+    * All numeric stimulus attributes now support operations. Use e.g. ``stim.pos += [0,0.5]``. Read more in :ref:`Operations <attrib-operations>`.
+    * Many more stimulus attributes can now be set after initialization. They have the same name as the init parameters. E.g. ``stim.win = mySecondWindow`` changes which Window the stimulus is drawn to..
 * ADDED: Support for CRS devices:
     * both Bits# and Bits++ now supported and using advanced rendering modes (mono++ and color++)
     * Bits# also supports use of the infra-red button box
 * FIXED: machines that didn't support shaders or framebuffer objects were raising an error on win.flip() if the useFBO argument was not manually set to False. Machines that don't support the new rendering methods are now handled more gracefully.
+* Logging:
+    * CHANGED: ``log=None`` and ``autoLog=None`` inherits from parents, with ``visual.Window`` at the top of the hierarchy. None is now default for all stimuli and setter methods.
+    * FIXED: removed unneccessary (e.g. duplicate) logging.
+    * IMPROVED: unnamed stimuli are now given a default name in the logs for easier identification, e.g. "unnamed ShapeStim".
+
 
 PsychoPy 1.80
 ------------------------------
