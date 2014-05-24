@@ -100,7 +100,8 @@ class ConfigWizard(object):
             self.save()
             # user ends up in browser:
             url='file://' + self.reportPath
-            wx.LaunchDefaultBrowser(url)
+            if interactive:
+                wx.LaunchDefaultBrowser(url)
             return
         if interactive and not dlg.OK:
             return  # no configuration tests run
@@ -677,7 +678,7 @@ class BenchmarkWizard(ConfigWizard):
 
 def driversOkay():
     """Returns True if drivers should be okay for PsychoPy"""
-    return gl_info.get_vendor().lower().find('microsoft') == -1
+    return not 'microsoft' in gl_info.get_vendor().lower()
 
 def cardOkay():
     """Returns string: okay, maybe, bad"""
