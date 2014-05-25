@@ -821,8 +821,8 @@ class TextureMixin(object):
         self.__dict__['texRes'] = value
         
         # ... now rebuild textures (call attributeSetters whithout logging).
-        setAttribute(self, 'tex', self.tex, log=False)
-        setAttribute(self, 'mask', self.mask, log=False)
+        if hasattr(self, 'tex'): setAttribute(self, 'tex', self.tex, log=False)
+        if hasattr(self, 'mask'): setAttribute(self, 'mask', self.mask, log=False)
 
     @attributeSetter
     def maskParams(self, value):
