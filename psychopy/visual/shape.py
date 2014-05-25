@@ -43,7 +43,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     def __init__(self,
                  win,
                  units  ='',
-                 lineWidth=1.0,
+                 lineWidth=1.5,
                  lineColor=(1.0,1.0,1.0),
                  lineColorSpace='rgb',
                  fillColor=None,

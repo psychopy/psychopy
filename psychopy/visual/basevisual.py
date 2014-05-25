@@ -813,12 +813,16 @@ class TextureMixin(object):
 
     @attributeSetter
     def texRes(self, value):
-        """Sets the resolution of the mask (overridden if an array or image is provided as mask).
+        """Power-of-two int. Sets the resolution of the mask and texture.
+        texRes is overridden if an array or image is provided as mask.
 
         :ref:`Operations <attrib-operations>` supported.
         """
         self.__dict__['texRes'] = value
-        self.mask = self.mask  # call attributeSetter
+        
+        # ... now rebuild textures (call attributeSetters whithout logging).
+        setAttribute(self, 'tex', self.tex, log=False)
+        setAttribute(self, 'mask', self.mask, log=False)
 
     @attributeSetter
     def maskParams(self, value):
@@ -831,7 +835,7 @@ class TextureMixin(object):
                 the proportion of the patch that will be blurred by the raised
                 cosine edge."""
         self.__dict__['maskParams'] = value
-        self.mask = self.mask  # call attributeSetter
+        setAttribute(self, 'mask', self.mask, log=False)  # call attributeSetter without log
 
 class WindowMixin(object):
     """Window-related attributes and methods.
