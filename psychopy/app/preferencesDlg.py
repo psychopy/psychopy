@@ -1,3 +1,4 @@
+from psychopy import logging
 import wx
 import wx.lib.scrolledpanel as scrolled
 import wx.lib.agw.flatnotebook as fnb
@@ -82,7 +83,10 @@ class PreferencesDlg(wx.Dialog):
         loc = str(self.app.prefs.app['locale'])  # 'danish', 'da_DK'
         if loc in locale.locale_alias.keys():
             loc = locale.locale_alias[loc]  # -> 'da_DK'
-        locale.setlocale(locale.LC_ALL, loc)
+        try:
+            locale.setlocale(locale.LC_ALL, loc)
+        except:
+            logging.warning('locale not set; tried %s' % loc)
     def onCancel(self, event=None):
         self.Close()
     def onOK(self, event=None):

@@ -7,7 +7,9 @@
 # Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-# Author: Jeremy Gray, Oct 2012
+# Author: Jeremy Gray, Oct 2012; localization 2014
+
+from psychopy import localization
 
 from pyglet.gl import gl_info
 from psychopy import info, data, visual, gui, core, __version__, web, prefs, event
@@ -33,7 +35,9 @@ class ConfigWizard(object):
         dlg = gui.Dlg(title=self.name)
         dlg.addText('')
         if firstrun:
-            dlg.addText("Welcome! It looks like you are running PsychoPy for the first time.")
+            dlg.addText(_("Welcome to PsychoPy2!"), color='blue')
+            dlg.addText('')
+            dlg.addText("It looks like you are running PsychoPy for the first time.")
             dlg.addText("This wizard will help you get started quickly and smoothly.")
         else:
             dlg.addText("Welcome to the configuration wizard.")
