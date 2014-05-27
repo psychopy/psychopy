@@ -182,7 +182,7 @@ class _baseVisualTest:
         bufferImgStim = visual.BufferImageStim(self.win, stim=[gabor],
             interpolate=True)
         bufferImgStim.draw()
-        utils.compareScreenshot('bufferimg_gabor_%s.png' %(self.contextName), win)
+        utils.compareScreenshot('bufferimg_gabor_%s.png' %(self.contextName), win, crit=8)
         win.flip()
 
     #def testMaskMatrix(self):
