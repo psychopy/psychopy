@@ -306,6 +306,8 @@ class BitsSharp(BitsPlusPlus):
                 self.OK = self._connect(portName)
                 if self.OK:
                     break #we have an active BitsSharp device :-)
+        if not self.OK:
+            return
         #we have a confirmed connection. Now check details about device and system
         self.config = None
         self.info = self.getInfo()
