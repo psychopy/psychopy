@@ -20,8 +20,8 @@ def test_BitsSharp():
     print bitsBox.info
 
     ##status screen is slow
+    bitsBox.mode = 'bits++'
     bitsBox.mode = 'status'
-    time.sleep(2)#time to switch
     ##get video line implicitly uses status screen
     print bitsBox.getVideoLine(lineN=1, nPixels=5)
     time.sleep(0.1)
