@@ -44,6 +44,8 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
     On windows the first attempt to set the ramp doesn't always work. The parameter nAttemps
     allows the user to determine how many attempts should be made before failing
     """
+    if newRamp.shape[0]!=3 and newRamp.shape[1]==3:
+        newRamp= numpy.ascontiguousarray(newRamp.transpose())
     if sys.platform=='win32':
         newRamp= (255.0*newRamp).astype(numpy.uint16)
         newRamp.byteswap(True)#necessary, according to pyglet post from Martin Spacek
