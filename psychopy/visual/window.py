@@ -762,7 +762,9 @@ class Window(object):
 
     def getMovieFrame(self, buffer='front'):
         """
-        Capture the current Window as an image.
+        Capture the current Window as an image. Saves to stack for saveMovieFrames().
+        As of v1.81.00 this also returns the frame as a PIL image
+
         This can be done at any time (usually after a .flip() command).
 
         Frames are stored in memory until a .saveMovieFrames(filename) command
@@ -778,6 +780,7 @@ class Window(object):
         """
         im = self._getFrame(buffer=buffer)
         self.movieFrames.append(im)
+        return im
 
     def _getFrame(self, buffer='front'):
         """
@@ -1105,19 +1108,13 @@ class Window(object):
 
     @attributeSetter
     def gamma(self, gamma):
-        """Set the monitor gamma for linearisation, using Bits++ if possible.
+        """Set the monitor gamma for linearisation (don't use this if using a Bits++ or Bits#)
         Overrides monitor settings"""
 
         self._checkGamma(gamma)
 
         if self.bits is not None:
-            #first ensure that window gamma is 1.0
-            if self.winType == 'pygame':
-                pygame.display.set_gamma(1.0, 1.0, 1.0)
-            elif self.winType == 'pyglet':
-                self.winHandle.setGamma(self.winHandle, 1.0)
-            #then set bits++ to desired gamma
-            self.bits.setGamma(self.gamma)
+            raise DeprecationError, "Do not use try to set the gamma of a window with Bits++/Bits# enabled. It was ambiguous what should happen. Use the setGamma() function of the bits box instead"
         elif self.winType == 'pygame':
             pygame.display.set_gamma(self.gamma[0],
                                      self.gamma[1],
@@ -1129,6 +1126,12 @@ class Window(object):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'gamma', gamma, log)
+    @attributeSetter
+    def gammaRamp(self, newRamp):
+        if self.winType == 'pyglet':
+            self.winHandle.setGammaRamp(self.winHandle, newRamp)
+        else: #pyglet
+            self.winHandle.set_gamma_ramp(newRamp[:,0], newRamp[:,1], newRamp[:,2])
 
     def _checkGamma(self, gamma=None):
         if gamma is None:

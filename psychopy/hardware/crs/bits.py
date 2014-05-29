@@ -15,14 +15,14 @@ __docformat__ = "restructuredtext en"
 
 DEBUG=True
 
-import sys, time, glob
-import numpy
+import os, sys, time, glob, weakref
+import numpy as np
 import shaders
 from copy import copy
-from psychopy import logging
+from psychopy import logging, core , visual
 import serial
-from OpenGL import GL
-import OpenGL.GL.ARB.multitexture as GL_multitexture
+import pyglet.gl as GL
+
 try:
     from psychopy.ext import _bits
     haveBitsDLL=True
@@ -38,6 +38,11 @@ else:
         haveShaders=True
     except:
         haveShaders=False
+
+try:
+    import configparser
+except:
+    import ConfigParser as configparser
 
 #bits++ modes
 bits8BITPALETTEMODE=  0x00000001  #/* normal vsg mode */
@@ -82,11 +87,11 @@ class BitsPlusPlus(object):
             logging.warning("couldn't initialise bits++")
 
         #do the processing
-        self._HEADandLUT = numpy.zeros((524,1,3),numpy.uint8)
-        self._HEADandLUT[:12,:,0] = numpy.asarray([ 36, 63, 8, 211, 3, 112, 56, 34,0,0,0,0]).reshape([12,1])#R
-        self._HEADandLUT[:12,:,1] = numpy.asarray([ 106, 136, 19, 25, 115, 68, 41, 159,0,0,0,0]).reshape([12,1])#G
-        self._HEADandLUT[:12,:,2] = numpy.asarray([ 133, 163, 138, 46, 164, 9, 49, 208,0,0,0,0]).reshape([12,1])#B
-        self.LUT=numpy.zeros((256,3),'d')        #just a place holder
+        self._HEADandLUT = np.zeros((524,1,3),np.uint8)
+        self._HEADandLUT[:12,:,0] = np.asarray([ 36, 63, 8, 211, 3, 112, 56, 34,0,0,0,0]).reshape([12,1])#R
+        self._HEADandLUT[:12,:,1] = np.asarray([ 106, 136, 19, 25, 115, 68, 41, 159,0,0,0,0]).reshape([12,1])#G
+        self._HEADandLUT[:12,:,2] = np.asarray([ 133, 163, 138, 46, 164, 9, 49, 208,0,0,0,0]).reshape([12,1])#B
+        self.LUT=np.zeros((256,3),'d')        #just a place holder
         self.setLUT()#this will set self.LUT and update self._LUTandHEAD
         self._setupShaders()
 
@@ -116,7 +121,7 @@ class BitsPlusPlus(object):
         """
 
         #choose endpoints
-        LUTrange=numpy.asarray(LUTrange)
+        LUTrange=np.asarray(LUTrange)
         if LUTrange.size==1:
             startII = int(round((0.5-LUTrange/2.0)*255.0))
             endII = int(round((0.5+LUTrange/2.0)*255.0))+1 #+1 because python ranges exclude last value
@@ -130,7 +135,7 @@ class BitsPlusPlus(object):
         if newLUT is None:
             #create a LUT from scratch (based on contrast and gamma)
             #rampStep = 2.0/(self.nEntries-1)
-            ramp = numpy.arange(-1.0,1.0+stepLength, stepLength)
+            ramp = np.arange(-1.0,1.0+stepLength, stepLength)
             ramp = (ramp*self.contrast+1.0)/2.0
             #self.LUT will be stored as 0.0:1.0 (gamma-corrected)
             self.LUT[startII:endII,0] = copy(ramp)
@@ -168,12 +173,12 @@ class BitsPlusPlus(object):
         #update the bits++ box with new LUT
         if self.method=='fast':
             #get bits into correct order, shape and add to header
-            ramp16 = (self.LUT*(2**16-1)).astype(numpy.uint16) #go from ubyte to uint16
-            ramp16 = numpy.reshape(ramp16,(256,1,3))
+            ramp16 = (self.LUT*(2**16-1)).astype(np.uint16) #go from ubyte to uint16
+            ramp16 = np.reshape(ramp16,(256,1,3))
             #set most significant bits
-            self._HEADandLUT[12::2,:,:] = (ramp16[:,:,:]>>8).astype(numpy.uint8)
+            self._HEADandLUT[12::2,:,:] = (ramp16[:,:,:]>>8).astype(np.uint8)
             #set least significant bits
-            self._HEADandLUT[13::2,:,:] = (ramp16[:,:,:]&255).astype(numpy.uint8)
+            self._HEADandLUT[13::2,:,:] = (ramp16[:,:,:]&255).astype(np.uint8)
             self._HEADandLUTstr = self._HEADandLUT.tostring()
 
     def _drawLUTtoScreen(self):
@@ -193,10 +198,10 @@ class BitsPlusPlus(object):
         GL.glLoadIdentity()
 
         #draw the pixels
-        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+        GL.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL_multitexture.glActiveTextureARB(GL_multitexture.GL_TEXTURE1_ARB)
+        GL.glActiveTextureARB(GL_multitexture.GL_TEXTURE1_ARB)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glRasterPos2i(0,1)
@@ -266,7 +271,10 @@ class BitsPlusPlus(object):
         if self.mode=='color++':
             GL.glUseProgram(self._shaders['color++'])
     def _finishFBOrender(self):
-        GL.glUseProgram(0)
+        if self.mode[:4] in ['mono','colo']:
+            GL.glUseProgram(0)
+        elif self.mode[:4]=='bits':
+            self._drawLUTtoScreen()
 
 class BitsSharp(BitsPlusPlus):
     """A class to support functions of the Bits#
@@ -281,22 +289,27 @@ class BitsSharp(BitsPlusPlus):
     """
     def __init__(self, win=None, portName=None, mode=''):
         self.OK=False
-        if portName==None:
+        if portName is not None:
+            self.OK = self._connect(portName)
+        else:
             if sys.platform == 'darwin':
-                portNames = glob.glob('/dev/tty.usbmodemfa*')
+                portNames = glob.glob('/dev/tty.usbmodem*')
                 if not portNames:
                     logging.error("Could not connect to Bits Sharp: No serial ports were found at /dev/tty.usbmodemfa*")
                     return None
-                else:
-                    portName = portNames[0]
             elif sys.platform.startswith('linux'):
-                portName = '/dev/ttyACM0'
-        self.portName = portName
-        self._com = self._connect()
-        if self._com:
-            self.OK=True
-        else:
-            return None
+                portNames = glob.glob('/dev/ttyS*')
+            else:
+                portNames = ['COM18','COM17','COM16','COM15','COM12','COM11','COM10','COM9','COM8','COM7','COM6','COM5','COM4','COM3','COM2','COM1']
+
+            for portName in portNames:
+                self.OK = self._connect(portName)
+                if self.OK:
+                    break #we have an active BitsSharp device :-)
+        if not self.OK:
+            return
+        #we have a confirmed connection. Now check details about device and system
+        self.config = None
         self.info = self.getInfo()
         self.mode = mode
         self.win = win
@@ -306,21 +319,45 @@ class BitsSharp(BitsPlusPlus):
             self.win._prepareFBOrender = self._prepareFBOrender
             self.win._finishFBOrender = self._finishFBOrender
             self._setupShaders()
+            #now check that we have a valid configuration of the box
+            self.checkConfig(level=0)
         else:
-            logging.warning("%s was not given any PsychoPy win")
+            self.config = None # makes no sense if we have a window?
+            logging.warning("%s was not given any PsychoPy win" %(self))
 
-    def _connect(self):
-        com = serial.Serial(self.portName)
-        com.setBaudrate(19200)
-        com.setParity('N')#none
-        com.setStopbits(1)
-        if not com.isOpen():
-            com.open()
-        return com
     def __del__(self):
         """If the user discards this object then close the serial port so it is released"""
         if hasattr(self, '_com'):
             self._com.close()
+
+    def _connect(self, portName=None):
+        if portName is None:
+            portName = self.portName
+        self._com = serial.Serial(portName)
+        self._com.setBaudrate(19200)
+        self._com.setParity('N')#none
+        self._com.setStopbits(1)
+        if not self._com.isOpen():
+            try:
+                self._com.open()
+            except:
+                return False
+        #we found a device but is it ours?! Test a known command with
+        if self.isActive():
+            self.portName = portName
+            return True
+        else:
+            self.portName = None
+            self._com.close()
+            self._com = None
+            return False
+
+    def isActive(self):
+        """Tests whether we have a successful active communication with the device
+        """
+        self.info = self.getInfo()
+        return len(self.info['ProductType'])>0 #if we got a productType then this is a bits device
+
     def getInfo(self):
         """Returns a python dictionary of info about the box
         """
@@ -415,23 +452,40 @@ class BitsSharp(BitsPlusPlus):
         """
         self.sendMessage('$Beep=[%i, %.4f]\r' %(freq, dur))
 
-    def getVideoLine(self, lineN, nPixels):
+    def getVideoLine(self, lineN, nPixels, timeout=1.0, nAttempts=10):
         """Return the r,g,b values for a number of pixels on a particular video line
 
         :param lineN: the line number you want to read
+
         :param nPixels: the number of pixels you want to read
+
+        :param nAttempts: the first time you call this function it has to get to status mode.
+            In this case it sometimes takes a few attempts to make the call work
 
         :return: an Nx3 numpy array of uint8 values
         """
-        self.read(timeout=0.5)
-        self.sendMessage('$GetVideoLine=[%i, %i]\r' %(lineN, nPixels))
-        time.sleep(0.5)
-        raw = self.read(timeout=0.5)
-        vals = raw.split(';')[1:-1]
-        if len(vals)==0:
-            logging.warning("No values returned by BitsSharp.getVideoLine(). Possibly not enough time to swith to status mode?")
-        vals = numpy.array(vals, dtype=int).reshape([-1,3])
-        return vals
+        #define sub-function oneAttempt
+        def oneAttempt():
+            self._com.flushInput()
+            self.sendMessage('$GetVideoLine=[%i, %i]\r' %(lineN, nPixels))
+            #prepare to read
+            t0 = time.time()
+            raw=""
+            vals=[]
+            while len(vals)<(nPixels*3):
+                raw += self.read(timeout=0.001)
+                vals = raw.split(';')[1:-1]
+                if  (time.time()-t0)>timeout:
+                    logging.warn("getVideoLine() timed out: only found %i pixels in %.2f s" %(len(vals), timeout))
+                    break
+            return np.array(vals, dtype=int).reshape([-1,3])
+        #call oneAttempt a few times
+        for attempt in range(nAttempts):
+            vals = oneAttempt()
+            if len(vals):
+                return vals
+        return None
+
 
     #helper functions (lower level)
     def sendMessage(self, msg):
@@ -448,7 +502,8 @@ class BitsSharp(BitsPlusPlus):
         self._com.setTimeout(timeout)
         nChars = self._com.inWaiting()
         raw = self._com.read(nChars)
-        logging.debug("Got BitsSharp reply: %s" %(repr(raw)))
+        if raw: #don't bother if we found nothing on input
+            logging.debug("Got BitsSharp reply: %s" %(repr(raw)))
         return raw
 
     #TO DO: The following are either not yet implemented (or not tested)
@@ -456,6 +511,281 @@ class BitsSharp(BitsPlusPlus):
         raise NotImplemented
     def stop(self):
         raise NotImplemented
+    def checkConfig(self, level=0):
+        """Checks whether there is a configuration for this device and whether it's correct
+
+        :params:
+
+                level: integer
+
+                    0: check that we have a config file and that the graphics
+                    card and operating system match that specified in the file. Then assume
+                    identity LUT is correct
+
+                    1: switch the box to status mode and check that the
+                    identity LUT is currently working
+
+                    2: force a fresh search for the identity LUT
+        """
+        #if we haven't fetched a config yet then do so
+        if not self.config:
+            self.config = Config(self)
+        #check that this matches the prev config for our graphics card etc
+        if level==0:
+            ok = self.config.quickCheck()
+            if not ok:
+                #didn't match our graphics card or OS
+                level=1
+                self._warnTesting()
+            else:
+                return 1
+        #it didn't so switch to doing the test
+        if level==1:
+            errs = self.config.testLUT()
+            if errs.sum()>0:
+                level=2
+            else:
+                return 1
+        if level==2:
+            ok = self.config.findIdentityLUT()
+            return ok
+    def _warnTesting(self):
+        msg = "We need to run some tests on your graphics card (hopefully just once).\n" + \
+            "The BitsSharp will go into status mode while this is done.\n" + \
+            "It can take a minute of two."
+        logging.warn(msg)
+        logging.flush()
+        msgOnScreen = visual.TextStim(self.win, msg)
+        msgOnScreen.draw()
+        self.win.flip()
+        core.wait(1.0)
+        self.win.flip()
+
+    #properties that need a weak ref to avoid circular references
+    @property
+    def win(self):
+        """The window that this box is attached to
+        """
+        if self.__dict__.get('win') is None:
+            return None
+        else:
+            return self.__dict__.get('win')()
+    @win.setter
+    def win(self, win):
+        self.__dict__['win'] = weakref.ref(win)
+
+class Config(object):
+    def __init__(self, bits):
+        #we need to set bits reference using weakref to avoid circular refs
+        self.bits=bits
+        self.load() #try to fetch previous config file
+
+    def load(self, filename=None):
+        """If name is None then we'll try to save to
+        """
+        def parseLUTLine(line):
+            return line.replace('[','').replace(']','').split(',')
+
+        if filename is None:
+            from psychopy import prefs
+            filename = os.path.join(prefs.paths['userPrefsDir'], 'crs_bits.cfg')
+        if os.path.exists(filename):
+            config = configparser.RawConfigParser()
+            with open(filename) as f:
+                config.readfp(f)
+            self.os = config.get('system','os')
+            self.gfxCard = config.get('system','gfxCard')
+            self.identityLUT = np.ones([256,3])
+            self.identityLUT[:,0] = parseLUTLine(config.get('identityLUT','r'))
+            self.identityLUT[:,1] = parseLUTLine(config.get('identityLUT','g'))
+            self.identityLUT[:,2] = parseLUTLine(config.get('identityLUT','b'))
+            return True
+        else:
+            logging.warn('no config file yet for %s' %self.bits)
+            self.identityLUT = None
+            self.gfxCard = None
+            self.os = None
+            return False
+
+    def _getGfxCardString(self):
+        from pyglet.gl import gl_info
+        thisStr = "%s: %s" %(gl_info.get_renderer(), gl_info.get_version())
+        return thisStr
+
+    def _getOSstring(self):
+        import platform
+        return platform.platform()
+
+    def save(self, filename=None):
+        if filename is None:
+            from psychopy import prefs
+            filename = os.path.join(prefs.paths['userPrefsDir'], 'crs_bits.cfg')
+
+        #create the config object
+        config = configparser.RawConfigParser()
+        config.add_section('system')
+        self.os = config.set('system','os', self._getOSstring())
+        self.gfxCard = config.set('system','gfxCard', self._getGfxCardString())
+
+        #save the current LUT
+        config.add_section('identityLUT')
+        config.set('identityLUT','r',list(self.identityLUT[:,0]))
+        config.set('identityLUT','g',list(self.identityLUT[:,1]))
+        config.set('identityLUT','b',list(self.identityLUT[:,2]))
+
+        #save it to disk
+        with open(filename, 'w') as fileObj:
+            config.write(fileObj)
+        logging.info("Saved %s configuration to %s" %(self.bits, filename))
+
+    def quickCheck(self):
+        """Check whether the current graphics card and OS match those of the last saved LUT
+        """
+        if self._getGfxCardString() != self.gfxCard:
+            logging.warn("The graphics card or it's driver has changed. We'll re-check the identity LUT for the card")
+            return 0
+        if self._getOSstring() != self.os:
+            logging.warn("The OS has been changed/updated. We'll re-check the identity LUT for the card")
+            return 0
+        return 1 #all seems the same as before
+
+    def testLUT(self,LUT=None):
+        """Apply a LUT to the graphics card gamma table and test whether we get back 0:255
+        in all channels.
+
+        :params:
+
+            LUT: The lookup table to be tested (256x3). If None then the LUT will not be altered
+
+        :returns:
+
+            a 256x3 array of error values (integers in range 0:255)
+        """
+        bits = self.bits #if you aren't yet in
+        win = self.bits.win
+        if LUT is not None:
+            win.gammaRamp = LUT
+        #create the patch of stimulus to test
+        expectedVals = range(256)
+        w,h = win.size
+        testArrLums = np.resize(np.linspace(-1,1,256),[256,256]) #NB psychopy uses -1:1
+        stim = visual.ImageStim(win, image=testArrLums,
+            size=[256,h], pos=[128-w/2,0], units='pix',
+            )
+        expected = np.repeat(expectedVals,3).reshape([-1,3])
+        stim.draw()
+        #make sure the frame buffer was correct (before gamma was applied)
+        frm = np.array(win.getMovieFrame(buffer='back'))
+        assert np.alltrue(frm[0,0:256,0]==range(256))
+        win.flip()
+        #use bits sharp to test
+        pixels = bits.getVideoLine(lineN=1, nPixels=256)
+        errs = pixels-expected
+        return errs
+
+    def findIdentityLUT(self, maxIterations = 1000, errCorrFactor = 1.0/2048, # amount of correction done for each iteration
+        nVerifications = 50, #number of repeats (successful) to check dithering has been eradicated
+        plotResults=False,
+        ):
+        """Search for the identity LUT for this card/operating system
+
+        :params:
+
+            LUT: The lookup table to be tested (256x3). If None then the LUT will not be altered
+
+        :returns:
+
+            a 256x3 array of error values (integers in range 0:255)
+        """
+        t0 = time.time()
+        #create standard options
+        LUTs = {}
+        LUTs['intel'] = np.repeat(np.linspace(.05,.95,256),3).reshape([-1,3])
+        LUTs['sensible'] = np.repeat(np.linspace(0,1.0,256),3).reshape([-1,3])
+
+        lowestErr = 1000000000
+        bestLUTname = None
+        for LUTname, currentLUT in LUTs.items():
+            print 'Checking %r LUT:' %(LUTname),
+            for n in range(1):
+                errs = self.testLUT(currentLUT)
+                print 'mean err = %.3f per LUT entry' %(errs.mean())
+                if abs(errs.sum())< abs(lowestErr):
+                    lowestErr = errs.mean()
+                    bestLUTname = LUTname
+        if lowestErr==0:
+            print "The %r identity LUT produced zero error. We'll use that!"
+            return
+
+        print "Best was %r LUT (mean err = %.3f). Optimising that..." %(bestLUTname, lowestErr)
+        currentLUT = LUTs[bestLUTname]
+        errProgression=[]
+        corrInARow=0
+        for n in range(maxIterations):
+            errs = self.testLUT(currentLUT)
+            tweaks = errs*errCorrFactor
+            currentLUT -= tweaks
+            currentLUT[currentLUT>1] = 1.0
+            currentLUT[currentLUT<0] = 0.0
+            errProgression.append(errs.mean())
+            if errs.mean()>0:
+                print "%.3f" %errs.mean(),
+                corrInARow=0
+            else:
+                print ".",
+                corrInARow+=1
+            if corrInARow>=nVerifications:
+                print 'success in a total of %.1fs' %(time.time()-t0)
+                self.identityLUT = currentLUT
+                self.save() #it worked so save this configuration for future
+                break
+
+        #did we get here by failure?!
+        if n==(maxIterations-1):
+            print "failed to converge on a successful identity LUT. This is BAD! psychopy.hardware.crs.Config needs improving"
+
+
+        if plotResults:
+            import pylab
+            pylab.figure(figsize=[18,12])
+            pylab.subplot(1,3,1)
+            pylab.plot(errProgression)
+            pylab.title('Progression of errors')
+            pylab.ylabel("Mean error per LUT entry (0-1)")
+            pylab.xlabel("Test iteration")
+            r256 = np.reshape(range(256),[256,1])
+            pylab.subplot(1,3,2)
+            pylab.plot(r256, r256, 'k-')
+            pylab.plot(r256, currentLUT[:,0]*255, 'r.', markersize=2.0)
+            pylab.plot(r256, currentLUT[:,1]*255, 'g.', markersize=2.0)
+            pylab.plot(r256, currentLUT[:,2]*255, 'b.', markersize=2.0)
+            pylab.title('Final identity LUT')
+            pylab.ylabel("LUT value")
+            pylab.xlabel("LUT entry")
+
+            pylab.subplot(1,3,3)
+            deviations = currentLUT-r256/255.0
+            pylab.plot(r256, deviations[:,0], 'r.')
+            pylab.plot(r256, deviations[:,1], 'g.')
+            pylab.plot(r256, deviations[:,2], 'b.')
+            pylab.title('LUT deviations from sensible')
+            pylab.ylabel("LUT value")
+            pylab.xlabel("LUT deviation (multiples of 1024)")
+            pylab.savefig("bitsSharpIdentityLUT.pdf")
+            pylab.show()
+
+    #Some properties for which we need weakref pointers, not std properties
+    @property
+    def bits(self):
+        """The bits box to which this config object refers
+        """
+        if self.__dict__.get('bits') is None:
+            return None
+        else:
+            return self.__dict__.get('bits')()
+    @bits.setter
+    def bits(self, bits):
+        self.__dict__['bits'] = weakref.ref(bits)
 
 def init():
     """DEPRECATED: we used to initialise Bits++ via the compiled dll
@@ -499,4 +829,5 @@ def reset(noGamma=True):
     Allows the option to turn off gamma correction
     """
     OK = init()
-    if noGamma and OK: setVideoMode(NOGAMMACORRECT)
+    if noGamma and OK:
+        setVideoMode(NOGAMMACORRECT)
