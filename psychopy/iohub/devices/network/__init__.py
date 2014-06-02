@@ -17,7 +17,11 @@ import zmq.green as zmq
 
 import copy
 import msgpack
-
+try:
+    import msgpack_numpy as m
+    m.patch()
+except:
+    pass
 
 from .. import Computer, Device, DeviceEvent
 from ...constants import DeviceConstants,EventConstants
