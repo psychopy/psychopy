@@ -35,6 +35,8 @@ pstbox = io.devices.serial
 
 # Not sure if this is needed, but one psychopy-user forum post suggested it
 # is required to enable serial streaming on the PST box.
+# Note: Another SRBox user emailed me saying that the code needed to init
+# streaming on the box is 0xE0, so the below line may need to be updated.
 pstbox.write(chr(128)+chr(32))
 
 # Clear out any device events collected so far
