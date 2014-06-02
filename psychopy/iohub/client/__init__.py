@@ -31,7 +31,7 @@ if sys.platform != 'darwin':
 
 from .. import IO_HUB_DIRECTORY,isIterable, load, dump, Loader, Dumper, updateDict
 from .. import MessageDialog, win32MessagePump
-from .. import print2err,printExceptionDetailsToStdErr,ioHubError,ioHubServerError,ioHubConnectionException
+from .. import print2err,printExceptionDetailsToStdErr,ioHubError
 from ..devices import Computer, DeviceEvent, import_device
 from ..devices.experiment import MessageEvent, LogEvent
 from ..constants import DeviceConstants, EventConstants
@@ -454,7 +454,7 @@ class ioHubConnection(object):
 
         return self._iohub_server_config
 
-    def getEvents(self,device_label=None,as_type ='namedtuple'):
+    def getEvents(self, device_label=None, as_type ='namedtuple'):
         """
         Retrieve any events that have been collected by the ioHub Process from
         monitored devices since the last call to getEvents() or clearEvents().
@@ -1052,13 +1052,14 @@ class ioHubConnection(object):
             try:
                 self._server_process.terminate()
             except Exception as e:
-                raise ioHubConnectionException(e)
+                raise e
             finally:
                 sys.exit(1)
 
         #print '* IOHUB SERVER ONLINE *'
         ioHubConnection.ACTIVE_CONNECTION=proxy(self)
-        # save ioHub ProcessID to file so next time it is started, it can be checked and killed if necessary
+        # save ioHub ProcessID to file so next time it is started,
+        # it can be checked and killed if necessary
 
         from psychopy.visual import window
         window.IOHUB_ACTIVE=True
@@ -1135,7 +1136,7 @@ class ioHubConnection(object):
                     return True
             # << WIN32_ONLY
             except Exception as e:
-                raise ioHubConnectionException(e)
+                raise e
         else:
             return True
 
@@ -1317,9 +1318,9 @@ class ioHubConnection(object):
         and returns a new session ID  if session_code is not in use by the experiment.
         """
         if self.experimentID is None:
-            raise ioHubConnectionException("Experiment ID must be set by calling _sendExperimentInfo before calling _sendSessionInfo.")
+            raise ValueError("Experiment ID must be set by calling _sendExperimentInfo before calling _sendSessionInfo.")
         if 'code' not in sessionInfoDict:
-            raise ioHubConnectionException("Code must be provided in sessionInfoDict ( StringCol(24) ).")
+            raise ValueError("Code must be provided in sessionInfoDict ( StringCol(24) ).")
         if 'name' not in sessionInfoDict:
             sessionInfoDict['name']=''
         if 'comments' not in sessionInfoDict:
@@ -1448,11 +1449,11 @@ class ioHubConnection(object):
             if isIterable(data[0]):
                 return False
             else:
-                if (type(data[0]) in (str,unicode)) and data[0].find('ERROR')>=0:
-                    return ioHubServerError(data)
+                if (type(data[0]) in (str, unicode)) and data[0].find('ERROR') >= 0:
+                    return data
                 return False
         else:
-            return ioHubServerError("Invalid Response Received from ioHub Server")
+            return "Invalid Response Received from ioHub Server"
 
     def _osxKillAndFreePort(self):
         p = subprocess.Popen(['lsof', '-i:9000', '-P'], stdout=subprocess.PIPE)

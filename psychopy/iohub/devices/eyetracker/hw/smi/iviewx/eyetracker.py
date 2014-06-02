@@ -16,7 +16,7 @@ import sys
 import copy
 
 
-from ...... import print2err, convertCamelToSnake, createErrorResult,printExceptionDetailsToStdErr
+from ...... import print2err, convertCamelToSnake,printExceptionDetailsToStdErr
 from ......constants import EventConstants, EyeTrackerConstants
 from ..... import Computer
 from .... import EyeTrackerDevice   

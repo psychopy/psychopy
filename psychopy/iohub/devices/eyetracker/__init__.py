@@ -10,9 +10,9 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
 
-from ... import print2err, createErrorResult
-from .. import Device,ioDeviceError
-from ...constants import DeviceConstants,EyeTrackerConstants
+from ... import print2err
+from .. import Device, ioDeviceError
+from ...constants import DeviceConstants, EyeTrackerConstants
 import hw
 
 
@@ -289,9 +289,6 @@ class EyeTrackerDevice(Device):
                 return result
             else:
                 return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
-        else:
-            return createErrorResult("INVALID_METHOD_ARGUMENT_VALUE",error_message="The starting_state arguement value provided is not recognized",method="EyeTracker.runSetupProcedure",arguement='starting_state', value=starting_state)            
-
                 
     def setRecordingState(self,recording):
         """
@@ -305,10 +302,6 @@ class EyeTrackerDevice(Device):
         Return:
             bool: the current recording state of the eye tracking device
         """
-        
-        if not isinstance(recording,bool):
-            return createErrorResult("INVALID_METHOD_ARGUMENT_VALUE",error_message="The recording arguement value provided is not a boolean.",method="EyeTracker.setRecordingState",arguement='recording', value=recording)
-        
         # Implementation Note: Perform your implementation specific logic for this method here
         print2err("EyeTracker should handle setRecordingState method with recording value of {0} now.".format(recording))
         
