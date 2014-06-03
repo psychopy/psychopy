@@ -9,7 +9,8 @@ import copy
 
 if not hasattr(sys, 'frozen'):
     import wxversion
-    wxversion.ensureMinimal('2.8') # because this version has agw
+    #wxversion.ensureMinimal('2.8') # because this version has agw
+    wxversion.select(['2.8.10', '2.8.11', '2.8.12'])
 import wx
 try:
     from agw import advancedsplash as AS
