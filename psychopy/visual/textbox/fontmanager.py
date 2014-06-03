@@ -13,7 +13,7 @@ from psychopy.core import getTime
 try:
     from textureatlas import TextureAtlas
 except Exception, e:
-        print 'error importing TextureAtlas:',e
+    pass
 from pyglet.gl import (glGenLists,glNewList,GL_COMPILE,GL_QUADS,
                       glBegin,glTexCoord2f,glVertex2f,glEnd,glDeleteLists,
                       glEndList,glTranslatef,glDeleteTextures
