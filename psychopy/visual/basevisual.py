@@ -41,6 +41,8 @@ from numpy import pi
 
 from psychopy.constants import NOT_STARTED, STARTED, STOPPED
 
+reportNImageResizes = 5 #permitted number of resizes
+
 """
 There are several base and mix-in visual classes for mulitple inheritance:
   - MinimalStim:       non-visual house-keeping code common to all visual stim
@@ -303,10 +305,10 @@ class ColorMixin(object):
 
         Examples::
 
-            stim.contrast = 1.0  # unchanged contrast
-            stim.contrast = 0.5  # decrease contrast
-            stim.contrast = 0.0  # uniform, no contrast
-            stim.contrast = -0.5 # slightly inverted
+            stim.contrast =  1.0  # unchanged contrast
+            stim.contrast =  0.5  # decrease contrast
+            stim.contrast =  0.0  # uniform, no contrast
+            stim.contrast = -0.5  # slightly inverted
             stim.contrast = -1   # totally inverted
 
         Setting contrast outside range -1 to 1 is permitted, but may
@@ -682,12 +684,11 @@ class TextureMixin(object):
                     elif glob_vars.nImageResizes==reportNImageResizes:
                         logging.warning("Multiple images have needed resizing - I'll stop bothering you!")
                         im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
-
             #is it Luminance or RGB?
             if pixFormat==GL.GL_ALPHA and im.mode!='L':#we have RGB and need Lum
                 wasLum = True
                 im = im.convert("L")#force to intensity (in case it was rgb)
-            elif im.mode=='L': #we have lum and no need to change
+            elif pixFormat==GL.GL_ALPHA and im.mode=='L': #we have lum and no need to change
                 wasLum = True
             elif pixFormat==GL.GL_RGB: #we want RGB and might need to convert from CMYK or Lm
                 #texture = im.tostring("raw", "RGB", 0, -1)
@@ -698,7 +699,6 @@ class TextureMixin(object):
                 intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # much faster to avoid division 2/255
             else:
                 intensity = numpy.array(im)
-
         if pixFormat==GL.GL_RGB and wasLum and dataType==GL.GL_FLOAT: #grating stim on good machine
             #keep as float32 -1:1
             if sys.platform!='darwin' and stim.win.glVendor.startswith('nvidia'):
@@ -788,7 +788,7 @@ class BaseVisualStim(MinimalStim, LegacyVisualMixin):
 
     Methods defined here will override Minimal & Legacy, but best to avoid
     that for simplicity & clarity.
-    """
+        """
     def __init__(self, win, units=None, name='', autoLog=True):
         self.autoLog = False  # just to start off during init, set at end
         self.win = win
