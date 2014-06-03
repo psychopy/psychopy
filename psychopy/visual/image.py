@@ -192,7 +192,6 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         rather than using the .set() command
         """
         self._needUpdate = False
-
         GL.glNewList(self._listID,GL.GL_COMPILE)
         GL.glColor4f(1.0,1.0,1.0,1.0)#glColor can interfere with multitextures
         #mask

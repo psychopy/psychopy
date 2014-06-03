@@ -112,7 +112,14 @@ class _baseVisualTest:
         imageStim.contrast = 0.1#should have identical effect to color=0.1
         imageStim.draw()
         utils.compareScreenshot('greyscaleLowContr_%s.png' %(self.contextName), win)
-
+        win.flip()
+        imageStim.contrast = 1.0
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'greyscale2.png')
+        imageStim.setImage(fileName)
+        imageStim.size *= 3
+        imageStim.draw()
+        utils.compareScreenshot('greyscale2_%s.png' %(self.contextName), win)
+        win.flip()
     def test_numpyTexture(self):
         win = self.win
         grating = filters.makeGrating(res=64, ori=20.0,
