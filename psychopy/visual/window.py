@@ -1028,12 +1028,22 @@ class Window(object):
         specify colors and their various implications."""
         self.__dict__['colorSpace'] = colorSpace
 
+    def setColor(self, color, colorSpace=None, operation='', log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you want to set color and colorSpace simultaneously.
+        See `Window.color` for documentation on colors.
+        """
+        # Set color
+        setColor(self, color, colorSpace=colorSpace, operation=operation,
+                 rgbAttrib='rgb',  # or 'fillRGB' etc
+                 colorAttrib='color')
+
         # These spaces are 0-centred
-        if colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
+        if self.colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
             # RGB in range 0:1 and scaled for contrast
             desiredRGB = (self.rgb + 1) / 2.0
         # rgb255 and named are not...
-        elif type(colorSpace) is str:
+        elif type(self.colorSpace) is str:
             desiredRGB = (self.rgb) / 255.0
         else:  # some array/numeric stuff
             raise ValueError('invalid value "%s" for Window.colorSpace' %colorSpace)
@@ -1043,23 +1053,6 @@ class Window(object):
             if self.winType == 'pyglet':
                 self.winHandle.switch_to()
             GL.glClearColor(desiredRGB[0], desiredRGB[1], desiredRGB[2], 1.0)
-
-    def setColor(self, color, colorSpace=None, operation='', log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you want to set color and colorSpace simultaneously.
-        See `Window.color` for documentation on colors.
-        """
-
-        # Set color
-        setColor(self, color, colorSpace=colorSpace, operation=operation,
-                 rgbAttrib='rgb',  # or 'fillRGB' etc
-                 colorAttrib='color')
-
-        # Set colorSpace to not-None
-        if colorSpace is None:
-            setAttribute(self, 'colorSpace', self.colorSpace, log)
-        else:
-            setAttribute(self, 'colorSpace', colorSpace, log)
 
     def setRGB(self, newRGB):
         """Deprecated: As of v1.61.00 please use `setColor()` instead
@@ -1373,7 +1366,7 @@ class Window(object):
                              pyglet.gl.gl_info.get_version() >= '2.0')
 
         #setup screen color
-        self.colorSpace = self.colorSpace  # call attributeSetter
+        self.color = self.color  # call attributeSetter
         GL.glClearDepth(1.0)
 
         GL.glViewport(0, 0, int(self.size[0]), int(self.size[1]))
