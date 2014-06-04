@@ -8,7 +8,6 @@
 
 import sys
 import os
-import weakref
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -97,7 +96,7 @@ openWindows = []
 psychopy.event.visualOpenWindows = openWindows
 
 
-class Window:
+class Window(object):
     """Used to set up a context in which to draw objects,
     using either PyGame (python's SDL binding) or pyglet.
 
@@ -138,6 +137,10 @@ class Window:
                  useFBO=False,
                  autoLog=True):
         """
+        These attributes can only be set at initialization. See further down
+        for a list of attributes which can be changed after initialization
+        of the Window, e.g. color, colorSpace, gamma etc.
+
         :Parameters:
 
             size : (800,600)
@@ -179,6 +182,9 @@ class Window:
                 Overrides monitor settings
             bitsMode :
                 DEPRECATED in 1.80.02. Use BitsSharp class from pycrsltd instead.
+            checkTiming: True of False
+                Whether to calculate frame duration on initialization. Estimated
+                duration is saved in [Window].monitorFramePeriod.
             allowStencil : True or *False*
                 When set to True, this allows operations that use
                 the OpenGL stencil buffer
@@ -299,8 +305,8 @@ class Window:
         self.allowStencil = allowStencil
         #check whether FBOs are supported
         if blendMode == 'add' and not self.useFBO:
-            logging.warning('User requested a blendmode of "add" but '
-                            'framebuffer objects not available.')
+            logging.warning('User requested a blendmode of "add" but ' +\
+                            'window requires useFBO=True')
             # resort to the simpler blending without float rendering
             self.blendMode = 'avg'
         else:
@@ -1019,9 +1025,9 @@ class Window:
         # these spaces are 0-centred
         if self.colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
             # RGB in range 0:1 and scaled for contrast
-            desiredRGB = (self.rgb+1)/2.0
+            desiredRGB = (self.rgb + 1) / 2.0
         else:
-            desiredRGB = (self.rgb)/255.0
+            desiredRGB = (self.rgb) / 255.0
 
         # if it is None then this will be done during window setup
         if self.winHandle is not None:
@@ -1211,7 +1217,7 @@ class Window:
         if self.useFBO: #check for necessary extensions
             if not GL.gl_info.have_extension('GL_EXT_framebuffer_object'):
                 logging.warn("Trying to use a framebuffer pbject but GL_EXT_framebuffer_object is not supported. Disabling")
-            self.useFBO=False
+                self.useFBO=False
             if not GL.gl_info.have_extension('GL_ARB_texture_float'):
                 logging.warn("Trying to use a framebuffer pbject but GL_ARB_texture_float is not supported. Disabling")
                 self.useFBO=False
@@ -1374,12 +1380,21 @@ class Window:
         if sys.platform == 'darwin':
             platform_specific.syncSwapBuffers(1)
 
-        if self.useFBO:
-            self._setupFrameBuffer()
-
+        requestedFBO=self.useFBO
         if self._haveShaders: #do this after setting up FrameBufferObject
             self._setupShaders()
-
+        else:
+            self.useFBO=False
+        if self.useFBO:
+            success=self._setupFrameBuffer()
+            if not success:
+                self.useFBO=False
+        if requestedFBO and not self.useFBO:
+            logging.warning("Framebuffer object (FBO) not supported on this graphics card")
+        if self.blendMode == 'add' and not self.useFBO:
+            logging.warning("Framebuffer object (FBO) is required for blendMode='add'. "
+                "Reverting to blendMode='avg'")
+            self.blendMode='avg'
     def _setupShaders(self):
         self._progSignedTexFont = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexFont)
         self._progFBOtoFrame = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragFBOtoFrame)
