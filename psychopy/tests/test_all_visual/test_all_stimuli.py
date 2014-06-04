@@ -156,12 +156,6 @@ class _baseVisualTest:
         utils.compareScreenshot('gabor1_%s.png' %(self.contextName), win)
         win.flip()#AFTER compare screenshot
 
-        #did buffer image also work?
-        #bufferImgStim = visual.BufferImageStim(self.win, stim=[gabor])
-        #bufferImgStim.draw()
-        #utils.compareScreenshot('gabor1_%s.png' %(self.contextName), win)
-        #win.flip()
-
         #using .set()
         gabor.setOri(45, log=False)
         gabor.setSize(0.2*self.scaleFactor, '-', log=False)
@@ -174,6 +168,22 @@ class _baseVisualTest:
         utils.compareScreenshot('gabor2_%s.png' %(self.contextName), win)
         win.flip()
         str(gabor) #check that str(xxx) is working
+
+    @pytest.mark.bufferimage
+    def test_bufferImage(self):
+        """BufferImage inherits from ImageStim, so test .ori. .pos etc there not here
+        """
+        win = self.win
+        gabor = visual.PatchStim(win, mask='gauss', ori=-45,
+            pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor],
+            sf=2.0/self.scaleFactor, size=2*self.scaleFactor,
+            interpolate=True)
+
+        bufferImgStim = visual.BufferImageStim(self.win, stim=[gabor],
+            interpolate=True)
+        bufferImgStim.draw()
+        utils.compareScreenshot('bufferimg_gabor_%s.png' %(self.contextName), win)
+        win.flip()
 
     #def testMaskMatrix(self):
     #    #aims to draw the exact same stimulus as in testGabor, but using filters
