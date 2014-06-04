@@ -23,17 +23,28 @@ PsychoPy 1.81
 PsychoPy 1.81.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* FIXED: further fixes to greyscale coloring (some images were not correctly detected as greyscale by PIL so tests weren't working)
+(in repository)
+
 * FIXED: MovieStim was right-left flipping movies and this has been corrected. If you had been working around that by setting flipVertical=True then you'll need to undo that correction
 * IMPROVED: better unit tests for visual stimuli to prevent further regressions of the issues above
 * IMPROVED: All stimulus attributes now support new syntax, e.g. stim.pos = [0,0] as well as the previous stim.setPos([0,0])
 * ADDED: Support for CRS devices:
     * both Bits# and Bits++ now supported and using advanced rendering modes (mono++ and color++)
     * Bits# also supports use of the infra-red button box
-* FIXED: machines that didn't support shaders or framebuffer objects were raising an error on win.flip() if the useFBO argument was not manually set to False. Machines that don't support the new rendering methods are now handled more gracefully.
 
 PsychoPy 1.80
 ------------------------------
+
+PsychoPy 1.80.05
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released June 2014
+
+* FIXED: further fixes to greyscale coloring (some images were not correctly detected as greyscale by PIL so tests weren't working)
+* FIXED: machines that didn't support shaders or framebuffer objects were raising an error on win.flip() if the useFBO argument was not manually set to False. Machines that don't support the new rendering methods are now handled more gracefully
+* FIXED: named colors were not interpreted correctly by the visual.Window (but worked fine for stimuli)
+* FIXED: the error message about TextBox/FontManager not working doesn't show up any more
+* FIXED: reinstated the requirement that wx is version 2.8.x only until we get time to check 3.0 compatibility more deeply 
 
 PsychoPy 1.80.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
