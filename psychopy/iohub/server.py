@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import division
 """
 ioHub
 .. file: ioHub/server.py
@@ -267,11 +269,13 @@ class udpServer(DatagramServer):
     def sendResponse(self,data,address):
         packet_data=None
         try:
-            max_size=MAX_PACKET_SIZE/2-20
-            packet_data=self.pack(data)
-            packet_data_length=len(packet_data)
-            if packet_data_length>= max_size:
-                num_packets=len(packet_data)/max_size+1
+            num_packets = -1
+            packet_data_length = -1
+            max_size = int(MAX_PACKET_SIZE/2-20)
+            packet_data = self.pack(data)
+            packet_data_length = len(packet_data)
+            if packet_data_length >= max_size:
+                num_packets = int(packet_data_length//max_size)+1
                 self.sendResponse(('IOHUB_MULTIPACKET_RESPONSE',num_packets),address)
                 for p in xrange(num_packets-1):
                     self.socket.sendto(packet_data[p*max_size:(p+1)*max_size],address)
@@ -280,8 +284,11 @@ class udpServer(DatagramServer):
                 self.socket.sendto(packet_data,address)
         except:
             print2err('Error trying to send data to experiment process:')
-            print2err('data length:',len(data))
-            print2err("=============================")            
+            print2err('max_size: ',max_size)
+            print2err('data length: ',packet_data_length)
+            print2err('num_packets: ',num_packets)
+
+            print2err("=============================")
             printExceptionDetailsToStdErr()
             print2err("=============================")            
 

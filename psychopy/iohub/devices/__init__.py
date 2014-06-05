@@ -915,19 +915,21 @@ class Device(ioObject):
         Returns:   
             (list): New events that the ioHub has received since the last getEvents() or clearEvents() call to the device. Events are ordered by the ioHub time of each event, older event at index 0. The event object type is determined by the asType parameter passed to the method. By default a namedtuple object is returned for each event. 
         """
+        eventTypeID = None
+        clearEvents = True
         if len(args)==1:
             eventTypeID=args[0]
-            clearEvents=kwargs.get('clearEvents',True)
         elif len(args)==2:
             eventTypeID=args[0]
             clearEvents=args[1]
-        else:
+
+        if eventTypeID is None:
             eventTypeID=kwargs.get('event_type_id',None)
             if eventTypeID is None:
-                eventTypeID=kwargs.get('event_type',None)    
-            clearEvents=kwargs.get('clearEvents',True)
+                eventTypeID=kwargs.get('event_type',None)
+        clearEvents=kwargs.get('clearEvents',True)
 
-            filter_id=kwargs.get('filter_id',None)
+        filter_id=kwargs.get('filter_id',None)
 
         currentEvents=[]
         if eventTypeID:
@@ -1010,7 +1012,7 @@ class Device(ioObject):
         """
         return self._is_reporting_events
 
-    def addFilter(self, filter_file_path, filter_class_name):
+    def addFilter(self, filter_file_path, filter_class_name, kwargs):
         """
         Take the filter_file_path and add the filters module dir to sys.path
         if it does not already exist.
@@ -1023,42 +1025,44 @@ class Device(ioObject):
         :param filter_path:
         :return:
         """
-        import importlib
-        from psychopy.iohub import EventConstants, convertCamelToSnake
-
-        filter_file_path = os.path.normpath(os.path.abspath(filter_file_path))
-        fdir, ffile = os.path.split(filter_file_path)
-        if not ffile.endswith(".py"):
-            ffile = ffile+".py"
-        if os.path.isdir(fdir) and os.path.exists(filter_file_path):
-            if fdir not in sys.path:
-                sys.path.append(fdir)
-
-            # import module using ffile
-            filter_module = importlib.import_module(ffile[:-3])
-
-            # import class filter_class_name
-            filter_class = getattr(filter_module, filter_class_name, None)
-            if filter_class is None:
-                print2err("Can not create Filter, filter class not found")
-                return False
+        try:
+            import importlib
+            from psychopy.iohub import EventConstants, convertCamelToSnake
+    
+            filter_file_path = os.path.normpath(os.path.abspath(filter_file_path))
+            fdir, ffile = os.path.split(filter_file_path)
+            if not ffile.endswith(".py"):
+                ffile = ffile+".py"
+            if os.path.isdir(fdir) and os.path.exists(filter_file_path):
+                if fdir not in sys.path:
+                    sys.path.append(fdir)
+    
+                # import module using ffile
+                filter_module = importlib.import_module(ffile[:-3])
+    
+                # import class filter_class_name
+                filter_class = getattr(filter_module, filter_class_name, None)
+                if filter_class is None:
+                    print2err("Can not create Filter, filter class not found")
+                    return -1
+                else:
+                    # Create instance of class
+                    # For now, just use a class level counter.
+                    filter_class_instance = filter_class(**kwargs)
+                    filter_class_instance._parent_device_type = self.DEVICE_TYPE_ID
+                    # Add to filter list for device
+                    filter_key = filter_file_path+'.'+filter_class_name
+                    filter_class_instance._filter_key = filter_key
+                    self._filters[filter_key] = filter_class_instance
+                    return filter_class_instance.filter_id
+    
             else:
-
-
-                # Create instance of class
-                # For now, just use a class level counter.
-                filter_class_instance = filter_class()
-                filter_class_instance._parent_device_type = self.DEVICE_TYPE_ID
-                # Add to filter list for device
-                filter_key = filter_file_path+'.'+filter_class_name
-                filter_class_instance._filter_key = filter_key
-                self._filters[filter_key] = filter_class_instance
-                return True
-
-        else:
-            print2err("Could not add filter . File not found.")
-        return False
-
+                print2err("Could not add filter . File not found.")
+            return -1
+        except:
+            printExceptionDetailsToStdErr()
+            print2err("ERROR During Add Filter")
+            
     def removeFilter(self, filter_file_path, filter_class_name):
         filter_key = filter_file_path+'.'+filter_class_name
         if filter_key in self._filters:
@@ -1073,6 +1077,10 @@ class Device(ioObject):
             return True
         return False
 
+    def enableFilters(self,yes=True):
+        for f in self._filters.values():
+            f.enable = yes
+
     def _handleEvent(self,e):
         event_type_id = e[DeviceEvent.EVENT_TYPE_ID_INDEX]
         self._iohub_event_buffer.setdefault(event_type_id,
@@ -1082,12 +1090,13 @@ class Device(ioObject):
         # list wanting the event's type and events filter_id
         input_evt_filter_id = e[DeviceEvent.EVENT_FILTER_ID_INDEX]
         for event_filter in self._filters.values():
-            current_filter_id = event_filter.filter_id
-            if current_filter_id != input_evt_filter_id:
-                # stops circular event processing
-                evt_filter_ids= event_filter.input_event_types.get(event_type_id, None)
-                if input_evt_filter_id in evt_filter_ids:
-                    event_filter._addInputEvent(copy.deepcopy(e))
+            if event_filter.enable is True:
+                current_filter_id = event_filter.filter_id
+                if current_filter_id != input_evt_filter_id:
+                    # stops circular event processing
+                    evt_filter_ids= event_filter.input_event_types.get(event_type_id, [])
+                    if input_evt_filter_id in evt_filter_ids:
+                        event_filter._addInputEvent(copy.deepcopy(e))
 
     def _getNativeEventBuffer(self):
         return self._native_event_buffer
