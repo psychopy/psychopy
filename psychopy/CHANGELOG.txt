@@ -33,6 +33,14 @@ PsychoPy 1.81.00
 PsychoPy 1.80
 ------------------------------
 
+PsychoPy 1.80.06
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released June 2014
+
+* FIXED: problem with using the framebuffer object
+* ENH: added support for using a stencil when the framebuffer object is turned on
+
 PsychoPy 1.80.05
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
