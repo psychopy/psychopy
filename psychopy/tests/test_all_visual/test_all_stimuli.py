@@ -446,6 +446,12 @@ class TestPygletNorm(_baseVisualTest):
         self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
+class TestPygletNormFBO(_baseVisualTest):
+    @classmethod
+    def setup_class(self):
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False, useFBO=True)
+        self.contextName='norm'
+        self.scaleFactor=1#applied to size/pos values
 class TestPygletHeight(_baseVisualTest):
     @classmethod
     def setup_class(self):
