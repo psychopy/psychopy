@@ -6,41 +6,38 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. author:: Sol Simpson <sol@isolver-software.com>
 
-
 TODO:
-- Switch analog reading to use ADC module so that dual AD converters can be used on teensy 3.1.
-
-- Support DAC using AO_0 (A14) line
-
+- When client connects to iosync, send teensy board version, KEYBOARD, DIGITAL_INPUT_TYPE, STATUS_LED values. Maybe anal;log input related settings as well.
 - Allow some constants to be set by user. For example analog input related constants.
-
 - Allow setting digital inputs as INPUT or PULLUP_INPUTs (MUST change # define and recompile right now). ** Look into the bootloader cli
   from here:https://www.pjrc.com/teensy/loader_cli.html Maybe different hex files can be made for different iosync setups.
   If current running program is not the one selected / needed by user, the use cli to upload the right one.
-
 - Switch digital input reads to use interupts, running at 5000 Hz if possible. **BACKUP CURRENT CODE BEFORE WORKING ON THIS. 
-
 - Expand keyboard event generation to support any keys supported by Teensiduno.
-
 - Add support for setting what EXT_LED should be doing. Right now it does nothing. Perhaps have different alternatives that can be set:
-     - disabled (current mode)
+     - flash when iosync program starts on t3 hw. (current mode)
      - stable when program is running but no events are enabled.
      - flashing when collecting analog inputs and / or digital inputs. (maybe a different flash for each of the 3 possibilities)
      - Only flash when client connects or disconnects (again, maybe different flash for each) 
-
 - Add support to reset mcu on command (optional disconnect as well???)
 
+Teensy 3.1 only:
+  - Switch analog reading to use ADC module so that dual AD converters can be used on teensy 3.1.
+  - Support DAC using AO_0 (A14) line on T3.1
 
 DONE but RETEST:
 
 - Use digitalWriteFast and digitalReadFast instead of digitalWrite / digitalRead.
 - Add support for setting per channel analog input thresholds which can be used for voice key or light key event detection. (IMPLEMENTED, but buggy)
-
-
 */
+#define EXT_LED 24
 
-// Program control defines. Change based on desired usage of ioSync
+// ****** Program control defines *******
+//
+// Change based on desired usage of ioSync
 
+// >>>>>> KEYBOARD DEVICE <<<<<<<
+//
 // GENERATE_KEYBOARD_EVENT support:
 //   To enable:
 //     - Uncomment the below KEYBOARD define.
@@ -54,8 +51,30 @@ DONE but RETEST:
 //
 //#define KEYBOARD
 
+// >>>>>> DIGITAL_INPUT_TYPE <<<<<<<
+//
 // Setting Digital Input Type ( INPUT or INPUT_PULLUP )
 #define DIGITAL_INPUT_TYPE INPUT_PULLUP
+
+// >>>>>> LED Pin To Use <<<<<<<
+//
+// If ioSync is in an enclosure that has a status LED mounted to 
+// the enclosure panel, use EXT_LED for STATUS_LED.
+// If using ioSync with Teensy on a breadboard, just use pin 13, the onboard LED for status
+//
+//#define STATUS_LED EXT_LED
+#define STATUS_LED 13
+
+// ******************************************
+
+// Teensy 3 version check
+#ifdef __MK20DX128__
+  #define TEENSY_3
+#endif
+
+#ifdef __MK20DX256__
+  #define TEENSY_3_1
+#endif
 
 // Misc. Util functions
 
@@ -70,11 +89,6 @@ byte bytePow(byte x, byte p)
 }
 
 // PIN LABELS
-
-// External LED for ioSync Case
-#define EXT_LED 24
-// On-board
-//#define EXT_LED 13
 
 // Non USB UART RT and TX can be accessed using 'Serial1' object in Teensiduino
 #define UART_RX RX1
@@ -112,9 +126,11 @@ byte DIN_PINS[8]={
 #define SPI_MISO DIN //pin 12 on T3, SPI Data Input
 #define SPI_SCK SCK // pin 13 on 3, Clock
 
-
+#ifdef TEENSY_3_1
 // Set A14 to be used as DAC channel 
-#define AO_0 A14
+  #define AO_0 A14
+#endif
+
 
 // give Teensy 3 Pin numbers for Analog In
 #define AI_0 14
@@ -439,8 +455,12 @@ void handleSetAnalogOutRx(byte request_type,byte request_id,byte request_rx_byte
     0,0  }; //12 bit output value packed in two bytes
   Serial.readBytes(dac_value,2);
   
+  #ifdef TEENSY_3_1   
+
   // TODO : COMPLETE !!!
   // Python Side needs to be completed too!
+  #endif
+
 }
 
 void handleSetDigitalOutPinRx(byte request_type,byte request_id,byte request_rx_byte_count){
@@ -756,8 +776,8 @@ void initDigitalOutputs(){
     pinMode(DOUT_PINS[i], OUTPUT);
     digitalWrite(DOUT_PINS[i], LOW);
   }
-  pinMode(EXT_LED, OUTPUT);  
-  digitalWrite(EXT_LED, LOW);  
+  pinMode(STATUS_LED, OUTPUT);  
+  digitalWrite(STATUS_LED, LOW);  
 }
 
 void initDigitalInputs(){
@@ -767,9 +787,11 @@ void initDigitalInputs(){
 }
 
 void initAnalogOutput(){
+#ifdef TEENSY_3_1
   analogWriteResolution(12);
   //analogReference(1); //non zero for internal ref gives 1.2v pp
   analogReference(0); //Zero for default/ ext ref gives 3.3v pp
+#endif
 }
 
 void initAnalogInputs(){
@@ -804,8 +826,11 @@ void setup()
   initDigitalOutputs();
   initDigitalInputs();
   initAnalogInputs();
-  initAnalogOutput();  
   
+#ifdef TEENSY_3_1  
+  initAnalogOutput();  
+#endif
+
   sinceLastInputRead=0;
   sinceLastSerialTx=0;
   
@@ -819,12 +844,12 @@ void setup()
   //# flash ext led 4 times indicating prog start
   int i =0;
   for (i=0;i<4;i++){
-    digitalWrite(EXT_LED, HIGH);
+    digitalWrite(STATUS_LED, HIGH);
     delay(350);
-    digitalWrite(EXT_LED, LOW);
+    digitalWrite(STATUS_LED, LOW);
     delay(150);
   }
-    digitalWrite(EXT_LED, LOW);  
+    digitalWrite(STATUS_LED, LOW);  
 }
 
 //---------------------------------------

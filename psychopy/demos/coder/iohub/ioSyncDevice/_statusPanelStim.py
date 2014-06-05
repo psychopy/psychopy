@@ -102,14 +102,14 @@ class DigitalLineStateButton(object):
     The graphics are created using two standard PsychoPy stim types
     together.
     """
-    def __init__(self, win, dline_num, state_high_img,state_low_img,
-                 size=None, pos=(0, 0), title='DIN ?'):
+    def __init__(self, win, dline_num, state_high_img, state_low_img,
+                 size=None, pos=(0, 0), title='DIN ?', initial_state=False):
 
         px,py=pos
-        self.state=False
+        self.state = initial_state
         self.line_number=dline_num
-        self.on_button = visual.ImageStim(win, size=size, image='./on.png', units='pix', pos=pos,autoLog=False,name=title)
-        self.off_button = visual.ImageStim(win, size=size, image='./off.png', units='pix', pos=pos,autoLog=False,name=title)
+        self.on_button = visual.ImageStim(win, size=size, image=state_high_img, units='pix', pos=pos,autoLog=False,name=title)
+        self.off_button = visual.ImageStim(win, size=size, image=state_low_img, units='pix', pos=pos,autoLog=False,name=title)
 
         self.title = visual.TextBox(window=win,
                                     text=title,

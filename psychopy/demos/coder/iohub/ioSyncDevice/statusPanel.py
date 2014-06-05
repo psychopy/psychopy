@@ -7,7 +7,7 @@ This demo displays the ioSync digital and analog input values in real time.
 The GUI can also be used to toggle the state of any of the digital output lines.
 """
 
-LUX_AIN = -1
+LUX_AIN = 0
 
 import sys
 from psychopy import core, visual, event
@@ -78,11 +78,14 @@ def main():
         digital_out_lines=[]
         for i in range(8):
             din_name = "DI_%d" % (i)
-            din_state_button = DigitalLineStateButton(win, i, './on.png', './off.png',
-                     pos=(-350+i*100,-100),size=(50,50), title=din_name)
+            # digital inputs are set to use pull ups by default,
+            # so 'off' is high and 'on' is when the line goes low.
+            din_state_button = DigitalLineStateButton(win, i, './off.png', './on.png',
+                     pos=(-350+i*100,-100),size=(50,50), title=din_name, initial_state = True)
             digital_in_lines.append(din_state_button)
 
             dout_name = "DO_%d" % (i)
+
             dout_state_button = DigitalLineStateButton(win, i, './on.png', './off.png',
                      pos=(-350+i*100,-225),size=(50,50), title=dout_name)
             digital_out_lines.append(dout_state_button)
