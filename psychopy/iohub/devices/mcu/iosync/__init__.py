@@ -235,6 +235,94 @@ class MCU(Device):
         self._request_dict[request.getID()]=request
         return request.asdict()
 
+    def sendMorseCode(self, text='SOS', pin=0):
+        """
+        Spawns a separate greenlet to have iohub issue a series of led outputs
+        to flash the text as morse code.
+
+        TOTALLY UNTESTED; MAY CRASH IOHUB!
+
+        :param text:
+        :param pin:
+        :return:
+        """
+        CODE = {' ': ' ',
+                "'": '.----.',
+                '(': '-.--.-',
+                ')': '-.--.-',
+                ',': '--..--',
+                '-': '-....-',
+                '.': '.-.-.-',
+                '/': '-..-.',
+                '0': '-----',
+                '1': '.----',
+                '2': '..---',
+                '3': '...--',
+                '4': '....-',
+                '5': '.....',
+                '6': '-....',
+                '7': '--...',
+                '8': '---..',
+                '9': '----.',
+                ':': '---...',
+                ';': '-.-.-.',
+                '?': '..--..',
+                'A': '.-',
+                'B': '-...',
+                'C': '-.-.',
+                'D': '-..',
+                'E': '.',
+                'F': '..-.',
+                'G': '--.',
+                'H': '....',
+                'I': '..',
+                'J': '.---',
+                'K': '-.-',
+                'L': '.-..',
+                'M': '--',
+                'N': '-.',
+                'O': '---',
+                'P': '.--.',
+                'Q': '--.-',
+                'R': '.-.',
+                'S': '...',
+                'T': '-',
+                'U': '..-',
+                'V': '...-',
+                'W': '.--',
+                'X': '-..-',
+                'Y': '-.--',
+                'Z': '--..',
+                '_': '..--.-'}
+
+        def dot(pin):
+            self.setDigitalOutputPin(pin,1)
+            gevent.time.sleep(0.2)
+            self.setDigitalOutputPin(pin,0)
+            gevent.time.sleep(0.2)
+
+        def dash(pin):
+            self.setDigitalOutputPin(pin,1)
+            gevent.time.sleep(0.5)
+            self.setDigitalOutputPin(pin,0)
+            gevent.time.sleep(0.2)
+
+        def morseDigitalOut(text, pin):
+            for letter in text:
+                for symbol in CODE[letter.upper()]:
+                        if symbol == '-':
+                            dash(pin)
+                        elif symbol == '.':
+                            dot(pin)
+                        else:
+                            gevent.time.sleep(0.5)
+
+        gevent.spawn(morseDigitalOut, [text,pin])
+
+        request=self._mcu.getSecTime()
+        self._request_dict[request.getID()]=request
+        return request.asdict()
+
     def getRequestResponse(self,rid=None):
         if rid:
             response=self._response_dict.get(rid)
