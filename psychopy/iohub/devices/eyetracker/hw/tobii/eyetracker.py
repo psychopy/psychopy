@@ -419,6 +419,12 @@ class EyeTracker(EyeTrackerDevice):
             if right_gaze_x != -1 and right_gaze_y != -1:
                 right_gaze_x,right_gaze_y=self._eyeTrackerToDisplayCoords((right_gaze_x,right_gaze_y))
 
+            status=0
+            if eye_data_event.LeftValidity>=2:
+                status+=20
+            if eye_data_event.RightValidity>=2:
+                status+=2
+            
             # TO DO: Set CI to be equal to current time error stated in Tobii Sync manager
             confidenceInterval=0.0 
             binocSample=[
@@ -475,7 +481,7 @@ class EyeTracker(EyeTrackerDevice):
                          EyeTrackerConstants.UNDEFINED, # right velocity x
                          EyeTrackerConstants.UNDEFINED, # right velocity y
                          EyeTrackerConstants.UNDEFINED, # right velocity xy
-                         int(str(eye_data_event.LeftValidity)+str(eye_data_event.RightValidity))
+                         status
                          ]
     
             self._latest_sample=binocSample

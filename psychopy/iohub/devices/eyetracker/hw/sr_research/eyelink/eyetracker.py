@@ -539,22 +539,32 @@ class EyeTracker(EyeTrackerDevice):
 
                         leftPupilSize=leftData.getPupilSize()
                         leftRawPupil=leftData.getRawPupil()
+                        if leftRawPupil[0] == pylink.MISSING_DATA:
+                            leftRawPupil =(0.0, 0.0)
+
+
                         leftHref=leftData.getHREF()
+                        if leftHref[0] == pylink.MISSING_DATA:
+                            leftHref =(0.0, 0.0)
+
                         leftGaze=EyeTrackerConstants.UNDEFINED,EyeTrackerConstants.UNDEFINED
                         gx,gy=leftData.getGaze()
                         if gx == pylink.MISSING_DATA or gy == pylink.MISSING_DATA or leftPupilSize==0:
                             status=20
-                            leftPupilSize
+                            leftPupilSize=0
                         else:    
                             leftGaze=self._eyeTrackerToDisplayCoords((gx,gy))
 
                         rightPupilSize=rightData.getPupilSize()
                         rightRawPupil=rightData.getRawPupil()
                         rightHref=rightData.getHREF()
-                        
+                        if rightHref[0] == pylink.MISSING_DATA:
+                            rightHref=(0.0, 0.0)#[0]=0
+                        if rightRawPupil[0] == pylink.MISSING_DATA:
+                            rightRawPupil=(0.0, 0.0)
                         rightGaze=EyeTrackerConstants.UNDEFINED,EyeTrackerConstants.UNDEFINED
                         gx,gy=rightData.getGaze()
-                        if gx == pylink.MISSING_DATA or gy == pylink.MISSING_DATA or leftPupilSize==0:
+                        if gx == pylink.MISSING_DATA or gy == pylink.MISSING_DATA or rightPupilSize==0:
                             status+=2
                             rightPupilSize=0
                         else:    
@@ -575,16 +585,16 @@ class EyeTracker(EyeTrackerDevice):
                                 if ic == 2:
                                     g[i]=g[i]/2.0
                                 elif ic == 0:
-                                    g[i]=pylink.MISSING_DATA
+                                    g[i]=0 //pylink.MISSING_DATA
                             
                             self._latest_gaze_position=g
                         else:
                             self._latest_gaze_position=None
 
                         # TO DO: EyeLink pyLink does not expose sample velocity fields. Patch and fix.
-                        vel_x=-1.0
-                        vel_y=-1.0
-                        vel_xy=-1.0
+                        vel_x=0
+                        vel_y=0
+                        vel_xy=0
 
                         binocSample=[
                                      0,
@@ -657,7 +667,13 @@ class EyeTracker(EyeTrackerDevice):
 
                         pupilSize=eyeData.getPupilSize()
                         rawPupil=eyeData.getRawPupil()
+                        if rawPupil[0]==pylink.MISSING_DATA:
+                            rawPupil =(0.0, 0.0)
+
                         href=eyeData.getHREF()
+                        if href[0]==pylink.MISSING_DATA:
+                            href=(0.0, 0.0)
+
                         gx,gy=eyeData.getGaze()
                         status=0
                         if gx == pylink.MISSING_DATA or gy == pylink.MISSING_DATA or pupilSize==0:
@@ -670,9 +686,9 @@ class EyeTracker(EyeTrackerDevice):
 
 
                         # TO DO: EyeLink pyLink does not expose sample velocity fields. Patch and fix.
-                        vel_x=-1.0
-                        vel_y=-1.0
-                        vel_xy=-1.0
+                        vel_x=0
+                        vel_y=0
+                        vel_xy=0
 
                         monoSample=[0,
                                     0,
@@ -1115,7 +1131,7 @@ class EyeTracker(EyeTrackerDevice):
             if track_eyes is None:
                 print2err("** Warning: UNKNOWN EYE CONSTANT, SETTING EYE TO TRACK TO RIGHT. UNKNOWN EYE CONSTANT: ",track_eyes)
                 track_eyes='RIGHT'
-            elif track_eyes in ['RIGHT', EyeTrackerConstants.getName(EyeTrackerConstants.RIGHT_EYE)]:
+            if track_eyes in ['RIGHT', EyeTrackerConstants.getName(EyeTrackerConstants.RIGHT_EYE)]:
                 track_eyes='RIGHT'
             elif track_eyes in ['LEFT', EyeTrackerConstants.getName(EyeTrackerConstants.LEFT_EYE)]:
                 track_eyes='LEFT'
@@ -1151,11 +1167,13 @@ class EyeTracker(EyeTrackerDevice):
                                 print2err("ERROR: setEyesToTrack: Failed to get supported modes. ")
                                 return EyeTrackerConstants.EYETRACKER_ERROR
                             modes = modes.strip().split()
-    
+                            print2err("EL Modes: ", modes)
                             for x in modes:
                                 if x[-1] == 'B':
                                     x =int(x.replace('B',' ').strip())
                                     rts.append(x)
+                            print2err("EL srate: ", srate)
+                            print2err("EL rts: ", rts)
                             if srate in rts:
                                 self._eyelink.sendCommand("binocular_enabled = YES")
                                 return True

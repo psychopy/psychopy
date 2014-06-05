@@ -51,7 +51,7 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
             max_length: 7
     runtime_settings:
         sampling_rate: [250,500,1000,2000]
-        track_eyes: [LEFT_EYE,RIGHT_EYE,BINOCULAR]
+        track_eyes: [LEFT_EYE,RIGHT_EYE,BOTH]
         sample_filtering:
             FILTER_ALL: 
                 IOHUB_LIST:
