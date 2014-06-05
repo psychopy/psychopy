@@ -1448,15 +1448,13 @@ class Window(object):
         status = GL.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT)
         if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
             logging.error("Error in framebuffer activation")
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)#UNBIND THE FRAME BUFFER OBJECT THAT WE HAD CREATED
             return False
-        else:
-            logging.info("Successfully set up FBO")
         GL.glDisable(GL.GL_TEXTURE_2D)
         #clear the buffer (otherwise the texture memory can contain junk)
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
         return True
-    @attributeSetter
-    def mouseVisible(self, visibility):
+    def setMouseVisible(self, visibility):
         """Sets the visibility of the mouse cursor.
 
         If Window was initilised with noGUI=True then the mouse is initially
