@@ -520,6 +520,8 @@ class Window(object):
             # unbind the framebuffer as the render target
             GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
             GL.glDisable(GL.GL_BLEND)
+            stencilOn = GL.glIsEnabled(GL.GL_STENCIL_TEST)
+            GL.glDisable(GL.GL_STENCIL_TEST)
 
             if self.bits != None:
                 self.bits._prepareFBOrender()
@@ -589,7 +591,8 @@ class Window(object):
             #set to no active rendering texture
             GL.glActiveTexture(GL.GL_TEXTURE0)
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-
+            if stencilOn:
+                GL.glEnable(GL.GL_STENCIL_TEST)
         #rescale/reposition view of the window
         if self.viewScale is not None:
             GL.glMatrixMode(GL.GL_PROJECTION)
@@ -1447,23 +1450,33 @@ class Window(object):
         GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA32F_ARB,
                         int(self.size[0]), int(self.size[1]), 0,
                         GL.GL_RGBA, GL.GL_FLOAT, None)
-
         #attach texture to the frame buffer
         GL.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT,
                                      GL.GL_COLOR_ATTACHMENT0_EXT,
                                      GL.GL_TEXTURE_2D, self.frameTexture, 0)
+
+        #add a stencil buffer
+        self._stencilTexture = GL.GLuint()
+        GL.glGenRenderbuffersEXT(1, ctypes.byref(self._stencilTexture)) #like glGenTextures
+        GL.glBindRenderbufferEXT(GL.GL_RENDERBUFFER_EXT, self._stencilTexture)
+        GL.glRenderbufferStorageEXT(GL.GL_RENDERBUFFER_EXT, GL.GL_DEPTH24_STENCIL8_EXT,
+                                    int(self.size[0]), int(self.size[1]))
+        GL.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT,
+                                        GL.GL_STENCIL_ATTACHMENT_EXT,
+                                        GL.GL_RENDERBUFFER_EXT, self._stencilTexture);
+
         status = GL.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT)
         if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
             logging.error("Error in framebuffer activation")
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)#UNBIND THE FRAME BUFFER OBJECT THAT WE HAD CREATED
             return False
-        else:
-            logging.info("Successfully set up FBO")
         GL.glDisable(GL.GL_TEXTURE_2D)
-        #clear the buffer (otherwise the texture memory can contain junk)
+        #clear the buffers (otherwise the texture memory can contain junk from other app)
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+        GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
+        GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
         return True
-    @attributeSetter
-    def mouseVisible(self, visibility):
+    def setMouseVisible(self, visibility):
         """Sets the visibility of the mouse cursor.
 
         If Window was initilised with noGUI=True then the mouse is initially
