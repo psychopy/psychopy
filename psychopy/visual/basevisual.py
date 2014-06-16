@@ -47,6 +47,7 @@ reportNImageResizes = 5 #permitted number of resizes
 There are several base and mix-in visual classes for mulitple inheritance:
   - MinimalStim:       non-visual house-keeping code common to all visual stim
         RatingScale inherits only from MinimalStim.
+  - WindowMixin:       attributes/methods about the stim relative to a visual.Window.
   - LegacyVisualMixin: deprecated visual methods (eg, setRGB)
         added to BaseVisualStim
   - ColorMixin:        for Stim that need color methods (most, not Movie)
@@ -57,7 +58,6 @@ There are several base and mix-in visual classes for mulitple inheritance:
         seems to work; caveat: There were issues in earlier (non-MI) versions
         of using _createTexture so it was pulled out of classes. Now its inside
         classes again. Should be watched.
-  - WindowMixin:       for attributes and methods related to Windows.
   - BaseVisualStim:    = Minimal + Window + Legacy. Furthermore adds common attributes
         like orientation, opacity, contrast etc.
 
@@ -519,6 +519,12 @@ class TextureMixin(object):
             else:
                 dataType = GL.GL_UNSIGNED_BYTE
 
+        # Fill out unspecified portions of maskParams with default values
+        if maskParams == None:
+            maskParams = {}
+        allMaskParams = {'fringeWidth': 0.2, 'sd': 3}  # fringeWidth affects the proportion of the stimulus diameter that is devoted to the raised cosine.
+        allMaskParams.update(maskParams)
+
         if type(tex) == numpy.ndarray:
             #handle a numpy array
             #for now this needs to be an NxN intensity array
@@ -581,12 +587,7 @@ class TextureMixin(object):
             wasLum=True
         elif tex == "gauss":
             rad=makeRadialMatrix(res)
-            # Set SD if specified
-            if maskParams == None:
-                sigma = 1.0 / 3
-            else:
-                sigma = 1.0 / maskParams['sd']
-            intensity = numpy.exp( -rad**2.0 / (2.0*sigma**2.0) )*2-1 #3sd.s by the edge of the stimulus
+            intensity = numpy.exp( -rad**2.0 / (2.0*(1.0 / allMaskParams['sd'])**2.0) )*2-1 #3sd.s by the edge of the stimulus
             wasLum=True
         elif tex == "cross":
             X, Y = numpy.mgrid[-1:1:1j*res, -1:1:1j*res]
@@ -603,22 +604,11 @@ class TextureMixin(object):
             wasLum=True
             hamming_len = 1000 # This affects the 'granularity' of the raised cos
 
-            # If no user input was provided:
-            if maskParams is None:
-                fringe_proportion = 0.2 # This one affects the proportion of the
-                                    # stimulus diameter that is devoted to the
-                                    # raised cosine.
-
-            # Users can provide the fringe proportion through a dict, maskParams
-            # input:
-            else:
-                fringe_proportion = maskParams['fringeWidth']
-
             rad = makeRadialMatrix(res)
             intensity = numpy.zeros_like(rad)
             intensity[numpy.where(rad < 1)] = 1
             raised_cos_idx = numpy.where(
-                [numpy.logical_and(rad <= 1, rad >= 1-fringe_proportion)])[1:]
+                [numpy.logical_and(rad <= 1, rad >= 1 - allMaskParams['fringeWidth'])])[1:]
 
             # Make a raised_cos (half a hamming window):
             raised_cos = numpy.hamming(hamming_len)[:hamming_len/2]
@@ -626,7 +616,7 @@ class TextureMixin(object):
             raised_cos /= numpy.max(raised_cos)
 
             # Measure the distance from the edge - this is your index into the hamming window:
-            d_from_edge = numpy.abs((1 - fringe_proportion)- rad[raised_cos_idx])
+            d_from_edge = numpy.abs((1 - allMaskParams['fringeWidth']) - rad[raised_cos_idx])
             d_from_edge /= numpy.max(d_from_edge)
             d_from_edge *= numpy.round(hamming_len/2)
 
@@ -823,24 +813,29 @@ class TextureMixin(object):
 
     @attributeSetter
     def texRes(self, value):
-        """Sets the resolution of the mask (overridden if an array or image is provided as mask).
+        """Power-of-two int. Sets the resolution of the mask and texture.
+        texRes is overridden if an array or image is provided as mask.
 
         :ref:`Operations <attrib-operations>` supported.
         """
         self.__dict__['texRes'] = value
-        self.mask = self.mask  # call attributeSetter
+        
+        # ... now rebuild textures (call attributeSetters whithout logging).
+        if hasattr(self, 'tex'): setAttribute(self, 'tex', self.tex, log=False)
+        if hasattr(self, 'mask'): setAttribute(self, 'mask', self.mask, log=False)
 
     @attributeSetter
     def maskParams(self, value):
         """Various types of input. Default to None.
         This is used to pass additional parameters to the mask if those are needed.
 
+            - For 'gauss' mask, pass dict {'sd': 5} to control standard deviation.
             - For the 'raisedCos' mask, pass a dict: {'fringeWidth':0.2},
                 where 'fringeWidth' is a parameter (float, 0-1), determining
                 the proportion of the patch that will be blurred by the raised
                 cosine edge."""
         self.__dict__['maskParams'] = value
-        self.mask = self.mask  # call attributeSetter
+        setAttribute(self, 'mask', self.mask, log=False)  # call attributeSetter without log
 
 class WindowMixin(object):
     """Window-related attributes and methods.
@@ -891,11 +886,14 @@ class WindowMixin(object):
         else:
             self.__dict__['units'] = self.win.units
 
-        # Update size and position if they are defined. If not, this is probably
+        # Update size and position if they are defined (tested as numeric). If not, this is probably
         # during some init and they will be defined later, given the new unit.
-        if not isinstance(self.size, attributeSetter) and not isinstance(self.pos, attributeSetter):
+        try:
+            self.size * self.pos  # qucik and dirty way to check that both are numeric. This avoids the heavier attributeSetter calls.
             self.size = self.size
             self.pos = self.pos
+        except:
+            pass
 
     @attributeSetter
     def useShaders(self, value):
@@ -1097,22 +1095,14 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         """
         setAttribute(self, 'opacity', newOpacity, log, operation)
     def _set(self, attrib, val, op='', log=None):
-        """
-        DEPRECATED since 1.80.04 + 1. Use setAttrib() in combination with val2array instead.
-
-        Use this method when you want to be able to suppress logging (e.g., in
-        tests). Typically better to use methods specific to the parameter, e.g. ::
-
-             stim.pos = [3,2.5]
-             stim.ori = 45
-             stim.phase += 0.5
-
-        NB this method does not flag the need for updates any more - that is
-        done by specific methods as described above.
-        """
-        if op==None: op=''
+        """DEPRECATED since 1.80.04 + 1. Use setAttribute() and val2array() instead."""
         #format the input value as float vectors
         if type(val) in [tuple, list, numpy.ndarray]:
             val = val2array(val)
-        # Handle operations
+
+        # Set attribute with operation and log
         setAttribute(self, attrib, val, log, op)
+        
+        # For DotStim
+        if attrib in ['nDots','coherence']:
+            self.coherence=round(self.coherence*self.nDots)/self.nDots
