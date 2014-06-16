@@ -32,7 +32,7 @@ class Test_class_RatingScale:
 
         # defaults: ---------
         r = copy.copy(self.r)
-        assert len(repr(r).split(',')) == 48
+        assert len(repr(r).split(',')) == 49
         assert (r.low, r.high, r.precision) == (1, 7, 1)
         assert (r.markerStyle, r.markerStart, r.markerPlaced) == ('triangle', None, False)
 
