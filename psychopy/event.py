@@ -280,8 +280,6 @@ def waitKeys(maxWait=float('inf'), keyList=None, timeStamped=False):
         # Get keypresses and return if anything is pressed
         keys = getKeys(keyList=keyList, timeStamped=timeStamped)
         if len(keys):
-            if timeStamped != False: logging.data("Key pressed: %s" % keys[0][0])
-            else: logging.data("Key pressed: %s" % keys[0])
             return keys
 
     # If maxWait is exceeded (exits while-loop), return None

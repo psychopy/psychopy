@@ -21,7 +21,7 @@ from psychopy import core, logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.tools.attributetools import attributeSetter, logAttrib
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.typetools import float_uint8
 from psychopy.visual.image import ImageStim
 
@@ -176,14 +176,12 @@ class BufferImageStim(ImageStim):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
-        self.flipHoriz = newVal
-        logAttrib(self, log, 'flipHoriz')
+        setAttribute(self, 'flipHoriz', newVal, log)  # call attributeSetter
     def setFlipVert(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
-        self.flipVert = newVal
-        logAttrib(self, log, 'flipVert')
+        setAttribute(self, 'flipVert', newVal, log)  # call attributeSetter
     def draw(self, win=None):
         """
         Draws the BufferImage on the screen, similar to :class:`~psychopy.visual.ImageStim` `.draw()`.

@@ -152,6 +152,8 @@ def setColor(obj, color, colorSpace=None, operation='',
 
     # Handle strings and returns immediately as operations, colorspace etc. does not apply here.
     if type(color) in [str, unicode, numpy.string_]:
+        if operation not in ('', None):
+            raise TypeError('Cannot do operations on named or hex color')
         if color.lower() in colors.colors255.keys():
             #set rgb, color and colorSpace
             setattr(obj,rgbAttrib,numpy.array(colors.colors255[color.lower()], float))
