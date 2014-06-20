@@ -125,7 +125,7 @@ def main():
         # Exit when ESC is pressed.
         run_demo = True
         while run_demo:
-            if 'escape' in [e.key.lower() for e in kb.getEvents()]:
+            if 'escape' in [e.key for e in kb.getEvents()]:
                 run_demo = False
                 break
 
