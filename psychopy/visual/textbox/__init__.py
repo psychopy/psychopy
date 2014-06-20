@@ -1200,7 +1200,7 @@ class TextBox(object):
             if line_spacing_units == 'ratio':
                 # run though _toPix to validate line_spacing value type only
                 r=self._toPix(line_spacing_height,'pix',self._window)[0]
-                return max_size*r
+                return int(max_size[1]*r)
                 
             return self._toPix(line_spacing_height,line_spacing_units,self._window)
         return 0

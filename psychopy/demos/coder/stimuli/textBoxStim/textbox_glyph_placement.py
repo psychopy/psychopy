@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 """
 Shows use of getGlyphPositionForTextIndex() to get exact bounding box for a
 given glyph based on an index in the text string being shown.
