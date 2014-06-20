@@ -83,6 +83,24 @@ Numlock OFF
 
 
 class KeyboardEvent(ioEvent):
+    """
+    Base class for KeyboardPress and KeyboardRelease events.
+
+    Note that keyboard events can be compared using a single character
+    basestring. For example:
+
+        kb_evts = keyboard.getKey(['a','b','c'])
+        for event in kb_evts:
+            if event.key == 'b' or event.char == 'b':
+                return True
+        return False
+
+    can be written as:
+
+        if 'b' in keyboard.getKey(['a','b','c']):
+            return True
+        return False
+    """
     _attrib_index = dict()
     _attrib_index['key'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
     _attrib_index['char'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index(
@@ -138,6 +156,13 @@ class KeyboardEvent(ioEvent):
             self.char,
             str(self.modifiers))
 
+    def __eq__(self, v):
+        if isinstance(v, KeyboardEvent):
+            return self.key == v.key or self.char == v.char
+        return self.key == v or self.char == v
+
+    def __ne__(self,v):
+        return not self.__eq__()
 
 class KeyboardPress(KeyboardEvent):
     def __init__(self, ioe_array):
