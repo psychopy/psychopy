@@ -2270,7 +2270,6 @@ class _BaseParamsDlg(wx.Dialog):
         remaining.remove('durationEstim')
 
         # use monospace font to signal code:
-        self.defaultFontFaceName = self.startValCtrl.GetFont().GetFaceName()
         self.checkCodeWanted(self.startValCtrl)
         self.startValCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
         self.checkCodeWanted(self.stopValCtrl)
@@ -2313,16 +2312,8 @@ class _BaseParamsDlg(wx.Dialog):
 
         # use monospace font to signal code:
         if fieldName != 'name' and hasattr(ctrls.valueCtrl, 'GetFont'):
-            font = ctrls.valueCtrl.GetFont()
-            self.defaultFontFaceName = font.GetFaceName()
-            _font = ctrls.valueCtrl.GetFont()
-            try:
-                _font.SetFaceName(self.codeFaceName)  # see what happens
-            except:
-                self.codeFaceName = self.app.prefs.coder['codeFont']
             if self.params[fieldName].valType == 'code':
-                font.SetFaceName(self.codeFaceName)
-                ctrls.valueCtrl.SetFont(font)
+                ctrls.valueCtrl.SetFont(self.app._codeFont)
             elif self.params[fieldName].valType == 'str':
                 ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
                 try:
@@ -2508,15 +2499,9 @@ class _BaseParamsDlg(wx.Dialog):
         # set display font based on presence of $ (without \$)?
         font = strBox.GetFont()
         if _unescapedDollarSign_re.search(val):
-            facename = self.codeFaceName
+            strBox.SetFont(self.app._codeFont)
         else:
-            facename = self.defaultFontFaceName
-        if stc:
-            strBox.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
-                                "face:%s,size:%d" % (facename, self.faceSize))
-        else:
-            font.SetFaceName(facename)
-            strBox.SetFont(font)
+            strBox.SetFont(self.app._mainFont)
 
         if hasattr(event, 'Skip'):
             event.Skip()

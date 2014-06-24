@@ -151,6 +151,10 @@ class PsychoPyApp(wx.App):
         self.dpi = int(wx.GetDisplaySize()[0]/float(wx.GetDisplaySizeMM()[0])*25.4)
         if not (50<self.dpi<120): self.dpi=80#dpi was unreasonable, make one up
 
+        self._mainFont = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT).Larger()
+        self._codeFont = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FIXED_FONT)
+        self._codeFont.SetFaceName(self.prefs.coder['codeFont'])
+        
         #create both frame for coder/builder as necess
         if splash: splash.SetText("  Creating frames...")
         self.coder = None
@@ -161,7 +165,7 @@ class PsychoPyApp(wx.App):
             self.showCoder(fileList=scripts)
         if mainFrame in ['both', 'builder']:
             self.showBuilder(fileList=exps)
-
+        
         #send anonymous info to www.psychopy.org/usage.php
         #please don't disable this - it's important for PsychoPy's development
         self._latestAvailableVersion=None
