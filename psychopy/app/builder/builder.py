@@ -3769,7 +3769,11 @@ class BuilderFrame(wx.Frame):
         self.CreateStatusBar()
         self.SetStatusText("")
 
-        #
+        #setup universal shortcuts
+        accelTable = self.app.makeAccelTable()
+        self.SetAcceleratorTable(accelTable)
+
+        #set stdout to correct output panel
         self.stdoutOrig = sys.stdout
         self.stderrOrig = sys.stderr
         self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
