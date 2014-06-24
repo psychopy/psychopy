@@ -1690,6 +1690,8 @@ class CoderFrame(wx.Frame):
         for ii in range(self.fileHistory.GetCount()):
             self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
 
+        self.paneManager.UnInit()#as of wx3.0 the AUI manager needs to be uninitialised explicitly
+
         self.app.allFrames.remove(self)
         self.Destroy()
         self.app.coder=None
