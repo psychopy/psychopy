@@ -21,6 +21,7 @@ To make our new function useable to the public, we plan to include proper docume
 The following timeline shows our proposed work schedule over the course of the semester:
 
 |       | Task                                      | Developer(s)     |
+|-------|-------------------------------------------|------------------|
 | Week 1| Change keyResponse Component dialog box   | Developer(s)     |
 |       | Test keyResponse Component dialog box     | Developer(s)     |
 |       | Change keyResponse Component documentation| Developer(s)     |
