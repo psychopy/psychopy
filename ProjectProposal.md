@@ -47,7 +47,7 @@ If time permits, we may also develop documentation  that outlines code snippets 
 
 **_Resources_**
 
-
+Peirce, JW (2007) PsychoPy - Psychophysics software in Python. J Neurosci Methods, 162(1-2):8-13
 
 
 
