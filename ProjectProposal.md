@@ -45,4 +45,10 @@ The following timeline shows our proposed work schedule over the course of the s
 
 If time permits, we may also develop documentation  that outlines code snippets that can be used to perform common tasks through the “coder” interface. Many such functions are already discussed on the Google Users group for PsychoPy, and a compilation of this information would be useful to many implementers. This is apparent from the fact that similar questions have been asked numerous times on the forum.  Of course, this task would not include much coding, but would rather involve starting a precedential wiki page where users can add helpful code examples.
 
+**_Resources_**
+
+
+
+
+
 
