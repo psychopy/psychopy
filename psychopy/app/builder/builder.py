@@ -2146,7 +2146,11 @@ class _BaseParamsDlg(wx.Dialog):
             else:
                 self.ctrls.GetPage(0).SetFocus()
                 self.ctrls.SetSelection(0)
-                self.paramCtrls['name'].valueCtrl.SetFocus()
+                if hasattr(self, 'paramCtrls'):
+                    if 'name' in self.paramCtrls:
+                        self.paramCtrls['name'].valueCtrl.SetFocus()
+                    if 'expName' in self.paramCtrls:# ExperimentSettings has expName instead
+                        self.paramCtrls['expName'].valueCtrl.SetFocus()
     def addCategoryOfParams(self, paramNames, parent):
         """Add all the params for a single category (after its tab has been created)
         """
@@ -2388,7 +2392,7 @@ class _BaseParamsDlg(wx.Dialog):
         builderPos = self.frame.GetPosition()
         self.SetPosition((builderPos[0]+200,20))
 
-        self.paramCtrls['name'].valueCtrl.SetFocus()
+        #self.paramCtrls['name'].valueCtrl.SetFocus()
         #do show and process return
         retVal = self.ShowModal()
         if retVal== wx.ID_OK:
@@ -3122,7 +3126,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         """
         #add buttons for help, OK and Cancel
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
-        buttons = wx.BoxSizer(wx.HORIZONTAL)
+        buttons = wx.StdDialogButtonSizer()
         if self.helpUrl!=None:
             helpBtn = wx.Button(self, wx.ID_HELP)
             helpBtn.SetHelpText("Get help about this component")
@@ -3134,6 +3138,8 @@ class DlgExperimentProperties(_BaseParamsDlg):
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         buttons.Add(CANCEL, 0, wx.ALIGN_RIGHT|wx.ALL,border=3)
 
+        buttons.Realize()
+        self.ctrls.Fit()
         self.mainSizer.Add(self.ctrls)
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)

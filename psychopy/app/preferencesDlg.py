@@ -89,6 +89,8 @@ class PreferencesDlg(wx.Dialog):
         if loc in locale.locale_alias.keys():
             loc = locale.locale_alias[loc]  # -> 'da_DK'
         locale.setlocale(locale.LC_ALL, loc)
+    def onEvt(self, evt, id=None):
+        print evt
     def onCancel(self, event=None):
         self.Destroy()
     def onOK(self, event=None):
