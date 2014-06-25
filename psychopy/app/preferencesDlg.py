@@ -35,6 +35,12 @@ class PreferencesDlg(wx.Dialog):
         self.nb.SetSelection(self.app.prefs.pageCurrent)
         sizer.Add(self.nb,1, wx.EXPAND)
 
+        aTable = wx.AcceleratorTable([
+                                      (wx.ACCEL_NORMAL, wx.WXK_ESCAPE, wx.ID_CANCEL),
+                                      (wx.ACCEL_NORMAL, wx.WXK_RETURN, wx.ID_OK),
+                                      ])
+        self.SetAcceleratorTable(aTable)
+
         #create buttons
         line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
         sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
@@ -84,10 +90,10 @@ class PreferencesDlg(wx.Dialog):
             loc = locale.locale_alias[loc]  # -> 'da_DK'
         locale.setlocale(locale.LC_ALL, loc)
     def onCancel(self, event=None):
-        self.Close()
+        self.Destroy()
     def onOK(self, event=None):
         self.onApply(event=event)
-        self.Close()
+        self.Destroy()
     def makePrefsPage(self, parent, sectionName, prefsSection, specSection):
         panel = scrolled.ScrolledPanel(parent,-1,size=(dlgSize[0]-100,dlgSize[1]-200))
         vertBox = wx.BoxSizer(wx.VERTICAL)
