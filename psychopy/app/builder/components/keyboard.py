@@ -1,4 +1,4 @@
-# Part of the PsychoPy library
+ Part of the PsychoPy library
 # Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
@@ -16,7 +16,7 @@ class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given timepoints"""
     categories = ['Responses']#an attribute of the class, determines the section in the components panel
     def __init__(self, exp, parentName, name='key_resp', allowedKeys="'y','n','left','right','space'",store='last key',
-                forceEndRoutine=True,storeCorrect=False,correctAns="", discardPrev=True,
+                forceEndRoutine=True,storeCorrect=False,correctAns="",splitFlow=False,input1="",input2="",discardPrev=True,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal='',
                 startEstim='', durationEstim=''):
@@ -28,7 +28,7 @@ class KeyboardComponent(BaseComponent):
         #params
         self.params={}
         self.order=['forceEndRoutine','allowedKeys',#NB name and timing params always come 1st
-            'store','storeCorrect','correctAns',
+            'store','storeCorrect','correctAns', 'splitFlow','input1','input2'
             ]
         self.params['name']=Param(name,  valType='code', hint="A name for this keyboard object (e.g. response)",
             label="Name")
@@ -72,6 +72,19 @@ class KeyboardComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint="What is the 'correct' key? Might be helpful to add a correctAns column and use $thisTrial.correctAns",
             label="Correct answer")
+        self.params['splitFlow']=Param(splitFlow, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="Do you want to split flow of experiment based on participant response?",
+            label="Fork flow based on response")
+        self.params['input1']=Param(input1, valType='str', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="Participant input for first flow: enter with single quotations (e.g. 'a')",
+            label="Input 1")
+        self.params['input2']=Param(input2, valType='str', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="Participant input for first flow: enter with single quotations (e.g. 'b')",
+            label="Input 2")
+        
     def writeRoutineStartCode(self,buff):
         buff.writeIndented("%(name)s = event.BuilderKeyResponse()  # create an object of type KeyResponse\n" %self.params)
         buff.writeIndented("%(name)s.status = NOT_STARTED\n" %self.params)
@@ -210,3 +223,4 @@ class KeyboardComponent(BaseComponent):
                                %(currLoop.params['name'], name, name))
         if currLoop.params['name'].val == self.exp._expHandler.name:
             buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
+
