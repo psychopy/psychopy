@@ -5,7 +5,7 @@
 # followed across the psychopy project, and what is worth changing. In general,
 # for new code, try to avoid the pylint score going lower than it already is.
 
-# To use pylint effectively, first get a bseline of the file you plan to work on:
+# To use pylint effectively, first get a baseline of the file you plan to work on:
 # $ pylint microphone.py
 
 # Make your code edits to that file. Then run pylint again to see the differences:
