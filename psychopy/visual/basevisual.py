@@ -44,7 +44,7 @@ from psychopy.constants import NOT_STARTED, STARTED, STOPPED
 reportNImageResizes = 5 #permitted number of resizes
 
 """
-There are several base and mix-in visual classes for mulitple inheritance:
+There are several base and mix-in visual classes for multiple inheritance:
   - MinimalStim:       non-visual house-keeping code common to all visual stim
         RatingScale inherits only from MinimalStim.
   - WindowMixin:       attributes/methods about the stim relative to a visual.Window.
