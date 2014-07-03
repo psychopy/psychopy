@@ -404,11 +404,14 @@ class Keyboard(ioHubDeviceView):
         :return: tuple
         """
         start_time = getTime()
+        if maxWait is None:
+            maxWait = 7200.00
+
         timeout = start_time+maxWait
         key = None
 
         def pumpKeys():
-            key = self.geyKey(keys, chars, mods, duration, clear, etype)
+            key = self.getKey(keys, chars, mods, duration, clear, etype)
             if key:
                 return key
             Window.dispatchAllWindowEvents()
