@@ -56,7 +56,7 @@ There are several base and mix-in visual classes for multiple inheritance:
         .contains(), .overlaps()
   - TextureMixin:      for texture methods namely _createTexture (Grating, not Text)
         seems to work; caveat: There were issues in earlier (non-MI) versions
-        of using _createTexture so it was pulled out of classes. Now its inside
+        of using _createTexture so it was pulled out of classes. Now it's inside
         classes again. Should be watched.
   - BaseVisualStim:    = Minimal + Window + Legacy. Furthermore adds common attributes
         like orientation, opacity, contrast etc.
@@ -177,7 +177,7 @@ class LegacyVisualMixin(object):
     #    super(LegacyVisualMixin, self).__init__()
 
     def _calcSizeRendered(self):
-        """DEPRECATED in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"""
+        """DEPRECATED in 1.80.00. This functionality is now handled by _updateVertices() and verticesPix"""
         #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This funtionality is nowhanded by _updateVertices() and verticesPix"
         if self.units in ['norm','pix', 'height']: self._sizeRendered=copy.copy(self.size)
         elif self.units in ['deg', 'degs']: self._sizeRendered=deg2pix(self.size, self.win.monitor)
@@ -186,7 +186,7 @@ class LegacyVisualMixin(object):
             logging.error("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
 
     def _calcPosRendered(self):
-        """DEPRECATED in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"""
+        """DEPRECATED in 1.80.00. This functionality is now handled by _updateVertices() and verticesPix"""
         #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"
         if self.units in ['norm','pix', 'height']: self._posRendered= copy.copy(self.pos)
         elif self.units in ['deg', 'degs']: self._posRendered=deg2pix(self.pos, self.win.monitor)
@@ -247,7 +247,7 @@ class ColorMixin(object):
 
         When color is specified using numbers, it is interpreted with
         respect to the stimulus' current colorSpace. If color is given as a
-        single value (scalar) then this wil be applied to all 3 channels.
+        single value (scalar) then this will be applied to all 3 channels.
 
         Examples::
                 # ... for whatever stim you have, e.g. stim = visual.ShapeStim(win):
