@@ -183,7 +183,7 @@ class LegacyVisualMixin(object):
         elif self.units in ['deg', 'degs']: self._sizeRendered=deg2pix(self.size, self.win.monitor)
         elif self.units=='cm': self._sizeRendered=cm2pix(self.size, self.win.monitor)
         else:
-            logging.ERROR("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
+            logging.error("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
 
     def _calcPosRendered(self):
         """DEPRECATED in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"""
