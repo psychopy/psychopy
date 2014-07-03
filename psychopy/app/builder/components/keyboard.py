@@ -1,4 +1,4 @@
- Part of the PsychoPy library
+# Part of the PsychoPy library
 # Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
