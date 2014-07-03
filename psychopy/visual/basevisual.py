@@ -178,7 +178,7 @@ class LegacyVisualMixin(object):
 
     def _calcSizeRendered(self):
         """DEPRECATED in 1.80.00. This functionality is now handled by _updateVertices() and verticesPix"""
-        #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This funtionality is nowhanded by _updateVertices() and verticesPix"
+        #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This functionality is now handled by _updateVertices() and verticesPix"
         if self.units in ['norm','pix', 'height']: self._sizeRendered=copy.copy(self.size)
         elif self.units in ['deg', 'degs']: self._sizeRendered=deg2pix(self.size, self.win.monitor)
         elif self.units=='cm': self._sizeRendered=cm2pix(self.size, self.win.monitor)
@@ -187,7 +187,7 @@ class LegacyVisualMixin(object):
 
     def _calcPosRendered(self):
         """DEPRECATED in 1.80.00. This functionality is now handled by _updateVertices() and verticesPix"""
-        #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This funtionality is now handled by _updateVertices() and verticesPix"
+        #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This functionality is now handled by _updateVertices() and verticesPix"
         if self.units in ['norm','pix', 'height']: self._posRendered= copy.copy(self.pos)
         elif self.units in ['deg', 'degs']: self._posRendered=deg2pix(self.pos, self.win.monitor)
         elif self.units=='cm': self._posRendered=cm2pix(self.pos, self.win.monitor)
@@ -552,7 +552,7 @@ class TextureMixin(object):
             if useShaders:
                 dataType=GL.GL_FLOAT
         elif tex in [None,"none", "None"]:
-            res=1 #4x4 (2x2 is SUPPOSED to be fine but generates wierd colors!)
+            res = 1 #4x4 (2x2 is SUPPOSED to be fine but generates weird colors!)
             intensity = numpy.ones([res,res],numpy.float32)
             wasLum = True
         elif tex == "sin":
@@ -820,7 +820,7 @@ class TextureMixin(object):
         """
         self.__dict__['texRes'] = value
         
-        # ... now rebuild textures (call attributeSetters whithout logging).
+        # ... now rebuild textures (call attributeSetters without logging).
         if hasattr(self, 'tex'): setAttribute(self, 'tex', self.tex, log=False)
         if hasattr(self, 'mask'): setAttribute(self, 'mask', self.mask, log=False)
 
@@ -889,7 +889,7 @@ class WindowMixin(object):
         # Update size and position if they are defined (tested as numeric). If not, this is probably
         # during some init and they will be defined later, given the new unit.
         try:
-            self.size * self.pos  # qucik and dirty way to check that both are numeric. This avoids the heavier attributeSetter calls.
+            self.size * self.pos  # quick and dirty way to check that both are numeric. This avoids the heavier attributeSetter calls.
             self.size = self.size
             self.pos = self.pos
         except:
