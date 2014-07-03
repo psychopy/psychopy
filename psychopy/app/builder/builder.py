@@ -3881,9 +3881,9 @@ class BuilderFrame(wx.Frame):
         self.toolbar.Bind(wx.EVT_TOOL, self.fileSave, id=self.IDs.tbFileSave)
         self.toolbar.AddSimpleTool(self.IDs.tbFileSaveAs, saveAs_bmp, ("Save As... [%s]" %self.app.keys['saveAs']).replace('Ctrl+', ctrlKey), "Save current experiment file as...")
         self.toolbar.Bind(wx.EVT_TOOL, self.fileSaveAs, id=self.IDs.tbFileSaveAs)
-        self.toolbar.AddSimpleTool(self.IDs.tbUndo, undo_bmp, ("Undo [%s]" %self.app.keys['undo']).replace('Ctrl+', ctrlKey), "Undo last action")
+        self.toolbar.AddSimpleTool(self.IDs.tbUndo, undo_bmp, (_("Undo [%s]") %self.app.keys['undo']).replace('Ctrl+', ctrlKey), _("Undo last action"))
         self.toolbar.Bind(wx.EVT_TOOL, self.undo, id=self.IDs.tbUndo)
-        self.toolbar.AddSimpleTool(self.IDs.tbRedo, redo_bmp, ("Redo [%s]" %self.app.keys['redo']).replace('Ctrl+', ctrlKey),  "Redo last action")
+        self.toolbar.AddSimpleTool(self.IDs.tbRedo, redo_bmp, (_("Redo [%s]") %self.app.keys['redo']).replace('Ctrl+', ctrlKey),  _("Redo last action"))
         self.toolbar.Bind(wx.EVT_TOOL, self.redo, id=self.IDs.tbRedo)
         self.toolbar.AddSeparator()
         self.toolbar.AddSeparator()
@@ -3946,9 +3946,9 @@ class BuilderFrame(wx.Frame):
 
         self.editMenu = wx.Menu()
         menuBar.Append(self.editMenu, '&Edit')
-        self._undoLabel = self.editMenu.Append(wx.ID_UNDO, "Undo\t%s" %self.app.keys['undo'], "Undo last action", wx.ITEM_NORMAL)
+        self._undoLabel = self.editMenu.Append(wx.ID_UNDO, _("Undo\t%s") %self.app.keys['undo'], _("Undo last action"), wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_UNDO,  self.undo)
-        self._redoLabel = self.editMenu.Append(wx.ID_REDO, "Redo\t%s" %self.app.keys['redo'], "Redo last action", wx.ITEM_NORMAL)
+        self._redoLabel = self.editMenu.Append(wx.ID_REDO, _("Redo\t%s") %self.app.keys['redo'], _("Redo last action"), wx.ITEM_NORMAL)
         wx.EVT_MENU(self, wx.ID_REDO,  self.redo)
 
         #---_tools---#000000#FFFFFF--------------------------------------------------
@@ -4369,22 +4369,22 @@ class BuilderFrame(wx.Frame):
         #check undo
         if (self.currentUndoLevel)>=len(self.currentUndoStack):
             # can't undo if we're at top of undo stack
-            label = "Undo\t%s" %(self.app.keys['undo'])
+            label = _("Undo\t%s") %(self.app.keys['undo'])
             enable = False
         else:
             action = self.currentUndoStack[-self.currentUndoLevel]['action']
-            label = "Undo %s\t%s" %(action, self.app.keys['undo'])
+            label = _("Undo %s\t%s") %(action, self.app.keys['undo'])
             enable = True
         self._undoLabel.SetText(label)
         self.toolbar.EnableTool(self.IDs.tbUndo,enable)
         self.editMenu.Enable(wx.ID_UNDO,enable)
         # check redo
         if self.currentUndoLevel==1:
-            label = "Redo\t%s" %(self.app.keys['redo'])
+            label = _("Redo\t%s") %(self.app.keys['redo'])
             enable = False
         else:
             action = self.currentUndoStack[-self.currentUndoLevel+1]['action']
-            label = "Redo %s\t%s" %(action, self.app.keys['redo'])
+            label = _("Redo %s\t%s") %(action, self.app.keys['redo'])
             enable = True
         self._redoLabel.SetText(label)
         self.toolbar.EnableTool(self.IDs.tbRedo,enable)
