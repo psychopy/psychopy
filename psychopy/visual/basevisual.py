@@ -923,7 +923,7 @@ class WindowMixin(object):
         setAttribute(self, 'useShaders', value, log)  # call attributeSetter
 
     def draw(self):
-        raise NotImplementedError('Stimulus classes must overide visual.BaseVisualStim.draw')
+        raise NotImplementedError('Stimulus classes must override visual.BaseVisualStim.draw')
 
     def _selectWindow(self, win):
         #don't call switch if it's already the curr window
