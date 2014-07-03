@@ -81,7 +81,7 @@ def init(lang=None):
         lang = locale.getlocale()[0][:2]  # return value
 
     # install global _() function, and return code of the installed language:
-    trans.install()
+    trans.install(unicode=True)
     return lang
 
 
