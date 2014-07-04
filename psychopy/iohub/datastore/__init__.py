@@ -106,6 +106,11 @@ class ioHubpyTablesFile():
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
 
+        try:
+            self.TABLES['KEYBOARD_CHAR']=self.emrtFile.root.data_collection.events.keyboard.KeyboardCharEvent
+        except:
+            # Just means the table for this event type has not been created as the event type is not being recorded
+            pass
 
         try:
             self.TABLES['MOUSE_INPUT']=self.emrtFile.root.data_collection.events.mouse.MouseInputEvent
@@ -263,7 +268,7 @@ class ioHubpyTablesFile():
 
     def _buildEventGroupMappingDict(self):
         self._eventGroupMappings['KEYBOARD_KEY']=self.emrtFile.root.data_collection.events.keyboard
-        #self._eventGroupMappings['KEYBOARD_CHAR']=self.emrtFile.root.data_collection.events.keyboard
+        self._eventGroupMappings['KEYBOARD_CHAR']=self.emrtFile.root.data_collection.events.keyboard
         self._eventGroupMappings['MOUSE_INPUT']=self.emrtFile.root.data_collection.events.mouse
         self._eventGroupMappings['TOUCH']=self.emrtFile.root.data_collection.events.touch
         self._eventGroupMappings['GAMEPAD_STATE_CHANGE']=self.emrtFile.root.data_collection.events.gamepad

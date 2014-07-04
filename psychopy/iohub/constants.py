@@ -100,7 +100,7 @@ try:
         KEYBOARD_KEY=21
         KEYBOARD_PRESS=22
         KEYBOARD_RELEASE=23
-#        KEYBOARD_CHAR=24
+        KEYBOARD_CHAR=24
     
         MOUSE_INPUT=30
         MOUSE_BUTTON=31
