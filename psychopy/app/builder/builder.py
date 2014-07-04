@@ -3897,7 +3897,7 @@ class BuilderFrame(wx.Frame):
         self.toolbar.AddSeparator()
         self.toolbar.AddSimpleTool(self.IDs.tbExpSettings, settings_bmp, _("Experiment Settings"),  _("Settings for this exp"))
         self.toolbar.Bind(wx.EVT_TOOL, self.setExperimentSettings, id=self.IDs.tbExpSettings)
-        self.toolbar.AddSimpleTool(self.IDs.tbCompile, compile_bmp, (_("Compile Script [%s]") %self.app.keys['compileScript']).replace('Ctrl+', ctrlKey),  _("Compile to script"))
+        self.toolbar.AddSimpleTool(self.IDs.tbCompile, compile_bmp, (_("Compile Script [%s]") % self.app.keys['compileScript']).replace('Ctrl+', ctrlKey),  _("Compile to script"))
         self.toolbar.Bind(wx.EVT_TOOL, self.compileScript, id=self.IDs.tbCompile)
         self.toolbar.AddSimpleTool(self.IDs.tbRun, run_bmp, (_("Run [%s]") %self.app.keys['runScript']).replace('Ctrl+', ctrlKey),  _("Run experiment"))
         self.toolbar.Bind(wx.EVT_TOOL, self.runFile, id=self.IDs.tbRun)
@@ -3990,10 +3990,10 @@ class BuilderFrame(wx.Frame):
 
         #---_experiment---#000000#FFFFFF--------------------------------------------------
         self.expMenu = wx.Menu()
-        menuBar.Append(self.expMenu, '&Experiment')
-        self.expMenu.Append(self.IDs.newRoutine, "&New Routine\t%s" %self.app.keys['newRoutine'], "Create a new routine (e.g. the trial definition)")
+        menuBar.Append(self.expMenu, _('&Experiment'))
+        self.expMenu.Append(self.IDs.newRoutine, _("&New Routine\t%s") %self.app.keys['newRoutine'], _("Create a new routine (e.g. the trial definition)"))
         wx.EVT_MENU(self, self.IDs.newRoutine,  self.addRoutine)
-        self.expMenu.Append(self.IDs.copyRoutine, "&Copy Routine\t%s" %self.app.keys['copyRoutine'], "Copy the current routine so it can be used in another exp", wx.ITEM_NORMAL)
+        self.expMenu.Append(self.IDs.copyRoutine, _("&Copy Routine\t%s") %self.app.keys['copyRoutine'], _("Copy the current routine so it can be used in another exp"), wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.copyRoutine,  self.onCopyRoutine)
         self.expMenu.Append(self.IDs.pasteRoutine, "&Paste Routine\t%s" %self.app.keys['pasteRoutine'], "Paste the Routine into the current experiment", wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.pasteRoutine,  self.onPasteRoutine)

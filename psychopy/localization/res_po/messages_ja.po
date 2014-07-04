@@ -1,11 +1,11 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: PsychoPy 1.80.04\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-07-03 21:27+0900\n"
-"PO-Revision-Date: 2014-07-03 21:31+0900\n"
+"POT-Creation-Date: 2014-07-04 11:19+0900\n"
+"PO-Revision-Date: 2014-07-04 11:28+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
-"Language-Team: Hiroyuki Sogo\n"
+"Language-Team: \n"
 "Language: Japanese\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -13,7 +13,7 @@ msgstr ""
 "X-Generator: Poedit 1.5.4\n"
 "X-Poedit-KeywordsList: _;gettext;gettext_noop\n"
 "X-Poedit-Basepath: ../../\n"
-"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Language: Japanese\n"
 "X-Poedit-Country: JAPAN\n"
 "X-Poedit-SearchPath-0: app/builder\n"
@@ -94,7 +94,7 @@ msgstr "現在編集中の実験の設定を変更します"
 #: app/builder/builder.py:3900
 #, python-format
 msgid "Compile Script [%s]"
-msgstr "スクリプトのコンパイル [%s]"
+msgstr "コンパイルしてスクリプトを作成 [%s]"
 
 #: app/builder/builder.py:3900
 msgid "Compile to script"
@@ -120,46 +120,46 @@ msgstr "実験を停止します"
 
 #: app/builder/builder.py:3916
 msgid "&File"
-msgstr "ファイル"
+msgstr "ファイル(&F)"
 
 #: app/builder/builder.py:3928
 #, python-format
 msgid "&New\t%s"
-msgstr "新規\t%s"
+msgstr "新規(&N)\t%s"
 
 #: app/builder/builder.py:3929
 #, python-format
 msgid "&Open...\t%s"
-msgstr "開く...\t%s"
+msgstr "開く...(&O)\t%s"
 
 #: app/builder/builder.py:3930
 msgid "Open &Recent"
-msgstr "最近開いたファイル"
+msgstr "最近開いたファイル(&R)"
 
 #: app/builder/builder.py:3931
 #, python-format
 msgid "&Save\t%s"
-msgstr "保存\t%s"
+msgstr "保存(&S)\t%s"
 
 #: app/builder/builder.py:3932
 #, python-format
 msgid "Save &as...\t%s"
-msgstr "名前を付けて保存...\t%s"
+msgstr "名前を付けて保存(&a)...\t%s"
 
 #: app/builder/builder.py:3933
 #, python-format
 msgid "&Close file\t%s"
-msgstr "閉じる\t%s"
+msgstr "閉じる(&C)\t%s"
 
 #: app/builder/builder.py:3940
 #, python-format
 msgid "&Preferences\t%s"
-msgstr "設定\t%s"
+msgstr "設定(&P)\t%s"
 
 #: app/builder/builder.py:3944
 #, python-format
 msgid "&Quit\t%s"
-msgstr "終了\t%s"
+msgstr "終了(&Q)\t%s"
 
 #: app/builder/builder.py:3944
 msgid "Terminate the program"
@@ -167,7 +167,7 @@ msgstr "アプリケーションを終了します"
 
 #: app/builder/builder.py:3948
 msgid "&Edit"
-msgstr "編集"
+msgstr "編集(&E)"
 
 #: app/builder/builder.py:3949
 #: app/builder/builder.py:4372
@@ -183,7 +183,7 @@ msgstr "繰り返す\t%s"
 
 #: app/builder/builder.py:3956
 msgid "&Tools"
-msgstr "ツール"
+msgstr "ツール(&T)"
 
 #: app/builder/builder.py:3957
 msgid "Monitor Center"
@@ -230,12 +230,12 @@ msgstr "ソフトウェアとハードウェアをテストし、レポートを
 
 #: app/builder/builder.py:3976
 msgid "&View"
-msgstr "ビュー"
+msgstr "ビュー(&V)"
 
 #: app/builder/builder.py:3977
 #, python-format
 msgid "&Open Coder view\t%s"
-msgstr "Coderを開く\t%s"
+msgstr "Coderを開く(&O)\t%s"
 
 #: app/builder/builder.py:3977
 msgid "Open a new Coder view"
@@ -244,7 +244,7 @@ msgstr "Coderのウィンドウを開きます"
 #: app/builder/builder.py:3979
 #, python-format
 msgid "&Toggle readme\t%s"
-msgstr "Readme表示ON/OFF\t%s"
+msgstr "Readme表示ON/OFF(&T)\t%s"
 
 #: app/builder/builder.py:3979
 msgid "Toggle Readme"
@@ -253,7 +253,7 @@ msgstr "Readmeファイルの表示ON/OFFを切り替えます"
 #: app/builder/builder.py:3981
 #, python-format
 msgid "&Flow Larger\t%s"
-msgstr "Flowを大きく\t%s"
+msgstr "&Flowを大きく\t%s"
 
 #: app/builder/builder.py:3981
 msgid "Larger flow items"
@@ -262,7 +262,7 @@ msgstr "Flowのアイテムを大きく表示します"
 #: app/builder/builder.py:3983
 #, python-format
 msgid "&Flow Smaller\t%s"
-msgstr "Flowを小さく\t%s"
+msgstr "&Flowを小さく\t%s"
 
 #: app/builder/builder.py:3983
 msgid "Smaller flow items"
@@ -271,24 +271,46 @@ msgstr "Flowのアイテムを小さく表示します"
 #: app/builder/builder.py:3985
 #, python-format
 msgid "&Routine Larger\t%s"
-msgstr "ルーチンを大きく\t%s"
+msgstr "&Routineを大きく\t%s"
 
 #: app/builder/builder.py:3985
 msgid "Larger routine items"
-msgstr "ルーチンのアイテムを大きく表示します"
+msgstr "Routineのアイテムを大きく表示します"
 
 #: app/builder/builder.py:3987
 #, python-format
 msgid "&Routine Smaller\t%s"
-msgstr "ルーチンを小さく\t%s"
+msgstr "&Routineを小さく\t%s"
 
 #: app/builder/builder.py:3987
 msgid "Smaller routine items"
-msgstr "ルーチンのアイテムを小さく表示します"
+msgstr "Routineのアイテムを小さく表示します"
+
+#: app/builder/builder.py:3993
+msgid "&Experiment"
+msgstr "実験(&E)"
+
+#: app/builder/builder.py:3994
+#, python-format
+msgid "&New Routine\t%s"
+msgstr "新しいRoutineの作成(&N)\t%s"
+
+#: app/builder/builder.py:3994
+msgid "Create a new routine (e.g. the trial definition)"
+msgstr "新しいRoutineを作成します"
+
+#: app/builder/builder.py:3996
+#, python-format
+msgid "&Copy Routine\t%s"
+msgstr "Routineのコピー(&C)\t%s"
+
+#: app/builder/builder.py:3996
+msgid "Copy the current routine so it can be used in another exp"
+msgstr "現在のRoutineをコピーして新しいRoutineを作成します"
 
 #: app/builder/builder.py:4021
 msgid "&Help"
-msgstr "ヘルプ"
+msgstr "ヘルプ(&H)"
 
 #: app/builder/builder.py:4376
 #, python-format
