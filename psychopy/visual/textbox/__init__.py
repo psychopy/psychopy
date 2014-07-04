@@ -472,7 +472,10 @@ class TextBox(object):
     
 #        print 'cell[0,0]:',cellinfo[0,0,:]
         return cellinfo
-    
+
+    def getTextGridCellForCharIndex(self,char_index):
+        return self._getTextWrappedDoc().getTextGridCellForCharIndex(char_index)
+
     def getGlyphPositionForTextIndex(self,char_index):
         """
         For the provided char_index, which is the index of one chatacter in 
