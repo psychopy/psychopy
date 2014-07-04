@@ -151,8 +151,17 @@ class PsychoPyApp(wx.App):
         self.dpi = int(wx.GetDisplaySize()[0]/float(wx.GetDisplaySizeMM()[0])*25.4)
         if not (50<self.dpi<120): self.dpi=80#dpi was unreasonable, make one up
 
+        self._mainFont = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
+        if hasattr(self._mainFont, 'Larger'):
+            # Font.Larger is available since wyPython version 2.9.1
+            # PsychoPy still supports 2.8 (see ensureMinimal above)
+            self._mainFont = self._mainFont.Larger()
+        self._codeFont = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FIXED_FONT)
+        self._codeFont.SetFaceName(self.prefs.coder['codeFont'])
+
         #create both frame for coder/builder as necess
-        if splash: splash.SetText("  Creating frames...")
+        if splash:
+            splash.SetText("  Creating frames...")
         self.coder = None
         self.builderFrames = []
         self.copiedRoutine=None
@@ -225,6 +234,39 @@ class PsychoPyApp(wx.App):
         """Get the size of the primary display (whose coords start (0,0))
         """
         return list(wx.Display(0).GetGeometry())[2:]
+    def makeAccelTable(self):
+        """Makes a standard accelorator table and returns it. This then needs
+        to be set for the Frame using self.SetAccelerator(table)
+        """
+        def parseStr(inStr):
+            accel=0
+            if 'ctrl' in inStr.lower():
+                accel += wx.ACCEL_CTRL
+            if 'shift' in inStr.lower():
+                accel += wx.ACCEL_SHIFT
+            if 'alt' in inStr.lower():
+                accel += wx.ACCEL_ALT
+            return accel, ord(inStr[-1])
+        #create a list to link IDs to key strings
+        keyCodesDict = {}
+        keyCodesDict[self.keys['copy']] = wx.ID_COPY
+        keyCodesDict[self.keys['cut']] = wx.ID_CUT
+        keyCodesDict[self.keys['paste']] = wx.ID_PASTE
+        keyCodesDict[self.keys['undo']] = wx.ID_UNDO
+        keyCodesDict[self.keys['redo']] = wx.ID_REDO
+        keyCodesDict[self.keys['save']] = wx.ID_SAVE
+        keyCodesDict[self.keys['saveAs']] = wx.ID_SAVEAS
+        keyCodesDict[self.keys['close']] = wx.ID_CLOSE
+        keyCodesDict[self.keys['redo']] = wx.ID_REDO
+        keyCodesDict[self.keys['quit']] = wx.ID_EXIT
+        #parse the key strings and convert to accelerator entries
+        entries = []
+        for keyStr, code in keyCodesDict.items():
+            mods, key = parseStr(keyStr)
+            entry = wx.AcceleratorEntry(mods, key, code)
+            entries.append(entry)
+        table = wx.AcceleratorTable(entries)
+        return table
     def showCoder(self, event=None, fileList=None):
         from psychopy.app import coder#have to reimport because it is ony local to __init__ so far
         if self.coder==None:

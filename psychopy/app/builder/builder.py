@@ -2146,7 +2146,11 @@ class _BaseParamsDlg(wx.Dialog):
             else:
                 self.ctrls.GetPage(0).SetFocus()
                 self.ctrls.SetSelection(0)
-                self.paramCtrls['name'].valueCtrl.SetFocus()
+                if hasattr(self, 'paramCtrls'):
+                    if 'name' in self.paramCtrls:
+                        self.paramCtrls['name'].valueCtrl.SetFocus()
+                    if 'expName' in self.paramCtrls:# ExperimentSettings has expName instead
+                        self.paramCtrls['expName'].valueCtrl.SetFocus()
     def addCategoryOfParams(self, paramNames, parent):
         """Add all the params for a single category (after its tab has been created)
         """
@@ -2270,7 +2274,6 @@ class _BaseParamsDlg(wx.Dialog):
         remaining.remove('durationEstim')
 
         # use monospace font to signal code:
-        self.defaultFontFaceName = self.startValCtrl.GetFont().GetFaceName()
         self.checkCodeWanted(self.startValCtrl)
         self.startValCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
         self.checkCodeWanted(self.stopValCtrl)
@@ -2313,16 +2316,8 @@ class _BaseParamsDlg(wx.Dialog):
 
         # use monospace font to signal code:
         if fieldName != 'name' and hasattr(ctrls.valueCtrl, 'GetFont'):
-            font = ctrls.valueCtrl.GetFont()
-            self.defaultFontFaceName = font.GetFaceName()
-            _font = ctrls.valueCtrl.GetFont()
-            try:
-                _font.SetFaceName(self.codeFaceName)  # see what happens
-            except:
-                self.codeFaceName = self.app.prefs.coder['codeFont']
             if self.params[fieldName].valType == 'code':
-                font.SetFaceName(self.codeFaceName)
-                ctrls.valueCtrl.SetFont(font)
+                ctrls.valueCtrl.SetFont(self.app._codeFont)
             elif self.params[fieldName].valType == 'str':
                 ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
                 try:
@@ -2397,7 +2392,7 @@ class _BaseParamsDlg(wx.Dialog):
         builderPos = self.frame.GetPosition()
         self.SetPosition((builderPos[0]+200,20))
 
-        self.paramCtrls['name'].valueCtrl.SetFocus()
+        #self.paramCtrls['name'].valueCtrl.SetFocus()
         #do show and process return
         retVal = self.ShowModal()
         if retVal== wx.ID_OK:
@@ -2508,15 +2503,9 @@ class _BaseParamsDlg(wx.Dialog):
         # set display font based on presence of $ (without \$)?
         font = strBox.GetFont()
         if _unescapedDollarSign_re.search(val):
-            facename = self.codeFaceName
+            strBox.SetFont(self.app._codeFont)
         else:
-            facename = self.defaultFontFaceName
-        if stc:
-            strBox.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
-                                "face:%s,size:%d" % (facename, self.faceSize))
-        else:
-            font.SetFaceName(facename)
-            strBox.SetFont(font)
+            strBox.SetFont(self.app._mainFont)
 
         if hasattr(event, 'Skip'):
             event.Skip()
@@ -3137,7 +3126,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         """
         #add buttons for help, OK and Cancel
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
-        buttons = wx.BoxSizer(wx.HORIZONTAL)
+        buttons = wx.StdDialogButtonSizer()
         if self.helpUrl!=None:
             helpBtn = wx.Button(self, wx.ID_HELP)
             helpBtn.SetHelpText("Get help about this component")
@@ -3149,6 +3138,8 @@ class DlgExperimentProperties(_BaseParamsDlg):
         CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         buttons.Add(CANCEL, 0, wx.ALIGN_RIGHT|wx.ALL,border=3)
 
+        buttons.Realize()
+        self.ctrls.Fit()
         self.mainSizer.Add(self.ctrls)
         self.mainSizer.Add(buttons, flag=wx.ALIGN_RIGHT)
         self.SetSizerAndFit(self.mainSizer)
@@ -3784,7 +3775,11 @@ class BuilderFrame(wx.Frame):
         self.CreateStatusBar()
         self.SetStatusText("")
 
-        #
+        #setup universal shortcuts
+        accelTable = self.app.makeAccelTable()
+        self.SetAcceleratorTable(accelTable)
+
+        #set stdout to correct output panel
         self.stdoutOrig = sys.stdout
         self.stderrOrig = sys.stderr
         self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
@@ -4042,6 +4037,7 @@ class BuilderFrame(wx.Frame):
                 event.Veto()
             return
         else:
+            self._mgr.UnInit()#as of wx3.0 the AUI manager needs to be uninitialised explicitly
             # is it the last frame?
             if len(wx.GetApp().allFrames) == 1 and sys.platform != 'darwin' and not wx.GetApp().quitting:
                 wx.GetApp().quit(event)

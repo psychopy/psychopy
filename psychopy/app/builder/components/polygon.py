@@ -72,6 +72,8 @@ class PolygonComponent(VisualComponent):
         if self.params['units'].val=='from exp settings': unitsStr=""
         else: unitsStr="units=%(units)s, " %self.params
         inits = getInitVals(self.params)#replaces variable params with defaults
+        if inits['size'].val=='1.0':
+            inits['size'].val = '[1.0, 1.0]'
         if self.params['nVertices'].val == '2':
             buff.writeIndented("%s = visual.Line(win=win, name='%s',%s\n" %(inits['name'],inits['name'],unitsStr))
             buff.writeIndented("    start=(-%(size)s[0]/2.0, 0), end=(+%(size)s[0]/2.0, 0),\n" %(inits) )
