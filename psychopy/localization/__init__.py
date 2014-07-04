@@ -74,7 +74,7 @@ def init(lang=None):
 
     try:
         logging.debug("Opening message file %s for locale %s" % (mofile, lang))
-        trans = gettext.GNUTranslations(open(mofile, "rU"))
+        trans = gettext.GNUTranslations(open(mofile, "rb"))
     except IOError:
         logging.debug("Locale for '%s' not found. Using default." % lang)
         trans = gettext.NullTranslations()
