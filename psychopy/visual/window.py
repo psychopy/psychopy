@@ -497,9 +497,10 @@ class Window(object):
     def _finishFBOrender(self):
         GL.glUseProgram(0)
 
+    @classmethod
     def dispatchAllWindowEvents(cls):
-            wins = pyglet.window.get_platform().get_default_display().get_windows()
-            for win in wins: win.dispatch_events()
+        wins = pyglet.window.get_platform().get_default_display().get_windows()
+        for win in wins: win.dispatch_events()
 
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your
