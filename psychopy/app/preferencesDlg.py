@@ -11,7 +11,7 @@ class PreferencesDlg(wx.Dialog):
     def __init__(self,app,
             pos=wx.DefaultPosition, size=dlgSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL|wx.RESIZE_BORDER):
-        wx.Dialog.__init__(self,None,-1,"PsychoPy Preferences",pos,size,style)
+        wx.Dialog.__init__(self,None,-1,_("PsychoPy Preferences"),pos,size,style)
         self.app=app
         self.Center()
         self.prefsCfg = self.app.prefs.userPrefsCfg
@@ -42,23 +42,23 @@ class PreferencesDlg(wx.Dialog):
         btnsizer = wx.StdDialogButtonSizer()
         #ok
         btn = wx.Button(self, wx.ID_OK)
-        btn.SetHelpText("Save prefs (in all sections) and close window")
+        btn.SetHelpText(_("Save prefs (in all sections) and close window"))
         btn.Bind(wx.EVT_BUTTON, self.onOK)
         btn.SetDefault()
         btnsizer.AddButton(btn)
         #cancel
         btn = wx.Button(self, wx.ID_CANCEL)
-        btn.SetHelpText("Cancel any changes (to any panel)")
+        btn.SetHelpText(_("Cancel any changes (to any panel)"))
         btn.Bind(wx.EVT_BUTTON, self.onCancel)
         btnsizer.AddButton(btn)
         #apply
         btn = wx.Button(self, wx.ID_APPLY)
-        btn.SetHelpText("Apply these prefs (in all sections) and continue")
+        btn.SetHelpText(_("Apply these prefs (in all sections) and continue"))
         btn.Bind(wx.EVT_BUTTON, self.onApply)
         btnsizer.AddButton(btn)
         #help
         btn = wx.Button(self, wx.ID_HELP)
-        btn.SetHelpText("Get help on prefs")
+        btn.SetHelpText(_("Get help on prefs"))
         btn.Bind(wx.EVT_BUTTON, self.onHelp)
         btnsizer.AddButton(btn)
         btnsizer.Realize()
