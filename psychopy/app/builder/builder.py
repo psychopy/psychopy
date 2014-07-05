@@ -1172,7 +1172,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.dragid = -1
         self.lastpos = (0,0)
         self.componentFromID = {}#use the ID of the drawn icon to retrieve component name
-        self.contextMenuItems = ['edit','remove','move to top','move up','move down','move to bottom']
+        self.contextMenuItems = [_('edit'),_('remove'),_('move to top'),_('move up'),_('move down'),_('move to bottom')]
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
@@ -1237,23 +1237,31 @@ class RoutineCanvas(wx.ScrolledWindow):
         op = self.contextItemFromID[event.GetId()]
         component=self._menuComponent
         r = self.routine
-        if op=='edit':
+        if op==_('edit'):
             self.editComponentProperties(component=component)
-        elif op=='remove':
+        elif op==_('remove'):
             r.removeComponent(component)
             self.frame.addToUndoStack("REMOVE `%s` from Routine" %(component.params['name'].val))
             self.frame.exp.namespace.remove(component.params['name'].val)
-        elif op.startswith('move'):
+        elif op==_('move to top'):
             lastLoc=r.index(component)
             r.remove(component)
-            if op=='move to top':
-                r.insert(0, component)
-            if op=='move up':
-                r.insert(lastLoc-1, component)
-            if op=='move down':
-                r.insert(lastLoc+1, component)
-            if op=='move to bottom':
-                r.append(component)
+            r.insert(0, component)
+            self.frame.addToUndoStack("MOVED `%s`" %component.params['name'].val)
+        elif op==_('move up'):
+            lastLoc=r.index(component)
+            r.remove(component)
+            r.insert(lastLoc-1, component)
+            self.frame.addToUndoStack("MOVED `%s`" %component.params['name'].val)
+        elif op==_('move down'):
+            lastLoc=r.index(component)
+            r.remove(component)
+            r.insert(lastLoc+1, component)
+            self.frame.addToUndoStack("MOVED `%s`" %component.params['name'].val)
+        elif op==_('move to bottom'):
+            lastLoc=r.index(component)
+            r.remove(component)
+            r.append(component)
             self.frame.addToUndoStack("MOVED `%s`" %component.params['name'].val)
         self.redrawRoutine()
         self._menuComponent=None
