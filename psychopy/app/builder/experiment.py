@@ -146,19 +146,19 @@ class Experiment:
                     'If you publish work using this script please cite the relevant PsychoPy publications\n' +
                     '  Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.\n' +
                     '  Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
-        script.write(
-                    "\nfrom __future__ import division  # so that 1/3=0.333 instead of 1/3=0\n" +
-                    "from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
+        script.write("\nfrom __future__ import division  # so that 1/3=0.333 instead of 1/3=0\n")
+        # This functionality is not ready to be exposed to end-users in a script
+        #if self.prefsApp['locale']:
+        #    # if locale is set explicitly as a pref, add it to the script:
+        #    localeValue = '.'.join(locale.getlocale())
+        #    script.write("from psychopy import localization\n" +
+        #             "localization.init(%s)\n\n" % repr(localeValue))
+        script.write("from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
                     "from psychopy.constants import *  # things like STARTED, FINISHED\n" +
                     "import numpy as np  # whole numpy lib is available, prepend 'np.'\n" +
                     "from numpy import %s\n" % ', '.join(_numpyImports) +
                     "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
                     "import os  # handy system and path functions\n")
-        if self.prefsApp['locale']:
-            # if locale is set explicitly as a pref, add it to the script:
-            localeValue = '.'.join(locale.getlocale())
-            script.write("import locale\n" +
-                     "locale.setlocale(locale.LC_ALL, '%s')\n" % localeValue)
         script.write("\n")
         self.settings.writeStartCode(script) #present info dlg, make logfile
         self.flow.writeStartCode(script) #writes any components with a writeStartCode()

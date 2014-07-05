@@ -59,7 +59,7 @@
     autoSavePrefs = boolean(default='False')
     # enable features for debugging PsychoPy itself, including unit-tests
     debugMode = boolean(default='False')
-    # locale to use, e.g. en_US, en_US.UTF-8, ja_JP, etc; leave blank for default system locale
+    # locale to use, e.g. ENG, DEU, DAN, JPN, etc; leave blank for default system locale
     locale = string(default='')
 
 # Settings for the Coder window

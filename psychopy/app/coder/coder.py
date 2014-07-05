@@ -1192,7 +1192,7 @@ class CoderFrame(wx.Frame):
 
         self.outputWindow = stdOutRich.StdOutRich(self,style=wx.TE_MULTILINE|wx.TE_READONLY|wx.VSCROLL,
             font=self.prefs['outputFont'], fontSize=self.prefs['outputFontSize'])
-        self.outputWindow.write('Welcome to PsychoPy2!\n')
+        self.outputWindow.write(_('Welcome to PsychoPy2!') + '\n')
         self.outputWindow.write("v%s\n" %self.app.version)
         self.shelf.AddPage(self.outputWindow, 'Output')
 

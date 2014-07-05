@@ -1,0 +1,19 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid "1"
+msgstr "1"
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2014-05-12 17:34+EDT\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Generated-By: pygettext.py 1.5\n"
+
+#: __init__.py:48
+msgid "Welcome to PsychoPy2!"
+msgstr "Καλώς ήρθατε στο PsychoPy2!"

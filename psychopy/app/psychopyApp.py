@@ -5,6 +5,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from psychopy.app._psychopyApp import *
+from psychopy import localization
 
 #NB the PsychoPyApp classes moved to _psychopyApp.py as of version 1.78.00
 #to allow for better upgrading possibilities from the mac app bundle. this file
