@@ -413,7 +413,7 @@ class FlowPanel(wx.ScrolledWindow):
 
         #for the context menu
         self.componentFromID = {}#use the ID of the drawn icon to retrieve component (loop or routine)
-        self.contextMenuItems = ['remove']
+        self.contextMenuItems = [_('remove')]
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
@@ -423,8 +423,8 @@ class FlowPanel(wx.ScrolledWindow):
 
         #self.btnInsertRoutine = wx.Button(self,-1,'Insert Routine', pos=(10,10))
         #self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
-        self.btnInsertRoutine = platebtn.PlateButton(self,-1,'Insert Routine ', pos=(10,10))
-        self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop     ', pos=(10,30)) #spaces give size for CANCEL
+        self.btnInsertRoutine = platebtn.PlateButton(self,-1,_('Insert Routine '), pos=(10,10))
+        self.btnInsertLoop = platebtn.PlateButton(self,-1,_('Insert Loop     '), pos=(10,30)) #spaces give size for CANCEL
 
         self.labelTextGray = {'normal': wx.Colour(150,150,150, 20),'hlight':wx.Colour(150,150,150, 20)}
         self.labelTextRed = {'normal': wx.Colour(250,10,10, 250),'hlight':wx.Colour(250,10,10, 250)}
@@ -467,9 +467,9 @@ class FlowPanel(wx.ScrolledWindow):
         self.gapsExcluded=[]
         self.draw()
         self.frame.SetStatusText("")
-        self.btnInsertRoutine.SetLabel('Insert Routine')
+        self.btnInsertRoutine.SetLabel(_('Insert Routine'))
         self.btnInsertRoutine.SetLabelColor(**self.labelTextBlack)
-        self.btnInsertLoop.SetLabel('Insert Loop')
+        self.btnInsertLoop.SetLabel(_('Insert Loop'))
         self.btnInsertLoop.SetLabelColor(**self.labelTextBlack)
     def ConvertEventCoords(self, event):
         xView, yView = self.GetViewStart()
@@ -494,7 +494,7 @@ class FlowPanel(wx.ScrolledWindow):
         elif self.mode == 'routine': # clicked again with label now being "Cancel..."
             self.clearMode()
             return
-        self.frame.SetStatusText("Select a Routine to insert (Esc to exit)")
+        self.frame.SetStatusText(_("Select a Routine to insert (Esc to exit)"))
         menu = wx.Menu()
         self.routinesFromID={}
         id = wx.NewId()
@@ -526,9 +526,9 @@ class FlowPanel(wx.ScrolledWindow):
         see self.insertRoutine() for further info
         """
         self.mode='routine'
-        self.btnInsertRoutine.SetLabel('CANCEL Insert')
+        self.btnInsertRoutine.SetLabel(_('CANCEL Insert'))
         self.btnInsertRoutine.SetLabelColor(**self.labelTextRed)
-        self.frame.SetStatusText('Click where you want to insert the Routine, or CANCEL insert.')
+        self.frame.SetStatusText(_('Click where you want to insert the Routine, or CANCEL insert.'))
         self.insertingRoutine = self.routinesFromID[event.GetId()]
         x = self.getNearestGapPoint(0)
         self.drawEntryPoints([x])
@@ -554,17 +554,17 @@ class FlowPanel(wx.ScrolledWindow):
         elif self.mode.startswith('loopPoint'): # clicked again, label is "Cancel..."
             self.clearMode()
             return
-        self.btnInsertLoop.SetLabel('CANCEL insert')
+        self.btnInsertLoop.SetLabel(_('CANCEL insert'))
         self.btnInsertLoop.SetLabelColor(**self.labelTextRed)
         self.mode='loopPoint1'
-        self.frame.SetStatusText('Click where you want the loop to start/end, or CANCEL insert.')
+        self.frame.SetStatusText(_('Click where you want the loop to start/end, or CANCEL insert.'))
         x = self.getNearestGapPoint(0)
         self.drawEntryPoints([x])
     def setLoopPoint2(self, evt=None):
         """We've got the location of the first point, waiting to get the second
         """
         self.mode='loopPoint2'
-        self.frame.SetStatusText('Click the other end for the loop')
+        self.frame.SetStatusText(_('Click the other end for the loop'))
         thisPos = self.entryPointPosList[0]
         self.gapsExcluded=[thisPos]
         self.gapsExcluded.extend(self.getGapPointsCrossingStreams(thisPos))
@@ -744,10 +744,10 @@ class FlowPanel(wx.ScrolledWindow):
         #if we have a Loop Initiator, remove the whole loop
         if component.getType()=='LoopInitiator':
             component = component.loop
-        if op=='remove':
+        if op==_('remove'):
             self.removeComponent(component, compID)
             self.frame.addToUndoStack("REMOVE `%s` from Flow" %component.params['name'])
-        if op=='rename':
+        if op==_('rename'):
             print 'rename is not implemented yet'
             #if component is a loop: DlgLoopProperties
             #elif component is a routine: DlgRoutineProperties
@@ -1530,7 +1530,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             currId = self.GetSelection()
             self.DeletePage(currId)
     def createNewRoutine(self, returnName=False):
-        dlg = wx.TextEntryDialog(self, message="What is the name for the new Routine? (e.g. instr, trial, feedback)",
+        dlg = wx.TextEntryDialog(self, message=_("What is the name for the new Routine? (e.g. instr, trial, feedback)"),
             caption='New Routine')
         exp = self.frame.exp
         routineName = None
@@ -3889,7 +3889,7 @@ class BuilderFrame(wx.Frame):
         self.toolbar.AddSeparator()
         self.toolbar.AddSimpleTool(self.IDs.tbPreferences, preferences_bmp, _("Preferences"),  _("Application preferences"))
         self.toolbar.Bind(wx.EVT_TOOL, self.app.showPrefs, id=self.IDs.tbPreferences)
-        self.toolbar.AddSimpleTool(self.IDs.tbMonitorCenter, monitors_bmp, "Monitor Center",  "Monitor settings and calibration")
+        self.toolbar.AddSimpleTool(self.IDs.tbMonitorCenter, monitors_bmp, _("Monitor Center"),  _("Monitor settings and calibration"))
         self.toolbar.Bind(wx.EVT_TOOL, self.app.openMonitorCenter, id=self.IDs.tbMonitorCenter)
         #self.toolbar.AddSimpleTool(self.IDs.tbColorPicker, colorpicker_bmp, "Color Picker",  "Color Picker")
         #self.toolbar.Bind(wx.EVT_TOOL, self.app.colorPicker, id=self.IDs.tbColorPicker)
@@ -3995,13 +3995,13 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.newRoutine,  self.addRoutine)
         self.expMenu.Append(self.IDs.copyRoutine, _("&Copy Routine\t%s") %self.app.keys['copyRoutine'], _("Copy the current routine so it can be used in another exp"), wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.copyRoutine,  self.onCopyRoutine)
-        self.expMenu.Append(self.IDs.pasteRoutine, "&Paste Routine\t%s" %self.app.keys['pasteRoutine'], "Paste the Routine into the current experiment", wx.ITEM_NORMAL)
+        self.expMenu.Append(self.IDs.pasteRoutine, _("&Paste Routine\t%s") %self.app.keys['pasteRoutine'], _("Paste the Routine into the current experiment"), wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.pasteRoutine,  self.onPasteRoutine)
         self.expMenu.AppendSeparator()
 
-        self.expMenu.Append(self.IDs.addRoutineToFlow, "Insert Routine in Flow", "Select one of your routines to be inserted into the experiment flow")
+        self.expMenu.Append(self.IDs.addRoutineToFlow, _("Insert Routine in Flow"), _("Select one of your routines to be inserted into the experiment flow"))
         wx.EVT_MENU(self, self.IDs.addRoutineToFlow,  self.flowPanel.onInsertRoutine)
-        self.expMenu.Append(self.IDs.addLoopToFlow, "Insert Loop in Flow", "Create a new loop in your flow window")
+        self.expMenu.Append(self.IDs.addLoopToFlow, _("Insert Loop in Flow"), _("Create a new loop in your flow window"))
         wx.EVT_MENU(self, self.IDs.addLoopToFlow,  self.flowPanel.insertLoop)
 
         #---_demos---#000000#FFFFFF--------------------------------------------------
@@ -4009,23 +4009,23 @@ class BuilderFrame(wx.Frame):
 
         self.demosMenu = wx.Menu()
         #unpack demos option
-        self.demosMenu.Append(self.IDs.builderDemosUnpack, "&Unpack Demos...",
-            "Unpack demos to a writable location (so that they can be run)")
+        self.demosMenu.Append(self.IDs.builderDemosUnpack, _("&Unpack Demos..."),
+            _("Unpack demos to a writable location (so that they can be run)"))
         wx.EVT_MENU(self, self.IDs.builderDemosUnpack, self.demosUnpack)
         self.demosMenu.AppendSeparator()
         self.demosMenuUpdate()#add any demos that are found in the prefs['demosUnpacked'] folder
-        menuBar.Append(self.demosMenu, '&Demos')
+        menuBar.Append(self.demosMenu, _('&Demos'))
 
         #---_help---#000000#FFFFFF--------------------------------------------------
         self.helpMenu = wx.Menu()
         menuBar.Append(self.helpMenu, _('&Help'))
-        self.helpMenu.Append(self.IDs.psychopyHome, "&PsychoPy Homepage", "Go to the PsychoPy homepage")
+        self.helpMenu.Append(self.IDs.psychopyHome, _("&PsychoPy Homepage"), _("Go to the PsychoPy homepage"))
         wx.EVT_MENU(self, self.IDs.psychopyHome, self.app.followLink)
-        self.helpMenu.Append(self.IDs.builderHelp, "&PsychoPy Builder Help", "Go to the online documentation for PsychoPy Builder")
+        self.helpMenu.Append(self.IDs.builderHelp, _("&PsychoPy Builder Help"), _("Go to the online documentation for PsychoPy Builder"))
         wx.EVT_MENU(self, self.IDs.builderHelp, self.app.followLink)
 
         self.helpMenu.AppendSeparator()
-        self.helpMenu.Append(wx.ID_ABOUT, "&About...", "About PsychoPy")
+        self.helpMenu.Append(wx.ID_ABOUT, _("&About..."), _("About PsychoPy"))
         wx.EVT_MENU(self, wx.ID_ABOUT, self.app.showAbout)
 
         self.SetMenuBar(menuBar)
