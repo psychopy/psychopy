@@ -54,15 +54,23 @@ def setAttribute(self, attrib, value, log, operation=False, stealth=False):
     complex, it is very fast :-)"""
     
     # Change the value of "value" if there is an operation. Even if it is '',
-    # that indicates that this value could potentially be subjected to an operation.
+    # which indicates that this value could potentially be subjected to an operation.
     if operation is not False:
         try:
             oldValue = getattr(self, attrib)
-            oldValue = numpy.asarray(oldValue, float)
+        except AttributeError:
+            # attribute is not set yet. Set it to None to skip operation and just set value.
+            oldValue = None
+            value = value
+        
+        # Apply operation except for the case when new or old value are None or string-like
+        if None not in (value, oldValue) and type(value) not in (str, unicode) and type(oldValue) not in (str, unicode):
+            value = numpy.array(value, float)
     
             # Calculate new value using operation
             if operation in ('', None):
-                value = oldValue * 0 + value  # Preserves dimensions, if array
+                if value.shape is () and not isinstance(oldValue, attributeSetter):  # scalar
+                    value = oldValue * 0 + value  # Preserves dimensions in case oldValue is array-like.
             elif operation == '+':
                 value = oldValue + value
             elif operation == '*':
@@ -77,25 +85,10 @@ def setAttribute(self, attrib, value, log, operation=False, stealth=False):
                 value = oldValue % value
             else:
                 raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
-    
-        except AttributeError:
-            # attribute is not set yet. Do it now in a non-updating manner
-            value = numpy.asarray(value, float)
-        except TypeError:
-            # Attribute is "None" or an unset attributeSetter. This is a sign that we are just initing
-            if oldValue is None or isinstance(oldValue, attributeSetter) and operation in ('', None):
-                value = numpy.asarray(value, float)
-            elif value is None:
-                # Not an operation, but let's be friendly...
-                value = value
-            else:
-                raise TypeError
-        except ValueError as inst:
-            # The old value is a string, typical of a color change from named to e.g. rgb.
-            if type(oldValue) is str and operation in ('', None):
-                value = numpy.asarray(value, float)
-            else:
-                raise inst
+        
+        elif operation not in ('', None):
+            raise TypeError('operation %s invalid for %s (old value) and %s (operation value)' %(operation.__repr__(), oldValue, value))
+        
     # Ok, operation or not, change the attribute in self without callback to attributeSetters
     if stealth:
         self.__dict__[attrib] = value  # without logging as well

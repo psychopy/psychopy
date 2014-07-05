@@ -116,6 +116,7 @@ class RatingScale(MinimalStim):
                 lineColor='White',
                 skipKeys='tab',
                 mouseOnly=False,
+                noMouse=False,
                 size=1.0,
                 stretch=1.0,
                 pos=None,
@@ -222,6 +223,9 @@ class RatingScale(MinimalStim):
         mouseOnly :
             Require the subject to use the mouse (any keyboard input is ignored), default = ``False``.
             Can be used to avoid competing with other objects for keyboard input.
+        noMouse:
+            Require the subject to use keys to respond; disable and hide the mouse.
+            `markerStart` will default to the left end.
         minTime :
             Seconds that must elapse before a reponse can be accepted,
             default = `0.4`.
@@ -268,9 +272,10 @@ class RatingScale(MinimalStim):
             singleClick = True
             textSize *= 1.5
             mouseOnly = True
+            noMouse = False
 
         # make things well-behaved if the requested value(s) would be trouble:
-        self._initFirst(showAccept, mouseOnly, singleClick, acceptKeys,
+        self._initFirst(showAccept, mouseOnly, noMouse, singleClick, acceptKeys,
                         marker, markerStart, low, high, precision, choices,
                         scale, tickMarks, labels, tickHeight)
         self._initMisc(minTime, maxTime)
@@ -317,7 +322,7 @@ class RatingScale(MinimalStim):
     def __repr__(self, complete=False):
         return self.__str__(complete=complete)  # from MinimalStim
 
-    def _initFirst(self, showAccept, mouseOnly, singleClick, acceptKeys,
+    def _initFirst(self, showAccept, mouseOnly, noMouse, singleClick, acceptKeys,
                    marker, markerStart, low, high, precision, choices,
                    scale, tickMarks, labels, tickHeight):
         """some sanity checking; various things are set, especially those that are
@@ -325,6 +330,7 @@ class RatingScale(MinimalStim):
         """
         self.showAccept = bool(showAccept)
         self.mouseOnly = bool(mouseOnly)
+        self.noMouse = bool(noMouse) and not self.mouseOnly  # mouseOnly wins
         self.singleClick = bool(singleClick)
         self.acceptKeys = acceptKeys
         self.precision = precision
@@ -410,6 +416,10 @@ class RatingScale(MinimalStim):
         else:  # float(markerStart) suceeded
             self.markerPlacedAt = self.markerStart
             self.markerPlaced = True
+        # default markerStart = 0 if needed but otherwise unspecified:
+        if self.noMouse and self.markerStart is None:
+            self.markerPlacedAt = self.markerStart = 0
+            self.markerPlaced = True
 
     def _initMisc(self, minTime, maxTime):
         # precision is the fractional parts of a tick mark to be sensitive to, in [1,10,100]:
@@ -435,7 +445,7 @@ class RatingScale(MinimalStim):
             self.maxTime = 0.0
         self.allowTimeOut = bool(self.minTime < self.maxTime)
 
-        self.myMouse = event.Mouse(win=self.win, visible=True)
+        self.myMouse = event.Mouse(win=self.win, visible=bool(not self.noMouse))
         # Mouse-click-able 'accept' button pulsates (cycles its brightness over frames):
         frames_per_cycle = 100
         self.pulseColor = [0.6 + 0.22 * float(numpy.cos(i/15.65)) for i in range(frames_per_cycle)]
@@ -523,6 +533,8 @@ class RatingScale(MinimalStim):
             for i, key in enumerate(self.respKeys):
                 self.tickFromKeyPress[key] = i + self.low
 
+        # if self.noMouse: could check that there are appropriate response keys
+
         self.allKeys = (self.rightKeys + self.leftKeys + self.acceptKeys +
                         self.skipKeys + self.respKeys)
 
@@ -596,6 +608,7 @@ class RatingScale(MinimalStim):
         self.lineRightEnd = self.offsetHoriz + 0.5 * self.hStretchTotal
 
         # space around the line within which to accept mouse input:
+        # not needed if self.noMouse, but not a problem either
         pad = 0.06 * self.size
         if marker == 'hover':
             padText = (1./(3*(self.high-self.low))) * (self.lineRightEnd - self.lineLeftEnd)
@@ -953,8 +966,11 @@ class RatingScale(MinimalStim):
             self.win.units = self.savedWinUnits
             return  # makes the marker unresponsive
 
-        mouseX, mouseY = self.myMouse.getPos() # norm units
-        mouseNearLine = pointInPolygon(mouseX, mouseY, self.nearLine)
+        if self.noMouse:
+            mouseNearLine = False
+        else:
+            mouseX, mouseY = self.myMouse.getPos() # norm units
+            mouseNearLine = pointInPolygon(mouseX, mouseY, self.nearLine)
 
         # draw a dynamic marker:
         if self.markerPlaced or self.singleClick:
@@ -1043,7 +1059,7 @@ class RatingScale(MinimalStim):
                                  (self.name, unicode(self.getRating())) )
 
         # handle mouse left-click:
-        if self.myMouse.getPressed()[0]:
+        if not self.noMouse and self.myMouse.getPressed()[0]:
             #mouseX, mouseY = self.myMouse.getPos() # done above
             # if click near the line, place the marker there:
             if mouseNearLine:
@@ -1065,6 +1081,7 @@ class RatingScale(MinimalStim):
                             (self.name, unicode(self.getRating())) )
 
         if self.markerStyle == 'hover' and self.markerPlaced:
+            # 'hover' --> noMouse = False during init
             if mouseNearLine or self.markerPlacedAt != self.markerPlacedAtLast:
                 if hasattr(self, 'targetWord'):
                     self.targetWord.setColor(self.textColor, log=False)

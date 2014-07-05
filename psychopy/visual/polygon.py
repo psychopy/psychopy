@@ -45,18 +45,19 @@ class Polygon(ShapeStim):
             numpy.asarray(
                 (numpy.sin(e*d), numpy.cos(e*d))
             ) * self.radius
-            for e in xrange(self.edges)
+            for e in xrange(int(round(self.edges)))
         ])
     
     @attributeSetter
     def edges(self, edges):
-        "Int. Number of edges of the polygon. :ref:`Operations <attrib-operations>` supported."
+        """Int or float. Number of edges of the polygon. Floats are rounded to int.
+        :ref:`Operations <attrib-operations>` supported."""
         self.__dict__['edges'] = edges
         self._calcVertices()
-    def setEdges(self, edges, log=None):
+    def setEdges(self, edges, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
-        setAttribute(self, 'edges', edges, log)
+        setAttribute(self, 'edges', edges, log, operation)
 
     @attributeSetter
     def radius(self, radius):
@@ -70,7 +71,7 @@ class Polygon(ShapeStim):
         self.__dict__['radius'] = numpy.array(radius)
         self._calcVertices()
         self.setVertices(self.vertices, log=False)
-    def setRadius(self, radius, log=None):
+    def setRadius(self, radius, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
-        setAttribute(self, 'radius', radius, log)
+        setAttribute(self, 'radius', radius, log, operation)
