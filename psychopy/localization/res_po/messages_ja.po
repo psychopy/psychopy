@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 1.80.04\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-07-06 21:36+0900\n"
-"PO-Revision-Date: 2014-07-06 21:36+0900\n"
+"PO-Revision-Date: 2014-07-07 00:30+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -988,7 +988,7 @@ msgstr "使用するオーディオドライバ"
 
 #: preferences/hints.py:30
 msgid "path to flac (lossless audio compression) on this operating system"
-msgstr "frac(ロスレスオーディオ圧縮ライブラリ)へのパスを指定します"
+msgstr "flac(ロスレスオーディオ圧縮ライブラリ)へのパスを指定します"
 
 #: preferences/hints.py:33
 msgid "display tips when starting PsychoPy"
