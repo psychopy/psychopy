@@ -518,6 +518,6 @@ if __name__=='__main__':
     dlg = wx.Dialog(None)
     init = [{'Field':'Participant','Default':''},{'Field':'Session','Default':'001'}]
     listCtrl = ListWidget(dlg, value = init, order=['Field','Default'])
-    dlg.SetSizerAndFit(listCtrl.grid)
+    dlg.SetSizerAndFit(listCtrl)
     dlg.ShowModal()
 
