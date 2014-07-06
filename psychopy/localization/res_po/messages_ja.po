@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.80.04\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-07-06 15:23+0900\n"
-"PO-Revision-Date: 2014-07-06 15:23+0900\n"
+"POT-Creation-Date: 2014-07-06 21:36+0900\n"
+"PO-Revision-Date: 2014-07-06 21:36+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -16,6 +16,7 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Poedit-SearchPath-0: app\n"
+"X-Poedit-SearchPath-1: preferences\n"
 
 #: app/builder/builder.py:416 app/builder/builder.py:747
 #: app/builder/builder.py:1175 app/builder/builder.py:1242
@@ -952,6 +953,173 @@ msgstr "全てのセクションの設定を適用します"
 #: app/preferencesDlg.py:67
 msgid "Get help on prefs"
 msgstr "設定のヘルプを開く"
+
+#: preferences/hints.py:6
+msgid "which system to use as a backend for drawing"
+msgstr "刺激描画に使用するライブラリ"
+
+#: preferences/hints.py:9
+msgid "the default units for windows and visual stimuli"
+msgstr "標準でウィンドウと視覚刺激に適用する単位"
+
+#: preferences/hints.py:12
+msgid "full screen is best for accurate timing"
+msgstr "フルスクリーンにすると正確なタイミングで描画されます"
+
+#: preferences/hints.py:15
+msgid "enable subjects to use the mouse and GUIs during experiments"
+msgstr "マウスとGUIを使用可能にする"
+
+#: preferences/hints.py:18
+msgid "'version' is for internal usage, not for the user"
+msgstr "'version'は内部向けの設定項目で、ユーザー向けではありません"
+
+#: preferences/hints.py:21
+msgid "Add paths here to your custom Python modules"
+msgstr "標準外のPythonモジュールへのパスを追加します"
+
+#: preferences/hints.py:24
+msgid "choice of audio library"
+msgstr "使用するオーディオライブラリを指定します"
+
+#: preferences/hints.py:27
+msgid "audio driver to use"
+msgstr "使用するオーディオドライバ"
+
+#: preferences/hints.py:30
+msgid "path to flac (lossless audio compression) on this operating system"
+msgstr "frac(ロスレスオーディオ圧縮ライブラリ)へのパスを指定します"
+
+#: preferences/hints.py:33
+msgid "display tips when starting PsychoPy"
+msgstr "PsychoPy起動時にTIPSを表示します"
+
+#: preferences/hints.py:36
+msgid "size of icons in the Coder and Builder toolbars (top of window)"
+msgstr "CoderとBuilderのツールバーで大きなアイコンを表示します"
+
+#: preferences/hints.py:39
+msgid "what windows to display when PsychoPy starts"
+msgstr "PsychoPy起動時に表示するウィンドウを指定します"
+
+#: preferences/hints.py:42
+msgid "reset preferences to defaults on next restart of PsychoPy"
+msgstr "次回PsychoPy起動時に設定を初期値にリセットします"
+
+#: preferences/hints.py:45
+msgid "save any unsaved preferences before closing the window"
+msgstr "ウィンドウを閉じる前に未保存の設定を保存します"
+
+#: preferences/hints.py:48
+msgid "enable features for debugging PsychoPy itself, including unit-tests"
+msgstr "PsychoPyのデバッグ用の機能を有効にします(ユニットテストを含む)"
+
+#: preferences/hints.py:51
+msgid ""
+"locale to use, e.g. en_US, en_US.UTF-8, ja_JP, etc; leave blank for default "
+"system locale"
+msgstr ""
+"使用するロケール(en_US, en_US.UTF-8, ja_JPなど)を指定します; 空白にするとシス"
+"テムの標準ロケールを使用します"
+
+#: preferences/hints.py:54
+msgid "a list of font names; the first one found on the system will be used"
+msgstr "フォント名のリストを指定します; 最初に見つかったフォントが使用されます"
+
+#: preferences/hints.py:57
+msgid "Font size (in pts) takes an integer between 6 and 24"
+msgstr "フォントサイズを6から24の整数で指定します"
+
+#: preferences/hints.py:60
+msgid "for coder shell window, which shell to use"
+msgstr "Coderのシェルウィンドウで使用するシェルを指定します"
+
+#: preferences/hints.py:63
+msgid "newline for python files: unix = \\n, dos = \\r\\n"
+msgstr "Pythonファイルの改行コード: unix=\\n, dos=\\r\\n"
+
+#: preferences/hints.py:66
+msgid "whether to automatically reload a previously open experiment"
+msgstr "起動時に前回開いていた実験を自動的に開くか否かを指定します"
+
+#: preferences/hints.py:69
+#, fuzzy
+msgid ""
+"if False will create scripts with an 'easier' but more cluttered namespace"
+msgstr "チェックを外すと名前空間"
+
+#: preferences/hints.py:72
+msgid "folder names for custom components; expects a comma-separated list"
+msgstr ""
+"カスタムBuilderコンポーネントのフォルダ名を指定します(カンマ区切りのリストで"
+"指定)"
+
+#: preferences/hints.py:75
+msgid "a list of components to hide (eg, because you never use them)"
+msgstr "非表示にするコンポーネントのリスト(使用しないものを隠します)"
+
+#: preferences/hints.py:78
+msgid "where the Builder demos are located on this computer (after unpacking)"
+msgstr "Builderのデモを展開した位置(デモ展開後のみ有効)"
+
+#: preferences/hints.py:81
+msgid ""
+"name of the folder where subject data should be saved (relative to the "
+"script)"
+msgstr ""
+"実験データが保存されるフォルダ名を指定します(スクリプトからの相対パスで指定し"
+"ます)"
+
+#: preferences/hints.py:84
+msgid "Panels arrangement: topFlow = Flow on top, Components on left"
+msgstr ""
+"ペインの配置を指定します: topFlowにするとFlowが上に、Componentsが左に配置され"
+"ます"
+
+#: preferences/hints.py:87
+msgid "Display text in a floating window that describes the experiment"
+msgstr "実験のReadmeを常に表示します"
+
+#: preferences/hints.py:90
+msgid "Upper limit on how many components can be in favorites"
+msgstr "Favoritesに表示されるコンポーネント数の上限を指定します"
+
+#: preferences/hints.py:93
+msgid "the http proxy for usage stats and auto-updating; format is host: port"
+msgstr ""
+"利用状況の送信と自動更新に使用するHTTPプロキシを指定します; 書式はhost: port"
+"です"
+
+#: preferences/hints.py:96
+msgid ""
+"override the above proxy settings with values found in the environment (if "
+"possible)"
+msgstr ""
+"自動的にプロキシ設定を検出できる場合は上記の設定より自動設定を優先します"
+
+#: preferences/hints.py:99
+msgid ""
+"allow PsychoPy to send anonymous usage stats; please allow if possible, its "
+"helps PsychoPy's development"
+msgstr ""
+"PsychoPyに匿名で利用状況を送信することを許可します; PsychoPy開発の参考とする"
+"ために可能な限りチェックしてください"
+
+#: preferences/hints.py:102
+msgid "allow PsychoPy to check for new features and bug fixes"
+msgstr "PsychoPyにバグ修正や新機能の追加といった更新の確認を許可します"
+
+#: preferences/hints.py:105
+msgid "max time to wait for a connection response"
+msgstr "ネットワーク接続の最大リトライ回数を指定します"
+
+#: preferences/hints.py:108
+msgid ""
+"locale to use, e.g. ENG, DEU, DAN, JPN, etc; leave blank for default system "
+"locale"
+msgstr ""
+"使用するロケール(ENG, DEU, DAN, JPNなど)を指定します; 空白にするとシステムの"
+"標準ロケールを使用します"
 
 #~ msgid "Save current experiment"
 #~ msgstr "現在の実験を保存します"
