@@ -404,7 +404,7 @@ class ContainerMixin(object):
             verts = self.vertices
         else:
             verts = self._verticesBase
-        #check wheher stimulus needs flipping in either direction
+        #check whether stimulus needs flipping in either direction
         flip = numpy.array([1,1])
         if hasattr(self, 'flipHoriz'):
             flip[0] = self.flipHoriz*(-2)+1#True=(-1), False->(+1)
@@ -414,7 +414,7 @@ class ContainerMixin(object):
         verts = numpy.dot(self.size*verts*flip, self._rotationMatrix)
         #then combine with position and convert to pix
         verts = convertToPix(vertices=verts, pos=self.pos, win=self.win, units=self.units)
-        #assign to self attrbute
+        #assign to self attribute
         self.__dict__['verticesPix'] = verts
         self._needVertexUpdate = False
         self._needUpdate = True #but we presumably need to update the list
