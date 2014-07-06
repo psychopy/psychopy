@@ -136,38 +136,10 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
         
-    def _set(self, attrib, val, op='', log=None):
-        """Use this to set attributes of your stimulus after initialising it.
-
-        :Parameters:
-
-        attrib : a string naming any of the attributes of the stimulus (set during init)
-        val : the value to be used in the operation on the attrib
-        op : a string representing the operation to be performed (optional) most maths operators apply ('+','-','*'...)
-
-        examples::
-
-            myStim.set('rgb',0) #will simply set all guns to zero (black)
-            myStim.set('rgb',0.5,'+') #will increment all 3 guns by 0.5
-            myStim.set('rgb',(1.0,0.5,0.5),'*') # will keep the red gun the same and halve the others
-
-        """
-        #format the input value as float vectors
-        if type(val) in [tuple,list]:
-            val=numpy.array(val,float)
-
-        #change the attribute as requested
-        setAttribute(self, attrib, val, log, op)
-
-        #update the actual coherence for the requested coherence and nDots
-        if attrib in ['nDots','coherence']:
-            self.coherence=round(self.coherence*self.nDots)/self.nDots
-
     def set(self, attrib, val, op='', log=None):
-        """DotStim.set() is obsolete and may not be supported in future
+        """DEPRECATED: DotStim.set() is obsolete and may not be supported in future
         versions of PsychoPy. Use the specific method for each parameter instead
-        (e.g. setFieldPos(), setCoherence()...)
-        """
+        (e.g. setFieldPos(), setCoherence()...)"""
         self._set(attrib, val, op, log=log)
 
     @attributeSetter

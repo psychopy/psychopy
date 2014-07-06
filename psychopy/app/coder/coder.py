@@ -1081,22 +1081,6 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             else:
                 findDlg.Close()
 
-#def makeAccelTable():
-#    table = wx.AcceleratorTable([ \
-#        (wx.ACCEL_CTRL, ord('Q'), ID_EXIT),
-#        (wx.ACCEL_CTRL, ord('S'), wx.ID_SAVE),
-#        (wx.ACCEL_NORMAL,  wx.WXK_F5, ID_RUNFILE),
-#        (wx.ACCEL_ALT,  wx.WXK_HOME, ID_FOLDALL),
-#        (wx.ACCEL_CTRL,  ord(']'), ID_INDENT),#doesn't work on windwos - handle as a keypress in text editor
-#        (wx.ACCEL_CTRL,  ord('['), ID_DEDENT),
-#        (wx.ACCEL_CTRL,  ord('/'), ID_COMMENT),#doesn't work on windwos - handle as a keypress in text editor
-##        (wx.ACCEL_CTRL,  ord('D'), wx.ID_DUPLICATE),#this is automatic in StyledTextCtrl anyway?
-##        (wx.ACCEL_CTRL,  ord('Z'), wx.ID_UNDO),#this is automatic in StyledTextCtrl anyway?
-##        (wx.ACCEL_CTRL,  ord('Y'), wx.ID_REDO),#this is automatic in StyledTextCtrl anyway?
-#    ])
-#    return table
-#
-
 class CoderFrame(wx.Frame):
     def __init__(self, parent, ID, title, files=[], app=None):
         self.app = app
@@ -1152,6 +1136,10 @@ class CoderFrame(wx.Frame):
         self.CreateStatusBar()
         self.SetStatusText("")
         self.fileMenu = self.editMenu = self.viewMenu = self.helpMenu = self.toolsMenu = None
+
+        #setup universal shortcuts
+        accelTable = self.app.makeAccelTable()
+        self.SetAcceleratorTable(accelTable)
 
         #make the pane manager
         self.paneManager = wx.aui.AuiManager()
@@ -1289,12 +1277,12 @@ class CoderFrame(wx.Frame):
         #---_edit---#000000#FFFFFF--------------------------------------------------
         self.editMenu = wx.Menu()
         menuBar.Append(self.editMenu, _('&Edit'))
-        self.editMenu.Append(self.IDs.cut, _("Cu&t\t%s") %self.app.keys['cut'])
-        wx.EVT_MENU(self, self.IDs.cut,  self.cut)
-        self.editMenu.Append(self.IDs.copy, _("&Copy\t%s") %self.app.keys['copy'])
-        wx.EVT_MENU(self, self.IDs.copy,  self.copy)
-        self.editMenu.Append(self.IDs.paste, _("&Paste\t%s") %self.app.keys['paste'])
-        wx.EVT_MENU(self, self.IDs.paste,  self.paste)
+        self.editMenu.Append(wx.ID_CUT, "Cu&t\t%s" %self.app.keys['cut'])
+        wx.EVT_MENU(self, wx.ID_CUT,  self.cut)
+        self.editMenu.Append(wx.ID_COPY, "&Copy\t%s" %self.app.keys['copy'])
+        wx.EVT_MENU(self, wx.ID_COPY,  self.copy)
+        self.editMenu.Append(wx.ID_PASTE, "&Paste\t%s" %self.app.keys['paste'])
+        wx.EVT_MENU(self, wx.ID_PASTE,  self.paste)
         self.editMenu.Append(wx.ID_DUPLICATE, _("&Duplicate\t%s") %self.app.keys['duplicate'], _("Duplicate the current line (or current selection)"))
         wx.EVT_MENU(self, wx.ID_DUPLICATE,  self.duplicateLine)
 
@@ -1689,6 +1677,8 @@ class CoderFrame(wx.Frame):
         self.appData['fileHistory']=[]
         for ii in range(self.fileHistory.GetCount()):
             self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
+
+        self.paneManager.UnInit()#as of wx3.0 the AUI manager needs to be uninitialised explicitly
 
         self.app.allFrames.remove(self)
         self.Destroy()

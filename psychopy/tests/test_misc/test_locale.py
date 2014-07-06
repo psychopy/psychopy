@@ -7,7 +7,7 @@ from psychopy import localization
 
 welcome = u'Welcome to PsychoPy2!'
 trans = {'en': welcome,
-         'ja': 'PsychoPy2 へようこそ！'
+         'ja': u'PsychoPy2へようこそ！'
          }
 
 @pytest.mark.localization

@@ -11,6 +11,7 @@ RBGA object.`'''
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
+from __future__ import division
 import pyglet
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
@@ -20,9 +21,9 @@ from psychopy import core, logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.tools.attributetools import attributeSetter, logAttrib
+from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.typetools import float_uint8
-from psychopy.visual.grating import GratingStim
+from psychopy.visual.image import ImageStim
 
 try:
     from PIL import Image
@@ -32,17 +33,17 @@ except ImportError:
 import numpy
 
 
-class BufferImageStim(GratingStim):
+class BufferImageStim(ImageStim):
     """
-    Take a "screen-shot" (full or partial), save to a ImageStim()-like RBGA object.
+    Take a "screen-shot" (full or partial), save as an ImageStim (RBGA object).
 
-    The class returns a screen-shot, i.e., a single collage image composed of static
-    elements, ones that you want to treat as effectively a single stimulus. The
-    screen-shot can be of the visible screen (front buffer) or hidden (back buffer).
+    The screen-shot is a single collage image composed of static elements
+    that you can treat as being a single stimulus. The screen-shot can be of
+    the visible screen (front buffer) or hidden (back buffer).
 
     BufferImageStim aims to provide fast rendering, while still allowing dynamic
-    orientation, position, and opacity. Its fast to draw but slow to init (like
-    ImageStim). There is no support for dynamic depth.
+    orientation, position, and opacity. Its fast to draw but slower to init (same
+    as an ImageStim).
 
     You specify the part of the screen to capture (in norm units), and optionally
     the stimuli themselves (as a list of items to be drawn). You get a screenshot
@@ -52,10 +53,6 @@ class BufferImageStim(GratingStim):
     rendered.
 
     Checks for OpenGL 2.1+, or uses square-power-of-2 images.
-
-    status: seems to work on Mac, but limitations:
-    - Screen units are not properly sorted out, would be better to allow pix too
-    - Not tested on Windows, Linux, FreeBSD
 
     **Example**::
 
@@ -69,14 +66,14 @@ class BufferImageStim(GratingStim):
 
         # render to screen (very fast, except for the first draw):
         while <conditions>:
-            screenshot.draw()  # fast; can vary .ori, ._position, .opacity
+            screenshot.draw()  # fast; can vary .ori, .pos, .opacity
             other_stuff.draw() # dynamic
             myWin.flip()
 
     See coder Demos > stimuli > bufferImageStim.py for a demo, with timing stats.
 
     :Author:
-        - 2010 Jeremy Gray
+        - 2010 Jeremy Gray, with on-going fixes
     """
     def __init__(self, win, buffer='back', rect=(-1, 1, 1, -1), sqPower2=False,
         stim=(), interpolate=True, flipHoriz=False, flipVert=False, mask='None', pos=(0,0),
@@ -142,81 +139,27 @@ class BufferImageStim(GratingStim):
         if stim:
             win.clearBuffer()
 
-        # turn the RGBA region into a GratingStim()-like object:
+        # turn the RGBA region into an ImageStim() object:
         if win.units in ['norm']:
             pos *= win.size/2.
-        super(BufferImageStim, self).__init__(win, tex=region, units='pix', mask=mask, pos=pos,
-                             interpolate=interpolate, name=name, autoLog=False)
+
+        size = region.size/win.size/2.
+        super(BufferImageStim, self).__init__(win, image=region, units='pix', mask=mask, pos=pos,
+                             size=size, interpolate=interpolate, name=name, autoLog=False)
+        self.size = region.size
 
         # to improve drawing speed, move these out of draw:
         self.desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
         self.thisScale = numpy.array([4, 4])
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
-        
+
         # set autoLog now that params have been initialised
         self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
         if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
             logging.exp('BufferImageStim %s: took %.1fms to initialize' % (name, 1000 * _clock.getTime()))
 
-    @attributeSetter
-    def tex(self, value):
-        """For BufferImageStim this method is not called by the user
-        """
-        self.__dict__['tex'] = tex = value
-        id = self._texID
-        pixFormat = GL.GL_RGB
-        useShaders = self.useShaders
-        interpolate = self.interpolate
-
-        im = tex.transpose(Image.FLIP_TOP_BOTTOM)
-        self._origSize=im.size
-
-        #im = im.convert("RGBA") # should be RGBA because win._getRegionOfFrame() returns RGBA
-        intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607 - 1  # same as *2/255-1, but much faster
-
-        if useShaders:#pixFormat==GL.GL_RGB and not wasLum
-            internalFormat = GL.GL_RGB32F_ARB
-            dataType = GL.GL_FLOAT
-            data = intensity
-        else: #pixFormat==GL.GL_RGB:# not wasLum, not useShaders  - an RGB bitmap with no shader options
-            internalFormat = GL.GL_RGB
-            dataType = GL.GL_UNSIGNED_BYTE
-            data = float_uint8(intensity)
-
-        pixFormat=GL.GL_RGBA # because win._getRegionOfFrame() returns RGBA
-        internalFormat=GL.GL_RGBA32F_ARB
-
-        if self.win.winType=='pygame':
-            texture = data.tostring()#serialise
-        else:#pyglet on linux needs ctypes instead of string object!?
-            texture = data.ctypes#serialise
-
-        #bind the texture in openGL
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, id) #bind that name to the target
-        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-        #important if using bits++ because GL_LINEAR
-        #sometimes extrapolates to pixel vals outside range
-        if interpolate:
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_LINEAR)
-            if useShaders:#GL_GENERATE_MIPMAP was only available from OpenGL 1.4
-                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
-                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
-                GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                    data.shape[1], data.shape[0], 0,
-                    pixFormat, dataType, texture)
-            else:#use glu
-                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)
-                GL.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, internalFormat,
-                    data.shape[1], data.shape[0], pixFormat, dataType, texture)
-        else:
-            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
-            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
-            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                            data.shape[1], data.shape[0], 0,
-                            pixFormat, dataType, texture)
     @attributeSetter
     def flipHoriz(self, flipHoriz):
         """If set to True then the image will be flipped horiztonally (left-to-right).
@@ -228,19 +171,17 @@ class BufferImageStim(GratingStim):
         """If set to True then the image will be flipped vertically (left-to-right).
         Note that this is relative to the original image, not relative to the current state.
         """
-        self.__dict__['flipVert'] = flipVert    
+        self.__dict__['flipVert'] = flipVert
     def setFlipHoriz(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
-        self.flipHoriz = newVal
-        logAttrib(self, log, 'flipHoriz')
+        setAttribute(self, 'flipHoriz', newVal, log)  # call attributeSetter
     def setFlipVert(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
-        self.flipVert = newVal
-        logAttrib(self, log, 'flipVert')
+        setAttribute(self, 'flipVert', newVal, log)  # call attributeSetter
     def draw(self, win=None):
         """
         Draws the BufferImage on the screen, similar to :class:`~psychopy.visual.ImageStim` `.draw()`.

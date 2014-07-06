@@ -185,8 +185,8 @@ class ConfigWizard(object):
         elif 'PsychoPy2.app' in items['pythonExecutable']:
             msg += ' (PsychoPy StandAlone)'
         bits, linkage = platform.architecture()
-        if not bits.startswith('32'):
-            msg = 'Warning: 32-bit python required; ' + msg
+        #if not bits.startswith('32'):
+        #    msg = 'Warning: 32-bit python required; ' + msg
         report.append(('python version', items['pythonVersion'] + ' &nbsp;(%s)' % bits, msg))
         if verbose:
             msg = ''
@@ -240,16 +240,20 @@ class ConfigWizard(object):
             msg = 'Warning: could not keep up during <a href="http://www.psychopy.org/api/visual/dotstim.html">DotStim</a> with 100 random dots.'
         report.append(('no dropped frames', '%i / %i' % (nDropped, nTotal), msg))
         win.recordFrameIntervals = False
+
+        msg = 'for movies'
         try:
             from pyglet.media import avbin
-            ver = avbin.get_version()
-            if ver < 5 or ver >= 6:
-                msg = 'Warning: version 5 recommended (for movies); Visit <a href="http://code.google.com/p/avbin">download page</a> [google.com]'
-            else:
-                msg = 'for movies'
-            report.append(('pyglet avbin', str(ver), msg))
         except: # not sure what error to catch, WindowsError not found
             report.append(('pyglet avbin', 'import error', 'Warning: could not import avbin; playing movies will not work'))
+        else:
+            ver = avbin.get_version()
+            if sys.platform.startswith('linux'):
+                if not (7 <= ver < 8):
+                    msg = 'Warning: version 7 recommended on linux (for movies)'
+            elif not (5 <= ver < 6):
+                msg = 'Warning: version 5 recommended (for movies); Visit <a href="http://code.google.com/p/avbin">download page</a> [google.com]'
+            report.append(('pyglet avbin', str(ver), msg))
 
         if verbose:
             report.append(('openGL max vertices', str(items['openGLmaxVerticesInVertexArray']), ''))
@@ -332,8 +336,11 @@ class ConfigWizard(object):
         msg = ''
         items['systemUserProcFlagged'].sort()
         self.badBgProc = [p for p,pid in items['systemUserProcFlagged']]
-        val = ("%s ..." % self.badBgProc[0]) if len(self.badBgProc) else 'No bad background processes found.'
-        msg = 'Warning: Some <a href="http://www.psychopy.org/general/timing/reducingFrameDrops.html?highlight=background+processes">background processes</a> can adversely affect timing'
+        if len(self.badBgProc):
+            val = ("%s ..." % self.badBgProc[0])
+            msg = 'Warning: Some <a href="http://www.psychopy.org/general/timing/reducingFrameDrops.html?highlight=background+processes">background processes</a> can adversely affect timing'
+        else:
+            val = 'No bad background processes found.'
         report.append(('background processes', val, msg))
         if verbose and 'systemSec.OpenSSLVersion' in items:
             report.append(('OpenSSL', items['systemSec.OpenSSLVersion'].lstrip('OpenSSL '), 'for <a href="http://www.psychopy.org/api/encryption.html">encryption</a>'))

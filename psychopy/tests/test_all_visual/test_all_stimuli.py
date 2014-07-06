@@ -156,12 +156,6 @@ class _baseVisualTest:
         utils.compareScreenshot('gabor1_%s.png' %(self.contextName), win)
         win.flip()#AFTER compare screenshot
 
-        #did buffer image also work?
-        #bufferImgStim = visual.BufferImageStim(self.win, stim=[gabor])
-        #bufferImgStim.draw()
-        #utils.compareScreenshot('gabor1_%s.png' %(self.contextName), win)
-        #win.flip()
-
         #using .set()
         gabor.ori = 45
         gabor.size -= 0.2 * self.scaleFactor
@@ -174,6 +168,22 @@ class _baseVisualTest:
         utils.compareScreenshot('gabor2_%s.png' %(self.contextName), win)
         win.flip()
         str(gabor) #check that str(xxx) is working
+
+    @pytest.mark.bufferimage
+    def test_bufferImage(self):
+        """BufferImage inherits from ImageStim, so test .ori. .pos etc there not here
+        """
+        win = self.win
+        gabor = visual.PatchStim(win, mask='gauss', ori=-45,
+            pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor],
+            sf=2.0/self.scaleFactor, size=2*self.scaleFactor,
+            interpolate=True)
+
+        bufferImgStim = visual.BufferImageStim(self.win, stim=[gabor],
+            interpolate=True)
+        bufferImgStim.draw()
+        utils.compareScreenshot('bufferimg_gabor_%s.png' %(self.contextName), win, crit=8)
+        win.flip()
 
     #def testMaskMatrix(self):
     #    #aims to draw the exact same stimulus as in testGabor, but using filters
@@ -454,6 +464,12 @@ class TestPygletNorm(_baseVisualTest):
     @classmethod
     def setup_class(self):
         self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
+        self.contextName='norm'
+        self.scaleFactor=1#applied to size/pos values
+class TestPygletNormFBO(_baseVisualTest):
+    @classmethod
+    def setup_class(self):
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False, useFBO=True)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
 class TestPygletHeight(_baseVisualTest):
