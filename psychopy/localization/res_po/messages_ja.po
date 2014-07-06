@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.80.04\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-07-06 09:41+0900\n"
-"PO-Revision-Date: 2014-07-06 13:38+0900\n"
+"POT-Creation-Date: 2014-07-06 15:23+0900\n"
+"PO-Revision-Date: 2014-07-06 15:23+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -90,586 +90,583 @@ msgstr "一番下へ"
 msgid "What is the name for the new Routine? (e.g. instr, trial, feedback)"
 msgstr "新しいRoutineの名前(instr, trial, feedbackなど)を入力してください"
 
-#: app/builder/builder.py:3883 app/coder/coder.py:1484
+#: app/builder/builder.py:3878 app/coder/coder.py:1472
 #, python-format
 msgid "New [%s]"
 msgstr "新規 [%s]"
 
-#: app/builder/builder.py:3883
+#: app/builder/builder.py:3878
 msgid "Create new experiment file"
 msgstr "新しい実験ファイルを作成します"
 
-#: app/builder/builder.py:3885 app/coder/coder.py:1486
+#: app/builder/builder.py:3880 app/coder/coder.py:1474
 #, python-format
 msgid "Open [%s]"
 msgstr "開く [%s]"
 
-#: app/builder/builder.py:3885
+#: app/builder/builder.py:3880
 msgid "Open an existing experiment file"
 msgstr "実験ファイルを開きます"
 
-#: app/builder/builder.py:3887 app/coder/coder.py:1488
+#: app/builder/builder.py:3882 app/coder/coder.py:1476
 #, python-format
 msgid "Save [%s]"
 msgstr "保存 [%s]"
 
-#: app/builder/builder.py:3887
+#: app/builder/builder.py:3882 app/builder/builder.py:3934
 msgid "Save current experiment file"
 msgstr "現在の実験を実験ファイルに保存します"
 
-#: app/builder/builder.py:3890 app/coder/coder.py:1491
+#: app/builder/builder.py:3885 app/coder/coder.py:1479
 #, python-format
 msgid "Save As... [%s]"
 msgstr "名前を付けて保存...[%s]"
 
-#: app/builder/builder.py:3890
+#: app/builder/builder.py:3885 app/builder/builder.py:3935
 msgid "Save current experiment file as..."
 msgstr "現在の実験をファイル名を指定して保存します"
 
-#: app/builder/builder.py:3892 app/coder/coder.py:1493
+#: app/builder/builder.py:3887 app/coder/coder.py:1481
 #, python-format
 msgid "Undo [%s]"
 msgstr "元に戻す [%s]"
 
-#: app/builder/builder.py:3892 app/builder/builder.py:3957
-#: app/coder/coder.py:1324 app/coder/coder.py:1493
+#: app/builder/builder.py:3887 app/builder/builder.py:3952
+#: app/coder/coder.py:1312 app/coder/coder.py:1481
 msgid "Undo last action"
 msgstr "直前の操作を元に戻します"
 
-#: app/builder/builder.py:3894 app/coder/coder.py:1495
+#: app/builder/builder.py:3889 app/coder/coder.py:1483
 #, python-format
 msgid "Redo [%s]"
 msgstr "繰り返す [%s]"
 
-#: app/builder/builder.py:3894 app/builder/builder.py:3959
-#: app/coder/coder.py:1326 app/coder/coder.py:1495
+#: app/builder/builder.py:3889 app/builder/builder.py:3954
+#: app/coder/coder.py:1314 app/coder/coder.py:1483
 msgid "Redo last action"
 msgstr "直前の操作を繰り返します"
 
-#: app/builder/builder.py:3898 app/coder/coder.py:1499
+#: app/builder/builder.py:3893 app/coder/coder.py:1487
 msgid "Preferences"
 msgstr "設定"
 
-#: app/builder/builder.py:3898 app/coder/coder.py:1499
+#: app/builder/builder.py:3893 app/coder/coder.py:1487
 msgid "Application preferences"
 msgstr "アプリケーションの設定を変更します"
 
-#: app/builder/builder.py:3900 app/builder/builder.py:3965
-#: app/coder/coder.py:1334 app/coder/coder.py:1501
+#: app/builder/builder.py:3895 app/builder/builder.py:3960
+#: app/coder/coder.py:1322 app/coder/coder.py:1489
 msgid "Monitor Center"
 msgstr "モニターセンター"
 
-#: app/builder/builder.py:3900 app/coder/coder.py:1501
+#: app/builder/builder.py:3895 app/coder/coder.py:1489
 msgid "Monitor settings and calibration"
 msgstr "モニターの設定とキャリブレーション"
 
-#: app/builder/builder.py:3906
+#: app/builder/builder.py:3901
 msgid "Experiment Settings"
 msgstr "実験の設定"
 
-#: app/builder/builder.py:3906
+#: app/builder/builder.py:3901
 msgid "Settings for this exp"
 msgstr "現在編集中の実験の設定を変更します"
 
-#: app/builder/builder.py:3908
+#: app/builder/builder.py:3903
 #, python-format
 msgid "Compile Script [%s]"
 msgstr "コンパイルしてスクリプトを作成 [%s]"
 
-#: app/builder/builder.py:3908
+#: app/builder/builder.py:3903
 msgid "Compile to script"
 msgstr "実験をコンパイルしてスクリプトを作成します"
 
-#: app/builder/builder.py:3910 app/coder/coder.py:1507
+#: app/builder/builder.py:3905 app/coder/coder.py:1495
 #, python-format
 msgid "Run [%s]"
 msgstr "実験の実行 [%s]"
 
-#: app/builder/builder.py:3910
+#: app/builder/builder.py:3905
 msgid "Run experiment"
 msgstr "実験を実行します"
 
-#: app/builder/builder.py:3912 app/coder/coder.py:1509
+#: app/builder/builder.py:3907 app/coder/coder.py:1497
 #, python-format
 msgid "Stop [%s]"
 msgstr "実験の停止 [%s]"
 
-#: app/builder/builder.py:3912
+#: app/builder/builder.py:3907
 msgid "Stop experiment"
 msgstr "実験を停止します"
 
-#: app/builder/builder.py:3924 app/coder/coder.py:1257
+#: app/builder/builder.py:3919 app/coder/coder.py:1245
 msgid "&File"
 msgstr "ファイル(&F)"
 
-#: app/builder/builder.py:3936 app/coder/coder.py:1269
+#: app/builder/builder.py:3931 app/coder/coder.py:1257
 #, python-format
 msgid "&New\t%s"
 msgstr "新規(&N)\t%s"
 
-#: app/builder/builder.py:3937 app/coder/coder.py:1270
+#: app/builder/builder.py:3932 app/coder/coder.py:1258
 #, python-format
 msgid "&Open...\t%s"
 msgstr "開く...(&O)\t%s"
 
-#: app/builder/builder.py:3938 app/coder/coder.py:1271
+#: app/builder/builder.py:3933 app/coder/coder.py:1259
 msgid "Open &Recent"
 msgstr "最近開いたファイル(&R)"
 
-#: app/builder/builder.py:3939 app/coder/coder.py:1272
+#: app/builder/builder.py:3934 app/coder/coder.py:1260
 #, python-format
 msgid "&Save\t%s"
 msgstr "保存(&S)\t%s"
 
-#: app/builder/builder.py:3940 app/coder/coder.py:1273
+#: app/builder/builder.py:3935 app/coder/coder.py:1261
 #, python-format
 msgid "Save &as...\t%s"
 msgstr "名前を付けて保存(&a)...\t%s"
 
-#: app/builder/builder.py:3941 app/coder/coder.py:1275
+#: app/builder/builder.py:3936 app/coder/coder.py:1263
 #, python-format
 msgid "&Close file\t%s"
 msgstr "閉じる(&C)\t%s"
 
-#: app/builder/builder.py:3948 app/coder/coder.py:1282
+#: app/builder/builder.py:3936
+msgid "Close current experiment"
+msgstr "現在の実験を閉じます"
+
+#: app/builder/builder.py:3943 app/coder/coder.py:1270
 #, python-format
 msgid "&Preferences\t%s"
 msgstr "設定(&P)\t%s"
 
-#: app/builder/builder.py:3952 app/coder/coder.py:1286
+#: app/builder/builder.py:3947 app/coder/coder.py:1274
 #, python-format
 msgid "&Quit\t%s"
 msgstr "終了(&Q)\t%s"
 
-#: app/builder/builder.py:3952 app/coder/coder.py:1286
+#: app/builder/builder.py:3947 app/coder/coder.py:1274
 msgid "Terminate the program"
 msgstr "アプリケーションを終了します"
 
-#: app/builder/builder.py:3956 app/coder/coder.py:1291
+#: app/builder/builder.py:3951 app/coder/coder.py:1279
 msgid "&Edit"
 msgstr "編集(&E)"
 
-#: app/builder/builder.py:3957 app/builder/builder.py:4380
-#: app/coder/coder.py:1324
+#: app/builder/builder.py:3952 app/builder/builder.py:4376
+#: app/coder/coder.py:1312
 #, python-format
 msgid "Undo\t%s"
 msgstr "元に戻す\t%s"
 
-#: app/builder/builder.py:3959 app/builder/builder.py:4391
-#: app/coder/coder.py:1326
+#: app/builder/builder.py:3954 app/builder/builder.py:4387
+#: app/coder/coder.py:1314
 #, python-format
 msgid "Redo\t%s"
 msgstr "繰り返す\t%s"
 
-#: app/builder/builder.py:3964 app/coder/coder.py:1333
+#: app/builder/builder.py:3959 app/coder/coder.py:1321
 msgid "&Tools"
 msgstr "ツール(&T)"
 
-#: app/builder/builder.py:3965 app/coder/coder.py:1334
+#: app/builder/builder.py:3960 app/coder/coder.py:1322
 msgid "To set information about your monitor"
 msgstr "モニターの設定を行います"
 
-#: app/builder/builder.py:3968
+#: app/builder/builder.py:3963
 #, python-format
 msgid "Compile\t%s"
 msgstr "コンパイル\t%s"
 
-#: app/builder/builder.py:3968
+#: app/builder/builder.py:3963
 msgid "Compile the exp to a script"
 msgstr "実験をコンパイルしてスクリプトを作成します"
 
-#: app/builder/builder.py:3970 app/coder/coder.py:1342
+#: app/builder/builder.py:3965 app/coder/coder.py:1330
 #, python-format
 msgid "Run\t%s"
 msgstr "実験の実行\t%s"
 
-#: app/builder/builder.py:3972 app/coder/coder.py:1344
+#: app/builder/builder.py:3965 app/coder/coder.py:1330
+msgid "Run the current script"
+msgstr "現在のスクリプトを実行します"
+
+#: app/builder/builder.py:3967 app/coder/coder.py:1332
 #, python-format
 msgid "Stop\t%s"
 msgstr "実験の停止\t%s"
 
-#: app/builder/builder.py:3976 app/coder/coder.py:1348
+#: app/builder/builder.py:3967
+msgid "Abort the current script"
+msgstr "現在のスクリプトの実行を中止します"
+
+#: app/builder/builder.py:3971 app/coder/coder.py:1336
 msgid "PsychoPy updates..."
 msgstr "PsychoPyのアップデート..."
 
-#: app/builder/builder.py:3976 app/coder/coder.py:1348
+#: app/builder/builder.py:3971 app/coder/coder.py:1336
 msgid "Update PsychoPy to the latest, or a specific, version"
 msgstr "PsychoPyを最新の、または特定のバージョンに更新します"
 
-#: app/builder/builder.py:3979 app/coder/coder.py:1350
+#: app/builder/builder.py:3974 app/coder/coder.py:1338
 msgid "Benchmark wizard"
 msgstr "ベンチマークウィザード"
 
-#: app/builder/builder.py:3979 app/coder/coder.py:1350
+#: app/builder/builder.py:3974 app/coder/coder.py:1338
 msgid "Check software & hardware, generate report"
 msgstr "ソフトウェアとハードウェアをテストし、レポートを作成します"
 
-#: app/builder/builder.py:3984 app/coder/coder.py:1360
+#: app/builder/builder.py:3979 app/coder/coder.py:1348
 msgid "&View"
 msgstr "ビュー(&V)"
 
-#: app/builder/builder.py:3985
+#: app/builder/builder.py:3980
 #, python-format
 msgid "&Open Coder view\t%s"
 msgstr "Coderを開く(&O)\t%s"
 
-#: app/builder/builder.py:3985
+#: app/builder/builder.py:3980
 msgid "Open a new Coder view"
 msgstr "Coderのウィンドウを開きます"
 
-#: app/builder/builder.py:3987
+#: app/builder/builder.py:3982
 #, python-format
 msgid "&Toggle readme\t%s"
 msgstr "Readme表示ON/OFF(&T)\t%s"
 
-#: app/builder/builder.py:3987
+#: app/builder/builder.py:3982
 msgid "Toggle Readme"
 msgstr "Readmeファイルの表示ON/OFFを切り替えます"
 
-#: app/builder/builder.py:3989
+#: app/builder/builder.py:3984
 #, python-format
 msgid "&Flow Larger\t%s"
 msgstr "&Flowを大きく\t%s"
 
-#: app/builder/builder.py:3989
+#: app/builder/builder.py:3984
 msgid "Larger flow items"
 msgstr "Flowのアイテムを大きく表示します"
 
-#: app/builder/builder.py:3991
+#: app/builder/builder.py:3986
 #, python-format
 msgid "&Flow Smaller\t%s"
 msgstr "&Flowを小さく\t%s"
 
-#: app/builder/builder.py:3991
+#: app/builder/builder.py:3986
 msgid "Smaller flow items"
 msgstr "Flowのアイテムを小さく表示します"
 
-#: app/builder/builder.py:3993
+#: app/builder/builder.py:3988
 #, python-format
 msgid "&Routine Larger\t%s"
 msgstr "&Routineを大きく\t%s"
 
-#: app/builder/builder.py:3993
+#: app/builder/builder.py:3988
 msgid "Larger routine items"
 msgstr "Routineのアイテムを大きく表示します"
 
-#: app/builder/builder.py:3995
+#: app/builder/builder.py:3990
 #, python-format
 msgid "&Routine Smaller\t%s"
 msgstr "&Routineを小さく\t%s"
 
-#: app/builder/builder.py:3995
+#: app/builder/builder.py:3990
 msgid "Smaller routine items"
 msgstr "Routineのアイテムを小さく表示します"
 
-#: app/builder/builder.py:4001
+#: app/builder/builder.py:3996
 msgid "&Experiment"
 msgstr "実験(&E)"
 
-#: app/builder/builder.py:4002
+#: app/builder/builder.py:3997
 #, python-format
 msgid "&New Routine\t%s"
 msgstr "新しいRoutineの作成(&N)\t%s"
 
-#: app/builder/builder.py:4002
+#: app/builder/builder.py:3997
 msgid "Create a new routine (e.g. the trial definition)"
 msgstr "新しいRoutineを作成します"
 
-#: app/builder/builder.py:4004
+#: app/builder/builder.py:3999
 #, python-format
 msgid "&Copy Routine\t%s"
 msgstr "Routineのコピー(&C)\t%s"
 
-#: app/builder/builder.py:4004
+#: app/builder/builder.py:3999
 msgid "Copy the current routine so it can be used in another exp"
 msgstr "現在のRoutineをコピーして新しいRoutineを作成します"
 
-#: app/builder/builder.py:4006
+#: app/builder/builder.py:4001
 #, python-format
 msgid "&Paste Routine\t%s"
 msgstr "Routineの貼り付け(&P)\t%s"
 
-#: app/builder/builder.py:4006
+#: app/builder/builder.py:4001
 msgid "Paste the Routine into the current experiment"
 msgstr "コピーしたRoutineを実験に貼りつけます"
 
-#: app/builder/builder.py:4010
+#: app/builder/builder.py:4005
 msgid "Insert Routine in Flow"
 msgstr "RoutineをFlowに挿入"
 
-#: app/builder/builder.py:4010
+#: app/builder/builder.py:4005
 msgid "Select one of your routines to be inserted into the experiment flow"
 msgstr "Routineをひとつ選んでFlowに挿入します"
 
-#: app/builder/builder.py:4012
+#: app/builder/builder.py:4007
 msgid "Insert Loop in Flow"
 msgstr "FlowにLoopを挿入"
 
-#: app/builder/builder.py:4012
+#: app/builder/builder.py:4007
 msgid "Create a new loop in your flow window"
 msgstr "Flowに新たなLoopを作成します"
 
-#: app/builder/builder.py:4020
+#: app/builder/builder.py:4015
 msgid "&Unpack Demos..."
 msgstr "デモの展開...(&U)"
 
-#: app/builder/builder.py:4021
+#: app/builder/builder.py:4016
 msgid "Unpack demos to a writable location (so that they can be run)"
 msgstr "デモを(実行可能なように)書き込み可能な場所へ展開します"
 
-#: app/builder/builder.py:4025 app/coder/coder.py:1402
+#: app/builder/builder.py:4020 app/coder/coder.py:1390
 msgid "&Demos"
 msgstr "デモ(&D)"
 
-#: app/builder/builder.py:4029 app/coder/coder.py:1445
+#: app/builder/builder.py:4024 app/coder/coder.py:1433
 msgid "&Help"
 msgstr "ヘルプ(&H)"
 
-#: app/builder/builder.py:4030 app/coder/coder.py:1446
+#: app/builder/builder.py:4025 app/coder/coder.py:1434
 msgid "&PsychoPy Homepage"
 msgstr "&PsychoPyホームページ"
 
-#: app/builder/builder.py:4030 app/coder/coder.py:1446
+#: app/builder/builder.py:4025 app/coder/coder.py:1434
 msgid "Go to the PsychoPy homepage"
 msgstr "PsychoPyのホームページを開きます"
 
-#: app/builder/builder.py:4032
+#: app/builder/builder.py:4027
 msgid "&PsychoPy Builder Help"
 msgstr "PsychoPy Builderのヘルプ(&P)"
 
-#: app/builder/builder.py:4032
+#: app/builder/builder.py:4027
 msgid "Go to the online documentation for PsychoPy Builder"
 msgstr "PsychoPyのオンラインドキュメントを開きます"
 
-#: app/builder/builder.py:4036 app/coder/coder.py:1453
+#: app/builder/builder.py:4031 app/coder/coder.py:1441
 msgid "&About..."
 msgstr "このアプリケーションについて...(&A)"
 
-#: app/builder/builder.py:4036 app/coder/coder.py:1453
+#: app/builder/builder.py:4031 app/coder/coder.py:1441
 msgid "About PsychoPy"
 msgstr "PsychoPyについて"
 
-#: app/builder/builder.py:4384
+#: app/builder/builder.py:4380
 #, python-format
 msgid "Undo %s\t%s"
 msgstr "元に戻す %s\t%s"
 
-#: app/builder/builder.py:4395
+#: app/builder/builder.py:4391
 #, python-format
 msgid "Redo %s\t%s"
 msgstr "繰り返す %s\t%s"
 
-#: app/coder/coder.py:1207
+#: app/coder/coder.py:1195
 msgid "Welcome to PsychoPy2!"
 msgstr "PsychoPy2へようこそ！"
 
-#: app/coder/coder.py:1274
+#: app/coder/coder.py:1260 app/coder/coder.py:1476
+msgid "Save current file"
+msgstr "現在のファイルを保存します"
+
+#: app/coder/coder.py:1261 app/coder/coder.py:1479
+msgid "Save current python file as..."
+msgstr "現在のPythonファイルを名前を指定して保存します"
+
+#: app/coder/coder.py:1262
 #, python-format
 msgid "Print\t%s"
 msgstr "印刷\t%s"
 
-#: app/coder/coder.py:1292
-#, python-format
-msgid "Cu&t\t%s"
-msgstr "切り取り(&t)\t%s"
+#: app/coder/coder.py:1263
+msgid "Close current python file"
+msgstr "現在のPythonファイルを閉じます"
 
-#: app/coder/coder.py:1294
-#, python-format
-msgid "&Copy\t%s"
-msgstr "コピー(&C)\t%s"
-
-#: app/coder/coder.py:1296
-#, python-format
-msgid "&Paste\t%s"
-msgstr "貼り付け(&P)\t%s"
-
-#: app/coder/coder.py:1298
+#: app/coder/coder.py:1286
 #, python-format
 msgid "&Duplicate\t%s"
 msgstr "複製(&D)\t%s"
 
-#: app/coder/coder.py:1298
+#: app/coder/coder.py:1286
 msgid "Duplicate the current line (or current selection)"
 msgstr "現在の行(または選択範囲)を複製します"
 
-#: app/coder/coder.py:1302
+#: app/coder/coder.py:1290
 #, python-format
 msgid "&Find\t%s"
 msgstr "検索(&F)\t%s"
 
-#: app/coder/coder.py:1304
+#: app/coder/coder.py:1292
 #, python-format
 msgid "Find &Next\t%s"
 msgstr "次を検索(&N)\t%s"
 
-#: app/coder/coder.py:1308
+#: app/coder/coder.py:1296
 #, python-format
 msgid "Comment\t%s"
 msgstr "コメント化\t%s"
 
-#: app/coder/coder.py:1308
+#: app/coder/coder.py:1296
 msgid "Comment selected lines"
 msgstr "選択した行をコメント化します"
 
-#: app/coder/coder.py:1310
+#: app/coder/coder.py:1298
 #, python-format
 msgid "Uncomment\t%s"
 msgstr "コメント解除\t%s"
 
-#: app/coder/coder.py:1310
+#: app/coder/coder.py:1298
 msgid "Un-comment selected lines"
 msgstr "選択したコメント行を解除します"
 
-#: app/coder/coder.py:1312
+#: app/coder/coder.py:1300
 #, python-format
 msgid "Toggle fold\t%s"
 msgstr "折りたたみ\t%s"
 
-#: app/coder/coder.py:1312
+#: app/coder/coder.py:1300
 msgid "Toggle folding of top level"
 msgstr "トップレベルのブロックの折りたたみをON/OFFします"
 
-#: app/coder/coder.py:1316
+#: app/coder/coder.py:1304
 #, python-format
 msgid "Indent selection\t%s"
 msgstr "インデントを増やす\t%s"
 
-#: app/coder/coder.py:1316
+#: app/coder/coder.py:1304
 msgid "Increase indentation of current line"
 msgstr "選択行のインデントを一段増やします"
 
-#: app/coder/coder.py:1318
+#: app/coder/coder.py:1306
 #, python-format
 msgid "Dedent selection\t%s"
 msgstr "インデントを減らす\t%s"
 
-#: app/coder/coder.py:1318
+#: app/coder/coder.py:1306
 msgid "Decrease indentation of current line"
 msgstr "選択行のインデントを一段減らす"
 
-#: app/coder/coder.py:1320
+#: app/coder/coder.py:1308
 #, python-format
 msgid "SmartIndent\t%s"
 msgstr "スマートインデント\t%s"
 
-#: app/coder/coder.py:1320
+#: app/coder/coder.py:1308
 msgid "Try to indent to the correct position w.r.t  last line"
 msgstr "直前の行に対して適切なインデントになるようにインデントを変更します"
 
-#: app/coder/coder.py:1342
-msgid "Run the current script"
-msgstr "現在のスクリプトを実行します"
-
-#: app/coder/coder.py:1344
+#: app/coder/coder.py:1332
 msgid "Stop the current script"
 msgstr "現在のスクリプトの実行を中止します"
 
-#: app/coder/coder.py:1354
+#: app/coder/coder.py:1342
 msgid "Unit &testing...\tCtrl-T"
 msgstr "ユニットテスト(&t)...\tCtrl-T"
 
-#: app/coder/coder.py:1355
+#: app/coder/coder.py:1343
 msgid "Show dialog to run unit tests"
 msgstr "ユニットテストのダイアログを開きます"
 
-#: app/coder/coder.py:1364
+#: app/coder/coder.py:1352
 #, python-format
 msgid "&Indentation guides\t%s"
 msgstr "インデントガイドの表示\t%s"
 
-#: app/coder/coder.py:1365
+#: app/coder/coder.py:1353
 msgid "Shows guides in the editor for your indentation level"
 msgstr "インデントレベルのガイドを表示します"
 
-#: app/coder/coder.py:1370
+#: app/coder/coder.py:1358
 #, python-format
 msgid "&Whitespace\t%s"
 msgstr "空白文字の表示(&W)\t%s"
 
-#: app/coder/coder.py:1371
+#: app/coder/coder.py:1359
 msgid "Show whitespace characters in the code"
 msgstr "コード中の空白文字を表示します"
 
-#: app/coder/coder.py:1376
+#: app/coder/coder.py:1364
 #, python-format
 msgid "Show &EOLs\t%s"
 msgstr "改行文字の表示(&E)\t%s"
 
-#: app/coder/coder.py:1377
+#: app/coder/coder.py:1365
 msgid "Show End Of Line markers in the code"
 msgstr "コード中の改行文字を表示します"
 
-#: app/coder/coder.py:1383
+#: app/coder/coder.py:1371
 #, python-format
 msgid "Show &Output/Shell\t%s"
 msgstr "Output/Shellを表示\t%s"
 
-#: app/coder/coder.py:1384
+#: app/coder/coder.py:1372
 msgid "Shows the output and shell panes (and starts capturing stdout)"
 msgstr "OutputとShellのペインを表示して標準出力のキャプチャを開始します"
 
-#: app/coder/coder.py:1388
+#: app/coder/coder.py:1376
 msgid "&Source Assistant"
 msgstr "ソースアシスタント(&S)"
 
-#: app/coder/coder.py:1389
+#: app/coder/coder.py:1377
 msgid "Provides help functions and attributes of classes in your script"
 msgstr "関数・データ属性・クラスのヘルプを表示します"
 
-#: app/coder/coder.py:1393
+#: app/coder/coder.py:1381
 #, python-format
 msgid "Go to &Builder view\t%s"
 msgstr "Builderを開く(&B)\t%s"
 
-#: app/coder/coder.py:1393
+#: app/coder/coder.py:1381
 msgid "Go to the Builder view"
 msgstr "Builderのウィンドウを開きます"
 
-#: app/coder/coder.py:1448
+#: app/coder/coder.py:1436
 msgid "&PsychoPy Coder Tutorial"
 msgstr "PsychoPy Coderのチュートリアル(&P)"
 
-#: app/coder/coder.py:1448
+#: app/coder/coder.py:1436
 msgid "Go to the online PsychoPy tutorial"
 msgstr "PsychoPyのチュートリアルを開きます"
 
-#: app/coder/coder.py:1450
+#: app/coder/coder.py:1438
 msgid "&PsychoPy API (reference)"
 msgstr "PsychoPy APIリファレンス(&P)"
 
-#: app/coder/coder.py:1450
+#: app/coder/coder.py:1438
 msgid "Go to the online PsychoPy reference manual"
 msgstr "PsychoPyのオンラインリファレンスマニュアルを開きます"
 
-#: app/coder/coder.py:1484
+#: app/coder/coder.py:1472
 msgid "Create new python file"
 msgstr "新しいPythonファイルを作成します"
 
-#: app/coder/coder.py:1486
+#: app/coder/coder.py:1474
 msgid "Open an existing file"
 msgstr "既存のPythonファイルを開きます"
 
-#: app/coder/coder.py:1488
-msgid "Save current file"
-msgstr "現在のファイルを保存します"
-
 #: app/coder/coder.py:1491
-msgid "Save current python file as..."
-msgstr "現在のPythonファイルを名前を指定して保存します"
-
-#: app/coder/coder.py:1503
 msgid "Color Picker -> clipboard"
 msgstr "カラーピッカー(クリップボードへ)"
 
-#: app/coder/coder.py:1507
+#: app/coder/coder.py:1495
 msgid "Run current script"
 msgstr "現在のスクリプトを実行"
 
-#: app/coder/coder.py:1509
+#: app/coder/coder.py:1497
 msgid "Stop current script"
 msgstr "現在のスクリプトの実行を中止します"
 
-#: app/coder/coder.py:1534 app/coder/coder.py:1556
+#: app/coder/coder.py:1522 app/coder/coder.py:1544
 #, python-format
 msgid ""
 "'%s' was modified outside of PsychoPy:\n"
@@ -940,21 +937,36 @@ msgstr ""
 msgid "PsychoPy Preferences"
 msgstr "PsychoPyの設定"
 
-#: app/preferencesDlg.py:45
+#: app/preferencesDlg.py:51
 msgid "Save prefs (in all sections) and close window"
 msgstr "全てのセクションの設定を保存してウィンドウを閉じます"
 
-#: app/preferencesDlg.py:51
+#: app/preferencesDlg.py:57
 msgid "Cancel any changes (to any panel)"
 msgstr "全てのセクションの変更をキャンセルします"
 
-#: app/preferencesDlg.py:56
+#: app/preferencesDlg.py:62
 msgid "Apply these prefs (in all sections) and continue"
 msgstr "全てのセクションの設定を適用します"
 
-#: app/preferencesDlg.py:61
+#: app/preferencesDlg.py:67
 msgid "Get help on prefs"
 msgstr "設定のヘルプを開く"
+
+#~ msgid "Save current experiment"
+#~ msgstr "現在の実験を保存します"
+
+#~ msgid "Save current experiment with a different name"
+#~ msgstr "現在の実験を別名で保存します"
+
+#~ msgid "Cu&t\t%s"
+#~ msgstr "切り取り(&t)\t%s"
+
+#~ msgid "&Copy\t%s"
+#~ msgstr "コピー(&C)\t%s"
+
+#~ msgid "&Paste\t%s"
+#~ msgstr "貼り付け(&P)\t%s"
 
 #~ msgid "Couldn't deduce version from zip file: %s"
 #~ msgstr "Zipファイルからバージョンを推定できませんでした: %s"
