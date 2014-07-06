@@ -15,7 +15,7 @@ ListWidget:
 """
 
 class MessageDialog(wx.Dialog):
-    """For some reason the wx builtin message dialog has some issues on Mac OSX
+    """For some reason the wx built-in message dialog has some issues on Mac OS X
     (buttons don't always work) so we need to use this instead.
     """
     def __init__(self,parent=None,message='',type='Warning', title=None):
@@ -451,7 +451,7 @@ class ListWidget(GlobSizer):
         self.fieldNames=[]
         for name in order:
             if name not in allNames:
-                logging.error('psychopy.dialogs.ListWidget was given a field name `%s` in order that was not in the dictionay' %name)
+                logging.error('psychopy.dialogs.ListWidget was given a field name `%s` in order that was not in the dictionary' %name)
                 continue
             allNames.remove(name)
             self.fieldNames.append(name)
@@ -500,7 +500,7 @@ class ListWidget(GlobSizer):
         """Retrieve the current list of dicts from the grid
         """
         currValue = []
-        for rowN in range(self.GetRows())[1:]: #skipping the irst row (headers)
+        for rowN in range(self.GetRows())[1:]: #skipping the first row (headers)
             thisEntry = {}
             for colN, fieldName in enumerate(self.fieldNames):
                 ctrl = self.FindItemAtPosition((rowN,colN)).GetWindow()
