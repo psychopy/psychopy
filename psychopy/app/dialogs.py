@@ -1,4 +1,7 @@
 import wx
+
+import logging
+
 """This is for general purpose dialogs/widgets, not related to particular functionality
 
 MessageDialog:
