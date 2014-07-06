@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.80.04\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-07-05 18:16+0900\n"
-"PO-Revision-Date: 2014-07-05 18:16+0900\n"
+"POT-Creation-Date: 2014-07-06 09:41+0900\n"
+"PO-Revision-Date: 2014-07-06 13:38+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -680,6 +680,262 @@ msgstr ""
 "PsychoPy以外のアプリケーションで変更されました\n"
 "(保存せずに)再読み込みしますか？"
 
+#: app/connections.py:83
+msgid "Couldn't connect to psychopy.org to check for updates. \n"
+msgstr "更新の確認のためにpsychopy.orgに接続できませんでした\n"
+
+#: app/connections.py:84
+msgid "Check internet settings (and proxy setting in PsychoPy Preferences)."
+msgstr ""
+"インターネット接続の設定(およびPsychoPyの設定のプロキシの項目)を確認してくだ"
+"さい"
+
+#: app/connections.py:113
+#, python-format
+msgid ""
+"PsychoPy v%s is available (you are running %s).\n"
+"\n"
+msgstr ""
+"Psyuchopy v%sが利用できます(%sを利用中)\n"
+"\n"
+
+#: app/connections.py:114
+msgid "This version is too big an update to be handled automatically.\n"
+msgstr "このバージョンは変更が大きすぎて自動更新できません\n"
+
+#: app/connections.py:115
+msgid ""
+"Please fetch the latest version from www.psychopy.org and install manually."
+msgstr ""
+"最新バージョンをwww.psychopy.orgから入手して手作業でインストールしてください"
+
+#: app/connections.py:117
+msgid "Go to downloads"
+msgstr "ダウンロードへ移動"
+
+#: app/connections.py:119
+msgid "Go to changelog"
+msgstr "更新履歴へ移動"
+
+#: app/connections.py:120
+msgid "Later"
+msgstr "後で"
+
+#: app/connections.py:130
+#, python-format
+msgid "You are running the latest version of PsychoPy (%s). "
+msgstr "最新バージョンのPsychoPy (%s)を利用中です"
+
+#: app/connections.py:148
+#, python-format
+msgid ""
+"PsychoPy v%s is available (you are running %s).\n"
+"\n"
+"(To disable this check, see Preferences > connections > checkForUpdates)"
+msgstr ""
+"PsychoPy v%sが利用できます(%sを使用中)\n"
+"\n"
+"(更新チェックを無効にするには「設定」の「接続」の「更新の確認」をオフにしてく"
+"ださい)"
+
+#: app/connections.py:151
+msgid ""
+"This version MAY require you to modify your\n"
+"scripts/exps slightly. Read the changelog carefully."
+msgstr ""
+"このバージョンは前バージョンで作成したスクリプトや実験の修正を必要とするかも"
+"しれません\n"
+"更新履歴を確認してください"
+
+#: app/connections.py:154
+msgid ""
+"There are no known compatibility\n"
+"issues with your current version."
+msgstr ""
+"現在利用中のバージョンとの互換性の問題は\n"
+"報告されていません"
+
+#: app/connections.py:155
+msgid "View complete Changelog"
+msgstr "全ての更新履歴を見る"
+
+#: app/connections.py:159
+msgid "You can update PsychoPy with your package manager"
+msgstr "パッケージマネージャーを用いてPsychoPyを更新できます"
+
+#: app/connections.py:161
+msgid "Should PsychoPy update itself?"
+msgstr "PsychoPyを更新しますか？"
+
+#: app/connections.py:172
+msgid "Keep warning me"
+msgstr "再び通知する"
+
+#: app/connections.py:174
+msgid "Stop warning me"
+msgstr "更新を通知しない"
+
+#: app/connections.py:176
+msgid "Yes"
+msgstr "はい"
+
+#: app/connections.py:178
+msgid "Not now"
+msgstr "今はしない"
+
+#: app/connections.py:179
+msgid "Skip this version"
+msgstr "このバージョンをスキップ"
+
+#: app/connections.py:219
+msgid " Auto-update (will fetch latest version)"
+msgstr "自動更新(最新バージョンを取得します)"
+
+#: app/connections.py:225
+msgid " Use zip file below (download a PsychoPy release file ending .zip)"
+msgstr ""
+"以下のZipファイルを使用(拡張子.zipのPsychoPyリリースをダウンロードしてくださ"
+"い)"
+
+#: app/connections.py:232
+msgid "Install"
+msgstr "インストール"
+
+#: app/connections.py:235
+msgid "Close"
+msgstr "閉じる"
+
+#: app/connections.py:253
+#, python-format
+msgid ""
+"You are running PsychoPy v%s.\n"
+" "
+msgstr ""
+"PsychoPy v%sを利用中です\n"
+" "
+
+#: app/connections.py:254
+msgid ""
+"PsychoPy could not connect to the \n"
+" internet to check for more recent versions.\n"
+msgstr ""
+"PsychoPyはより新しいバージョンの確認のための\n"
+"インターネット接続に失敗しました\n"
+
+#: app/connections.py:255
+msgid "Check proxy settings in preferences."
+msgstr "「設定」のプロキシの設定を確認してください"
+
+#: app/connections.py:257
+#, python-format
+msgid ""
+"You are running the latest version of PsychoPy (%s)\n"
+" "
+msgstr ""
+"最新バージョンのPsychoPy (%s)を利用中です\n"
+" "
+
+#: app/connections.py:258
+msgid ""
+"You can revert to a previous version by selecting a specific .zip source "
+"installation file"
+msgstr ""
+"特定のバージョンの.zip形式のソースファイルを選択して以前のバージョンへ戻すこ"
+"とができます"
+
+#: app/connections.py:260
+#, python-format
+msgid ""
+"PsychoPy v%s is available\n"
+"You are running v%s"
+msgstr ""
+"PsychoPy v%sが利用できます\n"
+"v%sを利用中"
+
+#: app/connections.py:262
+msgid ""
+"\n"
+"You can update to the latest version automatically"
+msgstr ""
+"\n"
+"自動的に最新バージョンに更新できます"
+
+#: app/connections.py:264
+msgid ""
+"\n"
+"You cannot update to the latest version automatically.\n"
+"Please fetch the latest Standalone package from www.psychopy.org"
+msgstr ""
+"\n"
+"最新バージョンに自動的に更新できません\n"
+"www.psychopy.orgから最新のStandaloneパッケージを取得してください"
+
+#: app/connections.py:305
+#, python-format
+msgid "Attempting to fetch PsychoPy %s..."
+msgstr "PsychoPy %sを取得しようとしています..."
+
+#: app/connections.py:324
+#, python-format
+msgid "Fetched %i of %i kb of PsychoPy-%s.zip"
+msgstr "%i / %i kb取得済み(PsychoPy-%s.zip)"
+
+#: app/connections.py:327
+#, python-format
+msgid "Successfully downloaded PsychoPy-%s.zip"
+msgstr "PsychoPy-%s.zipのダウンロードに成功しました"
+
+#: app/connections.py:364
+msgid ""
+"To upgrade you need to restart the app as admin (Right-click the app and "
+"'Run as admin')"
+msgstr ""
+"PsychoPyを更新するためには管理者として実行する必要があります(アイコンを右ク"
+"リックして'管理者として実行')"
+
+#: app/connections.py:366
+msgid "Could not move existing PsychoPy installation (permissions error?)"
+msgstr "インストール済みのPsychoPyを移動できません(パーミッションエラー？)"
+
+#: app/connections.py:388
+#, python-format
+msgid ""
+"Right-click the app and 'Run as admin'):\n"
+"%s"
+msgstr ""
+"アイコンを右クリックして'管理者として実行'):\n"
+"%s"
+
+#: app/connections.py:390
+#, python-format
+msgid ""
+"Failed to create directory for new version (permissions error?):\n"
+"%s"
+msgstr ""
+"新バージョン用のディレクトリの作成に失敗しました(パーミッションエラー？):\n"
+"%s"
+
+#: app/connections.py:412
+msgid ""
+"Success. \n"
+"Changes to PsychoPy will be completed when the application is next run"
+msgstr ""
+"成功しました\n"
+"PsychoPyの更新は次回PsychoPyを実行したときに完了します"
+
+#: app/connections.py:419
+#, python-format
+msgid "Downloading PsychoPy v%s"
+msgstr "PsychoPy v%sをダウンロード中です"
+
+#: app/connections.py:422
+msgid ""
+"Failed to fetch PsychoPy release.\n"
+"Check proxy setting in preferences"
+msgstr ""
+"PsychoPyの取得に失敗しました\n"
+"「設定」のプロキシの設定を確認してください"
+
 #: app/preferencesDlg.py:14
 msgid "PsychoPy Preferences"
 msgstr "PsychoPyの設定"
@@ -699,6 +955,15 @@ msgstr "全てのセクションの設定を適用します"
 #: app/preferencesDlg.py:61
 msgid "Get help on prefs"
 msgstr "設定のヘルプを開く"
+
+#~ msgid "Couldn't deduce version from zip file: %s"
+#~ msgstr "Zipファイルからバージョンを推定できませんでした: %s"
+
+#~ msgid "failed to unzip file: "
+#~ msgstr "Zipファイルの展開に失敗しました:"
+
+#~ msgid "Couldn't connect to psychopy.org\n"
+#~ msgstr "psychopy.orgに接続できません\n"
 
 #~ msgid ""
 #~ "The (2D) texture of the grating - can be sin, sqr, sinXsin... or a "
