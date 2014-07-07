@@ -413,7 +413,8 @@ class FlowPanel(wx.ScrolledWindow):
 
         #for the context menu
         self.componentFromID = {}#use the ID of the drawn icon to retrieve component (loop or routine)
-        self.contextMenuItems = [_('remove')]
+        self.contextMenuItems = ['remove']
+        [_('remove')] #This line is necessary for gettext to localize context menu
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
@@ -729,7 +730,7 @@ class FlowPanel(wx.ScrolledWindow):
         menu = wx.Menu()
         for item in self.contextMenuItems:
             id = self.contextIDFromItem[item]
-            menu.Append( id, item )
+            menu.Append( id, _(item) )
             wx.EVT_MENU( menu, id, self.onContextSelect )
         self.frame.PopupMenu( menu, xy )
         menu.Destroy() # destroy to avoid mem leak
@@ -744,10 +745,10 @@ class FlowPanel(wx.ScrolledWindow):
         #if we have a Loop Initiator, remove the whole loop
         if component.getType()=='LoopInitiator':
             component = component.loop
-        if op==_('remove'):
+        if op=='remove':
             self.removeComponent(component, compID)
             self.frame.addToUndoStack("REMOVE `%s` from Flow" %component.params['name'])
-        if op==_('rename'):
+        if op=='rename':
             print 'rename is not implemented yet'
             #if component is a loop: DlgLoopProperties
             #elif component is a routine: DlgRoutineProperties
@@ -1172,7 +1173,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.dragid = -1
         self.lastpos = (0,0)
         self.componentFromID = {}#use the ID of the drawn icon to retrieve component name
-        self.contextMenuItems = [_('edit'),_('remove'),_('move to top'),_('move up'),_('move down'),_('move to bottom')]
+        self.contextMenuItems = ['edit','remove','move to top','move up','move down','move to bottom']
+        [_('edit'),_('remove'),_('move to top'),_('move up'),_('move down'),_('move to bottom')] #This line is necessary for gettext to localize context menu
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
@@ -1226,7 +1228,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         menu = wx.Menu()
         for item in self.contextMenuItems:
             id = self.contextIDFromItem[item]
-            menu.Append( id, item )
+            menu.Append( id, _(item) )
             wx.EVT_MENU( menu, id, self.onContextSelect )
         self.frame.PopupMenu( menu, xy )
         menu.Destroy() # destroy to avoid mem leak
@@ -1237,31 +1239,23 @@ class RoutineCanvas(wx.ScrolledWindow):
         op = self.contextItemFromID[event.GetId()]
         component=self._menuComponent
         r = self.routine
-        if op==_('edit'):
+        if op=='edit':
             self.editComponentProperties(component=component)
-        elif op==_('remove'):
+        elif op=='remove':
             r.removeComponent(component)
             self.frame.addToUndoStack("REMOVE `%s` from Routine" %(component.params['name'].val))
             self.frame.exp.namespace.remove(component.params['name'].val)
-        elif op==_('move to top'):
+        elif op.startswith('move'):
             lastLoc=r.index(component)
             r.remove(component)
-            r.insert(0, component)
-            self.frame.addToUndoStack("MOVED `%s`" %component.params['name'].val)
-        elif op==_('move up'):
-            lastLoc=r.index(component)
-            r.remove(component)
-            r.insert(lastLoc-1, component)
-            self.frame.addToUndoStack("MOVED `%s`" %component.params['name'].val)
-        elif op==_('move down'):
-            lastLoc=r.index(component)
-            r.remove(component)
-            r.insert(lastLoc+1, component)
-            self.frame.addToUndoStack("MOVED `%s`" %component.params['name'].val)
-        elif op==_('move to bottom'):
-            lastLoc=r.index(component)
-            r.remove(component)
-            r.append(component)
+            if op=='move to top':
+                r.insert(0, component)
+            if op=='move up':
+                r.insert(lastLoc-1, component)
+            if op=='move down':
+                r.insert(lastLoc+1, component)
+            if op=='move to bottom':
+                r.append(component)
             self.frame.addToUndoStack("MOVED `%s`" %component.params['name'].val)
         self.redrawRoutine()
         self._menuComponent=None
