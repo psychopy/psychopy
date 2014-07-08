@@ -29,81 +29,84 @@ _("audio driver to use")
 #baseNoArch.spec,[general],line41
 _("path to flac (lossless audio compression) on this operating system")
 
-#baseNoArch.spec,[general],line45
+#baseNoArch.spec,[general],line43
+_("a list of parallel ports")
+
+#baseNoArch.spec,[general],line46
 _("display tips when starting PsychoPy")
 
-#baseNoArch.spec,[app],line47
+#baseNoArch.spec,[app],line48
 _("size of icons in the Coder and Builder toolbars (top of window)")
 
-#baseNoArch.spec,[app],line49
+#baseNoArch.spec,[app],line50
 _("what windows to display when PsychoPy starts")
 
-#baseNoArch.spec,[app],line51
+#baseNoArch.spec,[app],line52
 _("reset preferences to defaults on next restart of PsychoPy")
 
-#baseNoArch.spec,[app],line53
+#baseNoArch.spec,[app],line54
 _("save any unsaved preferences before closing the window")
 
-#baseNoArch.spec,[app],line55
+#baseNoArch.spec,[app],line56
 _("enable features for debugging PsychoPy itself, including unit-tests")
 
-#baseNoArch.spec,[app],line57
+#baseNoArch.spec,[app],line58
 _("locale to use, e.g. en_US, en_US.UTF-8, ja_JP, etc; leave blank for default system locale")
 
-#baseNoArch.spec,[app],line59
+#baseNoArch.spec,[app],line60
 _("a list of font names; the first one found on the system will be used")
 
-#baseNoArch.spec,[app],line62
+#baseNoArch.spec,[app],line63
 _("Font size (in pts) takes an integer between 6 and 24")
 
-#baseNoArch.spec,[coder],line64
+#baseNoArch.spec,[coder],line65
 _("for coder shell window, which shell to use")
 
-#baseNoArch.spec,[coder],line70
+#baseNoArch.spec,[coder],line71
 _("newline for python files: unix = \\n, dos = \\r\\n")
 
-#baseNoArch.spec,[coder],line77
+#baseNoArch.spec,[coder],line78
 _("whether to automatically reload a previously open experiment")
 
-#baseNoArch.spec,[coder],line79
+#baseNoArch.spec,[coder],line80
 _("if False will create scripts with an 'easier' but more cluttered namespace")
 
-#baseNoArch.spec,[coder],line82
+#baseNoArch.spec,[coder],line83
 _("folder names for custom components; expects a comma-separated list")
 
-#baseNoArch.spec,[builder],line84
+#baseNoArch.spec,[builder],line85
 _("a list of components to hide (eg, because you never use them)")
 
-#baseNoArch.spec,[builder],line86
+#baseNoArch.spec,[builder],line87
 _("where the Builder demos are located on this computer (after unpacking)")
 
-#baseNoArch.spec,[builder],line88
+#baseNoArch.spec,[builder],line89
 _("name of the folder where subject data should be saved (relative to the script)")
 
-#baseNoArch.spec,[builder],line90
+#baseNoArch.spec,[builder],line91
 _("Panels arrangement: topFlow = Flow on top, Components on left")
 
-#baseNoArch.spec,[builder],line92
+#baseNoArch.spec,[builder],line93
 _("Display text in a floating window that describes the experiment")
 
-#baseNoArch.spec,[builder],line94
+#baseNoArch.spec,[builder],line95
 _("Upper limit on how many components can be in favorites")
 
-#baseNoArch.spec,[builder],line96
+#baseNoArch.spec,[builder],line97
 _("the http proxy for usage stats and auto-updating; format is host: port")
 
-#baseNoArch.spec,[builder],line98
+#baseNoArch.spec,[builder],line99
 _("override the above proxy settings with values found in the environment (if possible)")
 
-#baseNoArch.spec,[builder],line100
+#baseNoArch.spec,[builder],line101
 _("allow PsychoPy to send anonymous usage stats; please allow if possible, its helps PsychoPy's development")
 
-#baseNoArch.spec,[builder],line103
+#baseNoArch.spec,[builder],line104
 _("allow PsychoPy to check for new features and bug fixes")
 
-#baseNoArch.spec,[connections],line105
+#baseNoArch.spec,[connections],line106
 _("max time to wait for a connection response")
 
-#Windows.spec,[app],line60
+#Windows.spec,[app],line61
 _("locale to use, e.g. ENG, DEU, DAN, JPN, etc; leave blank for default system locale")
 
