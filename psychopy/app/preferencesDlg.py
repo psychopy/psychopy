@@ -126,9 +126,9 @@ class PreferencesDlg(wx.Dialog):
             if len(hints):
                 # use only one comment line, from right above the pref
                 hint = hints[-1].lstrip().lstrip('#').lstrip()
+                ctrls.valueCtrl.SetToolTipString(_(hint))
             else:
-                hint = ''
-            ctrls.valueCtrl.SetToolTipString(_(hint))
+                ctrls.valueCtrl.SetToolTipString('')
 
             vertBox.Add(ctrlSizer)
         #size the panel and setup scrolling
