@@ -1,9 +1,9 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: PsychoPy 1.80.04\n"
+"Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-07-07 09:07+0900\n"
-"PO-Revision-Date: 2014-07-07 09:12+0900\n"
+"POT-Creation-Date: 2014-07-08 09:26+0900\n"
+"PO-Revision-Date: 2014-07-08 09:26+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -466,6 +466,125 @@ msgstr "元に戻す %s\t%s"
 #, python-format
 msgid "Redo %s\t%s"
 msgstr "繰り返す %s\t%s"
+
+#: app/builder/components/settings.py:35
+msgid ""
+"Name of the entire experiment (taken by default from the filename on save)"
+msgstr "この実験の名前を指定します(初期値はこの実験を保存したファイル名です)"
+
+#: app/builder/components/settings.py:38
+msgid ""
+"Start the experiment with a dialog to set info (e.g.participant or condition)"
+msgstr ""
+"実験開始時に実験情報(参加者名や条件名など)を入力するためのダイアログを表示し"
+"ます"
+
+#: app/builder/components/settings.py:41
+msgid ""
+"Enable the <esc> key, to allow subjects to quit / break out of the experiment"
+msgstr "Escapeキーによる実験の中断/終了を許可します"
+
+#: app/builder/components/settings.py:43
+msgid ""
+"The info to present in a dialog box. Right-click to check syntax and preview "
+"the dialog box."
+msgstr ""
+"実験情報ダイアログに表示する情報を指定します 右クリックすると文法の確認とダイ"
+"アログのプレビューを行います"
+
+#: app/builder/components/settings.py:47
+msgid ""
+"Code to create your custom file name base. Don't give a file extension - "
+"this will be added."
+msgstr ""
+"実験記録ファイルの名前をカスタマイズするためのコードを入力します - 拡張子は自"
+"動的に付加されるので指定しないでください"
+
+#: app/builder/components/settings.py:50
+msgid "Run the experiment full-screen (recommended)"
+msgstr "実験をフルスクリーンモードで実行します(推奨)"
+
+#: app/builder/components/settings.py:53
+msgid "Size of window (if not fullscreen)"
+msgstr ""
+"フルスクリーンモードを使用しない時の刺激描画ウィンドウのサイズを指定します"
+
+#: app/builder/components/settings.py:56
+msgid "Which physical screen to run on (1 or 2)"
+msgstr ""
+"2台のモニターが接続されている時にどちらのモニターを使用するかを指定します(1ま"
+"たは2)"
+
+#: app/builder/components/settings.py:60
+msgid ""
+"Name of the monitor (from Monitor Center). Right-click to go there, then "
+"copy & paste a monitor name here."
+msgstr ""
+"モニターセンターで定義されたモニター名を指定します; 右クリックでモニターセン"
+"ターを開きます"
+
+#: app/builder/components/settings.py:62
+msgid ""
+"Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to "
+"bring up a color-picker.)"
+msgstr ""
+"スクリーンを塗りつぶす色($[1.0,1.0,1.0],$variable,blackなど)を指定します; 右"
+"クリックで色選択ダイアログを表示します"
+
+#: app/builder/components/settings.py:66
+msgid ""
+"Needed if color is defined numerically (see PsychoPy documentation on color "
+"spaces)"
+msgstr "スクリーンの色を数値で指定する場合の色空間を選択します"
+
+#: app/builder/components/settings.py:70
+msgid "Units to use for window/stimulus coordinates (e.g. cm, pix, deg)"
+msgstr ""
+"この実験においてウィンドウや刺激の描画に用いられる標準の単位(cm, pix, degな"
+"ど)を指定します"
+
+#: app/builder/components/settings.py:75
+msgid ""
+"Should new stimuli be added or averaged with the stimuli that have been "
+"drawn already"
+msgstr "描画済みの刺激に新しい刺激をブレンドする時の方法を指定します"
+
+#: app/builder/components/settings.py:78
+msgid "Should the mouse be visible on screen?"
+msgstr "マウスカーソルを描画するか否かを指定します"
+
+#: app/builder/components/settings.py:81
+msgid ""
+"Save a detailed log (more detailed than the excel/csv files) of the entire "
+"experiment"
+msgstr "(CSV/Excelファイルに出力されるよりも)詳細な実験のログを出力します"
+
+#: app/builder/components/settings.py:84 app/builder/components/settings.py:88
+msgid ""
+"Save data from loops in comma-separated-value (.csv) format for maximum "
+"portability"
+msgstr ""
+"実験データをカンマ区切りのテキストファイル(.csv)で保存します; さまざまな環境"
+"やソフトウェアから利用できます"
+
+#: app/builder/components/settings.py:92
+msgid "Save data from loops in Excel (.xlsx) format"
+msgstr "実験で得られたデータをExcel形式(.xlsx)で保存します"
+
+#: app/builder/components/settings.py:95
+msgid ""
+"Save data from loops in psydat format. This is useful for python programmers "
+"to generate analysis scripts."
+msgstr ""
+"実験で得られたデータをpydat形式で保存します; Pythonで独自の解析スクリプトを書"
+"く時に便利です"
+
+#: app/builder/components/settings.py:99
+msgid ""
+"How much output do you want in the log files? ('error' is fewest messages, "
+"'debug' is most)"
+msgstr ""
+"実験ログの出力レベルを指定します('error'が最も簡潔で'debug'が最も詳細です)"
 
 #: app/coder/coder.py:1195
 msgid "Welcome to PsychoPy2!"
@@ -986,30 +1105,34 @@ msgid "path to flac (lossless audio compression) on this operating system"
 msgstr "flac(ロスレスオーディオ圧縮ライブラリ)へのパスを指定します"
 
 #: preferences/hints.py:33
+msgid "a list of parallel ports"
+msgstr "パラレルポートのリストを指定します"
+
+#: preferences/hints.py:36
 msgid "display tips when starting PsychoPy"
 msgstr "PsychoPy起動時にTIPSを表示します"
 
-#: preferences/hints.py:36
+#: preferences/hints.py:39
 msgid "size of icons in the Coder and Builder toolbars (top of window)"
 msgstr "CoderとBuilderのツールバーで大きなアイコンを表示します"
 
-#: preferences/hints.py:39
+#: preferences/hints.py:42
 msgid "what windows to display when PsychoPy starts"
 msgstr "PsychoPy起動時に表示するウィンドウを指定します"
 
-#: preferences/hints.py:42
+#: preferences/hints.py:45
 msgid "reset preferences to defaults on next restart of PsychoPy"
 msgstr "次回PsychoPy起動時に設定を初期値にリセットします"
 
-#: preferences/hints.py:45
+#: preferences/hints.py:48
 msgid "save any unsaved preferences before closing the window"
 msgstr "ウィンドウを閉じる前に未保存の設定を保存します"
 
-#: preferences/hints.py:48
+#: preferences/hints.py:51
 msgid "enable features for debugging PsychoPy itself, including unit-tests"
 msgstr "PsychoPyのデバッグ用の機能を有効にします(ユニットテストを含む)"
 
-#: preferences/hints.py:51
+#: preferences/hints.py:54
 msgid ""
 "locale to use, e.g. en_US, en_US.UTF-8, ja_JP, etc; leave blank for default "
 "system locale"
@@ -1017,46 +1140,46 @@ msgstr ""
 "使用するロケール(en_US, en_US.UTF-8, ja_JPなど)を指定します; 空白にするとシス"
 "テムの標準ロケールを使用します"
 
-#: preferences/hints.py:54
+#: preferences/hints.py:57
 msgid "a list of font names; the first one found on the system will be used"
 msgstr "フォント名のリストを指定します; 最初に見つかったフォントが使用されます"
 
-#: preferences/hints.py:57
+#: preferences/hints.py:60
 msgid "Font size (in pts) takes an integer between 6 and 24"
 msgstr "フォントサイズを6から24の整数で指定します"
 
-#: preferences/hints.py:60
+#: preferences/hints.py:63
 msgid "for coder shell window, which shell to use"
 msgstr "Coderのシェルウィンドウで使用するシェルを指定します"
 
-#: preferences/hints.py:63
+#: preferences/hints.py:66
 msgid "newline for python files: unix = \\n, dos = \\r\\n"
 msgstr "Pythonファイルの改行コード: unix=\\n, dos=\\r\\n"
 
-#: preferences/hints.py:66
+#: preferences/hints.py:69
 msgid "whether to automatically reload a previously open experiment"
 msgstr "起動時に前回開いていた実験を自動的に開くか否かを指定します"
 
-#: preferences/hints.py:69
+#: preferences/hints.py:72
 msgid ""
 "if False will create scripts with an 'easier' but more cluttered namespace"
 msgstr "チェックを外すと扱いやすい代わりに雑然とした名前空間となります"
 
-#: preferences/hints.py:72
+#: preferences/hints.py:75
 msgid "folder names for custom components; expects a comma-separated list"
 msgstr ""
 "カスタムBuilderコンポーネントのフォルダ名を指定します(カンマ区切りのリストで"
 "指定)"
 
-#: preferences/hints.py:75
+#: preferences/hints.py:78
 msgid "a list of components to hide (eg, because you never use them)"
 msgstr "非表示にするコンポーネントのリスト(使用しないものを隠します)"
 
-#: preferences/hints.py:78
+#: preferences/hints.py:81
 msgid "where the Builder demos are located on this computer (after unpacking)"
 msgstr "Builderのデモを展開した位置(デモ展開後のみ有効)"
 
-#: preferences/hints.py:81
+#: preferences/hints.py:84
 msgid ""
 "name of the folder where subject data should be saved (relative to the "
 "script)"
@@ -1064,34 +1187,34 @@ msgstr ""
 "実験データが保存されるフォルダ名を指定します(スクリプトからの相対パスで指定し"
 "ます)"
 
-#: preferences/hints.py:84
+#: preferences/hints.py:87
 msgid "Panels arrangement: topFlow = Flow on top, Components on left"
 msgstr ""
 "ペインの配置を指定します: topFlowにするとFlowが上に、Componentsが左に配置され"
 "ます"
 
-#: preferences/hints.py:87
+#: preferences/hints.py:90
 msgid "Display text in a floating window that describes the experiment"
 msgstr "実験のReadmeを常に表示します"
 
-#: preferences/hints.py:90
+#: preferences/hints.py:93
 msgid "Upper limit on how many components can be in favorites"
 msgstr "Favoritesに表示されるコンポーネント数の上限を指定します"
 
-#: preferences/hints.py:93
+#: preferences/hints.py:96
 msgid "the http proxy for usage stats and auto-updating; format is host: port"
 msgstr ""
 "利用状況の送信と自動更新に使用するHTTPプロキシを指定します; 書式はhost: port"
 "です"
 
-#: preferences/hints.py:96
+#: preferences/hints.py:99
 msgid ""
 "override the above proxy settings with values found in the environment (if "
 "possible)"
 msgstr ""
 "自動的にプロキシ設定を検出できる場合は上記の設定より自動設定を優先します"
 
-#: preferences/hints.py:99
+#: preferences/hints.py:102
 msgid ""
 "allow PsychoPy to send anonymous usage stats; please allow if possible, its "
 "helps PsychoPy's development"
@@ -1099,15 +1222,15 @@ msgstr ""
 "PsychoPyに匿名で利用状況を送信することを許可します; PsychoPy開発の参考とする"
 "ために可能な限りチェックしてください"
 
-#: preferences/hints.py:102
+#: preferences/hints.py:105
 msgid "allow PsychoPy to check for new features and bug fixes"
 msgstr "PsychoPyにバグ修正や新機能の追加といった更新の確認を許可します"
 
-#: preferences/hints.py:105
+#: preferences/hints.py:108
 msgid "max time to wait for a connection response"
 msgstr "ネットワーク接続の最大リトライ回数を指定します"
 
-#: preferences/hints.py:108
+#: preferences/hints.py:111
 msgid ""
 "locale to use, e.g. ENG, DEU, DAN, JPN, etc; leave blank for default system "
 "locale"
