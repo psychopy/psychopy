@@ -60,7 +60,7 @@ class ColorCAL:
                 port = '/dev/cu.usbmodem0001'
             elif sys.platform.startswith('linux'):
                 port = '/dev/ttyACM0'
-            elif sys.platfor.startswith('win'):
+            elif sys.platform.startswith('win'):
                 port = 3
         if type(port) in [int, float]:
             self.portNumber = port #add one so that port 1=COM1
