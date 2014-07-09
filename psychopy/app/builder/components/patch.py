@@ -8,7 +8,7 @@ from psychopy.app.builder.components import getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'patch.png')
-tooltip = 'Patch: present images (bmp, jpg, tif...) or textures like gratings'
+tooltip = _('Patch: present images (bmp, jpg, tif...) or textures like gratings')
 
 class PatchComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
@@ -33,27 +33,27 @@ class PatchComponent(VisualComponent):
         self.params['colorSpace'].categ = "Advanced"
         self.params['image']=Param(image, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="The image to be displayed - 'sin','sqr'... or a filename (including path)",
+            hint=_("The image to be displayed - 'sin','sqr'... or a filename (including path)"),
             label="Image")
         self.params['mask']=Param(mask, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="An image to define the alpha mask (ie shape)- 'gauss','circle'... or a filename (including path)",
+            hint=_("An image to define the alpha mask (ie shape)- 'gauss','circle'... or a filename (including path)"),
             label="Mask")
         self.params['sf']=Param(sf, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]",
+            hint=_("Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]"),
             label="SF", categ="Advanced")
         self.params['phase']=Param(phase, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Spatial positioning of the image on the patch (in range 0-1.0)",
+            hint=_("Spatial positioning of the image on the patch (in range 0-1.0)"),
             label="Phase", categ="Advanced")
         self.params['texture resolution']=Param(texRes, valType='code', allowedVals=['32','64','128','256','512'],
             updates='constant', allowedUpdates=[],
-            hint="Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice",
+            hint=_("Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice"),
             label="Texture resolution", categ="Advanced")
         self.params['interpolate']=Param(mask, valType='str', allowedVals=['linear','nearest'],
             updates='constant', allowedUpdates=[],
-            hint="How should the image be interpolated if/when rescaled",
+            hint=_("How should the image be interpolated if/when rescaled"),
             label="Interpolate", categ="Advanced")
 
     def writeInitCode(self,buff):

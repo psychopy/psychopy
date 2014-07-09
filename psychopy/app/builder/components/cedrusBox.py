@@ -10,7 +10,7 @@ __author__ = 'Jon Peirce'
 
 thisFolder = path.abspath(path.dirname(__file__))  # abs path to the folder containing this path
 iconFile = path.join(thisFolder, 'cedrusBox.png')
-tooltip = 'Cedrus Button Box: Cedrus response boxes, using the pyxid library provided by Cedrus'
+tooltip = _('Cedrus Button Box: Cedrus response boxes, using the pyxid library provided by Cedrus')
 
 class cedrusButtonBoxComponent(KeyboardComponent):
     """An event class for checking an Cedrus RBxxx button boxes using XID library
@@ -41,52 +41,52 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         self.params = {}
         self.order = ['forceEndRoutine', 'allowedKeys', #NB name and timing params always come 1st
             'store', 'storeCorrect', 'correctAns']
-        self.params['name'] = Param(name, valType='code', hint="A name for this ButtonBox object (e.g. bbox)",
+        self.params['name'] = Param(name, valType='code', hint=_("A name for this ButtonBox object (e.g. bbox)"),
             label="Name")
         self.params['allowedKeys'] = Param(allowedKeys, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="Keys to be read (blank for any) or key numbers separated by commas",
+            hint=_("Keys to be read (blank for any) or key numbers separated by commas"),
             label="Allowed keys")
         self.params['startType'] = Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your start point?",
+            hint=_("How do you want to define your start point?"),
             label="")
         self.params['stopType'] = Param(stopType, valType='str',
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your end point?")
+            hint=_("How do you want to define your end point?"))
         self.params['startVal'] = Param(startVal, valType='code', allowedTypes=[],
-            hint="When to start checking keys")
+            hint=_("When to start checking keys"))
         self.params['stopVal'] = Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="When to stop checking keys")
+            hint=_("When to stop checking keys"))
         self.params['startEstim'] = Param(startEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected start (s), purely for representing in the timeline")
+            hint=_("(Optional) expected start (s), purely for representing in the timeline"))
         self.params['durationEstim'] = Param(durationEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected duration (s), purely for representing in the timeline")
+            hint=_("(Optional) expected duration (s), purely for representing in the timeline"))
         self.params['discard previous'] = Param(discardPrev, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Do you want to discard all key presses occuring before the onset of this component?",
+            hint=_("Do you want to discard all key presses occuring before the onset of this component?"),
             label="Discard previous")
         self.params['store'] = Param(store, valType='str', allowedTypes=[],
             allowedVals=['last key', 'first key', 'all keys', 'nothing'],
             updates='constant', allowedUpdates=[],
-            hint="Choose which (if any) responses to store at end of a trial",
+            hint=_("Choose which (if any) responses to store at end of a trial"),
             label="Store")
         self.params['forceEndRoutine'] = Param(forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Should a key press force the end of the routine (e.g end the trial)?",
+            hint=_("Should a key press force the end of the routine (e.g end the trial)?"),
             label="Force end of Routine")
         self.params['storeCorrect'] = Param(storeCorrect, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Do you want to save the response as correct/incorrect?",
+            hint=_("Do you want to save the response as correct/incorrect?"),
             label="Store correct")
         self.params['correctAns'] = Param(correctAns, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="What is the 'correct' response? NB, keys are labelled 0 to 6 on a 7-button box",
+            hint=_("What is the 'correct' response? NB, keys are labelled 0 to 6 on a 7-button box"),
             label="Correct answer")
         self.params['deviceNumber'] = Param(deviceNumber, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Device number, if you have multiple devices which one do you want (0, 1, 2...)",
+            hint=_("Device number, if you have multiple devices which one do you want (0, 1, 2...)"),
             label="Device number", categ='Advanced')
         #self.params['getReleaseTime'] = Param(getReleaseTime, valType='bool', allowedVals=[True, False],
         #    updates='constant', allowedUpdates=[],
@@ -94,7 +94,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         #    label="Get release time")
         self.params['useBoxTimer'] = Param(getReleaseTime, valType='bool', allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
-            hint="According to Cedrus the response box timer has a drift - use with caution!",
+            hint=_("According to Cedrus the response box timer has a drift - use with caution!"),
             label="Use box timer", categ='Advanced')
 
     def writeStartCode(self, buff):

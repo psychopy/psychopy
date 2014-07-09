@@ -10,7 +10,7 @@ from psychopy.app.builder import components #for getInitVals()
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'microphone.png')
-tooltip = 'Microphone: basic sound capture (fixed onset & duration), okay for spoken words'
+tooltip = _('Microphone: basic sound capture (fixed onset & duration), okay for spoken words')
 
 class MicrophoneComponent(BaseComponent):
     """An event class for capturing short sound stimuli"""
@@ -28,25 +28,25 @@ class MicrophoneComponent(BaseComponent):
         #params
         self.order=[]#order for things (after name and timing params)
         self.params={}
-        self.params['name']=Param(name, valType='code', hint="Everything needs a name (no spaces or punctuation)",
+        self.params['name']=Param(name, valType='code', hint=_("Everything needs a name (no spaces or punctuation)"),
             label="Name")
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your start point?")
+            hint=_("How do you want to define your start point?"))
         self.params['stopType']=Param(stopType, valType='str',
             allowedVals=['duration (s)'],
-            hint="The duration of the recording in seconds; blank = 0 sec")
+            hint=_("The duration of the recording in seconds; blank = 0 sec"))
         self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
-            hint="When does the sound start recording?")
+            hint=_("When does the sound start recording?"))
         self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="")
         self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected start (s), purely for representing in the timeline")
+            hint=_("(Optional) expected start (s), purely for representing in the timeline"))
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected duration (s), purely for representing in the timeline")
+            hint=_("(Optional) expected duration (s), purely for representing in the timeline"))
         self.params['stereo']=Param(stereo, valType='bool',
-            hint="Record two channels (stereo) or one (mono, smaller file)",
+            hint=_("Record two channels (stereo) or one (mono, smaller file)"),
             label="Stereo")
     def writeStartCode(self,buff):
         # filename should have date_time, so filename_wav should be unique

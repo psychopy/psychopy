@@ -8,7 +8,7 @@ from psychopy.app.builder.components import getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'polygon.png')
-tooltip = 'Polygon: any regular polygon (line, triangle, square...circle)'
+tooltip = _('Polygon: any regular polygon (line, triangle, square...circle)')
 
 class PolygonComponent(VisualComponent):
     """A class for presenting grating stimuli"""
@@ -34,35 +34,35 @@ class PolygonComponent(VisualComponent):
         #params
         self.params['nVertices']=Param(nVertices, valType='int',
             updates='constant', allowedUpdates=['constant'],
-            hint="How many vertices? 2=line, 3=triangle... (90 approximates a circle)",
+            hint=_("How many vertices? 2=line, 3=triangle... (90 approximates a circle)"),
             label="N Vertices")
         self.params['fillColorSpace']=Param(fillColorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             updates='constant',
-            hint="Choice of color space for the fill color (rgb, dkl, lms)",
+            hint=_("Choice of color space for the fill color (rgb, dkl, lms)"),
             label="Fill color space")
         self.params['fillColor']=Param(fillColor, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Fill color of this shape; Right-click to bring up a color-picker (rgb only)",
+            hint=_("Fill color of this shape; Right-click to bring up a color-picker (rgb only)"),
             label="Fill color")
         self.params['lineColorSpace']=Param(lineColorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             updates='constant',
-            hint="Choice of color space for the fill color (rgb, dkl, lms)",
+            hint=_("Choice of color space for the fill color (rgb, dkl, lms)"),
             label="Line color space")
         self.params['lineColor']=Param(lineColor, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Line color of this shape; Right-click to bring up a color-picker (rgb only)",
+            hint=_("Line color of this shape; Right-click to bring up a color-picker (rgb only)"),
             label="Line color")
         self.params['lineWidth']=Param(lineWidth, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Width of the shape's line (always in pixels - this does NOT use 'units')",
+            hint=_("Width of the shape's line (always in pixels - this does NOT use 'units')"),
             label="Line width")
         self.params['interpolate']=Param(interpolate, valType='str', allowedVals=['linear','nearest'],
             updates='constant', allowedUpdates=[],
-            hint="How should the image be interpolated if/when rescaled",
+            hint=_("How should the image be interpolated if/when rescaled"),
             label="Interpolate")
         self.params['size']=Param(size, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Size of this stimulus [w,h]. Note that for a line only the first value is used, for triangle and rect the [w,h] is as expected, but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!! ",
+            hint=_("Size of this stimulus [w,h]. Note that for a line only the first value is used, for triangle and rect the [w,h] is as expected, but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!! "),
             label="Size [w,h]")
         del self.params['color']
         del self.params['colorSpace']

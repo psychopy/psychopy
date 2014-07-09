@@ -8,7 +8,7 @@ from psychopy.app.builder.components import getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'image.png')
-tooltip = 'Image: present images (bmp, jpg, tif...)'
+tooltip = _('Image: present images (bmp, jpg, tif...)')
 
 class ImageComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
@@ -34,27 +34,27 @@ class ImageComponent(VisualComponent):
         self.params['colorSpace'].categ = "Advanced"
         self.params['image']=Param(image, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="The image to be displayed - a filename, including path",
+            hint=_("The image to be displayed - a filename, including path"),
             label="Image")
         self.params['mask']=Param(mask, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="An image to define the alpha mask through which the image is seen - gauss, circle, None or a filename (including path)",
+            hint=_("An image to define the alpha mask through which the image is seen - gauss, circle, None or a filename (including path)"),
             label="Mask", categ="Advanced")
         self.params['texture resolution']=Param(texRes, valType='code', allowedVals=['32','64','128','256','512'],
             updates='constant', allowedUpdates=[],
-            hint="Resolution of the mask if one is used.",
+            hint=_("Resolution of the mask if one is used."),
             label="Texture resolution", categ="Advanced")
         self.params['interpolate']=Param(mask, valType='str', allowedVals=['linear','nearest'],
             updates='constant', allowedUpdates=[],
-            hint="How should the image be interpolated if/when rescaled",
+            hint=_("How should the image be interpolated if/when rescaled"),
             label="Interpolate", categ="Advanced")
         self.params['flipVert']=Param(flipVert, valType='bool',
             updates='constant', allowedUpdates=[],
-            hint="Should the image be flipped vertically (top to bottom)?",
+            hint=_("Should the image be flipped vertically (top to bottom)?"),
             label="Flip vertically")
         self.params['flipHoriz']=Param(flipVert, valType='bool',
             updates='constant', allowedUpdates=[],
-            hint="Should the image be flipped horizontally (left to right)?",
+            hint=_("Should the image be flipped horizontally (left to right)?"),
             label="Flip horizontally")
 
     def writeInitCode(self,buff):

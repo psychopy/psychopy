@@ -25,30 +25,30 @@ class SoundComponent(BaseComponent):
         #params
         self.order=[]#order for things (after name and timing params)
         self.params={}
-        self.params['name']=Param(name, valType='code', hint="Everything needs a name (no spaces or punctuation)",
+        self.params['name']=Param(name, valType='code', hint=_("Everything needs a name (no spaces or punctuation)"),
             label="Name")
         self.params['sound']=Param(sound, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) or a filename",
+            hint=_("A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) or a filename"),
             label="Sound")
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your start point?")
+            hint=_("How do you want to define your start point?"))
         self.params['stopType']=Param(stopType, valType='str',
             allowedVals=['duration (s)'],
-            hint="The maximum duration of a sound in seconds")
+            hint=_("The maximum duration of a sound in seconds"))
         self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
-            hint="When does the sound start playing?")
+            hint=_("When does the sound start playing?"))
         self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="The maximum duration for the sound (blank to use the duration of the sound file)")
+            hint=_("The maximum duration for the sound (blank to use the duration of the sound file)"))
         self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected start (s), purely for representing in the timeline")
+            hint=_("(Optional) expected start (s), purely for representing in the timeline"))
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected duration (s), purely for representing in the timeline")
+            hint=_("(Optional) expected duration (s), purely for representing in the timeline"))
         self.params['volume']=Param(volume, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="The volume (in range 0 to 1)",
+            hint=_("The volume (in range 0 to 1)"),
             label="Volume")
 
     def writeInitCode(self,buff):

@@ -8,7 +8,7 @@ from psychopy.app.builder import components #for getInitVals()
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'text.png')
-tooltip = 'Text: present text stimuli'
+tooltip = _('Text: present text stimuli')
 
 class TextComponent(VisualComponent):
     """An event class for presenting text-based stimuli"""
@@ -36,25 +36,25 @@ class TextComponent(VisualComponent):
             label="Name")
         self.params['text']=Param(text, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="The text to be displayed",
+            hint=_("The text to be displayed"),
             label="Text")
         self.params['font']=Param(font, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="The font name (e.g. Comic Sans)",
+            hint=_("The font name (e.g. Comic Sans)"),
             label="Font")
         #change the hint for size
         del self.params['size']#because you can't specify width for text
         self.params['letterHeight']=Param(letterHeight, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Specifies the height of the letter (the width is then determined by the font)",
+            hint=_("Specifies the height of the letter (the width is then determined by the font)"),
             label="Letter height")
         self.params['wrapWidth']=Param(wrapWidth, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant'],
-            hint="How wide should the text get when it wraps? (in the specified units)",
+            hint=_("How wide should the text get when it wraps? (in the specified units)"),
             label="Wrap width")
         self.params['flip']=Param(flip, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat', 'set every frame'],
-            hint="horiz = left-right reversed; vert = up-down reversed; $var = variable",
+            hint=_("horiz = left-right reversed; vert = up-down reversed; $var = variable"),
             label="Flip (mirror)")
 
     def writeInitCode(self,buff):

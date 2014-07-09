@@ -8,7 +8,7 @@ from psychopy.app.builder import components #for getInitVals()
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'movie.png')
-tooltip = 'Movie: play movie files'
+tooltip = _('Movie: play movie files')
 
 class MovieComponent(VisualComponent):
     """An event class for presenting movie-based stimuli"""
@@ -32,14 +32,14 @@ class MovieComponent(VisualComponent):
         self.order = ['forceEndRoutine']#comes immediately after name and timing params
 
         #params
-        self.params['stopVal'].hint="Leave blank simply to play the movie for its full duration"
+        self.params['stopVal'].hint=_("Leave blank simply to play the movie for its full duration")
         self.params['movie']=Param(movie, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="A filename for the movie (including path)",
+            hint=_("A filename for the movie (including path)"),
             label="Movie file")
         self.params['forceEndRoutine']=Param(forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Should the end of the movie cause the end of the routine (e.g. trial)?",
+            hint=_("Should the end of the movie cause the end of the routine (e.g. trial)?"),
             label="Force end of Routine")
         #these are normally added but we don't want them for a movie
         del self.params['color']

@@ -8,7 +8,7 @@ from psychopy.app.builder.components import getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'grating.png')
-tooltip = 'Grating: present cyclic textures, prebuilt or from a file'
+tooltip = _('Grating: present cyclic textures, prebuilt or from a file')
 
 class GratingComponent(VisualComponent):
     """A class for presenting grating stimuli"""
@@ -32,27 +32,27 @@ class GratingComponent(VisualComponent):
         #params
         self.params['tex']=Param(image, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename (including path)",
+            hint=_("The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename (including path)"),
             label="Texture")
         self.params['mask']=Param(mask, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="An image to define the alpha mask (ie shape)- gauss, circle... or a filename (including path)",
+            hint=_("An image to define the alpha mask (ie shape)- gauss, circle... or a filename (including path)"),
             label="Mask")
         self.params['sf']=Param(sf, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Spatial frequency of image repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]",
+            hint=_("Spatial frequency of image repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]"),
             label="Spatial Freq.")
         self.params['phase']=Param(phase, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Spatial positioning of the image on the grating (wraps in range 0-1.0)",
+            hint=_("Spatial positioning of the image on the grating (wraps in range 0-1.0)"),
             label="Phase (in cycles)")
         self.params['texture resolution']=Param(texRes, valType='code', allowedVals=['32','64','128','256','512'],
             updates='constant', allowedUpdates=[],
-            hint="Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice",
+            hint=_("Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice"),
             label="Texture resolution", categ="Advanced")
         self.params['interpolate']=Param(interpolate, valType='str', allowedVals=['linear','nearest'],
             updates='constant', allowedUpdates=[],
-            hint="How should the image be interpolated if/when rescaled",
+            hint=_("How should the image be interpolated if/when rescaled"),
             label="Interpolate", categ="Advanced")
 
     def writeInitCode(self,buff):

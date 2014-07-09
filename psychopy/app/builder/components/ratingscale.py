@@ -11,7 +11,7 @@ __author__ = 'Jeremy Gray'
 
 thisFolder = path.abspath(path.dirname(__file__)) # the absolute path to the folder containing this path
 iconFile = path.join(thisFolder, 'ratingscale.png')
-tooltip = 'Rating scale: obtain numerical or categorical responses'
+tooltip = _('Rating scale: obtain numerical or categorical responses')
 
 class RatingScaleComponent(BaseComponent):
     """A class for presenting a rating scale as a builder component"""
@@ -51,88 +51,88 @@ class RatingScaleComponent(BaseComponent):
 
         # normal params:
         self.params['name'] = Param(name, valType='code', allowedTypes=[],
-            hint="A rating scale only collects the response; it does not display the stimulus to be rated.",
+            hint=_("A rating scale only collects the response; it does not display the stimulus to be rated."),
             label="Name")
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your start point?")
+            hint=_("How do you want to define your start point?"))
         self.params['stopType']=Param(stopType, valType='str',
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your end point?")
+            hint=_("How do you want to define your end point?"))
         self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
-            hint="When does the rating scale start being shown?")
+            hint=_("When does the rating scale start being shown?"))
         self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="How long to wait for a response (blank is forever)")
+            hint=_("How long to wait for a response (blank is forever)"))
         self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected start (s) of stimulus, purely for representing in the timeline")
+            hint=_("(Optional) expected start (s) of stimulus, purely for representing in the timeline"))
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected duration (s) of stimulus, purely for representing in the timeline")
+            hint=_("(Optional) expected duration (s) of stimulus, purely for representing in the timeline"))
         self.params['visualAnalogScale'] = Param(visualAnalogScale, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Show a continuous visual analog scale; returns 0.00 to 1.00; takes precedence over numeric scale or categorical choices",
+            hint=_("Show a continuous visual analog scale; returns 0.00 to 1.00; takes precedence over numeric scale or categorical choices"),
             label="Visual analog scale")
         self.params['categoryChoices'] = Param(categoryChoices, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="A list of categories (non-numeric alternatives) to present, space or comma-separated; these take precedence over a numeric scale",
+            hint=_("A list of categories (non-numeric alternatives) to present, space or comma-separated; these take precedence over a numeric scale"),
             label="Category choices")
         self.params['scaleDescription'] = Param(scaleDescription, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Brief instructions, such as a description of the scale numbers as seen by the subject.",
+            hint=_("Brief instructions, such as a description of the scale numbers as seen by the subject."),
             label="Scale description")
         self.params['low'] = Param(low, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[], hint="Lowest rating (low end of the scale); not used for categories.",
+            updates='constant', allowedUpdates=[], hint=_("Lowest rating (low end of the scale); not used for categories."),
             label="Low")
         self.params['high'] = Param(high, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[], hint="Highest rating (top end of the scale); not used for categories.",
+            updates='constant', allowedUpdates=[], hint=_("Highest rating (top end of the scale); not used for categories."),
             label="High")
         self.params['labels'] = Param(labels, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[], #categ="Advanced",
-            hint="Labels for the ends of the scale, separated by commas")
+            hint=_("Labels for the ends of the scale, separated by commas"))
         self.params['marker'] = Param(marker, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[], #categ="Advanced",
-            hint="Style for the marker: triangle, circle, glow, slider, hover")
+            hint=_("Style for the marker: triangle, circle, glow, slider, hover"))
         self.params['markerStart'] = Param(markerStart, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[], #categ="Advanced",
-            hint="initial position for the marker")
+            hint=_("initial position for the marker"))
 
         # advanced params:
         self.params['singleClick'] = Param(singleClick, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
-            hint="Should clicking the line accept that rating (without needing to confirm via 'accept')?")
+            hint=_("Should clicking the line accept that rating (without needing to confirm via 'accept')?"))
         self.params['disappear'] = Param(disappear, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
-            hint="Hide the scale when a rating has been accepted; False to remain on-screen")
+            hint=_("Hide the scale when a rating has been accepted; False to remain on-screen"))
         self.params['showAccept'] = Param(showAccept, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
-            hint="Should the accept button by visible?")
+            hint=_("Should the accept button by visible?"))
         self.params['storeRating'] = Param(storeRating, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
-            hint="store the rating")
+            hint=_("store the rating"))
         self.params['storeRatingTime'] = Param(storeRatingTime, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
-            hint="store the time taken to make the choice (in seconds)")
+            hint=_("store the time taken to make the choice (in seconds)"))
         self.params['storeHistory'] = Param(storeHistory, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
-            hint="store the history of (selection, time)")
+            hint=_("store the history of (selection, time)"))
         self.params['forceEndRoutine'] = Param(forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
-            hint="Should accepting a rating cause the end of the routine (e.g. trial)?")
+            hint=_("Should accepting a rating cause the end of the routine (e.g. trial)?"))
         self.params['size'] = Param(size, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
-            hint="Relative size on the screen; size > 1 is larger than default; size < 1 is smaller")
+            hint=_("Relative size on the screen; size > 1 is larger than default; size < 1 is smaller"))
         self.params['tickHeight'] = Param(tickHeight, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
-            hint="height of tick marks (1 is upward, 0 is hidden, -1 is downward)")
+            hint=_("height of tick marks (1 is upward, 0 is hidden, -1 is downward)"))
         self.params['pos'] = Param(pos, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
-            hint="x,y position on the screen")
+            hint=_("x,y position on the screen"))
 
         # customization:
         self.params['customize_everything'] = Param(customize_everything, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Custom",
-            hint="Use this text to create the rating scale as you would in a code component; overrides all"
-                " dialog settings except time parameters, forceEndRoutine, storeRatingTime, storeRating")
+            hint=_("Use this text to create the rating scale as you would in a code component; overrides all"
+                " dialog settings except time parameters, forceEndRoutine, storeRatingTime, storeRating"))
 
     def writeInitCode(self, buff):
         # build up an initialization string for RatingScale():

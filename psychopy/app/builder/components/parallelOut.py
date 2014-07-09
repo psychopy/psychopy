@@ -9,7 +9,7 @@ from psychopy import prefs
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'parallelOut.png')
-tooltip = 'Parallel out: send signals from the parallel port'
+tooltip = _('Parallel out: send signals from the parallel port')
 
 class ParallelOutComponent(BaseComponent):
     """A class for sending signals from the parallel port"""
@@ -30,35 +30,35 @@ class ParallelOutComponent(BaseComponent):
         self.params={}
         self.order=['address', 'startData', 'stopData']
         self.params['name']=Param(name, valType='code', allowedTypes=[],
-            hint="Everything needs a name",
+            hint=_("Everything needs a name"),
             label="Name")
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your start point?")
+            hint=_("How do you want to define your start point?"))
         self.params['stopType']=Param(stopType, valType='str',
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your end point?")
+            hint=_("How do you want to define your end point?"))
         self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
-            hint="When does the 'start' data get sent?")
+            hint=_("When does the 'start' data get sent?"))
         self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="When does the 'end' data get sent?")
+            hint=_("When does the 'end' data get sent?"))
         self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected start (s), purely for representing in the timeline")
+            hint=_("(Optional) expected start (s), purely for representing in the timeline"))
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected duration (s), purely for representing in the timeline")
+            hint=_("(Optional) expected duration (s), purely for representing in the timeline"))
         #main parameters
         addressOptions = prefs.general['parallelPorts']
         self.params['address'] = Param(address, valType='str', allowedVals=addressOptions,
-            hint="Parallel port to be used (you can change these options in preferences>general)")
+            hint=_("Parallel port to be used (you can change these options in preferences>general)"))
         self.params['startData'] = Param(startData, valType='code', allowedTypes=[],
-            hint="Data to be sent at 'start'")
+            hint=_("Data to be sent at 'start'"))
         self.params['stopData'] = Param(stopData, valType='code', allowedTypes=[],
-            hint="Data to be sent at 'end'")
+            hint=_("Data to be sent at 'end'"))
         self.params['syncScreen']=Param(syncScreen, valType='bool',
             allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
-            hint="If the parallel port data relates to visual stimuli then sync its pulse to the screen refresh",
+            hint=_("If the parallel port data relates to visual stimuli then sync its pulse to the screen refresh"),
             label="Sync to screen")
     def writeInitCode(self,buff):
         buff.writeIndented("%(name)s = parallel.ParallelPort(address=%(address)s)\n" %(self.params))

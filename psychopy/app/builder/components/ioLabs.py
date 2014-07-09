@@ -11,7 +11,7 @@ __author__ = 'Jeremy Gray'
 
 thisFolder = path.abspath(path.dirname(__file__))  # abs path to the folder containing this path
 iconFile = path.join(thisFolder, 'ioLabs.png')
-tooltip = 'ioLabs ButtonBox: check and record response buttons on ioLab Systems ButtonBox'
+tooltip = _('ioLabs ButtonBox: check and record response buttons on ioLab Systems ButtonBox')
 
 class ioLabsButtonBoxComponent(BaseComponent):
     """An event class for checking an ioLab Systems buttonbox.
@@ -40,56 +40,56 @@ class ioLabsButtonBoxComponent(BaseComponent):
         self.params = {}
         self.order = ['forceEndRoutine', 'active', #NB name and timing params always come 1st
             'lights', 'store', 'storeCorrect', 'correctAns']
-        self.params['name'] = Param(name, valType='code', hint="A name for this ButtonBox object (e.g. bbox)",
+        self.params['name'] = Param(name, valType='code', hint=_("A name for this ButtonBox object (e.g. bbox)"),
             label="Name")
         self.params['active'] = Param(active, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="Active buttons, such as '1,6', '(1,2,5,6)' or '0' (without quotes)",
+            hint=_("Active buttons, such as '1,6', '(1,2,5,6)' or '0' (without quotes)"),
             label="Active buttons")
         self.params['startType'] = Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your start point?",
+            hint=_("How do you want to define your start point?"),
             label="")
         self.params['stopType'] = Param(stopType, valType='str',
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your end point?")
+            hint=_("How do you want to define your end point?"))
         self.params['startVal'] = Param(startVal, valType='code', allowedTypes=[],
-            hint="When does the bbox checking start?")
+            hint=_("When does the bbox checking start?"))
         self.params['stopVal'] = Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="When does the bbox checking end?")
+            hint=_("When does the bbox checking end?"))
         self.params['startEstim'] = Param(startEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected start (s), purely for representing in the timeline")
+            hint=_("(Optional) expected start (s), purely for representing in the timeline"))
         self.params['durationEstim'] = Param(durationEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected duration (s), purely for representing in the timeline")
+            hint=_("(Optional) expected duration (s), purely for representing in the timeline"))
         self.params['discard previous'] = Param(discardPrev, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Do you want to discard all button presses occuring before the onset of this component?",
+            hint=_("Do you want to discard all button presses occuring before the onset of this component?"),
             label="Discard previous")
         self.params['store'] = Param(store, valType='str', allowedTypes=[],
             allowedVals=['last button', 'first button', 'all buttons', 'nothing'],
             updates='constant', allowedUpdates=[],
-            hint="Choose which (if any) responses to store at end of a trial",
+            hint=_("Choose which (if any) responses to store at end of a trial"),
             label="Store")
         self.params['forceEndRoutine'] = Param(forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Should a button press force the end of the routine (e.g end the trial)?",
+            hint=_("Should a button press force the end of the routine (e.g end the trial)?"),
             label="Force end of Routine")
         self.params['storeCorrect'] = Param(storeCorrect, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Do you want to save the response as correct/incorrect?",
+            hint=_("Do you want to save the response as correct/incorrect?"),
             label="Store correct")
         self.params['lights'] = Param(lights, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Turn ON the lights for the active buttons?",
+            hint=_("Turn ON the lights for the active buttons?"),
             label="Lights")
         self.params['lights off'] = Param(lightsOff, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Turn OFF all lights at the end of each routine?",
+            hint=_("Turn OFF all lights at the end of each routine?"),
             label="Lights off")
         self.params['correctAns'] = Param(correctAns, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="What is the 'correct' response? Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns",
+            hint=_("What is the 'correct' response? Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns"),
             label="Correct answer")
 
     def writeStartCode(self, buff):
