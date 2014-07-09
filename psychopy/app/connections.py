@@ -321,7 +321,7 @@ class InstallUpdateDialog(wx.Dialog):
             buffer.write(ch)
             read+=chunk
             self.progressBar.SetValue(read)
-            msg = _("Fetched %i of %i kb of PsychoPy-%s.zip") %(read/1000, fileSize/1000, v)
+            msg = _("Fetched %(done)i of %(total)i kb of PsychoPy-%(version)s.zip") % {'done':read/1000, 'total':fileSize/1000, 'version':v}
             self.statusMessage.SetLabel(msg)
             self.Update()
         info+= _('Successfully downloaded PsychoPy-%s.zip') %v
