@@ -2,15 +2,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-07-09 15:05+0900\n"
-"PO-Revision-Date: 2014-07-09 15:05+0900\n"
+"POT-Creation-Date: 2014-07-09 23:24+0900\n"
+"PO-Revision-Date: 2014-07-09 23:44+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.6.6\n"
+"X-Generator: Poedit 1.6.5\n"
 "X-Poedit-KeywordsList: _;gettext;gettext_noop\n"
 "X-Poedit-Basepath: ../../\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -92,16 +92,16 @@ msgstr "パラメータが定義されていません"
 
 #: app/builder/builder.py:2810
 msgid "No parameters set (select a file above)"
-msgstr ""
+msgstr "パラメータが定義されていません(ファイルを選んでください)"
 
 #: app/builder/builder.py:2858
 #, python-format
 msgid ""
-"%i conditions, with %i parameters\n"
-"%s"
+"%(nCondition)i conditions, with %(nParam)i parameters\n"
+"%(paramStr)s"
 msgstr ""
-"%i条件, %iパラメータ\n"
-"%s"
+"%(nParam)iパラメータ, %(nCondition)i条件\n"
+"%(paramStr)s"
 
 #: app/builder/builder.py:2862 app/builder/builder.py:3030
 msgid "No parameters set (conditionsFile not found)"
@@ -109,13 +109,15 @@ msgstr "パラメータが定義されていません (条件ファイルが見�
 
 #: app/builder/builder.py:3024
 msgid "Badly formed condition name(s) in file:\n"
-msgstr ""
+msgstr "不適切な条件名がファイルに含まれています:\n"
 
 #: app/builder/builder.py:3025
 msgid ""
 ".\n"
 "Need to be legal as var name; edit file, try again."
 msgstr ""
+".\n"
+"条件名はPythonの変数として使用できる文字列でなければいけません"
 
 #: app/builder/builder.py:3872 app/coder/coder.py:1472
 #, python-format
@@ -329,7 +331,7 @@ msgstr "現在のスクリプトの実行を中止します"
 
 #: app/builder/builder.py:3965 app/coder/coder.py:1336
 msgid "PsychoPy updates..."
-msgstr "PsychoPyのアップデート..."
+msgstr "PsychoPyの更新..."
 
 #: app/builder/builder.py:3965 app/coder/coder.py:1336
 msgid "Update PsychoPy to the latest, or a specific, version"
@@ -490,13 +492,13 @@ msgstr "PsychoPyについて"
 
 #: app/builder/builder.py:4374
 #, python-format
-msgid "Undo %s\t%s"
-msgstr "元に戻す %s\t%s"
+msgid "Undo %(action)s\t%(key)s"
+msgstr "元に戻す %(action)s\t%(key)s"
 
 #: app/builder/builder.py:4385
 #, python-format
-msgid "Redo %s\t%s"
-msgstr "繰り返す %s\t%s"
+msgid "Redo %(action)s\t%(key)s"
+msgstr "繰り返す %(action)s\t%(key)s"
 
 #: app/builder/components/_base.py:20
 msgid "Name of this component"
@@ -569,7 +571,7 @@ msgstr "刺激の不透明度 (1=不透明, 0=完全に透明, 0.5=半透明)"
 
 #: app/builder/components/_visual.py:54
 msgid "Choice of color space for the color (rgb, dkl, lms)"
-msgstr "色空間の指定 (rgb, dkl, lms)"
+msgstr "色空間を指定します (rgb, dkl, lms)"
 
 #: app/builder/components/_visual.py:58
 msgid "Position of this stimulus (e.g. [1,2] )"
@@ -1771,10 +1773,10 @@ msgstr ""
 #: app/connections.py:113
 #, python-format
 msgid ""
-"PsychoPy v%s is available (you are running %s).\n"
+"PsychoPy v%(latest)s is available (you are running %(running)s).\n"
 "\n"
 msgstr ""
-"Psyuchopy v%sが利用できます(%sを利用中)\n"
+"Psyuchopy v%(latest)sが利用できます (%(running)sを利用中)\n"
 "\n"
 
 #: app/connections.py:114
@@ -1785,7 +1787,8 @@ msgstr "このバージョンは変更が大きすぎて自動更新できませ
 msgid ""
 "Please fetch the latest version from www.psychopy.org and install manually."
 msgstr ""
-"最新バージョンをwww.psychopy.orgから入手して手作業でインストールしてください"
+"最新バージョンを www.psychopy.org から入手して手作業でインストールしてくださ"
+"い"
 
 #: app/connections.py:117
 msgid "Go to downloads"
@@ -1807,11 +1810,11 @@ msgstr "最新バージョンのPsychoPy (%s)を利用中です"
 #: app/connections.py:148
 #, python-format
 msgid ""
-"PsychoPy v%s is available (you are running %s).\n"
+"PsychoPy v%(latest)s is available (you are running %(running)s).\n"
 "\n"
 "(To disable this check, see Preferences > connections > checkForUpdates)"
 msgstr ""
-"PsychoPy v%sが利用できます(%sを使用中)\n"
+"PsychoPy v%(latest)sが利用できます (%(running)sを使用中)\n"
 "\n"
 "(更新チェックを無効にするには「設定」の「接続」の「更新の確認」をオフにしてく"
 "ださい)"
@@ -1872,8 +1875,7 @@ msgstr "自動更新(最新バージョンを取得します)"
 #: app/connections.py:225
 msgid " Use zip file below (download a PsychoPy release file ending .zip)"
 msgstr ""
-"以下のZipファイルを使用(拡張子.zipのPsychoPyリリースをダウンロードしてくださ"
-"い)"
+"以下のZipファイルを使用 (拡張子.zipの配布ファイルをダウンロードしてください)"
 
 #: app/connections.py:232
 msgid "Install"
@@ -1924,11 +1926,11 @@ msgstr ""
 #: app/connections.py:260
 #, python-format
 msgid ""
-"PsychoPy v%s is available\n"
-"You are running v%s"
+"PsychoPy v%(latest)s is available\n"
+"You are running v%(running)s"
 msgstr ""
-"PsychoPy v%sが利用できます\n"
-"v%sを利用中"
+"PsychoPy v%(latest)sが利用できます\n"
+"v%(running)sを利用中"
 
 #: app/connections.py:262
 msgid ""
@@ -1946,7 +1948,7 @@ msgid ""
 msgstr ""
 "\n"
 "最新バージョンに自動的に更新できません\n"
-"www.psychopy.orgから最新のStandaloneパッケージを取得してください"
+"www.psychopy.org から最新のStandaloneパッケージを取得してください"
 
 #: app/connections.py:305
 #, python-format
@@ -1956,7 +1958,7 @@ msgstr "PsychoPy %sを取得しようとしています..."
 #: app/connections.py:324
 #, python-format
 msgid "Fetched %(done)i of %(total)i kb of PsychoPy-%(version)s.zip"
-msgstr "%(total)i kb中 %(done)i kb取得済み(PsychoPy-%(version)s.zip)"
+msgstr "%(total)i kb中 %(done)i kb取得済み (PsychoPy-%(version)s.zip)"
 
 #: app/connections.py:327
 #, python-format
@@ -1973,7 +1975,7 @@ msgstr ""
 
 #: app/connections.py:366
 msgid "Could not move existing PsychoPy installation (permissions error?)"
-msgstr "インストール済みのPsychoPyを移動できません(パーミッションエラー？)"
+msgstr "インストール済みのPsychoPyを移動できません (パーミッションエラー？)"
 
 #: app/connections.py:388
 #, python-format
@@ -1990,7 +1992,7 @@ msgid ""
 "Failed to create directory for new version (permissions error?):\n"
 "%s"
 msgstr ""
-"新バージョン用のディレクトリの作成に失敗しました(パーミッションエラー？):\n"
+"新バージョン用のディレクトリの作成に失敗しました (パーミッションエラー？):\n"
 "%s"
 
 #: app/connections.py:412
@@ -2036,11 +2038,11 @@ msgstr "設定のヘルプを開く"
 
 #: preferences/hints.py:6
 msgid "which system to use as a backend for drawing"
-msgstr "刺激描画に使用するライブラリ"
+msgstr "刺激描画に使用するライブラリを指定します"
 
 #: preferences/hints.py:9
 msgid "the default units for windows and visual stimuli"
-msgstr "標準でウィンドウと視覚刺激に適用する単位"
+msgstr "標準でウィンドウと視覚刺激に適用する単位(Units)を指定します"
 
 #: preferences/hints.py:12
 msgid "full screen is best for accurate timing"
@@ -2048,7 +2050,7 @@ msgstr "フルスクリーンにすると正確なタイミングで描画され
 
 #: preferences/hints.py:15
 msgid "enable subjects to use the mouse and GUIs during experiments"
-msgstr "マウスとGUIを使用可能にする"
+msgstr "マウスとGUIを使用可能にします"
 
 #: preferences/hints.py:18
 msgid "'version' is for internal usage, not for the user"
