@@ -2855,8 +2855,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                 paramStr += (unicode(param)+', ')
             paramStr = paramStr[:-2]+"]"#remove final comma and add ]
             #generate summary info
-            return _('%i conditions, with %i parameters\n%s') \
-                %(len(conditions),len(conditions[0]), paramStr)
+            return _('%(nCondition)i conditions, with %(nParam)i parameters\n%(paramStr)s') \
+                % {'nCondition':len(conditions), 'nParam':len(conditions[0]), 'paramStr':paramStr}
         else:
             if self.conditionsFile and not os.path.isfile(self.conditionsFile):
                 return  _("No parameters set (conditionsFile not found)")
@@ -4371,7 +4371,7 @@ class BuilderFrame(wx.Frame):
             enable = False
         else:
             action = self.currentUndoStack[-self.currentUndoLevel]['action']
-            label = _("Undo %s\t%s") %(action, self.app.keys['undo'])
+            label = _("Undo %(action)s\t%(key)s") % {'action':action, 'key':self.app.keys['undo']}
             enable = True
         self._undoLabel.SetText(label)
         self.toolbar.EnableTool(self.IDs.tbUndo,enable)
@@ -4382,7 +4382,7 @@ class BuilderFrame(wx.Frame):
             enable = False
         else:
             action = self.currentUndoStack[-self.currentUndoLevel+1]['action']
-            label = _("Redo %s\t%s") %(action, self.app.keys['redo'])
+            label = _("Redo %(action)s\t%(key)s") % {'action':action, 'key':self.app.keys['redo']}
             enable = True
         self._redoLabel.SetText(label)
         self.toolbar.EnableTool(self.IDs.tbRedo,enable)

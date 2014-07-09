@@ -110,7 +110,7 @@ class Updater:
                     self.doUpdate()
             else:
                 #the latest version needs a full install, rather than an autoupdate
-                msg = _("PsychoPy v%s is available (you are running %s).\n\n") %(self.latest['version'], self.runningVersion)
+                msg = _("PsychoPy v%(latest)s is available (you are running %(running)s).\n\n") % {'latest':self.latest['version'], 'running':self.runningVersion}
                 msg+= _("This version is too big an update to be handled automatically.\n")
                 msg+= _("Please fetch the latest version from www.psychopy.org and install manually.")
                 confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Warning', title='PsychoPy updates')
@@ -145,7 +145,7 @@ class SuggestUpdateDialog(wx.Dialog):
 
         #info about current version
         msg1 = wx.StaticText(self,-1,style=wx.ALIGN_CENTRE,
-            label=_("PsychoPy v%s is available (you are running %s).\n\n(To disable this check, see Preferences > connections > checkForUpdates)") %(latest['version'],runningVersion))
+            label=_("PsychoPy v%(latest)s is available (you are running %(running)s).\n\n(To disable this check, see Preferences > connections > checkForUpdates)") % {'latest':latest['version'],'running':runningVersion})
         if latest['lastCompatible']>runningVersion:
             msg2 = wx.StaticText(self,-1,style=wx.ALIGN_CENTRE,
             label=_("This version MAY require you to modify your\nscripts/exps slightly. Read the changelog carefully."))
@@ -257,7 +257,7 @@ class InstallUpdateDialog(wx.Dialog):
             msg = _("You are running the latest version of PsychoPy (%s)\n ") %(self.runningVersion) + \
                 _("You can revert to a previous version by selecting a specific .zip source installation file")
         else:
-            msg = _("PsychoPy v%s is available\nYou are running v%s") %(self.latest['version'], self.runningVersion)
+            msg = _("PsychoPy v%(latest)s is available\nYou are running v%(running)s") % {'latest':self.latest['version'], 'running':self.runningVersion}
             if self.latest['lastUpdatable']<=self.runningVersion:
                 msg+=_("\nYou can update to the latest version automatically")
             else:
