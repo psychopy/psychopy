@@ -120,7 +120,7 @@ class ColorCAL:
         self.com.setTimeout(timeout)
         logging.debug('Sent command:%s' %(message[:-1]))#send complete message
 
-        #get output lines using self.readlin, not self.com.readline
+        #get output lines using self.readline, not self.com.readline
         #colorcal signals the end of a message by giving a command prompt
         lines=[]
         thisLine=''
