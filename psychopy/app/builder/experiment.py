@@ -287,7 +287,7 @@ class Experiment:
         elif name == 'Saved data folder':
             #deprecated in 1.80 for more complete data filename control
             params[name] = Param(paramNode.get('val'), valType='code', allowedTypes=[],
-                hint="Name of the folder in which to save data and log files (blank defaults to the builder pref)",
+                hint=_("Name of the folder in which to save data and log files (blank defaults to the builder pref)"),
                 categ='Data')
         elif 'val' in paramNode.keys():
             if paramNode.get('val')=='window units':#changed this value in 1.70.00
@@ -599,22 +599,22 @@ class TrialHandler:
         self.order=['name']#make name come first (others don't matter)
         self.params={}
         self.params['name']=Param(name, valType='code', updates=None, allowedUpdates=None,
-            hint="Name of this loop")
+            hint=_("Name of this loop"))
         self.params['nReps']=Param(nReps, valType='code', updates=None, allowedUpdates=None,
-            hint="Number of repeats (for each condition)")
+            hint=_("Number of repeats (for each condition)"))
         self.params['conditions']=Param(conditions, valType='str', updates=None, allowedUpdates=None,
-            hint="A list of dictionaries describing the parameters in each condition")
+            hint=_("A list of dictionaries describing the parameters in each condition"))
         self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None, label='Conditions',
-            hint="Name of a file specifying the parameters for each condition (.csv, .xlsx, or .pkl). Browse to select a file. Right-click to preview file contents, or create a new file.")
+            hint=_("Name of a file specifying the parameters for each condition (.csv, .xlsx, or .pkl). Browse to select a file. Right-click to preview file contents, or create a new file."))
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
-            hint="The start and end of the loop (see flow timeline)")
+            hint=_("The start and end of the loop (see flow timeline)"))
         self.params['Selected rows']=Param(selectedRows, valType='code', updates=None, allowedUpdates=None,
-            hint="Select the rows form you condition file (the first is 0 not 1!). Examples: 0:5, 5:-1, randint(5)")
+            hint=_("Select the rows form you condition file (the first is 0 not 1!). Examples: 0:5, 5:-1, randint(5)"))
         self.params['loopType']=Param(loopType, valType='str',
             allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
-            hint="How should the next condition value(s) be chosen?")#NB staircase is added for the sake of the loop properties dialog
+            hint=_("How should the next condition value(s) be chosen?"))#NB staircase is added for the sake of the loop properties dialog
         self.params['random seed']=Param(randomSeed, valType='code', updates=None, allowedUpdates=None,
-            hint="To have a fixed random sequence provide an integer of your choosing here. Leave blank to have a new random sequence on each run of the experiment.")
+            hint=_("To have a fixed random sequence provide an integer of your choosing here. Leave blank to have a new random sequence on each run of the experiment."))
     def writeInitCode(self,buff):
         #no longer needed - initialise the trial handler just before it runs
         pass
@@ -709,31 +709,31 @@ class StairHandler:
         self.exp=exp
         self.order=['name']#make name come first (others don't matter)
         self.params={}
-        self.params['name']=Param(name, valType='code', hint="Name of this loop")
+        self.params['name']=Param(name, valType='code', hint=_("Name of this loop"))
         self.params['nReps']=Param(nReps, valType='code',
-            hint="(Minimum) number of trials in the staircase")
+            hint=_("(Minimum) number of trials in the staircase"))
         self.params['start value']=Param(startVal, valType='code',
-            hint="The initial value of the parameter")
+            hint=_("The initial value of the parameter"))
         self.params['max value']=Param(maxVal, valType='code',
-            hint="The maximum value the parameter can take")
+            hint=_("The maximum value the parameter can take"))
         self.params['min value']=Param(minVal, valType='code',
-            hint="The minimum value the parameter can take")
+            hint=_("The minimum value the parameter can take"))
         self.params['step sizes']=Param(stepSizes, valType='code',
-            hint="The size of the jump at each step (can change on each 'reversal')")
+            hint=_("The size of the jump at each step (can change on each 'reversal')"))
         self.params['step type']=Param(stepType, valType='str', allowedVals=['lin','log','db'],
-            hint="The units of the step size (e.g. 'linear' will add/subtract that value each step, whereas 'log' will ad that many log units)")
+            hint=_("The units of the step size (e.g. 'linear' will add/subtract that value each step, whereas 'log' will ad that many log units)"))
         self.params['N up']=Param(nUp, valType='code',
-            hint="The number of 'incorrect' answers before the value goes up")
+            hint=_("The number of 'incorrect' answers before the value goes up"))
         self.params['N down']=Param(nDown, valType='code',
-            hint="The number of 'correct' answers before the value goes down")
+            hint=_("The number of 'correct' answers before the value goes down"))
         self.params['N reversals']=Param(nReversals, valType='code',
-            hint="Minimum number of times the staircase must change direction before ending")
+            hint=_("Minimum number of times the staircase must change direction before ending"))
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['loopType']=Param('staircase', valType='str',
             allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
-            hint="How should the next trial value(s) be chosen?")#NB this is added for the sake of the loop properties dialog
+            hint=_("How should the next trial value(s) be chosen?"))#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
-            hint='Where to loop from and to (see values currently shown in the flow view)')
+            hint=_('Where to loop from and to (see values currently shown in the flow view)'))
     def writeInitCode(self,buff):
         #not needed - initialise the staircase only when needed
         pass
@@ -791,23 +791,23 @@ class MultiStairHandler:
         self.exp=exp
         self.order=['name']#make name come first
         self.params={}
-        self.params['name']=Param(name, valType='code', hint="Name of this loop")
+        self.params['name']=Param(name, valType='code', hint=_("Name of this loop"))
         self.params['nReps']=Param(nReps, valType='code',
-            hint="(Minimum) number of trials in *each* staircase")
+            hint=_("(Minimum) number of trials in *each* staircase"))
         self.params['stairType']=Param(nReps, valType='str', allowedVals=['simple','QUEST','quest'],
-            hint="How to select the next staircase to run")
+            hint=_("How to select the next staircase to run"))
         self.params['switchMethod']=Param(nReps, valType='str', allowedVals=['random','sequential','fullRandom'],
-            hint="How to select the next staircase to run")
+            hint=_("How to select the next staircase to run"))
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['loopType']=Param('staircase', valType='str',
         allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
-            hint="How should the next trial value(s) be chosen?")#NB this is added for the sake of the loop properties dialog
+            hint=_("How should the next trial value(s) be chosen?"))#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
-            hint='Where to loop from and to (see values currently shown in the flow view)')
+            hint=_('Where to loop from and to (see values currently shown in the flow view)'))
         self.params['conditions']=Param(conditions, valType='str', updates=None, allowedUpdates=None,
-            hint="A list of dictionaries describing the differences between each staircase")
+            hint=_("A list of dictionaries describing the differences between each staircase"))
         self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
-            hint="An xlsx or csv file specifying the parameters for each condition")
+            hint=_("An xlsx or csv file specifying the parameters for each condition"))
     def writeInitCode(self,buff):
         pass #don't initialise at start of exp, create when needed
     def writeLoopStartCode(self,buff):

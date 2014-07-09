@@ -2753,7 +2753,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 if 'conditions' in handler.params:
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
-                    text = """No parameters set"""
+                    text = _("No parameters set")
                 ctrls = ParamCtrls(dlg=self, parent=panel, label='conditions',
                     param=text, noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
@@ -2807,7 +2807,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 if 'conditions' in handler.params:
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
-                    text = """No parameters set (select a file above)"""
+                    text = _("No parameters set (select a file above)")
                 ctrls = ParamCtrls(dlg=self, parent=panel, label='conditions',
                     param=text, noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
@@ -2855,12 +2855,12 @@ class DlgLoopProperties(_BaseParamsDlg):
                 paramStr += (unicode(param)+', ')
             paramStr = paramStr[:-2]+"]"#remove final comma and add ]
             #generate summary info
-            return '%i conditions, with %i parameters\n%s' \
+            return _('%i conditions, with %i parameters\n%s') \
                 %(len(conditions),len(conditions[0]), paramStr)
         else:
             if self.conditionsFile and not os.path.isfile(self.conditionsFile):
-                return  "No parameters set (conditionsFile not found)"
-            return "No parameters set"
+                return  _("No parameters set (conditionsFile not found)")
+            return _("No parameters set")
     def viewConditions(self, event):
         """ display Condition x Parameter values from within a file
         make new if no self.conditionsFile is set
@@ -3021,13 +3021,13 @@ class DlgLoopProperties(_BaseParamsDlg):
                     self.currentCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
                 except ImportError, msg:
                     self.currentCtrls['conditions'].setValue(
-                        'Badly formed condition name(s) in file:\n'+str(msg).replace(':','\n')+
-                        '.\nNeed to be legal as var name; edit file, try again.')
+                        _('Badly formed condition name(s) in file:\n')+str(msg).replace(':','\n')+
+                        _('.\nNeed to be legal as var name; edit file, try again.'))
                     self.conditions = ''
                     logging.error('Rejected bad condition name in conditions file: %s' % str(msg).split(':')[0])
             else:
                 self.conditions = None
-                self.currentCtrls['conditions'].setValue("No parameters set (conditionsFile not found)")
+                self.currentCtrls['conditions'].setValue(_("No parameters set (conditionsFile not found)"))
         else:
             logging.debug('DlgLoop: could not determine if a condition filename was edited')
             #self.currentCtrls['conditions'] could be misleading at this point
