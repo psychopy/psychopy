@@ -2,15 +2,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-07-08 09:26+0900\n"
-"PO-Revision-Date: 2014-07-08 09:26+0900\n"
+"POT-Creation-Date: 2014-07-09 15:05+0900\n"
+"PO-Revision-Date: 2014-07-09 15:05+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.6.5\n"
+"X-Generator: Poedit 1.6.6\n"
 "X-Poedit-KeywordsList: _;gettext;gettext_noop\n"
 "X-Poedit-Basepath: ../../\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -85,6 +85,37 @@ msgstr "一番下へ"
 #: app/builder/builder.py:1535
 msgid "What is the name for the new Routine? (e.g. instr, trial, feedback)"
 msgstr "新しいRoutineの名前(instr, trial, feedbackなど)を入力してください"
+
+#: app/builder/builder.py:2756 app/builder/builder.py:2863
+msgid "No parameters set"
+msgstr "パラメータが定義されていません"
+
+#: app/builder/builder.py:2810
+msgid "No parameters set (select a file above)"
+msgstr ""
+
+#: app/builder/builder.py:2858
+#, python-format
+msgid ""
+"%i conditions, with %i parameters\n"
+"%s"
+msgstr ""
+"%i条件, %iパラメータ\n"
+"%s"
+
+#: app/builder/builder.py:2862 app/builder/builder.py:3030
+msgid "No parameters set (conditionsFile not found)"
+msgstr "パラメータが定義されていません (条件ファイルが見つかりません)"
+
+#: app/builder/builder.py:3024
+msgid "Badly formed condition name(s) in file:\n"
+msgstr ""
+
+#: app/builder/builder.py:3025
+msgid ""
+".\n"
+"Need to be legal as var name; edit file, try again."
+msgstr ""
 
 #: app/builder/builder.py:3872 app/coder/coder.py:1472
 #, python-format
@@ -467,6 +498,765 @@ msgstr "元に戻す %s\t%s"
 msgid "Redo %s\t%s"
 msgstr "繰り返す %s\t%s"
 
+#: app/builder/components/_base.py:20
+msgid "Name of this component"
+msgstr ""
+
+#: app/builder/components/_visual.py:25 app/builder/components/cedrusBox.py:52
+#: app/builder/components/eyetracker.py:36
+#: app/builder/components/eyetracker.py:52 app/builder/components/ioLabs.py:51
+#: app/builder/components/keyboard.py:41
+#: app/builder/components/microphone.py:35 app/builder/components/mouse.py:35
+#: app/builder/components/parallelOut.py:37
+#: app/builder/components/ratingscale.py:58 app/builder/components/sound.py:36
+#: app/builder/components/static.py:34
+msgid "How do you want to define your start point?"
+msgstr ""
+
+#: app/builder/components/_visual.py:28 app/builder/components/cedrusBox.py:56
+#: app/builder/components/eyetracker.py:39 app/builder/components/ioLabs.py:55
+#: app/builder/components/keyboard.py:45 app/builder/components/mouse.py:38
+#: app/builder/components/parallelOut.py:40
+#: app/builder/components/ratingscale.py:61
+#: app/builder/components/static.py:37
+msgid "How do you want to define your end point?"
+msgstr ""
+
+#: app/builder/components/_visual.py:30 app/builder/components/static.py:39
+msgid "When does the stimulus start?"
+msgstr ""
+
+#: app/builder/components/_visual.py:33 app/builder/components/static.py:42
+msgid "When does the stimulus end?"
+msgstr ""
+
+#: app/builder/components/_visual.py:35
+#: app/builder/components/ratingscale.py:68
+#: app/builder/components/static.py:44
+msgid ""
+"(Optional) expected start (s) of stimulus, purely for representing in the "
+"timeline"
+msgstr ""
+
+#: app/builder/components/_visual.py:37
+#: app/builder/components/ratingscale.py:70
+#: app/builder/components/static.py:46
+msgid ""
+"(Optional) expected duration (s) of stimulus, purely for representing in the "
+"timeline"
+msgstr ""
+
+#: app/builder/components/_visual.py:39
+msgid "Name of this stimulus"
+msgstr ""
+
+#: app/builder/components/_visual.py:42
+msgid "Units of dimensions for this stimulus"
+msgstr "この刺激に適用するUnits"
+
+#: app/builder/components/_visual.py:46
+msgid ""
+"Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a "
+"color-picker (rgb only)"
+msgstr ""
+"色($[1.0,1.0,0.0],redなど)を指定します; 右クリックで色選択ダイアログを表示し"
+"ます"
+
+#: app/builder/components/_visual.py:50
+msgid ""
+"Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)"
+msgstr "刺激の不透明度 (1=不透明, 0=完全に透明, 0.5=半透明)"
+
+#: app/builder/components/_visual.py:54
+msgid "Choice of color space for the color (rgb, dkl, lms)"
+msgstr "色空間の指定 (rgb, dkl, lms)"
+
+#: app/builder/components/_visual.py:58
+msgid "Position of this stimulus (e.g. [1,2] )"
+msgstr "刺激の位置 (例:[1,2])"
+
+#: app/builder/components/_visual.py:62
+msgid ""
+"Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
+msgstr "刺激の大きさ(単一の値または縦横の値のペア, 例: 2.5, [1,2])"
+
+#: app/builder/components/_visual.py:66
+msgid "Orientation of this stimulus (in deg)"
+msgstr "刺激の回転方向 (単位は度)"
+
+#: app/builder/components/aperture.py:15
+msgid "Aperture: restrict the drawing of stimuli to a given region"
+msgstr "Aperture: 刺激の描画範囲を指定した領域に制限します"
+
+#: app/builder/components/aperture.py:37
+msgid "How big is the aperture? (a single number for diameter)"
+msgstr "窓の直径"
+
+#: app/builder/components/aperture.py:39
+msgid "Where is the aperture centred?"
+msgstr "窓の中心位置"
+
+#: app/builder/components/aperture.py:40
+msgid "When does the aperture come into effect?"
+msgstr ""
+
+#: app/builder/components/aperture.py:41
+msgid "When does the aperture stop having an effect?"
+msgstr ""
+
+#: app/builder/components/cedrusBox.py:13
+msgid ""
+"Cedrus Button Box: Cedrus response boxes, using the pyxid library provided "
+"by Cedrus"
+msgstr ""
+"Cedrus Button Box: Cedrus社から提供されるpyxidライブラリを用いてCedrus "
+"response boxを使用します"
+
+#: app/builder/components/cedrusBox.py:44 app/builder/components/ioLabs.py:43
+msgid "A name for this ButtonBox object (e.g. bbox)"
+msgstr ""
+
+#: app/builder/components/cedrusBox.py:48
+msgid "Keys to be read (blank for any) or key numbers separated by commas"
+msgstr "読み取るキーの番号をカンマ区切りで並べます (空白ならすべてのキー)"
+
+#: app/builder/components/cedrusBox.py:58
+msgid "When to start checking keys"
+msgstr ""
+
+#: app/builder/components/cedrusBox.py:61
+msgid "When to stop checking keys"
+msgstr ""
+
+#: app/builder/components/cedrusBox.py:63
+#: app/builder/components/eyetracker.py:46 app/builder/components/ioLabs.py:62
+#: app/builder/components/keyboard.py:52
+#: app/builder/components/microphone.py:45 app/builder/components/mouse.py:45
+#: app/builder/components/parallelOut.py:47 app/builder/components/sound.py:46
+msgid "(Optional) expected start (s), purely for representing in the timeline"
+msgstr ""
+
+#: app/builder/components/cedrusBox.py:65
+#: app/builder/components/eyetracker.py:48 app/builder/components/ioLabs.py:64
+#: app/builder/components/keyboard.py:54
+#: app/builder/components/microphone.py:47 app/builder/components/mouse.py:47
+#: app/builder/components/parallelOut.py:49 app/builder/components/sound.py:48
+msgid ""
+"(Optional) expected duration (s), purely for representing in the timeline"
+msgstr ""
+
+#: app/builder/components/cedrusBox.py:68
+msgid ""
+"Do you want to discard all key presses occuring before the onset of this "
+"component?"
+msgstr "このコンポーネントが有効になる前のすべてのキー押しを破棄します"
+
+#: app/builder/components/cedrusBox.py:73 app/builder/components/ioLabs.py:72
+msgid "Choose which (if any) responses to store at end of a trial"
+msgstr "記録するキー押し反応を選択します"
+
+#: app/builder/components/cedrusBox.py:77
+msgid "Should a key press force the end of the routine (e.g end the trial)?"
+msgstr "キー押しを検出すると強制的にRoutineを終了します"
+
+#: app/builder/components/cedrusBox.py:81 app/builder/components/ioLabs.py:80
+#: app/builder/components/keyboard.py:69
+msgid "Do you want to save the response as correct/incorrect?"
+msgstr "反応の正誤を記録します"
+
+#: app/builder/components/cedrusBox.py:85
+msgid ""
+"What is the 'correct' response? NB, keys are labelled 0 to 6 on a 7-button "
+"box"
+msgstr "正答を定義します (7ボタンのボックスではキーは0から6の数値で指定します)"
+
+#: app/builder/components/cedrusBox.py:89
+msgid ""
+"Device number, if you have multiple devices which one do you want (0, 1, "
+"2...)"
+msgstr ""
+"複数のデバイスをコンピュータに接続している場合は使用するデバイスの番号(0, 1, "
+"2...)を指定します"
+
+#: app/builder/components/cedrusBox.py:97
+msgid ""
+"According to Cedrus the response box timer has a drift - use with caution!"
+msgstr ""
+"キーボックスのタイマーを使用します (Cedrusによるとドリフトがあるので注意！)"
+
+#: app/builder/components/code.py:11
+msgid "Code: insert python commands into an experiment"
+msgstr "Code: Pythonのコードを実験に挿入します"
+
+#: app/builder/components/code.py:29
+msgid ""
+"Code at the start of the experiment (initialization); right-click checks "
+"syntax"
+msgstr ""
+"実験開始時に実行されるコード (実験の初期化処理など); 右クリックで文法をチェッ"
+"ク"
+
+#: app/builder/components/code.py:32
+msgid ""
+"Code to be run at the start of each repeat of the Routine (e.g. each trial); "
+"right-click checks syntax"
+msgstr ""
+"ルーチンが繰り返し開始される度に実行されるコード; 右クリックで文法をチェック "
+
+#: app/builder/components/code.py:35
+msgid ""
+"Code to be run on every video frame during for the duration of this Routine; "
+"right-click checks syntax"
+msgstr ""
+"このルーチンの実行中、フレームが描画される度に実行されるコード; 右クリックで"
+"文法をチェック"
+
+#: app/builder/components/code.py:38
+msgid ""
+"Code at the end of this repeat of the Routine (e.g. getting/storing "
+"responses); right-click checks syntax"
+msgstr ""
+"ルーチンが終了する度に実行されるコード (反応の取得や記録など); 右クリックで文"
+"法をチェック"
+
+#: app/builder/components/code.py:41
+msgid ""
+"Code at the end of the entire experiment (e.g. saving files, resetting "
+"computer); right-click checks syntax"
+msgstr ""
+"実験全体の終了時に実験されるコード (ファイルの保存など); 右クリックで文法を"
+"チェック"
+
+#: app/builder/components/dots.py:11
+msgid "Random Dot Kinematogram"
+msgstr "ランダムドットキネマとグラムを描画します"
+
+#: app/builder/components/dots.py:41
+msgid ""
+"Number of dots in the field (for circular fields this will be average number "
+"of dots)"
+msgstr "フィールドに含まれるドットの数 (円形のフィールドでは平均ドット数)"
+
+#: app/builder/components/dots.py:45
+msgid "Direction of motion for the signal dots (degrees)"
+msgstr "シグナルのドットの運動方向 (単位は度)"
+
+#: app/builder/components/dots.py:49
+msgid "Speed of the dots (displacement per frame in the specified units)"
+msgstr "ドットの速度 (1フレームでの移動量; 単位はUnitsに従う)"
+
+#: app/builder/components/dots.py:53
+msgid ""
+"Coherence of the dots (fraction moving in the signal direction on any one "
+"frame)"
+msgstr ""
+"ドットのコヒーレンス(各フレームにおいてシグナル方向に運動するドットの割合)"
+
+#: app/builder/components/dots.py:57
+msgid "Size of the dots IN PIXELS regardless of the set units"
+msgstr "ドットの大きさをUnitsの設定に関わらずpixで指定"
+
+#: app/builder/components/dots.py:60
+msgid ""
+"Number of frames before each dot is killed and randomly assigned a new "
+"position"
+msgstr "ドットが消去されてランダムに新しい位置に割り当てられるまでのフレーム数"
+
+#: app/builder/components/dots.py:63
+msgid ""
+"On each frame are the signals dots remaining the same or changing? See Scase "
+"et al."
+msgstr "Sameにするとシグナルのドットはフレーム間で変化しません"
+
+#: app/builder/components/dots.py:66
+msgid "What governs the behaviour of the noise dots? See Scase et al."
+msgstr ""
+"ノイズのドットがDirectionにすると一定方向に、positionであればフレーム間でラン"
+"ダムな位置に、walkであればフレーム間でランダムな方向に運動します"
+
+#: app/builder/components/dots.py:70
+msgid "What is the shape of the field?"
+msgstr "フィールドの形状"
+
+#: app/builder/components/dots.py:74
+msgid "What is the size of the field (in the specified units)?"
+msgstr "フィールドの大きさ"
+
+#: app/builder/components/dots.py:78
+msgid "Where is the field centred (in the specified units)?"
+msgstr "フィールドの中心位置"
+
+#: app/builder/components/eyetracker.py:11
+msgid "Eyetracker: use one of several eyetrackers to follow gaze"
+msgstr "Eyetracker: サポートするアイトラッカーを利用して視線位置を取得します"
+
+#: app/builder/components/eyetracker.py:32
+msgid "Go on, give me a nice name!"
+msgstr ""
+
+#: app/builder/components/eyetracker.py:41
+msgid "When does the eyetracker send us eye events?"
+msgstr ""
+
+#: app/builder/components/eyetracker.py:44
+msgid "When does the eyetracker stop sending us eye events?"
+msgstr ""
+
+#: app/builder/components/eyetracker.py:55
+msgid ""
+"How often should the eyetracker state (x,y,pupilsize...) be stored? On every "
+"video frame, every click or just at the end of the Routine?"
+msgstr ""
+"アイトラッカーの状態(x, y, 瞳孔サイズ...)を保存するタイミングを指定します"
+
+#: app/builder/components/grating.py:11
+msgid "Grating: present cyclic textures, prebuilt or from a file"
+msgstr ""
+"Grating: 組み込みの、またはファイルから読み込んだテクスチャを周期的に描画しま"
+"す"
+
+#: app/builder/components/grating.py:35
+msgid ""
+"The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename "
+"(including path)"
+msgstr ""
+"グレーティングのテクスチャを指定します(sin, sqr, sinXsin, ... ファイル名な"
+"ど)。"
+
+#: app/builder/components/grating.py:39
+msgid ""
+"An image to define the alpha mask (ie shape)- gauss, circle... or a filename "
+"(including path)"
+msgstr ""
+"αマスクを指定して形状を変更します(gauss, circle, ... パスを含むファイル名な"
+"ど)。"
+
+#: app/builder/components/grating.py:43
+msgid ""
+"Spatial frequency of image repeats across the grating in 1 or 2 dimensions, "
+"e.g. 4 or [2,3]"
+msgstr ""
+"グレーティングの空間周波数(テクスチャが繰り返される回数)を指定します。1次元ま"
+"たは2次元の値を指定できます。"
+
+#: app/builder/components/grating.py:47
+msgid "Spatial positioning of the image on the grating (wraps in range 0-1.0)"
+msgstr "グレーティングの位相 (0.0から1.0の範囲に丸められます)"
+
+#: app/builder/components/grating.py:51 app/builder/components/patch.py:52
+msgid ""
+"Resolution of the texture for standard ones such as sin, sqr etc. For most "
+"cases a value of 256 pixels will suffice"
+msgstr ""
+"Sin, sqrといったテクスチャの解像度を指定します 多くの場合256pixで十分です"
+
+#: app/builder/components/grating.py:55 app/builder/components/image.py:49
+#: app/builder/components/patch.py:56 app/builder/components/polygon.py:61
+msgid "How should the image be interpolated if/when rescaled"
+msgstr "画像がリサイズされた時の補間方法を指定します"
+
+#: app/builder/components/image.py:11
+msgid "Image: present images (bmp, jpg, tif...)"
+msgstr "Image: 画像(bmp, jpg, tif...)を描画します"
+
+#: app/builder/components/image.py:37
+msgid "The image to be displayed - a filename, including path"
+msgstr "描画する画像ファイルをパスも含めて指定します"
+
+#: app/builder/components/image.py:41
+msgid ""
+"An image to define the alpha mask through which the image is seen - gauss, "
+"circle, None or a filename (including path)"
+msgstr ""
+"αマスクを指定して形状を変更します(gauss, circle, ... パスを含むファイル名な"
+"ど)。"
+
+#: app/builder/components/image.py:45
+msgid "Resolution of the mask if one is used."
+msgstr "マスクを使用する場合のマスクの解像度を指定します"
+
+#: app/builder/components/image.py:53
+msgid "Should the image be flipped vertically (top to bottom)?"
+msgstr "画像を上下に反転します"
+
+#: app/builder/components/image.py:57
+msgid "Should the image be flipped horizontally (left to right)?"
+msgstr "画像を左右に反転します"
+
+#: app/builder/components/ioLabs.py:14
+msgid ""
+"ioLabs ButtonBox: check and record response buttons on ioLab Systems "
+"ButtonBox"
+msgstr ""
+"ioLabs ButtonBox: ioLab Systems製ボタンボックスを使ってボタン押し反応を記録し"
+"ます"
+
+#: app/builder/components/ioLabs.py:47
+msgid "Active buttons, such as '1,6', '(1,2,5,6)' or '0' (without quotes)"
+msgstr "使用するボタンをカンマ区切りの数値で指定します (例: 1,6、(1,2,5,6)、0)"
+
+#: app/builder/components/ioLabs.py:57
+msgid "When does the bbox checking start?"
+msgstr ""
+
+#: app/builder/components/ioLabs.py:60
+msgid "When does the bbox checking end?"
+msgstr ""
+
+#: app/builder/components/ioLabs.py:67
+msgid ""
+"Do you want to discard all button presses occuring before the onset of this "
+"component?"
+msgstr "このコンポーネントが有効になる前のすべてのボタン押しを破棄します"
+
+#: app/builder/components/ioLabs.py:76 app/builder/components/mouse.py:54
+msgid "Should a button press force the end of the routine (e.g end the trial)?"
+msgstr "ボタン押しを検出すると強制的にRoutineを終了します"
+
+#: app/builder/components/ioLabs.py:84
+msgid "Turn ON the lights for the active buttons?"
+msgstr "使用するボタンのライトをONにします"
+
+#: app/builder/components/ioLabs.py:88
+msgid "Turn OFF all lights at the end of each routine?"
+msgstr "ボタンのライトをルーチン終了時にOFFにします"
+
+#: app/builder/components/ioLabs.py:92
+msgid ""
+"What is the 'correct' response? Enter 'None' (no quotes) if withholding a "
+"response is correct. Might be helpful to add a correctAns column and use "
+"$thisTrial.correctAns"
+msgstr ""
+
+#: app/builder/components/keyboard.py:13
+msgid "Keyboard: check and record keypresses"
+msgstr "Keyboard: キーボードのキー押しをチェックし記録します"
+
+#: app/builder/components/keyboard.py:33
+msgid "A name for this keyboard object (e.g. response)"
+msgstr ""
+
+#: app/builder/components/keyboard.py:37
+msgid ""
+"A comma-separated list of keys (with quotes), such as "
+"'q','right','space','left' "
+msgstr ""
+"カンマ区切りのキー名のリスト(引用符が必要), 例: 'q','right','space','left'"
+
+#: app/builder/components/keyboard.py:47
+msgid "When does the keyboard checking start?"
+msgstr ""
+
+#: app/builder/components/keyboard.py:50
+msgid "When does the keyboard checking end?"
+msgstr ""
+
+#: app/builder/components/keyboard.py:57
+msgid ""
+"Do you want to discard any keypresses occuring before the onset of this "
+"component?"
+msgstr "このコンポーネントが開始される前に押されたキー押しを破棄します"
+
+#: app/builder/components/keyboard.py:61
+msgid "Choose which (if any) keys to store at end of trial"
+msgstr "記録するキー押し反応を選択します"
+
+#: app/builder/components/keyboard.py:65
+msgid "Should the keypress force the end of the routine (e.g end the trial)?"
+msgstr "キー押しを検出すると強制的にRoutineを終了します"
+
+#: app/builder/components/keyboard.py:73
+msgid ""
+"What is the 'correct' key? Might be helpful to add a correctAns column and "
+"use $thisTrial.correctAns"
+msgstr ""
+
+#: app/builder/components/microphone.py:13
+msgid ""
+"Microphone: basic sound capture (fixed onset & duration), okay for spoken "
+"words"
+msgstr "Microphone: 録音を行います(開始時刻と録音時間は固定) "
+
+#: app/builder/components/microphone.py:31 app/builder/components/sound.py:28
+msgid "Everything needs a name (no spaces or punctuation)"
+msgstr ""
+
+#: app/builder/components/microphone.py:38
+msgid "The duration of the recording in seconds; blank = 0 sec"
+msgstr ""
+
+#: app/builder/components/microphone.py:40
+msgid "When does the sound start recording?"
+msgstr ""
+
+#: app/builder/components/microphone.py:49
+msgid "Record two channels (stereo) or one (mono, smaller file)"
+msgstr ""
+"チェックするとステレオ録音、チェックを外すとモノラル録音(ファイルサイズ小)を"
+"します "
+
+#: app/builder/components/mouse.py:11
+msgid "Mouse: query mouse position and buttons"
+msgstr "Mouse: マウスの位置とボタンの状態を取得します"
+
+#: app/builder/components/mouse.py:31
+msgid "Even mice need names!"
+msgstr ""
+
+#: app/builder/components/mouse.py:40
+msgid "When does the mouse start being checked?"
+msgstr ""
+
+#: app/builder/components/mouse.py:43
+msgid "When does the mouse stop being checked?"
+msgstr ""
+
+#: app/builder/components/mouse.py:50
+msgid ""
+"How often should the mouse state (x,y,buttons) be stored? On every video "
+"frame, every click or just at the end of the Routine?"
+msgstr ""
+
+#: app/builder/components/mouse.py:59
+msgid "What should the values of mouse.time should be relative to?"
+msgstr ""
+"マウスの時計の開始時刻を実験開始時にするかRoutine開始時にするか指定します"
+
+#: app/builder/components/movie.py:11
+msgid "Movie: play movie files"
+msgstr "Movie: 動画ファイルを再生します"
+
+#: app/builder/components/movie.py:35
+msgid "Leave blank simply to play the movie for its full duration"
+msgstr ""
+
+#: app/builder/components/movie.py:38
+msgid "A filename for the movie (including path)"
+msgstr "動画ファイル名(パスを含む)"
+
+#: app/builder/components/movie.py:42
+msgid "Should the end of the movie cause the end of the routine (e.g. trial)?"
+msgstr "動画再生終了時にRoutineを終了します"
+
+#: app/builder/components/parallelOut.py:12
+msgid "Parallel out: send signals from the parallel port"
+msgstr "Parallel out: パラレルポートからシグナルを送信します"
+
+#: app/builder/components/parallelOut.py:33
+msgid "Everything needs a name"
+msgstr ""
+
+#: app/builder/components/parallelOut.py:42
+msgid "When does the 'start' data get sent?"
+msgstr ""
+
+#: app/builder/components/parallelOut.py:45
+msgid "When does the 'end' data get sent?"
+msgstr ""
+
+#: app/builder/components/parallelOut.py:53
+msgid ""
+"Parallel port to be used (you can change these options in "
+"preferences>general)"
+msgstr "使用するパラレルポート (設定のgeneralから変更可能)"
+
+#: app/builder/components/parallelOut.py:55
+msgid "Data to be sent at 'start'"
+msgstr ""
+
+#: app/builder/components/parallelOut.py:57
+msgid "Data to be sent at 'end'"
+msgstr ""
+
+#: app/builder/components/parallelOut.py:61
+msgid ""
+"If the parallel port data relates to visual stimuli then sync its pulse to "
+"the screen refresh"
+msgstr "パラレルポートのシグナルをスクリーンの描画と同期させます"
+
+#: app/builder/components/patch.py:11
+msgid "Patch: present images (bmp, jpg, tif...) or textures like gratings"
+msgstr ""
+"Patch: 画像ファイル(bmp, jpg, tif...)やグレーティング等のテクスチャを描画しま"
+"す"
+
+#: app/builder/components/patch.py:36
+msgid ""
+"The image to be displayed - 'sin','sqr'... or a filename (including path)"
+msgstr ""
+"グレーティングのテクスチャを指定します(sin, sqr, ... パスを含むファイル名な"
+"ど)。"
+
+#: app/builder/components/patch.py:40
+msgid ""
+"An image to define the alpha mask (ie shape)- 'gauss','circle'... or a "
+"filename (including path)"
+msgstr ""
+"αマスクを指定して形状を変更します(gauss, circle, ... パスを含むファイル名な"
+"ど)。"
+
+#: app/builder/components/patch.py:44
+msgid "Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]"
+msgstr ""
+"グレーティングの空間周波数(テクスチャが繰り返される回数)を指定します。1次元ま"
+"たは2次元の値を指定できます。"
+
+#: app/builder/components/patch.py:48
+msgid "Spatial positioning of the image on the patch (in range 0-1.0)"
+msgstr "パッチの位相 (0.0から1.0の範囲に丸められます)"
+
+#: app/builder/components/polygon.py:11
+msgid "Polygon: any regular polygon (line, triangle, square...circle)"
+msgstr "Polygon: 正多角形を描画します(直線, 三角形, 正方形,...円)"
+
+#: app/builder/components/polygon.py:37
+msgid "How many vertices? 2=line, 3=triangle... (90 approximates a circle)"
+msgstr "頂点数を指定します(2=線分, 3=三角形 ... 約90で円を近似)"
+
+#: app/builder/components/polygon.py:41 app/builder/components/polygon.py:49
+msgid "Choice of color space for the fill color (rgb, dkl, lms)"
+msgstr ""
+
+#: app/builder/components/polygon.py:45
+msgid ""
+"Fill color of this shape; Right-click to bring up a color-picker (rgb only)"
+msgstr ""
+"塗りつぶし色を指定します; 右クリックで色選択ダイアログを表示します(rgbのみ)"
+
+#: app/builder/components/polygon.py:53
+msgid ""
+"Line color of this shape; Right-click to bring up a color-picker (rgb only)"
+msgstr ""
+"輪郭線の色を指定します; 右クリックで色選択ダイアログを表示します(rgbのみ)"
+
+#: app/builder/components/polygon.py:57
+msgid ""
+"Width of the shape's line (always in pixels - this does NOT use 'units')"
+msgstr "輪郭線の幅を指定します (Unitsの設定に関わらずpixで指定)"
+
+#: app/builder/components/polygon.py:65
+msgid ""
+"Size of this stimulus [w,h]. Note that for a line only the first value is "
+"used, for triangle and rect the [w,h] is as expected, but for higher-order "
+"polygons it represents the [w,h] of the ellipse that the polygon sits on!! "
+msgstr ""
+
+#: app/builder/components/ratingscale.py:14
+msgid "Rating scale: obtain numerical or categorical responses"
+msgstr "Rating scale: 量的あるいはカテゴリカルな反応を計測します"
+
+#: app/builder/components/ratingscale.py:54
+msgid ""
+"A rating scale only collects the response; it does not display the stimulus "
+"to be rated."
+msgstr ""
+
+#: app/builder/components/ratingscale.py:63
+msgid "When does the rating scale start being shown?"
+msgstr ""
+
+#: app/builder/components/ratingscale.py:66
+msgid "How long to wait for a response (blank is forever)"
+msgstr ""
+
+#: app/builder/components/ratingscale.py:73
+msgid ""
+"Show a continuous visual analog scale; returns 0.00 to 1.00; takes "
+"precedence over numeric scale or categorical choices"
+msgstr ""
+"0.0から1.0の値を返す連続的なアナログ尺度を表示しますl 数値やカテゴリー尺度の"
+"設定より優先されます"
+
+#: app/builder/components/ratingscale.py:77
+msgid ""
+"A list of categories (non-numeric alternatives) to present, space or comma-"
+"separated; these take precedence over a numeric scale"
+msgstr ""
+"カテゴリカルな反応の選択肢のリストをスペースまたはカンマ区切りで指定します 数"
+"値尺度の設定より優先されます"
+
+#: app/builder/components/ratingscale.py:81
+msgid ""
+"Brief instructions, such as a description of the scale numbers as seen by "
+"the subject."
+msgstr "尺度番号のような短い教示を表示します"
+
+#: app/builder/components/ratingscale.py:84
+msgid "Lowest rating (low end of the scale); not used for categories."
+msgstr "尺度の最小値を指定します; カテゴリー尺度では無視されます"
+
+#: app/builder/components/ratingscale.py:87
+msgid "Highest rating (top end of the scale); not used for categories."
+msgstr "尺度の最大値を指定します; カテゴリー尺度では無視されます"
+
+#: app/builder/components/ratingscale.py:91
+msgid "Labels for the ends of the scale, separated by commas"
+msgstr "尺度の両端のラベルをカンマ区切りで指定します"
+
+#: app/builder/components/ratingscale.py:94
+msgid "Style for the marker: triangle, circle, glow, slider, hover"
+msgstr "マーカーの形状を指定します (triangle, circle, glow, slider, hover)"
+
+#: app/builder/components/ratingscale.py:97
+msgid "initial position for the marker"
+msgstr "マーカーの初期位置を指定します"
+
+#: app/builder/components/ratingscale.py:102
+msgid ""
+"Should clicking the line accept that rating (without needing to confirm via "
+"'accept')?"
+msgstr ""
+"尺度上を一度クリックすると反応を確定します(accept?を押す必要がありません)"
+
+#: app/builder/components/ratingscale.py:105
+msgid ""
+"Hide the scale when a rating has been accepted; False to remain on-screen"
+msgstr "反応が確定したらスクリーン上から隠します"
+
+#: app/builder/components/ratingscale.py:108
+msgid "Should the accept button by visible?"
+msgstr "acceptのボタンを表示します"
+
+#: app/builder/components/ratingscale.py:111
+msgid "store the rating"
+msgstr "反応を記録ファイルに出力します"
+
+#: app/builder/components/ratingscale.py:114
+msgid "store the time taken to make the choice (in seconds)"
+msgstr "選択に要した時間を記録します(単位は秒)"
+
+#: app/builder/components/ratingscale.py:117
+msgid "store the history of (selection, time)"
+msgstr "選択の履歴を保存します(選択肢と時刻)"
+
+#: app/builder/components/ratingscale.py:120
+msgid "Should accepting a rating cause the end of the routine (e.g. trial)?"
+msgstr "選択を確定したらRoutineを終了させます"
+
+#: app/builder/components/ratingscale.py:123
+msgid ""
+"Relative size on the screen; size > 1 is larger than default; size < 1 is "
+"smaller"
+msgstr "スクリーンに対する相対的な大きさ; 1が標準的な大きさです"
+
+#: app/builder/components/ratingscale.py:126
+msgid "height of tick marks (1 is upward, 0 is hidden, -1 is downward)"
+msgstr "目盛の高さ (1は上向き、0は目盛なし、-1は下向き)"
+
+#: app/builder/components/ratingscale.py:129
+msgid "x,y position on the screen"
+msgstr ""
+
+#: app/builder/components/ratingscale.py:134
+msgid ""
+"Use this text to create the rating scale as you would in a code component; "
+"overrides all dialog settings except time parameters, forceEndRoutine, "
+"storeRatingTime, storeRating"
+msgstr ""
+"RatingScale関数へ渡す引数を直接記述して尺度をカスタマイズします; 時間関連のパ"
+"ラメータとforceEndRoutine, storeRatingTime, storeRating以外の全ての設定を上書"
+"きします"
+
 #: app/builder/components/settings.py:35
 msgid ""
 "Name of the entire experiment (taken by default from the filename on save)"
@@ -585,6 +1375,182 @@ msgid ""
 "'debug' is most)"
 msgstr ""
 "実験ログの出力レベルを指定します('error'が最も簡潔で'debug'が最も詳細です)"
+
+#: app/builder/components/sound.py:32
+msgid ""
+"A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) "
+"or a filename"
+msgstr ""
+"音を指定します 音名(例: A, Bf)、周波数(例: 440)、ファイル名を指定できます"
+
+#: app/builder/components/sound.py:39
+msgid "The maximum duration of a sound in seconds"
+msgstr ""
+
+#: app/builder/components/sound.py:41
+msgid "When does the sound start playing?"
+msgstr ""
+
+#: app/builder/components/sound.py:44
+msgid ""
+"The maximum duration for the sound (blank to use the duration of the sound "
+"file)"
+msgstr ""
+
+#: app/builder/components/sound.py:51
+msgid "The volume (in range 0 to 1)"
+msgstr "ボリューム (0.0から1.0)"
+
+#: app/builder/components/static.py:14
+msgid "Static screen period (e.g. an ISI). Useful for pre-loading stimuli."
+msgstr ""
+"刺激の更新を行わない時間帯(ISIなど)を確保します 刺激データの読み込みに便利で"
+"す"
+
+#: app/builder/components/static.py:29
+msgid "Custom code to be run during the static period (after updates)"
+msgstr "刺激を更新しない期間に実行するコードを指定します"
+
+#: app/builder/components/text.py:11
+msgid "Text: present text stimuli"
+msgstr "Text: 文字列を描画します"
+
+#: app/builder/components/text.py:39
+msgid "The text to be displayed"
+msgstr "描画する文字列を指定します"
+
+#: app/builder/components/text.py:43
+msgid "The font name (e.g. Comic Sans)"
+msgstr "フォント名を指定します (例: Comic Sans)"
+
+#: app/builder/components/text.py:49
+msgid ""
+"Specifies the height of the letter (the width is then determined by the font)"
+msgstr "文字列の高さを指定します (幅は高さとフォントの種類から決定)"
+
+#: app/builder/components/text.py:53
+msgid "How wide should the text get when it wraps? (in the specified units)"
+msgstr "テキストを折り返す幅を指定します (Unitsの設定に従う)"
+
+#: app/builder/components/text.py:57
+msgid "horiz = left-right reversed; vert = up-down reversed; $var = variable"
+msgstr "horiz = 左右反転, vert = 上下反転"
+
+#: app/builder/experiment.py:290
+msgid ""
+"Name of the folder in which to save data and log files (blank defaults to "
+"the builder pref)"
+msgstr ""
+
+#: app/builder/experiment.py:602 app/builder/experiment.py:712
+#: app/builder/experiment.py:794
+msgid "Name of this loop"
+msgstr "このLoopの名前"
+
+#: app/builder/experiment.py:604
+msgid "Number of repeats (for each condition)"
+msgstr "各条件の繰り返し回数"
+
+#: app/builder/experiment.py:606
+msgid "A list of dictionaries describing the parameters in each condition"
+msgstr "それぞれの条件におけるパラメータを保持した辞書オブジェクトのリスト"
+
+#: app/builder/experiment.py:608
+msgid ""
+"Name of a file specifying the parameters for each condition (.csv, .xlsx, "
+"or .pkl). Browse to select a file. Right-click to preview file contents, or "
+"create a new file."
+msgstr ""
+"実験の各条件におけるパラメータを記述したファイル(.csv, .xlsx, .pkl)の名前を指"
+"定します 右クリックすると内容を確認したり新しくファイルを作成したりできます"
+
+#: app/builder/experiment.py:610
+msgid "The start and end of the loop (see flow timeline)"
+msgstr "Loopの始点と終点"
+
+#: app/builder/experiment.py:612
+msgid ""
+"Select the rows form you condition file (the first is 0 not 1!). Examples: "
+"0:5, 5:-1, randint(5)"
+msgstr ""
+"条件ファイルから条件として使用する行(最初の行は0)を指定します (例: 0:5, "
+"5:-1, randint(5))"
+
+#: app/builder/experiment.py:615
+msgid "How should the next condition value(s) be chosen?"
+msgstr "各条件の実施順の決定方法を指定します"
+
+#: app/builder/experiment.py:617
+msgid ""
+"To have a fixed random sequence provide an integer of your choosing here. "
+"Leave blank to have a new random sequence on each run of the experiment."
+msgstr ""
+"疑似乱数のシードを整数で指定します 実験実行の度に新たな疑似乱数系列を作成する"
+"場合は空白にします"
+
+#: app/builder/experiment.py:714
+msgid "(Minimum) number of trials in the staircase"
+msgstr "ステアケースにおける最小の試行数を指定します"
+
+#: app/builder/experiment.py:716
+msgid "The initial value of the parameter"
+msgstr "パラメータの初期値を指定します"
+
+#: app/builder/experiment.py:718
+msgid "The maximum value the parameter can take"
+msgstr "パラメータがとり得る最大値を指定します"
+
+#: app/builder/experiment.py:720
+msgid "The minimum value the parameter can take"
+msgstr "パラメータがとり得る最小値を指定します"
+
+#: app/builder/experiment.py:722
+msgid "The size of the jump at each step (can change on each 'reversal')"
+msgstr "各ステップでの値の変化量を指定します"
+
+#: app/builder/experiment.py:724
+msgid ""
+"The units of the step size (e.g. 'linear' will add/subtract that value each "
+"step, whereas 'log' will ad that many log units)"
+msgstr "ステップサイズの単位を指定します"
+
+#: app/builder/experiment.py:726
+msgid "The number of 'incorrect' answers before the value goes up"
+msgstr "値を増加させるまでの「誤った」反応数"
+
+#: app/builder/experiment.py:728
+msgid "The number of 'correct' answers before the value goes down"
+msgstr "値を減少させるまでの「正しい」反応数"
+
+#: app/builder/experiment.py:730
+msgid ""
+"Minimum number of times the staircase must change direction before ending"
+msgstr "計測を終了するまでに必要な最小の方向反転回数"
+
+#: app/builder/experiment.py:734 app/builder/experiment.py:804
+msgid "How should the next trial value(s) be chosen?"
+msgstr "次の試行の値を選択する方法を指定します"
+
+#: app/builder/experiment.py:736 app/builder/experiment.py:806
+msgid "Where to loop from and to (see values currently shown in the flow view)"
+msgstr "Loopの始点と終点"
+
+#: app/builder/experiment.py:796
+msgid "(Minimum) number of trials in *each* staircase"
+msgstr "各ステアケースの最小の試行数を指定します"
+
+#: app/builder/experiment.py:798 app/builder/experiment.py:800
+msgid "How to select the next staircase to run"
+msgstr "次のステアケースを選択する方法を指定します"
+
+#: app/builder/experiment.py:808
+msgid ""
+"A list of dictionaries describing the differences between each staircase"
+msgstr "個々のステアケースの差を定義する辞書オブジェクトのリストを指定します"
+
+#: app/builder/experiment.py:810
+msgid "An xlsx or csv file specifying the parameters for each condition"
+msgstr "各条件のパラメータを定義したxlsxファイルまたはcsvファイルを指定します"
 
 #: app/coder/coder.py:1195
 msgid "Welcome to PsychoPy2!"
@@ -989,8 +1955,8 @@ msgstr "PsychoPy %sを取得しようとしています..."
 
 #: app/connections.py:324
 #, python-format
-msgid "Fetched %i of %i kb of PsychoPy-%s.zip"
-msgstr "%i / %i kb取得済み(PsychoPy-%s.zip)"
+msgid "Fetched %(done)i of %(total)i kb of PsychoPy-%(version)s.zip"
+msgstr "%(total)i kb中 %(done)i kb取得済み(PsychoPy-%(version)s.zip)"
 
 #: app/connections.py:327
 #, python-format
@@ -1264,26 +2230,6 @@ msgstr ""
 
 #~ msgid "Couldn't connect to psychopy.org\n"
 #~ msgstr "psychopy.orgに接続できません\n"
-
-#~ msgid ""
-#~ "The (2D) texture of the grating - can be sin, sqr, sinXsin... or a "
-#~ "filename (including path)"
-#~ msgstr ""
-#~ "グレーティングのテクスチャを指定します(sin, sqr, sinXsin, ... ファイル名な"
-#~ "ど)。"
-
-#~ msgid ""
-#~ "An image to define the alpha mask (ie shape)- gauss, circle... or a "
-#~ "filename (including path)"
-#~ msgstr ""
-#~ "αマスクを指定して形状を変更します(gauss, circle, ... ファイル名など)。"
-
-#~ msgid ""
-#~ "Spatial frequency of image repeats across the grating in 1 or 2 "
-#~ "dimensions, e.g. 4 or [2,3]"
-#~ msgstr ""
-#~ "グレーティングの空間周波数(テクスチャが繰り返される回数)を指定します。1次"
-#~ "元または2次元の値を指定できます。"
 
 #~ msgid "Undo"
 #~ msgstr "元に戻す"
