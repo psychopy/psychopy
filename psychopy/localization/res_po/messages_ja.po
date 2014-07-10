@@ -3,14 +3,14 @@ msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-07-09 23:24+0900\n"
-"PO-Revision-Date: 2014-07-09 23:44+0900\n"
+"PO-Revision-Date: 2014-07-10 15:03+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.6.5\n"
+"X-Generator: Poedit 1.6.6\n"
 "X-Poedit-KeywordsList: _;gettext;gettext_noop\n"
 "X-Poedit-Basepath: ../../\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -28,7 +28,7 @@ msgstr "Routineを挿入"
 
 #: app/builder/builder.py:428
 msgid "Insert Loop     "
-msgstr "Loopを挿入"
+msgstr "Loopを挿入     "
 
 #: app/builder/builder.py:471
 msgid "Insert Routine"
@@ -554,7 +554,7 @@ msgstr ""
 
 #: app/builder/components/_visual.py:42
 msgid "Units of dimensions for this stimulus"
-msgstr "この刺激に適用するUnits"
+msgstr "この刺激に適用する単位(Units)を指定します"
 
 #: app/builder/components/_visual.py:46
 msgid ""
@@ -567,7 +567,7 @@ msgstr ""
 #: app/builder/components/_visual.py:50
 msgid ""
 "Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)"
-msgstr "刺激の不透明度 (1=不透明, 0=完全に透明, 0.5=半透明)"
+msgstr "刺激の不透明度を指定します (1=不透明, 0=完全に透明, 0.5=半透明)"
 
 #: app/builder/components/_visual.py:54
 msgid "Choice of color space for the color (rgb, dkl, lms)"
@@ -575,16 +575,17 @@ msgstr "色空間を指定します (rgb, dkl, lms)"
 
 #: app/builder/components/_visual.py:58
 msgid "Position of this stimulus (e.g. [1,2] )"
-msgstr "刺激の位置 (例:[1,2])"
+msgstr "刺激の位置を指定します (例:[1,2])"
 
 #: app/builder/components/_visual.py:62
 msgid ""
 "Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
-msgstr "刺激の大きさ(単一の値または縦横の値のペア, 例: 2.5, [1,2])"
+msgstr ""
+"刺激の大きさを指定します (単一の値または縦横の値のペア, 例: 2.5, [1,2])"
 
 #: app/builder/components/_visual.py:66
 msgid "Orientation of this stimulus (in deg)"
-msgstr "刺激の回転方向 (単位は度)"
+msgstr "刺激の回転方向を指定します (単位は度)"
 
 #: app/builder/components/aperture.py:15
 msgid "Aperture: restrict the drawing of stimuli to a given region"
@@ -592,11 +593,11 @@ msgstr "Aperture: 刺激の描画範囲を指定した領域に制限します"
 
 #: app/builder/components/aperture.py:37
 msgid "How big is the aperture? (a single number for diameter)"
-msgstr "窓の直径"
+msgstr "窓の直径を指定します"
 
 #: app/builder/components/aperture.py:39
 msgid "Where is the aperture centred?"
-msgstr "窓の中心位置"
+msgstr "窓の中心位置を指定します"
 
 #: app/builder/components/aperture.py:40
 msgid "When does the aperture come into effect?"
@@ -737,32 +738,36 @@ msgstr "ランダムドットキネマとグラムを描画します"
 msgid ""
 "Number of dots in the field (for circular fields this will be average number "
 "of dots)"
-msgstr "フィールドに含まれるドットの数 (円形のフィールドでは平均ドット数)"
+msgstr ""
+"フィールドに含まれるドットの数を指定します (円形のフィールドでは平均ドット数)"
 
 #: app/builder/components/dots.py:45
 msgid "Direction of motion for the signal dots (degrees)"
-msgstr "シグナルのドットの運動方向 (単位は度)"
+msgstr "シグナルのドットの運動方向を指定します (単位は度)"
 
 #: app/builder/components/dots.py:49
 msgid "Speed of the dots (displacement per frame in the specified units)"
-msgstr "ドットの速度 (1フレームでの移動量; 単位はUnitsに従う)"
+msgstr "ドットの速度を指定します (1フレームでの移動量; 単位はUnitsに従う)"
 
 #: app/builder/components/dots.py:53
 msgid ""
 "Coherence of the dots (fraction moving in the signal direction on any one "
 "frame)"
 msgstr ""
-"ドットのコヒーレンス(各フレームにおいてシグナル方向に運動するドットの割合)"
+"ドットのコヒーレンスを指定します (各フレームにおいてシグナル方向に運動する"
+"ドットの割合)"
 
 #: app/builder/components/dots.py:57
 msgid "Size of the dots IN PIXELS regardless of the set units"
-msgstr "ドットの大きさをUnitsの設定に関わらずpixで指定"
+msgstr "ドットの大きさをを指定します (Unitsの設定に関わらずpix)"
 
 #: app/builder/components/dots.py:60
 msgid ""
 "Number of frames before each dot is killed and randomly assigned a new "
 "position"
-msgstr "ドットが消去されてランダムに新しい位置に割り当てられるまでのフレーム数"
+msgstr ""
+"ドットが消去されてランダムに新しい位置に割り当てられるまでのフレーム数を指定"
+"します"
 
 #: app/builder/components/dots.py:63
 msgid ""
@@ -778,15 +783,15 @@ msgstr ""
 
 #: app/builder/components/dots.py:70
 msgid "What is the shape of the field?"
-msgstr "フィールドの形状"
+msgstr "フィールドの形状を指定します"
 
 #: app/builder/components/dots.py:74
 msgid "What is the size of the field (in the specified units)?"
-msgstr "フィールドの大きさ"
+msgstr "フィールドの大きさを指定します"
 
 #: app/builder/components/dots.py:78
 msgid "Where is the field centred (in the specified units)?"
-msgstr "フィールドの中心位置"
+msgstr "フィールドの中心位置を指定します"
 
 #: app/builder/components/eyetracker.py:11
 msgid "Eyetracker: use one of several eyetrackers to follow gaze"
@@ -843,7 +848,7 @@ msgstr ""
 
 #: app/builder/components/grating.py:47
 msgid "Spatial positioning of the image on the grating (wraps in range 0-1.0)"
-msgstr "グレーティングの位相 (0.0から1.0の範囲に丸められます)"
+msgstr "グレーティングの位相を指定します (0.0から1.0の範囲に丸められます)"
 
 #: app/builder/components/grating.py:51 app/builder/components/patch.py:52
 msgid ""
@@ -928,7 +933,7 @@ msgid ""
 "What is the 'correct' response? Enter 'None' (no quotes) if withholding a "
 "response is correct. Might be helpful to add a correctAns column and use "
 "$thisTrial.correctAns"
-msgstr ""
+msgstr "正答のボタンを指定します 押さないのが正答であればNoneを指定します"
 
 #: app/builder/components/keyboard.py:13
 msgid "Keyboard: check and record keypresses"
@@ -972,6 +977,8 @@ msgid ""
 "What is the 'correct' key? Might be helpful to add a correctAns column and "
 "use $thisTrial.correctAns"
 msgstr ""
+"正答とするキーを指定します 条件ファイルにcorrectAnsという列を追加して"
+"$thisTrial.correctAnsとすると条件ファイルで正答を指定できます"
 
 #: app/builder/components/microphone.py:13
 msgid ""
@@ -1105,7 +1112,7 @@ msgstr ""
 
 #: app/builder/components/patch.py:48
 msgid "Spatial positioning of the image on the patch (in range 0-1.0)"
-msgstr "パッチの位相 (0.0から1.0の範囲に丸められます)"
+msgstr "パッチの位相を指定します (0.0から1.0の範囲に丸められます)"
 
 #: app/builder/components/polygon.py:11
 msgid "Polygon: any regular polygon (line, triangle, square...circle)"
@@ -1117,7 +1124,7 @@ msgstr "頂点数を指定します(2=線分, 3=三角形 ... 約90で円を近�
 
 #: app/builder/components/polygon.py:41 app/builder/components/polygon.py:49
 msgid "Choice of color space for the fill color (rgb, dkl, lms)"
-msgstr ""
+msgstr "塗りつぶし色の色空間を指定します (rgb, dkl, lms)"
 
 #: app/builder/components/polygon.py:45
 msgid ""
@@ -1247,7 +1254,7 @@ msgstr "目盛の高さ (1は上向き、0は目盛なし、-1は下向き)"
 
 #: app/builder/components/ratingscale.py:129
 msgid "x,y position on the screen"
-msgstr ""
+msgstr "位置を指定します"
 
 #: app/builder/components/ratingscale.py:134
 msgid ""
@@ -1401,7 +1408,7 @@ msgstr ""
 
 #: app/builder/components/sound.py:51
 msgid "The volume (in range 0 to 1)"
-msgstr "ボリューム (0.0から1.0)"
+msgstr "ボリュームを指定します (0.0から1.0)"
 
 #: app/builder/components/static.py:14
 msgid "Static screen period (e.g. an ISI). Useful for pre-loading stimuli."
@@ -1443,15 +1450,17 @@ msgid ""
 "Name of the folder in which to save data and log files (blank defaults to "
 "the builder pref)"
 msgstr ""
+"ログファイルと実験データが保存されるフォルダ名 (空白の場合はPsychoPyの設定に"
+"従います)"
 
 #: app/builder/experiment.py:602 app/builder/experiment.py:712
 #: app/builder/experiment.py:794
 msgid "Name of this loop"
-msgstr "このLoopの名前"
+msgstr "このLoopの名前を指定します"
 
 #: app/builder/experiment.py:604
 msgid "Number of repeats (for each condition)"
-msgstr "各条件の繰り返し回数"
+msgstr "各条件の繰り返し回数を指定します"
 
 #: app/builder/experiment.py:606
 msgid "A list of dictionaries describing the parameters in each condition"
