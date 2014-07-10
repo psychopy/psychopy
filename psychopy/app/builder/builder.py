@@ -627,7 +627,7 @@ class FlowPanel(wx.ScrolledWindow):
             condFileOrig = loop.params['conditionsFile'].val
         loopDlg = DlgLoopProperties(frame=self.frame,
             helpUrl = self.app.urls['builder.loops'],
-            title=loop.params['name'].val+' Properties', loop=loop)
+            title=loop.params['name'].val+_(' Properties'), loop=loop)
         if loopDlg.OK:
             prevLoop=loop
             if loopDlg.params['loopType'].val=='staircase':
@@ -1470,13 +1470,13 @@ class RoutineCanvas(wx.ScrolledWindow):
         #create the dialog
         if isinstance(component,components.code.CodeComponent):
             dlg = CodeComponentDialog(frame=self.frame,
-                title=component.params['name'].val+' Properties',
+                title=component.params['name'].val+_(' Properties'),
                 params = component.params,
                 order = component.order,
                 helpUrl=helpUrl, editing=True)
         else:
             dlg = DlgComponentProperties(frame=self.frame,
-                title=component.params['name'].val+' Properties',
+                title=component.params['name'].val+_(' Properties'),
                 params = component.params,
                 order = component.order,
                 helpUrl=helpUrl, editing=True)
@@ -1533,7 +1533,7 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
             self.DeletePage(currId)
     def createNewRoutine(self, returnName=False):
         dlg = wx.TextEntryDialog(self, message=_("What is the name for the new Routine? (e.g. instr, trial, feedback)"),
-            caption='New Routine')
+            caption=_('New Routine'))
         exp = self.frame.exp
         routineName = None
         if dlg.ShowModal() == wx.ID_OK:
@@ -1754,13 +1754,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         #create component template
         if componentName=='Code':
             dlg = CodeComponentDialog(frame=self.frame,
-                title=componentName+' Properties',
+                title=componentName+_(' Properties'),
                 params=newComp.params,
                 order=newComp.order,
                 helpUrl=helpUrl)
         else:
             dlg = DlgComponentProperties(frame=self.frame,
-                title=componentName+' Properties',
+                title=componentName+_(' Properties'),
                 params=newComp.params,
                 order=newComp.order,
                 helpUrl=helpUrl)
@@ -2072,7 +2072,7 @@ class _BaseParamsDlg(wx.Dialog):
             size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL,editing=False):
 
-        wx.Dialog.__init__(self, frame,-1,title,size=size,style=style)
+        wx.Dialog.__init__(self, frame,-1,_(title),size=size,style=style)
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
@@ -2602,7 +2602,7 @@ class _BaseParamsDlg(wx.Dialog):
         self.app.followLink(url=self.helpUrl)
 
 class DlgLoopProperties(_BaseParamsDlg):
-    def __init__(self,frame,title="Loop properties",loop=None,
+    def __init__(self,frame,title=_("Loop properties"),loop=None,
             helpUrl=None,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.RESIZE_BORDER):
@@ -4560,7 +4560,7 @@ class BuilderFrame(wx.Frame):
         else:
             helpUrl = None
         dlg = DlgExperimentProperties(frame=self,
-            title='%s Properties' %self.exp.getExpName(),
+            title=_('%s Properties') %self.exp.getExpName(),
             params=component.params, helpUrl=helpUrl,
             order=component.order)
         if dlg.OK:
