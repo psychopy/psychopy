@@ -606,7 +606,7 @@ class _BaseTrialHandler(object):
         return self.next()
     def getOriginPathAndFile(self, originPath=None):
         """Attempts to determine the path of the script that created this data file
-        and returns both the path to that script and it's contents.
+        and returns both the path to that script and its contents.
         Useful to store the entire experiment with the data.
 
         If originPath is provided (e.g. from Builder) then this is used otherwise
@@ -1073,7 +1073,7 @@ class TrialHandler(_BaseTrialHandler):
                 try:#this will fail if we try to take mean of a string for example
                     if analType=='std':
                         thisAnal = numpy.std(thisData,axis=1,ddof=0)
-                        #normalise by N-1 instead. his should work by setting ddof=1
+                        #normalise by N-1 instead. This should work by setting ddof=1
                         #but doesn't as of 08/2010 (because of using a masked array?)
                         N=thisData.shape[1]
                         if N == 1:
@@ -2457,7 +2457,7 @@ class MultiStairHandler(_BaseTrialHandler):
     def _startNewPass(self):
         """Create a new iteration of the running staircases for this pass.
 
-        This is not normally needed byt he user - it gets called at __init__
+        This is not normally needed by the user - it gets called at __init__
         and every time that next() runs out of trials for this pass.
         """
         self.thisPassRemaining = copy.copy(self.runningStaircases)
@@ -2948,7 +2948,7 @@ def functionFromStaircase(intensities, responses, bins = 10):
                 a numpy array of intensity values (where each is the center of an intensity bin)
 
             meanCorrect
-                a numpy aray of mean % correct in each bin
+                a numpy array of mean % correct in each bin
 
             n
                 a numpy array of number of responses contributing to each mean
