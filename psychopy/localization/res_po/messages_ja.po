@@ -2,21 +2,30 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-07-09 23:24+0900\n"
-"PO-Revision-Date: 2014-07-10 15:03+0900\n"
+"POT-Creation-Date: 2014-07-11 10:58+0900\n"
+"PO-Revision-Date: 2014-07-11 11:08+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.6.6\n"
+"X-Generator: Poedit 1.6.5\n"
 "X-Poedit-KeywordsList: _;gettext;gettext_noop\n"
 "X-Poedit-Basepath: ../../\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Poedit-SearchPath-0: app\n"
 "X-Poedit-SearchPath-1: preferences\n"
+
+#: app/builder/builder.py:294 app/builder/builder.py:2373
+msgid "Go to online help about this component"
+msgstr "このComponentのオンラインヘルプを開く"
+
+#: app/builder/builder.py:295 app/builder/builder.py:2377
+#: app/builder/builder.py:3137 app/builder/builder.py:3589
+msgid " OK "
+msgstr " OK "
 
 #: app/builder/builder.py:417 app/builder/builder.py:1177
 msgid "remove"
@@ -28,7 +37,7 @@ msgstr "Routineを挿入"
 
 #: app/builder/builder.py:428
 msgid "Insert Loop     "
-msgstr "Loopを挿入     "
+msgstr "Loopを挿入    "
 
 #: app/builder/builder.py:471
 msgid "Insert Routine"
@@ -62,6 +71,24 @@ msgstr "挿入するLoopの始点または終点をクリックするか、挿�
 msgid "Click the other end for the loop"
 msgstr "挿入するLoopのもう一端をクリックしてください"
 
+#: app/builder/builder.py:630 app/builder/builder.py:1473
+#: app/builder/builder.py:1479 app/builder/builder.py:1757
+#: app/builder/builder.py:1763
+msgid " Properties"
+msgstr "のプロパティ"
+
+#: app/builder/builder.py:772
+#, python-format
+msgid ""
+"The \"%s\" Loop is about to be deleted as well (by collapsing). OK to "
+"proceed?"
+msgstr ""
+"「%s」というLoopの内容が空になるため削除されようとしています よろしいですか？"
+
+#: app/builder/builder.py:773
+msgid "Impending Loop collapse"
+msgstr "Loopが空になろうとしています"
+
 #: app/builder/builder.py:1177
 msgid "edit"
 msgstr "編集"
@@ -86,6 +113,45 @@ msgstr "一番下へ"
 msgid "What is the name for the new Routine? (e.g. instr, trial, feedback)"
 msgstr "新しいRoutineの名前(instr, trial, feedbackなど)を入力してください"
 
+#: app/builder/builder.py:1536
+msgid "New Routine"
+msgstr "新しいRoutine"
+
+#: app/builder/builder.py:1740
+msgid "Create a routine (Experiment menu) before adding components"
+msgstr ""
+
+#: app/builder/builder.py:1983
+msgid "Browse..."
+msgstr "選択..."
+
+#: app/builder/builder.py:2372 app/builder/builder.py:3133
+#: app/builder/builder.py:3584
+msgid " Help "
+msgstr " ヘルプ "
+
+#: app/builder/builder.py:2385 app/builder/builder.py:3140
+#: app/builder/builder.py:3597
+msgid " Cancel "
+msgstr " キャンセル "
+
+#: app/builder/builder.py:2580 app/builder/validators.py:46
+msgid "Missing name"
+msgstr "Nameがありません"
+
+#: app/builder/builder.py:2586 app/builder/validators.py:52
+#, python-format
+msgid "That name is in use (it's a %s). Try another name."
+msgstr "Nameが使用されています(%s) Nameを変更してください"
+
+#: app/builder/builder.py:2588 app/builder/validators.py:54
+msgid "Name must be alpha-numeric or _, no spaces"
+msgstr "Nameに使えるのは英数字と_です スペースを含んではいけません"
+
+#: app/builder/builder.py:2605
+msgid "Loop properties"
+msgstr "Loopのプロパティ"
+
 #: app/builder/builder.py:2756 app/builder/builder.py:2863
 msgid "No parameters set"
 msgstr "パラメータが定義されていません"
@@ -107,6 +173,22 @@ msgstr ""
 msgid "No parameters set (conditionsFile not found)"
 msgstr "パラメータが定義されていません (条件ファイルが見つかりません)"
 
+#: app/builder/builder.py:2932 app/builder/builder.py:4080
+msgid "Open file ..."
+msgstr "ファイルを開く..."
+
+#: app/builder/builder.py:2951
+msgid "Could not read conditions from:\n"
+msgstr "条件を読み込めません\n"
+
+#: app/builder/builder.py:2957
+msgid "Configuration error in conditions file"
+msgstr "条件ファイルにエラーがあります"
+
+#: app/builder/builder.py:2959
+msgid "Bad condition name(s) in file:\n"
+msgstr "不適切な条件名がファイルに含まれています:\n"
+
 #: app/builder/builder.py:3024
 msgid "Badly formed condition name(s) in file:\n"
 msgstr "不適切な条件名がファイルに含まれています:\n"
@@ -118,6 +200,56 @@ msgid ""
 msgstr ""
 ".\n"
 "条件名はPythonの変数として使用できる文字列でなければいけません"
+
+#: app/builder/builder.py:3373
+msgid "Should be legal as a variable name (alphanumeric)"
+msgstr "変数名として適切でなければいけません(英数字)"
+
+#: app/builder/builder.py:3559
+msgid "+cond."
+msgstr "条件追加"
+
+#: app/builder/builder.py:3560
+msgid "Add a condition (row); to delete a condition, delete all of its values."
+msgstr "条件(行)を追加します 行を削除するにはその行のすべての値を削除します"
+
+#: app/builder/builder.py:3564
+msgid "+param"
+msgstr "パラメータ追加"
+
+#: app/builder/builder.py:3565
+msgid ""
+"Add a parameter (column); to delete a param, set its type to None, or delete "
+"all of its values."
+msgstr ""
+"パラメータ(列)を追加します パラメータを削除するにはtypeをNoneにするか、すべて"
+"の値を削除します"
+
+#: app/builder/builder.py:3569
+msgid "Preview"
+msgstr "プレビュー"
+
+#: app/builder/builder.py:3570
+msgid ""
+"Show all values as they would appear after saving to a file, without "
+"actually saving anything."
+msgstr "セーブせずにセーブ後のファイルのすべての値を確認します"
+
+#: app/builder/builder.py:3574
+msgid "Save as"
+msgstr "名前を付けて保存"
+
+#: app/builder/builder.py:3585
+msgid "Go to online help"
+msgstr "オンラインヘルプを開く"
+
+#: app/builder/builder.py:3591
+msgid "Save and exit"
+msgstr "保存して閉じます"
+
+#: app/builder/builder.py:3598
+msgid "Exit, discard any edits"
+msgstr "全ての編集内容を破棄して終了します"
 
 #: app/builder/builder.py:3872 app/coder/coder.py:1472
 #, python-format
@@ -490,6 +622,28 @@ msgstr "このアプリケーションについて...(&A)"
 msgid "About PsychoPy"
 msgstr "PsychoPyについて"
 
+#: app/builder/builder.py:4081
+msgid "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
+msgstr "PsychoPy実験ファイル (*.psyexp)|*.psyexp|すべてのファイル (*.*)|*"
+
+#: app/builder/builder.py:4144 app/coder/coder.py:1919
+msgid "Save file as ..."
+msgstr "名前を付けて保存..."
+
+#: app/builder/builder.py:4153 app/coder/coder.py:1925
+#, python-format
+msgid ""
+"File '%s' already exists.\n"
+"    OK to overwrite?"
+msgstr ""
+"%sというファイルが既に存在しています\n"
+"上書きしてよいですか？"
+
+#: app/builder/builder.py:4232
+#, python-format
+msgid "Experiment %s has changed. Save before quitting?"
+msgstr "実験 %s は変更されています 終了する前に保存しますか？"
+
 #: app/builder/builder.py:4374
 #, python-format
 msgid "Undo %(action)s\t%(key)s"
@@ -499,6 +653,24 @@ msgstr "元に戻す %(action)s\t%(key)s"
 #, python-format
 msgid "Redo %(action)s\t%(key)s"
 msgstr "繰り返す %(action)s\t%(key)s"
+
+#: app/builder/builder.py:4395
+msgid "Location to unpack demos"
+msgstr "デモを展開する場所"
+
+#: app/builder/builder.py:4522
+#, python-format
+msgid "New name for copy of \"%(copied)s\"?  [%(default)s]"
+msgstr "%(copied)sのコピーの名前は？ [%(default)s]"
+
+#: app/builder/builder.py:4523
+msgid "Paste Routine"
+msgstr "Routineの貼り付け"
+
+#: app/builder/builder.py:4563
+#, python-format
+msgid "%s Properties"
+msgstr "%sのプロパティ"
 
 #: app/builder/components/_base.py:20
 msgid "Name of this component"
@@ -1563,6 +1735,43 @@ msgstr "個々のステアケースの差を定義する辞書オブジェクト
 msgid "An xlsx or csv file specifying the parameters for each condition"
 msgstr "各条件のパラメータを定義したxlsxファイルまたはcsvファイルを指定します"
 
+#: app/coder/coder.py:272
+msgid ""
+"Select the test(s) to run, from:\n"
+"psychopy/tests/test*"
+msgstr ""
+"テストを以下から選んで実行します\n"
+"psychopy/tests/test*"
+
+#: app/coder/coder.py:278
+msgid "Run tests"
+msgstr "テストの実行"
+
+#: app/coder/coder.py:280 app/dialogs.py:28 app/preferencesDlg.py:56
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: app/coder/coder.py:285
+msgid "Coverage Report"
+msgstr ""
+
+#: app/coder/coder.py:286
+msgid "Include coverage report (requires coverage module)"
+msgstr ""
+
+#: app/coder/coder.py:288
+msgid "ALL stdout"
+msgstr ""
+
+#: app/coder/coder.py:289
+msgid "Report all printed output & show any new rms-test images"
+msgstr ""
+
+#: app/coder/coder.py:1068
+#, python-format
+msgid "Unable to find \"%s\""
+msgstr "\"%s\"が見つかりません"
+
 #: app/coder/coder.py:1195
 msgid "Welcome to PsychoPy2!"
 msgstr "PsychoPy2へようこそ！"
@@ -1769,6 +1978,48 @@ msgstr ""
 "PsychoPy以外のアプリケーションで変更されました\n"
 "(保存せずに)再読み込みしますか？"
 
+#: app/coder/coder.py:1627 app/coder/coder.py:1951
+#, python-format
+msgid "Save changes to %s before quitting?"
+msgstr "終了する前に%sへの変更を保存しますか？"
+
+#: app/coder/coder.py:1839
+#, python-format
+msgid ""
+"File appears to have been modified outside of PsychoPy:\n"
+"   %s\n"
+"OK to overwrite?"
+msgstr ""
+"ファイルがPsychoPyの外部で変更されました:\n"
+"   %s\n"
+"上書きしますか？"
+
+#: app/coder/coder.py:1848
+#, python-format
+msgid ""
+"File '%s' lacks write-permission:\n"
+"Will try save-as instead."
+msgstr ""
+"'%s'への書き込みパーミッションがありません\n"
+"別名で保存します"
+
+#: app/coder/coder.py:1914
+msgid "Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*"
+msgstr ""
+"Pythonスクリプト (*.py)|*.py|テキストファイル (*.txt)|*.txt|すべてのファイル "
+"(*.*)|*"
+
+#: app/coder/coder.py:1916
+msgid "Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*.*"
+msgstr ""
+"Pythonスクリプト (*.py)|*.py|テキストファイル (*.txt)|*.txt|すべてのファイル "
+"(*.*)|*.*"
+
+#: app/coder/coder.py:2038
+#, python-format
+msgid "Save changes to %s before running?"
+msgstr "実行する前に%sへの変更を保存しますか？"
+
 #: app/connections.py:83
 msgid "Couldn't connect to psychopy.org to check for updates. \n"
 msgstr "更新の確認のためにpsychopy.orgに接続できませんでした\n"
@@ -1865,7 +2116,7 @@ msgstr "再び通知する"
 msgid "Stop warning me"
 msgstr "更新を通知しない"
 
-#: app/connections.py:176
+#: app/connections.py:176 app/dialogs.py:26
 msgid "Yes"
 msgstr "はい"
 
@@ -2025,6 +2276,14 @@ msgstr ""
 "PsychoPyの取得に失敗しました\n"
 "「設定」のプロキシの設定を確認してください"
 
+#: app/dialogs.py:29
+msgid "No"
+msgstr "いいえ"
+
+#: app/dialogs.py:40 app/preferencesDlg.py:50
+msgid "OK"
+msgstr "OK"
+
 #: app/preferencesDlg.py:14
 msgid "PsychoPy Preferences"
 msgstr "PsychoPyの設定"
@@ -2037,9 +2296,17 @@ msgstr "全てのセクションの設定を保存してウィンドウを閉じ
 msgid "Cancel any changes (to any panel)"
 msgstr "全てのセクションの変更をキャンセルします"
 
+#: app/preferencesDlg.py:61
+msgid "Apply"
+msgstr "適用"
+
 #: app/preferencesDlg.py:62
 msgid "Apply these prefs (in all sections) and continue"
 msgstr "全てのセクションの設定を適用します"
+
+#: app/preferencesDlg.py:66
+msgid "Help"
+msgstr "ヘルプ"
 
 #: app/preferencesDlg.py:67
 msgid "Get help on prefs"
@@ -2217,9 +2484,6 @@ msgstr ""
 
 #~ msgid "rename"
 #~ msgstr "名前を変更"
-
-#~ msgid "Save current experiment"
-#~ msgstr "現在の実験を保存します"
 
 #~ msgid "Save current experiment with a different name"
 #~ msgstr "現在の実験を別名で保存します"
