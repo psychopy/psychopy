@@ -4136,9 +4136,9 @@ class BuilderFrame(wx.Frame):
 
         os.getcwd()
         if sys.platform=='darwin':
-            wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
+            wildcard=_("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
         else:
-            wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*"
+            wildcard=_("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*")
         returnVal=False
         dlg = wx.FileDialog(
             self, message=_("Save file as ..."), defaultDir=initPath,

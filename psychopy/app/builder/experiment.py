@@ -1408,11 +1408,11 @@ class NameSpace():
         # check getDerived:
 
         # check in this order:
-        if name in self.user: return "one of your Components, Routines, or condition parameters"
-        if name in self.builder: return "Builder variable"
-        if name in self.psychopy: return "Psychopy module"
-        if name in self.numpy: return "numpy function"
-        if name in self.keywords: return "python keyword"
+        if name in self.user: return _("one of your Components, Routines, or condition parameters")
+        if name in self.builder: return _("Builder variable")
+        if name in self.psychopy: return _("Psychopy module")
+        if name in self.numpy: return _("numpy function")
+        if name in self.keywords: return _("python keyword")
 
         return # None, meaning does not exist already
 

@@ -211,7 +211,7 @@ class UnitTestFrame(wx.Frame):
 
             self.MoveEnd()#go to end of stdout so user can see updated text
             self.ShowPosition(self.GetLastPosition() )
-    def __init__(self, parent=None, ID=-1, title='PsychoPy unit testing', files=[], app=None):
+    def __init__(self, parent=None, ID=-1, title=_('PsychoPy unit testing'), files=[], app=None):
         self.app = app
         self.frameType='unittest'
         self.prefs = self.app.prefs
@@ -239,23 +239,23 @@ class UnitTestFrame(wx.Frame):
         #create menu items
         menuBar = wx.MenuBar()
         self.menuTests=wx.Menu()
-        menuBar.Append(self.menuTests, '&Tests')
-        self.menuTests.Append(wx.ID_APPLY,   "&Run tests\t%s" % self.app.keys['runScript'])
+        menuBar.Append(self.menuTests, _('&Tests'))
+        self.menuTests.Append(wx.ID_APPLY,   _("&Run tests\t%s") % self.app.keys['runScript'])
         wx.EVT_MENU(self, wx.ID_APPLY,  self.onRunTests)
-        self.menuTests.Append(self.IDs.stopFile, "&Cancel running test\t%s" %
-                              self.app.keys['stopScript'], "Quit a test in progress")
+        self.menuTests.Append(self.IDs.stopFile, _("&Cancel running test\t%s") %
+                              self.app.keys['stopScript'], _("Quit a test in progress"))
         wx.EVT_MENU(self, self.IDs.stopFile,  self.onCancelTests)
         self.menuTests.AppendSeparator()
-        self.menuTests.Append(wx.ID_CLOSE,   "&Close tests panel\t%s" % self.app.keys['close'])
+        self.menuTests.Append(wx.ID_CLOSE,   _("&Close tests panel\t%s") % self.app.keys['close'])
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.onCloseTests)
-        self.menuTests.Append(self.IDs.openCoderView, "Go to &Coder view\t%s" %
-                              self.app.keys['switchToCoder'], "Go to the Coder view")
+        self.menuTests.Append(self.IDs.openCoderView, _("Go to &Coder view\t%s") %
+                              self.app.keys['switchToCoder'], _("Go to the Coder view"))
         wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.showCoder)
         #-------------quit
         self.menuTests.AppendSeparator()
-        self.menuTests.Append(wx.ID_EXIT, "&Quit\t%s" % self.app.keys['quit'], "Terminate PsychoPy")
+        self.menuTests.Append(wx.ID_EXIT, _("&Quit\t%s") % self.app.keys['quit'], _("Terminate PsychoPy"))
         wx.EVT_MENU(self, wx.ID_EXIT, self.app.quit)
-        item = self.menuTests.Append(wx.ID_PREFERENCES, text = "&Preferences")
+        item = self.menuTests.Append(wx.ID_PREFERENCES, text = _("&Preferences"))
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         self.SetMenuBar(menuBar)
 
