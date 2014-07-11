@@ -2,15 +2,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-07-11 10:58+0900\n"
-"PO-Revision-Date: 2014-07-11 11:08+0900\n"
+"POT-Creation-Date: 2014-07-11 18:37+0900\n"
+"PO-Revision-Date: 2014-07-11 18:41+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.6.5\n"
+"X-Generator: Poedit 1.6.6\n"
 "X-Poedit-KeywordsList: _;gettext;gettext_noop\n"
 "X-Poedit-Basepath: ../../\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -119,7 +119,7 @@ msgstr "新しいRoutine"
 
 #: app/builder/builder.py:1740
 msgid "Create a routine (Experiment menu) before adding components"
-msgstr ""
+msgstr "Componentを追加する前にRoutineを作成してください"
 
 #: app/builder/builder.py:1983
 msgid "Browse..."
@@ -401,7 +401,7 @@ msgstr "現在の実験を閉じます"
 msgid "&Preferences\t%s"
 msgstr "設定(&P)\t%s"
 
-#: app/builder/builder.py:3941 app/coder/coder.py:1274
+#: app/builder/builder.py:3941 app/coder/coder.py:256 app/coder/coder.py:1274
 #, python-format
 msgid "&Quit\t%s"
 msgstr "終了(&Q)\t%s"
@@ -622,9 +622,13 @@ msgstr "このアプリケーションについて...(&A)"
 msgid "About PsychoPy"
 msgstr "PsychoPyについて"
 
-#: app/builder/builder.py:4081
+#: app/builder/builder.py:4081 app/builder/builder.py:4139
 msgid "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
 msgstr "PsychoPy実験ファイル (*.psyexp)|*.psyexp|すべてのファイル (*.*)|*"
+
+#: app/builder/builder.py:4141
+msgid "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*"
+msgstr "PsychoPy実験ファイル (*.psyexp)|*.psyexp|すべてのファイル (*.*)|*.*"
 
 #: app/builder/builder.py:4144 app/coder/coder.py:1919
 msgid "Save file as ..."
@@ -1735,6 +1739,70 @@ msgstr "個々のステアケースの差を定義する辞書オブジェクト
 msgid "An xlsx or csv file specifying the parameters for each condition"
 msgstr "各条件のパラメータを定義したxlsxファイルまたはcsvファイルを指定します"
 
+#: app/builder/experiment.py:1411
+msgid "one of your Components, Routines, or condition parameters"
+msgstr "Component、Routine、条件パラメータ名として使用済み"
+
+#: app/builder/experiment.py:1412
+msgid "Builder variable"
+msgstr "Builderの変数"
+
+#: app/builder/experiment.py:1413
+msgid "Psychopy module"
+msgstr "PsychoPyのモジュール名"
+
+#: app/builder/experiment.py:1414
+msgid "numpy function"
+msgstr "numpyの関数"
+
+#: app/builder/experiment.py:1415
+msgid "python keyword"
+msgstr "Pythonのキーワード"
+
+#: app/coder/coder.py:214
+msgid "PsychoPy unit testing"
+msgstr "PsychoPy ユニットテスト"
+
+#: app/coder/coder.py:242
+msgid "&Tests"
+msgstr "テスト(&T)"
+
+#: app/coder/coder.py:243
+#, python-format
+msgid "&Run tests\t%s"
+msgstr "テストの実行(&R)\t%s"
+
+#: app/coder/coder.py:245
+#, python-format
+msgid "&Cancel running test\t%s"
+msgstr "テストの中止(&C)\t%s"
+
+#: app/coder/coder.py:246
+msgid "Quit a test in progress"
+msgstr "実行中のテストを中止します"
+
+#: app/coder/coder.py:249
+#, python-format
+msgid "&Close tests panel\t%s"
+msgstr "テストパネルを閉じる(&C)\t%s"
+
+#: app/coder/coder.py:251
+#, python-format
+msgid "Go to &Coder view\t%s"
+msgstr "Coderを開く(&C)t%s"
+
+#: app/coder/coder.py:252
+msgid "Go to the Coder view"
+msgstr "Coderのウィンドウを開きます"
+
+#: app/coder/coder.py:256
+msgid "Terminate PsychoPy"
+msgstr "PsychoPyを終了します"
+
+#: app/coder/coder.py:258
+msgid "&Preferences"
+msgstr "設定"
+
 #: app/coder/coder.py:272
 msgid ""
 "Select the test(s) to run, from:\n"
@@ -1753,19 +1821,21 @@ msgstr "キャンセル"
 
 #: app/coder/coder.py:285
 msgid "Coverage Report"
-msgstr ""
+msgstr "カバレッジレポート"
 
 #: app/coder/coder.py:286
 msgid "Include coverage report (requires coverage module)"
-msgstr ""
+msgstr "カバレッジレポートを実行します(coverageモジュールが必要)"
 
 #: app/coder/coder.py:288
+#, fuzzy
 msgid "ALL stdout"
-msgstr ""
+msgstr "標準出力すべて"
 
 #: app/coder/coder.py:289
+#, fuzzy
 msgid "Report all printed output & show any new rms-test images"
-msgstr ""
+msgstr "全ての標準出力を報告してrmsテスト画像を表示します"
 
 #: app/coder/coder.py:1068
 #, python-format
