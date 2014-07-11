@@ -14,7 +14,7 @@ As with any xml file the format contains object `nodes` which can have direct pr
 
 Parameters
 ---------------------------
-Many of the nodes described within this xml description of the experiment contain Param entries, representing different parameters of that Component. All parameter nodes have a `name` property and a `val` property. Most also have a `valType` property, which can take values 'bool', 'code', 'str' and an `updates` property that specifies whether this parameter is changing during the experiment and, if so, whether it changes 'every frame' (of the monitor) or 'every repeat' (of the Routine).
+Many of the nodes described within this xml description of the experiment contain Param entries, representing different parameters of that Component. Nearly all parameter nodes have a `name` property and a `val` property. The parameter node with the name "advancedParams" does not have them. Most also have a `valType` property, which can take values 'bool', 'code', 'extendedCode', 'num', 'str' and an `updates` property that specifies whether this parameter is changing during the experiment and, if so, whether it changes 'every frame' (of the monitor) or 'every repeat' (of the Routine).
 
 .. _settingsXML:
 
