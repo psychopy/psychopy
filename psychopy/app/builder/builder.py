@@ -291,8 +291,8 @@ class CodeComponentDialog(wx.Dialog):
 
         if self.helpUrl!=None:
             self.help_button = wx.Button(self, wx.ID_HELP, "")
-            self.help_button.SetToolTip(wx.ToolTip("Go to online help about this component"))
-        self.ok_button = wx.Button(self, wx.ID_OK, " OK ")
+            self.help_button.SetToolTip(wx.ToolTip(_("Go to online help about this component")))
+        self.ok_button = wx.Button(self, wx.ID_OK, _(" OK "))
         self.ok_button.SetDefault()
         self.cancel_button = wx.Button(self, wx.ID_CANCEL, "")
 
@@ -769,8 +769,8 @@ class FlowPanel(wx.ScrolledWindow):
             if prevIsLoop and nextIsLoop:
                 loop=flow[compID+1].loop#because flow[compID+1] is a terminator
                 warnDlg = dialogs.MessageDialog(parent=self.frame,
-                    message=u'The "%s" Loop is about to be deleted as well (by collapsing). OK to proceed?' %loop.params['name'],
-                    type='Warning', title='Impending Loop collapse')
+                    message=_('The "%s" Loop is about to be deleted as well (by collapsing). OK to proceed?') %loop.params['name'],
+                    type='Warning', title=_('Impending Loop collapse'))
                 resp=warnDlg.ShowModal()
                 if resp in [wx.ID_CANCEL, wx.ID_NO]:
                     return#abort
@@ -1737,7 +1737,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         #get name of current routine
         currRoutinePage = self.frame.routinePanel.getCurrentPage()
         if not currRoutinePage:
-            dialogs.MessageDialog(self,"Create a routine (Experiment menu) before adding components",
+            dialogs.MessageDialog(self,_("Create a routine (Experiment menu) before adding components"),
                 type='Info', title='Error').ShowModal()
             return False
         currRoutine = self.frame.routinePanel.getCurrentRoutine()
@@ -1980,7 +1980,7 @@ class ParamCtrls:
             self.updateCtrl.Disable()#visible but can't be changed
         #create browse control
         if browse:
-            self.browseCtrl = wx.Button(parent, -1, "Browse...") #we don't need a label for this
+            self.browseCtrl = wx.Button(parent, -1, _("Browse...")) #we don't need a label for this
     def _getCtrlValue(self, ctrl):
         """Retrieve the current value form the control (whatever type of ctrl it
         is, e.g. checkbox.GetValue, textctrl.GetStringSelection
@@ -2369,12 +2369,12 @@ class _BaseParamsDlg(wx.Dialog):
         buttons = wx.StdDialogButtonSizer()
         #help button if we know the url
         if self.helpUrl!=None:
-            helpBtn = wx.Button(self, wx.ID_HELP)
-            helpBtn.SetToolTip(wx.ToolTip("Go to online help about this component"))
+            helpBtn = wx.Button(self, wx.ID_HELP, _(" Help "))
+            helpBtn.SetToolTip(wx.ToolTip(_("Go to online help about this component")))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
             buttons.Add(helpBtn, 0, wx.ALIGN_LEFT|wx.ALL,border=3)
             buttons.AddSpacer(12)
-        self.OKbtn = wx.Button(self, wx.ID_OK, " OK ")
+        self.OKbtn = wx.Button(self, wx.ID_OK, _(" OK "))
         # intercept OK button if a loop dialog, in case file name was edited:
         if type(self) == DlgLoopProperties:
             self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
@@ -2382,7 +2382,7 @@ class _BaseParamsDlg(wx.Dialog):
 
         self.checkName() # disables OKbtn if bad name
         buttons.Add(self.OKbtn, 0, wx.ALL,border=3)
-        CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
+        CANCEL = wx.Button(self, wx.ID_CANCEL, _(" Cancel "))
         buttons.Add(CANCEL, 0, wx.ALL,border=3)
         buttons.Realize()
         #add to sizer
@@ -2577,15 +2577,15 @@ class _BaseParamsDlg(wx.Dialog):
         elif hasattr(self, 'globalCtrls'):
             newName=self.globalCtrls['name'].getValue()
         if newName=='':
-            return "Missing name", False
+            return _("Missing name"), False
         else:
             namespace = self.frame.exp.namespace
             used = namespace.exists(newName)
             same_as_old_name = bool(newName == self.params['name'].val)
             if used and not same_as_old_name:
-                return "That name is in use (it's a %s). Try another name." % used, False
+                return _("That name is in use (it's a %s). Try another name.") % used, False
             elif not namespace.isValid(newName): # valid as a var name
-                return "Name must be alpha-numeric or _, no spaces", False
+                return _("Name must be alpha-numeric or _, no spaces"), False
             elif namespace.isPossiblyDerivable(newName): # warn but allow, chances are good that its actually ok
                 return namespace.isPossiblyDerivable(newName), True
             else:
@@ -2929,7 +2929,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.conditionsFileOrig = self.conditionsFile
         self.conditionsOrig = self.conditions
         expFolder,expName = os.path.split(self.frame.filename)
-        dlg = wx.FileDialog(self, message="Open file ...", style=wx.OPEN,
+        dlg = wx.FileDialog(self, message=_("Open file ..."), style=wx.OPEN,
                             defaultDir=expFolder)
         if dlg.ShowModal() == wx.ID_OK:
             newFullPath = dlg.GetPath()
@@ -2948,15 +2948,15 @@ class DlgLoopProperties(_BaseParamsDlg):
             except ImportError, msg:
                 msg = str(msg)
                 if msg.startswith('Could not open'):
-                    self.currentCtrls['conditions'].setValue('Could not read conditions from:\n' + newFullPath.split(os.path.sep)[-1])
+                    self.currentCtrls['conditions'].setValue(_('Could not read conditions from:\n') + newFullPath.split(os.path.sep)[-1])
                     logging.error('Could not open as a conditions file: %s' % newFullPath)
                 else:
                     m2 = msg.replace('Conditions file ', '')
                     dlgErr = dialogs.MessageDialog(parent=self.frame,
                         message=m2.replace(': ', os.linesep * 2), type='Info',
-                        title='Configuration error in conditions file').ShowModal()
+                        title=_('Configuration error in conditions file')).ShowModal()
                     self.currentCtrls['conditions'].setValue(
-                        'Bad condition name(s) in file:\n' + newFullPath.split(os.path.sep)[-1])
+                        _('Bad condition name(s) in file:\n') + newFullPath.split(os.path.sep)[-1])
                     logging.error('Rejected bad condition name(s) in file: %s' % newFullPath)
                 self.conditionsFile = self.conditionsFileOrig
                 self.conditions = self.conditionsOrig
@@ -3130,14 +3130,14 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
         buttons = wx.StdDialogButtonSizer()
         if self.helpUrl!=None:
-            helpBtn = wx.Button(self, wx.ID_HELP)
+            helpBtn = wx.Button(self, wx.ID_HELP, _(" Help "))
             helpBtn.SetHelpText("Get help about this component")
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
             buttons.Add(helpBtn, 0, wx.ALIGN_RIGHT|wx.ALL,border=3)
-        self.OKbtn = wx.Button(self, wx.ID_OK, " OK ")
+        self.OKbtn = wx.Button(self, wx.ID_OK, _(" OK "))
         self.OKbtn.SetDefault()
         buttons.Add(self.OKbtn, 0, wx.ALIGN_RIGHT|wx.ALL,border=3)
-        CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
+        CANCEL = wx.Button(self, wx.ID_CANCEL, _(" Cancel "))
         buttons.Add(CANCEL, 0, wx.ALIGN_RIGHT|wx.ALL,border=3)
 
         buttons.Realize()
@@ -3370,7 +3370,7 @@ class DlgConditions(wx.Dialog):
                             # was always red when preview .xlsx file -- in namespace already is fine
                     if self.fixed:
                         field.SetForegroundColour("Red")
-                field.SetToolTip(wx.ToolTip('Should be legal as a variable name (alphanumeric)'))
+                field.SetToolTip(wx.ToolTip(_('Should be legal as a variable name (alphanumeric)')))
                 field.Bind(wx.EVT_TEXT, self.checkName)
             elif self.fixed:
                 field.SetForegroundColour(darkgrey)
@@ -3556,22 +3556,22 @@ class DlgConditions(wx.Dialog):
             size=(60,15)
             if sys.platform.startswith('linux'):
                 size=(75, 30)
-            ADDROW = wx.Button(self, -1, "+cond.", size=size) # good size for mac, SMALL
-            ADDROW.SetToolTip(wx.ToolTip('Add a condition (row); to delete a condition, delete all of its values.'))
+            ADDROW = wx.Button(self, -1, _("+cond."), size=size) # good size for mac, SMALL
+            ADDROW.SetToolTip(wx.ToolTip(_('Add a condition (row); to delete a condition, delete all of its values.')))
             ADDROW.Bind(wx.EVT_BUTTON, self.userAddRow)
             buttons.Add(ADDROW)
             buttons.AddSpacer(4)
-            ADDCOL = wx.Button(self, -1, "+param", size=size)
-            ADDCOL.SetToolTip(wx.ToolTip('Add a parameter (column); to delete a param, set its type to None, or delete all of its values.'))
+            ADDCOL = wx.Button(self, -1, _("+param"), size=size)
+            ADDCOL.SetToolTip(wx.ToolTip(_('Add a parameter (column); to delete a param, set its type to None, or delete all of its values.')))
             ADDCOL.Bind(wx.EVT_BUTTON, self.userAddCol)
             buttons.Add(ADDCOL)
             buttons.AddSpacer(4)
-            PREVIEW = wx.Button(self, -1, "Preview")
-            PREVIEW.SetToolTip(wx.ToolTip("Show all values as they would appear after saving to a file, without actually saving anything."))
+            PREVIEW = wx.Button(self, -1, _("Preview"))
+            PREVIEW.SetToolTip(wx.ToolTip(_("Show all values as they would appear after saving to a file, without actually saving anything.")))
             PREVIEW.Bind(wx.EVT_BUTTON, self.preview)
             buttons.Add(PREVIEW)
             buttons.AddSpacer(4)
-            self.SAVEAS = wx.Button(self, wx.SAVE, "Save as")
+            self.SAVEAS = wx.Button(self, wx.SAVE, _("Save as"))
             self.SAVEAS.Bind(wx.EVT_BUTTON, self.saveAs)
             buttons.Add(self.SAVEAS)
             buttons.AddSpacer(8)
@@ -3581,21 +3581,21 @@ class DlgConditions(wx.Dialog):
         buttons = wx.StdDialogButtonSizer()
         #help button if we know the url
         if self.helpUrl and not self.fixed:
-            helpBtn = wx.Button(self, wx.ID_HELP)
-            helpBtn.SetToolTip(wx.ToolTip("Go to online help"))
+            helpBtn = wx.Button(self, wx.ID_HELP, _(" Help "))
+            helpBtn.SetToolTip(wx.ToolTip(_("Go to online help")))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
             buttons.Add(helpBtn, wx.ALIGN_LEFT|wx.ALL)
             buttons.AddSpacer(12)
-        self.OKbtn = wx.Button(self, wx.ID_OK, " OK ")
+        self.OKbtn = wx.Button(self, wx.ID_OK, _(" OK "))
         if not self.fixed:
-            self.OKbtn.SetToolTip(wx.ToolTip('Save and exit'))
+            self.OKbtn.SetToolTip(wx.ToolTip(_('Save and exit')))
         self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
         self.OKbtn.SetDefault()
         buttons.Add(self.OKbtn)
         if not self.fixed:
             buttons.AddSpacer(4)
-            CANCEL = wx.Button(self, wx.ID_CANCEL, " Cancel ")
-            CANCEL.SetToolTip(wx.ToolTip('Exit, discard any edits'))
+            CANCEL = wx.Button(self, wx.ID_CANCEL, _(" Cancel "))
+            CANCEL.SetToolTip(wx.ToolTip(_('Exit, discard any edits')))
             buttons.Add(CANCEL)
         buttons.AddSpacer(8)
         buttons.Realize()
@@ -4077,8 +4077,8 @@ class BuilderFrame(wx.Frame):
         """Open a FileDialog, then load the file if possible.
         """
         if filename==None:
-            dlg = wx.FileDialog(self, message="Open file ...", style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST,
-                wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
+            dlg = wx.FileDialog(self, message=_("Open file ..."), style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST,
+                wildcard=_("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"))
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
@@ -4141,7 +4141,7 @@ class BuilderFrame(wx.Frame):
             wildcard="PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*"
         returnVal=False
         dlg = wx.FileDialog(
-            self, message="Save file as ...", defaultDir=initPath,
+            self, message=_("Save file as ..."), defaultDir=initPath,
             defaultFile=filename, style=wx.SAVE, wildcard=wildcard)
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
@@ -4150,7 +4150,7 @@ class BuilderFrame(wx.Frame):
             okToSave=True
             if os.path.exists(newPath):
                 dlg2 = dialogs.MessageDialog(self,
-                            message="File '%s' already exists.\n    OK to overwrite?" % (newPath),
+                            message=_("File '%s' already exists.\n    OK to overwrite?") % (newPath),
                             type='Warning')
                 ok = dlg2.ShowModal()
                 if ok != wx.ID_YES:
@@ -4229,7 +4229,7 @@ class BuilderFrame(wx.Frame):
             self.Show(True)
             self.Raise()
             self.app.SetTopWindow(self)
-            message = 'Experiment %s has changed. Save before quitting?' % self.filename
+            message = _('Experiment %s has changed. Save before quitting?') % self.filename
             dlg = dialogs.MessageDialog(self, message, type='Warning')
             resp = dlg.ShowModal()
             if resp == wx.ID_CANCEL:
@@ -4392,7 +4392,7 @@ class BuilderFrame(wx.Frame):
         """Get a folder location from the user and unpack demos into it
         """
         #choose a dir to unpack in
-        dlg = wx.DirDialog(parent=self, message="Location to unpack demos")
+        dlg = wx.DirDialog(parent=self, message=_("Location to unpack demos"))
         if dlg.ShowModal()==wx.ID_OK:
             unpackFolder = dlg.GetPath()
         else:
@@ -4519,8 +4519,8 @@ class BuilderFrame(wx.Frame):
         if self.app.copiedRoutine == None:
             return -1
         defaultName = self.exp.namespace.makeValid(self.app.copiedRoutine.name)
-        message = 'New name for copy of "%s"?  [%s]' % (self.app.copiedRoutine.name, defaultName)
-        dlg = wx.TextEntryDialog(self, message=message, caption='Paste Routine')
+        message = _('New name for copy of "%(copied)s"?  [%(default)s]') % {'copied':self.app.copiedRoutine.name, 'default':defaultName}
+        dlg = wx.TextEntryDialog(self, message=message, caption=_('Paste Routine'))
         if dlg.ShowModal() == wx.ID_OK:
             routineName=dlg.GetValue()
             newRoutine = copy.deepcopy(self.app.copiedRoutine)

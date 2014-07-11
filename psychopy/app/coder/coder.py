@@ -269,24 +269,24 @@ class UnitTestFrame(wx.Frame):
         knownTestList = [t.split(os.sep)[-1] for t in knownTests if t.endswith('.py') or os.path.isdir(t)]
         self.knownTestList = [self.runAllText] + knownTestList
         self.testSelect = wx.Choice(parent=self, id=-1, pos=(border,border), choices=self.knownTestList)
-        self.testSelect.SetToolTip(wx.ToolTip("Select the test(s) to run, from:\npsychopy/tests/test*"))
+        self.testSelect.SetToolTip(wx.ToolTip(_("Select the test(s) to run, from:\npsychopy/tests/test*")))
         prefTestSubset = self.prefs.appData['testSubset']
         # preselect the testGroup in the drop-down menu for display:
         if prefTestSubset in self.knownTestList:
             self.testSelect.SetStringSelection(prefTestSubset)
 
-        self.btnRun = wx.Button(parent=self,label="Run tests")
+        self.btnRun = wx.Button(parent=self,label=_("Run tests"))
         self.btnRun.Bind(wx.EVT_BUTTON, self.onRunTests)
-        self.btnCancel = wx.Button(parent=self,label="Cancel")
+        self.btnCancel = wx.Button(parent=self,label=_("Cancel"))
         self.btnCancel.Bind(wx.EVT_BUTTON, self.onCancelTests)
         self.btnCancel.Disable()
         self.Bind(wx.EVT_END_PROCESS, self.onTestsEnded)
 
-        self.chkCoverage=wx.CheckBox(parent=self,label="Coverage Report")
-        self.chkCoverage.SetToolTip(wx.ToolTip("Include coverage report (requires coverage module)"))
+        self.chkCoverage=wx.CheckBox(parent=self,label=_("Coverage Report"))
+        self.chkCoverage.SetToolTip(wx.ToolTip(_("Include coverage report (requires coverage module)")))
         self.chkCoverage.Disable()
-        self.chkAllStdOut=wx.CheckBox(parent=self,label="ALL stdout")
-        self.chkAllStdOut.SetToolTip(wx.ToolTip("Report all printed output & show any new rms-test images"))
+        self.chkAllStdOut=wx.CheckBox(parent=self,label=_("ALL stdout"))
+        self.chkAllStdOut.SetToolTip(wx.ToolTip(_("Report all printed output & show any new rms-test images")))
         self.chkAllStdOut.Disable()
         wx.EVT_IDLE(self, self.onIdle)
         self.SetDefaultItem(self.btnRun)
@@ -1065,7 +1065,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
 
         # was it still not found?
         if loc == -1:
-            dlg = dialogs.MessageDialog(self, message='Unable to find "%s"' %findstring,type='Info')
+            dlg = dialogs.MessageDialog(self, message=_('Unable to find "%s"') %findstring,type='Info')
             dlg.ShowModal()
             dlg.Destroy()
         else:
@@ -1624,7 +1624,7 @@ class CoderFrame(wx.Frame):
                 self.Raise()
                 self.app.SetTopWindow(self)
                 #then bring up dialog
-                dlg = dialogs.MessageDialog(self,message='Save changes to %s before quitting?' %filename, type='Warning')
+                dlg = dialogs.MessageDialog(self,message=_('Save changes to %s before quitting?') %filename, type='Warning')
                 resp = dlg.ShowModal()
                 sys.stdout.flush()
                 dlg.Destroy()
@@ -1836,7 +1836,7 @@ class CoderFrame(wx.Frame):
             failToSave = False
             if not self.expectedModTime(doc) and os.path.exists(doc.filename):
                 dlg = dialogs.MessageDialog(self,
-                        message="File appears to have been modified outside of PsychoPy:\n   %s\nOK to overwrite?" % (os.path.basename(doc.filename)),
+                        message=_("File appears to have been modified outside of PsychoPy:\n   %s\nOK to overwrite?") % (os.path.basename(doc.filename)),
                         type='Warning')
                 if dlg.ShowModal() != wx.ID_YES:
                     print "'Save' was canceled.",
@@ -1845,7 +1845,7 @@ class CoderFrame(wx.Frame):
                 except: pass
             if os.path.exists(doc.filename) and not os.access(doc.filename,os.W_OK):
                 dlg = dialogs.MessageDialog(self,
-                        message="File '%s' lacks write-permission:\nWill try save-as instead." % (os.path.basename(doc.filename)),
+                        message=_("File '%s' lacks write-permission:\nWill try save-as instead.") % (os.path.basename(doc.filename)),
                         type='Info')
                 dlg.ShowModal()
                 failToSave = True
@@ -1911,18 +1911,18 @@ class CoderFrame(wx.Frame):
         initPath, filename = os.path.split(filename)#if we have an absolute path then split it
         #set wildcards
         if sys.platform=='darwin':
-            wildcard="Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*"
+            wildcard=_("Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*")
         else:
-            wildcard="Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*.*"
+            wildcard=_("Python scripts (*.py)|*.py|Text file (*.txt)|*.txt|Any file (*.*)|*.*")
         #open dlg
         dlg = wx.FileDialog(
-            self, message="Save file as ...", defaultDir=initPath,
+            self, message=_("Save file as ..."), defaultDir=initPath,
             defaultFile=filename, style=wx.SAVE, wildcard=wildcard)
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
             # if the file already exists, query whether it should be overwritten (default = yes)
             dlg2 = dialogs.MessageDialog(self,
-                        message="File '%s' already exists.\n    OK to overwrite?" % (newPath),
+                        message=_("File '%s' already exists.\n    OK to overwrite?") % (newPath),
                         type='Warning')
             if not os.path.exists(newPath) or dlg2.ShowModal() == wx.ID_YES:
                 doc.filename = newPath
@@ -1948,7 +1948,7 @@ class CoderFrame(wx.Frame):
         self.currentDoc = self.notebook.GetPage(self.notebook.GetSelection())
         if self.currentDoc.UNSAVED and checkSave:
             sys.stdout.flush()
-            dlg = dialogs.MessageDialog(self,message='Save changes to %s before quitting?' %filename,type='Warning')
+            dlg = dialogs.MessageDialog(self,message=_('Save changes to %s before quitting?') %filename,type='Warning')
             resp = dlg.ShowModal()
             sys.stdout.flush()
             dlg.Destroy()
@@ -2035,7 +2035,7 @@ class CoderFrame(wx.Frame):
         #does the file need saving before running?
         if self.currentDoc.UNSAVED:
             sys.stdout.flush()
-            dlg = dialogs.MessageDialog(self,message='Save changes to %s before running?' %filename,type='Warning')
+            dlg = dialogs.MessageDialog(self,message=_('Save changes to %s before running?') %filename,type='Warning')
             resp = dlg.ShowModal()
             sys.stdout.flush()
             dlg.Destroy()

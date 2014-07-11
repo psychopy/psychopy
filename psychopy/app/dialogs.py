@@ -23,10 +23,10 @@ class MessageDialog(wx.Dialog):
         #add buttons
         btnSizer=wx.BoxSizer(wx.HORIZONTAL)
         if type=='Warning':#we need Yes,No,Cancel
-            self.yesBtn=wx.Button(self,wx.ID_YES,'Yes')
+            self.yesBtn=wx.Button(self,wx.ID_YES,_('Yes'))
             self.yesBtn.SetDefault()
-            self.cancelBtn=wx.Button(self,wx.ID_CANCEL,'Cancel')
-            self.noBtn=wx.Button(self,wx.ID_NO,'No')
+            self.cancelBtn=wx.Button(self,wx.ID_CANCEL,_('Cancel'))
+            self.noBtn=wx.Button(self,wx.ID_NO,_('No'))
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_CANCEL)
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_YES)
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_NO)
@@ -37,7 +37,7 @@ class MessageDialog(wx.Dialog):
             btnSizer.Add((5, 20), 0)
             btnSizer.Add(self.yesBtn, wx.ALIGN_RIGHT)
         elif type=='Info':#just an OK button
-            self.okBtn=wx.Button(self,wx.ID_OK,'OK')
+            self.okBtn=wx.Button(self,wx.ID_OK,_('OK'))
             self.okBtn.SetDefault()
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_OK)
             btnSizer.Add(self.okBtn, wx.ALIGN_RIGHT)

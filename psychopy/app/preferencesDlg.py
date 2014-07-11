@@ -47,23 +47,23 @@ class PreferencesDlg(wx.Dialog):
         sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
         btnsizer = wx.StdDialogButtonSizer()
         #ok
-        btn = wx.Button(self, wx.ID_OK)
+        btn = wx.Button(self, wx.ID_OK, _('OK'))
         btn.SetHelpText(_("Save prefs (in all sections) and close window"))
         btn.Bind(wx.EVT_BUTTON, self.onOK)
         btn.SetDefault()
         btnsizer.AddButton(btn)
         #cancel
-        btn = wx.Button(self, wx.ID_CANCEL)
+        btn = wx.Button(self, wx.ID_CANCEL, _('Cancel'))
         btn.SetHelpText(_("Cancel any changes (to any panel)"))
         btn.Bind(wx.EVT_BUTTON, self.onCancel)
         btnsizer.AddButton(btn)
         #apply
-        btn = wx.Button(self, wx.ID_APPLY)
+        btn = wx.Button(self, wx.ID_APPLY, _('Apply'))
         btn.SetHelpText(_("Apply these prefs (in all sections) and continue"))
         btn.Bind(wx.EVT_BUTTON, self.onApply)
         btnsizer.AddButton(btn)
         #help
-        btn = wx.Button(self, wx.ID_HELP)
+        btn = wx.Button(self, wx.ID_HELP, _('Help'))
         btn.SetHelpText(_("Get help on prefs"))
         btn.Bind(wx.EVT_BUTTON, self.onHelp)
         btnsizer.AddButton(btn)
