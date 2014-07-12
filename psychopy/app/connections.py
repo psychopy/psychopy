@@ -82,7 +82,7 @@ class Updater:
         if latest==-1:
             msg=_("Couldn't connect to psychopy.org to check for updates. \n")+\
                 _("Check internet settings (and proxy setting in PsychoPy Preferences).")
-            confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title='PsychoPy updates')
+            confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title=_('PsychoPy updates'))
             confirmDlg.ShowModal()
         return latest
     def suggestUpdate(self, confirmationDlg=False):
@@ -113,7 +113,7 @@ class Updater:
                 msg = _("PsychoPy v%(latest)s is available (you are running %(running)s).\n\n") % {'latest':self.latest['version'], 'running':self.runningVersion}
                 msg+= _("This version is too big an update to be handled automatically.\n")
                 msg+= _("Please fetch the latest version from www.psychopy.org and install manually.")
-                confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Warning', title='PsychoPy updates')
+                confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Warning', title=_('PsychoPy updates'))
                 confirmDlg.cancelBtn.SetLabel(_('Go to downloads'))
                 confirmDlg.cancelBtn.SetDefault()
                 confirmDlg.noBtn.SetLabel(_('Go to changelog'))
@@ -128,7 +128,7 @@ class Updater:
             return 0
         else:
             msg= _("You are running the latest version of PsychoPy (%s). ") %(self.runningVersion)
-            confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title='PsychoPy updates')
+            confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title=_('PsychoPy updates'))
             confirmDlg.ShowModal()
             return -1
     def doUpdate(self):
@@ -208,7 +208,7 @@ class InstallUpdateDialog(wx.Dialog):
         else:
             self.latest=app.updater.latest
         self.runningVersion=app.updater.runningVersion
-        wx.Dialog.__init__(self, parent, ID, title='PsychoPy Updates', size=(100,200))
+        wx.Dialog.__init__(self, parent, ID, title=_('PsychoPy Updates'), size=(100,200))
 
         mainSizer=wx.BoxSizer(wx.VERTICAL)
         #set the actual content of the status message later in self.updateStatus()
