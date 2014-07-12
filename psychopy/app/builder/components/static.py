@@ -11,7 +11,7 @@ __author__ = 'Jon Peirce'
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'static.png')
-tooltip = _('Static screen period (e.g. an ISI). Useful for pre-loading stimuli.')
+tooltip = _('Static: Static screen period (e.g. an ISI). Useful for pre-loading stimuli.')
 
 class StaticComponent(_base.BaseComponent):
     """A Static Component, allowing frame rendering to pause while disk is accessed"""

@@ -8,7 +8,7 @@ from os import path
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'dots.png')
-tooltip = _('Random Dot Kinematogram')
+tooltip = _('Dots: Random Dot Kinematogram')
 
 class DotsComponent(VisualComponent):
     """An event class for presenting Random Dot stimuli"""
