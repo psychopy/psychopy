@@ -1277,11 +1277,11 @@ class CoderFrame(wx.Frame):
         #---_edit---#000000#FFFFFF--------------------------------------------------
         self.editMenu = wx.Menu()
         menuBar.Append(self.editMenu, _('&Edit'))
-        self.editMenu.Append(wx.ID_CUT, "Cu&t\t%s" %self.app.keys['cut'])
+        self.editMenu.Append(wx.ID_CUT, _("Cu&t\t%s") %self.app.keys['cut'])
         wx.EVT_MENU(self, wx.ID_CUT,  self.cut)
-        self.editMenu.Append(wx.ID_COPY, "&Copy\t%s" %self.app.keys['copy'])
+        self.editMenu.Append(wx.ID_COPY, _("&Copy\t%s") %self.app.keys['copy'])
         wx.EVT_MENU(self, wx.ID_COPY,  self.copy)
-        self.editMenu.Append(wx.ID_PASTE, "&Paste\t%s" %self.app.keys['paste'])
+        self.editMenu.Append(wx.ID_PASTE, _("&Paste\t%s") %self.app.keys['paste'])
         wx.EVT_MENU(self, wx.ID_PASTE,  self.paste)
         self.editMenu.Append(wx.ID_DUPLICATE, _("&Duplicate\t%s") %self.app.keys['duplicate'], _("Duplicate the current line (or current selection)"))
         wx.EVT_MENU(self, wx.ID_DUPLICATE,  self.duplicateLine)
@@ -1522,7 +1522,7 @@ class CoderFrame(wx.Frame):
                         message=_("'%s' was modified outside of PsychoPy:\n\nReload (without saving)?") % (os.path.basename(self.currentDoc.filename)),
                         type='Warning')
                 if dlg.ShowModal() == wx.ID_YES:
-                    self.SetStatusText('Reloading file')
+                    self.SetStatusText(_('Reloading file'))
                     self.fileReload(event, filename=self.currentDoc.filename,checkSave=False)
                 self.showingReloadDialog = False
                 self.SetStatusText('')
@@ -1544,7 +1544,7 @@ class CoderFrame(wx.Frame):
                     message=_("'%s' was modified outside of PsychoPy:\n\nReload (without saving)?") % (os.path.basename(self.currentDoc.filename)),
                     type='Warning')
             if  dlg.ShowModal() == wx.ID_YES:
-                self.SetStatusText('Reloading file')
+                self.SetStatusText(_('Reloading file'))
                 self.fileReload(event, filename=self.currentDoc.filename,checkSave=False)
                 self.setFileModified(False)
             self.SetStatusText('')
@@ -1776,7 +1776,7 @@ class CoderFrame(wx.Frame):
             self.currentDoc.SetFocus()
         self.SetLabel('%s - PsychoPy Coder' %self.currentDoc.filename)
         if analyseAuto and len(self.getOpenFilenames())>0:
-            self.SetStatusText('Analysing code')
+            self.SetStatusText(_('Analysing code'))
             self.currentDoc.analyseScript()
             self.SetStatusText('')
         if not keepHidden:
@@ -1788,13 +1788,13 @@ class CoderFrame(wx.Frame):
         else:
             initPath=''
         dlg = wx.FileDialog(
-            self, message="Open file ...",
+            self, message=_("Open file ..."),
             defaultDir=initPath, style=wx.OPEN
             )
 
         if dlg.ShowModal() == wx.ID_OK:
             newPath = dlg.GetPath()
-            self.SetStatusText('Loading file')
+            self.SetStatusText(_('Loading file'))
             if os.path.isfile(newPath):
                 if newPath.lower().endswith('.psyexp'):
                     self.app.newBuilderFrame(fileName=newPath)
@@ -1853,7 +1853,7 @@ class CoderFrame(wx.Frame):
                 except: pass
             try:
                 if failToSave: raise
-                self.SetStatusText('Saving file')
+                self.SetStatusText(_('Saving file'))
                 newlines = None # system default, os.linesep
                 try:
                     # this will fail when doc.newlines was not set (new file)
@@ -1883,7 +1883,7 @@ class CoderFrame(wx.Frame):
                 self.fileSaveAs(filename)
 
         if analyseAuto and len(self.getOpenFilenames())>0:
-            self.SetStatusText('Analysing current source code')
+            self.SetStatusText(_('Analysing current source code'))
             self.currentDoc.analyseScript()
         #reset status text
         self.SetStatusText('')
@@ -2190,13 +2190,13 @@ class CoderFrame(wx.Frame):
             self.prefs['showSourceAsst']=True
         self.paneManager.Update()
     def analyseCodeNow(self, event):
-        self.SetStatusText('analysing code')
+        self.SetStatusText(_('Analysing code'))
         if self.currentDoc is not None:
             self.currentDoc.analyseScript()
         else:
             print 'Open a file from the File menu, or drag one onto this app, or open a demo from the Help menu'
 
-        self.SetStatusText('ready')
+        self.SetStatusText(_('ready'))
     #def setAnalyseAuto(self, event):
         ##set autoanalysis (from the check control in the tools menu)
         #if self.analyseAutoChk.IsChecked():

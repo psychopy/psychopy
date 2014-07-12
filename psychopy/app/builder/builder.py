@@ -290,11 +290,11 @@ class CodeComponentDialog(wx.Dialog):
                         openToPage = i  # first non-blank page
 
         if self.helpUrl!=None:
-            self.help_button = wx.Button(self, wx.ID_HELP, "")
+            self.help_button = wx.Button(self, wx.ID_HELP, _(" Help "))
             self.help_button.SetToolTip(wx.ToolTip(_("Go to online help about this component")))
         self.ok_button = wx.Button(self, wx.ID_OK, _(" OK "))
         self.ok_button.SetDefault()
-        self.cancel_button = wx.Button(self, wx.ID_CANCEL, "")
+        self.cancel_button = wx.Button(self, wx.ID_CANCEL, _(" Cancel "))
 
         self.__set_properties()
         self.__do_layout()
@@ -1724,9 +1724,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             #is currently in favs
             msg = "Remove from favorites"
             function = self.onRemFromFavorites
+        [_("Add to favorites"), _("Remove from favorites")] #This line is necessary for localize context menu
         menu = wx.Menu()
         id = wx.NewId()
-        menu.Append(id, msg)
+        menu.Append(id, _(msg) )
         wx.EVT_MENU(menu, id, function)
         #where to put the context menu
         x,y = evt.GetPosition()#this is position relative to object
@@ -3131,7 +3132,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
         buttons = wx.StdDialogButtonSizer()
         if self.helpUrl!=None:
             helpBtn = wx.Button(self, wx.ID_HELP, _(" Help "))
-            helpBtn.SetHelpText("Get help about this component")
+            helpBtn.SetHelpText(_("Get help about this component"))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
             buttons.Add(helpBtn, 0, wx.ALIGN_RIGHT|wx.ALL,border=3)
         self.OKbtn = wx.Button(self, wx.ID_OK, _(" OK "))
@@ -3379,7 +3380,7 @@ class DlgConditions(wx.Dialog):
             # warn about whitespace unless will be auto-removed. invisible, probably spurious:
             if (self.fixed or not self.clean) and item != item.lstrip().strip():
                 field.SetForegroundColour('Red')
-                self.warning = 'extra white-space' # also used in show()
+                self.warning = _('extra white-space') # also used in show()
                 field.SetToolTip(wx.ToolTip(self.warning))
             if self.fixed:
                 field.Disable()
@@ -4613,10 +4614,10 @@ class ReadmeFrame(wx.Frame):
         menuBar = wx.MenuBar()
         #---_file---#000000#FFFFFF--------------------------------------------------
         self.fileMenu = wx.Menu()
-        menuBar.Append(self.fileMenu, '&File')
-        self.fileMenu.Append(wx.ID_SAVE,    "&Save\t%s" %self.parent.app.keys['save'])
-        self.fileMenu.Append(wx.ID_CLOSE,   "&Close readme\t%s" %self.parent.app.keys['close'])
-        self.fileMenu.Append(self.parent.IDs.toggleReadme, "&Toggle readme\t%s" %self.parent.app.keys['toggleReadme'], "Toggle Readme")
+        menuBar.Append(self.fileMenu, _('&File'))
+        self.fileMenu.Append(wx.ID_SAVE,    _("&Save\t%s") %self.parent.app.keys['save'])
+        self.fileMenu.Append(wx.ID_CLOSE,   _("&Close readme\t%s") %self.parent.app.keys['close'])
+        self.fileMenu.Append(self.parent.IDs.toggleReadme, _("&Toggle readme\t%s") %self.parent.app.keys['toggleReadme'], _("Toggle Readme"))
         wx.EVT_MENU(self, self.parent.IDs.toggleReadme,  self.toggleVisible)
         wx.EVT_MENU(self, wx.ID_SAVE,  self.fileSave)
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.toggleVisible)
