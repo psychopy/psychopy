@@ -234,14 +234,18 @@ class CodeComponentDialog(wx.Dialog):
             style=(wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
                             | wx.THICK_FRAME | wx.DIALOG_NO_PARENT),
             editing=False):
-
-        wx.Dialog.__init__(self, frame,-1,title,size=size,style=style)
+        
+        # translate title
+        localizedTitle = title.replace(' Properties',_(' Properties'))
+        
+        wx.Dialog.__init__(self, frame,-1,localizedTitle,size=size,style=style)
         self.frame=frame
         self.app=frame.app
         self.helpUrl=helpUrl
         self.params=params   #dict
         self.order=order
         self.title = title
+        self.localizedTitle = localizedTitle # keep localized title to update dialog's properties later.
         self.code_gui_elements={}
         if not editing and 'name' in self.params.keys():
             # then we're adding a new component, so provide a known-valid name:
@@ -322,7 +326,7 @@ class CodeComponentDialog(wx.Dialog):
 
     def __set_properties(self):
 
-        self.SetTitle(self.title)
+        self.SetTitle(self.localizedTitle) # use localized title
         self.SetSize((640, 480))
 
     def __do_layout(self):
@@ -627,7 +631,7 @@ class FlowPanel(wx.ScrolledWindow):
             condFileOrig = loop.params['conditionsFile'].val
         loopDlg = DlgLoopProperties(frame=self.frame,
             helpUrl = self.app.urls['builder.loops'],
-            title=loop.params['name'].val+_(' Properties'), loop=loop)
+            title=loop.params['name'].val+' Properties', loop=loop)
         if loopDlg.OK:
             prevLoop=loop
             if loopDlg.params['loopType'].val=='staircase':
@@ -1470,13 +1474,13 @@ class RoutineCanvas(wx.ScrolledWindow):
         #create the dialog
         if isinstance(component,components.code.CodeComponent):
             dlg = CodeComponentDialog(frame=self.frame,
-                title=component.params['name'].val+_(' Properties'),
+                title=component.params['name'].val+' Properties',
                 params = component.params,
                 order = component.order,
                 helpUrl=helpUrl, editing=True)
         else:
             dlg = DlgComponentProperties(frame=self.frame,
-                title=component.params['name'].val+_(' Properties'),
+                title=component.params['name'].val+' Properties',
                 params = component.params,
                 order = component.order,
                 helpUrl=helpUrl, editing=True)
@@ -1755,13 +1759,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         #create component template
         if componentName=='Code':
             dlg = CodeComponentDialog(frame=self.frame,
-                title=componentName+_(' Properties'),
+                title=componentName+' Properties',
                 params=newComp.params,
                 order=newComp.order,
                 helpUrl=helpUrl)
         else:
             dlg = DlgComponentProperties(frame=self.frame,
-                title=componentName+_(' Properties'),
+                title=componentName+' Properties',
                 params=newComp.params,
                 order=newComp.order,
                 helpUrl=helpUrl)
@@ -2073,7 +2077,13 @@ class _BaseParamsDlg(wx.Dialog):
             size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL,editing=False):
 
-        wx.Dialog.__init__(self, frame,-1,_(title),size=size,style=style)
+        # translate title
+        if ' Properties' in title: # Components and Loops
+            localizedTitle = title.replace(' Properties',_(' Properties'))
+        else:
+            localizedTitle = _(title)
+
+        wx.Dialog.__init__(self, frame,-1,localizedTitle,size=size,style=style) #use translated title for display
         self.frame=frame
         self.app=frame.app
         self.dpi=self.app.dpi
@@ -2603,11 +2613,14 @@ class _BaseParamsDlg(wx.Dialog):
         self.app.followLink(url=self.helpUrl)
 
 class DlgLoopProperties(_BaseParamsDlg):
-    def __init__(self,frame,title=_("Loop properties"),loop=None,
+    def __init__(self,frame,title="Loop Properties",loop=None,
             helpUrl=None,
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.RESIZE_BORDER):
-        wx.Dialog.__init__(self, frame,-1,title,pos,size,style)
+        # translate title
+        localizedTitle = title.replace(' Properties',_(' Properties'))
+        
+        wx.Dialog.__init__(self, frame,-1,localizedTitle,pos,size,style) # use localized title
         self.helpUrl=helpUrl
         self.frame=frame
         self.exp=frame.exp
@@ -4561,7 +4574,7 @@ class BuilderFrame(wx.Frame):
         else:
             helpUrl = None
         dlg = DlgExperimentProperties(frame=self,
-            title=_('%s Properties') %self.exp.getExpName(),
+            title='%s Properties' %self.exp.getExpName(),
             params=component.params, helpUrl=helpUrl,
             order=component.order)
         if dlg.OK:
