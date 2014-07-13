@@ -1776,7 +1776,7 @@ class CoderFrame(wx.Frame):
             self.currentDoc.SetFocus()
         self.SetLabel('%s - PsychoPy Coder' %self.currentDoc.filename)
         if analyseAuto and len(self.getOpenFilenames())>0:
-            self.SetStatusText(_('Analysing code'))
+            self.SetStatusText(_('Analyzing code'))
             self.currentDoc.analyseScript()
             self.SetStatusText('')
         if not keepHidden:
@@ -1883,7 +1883,7 @@ class CoderFrame(wx.Frame):
                 self.fileSaveAs(filename)
 
         if analyseAuto and len(self.getOpenFilenames())>0:
-            self.SetStatusText(_('Analysing current source code'))
+            self.SetStatusText(_('Analyzing current source code'))
             self.currentDoc.analyseScript()
         #reset status text
         self.SetStatusText('')
@@ -2190,7 +2190,7 @@ class CoderFrame(wx.Frame):
             self.prefs['showSourceAsst']=True
         self.paneManager.Update()
     def analyseCodeNow(self, event):
-        self.SetStatusText(_('Analysing code'))
+        self.SetStatusText(_('Analyzing code'))
         if self.currentDoc is not None:
             self.currentDoc.analyseScript()
         else:
