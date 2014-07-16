@@ -2149,12 +2149,14 @@ class _BaseParamsDlg(wx.Dialog):
         if 'Basic' in categNames:
             #move it to be the first category we see
             categNames.insert(0, categNames.pop(categNames.index('Basic')))
+        categLabel = {'Basic': _('Basic'), 'Data': _('Data'), 'Screen': _('Screen'),
+                      'Advanced': _('Advanced'), 'Custom': _('Custom')}
         for categName in categNames:
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)
             ctrls = self.addCategoryOfParams(theseParams, parent=page)
             page.SetSizer(ctrls)
-            self.ctrls.AddPage(page, categName)
+            self.ctrls.AddPage(page, categLabel[categName])
             self.panels.append(page) #so the validator finds this set of controls
             if 'customize_everything' in self.params.keys():
                 if self.params['customize_everything'].val.strip():
