@@ -3,91 +3,76 @@
 
 """Language localization for PsychoPy.
 
-Sets the locale upon import, installs global translate function _( ):
-    from psychopy import localization
+Sets the locale value as a wx languageID (int) and initializes gettext translation _():
+    from psychopy.app import localization
 """
 
 # Part of the PsychoPy library
 # Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-# Author: Jeremy Gray, May 2014
+# Author: Jeremy Gray, July 2014
+
 
 import gettext
-import locale
 import os, sys
 from psychopy import logging, prefs
 
 # Get a dict of locale aliases (cross-platform?) from wx.Locale()
 import wx
-loc = wx.Locale()
+locale = wx.Locale()
 aliases = {}
 idFromCode = {}
 codeFromId = {}
 for i in range(256):
-    a = loc.GetLanguageInfo(i)
-    if a:
-        aliases[a.Description] = a.CanonicalName
-        idFromCode[a.CanonicalName] = i
-        codeFromId[i] = a.CanonicalName
+    info = locale.GetLanguageInfo(i)
+    if info:
+        aliases[info.Description] = info.CanonicalName
+        idFromCode[info.CanonicalName] = i
+        codeFromId[i] = info.CanonicalName
 aliases['English'] = 'en_US'
 
-def init(lang=None):
-    """Init language to use for translations: `lang`, pref, or system default.
+def getID(lang=None):
+    """Get wx ID of language to use for translations: `lang`, pref, or system default.
 
-    On Mac or Linux, `lang` is typically a two-character language code, or 5 char language_CULTURE
-    On Windows, `lang` is typically a three-character code
+    `lang` is a two-character language code, or 5 char `language_REGION`
     """
-    encoding = 'utf-8'
-
     if lang:
-        current = lang.split('.')
-        if len(current) == 1:
-            current.append(encoding)
+        val = lang
     else:
-        current = locale.getlocale()
-    if current == (None, None):
         try:
-            val = str(prefs.app['locale'])
+            val = prefs.app['locale']
         except KeyError:
-            val = u''
-        if val in locale.locale_alias.keys():
-            val = locale.locale_alias[val]
-        try:
-            val = locale.setlocale(locale.LC_ALL, val)
-            if '.' in val:
-                val, encoding = val.split('.')
-        except locale.Error:
-            pass
-        current = (val, encoding)
-
-    # look for language_CULTURE files first (en_NZ), else just language (en):
-    dname = os.path.dirname(__file__)
-    fileexpr = os.path.join(dname, "res/messages_%s.mo")
-    # use language_Country if available (= more specific than just language)
-    if os.path.exists(fileexpr % current[0]):
-        lang = current[0]
-    else:
-        lang = current[0][:2]
-    lang = lang[:2].lower() + lang[2:]
-    mofile = fileexpr % lang
-
+            val = locale.GetLocale()
     try:
-        logging.debug("Opening message file %s for locale %s" % (mofile, lang))
-        trans = gettext.GNUTranslations(open(mofile, "rb"))
-    except IOError:
-        logging.debug("Locale for '%s' not found. Using default." % lang)
-        trans = gettext.NullTranslations()
-        try:
-            lang = locale.getlocale()[0][:2]  # return value
-        except:
-            lang = '??'
+        # can't set wx.Locale here because no app yet
+        language = idFromCode[val]
+    except KeyError:
+        logging.error('locale %s not known to wx.Locale, using default' % val)
+        language = wx.LANGUAGE_DEFAULT
+    return language
 
-    # install global _() function, and return code of the installed language:
-    trans.install(unicode=True)
-    return lang
+languageID = getID()
 
-init()
+# set locale before splash screen:
+wxlocale = wx.Locale(languageID)
+lang = codeFromId[languageID]
 
-if __name__ == '__main__':
-    print _('Welcome to PsychoPy2!')
+# ideally rewrite the following using self.locale only (= via wx):
+path = os.path.join(os.path.dirname(__file__), '..', 'locale', lang, 'LC_MESSAGE') + os.sep
+# try two-letter version if language_REGION not found; wx does this?
+if not os.path.exists(path):
+    path = path.replace(lang, lang[:2])
+mofile = os.path.join(path, 'messages.mo')
+try:
+    logging.debug("Opening message file %s for locale %s" % (mofile, lang))
+    trans = gettext.GNUTranslations(open(mofile, "rb"))
+except IOError:
+    logging.debug("Locale for '%s' not found. Using default." % lang)
+    trans = gettext.NullTranslations()
+trans.install(unicode=True)
+
+# this seems to have no effect, needs more investigation:
+path = os.path.join(os.path.dirname(__file__), 'locale') + os.sep
+wxlocale.AddCatalogLookupPathPrefix(path)
+

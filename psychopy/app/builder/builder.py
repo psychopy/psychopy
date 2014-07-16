@@ -418,8 +418,8 @@ class FlowPanel(wx.ScrolledWindow):
 
         #for the context menu
         self.componentFromID = {}#use the ID of the drawn icon to retrieve component (loop or routine)
-        labels = {'remove': _('remove')}
-        self.contextMenuItems = [labels['remove']]
+        self.contextMenuLabels = {'remove': _('remove')}
+        self.contextMenuItems = ['remove']
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
@@ -735,7 +735,7 @@ class FlowPanel(wx.ScrolledWindow):
         menu = wx.Menu()
         for item in self.contextMenuItems:
             id = self.contextIDFromItem[item]
-            menu.Append( id, _(item) )
+            menu.Append( id, self.contextMenuLabels[item] )
             wx.EVT_MENU( menu, id, self.onContextSelect )
         self.frame.PopupMenu( menu, xy )
         menu.Destroy() # destroy to avoid mem leak

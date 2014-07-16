@@ -21,14 +21,6 @@ from psychopy import preferences, logging#needed by splash screen for the path t
 from psychopy.app import connections
 import sys, os, threading
 
-# import localization after wx
-from psychopy.app import localization  # needed by splash screen
-lang = psychopy.prefs.app['locale']
-try:
-    language = localization.idFromCode[lang]
-except KeyError:
-    language = wx.LANGUAGE_DEFAULT
-
 # knowing if the user has admin priv is generally a good idea for security.
 # not actually needed; psychopy should never need anything except normal user
 # see older versions for code to detect admin (e.g., v 1.80.00)
@@ -70,9 +62,12 @@ class PsychoPyApp(wx.App):
         self.version=psychopy.__version__
         self.SetAppName('PsychoPy2')
 
-        self.locale = wx.Locale(language)
-        path = os.path.abspath(os.path.join("..", 'localization', "locale")) + os.sep
-        self.locale.AddCatalogLookupPathPrefix(path)  #'../localization/res/messages_ja.mo')
+        # import localization after wx:
+        from psychopy.app import localization  # needed by splash screen
+        # eventually want to use wx.GetTranslation exclusively, but for now use gettext.GNUTranslations as well
+        #__builtins__['_'] = wx.GetTranslation  # define _( ) function as app-global
+
+        self.locale = localization.wxlocale
         self.locale.AddCatalog(self.GetAppName())
         #print self.locale.IsOk(), self.locale.GetLocale(), self.locale.GetCanonicalName()
         #print _
