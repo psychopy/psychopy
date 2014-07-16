@@ -15,10 +15,10 @@ class MessageDialog(wx.Dialog):
     """For some reason the wx builtin message dialog has some issues on Mac OSX
     (buttons don't always work) so we need to use this instead.
     """
-    def __init__(self,parent=None,message='',msgType='Warning', title=None):
+    def __init__(self,parent=None,message='',type='Warning', title=None):
         # select and localize a title
         if not title:
-            title = msgType
+            title = type
         labels = {'Warning': _('Warning'), 'Info': _('Info')}
         try:
             label = labels[title]
@@ -29,7 +29,7 @@ class MessageDialog(wx.Dialog):
         sizer.Add(wx.StaticText(self,-1,message),flag=wx.ALL,border=15)
         #add buttons
         btnSizer=wx.BoxSizer(wx.HORIZONTAL)
-        if msgType=='Warning':#we need Yes,No,Cancel
+        if type=='Warning':#we need Yes,No,Cancel
             self.yesBtn=wx.Button(self,wx.ID_YES,_('Yes'))
             self.yesBtn.SetDefault()
             self.cancelBtn=wx.Button(self,wx.ID_CANCEL,_('Cancel'))
@@ -43,13 +43,13 @@ class MessageDialog(wx.Dialog):
             btnSizer.Add(self.cancelBtn, wx.ALIGN_RIGHT)
             btnSizer.Add((5, 20), 0)
             btnSizer.Add(self.yesBtn, wx.ALIGN_RIGHT)
-        elif msgType=='Info':#just an OK button
+        elif type=='Info':#just an OK button
             self.okBtn=wx.Button(self,wx.ID_OK,_('OK'))
             self.okBtn.SetDefault()
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_OK)
             btnSizer.Add(self.okBtn, wx.ALIGN_RIGHT)
         else:
-            raise NotImplementedError('Message type %s unknown' % msgType)
+            raise NotImplementedError('Message type %s unknown' % type)
         #configure sizers and fit
         sizer.Add(btnSizer,flag=wx.ALIGN_RIGHT|wx.ALL,border=5)
         self.Center()
