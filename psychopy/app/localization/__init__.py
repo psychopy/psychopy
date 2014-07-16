@@ -78,7 +78,10 @@ def init(lang=None):
     except IOError:
         logging.debug("Locale for '%s' not found. Using default." % lang)
         trans = gettext.NullTranslations()
-        lang = locale.getlocale()[0][:2]  # return value
+        try:
+            lang = locale.getlocale()[0][:2]  # return value
+        except:
+            lang = '??'
 
     # install global _() function, and return code of the installed language:
     trans.install(unicode=True)
