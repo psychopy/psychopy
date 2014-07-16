@@ -25,7 +25,7 @@ class SoundComponent(BaseComponent):
         #params
         self.order=[]#order for things (after name and timing params)
         self.params={}
-        self.params['name']=Param(name, valType='code', hint=_("Everything needs a name (no spaces or punctuation)"),
+        self.params['name']=Param(name, valType='code', hint=_("Name of this component (alpha-numeric or _, no spaces)"),
             label="Name")
         self.params['sound']=Param(sound, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],

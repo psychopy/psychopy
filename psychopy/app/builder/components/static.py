@@ -41,9 +41,9 @@ class StaticComponent(_base.BaseComponent):
             updates='constant', allowedUpdates=[],
             hint=_("When does the stimulus end?"))
         self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
-            hint=_("(Optional) expected start (s) of stimulus, purely for representing in the timeline"))
+            hint=_("(Optional) expected start (s), purely for representing in the timeline"))
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
-            hint=_("(Optional) expected duration (s) of stimulus, purely for representing in the timeline"))
+            hint=_("(Optional) expected duration (s), purely for representing in the timeline"))
     def addComponentUpdate(self, routine, compName, fieldName):
         self.updatesList.append({'compName':compName,'fieldName':fieldName, 'routine':routine})
     def remComponentUpdate(self, routine, compName, fieldName):

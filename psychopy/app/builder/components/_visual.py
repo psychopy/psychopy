@@ -32,11 +32,11 @@ class VisualComponent(_base.BaseComponent):
             updates='constant', allowedUpdates=[],
             hint=_("When does the stimulus end?"))
         self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
-            hint=_("(Optional) expected start (s) of stimulus, purely for representing in the timeline"))
+            hint=_("(Optional) expected start (s), purely for representing in the timeline"))
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
-            hint=_("(Optional) expected duration (s) of stimulus, purely for representing in the timeline"))
+            hint=_("(Optional) expected duration (s), purely for representing in the timeline"))
         self.params['name']=Param(name,  valType='code', updates='constant',
-            hint=_("Name of this stimulus"),
+            hint=_("Name of this component (alpha-numeric or _, no spaces)"),
             label="Name")
         self.params['units']=Param(units, valType='str', allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm'],
             hint=_("Units of dimensions for this stimulus"),

@@ -51,7 +51,7 @@ class RatingScaleComponent(BaseComponent):
 
         # normal params:
         self.params['name'] = Param(name, valType='code', allowedTypes=[],
-            hint=_("A rating scale only collects the response; it does not display the stimulus to be rated."),
+            hint=_("Name of this component (alpha-numeric or _, no spaces)"),
             label="Name")
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
@@ -65,9 +65,9 @@ class RatingScaleComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint=_("How long to wait for a response (blank is forever)"))
         self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
-            hint=_("(Optional) expected start (s) of stimulus, purely for representing in the timeline"))
+            hint=_("(Optional) expected start (s), purely for representing in the timeline"))
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
-            hint=_("(Optional) expected duration (s) of stimulus, purely for representing in the timeline"))
+            hint=_("(Optional) expected duration (s), purely for representing in the timeline"))
         self.params['visualAnalogScale'] = Param(visualAnalogScale, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=_("Show a continuous visual analog scale; returns 0.00 to 1.00; takes precedence over numeric scale or categorical choices"),
