@@ -3218,7 +3218,7 @@ class DlgConditions(wx.Dialog):
                 f = os.path.join(*f) # eg, BART/trialTypes.xlsx
                 title = f
         elif not grid:
-            title = 'New (no file)'
+            title = _('New (no file)')
         elif _restore:
             if not title:
                 f = os.path.abspath(_restore[1])
@@ -3226,7 +3226,7 @@ class DlgConditions(wx.Dialog):
                 f = os.path.join(*f) # eg, BART/trialTypes.xlsx
                 title = f
         elif not title:
-            title = 'Conditions data (no file)'
+            title = _('Conditions data (no file)')
         # if got here via addColumn:
         # convert from conditions dict format:
         if grid and type(grid) == list and type(grid[0]) == dict:
@@ -3290,7 +3290,7 @@ class DlgConditions(wx.Dialog):
 
         # make header label, if any:
         if self.hasHeader:
-            rowLabel = wx.StaticText(self,-1,label='Params:', size=(6*9, 20))
+            rowLabel = wx.StaticText(self,-1,label=_('Params:'), size=(6*9, 20))
             rowLabel.SetForegroundColour(darkblue)
             self.addRow(0, rowLabel=rowLabel)
         # make type-selector drop-down:
@@ -3298,7 +3298,7 @@ class DlgConditions(wx.Dialog):
             if sys.platform == 'darwin':
                 self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
             labelBox = wx.BoxSizer(wx.VERTICAL)
-            tx = wx.StaticText(self,-1,label='type:', size=(5*9,20))
+            tx = wx.StaticText(self,-1,label=_('type:'), size=(5*9,20))
             tx.SetForegroundColour(darkgrey)
             labelBox.Add(tx,1,flag=wx.ALIGN_RIGHT)
             labelBox.AddSpacer(5) # vertical
@@ -3352,7 +3352,7 @@ class DlgConditions(wx.Dialog):
         if not rowLabel:
             if sys.platform == 'darwin':
                 self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
-            label = 'cond %s:'%str(row+1-int(self.hasHeader)).zfill(2)
+            label = _('cond %s:')%str(row+1-int(self.hasHeader)).zfill(2)
             rowLabel = wx.StaticText(self, -1, label=label)
             rowLabel.SetForegroundColour(darkgrey)
             if sys.platform == 'darwin':
@@ -3414,7 +3414,7 @@ class DlgConditions(wx.Dialog):
         else:
             if (name and not _valid_var_re.match(name)
                 or not _valid_var_re.match(event.GetString()) ):
-                msg, enable = "Name must be alpha-numeric or _, no spaces", False
+                msg, enable = _("Name must be alpha-numeric or _, no spaces"), False
             else:
                 msg, enable = "", True
         self.tmpMsg.SetLabel(msg)
@@ -3541,7 +3541,7 @@ class DlgConditions(wx.Dialog):
         self.getData(typeSelected=True)
         previewData = self.data[:] # in theory, self.data is also ok, because fixed
             # is supposed to never change anything, but bugs would be very subtle
-        DlgConditions(previewData, parent=self.parent, title='PREVIEW', fixed=True)
+        DlgConditions(previewData, parent=self.parent, title=_('PREVIEW'), fixed=True)
     def onNeedsResize(self, event=None):
         self.SetSizerAndFit(self.border) # do outer-most sizer
         if self.pos==None:
@@ -3567,15 +3567,12 @@ class DlgConditions(wx.Dialog):
             buttons.AddSpacer(8)
             self.border.Add(buttons,1,flag=wx.BOTTOM|wx.ALIGN_CENTER, border=8)
             buttons = wx.BoxSizer(wx.HORIZONTAL)
-            size=(60,15)
-            if sys.platform.startswith('linux'):
-                size=(75, 30)
-            ADDROW = wx.Button(self, -1, _("+cond."), size=size) # good size for mac, SMALL
+            ADDROW = wx.Button(self, -1, _("+cond."))
             ADDROW.SetToolTip(wx.ToolTip(_('Add a condition (row); to delete a condition, delete all of its values.')))
             ADDROW.Bind(wx.EVT_BUTTON, self.userAddRow)
             buttons.Add(ADDROW)
             buttons.AddSpacer(4)
-            ADDCOL = wx.Button(self, -1, _("+param"), size=size)
+            ADDCOL = wx.Button(self, -1, _("+param"))
             ADDCOL.SetToolTip(wx.ToolTip(_('Add a parameter (column); to delete a param, set its type to None, or delete all of its values.')))
             ADDCOL.Bind(wx.EVT_BUTTON, self.userAddCol)
             buttons.Add(ADDCOL)
@@ -3651,7 +3648,7 @@ class DlgConditions(wx.Dialog):
                     newName = self.parent.exp.namespace.makeValid(paramName, prefix='param')
                     adjustedNames = True
             elif not _valid_var_re.match(paramName):
-                msg, enable = "Name must be alpha-numeric or _, no spaces", False
+                msg, enable = _("Name must be alpha-numeric or _, no spaces"), False
                 newName = _nonalphanumeric_re.sub('_', newName)
                 adjustedNames = True
             else:
@@ -3663,7 +3660,7 @@ class DlgConditions(wx.Dialog):
             self.data[0][i] = newName
             self.header[i].SetValue(newName) # displayed value
         if adjustedNames:
-            self.tmpMsg.SetLabel('Param name(s) adjusted to be legal. Look ok?')
+            self.tmpMsg.SetLabel(_('Param name(s) adjusted to be legal. Look ok?'))
             return False
         if hasattr(self, 'fileName') and self.fileName:
             fname = self.fileName
@@ -3673,7 +3670,7 @@ class DlgConditions(wx.Dialog):
         if self.newFile or not os.path.isfile(fname):
             fullPath = gui.fileSaveDlg(initFilePath=os.path.split(fname)[0],
                 initFileName=os.path.basename(fname),
-                        allowed="Pickle files *.pkl")
+                        allowed="Pickle files (*.pkl)|*.pkl")
         else:
             fullPath = fname
         if fullPath: # None if user canceled
