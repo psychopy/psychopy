@@ -1153,7 +1153,7 @@ class CoderFrame(wx.Frame):
                 wx.aui.AUI_NB_TAB_MOVE | wx.aui.AUI_NB_CLOSE_ON_ACTIVE_TAB | wx.aui.AUI_NB_WINDOWLIST_BUTTON)
         self.notebook.DragAcceptFiles(True)
         self.paneManager.AddPane(self.notebook, wx.aui.AuiPaneInfo().
-                          Name("Editor").Caption("Editor").
+                          Name("Editor").Caption(_("Editor")).
                           CenterPane(). #'center panes' expand to fill space
                           CloseButton(False).MaximizeButton(True))
 
@@ -1181,7 +1181,7 @@ class CoderFrame(wx.Frame):
                 wx.aui.AUI_NB_TAB_MOVE)
         self.paneManager.AddPane(self.shelf,
                                  wx.aui.AuiPaneInfo().
-                                 Name("Shelf").Caption("Shelf").
+                                 Name("Shelf").Caption(_("Shelf")).
                                  RightDockable(True).LeftDockable(True).CloseButton(False).
                                  Bottom())
         self.shelf.DragAcceptFiles(True)
@@ -1194,7 +1194,7 @@ class CoderFrame(wx.Frame):
             font=self.prefs['outputFont'], fontSize=self.prefs['outputFontSize'])
         self.outputWindow.write(_('Welcome to PsychoPy2!') + '\n')
         self.outputWindow.write("v%s\n" %self.app.version)
-        self.shelf.AddPage(self.outputWindow, 'Output')
+        self.shelf.AddPage(self.outputWindow, _('Output'))
 
         if haveCode:
             useDefaultShell = True
@@ -1207,18 +1207,18 @@ class CoderFrame(wx.Frame):
                         )
                     useDefaultShell = False
                 except:
-                    logging.warn('IPython failed as shell, using pyshell (IPython v0.12 can fail on wx)')
+                    logging.warn(_('IPython failed as shell, using pyshell (IPython v0.12 can fail on wx)'))
             if useDefaultShell:
                 from wx import py
                 self.shell = py.shell.Shell(self.shelf, -1, introText=_('PyShell in PsychoPy - type some commands!')+'\n\n')
-            self.shelf.AddPage(self.shell, 'Shell')
+            self.shelf.AddPage(self.shell, _('Shell'))
 
         #add help window
         self.sourceAsstWindow = wx.richtext.RichTextCtrl(self,-1, size=wx.Size(300,300),
                                           style=wx.TE_MULTILINE|wx.TE_READONLY)
         self.paneManager.AddPane(self.sourceAsstWindow,
                                  wx.aui.AuiPaneInfo().BestSize((600,600)).
-                                 Name("SourceAsst").Caption("Source Assistant").
+                                 Name("SourceAsst").Caption(_("Source Assistant")).
                                  RightDockable(True).LeftDockable(True).CloseButton(False).
                                  Right())
         #will we show the pane straight away?

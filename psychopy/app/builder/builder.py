@@ -1618,8 +1618,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.componentFromID={}
         self.panels={}
         self.sizerList=[]#to keep track of the objects (sections and section labels) within the main sizer
+        categLabel = {'Favorites': _('Favorites'), 'Stimuli': _('Stimuli'),
+                      'Responses': _('Responses'), 'Custom': _('Custom'), 'I/O': _('I/O')}
         for categ in categories:
-            sectionBtn = platebtn.PlateButton(self,-1,categ,
+            sectionBtn = platebtn.PlateButton(self,-1,categLabel[categ],
                 style=platebtn.PB_STYLE_DROPARROW)
             sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn) #mouse event must be bound like this
             sectionBtn.Bind(wx.EVT_RIGHT_DOWN, self.onSectionBtn) #mouse event must be bound like this
