@@ -3,7 +3,7 @@
 
 import pytest
 import locale
-from psychopy import localization
+from psychopy.app import localization
 
 welcome = u'Welcome to PsychoPy2!'
 trans = {'en': welcome,
@@ -19,17 +19,17 @@ class TestLocalization(object):
         localization.init(self.orig)
 
     def test_set(self):
-        lang = localization.init('En')
+        lang = localization.init('En_US')
         assert lang == 'en'
 
-        for lang in ['En', 'Ja', 'ja']:
+        for lang in ['En_US', 'Ja_JP', 'ja_JP']:
             setlang = localization.init(lang)
             out = _(welcome)
-            assert setlang == lang.lower()
+            assert setlang == lang.lower()[:2]
             assert out == trans[setlang]
 
-        lo = 'en'
-        localization.init(lo)
-        for lang in ['', None, [], 'junk']:
-            setlang = localization.init(lang)
-            assert setlang == lo
+        #lo = 'en'
+        #localization.init(lo)
+        #for lang in ['', None, [], 'junk']:
+        #    setlang = localization.init(lang)
+        #    assert setlang == lo

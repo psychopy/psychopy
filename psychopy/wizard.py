@@ -9,7 +9,7 @@
 
 # Author: Jeremy Gray, Oct 2012; localization 2014
 
-from psychopy import localization
+from psychopy.app import localization
 
 from pyglet.gl import gl_info
 from psychopy import info, data, visual, gui, core, __version__, web, prefs, event
