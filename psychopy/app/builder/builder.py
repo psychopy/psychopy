@@ -271,6 +271,7 @@ class CodeComponentDialog(wx.Dialog):
                                  wx.ID_ANY,
                                  unicode(param.val),
                                  style=wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB)
+                self.component_name.SetToolTipString(param.hint)
                 self.component_name.SetValidator(validators.NameValidator())
                 self.nameOKlabel=wx.StaticText(self,-1,'',
                                             style=wx.ALIGN_RIGHT)
