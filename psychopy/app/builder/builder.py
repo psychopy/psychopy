@@ -1743,7 +1743,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         currRoutinePage = self.frame.routinePanel.getCurrentPage()
         if not currRoutinePage:
             dialogs.MessageDialog(self,_("Create a routine (Experiment menu) before adding components"),
-                type='Info', title='Error').ShowModal()
+                type='Info', title=_('Error')).ShowModal()
             return False
         currRoutine = self.frame.routinePanel.getCurrentRoutine()
         #get component name
