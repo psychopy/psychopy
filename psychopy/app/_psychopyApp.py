@@ -21,6 +21,14 @@ from psychopy import preferences, logging#needed by splash screen for the path t
 from psychopy.app import connections
 import sys, os, threading
 
+# import localization after wx
+from psychopy.app import localization  # needed by splash screen
+lang = psychopy.prefs.app['locale']
+try:
+    language = localization.idFromCode[lang]
+except KeyError:
+    language = wx.LANGUAGE_DEFAULT
+
 # knowing if the user has admin priv is generally a good idea for security.
 # not actually needed; psychopy should never need anything except normal user
 # see older versions for code to detect admin (e.g., v 1.80.00)
@@ -61,6 +69,14 @@ class PsychoPyApp(wx.App):
         """
         self.version=psychopy.__version__
         self.SetAppName('PsychoPy2')
+
+        self.locale = wx.Locale(language)
+        path = os.path.abspath(os.path.join("..", 'localization', "locale")) + os.sep
+        self.locale.AddCatalogLookupPathPrefix(path)  #'../localization/res/messages_ja.mo')
+        self.locale.AddCatalog(self.GetAppName())
+        #print self.locale.IsOk(), self.locale.GetLocale(), self.locale.GetCanonicalName()
+        #print _
+
         #set default paths and prefs
         self.prefs = psychopy.prefs
         if self.prefs.app['debugMode']:
@@ -185,8 +201,9 @@ class PsychoPyApp(wx.App):
             dlg.ShowModal()
 
         if self.prefs.app['showStartupTips'] and not self.testMode:
+            tipFile = os.path.join(self.prefs.paths['resources'], _("tips.txt"))
             tipIndex = self.prefs.appData['tipIndex']
-            tp = wx.CreateFileTipProvider(os.path.join(self.prefs.paths['resources'],"tips.txt"), tipIndex)
+            tp = wx.CreateFileTipProvider(tipFile, tipIndex)
             showTip = wx.ShowTip(None, tp)
             self.prefs.appData['tipIndex'] = tp.GetCurrentTip()
             self.prefs.saveAppData()

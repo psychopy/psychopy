@@ -1210,7 +1210,7 @@ class CoderFrame(wx.Frame):
                     logging.warn('IPython failed as shell, using pyshell (IPython v0.12 can fail on wx)')
             if useDefaultShell:
                 from wx import py
-                self.shell = py.shell.Shell(self.shelf, -1, introText='PyShell in PsychoPy - type some commands!\n\n')
+                self.shell = py.shell.Shell(self.shelf, -1, introText=_('PyShell in PsychoPy - type some commands!')+'\n\n')
             self.shelf.AddPage(self.shell, 'Shell')
 
         #add help window
@@ -1231,6 +1231,9 @@ class CoderFrame(wx.Frame):
         if self.appData['auiPerspective'] and \
             'Shelf' in self.appData['auiPerspective']:#
                 self.paneManager.LoadPerspective(self.appData['auiPerspective'])
+                self.paneManager.GetPane('Shelf').Caption(_("Shelf"))
+                self.paneManager.GetPane('SourceAsst').Caption(_("Source Assistant"))
+                self.paneManager.GetPane('Editor').Caption(_("Editor"))
         else:
             self.SetMinSize(wx.Size(400, 600)) #min size for the whole window
             self.Fit()

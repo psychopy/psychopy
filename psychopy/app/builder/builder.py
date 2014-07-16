@@ -234,10 +234,10 @@ class CodeComponentDialog(wx.Dialog):
             style=(wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
                             | wx.THICK_FRAME | wx.DIALOG_NO_PARENT),
             editing=False):
-        
+
         # translate title
         localizedTitle = title.replace(' Properties',_(' Properties'))
-        
+
         wx.Dialog.__init__(self, frame,-1,localizedTitle,size=size,style=style)
         self.frame=frame
         self.app=frame.app
@@ -417,8 +417,8 @@ class FlowPanel(wx.ScrolledWindow):
 
         #for the context menu
         self.componentFromID = {}#use the ID of the drawn icon to retrieve component (loop or routine)
-        self.contextMenuItems = ['remove']
-        [_('remove')] #This line is necessary for gettext to localize context menu
+        labels = {'remove': _('remove')}
+        self.contextMenuItems = [labels['remove']]
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
@@ -1178,7 +1178,10 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.lastpos = (0,0)
         self.componentFromID = {}#use the ID of the drawn icon to retrieve component name
         self.contextMenuItems = ['edit','remove','move to top','move up','move down','move to bottom']
-        [_('edit'),_('remove'),_('move to top'),_('move up'),_('move down'),_('move to bottom')] #This line is necessary for gettext to localize context menu
+        # labels are only for display, and allow localization
+        self.contextMenuLabels = {'edit': _('edit'), 'remove': _('remove'),
+                                 'move to top': _('move to top'), 'move up': _('move up'),
+                                 'move down': _('move down'), 'move to bottom': _('move to bottom')}
         self.contextItemFromID = {}
         self.contextIDFromItem = {}
         for item in self.contextMenuItems:
@@ -1232,7 +1235,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         menu = wx.Menu()
         for item in self.contextMenuItems:
             id = self.contextIDFromItem[item]
-            menu.Append( id, _(item) )
+            menu.Append( id, self.contextMenuLabels[item] )
             wx.EVT_MENU( menu, id, self.onContextSelect )
         self.frame.PopupMenu( menu, xy )
         menu.Destroy() # destroy to avoid mem leak
@@ -1728,10 +1731,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             #is currently in favs
             msg = "Remove from favorites"
             function = self.onRemFromFavorites
-        [_("Add to favorites"), _("Remove from favorites")] #This line is necessary for localize context menu
+        msgLocalized = {"Add to favorites": _("Add to favorites"),
+                        "Remove from favorites": _("Remove from favorites")}
         menu = wx.Menu()
         id = wx.NewId()
-        menu.Append(id, _(msg) )
+        menu.Append(id, msgLocalized[msg] )
         wx.EVT_MENU(menu, id, function)
         #where to put the context menu
         x,y = evt.GetPosition()#this is position relative to object
@@ -2619,7 +2623,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.RESIZE_BORDER):
         # translate title
         localizedTitle = title.replace(' Properties',_(' Properties'))
-        
+
         wx.Dialog.__init__(self, frame,-1,localizedTitle,pos,size,style) # use localized title
         self.helpUrl=helpUrl
         self.frame=frame

@@ -4,7 +4,6 @@
 # Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import localization
 from psychopy.app._psychopyApp import *
 
 #NB the PsychoPyApp classes moved to _psychopyApp.py as of version 1.78.00

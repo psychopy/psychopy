@@ -18,19 +18,19 @@ import locale
 import os, sys
 from psychopy import logging, prefs
 
-# Create a dict of locale aliases, usage:
-# key = locale.getlocale()[0]
-# setlocale(0, aliases[key])
-if sys.platform.startswith('win'):
-    filename = 'win.txt'
-else:
-    filename = 'macnix.txt'
-path = os.path.join(os.path.dirname(__file__), 'aliases', filename)
+# Get a dict of locale aliases (cross-platform?) from wx.Locale()
+import wx
+loc = wx.Locale()
 aliases = {}
-for line in open(path, 'rU').readlines():
-    val, key = line.strip().split(' ', 1)
-    aliases[key] = val
-
+idFromCode = {}
+codeFromId = {}
+for i in range(256):
+    a = loc.GetLanguageInfo(i)
+    if a:
+        aliases[a.Description] = a.CanonicalName
+        idFromCode[a.CanonicalName] = i
+        codeFromId[i] = a.CanonicalName
+aliases['English'] = 'en_US'
 
 def init(lang=None):
     """Init language to use for translations: `lang`, pref, or system default.
@@ -83,7 +83,6 @@ def init(lang=None):
     # install global _() function, and return code of the installed language:
     trans.install(unicode=True)
     return lang
-
 
 init()
 

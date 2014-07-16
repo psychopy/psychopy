@@ -5,7 +5,7 @@ import wx.lib.agw.flatnotebook as fnb
 import platform, re
 import locale
 
-dlgSize = (500,600)#this will be overridden by the size of the scrolled panel making the prefs
+dlgSize = (520,600)#this will be overridden by the size of the scrolled panel making the prefs
 
 class PreferencesDlg(wx.Dialog):
     def __init__(self,app,
@@ -27,12 +27,16 @@ class PreferencesDlg(wx.Dialog):
         #self.nb = wx.Notebook(self)#notebook isn't nice with lots of pages
 
         self.ctrls={}
+        # labels for display purposes only:
+        _sectionLabel = {'general': _('General'), 'app': _('App'),
+                     'builder': "Builder", 'coder': "Coder",  # not localized
+                     'connections': _('Connections'), 'keyBindings': _('Key bindings')}
         for sectionName in self.prefsCfg.keys():
             prefsPage = self.makePrefsPage(parent=self.nb,
                     sectionName=sectionName,
                     prefsSection=self.prefsCfg[sectionName],
                     specSection = self.prefsSpec[sectionName])
-            self.nb.AddPage(prefsPage, sectionName)
+            self.nb.AddPage(prefsPage, _sectionLabel[sectionName])
         self.nb.SetSelection(self.app.prefs.pageCurrent)
         sizer.Add(self.nb,1, wx.EXPAND)
 
@@ -86,6 +90,7 @@ class PreferencesDlg(wx.Dialog):
     def onApply(self, event=None):
         self.setPrefsFromCtrls()
         self.app.prefs.pageCurrent = self.nb.GetSelection()
+        ## rewrite to use wx.Locale() here? could check availability, IsOk(), etc
         loc = str(self.app.prefs.app['locale'])  # 'danish', 'da_DK'
         if loc in locale.locale_alias.keys():
             loc = locale.locale_alias[loc]  # -> 'da_DK'
@@ -103,6 +108,45 @@ class PreferencesDlg(wx.Dialog):
     def makePrefsPage(self, parent, sectionName, prefsSection, specSection):
         panel = scrolled.ScrolledPanel(parent,-1,size=(dlgSize[0]-100,dlgSize[1]-200))
         vertBox = wx.BoxSizer(wx.VERTICAL)
+        # labels for display purposes only, allows localization & nicer English:
+        _prefLabel = {'winType': _("window type"), 'units': _("units"),
+                      'fullscr': _("full-screen"), 'allowGUI': _("allow GUI"),
+                      'audioLib': _("audio library"), 'audioDriver': _("audio driver"),
+                      'flac': _('flac audio compression'),
+                      'parallelPorts': _("parallel ports"), 'showStartupTips': _("show start-up tips"),
+                      'largeIcons': _("large icons"), 'defaultView': _("default view"),
+                      'resetPrefs': _('reset preferences'), 'autoSavePrefs': _('auto-save prefs'),
+                      'debugMode': _('debug mode'), 'locale': _('locale'),
+                      'codeFont': _('code font'), 'commentFont': _('comment font'),
+                      'outputFont': _('output font'), 'outputFontSize': _('output font size'),
+                      'codeFontSize': _('code font size'),
+                      'showSourceAsst': _('show source asst'), 'showOutput': _('show output'),
+                      'reloadPrevFiles': _('reload prev files'),
+                      'preferredShell': _('preferred shell'), 'newlineConvention': _('newline convention'),
+                      'reloadPrevExp': _('reload prev exp'), 'unclutteredNamespace': _('uncluttered namespace'),
+                      'componentsFolders': _('components folders'), 'hiddenComponents': _('hidden components'),
+                      'unpackedDemosDir': _('unpacked demos dir'), 'savedDataFolder': _('saved data folder'),
+                      'topFlow': _('Flow at top'), 'alwaysShowReadme': _('always show readme'),
+                      'maxFavorites': _('max favorites'), 'proxy': _('proxy'),
+                      'autoProxy': _('auto-proxy'), 'allowUsageStats': _('allow usage stats'),
+                      'checkForUpdates': _('check for updates'), 'timeout': _('timeout'),
+                      'open': _('open'), 'new': _('new'), 'save': _('save'),
+                      'saveAs': _('save as'), 'print': _('print'), 'close': _('close'), 'quit': _('quit'),
+                      'preferences': _('preferences'), 'cut': _('cut'), 'copy': _('copy'),
+                      'paste': _('paste'), 'duplicate': _('duplicate'), 'indent': _('indent'),
+                      'dedent': _('dedent'), 'smartIndent': _('smart indent'),
+                      'find': _('find'), 'findAgain': _('find again'), 'undo': _('undo'), 'redo': _('redo'),
+                      'comment': _('comment'), 'uncomment': _('uncomment'), 'fold': _('fold'),
+                      'analyseCode': _('analyze code'), 'compileScript': _('compile script'), 'runScript': _('run script'),
+                      'stopScript': _('stop script'), 'toggleWhiteSpace': _('toggle whitespace'),
+                      'toggleEOLs': _('toggle EOLs'), 'toggleIndentGuides': _('toggle indent guides'),
+                      'newRoutine': _('new Routine'), 'copyRoutine': _('copy Routine'),
+                      'pasteRoutine': _('paste Routine'), 'toggleOutputPanel': _('toggle output panel'),
+                      'switchToBuilder': _('switch to Builder'), 'switchToCoder': _('switch to Coder'),
+                      'largerFlow': _('larger Flow'), 'smallerFlow': _('smaller Flow'),
+                      'largerRoutine': _('larger routine'), 'smallerRoutine': _('smaller routine'),
+                      'toggleReadme': _('toggle readme')
+                      }
         #add each pref for this section
         for prefName in specSection.keys():
             if prefName in ['version']:#any other prefs not to show?
@@ -116,7 +160,11 @@ class PreferencesDlg(wx.Dialog):
             if platform.system() == 'Darwin' and sectionName == 'keyBindings' and \
                     thisSpec.startswith('string'):
                 thisPref = thisPref.replace('Ctrl+', 'Cmd+')
-            self.ctrls[ctrlName] = ctrls = PrefCtrls(parent=panel, name=prefName, value=thisPref, spec=thisSpec)
+            if prefName in _prefLabel.keys():
+                pLabel = _prefLabel[prefName]
+            else:
+                pLabel = prefName
+            self.ctrls[ctrlName] = ctrls = PrefCtrls(parent=panel, name=pLabel, value=thisPref, spec=thisSpec)
             ctrlSizer = wx.BoxSizer(wx.HORIZONTAL)
             ctrlSizer.Add(ctrls.nameCtrl, 0, wx.ALL, 5)
             ctrlSizer.Add(ctrls.valueCtrl, 0, wx.ALL, 5)
