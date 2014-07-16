@@ -62,7 +62,7 @@ class PolygonComponent(VisualComponent):
             label="Interpolate")
         self.params['size']=Param(size, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("Size of this stimulus [w,h]. Note that for a line only the first value is used, for triangle and rect the [w,h] is as expected, but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!! "),
+            hint=_("Size of this stimulus [w,h]. Note that for a line only the first value is used, for triangle and rect the [w,h] is as expected,\n but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!! "),
             label="Size [w,h]")
         del self.params['color']
         del self.params['colorSpace']
