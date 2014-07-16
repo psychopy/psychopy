@@ -30,7 +30,7 @@ class ParallelOutComponent(BaseComponent):
         self.params={}
         self.order=['address', 'startData', 'stopData']
         self.params['name']=Param(name, valType='code', allowedTypes=[],
-            hint=_("Everything needs a name"),
+            hint=_("Name of this component (alpha-numeric or _, no spaces)"),
             label="Name")
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],

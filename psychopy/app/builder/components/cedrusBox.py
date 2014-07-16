@@ -41,7 +41,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         self.params = {}
         self.order = ['forceEndRoutine', 'allowedKeys', #NB name and timing params always come 1st
             'store', 'storeCorrect', 'correctAns']
-        self.params['name'] = Param(name, valType='code', hint=_("A name for this ButtonBox object (e.g. bbox)"),
+        self.params['name'] = Param(name, valType='code', hint=_("Name of this component (alpha-numeric or _, no spaces)"),
             label="Name")
         self.params['allowedKeys'] = Param(allowedKeys, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],

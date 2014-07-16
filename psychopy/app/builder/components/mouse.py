@@ -28,7 +28,7 @@ class MouseComponent(BaseComponent):
         self.params={}
         self.order=[]
         self.params['name']=Param(name, valType='code', allowedTypes=[],
-            hint=_("Even mice need names!"),
+            hint=_("Name of this component (alpha-numeric or _, no spaces)"),
             label="Name")
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],

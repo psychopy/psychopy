@@ -29,7 +29,7 @@ class EyetrackerComponent(BaseComponent):
 
         #standard params (can ignore)
         self.params['name']=Param(name, valType='code', allowedTypes=[],
-            hint=_("Go on, give me a nice name!"),
+            hint=_("Name of this component (alpha-numeric or _, no spaces)"),
             label="Name")
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],

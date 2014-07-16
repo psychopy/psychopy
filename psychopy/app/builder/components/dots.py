@@ -35,6 +35,7 @@ class DotsComponent(VisualComponent):
         self.exp.requirePsychopyLibs(['visual'])
         #params
         self.params['name']=Param(name, valType='code', allowedTypes=[],
+            hint=_("Name of this component (alpha-numeric or _, no spaces)"),
             label="Name")
         self.params['nDots']=Param(nDots, valType='code',
             updates='constant',

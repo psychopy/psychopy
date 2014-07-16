@@ -16,7 +16,8 @@ class MessageDialog(wx.Dialog):
     (buttons don't always work) so we need to use this instead.
     """
     def __init__(self,parent=None,message='',type='Warning', title=None):
-        if title==None: title=type
+        if title==None: title=_(type)
+        [_('Warning'), _('Info')] #This line is necessary for gettext to localize dialog title.
         wx.Dialog.__init__(self,parent,-1,title=title)
         sizer=wx.BoxSizer(wx.VERTICAL)
         sizer.Add(wx.StaticText(self,-1,message),flag=wx.ALL,border=15)
