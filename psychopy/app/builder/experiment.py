@@ -436,7 +436,7 @@ class Experiment:
                     conditionsFile = None
                 if conditionsFile:
                     try:
-                        _, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
+                        trialList, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
                         for fname in fieldNames:
                             if fname != self.namespace.makeValid(fname):
                                 duplicate_names.append(fname)
