@@ -68,6 +68,7 @@ class PsychoPyApp(wx.App):
         #__builtins__['_'] = wx.GetTranslation  # define _( ) function as app-global
 
         self.locale = localization.wxlocale
+        self.localization = localization
         self.locale.AddCatalog(self.GetAppName())
         #print self.locale.IsOk(), self.locale.GetLocale(), self.locale.GetCanonicalName()
         #print _

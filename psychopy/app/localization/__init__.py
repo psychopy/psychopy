@@ -15,7 +15,7 @@ Sets the locale value as a wx languageID (int) and initializes gettext translati
 
 
 import gettext
-import os, sys
+import os, sys, glob
 from psychopy import logging, prefs
 
 # Get a dict of locale aliases (cross-platform?) from wx.Locale()
@@ -32,6 +32,12 @@ for i in range(256):
         codeFromId[i] = info.CanonicalName
 aliases['English'] = 'en_US'
 
+# what are the available translations? available languages on the OS?
+expr = os.path.join(os.path.dirname(__file__), '..', 'locale', '*')
+available = [''] + sorted(map(os.path.basename, glob.glob(expr)))
+sysAvail = [str(l) for l in codeFromId.values()  # installed language packs
+            if l and locale.IsAvailable(idFromCode[l])]
+
 def getID(lang=None):
     """Get wx ID of language to use for translations: `lang`, pref, or system default.
 
@@ -43,7 +49,9 @@ def getID(lang=None):
         try:
             val = prefs.app['locale']
         except KeyError:
-            val = locale.GetLocale()
+            val = locale.GetLocale()  # wx.Locale
+        if not val:
+            val = codeFromId[wx.LANGUAGE_DEFAULT]
     try:
         # can't set wx.Locale here because no app yet
         language = idFromCode[val]
@@ -55,14 +63,14 @@ def getID(lang=None):
 languageID = getID()
 
 # set locale before splash screen:
-wxlocale = wx.Locale(languageID)
+if locale.IsAvailable(languageID):
+    wxlocale = wx.Locale(languageID)
+else:
+    wxlocale = wx.Locale(wx.LANGUAGE_DEFAULT)
 lang = codeFromId[languageID]
 
-# ideally rewrite the following using self.locale only (= via wx):
+# ideally rewrite the following using wxlocale only:
 path = os.path.join(os.path.dirname(__file__), '..', 'locale', lang, 'LC_MESSAGE') + os.sep
-# try two-letter version if language_REGION not found; wx does this?
-if not os.path.exists(path):
-    path = path.replace(lang, lang[:2])
 mofile = os.path.join(path, 'messages.mo')
 try:
     logging.debug("Opening message file %s for locale %s" % (mofile, lang))
@@ -72,7 +80,7 @@ except IOError:
     trans = gettext.NullTranslations()
 trans.install(unicode=True)
 
+#__builtins__['_'] = wx.GetTranslation
 # this seems to have no effect, needs more investigation:
-path = os.path.join(os.path.dirname(__file__), 'locale') + os.sep
-wxlocale.AddCatalogLookupPathPrefix(path)
-
+#path = os.path.join(os.path.dirname(__file__), '..', 'locale', lang, 'LC_MESSAGE') + os.sep
+#wxlocale.AddCatalogLookupPathPrefix(path)
