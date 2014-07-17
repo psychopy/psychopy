@@ -138,7 +138,7 @@ class PreferencesDlg(wx.Dialog):
                       'find': _('find'), 'findAgain': _('find again'), 'undo': _('undo'), 'redo': _('redo'),
                       'comment': _('comment'), 'uncomment': _('uncomment'), 'fold': _('fold'),
                       'analyseCode': _('analyze code'), 'compileScript': _('compile script'), 'runScript': _('run script'),
-                      'stopScript': _('stop script'), 'toggleWhiteSpace': _('toggle whitespace'),
+                      'stopScript': _('stop script'), 'toggleWhitespace': _('toggle whitespace'),
                       'toggleEOLs': _('toggle EOLs'), 'toggleIndentGuides': _('toggle indent guides'),
                       'newRoutine': _('new Routine'), 'copyRoutine': _('copy Routine'),
                       'pasteRoutine': _('paste Routine'), 'toggleOutputPanel': _('toggle output panel'),
@@ -165,9 +165,8 @@ class PreferencesDlg(wx.Dialog):
             else:
                 pLabel = prefName
             if prefName == 'locale':
-                # set options based on discovered locale directories, not spec file
-                # NB: need trailing comma due to split in PrefCtrls else lose last language:
-                thisSpec = 'option(' + ','.join(self.app.localization.available)+ ',)'
+                # fake spec -> option: use available locale info not spec file
+                thisSpec = 'option(' + ','.join(self.app.localization.available)+ ', default=xxx)'
                 thisPref = self.app.prefs.app['locale']
             self.ctrls[ctrlName] = ctrls = PrefCtrls(parent=panel, name=pLabel, value=thisPref, spec=thisSpec)
             ctrlSizer = wx.BoxSizer(wx.HORIZONTAL)
