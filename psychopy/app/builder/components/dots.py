@@ -34,9 +34,6 @@ class DotsComponent(VisualComponent):
         self.url="http://www.psychopy.org/builder/components/dots.html"
         self.exp.requirePsychopyLibs(['visual'])
         #params
-        self.params['name']=Param(name, valType='code', allowedTypes=[],
-            hint=_("Name of this component (alpha-numeric or _, no spaces)"),
-            label="Name")
         self.params['nDots']=Param(nDots, valType='code',
             updates='constant',
             hint=_("Number of dots in the field (for circular fields this will be average number of dots)"),

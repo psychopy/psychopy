@@ -32,7 +32,7 @@ class MovieComponent(VisualComponent):
         self.order = ['forceEndRoutine']#comes immediately after name and timing params
 
         #params
-        self.params['stopVal'].hint=_("Leave blank simply to play the movie for its full duration")
+        self.params['stopVal'].hint=_("When does the component end? (blank to use the duration of the media)")
         self.params['movie']=Param(movie, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
             hint=_("A filename for the movie (including path)"),

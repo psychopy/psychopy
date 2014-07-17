@@ -2237,6 +2237,7 @@ class _BaseParamsDlg(wx.Dialog):
         #the method to be used to interpret this start/stop
         self.startTypeCtrl = wx.Choice(parent, choices=startTypeParam.allowedVals)
         self.startTypeCtrl.SetStringSelection(startTypeParam.val)
+        self.startTypeCtrl.SetToolTipString(self.params['startType'].hint)
         #the value to be used as the start/stop
         self.startValCtrl = wx.TextCtrl(parent,-1,unicode(startValParam.val))
         self.startValCtrl.SetToolTipString(self.params['startVal'].hint)
@@ -2271,6 +2272,7 @@ class _BaseParamsDlg(wx.Dialog):
         #the method to be used to interpret this start/stop
         self.stopTypeCtrl = wx.Choice(parent, choices=stopTypeParam.allowedVals)
         self.stopTypeCtrl.SetStringSelection(stopTypeParam.val)
+        self.stopTypeCtrl.SetToolTipString(self.params['stopType'].hint)
         #the value to be used as the start/stop
         self.stopValCtrl = wx.TextCtrl(parent,-1,unicode(stopValParam.val))
         self.stopValCtrl.SetToolTipString(self.params['stopVal'].hint)

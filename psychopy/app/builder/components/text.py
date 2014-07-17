@@ -32,9 +32,6 @@ class TextComponent(VisualComponent):
         self.url="http://www.psychopy.org/builder/components/text.html"
         self.exp.requirePsychopyLibs(['visual'])
         #params
-        self.params['name']=Param(name, valType='code', allowedTypes=[],
-            hint=_("Name of this component (alpha-numeric or _, no spaces)"),
-            label="Name")
         self.params['text']=Param(text, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("The text to be displayed"),

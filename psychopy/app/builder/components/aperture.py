@@ -37,8 +37,6 @@ class ApertureComponent(VisualComponent):
         self.params['size'].hint = _("How big is the aperture? (a single number for diameter)")
         self.params['size'].label="Size"
         self.params['pos'].hint = _("Where is the aperture centred?")
-        self.params['startVal'].hint = _("When does the aperture come into effect?")
-        self.params['stopVal'].hint= _("When does the aperture stop having an effect?")
         #inherited from _visual component but not needed
         del self.params['ori']
         del self.params['color']
