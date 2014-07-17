@@ -36,12 +36,12 @@ class SoundComponent(BaseComponent):
             hint=_("How do you want to define your start point?"))
         self.params['stopType']=Param(stopType, valType='str',
             allowedVals=['duration (s)'],
-            hint=_("The maximum duration of a sound in seconds"))
+            hint=_("How do you want to define your end point?"))
         self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
-            hint=_("When does the sound start playing?"))
+            hint=_("When does the component start?"))
         self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_("The maximum duration for the sound (blank to use the duration of the sound file)"))
+            hint=_("When does the component end? (blank to use the duration of the media)"))
         self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
             hint=_("(Optional) expected start (s), purely for representing in the timeline"))
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
