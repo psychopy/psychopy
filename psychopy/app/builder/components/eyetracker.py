@@ -38,10 +38,10 @@ class EyetrackerComponent(BaseComponent):
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
             hint=_("How do you want to define your end point?"))
         self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
-            hint=_("When does the eyetracker send us eye events?"))
+            hint=_("When does the component start?"))
         self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_("When does the eyetracker stop sending us eye events?"))
+            hint=_("When does the component end? (blank is endless)"))
         self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
             hint=_("(Optional) expected start (s), purely for representing in the timeline"))
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
