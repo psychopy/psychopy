@@ -165,7 +165,8 @@ class PreferencesDlg(wx.Dialog):
             else:
                 pLabel = prefName
             if prefName == 'locale':
-                thisSpec = 'option(' + ','.join(self.app.localization.available)+ ')'
+                # NB: need trailing comma due to split in PrefCtrls else lose last language:
+                thisSpec = 'option(' + ','.join(self.app.localization.available)+ ',)'
                 thisPref = self.app.prefs.app['locale']
             self.ctrls[ctrlName] = ctrls = PrefCtrls(parent=panel, name=pLabel, value=thisPref, spec=thisSpec)
             ctrlSizer = wx.BoxSizer(wx.HORIZONTAL)
