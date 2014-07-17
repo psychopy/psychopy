@@ -165,6 +165,7 @@ class PreferencesDlg(wx.Dialog):
             else:
                 pLabel = prefName
             if prefName == 'locale':
+                # set options based on discovered locale directories, not spec file
                 # NB: need trailing comma due to split in PrefCtrls else lose last language:
                 thisSpec = 'option(' + ','.join(self.app.localization.available)+ ',)'
                 thisPref = self.app.prefs.app['locale']
@@ -237,7 +238,7 @@ class PrefCtrls:
             self.valueCtrl.SetValue(value)
         elif spec.startswith('option'):
             options = spec.replace("option(", "").replace("'","").replace(", ",",")
-            options = options.split(',')[:-1]
+            options = options.split(',')[:-1]  # item -1 is 'default=x' from spec
             self.valueCtrl = wx.Choice(self.parent, choices=options)
             self.valueCtrl.SetStringSelection(unicode(value))
         else:#just use a string
@@ -247,8 +248,7 @@ class PrefCtrls:
     def _getCtrlValue(self, ctrl):
         """Retrieve the current value from the control (whatever type of ctrl it
         is, e.g. checkbox.GetValue, textctrl.GetStringSelection
-        """
-        """Different types of control have different methods for retrieving value.
+        Different types of control have different methods for retrieving value.
         This function checks them all and returns the value or None.
         """
         if ctrl==None: return None
@@ -259,7 +259,7 @@ class PrefCtrls:
         elif hasattr(ctrl, 'GetLabel'): #for wx.StaticText
             return ctrl.GetLabel()
         else:
-            print "failed to retrieve the value for: %s" %(ctrl.valueCtrl)
+            logging.warning("failed to retrieve the value for pref: %s" %(ctrl.valueCtrl))
             return None
     def getValue(self):
         """Get the current value of the value ctrl
