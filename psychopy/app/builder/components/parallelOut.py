@@ -48,7 +48,7 @@ class ParallelOutComponent(BaseComponent):
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
             hint="(Optional) expected duration (s), purely for representing in the timeline")
         #main parameters
-        addressOptions = prefs.general['parallelPorts']
+        addressOptions = prefs.general['parallelPorts']+[u'LabJack U3']
         self.params['address'] = Param(address, valType='str', allowedVals=addressOptions,
             hint="Parallel port to be used (you can change these options in preferences>general)")
         self.params['startData'] = Param(startData, valType='code', allowedTypes=[],
@@ -61,7 +61,11 @@ class ParallelOutComponent(BaseComponent):
             hint="If the parallel port data relates to visual stimuli then sync its pulse to the screen refresh",
             label="Sync to screen")
     def writeInitCode(self,buff):
-        buff.writeIndented("%(name)s = parallel.ParallelPort(address=%(address)s)\n" %(self.params))
+        if self.params['address'].val == 'LabJack U3':
+            buff.writeIndented("from psychopy.hardware import labjacks\n")
+            buff.writeIndented("%(name)s = labjacks.U3()\n" %(self.params))
+        else:
+            buff.writeIndented("%(name)s = parallel.ParallelPort(address=%(address)s)\n" %(self.params))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """
