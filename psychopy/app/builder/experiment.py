@@ -1346,6 +1346,14 @@ class NameSpace():
         self.user = []
         self.nonUserBuilder = self.numpy + self.keywords + self.psychopy
 
+        # strings used as codes, separate function from display value:
+        self._localized = {
+            "one of your Components, Routines, or condition parameters": _("one of your Components, Routines, or condition parameters"),
+            "Builder variable": _("Builder variable"),
+            "Psychopy module": _("Psychopy module"),
+            "numpy function": _("numpy function"),
+            "python keyword": _("python keyword")}
+
     def __str__(self, numpy_count_only=True):
         vars = self.user + self.builder + self.psychopy
         if numpy_count_only:
@@ -1407,12 +1415,12 @@ class NameSpace():
 
         # check getDerived:
 
-        # check in this order:
-        if name in self.user: return _("one of your Components, Routines, or condition parameters")
-        if name in self.builder: return _("Builder variable")
-        if name in self.psychopy: return _("Psychopy module")
-        if name in self.numpy: return _("numpy function")
-        if name in self.keywords: return _("python keyword")
+        # check in this order: return a key from NameSpace._localized.keys(), not a localized value
+        if name in self.user: return "one of your Components, Routines, or condition parameters"
+        if name in self.builder: return "Builder variable"
+        if name in self.psychopy: return "Psychopy module"
+        if name in self.numpy: return "numpy function"
+        if name in self.keywords: return "python keyword"
 
         return # None, meaning does not exist already
 
