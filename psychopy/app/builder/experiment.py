@@ -1348,11 +1348,16 @@ class NameSpace():
 
         # strings used as codes, separate function from display value:
         self._localized = {
-            "one of your Components, Routines, or condition parameters": _("one of your Components, Routines, or condition parameters"),
+            "one of your Components, Routines, or condition parameters":
+                _("one of your Components, Routines, or condition parameters"),
             "Builder variable": _("Builder variable"),
             "Psychopy module": _("Psychopy module"),
             "numpy function": _("numpy function"),
-            "python keyword": _("python keyword")}
+            "python keyword": _("python keyword"),
+            " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name":
+                _(" Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"),
+            None: ''  # not needed but possible output from isPossiblyDerivable()
+            }
 
     def __str__(self, numpy_count_only=True):
         vars = self.user + self.builder + self.psychopy
@@ -1400,7 +1405,7 @@ class NameSpace():
                      name.endswith('Clock') or
                      name.lower().find('component') > -1)
         if derivable:
-            return " safer to avoid this, these, continue, Clock, or component in name"
+            return " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"
         return None
     def exists(self, name):
         """returns None, or a message indicating where the name is in use.
