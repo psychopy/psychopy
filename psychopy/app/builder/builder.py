@@ -1864,7 +1864,7 @@ class FavoriteComponents(object):
         return favorites
 
 class ParamCtrls:
-    def __init__(self, dlg, label, param, parent, fieldName=None,
+    def __init__(self, dlg, label, param, parent, fieldName,
                  browse=False, noCtrls=False, advanced=False, appPrefs=None):
         """Create a set of ctrls for a particular Component Parameter, to be
         used in Component Properties dialogs. These need to be positioned
@@ -1884,9 +1884,9 @@ class ParamCtrls:
         If browse is True then a browseCtrl will be added (you need to bind events yourself)
         If noCtrls is True then no actual wx widgets are made, but attribute names are created
 
-        `fieldName`'s value is always in en_US, and never for display, whereas `label` (which
-        is typically derived from fieldName and) is only for display and can be translated
-        or tweaked (e.g., add '$').
+        `fieldName`'s value is always in en_US, and never for display, whereas `label`
+        is only for display and can be translated or tweaked (e.g., add '$').
+        Component._localized.keys() are `fieldName`s, and .values() are `label`s.
         """
         self.param = param
         self.dlg = dlg

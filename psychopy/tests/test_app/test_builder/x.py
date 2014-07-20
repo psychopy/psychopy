@@ -50,38 +50,37 @@ if not '--out' in sys.argv:
 fields = set(dir(param)).difference(ignore)
 
 mismatches = []
-for co in sorted(allComp):
-    # co = name only
-    c = allComp[co](parentName='x', exp=exp)
+for compName in sorted(allComp):
+    comp = allComp[compName](parentName='x', exp=exp)
 
-    order = '%s.order: %s' % (co, eval("c.order"))
+    order = '%s.order: %s' % (compName, eval("comp.order"))
     out = [order]
     if '--out' in sys.argv:
-        print order
+        print order.encode('utf8')
     elif not order+'\n' in target:
         tag = order.split(':',1)[0]
         try:
             err = order + ' <== ' + targetTag[tag]
         except IndexError: # missing
             err = order + ' <==> NEW (no matching param in original)'
-        print err
+        print err.encode('utf8')
         mismatches.append(err)
-    for p in c.params.keys():
+    for parName in comp.params.keys():
         # default is what you get from param.__str__, which returns its value
-        default = '%s.%s.default: %s' % (co, p, c.params[p])
+        default = '%s.%s.default: %s' % (compName, parName, comp.params[parName])
         out.append(default)
         lineFields = []
         for field in fields:
-            if p == 'name' and field == 'updates':
+            if parName == 'name' and field == 'updates':
                 continue
                 # ignore b/c never want to change the name *during a running experiment*
                 # the default name.updates value varies across existing components
-            f = '%s.%s.%s: %s' % (co, p, field, eval("c.params[p].%s" % field))
+            f = '%s.%s.%s: %s' % (compName, parName, field, eval("comp.params[parName].%s" % field))
             lineFields.append(f)
 
         for line in [default] + lineFields:
             if '--out' in sys.argv:
-                print line
+                print line.encode('utf8')
             elif not line+'\n' in target:
                 # mismatch, so report on the tag from orig file
                 # match checks tag + multi-line, because line is multi-line and target is whole file
@@ -90,7 +89,7 @@ for co in sorted(allComp):
                     err = line + ' <== ' + targetTag[tag]
                 except KeyError: # missing
                     err = line + ' <==> NEW (no matching param in original)'
-                print err
+                print err.encode('utf8')
                 mismatches.append(err)
 
 #return mismatches
