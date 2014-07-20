@@ -35,7 +35,7 @@ class ApertureComponent(VisualComponent):
         #NB make some adjustments on the params defined by _visual component
         self.order = ['name', 'size', 'pos'] # make sure this is at top
         self.params['size'].hint = _("How big is the aperture? (a single number for diameter)")
-        self.params['size'].label="Size"
+        self.params['size'].label=_("Size")  # only localize hints and labels
         self.params['pos'].hint = _("Where is the aperture centred?")
         #inherited from _visual component but not needed
         del self.params['ori']
@@ -72,4 +72,3 @@ class ApertureComponent(VisualComponent):
 
     def writeRoutineEndCode(self, buff):
         buff.writeIndented("%(name)s.enabled = False  # just in case it was left enabled\n" % (self.params))
-

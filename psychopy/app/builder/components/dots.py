@@ -9,6 +9,14 @@ from os import path
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'dots.png')
 tooltip = _('Dots: Random Dot Kinematogram')
+# only use _localized values for label values, nothing functional:
+_localized = {'nDots': _('Number of dots'), 'dir': _('Direction'),
+              'speed': _('Speed'), 'coherence': _('Coherence'),
+              'dotSize': _('Dot size'), 'dotLife': _('Dot life-time'),
+              'signalDots': _('Signal dots'), 'noiseDots': _('Noise dots'),
+              'fieldShape': _('Field shape'), 'fieldSize': _('Field size'),
+              'fieldPos': _('Field position')
+              }
 
 class DotsComponent(VisualComponent):
     """An event class for presenting Random Dot stimuli"""
@@ -25,56 +33,56 @@ class DotsComponent(VisualComponent):
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim=''):
         #initialise main parameters from base stimulus
-        VisualComponent.__init__(self,exp,parentName,name=name, units=units,
+        super(DotsComponent, self).__init__(exp,parentName,name=name, units=units,
                     color=color, colorSpace=colorSpace,
                     startType=startType, startVal=startVal,
                     stopType=stopType, stopVal=stopVal,
                     startEstim=startEstim, durationEstim=durationEstim)
         self.type='Dots'
         self.url="http://www.psychopy.org/builder/components/dots.html"
-        self.exp.requirePsychopyLibs(['visual'])
+        
         #params
         self.params['nDots']=Param(nDots, valType='code',
             updates='constant',
             hint=_("Number of dots in the field (for circular fields this will be average number of dots)"),
-            label="Number of dots")
+            label=_localized['nDots'])
         self.params['dir']=Param(direction, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Direction of motion for the signal dots (degrees)"),
-            label="Direction")
+            label=_localized['dir'])
         self.params['speed']=Param(speed, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Speed of the dots (displacement per frame in the specified units)"),
-            label="Speed")
+            label=_localized['speed'])
         self.params['coherence']=Param(coherence, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Coherence of the dots (fraction moving in the signal direction on any one frame)"),
-            label="Coherence")
+            label=_localized['coherence'])
         self.params['dotSize']=Param(dotSize, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Size of the dots IN PIXELS regardless of the set units"),
-            label="Dot Size")
+            label=_localized['dotSize'])
         self.params['dotLife']=Param(dotLife, valType='code',
             hint=_("Number of frames before each dot is killed and randomly assigned a new position"),
-            label="Dot lifetime")
+            label=_localized['dotLife'])
         self.params['signalDots']=Param(signalDots, valType='str', allowedVals=['same','different'],
             hint=_("On each frame are the signals dots remaining the same or changing? See Scase et al."),
-            label="Signal dots", categ='Advanced')
+            label=_localized['signalDots'], categ='Advanced')
         self.params['noiseDots']=Param(noiseDots, valType='str', allowedVals=['direction','position','walk'],
             hint=_("What governs the behaviour of the noise dots? See Scase et al."),
-            label="Noise dots", categ='Advanced')
+            label=_localized['noiseDots'], categ='Advanced')
         self.params['fieldShape']=Param(fieldShape, valType='str', allowedVals=['circle','square'],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("What is the shape of the field?"),
-            label="Field shape")
+            label=_localized['fieldShape'])
         self.params['fieldSize']=Param(fieldSize, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("What is the size of the field (in the specified units)?"),
-            label="Field size")
+            label=_localized['fieldSize'])
         self.params['fieldPos']=Param(fieldPos, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Where is the field centred (in the specified units)?"),
-            label="Field position")
+            label=_localized['fieldPos'])
         del self.params['size']#should be fieldSize
         del self.params['pos']#should be fieldPos
         del self.params['ori']#should be dir for dots

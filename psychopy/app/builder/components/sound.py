@@ -10,6 +10,9 @@ thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folde
 iconFile = path.join(thisFolder,'sound.png')
 tooltip = _('Sound: play recorded files or generated sounds')
 
+# only use _localized values for label values, nothing functional:
+_localized = {'sound': _('Sound'), 'volume': _('Volume')}
+
 class SoundComponent(BaseComponent):
     """An event class for presenting sound stimuli"""
     categories = ['Stimuli']
@@ -17,39 +20,25 @@ class SoundComponent(BaseComponent):
                 startType='time (s)', startVal='0.0',
                 stopType='duration (s)', stopVal='1.0',
                 startEstim='', durationEstim=''):
+        super(SoundComponent, self).__init__(exp, parentName, name,
+                startType=startType,startVal=startVal,
+                stopType=stopType, stopVal=stopVal,
+                startEstim=startEstim, durationEstim=durationEstim)
         self.type='Sound'
         self.url="http://www.psychopy.org/builder/components/sound.html"
-        self.parentName=parentName
-        self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['sound'])
         #params
-        self.order=[]#order for things (after name and timing params)
-        self.params={}
-        self.params['name']=Param(name, valType='code', hint=_("Name of this component (alpha-numeric or _, no spaces)"),
-            label="Name")
+        self.params['stopType'].allowedVals = ['duration (s)']
+        self.params['stopType'].hint = _('The maximum duration of a sound in seconds')
+        self.params['stopVal'].hint = _("When does the component end? (blank to use the duration of the media)")
         self.params['sound']=Param(sound, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
             hint=_("A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) or a filename"),
-            label="Sound")
-        self.params['startType']=Param(startType, valType='str',
-            allowedVals=['time (s)', 'frame N', 'condition'],
-            hint=_("How do you want to define your start point?"))
-        self.params['stopType']=Param(stopType, valType='str',
-            allowedVals=['duration (s)'],
-            hint=_("How do you want to define your end point?"))
-        self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
-            hint=_("When does the component start?"))
-        self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=_("When does the component end? (blank to use the duration of the media)"))
-        self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
-            hint=_("(Optional) expected start (s), purely for representing in the timeline"))
-        self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
-            hint=_("(Optional) expected duration (s), purely for representing in the timeline"))
+            label=_localized['sound'])
         self.params['volume']=Param(volume, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("The volume (in range 0 to 1)"),
-            label="Volume")
+            label=_localized["volume"])
 
     def writeInitCode(self,buff):
         inits = components.getInitVals(self.params)#replaces variable params with sensible defaults

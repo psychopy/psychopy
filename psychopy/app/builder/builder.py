@@ -1864,7 +1864,7 @@ class FavoriteComponents(object):
         return favorites
 
 class ParamCtrls:
-    def __init__(self, dlg, label, param, parent,
+    def __init__(self, dlg, label, param, parent, fieldName=None,
                  browse=False, noCtrls=False, advanced=False, appPrefs=None):
         """Create a set of ctrls for a particular Component Parameter, to be
         used in Component Properties dialogs. These need to be positioned
@@ -1883,6 +1883,10 @@ class ParamCtrls:
 
         If browse is True then a browseCtrl will be added (you need to bind events yourself)
         If noCtrls is True then no actual wx widgets are made, but attribute names are created
+
+        `fieldName`'s value is always in en_US, and never for display, whereas `label` (which
+        is typically derived from fieldName and) is only for display and can be translated
+        or tweaked (e.g., add '$').
         """
         self.param = param
         self.dlg = dlg
@@ -1910,17 +1914,14 @@ class ParamCtrls:
 
         if type(param.val)==numpy.ndarray:
             initial=param.val.tolist() #convert numpy arrays to lists
-        labelLength = wx.Size(self.dpi*2,self.dpi*2/3)#was 8*until v0.91.4
-        if param.valType == 'code' and label.lower() not in ['name', 'experiment info']:
-            displayLabel = label+' $'
-        else:
-            displayLabel = label
-        self.nameCtrl = wx.StaticText(parent,-1,displayLabel,size=None,
-                                        style=wx.ALIGN_RIGHT)
+        #labelLength = wx.Size(self.dpi*2,self.dpi*2/3)#was 8*until v0.91.4
+        if param.valType == 'code' and fieldName not in ['name', 'Experiment info']:
+            label += ' $'
+        self.nameCtrl = wx.StaticText(parent,-1,label,size=None,style=wx.ALIGN_RIGHT)
 
-        if label in ['text', 'customize_everything', 'Text']:
+        if fieldName in ['text', 'customize_everything']:
             #for text input we need a bigger (multiline) box
-            if label == 'customize_everything':
+            if fieldName == 'customize_everything':
                 sx,sy = 300,400
             else:
                 sx,sy = 100, 100
@@ -1929,9 +1930,9 @@ class ParamCtrls:
                  style=0, prefs=appPrefs)
             if len(param.val):
                 self.valueCtrl.AddText(unicode(param.val))
-            if label in ['text', 'Text']:
+            if fieldName == 'text':
                 self.valueCtrl.SetFocus()
-        elif label == 'Experiment info':
+        elif fieldName == 'Experiment info':
             #for expInfo convert from a string to the list-of-dicts
             val = self.expInfoToListWidget(param.val)
             self.valueCtrl = dialogs.ListWidget(parent, val, order=['Field','Default'])
@@ -1942,9 +1943,9 @@ class ParamCtrls:
             if len(param.val):
                 self.valueCtrl.AddText(unicode(param.val))
             #code input fields one day change these to wx.stc fields?
-#            self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
-#                style=wx.TE_MULTILINE,
-#                size=wx.Size(self.valueWidth*2,160))
+            #self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
+            #    style=wx.TE_MULTILINE,
+            #    size=wx.Size(self.valueWidth*2,160))
         elif param.valType=='bool':
             #only True or False - use a checkbox
              self.valueCtrl = wx.CheckBox(parent, size = wx.Size(self.valueWidth,-1))
@@ -1956,17 +1957,18 @@ class ParamCtrls:
         else:
             #create the full set of ctrls
             val = unicode(param.val)
-            if label == 'conditionsFile':
+            if fieldName == 'conditionsFile':
                 val = getAbbrev(val)
             self.valueCtrl = wx.TextCtrl(parent,-1,val,size=wx.Size(self.valueWidth,-1))
-            if label in ['allowedKeys', 'image', 'movie', 'scaleDescription', 'sound', 'Begin Routine']:
+            # focus seems to get reset elsewhere, try "git grep -n SetFocus"
+            if fieldName in ['allowedKeys', 'image', 'movie', 'scaleDescription', 'sound', 'Begin Routine']:
                 self.valueCtrl.SetFocus()
         self.valueCtrl.SetToolTipString(param.hint)
         if len(param.allowedVals)==1:
             self.valueCtrl.Disable()#visible but can't be changed
 
         # add a NameValidator to name valueCtrl
-        if label.lower() == "name":
+        if fieldName == "name":
             self.valueCtrl.SetValidator(validators.NameValidator())
 
         #create the type control
@@ -2313,7 +2315,8 @@ class _BaseParamsDlg(wx.Dialog):
             label=param.label
         else:
             label=fieldName
-        ctrls=ParamCtrls(dlg=self, parent=parent, label=label,param=param, advanced=advanced, appPrefs=self.app.prefs)
+        ctrls=ParamCtrls(dlg=self, parent=parent, label=label, fieldName=fieldName,
+                         param=param, advanced=advanced, appPrefs=self.app.prefs)
         self.paramCtrls[fieldName] = ctrls
         if fieldName=='name':
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.checkName)
@@ -2327,10 +2330,10 @@ class _BaseParamsDlg(wx.Dialog):
             sizer.Add(ctrls.updateCtrl, (currRow,2))
         if ctrls.typeCtrl:
             sizer.Add(ctrls.typeCtrl, (currRow,3) )
-        if fieldName in ['text', 'Text']:
+        if fieldName in ['text']:
             sizer.AddGrowableRow(currRow)#doesn't seem to work though
             #self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize, ctrls.valueCtrl)
-        elif fieldName in ['color', 'Color']:
+        elif fieldName in ['color', 'fillColor', 'lineColor']:
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
         elif valType == 'extendedCode':
             sizer.AddGrowableRow(currRow)#doesn't seem to work though
@@ -2379,10 +2382,11 @@ class _BaseParamsDlg(wx.Dialog):
         """
         #add a label to check name
         if 'name' in self.params.keys():
-            if len(self.params['name'].val):
-                nameInfo='Need a name'
-            else:
-                nameInfo=''
+            #if len(self.params['name'].val):
+            #    nameInfo=''
+            #else:
+            #    nameInfo='Need a name'
+            nameInfo = ''
             self.nameOKlabel=wx.StaticText(self,-1,nameInfo,size=(300,25),
                                         style=wx.ALIGN_CENTRE)
             self.nameOKlabel.SetForegroundColour(wx.RED)
@@ -2730,7 +2734,8 @@ class DlgLoopProperties(_BaseParamsDlg):
         row=0
         for fieldName in ['name','loopType']:
             self.globalCtrls[fieldName] = ctrls = ParamCtrls(dlg=self, parent=panel,
-                label=fieldName, param=self.currentHandler.params[fieldName])
+                label=fieldName,fieldName=fieldName,
+                param=self.currentHandler.params[fieldName])
             panelSizer.Add(ctrls.nameCtrl, [row, 0], border=1,
                 flag=wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL | wx.ALL)
             panelSizer.Add(ctrls.valueCtrl, [row, 1], border=1,
@@ -2766,7 +2771,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             elif fieldName=='conditionsFile':
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,fieldName=fieldName,
                     param=handler.params[fieldName], browse=True)
                 self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,ctrls.browseCtrl)
                 ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.viewConditions)
@@ -2779,14 +2784,14 @@ class DlgLoopProperties(_BaseParamsDlg):
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
                     text = _("No parameters set")
-                ctrls = ParamCtrls(dlg=self, parent=panel, label='conditions',
+                ctrls = ParamCtrls(dlg=self, parent=panel, label='conditions',fieldName=fieldName,
                     param=text, noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
                 ctrls.valueCtrl = wx.StaticText(panel, label=text, size=size, style=wx.ALIGN_CENTER)
                 panelSizer.Add(ctrls.valueCtrl, (row, 0), span=(1,3), flag=wx.ALIGN_CENTER)
                 row += 1
             else: #normal text entry field
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,fieldName=fieldName,
                     param=handler.params[fieldName])
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
@@ -2821,7 +2826,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             elif fieldName=='conditionsFile':
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,fieldName=fieldName,
                     param=handler.params[fieldName], browse=True)
                 self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,ctrls.browseCtrl)
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
@@ -2833,14 +2838,14 @@ class DlgLoopProperties(_BaseParamsDlg):
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
                     text = _("No parameters set (select a file above)")
-                ctrls = ParamCtrls(dlg=self, parent=panel, label='conditions',
+                ctrls = ParamCtrls(dlg=self, parent=panel, label='conditions',fieldName=fieldName,
                     param=text, noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
                 ctrls.valueCtrl = wx.StaticText(panel, label=text, size=size, style=wx.ALIGN_CENTER)
                 panelSizer.Add(ctrls.valueCtrl, (row, 0), span=(1,3), flag=wx.ALIGN_CENTER)
                 row += 1
             else: #normal text entry field
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,fieldName=fieldName,
                     param=handler.params[fieldName])
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
@@ -2864,7 +2869,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             else: #normal text entry field
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,fieldName=fieldName,
                     param=handler.params[fieldName])
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])

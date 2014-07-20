@@ -5,7 +5,29 @@ from psychopy import logging
 
 #this is not a standard component - it will appear on toolbar not in components panel
 
-class SettingsComponent:
+# only use _localized values for label values, nothing functional:
+_localized =  {'expName': _("Experiment name"),
+        'Show info dlg':  _("Show info dialog"),
+        'Enable Escape':  _("Enable Escape key"),
+        'Experiment info':  _("Experiment info"),
+        'Data filename':  _("Data filename"),
+        'Full-screen window':  _("Full-screen window"),
+        'Window size (pixels)':  _("Window size (pixels)"),
+        'Screen': _('Screen'),
+        'Monitor':  _("Monitor"),
+        'color': _("Color"),
+        'colorSpace':  _("Color space"),
+        'Units':  _("Units"),
+        'blendMode':   _("Blend mode"),
+        'Show mouse':  _("Show mouse"),
+        'Save log file':  _("Save log file"),
+        'Save wide csv file': _("Save csv file (trial-by-trial)"),
+        'Save csv file': _("Save csv file (summaries)"),
+        'Save excel file':  _("Save excel file"),
+        'Save psydat file':  _("Save psydat file"),
+        'logging level': _("Logging level")}
+
+class SettingsComponent(object):
     """This component stores general info about how to run the experiment"""
     def __init__(self, parentName, exp, expName='', fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor', showMouse=False,
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
@@ -33,71 +55,85 @@ class SettingsComponent:
         #basic params
         self.params['expName']=Param(expName, valType='str', allowedTypes=[],
             hint=_("Name of the entire experiment (taken by default from the filename on save)"),
-            label="Experiment name")
+            label=_localized["expName"])
         self.params['Show info dlg']=Param(showExpInfo, valType='bool', allowedTypes=[],
             hint=_("Start the experiment with a dialog to set info (e.g.participant or condition)"),
+            label=_localized["Show info dlg"],
             categ='Basic')
         self.params['Enable Escape']=Param(enableEscape, valType='bool', allowedTypes=[],
-            hint=_("Enable the <esc> key, to allow subjects to quit / break out of the experiment"))
+            hint=_("Enable the <esc> key, to allow subjects to quit / break out of the experiment"),
+            label=_localized["Enable Escape"])
         self.params['Experiment info']=Param(expInfo, valType='code', allowedTypes=[],
             hint=_("The info to present in a dialog box. Right-click to check syntax and preview the dialog box."),
+            label=_localized["Experiment info"],
             categ='Basic')
         #data params
         self.params['Data filename']=Param(filename, valType='code', allowedTypes=[],
             hint=_("Code to create your custom file name base. Don't give a file extension - this will be added."),
+            label=_localized["Data filename"],
             categ='Data')
         self.params['Full-screen window']=Param(fullScr, valType='bool', allowedTypes=[],
             hint=_("Run the experiment full-screen (recommended)"),
+            label=_localized["Full-screen window"],
             categ='Screen')
         self.params['Window size (pixels)']=Param(winSize, valType='code', allowedTypes=[],
             hint=_("Size of window (if not fullscreen)"),
+            label=_localized["Window size (pixels)"],
             categ='Screen')
         self.params['Screen']=Param(screen, valType='num', allowedTypes=[],
             hint=_("Which physical screen to run on (1 or 2)"),
+            label=_localized["Screen"],
             categ='Screen')
         self.params['Monitor']=Param(monitor, valType='str', allowedTypes=[],
             categ="Screen",
-            hint=_("Name of the monitor (from Monitor Center). Right-click to go there, then copy & paste a monitor name here."))
+            hint=_("Name of the monitor (from Monitor Center). Right-click to go there, then copy & paste a monitor name here."),
+            label=_localized["Monitor"])
         self.params['color']=Param(color, valType='str', allowedTypes=[],
             hint=_("Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)"),
-            label="Color",
+            label=_localized["color"],
             categ='Screen')
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             hint=_("Needed if color is defined numerically (see PsychoPy documentation on color spaces)"),
+            label=_localized["colorSpace"],
             categ="Screen")
         self.params['Units']=Param(units, valType='str', allowedTypes=[],
             allowedVals=['use prefs', 'deg','pix','cm','norm','height'],
             hint=_("Units to use for window/stimulus coordinates (e.g. cm, pix, deg)"),
+            label=_localized["Units"],
             categ='Screen')
         self.params['blendMode']=Param(blendMode, valType='str', allowedTypes=[],
-            label='Blend mode',
             allowedVals=['add','avg'],
             hint=_("Should new stimuli be added or averaged with the stimuli that have been drawn already"),
+            label=_localized["blendMode"],
             categ='Screen')
         self.params['Show mouse']=Param(showMouse, valType='bool', allowedTypes=[],
             hint=_("Should the mouse be visible on screen?"),
+            label=_localized["Show mouse"],
             categ='Screen')
         self.params['Save log file']=Param(saveLogFile, valType='bool', allowedTypes=[],
             hint=_("Save a detailed log (more detailed than the excel/csv files) of the entire experiment"),
+            label=_localized["Save log file"],
             categ='Data')
         self.params['Save wide csv file']=Param(saveWideCSVFile, valType='bool', allowedTypes=[],
             hint=_("Save data from loops in comma-separated-value (.csv) format for maximum portability"),
-            label="Save csv file (trial-by-trial)",
+            label=_localized["Save wide csv file"],
             categ='Data')
         self.params['Save csv file']=Param(saveCSVFile, valType='bool', allowedTypes=[],
             hint=_("Save data from loops in comma-separated-value (.csv) format for maximum portability"),
-            label="Save csv file (summaries)",
+            label=_localized["Save csv file"],
             categ='Data')
         self.params['Save excel file']=Param(saveXLSXFile, valType='bool', allowedTypes=[],
             hint=_("Save data from loops in Excel (.xlsx) format"),
+            label=_localized["Save excel file"],
             categ='Data')
         self.params['Save psydat file']=Param(savePsydatFile, valType='bool', allowedVals=[True],
             hint=_("Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts."),
+            label=_localized["Save psydat file"],
             categ='Data')
         self.params['logging level']=Param(logging, valType='code',
             allowedVals=['error','warning','data','exp','info','debug'],
             hint=_("How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)"),
-            label="Logging level",
+            label=_localized["logging level"],
             categ='Data')
     def getType(self):
         return self.__class__.__name__

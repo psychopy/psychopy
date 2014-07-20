@@ -551,6 +551,11 @@ class Param:
                 return str(float(self.val))#will work if it can be represented as a float
             except:#might be an array
                 return "asarray(%s)" %(self.val)
+        elif self.valType == 'int':
+            try:
+                return "%i" % self.val  # int and float -> str(int)
+            except TypeError:
+                return unicode(self.val)  # try array of float instead?
         elif self.valType == 'str':
             # at least 1 non-escaped '$' anywhere --> code wanted; only '\' will escape
             # return str if code wanted
