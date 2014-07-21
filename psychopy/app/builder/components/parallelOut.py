@@ -49,6 +49,8 @@ class ParallelOutComponent(BaseComponent):
             hint=_("(Optional) expected duration (s), purely for representing in the timeline"))
         #main parameters
         addressOptions = prefs.general['parallelPorts']
+        if not address:
+            address = addressOptions[0]
         self.params['address'] = Param(address, valType='str', allowedVals=addressOptions,
             hint=_("Parallel port to be used (you can change these options in preferences>general)"))
         self.params['startData'] = Param(startData, valType='code', allowedTypes=[],
