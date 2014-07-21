@@ -1,0 +1,229 @@
+<PsychoPy2experiment version="1.70.01" encoding="utf-8">
+  <Settings>
+    <Param name="Show mouse" val="False" valType="bool" updates="None"/>
+    <Param name="Save csv file" val="False" valType="bool" updates="None"/>
+    <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
+    <Param name="color" val="$[0, 0, 0]" valType="str" updates="None"/>
+    <Param name="Window size (pixels)" val="[1680, 1050]" valType="code" updates="None"/>
+    <Param name="Full-screen window" val="True" valType="bool" updates="None"/>
+    <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
+    <Param name="Save log file" val="False" valType="bool" updates="None"/>
+    <Param name="Experiment info" val="{'participant':'', 'session':02}" valType="code" updates="None"/>
+    <Param name="Save excel file" val="True" valType="bool" updates="None"/>
+    <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
+    <Param name="logging level" val="warning" valType="code" updates="None"/>
+    <Param name="Units" val="use prefs" valType="str" updates="None"/>
+    <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
+    <Param name="Saved data folder" val="" valType="code" updates="None"/>
+    <Param name="Screen" val="1" valType="num" updates="None"/>
+  </Settings>
+  <Routines>
+    <Routine name="trial">
+      <TextComponent name="fixation">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="fixation" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="str" updates="constant"/>
+        <Param name="text" val="+" valType="str" updates="constant"/>
+        <Param name="stopVal" val="1.0" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="0.05" valType="code" updates="constant"/>
+      </TextComponent>
+      <TextComponent name="presentSet">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="presentSet" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="str" updates="constant"/>
+        <Param name="text" val="$numberSet" valType="str" updates="set every repeat"/>
+        <Param name="stopVal" val="1.5" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="1.2" valType="code" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
+      </TextComponent>
+      <TextComponent name="presentTarget">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="presentTarget" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="str" updates="constant"/>
+        <Param name="text" val="$target" valType="str" updates="set every repeat"/>
+        <Param name="stopVal" val="2" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="4.7" valType="code" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
+      </TextComponent>
+      <KeyboardComponent name="resp">
+        <Param name="correctAns" val="$corrAns" valType="str" updates="constant"/>
+        <Param name="storeCorrect" val="True" valType="bool" updates="constant"/>
+        <Param name="name" val="resp" valType="code" updates="None"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="allowedKeys" val="'left', 'right'" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="4.7" valType="code" updates="None"/>
+        <Param name="store" val="last key" valType="str" updates="constant"/>
+      </KeyboardComponent>
+    </Routine>
+    <Routine name="feedback">
+      <CodeComponent name="message">
+        <Param name="Begin Experiment" val="#msg variable just needs some value at start&#10;msg=''" valType="code" updates="constant"/>
+        <Param name="name" val="message" valType="code" updates="None"/>
+        <Param name="Each Frame" val="" valType="code" updates="constant"/>
+        <Param name="Begin Routine" val="if resp.corr:#stored on last run routine&#10;  msg=&quot;Correct! RT=%.3f&quot; %(resp.rt)&#10;else:&#10;  msg=&quot;Oops! That was wrong&quot;" valType="code" updates="constant"/>
+        <Param name="End Routine" val="" valType="code" updates="constant"/>
+        <Param name="End Experiment" val="" valType="code" updates="constant"/>
+      </CodeComponent>
+      <TextComponent name="feedback_2">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="feedback_2" valType="code" updates="constant"/>
+        <Param name="color" val="$[1,1,1]" valType="str" updates="constant"/>
+        <Param name="text" val="$msg" valType="str" updates="set every repeat"/>
+        <Param name="stopVal" val="1.0" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
+      </TextComponent>
+    </Routine>
+    <Routine name="thanks">
+      <TextComponent name="thanksMsg">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="thanksMsg" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="str" updates="constant"/>
+        <Param name="text" val="Thanks for taking part!" valType="str" updates="constant"/>
+        <Param name="stopVal" val="4.0" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
+      </TextComponent>
+    </Routine>
+    <Routine name="mainInstruct">
+      <TextComponent name="instr2">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="instr2" valType="code" updates="constant"/>
+        <Param name="color" val="$[1, 1, 1]" valType="str" updates="constant"/>
+        <Param name="text" val="OK, ready to start the main experiment?&#10;&#10;Remember:&#10; - LEFT CURSOR for NOT in the sequence&#10; - RIGHT CURSOR for IN the sequence&#10;Try to respond as quickly and as accurately as possible.&#10;&#10;When you are ready to proceed press any key." valType="str" updates="constant"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="0.05" valType="code" updates="constant"/>
+      </TextComponent>
+      <KeyboardComponent name="OK2">
+        <Param name="correctAns" val="" valType="str" updates="constant"/>
+        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
+        <Param name="name" val="OK2" valType="code" updates="None"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="allowedKeys" val="" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="store" val="last key" valType="str" updates="constant"/>
+      </KeyboardComponent>
+    </Routine>
+    <Routine name="practInstruct">
+      <TextComponent name="instr1">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="instr1" valType="code" updates="constant"/>
+        <Param name="color" val="$[1,1,1]" valType="str" updates="constant"/>
+        <Param name="text" val="In this experiment you will be presented with a sequence of between 1 and 6 randomly ordered numbers.&#10;&#10;Following a short delay you will then be presented with a single number and you will have to decide whether this new number was a member of the sequence.&#10;&#10;Respond with the keys;&#10; - LEFT CURSOR if the number was NOT in the sequence&#10; - RIGHT CURSOR if the number WAS in the sequence&#10;&#10;There will be a number of practice trials in which you will be given feedback.  Try to respond as quickly and as accurately as possible.&#10;&#10;When you are ready to proceed press any key." valType="str" updates="constant"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="0.05" valType="code" updates="constant"/>
+      </TextComponent>
+      <KeyboardComponent name="OK1">
+        <Param name="correctAns" val="" valType="str" updates="constant"/>
+        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
+        <Param name="name" val="OK1" valType="code" updates="None"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="allowedKeys" val="" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="store" val="last key" valType="str" updates="constant"/>
+      </KeyboardComponent>
+    </Routine>
+  </Routines>
+  <Flow>
+    <Routine name="practInstruct"/>
+    <LoopInitiator loopType="TrialHandler" name="pracTrials">
+      <Param name="conditionsFile" val="pracTrials.xlsx" valType="str" updates="None"/>
+      <Param name="name" val="pracTrials" valType="code" updates="None"/>
+      <Param name="loopType" val="random" valType="str" updates="None"/>
+      <Param name="nReps" val="1" valType="num" updates="None"/>
+      <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
+      <Param name="conditions" val="[{u'numberSet': 6, u'target': 6, u'corrAns': 9, u'posInSet': 1, u'setSize': 1, u'present': u'y'}, {u'numberSet': 5, u'target': 3, u'corrAns': 1, u'posInSet': u'--', u'setSize': 1, u'present': u'n'}, {u'numberSet': u'4 8', u'target': 4, u'corrAns': 9, u'posInSet': 1, u'setSize': 2, u'present': u'y'}, {u'numberSet': u'2 1', u'target': 5, u'corrAns': 1, u'posInSet': u'--', u'setSize': 2, u'present': u'n'}, {u'numberSet': u'2 9 4', u'target': 4, u'corrAns': 9, u'posInSet': 3, u'setSize': 3, u'present': u'y'}, {u'numberSet': u'4 1 5', u'target': 2, u'corrAns': 1, u'posInSet': u'--', u'setSize': 3, u'present': u'n'}, {u'numberSet': u'1 5 2 9', u'target': 5, u'corrAns': 9, u'posInSet': 2, u'setSize': 4, u'present': u'y'}, {u'numberSet': u'3 1 9 4', u'target': 6, u'corrAns': 1, u'posInSet': u'--', u'setSize': 4, u'present': u'n'}, {u'numberSet': u'1 7 9 8 5', u'target': 8, u'corrAns': 9, u'posInSet': 4, u'setSize': 5, u'present': u'y'}, {u'numberSet': u'9 6 7 4 5', u'target': 3, u'corrAns': 1, u'posInSet': u'--', u'setSize': 5, u'present': u'n'}, {u'numberSet': u'4 3 1 7 9 8', u'target': 4, u'corrAns': 9, u'posInSet': 1, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'5 7 8 4 1 2', u'target': 6, u'corrAns': 1, u'posInSet': u'--', u'setSize': 6, u'present': u'n'}]" valType="str" updates="None"/>
+    </LoopInitiator>
+    <Routine name="trial"/>
+    <Routine name="feedback"/>
+    <LoopTerminator name="pracTrials"/>
+    <Routine name="mainInstruct"/>
+    <LoopInitiator loopType="TrialHandler" name="trials">
+      <Param name="conditionsFile" val="mainTrials.xlsx" valType="str" updates="None"/>
+      <Param name="name" val="trials" valType="code" updates="None"/>
+      <Param name="loopType" val="random" valType="str" updates="None"/>
+      <Param name="nReps" val="1" valType="num" updates="None"/>
+      <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
+      <Param name="conditions" val="[{u'numberSet': 5, u'target': 8, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 1, u'present': u'n'}, {u'numberSet': 9, u'target': 6, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 1, u'present': u'n'}, {u'numberSet': 1, u'target': 7, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 1, u'present': u'n'}, {u'numberSet': 4, u'target': 4, u'corrAns': u'right', u'posInSet': 1, u'setSize': 1, u'present': u'y'}, {u'numberSet': 7, u'target': 7, u'corrAns': u'right', u'posInSet': 1, u'setSize': 1, u'present': u'y'}, {u'numberSet': 8, u'target': 8, u'corrAns': u'right', u'posInSet': 1, u'setSize': 1, u'present': u'y'}, {u'numberSet': u'8 9', u'target': 5, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 2, u'present': u'n'}, {u'numberSet': u'6 8', u'target': 9, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 2, u'present': u'n'}, {u'numberSet': u'7 9', u'target': 1, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 2, u'present': u'n'}, {u'numberSet': u'6 2', u'target': 6, u'corrAns': u'right', u'posInSet': 1, u'setSize': 2, u'present': u'y'}, {u'numberSet': u'2 3', u'target': 2, u'corrAns': u'right', u'posInSet': 1, u'setSize': 2, u'present': u'y'}, {u'numberSet': u'3 4', u'target': 3, u'corrAns': u'right', u'posInSet': 1, u'setSize': 2, u'present': u'y'}, {u'numberSet': u'7 1', u'target': 8, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 2, u'present': u'n'}, {u'numberSet': u'4 1', u'target': 6, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 2, u'present': u'n'}, {u'numberSet': u'5 2', u'target': 7, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 2, u'present': u'n'}, {u'numberSet': u'8 3', u'target': 3, u'corrAns': u'right', u'posInSet': 2, u'setSize': 2, u'present': u'y'}, {u'numberSet': u'6 5', u'target': 5, u'corrAns': u'right', u'posInSet': 2, u'setSize': 2, u'present': u'y'}, {u'numberSet': u'7 6', u'target': 6, u'corrAns': u'right', u'posInSet': 2, u'setSize': 2, u'present': u'y'}, {u'numberSet': u'6 9 5', u'target': 8, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 3, u'present': u'n'}, {u'numberSet': u'2 8 9', u'target': 6, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 3, u'present': u'n'}, {u'numberSet': u'3 9 1', u'target': 7, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 3, u'present': u'n'}, {u'numberSet': u'9 4 2', u'target': 9, u'corrAns': u'right', u'posInSet': 1, u'setSize': 3, u'present': u'y'}, {u'numberSet': u'8 7 3', u'target': 8, u'corrAns': u'right', u'posInSet': 1, u'setSize': 3, u'present': u'y'}, {u'numberSet': u'9 8 4', u'target': 9, u'corrAns': u'right', u'posInSet': 1, u'setSize': 3, u'present': u'y'}, {u'numberSet': u'3 4 2', u'target': 5, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 3, u'present': u'n'}, {u'numberSet': u'5 7 3', u'target': 9, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 3, u'present': u'n'}, {u'numberSet': u'6 8 4', u'target': 1, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 3, u'present': u'n'}, {u'numberSet': u'7 1 3', u'target': 1, u'corrAns': u'right', u'posInSet': 2, u'setSize': 3, u'present': u'y'}, {u'numberSet': u'4 1 5', u'target': 1, u'corrAns': u'right', u'posInSet': 2, u'setSize': 3, u'present': u'y'}, {u'numberSet': u'5 2 6', u'target': 2, u'corrAns': u'right', u'posInSet': 2, u'setSize': 3, u'present': u'y'}, {u'numberSet': u'1 8 7', u'target': 4, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 3, u'present': u'n'}, {u'numberSet': u'1 6 4', u'target': 7, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 3, u'present': u'n'}, {u'numberSet': u'2 7 5', u'target': 8, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 3, u'present': u'n'}, {u'numberSet': u'8 1 6', u'target': 6, u'corrAns': u'right', u'posInSet': 3, u'setSize': 3, u'present': u'y'}, {u'numberSet': u'6 1 2', u'target': 2, u'corrAns': u'right', u'posInSet': 3, u'setSize': 3, u'present': u'y'}, {u'numberSet': u'7 2 3', u'target': 3, u'corrAns': u'right', u'posInSet': 3, u'setSize': 3, u'present': u'y'}, {u'numberSet': u'4 2 6 9', u'target': 7, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 4, u'present': u'n'}, {u'numberSet': u'7 3 2 8', u'target': 4, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 4, u'present': u'n'}, {u'numberSet': u'8 4 3 9', u'target': 5, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 4, u'present': u'n'}, {u'numberSet': u'2 3 7 4', u'target': 2, u'corrAns': u'right', u'posInSet': 1, u'setSize': 4, u'present': u'y'}, {u'numberSet': u'3 5 4 7', u'target': 3, u'corrAns': u'right', u'posInSet': 1, u'setSize': 4, u'present': u'y'}, {u'numberSet': u'4 6 5 8', u'target': 4, u'corrAns': u'right', u'posInSet': 1, u'setSize': 4, u'present': u'y'}, {u'numberSet': u'8 4 3 5', u'target': 6, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 4, u'present': u'n'}, {u'numberSet': u'6 7 5 9', u'target': 2, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 4, u'present': u'n'}, {u'numberSet': u'7 8 6 1', u'target': 3, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 4, u'present': u'n'}, {u'numberSet': u'9 5 8 1', u'target': 5, u'corrAns': u'right', u'posInSet': 2, u'setSize': 4, u'present': u'y'}, {u'numberSet': u'8 9 6 1', u'target': 9, u'corrAns': u'right', u'posInSet': 2, u'setSize': 4, u'present': u'y'}, {u'numberSet': u'9 1 7 2', u'target': 1, u'corrAns': u'right', u'posInSet': 2, u'setSize': 4, u'present': u'y'}, {u'numberSet': u'1 7 5 2', u'target': 3, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 4, u'present': u'n'}, {u'numberSet': u'1 4 9 3', u'target': 5, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 4, u'present': u'n'}, {u'numberSet': u'2 5 1 4', u'target': 6, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 4, u'present': u'n'}, {u'numberSet': u'6 7 8 5', u'target': 8, u'corrAns': u'right', u'posInSet': 3, u'setSize': 4, u'present': u'y'}, {u'numberSet': u'2 4 6 9', u'target': 6, u'corrAns': u'right', u'posInSet': 3, u'setSize': 4, u'present': u'y'}, {u'numberSet': u'3 5 7 1', u'target': 7, u'corrAns': u'right', u'posInSet': 3, u'setSize': 4, u'present': u'y'}, {u'numberSet': u'7 9 1 6', u'target': 4, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 4, u'present': u'n'}, {u'numberSet': u'4 8 1 2', u'target': 7, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 4, u'present': u'n'}, {u'numberSet': u'5 9 2 3', u'target': 8, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 4, u'present': u'n'}, {u'numberSet': u'6 9 3 1', u'target': 1, u'corrAns': u'right', u'posInSet': 4, u'setSize': 4, u'present': u'y'}, {u'numberSet': u'2 8 5 1', u'target': 1, u'corrAns': u'right', u'posInSet': 4, u'setSize': 4, u'present': u'y'}, {u'numberSet': u'3 9 6 2', u'target': 2, u'corrAns': u'right', u'posInSet': 4, u'setSize': 4, u'present': u'y'}, {u'numberSet': u'1 4 3 6 5', u'target': 8, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 5, u'present': u'n'}, {u'numberSet': u'1 7 5 2 9', u'target': 3, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 5, u'present': u'n'}, {u'numberSet': u'2 8 6 3 1', u'target': 7, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 5, u'present': u'n'}, {u'numberSet': u'9 5 3 8 4', u'target': 9, u'corrAns': u'right', u'posInSet': 1, u'setSize': 5, u'present': u'y'}, {u'numberSet': u'8 9 5 6 7', u'target': 8, u'corrAns': u'right', u'posInSet': 1, u'setSize': 5, u'present': u'y'}, {u'numberSet': u'9 1 6 7 8', u'target': 9, u'corrAns': u'right', u'posInSet': 1, u'setSize': 5, u'present': u'y'}, {u'numberSet': u'9 8 2 7 4', u'target': 5, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 5, u'present': u'n'}, {u'numberSet': u'8 6 3 4 7', u'target': 1, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 5, u'present': u'n'}, {u'numberSet': u'9 7 4 5 8', u'target': 6, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 5, u'present': u'n'}, {u'numberSet': u'2 6 1 7 4', u'target': 6, u'corrAns': u'right', u'posInSet': 2, u'setSize': 5, u'present': u'y'}, {u'numberSet': u'3 2 1 4 7', u'target': 2, u'corrAns': u'right', u'posInSet': 2, u'setSize': 5, u'present': u'y'}, {u'numberSet': u'4 3 2 5 8', u'target': 3, u'corrAns': u'right', u'posInSet': 2, u'setSize': 5, u'present': u'y'}, {u'numberSet': u'1 3 2 6 9', u'target': 5, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 5, u'present': u'n'}, {u'numberSet': u'1 5 3 2 8', u'target': 4, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 5, u'present': u'n'}, {u'numberSet': u'2 6 4 3 9', u'target': 1, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 5, u'present': u'n'}, {u'numberSet': u'2 5 4 8 7', u'target': 4, u'corrAns': u'right', u'posInSet': 3, u'setSize': 5, u'present': u'y'}, {u'numberSet': u'3 9 7 6 4', u'target': 7, u'corrAns': u'right', u'posInSet': 3, u'setSize': 5, u'present': u'y'}, {u'numberSet': u'4 1 8 7 5', u'target': 8, u'corrAns': u'right', u'posInSet': 3, u'setSize': 5, u'present': u'y'}, {u'numberSet': u'8 5 7 3 6', u'target': 9, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 5, u'present': u'n'}, {u'numberSet': u'6 9 4 5 2', u'target': 1, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 5, u'present': u'n'}, {u'numberSet': u'7 1 5 6 3', u'target': 8, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 5, u'present': u'n'}, {u'numberSet': u'9 3 1 2 5', u'target': 2, u'corrAns': u'right', u'posInSet': 4, u'setSize': 5, u'present': u'y'}, {u'numberSet': u'8 5 1 3 9', u'target': 3, u'corrAns': u'right', u'posInSet': 4, u'setSize': 5, u'present': u'y'}, {u'numberSet': u'9 6 2 4 1', u'target': 4, u'corrAns': u'right', u'posInSet': 4, u'setSize': 5, u'present': u'y'}, {u'numberSet': u'1 4 9 2 5', u'target': 7, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 5, u'present': u'n'}, {u'numberSet': u'1 7 8 3 9', u'target': 2, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 5, u'present': u'n'}, {u'numberSet': u'2 8 9 4 1', u'target': 5, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 5, u'present': u'n'}, {u'numberSet': u'7 8 6 3 1', u'target': 1, u'corrAns': u'right', u'posInSet': 5, u'setSize': 5, u'present': u'y'}, {u'numberSet': u'4 6 2 5 1', u'target': 1, u'corrAns': u'right', u'posInSet': 5, u'setSize': 5, u'present': u'y'}, {u'numberSet': u'5 7 3 6 2', u'target': 2, u'corrAns': u'right', u'posInSet': 5, u'setSize': 5, u'present': u'y'}, {u'numberSet': u'5 3 2 6 9 8', u'target': 4, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'9 5 3 2 8 6', u'target': 7, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'1 6 4 3 9 7', u'target': 8, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'6 7 9 3 1 2', u'target': 6, u'corrAns': u'right', u'posInSet': 1, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'2 4 8 5 1 3', u'target': 2, u'corrAns': u'right', u'posInSet': 1, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'3 5 9 6 2 4', u'target': 3, u'corrAns': u'right', u'posInSet': 1, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'6 2 9 3 8 4', u'target': 1, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'2 3 8 5 6 7', u'target': 1, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'3 4 9 6 7 8', u'target': 2, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'8 5 4 7 3 1', u'target': 5, u'corrAns': u'right', u'posInSet': 2, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'6 9 7 4 5 1', u'target': 9, u'corrAns': u'right', u'posInSet': 2, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'7 1 8 5 6 2', u'target': 1, u'corrAns': u'right', u'posInSet': 2, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'8 2 1 4 5 9', u'target': 7, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'6 3 1 7 9 8', u'target': 4, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'7 4 2 8 1 9', u'target': 5, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'5 2 9 6 1 7', u'target': 9, u'corrAns': u'right', u'posInSet': 3, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'9 3 8 2 1 4', u'target': 8, u'corrAns': u'right', u'posInSet': 3, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'1 4 9 3 2 5', u'target': 9, u'corrAns': u'right', u'posInSet': 3, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'6 9 4 5 3 2', u'target': 8, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'2 8 7 9 5 3', u'target': 6, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'3 9 8 1 6 4', u'target': 7, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'4 9 7 8 5 3', u'target': 8, u'corrAns': u'right', u'posInSet': 4, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'7 8 4 6 9 5', u'target': 6, u'corrAns': u'right', u'posInSet': 4, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'8 9 5 7 1 6', u'target': 7, u'corrAns': u'right', u'posInSet': 4, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'8 5 4 2 9 6', u'target': 3, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'6 9 7 3 8 2', u'target': 5, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'7 1 8 4 9 3', u'target': 6, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'3 4 9 6 2 9', u'target': 2, u'corrAns': u'right', u'posInSet': 5, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'5 7 8 2 3 8', u'target': 3, u'corrAns': u'right', u'posInSet': 5, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'6 8 9 3 4 9', u'target': 4, u'corrAns': u'right', u'posInSet': 5, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'7 6 4 8 1 2', u'target': 9, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'4 2 7 6 1 3', u'target': 8, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'5 3 8 7 2 4', u'target': 9, u'corrAns': u'left', u'posInSet': u'--', u'setSize': 6, u'present': u'n'}, {u'numberSet': u'4 7 6 8 2 3', u'target': 3, u'corrAns': u'right', u'posInSet': 6, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'7 4 2 6 3 5', u'target': 5, u'corrAns': u'right', u'posInSet': 6, u'setSize': 6, u'present': u'y'}, {u'numberSet': u'8 5 3 7 4 6', u'target': 6, u'corrAns': u'right', u'posInSet': 6, u'setSize': 6, u'present': u'y'}]" valType="str" updates="None"/>
+    </LoopInitiator>
+    <Routine name="trial"/>
+    <LoopTerminator name="trials"/>
+  </Flow>
+</PsychoPy2experiment>

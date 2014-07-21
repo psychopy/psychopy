@@ -1,0 +1,139 @@
+eyetracker.EyeTrackerDevice:
+    enable: IOHUB_BOOL
+    name:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
+            first_char_alpha: True    
+    save_events: IOHUB_BOOL
+    stream_events: IOHUB_BOOL
+    auto_report_events: IOHUB_BOOL    
+    device_timer:
+        interval:
+            IOHUB_FLOAT:
+                min: 0.001
+                max: 0.020
+    event_buffer_length:
+        IOHUB_INT:
+            min: 1
+            max: 2048    
+    # The ioHub Common Eye Tracker Interface supports the
+    # following event types. If you would like to exclude certain events from being
+    # saved or streamed during runtime, remove them from the list below.
+    # If a device implementation of the interface does not support some of the event types,
+    # remove them from the default_[deviceclass].yaml and the supported_config_settings.yaml file
+    # copies in the device implementation folder with the ioHub Device class definition.
+    monitor_event_types: [ MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
+    runtime_settings:
+        sampling_rate:
+            IOHUB_INT:
+                min: 0
+                max: 2000       
+        track_eyes: [LEFT_EYE, RIGHT_EYE, BINOCULAR, UNKNOWN_MONOCULAR, BINOCULAR_AVERAGED]
+        calibration:
+            # type can be H3_POINTS, V3_POINTS, HV3_POINTS, HV5_POINTS, HV9_POINTS, HV13_POINTS, CUSTOM_POINTS
+            # not all implementation will support all calibration types.
+            type: [H3_POINTS, V3_POINTS, HV3_POINTS, HV5_POINTS, HV9_POINTS, HV13_POINTS, CUSTOM_POINTS]
+            target_positions: []
+            auto_pace: IOHUB_BOOL
+            pacing_speed:
+                IOHUB_FLOAT:
+                    min: 0.5
+                    max: 2.5            
+            screen_background_color: IOHUB_RGBA255_COLOR  
+            target_type: [CIRCLE_TARGET, CROSSHAIR_TARGET, IMAGE_TARGET, MOVIE_TARGET]
+            circle_attributes
+                outer_diameter:
+                    IOHUB_NUMBER:
+                        min: 0.0
+                        max: 2048.0    
+                inner_diameter: 
+                    IOHUB_NUMBER:
+                        min: 0.0
+                        max: 2048.0    
+                outer_color: IOHUB_RGBA255_COLOR
+                inner_color: IOHUB_RGBA255_COLOR                 
+            crosshair_attributes:
+                line_length:
+                    IOHUB_NUMBER:
+                        min: 0.0
+                        max: 2048.0    
+                line_width:
+                    IOHUB_NUMBER:
+                        min: 0.0
+                        max: 2048.0    
+                line_color: IOHUB_RGBA255_COLOR             
+            image_attributes:
+                name:
+                    IOHUB_STRING:
+                        min_length: 1
+                        max_length: 32
+                width:
+                    IOHUB_NUMBER:
+                        min: 0.0
+                        max: 2048.0    
+                height: 
+                    IOHUB_NUMBER:
+                        min: 0.0
+                        max: 2048.0    
+            movie_attributes:
+                name:
+                    IOHUB_STRING:
+                        min_length: 1
+                        max_length: 32                
+                width:
+                    IOHUB_NUMBER:
+                        min: 0.0
+                        max: 2048.0            
+                height:
+                    IOHUB_NUMBER:
+                        min: 0.0
+                        max: 2048.0    
+         sample_filtering:
+            FILTER_ALL: [FILTER_LEVEL_OFF, FILTER_LEVEL_1, FILTER_LEVEL_2, FILTER_LEVEL_3, FILTER_LEVEL_4, FILTER_LEVEL_5]
+            FILTER_FILE: [FILTER_LEVEL_OFF, FILTER_LEVEL_1, FILTER_LEVEL_2, FILTER_LEVEL_3, FILTER_LEVEL_4, FILTER_LEVEL_5]
+            FILTER_ONLINE: [FILTER_LEVEL_OFF, FILTER_LEVEL_1, FILTER_LEVEL_2, FILTER_LEVEL_3, FILTER_LEVEL_4, FILTER_LEVEL_5]
+            FILTER_NET: [FILTER_LEVEL_OFF, FILTER_LEVEL_1, FILTER_LEVEL_2, FILTER_LEVEL_3, FILTER_LEVEL_4, FILTER_LEVEL_5]
+            FILTER_SERIAL: [FILTER_LEVEL_OFF, FILTER_LEVEL_1, FILTER_LEVEL_2, FILTER_LEVEL_3, FILTER_LEVEL_4, FILTER_LEVEL_5]
+            FILTER_ANALOG: [FILTER_LEVEL_OFF, FILTER_LEVEL_1, FILTER_LEVEL_2, FILTER_LEVEL_3, FILTER_LEVEL_4, FILTER_LEVEL_5]
+        simulation_mode: IOHUB_BOOL
+        enable_interface_without_connection: IOHUB_BOOL
+        network_settings: [IOHUB_IP_ADDRESS_V4,IOHUB_IP_ADDRESS_V4]
+        default_native_data_file_name:
+            IOHUB_STRING:
+                min_length: 1
+                max_length: 16
+        vog_settings:
+            pupil_measure_types: [[ PUPIL_AREA, PUPIL_DIAMETER, PUPIL_RADIUS, PUPIL_WIDTH, PUPIL_HEIGHT, PUPIL_MAJOR_AXIS, PUPIL_MINOR_AXIS], [PUPIL_AREA, PUPIL_DIAMETER, PUPIL_RADIUS, PUPIL_WIDTH, PUPIL_HEIGHT, PUPIL_MAJOR_AXIS, PUPIL_MINOR_AXIS]]
+            tracking_mode: [PUPIL_CR_TRACKING,PUPIL_ONLY_TRACKING]
+            pupil_center_algorithm: [ELLIPSE_FIT, CIRCLE_FIT, CENTROID_FIT]
+    model_name:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
+    device_number: 0
+    model_number:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 16
+    manufacturer_name:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 64    
+    serial_number:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
+    manufacture_date: IOHUB_DATE
+    software_version:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 8    
+    hardware_version: 
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 8
+    firmware_version: 
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 8

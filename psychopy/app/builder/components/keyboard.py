@@ -99,6 +99,7 @@ class KeyboardComponent(BaseComponent):
         #some shortcuts
         store=self.params['store'].val
         storeCorr=self.params['storeCorrect'].val
+        split = self.params['splitFlow'].val
         forceEnd=self.params['forceEndRoutine'].val
         allowedKeys = self.params['allowedKeys'].val.strip()
 
@@ -156,7 +157,7 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented('    endExpNow = True\n')
 
         #how do we store it?
-        if store!='nothing' or forceEnd:
+        if store!='nothing' or forceEnd or splitF:
             #we are going to store something
             buff.writeIndented("if len(theseKeys) > 0:  # at least one key was pressed\n")
             buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
@@ -180,11 +181,22 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("else:\n")
             buff.writeIndented("    %(name)s.corr = 0\n" %(self.params))
 
+        if splitF==True:
+            buff.writeIndented("# was this a flow-splitting key? - automatically stored\n")
+            buff.writeIndented("if (%(name)s.keys == str(%(input1)s)) or (%(name)s.keys == %(input1)s):\n" %(self.params))
+            buff.writeIndented("    %(name)s.split = 1\n" %(self.params))
+            buff.writeIndented("elif (%(name)s.keys == str(%(input2)s)) or (%(name)s.keys == %(input2)s) :\n" %(self.params))
+            buff.writeIndented("    %(name)s.split = 2\n" %(self.params))
+            buff.writeIndented("else:\n")
+            buff.writeIndented("    %(name)s.split = 0\n" %(self.params))
+            
+
         if forceEnd==True:
             buff.writeIndented("# a response ends the routine\n" %self.params)
             buff.writeIndented("continueRoutine = False\n")
 
-        buff.setIndentLevel(-(dedentAtEnd), relative=True)
+  
+        
     def writeRoutineEndCode(self,buff):
         #some shortcuts
         name = self.params['name']

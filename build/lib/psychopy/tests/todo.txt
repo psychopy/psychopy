@@ -1,0 +1,5 @@
+Planned tests:
+
+import psychopy prefs and see whether a) sitePrefs file now exists b) whether the userPrefs directory is writeable.
+
+experiment load/save/compile script: create a simple experiment with routines etc. compile it save, load and compile again. Do they match?

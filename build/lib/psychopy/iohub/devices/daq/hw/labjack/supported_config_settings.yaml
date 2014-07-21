@@ -1,0 +1,60 @@
+daq.hw.labjack.AnalogInput:
+    enable: IOHUB_BOOL
+    name:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
+            first_char_alpha: True    
+    model_name: U6
+    manufacturer_name: LabJack Corporation   
+    serial_number:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
+    channel_sampling_rate:
+        IOHUB_INT:
+            min: 1
+            max: 2000
+    resolution_index:
+        IOHUB_INT:
+            min: 0
+            max: 6
+    settling_factor:
+        IOHUB_INT:
+            min: 0
+            max: 6
+    delay_offset:
+        IOHUB_FLOAT:
+            min: 0.0
+            max: 10.0
+    input_channel_count: 8
+    save_events: IOHUB_BOOL
+    stream_events: IOHUB_BOOL
+    auto_report_events: False    
+    monitor_event_types:
+        IOHUB_LIST:
+            valid_values: [ MultiChannelAnalogInputEvent, ]
+            min_length: 0
+            max_length: 3            
+    event_buffer_length:
+        IOHUB_INT:
+            min: 1
+            max: 2048    
+    device_number: 0
+    model_number:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 16
+    manufacture_date: IOHUB_DATE
+    software_version:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 8    
+    hardware_version: 
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 8
+    firmware_version: 
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 8

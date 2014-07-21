@@ -1,0 +1,174 @@
+monitor_devices:
+    - eyetracker.hw.sr_research.eyelink.EyeTracker:
+        # Indicates if the device should actually be loaded at experiment runtime.
+        enable: True
+
+        # The variable name of the device that will be used to access the ioHub Device class
+        # during experiment run-time, via the devices.[name] attribute of the ioHub
+        # connection or experiment runtime class.
+        name: tracker
+
+        # Should eye tracker events be saved to the ioHub DataStore file when the device
+        # is recording data ?
+        save_events: True
+
+        # Should eye tracker events be sent to the Experiment process when the device
+        # is recording data ?
+        stream_events: True
+
+        # The eyetracker.hw.sr_research.eyelink.EyeTracker class uses the polling method to
+        # check for new events received from the eyelink device. device_timer.interval
+        # specifies the sec.msec time between device polls. 0.001 = 1 msec, so the device will
+        # be polled at a maxximum rate of 1000 Hz. This polling rate is a 'target' value,
+        # and may not always be achieved depending on your computer specifications and the
+        # number and type of other devices being used.
+        device_timer:
+            interval: 0.001
+
+        # How many eye events (including samples) should be saved in the ioHub event buffer before
+        # old eye events start being replaced my new events when the event buffer reaches
+        # the maximum event length of the buffer defined here.
+        event_buffer_length: 1024
+
+        # The eyelink implementation of the common eye tracker interface supports the
+        # following event types. If you would like to exclude certain events from being
+        # saved or streamed during runtime, remove them from the list below.
+        monitor_event_types: [ MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
+
+        # simulation_mode can be True or False. This indicates if the eye tracker
+        # should provide simulated eye data instead of sending eye data based on a 
+        # participants actual eye movements. 
+        simulation_mode: False
+
+        # enable_interface_without_connection is a boolean specifying if the ioHub Device
+        # should be enabled without truely connecting to the underlying eye tracking
+        # hardware. If True, ioHub EyeTracker methods can be called but will
+        # provide no-op results and no eye data will be received by the ioHub Server.
+        # This mode can be useful for working on aspects of an eye tracking experiment when the
+        # actual eye tracking device is not available, for example stimulus presentation
+        # or other non eye tracker dependent experiment functionality.
+        enable_interface_without_connection: False
+
+        # network_settings can be used to specify relevent network settings 
+        # by eye tracker implementations that use a net interface to connect the
+        # ioHub eye tracker interface to the eye tracking system.
+        # The eyetracker.hw.sr_research.eyelink.EyeTracker implementation uses this
+        # setting to specify the Host computer IP address. Normally leaving it set
+        # to the default value is fine.
+        network_settings: 100.1.1.1
+
+        # The eyetracker.hw.sr_research.eyelink.EyeTracker supports saving a native eye
+        # tracker edf data file, the default_native_data_file_name value is
+        # used to set the default name for the file that will be saved, not including
+        # the .edf file type extension
+        default_native_data_file_name: et_data
+
+        runtime_settings:
+            # eyetracker.hw.sr_research.eyelink.EyeTracker supports, dependent on 
+            # model and mode, sampling rates of 250, 500, 1000, and 2000 Hz
+            sampling_rate: 500
+            # eyetracker.hw.sr_research.eyelink.EyeTracker supports the 
+            # following track_eyes values:  LEFT_EYE, RIGHT_EYE, BINOCULAR
+            track_eyes: RIGHT_EYE
+            # Sample filtering defines the native eye tracker filtering level to be 
+            # applied to the sample event data before it is sent to the specified data stream.
+            # The sample filter section can contain multiple key : value entries if 
+            # the tracker implementation supports it, where each key is a sample stream type,
+            # and each value is the accociated filter level for that sample data stream.
+            # eyetracker.hw.sr_research.eyelink.EyeTracker supported stream 
+            # types are: FILTER_ALL, FILTER_FILE, FILTER_ONLINE
+            # Supported eyetracker.hw.sr_research.eyelink.EyeTracker filter levels are:
+            # FILTER_OFF, FILTER_LEVEL_1, FILTER_LEVEL_2
+            # Note that if FILTER_ALL is specified, and other sample data stream values are
+            # ignored.
+            sample_filtering:
+    #                FILTER_ALL: FILTER_LEVEL_1
+    #                FILTER_FILE: FILTER_LEVEL_2
+                FILTER_ONLINE: FILTER_OFF
+            # VOG settings allow you to specify some eye tracker parameters related to
+            # the image processing or data collection procedure used by the eye tracker
+            # device. 
+            vog_settings:
+                # The eyetracker.hw.sr_research.eyelink.EyeTracker supports one
+                # pupil_measure_types parameter that is used for all eyes being tracked. 
+                # The following is a list of valid pupil measure types for the
+                # eyetracker.hw.sr_research.eyelink.EyeTracker:
+                # PUPIL_AREA, PUPIL_DIAMETER,
+                pupil_measure_types: PUPIL_AREA
+
+                # tracking_mode defines whether the eye tracker should run in a pupil only
+                # mode or run in a pupil-cr mode. Valid options are: 
+                # PUPIL_CR_TRACKING, PUPIL_ONLY_TRACKING
+                # Depending on other settngs on the eyelink Host and the model and mode of
+                # eye tracker being used, this parameter may not be able to set the
+                # specified tracking mode. CHeck the mode listed on the camera setup
+                # screen of the Host PC after the experiment has started to confirm if
+                # the requested tracking mode was enabled. IMPORTANT: only use
+                # PUPIL_ONLY_TRACKING mode if using an EyeLink II system, or using
+                # the EyeLink 1000 is a head **fixed** setup. Any head movement
+                # when using PUPIL_ONLY_TRACKING will result in eye position signal drift.
+                tracking_mode: PUPIL_CR_TRACKING
+
+                # The pupil_center_algorithm defines what type of image processing approach should
+                # be used to determine the pupil center during image processing. This feature
+                # is only supported in *later* versions of the EyeLink 1000 system.
+                # If no settings related to this parameter are visible on your EyeLink 1000 Host
+                # Camera setup screen, then it is likely your system does not support
+                # the Ellipse Fitting mode and is using a Centroid pupil center detection algorithm.
+                # If this feature is supported by your EyeLink 1000 system,
+                # valid possible options are:
+                # ELLIPSE_FIT, or CENTROID_FIT
+                pupil_center_algorithm: CENTROID_FIT
+
+        calibration:
+            # IMPORTANT: Note that while the gaze position data provided by ioHub
+            # will be in the Display's coordinate system, the EyeLink internally
+            # always uses a 0,0 pixel_width, pixel_height coordinate system
+            # since internally calibration point positions are given as integers,
+            # so if the actual display coordinate system was passed to EyeLink,
+            # coordinate types like deg and norm would become very coarse in
+            # possible target locations during calibration.
+            # eyetracker.hw.sr_research.eyelink.EyeTracker supports the following
+            # calibration types:
+            #  THREE_POINTS, FIVE_POINTS, NINE_POINTS, THIRTEEN_POINTS
+            type: NINE_POINTS
+
+            # auto_pace can be True or False. If True, the eye tracker will 
+            # automatically progress from one calibration point to the next.
+            # If False, a manual key or button press is needed to progress to
+            # the next point.
+            auto_pace: True
+
+            # pacing_speed is the number of sec.msec that a calibration point should
+            # be displayed before moving onto the next point when auto_pace is set to true.
+            # If auto_pace is False, pacing_speed is ignored.
+            pacing_speed: 1.5
+
+            # screen_background_color specifies the r,g,b,a background color to 
+            # set the calibration, validation, etc, screens to. Each element of the color
+            # should be a value between 0 and 255. 0 == black, 255 == white. In general
+            # the last value of the color list (alpha) can be left at 255, indicating
+            # the color not mixed with the background color at all.
+            screen_background_color: [128,128,128]
+
+            # target type defines what form of calibration graphic should be used
+            # during calibration, validation, etc. modes.
+            # eyetracker.hw.sr_research.eyelink.EyeTracker supports the following
+            # target types CIRCLE_TARGET      
+            target_type: CIRCLE_TARGET
+
+            # The asociated target attributes sub properties must be supplied
+            # for the given target_type. If target type attribute sections are provided
+            # for target types other than the entry associated with the specified target_type value
+            # they will simple be ignored.
+            target_attributes:
+                # outer_diameter and inner_diameter are specified in pixels
+                outer_diameter: 33
+                inner_diameter: 6
+                outer_color: [255,255,255]
+                inner_color: [0,0,0]
+
+        # The model_name setting allows the definition of the eye tracker model being used.
+        # For the eyelink implementation, valid values are:
+        # 'EYELINK 1000 DESKTOP', 'EYELINK 1000 TOWER', 'EYELINK 1000 REMOTE', 'EYELINK 1000 LONG RANGE', 'EYELINK 2'
+        model_name: EYELINK 1000 TOWER
