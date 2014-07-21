@@ -35,6 +35,42 @@ codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 # regular expression to check for unescaped '$' to indicate code:
 _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 
+# used for separation of internal vs display values:
+_localized = {
+    # strings for all allowedVals (from all components) go here:
+        'linear': _('linear'), 'nearest': _('nearest'),  # interpolation
+        'rgb': 'rgb', 'dkl': 'dkl', 'lms': 'lms',  # not translated
+        'last key' : _('last key'), 'first key': _('first key'),
+        'all keys': _('all keys'), 'nothing': _('nothing'),
+        'last button' : _('last button'), 'first button': _('first button'),
+        'all buttons': _('all buttons'),
+        'final': _('final'), 'on click': _('on click'), 'every frame': _('every frame'),
+        'never': _('never'),
+        'from exp settings': _('from exp settings'), 'from prefs': _('from prefs'),
+        'pix': 'pix', 'deg': 'deg', 'cm': 'cm', 'norm': 'norm', 'height': 'height',  # not translated
+        '32': '32', '64': '64', '128': '128', '256': '256', '512': '512',  # tex resolution
+        'circle': _('circle'), 'square': _('square'),  # dots
+        'direction': _('direction'), 'position': _('position'), 'walk': _('walk'),  # dots
+        'same': _('same'), 'different': _('different'),  # dots
+        'experiment': _('Experiment'), 'routine': 'Routine',
+
+        # startType & stopType:
+        'time (s)': _('time (s)'), 'frame N': _('frame N'), 'condition': _('condition'),
+        'duration (s)': _('duration (s)'), 'duration (frames)': _('duration (frames)'),
+
+    # strings for allowedUpdates:
+        'constant': _('constant'),
+        'set every repeat': _('set every repeat'),
+        'set every frame': _('set every frame'),
+    # strings for allowedVals in settings:
+        'add': _('add'), 'avg': _('average'), # blend mode
+        'use prefs': _('use prefs'),
+        # logging level:
+        'debug': _('debug'), 'info': _('info'), 'exp': _('exp'),
+        'data': _('data'), 'warning': _('warning'), 'error': _('error')
+    }
+
+
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
     Need this too.
@@ -1950,9 +1986,21 @@ class ParamCtrls:
              self.valueCtrl = wx.CheckBox(parent, size = wx.Size(self.valueWidth,-1))
              self.valueCtrl.SetValue(param.val)
         elif len(param.allowedVals)>1:
-            #there are limitted options - use a Choice control
-            self.valueCtrl = wx.Choice(parent, choices=param.allowedVals, size=wx.Size(self.valueWidth,-1))
-            self.valueCtrl.SetStringSelection(unicode(param.val))
+            #there are limited options - use a Choice control
+            # use localized text or fall through to non-localized,
+            # for future-proofing, parallel-port addresses, etc:
+            choiceLabels = []
+            for val in param.allowedVals:
+                try:
+                    choiceLabels.append(_localized[val])
+                except KeyError:
+                    choiceLabels.append(val)
+            self.valueCtrl = wx.Choice(parent, choices=choiceLabels, size=wx.Size(self.valueWidth,-1))
+            # stash original non-localized choices:
+            self.valueCtrl._choices = copy.copy(param.allowedVals)
+            # set display to the localized version of the currently selected value:
+            index = param.allowedVals.index(param.val)
+            self.valueCtrl.SetSelection(index)
         else:
             #create the full set of ctrls
             val = unicode(param.val)
@@ -1970,24 +2018,31 @@ class ParamCtrls:
             self.valueCtrl.SetValidator(validators.NameValidator())
 
         #create the type control
-        if len(param.allowedTypes)==0:
-            pass
-        else:
+        if len(param.allowedTypes):
+            # are there any components with non-empty allowedTypes?
             self.typeCtrl = wx.Choice(parent, choices=param.allowedTypes)
-            self.typeCtrl.SetStringSelection(param.valType)
-        if len(param.allowedTypes)==1:
-            self.typeCtrl.Disable()#visible but can't be changed
+            self.typeCtrl._choices = copy.copy(param.allowedTypes)
+            index = param.allowedTypes.index(param.valType)
+            self.typeCtrl.SetSelection(index)
+            if len(param.allowedTypes)==1:
+                self.typeCtrl.Disable()#visible but can't be changed
 
         #create update control
         if param.allowedUpdates==None or len(param.allowedUpdates)==0:
             pass
         else:
-            updates = copy.copy(param.allowedUpdates)
+            #updates = display-only version of allowed updates
+            updateLabels = [_localized[upd] for upd in param.allowedUpdates]
             for routineName, routine in self.exp.routines.items():
                 for static in routine.getStatics():
-                    updates.append("set during: %s.%s" %(routineName, static.params['name']))
-            self.updateCtrl = wx.Choice(parent, choices=updates)
-            self.updateCtrl.SetStringSelection(param.updates)
+                    updateLabels.append(_("set during:") + " %s.%s" %(routineName, static.params['name']))
+            self.updateCtrl = wx.Choice(parent, choices=updateLabels)
+            # stash non-localized choices to allow retrieval by index:
+            self.updateCtrl._choices = copy.copy(param.allowedUpdates)
+            # get index of the currently set update value, set display:
+            index = param.allowedUpdates.index(param.updates)
+            self.updateCtrl.SetSelection(index)  # set by integer index, not string value
+
         if param.allowedUpdates!=None and len(param.allowedUpdates)==1:
             self.updateCtrl.Disable()#visible but can't be changed
         #create browse control
@@ -2009,8 +2064,10 @@ class ParamCtrls:
             if isinstance(self.valueCtrl, dialogs.ListWidget):
                 val = self.expInfoFromListWidget(val)
             return val
-        elif hasattr(ctrl, 'GetStringSelection'): #for wx.Choice
-            return ctrl.GetStringSelection()
+        elif hasattr(ctrl, 'GetSelection'): #for wx.Choice
+            # _choices is defined during __init__ for all wx.Choice() ctrls
+            # as the non-localized values (allowedVals, allowedUpdates):
+            return ctrl._choices[ctrl.GetSelection()]
         elif hasattr(ctrl, 'GetLabel'): #for wx.StaticText
             return ctrl.GetLabel()
         else:
@@ -2027,8 +2084,11 @@ class ParamCtrls:
             return None
         elif hasattr(ctrl, 'SetValue'): #e.g. TextCtrl
             ctrl.SetValue(newVal)
-        elif hasattr(ctrl, 'SetStringSelection'): #for wx.Choice
-            ctrl.SetStringSelection(newVal)
+        elif hasattr(ctrl, 'SetSelection'): #for wx.Choice
+            # _choices = list of non-localized strings, set during __init__
+            index = ctrl._choices.index(newVal)
+            # set the display to the localized version of the string:
+            ctrl.SetSelection(index)
         elif hasattr(ctrl, 'SetLabel'): #for wx.StaticText
             ctrl.SetLabel(newVal)
         else:
@@ -2841,6 +2901,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 panelSizer.Add(ctrls.valueCtrl, (row, 0), span=(1,3), flag=wx.ALIGN_CENTER)
                 row += 1
             else: #normal text entry field
+                # ?? handler.params[fieldName].allowedVals = []
                 ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
                     param=handler.params[fieldName])
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
