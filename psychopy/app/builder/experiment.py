@@ -794,9 +794,9 @@ class MultiStairHandler:
         self.params['name']=Param(name, valType='code', hint=_("Name of this loop"))
         self.params['nReps']=Param(nReps, valType='code',
             hint=_("(Minimum) number of trials in *each* staircase"))
-        self.params['stairType']=Param(nReps, valType='str', allowedVals=['simple','QUEST','quest'],
+        self.params['stairType']=Param(stairType, valType='str', allowedVals=['simple','QUEST','quest'],
             hint=_("How to select the next staircase to run"))
-        self.params['switchMethod']=Param(nReps, valType='str', allowedVals=['random','sequential','fullRandom'],
+        self.params['switchMethod']=Param(switchStairs, valType='str', allowedVals=['random','sequential','fullRandom'],
             hint=_("How to select the next staircase to run"))
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['loopType']=Param('staircase', valType='str',
