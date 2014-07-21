@@ -2901,7 +2901,6 @@ class DlgLoopProperties(_BaseParamsDlg):
                 panelSizer.Add(ctrls.valueCtrl, (row, 0), span=(1,3), flag=wx.ALIGN_CENTER)
                 row += 1
             else: #normal text entry field
-                # ?? handler.params[fieldName].allowedVals = []
                 ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
                     param=handler.params[fieldName])
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
