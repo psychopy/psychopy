@@ -364,7 +364,7 @@ class MainFrame(wx.Frame):
         #----GAMMA------------
         #-----------------------
         #calibration grid
-        gammaBox = wx.StaticBox(parent,-1,'Linearisation')
+        gammaBox = wx.StaticBox(parent,-1,'Linearization')
         gammaBox.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
         gammaBoxSizer = wx.StaticBoxSizer(gammaBox, wx.VERTICAL)
 
@@ -741,7 +741,7 @@ class MainFrame(wx.Frame):
             self.currentMon.setLevelsPre(lumLevels)#save for future
             self.btnPlotGamma.Enable(True)
             self.choiceLinearMethod.Enable()
-            
+
             #do the fits
             self.doGammaFits(lumLevels,lumsPre)
         else:
@@ -984,8 +984,8 @@ class GammaLumValsDlg(wx.Dialog):
 
         butBox.Add(btnOK,1,wx.BOTTOM|wx.ALIGN_RIGHT, pad)
         butBox.Add(btnCANC,1,wx.BOTTOM|wx.RIGHT|wx.ALIGN_RIGHT, pad)
-        mainSizer.Add(butBox, 
-            flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)    
+        mainSizer.Add(butBox,
+            flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
 
         #finalise panel layout
         panel.SetAutoLayout(True)
@@ -1009,7 +1009,7 @@ class GammaLumValsDlg(wx.Dialog):
         gammaBoxSizer.Layout()
 
         return gammaBoxSizer
- 
+
     def onChangeGammaGrid(self, event):
         '''The first column = black, so it gets set same for all, let's help out!'''
         if event.GetCol()==0:
@@ -1018,7 +1018,7 @@ class GammaLumValsDlg(wx.Dialog):
             except: pass #ignore values that can't be a float
             for nRow in range(self.gammaGrid.nRows):
                 self.gammaGrid.SetCellValue(nRow,0,'%f' %newVal)
- 
+
     def getData(self):
         '''retrieve the data from the grid in same format as auto calibration'''
         data=[]

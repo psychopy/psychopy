@@ -1102,7 +1102,7 @@ class Window(object):
 
     @attributeSetter
     def gamma(self, gamma):
-        """Set the monitor gamma for linearisation (don't use this if using a Bits++ or Bits#)
+        """Set the monitor gamma for linearization (don't use this if using a Bits++ or Bits#)
         Overrides monitor settings"""
 
         self._checkGamma(gamma)
@@ -1237,7 +1237,7 @@ class Window(object):
                 # Below works but is not correct! _nswindow points to an objc reference
                 # of the window, not to the window id itself. I don't know how psychopy uses
                 # this feat further, but it has not resulted in crashes for me.
-                self._hw_handle=self.winHandle._nswindow  
+                self._hw_handle=self.winHandle._nswindow
             else:
                 self._hw_handle=self.winHandle._window.value
         elif sys.platform =='linux2':

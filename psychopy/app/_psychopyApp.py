@@ -456,14 +456,11 @@ class PsychoPyApp(wx.App):
     def showAbout(self, event):
         logging.debug('PsychoPyApp: Showing about dlg')
 
-        licFile = open(os.path.join(self.prefs.paths['psychopy'],'LICENSE.txt'))
-        license = licFile.read()
-        licFile.close()
+        license = open(os.path.join(self.prefs.paths['psychopy'],'LICENSE.txt'), 'rU').read()
+        msg = _("""For stimulus generation and experimental control in python.
 
-        msg = """For stimulus generation and experimental control in python.
-
-            PsychoPy depends on your feedback. If something doesn't work then
-            let me/us know at psychopy-users@googlegroups.com""".replace('    ', '')
+            PsychoPy depends on your feedback. If something doesn't work
+            then let us know at psychopy-users@googlegroups.com""").replace('    ', '')
         info = wx.AboutDialogInfo()
         #info.SetIcon(wx.Icon(os.path.join(self.prefs.paths['resources'], 'psychopy.png'),wx.BITMAP_TYPE_PNG))
         info.SetName('PsychoPy')
@@ -480,9 +477,11 @@ class PsychoPyApp(wx.App):
         info.AddDeveloper('Yaroslav Halchenko')
         info.AddDeveloper('Erik Kastman')
         info.AddDeveloper('Michael MacAskill')
+        info.AddDeveloper('Hiroyuki Sogo')
         info.AddDocWriter('Jonathan Peirce')
         info.AddDocWriter('Jeremy Gray')
         info.AddDocWriter('Rebecca Sharman')
+        info.AddTranslator('Hiroyuki Sogo')
         if not self.testMode:
             wx.AboutBox(info)
 
@@ -497,4 +496,4 @@ class PsychoPyApp(wx.App):
 
 
 if __name__=='__main__':
-    raise "Do not launch the app from this script - use python psychopyApp.py instead"
+    sys.exit("Do not launch the app from this script - use python psychopyApp.py instead")

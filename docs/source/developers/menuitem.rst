@@ -10,8 +10,10 @@ Adding a new menu-item to the Builder (or Coder) is relatively straightforward, 
 
 The code that constructs the menus for the Builder is within a method named `makeMenus()`, within class builder.BuilderFrame(). Decide which submenu your new command fits under, and look for that section (e.g., File, Edit, View, and so on). For example, to add an item for making the Routine panel items larger, I added two lines within the View menu, by editing the `makeMenus()` method of class `BuilderFrame` within `psychopy/app/builder/builder.py` (similar for Coder)::
 
-    self.viewMenu.Append(self.IDs.tbIncrRoutineSize, "&Routine Larger\t%s" %self.app.keys['largerRoutine'], "Larger routine items")
+    self.viewMenu.Append(self.IDs.tbIncrRoutineSize, _("&Routine Larger\t%s") %self.app.keys['largerRoutine'], _("Larger routine items"))
     wx.EVT_MENU(self, self.IDs.tbIncrRoutineSize, self.routinePanel.increaseSize)
+
+Note the use of the translation function, _(), for translating text that will be displayed to users (menu listing, hint).
 
 2. wxIDs.py
 ------------------------
