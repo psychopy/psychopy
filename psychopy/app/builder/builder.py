@@ -46,17 +46,18 @@ _localized = {
         'all buttons': _('all buttons'),
         'final': _('final'), 'on click': _('on click'), 'every frame': _('every frame'),
         'never': _('never'),
-        'from exp settings': _('from exp settings'), 'from prefs': _('from prefs'),
-        'pix': 'pix', 'deg': 'deg', 'cm': 'cm', 'norm': 'norm', 'height': 'height',  # not translated
-        '32': '32', '64': '64', '128': '128', '256': '256', '512': '512',  # tex resolution
+        'from exp settings': _('from exp settings'), 'from prefs': _('from preferences'),
         'circle': _('circle'), 'square': _('square'),  # dots
         'direction': _('direction'), 'position': _('position'), 'walk': _('walk'),  # dots
         'same': _('same'), 'different': _('different'),  # dots
-        'experiment': _('Experiment'), 'routine': 'Routine',
-
+        'experiment': _('Experiment'),
         # startType & stopType:
         'time (s)': _('time (s)'), 'frame N': _('frame N'), 'condition': _('condition'),
         'duration (s)': _('duration (s)'), 'duration (frames)': _('duration (frames)'),
+        # not translated:
+        'pix': 'pix', 'deg': 'deg', 'cm': 'cm', 'norm': 'norm', 'height': 'height',
+        '32': '32', '64': '64', '128': '128', '256': '256', '512': '512',  # tex resolution
+        'routine': 'Routine',
 
     # strings for allowedUpdates:
         'constant': _('constant'),
@@ -64,7 +65,7 @@ _localized = {
         'set every frame': _('set every frame'),
     # strings for allowedVals in settings:
         'add': _('add'), 'avg': _('average'), # blend mode
-        'use prefs': _('use prefs'),
+        'use prefs': _('use preferences'),
         # logging level:
         'debug': _('debug'), 'info': _('info'), 'exp': _('exp'),
         'data': _('data'), 'warning': _('warning'), 'error': _('error')
