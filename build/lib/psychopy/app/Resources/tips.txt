@@ -1,0 +1,47 @@
+Most dialogs have a help button that takes you to the relevant online documentation
+You can use "Ctrl + [" or "Ctrl + ]" to indent/outdent a block of code in Coder view
+Both in the Coder and Builder views have a demos menu with plenty of demos
+From Builder you can use "Compile" to generate the python script that controls your experiment, and view or edit it in the Coder. (Any edits are not reflected back in the Builder, however.)
+Avoid snorting Pepsi
+Most buttons have helpful usage tips if you hover over them
+PsychoPy can handle many different units (degrees of visual angle, cm...) for your stimuli. But you need to tell it about your monitor first (see the online documentation on General > Units)
+Menu items show you the current key bindings (which can be configured in preferences)
+Especially for brief stimuli, use frames rather than time to set the start/stop of your stimuli. Most monitor frame rates are precise to the microsecond!
+It's a really good idea to check your data are all being saved as you like BEFORE running all of your participants!
+Builder: right-clicking on any 'color' parameter will bring up the system's color-picker.
+The mailing list is a great place to ask questions and receive updates, at http://groups.google.com/group/psychopy-users
+If you do write to the mailing list, make it clear whether you're using Builder or Coder interfaces and which version/platform you use.
+Coder: Did you try typing python commands in the Shell window yet?
+You can add or remove Components to the Favorites by right-clicking on them. And you can control the maximum number of them in preferences.
+Use the source. PsychoPy comes with all its source code included. If you know python, you'd be surprised how easy it is to find your own bug-fixes.
+Builder: Documentation on possible code/variables to include in your scripts is available online at; Documentation>Builder>Components>Code
+For windows machines, avoid "Intel integrated graphics (GMA)" solutions for running experiments; the drivers are really not very good. (On Mac, e.g. Macbook Air these seem fine though)
+Degrees of visual angle are 'device independent'. Normalised units mean that your stimulus will be different on each different computer. Do you really want that?
+Chocolate probably won't help, but does that mean you shouldn't try it?
+For fMRI block designs you want to use non-slip timing (trials of pre-determined duration). Builder indicates these with a green icon in the Flow panel
+Builder: you can often right click on things to bring up a menu, e.g., to remove a trial.
+Coder: you can click the color-picker icon on the toolbar. The rgb color triplet will be saved to the clipboard (in PsychoPy's rgb color units, -1..+1 not 0..255), which you can then paste into a script.
+If you have a tip that you'd like to added here, email it to the users list.
+To flip an image stimulus, give it a negative 'size', in x, y or both
+PsychoPy is free. Please cite the relevant papers (Peirce 2007; 2009) if you use PsychoPy in published work
+Coder: most commands like stim.setOri() can also take an operation argument (e.g. '+' to increment orientation)
+Builder: To set stimulus position to your variables X and Y, you can use either $[X,Y] or [$X,$Y]. (A $ anywhere indicates that the entire entry box is Python code)
+Wear sunscreen. (Where does it say these tips have to be original?!)
+In Python, the values True and False must have capitals and really just stand for 0 and 1.
+Builder: The contents of the dialog box at the start of your experiment is controlled from the Experiment Settings button. Use e.g. expInfo['participant'] to access it within the study
+Coder: You can comment/uncomment entire blocks of code with Ctrl-' and Ctrl-Shift-'
+Be careful what you wish for
+Did your stimulus not appear? Was it really tiny? Setting units='pix' and size=0.1 means it has a size of 0.1 pixels!
+The default color values in PsychoPy range from -1 to +1, with 0 being the mean grey of the screen. So black is like the maximum decrement from grey and white is an increment. Right?
+Data can be output in many different formats, but it's worth saving the 'psydat' (aka pickle) format as well as the others. Although this isn't "human readable" it stores more information than excel/csv files including an entire copy of your actual experiment!
+You can see how many people used PsychoPy this month at http://www.psychopy.org/usage.php
+Builder: You can increase or decrease the display size of the flow using "Ctrl + =" or "Ctrl + -" (like some web browsers). Similarly, you can change the display size of routines using "Ctrl + Shift + =" and "Ctrl + Shift + -". (Use "Cmd" on mac, not "Ctrl".)
+In the Builder, you can display details about the trials and sequences of loops. Press "Ctrl + =" when at the largest view size. To turn off, press "Ctrl + -" from the smallest view size.
+Builder: You can use $ to indicate a code snippet, to say that "$color" should be interpreted as a python variable named "color".
+Builder: To put a $ symbol in a stimulus, you need to use \$, like this: "You win \$5.00!". (This is only for input boxes, and not for code components.)
+You can use "Ctrl + Z" and "Ctrl + Shift + Z" to undo and redo many of the actions in the Builder, such as adding, deleting, or changing something.
+Beware the Ides of March
+In Builder you can control what appears in the 'Experiment Info' dialog box in the Experiment Settings
+If you like PsychoPy spread the word
+You can use the Benchmark wizard (from the Builder Tools menu) to see how your hardware compares with other platforms, see http://upload.psychopy.org/benchmark/report.html
+Sometimes the correct response on a given trial is not to respond at all, such as in a go/no-go task. To score such responses properly, enter 'None' as the correct answer (no quotes) in the Builder dialog box.

@@ -1,0 +1,75 @@
+monitor_devices:
+    - eyetracker.hw.tobii.EyeTracker:
+        # Indicates if the device should actually be loaded at experiment runtime.
+        enable: True
+
+        # The variable name of the device that will be used to access the ioHub Device class
+        # during experiment run-time, via the devices.[name] attribute of the ioHub
+        # connection or experiment runtime class.
+        name: tracker
+
+        # The model name of the Tobii device that you wish to connect to can be specified here,
+        # and only Tobii systems matching that model name will be considered as possible candidates for connection.
+        # If you only have one Tobii system connected to the computer, this field can just be left empty.
+        model_name:
+
+        # The serial number of the Tobii device that you wish to connect to can be specified here,
+        # and only the Tobii system matching that serial number will be connected to, if found.
+        # If you only have one Tobii system connected to the computer, this field can just be left empty,
+        # in which case the first Tobii device found will be connected to.
+        serial_number:
+
+        calibration:
+            # The Tobii ioHub Common Eye Tracker Interface currently support 
+            # a 3, 5 and 9 point calibration mode.
+            # THREE_POINTS,FIVE_POINTS,NINE_POINTS
+            type: FIVE_POINTS
+
+            # Should the target positions be randomized?
+            randomize: True
+
+            # auto_pace can be True or False. If True, the eye tracker will 
+            # automatically progress from one calibration point to the next.
+            # If False, a manual key or button press is needed to progress to
+            # the next point.
+            auto_pace: False
+            
+            # pacing_speed is the number of sec.msec that a calibration point should
+            # be displayed before moving onto the next point when auto_pace is set to true.
+            # If auto_pace is False, pacing_speed is ignored.
+            pacing_speed: 1.5
+            
+            # screen_background_color specifies the r,g,b background color to 
+            # set the calibration, validation, etc, screens to. Each element of the color
+            # should be a value between 0 and 255. 0 == black, 255 == white.
+            screen_background_color: [128,128,128]
+            
+            # Target type defines what form of calibration graphic should be used
+            # during calibration, validation, etc. modes.
+            # Currently the Tobii implementation supports the following
+            # target type: CIRCLE_TARGET. 
+            # To do: Add support for other types, etc.
+            target_type: CIRCLE_TARGET
+            
+            # The associated target attribute properties can be supplied
+            # for the given target_type. 
+            target_attributes:
+                 outer_diameter: 35
+                 outer_stroke_width: 2
+                 outer_fill_color: [128,128,128]
+                 outer_line_color: [255,255,255]
+                 inner_diameter: 7
+                 inner_stroke_width: 1
+                 inner_color: [0,0,0]
+                 inner_fill_color: [0,0,0]
+                 inner_line_color: [0,0,0]
+                 animate:
+                     enable: True
+                     movement_velocity: 600.0  # 500 pix / sec
+                     expansion_ratio: 3.0  # expands to 3 x the starting size
+                     expansion_speed: 30.0  # exapands at 30.0 pix / sec
+                     contract_only: True        
+        runtime_settings:
+            # The supported sampling rates for Tobii are model dependent. 
+            # Using a defualt of 60 Hz, with the assumption it is the most common.
+            sampling_rate: 120

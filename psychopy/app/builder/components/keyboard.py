@@ -16,7 +16,7 @@ class KeyboardComponent(BaseComponent):
     """An event class for checking the keyboard at given timepoints"""
     categories = ['Responses']#an attribute of the class, determines the section in the components panel
     def __init__(self, exp, parentName, name='key_resp', allowedKeys="'y','n','left','right','space'",store='last key',
-                forceEndRoutine=True,storeCorrect=False,correctAns="", discardPrev=True,
+                forceEndRoutine=True,storeCorrect=False,correctAns="",splitFlow=False,input1="",input2="",discardPrev=True,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal='',
                 startEstim='', durationEstim=''):
@@ -28,7 +28,7 @@ class KeyboardComponent(BaseComponent):
         #params
         self.params={}
         self.order=['forceEndRoutine','allowedKeys',#NB name and timing params always come 1st
-            'store','storeCorrect','correctAns',
+            'store','storeCorrect','correctAns', 'splitFlow','input1','input2'
             ]
         self.params['name']=Param(name,  valType='code', hint="A name for this keyboard object (e.g. response)",
             label="Name")
@@ -72,6 +72,19 @@ class KeyboardComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint="What is the 'correct' key? Might be helpful to add a correctAns column and use $thisTrial.correctAns",
             label="Correct answer")
+        self.params['splitFlow']=Param(splitFlow, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="Do you want to split flow of experiment based on participant response?",
+            label="Fork flow based on response")
+        self.params['input1']=Param(input1, valType='str', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="Participant input for first flow: enter with single quotations (e.g. 'a')",
+            label="Input 1")
+        self.params['input2']=Param(input2, valType='str', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="Participant input for first flow: enter with single quotations (e.g. 'b')",
+            label="Input 2")
+        
     def writeRoutineStartCode(self,buff):
         buff.writeIndented("%(name)s = event.BuilderKeyResponse()  # create an object of type KeyResponse\n" %self.params)
         buff.writeIndented("%(name)s.status = NOT_STARTED\n" %self.params)
@@ -86,6 +99,7 @@ class KeyboardComponent(BaseComponent):
         #some shortcuts
         store=self.params['store'].val
         storeCorr=self.params['storeCorrect'].val
+        split = self.params['splitFlow'].val
         forceEnd=self.params['forceEndRoutine'].val
         allowedKeys = self.params['allowedKeys'].val.strip()
 
@@ -143,7 +157,7 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented('    endExpNow = True\n')
 
         #how do we store it?
-        if store!='nothing' or forceEnd:
+        if store!='nothing' or forceEnd or splitF:
             #we are going to store something
             buff.writeIndented("if len(theseKeys) > 0:  # at least one key was pressed\n")
             buff.setIndentLevel(1,True); dedentAtEnd+=1 #indent by 1
@@ -167,11 +181,22 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndented("else:\n")
             buff.writeIndented("    %(name)s.corr = 0\n" %(self.params))
 
+        if splitF==True:
+            buff.writeIndented("# was this a flow-splitting key? - automatically stored\n")
+            buff.writeIndented("if (%(name)s.keys == str(%(input1)s)) or (%(name)s.keys == %(input1)s):\n" %(self.params))
+            buff.writeIndented("    %(name)s.split = 1\n" %(self.params))
+            buff.writeIndented("elif (%(name)s.keys == str(%(input2)s)) or (%(name)s.keys == %(input2)s) :\n" %(self.params))
+            buff.writeIndented("    %(name)s.split = 2\n" %(self.params))
+            buff.writeIndented("else:\n")
+            buff.writeIndented("    %(name)s.split = 0\n" %(self.params))
+            
+
         if forceEnd==True:
             buff.writeIndented("# a response ends the routine\n" %self.params)
             buff.writeIndented("continueRoutine = False\n")
 
-        buff.setIndentLevel(-(dedentAtEnd), relative=True)
+  
+        
     def writeRoutineEndCode(self,buff):
         #some shortcuts
         name = self.params['name']
@@ -210,3 +235,4 @@ class KeyboardComponent(BaseComponent):
                                %(currLoop.params['name'], name, name))
         if currLoop.params['name'].val == self.exp._expHandler.name:
             buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
+

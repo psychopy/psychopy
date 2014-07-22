@@ -1,0 +1,115 @@
+eyetracker.hw.sr_research.eyelink.EyeTracker:
+    name: 
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
+            first_char_alpha: True
+    enable: IOHUB_BOOL
+    save_events: IOHUB_BOOL
+    stream_events: IOHUB_BOOL
+    auto_report_events: False 
+    device_timer:
+        interval:
+            IOHUB_FLOAT:
+                min: 0.001
+                max: 0.020
+    event_buffer_length: 
+        IOHUB_INT:
+            min: 1
+            max: 2048
+    monitor_event_types:           
+        IOHUB_LIST:
+            valid_values: [ MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]  
+            min_length: 0
+            max_length: 8            
+    calibration:
+        type: [ THREE_POINTS, FIVE_POINTS, NINE_POINTS, THIRTEEN_POINTS]
+        auto_pace: IOHUB_BOOL
+        pacing_speed:
+            IOHUB_FLOAT:
+                min: 0.5
+                max: 2.5
+        screen_background_color: IOHUB_RGBA255_COLOR
+        target_type: [CIRCLE_TARGET,]
+        target_attributes:
+            outer_diameter:
+                IOHUB_INT:
+                    min: 8
+                    max: 256
+            inner_diameter: 
+                IOHUB_INT:
+                    min: 0
+                    max: 255
+            outer_color: IOHUB_RGBA255_COLOR
+            inner_color: IOHUB_RGBA255_COLOR                 
+    simulation_mode: IOHUB_BOOL
+    enable_interface_without_connection: IOHUB_BOOL
+    network_settings: IOHUB_IP_ADDRESS_V4
+    default_native_data_file_name: 
+        IOHUB_STRING:
+            min_length: 0
+            max_length: 7
+    runtime_settings:
+        sampling_rate: [250,500,1000,2000]
+        track_eyes: [LEFT_EYE,RIGHT_EYE,BINOCULAR]
+        sample_filtering:
+            FILTER_ALL: 
+                IOHUB_LIST:
+                    valid_values:  [FILTER_LEVEL_OFF, FILTER_LEVEL_1, FILTER_LEVEL_2] 
+                    min_length: 1
+                    max_length: 1            
+            FILTER_FILE: 
+                IOHUB_LIST:
+                    valid_values:  [FILTER_LEVEL_OFF, FILTER_LEVEL_1, FILTER_LEVEL_2] 
+                    min_length: 1
+                    max_length: 1            
+            FILTER_ONLINE: 
+                IOHUB_LIST:
+                    valid_values:  [FILTER_LEVEL_OFF, FILTER_LEVEL_1, FILTER_LEVEL_2] 
+                    min_length: 1
+                    max_length: 1            
+        vog_settings:
+            pupil_measure_types:
+                IOHUB_LIST:
+                    valid_values:  [PUPIL_AREA,PUPIL_DIAMETER] 
+                    min_length: 1
+                    max_length: 1            
+            tracking_mode:
+                IOHUB_LIST:
+                    valid_values:  [PUPIL_CR_TRACKING, PUPIL_ONLY_TRACKING] 
+                    min_length: 1
+                    max_length: 1            
+            pupil_center_algorithm:
+                IOHUB_LIST:
+                    valid_values:  [ELLIPSE_FIT, CENTROID_FIT] 
+                    min_length: 1
+                    max_length: 1            
+    model_name: 
+        IOHUB_LIST:
+            valid_values: [EYELINK 1000 DESKTOP, EYELINK 1000 TOWER, EYELINK 1000 REMOTE, EYELINK 1000 LONG RANGE, EYELINK 2, EYELINK]
+            min_length: 0
+            max_length: 1            
+    device_number: 0
+    model_number:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 16
+    manufacturer_name: SR Research Ltd.
+    serial_number:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
+    manufacture_date: IOHUB_DATE
+    software_version:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 8    
+    hardware_version: 
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 8
+    firmware_version: 
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 8
+

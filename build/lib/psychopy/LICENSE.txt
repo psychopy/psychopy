@@ -1,0 +1,9 @@
+Copyright (c) 2002-2014, JW Peirce.
+All rights reserved.
+
+As of version 1.5 PsychoPy is licensed under the GNU General Public License (version 3). For the complete text of that license see
+http://www.gnu.org/copyleft/gpl.html
+
+In basic terms, this allows you to use, redistribute, add to, modify, or even sell, PsychoPy or any of it's components. If you do release any such 'derivative works' however, you must make this source code available with the distribution and must also license your product under the GNU GPL.
+
+If you need a more permissive license then feel free to contact the PsychoPy users list with your suggestion.

@@ -1,0 +1,12 @@
+title: AnalogInput Example
+code: ai_test
+version: '1.0'
+description: Displays values of 8 ch from AnalogInput Device
+session_defaults:
+    name: Session Name
+    code: E1S01
+    comments: None
+    user_variables:
+        trial_count: [2,3,4,5,6,7,8,9,10]
+session_variable_order: [ name, code, comments, trial_count ]
+  

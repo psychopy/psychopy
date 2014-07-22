@@ -1,0 +1,176 @@
+eyetracker.hw.sr_research.eyelink.EyeTracker:
+    enable: True
+    name: tracker
+    device_number: 0
+    save_events: True
+    stream_events: True
+    auto_report_events: False    
+    device_timer:
+        interval: 0.001
+    event_buffer_length: 1024
+    monitor_event_types: [ MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
+    runtime_settings:
+        # Sampling rate must be an int representing the sampling rate in Hz to
+        # set the eye tracker to. If the eye tracker being used does not support
+        # the sampling rate given, an error will be printed and the closest valid
+        # sampling rate will be used.
+        sampling_rate: 250
+        # track_eyes can be :  LEFT_EYE, RIGHT_EYE, BINOCULAR, UNKNOWN_MONOCULAR, BINOCULAR_AVERAGED
+        # not all implementations will support all track_eyes types.
+        track_eyes: LEFT_EYE
+        calibration:
+            # type can be H3_POINTS, V3_POINTS, HV3_POINTS, HV5_POINTS, HV9_POINTS, HV13_POINTS, CUSTOM_POINTS
+            # not all implementation will support all calibration types.
+            type: HV9_POINTS
+            # target_positions can be an emtry lint ( [] ), indicating the tracker should use 
+            # default positions for the given calibration type, or can be a list of (x,y) tuples,
+            # where the number of x,y tuples in the list matches the required number of points based on
+            # the calibration type. If the type is CUSTOM_POINTS, then any  number of points can
+            # be listed and [] is not valid.
+            target_positions: []
+            # auto_pace can be True or False. If True, the eye tracker will 
+            # automatically progress from one calibration point to the next.
+            # If False, a manual key or button press is needed to progress to
+            # the next point. Not all implementation will support both auto_pace values.
+            auto_pace: True
+            # pacing_speed is the number of sec.msec that a calibration point should
+            # be displayed before moving onto the next point when auto_pace is set to true.
+            # If auto_pace is False, pacing_speed is ignored.
+            pacing_speed: 1.5
+            # screen_background_color specifies the r,g,b,a background color to 
+            # set the calibration, validation, etc, screens to. Each element of the color
+            # should be a value between 0 and 255. 0 == black, 255 == white. In general
+            # the last value of the color list (alpha) can be left at 255, indicating
+            # the color not mixed with the background color at all.
+            screen_background_color: [128,128,128]
+            # target type defines what form of calibration graphic should be used
+            # during calibration, validation, etc. modes.
+            # not all implementation will support all target types.
+            # Valid options are CIRCLE_TARGET, CROSSHAIR_TARGET, IMAGE_TARGET, MOVIE_TARGET.      
+            target_type: CIRCLE_TARGET
+            # The asociated target attributes sub properties must be supplied
+            # for the given target_type. If target type attribute sections are provided
+            # for target types other than the entry associated with the specified target_type value
+            # they will simple be ignored.
+            circle_attributes:
+                outer_diameter: 33
+                inner_diameter: 6
+                outer_color: [255,255,255]
+                inner_color: [0,0,0]
+            crosshair_attributes:
+                line_length: 33
+                line_width: 3
+                line_color: [255,255,255]
+            image_attributes:
+                name: calibration_target.png
+                # 0 means use original image width
+                width: 0
+                # 0 means use original image height
+                height: 0
+            movie_attributes:
+                name: calibration_target.avi
+                width: 0
+                height: 0
+        # Sample filtering defines the native eye tracker filtering level to be 
+        # applied to the sample event data before it is sent to the specified data stream.
+        # The sample filter section can contain multiple key : value entries if 
+        # the tracker implementation supports it, where each key is a sample stream type,
+        # and each value is the accociated filter level for that sample data stream.
+        # Not all implementations will support all sample streams or all filter levels.
+        # All implementations should accept FILTER_ALL : FILTER_LEVEL_OFF however, indicating that no
+        # sample filtering is being requested.
+        # Possible filter stream types are: FILTER_ALL, FILTER_FILE, FILTER_ONLINE, FILTER_NET, FILTER_SERIAL, FILTER_ANALOG   
+        # Possible filter levels are: FILTER_LEVEL_OFF, FILTER_LEVEL_1, FILTER_LEVEL_2, FILTER_LEVEL_3, FILTER_LEVEL_4, FILTER_LEVEL_5
+        sample_filtering:
+            FILTER_ALL: FILTER_LEVEL_OFF
+        # simulation_mode can be True or False. This indicates if the eye tracker
+        # should provide simulated eye data instead of sending eye data based on a 
+        # participants actual eye movements. 
+        # Not all implementations will support simulation_mode.
+        simulation_mode: False
+        # enable_interface_without_connection is a boolean specifying if the ioHub Device
+        # should be enabled without truely connecting to the underlying eye tracking
+        # hardware interface. If True, ioHub EyeTracker methods can be called but will
+        # provide no-op results and no eye data will be received by the ioHub Server.
+        # This mode can be useful for working on aspects of an eye tracking experiment when the
+        # actual eye tracking device is not available, for example stimulus presentation
+        # or other non eye tracker dependent experiment functionality.
+        # Not all implementations will support enable_interface_without_connection.
+        enable_interface_without_connection: False
+        # network_settings can be used to specify relevent network settings 
+        # by eye tracker implementations that use a net interface to connect the
+        # ioHub eye tracker interface to the eye tracking system.
+        # If supported by an eye tracking device, the network_settings
+        # parameter value will be implementation specific.
+        network_settings: 100.1.1.1
+        # If the ioHub eye tracker implementation supports saving a native eye
+        # tracker written data file, the default_native_data_file_name value is
+        # used to set the default name for the file that will be saved, not including
+        # the file type extension, which will be provided by the eye tracker 
+        # implementation code.
+        default_native_data_file_name: et_data
+        # VOG settings allow you to specify some eye tracker parameters related to
+        # the image processing or data collection procedure used by the eye tracker
+        # device. These settings will not be supported on all eye tracker implmentations,
+        # some of which will only support a single, fixed, value that can not be changed.
+        vog_settings:
+            # The pupil_measure_types parameter indicates what type of data should be
+            # provided for the 'pupil size' type fields supported in the ioHub EyeSampleEvent
+            # types. ioHub allows an implementation to save 0 - 2 pupil measure types
+            # with each eye sample event for each eye. If an implementation does not support
+            # providing pupil measure information, this setting is ignored. If the
+            # implementation can provide one pupil measure per eye, then the value of this
+            # setting should be the pupil measure type that is being requested from the eye tracker.
+            # If the eye tracker can provide two pupil measures per eye for each eye
+            # sample, then the value of this setting should be a list of 
+            # [pupil_measure_type_1, pupil_measure_type_2] that are being requested.
+            # The following is a list of valid pupil measure types. Each eye tracker
+            # implementation will only support a subset of this list, and
+            # in cases where two measures can be specified, only certain
+            # combinations may be valid.
+            # PUPIL_AREA, PUPIL_DIAMETER, PUPIL_WIDTH, PUPIL_HEIGHT, PUPIL_MAJOR_AXIS,
+            # PUPIL_MINOR_AXIS, PUPIL_RADIUS
+            pupil_measure_types: PUPIL_AREA
+            # tracking_mode defines whether the eye tracker should run in a pupil only
+            # tracking mode where corneal reflections are not used for eye position processing,
+            # or run in a pupil-cr type tracking mode where both the pupil and one or
+            # more corneal reflection positions are used together to determine the 'raw' 
+            # eye position. Some eye trackers will only support a single value for this
+            # setting. Valid options are: PUPIL_CR_TRACKING, PUPIL_ONLY_TRACKING
+            tracking_mode: PUPIL_CR_TRACKING
+            # The pupil_center_algorithm defines what type of image processing approach should
+            # be used to determine the pupil center during image processing. Some
+            # eye trackers will only support a single value for this setting.
+            # Valid possible values are: ELLIPSE_FIT, CIRCLE_FIT, CENTROID_FIT
+            pupil_center_algorithm: ELLIPSE_FIT
+    # The model_name setting allows the specification of the eye tracker model being used
+    # Some implementations of the eye tracker interface will use this value to determine 
+    # the appropriate logic to be run for a given eye tracker model supported by the vendor implementation. 
+    model_name: EyeLink
+    # The model_number can be used to hold a string representation of the model number of the
+    # eye tracker being used, assuming a model number is provided by the manufacturer.
+    model_number: N/A
+    # manufacturer_name can be used to store the name of the maker of the eye tracking
+    # device being used. This is for informational purposes only.
+    manufacturer_name: SR Research Ltd.
+    # serial_number can be used to store the unique serial number of the eye tracking
+    # device being used. This is for informational purposes only. The serial number should be in
+    # a string representation.
+    serial_number: N/A
+    # manufacture_date can be used to store the date of manufacture of the eye tracking
+    # device being used if it is provided by the eye tracker manufacturer.
+    # This is for informational purposes only. The serial number should be in
+    # a string representation using the format DD-MM-YYYY.
+    manufacture_date: DD-MM-YYYY
+    # software_version can be used to store the native device API / SDK interface
+    # being used by the ioHub common eye tracker interface on the back end.
+    # This is generally for informational purposes only.
+    software_version: N/A
+    # hardware_version can be used to store the native device's hardware version
+    # number if device models also include a version or revision number by the supplier.
+    # This is generally for informational purposes only.
+    hardware_version: N/A
+    # firmware_version can be used to store the native device's firmware version
+    # if a device provides such information.    
+    # This is generally for informational purposes only.
+    firmware_version: N/A

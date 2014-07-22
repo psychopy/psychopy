@@ -1,0 +1,79 @@
+Display:
+    enable: IOHUB_BOOL
+    name:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
+            first_char_alpha: True
+    device_number:
+        IOHUB_INT:
+            min: 0
+            max: 7
+    reporting_unit_type: [ org, pix, pixel, pixels, deg, degree, degrees, cm, mm, inch, norm, normalize, normalized, percent, percentage] 
+    origin: [ center , top_left , bottom_left]
+    physical_dimensions:
+        width:
+            IOHUB_NUMBER:
+                min: 1
+                max: 2048
+                required: True
+        height:
+            IOHUB_NUMBER:
+                min: 1
+                max: 2048
+                required: True
+        unit_type: [ mm, cm, inch ]
+    default_eye_distance:
+        surface_center:
+            IOHUB_NUMBER:
+                min: 1
+                max: 2048
+                required: True
+        unit_type: [ mm, cm, inch ]
+    psychopy_monitor_name:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
+            required: True
+    override_using_psycho_settings: IOHUB_BOOL
+    save_events: False
+    stream_events: False
+    auto_report_events: False    
+    event_buffer_length: 0    
+    monitor_event_types:
+    model_name:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
+            default: N/A
+    model_number:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 16
+            default: N/A
+    manufacturer_name:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 64    
+            default: N/A
+    serial_number:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
+            default: N/A
+    manufacture_date: IOHUB_DATE
+    software_version:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 8    
+            default: N/A
+    hardware_version: 
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 8
+            default: N/A
+    firmware_version: 
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 8
+            default: N/A

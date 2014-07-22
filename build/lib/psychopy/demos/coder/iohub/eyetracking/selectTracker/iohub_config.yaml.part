@@ -1,0 +1,21 @@
+monitor_devices:
+    - Display:
+        name: display
+        reporting_unit_type: pix
+        device_number: 0
+        physical_dimensions:
+            width: 590
+            height: 340
+            unit_type: mm
+        default_eye_distance:
+            surface_center: 500
+            unit_type: mm
+        psychopy_monitor_name: default
+    - Keyboard:
+        name: kb
+    - Mouse:
+        name: mouse
+    - Experiment:
+        name: experimentRuntime
+data_store:
+    enable: True
