@@ -38,27 +38,27 @@ class GratingComponent(VisualComponent):
         self.params['tex']=Param(image, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename (including path)"),
-            label=_localized['tex'])
+            label=_localized['tex'], categ="Grating")
         self.params['mask']=Param(mask, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("An image to define the alpha mask (ie shape)- gauss, circle... or a filename (including path)"),
-            label=_localized['mask'])
+            label=_localized['mask'], categ="Grating")
         self.params['sf']=Param(sf, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Spatial frequency of image repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]"),
-            label=_localized['sf'])
+            label=_localized['sf'], categ="Grating")
         self.params['phase']=Param(phase, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Spatial positioning of the image on the grating (wraps in range 0-1.0)"),
-            label=_localized['phase'])
+            label=_localized['phase'], categ="Grating")
         self.params['texture resolution']=Param(texRes, valType='code', allowedVals=['32','64','128','256','512'],
             updates='constant', allowedUpdates=[],
             hint=_("Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice"),
-            label=_localized['texture resolution'], categ="Advanced")
+            label=_localized['texture resolution'], categ="Grating")
         self.params['interpolate']=Param(interpolate, valType='str', allowedVals=['linear','nearest'],
             updates='constant', allowedUpdates=[],
             hint=_("How should the image be interpolated if/when rescaled"),
-            label=_localized['interpolate'], categ="Advanced")
+            label=_localized['interpolate'], categ="Grating")
 
     def writeInitCode(self,buff):
         #do we need units code?

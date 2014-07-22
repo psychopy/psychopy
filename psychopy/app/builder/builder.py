@@ -2154,6 +2154,7 @@ class _BaseParamsDlg(wx.Dialog):
             #move it to be the first category we see
             categNames.insert(0, categNames.pop(categNames.index('Basic')))
         categLabel = {'Basic': _('Basic'), 'Data': _('Data'), 'Screen': _('Screen'),
+                      'Dots': _('Dots'), 'Grating': _('Grating'),
                       'Advanced': _('Advanced'), 'Custom': _('Custom')}
         for categName in categNames:
             theseParams = categs[categName]

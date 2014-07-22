@@ -40,37 +40,37 @@ class DotsComponent(VisualComponent):
                     startEstim=startEstim, durationEstim=durationEstim)
         self.type='Dots'
         self.url="http://www.psychopy.org/builder/components/dots.html"
-        
+
         #params
         self.params['nDots']=Param(nDots, valType='code',
             updates='constant',
             hint=_("Number of dots in the field (for circular fields this will be average number of dots)"),
-            label=_localized['nDots'])
+            label=_localized['nDots'], categ='Dots')
         self.params['dir']=Param(direction, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Direction of motion for the signal dots (degrees)"),
-            label=_localized['dir'])
+            label=_localized['dir'], categ='Dots')
         self.params['speed']=Param(speed, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Speed of the dots (displacement per frame in the specified units)"),
-            label=_localized['speed'])
+            label=_localized['speed'], categ='Dots')
         self.params['coherence']=Param(coherence, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Coherence of the dots (fraction moving in the signal direction on any one frame)"),
-            label=_localized['coherence'])
+            label=_localized['coherence'], categ='Dots')
         self.params['dotSize']=Param(dotSize, valType='code',
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Size of the dots IN PIXELS regardless of the set units"),
-            label=_localized['dotSize'])
+            label=_localized['dotSize'], categ='Dots')
         self.params['dotLife']=Param(dotLife, valType='code',
             hint=_("Number of frames before each dot is killed and randomly assigned a new position"),
-            label=_localized['dotLife'])
+            label=_localized['dotLife'], categ='Dots')
         self.params['signalDots']=Param(signalDots, valType='str', allowedVals=['same','different'],
             hint=_("On each frame are the signals dots remaining the same or changing? See Scase et al."),
-            label=_localized['signalDots'], categ='Advanced')
+            label=_localized['signalDots'], categ='Dots')
         self.params['noiseDots']=Param(noiseDots, valType='str', allowedVals=['direction','position','walk'],
             hint=_("What governs the behaviour of the noise dots? See Scase et al."),
-            label=_localized['noiseDots'], categ='Advanced')
+            label=_localized['noiseDots'], categ='Dots')
         self.params['fieldShape']=Param(fieldShape, valType='str', allowedVals=['circle','square'],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("What is the shape of the field?"),
