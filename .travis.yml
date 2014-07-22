@@ -21,9 +21,9 @@ before_install:
 install:
   - travis_retry sudo apt-get install -qq flac
   - flac -version
-  - travis_retry sudo apt-get install -qq language-pack-en-base  # English locales
+  #- travis_retry sudo apt-get install -qq language-pack-en-base  # English locales
   - travis_retry sudo apt-get install -qq language-pack-ja-base  # Japanese locale
-  - sudo dpkg-reconfigure locales
+  #- sudo dpkg-reconfigure locales
   #- locale -a       # list available locales
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install -q coveralls; fi
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install -q pyserial pycrsltd; fi
