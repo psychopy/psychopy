@@ -2153,6 +2153,7 @@ class _BaseParamsDlg(wx.Dialog):
         if 'Basic' in categNames:
             #move it to be the first category we see
             categNames.insert(0, categNames.pop(categNames.index('Basic')))
+        # move into _localized after merge branches:
         categLabel = {'Basic': _('Basic'), 'Data': _('Data'), 'Screen': _('Screen'),
                       'Dots': _('Dots'), 'Grating': _('Grating'),
                       'Advanced': _('Advanced'), 'Custom': _('Custom')}
@@ -2161,7 +2162,11 @@ class _BaseParamsDlg(wx.Dialog):
             page = wx.Panel(self.ctrls, -1)
             ctrls = self.addCategoryOfParams(theseParams, parent=page)
             page.SetSizer(ctrls)
-            self.ctrls.AddPage(page, categLabel[categName])
+            if categName in categLabel.keys():
+                cat = categLabel[categName]
+            else:
+                cat = categName
+            self.ctrls.AddPage(page, cat)
             self.panels.append(page) #so the validator finds this set of controls
             if 'customize_everything' in self.params.keys():
                 if self.params['customize_everything'].val.strip():
