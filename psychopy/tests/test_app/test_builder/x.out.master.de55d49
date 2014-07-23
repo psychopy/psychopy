@@ -735,10 +735,10 @@ ImageComponent.pos.allowedVals: []
 ImageComponent.pos.label: Position [x,y]
 ImageComponent.pos.updates: constant
 ImageComponent.pos.valType: code
-ImageComponent.interpolate.default: 'None'
+ImageComponent.interpolate.default: 'linear'
 ImageComponent.interpolate.staticUpdater: None
 ImageComponent.interpolate.categ: Advanced
-ImageComponent.interpolate.val: None
+ImageComponent.interpolate.val: linear
 ImageComponent.interpolate.allowedTypes: []
 ImageComponent.interpolate.hint: How should the image be interpolated if/when rescaled
 ImageComponent.interpolate.allowedUpdates: []
@@ -1428,10 +1428,10 @@ ParallelOutComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
 ParallelOutComponent.startType.label: 
 ParallelOutComponent.startType.updates: None
 ParallelOutComponent.startType.valType: str
-ParallelOutComponent.address.default: None
+ParallelOutComponent.address.default: u'0x0378'
 ParallelOutComponent.address.staticUpdater: None
 ParallelOutComponent.address.categ: Basic
-ParallelOutComponent.address.val: None
+ParallelOutComponent.address.val: 0x0378
 ParallelOutComponent.address.allowedTypes: []
 ParallelOutComponent.address.hint: Parallel port to be used (you can change these options in preferences>general)
 ParallelOutComponent.address.allowedUpdates: None
