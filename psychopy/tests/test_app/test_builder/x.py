@@ -1,5 +1,7 @@
 import sys, os
 
+import wx
+tmpApp = wx.PySimpleApp()
 from psychopy.app import builder
 from psychopy.app.builder.components import getAllComponents
 
