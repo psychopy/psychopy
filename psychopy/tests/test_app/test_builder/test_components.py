@@ -98,7 +98,7 @@ class TestComponents():
                     lineFields.append(f)
 
                 for line in [default] + lineFields:
-                    if line.startswith('ParallelOutComponent.address.allowedVals') and ignoreParallelOutAddresses:
+                    if line.startswith('ParallelOutComponent.address') and ignoreParallelOutAddresses:
                         continue
                     if not line+'\n' in target:
                         # mismatch, so report on the tag from orig file
