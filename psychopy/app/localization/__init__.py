@@ -20,6 +20,7 @@ from psychopy import logging, prefs
 
 # Get a dict of locale aliases (cross-platform?) from wx.Locale()
 import wx
+tmpApp = wx.PySimpleApp()  # needed when import localization with no PsychoPy app created yet
 locale = wx.Locale()
 aliases = {}
 idFromCode = {}
@@ -79,6 +80,8 @@ except IOError:
     logging.debug("Locale for '%s' not found. Using default." % lang)
     trans = gettext.NullTranslations()
 trans.install(unicode=True)
+
+del tmpApp
 
 #__builtins__['_'] = wx.GetTranslation
 # this seems to have no effect, needs more investigation:

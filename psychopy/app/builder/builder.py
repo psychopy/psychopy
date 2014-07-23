@@ -12,6 +12,12 @@ import codecs
 import re
 import numpy
 import experiment, components
+
+try:
+    _  # is the app-global text translation function defined?
+except NameError:
+    from psychopy.app import localization
+
 from psychopy.app import stdOutRich, dialogs
 from psychopy import data, logging, gui
 from psychopy.tools.filetools import mergeFolder
