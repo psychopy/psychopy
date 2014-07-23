@@ -52,7 +52,7 @@ class ImageComponent(VisualComponent):
             updates='constant', allowedUpdates=[],
             hint=_("Resolution of the mask if one is used."),
             label=_localized["texture resolution"], categ="Advanced")
-        self.params['interpolate']=Param(mask, valType='str', allowedVals=['linear','nearest'],
+        self.params['interpolate']=Param(interpolate, valType='str', allowedVals=['linear','nearest'],
             updates='constant', allowedUpdates=[],
             hint=_("How should the image be interpolated if/when rescaled"),
             label=_localized["interpolate"], categ="Advanced")
