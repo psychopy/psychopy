@@ -535,7 +535,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         verts[:,:2] = convertToPix(vertices = verts[:,:2], pos = positions, units=self.units, win=self.win)
         verts = verts.reshape([self.nElements,4,3])
 
-        #assign to self attrbute
+        #assign to self attribute
         self.__dict__['verticesPix'] = numpy.require(verts,requirements=['C'])#make sure it's contiguous
         self._needVertexUpdate = False
 

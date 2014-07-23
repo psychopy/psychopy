@@ -10,6 +10,7 @@ from psychopy import core, tests
 import pytest
 import locale
 import wx
+from lxml import etree
 import threading
 #from psychopy.info import _getSha1hexDigest as sha1hex
 
@@ -63,6 +64,28 @@ class TestExpt():
 
     def teardown(self):
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
+
+    def test_xsd(self):
+        # get files
+
+        psyexp_files = []
+
+        for root, dirs, files in os.walk(os.path.join(self.exp.prefsPaths['demos'], 'builder')):
+            for f in files:
+                if f.endswith('.psyexp'):
+                    psyexp_files.append(os.path.join(root, f))
+
+        # get schema
+
+        schema_name = path.join(self.exp.prefsPaths['appDir'], 'builder', 'experiment.xsd');
+        schema_root = etree.parse(schema_name)
+        schema = etree.XMLSchema(schema_root)
+
+        # validate files with schema
+
+        for psyexp_file in psyexp_files:
+            project_root = etree.parse(psyexp_file)
+            schema.assertValid(project_root)
 
     def test_missing_dotval(self):
         """search for a builder component gotcha:

@@ -1267,9 +1267,13 @@ class RoutineCanvas(wx.ScrolledWindow):
         elif event.RightDown():
             x,y = self.ConvertEventCoords(event)
             icons = self.pdc.FindObjectsByBBox(x, y)
+            menuPos = event.GetPosition()
+            if self.app.prefs.builder['topFlow']:
+                menuPos[0] += self.frame.componentButtons.GetSize()[0]  # width of components panel
+                menuPos[1] += self.frame.flowPanel.GetSize()[1]  # height of flow panel
             if len(icons):
                 self._menuComponent=self.componentFromID[icons[0]]
-                self.showContextMenu(self._menuComponent, xy=event.GetPosition())
+                self.showContextMenu(self._menuComponent, xy=menuPos)
         elif event.Dragging() or event.LeftUp():
             if self.dragid != -1:
                 pass
