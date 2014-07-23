@@ -10,19 +10,27 @@ thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folde
 iconFile = path.join(thisFolder,'polygon.png')
 tooltip = _('Polygon: any regular polygon (line, triangle, square...circle)')
 
+# only use _localized values for label values, nothing functional:
+_localized = {'nVertices': _('Num. vertices'),
+              'fillColorSpace': _('Fill color-space'), 'fillColor': _('Fill color'),
+              'lineColorSpace': _('Line color-space'), 'lineColor': _('Line color'),
+              'lineWidth': _('Line width'),
+              'interpolate': _('Interpolate'), 'size': _("Size [w,h]")
+              }
+
 class PolygonComponent(VisualComponent):
     """A class for presenting grating stimuli"""
     def __init__(self, exp, parentName, name='polygon', interpolate='linear',
                 units='from exp settings',
                 lineColor='$[1,1,1]', lineColorSpace='rgb', lineWidth=1,
                 fillColor='$[1,1,1]', fillColorSpace='rgb',
-                nVertices = 4,
+                nVertices=4,
                 pos=[0,0], size=[0.5,0.5], ori=0,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim=''):
         #initialise main parameters from base stimulus
-        VisualComponent.__init__(self,exp,parentName,name=name, units=units,
+        super(PolygonComponent, self).__init__(exp,parentName,name=name, units=units,
                     pos=pos, size=size, ori=ori,
                     startType=startType, startVal=startVal,
                     stopType=stopType, stopVal=stopVal,
@@ -35,35 +43,35 @@ class PolygonComponent(VisualComponent):
         self.params['nVertices']=Param(nVertices, valType='int',
             updates='constant', allowedUpdates=['constant'],
             hint=_("How many vertices? 2=line, 3=triangle... (90 approximates a circle)"),
-            label="N Vertices")
+            label=_localized['nVertices'])
         self.params['fillColorSpace']=Param(fillColorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             updates='constant',
             hint=_("Choice of color space for the fill color (rgb, dkl, lms)"),
-            label="Fill color space")
+            label=_localized['fillColorSpace'], categ='Advanced')
         self.params['fillColor']=Param(fillColor, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Fill color of this shape; Right-click to bring up a color-picker (rgb only)"),
-            label="Fill color")
+            label=_localized['fillColor'], categ='Advanced')
         self.params['lineColorSpace']=Param(lineColorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             updates='constant',
             hint=_("Choice of color space for the fill color (rgb, dkl, lms)"),
-            label="Line color space")
+            label=_localized['lineColorSpace'], categ='Advanced')
         self.params['lineColor']=Param(lineColor, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Line color of this shape; Right-click to bring up a color-picker (rgb only)"),
-            label="Line color")
+            label=_localized['lineColor'], categ='Advanced')
         self.params['lineWidth']=Param(lineWidth, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Width of the shape's line (always in pixels - this does NOT use 'units')"),
-            label="Line width")
+            label=_localized['lineWidth'])
         self.params['interpolate']=Param(interpolate, valType='str', allowedVals=['linear','nearest'],
             updates='constant', allowedUpdates=[],
             hint=_("How should the image be interpolated if/when rescaled"),
-            label="Interpolate")
+            label=_localized['interpolate'], categ='Advanced')
         self.params['size']=Param(size, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Size of this stimulus [w,h]. Note that for a line only the first value is used, for triangle and rect the [w,h] is as expected,\n but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!! "),
-            label="Size [w,h]")
+            label=_localized['size'])
         del self.params['color']
         del self.params['colorSpace']
 

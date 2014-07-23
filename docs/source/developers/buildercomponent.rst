@@ -9,25 +9,31 @@ All you need to do is create a list of parameters that the Component needs to kn
 
 To get started, :ref:`addfeatureBranch` for the development of this component. (If this doesn't mean anything to you then see :ref:`usingRepos` )
 
-You'll mainly be working in the directory .../psychopy/app/builder/components/. Take a look at several existing Components (such as 'patch.py'), and key files including '_base.py' and '_visual.py'.
+You'll mainly be working in the directory .../psychopy/app/builder/components/. Take a look at several existing Components (such as 'image.py'), and key files including '_base.py' and '_visual.py'.
 
 There are three main steps, the first being by far the most involved.
 
 1. File: newcomp.py
 -------------------
 
-Its pretty straightforward to model a new Component on one of the existing ones. Be prepared to specify what your Component needs to do at several different points in time: before the first trial, every frame, at the end of each routine, and at the end of the experiment. In addition, you may need to sacrifice some complexity in order to keep things streamlined enough for a Builder. 
+Its pretty straightforward to model a new Component on one of the existing ones. Be prepared to specify what your Component needs to do at several different points in time: before the first trial, every frame, at the end of each routine, and at the end of the experiment. In addition, you may need to sacrifice some complexity in order to keep things streamlined enough for a Builder (see e.g., ratingscale.py).
 
-Your new Component class (in 'newcomp.py') will probably inherit from either BaseComponent (_base.py) or VisualComponent (_visual.py). You may need to rewrite some or all some of these methods, to override default behavior.::
+Your new Component class (in your file `newcomp.py`) should inherit from BaseComponent (in _base.py), VisualComponent (in _visual.py), or KeyboardComponent(in keyboard.py). You may need to rewrite some or all some of these methods, to override default behavior.::
 
     class NewcompComponent(BaseComponent): # or (VisualComponent)
-        def __init__(<lots of stuff>):
+        def __init__(...):
+            super(NewcompComponent, self)__init__(...):
+                ...
         def writeInitCode(self, buff):
         def writeRoutineStartCode(self, buff):
         def writeFrameCode(self, buff):
         def writeRoutineEndCode(self, buff):
 
-You may need to edit `settings.py`, which writes out the set-up code for the whole experiment (e.g., to define the window). For example, this was necessary for ApertureComponent, to pass "allowStencil=True" to the window creation.
+Calling `super()` will create the basic default set of `params` that almost every component will need: `name`, `startVal`, `startType`, etc. Some of these fields may need to be overridden (e.g., `durationEstim` in sound.py). Inheriting from VisualComponent (which in turn inherits from Base) adds default visual params, plus arranges for Builder scripts to import `psychopy.visual`. If your component will need other libs, call `self.exp.requirePsychopyLib(['neededLib'])` (see e.g., parallelPort.py).
+
+At the top of a component file is a dict named `_localized`. These mappings allow a strict separation of internal string values (= used in logic, never displayed) from values used for display in the Builder interface (= for display only, possibly translated, never used in logic). The `.hint` and `.label` fields of `params['someParam']` should always be set to a localized value, either by using a dict entry such as `_localized['message']`, or via the globally available translation function, `_('message')`. Localized values must **not** be used elsewhere in a component definition.
+
+Very occasionally, you may also need to edit `settings.py`, which writes out the set-up code for the whole experiment (e.g., to define the window). For example, this was necessary for ApertureComponent, to pass "allowStencil=True" to the window creation.
 
 Your new Component writes code into a buffer that becomes an executable python file, xxx_lastrun.py (where xxx is whatever the experimenter specifies when saving from the builder, xxx.psyexp). You will do a bunch of this kind of call in your newcomp.py file::
 
@@ -35,7 +41,7 @@ Your new Component writes code into a buffer that becomes an executable python f
 
 You have to manage the indentation level of the output code, see experiment.IndentingBuffer().
 
-xxx_lastrun.py is the file that gets built when you run xxx.psyexp from the builder. So you will want to look at xxx_lastrun.py frequently when developing your component. 
+xxx_lastrun.py is the file that gets built when you run xxx.psyexp from the builder. So you will want to look at xxx_lastrun.py frequently when developing your component.
 
 **Name-space**
 
@@ -60,9 +66,9 @@ self.params is a key construct that you build up in __init__. You need name, sta
 
 The Param() class is defined in `psychopy.app.builder.experiment.Param()`. A very useful thing that Param's know is how to create a string suitable for writing into the .py script. In particular, the `__str__` representation of a Param will format its value (`.val`) based on its type (`.valType`) appropriately. This means that you don't need to check or handle whether the user entered a plain string, a string with a code trigger character ($), or the field was of type `code` in the first place. If you simply request the `str()` representation of the param, it is formatted correctly.
 
-To indicate that a param should be considered as an advanced feature, add it to the list self.params['advancedParams']. The the GUI shown to the experimenter will initially hides it as an option. Nice, easy.
+To indicate that a param (eg, `thisParam`) should be considered as an advanced feature, set its category to advanced: `self.params['thisParam'].categ = 'Advanced`. Then the GUI shown to the experimenter will place it on the 'Advanced' tab. Other categories work similarly (`Custom`, etc).
 
-During development, I found it helpful at times to save the params into the xxx_lastrun.py file as comments, so I could see what was happening::
+During development, it can sometimes be helpful to save the params into the xxx_lastrun.py file as comments, so I could see what was happening::
 
     def writeInitCode(self,buff):
         # for debugging during Component development:
@@ -71,7 +77,7 @@ During development, I found it helpful at times to save the params into the xxx_
             try: buff.writeIndented("# %s: %s <type %s>\n" % (p, self.params[p].val, self.params[p].valType))
             except: pass
 
-A lot more detail can be inferred from Jon's code.
+A lot more detail can be inferred from existing components.
 
 Making things loop-compatible looks interesting -- see keyboard.py for an example, especially code for saving data at the end.
 
@@ -80,13 +86,13 @@ Notes & gotchas
 
     syntax errors in new_comp.py:
         The PsychoPy app will fail to start if there are syntax error in any of the components that are auto-detected. Just correct them and start the app again.
-    
+
     param[].val :
         If you have a boolean variable (e.g., my_flag) as one of your params, note that `self.param["my_flag"]` is always True (the param exists --> True). So in a boolean context you almost always want the `.val` part, e.g., `if self.param["my_flag"].val:`.
-        
+
         However, you do not always want `.val`. Specifically, in a string/unicode context (= to trigger the self-formatting features of Param()'s), you almost always want `"%s" % self.param['my_flag']`, without `.val`. Note that it's better to do this via `"%s"` than `str()` because `str(self.param["my_flag"])` coerces things to type str (squashing unicode) whereas `%s` works for both str and unicode.
 
-    
+
 2. Icon: newcomp.png
 ------------------------
 Using your favorite image software, make an icon for your Component with a descriptive name, e.g., 'newcomp.png'. Dimensions = 48 x 48. Put it in the components directory.
@@ -98,4 +104,3 @@ In 'newcomp.py', have a line near the top::
 3. Documentation: newcomp.rst
 ---------------------------------
 Just make a descriptively-named text file that ends in `.rst` ("restructured text"), and put it in `psychopy/docs/source/builder/components/` . It will get auto-formatted and end up at http://www.psychopy.org/builder/components/newcomp.html
-
