@@ -9,7 +9,7 @@ A locale setting (e.g., 'ja_JP' for Japanese) allows the end-user to control the
 
 Workflow: 1) adjust PsychoPy code, 2) auto-discover the strings that need to be translated and create a template file, 3) do a translation for a given language.
 
-See notes in ``psychopy/localization/readme.txt``.
+See notes in ``psychopy/app/localization/readme.txt``.
 
 Adjust PsychoPy's code
 ----------------------------
@@ -37,41 +37,48 @@ A template (.pot) file is a master list of every string for which the app might 
 
 If you decide to use the Poedit, you need not update the .pot file from command shell. Poedit scans `*.py` file and generate `.po` file.
 
-Alternatively, to make a .pot file, from within the directory ``psychopy/localization`` run:
+Alternatively, to make a .pot file, from within the directory ``psychopy/app/localization`` run:
 
     python utils/pygettext.py ../app
 
 Make a translation (.po file)
 ------------------------------
 
+To translate a given language, you'll need to know the standard 5-character code. For Japanese, wherever LANG appears in the documentation here, you should type the actual code, i.e., "ja_JP" (without quotes).
+
 A free app called poedit is useful for working with the mappings stored in the .po files. For a given language, the translation mappings are stored in a .po file; after editing with poedit these can be converted into binary versions (.mo files) which are used when the app is running.
 
-- Technical terms should not be translated: Builder, Coder, PsychoPy, Flow, routine, and so on.
+- Technical terms should not be translated: Builder, Coder, PsychoPy, Flow, Routine, and so on.
 
 - If there are formatting arguments in the original (``%s``, ``%(first)i``), they must also appear in the translation. If they are named (e.g., ``%(first)i``), that part should not be translated--here ``first`` is a python name.
-
-- Start translation (Do once):
-  It is good to start translation with opening psychopy/localization/res_po/messages_LANG.po (LANG=de, ja, ... ) from Poedit. (This location may change.)
-  If there is no appropriate .po file in psychopy/localization/res_po, create new catalog from psychopy/localization/messages.pot.
 
 - Set your name and e-mail address from "Preferences..." of "File" menu. Set translation properties (such as project name, language and charset) from Catalog Properties Dialog, which can be opened from "Properties..." of "Catalog" menu.
 
 - To add paths where Poedit scans .py files, open "Sources paths" tab on the Catalog Properties Dialog. Set "../../" to "Base path:". Because .po file is saved in psychopy/localization/res, ../../ indicates psychopy/ directory. Then, press "add new item" button and add "app" to "Paths" box. In the same way, add "preferences" to "Paths" box. Then, Close Catalog Properties Dialog.
-  If you've created new catalog, save your catalog to psychopy/localization/res_po/messaages_LANG.po.
+  If you've created new catalog, save your catalog to `psychopy/app/locale/LANG/LC_MESSAGE/messages.po`.
+
+- Start translation (Do once):
+
+  It is good to start a translation with opening `psychopy/app/locale/LANG/LC_MESSAGE/messages.po` in Poedit.
+  If there is no such .po file, create a new one:
+
+    - make a new directory `psychopy/app/locale/LANG/LC_MESSAGE/` if needed. `LANG` will be auto-detected only if you follow this convention.
+    - use poedit to "update from sources" (after setting the paths). It is also possible to copy an existing .po file, or read from a template file `psychopy/app/localization/messages.pot`.
 
 - Edit translation:
+
   Open .po file with Poedit and press "Update" button on the toolbar to update newly added / removed strings. Select a string you want to translate and input your translation to "Translation:" box. If you are unsure where string is used, point on the string in "Source text" box and right-click. You can see where the string is defined.
-  After editing, press "Save" button on the toolbar. .po file is saved and .mo file is generated in the directory where .po file is placed (i.e. psychopy/localization/res_po/). Move .mo file to psychopy/localization/res/ (but see note below).
+  After editing, press "Save" button on the toolbar. .po file is saved and .mo file is generated in the directory where .po file is placed (i.e. `psychopy/app/locale/LANG/messages.po`). Move .mo file there if it was not put there by default (but see note below).
 
 - If you think your translation might have room for improvement, indicate that its "fuzzy".
 
 - After making new a translation, rebuild the associated .mo file (if poedit did not do so).
 
-- Commit the .po and .mo files to github (not just one or the other).
+- Edit the file containing language code and name mappings, `psychopy/app/localization/mappings`, and fill in the name for your language.
+
+- Commit btoh the .po and .mo files to github (not just one or the other), and any changed files (e.g., mappings).
 
 Other notes
 -------------
-
-The current directory structure works but is non-standard. At some point ``psychopy/localization/res_po/messages_LANG.po`` (LANG=de, ja, ... ) would be better as something like ``psychopy/locale/LANG/messages.po (LANG=de, ja, ... )``.
 
 When there are more translations (and if they make the app download large) we might want to manage things differently (e.g., have translations as a separate download from the app).

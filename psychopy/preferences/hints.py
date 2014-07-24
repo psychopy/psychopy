@@ -51,7 +51,7 @@ _("save any unsaved preferences before closing the window")
 _("enable features for debugging PsychoPy itself, including unit-tests")
 
 #baseNoArch.spec,[app],line58
-_("locale to use, e.g. en_US, en_US.UTF-8, ja_JP, etc; leave blank for default system locale")
+_("language to use in menus etc; not all translations are available. Select a value, then restart the app.")
 
 #baseNoArch.spec,[app],line60
 _("a list of font names; the first one found on the system will be used")
@@ -107,6 +107,120 @@ _("allow PsychoPy to check for new features and bug fixes")
 #baseNoArch.spec,[connections],line106
 _("max time to wait for a connection response")
 
-#Windows.spec,[app],line61
-_("locale to use, e.g. ENG, DEU, DAN, JPN, etc; leave blank for default system locale")
+#baseNoArch.spec,[connections],line108
+_("open an existing file")
+
+#baseNoArch.spec,[connections],line110
+_("start a new experiment or script")
+
+#baseNoArch.spec,[connections],line112
+_("save a Builder or Coder file")
+
+#baseNoArch.spec,[connections],line114
+_("save a Builder or Coder file under a new name")
+
+#baseNoArch.spec,[connections],line117
+_("Coder: print the file")
+
+#baseNoArch.spec,[keyBindings],line119
+_("close the Builder or Coder window")
+
+#baseNoArch.spec,[keyBindings],line121
+_("end the application (PsychoPy)")
+
+#baseNoArch.spec,[keyBindings],line123
+_("open the preferences dialog")
+
+#baseNoArch.spec,[keyBindings],line125
+_("Coder: cut")
+
+#baseNoArch.spec,[keyBindings],line127
+_("Coder: copy")
+
+#baseNoArch.spec,[keyBindings],line129
+_("Coder: paste")
+
+#baseNoArch.spec,[keyBindings],line131
+_("Coder: duplicate")
+
+#baseNoArch.spec,[keyBindings],line133
+_("Coder: indent code by one level (4 spaces)")
+
+#baseNoArch.spec,[keyBindings],line136
+_("Coder: reduce indentation by one level (4 spaces)")
+
+#baseNoArch.spec,[keyBindings],line138
+_("Coder: indent to fit python syntax")
+
+#baseNoArch.spec,[keyBindings],line140
+_("Coder: find")
+
+#baseNoArch.spec,[keyBindings],line142
+_("Coder: find again")
+
+#baseNoArch.spec,[keyBindings],line144
+_("Coder: undo")
+
+#baseNoArch.spec,[keyBindings],line146
+_("Coder: redo")
+
+#baseNoArch.spec,[keyBindings],line148
+_("Coder: add a # to the start of the line(s)")
+
+#baseNoArch.spec,[keyBindings],line150
+_("Coder: remove # from start of line(s)")
+
+#baseNoArch.spec,[keyBindings],line152
+_("Coder: fold this block of code")
+
+#baseNoArch.spec,[keyBindings],line154
+_("Coder: check for basic syntax errors")
+
+#baseNoArch.spec,[keyBindings],line156
+_("convert a Builder .psyexp script into a python script and open it in the Coder")
+
+#baseNoArch.spec,[keyBindings],line158
+_("launch a script, Builder or Coder, or run unit-tests")
+
+#baseNoArch.spec,[keyBindings],line160
+_("attempt to interrupt and halt a running script")
+
+#baseNoArch.spec,[keyBindings],line162
+_("Coder: show / hide white-space dots")
+
+#baseNoArch.spec,[keyBindings],line165
+_("Coder: show / hide end of line characters")
+
+#baseNoArch.spec,[keyBindings],line167
+_("Builder: create a new routine")
+
+#baseNoArch.spec,[keyBindings],line169
+_("Builder: copy an existing routine")
+
+#baseNoArch.spec,[keyBindings],line171
+_("Builder: paste the copied routine")
+
+#baseNoArch.spec,[keyBindings],line174
+_("Coder: show / hide the output panel")
+
+#baseNoArch.spec,[keyBindings],line176
+_("switch to Builder window from Coder")
+
+#baseNoArch.spec,[keyBindings],line180
+_("switch to Coder window from Builder")
+
+#baseNoArch.spec,[keyBindings],line182
+_("increase display size in Flow")
+
+#baseNoArch.spec,[keyBindings],line184
+_("decrease display size in Flow")
+
+#baseNoArch.spec,[keyBindings],line186
+_("increase display size of Routines")
+
+#baseNoArch.spec,[keyBindings],line188
+_("decrease display size of Routines")
+
+#baseNoArch.spec,[keyBindings],line190
+_("show or hide the readme (info) for this experiment if possible")
 

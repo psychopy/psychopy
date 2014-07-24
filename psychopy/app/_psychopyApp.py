@@ -64,14 +64,9 @@ class PsychoPyApp(wx.App):
 
         # import localization after wx:
         from psychopy.app import localization  # needed by splash screen
-        # eventually want to use wx.GetTranslation exclusively, but for now use gettext.GNUTranslations as well
-        #__builtins__['_'] = wx.GetTranslation  # define _( ) function as app-global
-
-        self.locale = localization.wxlocale
         self.localization = localization
+        self.locale = localization.wxlocale
         self.locale.AddCatalog(self.GetAppName())
-        #print self.locale.IsOk(), self.locale.GetLocale(), self.locale.GetCanonicalName()
-        #print _
 
         #set default paths and prefs
         self.prefs = psychopy.prefs
