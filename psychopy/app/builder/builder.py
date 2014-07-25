@@ -381,7 +381,7 @@ class CodeComponentDialog(wx.Dialog):
                 asizer=param_gui_dict.setdefault(guikey+'_sizer',wx.BoxSizer(wx.VERTICAL))
                 asizer.Add(param_gui_dict.get(guikey+'_codebox'), 1, wx.EXPAND, 0)
                 param_gui_dict.get(guikey+'_panel').SetSizer(asizer)
-                self.code_sections.AddPage(param_gui_dict.get(guikey+'_panel'), param_name)
+                self.code_sections.AddPage(param_gui_dict.get(guikey+'_panel'), _(param_name))
 
         name_sizer = wx.BoxSizer(wx.HORIZONTAL)
         name_sizer.Add(self.name_label, 0, wx.ALL, 10)
