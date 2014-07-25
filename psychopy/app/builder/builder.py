@@ -1669,7 +1669,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                       'Responses': _('Responses'), 'Custom': _('Custom'), 'I/O': _('I/O')}
         for categ in categories:
             sectionBtn = platebtn.PlateButton(self,-1,categLabel[categ],
-                style=platebtn.PB_STYLE_DROPARROW)
+                style=platebtn.PB_STYLE_DROPARROW, name=categ)
             sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn) #mouse event must be bound like this
             sectionBtn.Bind(wx.EVT_RIGHT_DOWN, self.onSectionBtn) #mouse event must be bound like this
             if self.app.prefs.app['largeIcons']:
@@ -1745,7 +1745,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             buttons = self.panels[evt.GetString()]
         else:
             btn = evt.GetEventObject()
-            buttons = self.panels[btn.Label]
+            buttons = self.panels[btn.GetName()]
         self.toggleSection(buttons)
     def toggleSection(self, section):
         ii = self.sizerList.index(section)
