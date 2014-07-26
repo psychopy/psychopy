@@ -2310,12 +2310,12 @@ class _BaseParamsDlg(wx.Dialog):
         startTypeParam = self.params['startType']
         startValParam = self.params['startVal']
         #create label
-        label = wx.StaticText(parent,-1,'Start', style=wx.ALIGN_CENTER)
-        labelEstim = wx.StaticText(parent,-1,'Expected start (s)', style=wx.ALIGN_CENTER)
+        label = wx.StaticText(parent,-1,_('Start'), style=wx.ALIGN_CENTER)
+        labelEstim = wx.StaticText(parent,-1,_('Expected start (s)'), style=wx.ALIGN_CENTER)
         labelEstim.SetForegroundColour('gray')
         #the method to be used to interpret this start/stop
-        self.startTypeCtrl = wx.Choice(parent, choices=startTypeParam.allowedVals)
-        self.startTypeCtrl.SetStringSelection(startTypeParam.val)
+        self.startTypeCtrl = wx.Choice(parent, choices=map(_,startTypeParam.allowedVals))
+        self.startTypeCtrl.SetStringSelection(_(startTypeParam.val))
         self.startTypeCtrl.SetToolTipString(self.params['startType'].hint)
         #the value to be used as the start/stop
         self.startValCtrl = wx.TextCtrl(parent,-1,unicode(startValParam.val))
@@ -2345,12 +2345,12 @@ class _BaseParamsDlg(wx.Dialog):
         stopTypeParam = self.params['stopType']
         stopValParam = self.params['stopVal']
         #create label
-        label = wx.StaticText(parent,-1,'Stop', style=wx.ALIGN_CENTER)
-        labelEstim = wx.StaticText(parent,-1,'Expected duration (s)', style=wx.ALIGN_CENTER)
+        label = wx.StaticText(parent,-1,_('Stop'), style=wx.ALIGN_CENTER)
+        labelEstim = wx.StaticText(parent,-1,_('Expected duration (s)'), style=wx.ALIGN_CENTER)
         labelEstim.SetForegroundColour('gray')
         #the method to be used to interpret this start/stop
-        self.stopTypeCtrl = wx.Choice(parent, choices=stopTypeParam.allowedVals)
-        self.stopTypeCtrl.SetStringSelection(stopTypeParam.val)
+        self.stopTypeCtrl = wx.Choice(parent, choices=map(_,stopTypeParam.allowedVals))
+        self.stopTypeCtrl.SetStringSelection(_(stopTypeParam.val))
         self.stopTypeCtrl.SetToolTipString(self.params['stopType'].hint)
         #the value to be used as the start/stop
         self.stopValCtrl = wx.TextCtrl(parent,-1,unicode(stopValParam.val))
@@ -2628,9 +2628,9 @@ class _BaseParamsDlg(wx.Dialog):
             if fieldName=='advancedParams':
                 pass
             elif fieldName=='startType':
-                param.val = self.startTypeCtrl.GetStringSelection()
+                param.val = self.params['startType'].allowedVals[self.startTypeCtrl.GetCurrentSelection()]
             elif fieldName=='stopType':
-                param.val = self.stopTypeCtrl.GetStringSelection()
+                param.val = self.params['stopType'].allowedVals[self.stopTypeCtrl.GetCurrentSelection()]
             elif fieldName=='startVal':
                 param.val = self.startValCtrl.GetValue()
             elif fieldName=='stopVal':
