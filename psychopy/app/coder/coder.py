@@ -24,6 +24,11 @@ try:#needed for wx.py shell
 except:
     haveCode = False
 
+_localized = {'basic': _('basic'), 'input': _('input'), 'stimuli': _('stimuli'),
+              'experiment control': _('exp control'),
+              'iohub': 'ioHub', # no translation
+              'hardware': _('hardware'), _('timing'): 'timing', 'misc': _('misc')}
+
 def toPickle(filename, data):
     """save data (of any sort) as a pickle file
 
@@ -1397,9 +1402,11 @@ class CoderFrame(wx.Frame):
             #if it isn't a folder either then skip it
             if not os.path.isdir(folder): continue
             #otherwise create a submenu
-            folderName= os.path.split(folder)[-1]
+            folderDisplayName = os.path.split(folder)[-1]
+            if folderDisplayName in _localized.keys():
+                folderDisplayName = _localized[folderDisplayName]
             submenu = wx.Menu()
-            self.demosMenu.AppendSubMenu(submenu, folderName)
+            self.demosMenu.AppendSubMenu(submenu, folderDisplayName)
 
             #find the files in the folder (search two levels deep)
             demoList = glob.glob(os.path.join(folder, '*.py'))
