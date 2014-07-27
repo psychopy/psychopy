@@ -27,7 +27,7 @@ except:
 _localized = {'basic': _('basic'), 'input': _('input'), 'stimuli': _('stimuli'),
               'experiment control': _('exp control'),
               'iohub': 'ioHub', # no translation
-              'hardware': _('hardware'), _('timing'): 'timing', 'misc': _('misc')}
+              'hardware': _('hardware'), 'timing': _('timing'), 'misc': _('misc')}
 
 def toPickle(filename, data):
     """save data (of any sort) as a pickle file

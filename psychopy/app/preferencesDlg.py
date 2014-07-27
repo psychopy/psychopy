@@ -16,7 +16,7 @@ _localized = {
             'connections': _('Connections'), 'keyBindings': _('Key bindings'),
         # pref labels:
             'winType': _("window type"), 'units': _("units"),
-            'fullscr': _("full-screen"), 'allowGUI': _("allow GUI"),
+            'fullscr': _("full-screen"), 'allowGUI': _("allow GUI"), 'paths': _('paths'),
             'audioLib': _("audio library"), 'audioDriver': _("audio driver"),
             'flac': _('flac audio compression'),
             'parallelPorts': _("parallel ports"), 'showStartupTips': _("show start-up tips"),

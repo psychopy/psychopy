@@ -12,6 +12,7 @@ __author__ = 'Jon Peirce'
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'static.png')
 tooltip = _('Static: Static screen period (e.g. an ISI). Useful for pre-loading stimuli.')
+_localized = {'Custom code': _('Custom code')}
 
 class StaticComponent(_base.BaseComponent):
     """A Static Component, allowing frame rendering to pause while disk is accessed"""
@@ -27,7 +28,7 @@ class StaticComponent(_base.BaseComponent):
         self.url = "http://www.psychopy.org/builder/components/static.html"
         self.params['code']=Param("", valType='code',
             hint=_("Custom code to be run during the static period (after updates)"),
-            label="Custom code")
+            label=_localized['Custom code'])
         self.order=['name']#make name come first (others don't matter)
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N'],
