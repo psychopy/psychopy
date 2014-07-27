@@ -74,7 +74,10 @@ _localized = {
         'use prefs': _('use preferences'),
         # logging level:
         'debug': _('debug'), 'info': _('info'), 'exp': _('exp'),
-        'data': _('data'), 'warning': _('warning'), 'error': _('error')
+        'data': _('data'), 'warning': _('warning'), 'error': _('error'),
+        
+        # Experiment info dialog
+        'Field': _('Field'), 'Default': _('Default')
     }
 
 

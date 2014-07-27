@@ -470,7 +470,7 @@ class ListWidget(GlobSizer):
     def createGrid(self):
         row=0
         for col, field in enumerate(self.fieldNames):
-            self.Add(wx.StaticText(self.parent, -1, label=field), (row,col), flag=wx.ALL)
+            self.Add(wx.StaticText(self.parent, -1, label=_(field)), (row,col), flag=wx.ALL)
         for entry in self.value:
             row+=1
             self.addEntryCtrls(row, entry)
