@@ -53,7 +53,8 @@ _localized = {
             'largerRoutine': _('larger routine'), 'smallerRoutine': _('smaller routine'),
             'toggleReadme': _('toggle readme'),
         # pref wxChoice lists:
-            'last': _('last'), 'both': _('both'), 'keep': _('keep'),
+            'last': _('same as last session'), 'both': _('both Builder & Coder'),
+            'keep': _('same as in the file'),  # line endings
             # not translated:
             'pix': 'pix', 'deg': 'deg', 'cm': 'cm', 'norm': 'norm', 'height': 'height',
             'pyshell': 'pyshell', 'iPython': 'iPython'
@@ -81,7 +82,8 @@ class PreferencesDlg(wx.Dialog):
         #self.nb = wx.Notebook(self)#notebook isn't nice with lots of pages
 
         self.ctrls={}
-        for sectionName in self.prefsCfg.keys():
+        sectionOrdering = ['app', 'builder', 'coder', 'general', 'connections', 'keyBindings']
+        for sectionName in sectionOrdering:
             prefsPage = self.makePrefsPage(parent=self.nb,
                     sectionName=sectionName,
                     prefsSection=self.prefsCfg[sectionName],

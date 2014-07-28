@@ -64,7 +64,6 @@ _localized = {
         'pix': 'pix', 'deg': 'deg', 'cm': 'cm', 'norm': 'norm', 'height': 'height',
         '32': '32', '64': '64', '128': '128', '256': '256', '512': '512',  # tex resolution
         'routine': 'Routine',
-
     # strings for allowedUpdates:
         'constant': _('constant'),
         'set every repeat': _('set every repeat'),
@@ -72,11 +71,10 @@ _localized = {
     # strings for allowedVals in settings:
         'add': _('add'), 'avg': _('average'), # blend mode
         'use prefs': _('use preferences'),
-        # logging level:
+    # logging level:
         'debug': _('debug'), 'info': _('info'), 'exp': _('exp'),
         'data': _('data'), 'warning': _('warning'), 'error': _('error'),
-        
-        # Experiment info dialog
+    # Experiment info dialog:
         'Field': _('Field'), 'Default': _('Default')
     }
 
@@ -2605,6 +2603,10 @@ class _BaseParamsDlg(wx.Dialog):
             val = strBox.GetValue()
             stc = False
         except:
+            if not hasattr(strBox, 'GetText'):  # eg, wx.Choice control
+                if hasattr(event, 'Skip'):
+                    event.Skip()
+                return
             val = strBox.GetText()
             stc = True  # might be StyledTextCtrl
 

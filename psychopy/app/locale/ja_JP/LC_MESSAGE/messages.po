@@ -1998,7 +1998,7 @@ msgstr "xlsx形式のデータを保存"
 
 #: app/builder/components/settings.py:27
 msgid "Save psydat file"
-msgstr "paydat形式のデータを保存"
+msgstr "psydat形式のデータを保存"
 
 #: app/builder/components/settings.py:28
 msgid "Logging level"
@@ -2454,7 +2454,7 @@ msgstr ""
 
 #: app/coder/coder.py:1213
 msgid "PyShell in PsychoPy - type some commands!"
-msgstr "Pyshell in Psychpy - コマンドを入力してください"
+msgstr "Pyshell in PsychoPy - コマンドを入力してください"
 
 #: app/coder/coder.py:1214
 msgid "Shell"
