@@ -20,7 +20,7 @@ class TextComponent(VisualComponent):
     """An event class for presenting text-based stimuli"""
     categories = ['Stimuli']
     def __init__(self, exp, parentName, name='text',
-                text=_('Any Text\n\nincluding line breaks'),  # effectively just a display-value
+                text=_('Any text\n\nincluding line breaks'),  # effectively just a display-value
                 font='Arial',units='from exp settings', color='white', colorSpace='rgb',
                 pos=[0,0], letterHeight=0.1, ori=0,
                 startType='time (s)', startVal=0.0,

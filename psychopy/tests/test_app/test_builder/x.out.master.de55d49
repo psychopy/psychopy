@@ -2650,7 +2650,7 @@ TextComponent.color.allowedVals: []
 TextComponent.color.label: Color
 TextComponent.color.updates: constant
 TextComponent.color.valType: str
-TextComponent.text.default: 'Any text\n\nincluding line breaks'
+TextComponent.text.default: u'Any text\n\nincluding line breaks'
 TextComponent.text.staticUpdater: None
 TextComponent.text.categ: Basic
 TextComponent.text.val: Any text
