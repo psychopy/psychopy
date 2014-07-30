@@ -475,8 +475,12 @@ class FlowPanel(wx.ScrolledWindow):
 
         #self.btnInsertRoutine = wx.Button(self,-1,'Insert Routine', pos=(10,10))
         #self.btnInsertLoop = wx.Button(self,-1,'Insert Loop', pos=(10,30))
-        self.btnInsertRoutine = platebtn.PlateButton(self,-1,_('Insert Routine '), pos=(10,10))
-        self.btnInsertLoop = platebtn.PlateButton(self,-1,_('Insert Loop     '), pos=(10,30)) #spaces give size for CANCEL
+        if sys.platform.startswith('linux'): # Localized labels on PlateButton may be corrupted in Ubuntu.
+            self.btnInsertRoutine = platebtn.PlateButton(self,-1,'Insert Routine ', pos=(10,10))
+            self.btnInsertLoop = platebtn.PlateButton(self,-1,'Insert Loop     ', pos=(10,30)) #spaces give size for CANCEL
+        else:
+            self.btnInsertRoutine = platebtn.PlateButton(self,-1,_('Insert Routine '), pos=(10,10))
+            self.btnInsertLoop = platebtn.PlateButton(self,-1,_('Insert Loop     '), pos=(10,30)) #spaces give size for CANCEL
 
         self.labelTextGray = {'normal': wx.Colour(150,150,150, 20),'hlight':wx.Colour(150,150,150, 20)}
         self.labelTextRed = {'normal': wx.Colour(250,10,10, 250),'hlight':wx.Colour(250,10,10, 250)}
@@ -519,9 +523,13 @@ class FlowPanel(wx.ScrolledWindow):
         self.gapsExcluded=[]
         self.draw()
         self.frame.SetStatusText("")
-        self.btnInsertRoutine.SetLabel(_('Insert Routine'))
+        if sys.platform.startswith('linux'): # Localized labels on PlateButton may be corrupted in Ubuntu.
+            self.btnInsertRoutine.SetLabel('Insert Routine')
+            self.btnInsertLoop.SetLabel('Insert Loop')
+        else:
+            self.btnInsertRoutine.SetLabel(_('Insert Routine'))
+            self.btnInsertLoop.SetLabel(_('Insert Loop'))
         self.btnInsertRoutine.SetLabelColor(**self.labelTextBlack)
-        self.btnInsertLoop.SetLabel(_('Insert Loop'))
         self.btnInsertLoop.SetLabelColor(**self.labelTextBlack)
     def ConvertEventCoords(self, event):
         xView, yView = self.GetViewStart()
@@ -578,7 +586,10 @@ class FlowPanel(wx.ScrolledWindow):
         see self.insertRoutine() for further info
         """
         self.mode='routine'
-        self.btnInsertRoutine.SetLabel(_('CANCEL Insert'))
+        if sys.platform.startswith('linux'): # Localized labels on PlateButton may be corrupted in Ubuntu.
+            self.btnInsertRoutine.SetLabel('CANCEL Insert')
+        else:
+            self.btnInsertRoutine.SetLabel(_('CANCEL Insert'))
         self.btnInsertRoutine.SetLabelColor(**self.labelTextRed)
         self.frame.SetStatusText(_('Click where you want to insert the Routine, or CANCEL insert.'))
         self.insertingRoutine = self.routinesFromID[event.GetId()]
@@ -606,7 +617,10 @@ class FlowPanel(wx.ScrolledWindow):
         elif self.mode.startswith('loopPoint'): # clicked again, label is "Cancel..."
             self.clearMode()
             return
-        self.btnInsertLoop.SetLabel(_('CANCEL insert'))
+        if sys.platform.startswith('linux'): # Localized labels on PlateButton may be corrupted in Ubuntu.
+            self.btnInsertLoop.SetLabel('CANCEL insert')
+        else:
+            self.btnInsertLoop.SetLabel(_('CANCEL insert'))
         self.btnInsertLoop.SetLabelColor(**self.labelTextRed)
         self.mode='loopPoint1'
         self.frame.SetStatusText(_('Click where you want the loop to start/end, or CANCEL insert.'))
@@ -1671,8 +1685,12 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         categLabel = {'Favorites': _('Favorites'), 'Stimuli': _('Stimuli'),
                       'Responses': _('Responses'), 'Custom': _('Custom'), 'I/O': _('I/O')}
         for categ in categories:
-            sectionBtn = platebtn.PlateButton(self,-1,categLabel[categ],
-                style=platebtn.PB_STYLE_DROPARROW, name=categ)
+            if sys.platform.startswith('linux'): # Localized labels on PlateButton may be corrupted in Ubuntu.
+                sectionBtn = platebtn.PlateButton(self,-1,categ,
+                    style=platebtn.PB_STYLE_DROPARROW, name=categ)
+            else:
+                sectionBtn = platebtn.PlateButton(self,-1,categLabel[categ],
+                    style=platebtn.PB_STYLE_DROPARROW, name=categ)
             sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn) #mouse event must be bound like this
             sectionBtn.Bind(wx.EVT_RIGHT_DOWN, self.onSectionBtn) #mouse event must be bound like this
             if self.app.prefs.app['largeIcons']:
