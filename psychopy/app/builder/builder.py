@@ -75,7 +75,10 @@ _localized = {
         'debug': _('debug'), 'info': _('info'), 'exp': _('exp'),
         'data': _('data'), 'warning': _('warning'), 'error': _('error'),
     # Experiment info dialog:
-        'Field': _('Field'), 'Default': _('Default')
+        'Field': _('Field'), 'Default': _('Default'),
+    # ComponentsPanel category labels:
+        'Favorites': _('Favorites'), 'Stimuli': _('Stimuli'),
+        'Responses': _('Responses'), 'Custom': _('Custom'), 'I/O': _('I/O')
     }
 
 
@@ -1646,9 +1649,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.app=frame.app
         self.dpi=self.app.dpi
         if self.app.prefs.app['largeIcons']:
-            panelWidth = 3*48+40
+            panelWidth = 3*48+50
         else:
-            panelWidth = 3*24+40
+            panelWidth = 3*24+50
         scrolledpanel.ScrolledPanel.__init__(self,frame,id,size=(panelWidth,10*self.dpi))
         self.sizer=wx.BoxSizer(wx.VERTICAL)
         self.components=components.getAllComponents()
@@ -1666,10 +1669,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.componentFromID={}
         self.panels={}
         self.sizerList=[]#to keep track of the objects (sections and section labels) within the main sizer
-        categLabel = {'Favorites': _('Favorites'), 'Stimuli': _('Stimuli'),
-                      'Responses': _('Responses'), 'Custom': _('Custom'), 'I/O': _('I/O')}
+
         for categ in categories:
-            sectionBtn = platebtn.PlateButton(self,-1,categLabel[categ],
+            sectionBtn = platebtn.PlateButton(self,-1,_localized[categ],
                 style=platebtn.PB_STYLE_DROPARROW, name=categ)
             sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn) #mouse event must be bound like this
             sectionBtn.Bind(wx.EVT_RIGHT_DOWN, self.onSectionBtn) #mouse event must be bound like this
