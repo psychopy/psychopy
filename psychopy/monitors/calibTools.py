@@ -229,7 +229,7 @@ class Monitor:
         0 uses y=a+(bx)^gamma
         1 uses y=(a+bx)^gamma
         2 uses linear interpolation over the curve"""
-        self.currentCalib['lineariseMethod']=method
+        self.currentCalib['linearizeMethod']=method
     def setMeanLum(self, meanLum):
         """Records the mean luminance (for reference only)"""
         self.currentCalib['meanLum']=meanLum
@@ -302,10 +302,10 @@ class Monitor:
             return grid
         else:
             return None
-    def getLineariseMethod(self):
+    def getLinearizeMethod(self):
         """Gets the min,max,gamma values for the each gun"""
-        if 'lineariseMethod' in self.currentCalib:
-            return self.currentCalib['lineariseMethod']
+        if 'linearizeMethod' in self.currentCalib:
+            return self.currentCalib['linearizeMethod']
         else:
             return None
     def getMeanLum(self):
@@ -494,7 +494,7 @@ class Monitor:
     def lineariseLums(self, desiredLums, newInterpolators=False, overrideGamma=None):
         """lums should be uncalibrated luminance values (e.g. a linear ramp)
         ranging 0:1"""
-        linMethod = self.getLineariseMethod()
+        linMethod = self.getLinearizeMethod()
         desiredLums = numpy.asarray(desiredLums)
         output = desiredLums*0.0 #needs same size as input
 

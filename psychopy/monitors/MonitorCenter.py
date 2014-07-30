@@ -370,7 +370,7 @@ class MainFrame(wx.Frame):
 
         self.choiceLinearMethod = wx.Choice(parent, -1, name='formula:',
                     choices=['easy: a+kx^g','full: a+(b+kx)^g'])
-        if self.currentMon.getLineariseMethod()==4:
+        if self.currentMon.getLinearizeMethod()==4:
             self.choiceLinearMethod.SetSelection(1)
         else: self.choiceLinearMethod.SetSelection(0)
         wx.EVT_CHOICE(self, self.choiceLinearMethod.GetId(), self.onChangeLinearMethod)
@@ -525,7 +525,7 @@ class MainFrame(wx.Frame):
         self.ctrlCalibNotes.SetValue(str(self.currentMon.getNotes()))
         self.ctrlUseBits.SetValue(self.currentMon.getUseBits())
         self.gammaGrid.setData(self.currentMon.getGammaGrid())
-        if self.currentMon.getLineariseMethod()==4:
+        if self.currentMon.getLinearizeMethod()==4:
             self.choiceLinearMethod.SetSelection(1)
         else: self.choiceLinearMethod.SetSelection(0)
         self.LMSgrid.setData(self.currentMon.getLMS_RGB())
@@ -748,7 +748,7 @@ class MainFrame(wx.Frame):
             logging.warning('No lum values captured/entered')
 
     def doGammaFits(self, levels, lums):
-        linMethod = self.currentMon.getLineariseMethod()
+        linMethod = self.currentMon.getLinearizeMethod()
 
         if linMethod==4:
             logging.info('Fitting gamma equation(%i) to luminance data' %linMethod)
@@ -901,7 +901,7 @@ class MainFrame(wx.Frame):
         if lumsPre!=None:
             colors='krgb'
             xxSmooth = monitors.numpy.arange(0,255.5, 0.5)
-            eq = self.currentMon.getLineariseMethod()
+            eq = self.currentMon.getLinearizeMethod()
             for gun in range(4): #includes lum
                 gamma = gammaGrid[gun,2]
                 minLum = gammaGrid[gun,0]
@@ -911,7 +911,7 @@ class MainFrame(wx.Frame):
                     curve = monitors.gammaFun(xxSmooth, minLum, maxLum, gamma,
                         eq=eq, a=None, b=None, k=None)
                     plt.plot(xxSmooth, curve, colors[gun]+'-', linewidth=1.5)
-                if self.currentMon.getLineariseMethod() ==4:
+                if self.currentMon.getLinearizeMethod() ==4:
                     a,b,k = gammaGrid[gun,3:]
                     #plot fitted curve
                     curve = monitors.gammaFun(xxSmooth, minLum, maxLum, gamma,
