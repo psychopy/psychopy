@@ -848,7 +848,6 @@ class MainFrame(wx.Frame):
         photName = self.ctrlPhotomType.GetStringSelection()
         # not sure how
         photPort = self.ctrlPhotomPort.GetValue().strip()
-        print photName, photPort
         if not photPort or photPort == self._photomChoices[0]:  # [0] == Scan all ports
             photPort = None
         elif photPort.isdigit():
