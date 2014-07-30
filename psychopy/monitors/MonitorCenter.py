@@ -254,13 +254,13 @@ class MainFrame(wx.Frame):
 
         #scr distance
         labl_scrDist = wx.StaticText(parent, -1,
-            "Screen Distance (cm):",style=wx.ALIGN_RIGHT)
+            _("Screen Distance (cm):"),style=wx.ALIGN_RIGHT)
         self.ctrlScrDist = wx.TextCtrl(parent, idCtrlScrDist, "")
         wx.EVT_TEXT(self, idCtrlScrDist, self.onChangeScrDist)
 
         #scr width
         labl_scrWidth = wx.StaticText(parent, -1,
-            "Screen Width (cm):",style=wx.ALIGN_RIGHT)
+            _("Screen Width (cm):"),style=wx.ALIGN_RIGHT)
         self.ctrlScrWidth = wx.TextCtrl(parent, idCtrlScrWidth, "")
         wx.EVT_TEXT(self, idCtrlScrWidth, self.onChangeScrWidth)
 
@@ -276,13 +276,13 @@ class MainFrame(wx.Frame):
 
         #date
         labl_calibDate = wx.StaticText(parent, -1,
-            "Calibration Date:",style=wx.ALIGN_RIGHT)
+            _("Calibration Date:"),style=wx.ALIGN_RIGHT)
         self.ctrlCalibDate = wx.TextCtrl(parent, idCtrlCalibDate, "",
             size=(150,20))
         self.ctrlCalibDate.Disable()
         #notes
         labl_calibNotes = wx.StaticText(parent, -1,
-            "Notes:",style=wx.ALIGN_RIGHT)
+            _("Notes:"),style=wx.ALIGN_RIGHT)
         self.ctrlCalibNotes = wx.TextCtrl(parent, idCtrlCalibNotes, "",
             size=(150,150),
             style=wx.TE_MULTILINE)
@@ -750,7 +750,7 @@ class MainFrame(wx.Frame):
         linMethod = self.currentMon.getLinearizeMethod()
 
         if linMethod==4:
-            logging.info('Fitting gamma equation(%i) to luminance data' %linMethod)
+            logging.info('Fitting gamma equation (%i) to luminance data' % linMethod)
             currentCal = numpy.ones([4,6],'f')*numpy.nan
             for gun in [0,1,2,3]:
                 gamCalc = monitors.GammaCalculator(levels, lums[gun,:], eq=linMethod)
@@ -762,7 +762,7 @@ class MainFrame(wx.Frame):
                 currentCal[gun,5]=gamCalc.k#gamma
         else:
             currentCal = numpy.ones([4,3],'f')*numpy.nan
-            logging.info('Fitting gamma equation(%i) to luminance data' %linMethod)
+            logging.info('Fitting gamma equation (%i) to luminance data' % linMethod)
             for gun in [0,1,2,3]:
                 gamCalc = monitors.GammaCalculator(levels, lums[gun,:], eq=linMethod)
                 currentCal[gun,0]=lums[gun,0]#min

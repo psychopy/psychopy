@@ -54,7 +54,7 @@ A free app called poedit is useful for working with the mappings stored in the .
 
 - Set your name and e-mail address from "Preferences..." of "File" menu. Set translation properties (such as project name, language and charset) from Catalog Properties Dialog, which can be opened from "Properties..." of "Catalog" menu.
 
-- To add paths where Poedit scans .py files, open "Sources paths" tab on the Catalog Properties Dialog. Set "../../../../" to "Base path:". Because .po file is saved in psychopy/app/locale/LANG/LC_MESSAGE, ../../../../ indicates psychopy/ directory. Then, press "add new item" button and add "app" to "Paths" box. In the same way, add "preferences" to "Paths" box. If you are using Poedit 1.6.6 or later, you'll find "Excluded paths" box below the "Paths" box. add "app/localization/utils" to "Exclude paths". Then, Close Catalog Properties Dialog.
+- To add paths where Poedit scans .py files, open "Sources paths" tab on the Catalog Properties Dialog. Set "../../../../" to "Base path:". Because .po file is saved in psychopy/app/locale/LANG/LC_MESSAGE, ../../../../ indicates psychopy/ directory. Then, press "add new item" button and add "app" to "Paths" box. In the same way, add the "preferences" and "monitors" directories to "Paths" box. If you are using Poedit 1.6.6 or later, you'll find "Excluded paths" box below the "Paths" box. add "app/localization/utils" to "Exclude paths". Then, Close Catalog Properties Dialog.
   If you've created new catalog, save your catalog to `psychopy/app/locale/LANG/LC_MESSAGE/messages.po`.
 
 - Start translation (Do once):
