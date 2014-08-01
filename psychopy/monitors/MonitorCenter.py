@@ -198,7 +198,7 @@ class MainFrame(wx.Frame):
         #build the controls
         self.ctrlMonList = wx.ListBox(parent, idCtrlMonList,
             choices=['iiyama571','sonyG500'],
-            size=(500,100))
+            size=(200,100))
         wx.EVT_LISTBOX(self,idCtrlMonList, self.onChangeMonSelection)
 
         monButtonsBox = wx.BoxSizer(wx.VERTICAL)
