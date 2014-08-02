@@ -570,7 +570,7 @@ class MainFrame(wx.Frame):
 
         #then use dialogue so user can override
         infoStr=_('Name of this calibration (for monitor "%(name)s") will be:)') % {'name': self.currentMon.name}
-        dlg = wx.TextEntryDialog(self, message=infoStr, defaultValue=calibTimeStr)
+        dlg = wx.TextEntryDialog(self, message=infoStr, defaultValue=calibTimeStr, caption=_('Input text'))
         if dlg.ShowModal() == wx.ID_OK:
             newCalibName= dlg.GetValue()
             #update the GUI to reflect new calibration
@@ -583,7 +583,7 @@ class MainFrame(wx.Frame):
         dlg.Destroy()
     def onNewMon(self, event):
         #open a dialogue to get the name
-        dlg = wx.TextEntryDialog(self, _('New monitor name:'))
+        dlg = wx.TextEntryDialog(self, _('New monitor name:'), caption=_('Input text'))
         if dlg.ShowModal() == wx.ID_OK:
             self.currentMonName= dlg.GetValue()
             self.ctrlMonList.Append(self.currentMonName)
