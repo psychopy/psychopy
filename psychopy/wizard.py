@@ -15,6 +15,7 @@ import wx
 import numpy as np
 import platform
 import tempfile, pickle
+import codecs
 
 tmpApp = wx.PySimpleApp()
 from psychopy.app import localization
@@ -87,7 +88,7 @@ class ConfigWizard(object):
                 dlg.addText(_('Note: The display will switch to full-screen mode and will '))
                 dlg.addText(_("then switch back. You don't need to do anything."))
             dlg.addText(_('Optional: For best results, please quit all email programs, web-browsers, '))
-            dlg.addText(_('Dropbox, backup or sync services, and the like.'))
+            dlg.addText(_('Dropbox, backup or sync services, and others.'))
             dlg.addText('')
             dlg.addText(_('Click OK to start, or Cancel to skip.'))
             if not self.firstrun:
@@ -123,7 +124,7 @@ class ConfigWizard(object):
         # display summary & options:
         dlg = gui.Dlg(title=self.name)
         dlg.addText('')
-        dlg.addText('Configuration testing complete!')
+        dlg.addText(_('Configuration testing complete!'))
         summary = self.summary(items=itemsList)
         numWarn = len(self.warnings)
         if numWarn == 0:
@@ -173,16 +174,16 @@ class ConfigWizard(object):
             msg = _('physical RAM available for configuration test (of %.1fG total)') % (totalRAM / 1024.)
             if freeRAM < 300:  # in M
                 msg = _('Warning: low available physical RAM for configuration test (of %.1fG total)') % (totalRAM / 1024.)
-            report.append((_('available memory'), str(freeRAM)+'M', msg))
+            report.append((_('available memory'), unicode(freeRAM)+'M', msg))
 
         # ----- PSYCHOPY: -----
-        report.append(('PsychoPy', '', ''))
+        report.append(('PsychoPy', '', ''))  # not localized
         report.append(('psychopy', __version__, _('avoid upgrading during an experiment')))
-        report.append(('locale', items['systemLocale'],
+        report.append((_('locale'), items['systemLocale'],
                        _('can be set in <a href="http://www.psychopy.org/general/prefs.html#application-settings">Preferences -> App</a>')))
         msg = ''
         if items['pythonVersion'] < '2.5' or items['pythonVersion'] >= '3':
-            msg = _('Warning: python 2.5, 2.6, or 2.7 required; 2.5 is not supported')
+            msg = _('Warning: python 2.6 or 2.7 required; 2.5 is not supported but might work')
         if 'EPD' in items['pythonFullVersion']:
             msg += ' Enthought Python Distribution'
         elif 'PsychoPy2.app' in items['pythonExecutable']:
@@ -200,7 +201,7 @@ class ConfigWizard(object):
             report.append(('rush', str(items['psychopyHaveExtRush']), _('for high-priority threads')))
 
         # ----- VISUAL: -----
-        report.append(('Visual', '', ''))
+        report.append((_('Visual'), '', ''))
         # openGL settings:
         msg = ''
         if items['openGLVersion'] < '2.':
@@ -256,7 +257,7 @@ class ConfigWizard(object):
                     msg = _('Warning: version 7 recommended on linux (for movies)')
             elif not (5 <= ver < 6):
                 msg = _('Warning: version 5 recommended (for movies); Visit <a href="http://code.google.com/p/avbin">download page</a> [google.com]')
-            report.append((_('pyglet avbin'), str(ver), msg))
+            report.append((_('pyglet avbin'), unicode(ver), msg))
 
         if verbose:
             report.append(('openGL max vertices', str(items['openGLmaxVerticesInVertexArray']), ''))
@@ -270,7 +271,7 @@ class ConfigWizard(object):
                 report.append((key, str(val), ''))
 
         # ----- AUDIO: -----
-        report.append(('Audio', '', ''))
+        report.append((_('Audio'), '', ''))
         msg = ''
         if not 'systemPyoVersion' in items:
             msg = _('Warning: pyo is needed for sound and microphone.')
@@ -287,8 +288,8 @@ class ConfigWizard(object):
                 if mic['name'].endswith('icroph'):
                     mic['name'] += 'one'  # portaudio (?) seems to clip to 16 chars
                 msg = '"%s"' % mic['name']
-                if mic['latency'] > 0.003:
-                    msg = _('Warning: "%s" latency > 3ms') % mic['name']
+                if mic['latency'] > 0.01:
+                    msg = _('Warning: "%s" latency > 10ms') % mic['name']
                 report.append((_("microphone latency"), "%.4f s" % mic['latency'], msg))
             else:
                 report.append((_('microphone'), '(not detected)',''))
@@ -297,30 +298,30 @@ class ConfigWizard(object):
                 key = sndOutputDevices.keys()[0]
                 spkr = sndOutputDevices[key]
                 msg = '"%s"' % spkr['name']
-                if spkr['latency'] > 0.003:
-                    msg = _('Warning: "%s" latency > 3ms') % spkr['name']
+                if spkr['latency'] > 0.01:
+                    msg = _('Warning: "%s" latency > 10ms') % spkr['name']
                 report.append((_("speakers latency"), "%.4f s" % spkr['latency'], msg))
             else:
                 report.append((_('speakers'), _('(not detected)'),''))
         except KeyError:
             pass
         s2t = '<a href="http://www.psychopy.org/api/microphone.html?highlight=Speech2Text">speech-to-text</a>'
-        msg = _('audio codec for %s') % s2t
+        msg = _('audio codec for %s and sound file compression') % s2t
         if not 'systemFlacVersion' in items:
-            msg = _('Warning: flac is needed for using %s features. <a href="http://flac.sourceforge.net/download.html">Download</a> [sourceforge.net].') % s2t
-            items['systemFlacVersion'] = '(missing)'
+            msg = _('Warning: flac is needed for using %s and sound compression.') % s2t + ' <a href="http://flac.sourceforge.net/download.html">Download</a> [sourceforge.net].'
+            items['systemFlacVersion'] = _('(missing)')
         if verbose:
             report.append(('flac', items['systemFlacVersion'].lstrip('flac '), msg))
         # TO-DO: add microphone + playback as sound test
 
         # ----- NUMERIC: -----
-        report.append(('Numeric', '', ''))
-        report.append(('numpy', items['pythonNumpyVersion'], 'vector-based (fast) calculations'))
-        report.append(('scipy', items['pythonScipyVersion'], 'scientific / numerical'))
-        report.append(('matplotlib', items['pythonMatplotlibVersion'], 'plotting; fast contains(), overlaps()'))
+        report.append((_('Numeric'), '', ''))
+        report.append(('numpy', items['pythonNumpyVersion'], _('vector-based (fast) calculations')))
+        report.append(('scipy', items['pythonScipyVersion'], _('scientific / numerical')))
+        report.append(('matplotlib', items['pythonMatplotlibVersion'], _('plotting; fast contains(), overlaps()')))
 
         # ----- SYSTEM: -----
-        report.append(('System', '', ''))
+        report.append((_('System'), '', ''))
         report.append(('platform', items['systemPlatform'], ''))
         msg = _('for online help, usage statistics, software updates, and google-speech')
         if items['systemHaveInternetAccess'] is not True:
@@ -333,7 +334,7 @@ class ConfigWizard(object):
         if not self.prefs.connections['proxy'].strip():
             prx = '&nbsp;&nbsp--'
         else:
-            prx = str(self.prefs.connections['proxy'])
+            prx = unicode(self.prefs.connections['proxy'])
         report.append((_('proxy setting'), prx, _('current manual proxy setting from <a href="http://www.psychopy.org/general/prefs.html#connection-settings">Preferences -> Connections</a>')))
 
         msg = ''
@@ -347,7 +348,7 @@ class ConfigWizard(object):
         report.append((_('background processes'), val, msg))
         if verbose and 'systemSec.OpenSSLVersion' in items:
             report.append(('OpenSSL', items['systemSec.OpenSSLVersion'].lstrip('OpenSSL '), 'for <a href="http://www.psychopy.org/api/encryption.html">encryption</a>'))
-        report.append((_('CPU speed test'), "%.3f s" % items['systemTimeNumpySD1000000_sec'], _('numpy.std() of a million data points')))
+        report.append((_('CPU speed test'), "%.3f s" % items['systemTimeNumpySD1000000_sec'], _('numpy.std() of 1,000,000 data points')))
             # TO-DO: more speed benchmarks
             # - load large image file from disk
             # - transfer image to GPU
@@ -385,7 +386,7 @@ class ConfigWizard(object):
                 except (ImportError, AttributeError):
                     report.append((pkg, '&nbsp;&nbsp--', _('could not import package %s') % pkg))
 
-        self.warnings = list(set([key for key, val, msg in report if msg.startswith('Warning')]))
+        self.warnings = list(set([key for key, val, msg in report if msg.startswith('Warning')]))  # breaks MVC / localization
         return report
 
     def summary(self, items=None):
@@ -420,27 +421,30 @@ class ConfigWizard(object):
         """
 
         imgfile = os.path.join(self.prefs.paths['resources'], 'psychopySplash.png')
-        self.header = '<html><head></head><a href="http://www.psychopy.org"><image src="%s" width=396 height=156></a>' % imgfile
+        self.header = u'<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>' + \
+            '<a href="http://www.psychopy.org"><image src="%s" width=396 height=156></a>' % imgfile
         #self.iconhtml = '<a href="http://www.psychopy.org"><image src="%s" width=48 height=48></a>' % self.iconfile
-        self.footer = '<font size=-1><center>This page auto-generated by the PsychoPy configuration wizard on %s</center></font>' % data.getDateStr(format="%Y-%m-%d, %H:%M")
+        self.footer = '<font size=-1><center>' + \
+                      _('This page auto-generated by the PsychoPy configuration wizard on %s') % data.getDateStr(format="%Y-%m-%d, %H:%M") +\
+                      '</center></font>'
 
         htmlDoc = self.header
         if fatal:
             # fatal is a list of strings:
-            htmlDoc += '<h2><font color="red">Configuration problem</font></h2><hr>'
+            htmlDoc += '<h2><font color="red">' + _('Configuration problem') + '</font></h2><hr>'
             for item in fatal:
-                item = item.replace('Critical issue', '<p><strong>Critical issue</strong>')
+                item = item.replace('Critical issue', '<p><strong>' + _('Critical issue') + '</strong>')
                 htmlDoc += item + "<hr>"
         else:
             # items is a list of tuples:
-            htmlDoc += '<h2><font color="green">Configuration report</font></h2>\n'
+            htmlDoc += '<h2><font color="green">' + _('Configuration report') + '</font></h2>\n'
             numWarn = len(self.warnings)
             if numWarn == 0:
-                htmlDoc += '<p>All values seem reasonable (no warnings, but there might still be room for improvement).</p>\n'
+                htmlDoc += _('<p>All values seem reasonable (no warnings, but there might still be room for improvement).</p>\n')
             elif numWarn == 1:
-                htmlDoc += '<p><font color="red">1 suboptimal value was detected</font>, see details below (%s).</p>\n' % (self.warnings[0])
+                htmlDoc += '<p><font color="red">' + _('1 suboptimal value was detected</font>, see details below (%s).</p>\n') % (self.warnings[0])
             elif numWarn > 1:
-                htmlDoc += '<p><font color="red">%i suboptimal values were detected</font>, see details below (%s).</p>\n' % (numWarn, ', '.join(self.warnings))
+                htmlDoc += '<p><font color="red">' + _('%i suboptimal values were detected</font>, see details below (%s).</p>\n') % (numWarn, ', '.join(self.warnings))
             htmlDoc += '''<script type="text/javascript">
                 // Loops through all rows in document and changes display property of rows with a specific ID
                 // toggle('ok', '') will display all rows
@@ -453,17 +457,18 @@ class ConfigWizard(object):
                 }
                 </script>
                 <p>
-                <button onClick="toggle('ok', 'none');">Only show suboptimal values</button>
-                <button onClick="toggle('ok', '');">Show all information</button></p>
-                '''
-            htmlDoc += '''<p>Resources:
+                <button onClick="toggle('ok', 'none');">''' + _('Only show suboptimal values') + '</button>' +\
+                '''<button onClick="toggle('ok', '');">''' + _('Show all information') + '</button></p>'
+            htmlDoc += _('''<p>Resources:
                   Contributed <a href="http://upload.psychopy.org/benchmark/report.html">benchmarks</a>
                 | <a href="http://www.psychopy.org/documentation.html">On-line documentation</a>
                 | Download <a href="http://www.psychopy.org/PsychoPyManual.pdf">PDF manual</a>
                 | <a href="http://groups.google.com/group/psychopy-users">Search the user-group archives</a>
-                </p>'''
+                </p>''')
             htmlDoc += '<hr><p></p>    <table cellspacing=8 border=0>\n'
-            htmlDoc += '    <tr><td><font size=+1><strong>Configuration test</strong> or setting</font></td><td><font size=+1><strong>Version or value</strong></font></td><td><font size=+1><em>Notes</em></font></td>'
+            htmlDoc += '    <tr><td><font size=+1><strong>' + _('Configuration test</strong> or setting') +\
+                '</font></td><td><font size=+1><strong>' + _('Version or value') +\
+                '</strong></font></td><td><font size=+1><em>' + _('Notes') + '</em></font></td>'
             for (key, val, msg) in items:
                 if val == msg == '':
                     key = '<font color="darkblue" size="+1"><strong>' + key + '</strong></font>'
@@ -487,7 +492,7 @@ class ConfigWizard(object):
 
     def save(self):
         """Save the html text as a file."""
-        f = open(self.reportPath, 'w+b')
+        f = codecs.open(self.reportPath, 'wb', 'UTF8')
         f.write(self.reportText)
         f.close()
 
