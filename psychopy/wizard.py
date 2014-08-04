@@ -149,11 +149,11 @@ class ConfigWizard(object):
         return
 
     def runDiagnostics(self, win, verbose=False):
-        """Return list of (key, val, msg) tuple, set self.warnings
+        """Return list of (key, val, msg, warn) tuple, set self.warnings
 
         All tuple elements will be of <type str>.
 
-        msg can depend on val; msg starts with 'Warning:' to indicate a concern.
+        msg can depend on val; warn==True indicates a concern.
         Plain text is returned, expected to be used in html <table>.
         Hyperlinks can be embedded as <a href="...">
         """
@@ -165,25 +165,30 @@ class ConfigWizard(object):
         items = info.RunTimeInfo(win=win, refreshTest='grating', verbose=True, userProcsDetailed=True)
 
         totalRAM, freeRAM = items['systemMemTotalRAM'], items['systemMemFreeRAM']
+        warn = False
         if freeRAM == 'unknown':
             if totalRAM != 'unknown':
                 totalRAM = "%.1fG" % (totalRAM / 1024.)
             msg = _('could not assess available physical RAM; total %s') % totalRAM
-            report.append((_('available memory'), 'unknown', msg))
+            report.append((_('available memory'), 'unknown', msg, warn))
         else:
             msg = _('physical RAM available for configuration test (of %.1fG total)') % (totalRAM / 1024.)
             if freeRAM < 300:  # in M
                 msg = _('Warning: low available physical RAM for configuration test (of %.1fG total)') % (totalRAM / 1024.)
-            report.append((_('available memory'), unicode(freeRAM)+'M', msg))
+                warn = True
+            report.append((_('available memory'), unicode(freeRAM)+'M', msg, warn))
 
         # ----- PSYCHOPY: -----
-        report.append(('PsychoPy', '', ''))  # not localized
-        report.append(('psychopy', __version__, _('avoid upgrading during an experiment')))
+        warn = False
+        report.append(('PsychoPy', '', '', False))  # not localized
+        report.append(('psychopy', __version__, _('avoid upgrading during an experiment'), False))
         report.append((_('locale'), items['systemLocale'],
-                       _('can be set in <a href="http://www.psychopy.org/general/prefs.html#application-settings">Preferences -> App</a>')))
+                       _('can be set in <a href="http://www.psychopy.org/general/prefs.html#application-settings">Preferences -> App</a>'),
+                       False))
         msg = ''
         if items['pythonVersion'] < '2.5' or items['pythonVersion'] >= '3':
             msg = _('Warning: python 2.6 or 2.7 required; 2.5 is not supported but might work')
+            warn = True
         if 'EPD' in items['pythonFullVersion']:
             msg += ' Enthought Python Distribution'
         elif 'PsychoPy2.app' in items['pythonExecutable']:
@@ -191,39 +196,49 @@ class ConfigWizard(object):
         bits, linkage = platform.architecture()
         #if not bits.startswith('32'):
         #    msg = 'Warning: 32-bit python required; ' + msg
-        report.append((_('python version'), items['pythonVersion'] + ' &nbsp;(%s)' % bits, msg))
+        report.append((_('python version'), items['pythonVersion'] + ' &nbsp;(%s)' % bits, msg, warn))
+        warn = False
         if verbose:
             msg = ''
             if items['pythonWxVersion'] < '2.8.10':
                 msg = _('Warning: wx 2.8.10 or higher required')
-            report.append(('wx', items['pythonWxVersion'], ''))
-            report.append(('pyglet', items['pythonPygletVersion'][:32], ''))
-            report.append(('rush', str(items['psychopyHaveExtRush']), _('for high-priority threads')))
+                warn = True
+            report.append(('wx', items['pythonWxVersion'], '', warn))
+            report.append(('pyglet', items['pythonPygletVersion'][:32], '', False))
+            report.append(('rush', str(items['psychopyHaveExtRush']), _('for high-priority threads'), False))
 
         # ----- VISUAL: -----
-        report.append((_('Visual'), '', ''))
+        report.append((_('Visual'), '', '', False))
+        warn = False
         # openGL settings:
         msg = ''
         if items['openGLVersion'] < '2.':
             msg = _('Warning: <a href="http://www.psychopy.org/general/timing/reducingFrameDrops.html?highlight=OpenGL+2.0">OpenGL 2.0 or higher is ideal</a>.')
-        report.append((_('openGL version'), items['openGLVersion'], msg))
-        report.append((_('openGL vendor'), items['openGLVendor'], ''))
-        report.append((_('screen size'), ' x '.join(map(str, items['windowSize_pix'])), ''))
-        #report.append(('wait blanking', str(items['windowWaitBlanking']), ''))
+            warn = True
+        report.append((_('openGL version'), items['openGLVersion'], msg, warn))
+        report.append((_('openGL vendor'), items['openGLVendor'], '', False))
+        report.append((_('screen size'), ' x '.join(map(str, items['windowSize_pix'])), '', False))
+        #report.append(('wait blanking', str(items['windowWaitBlanking']), '', False))
 
+        warn = False
         msg = ''
         if not items['windowHaveShaders']:
             msg = _('Warning: <a href="http://www.psychopy.org/general/timing/reducingFrameDrops.html?highlight=shader">Rendering of complex stimuli will be slow</a>.')
-        report.append((_('have shaders'), str(items['windowHaveShaders']), msg))
+            warn = True
+        report.append((_('have shaders'), str(items['windowHaveShaders']), msg, warn))
 
+        warn = False
         msg = _('during the drifting <a href="http://www.psychopy.org/api/visual/gratingstim.html">GratingStim</a>')
         if items['windowRefreshTimeMedian_ms'] < 3.3333333:
             msg = _("""Warning: too fast? visual sync'ing with the monitor seems unlikely at 300+ Hz""")
-        report.append(('visual sync (refresh)', "%.2f ms/frame" % items['windowRefreshTimeMedian_ms'], msg))
+            warn = True
+        report.append(('visual sync (refresh)', "%.2f ms/frame" % items['windowRefreshTimeMedian_ms'], msg, warn))
         msg = _('SD < 0.5 ms is ideal (want low variability)')
+        warn = False
         if items['windowRefreshTimeSD_ms'] > .5:
             msg = _('Warning: the refresh rate has high frame-to-frame variability (SD > 0.5 ms)')
-        report.append((_('refresh stability (SD)'), "%.2f ms" % items['windowRefreshTimeSD_ms'], msg))
+            warn = True
+        report.append((_('refresh stability (SD)'), "%.2f ms" % items['windowRefreshTimeSD_ms'], msg, warn))
 
         # draw 100 dots as a minimally demanding visual test:
         # first get baseline frame-rate (safe as possible, no drawing):
@@ -237,30 +252,35 @@ class ConfigWizard(object):
             dots100.draw()
             win.flip()
         msg = _('during <a href="http://www.psychopy.org/api/visual/dotstim.html">DotStim</a> with 100 random dots')
+        warn = False
         intervalsMS = np.array(win.frameIntervals) * 1000
         nTotal = len(intervalsMS)
         nDropped = sum(intervalsMS > (1.5 * median))
         if nDropped:
             msg = _('Warning: could not keep up during <a href="http://www.psychopy.org/api/visual/dotstim.html">DotStim</a> with 100 random dots.')
-        report.append((_('no dropped frames'), '%i / %i' % (nDropped, nTotal), msg))
+            warn = True
+        report.append((_('no dropped frames'), '%i / %i' % (nDropped, nTotal), msg, warn))
         win.recordFrameIntervals = False
 
         msg = _('for movies')
+        warn = False
         try:
             from pyglet.media import avbin
         except: # not sure what error to catch, WindowsError not found
-            report.append((_('pyglet avbin'), 'import error', _('Warning: could not import avbin; playing movies will not work')))
+            report.append((_('pyglet avbin'), 'import error', _('Warning: could not import avbin; playing movies will not work'), True))
         else:
             ver = avbin.get_version()
             if sys.platform.startswith('linux'):
                 if not (7 <= ver < 8):
                     msg = _('Warning: version 7 recommended on linux (for movies)')
+                    warn = True
             elif not (5 <= ver < 6):
                 msg = _('Warning: version 5 recommended (for movies); Visit <a href="http://code.google.com/p/avbin">download page</a> [google.com]')
-            report.append((_('pyglet avbin'), unicode(ver), msg))
+                warn = True
+            report.append((_('pyglet avbin'), unicode(ver), msg, warn))
 
         if verbose:
-            report.append(('openGL max vertices', str(items['openGLmaxVerticesInVertexArray']), ''))
+            report.append(('openGL max vertices', str(items['openGLmaxVerticesInVertexArray']), '', False))
             keyList = ['GL_ARB_multitexture', 'GL_EXT_framebuffer_object', 'GL_ARB_fragment_program',
                 'GL_ARB_shader_objects', 'GL_ARB_vertex_shader', 'GL_ARB_texture_non_power_of_two',
                 'GL_ARB_texture_float', 'GL_STEREO']
@@ -268,20 +288,23 @@ class ConfigWizard(object):
                 val = items['openGLext.'+key]  # boolean
                 if not val:
                     val = '<strong>' + str(val) + '</strong>'
-                report.append((key, str(val), ''))
+                report.append((key, str(val), '', False))
 
         # ----- AUDIO: -----
-        report.append((_('Audio'), '', ''))
+        report.append((_('Audio'), '', '', False))
         msg = ''
+        warn = False
         if not 'systemPyoVersion' in items:
             msg = _('Warning: pyo is needed for sound and microphone.')
+            warn = True
             items['systemPyoVersion'] = '(missing)'
         #elif items['systemPyoVersion'] < '0.6.2':
         #    msg = 'pyo 0.6.2 compiled with --no-messages will suppress start-up messages'
-        report.append(('pyo', items['systemPyoVersion'], msg))
+        report.append(('pyo', items['systemPyoVersion'], msg, warn))
         # sound latencies from portaudio; requires pyo svn r1024
         try:
             sndInputDevices = items['systemPyo.InputDevices']
+            warn = False
             if len(sndInputDevices.keys()):
                 key = sndInputDevices.keys()[0]
                 mic = sndInputDevices[key]
@@ -290,72 +313,81 @@ class ConfigWizard(object):
                 msg = '"%s"' % mic['name']
                 if mic['latency'] > 0.01:
                     msg = _('Warning: "%s" latency > 10ms') % mic['name']
-                report.append((_("microphone latency"), "%.4f s" % mic['latency'], msg))
+                    warn = True
+                report.append((_("microphone latency"), "%.4f s" % mic['latency'], msg, warn))
             else:
-                report.append((_('microphone'), '(not detected)',''))
+                report.append((_('microphone'), '(not detected)','', False))
             sndOutputDevices = items['systemPyo.OutputDevices']
             if len(sndOutputDevices.keys()):
+                warn = False
                 key = sndOutputDevices.keys()[0]
                 spkr = sndOutputDevices[key]
                 msg = '"%s"' % spkr['name']
                 if spkr['latency'] > 0.01:
                     msg = _('Warning: "%s" latency > 10ms') % spkr['name']
-                report.append((_("speakers latency"), "%.4f s" % spkr['latency'], msg))
+                    warn = True
+                report.append((_("speakers latency"), "%.4f s" % spkr['latency'], msg, warn))
             else:
-                report.append((_('speakers'), _('(not detected)'),''))
+                report.append((_('speakers'), _('(not detected)'),'', False))
         except KeyError:
             pass
         s2t = '<a href="http://www.psychopy.org/api/microphone.html?highlight=Speech2Text">speech-to-text</a>'
         msg = _('audio codec for %s and sound file compression') % s2t
+        warn = False
         if not 'systemFlacVersion' in items:
             msg = _('Warning: flac is needed for using %s and sound compression.') % s2t + ' <a href="http://flac.sourceforge.net/download.html">Download</a> [sourceforge.net].'
+            warn = True
             items['systemFlacVersion'] = _('(missing)')
         if verbose:
-            report.append(('flac', items['systemFlacVersion'].lstrip('flac '), msg))
+            report.append(('flac', items['systemFlacVersion'].lstrip('flac '), msg, warn))
         # TO-DO: add microphone + playback as sound test
 
         # ----- NUMERIC: -----
-        report.append((_('Numeric'), '', ''))
-        report.append(('numpy', items['pythonNumpyVersion'], _('vector-based (fast) calculations')))
-        report.append(('scipy', items['pythonScipyVersion'], _('scientific / numerical')))
-        report.append(('matplotlib', items['pythonMatplotlibVersion'], _('plotting; fast contains(), overlaps()')))
+        report.append((_('Numeric'), '', '', False))
+        report.append(('numpy', items['pythonNumpyVersion'], _('vector-based (fast) calculations'), False))
+        report.append(('scipy', items['pythonScipyVersion'], _('scientific / numerical'), False))
+        report.append(('matplotlib', items['pythonMatplotlibVersion'], _('plotting; fast contains(), overlaps()'), False))
 
         # ----- SYSTEM: -----
-        report.append((_('System'), '', ''))
-        report.append(('platform', items['systemPlatform'], ''))
+        report.append((_('System'), '', '', False))
+        report.append(('platform', items['systemPlatform'], '', False))
         msg = _('for online help, usage statistics, software updates, and google-speech')
+        warn = False
         if items['systemHaveInternetAccess'] is not True:
             items['systemHaveInternetAccess'] = 'False'
             msg = _('Warning: could not connect (no proxy attempted)')
+            warn = True
             # TO-DO: dlg to query whether to try to auto-detect (can take a while), or allow manual entry of proxy str, save into prefs
         val = str(items['systemHaveInternetAccess'])
-        report.append((_('internet access'), val, msg))
-        report.append((_('auto proxy'), str(self.prefs.connections['autoProxy']), _('try to auto-detect a proxy if needed; see <a href="http://www.psychopy.org/general/prefs.html#connection-settings">Preferences -> Connections</a>')))
+        report.append((_('internet access'), val, msg, warn))
+        report.append((_('auto proxy'), str(self.prefs.connections['autoProxy']), _('try to auto-detect a proxy if needed; see <a href="http://www.psychopy.org/general/prefs.html#connection-settings">Preferences -> Connections</a>'), False))
         if not self.prefs.connections['proxy'].strip():
             prx = '&nbsp;&nbsp--'
         else:
             prx = unicode(self.prefs.connections['proxy'])
-        report.append((_('proxy setting'), prx, _('current manual proxy setting from <a href="http://www.psychopy.org/general/prefs.html#connection-settings">Preferences -> Connections</a>')))
+        report.append((_('proxy setting'), prx, _('current manual proxy setting from <a href="http://www.psychopy.org/general/prefs.html#connection-settings">Preferences -> Connections</a>'), False))
 
         msg = ''
+        warn = False
         items['systemUserProcFlagged'].sort()
         self.badBgProc = [p for p,pid in items['systemUserProcFlagged']]
         if len(self.badBgProc):
             val = ("%s ..." % self.badBgProc[0])
             msg = _('Warning: Some <a href="http://www.psychopy.org/general/timing/reducingFrameDrops.html?highlight=background+processes">background processes</a> can adversely affect timing')
+            warn = True
         else:
             val = _('No bad background processes active.')
-        report.append((_('background processes'), val, msg))
+        report.append((_('background processes'), val, msg, warn))
         if verbose and 'systemSec.OpenSSLVersion' in items:
-            report.append(('OpenSSL', items['systemSec.OpenSSLVersion'].lstrip('OpenSSL '), 'for <a href="http://www.psychopy.org/api/encryption.html">encryption</a>'))
-        report.append((_('CPU speed test'), "%.3f s" % items['systemTimeNumpySD1000000_sec'], _('numpy.std() of 1,000,000 data points')))
+            report.append(('OpenSSL', items['systemSec.OpenSSLVersion'].lstrip('OpenSSL '), 'for <a href="http://www.psychopy.org/api/encryption.html">encryption</a>', False))
+        report.append((_('CPU speed test'), "%.3f s" % items['systemTimeNumpySD1000000_sec'], _('numpy.std() of 1,000,000 data points'), False))
             # TO-DO: more speed benchmarks
             # - load large image file from disk
             # - transfer image to GPU
 
         # ----- IMPORTS (relevant for developers & non-StandAlone): -----
         if verbose:  # always False for a real first-run
-            report.append((_('Python packages'), '', ''))
+            report.append((_('Python packages'), '', '', False))
             packages = ['PIL', 'openpyxl', 'lxml', 'setuptools', 'pytest', 'sphinx',
                         'psignifit', 'pyserial', 'pp',
                         'pynetstation', 'ioLabs', 'labjack'
@@ -382,18 +414,20 @@ class ConfigWizard(object):
                         exec('import ' + pkg)
                         try: ver = eval(pkg+'.__version__')
                         except: ver = 'import ok'
-                    report.append((pkg, ver, ''))
+                    report.append((pkg, ver, '', False))
                 except (ImportError, AttributeError):
-                    report.append((pkg, '&nbsp;&nbsp--', _('could not import package %s') % pkg))
+                    report.append((pkg, '&nbsp;&nbsp--', _('could not import package %s') % pkg, False))
 
-        self.warnings = list(set([key for key, val, msg in report if msg.startswith('Warning')]))  # breaks MVC / localization
+        # rewrite to avoid assumption of locale en_US:
+        self.warnings = list(set([key for key, val, msg, warn in report if warn]))
+
         return report
 
     def summary(self, items=None):
         """Return a list of (item, color) for gui display. For non-fatal items."""
         config = {}
         for item in items:
-            config[item[0]] = [item[1], item[2]]
+            config[item[0]] = [item[1], item[2], item[3]]  # [3] = warn or not
         green = '#009933'
         red = '#CC3300'
         check = u"\u2713   "
@@ -404,19 +438,19 @@ class ConfigWizard(object):
             _('internet access')]
         ofInterest.append(_('background processes'))
         for item in ofInterest:
-            if not item in config:
+            if not item in config.keys():
                 continue  # eg, microphone latency
-            if config[item][1].startswith('Warning:'):
+            if config[item][2]:  # warn True
                 summary.append(("X   " + item, red))
             else:
                 summary.append((check + item, green))
         return summary
 
     def htmlReport(self, items=None, fatal=False):
-        """Return an html report given a list of (key, val, msg) items.
+        """Return an html report given a list of (key, val, msg, warn) items.
 
         format triggers: 'Critical issue' in fatal gets highlighted
-                         'Warning:' in msg -> highlight key and val
+                         warn==True -> highlight key and val
                          val == msg == '' -> use key as section heading
         """
 
@@ -469,12 +503,12 @@ class ConfigWizard(object):
             htmlDoc += '    <tr><td><font size=+1><strong>' + _('Configuration test</strong> or setting') +\
                 '</font></td><td><font size=+1><strong>' + _('Version or value') +\
                 '</strong></font></td><td><font size=+1><em>' + _('Notes') + '</em></font></td>'
-            for (key, val, msg) in items:
+            for (key, val, msg, warn) in items:
                 if val == msg == '':
                     key = '<font color="darkblue" size="+1"><strong>' + key + '</strong></font>'
                 else:
                     key = '&nbsp;&nbsp;&nbsp;&nbsp;' + key
-                if msg.startswith('Warning'):
+                if warn:
                     key = '<font style=color:red><strong>' + key + '</strong></font>'
                     val = '<font style=color:red><strong>' + val + '</strong></font>'
                     id = 'Warning'
@@ -522,13 +556,13 @@ class BenchmarkWizard(ConfigWizard):
         # its nicer for benchmark results to appears at top of the report:
         diagnostics = self.runDiagnostics(win, verbose=True)
         info = {}
-        for k, v, m in diagnostics:  # list of tuples --> dict, ignore msg m
+        for k, v, m, w in diagnostics:  # list of tuples --> dict, ignore msg m, warning w
             info[k] = v
         fps = 1000./float(info['visual sync (refresh)'].split()[0])
 
-        itemsList = [('Benchmark', '', '')]
-        itemsList.append(('benchmark version', '0.1', 'dots & configuration'))
-        itemsList.append(('full-screen', str(fullscr), 'visual window for drawing'))
+        itemsList = [('Benchmark', '', '', False)]
+        itemsList.append(('benchmark version', '0.1', 'dots & configuration', False))
+        itemsList.append(('full-screen', str(fullscr), 'visual window for drawing', False))
 
         if int(info['no dropped frames'].split('/')[0]) != 0:  # eg, "0 / 180"
             start = 50  # if 100 dots had problems earlier, here start lower
@@ -543,11 +577,11 @@ class BenchmarkWizard(ConfigWizard):
 
         itemsDict = {}
         for itm in itemsList:
-            if itm[0].find('proxy setting') > -1 or not itm[1]:
+            if 'proxy setting' in itm[0] or not itm[1]:
                 continue
             itemsDict[itm[0]] = itm[1].replace('<strong>', '').replace('</strong>', '').replace('&nbsp;', '').replace('&nbsp', '')
-            if log:
-                print itm[0]+': ' + itemsDict[itm[0]]
+            #if log:
+            #    print itm[0]+': ' + itemsDict[itm[0]]
 
         # present dialog, upload only if opt-in:
         dlg = gui.Dlg(title=self.name)
@@ -649,7 +683,7 @@ class BenchmarkWizard(ConfigWizard):
                     sys.exit()
                 if fps < baseline * 0.6:
                     # only break when start dropping a LOT of frames (80% or more)
-                    dotsInfo.append(('dots_' + fieldShape, str(bestDots), ''))
+                    dotsInfo.append(('dots_' + fieldShape, str(bestDots), '', False))
                     break
                 frames_dropped = round(baseline-fps)  # can be negative
                 if frames_dropped < 1:  # can be negative
