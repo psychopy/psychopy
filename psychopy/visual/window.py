@@ -19,6 +19,7 @@ GL = pyglet.gl
 import ctypes
 
 #try to find avbin (we'll overload pyglet's load_library tool and then add some paths)
+haveAvbin = False
 if pyglet.version < "1.2":
     import pyglet.lib
 
