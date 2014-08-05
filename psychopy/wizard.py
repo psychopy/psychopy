@@ -478,7 +478,7 @@ class ConfigWizard(object):
             elif numWarn == 1:
                 htmlDoc += '<p><font color="red">' + _('1 suboptimal value was detected</font>, see details below (%s).</p>\n') % (self.warnings[0])
             elif numWarn > 1:
-                htmlDoc += '<p><font color="red">' + _('%i suboptimal values were detected</font>, see details below (%s).</p>\n') % (numWarn, ', '.join(self.warnings))
+                htmlDoc += '<p><font color="red">' + _('%(num)i suboptimal values were detected</font>, see details below (%(warn)s).</p>\n') % {'num': numWarn, 'warn': ', '.join(self.warnings)}
             htmlDoc += '''<script type="text/javascript">
                 // Loops through all rows in document and changes display property of rows with a specific ID
                 // toggle('ok', '') will display all rows

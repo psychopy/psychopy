@@ -14,7 +14,6 @@ msgstr ""
 "Content-Transfer-Encoding: ENCODING\n"
 "Generated-By: pygettext.py 1.5\n"
 
-
 #: __init__.py:48
 msgid "Welcome to PsychoPy2!"
 msgstr "Welcome to PsychoPy2! Haere mai ki PsychoPy2!"
