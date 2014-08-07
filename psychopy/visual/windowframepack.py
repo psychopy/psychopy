@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
-'''A class representing a window for displaying one or more stimuli'''
+'''A class to pack multiple monochrome images into a single RGB frame for 
+TI LightCrafter 4500 (and similar) DLP projectors to achieve 180Hz stimuli'''
 
 # Part of the PsychoPy library
 # Copyright (C) 2014 Jonathan Peirce
