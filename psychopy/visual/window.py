@@ -102,6 +102,83 @@ openWindows = []
 # can provide a default window for mouse
 psychopy.event.visualOpenWindows = openWindows
 
+from abc import abstractproperty, abstractmethod, ABCMeta
+
+class BaseWarper:
+    '''Abstract Base Class for all warp derived classes.'''
+    __metaclass__=ABCMeta
+
+    @abstractmethod
+    def setWindowAndGL(self, window, GL):
+        '''Associate a window and GL context with the warper'''
+        pass
+
+    @abstractmethod
+    def drawWarp(self):
+        '''Perform a warp operation'''
+        pass
+
+class NullWarper(BaseWarper):
+    '''Performs a null warp.'''
+
+    def setWindowAndGL(self, window, GL):
+        '''Associate a window and GL context with the warper'''
+        self.window = window
+        self.GL = GL
+
+    def drawWarp(self):
+        '''Perform a warp operation (in this case a copy operation without any warping)'''
+        self.GL.glBegin(self.GL.GL_QUADS)
+        self.GL.glTexCoord2f(0.0, 0.0)
+        self.GL.glVertex2f(-1.0, -1.0)
+        self.GL.glTexCoord2f(0.0, 1.0)
+        self.GL.glVertex2f(-1.0, 1.0)
+        self.GL.glTexCoord2f(1.0, 1.0)
+        self.GL.glVertex2f(1.0, 1.0)
+        self.GL.glTexCoord2f(1.0, 0.0)
+        self.GL.glVertex2f(1.0, -1.0)
+        self.GL.glEnd()
+
+class BaseFramePacker():
+    '''Abstract Base Class for all frame packer derived classes. Performs a null frame pack.'''
+    __metaclass__=ABCMeta
+
+    @abstractmethod
+    def setWindowAndGL(self, window, GL):
+        '''Associate a window and GL context with the frame packer'''
+
+    @abstractmethod
+    def getActualFrameRate(self):
+        '''Return the fps of this monitor if known, else None'''
+    
+    @abstractmethod
+    def shouldHardwareFlipThisFrame(self):
+        '''Return True if the hardware flip function should be called for this frame'''
+
+    @abstractmethod
+    def afterHardwareFlip(self, clearBuffer):
+        '''Called to set color channel masks for the next frame, and clear buffer if requested'''
+
+class NullFramePacker(BaseFramePacker):
+    '''Performs a null frame pack.'''
+
+    def setWindowAndGL(self, window, GL):
+        '''Associate a window and GL context with the frame packer'''
+        self.window = window
+        self.GL = GL
+
+    def getActualFrameRate(self):
+        ''' Return the fps of this monitor if known.'''
+        return None
+    
+    def shouldHardwareFlipThisFrame(self):
+        '''Return True if the hardware flip function should be called for this frame'''
+        return True 
+
+    def afterHardwareFlip(self, clearBuffer):
+        '''Called to set color channel masks for the next frame, and clear buffer if requested'''
+        if clearBuffer:
+            self.GL.glClear(self.GL.GL_COLOR_BUFFER_BIT)
 
 class Window(object):
     """Used to set up a context in which to draw objects,
@@ -142,7 +219,9 @@ class Window(object):
                  name='window1',
                  checkTiming=True,
                  useFBO=False,
-                 autoLog=True):
+                 autoLog=True,
+                 warper=NullWarper(),
+                 framePacker=NullFramePacker()):
         """
         These attributes can only be set at initialization. See further down
         for a list of attributes which can be changed after initialization
@@ -199,6 +278,12 @@ class Window(object):
                 his will be enabled.
                 You can switch between left and right-eye scenes for drawing
                 operations using :func:`~psychopy.visual.Window.setBuffer`
+            warper: *None* to use the default null warper, or a class derived from 
+                NullWarper which can perform arbitrary spatial warps of the output
+                window.
+            framePacker: *None* to use the default null framePacker, or a class 
+                derived from NullFramePacker which can pack multiple monochrome
+                frames per RGB output to produce 180Hz stimuli.
 
             :note: Preferences. Some parameters (e.g. units) can now be given
                 default values in the user/site preferences and these will be
@@ -352,10 +437,19 @@ class Window(object):
         self.waitBlanking = waitBlanking
         self._refreshThreshold = 1/1.0  # initial val needed by flip()
 
+        #set up the warping object
+        self.warper = warper
+        self.warper.setWindowAndGL(self, GL)
+
+        #set up the frame packing object
+        self.framePacker = framePacker
+        self.framePacker.setWindowAndGL(self, GL)
+
         # over several frames with no drawing
         self._monitorFrameRate=None
         self.monitorFramePeriod=0.0 #for testing  when to stop drawing a stim
-        if checkTiming:
+        self._monitorFrameRate = self.framePacker.getActualFrameRate()
+        if checkTiming and self._monitorFrameRate is None:
             self._monitorFrameRate = self.getActualFrameRate()
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod=1.0/self._monitorFrameRate
@@ -515,42 +609,33 @@ class Window(object):
         for thisStim in self._toDraw:
             thisStim.draw()
 
+        flipThisFrame = self.framePacker.shouldHardwareFlipThisFrame()
+
         if self.useFBO:
-            self._prepareFBOrender()
-            #need blit the frambuffer object to the actual back buffer
+            if flipThisFrame:
+                self._prepareFBOrender()
+                #need blit the frambuffer object to the actual back buffer
 
-            # unbind the framebuffer as the render target
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
-            GL.glDisable(GL.GL_BLEND)
-            stencilOn = GL.glIsEnabled(GL.GL_STENCIL_TEST)
-            GL.glDisable(GL.GL_STENCIL_TEST)
+                # unbind the framebuffer as the render target
+                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+                GL.glDisable(GL.GL_BLEND)
+                stencilOn = GL.glIsEnabled(GL.GL_STENCIL_TEST)
+                GL.glDisable(GL.GL_STENCIL_TEST)
 
-            if self.bits != None:
-                self.bits._prepareFBOrender()
+                if self.bits != None:
+                    self.bits._prepareFBOrender()
 
-            # before flipping need to copy the renderBuffer to the frameBuffer
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self.frameTexture)
-            GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
-            #draw the quad for the screen
-            GL.glBegin(GL.GL_QUADS)
+                # before flipping need to copy the renderBuffer to the frameBuffer
+                GL.glActiveTexture(GL.GL_TEXTURE0)
+                GL.glEnable(GL.GL_TEXTURE_2D)
+                GL.glBindTexture(GL.GL_TEXTURE_2D, self.frameTexture)
+                GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
+                GL.glColorMask(True, True, True, True)
 
-            GL.glTexCoord2f(0.0, 0.0)
-            GL.glVertex2f(-1.0, -1.0)
+                self.warper.drawWarp()
 
-            GL.glTexCoord2f(0.0, 1.0)
-            GL.glVertex2f(-1.0, 1.0)
-
-            GL.glTexCoord2f(1.0, 1.0)
-            GL.glVertex2f(1.0, 1.0)
-
-            GL.glTexCoord2f(1.0, 0.0)
-            GL.glVertex2f(1.0, -1.0)
-
-            GL.glEnd()
-            GL.glEnable(GL.GL_BLEND)
-            self._finishFBOrender()
+                GL.glEnable(GL.GL_BLEND)
+                self._finishFBOrender()
 
         #update the bits++ LUT
         if self.bits!=None: #try using modern BitsBox/BitsSharp class in pycrsltd
@@ -573,25 +658,28 @@ class Window(object):
             # movie updating
             if pyglet.version < '1.2':
                 pyglet.media.dispatch_events()  # for sounds to be processed
-            self.winHandle.flip()
+            if flipThisFrame:
+                self.winHandle.flip()
         else:
             if pygame.display.get_init():
-                pygame.display.flip()
+                if flipThisFrame:
+                    pygame.display.flip()
                 # keeps us in synch with system event queue
                 pygame.event.pump()
             else:
                 core.quit()  # we've unitialised pygame so quit
 
         if self.useFBO:
-            #set rendering back to the framebuffer object
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-            #set to no active rendering texture
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-            if stencilOn:
-                GL.glEnable(GL.GL_STENCIL_TEST)
+            if flipThisFrame:
+                #set rendering back to the framebuffer object
+                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+                GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+                GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+                #set to no active rendering texture
+                GL.glActiveTexture(GL.GL_TEXTURE0)
+                GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+                if stencilOn:
+                    GL.glEnable(GL.GL_STENCIL_TEST)
         #rescale/reposition view of the window
         if self.viewScale is not None:
             GL.glMatrixMode(GL.GL_PROJECTION)
@@ -615,11 +703,10 @@ class Window(object):
             GL.glRotatef(self.viewOri, 0.0, 0.0, -1.0)
 
         #reset returned buffer for next frame
-        if clearBuffer:
-            GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+        self.framePacker.afterHardwareFlip(clearBuffer)
 
         #waitBlanking
-        if self.waitBlanking:
+        if self.waitBlanking and flipThisFrame:
             GL.glBegin(GL.GL_POINTS)
             GL.glColor4f(0, 0, 0, 0)
             if sys.platform == 'win32' and self.glVendor.startswith('ati'):
@@ -1468,7 +1555,7 @@ class Window(object):
                                     int(self.size[0]), int(self.size[1]))
         GL.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT,
                                         GL.GL_STENCIL_ATTACHMENT_EXT,
-                                        GL.GL_RENDERBUFFER_EXT, self._stencilTexture);
+                                        GL.GL_RENDERBUFFER_EXT, self._stencilTexture)
 
         status = GL.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT)
         if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
