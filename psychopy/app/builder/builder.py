@@ -66,10 +66,14 @@ class WindowFrozen(object):
     def __init__(self, ctrl):
         self.ctrl = ctrl
     def __enter__(self):#started the with... statement
+        if sys.platform == 'win32': #Freeze should not be called if platform is win32.
+            return self.ctrl
         if self.ctrl is not None and wx.__version__[:3]<='2.8':#check it hasn't been deleted
             self.ctrl.Freeze()
         return self.ctrl
     def __exit__(self, exc_type, exc_val, exc_tb):#ended the with... statement
+        if sys.platform == 'win32': #Thaw should not be called if platform is win32.
+            return
         if self.ctrl is not None and self.ctrl.IsFrozen():#check it hasn't been deleted
             self.ctrl.Thaw()
 
