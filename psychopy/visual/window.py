@@ -140,7 +140,7 @@ class NullWarper(BaseWarper):
         self.GL.glEnd()
 
 class BaseFramePacker():
-    '''Abstract Base Class for all frame packer derived classes. Performs a null frame pack.'''
+    '''Abstract Base Class for all frame packer derived classes. '''
     __metaclass__=ABCMeta
 
     @abstractmethod
