@@ -1,11 +1,18 @@
 #!/usr/bin/env python2
 
-'''A class to pack multiple monochrome images into a single RGB frame for 
-TI LightCrafter 4500 (and similar) DLP projectors to achieve 180Hz stimuli'''
+'''
+Copyright (C) 2014 Allen Institute for Brain Science
+                
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License Version 3
+as published by the Free Software Foundation on 29 June 2007.
 
-# Part of the PsychoPy library
-# Copyright (C) 2014 Jonathan Peirce
-# Distributed under the terms of the GNU General Public License (GPL).
+This program is distributed WITHOUT WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE OR ANY OTHER WARRANTY, EXPRESSED OR IMPLIED.  
+See the GNU General Public License Version 3 for more details.
+
+You should have received a copy of the GNU General Public License along with this program.  
+If not, see http://www.gnu.org/licenses/
+
+'''
 
 import sys
 import os
