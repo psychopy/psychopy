@@ -74,8 +74,8 @@ else:
 
 ########################
 #
-# Resursive updating of values from one dict into another if the key foes not key exist.
-# Supported nexted dicts and uses deep copy when setting values in thge target dict.
+# Resursive updating of values from one dict into another if the key does not key exist.
+# Supported nested dicts and uses deep copy when setting values in the target dict.
     
 import copy
 def updateDict(add_to,add_from):

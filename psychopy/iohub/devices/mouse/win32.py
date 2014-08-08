@@ -102,7 +102,15 @@ class Mouse(MouseDevice):
     def _nativeEventCallback(self,event):
         if self.isReportingEvents():
             logged_time=currentSec()
-            #print2err("Received mouse event pos: ", event.Position)
+            report_system_wide_events=self.getConfiguration().get('report_system_wide_events',True)
+            pyglet_window_hnds=self._iohub_server._pyglet_window_hnds
+            if event.Window in pyglet_window_hnds:
+                pass
+            elif len(pyglet_window_hnds)>0 and report_system_wide_events is False:
+                # For the Mouse, always pass along events, but do not log
+                # events that occurred targeted for a non Psychopy win.
+                #
+                return True
             self._scrollPositionY+= event.Wheel
             event.WheelAbsolute=self._scrollPositionY
 
@@ -160,7 +168,6 @@ class Mouse(MouseDevice):
 
             self._last_callback_time=logged_time
             
-
         # pyHook require the callback to return True to inform the windows 
         # low level hook functionality to pass the event on.
         return True

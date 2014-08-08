@@ -21,7 +21,7 @@ Save csv file:
 	If this box is checked a comma separated variable (.csv) will be stored.
 
 Save psydat file:
-	If this box is checked a :ref: `psydatFile` will be stored. This is a Python specific format (.pickle files) which contains more information that .xlsx or .csv files that can be used with data analysis and plotting scripts written in Python. Whilst you may not wish to use this format it is recommended that you always save a copy as it contains a complete record of the experiment at the time of data collection.
+	If this box is checked a :ref:`psydatFile` will be stored. This is a Python specific format (.pickle files) which contains more information that .xlsx or .csv files that can be used with data analysis and plotting scripts written in Python. Whilst you may not wish to use this format it is recommended that you always save a copy as it contains a complete record of the experiment at the time of data collection.
 
 Save log file
     A log file provides a record of what occurred during the experiment in chronological order, including information about any errors or warnings that may have occurred.

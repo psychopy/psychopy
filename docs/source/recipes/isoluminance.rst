@@ -9,14 +9,14 @@ From the mailing list (see there for names, etc):
 A1: The easiest way to create isoluminant stimuli (or control the luminance content) is to create the
 stimuli in DKL space and then convert them into RGB space for presentation on the monitor.
 
-More details on DKL space can be found here: http://www.psychopy.org/general/colours.html and conversions between DKL and RGB can be found here: http://www.psychopy.org/api/misc.html
+More details on DKL space can be found in the section about :ref:`colorspaces` and conversions between DKL and RGB can be found in the API reference for :class:`psychopy.misc`
 
 
-Q2. **There's a difference in luminance between my stimuli. How could I correct for that?**
+**Q2: There's a difference in luminance between my stimuli. How could I correct for that?**
 
 I'm running an experiment where I manipulate color chromatic saturation,
 keeping luminance constant. I've coded the colors (red and blue) in rgb255 for 6
-saturation values (10%, 20%, 3¡%, 40%, 50%, 60%, 90%) using a conversion from HSL to RGB color space.
+saturation values (10%, 20%, 30%, 40%, 50%, 60%, 90%) using a conversion from HSL to RGB color space.
 
 Note that we don't possess spectrophotometers such as PR650 in our lab to calibrate
 each color gun. I've calibrated the gamma of my monitor psychophysically. Gamma
@@ -24,7 +24,7 @@ was set to 1.7 (threshold) for gamm(lum), gamma(R), gamma(G), gamma(B). Then I'v
 measured the luminance of each stimuli with a Brontes colorimeter. But there's a
 difference in luminance between my stimuli. How could I correct for that?
 
-A2. Without a spectroradiometer you won't be able to use the color spaces like
+A2: Without a spectroradiometer you won't be able to use the color spaces like
 DKL which are designed to help this sort of thing.
 
 If you don't care about using a specific colour space though you should be able

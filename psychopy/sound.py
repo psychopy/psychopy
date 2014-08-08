@@ -35,6 +35,7 @@ pygame (must be version 1.8 or above):
 
 import numpy, time, sys
 from os import path
+import threading
 from string import capitalize
 from sys import platform, exit, stdout
 from psychopy import event, core, logging, prefs
@@ -265,17 +266,29 @@ class SoundPygame(_SoundBase):
         self._snd=None
         self.setSound(value=value, secs=secs, octave=octave)
 
-    def play(self, fromStart=True, log=True):
+    def play(self, fromStart=True, log=True, loops=0):
         """Starts playing the sound on an available channel.
-        If no sound channels are available, it will not play and return None.
 
+        Parameters
+        ----------
+        fromStart : bool
+            Not yet implemented.
+        log : bool
+            Whether or not to log the playback event.
+        loops : int
+            How many times to repeat the sound after it plays once. If
+            `loops` == -1, the sound will repeat indefinitely until stopped.
+
+        Notes
+        -----
+        If no sound channels are available, it will not play and return None.
         This runs off a separate thread i.e. your code won't wait for the
         sound to finish before continuing. You need to use a
         psychopy.core.wait() command if you want things to pause.
         If you call play() whiles something is already playing the sounds will
         be played over each other.
         """
-        self._snd.play()
+        self._snd.play(loops=loops)
         self.status=STARTED
         if log and self.autoLog:
             logging.exp("Sound %s started" %(self.name), obj=self)
@@ -353,7 +366,7 @@ class SoundPyo(_SoundBase):
     """Create a sound object, from one of MANY ways.
     """
     def __init__(self, value="C", secs=0.5, octave=4, stereo=True, volume=1.0,
-                 loop=False, sampleRate=44100, bits=16, hamming=True,
+                 loops=0, sampleRate=44100, bits=16, hamming=True,
                  name='', autoLog=True):
         """
         value: can be a number, string or an array.
@@ -387,8 +400,9 @@ class SoundPyo(_SoundBase):
         volume: loudness to play the sound, from 0.0 (silent) to 1.0 (max).
             Adjustments are not possible during playback, only before.
 
-        loop: False (= default, just play once), or True (repeat indefinitely,
-            until `.stop()`)
+        loops : int
+            How many times to repeat the sound after it plays once. If
+            `loops` == -1, the sound will repeat indefinitely until stopped.
 
         sampleRate (= 44100): if the psychopy.sound.init() function has been called
             or if another sound has already been created then this argument will be
@@ -400,12 +414,13 @@ class SoundPyo(_SoundBase):
             effect on sounds from files.
         """
         global pyoSndServer
-        if pyoSndServer==None:
+        if pyoSndServer==None or pyoSndServer.getIsBooted()==0:
             initPyo(rate=sampleRate)
 
         self.sampleRate=pyoSndServer.getSamplingRate()
         self.format = bits
         self.isStereo = stereo
+        self.channels = 1 + int(stereo)
         self.secs=secs
         self.autoLog=autoLog
         self.name=name
@@ -413,13 +428,16 @@ class SoundPyo(_SoundBase):
         #try to create sound; set volume and loop before setSound (else needsUpdate=True)
         self._snd=None
         self.volume = min(1.0, max(0.0, volume))
-        self.loop = bool(loop)
+        self.loops = int(loops)
         self.setSound(value=value, secs=secs, octave=octave, hamming=hamming)
         self.needsUpdate = False
 
-    def play(self, fromStart=True, log=True):
+    def play(self, fromStart=True, loops=None, autoStop=True, log=True):
         """Starts playing the sound on an available channel.
         If no sound channels are available, it will not play and return None.
+
+        loops : int
+            (same as above)
 
         This runs off a separate thread i.e. your code won't wait for the
         sound to finish before continuing. You need to use a
@@ -427,22 +445,40 @@ class SoundPyo(_SoundBase):
         If you call `play()` while something is already playing the sounds will
         be played over each other.
         """
+        if loops is not None and self.loops != loops:
+            self.setLoops(loops)
         if self.needsUpdate:
             self._updateSnd()  # ~0.00015s, regardless of the size of self._sndTable
         self._snd.out()
         self.status=STARTED
+        if autoStop or self.loops != 0:
+            # pyo looping is boolean: loop forever or not at all
+            # so track requested loops using time; limitations: not sample-accurate
+            if self.loops >= 0:
+                duration = self.getDuration() * (self.loops + 1)
+            else:
+                duration = FOREVER
+            self.terminator = threading.Timer(duration, self._onEOS)
+            self.terminator.start()
         if log and self.autoLog:
             logging.exp("Sound %s started" %(self.name), obj=self)
         return self
 
     def _onEOS(self):
-        #ToDo: is an EOS callback supported by pyo?
-        self.status=FINISHED
+        # call _onEOS from a thread based on time, enables loop termination
+        if self.loops != 0:  # then its looping forever as a pyo object
+            self._snd.stop()
+        if self.status != NOT_STARTED:  # in case of multiple successive trials
+            self.status = FINISHED
         return True
 
     def stop(self, log=True):
         """Stops the sound immediately"""
         self._snd.stop()
+        try:
+            self.terminator.cancel()
+        except:
+            pass
         self.status=STOPPED
         if log and self.autoLog:
             logging.exp("Sound %s stopped" %(self.name), obj=self)
@@ -453,9 +489,9 @@ class SoundPyo(_SoundBase):
     def getVolume(self):
         """Returns the current volume of the sound (0.0 to 1.0, inclusive)"""
         return self.volume
-    def getLoop(self):
-        """Returns the current loop setting of the sound (True, False)"""
-        return self.loop
+    def getLoops(self):
+        """Returns the current requested loops value for the sound (int)"""
+        return self.loops
 
     def setVolume(self, newVol, log=True):
         """Sets the current volume of the sound (0.0 to 1.0, inclusive)"""
@@ -465,18 +501,19 @@ class SoundPyo(_SoundBase):
             logging.exp("Sound %s set volume %.3f" % (self.name, self.volume), obj=self)
         return self.getVolume()
 
-    def setLoop(self, newLoop, log=True):
-        """Sets the current loop (True or False"""
-        self.loop = (newLoop == True)
+    def setLoops(self, newLoops, log=True):
+        """Sets the current requested extra loops (int)"""
+        self.loops = int(newLoops)
         self.needsUpdate = True
         if log and self.autoLog:
-            logging.exp("Sound %s set loop %s" % (self.name, self.loop), obj=self)
-        return self.getLoop()
+            logging.exp("Sound %s set loops %s" % (self.name, self.loops), obj=self)
+        return self.getLoops()
 
     def _updateSnd(self):
         self.needsUpdate = False
+        doLoop = bool(self.loops != 0)  # if True, end it via threading.Timer
         self._snd = pyo.TableRead(self._sndTable, freq=self._sndTable.getRate(),
-                                  loop=self.loop, mul=self.volume)
+                                  loop=doLoop, mul=self.volume)
     def _fromFile(self, fileName):
         #try finding the file
         self.fileName=None
@@ -487,19 +524,17 @@ class SoundPyo(_SoundBase):
                 self.fileName=path.join(filePath,fileName+'.wav')
         if self.fileName is None:
             return False
-        #load the file
-        self._sndTable = pyo.SndTable(self.fileName)
+        # want mono sound file played to both speakers, not just left / 0
+        self._sndTable = pyo.SndTable(initchnls=self.channels)
+        self._sndTable.setSound(self.fileName)  # mono file loaded to all chnls
         self._updateSnd()
         self.duration = self._sndTable.getDur()
         return True
 
     def _fromArray(self, thisArray):
-        if self.isStereo:
-            channels=2
-        else:
-            channels=1
-        self._sndTable = pyo.DataTable(size=len(thisArray), init=thisArray.tolist(),
-                                       chnls=channels)
+        self._sndTable = pyo.DataTable(size=len(thisArray),
+                                       init=thisArray.T.tolist(),
+                                       chnls=self.channels)
         self._updateSnd()
         # a DataTable has no .getDur() method, so just store the duration:
         self.duration = float(len(thisArray)) / self.sampleRate
@@ -548,7 +583,7 @@ def _bestDriver(devNames, devIDs):
                     audioDriver=devString
                     outputID=devIDs[devN]
                     return audioDriver, outputID #we found an asio driver don'w look for others
-            except UnicodeDecodeError, UnicodeEncodeError:
+            except (UnicodeDecodeError, UnicodeEncodeError):
                 logging.warn('find best sound driver - could not interpret unicode in driver name')
     else:
         return None, None
@@ -558,7 +593,10 @@ def initPyo(rate=44100, stereo=True, buffer=128):
     """
     global pyoSndServer, Sound, audioDriver, duplex, maxChnls
     Sound = SoundPyo
-    if not 'pyo' in locals():
+    global pyo
+    try:
+        assert pyo
+    except NameError:
         import pyo  # microphone.switchOn() calls initPyo even if audioLib is something else
     #subclass the pyo.Server so that we can insert a __del__ function that shuts it down
     class _Server(pyo.Server):
@@ -576,7 +614,7 @@ def initPyo(rate=44100, stereo=True, buffer=128):
         Server = pyo.Server
 
     # if we already have a server, just re-initialize it
-    if globals().has_key('pyoSndServer') and hasattr(pyoSndServer,'shutdown'):
+    if 'pyoSndServer' in globals() and hasattr(pyoSndServer,'shutdown'):
         pyoSndServer.stop()
         core.wait(0.5)#make sure enough time passes for the server to shutdown
         pyoSndServer.shutdown()
@@ -602,6 +640,7 @@ def initPyo(rate=44100, stereo=True, buffer=128):
                 maxInputChnls = pyo.pa_get_input_max_channels(inputID)
                 duplex = bool(maxInputChnls > 0)
             else:
+                maxInputChnls = 0
                 duplex=False
         else:#for other platforms set duplex to True (if microphone is available)
             audioDriver = prefs.general['audioDriver'][0]
@@ -618,8 +657,8 @@ def initPyo(rate=44100, stereo=True, buffer=128):
             return -1
 
         # create the instance of the server:
-        if platform=='darwin':
-            #for mac we set the backend using the server audio param
+        if platform in ['darwin', 'linux2']:
+            #for mac/linux we set the backend using the server audio param
             pyoSndServer = Server(sr=rate, nchnls=maxChnls, buffersize=buffer, audio=audioDriver)
         else:
             #with others we just use portaudio and then set the OutputDevice below
@@ -653,7 +692,7 @@ def setaudioLib(api):
 def apodize(soundArray, sampleRate):
     """Apply a Hamming window (5ms) to reduce a sound's 'click' onset / offset
     """
-    hwSize = min(sampleRate // 200, len(soundArray) // 15)
+    hwSize = int(min(sampleRate // 200, len(soundArray) // 15))
     hammingWindow = numpy.hamming(2 * hwSize + 1)
     soundArray[:hwSize] *= hammingWindow[:hwSize]
     for i in range(2):

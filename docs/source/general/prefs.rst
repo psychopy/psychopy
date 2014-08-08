@@ -10,10 +10,10 @@ winType:
     you can set the default backend to be used.
     
 units:
-    Default units for windows and visual stimuli ('deg', 'norm', 'cm', 'pix'). See :ref:`units`.  Can be overidden by individual experiments.
+    Default units for windows and visual stimuli ('deg', 'norm', 'cm', 'pix'). See :ref:`units`.  Can be overridden by individual experiments.
     
 fullscr:
-    Should windows be created full screen by default? Can be overidden by individual experiments.
+    Should windows be created full screen by default? Can be overridden by individual experiments.
 
 allowGUI:
     When the window is created, should the frame of the window and the mouse pointer be visible.
@@ -56,7 +56,7 @@ outputFontSize = integer(6,24, default=12)
 showSourceAsst:
     Do you want to show the `source assistant` panel (to the right of the Coder view)?
     On windows this provides help about the current function if it can be found. On
-    OS X the source assistant is of limitted use and is disabled by default.
+    OS X the source assistant is of limited use and is disabled by default.
     
 analysisLevel:
     If using the source assistant, how much depth should PsychoPy try to analyse the 
@@ -87,7 +87,7 @@ componentsFolders:
     a list of folder pathnames that can hold additional custom components for the Builder view
     
 hiddenComponents:
-    a list of components to hide (eg, because you never use them)
+    a list of components to hide (e.g., because you never use them)
   
 .. _connectionSettings:
 

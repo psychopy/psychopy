@@ -1133,7 +1133,7 @@ class CoderFrame(wx.Frame):
         wx.EVT_CLOSE(self, self.closeFrame)#NB not the same as quit - just close the window
         wx.EVT_IDLE(self, self.onIdle)
 
-        if self.appData.has_key('state') and self.appData['state']=='maxim':
+        if 'state' in self.appData and self.appData['state']=='maxim':
             self.Maximize()
         #initialise some attributes
         self.modulesLoaded=False #will turn true when loading thread completes
@@ -1630,13 +1630,22 @@ class CoderFrame(wx.Frame):
             doc = self.notebook.GetPage(ii)
             filename=doc.filename
             if doc.UNSAVED:
+                self.notebook.SetSelection(ii) #fetch that page and show it
+                #make sure frame is at front
+                self.Show(True)
+                self.Raise()
+                self.app.SetTopWindow(self)
+                #then bring up dialog
                 dlg = dialogs.MessageDialog(self,message='Save changes to %s before quitting?' %filename, type='Warning')
                 resp = dlg.ShowModal()
                 sys.stdout.flush()
                 dlg.Destroy()
-                if resp  == wx.ID_CANCEL: return 0 #return, don't quit
-                elif resp == wx.ID_YES: self.fileSave() #save then quit
-                elif resp == wx.ID_NO: pass #don't save just quit
+                if resp  == wx.ID_CANCEL:
+                    return 0 #return, don't quit
+                elif resp == wx.ID_YES:
+                    self.fileSave() #save then quit
+                elif resp == wx.ID_NO:
+                    pass #don't save just quit
         return 1
 
     def closeFrame(self, event=None, checkSave=True):
@@ -1645,10 +1654,12 @@ class CoderFrame(wx.Frame):
         """
         if len(self.app.builderFrames)==0 and sys.platform!='darwin':
             if not self.app.quitting:
-                self.app.quit()
+                self.app.quit(event) #send the event so it can be vetoed if neded
                 return#app.quit() will have closed the frame already
 
-        if checkSave: self.checkSave()#check all files before initiating close of any
+        if checkSave:
+            if self.checkSave()==0:#check all files before initiating close of any
+                return 0 #this signals user cancelled
 
         wasShown = self.IsShown()
         self.Hide()#ugly to see it close all the files independently
@@ -2079,6 +2090,7 @@ class CoderFrame(wx.Frame):
     def stopFile(self, event):
         self.toolbar.EnableTool(self.IDs.tbRun,True)
         self.toolbar.EnableTool(self.IDs.tbStop,False)
+        self.app.terminateHubProcess()
         if runScripts in ['thread','dbg']:
             #killing a debug context doesn't really work on pygame scripts because of the extra
             if runScripts == 'dbg':self.db.quit()
@@ -2129,8 +2141,9 @@ class CoderFrame(wx.Frame):
             self.prefs['showOutput']=True
             self.paneManager.GetPane('Shelf').Show()
             #will we actually redirect the output?
-            sys.stdout = self.outputWindow
-            sys.stderr = self.outputWindow
+            if not self.app.testMode:#don't if we're doing py.tests or we lose the output
+                sys.stdout = self.outputWindow
+                sys.stderr = self.outputWindow
         else:
             #show the pane
             self.prefs['showOutput']=False

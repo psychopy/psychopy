@@ -8,7 +8,7 @@ Polygon (shape) Component
 The Polygon stimulus allows you to present a wide range of regular geometric shapes. The basic control comes from setting the number of vertices:
     - 2 vertices give a line
     - 3 give a triangle
-    - 4 give a rectangle etc
+    - 4 give a rectangle etc.
     - a large number will approximate a circle/ellipse
 
 The size parameter takes two values. For a line only the first is used (then use ori to specify the orientation). For triangles and rectangles the size specifies the height and width as expected. Note that for pentagons upwards, however, the size determines the width/height of the ellipse on which the vertices will fall, rather than the width/height of the vertices themselves (slightly smaller typically).
@@ -17,7 +17,7 @@ Parameters
 ~~~~~~~~~~~~
 
 name : string
-    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
+    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
 
 nVertices : integer
 

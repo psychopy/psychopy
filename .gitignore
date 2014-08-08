@@ -1,47 +1,89 @@
-*.py[co]
-*.egg-info
-*.log
-*.orig
-*__pycache__*
-.hg*
-.coverage
-.idea
-dist
-build
-old
-nonSVN
-nonSphinx
-sitePrefs.cfg
-builddocs.sh
-appData.cfg
-PsyScope*
-psychopy1
-
-psychopy/demos/coder/misc/frame*
-psychopy/demos/*.psydat
-psychopy/demos/*/*/*.csv
-psychopy/*/*/*/data/*.xlsx
-psychopy/*/*/*/data/*.psydat
-psychopy/demos/*/*/*.pickle
-psychopy/demos/*/*/*.psydat
-psychopy/demos/*/*/*.txt
-
-psychopy/tests/*Out.*
-psychopy/tests/data/*_local.png
-psychopy/tests/*htmlcov*
-
-.DS_Store
-
+#########################################
+# Editor temporary/working/backup files #
+.#*
+[#]*#
+*~
+*$
+*.bak
+*.kdev4
+.project
+.pydevproject
 /.ropeproject/config.py
 /.ropeproject/history
 /.ropeproject/objectdb
 /.spyderproject
 
-*.hdf5
+# Compiled source #
+###################
+*.a
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.py[ocd]
+*.so
+
+# Python files #
+################
+*__pycache__*
+# setup.py working directory
+build
+_build
+# sphinx build directory
+doc/_build
+# setup.py dist directory
+dist
+# Egg metadata
+*.egg-info
+# tox testing tool
+.tox
+
+# OS generated files #
+######################
+.directory
+.gdb_history
+.DS_Store
+ehthumbs.db
+Icon?
+*.orig
+old
+Thumbs.db
+nonSVN
+.hg*
+*.log
+
+# Things specific to this project #
+###################################
+PsyScope*
+psychopy1
+
+psychopy/demos/coder/misc/frame*
+psychopy/demos/*.psydat
+#psychopy/demos/*/*/*.csv
+psychopy/*/*/*/data/*.xlsx
+psychopy/*/*/*/data/*.psydat
+psychopy/demos/*/*/*.pickle
+psychopy/demos/*/*/*.psydat
+
+psychopy/tests/*Out.*
+psychopy/tests/data/*_local.png
+psychopy/tests/*htmlcov*
+
+/iohub_docs/*.bat
+/iohub_docs/*.txt
+
+sitePrefs.cfg
+appData.cfg
+
 *.iohpid
 *.paths
 *.EDF
-*.bak
-/iohub_docs/*.bat
-_build
-/iohub_docs/*.txt
+
+# Documentation generated files #
+#################################
+.coverage
+.idea
+builddocs.sh
+nonSphinx
+*.hdf5

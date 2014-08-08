@@ -1,6 +1,5 @@
 '''
 Module containing validators for various parameters.
-@author: Piotr Iwaniuk
 '''
 import wx
 

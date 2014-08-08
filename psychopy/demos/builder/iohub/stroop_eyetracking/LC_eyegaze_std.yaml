@@ -1,0 +1,44 @@
+monitor_devices:
+    - Display:
+        name: display
+        reporting_unit_type: pix
+        device_number: 0
+        physical_dimensions:
+            width: 590
+            height: 340
+            unit_type: mm
+        default_eye_distance:
+            surface_center: 500
+            unit_type: mm
+        psychopy_monitor_name: default
+
+    - Keyboard:
+        name: keyboard
+
+    - Mouse:
+        name: mouse
+
+    - Experiment:
+        name: experimentRuntime
+
+# LC EyeGaze Config
+    - eyetracker.hw.lc_technologies.eyegaze.EyeTracker:
+        enable: True
+        name: tracker
+        save_events: True
+        stream_events: True
+        device_timer:
+            interval: 0.002
+        event_buffer_length: 512
+        display_camera_image: True
+        camera_image_screen_position: UPPER_RIGHT
+        host_connection:
+            type: LOCAL       
+        monitor_event_types: [ MonocularEyeSampleEvent, BinocularEyeSampleEvent]
+
+data_store:
+    enable: True
+    experiment_info:
+        code: ystart
+    session_info:
+        code: S0001    

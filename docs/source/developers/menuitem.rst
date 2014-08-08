@@ -19,16 +19,16 @@ A new item needs to have a (numeric) ID so that `wx` can keep track of it. Here,
 
     tbIncrRoutineSize=180
 
-Its possible that, instead of hard-coding it like this, its better to make a call to `wx.NewId()` -- wx will take care of avoiding duplicate IDs, presumably.
+It's possible that, instead of hard-coding it like this, it's better to make a call to `wx.NewId()` -- wx will take care of avoiding duplicate IDs, presumably.
 
 3. Key-binding prefs
 --------------------------
 
-I also defined a key to use to as a keybaord short-cut for activating the new menu item::
+I also defined a key to use to as a keyboard short-cut for activating the new menu item::
 
     self.app.keys['largerRoutine']
 
-The actual key is defined in a preference file. Because psychopy is multi-platform, you need to add info to four different .spec files, all of them being within the `psychopy/preferences/` directory, for four operating systems (Darin, FreeBSD, Linux, Windows). For `Darwin.spec` (meaning Mac OS X), I added two lines. The first line is not merely a comment: it is also automatically used as a tooltip (in the preferences dialog, under key-bindings), and the second being the actual short-cut key to use::
+The actual key is defined in a preference file. Because psychopy is multi-platform, you need to add info to four different .spec files, all of them being within the `psychopy/preferences/` directory, for four operating systems (Darwin, FreeBSD, Linux, Windows). For `Darwin.spec` (meaning Mac OS X), I added two lines. The first line is not merely a comment: it is also automatically used as a tooltip (in the preferences dialog, under key-bindings), and the second being the actual short-cut key to use::
 
     # increase display size of Routines
     largerRoutine = string(default='Ctrl++') # on mac book pro this is good

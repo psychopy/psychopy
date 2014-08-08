@@ -15,15 +15,6 @@ eyetracker.hw.smi.iviewx.EyeTracker:
     # is recording data ?
     stream_events: True
 
-    # The iViewX implementation fo the ioHub eye tracker interface uses the polling method to
-    # check for new events received from the iViewX device. device_timer.interval
-    # specifies the sec.msec time between device polls. 0.001 = 1 msec, so the device will
-    # be polled at a maxximum rate of 1000 Hz. This polling rate is a 'target' value,
-    # and may not always be achieved depending on your computer specifications and the
-    # number and type of other devices being used.
-    device_timer:
-        interval: 0.002
-
     # How many eye events (including samples) should be saved in the ioHub event buffer before
     # old eye events start being replaced my new events when the event buffer reaches
     # the maximum event length of the buffer defined here.
@@ -34,7 +25,7 @@ eyetracker.hw.smi.iviewx.EyeTracker:
     # MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent  
     # If you would like to exclude certain events from being saved or streamed during runtime, 
     # remove them from the list below.
-    monitor_event_types: [ BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
+    monitor_event_types: [ BinocularEyeSampleEvent, ]
 
     # The iViewX network settings specify the pyViewX computer IIP and port and the
     # iViewX Apllication / Server Computer IP and port. By default the configuration

@@ -34,6 +34,7 @@ class PParallelLinux(object):
             raise Exception('Failed to import pyparallel - is it installed?')
 
         self.port = pyp.Parallel(address)
+        self.status = None
 
     def __del__(self):
         if hasattr(self, 'port'):

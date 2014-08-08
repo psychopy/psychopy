@@ -1,4 +1,4 @@
-from psychopy import misc
+from psychopy.tools.colorspacetools import hsv2rgb
 import numpy
 
 #We need more tests of these conversion routines. Feel free to jump in and help! ;-)
@@ -37,7 +37,7 @@ def test_HSV_RGB():
        [ 1. ,  -1. ,  1. ],
        [ 1. ,  -1. ,  0.],
        [ 1. ,  -1. ,  -1. ]])
-    RGB = misc.hsv2rgb(HSV)
+    RGB = hsv2rgb(HSV)
     assert numpy.allclose(RGB,expectedRGB,0.0001)
 
 if __name__=='__main__':

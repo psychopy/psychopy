@@ -31,27 +31,33 @@ exec(vStr)
 packages = find_packages()
 #for the source dist this doesn't work - use the manifest.in file
 dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov', '*.spec', '*.csv','*.psyexp', '*.xlsx']
+dataFiles = []
 
+scripts = ['psychopy/app/psychopyApp.py']
 if platform=='win32':
     #you need the c extension for bits++ if you want to change bits modes, but not otherwise
     #cExtensions.append(Extension('psychopy.ext._bits',
     #sources = [os.path.join('psychopy','ext','_bits.c')],
     #libraries=['bits']))
-    pass
+    # only install  post_install if on windows
+    scripts += ['psychopy_post_inst.py']
 elif platform=='darwin':
     #from py2app import bdist_mpkg
     dataExtensions.extend(['*.icns'])
 elif platform=='posix':
-    pass
+    dataFiles += [('share/applications', ['psychopy/app/Resources/psychopy.desktop']),
+                  ('share/pixmaps', ['psychopy/app/Resources/psychopy.png'])]
+
 
 setup(name="PsychoPy",
     packages=packages,
-    scripts = ['psychopy_post_inst.py','psychopy/app/psychopyApp.py'],
+    scripts = scripts,
     include_package_data =True,
     package_data = {
         # If any package contains *.txt or *.rst files, include them:
         '': dataExtensions,
     },
+    data_files = dataFiles,
     #metadata
     version = __version__,
     description = "Psychophysics toolkit for Python",

@@ -657,12 +657,16 @@ class EyeTracker(EyeTrackerDevice):
                             ic=0
                             if leftGaze[i] != pylink.MISSING_DATA:
                                 g[i]+=leftGaze[i]
-                                ic+=1
+                                ic+=1                                
                             if rightGaze[i] != pylink.MISSING_DATA:
                                 g[i]+=rightGaze[i]
                                 ic+=1
+                                
+                            # Missing data fix provided by Chencan QIAN    
                             if ic == 2:
                                 g[i]=g[i]/2.0
+                            elif ic == 0:
+                                g[i]=pylink.MISSING_DATA
                         
                         self._latest_gaze_position=g
                         self._addNativeEventToBuffer(binocSample)

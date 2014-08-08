@@ -157,8 +157,10 @@ class KeyboardComponent(BaseComponent):
 
         if storeCorr:
             buff.writeIndented("# was this 'correct'?\n" %self.params)
-            buff.writeIndented("if (%(name)s.keys == str(%(correctAns)s)): %(name)s.corr = 1\n" %(self.params))
-            buff.writeIndented("else: %(name)s.corr=0\n" %self.params)
+            buff.writeIndented("if (%(name)s.keys == str(%(correctAns)s)) or (%(name)s.keys == %(correctAns)s):\n" %(self.params))
+            buff.writeIndented("    %(name)s.corr = 1\n" %(self.params))
+            buff.writeIndented("else:\n")
+            buff.writeIndented("    %(name)s.corr = 0\n" %(self.params))
 
         if forceEnd==True:
             buff.writeIndented("# a response ends the routine\n" %self.params)
@@ -176,17 +178,18 @@ class KeyboardComponent(BaseComponent):
         #write the actual code
         if (store!='nothing') and currLoop:#need a loop to do the storing of data!
             buff.writeIndented("# check responses\n" %self.params)
-            buff.writeIndented("if len(%(name)s.keys) == 0:  # No response was made\n"%self.params)
+            buff.writeIndented("if %(name)s.keys in ['', [], None]:  # No response was made\n"%self.params)
             buff.writeIndented("   %(name)s.keys=None\n" %(self.params))
             if self.params['storeCorrect'].val:#check for correct NON-repsonse
                 buff.writeIndented("   # was no response the correct answer?!\n" %(self.params))
                 buff.writeIndented("   if str(%(correctAns)s).lower() == 'none': %(name)s.corr = 1  # correct non-response\n" %(self.params))
                 buff.writeIndented("   else: %(name)s.corr = 0  # failed to respond (incorrectly)\n" %(self.params))
             buff.writeIndented("# store data for %s (%s)\n" %(currLoop.params['name'], currLoop.type))
-            if currLoop.type=='StairHandler':
-                #data belongs to a StairHandler
+            if currLoop.type in ['StairHandler', 'MultiStairHandler']:
+                #data belongs to a Staircase-type of object
                 if self.params['storeCorrect'].val==True:
-                    buff.writeIndented("%s.addData(%s.corr)\n" %(currLoop.params['name'], name))
+                    buff.writeIndented("%s.addResponse(%s.corr)\n" %(currLoop.params['name'], name))
+                    buff.writeIndented("%s.addOtherData('%s.rt', %s.rt)\n" %(currLoop.params['name'], name, name))
             else:
                 #always add keys
                 buff.writeIndented("%s.addData('%s.keys',%s.keys)\n" \

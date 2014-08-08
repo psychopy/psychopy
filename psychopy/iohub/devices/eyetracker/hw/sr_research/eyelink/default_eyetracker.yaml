@@ -53,7 +53,7 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     #
     event_buffer_length: 1024
 
-    # device_timer: The EyeGaze EyeTracker class uses the polling method to
+    # device_timer: The EyeLink EyeTracker class uses the polling method to
     #   check for new events received from the EyeTracker device. device_timer.interval
     #   specifies the sec.msec time between device polls. 0.004 = 4 msec, so the device will
     #   be polled at a maxximum rate of 250 Hz. This polling rate is a 'target' value,
