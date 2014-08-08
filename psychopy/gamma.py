@@ -50,7 +50,7 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
         newRamp= (255.0*newRamp).astype(numpy.uint16)
         newRamp.byteswap(True)#necessary, according to pyglet post from Martin Spacek
         for n in range(nAttempts):
-            success = windll.gdi32.SetDeviceGammaRamp(pygletWindow._dc, newRamp.ctypes)
+            success = windll.gdi32.SetDeviceGammaRamp(0xFFFFFFFF & pygletWindow._dc, newRamp.ctypes) # FB 504
             if success:
                 break
         assert success, 'SetDeviceGammaRamp failed'
@@ -76,7 +76,7 @@ def getGammaRamp(pygletWindow):
     """
     if sys.platform=='win32':
         origramps = numpy.empty((3, 256), dtype=numpy.uint16) # init R, G, and B ramps
-        success = windll.gdi32.GetDeviceGammaRamp(pygletWindow._dc, origramps.ctypes)
+        success = windll.gdi32.GetDeviceGammaRamp(0xFFFFFFFF & pygletWindow._dc, origramps.ctypes) # FB 504
         if not success:
             raise AssertionError, 'GetDeviceGammaRamp failed'
         origramps=origramps/65535.0#rescale to 0:1
