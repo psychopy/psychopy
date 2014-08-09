@@ -450,6 +450,7 @@ class Monitor:
             return False
 
         self.currentCalib = self.calibs[self.currentCalibName]      #do the import
+        return self.currentCalibName
 
     def delCalib(self,calibName):
         """Remove a specific calibration from the current monitor.
