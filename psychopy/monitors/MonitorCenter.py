@@ -9,6 +9,8 @@ from wx import grid
 from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
 import time, os
+import locale
+
 DEBUG=False
 NOTEBOOKSTYLE = False
 NO_MEASUREMENTS=False
@@ -38,7 +40,19 @@ import numpy
     idCtrlCalibDate, idCtrlCalibNotes] = \
     map(lambda _makeID: wx.NewId(), range(4))
 
-
+def unicodeToFloat(val):
+    """Convert a unicode object from wx dialogs into a float, accounting for
+    locale settings (comma might be dec place)
+    """
+    if val=='None': 
+        val=None
+    else:
+        try: 
+            val=locale.atof(val)
+        except ValueError: 
+            return None #ignore values that can't be a float
+    return val
+    
 class SimpleGrid(grid.Grid): ##, wxGridAutoEditMixin):
     def __init__(self, parent, id=-1, rows=[], cols=[], data=None):
         self.parent=parent
@@ -636,41 +650,19 @@ class MainFrame(wx.Frame):
         self.currentMon.setNotes(newVal)
         self.unSavedMonitor=True
     def onChangeScrDist(self, event):
-        newVal = self.ctrlScrDist.GetValue()
-        #convert to float
-        if newVal=='None': newVal=None
-        else:
-            try: newVal=float(newVal)
-            except: pass #ignore values that can't be a float
-        #insert in calibration file
+        newVal = unicodeToFloat(self.ctrlScrDist.GetValue())
         self.currentMon.setDistance( newVal )
         self.unSavedMonitor=True
     def onChangeScrWidth(self, event):
-        newVal = self.ctrlScrWidth.GetValue()
-        #convert to float
-        if newVal=='None': newVal=None
-        else:
-            try: newVal=float(newVal)
-            except: pass #ignore values that can't be a float
-        #insert in calibration file
+        newVal = unicodeToFloat(self.ctrlScrWidth.GetValue())
         self.currentMon.setWidth( newVal )
         self.unSavedMonitor=True
     def onChangeScrPixHoriz(self, event):
-        newVal = self.ctrlScrPixHoriz.GetValue()
-        #convert to float
-        if newVal=='None': newVal=None
-        else:
-            try: newVal=float(newVal)
-            except: pass #ignore values that can't be a float
+        newVal = unicodeToFloat(self.ctrlScrPixHoriz.GetValue())
         self.currentMon.currentCalib['sizePix'][0] = newVal
         self.unSavedMonitor=True
     def onChangeScrPixVert(self, event):
-        newVal = self.ctrlScrPixVert.GetValue()
-        #convert to float
-        if newVal=='None': newVal=None
-        else:
-            try: newVal=float(newVal)
-            except: pass #ignore values that can't be a float
+        newVal = unicodeToFloat(self.ctrlScrPixVert.GetValue())
         self.currentMon.currentCalib['sizePix'][1] = newVal
         self.unSavedMonitor=True
 
@@ -678,27 +670,24 @@ class MainFrame(wx.Frame):
     def onChangeGammaGrid(self, event):
         #convert to float
         newVal = self.gammaGrid.GetCellValue(event.GetRow(), event.GetCol())
-        try: newVal=float(newVal)
-        except: pass #ignore values that can't be a float
-        #isnert in grid
+        newVal = unicodeToFloat(newVal)
+        #insert in grid
         self.currentMon.currentCalib['gammaGrid'][event.GetRow(), event.GetCol()] = newVal
         self.unSavedMonitor=True
 
     def onChangeLMSgrid(self, event):
         #convert to float
         newVal = self.LMSgrid.GetCellValue(event.GetRow(), event.GetCol())
-        try: newVal=float(newVal)
-        except: pass #ignore values that can't be a float
-        #isnert in grid
+        newVal = unicodeToFloat(newVal)
+        #insert in grid
         self.currentMon.currentCalib['lms_rgb'][event.GetRow(), event.GetCol()] = newVal
         self.unSavedMonitor=True
 
     def onChangeDKLgrid(self, event):
         #convert to float
         newVal = self.DKLgrid.GetCellValue(event.GetRow(), event.GetCol())
-        try: newVal=float(newVal)
-        except: pass #ignore values that can't be a float
-        #isnert in grid
+        newVal = unicodeToFloat(newVal)
+        #insert in grid
         self.currentMon.currentCalib['dkl_rgb'][event.GetRow(), event.GetCol()] = newVal
         self.unSavedMonitor=True
 
@@ -715,7 +704,7 @@ class MainFrame(wx.Frame):
                 calibDlg.Destroy()
                 return 1
             nPoints = int(calibDlg.ctrlNPoints.GetStringSelection())
-            stimSize = float(calibDlg.ctrlStimSize.GetValue())
+            stimSize = unicodeToFloat(calibDlg.ctrlStimSize.GetValue())
             useBits = calibDlg.ctrlUseBits.GetValue()
             calibDlg.Destroy()
             autoMode = calibDlg.methodChoiceBx.GetStringSelection()
@@ -793,7 +782,7 @@ class MainFrame(wx.Frame):
             calibDlg.Destroy()
             return 1
         nPoints = int(calibDlg.ctrlNPoints.GetStringSelection())
-        stimSize = float(calibDlg.ctrlStimSize.GetValue())
+        stimSize = unicodeToFloat(calibDlg.ctrlStimSize.GetValue())
         useBits = calibDlg.ctrlUseBits.GetValue()
         calibDlg.Destroy()
         autoMode = calibDlg.methodChoiceBx.GetStringSelection()
@@ -1014,8 +1003,7 @@ class GammaLumValsDlg(wx.Dialog):
         '''The first column = black, so it gets set same for all, let's help out!'''
         if event.GetCol()==0:
             newVal = self.gammaGrid.GetCellValue(event.GetRow(), event.GetCol())
-            try: newVal=float(newVal)
-            except: pass #ignore values that can't be a float
+            newVal = unicodeToFloat(newVal)
             for nRow in range(self.gammaGrid.nRows):
                 self.gammaGrid.SetCellValue(nRow,0,'%f' %newVal)
  
