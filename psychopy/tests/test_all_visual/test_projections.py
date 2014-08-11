@@ -1,16 +1,21 @@
-#!/usr/bin/env python2
-import numpy as np
-import time
 import pyglet
 from pyglet.window import key
-from psychopy import core, logging, monitors, event
-from psychopy.visual import *
-from psychopy.visual.windowwarp import *
-from psychopy.visual.windowframepack import *
+from psychopy.visual import Window, shape, TextStim, GratingStim, Circle
+from psychopy.visual.windowwarp import Warper
+from psychopy import event, core
+from psychopy.constants import *
+from psychopy.tests import utils
+import pytest, copy
+
+"""define WindowWarp configurations, test the logic
+
+    test:
+    cd psychopy/psychopy/
+    py.test -k projections --cov-report term-missing --cov visual/windowwarp.py
+"""
 
 foregroundColor=[-1,-1,-1]
 backgroundColor=[1,1,1]
-
 
 class ProjectionsLinesAndCircles(object):
     """
@@ -19,49 +24,50 @@ class ProjectionsLinesAndCircles(object):
     Click the mouse to set the eyepoint X, Y.  
     Up / Down arrow or mousewheel to move eyepoint in and out.
     """
-    def __init__(self, window, warper):
-        self.window = window
+    def __init__(self, win, warper):
+
+        self.win = win
         self.warper = warper
 
-        self.stimT = TextStim(self.window, text='Null warper', units = 'pix', pos=(0, -140), alignHoriz='center', height=20)
+        self.stimT = TextStim(self.win, text='Null warper', units = 'pix', pos=(0, -140), alignHoriz='center', height=20)
 
-        self.bl = -window.size / 2.0
+        self.bl = -win.size / 2.0
         self.tl = (self.bl[0], -self.bl[1])
-        self.tr = window.size / 2.0 
+        self.tr = win.size / 2.0 
 
         self.stims = []
         self.degrees = 120
         nLines = 12
         for x in range(-nLines, nLines+1):
-            t = GratingStim(window,tex=None,units='deg',size=[2,window.size[1]],texRes=128,color=foregroundColor, pos=[float(x) / nLines * self.degrees,0])
+            t = GratingStim(win,tex=None,units='deg',size=[2,win.size[1]],texRes=128,color=foregroundColor, pos=[float(x) / nLines * self.degrees,0])
             self.stims.append (t)
 
         for y in range (-nLines, nLines+1):
-            t = GratingStim(window,tex=None,units='deg',size=[window.size[0],2],texRes=128,color=foregroundColor,pos=[0,float(y)/nLines * self.degrees])
+            t = GratingStim(win,tex=None,units='deg',size=[win.size[0],2],texRes=128,color=foregroundColor,pos=[0,float(y)/nLines * self.degrees])
             self.stims.append (t)
 
         for c in range (1, nLines+1): 
-            t = Circle (window, radius=c * 10, edges=128, units='deg', lineWidth=4)
+            t = Circle (win, radius=c * 10, edges=128, units='deg', lineWidth=4)
             self.stims.append (t)
         
         self.updateInfo()
         
         self.keys = key.KeyStateHandler()
-        window.winHandle.push_handlers(self.keys)
-        self.mouse = event.Mouse(win=self.window)
-   
-    def updateFrame(self, i):
+        win.winHandle.push_handlers(self.keys)
+        self.mouse = event.Mouse(win=self.win)
+
+    def updateFrame(self):
         """ Updates frame with any item that is to be modulated per frame. """
         for s in self.stims:
             s.draw()
         self.stimT.draw()
 
-    def update_sweep(self,i):
+    def update_sweep(self):
         """ Update function for sweeps. Input is in domain units. """
-        self.updateFrame(i)
+        self.updateFrame()
         self.check_keys()
         self._handleMouse()
-        self.window.flip()
+        self.win.flip()
     
     def updateInfo(self):
         try:
@@ -77,14 +83,14 @@ class ProjectionsLinesAndCircles(object):
         for keys in event.getKeys(timeStamped=True):
             k = keys[0]
             if k in ['escape', 'q']: 
-                self.window.close()
+                self.win.close()
                 sys.exit()
             elif k in ['space']: 
                 for c in range (1,2): 
-                    t = Circle(self.window, radius=c)
+                    t = Circle(self.win, radius=c)
                     self.stims.append (t)
                 #for c in range (1,2): 
-                #    t = RadialStim(self.window) 
+                #    t = RadialStim(self.win) 
                 #    self.stims.append(t)
 
             # handle projections
@@ -142,23 +148,71 @@ class ProjectionsLinesAndCircles(object):
             self.updateInfo()
 
 
-def mainProjectionsLinesAndCircles(params={'testlength':400}):
+
+@pytest.mark.ratingscale
+class Test_class_WindowWarp:
+    """RatingScale internal logic, no check that its drawn correctly
     """
-    ProjectionsLinesAndCircles test runner to test projections
-    """
-    win = Window(monitor='LightCrafter4500', screen=1, fullscr=True, color='gray', useFBO = True)
-    warper = Warper (win, warp='spherical', warpfile = "", warpGridsize = 128, eyepoint = [0.5, 0.5], flipHorizontal = False, flipVertical = False)
+    def setup_class(self):
+        self.win = Window(monitor='testMonitor', screen=1, fullscr=True, color='gray', useFBO = True)
+        self.warper = Warper (self.win, warp='spherical', warpfile = "", warpGridsize = 128, eyepoint = [0.5, 0.5], flipHorizontal = False, flipVertical = False)
+        self.warper.dist_cm=15
+        self.g = ProjectionsLinesAndCircles(self.win, self.warper)
 
-    # frame packer is used with DLP projectors to create 180Hz monochrome stimuli
-    #framePacker = ProjectorFramePacker(win)
+    def teardown_class(self):
+        self.win.close()
 
-    g = ProjectionsLinesAndCircles(win, warper)
-    for i in range(int(params['testlength'] * 60)): 
-        g.update_sweep(i)
-    win.close()
+    def draw_projection (self, frames=120):
+        self.g.updateInfo()
+        for i in range(frames): 
+            self.g.update_sweep()
 
+    def test_spherical(self):
+        self.warper.changeProjection('spherical')
+        self.draw_projection()
 
-if __name__ == "__main__":
-    mainProjectionsLinesAndCircles()
+    def test_cylindrical(self):
+        self.warper.changeProjection('cylindrical')
+        self.draw_projection()
 
+    def test_warpfile(self):
+        self.warper.changeProjection('warpfile', warpfile="") #jayb todo
+        self.draw_projection()
 
+    def test_distance(self):
+        cls.test_spherical()
+        for i in range (1, 50, 2):
+            cls.warper.dist_cm = i
+            cls.warper.changeProjection(cls.warper.warp)
+            cls.g.updateInfo()
+            cls.g.update_sweep()
+
+        cls.test_cylindrical()
+        for i in range (1, 50, 2):
+            cls.warper.dist_cm = i
+            cls.warper.changeProjection(cls.warper.warp)
+            cls.g.updateInfo()
+            cls.g.update_sweep()
+
+    def test_flipHorizontal(self):
+        self.warper.changeProjection(self.warper.warp, self.warper.warpfile, flipHorizontal = not self.warper.flipHorizontal)
+        self.draw_projection()
+
+    def test_flipVertical(self):
+        self.warper.changeProjection(self.warper.warp, self.warper.warpfile, flipVertical = not self.warper.flipVertical)
+        self.draw_projection()
+
+if __name__ == '__main__':
+    cls = Test_class_WindowWarp()
+    cls.setup_class()
+    cls.test_spherical()
+    cls.test_distance()
+    #cls.test_warpfile() #jayb todo
+    cls.test_flipHorizontal()
+    cls.test_flipHorizontal()
+    cls.test_flipVertical()
+    cls.test_flipVertical()
+
+    cls.test_spherical()
+
+    cls.teardown_class()
