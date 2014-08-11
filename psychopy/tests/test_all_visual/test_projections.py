@@ -180,19 +180,19 @@ class Test_class_WindowWarp:
         self.draw_projection()
 
     def test_distance(self):
-        cls.test_spherical()
+        self.test_spherical()
         for i in range (1, 50, 2):
-            cls.warper.dist_cm = i
-            cls.warper.changeProjection(cls.warper.warp)
-            cls.g.updateInfo()
-            cls.g.update_sweep()
+            self.warper.dist_cm = i
+            self.warper.changeProjection(self.warper.warp)
+            self.g.updateInfo()
+            self.g.update_sweep()
 
-        cls.test_cylindrical()
+        self.test_cylindrical()
         for i in range (1, 50, 2):
-            cls.warper.dist_cm = i
-            cls.warper.changeProjection(cls.warper.warp)
-            cls.g.updateInfo()
-            cls.g.update_sweep()
+            self.warper.dist_cm = i
+            self.warper.changeProjection(self.warper.warp)
+            self.g.updateInfo()
+            self.g.update_sweep()
 
     def test_flipHorizontal(self):
         self.warper.changeProjection(self.warper.warp, self.warper.warpfile, flipHorizontal = not self.warper.flipHorizontal)
