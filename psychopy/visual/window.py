@@ -102,84 +102,6 @@ openWindows = []
 # can provide a default window for mouse
 psychopy.event.visualOpenWindows = openWindows
 
-from abc import abstractproperty, abstractmethod, ABCMeta
-
-class BaseWarper:
-    '''Abstract Base Class for all warp derived classes.'''
-    __metaclass__=ABCMeta
-
-    @abstractmethod
-    def setWindowAndGL(self, window, GL):
-        '''Associate a window and GL context with the warper'''
-        pass
-
-    @abstractmethod
-    def drawWarp(self):
-        '''Perform a warp operation'''
-        pass
-
-class NullWarper(BaseWarper):
-    '''Performs a null warp.'''
-
-    def setWindowAndGL(self, window, GL):
-        '''Associate a window and GL context with the warper'''
-        self.window = window
-        self.GL = GL
-
-    def drawWarp(self):
-        '''Perform a warp operation (in this case a copy operation without any warping)'''
-        self.GL.glBegin(self.GL.GL_QUADS)
-        self.GL.glTexCoord2f(0.0, 0.0)
-        self.GL.glVertex2f(-1.0, -1.0)
-        self.GL.glTexCoord2f(0.0, 1.0)
-        self.GL.glVertex2f(-1.0, 1.0)
-        self.GL.glTexCoord2f(1.0, 1.0)
-        self.GL.glVertex2f(1.0, 1.0)
-        self.GL.glTexCoord2f(1.0, 0.0)
-        self.GL.glVertex2f(1.0, -1.0)
-        self.GL.glEnd()
-
-class BaseFramePacker():
-    '''Abstract Base Class for all frame packer derived classes. '''
-    __metaclass__=ABCMeta
-
-    @abstractmethod
-    def setWindowAndGL(self, window, GL):
-        '''Associate a window and GL context with the frame packer'''
-
-    @abstractmethod
-    def getActualFrameRate(self):
-        '''Return the fps of this monitor if known, else None'''
-    
-    @abstractmethod
-    def shouldHardwareFlipThisFrame(self):
-        '''Return True if the hardware flip function should be called for this frame'''
-
-    @abstractmethod
-    def afterHardwareFlip(self, clearBuffer):
-        '''Called to set color channel masks for the next frame, and clear buffer if requested'''
-
-class NullFramePacker(BaseFramePacker):
-    '''Performs a null frame pack.'''
-
-    def setWindowAndGL(self, window, GL):
-        '''Associate a window and GL context with the frame packer'''
-        self.window = window
-        self.GL = GL
-
-    def getActualFrameRate(self):
-        ''' Return the fps of this monitor if known.'''
-        return None
-    
-    def shouldHardwareFlipThisFrame(self):
-        '''Return True if the hardware flip function should be called for this frame'''
-        return True 
-
-    def afterHardwareFlip(self, clearBuffer):
-        '''Called to set color channel masks for the next frame, and clear buffer if requested'''
-        if clearBuffer:
-            self.GL.glClear(self.GL.GL_COLOR_BUFFER_BIT)
-
 class Window(object):
     """Used to set up a context in which to draw objects,
     using either PyGame (python's SDL binding) or pyglet.
@@ -219,9 +141,7 @@ class Window(object):
                  name='window1',
                  checkTiming=True,
                  useFBO=False,
-                 autoLog=True,
-                 warper=NullWarper(),
-                 framePacker=NullFramePacker()):
+                 autoLog=True):
         """
         These attributes can only be set at initialization. See further down
         for a list of attributes which can be changed after initialization
@@ -278,12 +198,6 @@ class Window(object):
                 his will be enabled.
                 You can switch between left and right-eye scenes for drawing
                 operations using :func:`~psychopy.visual.Window.setBuffer`
-            warper: *None* to use the default null warper, or a class derived from 
-                NullWarper which can perform arbitrary spatial warps of the output
-                window.
-            framePacker: *None* to use the default null framePacker, or a class 
-                derived from NullFramePacker which can pack multiple monochrome
-                frames per RGB output to produce 180Hz stimuli.
 
             :note: Preferences. Some parameters (e.g. units) can now be given
                 default values in the user/site preferences and these will be
@@ -437,19 +351,10 @@ class Window(object):
         self.waitBlanking = waitBlanking
         self._refreshThreshold = 1/1.0  # initial val needed by flip()
 
-        #set up the warping object
-        self.warper = warper
-        self.warper.setWindowAndGL(self, GL)
-
-        #set up the frame packing object
-        self.framePacker = framePacker
-        self.framePacker.setWindowAndGL(self, GL)
-
         # over several frames with no drawing
         self._monitorFrameRate=None
         self.monitorFramePeriod=0.0 #for testing  when to stop drawing a stim
-        self._monitorFrameRate = self.framePacker.getActualFrameRate()
-        if checkTiming and self._monitorFrameRate is None:
+        if checkTiming:
             self._monitorFrameRate = self.getActualFrameRate()
         if self._monitorFrameRate is not None:
             self.monitorFramePeriod=1.0/self._monitorFrameRate
@@ -609,7 +514,7 @@ class Window(object):
         for thisStim in self._toDraw:
             thisStim.draw()
 
-        flipThisFrame = self.framePacker.shouldHardwareFlipThisFrame()
+        flipThisFrame = self._startOfFlip()
 
         if self.useFBO:
             if flipThisFrame:
@@ -632,7 +537,7 @@ class Window(object):
                 GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
                 GL.glColorMask(True, True, True, True)
 
-                self.warper.drawWarp()
+                self._warp()
 
                 GL.glEnable(GL.GL_BLEND)
                 self._finishFBOrender()
@@ -703,7 +608,7 @@ class Window(object):
             GL.glRotatef(self.viewOri, 0.0, 0.0, -1.0)
 
         #reset returned buffer for next frame
-        self.framePacker.afterHardwareFlip(clearBuffer)
+        self._endOfFlip(clearBuffer)
 
         #waitBlanking
         if self.waitBlanking and flipThisFrame:
@@ -1750,6 +1655,28 @@ class Window(object):
 
         return msPFavg, msPFstd, msPFmed  # msdrawAvg, msdrawSD, msfree
 
+    def _startOfFlip(self):
+        """Custom hardware classes may want to prevent flipping from occurring and 
+        can override this method as needed. Return True to indicate hardware flip."""
+        return True
+
+    def _warp(self):
+        '''Perform a warp operation (in this case a copy operation without any warping)'''
+        GL.glBegin(GL.GL_QUADS)
+        GL.glTexCoord2f(0.0, 0.0)
+        GL.glVertex2f(-1.0, -1.0)
+        GL.glTexCoord2f(0.0, 1.0)
+        GL.glVertex2f(-1.0, 1.0)
+        GL.glTexCoord2f(1.0, 1.0)
+        GL.glVertex2f(1.0, 1.0)
+        GL.glTexCoord2f(1.0, 0.0)
+        GL.glVertex2f(1.0, -1.0)
+        GL.glEnd()
+
+    def _endOfFlip(self, clearBuffer):
+        """Override end of flip with custom color channel masking if required"""
+        if clearBuffer:
+            GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
 def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """
@@ -1799,3 +1726,5 @@ def _onResize(width, height):
         #GL.gluPerspective(90, 1.0*width/height, 0.1, 100.0)
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
+
+

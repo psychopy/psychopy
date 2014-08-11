@@ -19,13 +19,15 @@ import os
 import numpy as np
 import psychopy  # so we can get the __path__
 from psychopy import core, platform_specific, logging, prefs, monitors, event
-from psychopy.visual.window import BaseWarper
-from abc import ABCMeta, abstractmethod, abstractproperty
 from OpenGL.arrays import ArrayDatatype as ADT
 
-class Warper(BaseWarper):
+import pyglet
+GL = pyglet.gl
+
+class Warper():
     '''Class to perform spherical, cylindrical, warpfile, or None (disabled) warps'''
     def __init__(self, 
+                 window,
                  warp=None, 
                  warpfile = None, 
                  warpGridsize = 300, 
@@ -37,7 +39,8 @@ class Warper(BaseWarper):
         dynamically using the changeProjection() method.
 
         :Parameters:
-
+            window: 
+                
             warp : 'spherical', 'cylindrical, 'warpfile' or *None*
                 This table gives the main properties of each projection:
                               eyepoint        parallel   parallel      radial distance
@@ -62,7 +65,9 @@ class Warper(BaseWarper):
 
             :note: The eye distance from the screen is defined as part of the Monitor setup.
         """
-
+        self.window = window
+        # monkey patch window
+        window._warp = self.drawWarp
         self.warp = warp
         self.warpfile = warpfile
         self.warpGridsize = warpGridsize
@@ -71,10 +76,6 @@ class Warper(BaseWarper):
         self.flipVertical = flipVertical
         self.initDefaultWarpSize()
 
-    def setWindowAndGL(self, window, GL):
-        '''Associate a window and GL context with the warper'''
-        self.window = window
-        self.GL = GL
         #   get the eye distance from the monitor object,
         #   but the pixel dimensions from the actual window object
         w, h = window.size
@@ -96,38 +97,38 @@ class Warper(BaseWarper):
         ''' 
         Warp the output, using the vertex, texture, and optionally an opacity array
         '''
-        self.GL.glUseProgram(0)
-        self.GL.glColorMask(True, True, True, True) #jayb
+        GL.glUseProgram(0)
+        GL.glColorMask(True, True, True, True) 
             
         #point to color (opacity)
         if self.gl_color is not None:
-            self.GL.glEnableClientState(self.GL.GL_COLOR_ARRAY)
-            self.GL.glBindBuffer(self.GL.GL_ARRAY_BUFFER, self.gl_color)
-            self.GL.glColorPointer(4, self.GL.GL_FLOAT, 0, None)
-            self.GL.glEnable(self.GL.GL_BLEND)
-            self.GL.glBlendFunc(self.GL.GL_SRC_ALPHA, self.GL.GL_ZERO)
+            GL.glEnableClientState(GL.GL_COLOR_ARRAY)
+            GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.gl_color)
+            GL.glColorPointer(4, GL.GL_FLOAT, 0, None)
+            GL.glEnable(GL.GL_BLEND)
+            GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ZERO)
         
         # point to vertex data
-        self.GL.glEnableClientState(self.GL.GL_VERTEX_ARRAY)
-        self.GL.glBindBuffer(self.GL.GL_ARRAY_BUFFER, self.gl_vb)
-        self.GL.glVertexPointer(2, self.GL.GL_FLOAT, 0, None)
+        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.gl_vb)
+        GL.glVertexPointer(2, GL.GL_FLOAT, 0, None)
             
         #point to texture
-        self.GL.glEnableClientState(self.GL.GL_TEXTURE_COORD_ARRAY)
-        self.GL.glBindBuffer(self.GL.GL_ARRAY_BUFFER, self.gl_tb)
-        self.GL.glTexCoordPointer(2, self.GL.GL_FLOAT, 0, None)
+        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.gl_tb)
+        GL.glTexCoordPointer(2, GL.GL_FLOAT, 0, None)
 
         #draw quads
-        self.GL.glDrawArrays (self.GL.GL_QUADS, 0, self.nverts)
+        GL.glDrawArrays (GL.GL_QUADS, 0, self.nverts)
 
         # cleanup
-        self.GL.glBindBuffer(self.GL.GL_ARRAY_BUFFER, 0)
-        self.GL.glDisableClientState(self.GL.GL_VERTEX_ARRAY)
-        self.GL.glDisableClientState(self.GL.GL_TEXTURE_COORD_ARRAY)
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+        GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
+        GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
         if self.gl_color is not None:
-            self.GL.glBlendFunc(self.GL.GL_SRC_ALPHA, self.GL.GL_ONE_MINUS_SRC_ALPHA)
-            self.GL.glDisableClientState(self.GL.GL_COLOR_ARRAY)
+            GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+            GL.glDisableClientState(GL.GL_COLOR_ARRAY)
 
     def initDefaultWarpSize(self):
         self.xgrid = self.warpGridsize
@@ -342,30 +343,30 @@ class Warper(BaseWarper):
         if self.flipVertical:
             vertices[:,1] = -vertices[:,1]
 
-        self.GL.glEnableClientState (self.GL.GL_VERTEX_ARRAY)
+        GL.glEnableClientState (GL.GL_VERTEX_ARRAY)
 
         #vertex buffer in hardware
-        self.gl_vb = self.GL.GLuint()
-        self.GL.glGenBuffers(1 , self.gl_vb)
-        self.GL.glBindBuffer(self.GL.GL_ARRAY_BUFFER, self.gl_vb)
-        self.GL.glBufferData(self.GL.GL_ARRAY_BUFFER, ADT.arrayByteCount(vertices), ADT.voidDataPointer(vertices), self.GL.GL_STATIC_DRAW)
+        self.gl_vb = GL.GLuint()
+        GL.glGenBuffers(1 , self.gl_vb)
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.gl_vb)
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, ADT.arrayByteCount(vertices), ADT.voidDataPointer(vertices), GL.GL_STATIC_DRAW)
 
         #vertex buffer tdata in hardware
-        self.gl_tb = self.GL.GLuint()
-        self.GL.glGenBuffers(1 , self.gl_tb)
-        self.GL.glBindBuffer(self.GL.GL_ARRAY_BUFFER, self.gl_tb)
-        self.GL.glBufferData(self.GL.GL_ARRAY_BUFFER, ADT.arrayByteCount(tcoords), ADT.voidDataPointer(tcoords), self.GL.GL_STATIC_DRAW)
+        self.gl_tb = GL.GLuint()
+        GL.glGenBuffers(1 , self.gl_tb)
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.gl_tb)
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, ADT.arrayByteCount(tcoords), ADT.voidDataPointer(tcoords), GL.GL_STATIC_DRAW)
 
         # opacity buffer in hardware (only for warp files)
         if opacity is not None:
-            self.gl_color = self.GL.GLuint()
-            self.GL.glGenBuffers(1 , self.gl_color)
-            self.GL.glBindBuffer(self.GL.GL_ARRAY_BUFFER, self.gl_color)
+            self.gl_color = GL.GLuint()
+            GL.glGenBuffers(1 , self.gl_color)
+            GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.gl_color)
             #convert opacity to RGBA, one point for each corner of the quad
-            self.GL.glBufferData(self.GL.GL_ARRAY_BUFFER, ADT.arrayByteCount(opacity), ADT.voidDataPointer(opacity), self.GL.GL_STATIC_DRAW)
+            GL.glBufferData(GL.GL_ARRAY_BUFFER, ADT.arrayByteCount(opacity), ADT.voidDataPointer(opacity), GL.GL_STATIC_DRAW)
         else:
             self.gl_color = None    
 
-        self.GL.glBindBuffer(self.GL.GL_ARRAY_BUFFER, 0)
-        self.GL.glDisableClientState(self.GL.GL_VERTEX_ARRAY)
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+        GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
 

@@ -16,44 +16,46 @@ If not, see http://www.gnu.org/licenses/
 
 import sys
 import os
-from abc import ABCMeta, abstractmethod, abstractproperty
-from psychopy.visual.window import BaseFramePacker
+import pyglet
+GL = pyglet.gl
 
-class ProjectorFramePacker(BaseFramePacker):
+class ProjectorFramePacker():
     '''Class which packs 3 monochrome images per RGB frame allowing 180Hz stimuli
     with DLP projectors (such as TI LightCrafter 4500) operating in structured light mode.
     '''
-
-    def __init__(self):
-        self.flipCounter = 0
-        pass
-
-    def setWindowAndGL(self, window, GL):
-        '''Associate a window and GL context with the frame packer'''
+    def __init__(self, window):
         self.window = window
-        self.GL = GL
-         # enable Blue channel initially since the DLP output sequence is BGR
-        self.GL.glColorMask(False, False, True, True)
-    
-    def getActualFrameRate(self):
-        return 180.0
+        # monkey patch window
+        window._startOfFlip = self.startOfFlip
+        window._endOfFlip = self.endOfFlip
 
-    def shouldHardwareFlipThisFrame(self):
-        '''Return True if all channels of the RGB frame have been filled with monochrome images'''
+        # This part is increasingly ugly.  Add a function to set these values?
+        window._monitorFrameRate = 180.0
+        window.monitorFramePeriod=1.0/window._monitorFrameRate
+        window._refreshThreshold = (1.0/window._monitorFrameRate)*1.2
+
+        #enable Blue initially, since projector output sequence is BGR
+        GL.glColorMask(False, False, True, True)
+        self.flipCounter = 0
+    
+    def startOfFlip(self):
+        '''Return True if all channels of the RGB frame have been filled with monochrome images,
+        and the associated window should perform a hardware flip'''
         return self.flipCounter %3 == 2
 
-    def afterHardwareFlip(self, clearBuffer):
+    def endOfFlip(self, clearBuffer):
         '''Mask RGB cyclically after each flip.  
         We ignore clearBuffer and just auto-clear after each hardware flip.
         '''
-        if self.shouldHardwareFlipThisFrame():
-            self.GL.glClear(self.GL.GL_COLOR_BUFFER_BIT) 
+        if self.flipCounter %3 == 2:
+            GL.glClear(GL.GL_COLOR_BUFFER_BIT) 
 
         self.flipCounter += 1
         if self.flipCounter %3 == 0:
-            self.GL.glColorMask(False, True, False, True)  # enable green
+            GL.glColorMask(False, True, False, True)  # enable green
         elif self.flipCounter %3 == 1:
-            self.GL.glColorMask(True, False, False, True)  # enable red
+            GL.glColorMask(True, False, False, True)  # enable red
         elif self.flipCounter %3 == 2:
-            self.GL.glColorMask(False, False, True, True)  # enable blue
+            GL.glColorMask(False, False, True, True)  # enable blue
+
         
