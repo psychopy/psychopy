@@ -78,7 +78,7 @@ class PsychoPyApp(wx.App):
         self.launched_obci = False
         self.onInit(**kwargs)
 
-    def onInit(self, showSplash=True, interactive=True):
+    def onInit(self, showSplash=True, testMode=False):
         """
         :Parameters:
 
