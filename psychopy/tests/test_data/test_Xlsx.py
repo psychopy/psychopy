@@ -3,7 +3,7 @@ import os, shutil
 import numpy
 
 from openpyxl.reader.excel import load_workbook
-from psychopy import data, misc
+from psychopy import data
 from psychopy.tests import utils
 from tempfile import mkdtemp
 

@@ -13,4 +13,3 @@ def rush(value=True):
     """
     return False
   
-  

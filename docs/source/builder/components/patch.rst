@@ -11,7 +11,7 @@ Parameters
 ~~~~~~~~~~~~
 
 name : string
-    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
+    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
 start :
     The time that the stimulus should first appear. See :ref:`startStop` for details.
@@ -26,7 +26,7 @@ image : a filename, a standard name ('sin', 'sqr') or a numpy array of dimension
     the spatial frequency to be low).
     Filenames can be relative or absolute paths and can refer to most image formats (e.g. tif, 
     jpg, bmp, png, etc.).
-	If this is set to none, the patch will be a flat colour.
+    If this is set to none, the patch will be a flat colour.
 
 mask : a filename, a standard name ('gauss', 'circle') or a numpy array of dimensions NxNx1
     The mask can define the shape (e.g. circle will make the patch circular) or something which overlays the patch e.g. noise. 
@@ -38,7 +38,7 @@ pos : [X,Y]
     The position of the centre of the stimulus, in the units specified by the stimulus or window
 
 size : [sizex, sizey] or a single value (applied to x and y)
-    The size of the stimulus in the given units of the stimulus/window. If the mask is a Guassian then the size refers to width at 3 standard devations on either side of the mean (i.e. sd=size/6)
+    The size of the stimulus in the given units of the stimulus/window. If the mask is a Gaussian then the size refers to width at 3 standard deviations on either side of the mean (i.e. sd=size/6)
 
 units : deg, cm, pix, norm, or inherit from window
     See :doc:`../../general/units`

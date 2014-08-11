@@ -6,7 +6,8 @@ from pytest import raises
 from tempfile import mkdtemp
 from numpy.random import random
 
-from psychopy import data, misc
+from psychopy import data
+from psychopy.tools.filetools import fromFile
 from psychopy.tests import utils
 
 thisPath = os.path.split(__file__)[0]
@@ -80,7 +81,7 @@ class TestTrialHandler:
             assert matches==1, "Found %d matching files, should be %d" % (matches, count)
 
     def test_multiKeyResponses(self):
-        dat = misc.fromFile(os.path.join(fixturesPath,'multiKeypressTrialhandler.psydat'))
+        dat = fromFile(os.path.join(fixturesPath,'multiKeypressTrialhandler.psydat'))
         #test csv output
         dat.saveAsText(pjoin(self.temp_dir, 'testMultiKeyTrials.csv'), appendFile=False)
         utils.compareTextFiles(pjoin(self.temp_dir, 'testMultiKeyTrials.csv'), pjoin(fixturesPath,'corrMultiKeyTrials.csv'))
@@ -149,7 +150,12 @@ class TestMultiStairs:
         conditions = data.importConditions(
             pjoin(fixturesPath, 'multiStairConds.xlsx'))
         stairs = data.MultiStairHandler(stairType='simple', conditions=conditions,
-                method='random', nTrials=20)
+                method='random', nTrials=20, name='simpleStairs')
+        exp = data.ExperimentHandler(name='testExp',
+                    savePickle=True,
+                    saveWideText=True,
+                    dataFileName=pjoin(self.temp_dir, 'multiStairExperiment'))
+        exp.addLoop(stairs)
         for intensity,condition in stairs:
             #make data that will cause different stairs to finish different times
             if random()>condition['startVal']:
@@ -163,7 +169,12 @@ class TestMultiStairs:
         conditions = data.importConditions(
             pjoin(fixturesPath, 'multiStairConds.xlsx'))
         stairs = data.MultiStairHandler(stairType='quest', conditions=conditions,
-                    method='random', nTrials=5)
+                    method='random', nTrials=20, name='QuestStairs')
+        exp = data.ExperimentHandler(name='testExp',
+                    savePickle=True,
+                    saveWideText=True,
+                    dataFileName=pjoin(self.temp_dir, 'multiQuestExperiment'))
+        exp.addLoop(stairs)
         for intensity,condition in stairs:
             #make data that will cause different stairs to finish different times
             if random()>condition['startVal']:

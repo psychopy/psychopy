@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 """measure your JND in orientation using a staircase method"""
 
-from psychopy import core, visual, gui, data, misc, event
+from psychopy import core, visual, gui, data, event
+from psychopy.tools.filetools import fromFile, toFile
 import time, numpy
 
 try:#try to get a previous parameters file
-    expInfo = misc.fromFile('lastParams.pickle')
+    expInfo = fromFile('lastParams.pickle')
 except:#if not there then use a default set
     expInfo = {'observer':'jwp', 'refOrientation':0}
 dateStr = time.strftime("%b_%d_%H%M", time.localtime())#add the current time
@@ -13,7 +14,7 @@ dateStr = time.strftime("%b_%d_%H%M", time.localtime())#add the current time
 #present a dialogue to change params
 dlg = gui.DlgFromDict(expInfo, title='simple JND Exp', fixed=['date'])
 if dlg.OK:
-    misc.toFile('lastParams.pickle', expInfo)#save params to file for next time
+    toFile('lastParams.pickle', expInfo)#save params to file for next time
 else:
     core.quit()#the user hit cancel so exit
 

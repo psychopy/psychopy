@@ -60,7 +60,7 @@ Spatial frequency: cycles per degree
 
 Requires : information about the screen width in cm and pixels and the viewing distance in cm
 
-Assumes : that pixels are square (see above) and that all parts of the screen are a constant distance from the eye (ie that the screen is curved!). This (clearly incorrect assumption) is common to most studies that report the size of their stimulus in degrees of visual angle. The resulting error is small at moderate eccentricities (a 0.2% error in size calculation at 3 deg eccentricity) but grows as stimuli are placed further from the centre of the screen (a 2% error at 10 deg). For studies of peripheral vision this should be corrected for. PsychoPy also makes no correction for the thickness of the screen glass, which refracts the image slightly.
+Assumes : that pixels are square (see above) and that all parts of the screen are a constant distance from the eye (i.e. that the screen is curved!). This (clearly incorrect assumption) is common to most studies that report the size of their stimulus in degrees of visual angle. The resulting error is small at moderate eccentricities (a 0.2% error in size calculation at 3 deg eccentricity) but grows as stimuli are placed further from the centre of the screen (a 2% error at 10 deg). For studies of peripheral vision this should be corrected for. PsychoPy also makes no correction for the thickness of the screen glass, which refracts the image slightly.
 
 
 .. _unitsPix:

@@ -49,7 +49,7 @@ def makeGrating(res,
 
     if gratType is "none":
             res=2
-            intensity = numpy.ones((res,res),Float)
+            intensity = numpy.ones((res, res), float)
     elif gratType is "sin":
             intensity= contr*(numpy.sin( xrange*numpy.sin(ori)+yrange*numpy.cos(ori) + phase))
     elif gratType is "ramp":
@@ -108,7 +108,7 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0),
                 The proportion of the raisedCosine that is being blurred.
             range: 2x1 tuple or list (default=[-1,1])
                 The minimum and maximum value in the mask matrix
-            """
+    """
     rad = makeRadialMatrix(matrixSize, center, radius)
     if shape=='ramp':
             outArray=1-rad

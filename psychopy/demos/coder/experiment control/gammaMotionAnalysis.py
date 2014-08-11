@@ -8,7 +8,8 @@ or shift-click) to plot the results
 
 #analyse standard staircase data
 import matplotlib; matplotlib.use('TKAgg')
-from psychopy import data, gui, misc, core
+from psychopy import data, gui, core
+from psychopy.tools.filetools import fromFile
 import pylab
 import numpy as num
 
@@ -19,7 +20,7 @@ if not files:
 #get the data from all the files
 allIntensities, allResponses = [],[]
 for thisFileName in files:
-    thisDat = misc.fromFile(thisFileName)
+    thisDat = fromFile(thisFileName)
     assert isinstance(thisDat, data.StairHandler)
     allIntensities.append( thisDat.intensities )
     allResponses.append( thisDat.data )

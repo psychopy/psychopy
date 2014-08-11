@@ -1,7 +1,8 @@
 
 # This file specifies defaults for psychopy prefs for Linux.
+
 # !! This file is auto-generated and will be overwritten!!
-#Edit baseNoArch.spec instead.
+# Edit baseNoArch.spec (all platforms) or generateSpec.py (platform-specific) instead.
 
 # Notes on usage for developers (not needed or intended for use when making or running experiments):
 # - baseNoArch.spec is copied & edited to be platform specific when you run generateSpec.py
@@ -50,9 +51,9 @@
     largeIcons = boolean(default='True')
     # what windows to display when PsychoPy starts
     defaultView = option('last', 'builder', 'coder', 'both', default='last')
-    # will reset site & key prefs to defaults immediately
+    # reset preferences to defaults on next restart of PsychoPy
     resetPrefs = boolean(default='False')
-    # save any unsaved prefences before closing the window
+    # save any unsaved preferences before closing the window
     autoSavePrefs = boolean(default='False')
     # enable features for debugging PsychoPy itself, including unit-tests
     debugMode = boolean(default='False')
@@ -84,7 +85,7 @@
     # if False will create scripts with an 'easier' but more cluttered namespace
     unclutteredNamespace = boolean(default=False)
     # folder names for custom components; expects a comma-separated list
-    componentsFolders = list(default=list('/Users/Shared/PsychoPy2/components'))
+    componentsFolders = list(default=list('/usr/share/pyshared/psychopy/app/builder/components'))
     # a list of components to hide (eg, because you never use them)
     hiddenComponents = list(default=list('PatchComponent'))
     # where the Builder demos are located on this computer (after unpacking)
@@ -98,14 +99,16 @@
 
 # Settings for connections
 [connections]
-    # the http proxy for usage stats and auto-updating; format is 000.000.000.000:0000
+    # the http proxy for usage stats and auto-updating; format is host:port
     proxy = string(default="")
     # override the above proxy settings with values found in the environment (if possible)
     autoProxy = boolean(default=True)
     # allow PsychoPy to send anonymous usage stats; please allow if possible, its helps PsychoPy's development
-    #allowUsageStats = boolean(default=True)
+    allowUsageStats = boolean(default=True)
     # allow PsychoPy to check for new features and bug fixes
-    #checkForUpdates = boolean(default=True)
+    checkForUpdates = boolean(default=True)
+    # max time to wait for a connection response
+    timeout = float(default=20)
 
 # KeyBindings; new key bindings only take effect on restart; Ctrl not available on Mac (use Cmd)
 [keyBindings]
@@ -185,8 +188,8 @@
     # decrease display size in Flow
     smallerFlow = string(default='Ctrl+-')
     # increase display size of Routines
-    largerRoutine = string(default='Ctrl+Shift+=') # on mac book pro this is good
+    largerRoutine = string(default='Ctrl++') # good in ubuntu virtual machine (on mac book pro...)
     # decrease display size of Routines
-    smallerRoutine = string(default='Ctrl+Shift+-')
+    smallerRoutine = string(default='Ctrl+_')
     #show or hide the readme (info) for this experiment if possible
     toggleReadme = string(default='Ctrl+I')

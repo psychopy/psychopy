@@ -45,4 +45,3 @@ class ShellFrame(wx.Frame):
         
         self.SetSizerAndFit(self.sizer)
         self.SetAutoLayout(1)
-        

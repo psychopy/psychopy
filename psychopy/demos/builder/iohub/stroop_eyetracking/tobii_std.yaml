@@ -1,0 +1,59 @@
+monitor_devices:
+    - Display:
+        name: display
+        reporting_unit_type: pix
+        device_number: 0
+        physical_dimensions:
+            width: 590
+            height: 340
+            unit_type: mm
+        default_eye_distance:
+            surface_center: 500
+            unit_type: mm
+        psychopy_monitor_name: default
+
+    - Keyboard:
+        name: keyboard
+
+    - Mouse:
+        name: mouse
+
+    - Experiment:
+        name: experimentRuntime
+
+# Tobii Config
+    - eyetracker.hw.tobii.EyeTracker:
+        name: tracker
+        model_name:
+        serial_number:
+        calibration:
+            type: FIVE_POINTS
+            randomize: True
+            auto_pace: False
+            pacing_speed: 1.5
+            screen_background_color: [128,128,128]            
+            target_type: CIRCLE_TARGET
+            target_attributes:
+                 outer_diameter: 35
+                 outer_stroke_width: 2
+                 outer_fill_color: [128,128,128]
+                 outer_line_color: [255,255,255]
+                 inner_diameter: 7
+                 inner_stroke_width: 1
+                 inner_color: [0,0,0]
+                 inner_fill_color: [0,0,0]
+                 inner_line_color: [0,0,0]
+                 animate:
+                     enable: True
+                     movement_velocity: 600.0  # 500 pix / sec
+                     expansion_ratio: 3.0  # expands to 3 x the starting size
+                     expansion_speed: 30.0  # exapands at 30.0 pix / sec
+                     contract_only: True        
+        runtime_settings:
+            sampling_rate: 120
+data_store:
+    enable: True
+    experiment_info:
+        code: ystart
+    session_info:
+        code: S0001    

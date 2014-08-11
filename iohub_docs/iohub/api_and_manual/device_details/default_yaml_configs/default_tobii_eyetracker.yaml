@@ -1,176 +1,180 @@
-# This section includes all valid tobii.EyeTracker Device
-# settings that can be specified in an iohub_config.yaml
-# or in a Python dictionary form and passed to the quickStartHubServer
-# method. Any device parameters not specified when the device class is
-# created by the ioHub Process will be assigned the default value
-# indicated here.
-#
 eyetracker.hw.tobii.EyeTracker:
-    # name: The unique name to assign to the device instance created.
-    #   The device is accessed from within the PsychoPy script 
-    #   using the name's value; therefore it must be a valid Python
-    #   variable name as well.
-    #
-    name: tracker
-
-    # enable: Specifies if the device should be enabled by ioHub and monitored
-    #   for events.
-    #   True = Enable the device on the ioHub Server Process
-    #   False = Disable the device on the ioHub Server Process. No events for
-    #   this device will be reported by the ioHub Server.
-    #    
+    # Indicates if the device should actually be loaded at experiment runtime.
     enable: True
 
-    # saveEvents: *If* the ioHubDataStore is enabled for the experiment, then
-    #   indicate if events for this device should be saved to the
-    #   data_collection/keyboard event group in the hdf5 event file.
-    #   True = Save events for this device to the ioDataStore.
-    #   False = Do not save events for this device in the ioDataStore.
-    #    
-    saveEvents: True
+    # The variable name of the device that will be used to access the ioHub Device class
+    # during experiment run-time, via the devices.[name] attribute of the ioHub
+    # connection or experiment runtime class.
+    name: tracker
 
-    # streamEvents: Indicate if events from this device should be made available
-    #   during experiment runtime to the PsychoPy Process.
-    #   True = Send events for this device to  the PsychoPy Process in real-time.
-    #   False = Do *not* send events for this device to the PsychoPy Process in real-time.
-    #    
-    streamEvents: True
+    # Should eye tracker events be saved to the ioHub DataStore file when the device
+    # is recording data ?
+    save_events: True
 
-    # auto_report_events: Indicate if events from this device should start being
-    #   processed by the ioHub as soon as the device is loaded at the start of an experiment,
-    #   or if events should only start to be monitored on the device when a call to the
-    #   device's enableEventReporting method is made with a parameter value of True.
-    #   True = Automatically start reporting events for this device when the experiment starts.
-    #   False = Do not start reporting events for this device until enableEventReporting(True)
-    #   is set for the device during experiment runtime.
-    #
-    auto_report_events: False
+    # Should eye tracker events be sent to the Experiment process when the device
+    # is recording data ?
+    stream_events: True
 
-    # event_buffer_length: Specify the maximum number of events (for each
-    #   event type the device produces) that can be stored by the ioHub Server
-    #   before each new event results in the oldest event of the same type being
-    #   discarded from the ioHub device event buffer.
-    #
-    event_buffer_length: 512
+    # How many eye events (including samples) should be saved in the ioHub event buffer before
+    # old eye events start being replaced by new events. When the event buffer reaches
+    # the maximum event length of the buffer defined here, older events will start to be dropped.
+    event_buffer_length: 1024
 
-    # monitor_event_types: Specified which device event types that should be monitored
-    #   and therefore saved to the DataStore or sent to the Experiment Process.
-    #
+    # The Tobii implementation of the common eye tracker interface supports the
+    # BinocularEyeSampleEvent event type.
     monitor_event_types: [ BinocularEyeSampleEvent,]
 
-    # model_name: The model name of the Tobii device that you wish to
-    #   connect to can be specified here, and only Tobii systems matching that
-    #   model name will be considered as possible candidates for connection.
-    #   If you only have one Tobii system connected to the computer, 
-    #   this field can just be left empty.
-    #    
+    # The model name of the Tobii device that you wish to connect to can be specified here,
+    # and only Tobii systems matching that model name will be considered as possible candidates for connection.
+    # If you only have one Tobii system connected to the computer, this field can just be left empty.
     model_name:
 
-    # serial_number: The serial number of the Tobii device that you wish to
-    #   connect to can be specified here, and only the Tobii system matching
-    #   that serial number will be connected to, if found. If you only have one
-    #   Tobii system connected to the computer, this field can just be left empty.
-    #
+    # The serial number of the Tobii device that you wish to connect to can be specified here,
+    # and only the Tobii system matching that serial number will be connected to, if found.
+    # If you only have one Tobii system connected to the computer, this field can just be left empty,
+    # in which case the first Tobii device found will be connected to.
     serial_number:
 
     calibration:
-        # type: The Tobii ioHub Common Eye Tracker Interface currently support 
-        #   a 3, 5 and 9 point calibration mode.
-        #   Valid types: THREE_POINTS,FIVE_POINTS,NINE_POINTS
+        # Should the PsychoPy Window created by the PsychoPy Process be minimized
+        # before displaying the Calibration Window created by the ioHub Process.
+        #
+        minimize_psychopy_win: False
+
+        # The Tobii ioHub Common Eye Tracker Interface currently support 
+        # a 3, 5 and 9 point calibration mode.
+        # THREE_POINTS,FIVE_POINTS,NINE_POINTS
         #
         type: NINE_POINTS
 
-        # randomize: Should the target positions be randomized?
+        # Should the target positions be randomized?
         #
         randomize: True
 
-        # auto_pace: If True, the eye tracker will automatically progress
-        #     from one calibration point to the next. If False, a manual
-        #     key or button press is needed to progress to the next point.
-        # 
+        # auto_pace can be True or False. If True, the eye tracker will 
+        # automatically progress from one calibration point to the next.
+        # If False, a manual key or button press is needed to progress to
+        # the next point.
+        #
         auto_pace: True
         
-        # pacing_speed: The number of sec.msec that a calibration point should
-        #   be displayed before moving onto the next point when auto_pace is set to true.
-        #   If auto_pace is False, pacing_speed is ignored.
-        #        
+        # pacing_speed is the number of sec.msec that a calibration point should
+        # be displayed before moving onto the next point when auto_pace is set to true.
+        # If auto_pace is False, pacing_speed is ignored.
+        #
         pacing_speed: 1.5
         
-        # screen_background_color: Specify the r,g,b background color to 
-        #   set the calibration, validation, etc, screens to. Each element of
-        #   the color should be a value between 0 and 255. 0 == black, 255 == white.
-        #        
+        # screen_background_color specifies the r,g,b background color to 
+        # set the calibration, validation, etc, screens to. Each element of the color
+        # should be a value between 0 and 255. 0 == black, 255 == white.
+        #
         screen_background_color: [128,128,128]
         
-        # target_type: Target type defines what form of calibration graphic
-        #   should be used during calibration, validation, etc. modes.
-        #   Currently the Tobii implementation supports the following
-        #   target type: CIRCLE_TARGET. 
-        #   
+        # Target type defines what form of calibration graphic should be used
+        # during calibration, validation, etc. modes.
+        # Currently the Tobii implementation supports the following
+        # target type: CIRCLE_TARGET. 
+        # To do: Add support for other types, etc.
+        #
         target_type: CIRCLE_TARGET
         
-        # target_attributes: The associated target attribute properties 
-        #   can be supplied for the given target_type. 
+        # The associated target attribute properties can be supplied
+        # for the given target_type. 
         target_attributes:
-            
-            # outer_diameter: the outer diameter of the circle, in pixels.
-            #
-            outer_diameter: 33
-            
-            # inner_diameter: the inner diameter of the circle, in pixels.
-            #            
-            inner_diameter: 6
-            
-            # outer_color: The color to use for the outer target 'ring'.
-            #            
-            outer_color: [255,255,255]
-            
-            # inner_color: The color to use for the center of the target.
-            #            
-            inner_color: [0,0,0]
+             # CIRCLE_TARGET is drawn using two PsychoPy
+             # Circle Stim. The _outer_ circle is drawn first, and should be
+             # be larger than the _inner_ circle, which is drawn on top of the
+             # outer circle. The target_attributes starting with 'outer_' define
+             # how the outer circle of the calibration targets should be drawn.
+             # The target_attributes starting with 'inner_' define
+             # how the inner circle of the calibration targets should be drawn. 
+             #
+             # outer_diameter: The size of the outer circle of the calibration target
+             #
+             outer_diameter: 35
+             # outer_stroke_width: The thickness of the outer circle edge. 
+             #
+             outer_stroke_width: 2
+             # outer_fill_color: RGB255 color to use to fill the outer circle. 
+             #
+             outer_fill_color: [128,128,128]
+             # outer_line_color: RGB255 color to used for the outer circle edge. 
+             #
+             outer_line_color: [255,255,255]
+             # inner_diameter: The size of the inner circle calibration target
+             #
+             inner_diameter: 7
+             # inner_stroke_width: The thickness of the inner circle edge. 
+             #
+             inner_stroke_width: 1
+             # inner_fill_color: RGB255 color to use to fill the inner circle. 
+             #
+             inner_fill_color: [0,0,0]
+             # inner_line_color: RGB255 color to used for the inner circle edge. 
+             #
+             inner_line_color: [0,0,0]
+             # The Tobii Calibration routine supports using moving target graphics.
+             # The following parameters control target movement (if any).
+             #
+             animate:
+                 # enable: True if the calibration target should be animated.
+                 # False specifies that the calibration targets could just jump
+                 # from one calibration position to another.
+                 #
+                 enable: True
+                 # movement_velocity: The velocity that a calibration target
+                 # graphic should use when gliding from one calibration
+                 # point to another. Always in pixels / second.
+                 #
+                 movement_velocity: 600.0 
+                 # expansion_ratio: The outer circle of the calibration target
+                 # can expand (and contract) when displayed at each position.
+                 # expansion_ratio gives the largest size of the outer circle 
+                 # as a ratio of the outer_diameter length. For example,
+                 # if outer_diameter = 30, and expansion_ratio = 2.0, then
+                 # the outer circle of each calibration point will expand out 
+                 # to 60 pixels. Set expansion_ratio to 1.0 for no expansion.
+                 # 
+                 expansion_ratio: 3.0
+                 # expansion_speed: The rate at which the outer circle
+                 # graphic should expand. Always in pixels / second. 
+                 # 
+                 expansion_speed: 30.0
+                 # contract_only: If the calibration target should expand from
+                 # the outer circle initial diameter to the larger diameter
+                 # and then contract back to the original diameter, set 
+                 # contract_only to False. To only have the outer circle target
+                 # go from an expanded state to the smaller size, set this to True.
+                 #
+                 contract_only: True
     
     runtime_settings:
-        # sampling_rate: The supported sampling rates for Tobii are model dependent. 
-        #   Using a defualt of 60 Hz, with the assumption it is the most common.
-        #
+        # The supported sampling rates for Tobii are model dependent. 
+        # Using a defualt of 60 Hz, with the assumption it is the most common.
         sampling_rate: 60
 
-        # track_eyes: Tobii supports BINOCULAR tracking mode only.
-        #        
+        # Tobii supports BINOCULAR tracking mode only.
         track_eyes: BINOCULAR
             
-    # manufacturer_name: manufacturer_name is used to store the name of the
-    #   maker of the eye tracking device. This is for informational purposes only.
-    #
-    manufacturer_name:  Tobii Technology
-
-    # manufacture_date: The date of manufactiurer of the device 
-    # can be specified here. It is not used by the ioHub,
-    # so is FYI only.
-    #   
-    manufacture_date: DD-MM-YYYY
-
-    # hardware_version: The device's hardware version can be specified here.
-    #   It is not used by the ioHub, so is FYI only.
-    #
-    hardware_version: N/A
+    # manufacturer_name is used to store the name of the maker of the eye tracking
+    # device. This is for informational purposes only.
+    manufacturer_name: Tobii Technology
     
-    # firmware_version: If the device has firmware, its revision number
-    #   can be indicated here. It is not used by the ioHub, so is FYI only.
-    #
-    firmware_version: N/A
-
-    # model_number: The device model number can be specified here.
-    #   It is not used by the ioHub, so is FYI only.
-    #
+    # Do not change this value.
+    auto_report_events: False
+    
+    # The below parameters are not used by the Tobii common eye tracker
+    # interface implementation. They can be ignored an left out of your
+    # device configuration, or you can complete any ones that are relevent for FYI
+    # purposes only at this time.
+    device_number: 0
+    
     model_number: N/A
     
-    # software_version: The device driver and / or SDK software version number.
-    #   This field is not used by ioHub, so is FYI only. 
+    manufacture_date: DD-MM-YYYY
+    
     software_version: N/A
-
-    # device_number: The device number to assign to the Analog Input device. 
-    #   device_number is not used by this device type.
-    #
-    device_number: 0
-
+    
+    hardware_version: N/A
+    
+    firmware_version: N/A

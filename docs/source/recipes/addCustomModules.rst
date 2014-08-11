@@ -14,7 +14,7 @@ Avoid adding the entire path (e.g. the site-packages folder) of separate install
 Using preferences
 --------------------------
 
-As of version 1.70.00 you can do this using the PsychoPy preferences/general. There you will find preference for `paths` which can be set to a list of strings e.g. `['/Users/jwp/code', '~/code/thirdParty']
+As of version 1.70.00 you can do this using the PsychoPy preferences/general. There you will find preference for `paths` which can be set to a list of strings e.g. `['/Users/jwp/code', '~/code/thirdParty']`
 
 These only get added to the Python path when you import psychopy (or one of the psychopy packages) in your script.
 
@@ -22,11 +22,11 @@ These only get added to the Python path when you import psychopy (or one of the 
 Adding a .pth file
 --------------------------
 
-An alternative is to add a file into the site-packages folder of your application. This file should be pure text and have the extenstion .pth to indicate to Python that it adds to the path.
+An alternative is to add a file into the site-packages folder of your application. This file should be pure text and have the extension .pth to indicate to Python that it adds to the path.
 
 On win32 the site-packages folder will be something like:
 
-    c:/Program Files/PsychoPy2/lib/site-packages
+    C:/Program Files/PsychoPy2/lib/site-packages
     
 On OS X you need to right-click the application icon, select 'Show Package Contents' and then navigate down to Contents/Resources/lib/python2.6. Put your .pth file here, next to the various libraries.
 

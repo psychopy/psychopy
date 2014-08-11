@@ -22,7 +22,7 @@ One of the particular features of PsychoPy is that you can specify the size and 
  ======================================  ============================================================
   Units                                             Requires    
  ======================================  ============================================================
-  'norm' (normalised to widht/height)     n/a
+  'norm' (normalised to width/height)     n/a
   'pix' (pixels)                          Screen width in pixels
   'cm' (centimeters on the screen)        Screen width in pixels and screen width in cm 
   'deg' (degrees of visual angle)         Screen width (pixels), screen width (cm) and distance (cm)

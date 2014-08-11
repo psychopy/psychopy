@@ -11,7 +11,7 @@ iconFile = path.join(thisFolder,'movie.png')
 tooltip = 'Movie: play movie files'
 
 class MovieComponent(VisualComponent):
-    """An event class for presenting image-based stimuli"""
+    """An event class for presenting movie-based stimuli"""
     def __init__(self, exp, parentName, name='movie', movie='',
                 units='from exp settings',
                 pos=[0,0], size='', ori=0,

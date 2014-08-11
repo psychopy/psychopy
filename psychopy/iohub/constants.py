@@ -67,6 +67,10 @@ try:
             cls._names.update(dict([(v,k) for k,v in cls._names.iteritems()]))
             cls._initialized=True
      
+        @classmethod
+        def getConstants(cls):
+            return cls._names
+            
     class EventConstants(Constants):
         """
         EventConstants provides access to the ioHub Device Event type constants, 
@@ -108,6 +112,11 @@ try:
         MOUSE_SCROLL=35
         MOUSE_MOVE=36
         MOUSE_DRAG=37
+        
+        TOUCH=40
+        TOUCH_MOVE=41
+        TOUCH_PRESS=42
+        TOUCH_RELEASE=43
         
         EYETRACKER=50
         MONOCULAR_EYE_SAMPLE=51
@@ -160,6 +169,15 @@ try:
 
             #: Constant for a Mouse Drag Event.
             MOUSE_DRAG=37
+
+            #: Constant for a Touch motion Event.
+            TOUCH_MOVE=41
+
+            #: Constant for an initial Touch press Event.
+            TOUCH_PRESS=42
+
+            #: Constant for a Touch release Event.
+            TOUCH_RELEASE=43
             
             #: Constant for an Eye Tracker Monocular Sample Event.
             MONOCULAR_EYE_SAMPLE=51
@@ -249,6 +267,7 @@ try:
         OTHER = 1
         KEYBOARD = 20
         MOUSE = 30
+        TOUCH=40
         EYETRACKER = 50
         NETWORK=60
         EVENTPUBLISHER=61
@@ -272,6 +291,9 @@ try:
 
             #: Constant for a Mouse Device.
             MOUSE = 30
+            
+            #: Constant for a Touch Device.
+            TOUCH = 40
 
             #: Constant for an EyeTracker Device.
             EYETRACKER = 50

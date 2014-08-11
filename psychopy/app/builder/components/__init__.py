@@ -129,10 +129,12 @@ def getInitVals(params):
         elif name in ['pos', 'fieldPos']:
             inits[name].val='[0,0]'
             inits[name].valType='code'
-        elif name in ['ori','sf','size','height','letterHeight','color','phase','opacity',
-            'volume', #sounds
-            'coherence','nDots', 'fieldSize','dotSize', 'dotLife', 'dir', 'speed',#dots
-            ]:
+        elif name in ['ori','sf','size','height','letterHeight',
+                    'color','lineColor','fillColor',
+                    'phase','opacity',
+                    'volume', #sounds
+                    'coherence','nDots', 'fieldSize','dotSize', 'dotLife', 'dir', 'speed',#dots
+                    ]:
             inits[name].val="1.0"
             inits[name].valType='code'
         elif name in ['image','mask']:

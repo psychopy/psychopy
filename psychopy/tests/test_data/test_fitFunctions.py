@@ -25,6 +25,23 @@ sd=0.1
 contrasts = numpy.linspace(0.0,0.5,10)
 responses = cumNorm(contrasts, noise=sd, thresh=thresh)
 
+def test_fitNakaRushton():
+    #the data are actually from a cum norm so this should be exact
+    fit = data.FitNakaRushton(contrasts, responses)
+    assert numpy.allclose([ 0.20079013,  4.6946005,   0.51007665,  1.01628589], fit.params)
+    #check that inverse works too
+    modResp = fit.eval(contrasts)
+    invs = fit.inverse(modResp)
+    assert numpy.allclose(contrasts,invs)#inverse should match the forwards function
+    #plot if needed
+    if PLOTTING:
+        pylab.figure()
+        pylab.plot(contrasts, responses, 'o')
+        pylab.plot(contrasts, fit.eval(contrasts))
+        pylab.plot([0,thresh],[0.75,0.75],'--b')#horiz
+        pylab.plot([thresh,thresh],[0.,0.75],'--b')#vert
+        pylab.title('Fitting Naka-Rushton')
+
 def test_fitCumNorm():
     #the data are actually from a cum norm so this should be exact
     fit = data.FitCumNormal(contrasts, responses, display=0, expectedMin=0.5)
@@ -34,7 +51,7 @@ def test_fitCumNorm():
     assert numpy.allclose(contrasts,invs)#inverse should match the forwards function
     #plot if needed
     if PLOTTING:
-        pylab.figure(1)
+        pylab.figure()
         pylab.plot(contrasts, responses, 'o')
         pylab.plot(contrasts, fit.eval(contrasts))
         pylab.plot([0,thresh],[0.75,0.75],'--b')#horiz
@@ -52,7 +69,7 @@ def test_weibull():
     assert numpy.allclose(contrasts,invs), contrasts-invs#inverse should match the forwards function
     #do a plot to check fits look right
     if PLOTTING:
-        pylab.figure(1)
+        pylab.figure()
         pylab.plot(contrasts, responses, 'o')
         pylab.plot(contrasts, fit.eval(contrasts))
         pylab.plot([0,thresh],[0.75,0.75],'--b')#horiz
@@ -70,7 +87,7 @@ def test_logistic():
     assert numpy.allclose(contrasts,invs), contrasts-invs#inverse should match the forwards function
     #do a plot to check fits look right
     if PLOTTING:
-        pylab.figure(1)
+        pylab.figure()
         pylab.plot(contrasts, responses, 'o')
         pylab.plot(contrasts, fit.eval(contrasts))
         pylab.plot([0,thresh],[0.75,0.75],'--b')#horiz
@@ -82,6 +99,9 @@ def teardown():
         pylab.show()
 
 if __name__=='__main__':
-    test_fitCumNorm()
+#    test_fitCumNorm()
+#    test_weibull()
+#    test_logistic()
+    test_fitNakaRushton()
     if PLOTTING:
         pylab.show()

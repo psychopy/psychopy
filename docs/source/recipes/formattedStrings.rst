@@ -5,7 +5,7 @@ Generating formatted strings
 
 A formatted string is a variable which has been converted into a string (text). In python the specifics of how this is done is determined by what kind of variable you want to print.
 
-Example 1: You have an experiment which generates a string variable called `text`. You want to insert insert this variable into a string so you can print it. This would be achieved with the following code::
+Example 1: You have an experiment which generates a string variable called `text`. You want to insert this variable into a string so you can print it. This would be achieved with the following code::
 
     message = 'The result is %s' %(text)
     

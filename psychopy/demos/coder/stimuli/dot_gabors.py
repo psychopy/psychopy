@@ -31,4 +31,3 @@ while t<60:#quits after 20 secs
         if key in ['escape','q']:
             myWin.close()
             core.quit()
-            

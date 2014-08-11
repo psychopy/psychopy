@@ -913,6 +913,8 @@ class Device(ioObject):
             clearEvents=args[1]
         else:
             eventTypeID=kwargs.get('event_type_id',None)
+            if eventTypeID is None:
+                eventTypeID=kwargs.get('event_type',None)    
             clearEvents=kwargs.get('clearEvents',True)
 
         currentEvents=[]

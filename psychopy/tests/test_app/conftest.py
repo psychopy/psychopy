@@ -9,13 +9,13 @@ from psychopy.app import psychopyApp
 def pytest_configure(config):
     #print "D: CREATING APP"
     psychopyApp._called_from_test = True
-    psychopyApp._app = psychopyApp.PsychoPyApp(interactive=False, showSplash=False)
+    psychopyApp._app = psychopyApp.PsychoPyApp(testMode=True, showSplash=False)
     #print "D: CREATED APP"
     #del PsychoPyApp._called_from_test
 
 def pytest_unconfigure(config):
-    # print "D: KILLING THE APP"
-    #PsychoPyApp._app.quit() # this currently uses sys.exit() which ends testing :-(
+    print "D: KILLING THE APP"
+    psychopyApp._app.quit() # this currently uses sys.exit() which ends testing :-(
     #
     #print "D: SHUTTING DOWN APP"
     pass

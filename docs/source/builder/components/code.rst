@@ -26,10 +26,10 @@ The parameters of the `Code Component` simply specify the code that will get exe
         Certain things might need to be done just once at the start of a :ref:`Routine <routines>` e.g. at the beginning of each trial you might decide which side a stimulus will appear
         
     Each Frame:
-        Things that need to updated constantly, throughout the experiment. Note that these will be exectued exactly once per video frame (on the order of every 10ms), to give dynamic displays. Static displays do not need to be updated every frame.
+        Things that need to updated constantly, throughout the experiment. Note that these will be executed exactly once per video frame (on the order of every 10ms), to give dynamic displays. Static displays do not need to be updated every frame.
         
     End Routine:
-        At the end of the :ref:`Routine <routines>` (eg. the trial) you may need to do additional things, like checking if the participant got the right answer
+        At the end of the :ref:`Routine <routines>` (e.g. the trial) you may need to do additional things, like checking if the participant got the right answer
         
     End Experiment:
         Use this for things like saving data to disk, presenting a graph(?), or resetting hardware to its original state.
@@ -89,7 +89,7 @@ Common PsychoPy variables:
 
 Your own variables:
 
-    - anything you've created in a Code Component is available for the rest of the script. (Sometimes you might need to define it at the beginning of the experiment, so that it wil be available throughout.)
+    - anything you've created in a Code Component is available for the rest of the script. (Sometimes you might need to define it at the beginning of the experiment, so that it will be available throughout.)
     - the name of any other stimulus or the parameters from your file also exist as variables.
     - most Components have a `status` attribute, which is useful to determine whether a stimulus has `NOT_STARTED`, `STARTED` or `FINISHED`. For example, to play a tone at the end of a Movie Component (of unknown duration) you could set start of your tone to have the 'condition' ::
     

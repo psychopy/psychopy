@@ -269,7 +269,7 @@ class Monitor:
     #equivalent get functions
     def getSizePix(self):
         """Returns the size of the current calibration in pixels, or None if not defined"""
-        if self.currentCalib.has_key('sizePix'):
+        if 'sizePix' in self.currentCalib:
             return self.currentCalib['sizePix']
         else:
             return None
@@ -284,13 +284,13 @@ class Monitor:
         calibTools.strFromDate"""
         return self.currentCalib['calibDate']
     def getGamma(self):
-        if self.currentCalib.has_key('gamma'):
+        if 'gamma' in self.currentCalib:
             return self.currentCalib['gamma']
         else:
             return None
     def getGammaGrid(self):
         """Gets the min,max,gamma values for the each gun"""
-        if self.currentCalib.has_key('gammaGrid'):
+        if 'gammaGrid' in self.currentCalib:
             # Make sure it's an array, so you can look at the shape
             grid = numpy.asarray(self.currentCalib['gammaGrid'])
             if grid.shape!=[4,6]:
@@ -302,33 +302,33 @@ class Monitor:
             return None
     def getLineariseMethod(self):
         """Gets the min,max,gamma values for the each gun"""
-        if self.currentCalib.has_key('lineariseMethod'):
+        if 'lineariseMethod' in self.currentCalib:
             return self.currentCalib['lineariseMethod']
         else:
             return None
     def getMeanLum(self):
-        if self.currentCalib.has_key('meanLum'):
+        if 'meanLum' in self.currentCalib:
             return self.currentCalib['meanLum']
         else:
             return None
     def getLumsPre(self):
         """Gets the measured luminance values from last calibration"""
-        if self.currentCalib.has_key('lumsPre'):
+        if 'lumsPre' in self.currentCalib:
             return self.currentCalib['lumsPre']
         else: return None
     def getLumsPost(self):
         """Gets the measured luminance values from last calibration TEST"""
-        if self.currentCalib.has_key('lumsPost'):
+        if 'lumsPost' in self.currentCalib:
             return self.currentCalib['lumsPost']
         else: return None
     def getLevelsPre(self):
         """Gets the measured luminance values from last calibration"""
-        if self.currentCalib.has_key('levelsPre'):
+        if 'levelsPre' in self.currentCalib:
             return self.currentCalib['levelsPre']
         else: return None
     def getLevelsPost(self):
         """Gets the measured luminance values from last calibration TEST"""
-        if self.currentCalib.has_key('levelsPost'):
+        if 'levelsPost' in self.currentCalib:
             return self.currentCalib['levelsPost']
         else: return None
     def getSpectra(self):
@@ -339,7 +339,7 @@ class Monitor:
             - nm, power = monitor.getSpectra()
 
             """
-        if self.currentCalib.has_key('spectraNM'):
+        if 'spectraNM' in self.currentCalib:
             return self.currentCalib['spectraNM'], self.currentCalib['spectraRGB']
         else:
             return None, None
@@ -349,7 +349,7 @@ class Monitor:
         Otherwise, if power spectra are available for the
         monitor a matrix will be calculated.
         """
-        if not self.currentCalib.has_key('dkl_rgb'): RECOMPUTE=True
+        if not 'dkl_rgb' in self.currentCalib: RECOMPUTE=True
         if RECOMPUTE:
             nm, power = self.getSpectra()
             if nm==None:
@@ -365,7 +365,7 @@ class Monitor:
         Otherwise (if power spectra are available for the
         monitor) a matrix will be calculated.
         """
-        if not self.currentCalib.has_key('lms_rgb'): RECOMPUTE=True
+        if not 'lms_rgb' in self.currentCalib: RECOMPUTE=True
         if RECOMPUTE:
             nm, power = self.getSpectra()
             if nm==None:
@@ -804,10 +804,12 @@ def getLumSeries(lumLevels=8,
         if len(psychopy.event.getKeys()):
             break#we got a keypress so move on
 
+    if autoMode!='semi':
+        message.setText('Q to quit at any time')
+    else:
+        message.setText('Spacebar for next patch')
 
-    message.setText('Q to quit at any time')
-    #
-    if photometer.type=='LS100':#LS100 likes to take at least one bright measurement
+    if havePhotom and photometer.type=='LS100': #LS100 likes to take at least one bright measurement
         junk=photometer.getLum()
 
     #what are the test values of luminance
@@ -817,7 +819,7 @@ def getLumSeries(lumLevels=8,
 
     if allGuns: guns=[0,1,2,3]#gun=0 is the white luminance measure
     else: allGuns=[0]
-    lumsList = numpy.zeros((len(guns),len(toTest)), 'd') #this will hoold the measured luminance values
+    lumsList = numpy.zeros((len(guns),len(toTest)), 'd') #this will hold the measured luminance values
     #for each gun, for each value run test
     for gun in guns:
         for valN, DACval in enumerate(toTest):
@@ -838,11 +840,7 @@ def getLumSeries(lumLevels=8,
             myWin.flip()
 
             time.sleep(0.2)#allowing the screen to settle (no good reason!)
-            #check for quit request
-            for thisKey in psychopy.event.getKeys():
-                if thisKey in ['q', 'Q', 'escape']:
-                    myWin.close()
-                    return numpy.array([])
+
             #take measurement
             if havePhotom and autoMode=='auto':
                 actualLum = photometer.getLum()
@@ -853,9 +851,25 @@ def getLumSeries(lumLevels=8,
                 else:
                     #otherwise just this gun
                     lumsList[gun,valN] =  actualLum
+     
+                #check for quit request
+                for thisKey in psychopy.event.getKeys():
+                    if thisKey in ['q', 'Q', 'escape']:
+                        myWin.close()
+                        return numpy.array([])
+     
             elif autoMode=='semi':
                 print "At DAC value %i" % DACval
-                psychopy.event.waitKeys()
+     
+                done = False
+                while not done:
+                    #check for quit request
+                    for thisKey in psychopy.event.getKeys():
+                        if thisKey in ['q', 'Q', 'escape']:
+                            myWin.close()
+                            return numpy.array([])
+                        elif thisKey in [' ','space']:
+                            done = True
 
     myWin.close() #we're done with the visual stimuli
     if havePhotom: return lumsList
@@ -871,7 +885,7 @@ def getLumSeriesPR650(lumLevels=8,
     autoMode='auto',
     stimSize = 0.3,
     photometer='COM1'):
-    """DEPRECATED (since v1.60.01): Use :class:`pscyhopy.monitors.getLumSeries()` instead"""
+    """DEPRECATED (since v1.60.01): Use :class:`psychopy.monitors.getLumSeries()` instead"""
 
     logging.warning("DEPRECATED (since v1.60.01): Use monitors.getLumSeries() instead")
     val= getLumSeries(lumLevels,

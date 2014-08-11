@@ -14,7 +14,7 @@ This can be used in various ways. Here are some scenarios (email the list if you
 Use the mouse to record the location of a button press
 
 Use the mouse to control stimulus parameters
-    Imgine you want to use your mouse to make your 'patch'_ bigger or smaller and save the final size.
+    Imagine you want to use your mouse to make your 'patch'_ bigger or smaller and save the final size.
     Call your `mouse`_ 'mouse', set it to save its state at the end of the trial and set the button press to
     end the Routine. Then for the size setting of your Patch stimulus insert `$mouse.getPos()[0]` to use the 
     x position of the mouse to control the size or `$mouse.getPos()[1]` to use the y position.
@@ -25,7 +25,7 @@ Parameters
 ~~~~~~~~~~~~~~
 
 Name : string
-    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no puncuation marks or spaces).
+    Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
 
 start : 
     The time that the mouse should first be checked. See :ref:`startStop` for details.
