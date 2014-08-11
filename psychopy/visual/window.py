@@ -98,7 +98,7 @@ openWindows = []
 psychopy.event.visualOpenWindows = openWindows
 
 
-class Window:
+class Window(object):
     """Used to set up a context in which to draw objects,
     using either PyGame (python's SDL binding) or pyglet.
 
@@ -436,6 +436,13 @@ class Window:
                              'args': args,
                              'kwargs': kwargs})
 
+    def doFlipLogging(self, now):
+        #log events
+        for logEntry in self._toLog:
+            #{'msg':msg,'level':level,'obj':copy.copy(obj)}
+            logging.log(msg=logEntry['msg'], level=logEntry['level'], t=now, obj=logEntry['obj'])
+        self._toLog = []
+	
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your
         frame. (This replaces the win.update() method, better reflecting what
@@ -582,14 +589,8 @@ class Window:
                                         "occurred - I'll stop bothering you "
                                         "about them!")
 
-        #log events
-        for logEntry in self._toLog:
-            #{'msg':msg,'level':level,'obj':copy.copy(obj)}
-            logging.log(msg=logEntry['msg'],
-                        level=logEntry['level'],
-                        t=now,
-                        obj=logEntry['obj'])
-        del self._toLog[:]
+        # Emit logging entries if requested
+        self.doFlipLogging(now + logging.defaultClock.getLastResetTime())
 
         #    If self.waitBlanking is True, then return the time that
         # GL.glFinish() returned, set as the 'now' variable. Otherwise
