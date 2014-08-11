@@ -1,33 +1,28 @@
 #!/usr/bin/env python2
-
 '''
 Copyright (C) 2014 Allen Institute for Brain Science
                 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License Version 3
 as published by the Free Software Foundation on 29 June 2007.
-
 This program is distributed WITHOUT WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE OR ANY OTHER WARRANTY, EXPRESSED OR IMPLIED.  
 See the GNU General Public License Version 3 for more details.
-
 You should have received a copy of the GNU General Public License along with this program.  
 If not, see http://www.gnu.org/licenses/
-
 '''
 
 import sys
 import os
 import numpy as np
-import psychopy  # so we can get the __path__
-from psychopy import core, platform_specific, logging, prefs, monitors, event
+from psychopy import core, logging, monitors
 from OpenGL.arrays import ArrayDatatype as ADT
-
 import pyglet
 GL = pyglet.gl
+
 
 class Warper():
     '''Class to perform spherical, cylindrical, warpfile, or None (disabled) warps'''
     def __init__(self, 
-                 window,
+                 win,
                  warp=None, 
                  warpfile = None, 
                  warpGridsize = 300, 
@@ -39,8 +34,7 @@ class Warper():
         dynamically using the changeProjection() method.
 
         :Parameters:
-            window: 
-                
+            win : Handle to the window.
             warp : 'spherical', 'cylindrical, 'warpfile' or *None*
                 This table gives the main properties of each projection:
                               eyepoint        parallel   parallel      radial distance
@@ -63,11 +57,14 @@ class Warper():
             flipVertical: False
                 Flip the entire output vertically. useful if projector is flipped upside down.
 
-            :note: The eye distance from the screen is defined as part of the Monitor setup.
+        :note: 
+            1) The eye distance from the screen is initialized from the monitor definition.
+            2) The eye distance can be altered dynamically by changing 'warper.dist_cm' and then
+                calling changeProjection().
         """
-        self.window = window
-        # monkey patch window
-        window._warp = self.drawWarp
+        self.win = win
+        # monkey patch the warp method
+        win._warp = self.drawWarp
         self.warp = warp
         self.warpfile = warpfile
         self.warpGridsize = warpGridsize
@@ -78,16 +75,16 @@ class Warper():
 
         #   get the eye distance from the monitor object,
         #   but the pixel dimensions from the actual window object
-        w, h = window.size
+        w, h = win.size
         self.aspect = float(w) / h
-        self.dist_cm = window.monitor.getDistance()
+        self.dist_cm = win.monitor.getDistance()
         if self.dist_cm is None:
             # create a fake monitor if one isn't defined
             self.dist_cm = 30.0
             self.mon_width_cm = 50.0
             logging.warning('Monitor is not calibrated')
         else:
-            self.mon_width_cm = window.monitor.getWidth()
+            self.mon_width_cm = win.monitor.getWidth()
         self.mon_height_cm = self.mon_width_cm / self.aspect
         self.mon_width_pix = w 
         self.mon_height_pix = h
@@ -333,7 +330,6 @@ class Warper():
                 opacity[vdex+3,3] = warpdata[index+cols, 4]
 
                 vdex += 4
-
         self.createVertexAndTextureBuffers (vertices, tcoords, opacity)        
         
     def createVertexAndTextureBuffers(self, vertices, tcoords, opacity = None):
@@ -369,4 +365,3 @@ class Warper():
 
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-
