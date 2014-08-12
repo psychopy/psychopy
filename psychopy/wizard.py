@@ -26,13 +26,13 @@ _localized = {
         'Benchmark':_('Benchmark'), 'benchmark version':_('benchmark version'), 'full-screen':_('full-screen'),
         'dots_circle':_('dots_circle'), 'dots_square':_('square'), 'available memory':_('available memory'),
     #PsychoPy
-        'python version':_('python version'), 'locale':_('locale'), 
+        'python version':_('python version'), 'locale':_('locale'),
     #Visual
         'Visual':_('Visual'), 'openGL version':_('openGL version'), 'openGL vendor':_('openGL vendor'),
         'screen size':_('screen size'), 'have shaders':_('have shaders'), 'refresh stability (SD)':_('refresh stability (SD)'),
-        'no dropped frames':_('no dropped frames'), 'pyglet avbin':_('pyglet avbin'), 
+        'no dropped frames':_('no dropped frames'), 'pyglet avbin':_('pyglet avbin'),
     #Audio
-        'Audio':_('Audio'), 'microphone latency':_('microphone latency'), 'microphone':_('microphone'), 
+        'Audio':_('Audio'), 'microphone latency':_('microphone latency'), 'microphone':_('microphone'),
         'speakers latency':_('speakers latency'), 'speakers':_('speakers'),
     #Numeric
         'Numeric':_('Numeric'),
@@ -360,7 +360,9 @@ class ConfigWizard(object):
         msg = _('audio codec for %s and sound file compression') % s2t
         warn = False
         if not 'systemFlacVersion' in items:
-            msg = _('Warning: flac is needed for using %s and sound compression.') % s2t + _(' <a href="http://flac.sourceforge.net/download.html">Download</a> [sourceforge.net].')
+            msg = _('Warning: flac is needed for using %s and sound compression.') % s2t +\
+                  ' <a href="http://flac.sourceforge.net/download.html">' +\
+                  _('Download</a> [sourceforge.net].')
             warn = True
             items['systemFlacVersion'] = _('(missing)')
         if verbose:
@@ -599,7 +601,7 @@ class BenchmarkWizard(ConfigWizard):
             start = int(dotsList[-1][1])  # start square where circle breaks down
         itemsList.extend(diagnostics)
         win.close()
-        
+
         itemsDict = {}
         for itm in itemsList:
             if 'proxy setting' in itm[0] or not itm[1]:

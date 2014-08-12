@@ -51,6 +51,8 @@ available = sorted(map(os.path.basename, glob.glob(expr)))
 sysAvail = [str(l) for l in codeFromWxId.values()  # installed language packs
             if l and locale.IsAvailable(wxIdFromCode[l])]
 
+multibyteLangs = ['ja_JP', 'zh_CN', 'zh_TW']
+
 def getID(lang=None):
     """Get wx ID of language to use for translations: `lang`, pref, or system default.
 
