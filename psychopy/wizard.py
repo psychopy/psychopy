@@ -29,7 +29,7 @@ class ConfigWizard(object):
         self.firstrun = firstrun
         self.prefs = prefs
         self.appName = 'PsychoPy2'
-        self.name = self.appName + ' Configuration Wizard'
+        self.name = self.appName + _(' Configuration Wizard')
         self.reportPath = os.path.join(self.prefs.paths['userPrefsDir'], 'firstrunReport.html')
         #self.iconfile = os.path.join(self.prefs.paths['resources'], 'psychopy.png')
         #dlg.SetIcon(wx.Icon(self.iconfile, wx.BITMAP_TYPE_PNG)) # no error but no effect
@@ -335,7 +335,7 @@ class ConfigWizard(object):
         msg = _('audio codec for %s and sound file compression') % s2t
         warn = False
         if not 'systemFlacVersion' in items:
-            msg = _('Warning: flac is needed for using %s and sound compression.') % s2t + ' <a href="http://flac.sourceforge.net/download.html">Download</a> [sourceforge.net].'
+            msg = _('Warning: flac is needed for using %s and sound compression.') % s2t + _(' <a href="http://flac.sourceforge.net/download.html">Download</a> [sourceforge.net].')
             warn = True
             items['systemFlacVersion'] = _('(missing)')
         if verbose:
@@ -536,7 +536,7 @@ class BenchmarkWizard(ConfigWizard):
         self.firstrun = False
         self.prefs = prefs
         self.appName = 'PsychoPy2'
-        self.name = self.appName + ' Benchmark Wizard'
+        self.name = self.appName + _(' Benchmark Wizard')
 
         dlg = gui.Dlg(title=self.name)
         dlg.addText('')
