@@ -30,20 +30,33 @@ class Warper():
                  flipHorizontal=False, 
                  flipVertical=False):
         """
+        Warping is a final operation which can be optionally performed on each frame
+        just before transmission to the display. It is useful for perspective correction 
+        when the eye to monitor distance is small (say, under 50 cm), or when projecting 
+        to domes or other non-planar surfaces.
+
         These attributes define the projection and can be altered 
         dynamically using the changeProjection() method.
 
         :Parameters:
             win : Handle to the window.
+
             warp : 'spherical', 'cylindrical, 'warpfile' or *None*
-                This table gives the main properties of each projection:
-                              eyepoint        parallel   parallel      radial distance
-                Warp          modifies warp   verticals  horizontals   perspective correct
-                ---------------------------------------------------------------------------              
-                Spherical      y              n          n             y
-                Cylindrical    y              y          n             n
-                warpfile       n              -          -             - 
-                None           n              y          y             n
+                This table gives the main properties of each projection
+
+                +-----------+---------------+-----------+------------+--------------------+
+                | Warp      | eyepoint      | verticals | horizontals| perspective correct|
+                |           | modifies warp | parallel  | parallel   |                    |
+                +===========+===============+===========+============+====================+
+                |spherical  |    y          |   n       |  n         |   y                |
+                +-----------+---------------+-----------+------------+--------------------+
+                |cylindrical|    y          |   y       |  n         |   n                |
+                +-----------+---------------+-----------+------------+--------------------+
+                | warpfile  |    n          |   ?       |  ?         |   ?                |
+                +-----------+---------------+-----------+------------+--------------------+
+                | None      |    n          |   y       |  y         |   n                |
+                +-----------+---------------+-----------+------------+--------------------+
+
             warpfile : *None* or filename containing Blender and Paul Bourke compatible warp
                 definition.  (see http://paulbourke.net/dome/warpingfisheye/) 
             warpGridsize : 300
@@ -52,15 +65,22 @@ class Warper():
             eyepoint : [0.5, 0.5] center of the screen
                 Position of the eye in X and Y as a fraction of the normailized screen width and height.
                 [0,0] is the bottom left of the screen.  [1,1] is the top right of the screen.
-            flipHorizontal: False
+            flipHorizontal: True or *False*
                 Flip the entire output horizontally.  Useful for back projection scenarious.
-            flipVertical: False
+            flipVertical: True or *False*
                 Flip the entire output vertically. useful if projector is flipped upside down.
 
-        :note: 
+        :notes: 
             1) The eye distance from the screen is initialized from the monitor definition.
             2) The eye distance can be altered dynamically by changing 'warper.dist_cm' and then
                 calling changeProjection().
+
+        Example usage to create a spherical projection::
+
+            from psychopy.visual.windowwarp import Warper 
+            win = Window(monitor='testMonitor', screen=1, fullscr=True, useFBO = True)
+            warper = Warper (win, warp='spherical', warpfile = "", warpGridsize = 128, eyepoint = [0.5, 0.5], flipHorizontal = False, flipVertical = False)
+
         """
         self.win = win
         # monkey patch the warp method
@@ -92,7 +112,7 @@ class Warper():
     
     def drawWarp(self):
         ''' 
-        Warp the output, using the vertex, texture, and optionally an opacity array
+        Warp the output, using the vertex, texture, and optionally an opacity array.
         '''
         GL.glUseProgram(0)
         GL.glColorMask(True, True, True, True) 
@@ -132,7 +152,7 @@ class Warper():
         self.ygrid = self.warpGridsize
 
     def changeProjection (self, warp, warpfile = None, eyepoint = [0.5,0.5], flipHorizontal = False, flipVertical = False):
-        '''Allows changing the warp method on the fly as well as at initialization time'''
+        '''Allows changing the warp method on the fly.  Uses the same parameter definitions as constructor.'''
         self.warp = warp
         self.warpfile = warpfile
         self.eyepoint = eyepoint
@@ -333,7 +353,7 @@ class Warper():
         self.createVertexAndTextureBuffers (vertices, tcoords, opacity)        
         
     def createVertexAndTextureBuffers(self, vertices, tcoords, opacity = None):
-        ''' Allocate hardware buffers for vertices, texture coordinates, and optionally opacity '''
+        ''' Allocate hardware buffers for vertices, texture coordinates, and optionally opacity. '''
         if self.flipHorizontal:
             vertices[:,0] = -vertices[:,0]
         if self.flipVertical:

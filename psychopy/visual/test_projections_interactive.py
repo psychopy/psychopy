@@ -19,7 +19,9 @@ class ProjectionsLinesAndCircles(object):
     Click the mouse to set the eyepoint X, Y.  
     Up / Down arrow or mousewheel to move eyepoint in and out.
     """
-    def __init__(self, window, warper):
+    def __init__(self, window, warper, params, bgSweep = {}, fgSweep = {}, 
+        bgStim = None, fgStim = None, fgFrame = {}, bgFrame = {}):
+
         self.window = window
         self.warper = warper
 
@@ -49,6 +51,9 @@ class ProjectionsLinesAndCircles(object):
         self.keys = key.KeyStateHandler()
         window.winHandle.push_handlers(self.keys)
         self.mouse = event.Mouse(win=self.window)
+
+    def getScriptPath(self):
+        return os.path.dirname(os.path.realpath(sys.argv[0]))
    
     def updateFrame(self, i):
         """ Updates frame with any item that is to be modulated per frame. """
@@ -65,7 +70,7 @@ class ProjectionsLinesAndCircles(object):
     
     def updateInfo(self):
         try:
-            self.stimT.setText ("%s \n   eyePoint: %.3f, %.3f \n   eyeDistance: %.2f\n\nProjection: [s]pherical, [c]ylindrical, [n]one, warp[f]ile\nFlip: [h]orizontal, [v]ertical\nMouse: wheel = eye distance, click to set eyepoint\n[q]uit" % (
+            self.stimT.setText ("%s \n   eyepoint: %.3f, %.3f \n   dist_cm: %.2f\n\nKeys: [s]pherical, [c]ylindrical, [n]one, warp[f]ile\nFlip: [h]orizontal, [v]ertical\nMouse: wheel = eye distance, click to set eyepoint\n[q]uit" % (
                 self.warper.warp,
                 self.warper.eyepoint[0], self.warper.eyepoint[1],
                 self.warper.dist_cm))
@@ -142,7 +147,7 @@ class ProjectionsLinesAndCircles(object):
             self.updateInfo()
 
 
-def mainProjectionsLinesAndCircles(params={'testlength':400}):
+def mainProjectionsLinesAndCircles(params={'sweeplength':4000}):
     """
     ProjectionsLinesAndCircles test runner to test projections
     """
@@ -152,8 +157,8 @@ def mainProjectionsLinesAndCircles(params={'testlength':400}):
     # frame packer is used with DLP projectors to create 180Hz monochrome stimuli
     #framePacker = ProjectorFramePacker(win)
 
-    g = ProjectionsLinesAndCircles(win, warper)
-    for i in range(int(params['testlength'] * 60)): 
+    g = ProjectionsLinesAndCircles(win, warper, params)
+    for i in range(int(params['sweeplength'] * 60)): 
         g.update_sweep(i)
     win.close()
 

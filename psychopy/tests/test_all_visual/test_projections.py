@@ -110,16 +110,14 @@ class ProjectionsLinesAndCircles(object):
                 self.warper.changeProjection (None, None, (0.5,0.5))
             elif k in ['f']:
                 self.warper.changeProjection ('warpfile', 
-                    #r'C:\WinPython-64bit-2.7.5.3\python-2.7.5.amd64\Lib\site-packages\aibs\Projector\Calibration\standard_4x3.data', 
-                    r'C:\Users\jayb\Documents\Stash\aibs\Projector\Calibration\InteriorProject24inDome6inMirrorCenter.meshwarp.data', 
-                    #r'C:\WinPython-64bit-2.7.5.3\python-2.7.5.amd64\Lib\site-packages\aibs\Projector\Calibration\standard_16x9.data', 
-                    (0.5,0.5))
+                    r'..\data\sample.meshwarp.data', 
+                     (0.5,0.5))
 
             # flip horizontal and vertical
             elif k in ['h']:
                 self.warper.changeProjection(self.warper.warp, self.warper.warpfile, flipHorizontal = not self.warper.flipHorizontal)
             elif k in ['v']:
-                self.warper.changeProjection(self.warper.warp, self.warper.warpile, flipVertical = not self.warper.flipVertical)
+                self.warper.changeProjection(self.warper.warp, self.warper.warpfile, flipVertical = not self.warper.flipVertical)
 
             # move eyepoint
             elif k in ['down']:
@@ -157,10 +155,8 @@ class ProjectionsLinesAndCircles(object):
 
 
 
-@pytest.mark.ratingscale
+@pytest.mark.windowwarp
 class Test_class_WindowWarp:
-    """RatingScale internal logic, no check that its drawn correctly
-    """
     def setup_class(self):
         self.win = Window(monitor='testMonitor', screen=1, fullscr=True, color='gray', useFBO = True)
         self.warper = Warper (self.win, warp='spherical', warpfile = "", warpGridsize = 128, eyepoint = [0.5, 0.5], flipHorizontal = False, flipVertical = False)
