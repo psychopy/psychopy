@@ -59,10 +59,12 @@ class Dlg(wx.Dialog):
         self.labelButtonOK = labelButtonOK
         self.labelButtonCancel = labelButtonCancel
     def addText(self, text, color=''):
-        if not localization.lang in localization.multibyteLangs:
-            textLength = wx.Size(8*len(text)+16, 25)
-        else:
-            textLength = wx.Size(14*len(text)+16, 25)
+        # the horizontal extent can depend on the locale and font in use:
+        font = self.GetFont()
+        dc = wx.WindowDC(self)
+        dc.SetFont(font)
+        textWidth, textHeight = dc.GetTextExtent(text)
+        textLength = wx.Size(textWidth + 50, textHeight)
 
         myTxt = wx.StaticText(self,-1,
                                 label=text,
