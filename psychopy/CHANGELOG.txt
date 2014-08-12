@@ -16,7 +16,7 @@ PsychoPy 1.81.00
 (in repository)
 
 * FIXED: MovieStim was right-left flipping movies and this has been corrected. If you had been working around that by setting flipVertical=True then you'll need to undo that correction
-* IMPROVED: stimulus attributes: 
+* IMPROVED: stimulus attributes:
     * All stimulus attributes now support new syntax, e.g. ``stim.pos = [0,0]`` as well as the previous ``stim.setPos([0,0])``. All docs are update to reflect this change.
     * All numeric stimulus attributes now support operations. Use e.g. ``stim.pos += [0,0.5]``. Read more in :ref:`Operations <attrib-operations>`.
     * Many more stimulus attributes can now be set after initialization. They have the same name as the init parameters. E.g. ``stim.win = mySecondWindow`` changes which Window the stimulus is drawn to
@@ -28,6 +28,11 @@ PsychoPy 1.81.00
     * FIXED: removed unneccessary (e.g. duplicate) logging.
     * IMPROVED: unnamed stimuli are now given a default name in the logs for easier identification, e.g. "unnamed ShapeStim".
 * IMPROVED: you can now specify the standard deviation (default=3) for gaussian mask in various stimuli by setting e.g. ``maskParams={'sd':5}`` during init or after init.
+* ADDED: localization (Builder and Coder)
+    * Can now display the app menus, tooltips, and so on in a language other than US English (selectable via prefs -> app -> locale)
+    * Almost all displayed text can be translated (Jeremy Gray, Hiroyuki Sogo)
+    * A Japanese translation is available (Hiroyuki Sogo)
+    * Other translations will be easy to add; see online developer notes on using Poedit
 
 PsychoPy 1.80
 ------------------------------
@@ -51,7 +56,7 @@ Released June 2014
 * FIXED: machines that didn't support shaders or framebuffer objects were raising an error on win.flip() if the useFBO argument was not manually set to False. Machines that don't support the new rendering methods are now handled more gracefully
 * FIXED: named colors were not interpreted correctly by the visual.Window (but worked fine for stimuli)
 * FIXED: the error message about TextBox/FontManager not working doesn't show up any more
-* FIXED: reinstated the requirement that wx is version 2.8.x only until we get time to check 3.0 compatibility more deeply 
+* FIXED: reinstated the requirement that wx is version 2.8.x only until we get time to check 3.0 compatibility more deeply
 
 PsychoPy 1.80.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
