@@ -58,7 +58,7 @@ class Dlg(wx.Dialog):
         self.labelButtonOK = labelButtonOK
         self.labelButtonCancel = labelButtonCancel
     def addText(self, text, color=''):
-        textLength = wx.Size(8*len(text)+16, 25)
+        textLength = wx.Size(10*len(text)+16, 25)
         myTxt = wx.StaticText(self,-1,
                                 label=text,
                                 style=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL,
