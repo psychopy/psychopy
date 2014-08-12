@@ -1958,7 +1958,7 @@ class QuestHandler(StairHandler):
             # get response
             ...
             # inform QUEST of the response, needed to calculate next level
-            staircase.addData(thisResp)
+            staircase.addResponse(thisResp)
         ...
         # can now access 1 of 3 suggested threshold levels
         staircase.mean()
@@ -2123,7 +2123,7 @@ class QuestHandler(StairHandler):
         for intensity, result in zip(intensities,results):
             try:
                 self.next()
-                self.addData(result, intensity)
+                self.addResponse(result, intensity)
             except StopIteration:   # would get a stop iteration if stopInterval set
                 pass    # TODO: might want to check if nTrials is still good
     def calculateNextIntensity(self):
@@ -2306,7 +2306,7 @@ class MultiStairHandler(_BaseTrialHandler):
 
                 #do something with thisIntensity and thisOri
 
-                stairs.addData(correctIncorrect)#this is ESSENTIAL
+                stairs.addResponse(correctIncorrect)#this is ESSENTIAL
 
             #save data as multiple formats
             stairs.saveDataAsExcel(fileName)#easy to browse
