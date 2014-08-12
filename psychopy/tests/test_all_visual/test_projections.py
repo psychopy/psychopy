@@ -14,6 +14,14 @@ import pytest, copy
     py.test -k projections --cov-report term-missing --cov visual/windowwarp.py
 """
 
+RunningPyTest = False
+
+def setup_module(module):
+    RunningPyTest = True
+
+def teardown_module(module):
+    RunningPyTest = False
+
 foregroundColor=[-1,-1,-1]
 backgroundColor=[1,1,1]
 
@@ -203,16 +211,24 @@ class Test_class_WindowWarp:
         self.draw_projection()
 
 if __name__ == '__main__':
-    cls = Test_class_WindowWarp()
-    cls.setup_class()
-    cls.test_spherical()
-    cls.test_distance()
-    #cls.test_warpfile() #jayb todo
-    cls.test_flipHorizontal()
-    cls.test_flipHorizontal()
-    cls.test_flipVertical()
-    cls.test_flipVertical()
+    if RunningPyTest:
+        cls = Test_class_WindowWarp()
+        cls.setup_class()
+        cls.test_spherical()
+        cls.test_distance()
+        #cls.test_warpfile() #jayb todo
+        cls.test_flipHorizontal()
+        cls.test_flipHorizontal()
+        cls.test_flipVertical()
+        cls.test_flipVertical()
 
-    cls.test_spherical()
+        cls.test_spherical()
 
-    cls.teardown_class()
+        cls.teardown_class()
+    else:
+        # running interactive
+        cls = Test_class_WindowWarp()
+        cls.setup_class()
+        for i in range(2 * 60 * 60): 
+            cls.g.update_sweep()
+        win.close()
