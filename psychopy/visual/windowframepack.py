@@ -8,6 +8,7 @@ This program is distributed WITHOUT WARRANTY OF MERCHANTABILITY OR FITNESS FOR A
 See the GNU General Public License Version 3 for more details.
 You should have received a copy of the GNU General Public License along with this program.  
 If not, see http://www.gnu.org/licenses/
+
 '''
 
 import sys
@@ -18,12 +19,30 @@ GL = pyglet.gl
 
 class ProjectorFramePacker():
     '''Class which packs 3 monochrome images per RGB frame allowing 180Hz stimuli
-    with DLP projectors (such as TI LightCrafter 4500) operating in structured light mode.
+    with DLP projectors such as TI LightCrafter 4500. 
+
+    The class overrides methods of the visual.Window class to pack a monochrome image into each RGB channel.
+    PsychoPy is running at 180Hz.  The display device is running at 60Hz.  The output projector is producing
+    images at 180Hz.
+
+    Frame packing can work with any projector which can operate in 'structured light mode' where each RGB
+    channel is presented sequentially as a monochrome image.  Most home and office projectors 
+    cannot operate in this mode, but projectors designed for machine vision applications typically will
+    offer this feature.
+
+    Example usage to use ProjectorFramePacker::
+
+        from psychopy.visual.windowframepack import ProjectorFramePacker 
+        win = Window(monitor='testMonitor', screen=1, fullscr=True, useFBO = True)
+        framePacker = ProjectorFramePacker (win)
+
     '''
     def __init__(self, win):
         '''
         :Parameters:
+
             win : Handle to the window.
+
         '''
         self.win = win
         # monkey patch window
