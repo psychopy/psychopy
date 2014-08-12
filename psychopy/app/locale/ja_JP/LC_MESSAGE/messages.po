@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-08-11 16:29+0900\n"
-"PO-Revision-Date: 2014-08-11 16:57+0900\n"
+"POT-Creation-Date: 2014-08-12 10:50+0900\n"
+"PO-Revision-Date: 2014-08-12 10:51+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -4059,25 +4059,31 @@ msgstr "Routineのアイテム表示を小さくします"
 msgid "show or hide the readme (info) for this experiment if possible"
 msgstr "この実験のReadmeの表示を(可能であれば)切り替えます"
 
+#: psychopy/wizard.py:32
+msgid " Configuration Wizard"
+msgstr " 設定ウィザード"
+
 #: psychopy/wizard.py:42
 msgid "It looks like you are running PsychoPy for the first time."
-msgstr ""
+msgstr "PsychoPyを過去に実行した形跡がありません"
 
 #: psychopy/wizard.py:43
 msgid "This wizard will help you get started quickly and smoothly."
-msgstr ""
+msgstr "設定ウィザードを実行して設定を整えます"
 
 #: psychopy/wizard.py:45
 msgid "Welcome to the configuration wizard."
-msgstr ""
+msgstr "設定ウィザードへようこそ"
 
 #: psychopy/wizard.py:52
 msgid "The first configuration check is your video card's drivers. The current"
 msgstr ""
+"ビデオカードドライバを確認したところ、現在のドライバではPsychoPyを実行できま"
+"せんでした"
 
 #: psychopy/wizard.py:53
 msgid "drivers cannot support PsychoPy, so you'll need to update the drivers."
-msgstr ""
+msgstr "ドライバをアップデートする必要があります"
 
 #: psychopy/wizard.py:54
 #, python-format
@@ -4114,299 +4120,353 @@ msgid ""
 "                for more information</a> [psychopy.org].</p>\n"
 "            "
 msgstr ""
+"<p>致命的な問題:\n"
+"</p><p>利用中のビデオカード (%(card)s) はPsychoPyの実行に必要な\n"
+"                ハイエンド機能をサポートしていません\n"
+"                多くの場合、ビデオカードの製造元から無料で新しいバージョン"
+"の\n"
+"                ドライバをダウンロードすることが出来ます</p>\n"
+"                <p><strong>ドライバのアップデート手順:</strong>\n"
+"                <li> 管理者の権限のあるユーザーで作業してください\n"
+"                <li> Windows Updatesでは最新のドライバを見つけられない\n"
+"                  場合がありますので注意してください。\n"
+"                <li> ビデオカードがNVIDIA製であれば、\n"
+"                  <a href=\"http://www.nvidia.com/Drivers\">NVIDIAのウェブサ"
+"イト</a>\n"
+"                  へアクセスして自動検出を試みてください ATI Radeonの場合は\n"
+"                  <a href=\"http://support.amd.com/\">AMDサポートページ</a>を"
+"確認するか\n"
+"                  <a href=\"http://www.google.com/search?q=download+drivers+"
+"%(card2)s\">\n"
+"                  Googleで検索</a>して最新のドライバを見つけてください\n"
+"                <li> ドライバをダウンロードしてインストールしてください\n"
+"                <li> コンピューターを再起動してください.\n"
+"                <li> PsychoPyを再実行してください</p>\n"
+"                <p>もしアップデート後もこのメッセージが表示される場合は\n"
+"                  ビデオカードを交換する必要があります\n"
+"                詳しくは<a href=\"http://www.psychopy.org/installation."
+"html#recommended-hardware\">こちら\n"
+"                </a>(psychopy.org)をご覧ください</p>\n"
+"            "
 
 #: psychopy/wizard.py:79
 msgid ""
 "<p>Critical issue:\n"
 "</p>"
-msgstr ""
+msgstr "致命的な問題:"
 
 #: psychopy/wizard.py:85
 msgid "We'll go through a series of configuration checks in about 10 seconds. "
-msgstr ""
+msgstr "これから約10秒間、さまざまな設定項目をテストします"
 
 #: psychopy/wizard.py:88
 msgid "Note: The display will switch to full-screen mode and will "
-msgstr ""
+msgstr "注意：画面がフルスクリーンモードへ切り替わった後に"
 
 #: psychopy/wizard.py:89
 msgid "then switch back. You don't need to do anything."
-msgstr ""
+msgstr "元に戻ります 確認中は何も操作する必要はありません"
 
 #: psychopy/wizard.py:90
 msgid ""
 "Optional: For best results, please quit all email programs, web-browsers, "
 msgstr ""
+"オプション：最良の結果を得るために、Eメール用アプリケーションやwebブラウザ、"
 
 #: psychopy/wizard.py:91
 msgid "Dropbox, backup or sync services, and others."
 msgstr ""
+"Dropboxやバックアップ、同期サービス等のアプリケーションを停止してください"
 
 #: psychopy/wizard.py:93
 msgid "Click OK to start, or Cancel to skip."
-msgstr ""
+msgstr "OKを押すと開始、キャンセルを押すとテストをスキップします"
 
 #: psychopy/wizard.py:95
 msgid "Full details"
-msgstr ""
+msgstr "詳細を表示"
 
 #: psychopy/wizard.py:98
 msgid "Click OK for more information, or Cancel to skip."
 msgstr ""
+"さらなる情報を表示する場合はOK、スキップする場合はキャンセルをクリックしてく"
+"ださい"
 
 #: psychopy/wizard.py:127
-#, fuzzy
 msgid "Configuration testing complete!"
-msgstr "条件ファイルにエラーがあります"
+msgstr "設定のテストが終了しました！"
 
 #: psychopy/wizard.py:131
 msgid "All values seem reasonable (no warnings)."
-msgstr ""
+msgstr "全ての結果に問題はありませんでした(警告がありませんでした)"
 
 #: psychopy/wizard.py:133
 #, python-format
 msgid "1 suboptimal value was detected (%s)"
-msgstr ""
+msgstr "ひとつの項目(%s)が基準値を下回りました"
 
 #: psychopy/wizard.py:135
 #, python-format
 msgid "%(num)i suboptimal values were detected (%(warn)s, ...)"
-msgstr ""
+msgstr "%(num)i個の値が基準値を下回りました(%(warn)s, ...)"
 
 #: psychopy/wizard.py:141
 msgid "Click OK for full details (will open in a web-browser),"
-msgstr ""
+msgstr "詳細を表示するにはOKをクリックしてください(webブラウザを開きます)"
 
 #: psychopy/wizard.py:142
-#, fuzzy
 msgid "or Cancel to stay in PsychoPy."
-msgstr "PsychoPy2をロード中..."
+msgstr "PsychoPyを起動する場合はキャンセルをクリックしてください"
 
 #: psychopy/wizard.py:172
 #, python-format
 msgid "could not assess available physical RAM; total %s"
-msgstr ""
+msgstr "利用可能な物理メモリにアクセスできません：全%s"
 
 #: psychopy/wizard.py:173 psychopy/wizard.py:179 psychopy/wizard.py:435
 msgid "available memory"
-msgstr ""
+msgstr "利用可能なメモリ量"
 
 #: psychopy/wizard.py:175
 #, python-format
 msgid "physical RAM available for configuration test (of %.1fG total)"
-msgstr ""
+msgstr "設定テストで利用可能な物理RAM(全%.1fG)"
 
 #: psychopy/wizard.py:177
 #, python-format
 msgid ""
 "Warning: low available physical RAM for configuration test (of %.1fG total)"
-msgstr ""
+msgstr "警告：テストで利用できた物理RAM(全%.1fG)が少なすぎます"
 
 #: psychopy/wizard.py:184
 msgid "avoid upgrading during an experiment"
-msgstr ""
+msgstr "一連の実験を実施している期間中にアップグレードしないでください"
 
 #: psychopy/wizard.py:186
 msgid ""
 "can be set in <a href=\"http://www.psychopy.org/general/prefs."
 "html#application-settings\">Preferences -> App</a>"
 msgstr ""
+"<a href=\"http://www.psychopy.org/general/prefs.html#application-settings\">"
+"設定 -> アプリケーション</a>で設定できます"
 
 #: psychopy/wizard.py:190
 msgid ""
 "Warning: python 2.6 or 2.7 required; 2.5 is not supported but might work"
 msgstr ""
+"警告：Python2.6または2.7が必要です 2.5はサポート外ですが動作するかもしれませ"
+"ん"
 
 #: psychopy/wizard.py:199 psychopy/wizard.py:435
-#, fuzzy
 msgid "python version"
-msgstr "このバージョンをスキップ"
+msgstr "Pythonのバージョン"
 
 #: psychopy/wizard.py:204
 msgid "Warning: wx 2.8.10 or higher required"
-msgstr ""
+msgstr "警告：wx 2.8.10以上が必要です"
 
 #: psychopy/wizard.py:208
 msgid "for high-priority threads"
-msgstr ""
+msgstr "高プライオリティのスレッド実行に必要"
 
 #: psychopy/wizard.py:211
 msgid "Visual"
-msgstr ""
+msgstr "視覚刺激"
 
 #: psychopy/wizard.py:216
 msgid ""
 "Warning: <a href=\"http://www.psychopy.org/general/timing/reducingFrameDrops."
 "html?highlight=OpenGL+2.0\">OpenGL 2.0 or higher is ideal</a>."
 msgstr ""
+"警告：<a href=\"http://www.psychopy.org/general/timing/reducingFrameDrops."
+"html?highlight=OpenGL+2.0\">OpenGL 2.0以上の利用が望ましいです</a>."
 
 #: psychopy/wizard.py:218 psychopy/wizard.py:435
 msgid "openGL version"
-msgstr ""
+msgstr "OpenGLバージョン"
 
 #: psychopy/wizard.py:219
 msgid "openGL vendor"
-msgstr ""
+msgstr "OpenGLベンダ"
 
 #: psychopy/wizard.py:220
-#, fuzzy
 msgid "screen size"
-msgstr "コード用フォントサイズ"
+msgstr "スクリーンサイズ"
 
 #: psychopy/wizard.py:226
 msgid ""
 "Warning: <a href=\"http://www.psychopy.org/general/timing/reducingFrameDrops."
 "html?highlight=shader\">Rendering of complex stimuli will be slow</a>."
 msgstr ""
+"警告：<a href=\"http://www.psychopy.org/general/timing/reducingFrameDrops."
+"html?highlight=shader\">複雑な刺激の描画が遅くなります</a>."
 
 #: psychopy/wizard.py:228
-#, fuzzy
 msgid "have shaders"
-msgstr "名前を付けて保存"
+msgstr "シェーダーの有無"
 
 #: psychopy/wizard.py:231
 msgid ""
 "during the drifting <a href=\"http://www.psychopy.org/api/visual/gratingstim."
 "html\">GratingStim</a>"
 msgstr ""
+"<a href=\"http://www.psychopy.org/api/visual/gratingstim.html\">GratingStim</"
+"a>をドリフトを描画して計測"
 
 #: psychopy/wizard.py:233
 msgid ""
 "Warning: too fast? visual sync'ing with the monitor seems unlikely at 300+ Hz"
 msgstr ""
+"警告：垂直同期が早すぎ？通常のモニターで垂直同期が300Hzを超えることはありませ"
+"ん"
 
 #: psychopy/wizard.py:236
 msgid "SD < 0.5 ms is ideal (want low variability)"
-msgstr ""
+msgstr "標準偏差0.5未満が理想です"
 
 #: psychopy/wizard.py:239
 msgid ""
 "Warning: the refresh rate has high frame-to-frame variability (SD > 0.5 ms)"
 msgstr ""
+"警告：フレーム間の描画間隔のばらつきが大きい(標準偏差が0.5より大きい)です"
 
 #: psychopy/wizard.py:241 psychopy/wizard.py:436
 msgid "refresh stability (SD)"
-msgstr ""
+msgstr "スクリーン更新間隔の安定性(標準偏差)"
 
 #: psychopy/wizard.py:254
 msgid ""
 "during <a href=\"http://www.psychopy.org/api/visual/dotstim.html\">DotStim</"
 "a> with 100 random dots"
 msgstr ""
+"<a href=\"http://www.psychopy.org/api/visual/dotstim.html\">DotStim</a>で100"
+"点のランダムドットを描画して計測"
 
 #: psychopy/wizard.py:260
 msgid ""
 "Warning: could not keep up during <a href=\"http://www.psychopy.org/api/"
 "visual/dotstim.html\">DotStim</a> with 100 random dots."
 msgstr ""
+"警告：<a href=\"http://www.psychopy.org/api/visual/dotstim.html\">DotStim</a>"
+"で100点のランダムドット描画が間に合いませんでした"
 
 #: psychopy/wizard.py:262 psychopy/wizard.py:436
 msgid "no dropped frames"
-msgstr ""
+msgstr "フレーム欠損の有無"
 
 #: psychopy/wizard.py:265
 msgid "for movies"
-msgstr ""
+msgstr "動画再生に必要です"
 
 #: psychopy/wizard.py:270 psychopy/wizard.py:280 psychopy/wizard.py:437
 msgid "pyglet avbin"
-msgstr ""
+msgstr "pyglet avbin"
 
 #: psychopy/wizard.py:270
 msgid "Warning: could not import avbin; playing movies will not work"
-msgstr ""
+msgstr "警告：avbinをimportできません 動画再生が機能しない可能性があります"
 
 #: psychopy/wizard.py:275
 msgid "Warning: version 7 recommended on linux (for movies)"
-msgstr ""
+msgstr "警告：Linuxでは(動画再生のために)version 7の利用が推奨されます"
 
 #: psychopy/wizard.py:278
 msgid ""
 "Warning: version 5 recommended (for movies); Visit <a href=\"http://code."
 "google.com/p/avbin\">download page</a> [google.com]"
 msgstr ""
+"警告：動画再生にはversion 5が推奨されます <a href=\"http://code.google.com/p/"
+"avbin\">Googleで検索</a>してください"
 
 #: psychopy/wizard.py:294
 msgid "Audio"
-msgstr ""
+msgstr "聴覚刺激"
 
 #: psychopy/wizard.py:298
 msgid "Warning: pyo is needed for sound and microphone."
-msgstr ""
+msgstr "警告：サウンド機能と録音機能を使うにはpyoが必要です"
 
 #: psychopy/wizard.py:315 psychopy/wizard.py:327
 #, python-format
 msgid "Warning: \"%s\" latency > 10ms"
-msgstr ""
+msgstr "警告：\"%s\"の遅延が10msより大きいです"
 
 #: psychopy/wizard.py:317 psychopy/wizard.py:437
 msgid "microphone latency"
-msgstr ""
+msgstr "マイクの遅延"
 
 #: psychopy/wizard.py:319
 msgid "microphone"
-msgstr ""
+msgstr "マイク"
 
 #: psychopy/wizard.py:329 psychopy/wizard.py:437
 msgid "speakers latency"
-msgstr ""
+msgstr "スピーカーの遅延"
 
 #: psychopy/wizard.py:331
 msgid "speakers"
-msgstr ""
+msgstr "スピーカー"
 
 #: psychopy/wizard.py:331
 msgid "(not detected)"
-msgstr ""
+msgstr "(検出されません)"
 
 #: psychopy/wizard.py:335
 #, python-format
 msgid "audio codec for %s and sound file compression"
-msgstr ""
+msgstr "%sとサウンド圧縮のためのオーディオコーデック"
 
 #: psychopy/wizard.py:338
 #, python-format
 msgid "Warning: flac is needed for using %s and sound compression."
+msgstr "警告：%sを使ってサウンド圧縮を行うためにはflacが必要です"
+
+#: psychopy/wizard.py:338
+msgid ""
+" <a href=\"http://flac.sourceforge.net/download.html\">Download</a> "
+"[sourceforge.net]."
 msgstr ""
+" <a href=\"http://flac.sourceforge.net/download.html\">ダウンロード</a> "
+"[sourceforge.net]."
 
 #: psychopy/wizard.py:340
 msgid "(missing)"
-msgstr ""
+msgstr "(見つかりません)"
 
 #: psychopy/wizard.py:346
 msgid "Numeric"
-msgstr ""
+msgstr "数値演算"
 
 #: psychopy/wizard.py:347
 msgid "vector-based (fast) calculations"
-msgstr ""
+msgstr "ベクトルベースの(高速)演算"
 
 #: psychopy/wizard.py:348
 msgid "scientific / numerical"
-msgstr ""
+msgstr "科学計算/数値計算"
 
 #: psychopy/wizard.py:349
 msgid "plotting; fast contains(), overlaps()"
-msgstr ""
+msgstr "データの可視化; 高速な重なり判定"
 
 #: psychopy/wizard.py:352
 msgid "System"
-msgstr ""
+msgstr "システム"
 
 #: psychopy/wizard.py:354
 msgid "for online help, usage statistics, software updates, and google-speech"
 msgstr ""
+"オンラインヘルプ, 利用統計, ソフトウェアの更新, Google Speechに必要です"
 
 #: psychopy/wizard.py:358
 msgid "Warning: could not connect (no proxy attempted)"
-msgstr ""
+msgstr "警告：接続できません(プロキシの利用は試みていません)"
 
 #: psychopy/wizard.py:362 psychopy/wizard.py:438
 msgid "internet access"
-msgstr ""
+msgstr "インターネットアクセス"
 
 #: psychopy/wizard.py:363
-#, fuzzy
 msgid "auto proxy"
 msgstr "プロキシの自動構成"
 
@@ -4415,17 +4475,21 @@ msgid ""
 "try to auto-detect a proxy if needed; see <a href=\"http://www.psychopy.org/"
 "general/prefs.html#connection-settings\">Preferences -> Connections</a>"
 msgstr ""
+"必要であればプロキシの自動検出を試みます <a href=\"http://www.psychopy.org/"
+"general/prefs.html#connection-settings\">設定 -> ネットワーク</a>を見てくださ"
+"い"
 
 #: psychopy/wizard.py:368
-#, fuzzy
 msgid "proxy setting"
-msgstr "実験の設定に従う"
+msgstr "プロキシの設定"
 
 #: psychopy/wizard.py:368
 msgid ""
 "current manual proxy setting from <a href=\"http://www.psychopy.org/general/"
 "prefs.html#connection-settings\">Preferences -> Connections</a>"
 msgstr ""
+"<a href=\"http://www.psychopy.org/general/prefs.html#connection-settings\">設"
+"定 -> ネットワーク</a>で手動設定されているプロキシです"
 
 #: psychopy/wizard.py:376
 msgid ""
@@ -4433,70 +4497,74 @@ msgid ""
 "reducingFrameDrops.html?highlight=background+processes\">background "
 "processes</a> can adversely affect timing"
 msgstr ""
+"警告：時間精度に影響を及ぼし得る<a href=\"http://www.psychopy.org/general/"
+"timing/reducingFrameDrops.html?highlight=background+processes\">バックグラウ"
+"ンドプロセス</a>があります"
 
 #: psychopy/wizard.py:379
 msgid "No bad background processes active."
-msgstr ""
+msgstr "悪影響を及ぼすバックグラウンドプロセスは見つかりませんでした"
 
 #: psychopy/wizard.py:380 psychopy/wizard.py:439
 msgid "background processes"
-msgstr ""
+msgstr "バックグラウンドプロセス"
 
 #: psychopy/wizard.py:383
 msgid "CPU speed test"
-msgstr ""
+msgstr "CPU速度のテスト"
 
 #: psychopy/wizard.py:383
 msgid "numpy.std() of 1,000,000 data points"
-msgstr ""
+msgstr "1,000,000個のデータに対するnumpy.std()の実行速度です"
 
 #: psychopy/wizard.py:390
 msgid "Python packages"
-msgstr ""
+msgstr "Pythonパッケージ"
 
 #: psychopy/wizard.py:419
 #, python-format
 msgid "could not import package %s"
-msgstr ""
+msgstr "%sパッケージをimport出来ませんでした"
 
 #: psychopy/wizard.py:434
-#, fuzzy
 msgid "video card drivers"
-msgstr "オーディオドライバ"
+msgstr "ビデオカードドライバ"
 
 #: psychopy/wizard.py:436
 msgid "visual sync (refresh)"
-msgstr ""
+msgstr "垂直同期(スクリーン書き換え)"
 
 #: psychopy/wizard.py:462
 #, python-format
 msgid "This page auto-generated by the PsychoPy configuration wizard on %s"
-msgstr ""
+msgstr "このページはPsychoPy設定ウィザードで自動生成されたものです(%s)"
 
 #: psychopy/wizard.py:468
-#, fuzzy
 msgid "Configuration problem"
-msgstr "条件ファイルにエラーがあります"
+msgstr "設定の問題"
 
 #: psychopy/wizard.py:470
 msgid "Critical issue"
-msgstr ""
+msgstr "致命的な問題"
 
 #: psychopy/wizard.py:474
-#, fuzzy
 msgid "Configuration report"
-msgstr "条件ファイルにエラーがあります"
+msgstr "設定テストのレポート"
 
 #: psychopy/wizard.py:477
 msgid ""
 "<p>All values seem reasonable (no warnings, but there might still be room "
 "for improvement).</p>\n"
 msgstr ""
+"<p>すべての値に問題はないようです (警告はありませんが、さらにパフォーマンス改"
+"善の余地があるかも知れません)</p>\n"
 
 #: psychopy/wizard.py:479
 #, python-format
 msgid "1 suboptimal value was detected</font>, see details below (%s).</p>\n"
 msgstr ""
+"基準値を下回る項目が1個見つかりました</font> 詳細は以下を確認してください "
+"(%s).</p>\n"
 
 #: psychopy/wizard.py:481
 #, python-format
@@ -4504,15 +4572,16 @@ msgid ""
 "%(num)i suboptimal values were detected</font>, see details below (%(warn)s)."
 "</p>\n"
 msgstr ""
+"基準値を下回る項目が%(num)i個見つかりました</font> 詳細は以下を確認してくださ"
+"い (%(warn)s).</p>\n"
 
 #: psychopy/wizard.py:494
 msgid "Only show suboptimal values"
-msgstr ""
+msgstr "基準値を下回る項目のみ表示"
 
 #: psychopy/wizard.py:495
-#, fuzzy
 msgid "Show all information"
-msgstr "互換性についての情報"
+msgstr "全ての情報を表示"
 
 #: psychopy/wizard.py:496
 msgid ""
@@ -4527,64 +4596,76 @@ msgid ""
 "\">Search the user-group archives</a>\n"
 "                </p>"
 msgstr ""
+"<p>Resources:\n"
+"                  共有された<a href=\"http://upload.psychopy.org/benchmark/"
+"report.html\">ベンチマーク</a>\n"
+"                | <a href=\"http://www.psychopy.org/documentation.html\">オン"
+"ラインドキュメント</a>\n"
+"                | <a href=\"http://www.psychopy.org/PsychoPyManual.pdf\">PDF"
+"マニュアル</a>のダウンロード\n"
+"                | <a href=\"http://groups.google.com/group/psychopy-users\">"
+"ユーザー向けメーリングリストを検索</a>\n"
+"                </p>"
 
 #: psychopy/wizard.py:503
-#, fuzzy
 msgid "Configuration test</strong> or setting"
-msgstr "条件ファイルにエラーがあります"
+msgstr "設定テスト項目</strong>または設定値"
 
 #: psychopy/wizard.py:504
 msgid "Version or value"
-msgstr ""
+msgstr "バージョンまたは値"
 
 #: psychopy/wizard.py:505
-#, fuzzy
 msgid "Notes"
-msgstr "メモ:"
+msgstr "コメント"
+
+#: psychopy/wizard.py:539
+msgid " Benchmark Wizard"
+msgstr "ベンチマークウィザード"
 
 #: psychopy/wizard.py:543
 msgid "Benchmarking takes ~20-30 seconds to gather"
-msgstr ""
+msgstr "ベンチマークテストは設定値とパフォーマンスの"
 
 #: psychopy/wizard.py:544
 msgid "configuration and performance data. Begin?"
-msgstr ""
+msgstr "収集に約20-30秒を要します 開始しますか？"
 
 #: psychopy/wizard.py:589
 msgid "Benchmark complete! (See the Coder output window.)"
-msgstr ""
+msgstr "ベンチマークテストが終了しました！(Coderの出力を確認してください)"
 
 #: psychopy/wizard.py:590
 msgid "Are you willing to share your data at psychopy.org?"
-msgstr ""
+msgstr "テスト結果をpsychopy.orgで共有しますか？"
 
 #: psychopy/wizard.py:591
 msgid "Only configuration and performance data are shared;"
-msgstr ""
+msgstr "設定値とパフォーマンスのみが共有されます"
 
 #: psychopy/wizard.py:592
 msgid "No personally identifying information is sent."
-msgstr ""
+msgstr "個人を特定する情報は送信されません"
 
 #: psychopy/wizard.py:593
 msgid "(Sharing requires an internet connection.)"
-msgstr ""
+msgstr "(共有にはインターネット接続が必要です)"
 
 #: psychopy/wizard.py:601
 msgid "Configutation data were successfully uploaded to"
-msgstr ""
+msgstr "データは"
 
 #: psychopy/wizard.py:603
 msgid "Thanks for participating!"
-msgstr ""
+msgstr "に送信されました ご協力ありがとうございました！"
 
 #: psychopy/wizard.py:616
 msgid "Click OK to view full configuration and benchmark data."
-msgstr ""
+msgstr "ベンチマークテストの全結果を確認するにはOKをクリックします"
 
 #: psychopy/wizard.py:617
 msgid "Click Cancel to stay in PsychoPy."
-msgstr ""
+msgstr "PsychoPyに戻るにはキャンセルをクリックします"
 
 #~ msgid "default (not very useful) monitor"
 #~ msgstr "プリセットモニター"
