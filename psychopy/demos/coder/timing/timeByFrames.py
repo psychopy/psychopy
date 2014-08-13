@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 #The most accurate way to time your stimulus presentation is to
 #present for a certain number of frames. For that to work you need

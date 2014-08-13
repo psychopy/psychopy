@@ -1,14 +1,15 @@
-<PsychoPy2experiment version="1.78.01" encoding="utf-8">
+<PsychoPy2experiment version="1.79.01" encoding="utf-8">
   <Settings>
     <Param name="Show mouse" val="False" valType="bool" updates="None"/>
-    <Param name="Save csv file" val="False" valType="bool" updates="None"/>
+    <Param name="Data filename" val="u'data' + os.path.sep + '%s_%s' %(expInfo['participant'], expInfo['date'])" valType="code" updates="None"/>
     <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
     <Param name="Enable Escape" val="True" valType="bool" updates="None"/>
     <Param name="color" val="$[0,0,0]" valType="str" updates="None"/>
     <Param name="Window size (pixels)" val="[1000, 700]" valType="code" updates="None"/>
-    <Param name="Full-screen window" val="False" valType="bool" updates="None"/>
+    <Param name="Screen" val="1" valType="num" updates="None"/>
     <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
     <Param name="Save log file" val="True" valType="bool" updates="None"/>
+    <Param name="Save csv file" val="False" valType="bool" updates="None"/>
     <Param name="Experiment info" val="{u'session': u'001', u'participant': u'demo'}" valType="code" updates="None"/>
     <Param name="Save excel file" val="True" valType="bool" updates="None"/>
     <Param name="Save wide csv file" val="True" valType="bool" updates="None"/>
@@ -16,63 +17,38 @@
     <Param name="expName" val="ratingScaleBuilder" valType="str" updates="None"/>
     <Param name="logging level" val="exp" valType="code" updates="None"/>
     <Param name="Units" val="use prefs" valType="str" updates="None"/>
-    <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
-    <Param name="Saved data folder" val="" valType="code" updates="None"/>
-    <Param name="Screen" val="1" valType="num" updates="None"/>
+    <Param name="Show info dlg" val="False" valType="bool" updates="None"/>
+    <Param name="Full-screen window" val="False" valType="bool" updates="None"/>
   </Settings>
   <Routines>
     <Routine name="trial">
-      <RatingScaleComponent name="RS_calm_left">
+      <RatingScaleComponent name="rating">
+        <Param name="labels" val="" valType="str" updates="constant"/>
         <Param name="pos" val="" valType="str" updates="constant"/>
         <Param name="high" val="" valType="code" updates="constant"/>
         <Param name="storeRating" val="True" valType="bool" updates="constant"/>
-        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="marker" val="triangle" valType="str" updates="constant"/>
+        <Param name="startVal" val="0.4" valType="code" updates="None"/>
+        <Param name="markerStart" val="" valType="str" updates="constant"/>
         <Param name="disappear" val="False" valType="bool" updates="constant"/>
-        <Param name="size" val="" valType="code" updates="constant"/>
-        <Param name="choiceLabelsAboveLine" val="True" valType="bool" updates="constant"/>
+        <Param name="size" val="1.2" valType="code" updates="constant"/>
+        <Param name="tickHeight" val="" valType="str" updates="constant"/>
+        <Param name="showAccept" val="True" valType="bool" updates="constant"/>
         <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
-        <Param name="forceEndRoutine" val="False" valType="bool" updates="constant"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
         <Param name="low" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="visualAnalogScale" val="False" valType="bool" updates="constant"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
-        <Param name="lowAnchorText" val="" valType="str" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="stopType" val="time (s)" valType="str" updates="None"/>
-        <Param name="scaleDescription" val="" valType="str" updates="constant"/>
-        <Param name="advancedParams"/>
+        <Param name="scaleDescription" val="1=not much ... 7=great" valType="str" updates="constant"/>
+        <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
         <Param name="categoryChoices" val="" valType="str" updates="constant"/>
-        <Param name="customize_everything" val="scale='1 = calm . . . 7 = agitated',&#10;mouseOnly=True, &#10;pos=(-0.35,-0.2), &#10;markerStyle='circle', &#10;displaySizeFactor=0.85,&#10;singleClick=True,&#10;disappear=True,  maxTime=5" valType="str" updates="constant"/>
-        <Param name="name" val="RS_calm_left" valType="code" updates="None"/>
+        <Param name="customize_everything" val="" valType="str" updates="constant"/>
+        <Param name="name" val="rating" valType="code" updates="None"/>
         <Param name="singleClick" val="True" valType="bool" updates="constant"/>
-        <Param name="highAnchorText" val="" valType="str" updates="constant"/>
-      </RatingScaleComponent>
-      <RatingScaleComponent name="RS_deep_right">
-        <Param name="pos" val="" valType="str" updates="constant"/>
-        <Param name="high" val="" valType="code" updates="constant"/>
-        <Param name="storeRating" val="True" valType="bool" updates="constant"/>
-        <Param name="startVal" val="0.0" valType="code" updates="None"/>
-        <Param name="disappear" val="False" valType="bool" updates="constant"/>
-        <Param name="size" val="" valType="code" updates="constant"/>
-        <Param name="choiceLabelsAboveLine" val="True" valType="bool" updates="constant"/>
-        <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
-        <Param name="forceEndRoutine" val="False" valType="bool" updates="constant"/>
-        <Param name="low" val="" valType="code" updates="constant"/>
-        <Param name="durationEstim" val="" valType="code" updates="None"/>
-        <Param name="stopVal" val="" valType="code" updates="constant"/>
-        <Param name="visualAnalogScale" val="False" valType="bool" updates="constant"/>
-        <Param name="startEstim" val="" valType="code" updates="None"/>
-        <Param name="lowAnchorText" val="" valType="str" updates="constant"/>
-        <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="stopType" val="time (s)" valType="str" updates="None"/>
-        <Param name="scaleDescription" val="" valType="str" updates="constant"/>
-        <Param name="advancedParams"/>
-        <Param name="categoryChoices" val="" valType="str" updates="constant"/>
-        <Param name="customize_everything" val="scale='1 = deep . . . 7 = shallow',&#10;mouseOnly=True, &#10;pos=(0.35,-0.2),&#10;markerColor='DarkGreen', &#10;displaySizeFactor=0.85,&#10;singleClick=True,&#10;disappear=True, maxTime=5" valType="str" updates="constant"/>
-        <Param name="name" val="RS_deep_right" valType="code" updates="None"/>
-        <Param name="singleClick" val="False" valType="bool" updates="constant"/>
-        <Param name="highAnchorText" val="" valType="str" updates="constant"/>
       </RatingScaleComponent>
       <TextComponent name="stimulus_to_rate">
         <Param name="opacity" val="1" valType="code" updates="constant"/>
@@ -81,16 +57,46 @@
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
         <Param name="text" val="$thing" valType="str" updates="set every repeat"/>
-        <Param name="stopVal" val="5" valType="code" updates="constant"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
-        <Param name="pos" val="[0, 0.5]" valType="code" updates="constant"/>
+        <Param name="pos" val="[0, 0.35]" valType="code" updates="constant"/>
         <Param name="flip" val="" valType="str" updates="constant"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="units" val="from exp settings" valType="str" updates="None"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
-        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="startVal" val="0.4" valType="code" updates="None"/>
+        <Param name="font" val="Arial" valType="str" updates="constant"/>
+        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
+      </TextComponent>
+    </Routine>
+    <Routine name="feedback">
+      <CodeComponent name="code">
+        <Param name="Begin Experiment" val="" valType="extendedCode" updates="constant"/>
+        <Param name="name" val="code" valType="code" updates="None"/>
+        <Param name="Each Frame" val="" valType="extendedCode" updates="constant"/>
+        <Param name="Begin Routine" val="# uses data from `rating` obtained on the previous routine:&#10;result = &quot;You pressed &quot; + str(rating.getRating())&#10;if rating.getRT() &lt; 1:&#10;    result += ', quickly.'&#10;else:&#10;    result += ', slowly.'" valType="extendedCode" updates="constant"/>
+        <Param name="End Routine" val="" valType="extendedCode" updates="constant"/>
+        <Param name="End Experiment" val="" valType="extendedCode" updates="constant"/>
+      </CodeComponent>
+      <TextComponent name="text">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="text" valType="code" updates="None"/>
+        <Param name="wrapWidth" val="" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="str" updates="constant"/>
+        <Param name="text" val="$result" valType="str" updates="set every repeat"/>
+        <Param name="stopVal" val="2.0" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="flip" val="" valType="str" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.4" valType="code" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
         <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
       </TextComponent>
@@ -100,9 +106,9 @@
         <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="text_2" valType="code" updates="None"/>
-        <Param name="wrapWidth" val=".6" valType="code" updates="constant"/>
+        <Param name="wrapWidth" val="1" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
-        <Param name="text" val="This demo will show two rating scales at the same time, one for 'calm' and one for 'deep'. These will be presented for each of two things-to-be-rated, drawn from a list. Hit any key to continue." valType="str" updates="constant"/>
+        <Param name="text" val="This demo will show a rating scale for each of four things-to-be-rated, and then show the rating.&#13;&#10;&#13;&#10;Hit any key to continue." valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
@@ -114,7 +120,7 @@
         <Param name="stopType" val="condition" valType="str" updates="None"/>
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
-        <Param name="letterHeight" val="0.05" valType="code" updates="constant"/>
+        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
       </TextComponent>
       <KeyboardComponent name="key_resp_3">
         <Param name="correctAns" val="" valType="str" updates="constant"/>
@@ -132,23 +138,6 @@
         <Param name="store" val="nothing" valType="str" updates="constant"/>
       </KeyboardComponent>
     </Routine>
-    <Routine name="blank">
-      <KeyboardComponent name="key_resp_2">
-        <Param name="correctAns" val="" valType="str" updates="constant"/>
-        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
-        <Param name="name" val="key_resp_2" valType="code" updates="None"/>
-        <Param name="stopVal" val="1.0" valType="code" updates="constant"/>
-        <Param name="durationEstim" val="" valType="code" updates="None"/>
-        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
-        <Param name="startEstim" val="" valType="code" updates="None"/>
-        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
-        <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="allowedKeys" val="'y','n','left','right','space'" valType="code" updates="constant"/>
-        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
-        <Param name="startVal" val="0.0" valType="code" updates="None"/>
-        <Param name="store" val="last key" valType="str" updates="constant"/>
-      </KeyboardComponent>
-    </Routine>
   </Routines>
   <Flow>
     <Routine name="instr"/>
@@ -162,7 +151,7 @@
       <Param name="conditions" val="[{'thing': u'thing-1'}, {'thing': u'thing-2'}]" valType="str" updates="None"/>
     </LoopInitiator>
     <Routine name="trial"/>
-    <Routine name="blank"/>
+    <Routine name="feedback"/>
     <LoopTerminator name="trials"/>
   </Flow>
 </PsychoPy2experiment>

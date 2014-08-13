@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, time
@@ -238,10 +238,13 @@ refresh rate to your primary monitor. This is not recommended (likely to reduce 
                 beamPos =  cocoa.CGDisplayBeamPosition(scrID)
         nFrames-=1
 
-def delaySleep():
-    """Prevent the system from going to sleep for a short period
+def sendStayAwake():
+    """Sends a signal to your system to indicate that the computer is in use and
+    should not sleep. This should be sent periodically, but PsychoPy will send
+    the signal by default on each screen refresh.
+    Added: v1.79.00
 
-    uses cocoa.UpdateSystemActivity(0)
+    Currently supported on: windows, OS X
     """
     cocoa.UpdateSystemActivity(0)
 

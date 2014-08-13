@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''Display an image on `psycopy.visual.Window`'''
 
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -27,7 +27,7 @@ import numpy
 
 
 class ImageStim(BaseVisualStim):
-    '''Display an image on `psycopy.visual.Window`'''
+    '''Display an image on a :class:`psychopy.visual.Window`'''
     def __init__(self,
                  win,
                  image     =None,
@@ -71,7 +71,11 @@ class ImageStim(BaseVisualStim):
                 cosine edge.
 
         """
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=autoLog)
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
+
+        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)#set autoLog at end of init
         self.useShaders = win._haveShaders  #use shaders if available by default, this is a good thing
 
         #initialise textures for stimulus
@@ -106,17 +110,13 @@ class ImageStim(BaseVisualStim):
         self.setImage(image, log=False)
         self.setMask(mask, log=False)
 
-        #fix scaling to window coords
-        self._calcSizeRendered()
-        self._calcPosRendered()
-
-        # _verticesRendered for .contains() and .overlaps()
-        v = [(-.5,-.5), (-.5,.5), (.5,.5), (.5,-.5)]
-        self._verticesRendered = numpy.array(self._sizeRendered, dtype=float) * v
-
         #generate a displaylist ID
         self._listID = GL.glGenLists(1)
         self._updateList()#ie refresh display list
+
+        self.autoLog= autoLog
+        if autoLog:
+            logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def _updateListShaders(self):
         """
@@ -144,31 +144,24 @@ class ImageStim(BaseVisualStim):
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
 
-        flipHoriz = self.flipHoriz*(-2)+1#True=(-1), False->(+1)
-        flipVert = self.flipVert*(-2)+1
-        #calculate coords in advance:
-        L = -self._sizeRendered[0]/2 * flipHoriz#vertices
-        R =  self._sizeRendered[0]/2 * flipHoriz
-        T =  self._sizeRendered[1]/2 * flipVert
-        B = -self._sizeRendered[1]/2 * flipVert
-
+        vertsPix = self.verticesPix #access just once because it's slower than basic property
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
         # right bottom
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,1,0)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,1,0)
-        GL.glVertex2f(R,B)
+        GL.glVertex2f(vertsPix[0,0], vertsPix[0,1])
         # left bottom
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,0,0)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,0,0)
-        GL.glVertex2f(L,B)
+        GL.glVertex2f(vertsPix[1,0], vertsPix[1,1])
         # left top
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,0,1)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,0,1)
-        GL.glVertex2f(L,T)
+        GL.glVertex2f(vertsPix[2,0], vertsPix[2,1])
         # right top
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0,1,1)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1,1,1)
-        GL.glVertex2f(R,T)
+        GL.glVertex2f(vertsPix[3,0], vertsPix[3,1])
         GL.glEnd()
 
         #unbind the textures
@@ -207,31 +200,24 @@ class ImageStim(BaseVisualStim):
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
 
-        flipHoriz = self.flipHoriz*(-2)+1#True=(-1), False->(+1)
-        flipVert = self.flipVert*(-2)+1
-        #calculate vertices
-        L = -self._sizeRendered[0]/2 * flipHoriz
-        R =  self._sizeRendered[0]/2 * flipHoriz
-        T =  self._sizeRendered[1]/2 * flipVert
-        B = -self._sizeRendered[1]/2 * flipVert
-
+        vertsPix = self.verticesPix #access just once because it's slower than basic property
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
         # right bottom
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,1,0)
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,1,0)
-        GL.glVertex2f(R,B)
+        GL.glVertex2f(vertsPix[0,0], vertsPix[0,1])
         # left bottom
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,0,0)
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,0,0)
-        GL.glVertex2f(L,B)
+        GL.glVertex2f(vertsPix[1,0], vertsPix[1,1])
         # left top
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,0,1)
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,0,1)
-        GL.glVertex2f(L,T)
+        GL.glVertex2f(vertsPix[2,0], vertsPix[2,1])
         # right top
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB,1,1)
         GL.glMultiTexCoord2fARB(GL.GL_TEXTURE1_ARB,1,1)
-        GL.glVertex2f(R,T)
+        GL.glVertex2f(vertsPix[3,0], vertsPix[3,1])
         GL.glEnd()
 
         GL.glDisable(GL.GL_TEXTURE_2D)
@@ -241,24 +227,6 @@ class ImageStim(BaseVisualStim):
     def __del__(self):
         GL.glDeleteLists(self._listID, 1)
         self.clearTextures()#remove textures from graphics card to prevent crash
-
-    def contains(self, x, y=None):
-        """Determines if a point x,y is on the image (within its boundary).
-
-        See :class:`~psychopy.visual.ShapeStim` `.contains()`.
-        """
-        if hasattr(x, 'getPos'):
-            x,y = x.getPos()
-        elif type(x) in [list, tuple, numpy.ndarray]:
-            x,y = x[0:2]
-        return pointInPolygon(x, y, self)
-
-    def overlaps(self, polygon):
-        """Determines if the image overlaps another image or shape (`polygon`).
-
-        See :class:`~psychopy.visual.ShapeStim` `.overlaps()`.
-        """
-        return polygonsOverlap(self, polygon)
 
     def clearTextures(self):
         """
@@ -272,13 +240,8 @@ class ImageStim(BaseVisualStim):
         if win==None: win=self.win
         self._selectWindow(win)
 
-        #do scaling
         GL.glPushMatrix()#push before the list, pop after
-        win.setScale(self._winScale)
-        #move to centre of stimulus and rotate
-        GL.glTranslatef(self._posRendered[0],self._posRendered[1],0)
-        GL.glRotatef(-self.ori,0.0,0.0,1.0)
-        #the list just does the texture mapping
+        win.setScale('pix')
 
         desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
         GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)

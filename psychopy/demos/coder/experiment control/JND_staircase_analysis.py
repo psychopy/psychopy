@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 #This analysis script takes one or more staircase datafiles as input from a GUI
 #It then plots the staircases on top of each other on the left 

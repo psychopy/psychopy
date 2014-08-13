@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """demo to illustrate and test microphone.AdvAudioCapture, and also permit
 external latency testing (e.g., BlackBox Toolkit) by providing visual-tone synchrony
 

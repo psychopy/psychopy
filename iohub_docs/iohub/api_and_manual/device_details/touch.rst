@@ -13,7 +13,6 @@ If running PsychoPy.ioHub on a computer that does not have a serial port availab
 a Serial -> USB converter can be used to connect the Elo Touch Screen's serial
 output cable to a USB 2.0 port on the PsychoPy computer. Serial -> USB converter's
 are available from many suppliers and should not cost more than $30 - 40 CAD.
-If there are questions about using a Serial -> USB converter 
 
 **Platforms:** Windows, OS X, Linux
 

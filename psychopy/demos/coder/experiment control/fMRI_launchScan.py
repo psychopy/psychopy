@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 """This demo illustrates using hardware.emulator.launchScan() to either start a
 real scan, or emulate sync pulses. Emulation is to allow debugging script timing

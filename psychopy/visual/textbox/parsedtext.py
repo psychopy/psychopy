@@ -20,17 +20,14 @@ class ParsedTextDocument(object):
         self._num_columns,self._max_visible_rows=text_grid._shape
         
         text_data=text_data.replace('\r\n','\n')
-        if len(text_data) and text_data[-1] != u'\n':
-            text_data=text_data+u'\n'
-        elif len(text_data)==0:
-            text_data=text_data+u'\n'
+#        if len(text_data) and text_data[-1] != u'\n':
+#            text_data=text_data+u'\n'
         self._text=text_data
         self._children=[]
 
         self._limit_text_length=self._max_visible_rows*self._num_columns
                 
         if self._limit_text_length>0 and self._limit_text_length<len(self._text):
-            print 'TextBox Warning: The text length to be displayed is > the number of character positions available.',self._text[:10],len(self._text),self._limit_text_length
             self._text=self._text[:self._limit_text_length]
             
         self._default_parse_chunk_size=self._num_columns*(self._max_visible_rows+1)
@@ -38,7 +35,12 @@ class ParsedTextDocument(object):
         
         self._text_parsed_to_index=0
         self._parse(0,len(self._text))
-
+        
+    def getDisplayedText(self):
+        lli=min(self._max_visible_rows,self.getChildCount())-1
+        lline=self.getParsedLine(lli)
+        return self._text[:lline._index_range[1]]
+        
     def addChild(self,c):
         self._children.append(c)
         
@@ -161,7 +163,7 @@ class ParsedTextDocument(object):
         
     def getLineInfoByIndex(self,i):
         c=self._children[i]
-        return c._length, c._gl_display_list, c._ords
+        return c,c._length, c._gl_display_list, c._ords
 
     def getParsedLine(self,i):
         return self._children[i]
@@ -223,7 +225,10 @@ class ParsedTextLine(object):
         self._text=source_text
         self._index_range=index_range
         self._line_index=parent.getChildCount()-1
-                
+        
+        self._trans_left=0
+        self._trans_top=0
+        
         self.updateOrds(self._text)
         
         #self.text_region_flags=numpy.ones((2,parent._num_columns),numpy.uint32)#*parent._text_grid.default_region_type_key

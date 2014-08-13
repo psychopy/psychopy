@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from _visual import *
@@ -34,7 +34,6 @@ class DotsComponent(VisualComponent):
         self.url="http://www.psychopy.org/builder/components/dots.html"
         self.exp.requirePsychopyLibs(['visual'])
         #params
-        self.params['advancedParams']=['signalDots','noiseDots']
         self.params['name']=Param(name, valType='code', allowedTypes=[],
             label="Name")
         self.params['nDots']=Param(nDots, valType='code',
@@ -62,10 +61,10 @@ class DotsComponent(VisualComponent):
             label="Dot lifetime")
         self.params['signalDots']=Param(signalDots, valType='str', allowedVals=['same','different'],
             hint="On each frame are the signals dots remaining the same or changing? See Scase et al.",
-            label="Signal dots")
+            label="Signal dots", categ='Advanced')
         self.params['noiseDots']=Param(noiseDots, valType='str', allowedVals=['direction','position','walk'],
             hint="What governs the behaviour of the noise dots? See Scase et al.",
-            label="Noise dots")
+            label="Noise dots", categ='Advanced')
         self.params['fieldShape']=Param(fieldShape, valType='str', allowedVals=['circle','square'],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint="What is the shape of the field?",

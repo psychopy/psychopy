@@ -149,7 +149,7 @@ monitor_devices:
             # should be a value between 0 and 255. 0 == black, 255 == white. In general
             # the last value of the color list (alpha) can be left at 255, indicating
             # the color not mixed with the background color at all.
-            screen_background_color: [128,128,128,255]
+            screen_background_color: [128,128,128]
 
             # target type defines what form of calibration graphic should be used
             # during calibration, validation, etc. modes.

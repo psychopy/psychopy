@@ -201,8 +201,7 @@ class ScreenState(object):
         ftime=self.window().flip()
         ScreenState._currentState=self
         if text is not None:
-            flipText="%s : flip_time [%.6f]"%(text,ftime)
-            self.sendMessage(flipText,ftime)
+            self.sendMessage(text,ftime)
         return ftime
 
     def sendMessage(self, text, mtime=None):
@@ -434,7 +433,7 @@ class TimeTrigger(Trigger):
     """
     __slots__=['start_time','delay']
     def __init__(self, start_time, delay, repeat_count=0, trigger_function = lambda a,b,c: True==True, user_kwargs={}):
-        Trigger.__init__(self,trigger_function,user_kwargs,repeat_count=0)
+        Trigger.__init__(self,trigger_function,user_kwargs,repeat_count)
 
         sFunc=start_time
         if not callable(start_time):

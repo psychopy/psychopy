@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import StringIO, sys, codecs
@@ -133,7 +133,7 @@ class Experiment:
         else:
             localDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
 
-        script.write('#!/usr/bin/env python\n' +
+        script.write('#!/usr/bin/env python2\n' +
                     '# -*- coding: utf-8 -*-\n' +
                     '"""\nThis experiment was created using PsychoPy2 Experiment Builder (v%s), %s\n' % (
                         self.psychopyVersion, localDateTime ) +
@@ -292,9 +292,30 @@ class Experiment:
             params[name].val = paramNode.get('val')
             params[name].valType = 'extendedCode' #changed in 1.78.00
             return #so that we don't update valTyp again below
+        elif name == 'Saved data folder':
+            #deprecated in 1.80 for more complete data filename control
+            params[name] = Param(paramNode.get('val'), valType='code', allowedTypes=[],
+                hint="Name of the folder in which to save data and log files (blank defaults to the builder pref)",
+                categ='Data')
         elif 'val' in paramNode.keys():
             if paramNode.get('val')=='window units':#changed this value in 1.70.00
                 params[name].val = 'from exp settings'
+            # in v1.80.00, several RatingScale API and Param fields were changed
+            # Try to avoid a KeyError in these cases so can load the experiment,
+            elif name in ['choiceLabelsAboveLine', 'lowAnchorText', 'highAnchorText']:
+                # not handled, just ignored; want labels=[lowAnchor, highAnchor]
+                return
+            elif name == 'customize_everything':
+                # Try to auto-update the code:
+                v = paramNode.get('val')  # python code, not XML
+                v = v.replace('markerStyle', 'marker').replace('customMarker', 'marker')
+                v = v.replace('stretchHoriz', 'stretch').replace('displaySizeFactor', 'size')
+                v = v.replace('textSizeFactor', 'textSize')
+                v = v.replace('ticksAboveLine=False', 'tickHeight=-1')
+                v = v.replace('showScale=False', 'scale=None').replace('allowSkip=False', 'skipKeys=None')
+                v = v.replace('showAnchors=False', 'labels=None')
+                # lowAnchorText highAnchorText will trigger obsolete error when run the script
+                params[name].val = v
             else:
                 params[name].val = paramNode.get('val')
         #get the value type and update rate
@@ -375,10 +396,16 @@ class Experiment:
                 component=components.getAllComponents(self.prefsBuilder['componentsFolders'])[componentType](\
                     name=componentNode.get('name'),
                     parentName=routineNode.get('name'), exp=self)
-                # check for components that were absent in older versions of the builder and change the default behavior (currently only the new behavior of choices for RatingScale, HS, November 2012)
+                # check for components that were absent in older versions of the builder and change the default behavior
+                # (currently only the new behavior of choices for RatingScale, HS, November 2012)
+                # HS's modification superceded Jan 2014, removing several RatingScale options
                 if componentType=='RatingScaleComponent':
-                    if not componentNode.get('choiceLabelsAboveLine'): #this rating scale was created using older version of psychopy
-                        component.params['choiceLabelsAboveLine'].val=True  #important to have .val here
+                    if (componentNode.get('choiceLabelsAboveLine') or
+                        componentNode.get('lowAnchorText') or
+                        componentNode.get('highAnchorText')):
+                        pass
+                    #if not componentNode.get('choiceLabelsAboveLine'): #this rating scale was created using older version of psychopy
+                    #    component.params['choiceLabelsAboveLine'].val=True  #important to have .val here
                 #populate the component with its various params
                 for paramNode in componentNode:
                     self._getXMLparam(params=component.params, paramNode=paramNode)
@@ -398,8 +425,11 @@ class Experiment:
                     elif thisParam.updates and "during:" in thisParam.updates:
                         updates = thisParam.updates.split(': ')[1] #remove the part that says 'during'
                         routine, static =  updates.split('.')
-                        self.routines[routine].getComponentFromName(static).addComponentUpdate(
-                            routine, thisComp.params['name'], thisParamName)
+                        if routine not in self.routines:
+                            logging.warning("%s was set to update during %s Static Component, but that component no longer exists" %(thisParamName, static))
+                        else:
+                            self.routines[routine].getComponentFromName(static).addComponentUpdate(
+                                routine, thisComp.params['name'], thisParamName)
         #fetch flow settings
         flowNode=root.find('Flow')
         loops={}
@@ -503,7 +533,9 @@ class Param:
     $myPathologicalVa$rName
     """
 
-    def __init__(self, val, valType, allowedVals=[],allowedTypes=[], hint="", label="", updates=None, allowedUpdates=None):
+    def __init__(self, val, valType, allowedVals=[],allowedTypes=[], hint="",
+                 label="", updates=None, allowedUpdates=None,
+                 categ="Basic"):
         """
         @param val: the value for this parameter
         @type val: any
@@ -519,6 +551,8 @@ class Param:
         @type updates: string
         @param allowedUpdates: conceivable updates for this param [None, 'routine', 'set every frame']
         @type allowedUpdates: list
+        @param categ: category for this parameter, will populate tabs in Component Dlg
+        @type allowedUpdates: string
         """
         self.label=label
         self.val=val
@@ -529,6 +563,7 @@ class Param:
         self.allowedUpdates=allowedUpdates
         self.allowedVals=allowedVals
         self.staticUpdater = None
+        self.categ = categ
     def __str__(self):
         if self.valType == 'num':
             try:
@@ -752,6 +787,7 @@ class StairHandler:
         buff.writeIndented("    stepSizes=%(step sizes)s, stepType=%(step type)s,\n" %self.params)
         buff.writeIndented("    nReversals=%(N reversals)s, nTrials=%(nReps)s, \n" %self.params)
         buff.writeIndented("    nUp=%(N up)s, nDown=%(N down)s,\n" %self.params)
+        buff.writeIndented("    minVal=%(min value)s, maxVal=%(max value)s,\n" %self.params)
         buff.writeIndented("    originPath=%s" %repr(self.exp.expPath))
         buff.write(", name='%(name)s')\n"%self.params)
         buff.writeIndented("thisExp.addLoop(%(name)s)  # add the loop to the experiment" %self.params)
@@ -810,9 +846,11 @@ class MultiStairHandler:
         self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
             hint="An xlsx or csv file specifying the parameters for each condition")
     def writeInitCode(self,buff):
-        #also a 'thisName' for use in "for thisTrial in trials:"
+        pass #don't initialise at start of exp, create when needed
+    def writeLoopStartCode(self,buff):
+        #create a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
-        #write the code
+        #create the MultistairHander
         buff.writeIndentedLines("\n# set up handler to look after randomisation of trials etc\n")
         buff.writeIndentedLines("conditions = data.importConditions(%s)" %self.params['conditionsFile'])
         buff.writeIndented("%(name)s = data.MultiStairHandler(stairType=%(stairType)s, name='%(name)s',\n" %(self.params))
@@ -824,8 +862,7 @@ class MultiStairHandler:
         buff.writeIndented("# initialise values for first condition\n")
         buff.writeIndented("level = %(name)s._nextIntensity  # initialise some vals\n" %(self.params))
         buff.writeIndented("condition = %(name)s.currentStaircase.condition\n" %(self.params))
-    def writeLoopStartCode(self,buff):
-        #work out a name for e.g. thisTrial in trials:
+        #start the loop
         buff.writeIndented("\n")
         buff.writeIndented("for level, condition in %(name)s:\n" %(self.params))
         buff.setIndentLevel(1, relative=True)
@@ -1163,8 +1200,8 @@ class Routine(list):
 
         #allow subject to quit via Esc key?
         if self.exp.settings.params['Enable Escape'].val:
-            buff.writeIndentedLines('\n# check for quit (the [Esc] key)')
-            buff.writeIndentedLines('if event.getKeys(["escape"]):\n')
+            buff.writeIndentedLines('\n# check for quit (the Esc key)')
+            buff.writeIndentedLines('if endExpNow or event.getKeys(keyList=["escape"]):\n')
             buff.writeIndentedLines('    core.quit()\n')
         #update screen
         buff.writeIndentedLines('\n# refresh the screen\n')

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """Use this script to analyse data from the gammaMotionNull.py
 script. 
 

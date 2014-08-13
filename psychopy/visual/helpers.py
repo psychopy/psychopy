@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 '''Helper functions shared by the visual classes'''
 
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys
@@ -351,8 +351,10 @@ def pointInPolygon(x, y, poly):
 
     Returns True (inside) or False (outside). Used by :class:`~psychopy.visual.ShapeStim` `.contains()`
     """
-    if hasattr(poly, '_verticesRendered') and hasattr(poly, '_posRendered'):
-        poly = poly._verticesRendered + poly._posRendered
+    try: #do this using try:...except rather than hasattr() for speed
+        poly = poly.verticesPix #we want to access this only once
+    except:
+        pass
     nVert = len(poly)
     if nVert < 3:
         msg = 'pointInPolygon expects a polygon with 3 or more vertices'
@@ -397,11 +399,14 @@ def polygonsOverlap(poly1, poly2):
 
     Used by :class:`~psychopy.visual.ShapeStim` `.overlaps()`
     """
-    if hasattr(poly1, '_verticesRendered') and hasattr(poly1, '_posRendered'):
-        poly1 = poly1._verticesRendered + poly1._posRendered
-    if hasattr(poly2, '_verticesRendered') and hasattr(poly2, '_posRendered'):
-        poly2 = poly2._verticesRendered + poly2._posRendered
-
+    try: #do this using try:...except rather than hasattr() for speed
+        poly1 = poly1.verticesPix #we want to access this only once
+    except:
+        pass
+    try: #do this using try:...except rather than hasattr() for speed
+        poly2 = poly2.verticesPix #we want to access this only once
+    except:
+        pass
     # faster if have matplotlib tools:
     if haveMatplotlib:
         if matplotlib.__version__ > '1.2':

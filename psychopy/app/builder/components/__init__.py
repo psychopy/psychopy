@@ -1,7 +1,7 @@
 """Extensible set of components for the PsychoPy Builder view
 """
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os, glob, copy
@@ -11,6 +11,10 @@ try:
 except ImportError:
     import Image
 from os.path import *
+
+excludeComponents = ['VisualComponent', 'BaseComponent', #these are templates, not for use
+                     'EyetrackerComponent', #this one isn't ready yet
+                     ]
 
 def pilToBitmap(pil,scaleFactor=1.0):
     image = wx.EmptyImage(pil.size[0], pil.size[1] )
@@ -65,7 +69,7 @@ def getComponents(folder=None, fetchIcons=True):
                 name=None
                 #just fetch the attributes that end with 'Component', not other functions
                 if attrib.endswith('omponent') and \
-                    attrib not in ['VisualComponent', 'BaseComponent']:#must be a component
+                    attrib not in excludeComponents:#must be a component
                     name=attrib
                     components[attrib]=getattr(module, attrib)
                     #also try to get an iconfile
@@ -153,7 +157,7 @@ def getInitVals(params):
             inits[name].val="norm"
             inits[name].valType='str'
         elif name == 'text':
-            inits[name].val="nonsense"
+            inits[name].val="default text"
             inits[name].valType='str'
         elif name == 'flip':
             inits[name].val=""

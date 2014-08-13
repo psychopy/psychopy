@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 from psychopy.hardware import cedrus
 from psychopy import core
 import sys

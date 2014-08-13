@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 '''Container for all visual-related functions and classes'''
@@ -10,7 +10,7 @@
 from psychopy.constants import *
 
 # window, should always be loaded first
-from psychopy.visual.window import Window, getMsPerFrame
+from psychopy.visual.window import Window, getMsPerFrame, openWindows
 
 # non-private helpers
 from psychopy.visual.helpers import (createTexture,
@@ -50,5 +50,6 @@ from psychopy.visual.circle import Circle
 # TextBox alternative to TextStim
 try:
     from textbox import TextBox
-except: # this stimulus is still very experimental
+except:
     pass
+

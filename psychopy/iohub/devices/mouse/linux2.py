@@ -108,13 +108,28 @@ class Mouse(MouseDevice):
            
            		self._scrollPositionY= event_array[-3]
 
-                self._addNativeEventToBuffer(event_array)
-                
+                report_system_wide_events=self.getConfiguration().get('report_system_wide_events',True)
+            	if report_system_wide_events is False:
+			pyglet_window_hnds=self._iohub_server._pyglet_window_hnds
+			event_win=event_array[-1]
+			found=False
+			for pwin in pyglet_window_hnds:
+			    if pwin == event_win:
+				self._addNativeEventToBuffer(event_array)
+				found=True
+				break
+			#if found is False:		    	
+			#	print2err('Mouse_Event Filtered:',bnum,' ',logged_time)
+		else:
+			self._addNativeEventToBuffer(event_array)
+                # For the Mouse, always pass along events, but do not log
+                # events that occurred targeted for a non Psychopy win.
+                #
+                return True
+
                 self._last_callback_time=logged_time
         except:
             printExceptionDetailsToStdErr()
-        
-        # Must return original event or no mouse events will get to OSX!
         return 1
             
     def _getIOHubEventObject(self,native_event_data):

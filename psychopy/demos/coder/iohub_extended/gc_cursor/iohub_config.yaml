@@ -93,7 +93,7 @@ monitor_devices:
 #            type: NINE_POINTS
 #            auto_pace: True
 #            pacing_speed: 1.5
-#            screen_background_color: [128,128,128,255]
+#            screen_background_color: [128,128,128]
 #            target_type: CIRCLE_TARGET
 #            target_attributes:
 #                # outer_diameter and inner_diameter are specified in pixels

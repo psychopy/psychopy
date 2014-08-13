@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 from psychopy import visual, core, event
 """
 As of version 1.51 the mouse coordinates for
@@ -39,7 +39,9 @@ while True: #continue until keypress
         grating.setSF(mouse_dX, '+')
     elif (mouse3):
         grating.setPos([mouse_dX, mouse_dY], '+')
-        
+    else:
+        fixSpot.setPos(myMouse.getPos())
+    
     #Handle the wheel(s):
     # Y is the normal mouse wheel, but some (e.g. mighty mouse) have an x as well
     wheel_dX, wheel_dY = myMouse.getWheelRel()

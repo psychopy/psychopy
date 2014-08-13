@@ -10,8 +10,10 @@ Attributes
 .. autosummary:: 
 
     GratingStim
+    GratingStim.win
     GratingStim.tex
     GratingStim.mask
+    GratingStim.units
     GratingStim.sf
     GratingStim.pos
     GratingStim.ori
@@ -20,14 +22,12 @@ Attributes
     GratingStim.color
     GratingStim.colorSpace
     GratingStim.opacity
-    GratingStim.autoDraw
-    GratingStim.autoLog
-    GratingStim.contains
-    GratingStim.overlaps
-    GratingStim.units
-    GratingStim.win
+    GratingStim.interpolate
+    GratingStim.texRes
     GratingStim.name
-    GratingStim.draw    
+    GratingStim.autoLog
+    GratingStim.draw
+    GratingStim.autoDraw 
     
         
 Details

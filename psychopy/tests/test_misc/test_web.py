@@ -25,7 +25,7 @@ class TestWeb(object):
     def test_setupProxy(self):
         web.getPacFiles()
         web.getWpadFiles()
-        web.proxyFromPacFiles(web.getPacFiles())
+        web.proxyFromPacFiles(web.getPacFiles(), log=False)
         web.setupProxy()
 
     def test_upload(self):
@@ -35,18 +35,18 @@ class TestWeb(object):
         filename = __file__
         basicAuth = BASIC_AUTH_CREDENTIALS
 
-        web.upload(selector, filename, basicAuth)
-        web.upload(selectorS, filename, basicAuth, https=True)
+        web.upload(selector, filename, basicAuth, log=False)
+        web.upload(selectorS, filename, basicAuth, https=True, log=False)
         with pytest.raises(ValueError):
-            web.upload(selectorS, filename, basicAuth)
+            web.upload(selectorS, filename, basicAuth, log=False)
         with pytest.raises(ValueError):
-            web.upload(selector, filename, basicAuth, https=True)
+            web.upload(selector, filename, basicAuth, https=True, log=False)
         with pytest.raises(ValueError):
-            web.upload('', filename, basicAuth)
-        web.upload(selector + 'JUNK', filename, basicAuth)
+            web.upload('', filename, basicAuth, log=False)
+        web.upload(selector + 'JUNK', filename, basicAuth, log=False)
         with pytest.raises(ValueError):
-            web.upload(selector, filename + 'JUNK', basicAuth)
-        web.upload(selector, filename, basicAuth + 'JUNK')
+            web.upload(selector, filename + 'JUNK', basicAuth, log=False)
+        web.upload(selector, filename, basicAuth + 'JUNK', log=False)
 
     def test_upload_integrity(self):
         def _upload(stuff):
@@ -69,7 +69,7 @@ class TestWeb(object):
             dgst = digest.hexdigest()
 
             # upload:
-            status = web.upload(selector, tmp_filename, basicAuth)
+            status = web.upload(selector, tmp_filename, basicAuth, log=False)
             shutil.rmtree(tmp) # cleanup; do before asserts
 
             # test

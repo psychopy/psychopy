@@ -45,7 +45,9 @@ def compareScreenshot(fileName, win, crit=5.0):
         expDat = np.array(expected.getdata())
         imgDat = np.array(frame.getdata())
         rms = (((imgDat-expDat)**2).sum()/len(imgDat))**0.5
-        logging.warning('PsychoPyTests: RMS=%.3g at threshold=%3.g'
+        if rms >= crit/2:
+            #there was SOME discrepency
+            logging.warning('PsychoPyTests: RMS=%.3g at threshold=%3.g'
                   % (rms, crit))
         if rms>=crit:
             filenameLocal = fileName.replace('.png','_local.png')

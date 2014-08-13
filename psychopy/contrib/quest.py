@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # Copyright (c) 1996-2002 Denis G. Pelli
 # Copyright (c) 1996-9 David Brainard

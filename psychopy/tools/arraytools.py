@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 '''Functions and classes related to array handling'''
@@ -124,13 +124,7 @@ def ratioRange(start, nSteps=None, stop=None,
 
 
 def shuffleArray(inArray, shuffleAxis=-1, seed=None):
-    """Takes a  (flat) num array, list or string and returns a shuffled
-    version as a num array with the same shape. Optional argument ShuffleAxis
-    determines the axis to shuffle along (default=-1 meaning shuffle across
-    entire matrix?)
-
-    THIS DOESN'T WORK WITH MATRICES YET - ONLY FLAT ARRAYS - APPEARS TO BE BUG
-    IN EITHER NUMPY.ARGSORT() OR NUMPY.TAKE()
+    """DEPRECATED: use `numpy.random.shuffle`
     """
     #arrAsList = shuffle(list(inArray))
     #return numpy.array(arrAsList)

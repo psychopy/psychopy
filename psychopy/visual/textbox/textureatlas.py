@@ -5,10 +5,11 @@
 #  Distributed under the terms of the new BSD license.
 #
 # -----------------------------------------------------------------------------
+import pyglet.gl as gl
 from pyglet.gl import (GLuint,glEnable,GL_TEXTURE_2D,glBindTexture,glTexParameteri,
                GL_TEXTURE_WRAP_S, GL_CLAMP,GL_TEXTURE_WRAP_T,glTexImage2D,
                GL_TEXTURE_MIN_FILTER,GL_LINEAR,GL_TEXTURE_MAG_FILTER,GL_ALPHA,
-               GL_UNSIGNED_BYTE,GL_RGB,GL_RGBA,glGenTextures,glDeleteTextures)
+               GL_UNSIGNED_BYTE,GL_RGB,GL_RGBA,glGenTextures)
 import ctypes
 import math
 import numpy as np
@@ -234,22 +235,6 @@ class TextureAtlas:
                 del self.nodes[i+1]
             else:
                 i += 1
-    
-    def freeMemoryBuffer(self):
-        self.data=None
-        del self.data
-        self.nodes=None
-        
-    def deleteTexture(self):
-        if self.texid:
-            glDeleteTextures(1, self.texid)
-            self.texid=None
-    
-    def free(self):
-        self.deleteTexture()
-        self.freeMemoryBuffer()
-        self.used   = 0
-        self.max_y = 0
         
     def totalArea(self):
         return self.width*self.height
@@ -261,4 +246,6 @@ class TextureAtlas:
         return self.totalArea()-self.usedArea()
        
     def __del__(self):
-        self.free()
+        self.texid=None
+        self.data=None
+        self.nodes=None

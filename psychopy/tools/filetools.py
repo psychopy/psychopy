@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 '''Functions and classes related to file and directory handling'''
@@ -38,7 +38,7 @@ def fromFile(filename):
 def mergeFolder(src, dst, pattern=None):
     """Merge a folder into another.
 
-    Existing files in dst with the same name will be overwritten. Non-existent
+    Existing files in `dst` folder with the same name will be overwritten. Non-existent
     files/folders will be created.
 
     """

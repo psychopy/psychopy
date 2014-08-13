@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 from psychopy import visual, core, event
 import numpy, time    
 win = visual.Window([800,800], monitor='testMonitor')

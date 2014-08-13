@@ -30,7 +30,7 @@ pygame (must be version 1.8 or above):
 
 """
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import numpy, time, sys

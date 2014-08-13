@@ -38,14 +38,26 @@ class TouchDevice(Device):
         self._lastPosition=0,0
         self._display_index=None
         
+    def queryDevice(self,query_type, *args):
+        """
+        Send the underlying touch screen device a query request and return the response.
+        """
+        pass
+
+    def commandDevice(self,cmd_type, *args):
+        """
+        Send the underlying touch screen device a command and return the response.
+        """
+        pass
+
     def saveConfiguration(self):
         """
         Save current touch device settings and calibration data to the touch device
         hardware.
         """
         pass
-
-
+   
+        
     def restoreConfiguration(self):
         """
         Load touch device settings and calibration data from the touch device

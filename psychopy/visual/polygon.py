@@ -1,10 +1,11 @@
-#!/usr/bin/env python
+
+#!/usr/bin/env python2
 
 '''Creates a regular polygon (triangles, pentagrams, ...)
 as a special case of a :class:`~psychopy.visual.ShapeStim`'''
 
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import psychopy  # so we can get the __path__
@@ -33,6 +34,13 @@ class Polygon(ShapeStim):
                 Radius of the Polygon (distance from the center to the corners).
                 May be a -2tuple or list to stretch the polygon asymmetrically
         """
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
+        #kwargs isn't a parameter, but a list of params
+        self._initParams.remove('kwargs')
+        self._initParams.extend(kwargs)
+        self.autoLog = False #but will be changed if needed at end of init
         self.edges = edges
         self.radius = numpy.asarray(radius)
         self._calcVertices()
@@ -48,10 +56,13 @@ class Polygon(ShapeStim):
             ) * self.radius
             for e in xrange(self.edges)
         ])
-    def setEdges(self,edges):
+    def setEdges(self,edges, log=True):
         "Set the number of edges to a new value"
         self.edges=edges
         self._calcVertices()
+        if log and self.autoLog:
+            self.win.logOnFlip("Set %s edges=%s" %(self.name, edges),
+                level=logging.EXP,obj=self)
     def setRadius(self, radius, log=True):
         """Changes the radius of the Polygon. Parameter should be
 

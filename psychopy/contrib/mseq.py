@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 '''
 %        Maximum length sequence assuming 2,3,5 distinct values
 %

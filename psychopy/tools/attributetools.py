@@ -1,10 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 '''Functions and classes related to attribute handling'''
+
+import numpy
 
 from psychopy import logging
 
@@ -22,6 +24,8 @@ class attributeSetter(object):
                               level=logging.EXP, obj=obj)
         return newValue
 
+    def __repr__(self):
+        return repr(self.__getattribute__)
 
 def setWithOperation(self, attrib, value, operation, stealth=False):
     """ Sets an object property (scalar or numpy array) with an operation.
@@ -31,24 +35,28 @@ def setWithOperation(self, attrib, value, operation, stealth=False):
     # Handle cases where attribute is not defined yet.
     try:
         oldValue = getattr(self, attrib)
-
-        # Calculate new value using operation
-        if operation == '':
-            newValue = oldValue * 0 + value  # Preserves dimensions, if array
-        elif operation == '+':
-            newValue = oldValue + value
-        elif operation == '*':
-            newValue = oldValue * value
-        elif operation == '-':
-            newValue = oldValue - value
-        elif operation == '/':
-            newValue = oldValue / value
-        elif operation == '**':
-            newValue = oldValue ** value
-        elif operation == '%':
-            newValue = oldValue % value
+        if oldValue is None:
+            newValue = value
         else:
-            raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
+            oldValue = numpy.asarray(oldValue, float)
+
+            # Calculate new value using operation
+            if operation == '':
+                newValue = oldValue * 0 + value  # Preserves dimensions, if array
+            elif operation == '+':
+                newValue = oldValue + value
+            elif operation == '*':
+                newValue = oldValue * value
+            elif operation == '-':
+                newValue = oldValue - value
+            elif operation == '/':
+                newValue = oldValue / value
+            elif operation == '**':
+                newValue = oldValue ** value
+            elif operation == '%':
+                newValue = oldValue % value
+            else:
+                raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
     except AttributeError:
         # attribute is not set yet. Do it now in a non-updating manner
         newValue = value

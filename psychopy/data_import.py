@@ -87,15 +87,15 @@ def importPickleFromFile(dataFile):
         trialList.append(thisTrial)
     return trialList, fieldNames
 
+
 def importCSVFromFile(dataFile):
-    #use matplotlib to import data and intelligently check for data types
-    #all data in one column will be given a single type (e.g. if one cell is string, all will be set to string)
-    #convert the record array into a list of dicts
-    trialsArr = mlab.csv2rec(dataFile)# data = non-header row x col
+    trialsArr = numpy.recfromcsv(f, case_sensitive=True)
     fieldNames = trialsArr.dtype.names
-    _assertValidVarNames(fieldNames)
+    _assertValidVarNames(fieldNames, fileName)
+    f.close()
+    #convert the record array into a list of dicts
     trialList = []
-    for trialN, _ in enumerate(trialsArr):
+    for trialN, trialType in enumerate(trialsArr):
         thisTrial ={}
         for fieldN, fieldName in enumerate(fieldNames):
             val = trialsArr[trialN][fieldN]
@@ -108,6 +108,7 @@ def importCSVFromFile(dataFile):
             thisTrial[fieldName] = val
         trialList.append(thisTrial)
     return trialList, fieldNames
+
 
 def _getExcelCellName(col, row):
     """Returns the excel cell name for a row and column (zero-indexed)
@@ -157,3 +158,4 @@ FORMATS = {
     ".pkl": importPickleFromFile,
     ".xlsx": importXLSXFromFile 
 }
+

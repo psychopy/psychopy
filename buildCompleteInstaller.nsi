@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "PsychoPy2"
-!define PRODUCT_VERSION "1.78.01"
+!define PRODUCT_VERSION "1.79.00"
 !define PRODUCT_PUBLISHER "Jon Peirce"
 !define PRODUCT_WEB_SITE "http://www.psychopy.org"
 ;!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\AppMainExe.exe"
@@ -62,7 +62,8 @@ Function .onInit
   "Software\Microsoft\Windows\CurrentVersion\Uninstall\PsychoPy2" \
   "UninstallString"
   StrCmp $R0 "" done
-
+  
+  IfSilent +3
   MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
   "A version of PsychoPy2 is already installed. $\n$\nClick `OK` to remove the \
   previous version or `Cancel` to cancel this upgrade." \
@@ -97,7 +98,6 @@ Section "PsychoPy" SEC01
   StrCpy $AppDir "$INSTDIR\Lib\site-packages\PsychoPy-${PRODUCT_VERSION}-py2.7.egg\psychopy\app"
 
   File /r /x *.pyo /x *.chm /x Editra /x doc "C:\python27\*.*"
-  File /r "windlls\*.dll"
 ; avbin to system32
   !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED avbin.dll $SYSDIR\avbin.dll $SYSDIR
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """When you want to reveal an image gradually from behind a mask, 
 the tempting thing to do is to alter a stimulus mask using .setMask()
 

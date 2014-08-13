@@ -4,7 +4,7 @@ ioHub API Manual and Specification
 
 We believe ioHub users will benefit from big picture understanding of the ioHub Event Monitoring Framework
 along with descriptions of implemented functions and classes. The documentation within the API Manual describes how to 
-maximze full functionality of the ioHub Event Monitoring Framework, from an overview of
+maximize full functionality of the ioHub Event Monitoring Framework, from an overview of
 ioHub at the process level, to the ioHub Event Model, to data storage and utility
 classes, and finally to full integration of ioHub with PsychoPy. 
 

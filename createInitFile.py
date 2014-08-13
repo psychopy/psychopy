@@ -9,7 +9,7 @@ version = f.read()
 f.close()
 
 template="""# Part of the PsychoPy library
-# Copyright (C) 2013 Jonathan Peirce
+# Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 #--------------------------------------------------------------------------
@@ -114,6 +114,7 @@ def createInitFile(dist=None):
     outStr += _getGitShaString(dist)
     outStr += getGitShaRuntime
     outStr += allList
+    outStr += "\n"
     f.write(outStr)
     f.close()
     return outStr

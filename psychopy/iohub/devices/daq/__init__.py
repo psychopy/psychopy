@@ -17,13 +17,13 @@ import numpy as N
 
 class AnalogInputDevice(Device):
     """
-    The AnalogInputDevice device is used to interface with Analog to Digitial 
-    Signal Converters, or multi-function Data Acquision Devices that support
+    The AnalogInputDevice device is used to interface with Analog to Digital 
+    Signal Converters, or multi-function Data Acquisition Devices that support
     Analog to Digital input conversion.
     
     Currently the ioHub supports two families of devices; one by LabJack and 
     the other by Measurement Computing. Both companies provide USB based  
-    multi-function Data Acquision Devices supporting analog to digital input
+    multi-function Data Acquisition Devices supporting analog to digital input
     with an analog input range up to +/- 10 V.
         
     The models that have been tested by each manufacturer are:
@@ -36,7 +36,7 @@ class AnalogInputDevice(Device):
     
     The ioHub provides a simple common interface to all supported models, 
     providing digital sample events for 8 single ended channels of 
-    simultaniously sampled analog inputs. Currently the input channel count
+    simultaneously sampled analog inputs. Currently the input channel count
     is fixed at 8 channels, although you do not neeed to use all channels 
     that are being recorded obviously. 
     
@@ -52,8 +52,8 @@ class AnalogInputDevice(Device):
     Note that the U6 and USB-1616FS support 1000 Hz and are of heigh enough quality
     for samples to settle well within the maximum suggested 1 msec sampling interval.
     However the USB-1208FS, being a less expensive device, can not setting within
-    this fast of time period, so you will see ditrortion in sample readings following
-    large changes in the alalog input level. Therefore we suggest that the USB-1208 be
+    this fast of time period, so you will see distortion in sample readings following
+    large changes in the analog input level. Therefore we suggest that the USB-1208 be
     used for testing purposes, or for sample rate of 100 Hz or lower.
     
     Please see the manufacturer specific implementation notes page for details on
@@ -62,8 +62,8 @@ class AnalogInputDevice(Device):
     MultiChannelAnalogInput Events. 
     
     OS Support: 
-        * Measurment Computing: Windows XP SP3 and Windows 7
-        * Labjack: Only Windows XP SP3 and Windows 7 has been tested at this time, however it shuold not be a problem to use the device interface with Linux or OS X as well.
+        * Measurement Computing: Windows XP SP3 and Windows 7
+        * LabJack: Only Windows XP SP3 and Windows 7 has been tested at this time, however it shuold not be a problem to use the device interface with Linux or OS X as well.
     """
 
     DAQ_CHANNEL_MAPPING=dict()
@@ -116,15 +116,16 @@ class MultiChannelAnalogInputEvent(AnalogInputEvent):
     For the U6 and U6 Pro,this assumption is not strictly correct, as the device
     has two analog input chips, each connected to an eight way MUX, resulting
     in the 16 possible analog input channels supported by the device hardware. 
-    Even channels are fead to MUX A, odd channels to MUX B. 
+    Even channels are fed to MUX A, odd channels to MUX B. 
 
     However the U6 chips are of high quality and each MUX can scan though the
     8 analog input channels in under 40 usec per channel when using the suggested
-    setting rate factor for the device. Therefore if four of the eight monitored
+    settling rate factor for the device (typically 16.5 usec interchannel delay, 
+    Table 3.2-1 LabJack U6 User Guide). Therefore if four of the eight monitored
     analog inputs are even, and four are odd, the estimated time difference between
     channel reads for a given scan is 160 usec or less. This is low enough given 
     the suggested maximum scanning rate of 1000 Hz per channel when the device is
-    being used with the ioHub to be considered 'effectively' simultanious.
+    being used with the ioHub to be considered 'effectively' simultaneous.
     """
     _newDataTypes = [
         ('AI_0',N.float32),

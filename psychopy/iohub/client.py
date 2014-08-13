@@ -23,8 +23,11 @@ from psychopy import  core as core, gui
 import psychopy.logging as psycho_logging
     
 if sys.platform != 'darwin':
-    import psutil
-    _psutil_available=True
+    try:
+        import psutil
+        _psutil_available=True
+    except ImportError, e:
+        print 'Note: psutil python package could not be imported. Process priority and cpu affinity settings will not be available.'
 
 from . import IO_HUB_DIRECTORY,isIterable, load, dump, Loader, Dumper, updateDict
 from . import MessageDialog, win32MessagePump
@@ -739,7 +742,7 @@ class ioHubConnection(object):
         Sends 1 - n Window handles to iohub so it can determine if kb or
         mouse events were targeted at a psychopy window or other window.
         """
-        print2err(">>CLIENT.registerPygletWindowHandles:",winHandles)
+        #print2err(">>CLIENT.registerPygletWindowHandles:",winHandles)
         r=self._sendToHubServer(('RPC','registerPygletWindowHandles',winHandles))
         return r[2]
 
@@ -748,7 +751,7 @@ class ioHubConnection(object):
         Sends 1 - n Window handles to iohub so it can determine if kb or
         mouse events were targeted at a psychopy window or other window.
         """
-        print2err(">>CLIENT.unregisterPygletWindowHandles:",winHandles)
+        #print2err(">>CLIENT.unregisterPygletWindowHandles:",winHandles)
 
         r=self._sendToHubServer(('RPC','unregisterPygletWindowHandles',winHandles))
         return r[2]
@@ -1008,7 +1011,7 @@ class ioHubConnection(object):
             server_output='hi there'
             ctime = Computer.globalClock.getTime
 
-            timeout_time=ctime()+10.0 # timeout if ioServer does not reply in 10 seconds
+            timeout_time=ctime()+ioHubConfig.get('start_process_timeout',30.0)# timeout if ioServer does not reply in 10 seconds
             while server_output and ctime()<timeout_time:
                 isDataAvail=self._serverStdOutHasData()
                 if isDataAvail is True:
@@ -1021,10 +1024,10 @@ class ioHubConnection(object):
                         print "ioHub Failed to start, exiting...."
                         time.sleep(0.25)
                         sys.exit(1)
-
+                        
                         
                 else:
-                    time.sleep(0.0001)
+                    time.sleep(0.001)
         else:
             r="hi"
             while r:
@@ -1056,8 +1059,8 @@ class ioHubConnection(object):
         if window.openWindows:
             whs=[]
             for w in window.openWindows:
-                whs.append(w.winHandle._hwnd)
-            print 'ioclient registering existing windows:',whs
+                whs.append(w._hw_handle)
+            #print 'ioclient registering existing windows:',whs
             self.registerPygletWindowHandles(*whs)
 
 

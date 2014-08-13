@@ -70,4 +70,4 @@ Notes and Considerations
             
 * Ensure that XInput version 1.3 is installed on your computer.
 * If using a wireless gamepad, ensure the gamepad has been powered on befor stating the experiment.
-* For the supported Logitech gamepads, be sure that the switch on the gamepad is set to the 'X' position, indicating that the gamepad will use the XInput protocal.
+* For the supported Logitech gamepads, be sure that the switch on the gamepad is set to the 'X' position, indicating that the gamepad will use the XInput protocol.

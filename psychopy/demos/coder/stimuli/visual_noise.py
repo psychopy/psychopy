@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #demo arbitrary numpy array
 
 from psychopy import visual, core, event, logging

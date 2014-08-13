@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 """This demo comes from the simple_distilled example provided with pynetstation.
 Note that egi pynetstation can also be used in a multi-threaded form.

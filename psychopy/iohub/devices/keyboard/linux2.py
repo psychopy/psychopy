@@ -46,6 +46,26 @@ class Keyboard(ioHubKeyboardDevice):
         
                 event_array[-2]=ioHubKeyboardDevice._modifier_value
 
+		found=False
+                report_system_wide_events=self.getConfiguration().get('report_system_wide_events',True)
+            	if report_system_wide_events is False:
+			pyglet_window_hnds=self._iohub_server._pyglet_window_hnds
+			event_win=event_array[-1]
+			for pwin in pyglet_window_hnds:
+			    if pwin == event_win:
+				self._addNativeEventToBuffer(event_array)
+				found=True
+				break
+			#if found is False:		    	
+			#	print2err('KB_Event Filtered:',event_array[15],' ',logged_time)
+		else:
+			self._addNativeEventToBuffer(event_array)
+                # For the Mouse, always pass along events, but do not log
+                # events that occurred targeted for a non Psychopy win.
+                #
+                return True
+
+
                 self._addNativeEventToBuffer(event_array)
                 
                 self._last_callback_time=logged_time

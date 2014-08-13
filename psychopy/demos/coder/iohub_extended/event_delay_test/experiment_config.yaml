@@ -1,0 +1,10 @@
+title: ioHub getEvents() Delay Test
+code: gevt_test
+version: '1.0'
+description: Calculates the msec time from getEvents() Tx to event Rx. 
+session_defaults:
+    name: Session Name
+    code: E1S01
+    comments: None
+session_variable_order: [ name, code, comments]
+  

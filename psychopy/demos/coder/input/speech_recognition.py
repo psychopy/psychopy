@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 """Demo to illustrate speech recognition using microphone.Speech2Text
 
