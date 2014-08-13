@@ -260,7 +260,7 @@ class CodeComponentDialog(wx.Dialog):
             # not available in wxPython 2.8.10
             agwStyle |= flatnotebook.FNB_NO_TAB_FOCUS
         self.code_sections = flatnotebook.FlatNotebook(self, wx.ID_ANY,
-            agwStyle = agwStyle)
+            style = agwStyle)
 
         openToPage = 0
         for i, pkey in enumerate(self.order):
