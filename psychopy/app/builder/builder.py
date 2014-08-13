@@ -2133,7 +2133,7 @@ class _BaseParamsDlg(wx.Dialog):
         if hasattr(flatnotebook, "FNB_NO_TAB_FOCUS"):
             # not available in wxPython 2.8.10
             agwStyle |= flatnotebook.FNB_NO_TAB_FOCUS
-        self.ctrls = flatnotebook.FlatNotebook(self, agwStyle = agwStyle)
+        self.ctrls = flatnotebook.FlatNotebook(self, style = agwStyle)
         self.mainSizer.Add(self.ctrls, flag=wx.EXPAND|wx.ALL)#add main controls
         categNames = sorted(categs)
         if 'Basic' in categNames:
