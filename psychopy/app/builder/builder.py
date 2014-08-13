@@ -2766,7 +2766,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             elif fieldName=='conditionsFile':
                 ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
                     param=handler.params[fieldName], browse=True)
-                self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,ctrls.browseCtrl)
+                self.Bind(wx.EVT_BUTTON, self.onChooseTrialsFile,ctrls.browseCtrl)
                 ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.viewConditions)
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
@@ -2820,7 +2820,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             elif fieldName=='conditionsFile':
                 ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
                     param=handler.params[fieldName], browse=True)
-                self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,ctrls.browseCtrl)
+                self.Bind(wx.EVT_BUTTON, self.onChooseTrialsFile,ctrls.browseCtrl)
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
                 panelSizer.Add(ctrls.browseCtrl, [row, 2])
