@@ -113,10 +113,14 @@ class WindowFrozen(object):
     def __init__(self, ctrl):
         self.ctrl = ctrl
     def __enter__(self):#started the with... statement
+        if sys.platform == 'win32': #Freeze should not be called if platform is win32.
+            return self.ctrl
         if self.ctrl is not None and wx.__version__[:3]<='2.8':#check it hasn't been deleted
             self.ctrl.Freeze()
         return self.ctrl
     def __exit__(self, exc_type, exc_val, exc_tb):#ended the with... statement
+        if sys.platform == 'win32': #Thaw should not be called if platform is win32.
+            return
         if self.ctrl is not None and self.ctrl.IsFrozen():#check it hasn't been deleted
             self.ctrl.Thaw()
 
@@ -307,7 +311,7 @@ class CodeComponentDialog(wx.Dialog):
             # not available in wxPython 2.8.10
             agwStyle |= flatnotebook.FNB_NO_TAB_FOCUS
         self.code_sections = flatnotebook.FlatNotebook(self, wx.ID_ANY,
-            agwStyle = agwStyle)
+            style = agwStyle)
 
         openToPage = 0
         for i, pkey in enumerate(self.order):
@@ -2241,7 +2245,7 @@ class _BaseParamsDlg(wx.Dialog):
         if hasattr(flatnotebook, "FNB_NO_TAB_FOCUS"):
             # not available in wxPython 2.8.10
             agwStyle |= flatnotebook.FNB_NO_TAB_FOCUS
-        self.ctrls = flatnotebook.FlatNotebook(self, agwStyle = agwStyle)
+        self.ctrls = flatnotebook.FlatNotebook(self, style = agwStyle)
         self.mainSizer.Add(self.ctrls, flag=wx.EXPAND|wx.ALL)#add main controls
         categNames = sorted(categs)
         if 'Basic' in categNames:

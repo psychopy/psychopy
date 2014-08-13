@@ -55,7 +55,11 @@ class ParallelOutComponent(BaseComponent):
             hint=_("If the parallel port data relates to visual stimuli then sync its pulse to the screen refresh"),
             label=_localized['syncScreen'])
     def writeInitCode(self,buff):
-        buff.writeIndented("%(name)s = parallel.ParallelPort(address=%(address)s)\n" %(self.params))
+        if self.params['address'].val == 'LabJack U3':
+            buff.writeIndented("from psychopy.hardware import labjacks\n")
+            buff.writeIndented("%(name)s = labjacks.U3()\n" %(self.params))
+        else:
+            buff.writeIndented("%(name)s = parallel.ParallelPort(address=%(address)s)\n" %(self.params))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """

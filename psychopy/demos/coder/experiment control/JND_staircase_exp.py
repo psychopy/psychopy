@@ -27,9 +27,9 @@ dataFile.write('targetSide	oriIncrement	correct\n')
 globalClock = core.Clock()#to keep track of time
 trialClock = core.Clock()#to keep track of time
 win = visual.Window([800,600],allowGUI=False, monitor='testMonitor', units='deg')
-foil = visual.PatchStim(win, sf=1, size=4, mask='gauss', ori=expInfo['refOrientation'])
-target = visual.PatchStim(win, sf=1,  size=4, mask='gauss', ori=expInfo['refOrientation'])
-fixation = visual.PatchStim(win, color='black', tex=None, mask='circle',size=0.2)
+foil = visual.GratingStim(win, sf=1, size=4, mask='gauss', ori=expInfo['refOrientation'])
+target = visual.GratingStim(win, sf=1,  size=4, mask='gauss', ori=expInfo['refOrientation'])
+fixation = visual.GratingStim(win, color='black', tex=None, mask='circle',size=0.2)
 message1 = visual.TextStim(win, pos=[0,+3],text='Hit a key when ready.')
 message2 = visual.TextStim(win, pos=[0,-3], text="Then press left or right to identify the %.1fdegree probe." %(expInfo['refOrientation']))
 
@@ -83,7 +83,7 @@ for thisIncrement in staircase: #will step through the staircase
         event.clearEvents('mouse')#only really needed for pygame windows
 
     #add the data to the staircase so it can calculate the next level
-    staircase.addData(thisResp)
+    staircase.addResponse(thisResp)
     dataFile.write('%i	%.3f	%i\n' %(targetSide, thisIncrement, thisResp))
 
 #staircase has ended

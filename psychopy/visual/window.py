@@ -19,6 +19,7 @@ GL = pyglet.gl
 import ctypes
 
 #try to find avbin (we'll overload pyglet's load_library tool and then add some paths)
+haveAvbin = False
 if pyglet.version < "1.2":
     import pyglet.lib
 
@@ -100,7 +101,6 @@ openWindows = []
 
 # can provide a default window for mouse
 psychopy.event.visualOpenWindows = openWindows
-
 
 class Window(object):
     """Used to set up a context in which to draw objects,
@@ -514,42 +514,33 @@ class Window(object):
         for thisStim in self._toDraw:
             thisStim.draw()
 
+        flipThisFrame = self._startOfFlip()
+
         if self.useFBO:
-            self._prepareFBOrender()
-            #need blit the frambuffer object to the actual back buffer
+            if flipThisFrame:
+                self._prepareFBOrender()
+                #need blit the frambuffer object to the actual back buffer
 
-            # unbind the framebuffer as the render target
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
-            GL.glDisable(GL.GL_BLEND)
-            stencilOn = GL.glIsEnabled(GL.GL_STENCIL_TEST)
-            GL.glDisable(GL.GL_STENCIL_TEST)
+                # unbind the framebuffer as the render target
+                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
+                GL.glDisable(GL.GL_BLEND)
+                stencilOn = GL.glIsEnabled(GL.GL_STENCIL_TEST)
+                GL.glDisable(GL.GL_STENCIL_TEST)
 
-            if self.bits != None:
-                self.bits._prepareFBOrender()
+                if self.bits != None:
+                    self.bits._prepareFBOrender()
 
-            # before flipping need to copy the renderBuffer to the frameBuffer
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self.frameTexture)
-            GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
-            #draw the quad for the screen
-            GL.glBegin(GL.GL_QUADS)
+                # before flipping need to copy the renderBuffer to the frameBuffer
+                GL.glActiveTexture(GL.GL_TEXTURE0)
+                GL.glEnable(GL.GL_TEXTURE_2D)
+                GL.glBindTexture(GL.GL_TEXTURE_2D, self.frameTexture)
+                GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
+                GL.glColorMask(True, True, True, True)
 
-            GL.glTexCoord2f(0.0, 0.0)
-            GL.glVertex2f(-1.0, -1.0)
+                self._warp()
 
-            GL.glTexCoord2f(0.0, 1.0)
-            GL.glVertex2f(-1.0, 1.0)
-
-            GL.glTexCoord2f(1.0, 1.0)
-            GL.glVertex2f(1.0, 1.0)
-
-            GL.glTexCoord2f(1.0, 0.0)
-            GL.glVertex2f(1.0, -1.0)
-
-            GL.glEnd()
-            GL.glEnable(GL.GL_BLEND)
-            self._finishFBOrender()
+                GL.glEnable(GL.GL_BLEND)
+                self._finishFBOrender()
 
         #update the bits++ LUT
         if self.bits!=None: #try using modern BitsBox/BitsSharp class in pycrsltd
@@ -572,25 +563,28 @@ class Window(object):
             # movie updating
             if pyglet.version < '1.2':
                 pyglet.media.dispatch_events()  # for sounds to be processed
-            self.winHandle.flip()
+            if flipThisFrame:
+                self.winHandle.flip()
         else:
             if pygame.display.get_init():
-                pygame.display.flip()
+                if flipThisFrame:
+                    pygame.display.flip()
                 # keeps us in synch with system event queue
                 pygame.event.pump()
             else:
                 core.quit()  # we've unitialised pygame so quit
 
         if self.useFBO:
-            #set rendering back to the framebuffer object
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
-            GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-            GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-            #set to no active rendering texture
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-            if stencilOn:
-                GL.glEnable(GL.GL_STENCIL_TEST)
+            if flipThisFrame:
+                #set rendering back to the framebuffer object
+                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+                GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+                GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+                #set to no active rendering texture
+                GL.glActiveTexture(GL.GL_TEXTURE0)
+                GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+                if stencilOn:
+                    GL.glEnable(GL.GL_STENCIL_TEST)
         #rescale/reposition view of the window
         if self.viewScale is not None:
             GL.glMatrixMode(GL.GL_PROJECTION)
@@ -614,11 +608,10 @@ class Window(object):
             GL.glRotatef(self.viewOri, 0.0, 0.0, -1.0)
 
         #reset returned buffer for next frame
-        if clearBuffer:
-            GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+        self._endOfFlip(clearBuffer)
 
         #waitBlanking
-        if self.waitBlanking:
+        if self.waitBlanking and flipThisFrame:
             GL.glBegin(GL.GL_POINTS)
             GL.glColor4f(0, 0, 0, 0)
             if sys.platform == 'win32' and self.glVendor.startswith('ati'):
@@ -1467,7 +1460,7 @@ class Window(object):
                                     int(self.size[0]), int(self.size[1]))
         GL.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT,
                                         GL.GL_STENCIL_ATTACHMENT_EXT,
-                                        GL.GL_RENDERBUFFER_EXT, self._stencilTexture);
+                                        GL.GL_RENDERBUFFER_EXT, self._stencilTexture)
 
         status = GL.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT)
         if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
@@ -1662,6 +1655,28 @@ class Window(object):
 
         return msPFavg, msPFstd, msPFmed  # msdrawAvg, msdrawSD, msfree
 
+    def _startOfFlip(self):
+        """Custom hardware classes may want to prevent flipping from occurring and 
+        can override this method as needed. Return True to indicate hardware flip."""
+        return True
+
+    def _warp(self):
+        '''Perform a warp operation (in this case a copy operation without any warping)'''
+        GL.glBegin(GL.GL_QUADS)
+        GL.glTexCoord2f(0.0, 0.0)
+        GL.glVertex2f(-1.0, -1.0)
+        GL.glTexCoord2f(0.0, 1.0)
+        GL.glVertex2f(-1.0, 1.0)
+        GL.glTexCoord2f(1.0, 1.0)
+        GL.glVertex2f(1.0, 1.0)
+        GL.glTexCoord2f(1.0, 0.0)
+        GL.glVertex2f(1.0, -1.0)
+        GL.glEnd()
+
+    def _endOfFlip(self, clearBuffer):
+        """Override end of flip with custom color channel masking if required"""
+        if clearBuffer:
+            GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
 def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """
@@ -1711,3 +1726,5 @@ def _onResize(width, height):
         #GL.gluPerspective(90, 1.0*width/height, 0.1, 100.0)
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
+
+

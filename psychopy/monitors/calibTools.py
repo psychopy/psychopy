@@ -47,18 +47,6 @@ if isinstance(monitorFolder, str):
 if not os.path.isdir(monitorFolder):
     os.makedirs(monitorFolder)
 
-    #try to import monitors from old location (PsychoPy <0.93 used site-packages/monitors instead)
-    #this only gets done if there was no existing .psychopy folder (and so no calib files)
-    import glob, shutil #these are just to copy old calib files across
-    try:
-        calibFiles = glob.glob('C:\Python24\Lib\site-packages\monitors\*.calib')
-        for thisFile in calibFiles:
-            thisPath, fileName = os.path.split(thisFile)
-            shutil.copyfile(thisFile, join(monitorFolder,fileName))
-    except:
-        pass #never mind - the user will have to do it!
-
-
 pr650code={'OK':'000\r\n',#this is returned after measure
     '18':'Light Low',#these is returned at beginning of data
     '10':'Light Low',
@@ -462,6 +450,7 @@ class Monitor:
             return False
 
         self.currentCalib = self.calibs[self.currentCalibName]      #do the import
+        return self.currentCalibName
 
     def delCalib(self,calibName):
         """Remove a specific calibration from the current monitor.
@@ -951,9 +940,10 @@ def getAllMonitors():
     """Find the names of all monitors for which calibration files exist
     """
     monitorList = glob.glob(os.path.join(monitorFolder, '*.calib'))
-    for monitorN,thisName in enumerate(monitorList):
-        monitorList[monitorN] = monitorList[monitorN][:-6]
-
+    split = os.path.split
+    splitext = os.path.splitext
+    #skip the folder and the extension for each file
+    monitorList = [splitext(split(thisFile)[-1])[0] for thisFile in monitorList]
     return monitorList
 
 def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
