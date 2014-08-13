@@ -37,7 +37,7 @@ class ParallelOutComponent(BaseComponent):
         self.order=['address', 'startData', 'stopData']
 
         #main parameters
-        addressOptions = prefs.general['parallelPorts']
+        addressOptions = prefs.general['parallelPorts']+[u'LabJack U3']
         if not address:
             address = addressOptions[0]
         self.params['address'] = Param(address, valType='str', allowedVals=addressOptions,
