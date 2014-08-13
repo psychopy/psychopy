@@ -1,0 +1,53 @@
+Source: psychopy-openbci
+Section: science
+Priority: optional
+Maintainer: Karol Auguštin <karol@augustin.pl>
+Build-Depends: cdbs, debhelper (>= 5.0.38),
+               python-support, python, python-setuptools,
+               help2man, imagemagick,
+               python-configobj,
+Vcs-Git: git://git.braintech.pl/psychopy.git
+Vcs-Browser: http://git.braintech.pl/psychopy.git
+Standards-Version: 3.9.3
+Homepage: http://git.braintech.pl/psychopy.git
+
+Package: psychopy-openbci
+Architecture: all
+Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends},
+          python-pyglet | python-pygame,
+          python-opengl,
+          python-numpy, python-scipy, python-matplotlib,
+          python-lxml,
+          python-configobj,
+	  python-pyo,
+	  openbci-core (>=1.8.4)
+Recommends: python-wxgtk2.8,
+            python-pyglet, python-pygame,
+            python-openpyxl,
+            python-imaging,
+            python-serial,
+            libavbin0,
+            ipython
+Suggests: python-iolabs, python-pyxid
+Breaks: psychopy
+Provides: ${python:Provides}
+XB-Python-Version: ${python:Versions}
+Description: environment for creating psychology stimuli in Python
+ PsychoPy provides an environment for creating psychology stimuli
+ using Python scripting language.  It combines the graphical
+ strengths of OpenGL with easy Python syntax to give psychophysics
+ a free and simple stimulus presentation and control package.
+ .
+ The goal is to provide, for the busy scientist, tools to control
+ timing and windowing and a simple set of pre-packaged stimuli and
+ methods.  PsychoPy features
+ .
+  - IDE GUI for coding in a powerful scripting language (Python)
+  - Builder GUI for rapid development of stimulation sequences
+  - Use of hardware-accelerated graphics (OpenGL)
+  - Integration with Spectrascan PR650 for easy monitor calibration
+  - Simple routines for staircase and constant stimuli experimental
+    methods as well as curve-fitting and bootstrapping
+  - Simple (or complex) GUIs via wxPython
+  - Easy interfaces to joysticks, mice, sound cards etc. via PyGame
+  - Video playback (MPG, DivX, AVI, QuickTime, etc.) as stimuli

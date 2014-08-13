@@ -1,0 +1,2 @@
+?package(psychopy):needs="X11" section="Applications/Science/Medicine"\
+  title="PsychoPy" icon="psychopy.xpm" command="/usr/bin/psychopy"

@@ -1,0 +1,2 @@
+# LICENSE.txt is used within GUI so needs to be kept
+psychopy binary: extra-license-file usr/share/pyshared/psychopy/LICENSE.txt

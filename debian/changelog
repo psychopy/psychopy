@@ -1,0 +1,477 @@
+psychopy-openbci (1.79.1-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 11 Aug 2014 10:23:50 +0200
+
+psychopy-openbci (1.78.0.0.6-1) unstable; urgency=low
+
+  * Fix comunication with openbci.
+
+ -- Karol Auguštin <karol@augustin.pl>  Thu, 23 Jan 2014 11:28:18 +0100
+
+psychopy-openbci (1.78.0.0.5-1) unstable; urgency=low
+
+  * Fixed amp manager error with ZMQ2.
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 18 Nov 2013 08:16:57 +0100
+
+psychopy-openbci (1.78.0.0.4-1) unstable; urgency=low
+
+  * BF: uninitialized variable when drawing ISI
+
+ -- Karol Auguštin <karol@augustin.pl>  Wed, 06 Nov 2013 16:26:17 +0100
+
+psychopy-openbci (1.78.0.0.3-1) unstable; urgency=low
+
+  * Fix difference in data.py to enable save CSV files.
+
+ -- Karol Auguštin <karol@augustin.pl>  Wed, 09 Oct 2013 16:58:58 +0200
+
+psychopy-openbci (1.78.0.0.2-1) unstable; urgency=low
+
+  * Fixed lost parameter in mouse.
+
+ -- Karol Auguštin <karol@augustin.pl>  Wed, 09 Oct 2013 14:24:40 +0200
+
+psychopy-openbci (1.78.0.0.1-2) unstable; urgency=low
+
+  * Fix bad import in builder.
+
+ -- Karol Auguštin <karol@augustin.pl>  Fri, 04 Oct 2013 13:15:45 +0200
+
+psychopy-openbci (1.78.0.0.1-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Wed, 02 Oct 2013 18:38:02 +0200
+
+psychopy-openbci (1.77.1.0.1-1) unstable; urgency=low
+
+  * Added launching obci at startup.
+  * Minor fixes.
+  * Fixed Appliance communication.
+
+ -- Karol Auguštin <karol@augustin.pl>  Thu, 19 Sep 2013 14:48:10 +0200
+
+psychopy-openbci (1.77.0.0.1-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Fri, 07 Jun 2013 16:05:08 +0200
+
+psychopy-openbci (1.76.0.0.1-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Tue, 09 Apr 2013 10:30:17 +0200
+
+psychopy-openbci (1.75.02.0.20-1) unstable; urgency=low
+
+  * Fixed error when trying to edit conditions file with more than 4 columns
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 11 Feb 2013 15:23:09 +0100
+
+psychopy-openbci (1.75.02.0.19-1) unstable; urgency=low
+
+  * New upstream release.
+  * Add diodes suport in BCI Appliance.
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 11 Feb 2013 13:51:23 +0100
+
+psychopy-openbci (1.75.02.0.18-1) unstable; urgency=low
+
+  * Fixed error when reusing files in experiments.
+
+ -- Karol Auguštin <karol@augustin.pl>  Thu, 31 Jan 2013 18:51:00 +0100
+
+psychopy-openbci (1.75.02.0.17-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Fri, 11 Jan 2013 11:12:43 +0100
+
+psychopy-openbci (1.75.02.0.16-1) precise; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 10 Dec 2012 13:55:56 +0100
+
+psychopy-openbci (1.75.02.0.15-1) precise; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Sun, 09 Dec 2012 00:33:30 +0100
+
+psychopy-openbci (1.75.02.0.14-1) precise; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Sat, 08 Dec 2012 20:17:35 +0100
+
+psychopy-openbci (1.75.02.0.13-2) precise; urgency=low
+
+  * Change of psychopy invocation.
+
+ -- Karol Auguštin <karol@augustin.pl>  Sat, 08 Dec 2012 17:33:55 +0100
+
+psychopy-openbci (1.75.02.0.13-1) precise; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Sat, 08 Dec 2012 17:07:14 +0100
+
+psychopy-openbci (1.75.02.0.12-1) precise; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Fri, 07 Dec 2012 13:14:24 +0100
+
+psychopy-openbci (1.75.02.0.11-1) precise; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Fri, 07 Dec 2012 13:14:20 +0100
+
+psychopy-openbci (1.75.02.0.10-1) precise; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Wed, 05 Dec 2012 01:02:20 +0100
+
+psychopy-openbci (1.75.02.0.9-2) precise; urgency=low
+
+  * Fix bug in image path.
+
+ -- Karol Auguštin <karol@augustin.pl>  Tue, 04 Dec 2012 00:17:34 +0100
+
+psychopy-openbci (1.75.02.0.9-1) precise; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 03 Dec 2012 14:35:23 +0100
+
+psychopy-openbci (1.75.02.0.8-2) precise; urgency=low
+
+  * Fix timeout in server connection error.
+
+ -- Karol Auguštin <karol@augustin.pl>  Thu, 29 Nov 2012 13:06:30 +0100
+
+psychopy-openbci (1.75.02.0.8-1) precise; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Wed, 28 Nov 2012 15:04:18 +0100
+
+psychopy-openbci (1.75.01.0.7-1) precise; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Wed, 14 Nov 2012 15:27:34 +0100
+
+psychopy-openbci (1.75.01.0.6-2) precise; urgency=low
+
+  * Fix timeout problem in first launch.
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 12 Nov 2012 13:51:57 +0100
+
+psychopy-openbci (1.75.01.0.6-1) precise; urgency=low
+
+  * New upstream release.
+  * Resize startup icon.
+
+ -- Karol Auguštin <karolaug@dell>  Mon, 12 Nov 2012 13:51:48 +0100
+
+psychopy-openbci (1.75.01.0.5-2) precise; urgency=low
+
+  * Version number bugfix.
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 05 Nov 2012 11:05:57 +0100
+
+psychopy-openbci (1.75.01.0.5-1) precise; urgency=low
+
+  * New versioning introduced.
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Tue, 30 Oct 2012 13:52:23 +0100
+
+psychopy-openbci (1.75.01-openbci-0.4-1) precise; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Fri, 26 Oct 2012 11:44:50 +0200
+
+psychopy-openbci (1.75.01-openbci-0.3-1) precise; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Tue, 16 Oct 2012 10:16:08 +0200
+
+psychopy-openbci (1.75.01-openbci-0.2-1) precise; urgency=low
+
+  * New upstream release
+  * Routine preveiw functionality
+
+ -- Karol Auguštin <karolaug@dell>  Mon, 08 Oct 2012 19:55:09 +0200
+
+psychopy-openbci (1.74.03-openbci-0.1-2) precise; urgency=low
+
+  * New upstream release
+
+ -- Karol Auguštin <karolaug@dell>  Tue, 02 Oct 2012 16:47:43 +0200
+
+psychopy-openbci (1.74.03-openbci-0.1-1) precise; urgency=low
+
+  * New upstream release
+  * OpenBCI initail packaging
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 24 Sep 2012 22:03:10 +0200
+
+psychopy (1.73.06.dfsg-1) unstable; urgency=low
+
+  * New upstream bugfix release (released April 2012)
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 27 Jun 2012 15:49:15 -0400
+
+psychopy (1.73.05.dfsg-1) unstable; urgency=low
+
+  * New upstream release
+  * Upgraded policy to 3.9.3
+    - debian/copyright updated for DEP-5 compliance
+  * Removed not any longer needed versioning from build-depends
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Sun, 04 Mar 2012 16:19:21 -0500
+
+psychopy (1.73.03+git2-g04717ae.dfsg-1) unstable; urgency=low
+
+  * New upstream release
+  * Added python-configobj into build-depends
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 31 Jan 2012 13:26:29 -0500
+
+psychopy (1.71.01.dfsg-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 31 Oct 2011 21:48:39 -0400
+
+psychopy (1.71.00.dfsg-1) unstable; urgency=low
+
+  * New upstream release
+  * Moved scipy into Depends from Recommends due to imports of scipy at
+    core modules (also reformatted *Depends into multilines)
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 22 Sep 2011 18:31:26 -0400
+
+psychopy (1.70.01.dfsg-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 07 Sep 2011 15:33:04 -0400
+
+psychopy (1.70.00.dfsg-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 15 Aug 2011 16:33:41 -0400
+
+psychopy (1.70.00~rc4+git10-gf081945.dfsg-1) unstable; urgency=low
+
+  * New upstream release candidate snapshot
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 08 Aug 2011 17:11:45 -0400
+
+psychopy (1.65.02.dfsg-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 13 Jul 2011 10:37:23 -0400
+
+psychopy (1.65.00.dfsg-1) unstable; urgency=low
+
+  * New upstream release
+  * Upgraded policy to 3.9.2 -- no changes
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Sun, 03 Jul 2011 20:58:55 -0400
+
+psychopy (1.65.00~pre1.dfsg-1) unstable; urgency=low
+
+  * Getting ready for the upstream release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 22 Jun 2011 20:54:07 -0400
+
+psychopy (1.64.00.dfsg-1) unstable; urgency=low
+
+  * New upstream release
+  * debian/control:
+    - added perspective python-pyxid to Suggests
+  * debian/copyright:
+    - added Jeremey Grey copyright to mseq* code
+    - updated years
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 21 Apr 2011 11:08:58 -0400
+
+psychopy (1.63.04.dfsg-1) unstable; urgency=low
+
+  * New upstream bugfix release
+  * debian/README.Debian-source: no SVN repository any longer etc.
+  * debian/control:
+    - updated description
+    - removed pyepl from suggests
+    - added ipython into Recommends to be used as the Python shell in Coder
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 25 Feb 2011 12:48:15 -0500
+
+psychopy (1.63.01.dfsg-1) experimental; urgency=low
+
+  * New upstream bugfix release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 14 Jan 2011 12:32:41 -0500
+
+psychopy (1.63.00+git8-g46ee897.dfsg-1) experimental; urgency=low
+
+  * New upstream release:
+    - Few post-release commits were included since they fixed some bugs
+      and resolved EOLs and executable permissions issues in the repository
+  * New patch: deb_do_not_regenerate_init  to leave __init__.py pristine
+    even though we ship createInitFile.py
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 20 Dec 2010 12:54:22 -0500
+
+psychopy (1.62.02.dfsg-1) experimental; urgency=low
+
+  * New upstream release
+  * Converted into quilt (3.0) sources format -- two patches
+    to upstream for DFSG-ed sources are created
+  * Elaborated dfsg rule of debian/rules
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 13 Oct 2010 14:08:24 -0400
+
+psychopy (1.62.01.dfsg-1) experimental; urgency=low
+
+  * New upstream bugfix release:
+    - removed third-part ioLabs interface (Debian packaging pending)
+    - upstreamed moved from SVN to GIT, alioth's repository
+      recrerated to follow freshly (properly) converted upstream GIT repo:
+      + master-dfsg -> dfsg -- DFSG compliant sources
+      + debian-release -> debian -- branch for dfsg+debian/ packaging
+  * Added perspective python-iolabs into Suggests
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 20 Sep 2010 11:47:41 -0400
+
+psychopy (1.62.00.dfsg-1) experimental; urgency=low
+
+  * New upstream release. Introduces soft dependency (Recommends)
+    on openpyxl
+  * Upgraded policy to 3.9.1 -- no changed
+  * Upload to experimental due to squeeze freeze
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 18 Aug 2010 12:05:41 -0400
+
+psychopy (1.61.03.dfsg-1) unstable; urgency=low
+
+  * Upstream bugfix release for 1.61 series + 2 additional commits
+    (advised by upstream):
+    - rev 1015 - builder: minor bug in trying dlgs trying to access advParams
+      that don't exist
+    - rev 1018 - coder: fix to reading of unicode scripts
+  * This should be the last release in 1.61.xx series, 1.62.0 is in alpha
+    testing
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 11 Aug 2010 15:33:36 -0400
+
+psychopy (1.61.02.dfsg-2) unstable; urgency=low
+
+  * Debian packaging:
+    - Moving under NeuroDebian Team umbrella
+    - Boosting policy to 3.9.0 -- no changes seems to be due
+    - Adding both python-pyglet and python-pygames to Recommends (they are
+      also present in Depends but with the choice of one over the other).
+      That should make default installations more coherent and less
+      troublesome
+  * Absorbed some upstream commits from svn/trunk:
+    - lib: fixed bug in filters.makeGrating where gratType='sqr'
+    - lib: fixed bug in new color spaces for non-shader code
+    - BF: making RaingScale an explicit old-style class
+      (otherwise import fails on Python 2.4)
+    - removing testmovie.mpg (unknown license), using new and shiny
+      testMovie.mp4
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 14 Jul 2010 09:59:29 -0400
+
+psychopy (1.61.02.dfsg-1) unstable; urgency=low
+
+  * New upstream release (+ few svn commits getting to rev1004)
+    - no string exceptions (Closes: #585272)
+    - includes iolab's Python interface
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 21 Jun 2010 12:05:28 -0400
+
+psychopy (1.61.00.dfsg-1) unstable; urgency=low
+
+  * New upstream release
+  * Cherry-picked 2 commits pushed upstream: permissions, and python 2.4
+    compatibility
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 12 May 2010 12:55:19 -0400
+
+psychopy (1.60.00.dfsg-1) unstable; urgency=low
+
+  * New upstream release
+  * debian/control: Upgraded policy to 3.8.4 -- no changes are due
+  * debian/copyright: years
+  * Include changlog modifications done by upstream between 
+    announced release and tagging
+  * BF: use system-wide installed configobj (Closes: #555341)
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 02 Feb 2010 22:49:11 -0500
+
+psychopy (1.51.00.dfsg-1) unstable; urgency=low
+
+  * Upstream release: based Debian package on SVN rev 687,
+    git sha e829fc97e1a23b342630dd10312c345283c915e5.
+  * debian/control:
+    * BF: Recommends python-scipy
+    * RF: libavbin0 into Recommends from Suggests
+    * BF: matplotlib/lxml into Depends
+    * BF: Adjusted description (closes: #547255)
+    * Upgraded policy to 3.8.3 -- no changes are due
+  * Reverted to using wrapper script which invokes psychopy app via runpy
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 03 Nov 2009 08:49:32 -0500
+
+psychopy (1.50.04.dfsg-1) unstable; urgency=low
+
+  * New upstream bugfix release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 15 Sep 2009 11:23:06 -0400
+
+psychopy (1.50.02.dfsg-1) unstable; urgency=low
+
+  * New upstream bugfix release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 08 Sep 2009 15:19:14 -0400
+
+psychopy (1.50.00.dfsg-1) unstable; urgency=low
+
+  * New upstream release
+  * Removed custom psychopy shell script -- now upstream provides a python
+    script to start necessary GUI module
+  * Adjusted copyright file -- from 1.50.00 psychopy is distributed under
+    GPL version 3
+  * Added lintian-overrides to keep LICENSE.txt since it is used from GUI
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 01 Sep 2009 13:13:43 -0400
+
+psychopy (1.00.04.dfsg-1) unstable; urgency=low
+
+  * Initial release (Closes: #532111)
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 19 Jun 2009 10:29:52 -0400
+
+psychopy (0.93.5-1) UNRELEASED; urgency=low
+
+  * Initial packaging
+
+ -- Michael Hanke <michael.hanke@gmail.com>  Wed, 23 Apr 2008 08:08:17 +0200
+
