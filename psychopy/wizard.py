@@ -331,10 +331,7 @@ class ConfigWizard(object):
                     mic['name'] += 'one'  # portaudio (?) seems to clip to 16 chars
                 msg = '"%s"' % mic['name']
                 if mic['latency'] > 0.01:
-                    try:
-                        msg = _('Warning: "%s" latency > 10ms') % mic['name']
-                    except:
-                        msg = _('Warning: "%s" latency > 10ms') % mic['name'].decode('mbcs')
+                    msg = _('Warning: "%s" latency > 10ms') % mic['name']
                     warn = True
                 report.append(('microphone latency', "%.4f s" % mic['latency'], msg, warn))
             else:
@@ -346,10 +343,7 @@ class ConfigWizard(object):
                 spkr = sndOutputDevices[key]
                 msg = '"%s"' % spkr['name']
                 if spkr['latency'] > 0.01:
-                    try:
-                        msg = _('Warning: "%s" latency > 10ms') % spkr['name']
-                    except:
-                        msg = _('Warning: "%s" latency > 10ms') % spkr['name'].decode('mbcs')
+                    msg = _('Warning: "%s" latency > 10ms') % spkr['name']
                     warn = True
                 report.append(('speakers latency', "%.4f s" % spkr['latency'], msg, warn))
             else:

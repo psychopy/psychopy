@@ -180,6 +180,9 @@ class RunTimeInfo(dict):
 
     def _setSystemInfo(self):
         """system info"""
+        # system encoding
+        osEncoding=sys.getfilesystemencoding()
+        
         # machine name
         self['systemHostName'] = platform.node()
 
@@ -271,6 +274,10 @@ class RunTimeInfo(dict):
             try:
                 # requires pyo svn r1024 or higher:
                 inp, out = pyo.pa_get_devices_infos()
+                for devList in [inp, out]:
+                    for key in devList.keys():
+                        if isinstance(devList[key]['name'], str):
+                            devList[key]['name'] = devList[key]['name'].decode(osEncoding)
                 self['systemPyo.InputDevices'] = inp
                 self['systemPyo.OutputDevices'] = out
             except AttributeError:
