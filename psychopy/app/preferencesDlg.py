@@ -1,16 +1,72 @@
+from psychopy import logging
 import wx
 import wx.lib.scrolledpanel as scrolled
 import wx.lib.agw.flatnotebook as fnb
 import platform, re
-import locale
+import copy
+import localization
 
-dlgSize = (500,600)#this will be overridden by the size of the scrolled panel making the prefs
+dlgSize = (520,600)#this will be overridden by the size of the scrolled panel making the prefs
+
+# labels mappings for display:
+_localized = {
+        # section labels:
+            'general': _('General'), 'app': _('App'),
+            'builder': "Builder", 'coder': "Coder",  # not localized
+            'connections': _('Connections'), 'keyBindings': _('Key bindings'),
+        # pref labels:
+            'winType': _("window type"), 'units': _("units"),
+            'fullscr': _("full-screen"), 'allowGUI': _("allow GUI"), 'paths': _('paths'),
+            'audioLib': _("audio library"), 'audioDriver': _("audio driver"),
+            'flac': _('flac audio compression'),
+            'parallelPorts': _("parallel ports"), 'showStartupTips': _("show start-up tips"),
+            'largeIcons': _("large icons"), 'defaultView': _("default view"),
+            'resetPrefs': _('reset preferences'), 'autoSavePrefs': _('auto-save prefs'),
+            'debugMode': _('debug mode'), 'locale': _('locale'),
+            'codeFont': _('code font'), 'commentFont': _('comment font'),
+            'outputFont': _('output font'), 'outputFontSize': _('output font size'),
+            'codeFontSize': _('code font size'),
+            'showSourceAsst': _('show source asst'), 'showOutput': _('show output'),
+            'reloadPrevFiles': _('reload previous files'),
+            'preferredShell': _('preferred shell'), 'newlineConvention': _('newline convention'),
+            'reloadPrevExp': _('reload previous exp'), 'unclutteredNamespace': _('uncluttered namespace'),
+            'componentsFolders': _('components folders'), 'hiddenComponents': _('hidden components'),
+            'unpackedDemosDir': _('unpacked demos dir'), 'savedDataFolder': _('saved data folder'),
+            'topFlow': _('Flow at top'), 'alwaysShowReadme': _('always show readme'),
+            'maxFavorites': _('max favorites'), 'proxy': _('proxy'),
+            'autoProxy': _('auto-proxy'), 'allowUsageStats': _('allow usage stats'),
+            'checkForUpdates': _('check for updates'), 'timeout': _('timeout'),
+            'open': _('open'), 'new': _('new'), 'save': _('save'),
+            'saveAs': _('save as'), 'print': _('print'), 'close': _('close'), 'quit': _('quit'),
+            'preferences': _('preferences'), 'cut': _('cut'), 'copy': _('copy'),
+            'paste': _('paste'), 'duplicate': _('duplicate'), 'indent': _('indent'),
+            'dedent': _('dedent'), 'smartIndent': _('smart indent'),
+            'find': _('find'), 'findAgain': _('find again'), 'undo': _('undo'), 'redo': _('redo'),
+            'comment': _('comment'), 'uncomment': _('uncomment'), 'fold': _('fold'),
+            'analyseCode': _('analyze code'), 'compileScript': _('compile script'), 'runScript': _('run script'),
+            'stopScript': _('stop script'), 'toggleWhitespace': _('toggle whitespace'),
+            'toggleEOLs': _('toggle EOLs'), 'toggleIndentGuides': _('toggle indent guides'),
+            'newRoutine': _('new Routine'), 'copyRoutine': _('copy Routine'),
+            'pasteRoutine': _('paste Routine'), 'toggleOutputPanel': _('toggle output panel'),
+            'switchToBuilder': _('switch to Builder'), 'switchToCoder': _('switch to Coder'),
+            'largerFlow': _('larger Flow'), 'smallerFlow': _('smaller Flow'),
+            'largerRoutine': _('larger routine'), 'smallerRoutine': _('smaller routine'),
+            'toggleReadme': _('toggle readme'),
+        # pref wxChoice lists:
+            'last': _('same as last session'), 'both': _('both Builder & Coder'),
+            'keep': _('same as in the file'),  # line endings
+            # not translated:
+            'pix': 'pix', 'deg': 'deg', 'cm': 'cm', 'norm': 'norm', 'height': 'height',
+            'pyshell': 'pyshell', 'iPython': 'iPython'
+        }
+# add pre-translated names-of-langauges, for display in locale pref:
+_localized.update(localization.locname)
 
 class PreferencesDlg(wx.Dialog):
     def __init__(self,app,
             pos=wx.DefaultPosition, size=dlgSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL|wx.RESIZE_BORDER):
-        wx.Dialog.__init__(self,None,-1,"PsychoPy Preferences",pos,size,style)
+        wx.Dialog.__init__(self,None,-1,_("PsychoPy Preferences"),pos,size,style)
         self.app=app
         self.Center()
         self.prefsCfg = self.app.prefs.userPrefsCfg
@@ -26,12 +82,13 @@ class PreferencesDlg(wx.Dialog):
         #self.nb = wx.Notebook(self)#notebook isn't nice with lots of pages
 
         self.ctrls={}
-        for sectionName in self.prefsCfg.keys():
+        sectionOrdering = ['app', 'builder', 'coder', 'general', 'connections', 'keyBindings']
+        for sectionName in sectionOrdering:
             prefsPage = self.makePrefsPage(parent=self.nb,
                     sectionName=sectionName,
                     prefsSection=self.prefsCfg[sectionName],
                     specSection = self.prefsSpec[sectionName])
-            self.nb.AddPage(prefsPage, sectionName)
+            self.nb.AddPage(prefsPage, _localized[sectionName])
         self.nb.SetSelection(self.app.prefs.pageCurrent)
         sizer.Add(self.nb,1, wx.EXPAND)
 
@@ -46,24 +103,24 @@ class PreferencesDlg(wx.Dialog):
         sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
         btnsizer = wx.StdDialogButtonSizer()
         #ok
-        btn = wx.Button(self, wx.ID_OK)
-        btn.SetHelpText("Save prefs (in all sections) and close window")
+        btn = wx.Button(self, wx.ID_OK, _('OK'))
+        btn.SetHelpText(_("Save prefs (in all sections) and close window"))
         btn.Bind(wx.EVT_BUTTON, self.onOK)
         btn.SetDefault()
         btnsizer.AddButton(btn)
         #cancel
-        btn = wx.Button(self, wx.ID_CANCEL)
-        btn.SetHelpText("Cancel any changes (to any panel)")
+        btn = wx.Button(self, wx.ID_CANCEL, _('Cancel'))
+        btn.SetHelpText(_("Cancel any changes (to any panel)"))
         btn.Bind(wx.EVT_BUTTON, self.onCancel)
         btnsizer.AddButton(btn)
         #apply
-        btn = wx.Button(self, wx.ID_APPLY)
-        btn.SetHelpText("Apply these prefs (in all sections) and continue")
+        btn = wx.Button(self, wx.ID_APPLY, _('Apply'))
+        btn.SetHelpText(_("Apply these prefs (in all sections) and continue"))
         btn.Bind(wx.EVT_BUTTON, self.onApply)
         btnsizer.AddButton(btn)
         #help
-        btn = wx.Button(self, wx.ID_HELP)
-        btn.SetHelpText("Get help on prefs")
+        btn = wx.Button(self, wx.ID_HELP, _('Help'))
+        btn.SetHelpText(_("Get help on prefs"))
         btn.Bind(wx.EVT_BUTTON, self.onHelp)
         btnsizer.AddButton(btn)
         btnsizer.Realize()
@@ -85,10 +142,7 @@ class PreferencesDlg(wx.Dialog):
     def onApply(self, event=None):
         self.setPrefsFromCtrls()
         self.app.prefs.pageCurrent = self.nb.GetSelection()
-        loc = str(self.app.prefs.app['locale'])  # 'danish', 'da_DK'
-        if loc in locale.locale_alias.keys():
-            loc = locale.locale_alias[loc]  # -> 'da_DK'
-        locale.setlocale(locale.LC_ALL, loc)
+        # don't set locale here; need to restart app anyway
     def onEvt(self, evt, id=None):
         print evt
     def onCancel(self, event=None):
@@ -112,7 +166,15 @@ class PreferencesDlg(wx.Dialog):
             if platform.system() == 'Darwin' and sectionName == 'keyBindings' and \
                     thisSpec.startswith('string'):
                 thisPref = thisPref.replace('Ctrl+', 'Cmd+')
-            self.ctrls[ctrlName] = ctrls = PrefCtrls(parent=panel, name=prefName, value=thisPref, spec=thisSpec)
+            try:
+                pLabel = _localized[prefName]
+            except:
+                pLabel = prefName
+            if prefName == 'locale':
+                # fake spec -> option: use available locale info not spec file
+                thisSpec = 'option(' + ','.join([''] + self.app.localization.available)+ ', default=xxx)'
+                thisPref = self.app.prefs.app['locale']
+            self.ctrls[ctrlName] = ctrls = PrefCtrls(parent=panel, name=pLabel, value=thisPref, spec=thisSpec)
             ctrlSizer = wx.BoxSizer(wx.HORIZONTAL)
             ctrlSizer.Add(ctrls.nameCtrl, 0, wx.ALL, 5)
             ctrlSizer.Add(ctrls.valueCtrl, 0, wx.ALL, 5)
@@ -122,9 +184,9 @@ class PreferencesDlg(wx.Dialog):
             if len(hints):
                 # use only one comment line, from right above the pref
                 hint = hints[-1].lstrip().lstrip('#').lstrip()
+                ctrls.valueCtrl.SetToolTipString(_(hint))
             else:
-                hint = ''
-            ctrls.valueCtrl.SetToolTipString(hint)
+                ctrls.valueCtrl.SetToolTipString('')
 
             vertBox.Add(ctrlSizer)
         #size the panel and setup scrolling
@@ -133,7 +195,10 @@ class PreferencesDlg(wx.Dialog):
         panel.SetupScrolling()
         return panel
     def setPrefsFromCtrls(self):
-        # case-insensitive match for Cmd+ at start of string:
+        # extract values, adjust as needed:
+        # a) strip() to remove whitespace
+        # b) case-insensitive match for Cmd+ at start of string
+        # c) reverse-map locale display names to canonical names (ja_JP)
         re_cmd2ctrl = re.compile('^Cmd\+', re.I)
         for sectionName in self.prefsCfg.keys():
             for prefName in self.prefsSpec[sectionName].keys():
@@ -143,7 +208,7 @@ class PreferencesDlg(wx.Dialog):
                 ctrl = self.ctrls[ctrlName]
                 thisPref = ctrl.getValue()
                 # remove invisible trailing whitespace:
-                if type(thisPref) in [str, unicode]:
+                if hasattr(thisPref, 'strip'):
                     thisPref = thisPref.strip()
                 # regularize the display format for keybindings
                 if sectionName == 'keyBindings':
@@ -181,9 +246,16 @@ class PrefCtrls:
             self.valueCtrl.SetValue(value)
         elif spec.startswith('option'):
             options = spec.replace("option(", "").replace("'","").replace(", ",",")
-            options = options.split(',')[:-1]
-            self.valueCtrl = wx.Choice(self.parent, choices=options)
-            self.valueCtrl.SetStringSelection(unicode(value))
+            options = options.split(',')[:-1]  # item -1 is 'default=x' from spec
+            labels = []  # display only
+            for opt in options:
+                try:
+                    labels.append(_localized[opt])
+                except:
+                    labels.append(opt)
+            self.valueCtrl = wx.Choice(self.parent, choices=labels)
+            self.valueCtrl._choices = copy.copy(options)  # internal values
+            self.valueCtrl.SetSelection(options.index(value))
         else:#just use a string
             self.valueCtrl = wx.TextCtrl(self.parent,-1,str(value),
                             size=(valueWidth,-1))
@@ -191,19 +263,19 @@ class PrefCtrls:
     def _getCtrlValue(self, ctrl):
         """Retrieve the current value from the control (whatever type of ctrl it
         is, e.g. checkbox.GetValue, textctrl.GetStringSelection
-        """
-        """Different types of control have different methods for retrieving value.
+        Different types of control have different methods for retrieving value.
         This function checks them all and returns the value or None.
         """
-        if ctrl==None: return None
-        elif hasattr(ctrl, 'GetStringSelection') and len(ctrl.GetStringSelection())>0: #for wx.Choice
-            return ctrl.GetStringSelection()
+        if ctrl==None:
+            return None
+        elif hasattr(ctrl, '_choices'): #for wx.Choice
+            return ctrl._choices[ctrl.GetSelection()]
         elif hasattr(ctrl, 'GetValue'): #e.g. TextCtrl
             return ctrl.GetValue()
         elif hasattr(ctrl, 'GetLabel'): #for wx.StaticText
             return ctrl.GetLabel()
         else:
-            print "failed to retrieve the value for: %s" %(ctrl.valueCtrl)
+            logging.warning("failed to retrieve the value for pref: %s" %(ctrl.valueCtrl))
             return None
     def getValue(self):
         """Get the current value of the value ctrl

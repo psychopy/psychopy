@@ -43,6 +43,7 @@
     audioDriver = list(default=list('Primary Sound','ASIO','Audigy'))
     # path to flac (lossless audio compression) on this operating system
     flac = string(default='')
+    # a list of parallel ports
     parallelPorts = list(default=list('0x0378', '0x03BC'))
 
 # Application settings, applied to coder, builder, & prefs windows
@@ -59,7 +60,7 @@
     autoSavePrefs = boolean(default='False')
     # enable features for debugging PsychoPy itself, including unit-tests
     debugMode = boolean(default='False')
-    # locale to use, e.g. en_US, en_US.UTF-8, ja_JP, etc; leave blank for default system locale
+    # language to use in menus etc; not all translations are available. Select a value, then restart the app.
     locale = string(default='')
 
 # Settings for the Coder window
@@ -132,7 +133,7 @@
     close = string(default='Ctrl+W')
     # end the application (PsychoPy)
     quit = string(default='Alt+F4')
-    #open the preferences dlg
+    #open the preferences dialog
     preferences = string(default='Ctrl+,')
 
     # Coder: cut

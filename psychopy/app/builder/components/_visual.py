@@ -2,11 +2,17 @@
 # Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import _base
+from _base import BaseComponent, Param
 from os import path
-from psychopy.app.builder.experiment import Param
 
-class VisualComponent(_base.BaseComponent):
+# only use _localized values for label values, nothing functional:
+_localized = {'units': _('Units'),
+              'color': _('Color'), 'colorSpace': _('Color space'),
+              'opacity': _('Opacity'), 'pos': _('Position [x,y]'),
+              'ori': _('Orientation'), 'size': _('Size [w,h]')
+              }
+
+class VisualComponent(BaseComponent):
     """Base class for most visual stimuli
     """
     categories = ['Stimuli']#an attribute of the class, determines the section in the components panel
@@ -15,56 +21,39 @@ class VisualComponent(_base.BaseComponent):
                 startType='time (s)',startVal='',
                 stopType='duration (s)', stopVal='',
                 startEstim='', durationEstim=''):
+        super(VisualComponent, self).__init__(exp, parentName, name,
+                startType=startType,startVal=startVal,
+                stopType=stopType, stopVal=stopVal,
+                startEstim=startEstim, durationEstim=durationEstim)
         self.psychopyLibs=['visual']#needs this psychopy lib to operate
-        self.order=[]#make sure these are at top (after name and time params)
-        self.params={}
-        self.exp=exp
-        self.parentName=parentName
-        self.params['startType']=Param(startType, valType='str',
-            allowedVals=['time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your start point?")
-        self.params['stopType']=Param(stopType, valType='str',
-            allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your end point?")
-        self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
-            hint="When does the stimulus start?")
-        self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="When does the stimulus end?")
-        self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected start (s) of stimulus, purely for representing in the timeline")
-        self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected duration (s) of stimulus, purely for representing in the timeline")
-        self.params['name']=Param(name,  valType='code', updates='constant',
-            hint="Name of this stimulus",
-            label="Name")
+
         self.params['units']=Param(units, valType='str', allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm'],
-            hint="Units of dimensions for this stimulus",
-            label="Units")
+            hint=_("Units of dimensions for this stimulus"),
+            label=_localized['units'])
         self.params['color']=Param(color, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)",
-            label="Color")
+            hint=_("Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)"),
+            label=_localized['color'])
         self.params['opacity']=Param(opacity, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)",
-            label="Opacity")
+            hint=_("Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)"),
+            label=_localized['opacity'])
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
             updates='constant',
-            hint="Choice of color space for the color (rgb, dkl, lms)",
-            label="Color space")
+            hint=_("Choice of color space for the color (rgb, dkl, lms)"),
+            label=_localized['colorSpace'])
         self.params['pos']=Param(pos, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Position of this stimulus (e.g. [1,2] )",
-            label="Position [x,y]")
+            hint=_("Position of this stimulus (e.g. [1,2] )"),
+            label=_localized['pos'])
         self.params['size']=Param(size, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] ",
-            label="Size [w,h]")
+            hint=_("Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "),
+            label=_localized['size'])
         self.params['ori']=Param(ori, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Orientation of this stimulus (in deg)",
-            label="Orientation")
+            hint=_("Orientation of this stimulus (in deg)"),
+            label=_localized['ori'])
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """

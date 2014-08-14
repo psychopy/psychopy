@@ -10,7 +10,11 @@ __author__ = 'Jon Peirce'
 
 thisFolder = path.abspath(path.dirname(__file__))  # abs path to the folder containing this path
 iconFile = path.join(thisFolder, 'cedrusBox.png')
-tooltip = 'Cedrus Button Box: Cedrus response boxes, using the pyxid library provided by Cedrus'
+tooltip = _('Cedrus Button Box: Cedrus response boxes, using the pyxid library provided by Cedrus')
+
+# only use _localized values for label values, nothing functional:
+_localized = {'deviceNumber': _('Device number'),
+              'useBoxTimer': _("Use box timer")}
 
 class cedrusButtonBoxComponent(KeyboardComponent):
     """An event class for checking an Cedrus RBxxx button boxes using XID library
@@ -32,70 +36,31 @@ class cedrusButtonBoxComponent(KeyboardComponent):
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim='',):
+        super(cedrusButtonBoxComponent, self).__init__(exp, parentName, name=name,
+                    allowedKeys=allowedKeys, store=store,discardPrev=discardPrev,
+                    forceEndRoutine=forceEndRoutine, storeCorrect=storeCorrect, correctAns=correctAns,
+                    startType=startType, startVal=startVal,
+                    stopType=stopType, stopVal=stopVal,
+                    startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'cedrusButtonBox'
         self.url = "http://www.psychopy.org/builder/components/cedrusButtonBox.html"
-        self.exp = exp  # so we can access the experiment
         self.exp.requirePsychopyLibs(['hardware'])
-        self.parentName = parentName
 
-        self.params = {}
-        self.order = ['forceEndRoutine', 'allowedKeys', #NB name and timing params always come 1st
-            'store', 'storeCorrect', 'correctAns']
-        self.params['name'] = Param(name, valType='code', hint="A name for this ButtonBox object (e.g. bbox)",
-            label="Name")
-        self.params['allowedKeys'] = Param(allowedKeys, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="Keys to be read (blank for any) or key numbers separated by commas",
-            label="Allowed keys")
-        self.params['startType'] = Param(startType, valType='str',
-            allowedVals=['time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your start point?",
-            label="")
-        self.params['stopType'] = Param(stopType, valType='str',
-            allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your end point?")
-        self.params['startVal'] = Param(startVal, valType='code', allowedTypes=[],
-            hint="When to start checking keys")
-        self.params['stopVal'] = Param(stopVal, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="When to stop checking keys")
-        self.params['startEstim'] = Param(startEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected start (s), purely for representing in the timeline")
-        self.params['durationEstim'] = Param(durationEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected duration (s), purely for representing in the timeline")
-        self.params['discard previous'] = Param(discardPrev, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="Do you want to discard all key presses occuring before the onset of this component?",
-            label="Discard previous")
-        self.params['store'] = Param(store, valType='str', allowedTypes=[],
-            allowedVals=['last key', 'first key', 'all keys', 'nothing'],
-            updates='constant', allowedUpdates=[],
-            hint="Choose which (if any) responses to store at end of a trial",
-            label="Store")
-        self.params['forceEndRoutine'] = Param(forceEndRoutine, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="Should a key press force the end of the routine (e.g end the trial)?",
-            label="Force end of Routine")
-        self.params['storeCorrect'] = Param(storeCorrect, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="Do you want to save the response as correct/incorrect?",
-            label="Store correct")
-        self.params['correctAns'] = Param(correctAns, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="What is the 'correct' response? NB, keys are labelled 0 to 6 on a 7-button box",
-            label="Correct answer")
+        self.params['correctAns'].hint = _("What is the 'correct' response? NB, buttons are labelled 0 to 6 on a 7-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns")
+        self.params['correctAns'].valType = 'code'
+        self.params['allowedKeys'].hint = _('Keys to be read (blank for any) or key numbers separated by commas')
         self.params['deviceNumber'] = Param(deviceNumber, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Device number, if you have multiple devices which one do you want (0, 1, 2...)",
-            label="Device number", categ='Advanced')
+            hint=_("Device number, if you have multiple devices which one do you want (0, 1, 2...)"),
+            label=_localized['deviceNumber'], categ='Advanced')
         #self.params['getReleaseTime'] = Param(getReleaseTime, valType='bool', allowedVals=[True, False],
         #    updates='constant', allowedUpdates=[],
         #    hint="Wait for the key to be released and store the time that it was held down",
         #    label="Get release time")
         self.params['useBoxTimer'] = Param(getReleaseTime, valType='bool', allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
-            hint="According to Cedrus the response box timer has a drift - use with caution!",
-            label="Use box timer", categ='Advanced')
+            hint=_("According to Cedrus the response box timer has a drift - use with caution!"),
+            label=_localized['useBoxTimer'], categ='Advanced')
 
     def writeStartCode(self, buff):
         """code for start of the script (import statements)
