@@ -6,6 +6,8 @@
 
 '''Container for all visual-related functions and classes'''
 
+from psychopy import logging
+
 # needed for backwards-compatibility
 from psychopy.constants import *
 
@@ -32,9 +34,7 @@ from psychopy.visual.movie import MovieStim
 try:
     from psychopy.visual.movie2 import MovieStim2
 except:
-    print 'Movie2 stim could not be imported.'
-    import traceback
-    traceback.print_exc()
+    logging.warn("Movie2 stim could not be imported and won't be available")
 
 from psychopy.visual.shape import ShapeStim
 from psychopy.visual.text import TextStim
@@ -56,4 +56,4 @@ from psychopy.visual.circle import Circle
 try:
     from textbox import TextBox
 except:
-    pass
+    logging.warn("TextBox stim could not be imported and won't be available")
