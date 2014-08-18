@@ -220,6 +220,11 @@ class TestExpt():
 
         #savedLocale = '.'.join(locale.getlocale())
         locale.setlocale(locale.LC_ALL, '') # default
+        if not sys.platform.startswith('win'):
+            testlocList = ['en_US', 'en_US.UTF-8', 'ja_JP']
+        else:
+            testlocList = ['USA', 'JPN']
+
         for file in test_psyexp:
             # test for any diffs using various locale's:
             for loc in ['en_US', 'ja_JP']:
@@ -241,8 +246,7 @@ class TestExpt():
                 #diff_in_file_psyexp += diff_psyexp
                 #diff_pyc = (sha1_first != sha1_second)
                 #assert not diff_pyc
-        if self.exp.prefsApp['locale']:
-            locale.setlocale(locale.LC_ALL, self.exp.prefsApp['locale'])
+        #locale.setlocale(locale.LC_ALL,'C')
 
         assert not diff_in_file_py ### see known_py_diffs.txt; potentially a locale issue? ###
         #assert not diff_in_file_psyexp # was failing most times, uninformative

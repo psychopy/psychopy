@@ -8,37 +8,47 @@ from psychopy.app.builder.experiment import Param
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'code.png')
-tooltip = 'Code: insert python commands into an experiment'
+tooltip = _('Code: insert python commands into an experiment')
+_localized = {'Begin Experiment': _('Begin Experiment'),
+              'Begin Routine': _('Begin Routine'),
+              'Each Frame': _('Each Frame'),
+              'End Routine': _('End Routine'),
+              'End Experiment': _('End Experiment')}
 
 class CodeComponent(BaseComponent):
     categories = ['Custom']#an attribute of the class, determines the section in the components panel
     """An event class for inserting arbitrary code into Builder experiments"""
-    def __init__(self, exp, parentName, name='code',beginExp="",beginRoutine="",eachFrame="",endRoutine="",endExperiment=""):
+    def __init__(self, exp, parentName, name='code',
+                 beginExp="",beginRoutine="",eachFrame="",endRoutine="",endExperiment=""):
+        super(CodeComponent, self).__init__(exp, parentName, name)
         self.type='Code'
         self.url="http://www.psychopy.org/builder/components/code.html"
-        self.exp=exp#so we can access the experiment if necess
         #params
         self.categories=['misc']
-        self.order = ['name','Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment'] # want a copy, else codeParamNames list gets mutated
-        self.params={}
-        self.params['name']=Param(name, valType='code', allowedTypes=[],
-            hint="",
-            label="Name") #This name does not actually need to be independent of the others.
+        self.order = ['name', 'Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment'] # want a copy, else codeParamNames list gets mutated
         self.params['Begin Experiment']=Param(beginExp, valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Code at the start of the experiment (initialization); right-click checks syntax")
+            hint=_("Code at the start of the experiment (initialization); right-click checks syntax"),
+            label=_localized['Begin Experiment'])
         self.params['Begin Routine']=Param(beginRoutine, valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Code to be run at the start of each repeat of the Routine (e.g. each trial); right-click checks syntax")
+            hint=_("Code to be run at the start of each repeat of the Routine (e.g. each trial); right-click checks syntax"),
+            label=_localized['Begin Routine'])
         self.params['Each Frame']=Param(eachFrame, valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Code to be run on every video frame during for the duration of this Routine; right-click checks syntax")
+            hint=_("Code to be run on every video frame during for the duration of this Routine; right-click checks syntax"),
+            label=_localized['Each Frame'])
         self.params['End Routine']=Param(endRoutine, valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Code at the end of this repeat of the Routine (e.g. getting/storing responses); right-click checks syntax")
+            hint=_("Code at the end of this repeat of the Routine (e.g. getting/storing responses); right-click checks syntax"),
+            label=_localized['End Routine'])
         self.params['End Experiment']=Param(endRoutine, valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Code at the end of the entire experiment (e.g. saving files, resetting computer); right-click checks syntax")
+            hint=_("Code at the end of the entire experiment (e.g. saving files, resetting computer); right-click checks syntax"),
+            label=_localized['End Experiment'])
+        # these inherited params are harmless but might as well trim:
+        for p in ['startType', 'startVal', 'startEstim', 'stopVal', 'stopType', 'durationEstim']:
+            del self.params[p]
     def writeInitCode(self,buff):
         buff.writeIndentedLines(unicode(self.params['Begin Experiment'])+'\n')
     def writeRoutineStartCode(self,buff):

@@ -19,17 +19,24 @@ class MessageDialog(wx.Dialog):
     (buttons don't always work) so we need to use this instead.
     """
     def __init__(self,parent=None,message='',type='Warning', title=None):
-        if title==None: title=type
-        wx.Dialog.__init__(self,parent,-1,title=title)
+        # select and localize a title
+        if not title:
+            title = type
+        labels = {'Warning': _('Warning'), 'Info': _('Info')}
+        try:
+            label = labels[title]
+        except:
+            label = title
+        wx.Dialog.__init__(self,parent,-1,title=label)
         sizer=wx.BoxSizer(wx.VERTICAL)
         sizer.Add(wx.StaticText(self,-1,message),flag=wx.ALL,border=15)
         #add buttons
         btnSizer=wx.BoxSizer(wx.HORIZONTAL)
         if type=='Warning':#we need Yes,No,Cancel
-            self.yesBtn=wx.Button(self,wx.ID_YES,'Yes')
+            self.yesBtn=wx.Button(self,wx.ID_YES,_('Yes'))
             self.yesBtn.SetDefault()
-            self.cancelBtn=wx.Button(self,wx.ID_CANCEL,'Cancel')
-            self.noBtn=wx.Button(self,wx.ID_NO,'No')
+            self.cancelBtn=wx.Button(self,wx.ID_CANCEL,_('Cancel'))
+            self.noBtn=wx.Button(self,wx.ID_NO,_('No'))
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_CANCEL)
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_YES)
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_NO)
@@ -40,10 +47,12 @@ class MessageDialog(wx.Dialog):
             btnSizer.Add((5, 20), 0)
             btnSizer.Add(self.yesBtn, wx.ALIGN_RIGHT)
         elif type=='Info':#just an OK button
-            self.okBtn=wx.Button(self,wx.ID_OK,'OK')
+            self.okBtn=wx.Button(self,wx.ID_OK,_('OK'))
             self.okBtn.SetDefault()
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_OK)
             btnSizer.Add(self.okBtn, wx.ALIGN_RIGHT)
+        else:
+            raise NotImplementedError('Message type %s unknown' % type)
         #configure sizers and fit
         sizer.Add(btnSizer,flag=wx.ALIGN_RIGHT|wx.ALL,border=5)
         self.Center()
@@ -461,7 +470,7 @@ class ListWidget(GlobSizer):
     def createGrid(self):
         row=0
         for col, field in enumerate(self.fieldNames):
-            self.Add(wx.StaticText(self.parent, -1, label=field), (row,col), flag=wx.ALL)
+            self.Add(wx.StaticText(self.parent, -1, label=_(field)), (row,col), flag=wx.ALL)
         for entry in self.value:
             row+=1
             self.addEntryCtrls(row, entry)
@@ -523,4 +532,3 @@ if __name__=='__main__':
     listCtrl = ListWidget(dlg, value = init, order=['Field','Default'])
     dlg.SetSizerAndFit(listCtrl)
     dlg.ShowModal()
-

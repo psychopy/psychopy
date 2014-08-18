@@ -1093,7 +1093,7 @@ class Window(object):
 
     @attributeSetter
     def gamma(self, gamma):
-        """Set the monitor gamma for linearisation (don't use this if using a Bits++ or Bits#)
+        """Set the monitor gamma for linearization (don't use this if using a Bits++ or Bits#)
         Overrides monitor settings"""
 
         self._checkGamma(gamma)

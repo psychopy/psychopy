@@ -11,7 +11,8 @@ __author__ = 'Jon Peirce'
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'static.png')
-tooltip = 'Static screen period (e.g. an ISI). Useful for pre-loading stimuli.'
+tooltip = _('Static: Static screen period (e.g. an ISI). Useful for pre-loading stimuli.')
+_localized = {'Custom code': _('Custom code')}
 
 class StaticComponent(_base.BaseComponent):
     """A Static Component, allowing frame rendering to pause while disk is accessed"""
@@ -26,24 +27,24 @@ class StaticComponent(_base.BaseComponent):
         self.type='Static'
         self.url = "http://www.psychopy.org/builder/components/static.html"
         self.params['code']=Param("", valType='code',
-            hint="Custom code to be run during the static period (after updates)",
-            label="Custom code")
+            hint=_("Custom code to be run during the static period (after updates)"),
+            label=_localized['Custom code'])
         self.order=['name']#make name come first (others don't matter)
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N'],
-            hint="How do you want to define your start point?")
+            hint=_("How do you want to define your start point?"))
         self.params['stopType']=Param(stopType, valType='str',
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N'],
-            hint="How do you want to define your end point?")
+            hint=_("How do you want to define your end point?"))
         self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
-            hint="When does the stimulus start?")
+            hint=_("When does the component start?"))
         self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="When does the stimulus end?")
+            hint=_("When does the component end? (blank is endless)"))
         self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected start (s) of stimulus, purely for representing in the timeline")
+            hint=_("(Optional) expected start (s), purely for representing in the timeline"))
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected duration (s) of stimulus, purely for representing in the timeline")
+            hint=_("(Optional) expected duration (s), purely for representing in the timeline"))
     def addComponentUpdate(self, routine, compName, fieldName):
         self.updatesList.append({'compName':compName,'fieldName':fieldName, 'routine':routine})
     def remComponentUpdate(self, routine, compName, fieldName):

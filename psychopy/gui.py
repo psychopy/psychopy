@@ -8,6 +8,7 @@ from psychopy import logging
 import wx
 import numpy
 import string, os
+from psychopy.app import localization
 
 OK = wx.ID_OK
 
@@ -35,11 +36,11 @@ class Dlg(wx.Dialog):
         else:
             print 'user cancelled'
     """
-    def __init__(self,title='PsychoPy dialogue',
+    def __init__(self,title=_('PsychoPy dialogue'),
             pos=None, size=wx.DefaultSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT,
-            labelButtonOK = " OK ",
-            labelButtonCancel = " Cancel "):
+            labelButtonOK = _(" OK "),
+            labelButtonCancel = _(" Cancel ")):
         style=style|wx.RESIZE_BORDER
         try:
             wx.Dialog.__init__(self, None,-1,title,pos,size,style)
@@ -58,7 +59,13 @@ class Dlg(wx.Dialog):
         self.labelButtonOK = labelButtonOK
         self.labelButtonCancel = labelButtonCancel
     def addText(self, text, color=''):
-        textLength = wx.Size(8*len(text)+16, 25)
+        # the horizontal extent can depend on the locale and font in use:
+        font = self.GetFont()
+        dc = wx.WindowDC(self)
+        dc.SetFont(font)
+        textWidth, textHeight = dc.GetTextExtent(text)
+        textLength = wx.Size(textWidth + 50, textHeight)
+
         myTxt = wx.StaticText(self,-1,
                                 label=text,
                                 style=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL,
@@ -219,7 +226,7 @@ class DlgFromDict(Dlg):
                 self.dictionary[thisKey]=self.data[n]
 
 def fileSaveDlg(initFilePath="", initFileName="",
-                prompt="Select file to save",
+                prompt=_("Select file to save"),
                 allowed=None):
     """A simple dialogue allowing write access to the file system.
     (Useful in case you collect an hour of data and then try to
@@ -266,7 +273,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
 
 def fileOpenDlg(tryFilePath="",
                 tryFileName="",
-                prompt="Select file to open",
+                prompt=_("Select file to open"),
                 allowed=None):
     """A simple dialogue allowing read access to the file system.
 

@@ -130,13 +130,12 @@ class MainFrame(wx.Frame):
         self.makeMenuBar()
 
         if NOTEBOOKSTYLE:
-
             #make the notebook
             self.noteBook = wx.Notebook(self, -1)
 
             #add the info page
             self.infoPanel = wx.Panel(self.noteBook,-1)
-            self.noteBook.AddPage(self.infoPanel, 'Monitor Info')
+            self.noteBook.AddPage(self.infoPanel, _('Monitor Info'))
             infoSizer = wx.BoxSizer(wx.HORIZONTAL)
             infoSizer.Add(self.makeAdminBox(self.infoPanel), 1, wx.EXPAND)
             infoSizer.Add(self.makeInfoBox(self.infoPanel), 1, wx.EXPAND)
@@ -145,14 +144,13 @@ class MainFrame(wx.Frame):
 
             #add the calibration page
             self.calibPanel = wx.Panel(self.noteBook,-1)
-            self.noteBook.AddPage(self.calibPanel, 'Calibration')
+            self.noteBook.AddPage(self.calibPanel, _('Calibration'))
             calibSizer = self.makeCalibBox(self.calibPanel)
             self.calibPanel.SetAutoLayout(True)
             self.calibPanel.SetSizerAndFit(calibSizer)
 
             self.noteBookSizer.Layout()
             self.noteBookSizer.Fit(self)
-
         else:
             #just one page
             self.infoPanel = wx.Panel(self,-1)
@@ -171,7 +169,6 @@ class MainFrame(wx.Frame):
             self.infoPanel.SetAutoLayout(True)
             self.infoPanel.SetSizerAndFit(mainSizer)
 
-
         #if wx version 2.5+:
         self.SetSize(self.GetBestSize())
         #self.CreateStatusBar()
@@ -188,70 +185,70 @@ class MainFrame(wx.Frame):
     def makeMenuBar(self):
         menuBar = wx.MenuBar()
         fileMenu = wx.Menu()
-        fileMenu.Append(idMenuSave,'Save\tCtrl+S', 'Save the current monitor')
+        fileMenu.Append(idMenuSave,_('Save\tCtrl+S'), _('Save the current monitor'))
         wx.EVT_MENU(self, idMenuSave, self.onSaveMon)
-        fileMenu.Append(wx.ID_CLOSE,'Close Monitor Center\tCtrl+W', 'Close Monitor Center but (not other PsychoPy windows)')
+        fileMenu.Append(wx.ID_CLOSE,_('Close Monitor Center\tCtrl+W'), _('Close Monitor Center (but not other PsychoPy windows)'))
         wx.EVT_MENU(self, wx.ID_CLOSE, self.onCloseWindow)
-        menuBar.Append(fileMenu, '&File')
+        menuBar.Append(fileMenu, _('&File'))
 
         # Edit
         editMenu = wx.Menu()
         id = wx.NewId()
-        editMenu.Append(id, 'Copy\tCtrl+C', "Copy the current monitor's name to clipboard")
+        editMenu.Append(id, _('Copy\tCtrl+C'), _("Copy the current monitor's name to clipboard"))
         wx.EVT_MENU(self, id, self.onCopyMon)
-        menuBar.Append(editMenu, '&Edit')
+        menuBar.Append(editMenu, _('&Edit'))
 
         self.SetMenuBar(menuBar)
 
     def makeAdminBox(self, parent):
         #make the box for the controls
-        boxLabel = wx.StaticBox(parent, -1, 'Choose Monitor')
+        boxLabel = wx.StaticBox(parent, -1, _('Choose Monitor'))
         boxLabel.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
         adminBox = wx.StaticBoxSizer(boxLabel)
 
         #build the controls
         self.ctrlMonList = wx.ListBox(parent, idCtrlMonList,
             choices=['iiyama571','sonyG500'],
-            size=(200,100))
+            size=(350,100))
         wx.EVT_LISTBOX(self,idCtrlMonList, self.onChangeMonSelection)
 
         monButtonsBox = wx.BoxSizer(wx.VERTICAL)
 
-        self.btnNewMon = wx.Button(parent,idBtnNewMon,'New...')
+        self.btnNewMon = wx.Button(parent,idBtnNewMon,_('New...'))
         wx.EVT_BUTTON(self, idBtnNewMon, self.onNewMon)
         monButtonsBox.Add(self.btnNewMon)
         self.btnNewMon.SetToolTipString(
-            "Create a new monitor")
+            _("Create a new monitor"))
 
-        self.btnSaveMon = wx.Button(parent,idBtnSaveMon,'Save')
+        self.btnSaveMon = wx.Button(parent,idBtnSaveMon,_('Save'))
         wx.EVT_BUTTON(self, idBtnSaveMon, self.onSaveMon)
         monButtonsBox.Add(self.btnSaveMon)
         self.btnSaveMon.SetToolTipString(
-            "Save all calibrations for this monitor")
+            _("Save all calibrations for this monitor"))
 
-        self.btnDeleteMon = wx.Button(parent,idBtnDeleteMon,'Delete')
+        self.btnDeleteMon = wx.Button(parent,idBtnDeleteMon,_('Delete'))
         wx.EVT_BUTTON(self, idBtnDeleteMon, self.onDeleteMon)
         monButtonsBox.Add(self.btnDeleteMon)
         self.btnDeleteMon.SetToolTipString(
-            "Delete this monitor entirely")
+            _("Delete this monitor entirely"))
 
         self.ctrlCalibList = wx.ListBox(parent, idCtrlCalibList,
             choices=[''],
-            size=(200,100))
+            size=(350,100))
         wx.EVT_LISTBOX(self,idCtrlCalibList, self.onChangeCalibSelection)
         calibButtonsBox = wx.BoxSizer(wx.VERTICAL)
 
-        self.btnCopyCalib = wx.Button(parent,idBtnCopyCalib,'Copy...')
+        self.btnCopyCalib = wx.Button(parent,idBtnCopyCalib,_('Copy...'))
         wx.EVT_BUTTON(self, idBtnCopyCalib, self.onCopyCalib)
         calibButtonsBox.Add(self.btnCopyCalib)
         self.btnCopyCalib.SetToolTipString(
-            "Creates a new calibration entry for this monitor")
+            _("Creates a new calibration entry for this monitor"))
 
-        self.btnDeleteCalib = wx.Button(parent,idBtnDeleteCalib,'Delete')
+        self.btnDeleteCalib = wx.Button(parent,idBtnDeleteCalib,_('Delete'))
         wx.EVT_BUTTON(self, idBtnDeleteCalib, self.onDeleteCalib)
         calibButtonsBox.Add(self.btnDeleteCalib)
         self.btnDeleteCalib.SetToolTipString(
-            "Remove this calibration entry (finalised when monitor is saved)")
+            _("Remove this calibration entry (finalized when monitor is saved)"))
 
         #add controls to box
         adminBoxMainSizer = wx.FlexGridSizer(cols=2, hgap=6, vgap=6)
@@ -265,25 +262,25 @@ class MainFrame(wx.Frame):
 
     def makeInfoBox(self, parent):
         #create the box
-        infoBox = wx.StaticBox(parent, -1, 'Monitor Info')
+        infoBox = wx.StaticBox(parent, -1, _('Monitor Info'))
         infoBox.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
         infoBoxSizer = wx.StaticBoxSizer(infoBox,wx.VERTICAL)
 
         #scr distance
         labl_scrDist = wx.StaticText(parent, -1,
-            "Screen Distance (cm):",style=wx.ALIGN_RIGHT)
+            _("Screen Distance (cm):"),style=wx.ALIGN_RIGHT)
         self.ctrlScrDist = wx.TextCtrl(parent, idCtrlScrDist, "")
         wx.EVT_TEXT(self, idCtrlScrDist, self.onChangeScrDist)
 
         #scr width
         labl_scrWidth = wx.StaticText(parent, -1,
-            "Screen Width (cm):",style=wx.ALIGN_RIGHT)
+            _("Screen Width (cm):"),style=wx.ALIGN_RIGHT)
         self.ctrlScrWidth = wx.TextCtrl(parent, idCtrlScrWidth, "")
         wx.EVT_TEXT(self, idCtrlScrWidth, self.onChangeScrWidth)
 
         ##scr pixels
         labl_ScrPixels = wx.StaticText(parent, -1,
-            "Size (pixels; Horiz,Vert):",style=wx.ALIGN_RIGHT)
+            _("Size (pixels; Horiz,Vert):"),style=wx.ALIGN_RIGHT)
         self.ctrlScrPixHoriz = wx.TextCtrl(parent, -1, "", size=(50,20))
         wx.EVT_TEXT(self, self.ctrlScrPixHoriz.GetId(), self.onChangeScrPixHoriz)
         self.ctrlScrPixVert = wx.TextCtrl(parent, -1, "", size=(50,20))
@@ -293,20 +290,20 @@ class MainFrame(wx.Frame):
 
         #date
         labl_calibDate = wx.StaticText(parent, -1,
-            "Calibration Date:",style=wx.ALIGN_RIGHT)
+            _("Calibration Date:"),style=wx.ALIGN_RIGHT)
         self.ctrlCalibDate = wx.TextCtrl(parent, idCtrlCalibDate, "",
             size=(150,20))
         self.ctrlCalibDate.Disable()
         #notes
         labl_calibNotes = wx.StaticText(parent, -1,
-            "Notes:",style=wx.ALIGN_RIGHT)
+            _("Notes:"),style=wx.ALIGN_RIGHT)
         self.ctrlCalibNotes = wx.TextCtrl(parent, idCtrlCalibNotes, "",
             size=(150,150),
             style=wx.TE_MULTILINE)
         wx.EVT_TEXT(self, idCtrlCalibNotes, self.onChangeCalibNotes)
 
         #bits++
-        self.ctrlUseBits = wx.CheckBox(parent, -1,'Use Bits++')
+        self.ctrlUseBits = wx.CheckBox(parent, -1,_('Use Bits++'))
         wx.EVT_CHECKBOX(self, self.ctrlUseBits.GetId(), self.onChangeUseBits)
 
         infoBoxGrid = wx.FlexGridSizer(cols=2, hgap=6, vgap=6)
@@ -326,8 +323,7 @@ class MainFrame(wx.Frame):
         return infoBoxSizer
 
     def makeCalibBox(self, parent):
-
-        boxLabel = wx.StaticBox(parent, -1, 'Calibration')
+        boxLabel = wx.StaticBox(parent, -1, _('Calibration'))
         boxLabel.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
         calibBox = wx.StaticBoxSizer(boxLabel)
 
@@ -335,36 +331,40 @@ class MainFrame(wx.Frame):
         #com port entry number
         self.comPortLabel =  wx.StaticText(parent, -1, " ", size=(150,20))
         #photometer button
+        # photom type choices should not need localization:
         self.ctrlPhotomType = wx.Choice(parent, -1, name="Type:",
             choices=list([p.longName for p in hardware.getAllPhotometers()]))
+
+        self._photomChoices = [_("Scan all ports")] + list(hardware.getSerialPorts())
         self.ctrlPhotomPort = wx.ComboBox(parent, -1, name="Port:",
-                                          value="Scan all ports",
-                                        choices=["Scan all ports"]+list(hardware.getSerialPorts()),
-                                        size=self.ctrlPhotomType.GetSize()
+                                          value=self._photomChoices[0], # scan all ports
+                                          choices=self._photomChoices,
+                                          size=self.ctrlPhotomType.GetSize()+[0,5]
                                     )
+
         #wx.EVT_CHOICE(self, self.ctrlPhotomType.GetId(), self.onChangePhotomType)#not needed?
-        self.btnFindPhotometer = wx.Button(parent, -1, "Get Photometer")
+        self.btnFindPhotometer = wx.Button(parent, -1, _("Get Photometer"))
         wx.EVT_BUTTON(self, self.btnFindPhotometer.GetId(), self.onBtnFindPhotometer)
 
         #gamma controls
         self.btnCalibrateGamma = wx.Button(
-            parent, -1, "Gamma Calibration...")
+            parent, -1, _("Gamma Calibration..."))
         wx.EVT_BUTTON(self, self.btnCalibrateGamma.GetId(), self.onCalibGammaBtn)
         self.btnTestGamma = wx.Button(
-            parent, -1, "Gamma Test...")
+            parent, -1, _("Gamma Test..."))
         self.btnTestGamma.Enable(False)
 
         #color controls
         wx.EVT_BUTTON(self, self.btnTestGamma.GetId(), self.onCalibTestBtn)
         self.btnCalibrateColor = wx.Button(
-            parent, -1, "Chromatic Calibration...")
+            parent, -1, _("Chromatic Calibration..."))
         self.btnCalibrateColor.Enable(False)
         wx.EVT_BUTTON(self, self.btnCalibrateColor.GetId(), self.onCalibColorBtn)
         self.btnPlotGamma = wx.Button(
-            parent, -1, "Plot gamma")
+            parent, -1, _("Plot gamma"))
         wx.EVT_BUTTON(self, self.btnPlotGamma.GetId(), self.plotGamma)
         self.btnPlotSpectra = wx.Button(
-            parent, -1, "Plot spectra")
+            parent, -1, _("Plot spectra"))
         wx.EVT_BUTTON(self, self.btnPlotSpectra.GetId(), self.plotSpectra)
 
         photometerBox.AddMany([self.ctrlPhotomType,self.btnFindPhotometer,
@@ -378,13 +378,14 @@ class MainFrame(wx.Frame):
         #----GAMMA------------
         #-----------------------
         #calibration grid
-        gammaBox = wx.StaticBox(parent,-1,'Linearisation')
+        gammaBox = wx.StaticBox(parent,-1,_('Linearization'))
         gammaBox.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
         gammaBoxSizer = wx.StaticBoxSizer(gammaBox, wx.VERTICAL)
 
+        # don't localize the choices
         self.choiceLinearMethod = wx.Choice(parent, -1, name='formula:',
-                    choices=['easy: a+kx^g','full: a+(b+kx)^g'])
-        if self.currentMon.getLineariseMethod()==4:
+                    choices=['easy: a+kx^g', 'full: a+(b+kx)^g'])
+        if self.currentMon.getLinearizeMethod()==4:
             self.choiceLinearMethod.SetSelection(1)
         else: self.choiceLinearMethod.SetSelection(0)
         wx.EVT_CHOICE(self, self.choiceLinearMethod.GetId(), self.onChangeLinearMethod)
@@ -474,7 +475,7 @@ class MainFrame(wx.Frame):
     def onCloseWindow(self, event):
         if self.unSavedMonitor:
             #warn user that data will be lost
-            dlg = dialogs.MessageDialog(self,message='Save changes to monitor settings before quitting?',type='Warning')
+            dlg = dialogs.MessageDialog(self,message=_('Save changes to monitor settings before quitting?'),type='Warning')
             resp = dlg.ShowModal()
             if resp  == wx.ID_CANCEL:
                 return 1 #return before quitting
@@ -494,7 +495,7 @@ class MainFrame(wx.Frame):
                 #it didnt' really change
                 return 1
             #warn user that data will be lost
-            dlg = dialogs.MessageDialog(self, 'Save changes to monitor?',
+            dlg = dialogs.MessageDialog(self, _('Save changes to monitor?'),
                 type='Warning')
             resp = dlg.ShowModal()
             dlg.Destroy()
@@ -536,10 +537,10 @@ class MainFrame(wx.Frame):
         self.ctrlScrPixHoriz.SetValue(str(self.currentMon.currentCalib['sizePix'][0]))
         self.ctrlScrPixVert.SetValue(str(self.currentMon.currentCalib['sizePix'][1]))
         #self.ctrlScrGamma.SetValue(str(self.currentMon.getGamma()))
-        self.ctrlCalibNotes.SetValue(str(self.currentMon.getNotes()))
+        self.ctrlCalibNotes.SetValue(self.currentMon.getNotes())
         self.ctrlUseBits.SetValue(self.currentMon.getUseBits())
         self.gammaGrid.setData(self.currentMon.getGammaGrid())
-        if self.currentMon.getLineariseMethod()==4:
+        if self.currentMon.getLinearizeMethod()==4:
             self.choiceLinearMethod.SetSelection(1)
         else: self.choiceLinearMethod.SetSelection(0)
         self.LMSgrid.setData(self.currentMon.getLMS_RGB())
@@ -582,9 +583,8 @@ class MainFrame(wx.Frame):
         calibTimeStr = monitors.strFromDate(calibTime)
 
         #then use dialogue so user can override
-        infoStr='Name of this calibration (for monitor "%s") will be:' \
-            % self.currentMon.name
-        dlg = wx.TextEntryDialog(self, message=infoStr, defaultValue=calibTimeStr)
+        infoStr=_('Name of this calibration (for monitor "%(name)s") will be:)') % {'name': self.currentMon.name}
+        dlg = wx.TextEntryDialog(self, message=infoStr, defaultValue=calibTimeStr, caption=_('Input text'))
         if dlg.ShowModal() == wx.ID_OK:
             newCalibName= dlg.GetValue()
             #update the GUI to reflect new calibration
@@ -597,7 +597,7 @@ class MainFrame(wx.Frame):
         dlg.Destroy()
     def onNewMon(self, event):
         #open a dialogue to get the name
-        dlg = wx.TextEntryDialog(self, 'New monitor name:')
+        dlg = wx.TextEntryDialog(self, _('New monitor name:'), caption=_('Input text'))
         if dlg.ShowModal() == wx.ID_OK:
             self.currentMonName= dlg.GetValue()
             self.ctrlMonList.Append(self.currentMonName)
@@ -610,9 +610,9 @@ class MainFrame(wx.Frame):
 
     def onDeleteMon(self, event):
         monToDel = self.currentMonName
-        dlg = dialogs.MessageDialog(parent=self, message='Are you sure you want to delete all details for? '+\
-            monToDel + ' (cannot be undone)',
-            type='Warning')
+        dlg = dialogs.MessageDialog(parent=self,
+                message=_('Are you sure you want to delete all details for %s? (cannot be undone)') % monToDel,
+                type='Warning')
         response = dlg.ShowModal()
         dlg.Destroy()
         if response == wx.ID_YES:
@@ -630,9 +630,9 @@ class MainFrame(wx.Frame):
     def onDeleteCalib(self, event):
         calToDel = self.ctrlCalibList.GetStringSelection()
         #warn user that data will be lost
-        dlg = dialogs.MessageDialog(parent=self, message='Are you sure you want to delete this calibration? '+\
-            '(cannot be undone)',
-            type='Warning')
+        dlg = dialogs.MessageDialog(parent=self,
+                message=_('Are you sure you want to delete this calibration? (cannot be undone)'),
+                type='Warning')
         if dlg.ShowModal() == wx.ID_YES:
             #delete it
             self.currentMon.delCalib(calToDel)
@@ -692,7 +692,6 @@ class MainFrame(wx.Frame):
         self.unSavedMonitor=True
 
     def onCalibGammaBtn(self, event):
-
         if NO_MEASUREMENTS:
             #recalculate from previous measure
             lumsPre = self.currentMon.getLumsPre()
@@ -730,17 +729,17 @@ class MainFrame(wx.Frame):
             self.currentMon.setLevelsPre(lumLevels)#save for future
             self.btnPlotGamma.Enable(True)
             self.choiceLinearMethod.Enable()
-            
+
             #do the fits
             self.doGammaFits(lumLevels,lumsPre)
         else:
             logging.warning('No lum values captured/entered')
 
     def doGammaFits(self, levels, lums):
-        linMethod = self.currentMon.getLineariseMethod()
+        linMethod = self.currentMon.getLinearizeMethod()
 
         if linMethod==4:
-            logging.info('Fitting gamma equation(%i) to luminance data' %linMethod)
+            logging.info('Fitting gamma equation (%i) to luminance data' % linMethod)
             currentCal = numpy.ones([4,6],'f')*numpy.nan
             for gun in [0,1,2,3]:
                 gamCalc = monitors.GammaCalculator(levels, lums[gun,:], eq=linMethod)
@@ -752,7 +751,7 @@ class MainFrame(wx.Frame):
                 currentCal[gun,5]=gamCalc.k#gamma
         else:
             currentCal = numpy.ones([4,3],'f')*numpy.nan
-            logging.info('Fitting gamma equation(%i) to luminance data' %linMethod)
+            logging.info('Fitting gamma equation (%i) to luminance data' % linMethod)
             for gun in [0,1,2,3]:
                 gamCalc = monitors.GammaCalculator(levels, lums[gun,:], eq=linMethod)
                 currentCal[gun,0]=lums[gun,0]#min
@@ -833,14 +832,17 @@ class MainFrame(wx.Frame):
     def onCtrlPhotomType(self, event):
         pass
     def onBtnFindPhotometer(self, event):
+
+        # safer to get by index, but GetStringSelection will work for nonlocalized techincal names:
         photName = self.ctrlPhotomType.GetStringSelection()
+        # not sure how
         photPort = self.ctrlPhotomPort.GetValue().strip()
-        if not photPort or photPort == "Scan all ports":
+        if not photPort or photPort == self._photomChoices[0]:  # [0] == Scan all ports
             photPort = None
         elif photPort.isdigit():
             photPort = int(photPort)
         #search all ports
-        self.comPortLabel.SetLabel('Scanning ports...')
+        self.comPortLabel.SetLabel(_('Scanning ports...'))
         self.Update()
         self.photom = hardware.findPhotometer(device=photName,ports=photPort)
         if self.photom is not None and self.photom.OK:
@@ -849,21 +851,23 @@ class MainFrame(wx.Frame):
             self.btnTestGamma.Enable(True)
             if hasattr(self.photom, 'getLastSpectrum'):
                 self.btnCalibrateColor.Enable(True)
-            self.comPortLabel.SetLabel('%s found on %s' %(self.photom.type, self.photom.portString))
+            self.comPortLabel.SetLabel(_('%(photomType)s found on %(photomPort)s') %
+                                       {'photomType': self.photom.type,
+                                        'photomPort': self.photom.portString})
         else:
-            self.comPortLabel.SetLabel('No photometers found')
+            self.comPortLabel.SetLabel(_('No photometers found'))
             self.photom=None
 
         #does this device need a dark calibration?
         if hasattr(self.photom, 'getNeedsCalibrateZero') and self.photom.getNeedsCalibrateZero():
             #prompt user if we need a dark calibration for the device
             if self.photom.getNeedsCalibrateZero():
-                dlg = wx.Dialog(self,title='Dark calibration of ColorCAL')
-                msg='Your ColorCAL needs to be calibrated first. ' +\
-                    'Please block all light from getting into the lens and press OK.'
+                dlg = wx.Dialog(self,title=_('Dark calibration of ColorCAL'))
+                msg=_('Your ColorCAL needs to be calibrated first. '
+                      'Please block all light from getting into the lens and press OK.')
                 while self.photom.getNeedsCalibrateZero():
                     dlg = dialogs.MessageDialog(self,message=msg,
-                                                title='Dark calibration of ColorCAL',
+                                                title=_('Dark calibration of ColorCAL'),
                                                 type='Info')#info dlg has only an OK button
                     resp=dlg.ShowModal()
                     if resp== wx.ID_CANCEL:
@@ -873,9 +877,11 @@ class MainFrame(wx.Frame):
                     elif resp == wx.ID_OK:
                         self.photom.calibrateZero()
                     #this failed at least once. Try again.
-                    msg = 'Try again. Cover the lens fully and press OK'
+                    msg = _('Try again. Cover the lens fully and press OK')
     def plotGamma(self, event=None):
-        figTitle = '%s %s Gamma Functions' %(self.currentMonName, self.currentCalibName)
+        figTitle = _('%(monName)s %(calibName)s Gamma Functions') % {
+                        'monName': self.currentMonName,
+                        'calibName': self.currentCalibName}
         plotWindow = PlotFrame(self,1003,figTitle)
 
         figure = Figure(figsize=(5,5), dpi=80)
@@ -890,7 +896,7 @@ class MainFrame(wx.Frame):
         if lumsPre!=None:
             colors='krgb'
             xxSmooth = monitors.numpy.arange(0,255.5, 0.5)
-            eq = self.currentMon.getLineariseMethod()
+            eq = self.currentMon.getLinearizeMethod()
             for gun in range(4): #includes lum
                 gamma = gammaGrid[gun,2]
                 minLum = gammaGrid[gun,0]
@@ -900,7 +906,7 @@ class MainFrame(wx.Frame):
                     curve = monitors.gammaFun(xxSmooth, minLum, maxLum, gamma,
                         eq=eq, a=None, b=None, k=None)
                     plt.plot(xxSmooth, curve, colors[gun]+'-', linewidth=1.5)
-                if self.currentMon.getLineariseMethod() ==4:
+                if self.currentMon.getLinearizeMethod() ==4:
                     a,b,k = gammaGrid[gun,3:]
                     #plot fitted curve
                     curve = monitors.gammaFun(xxSmooth, minLum, maxLum, gamma,
@@ -933,7 +939,9 @@ class MainFrame(wx.Frame):
         plotWindow.addCanvas(figureCanvas)
 
     def plotSpectra(self, event=None):
-        figTitle = '%s %s Spectra' %(self.currentMonName, self.currentCalibName)
+        figTitle = _('%(monName)s %(calibName)s Spectra') % {
+                      'monName': self.currentMonName,
+                      'calibName': self.currentCalibName}
         plotWindow = PlotFrame(self,1003,figTitle)
         figure = Figure(figsize=(5,5), dpi=80)
         figureCanvas = FigureCanvas(plotWindow, -1, figure)
@@ -956,7 +964,7 @@ class GammaLumValsDlg(wx.Dialog):
     '''a dialogue to manually get the luminance values recorded for each level'''
     def __init__(self, parent, levels):
 
-        wx.Dialog.__init__(self, parent, -1, 'Recorded luminance values',
+        wx.Dialog.__init__(self, parent, -1, _('Recorded luminance values'),
             style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER
             )
 
@@ -967,14 +975,14 @@ class GammaLumValsDlg(wx.Dialog):
         mainSizer.Add(self.makeCalibBox(parent=panel, levels=levels), 1, wx.EXPAND|wx.ALL, pad)
 
         butBox = wx.BoxSizer(wx.HORIZONTAL)
-        btnOK = wx.Button(panel, wx.ID_OK, " OK ")
+        btnOK = wx.Button(panel, wx.ID_OK, _(" OK "))
         btnOK.SetDefault()
-        btnCANC = wx.Button(panel, wx.ID_CANCEL, " Cancel ")
+        btnCANC = wx.Button(panel, wx.ID_CANCEL, _(" Cancel "))
 
         butBox.Add(btnOK,1,wx.BOTTOM|wx.ALIGN_RIGHT, pad)
         butBox.Add(btnCANC,1,wx.BOTTOM|wx.RIGHT|wx.ALIGN_RIGHT, pad)
-        mainSizer.Add(butBox, 
-            flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)    
+        mainSizer.Add(butBox,
+            flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
 
         #finalise panel layout
         panel.SetAutoLayout(True)
@@ -984,7 +992,7 @@ class GammaLumValsDlg(wx.Dialog):
 
     def makeCalibBox(self,parent,levels):
         '''do my best to make a calibration box'''
-        gammaBox = wx.StaticBox(parent,-1,'Luminance Values')
+        gammaBox = wx.StaticBox(parent,-1, _('Luminance Values'))
         gammaBox.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
         gammaBoxSizer = wx.StaticBoxSizer(gammaBox, wx.VERTICAL)
 
@@ -998,7 +1006,7 @@ class GammaLumValsDlg(wx.Dialog):
         gammaBoxSizer.Layout()
 
         return gammaBoxSizer
- 
+
     def onChangeGammaGrid(self, event):
         '''The first column = black, so it gets set same for all, let's help out!'''
         if event.GetCol()==0:
@@ -1006,7 +1014,7 @@ class GammaLumValsDlg(wx.Dialog):
             newVal = unicodeToFloat(newVal)
             for nRow in range(self.gammaGrid.nRows):
                 self.gammaGrid.SetCellValue(nRow,0,'%f' %newVal)
- 
+
     def getData(self):
         '''retrieve the data from the grid in same format as auto calibration'''
         data=[]
@@ -1032,7 +1040,7 @@ class GammaDlg(wx.Dialog):
         assert isinstance(monitor, monitors.Monitor)
         self.useBits=monitor.getUseBits()
 
-        wx.Dialog.__init__(self, parent, -1, 'Gamma Calibration',
+        wx.Dialog.__init__(self, parent, -1, _('Gamma Calibration'),
             style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER
             )
         mainSizer =  wx.FlexGridSizer(cols=2, hgap=1, vgap=1)
@@ -1044,15 +1052,15 @@ class GammaDlg(wx.Dialog):
         self.methodChoiceBx.SetStringSelection('auto')
         wx.EVT_CHOICE(self, self.methodChoiceBx.GetId(),self.onMethodChange)
 
-        self.ctrlUseBits = wx.CheckBox(self, -1,'Use Bits++')
+        self.ctrlUseBits = wx.CheckBox(self, -1,_('Use Bits++'))
         self.ctrlUseBits.SetValue(self.useBits)
 
-        self.labelNPoints = wx.StaticText(self, -1, 'Number of calibration points:')
+        self.labelNPoints = wx.StaticText(self, -1, _('Number of calibration points:'))
         self.ctrlNPoints = wx.Choice(self, -1,
             choices=['3','4','5','6','7','8','10','16','48','64','256'])
         self.ctrlNPoints.SetStringSelection('8')
 
-        self.labelStimSize = wx.StaticText(self, -1, 'Patch size (fract of screen):')
+        self.labelStimSize = wx.StaticText(self, -1, _('Patch size (fraction of screen):'))
         self.ctrlStimSize = wx.TextCtrl(self, -1,'0.3')
 
         pad=5
@@ -1065,10 +1073,10 @@ class GammaDlg(wx.Dialog):
         mainSizer.Add((0,0),1,wx.ALL, pad)
         mainSizer.Add(self.ctrlUseBits,1,wx.ALL, pad)
 
-        btnOK = wx.Button(self, wx.ID_OK, " OK ")
+        btnOK = wx.Button(self, wx.ID_OK, _(" OK "))
         btnOK.SetDefault()
         mainSizer.Add(btnOK,1,wx.TOP|wx.BOTTOM|wx.ALIGN_RIGHT, pad)
-        btnCANC = wx.Button(self, wx.ID_CANCEL, " Cancel ")
+        btnCANC = wx.Button(self, wx.ID_CANCEL, _(" Cancel "))
         mainSizer.Add(btnCANC,1,wx.TOP|wx.BOTTOM|wx.RIGHT|wx.ALIGN_RIGHT, pad)
         self.Center()
         #mainSizer.Fit(self)
@@ -1080,7 +1088,7 @@ class GammaDlg(wx.Dialog):
 
 class MonitorCenter(wx.App):
     def OnInit(self):
-        frame = MainFrame(None,'PsychoPy Monitor Center')
+        frame = MainFrame(None, _('PsychoPy Monitor Center'))
         frame.Show(True)
         self.SetTopWindow(frame)
         return True

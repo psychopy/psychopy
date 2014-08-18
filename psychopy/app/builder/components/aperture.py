@@ -12,7 +12,7 @@ __author__ = 'Jeremy Gray, Jon Peirce'
 
 thisFolder = path.abspath(path.dirname(__file__)) # the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'aperture.png')
-tooltip = 'Aperture: restrict the drawing of stimuli to a given region'
+tooltip = _('Aperture: restrict the drawing of stimuli to a given region')
 
 class ApertureComponent(VisualComponent):
     """An event class for using GL stencil to restrict the viewing area to a
@@ -23,22 +23,19 @@ class ApertureComponent(VisualComponent):
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim=''):
         #initialise main parameters
-        VisualComponent.__init__(self, exp, parentName, name=name, units=units,
+        super(ApertureComponent, self).__init__(exp, parentName, name=name, units=units,
                     pos=pos,size=size,
                     startType=startType, startVal=startVal,
                     stopType=stopType, stopVal=stopVal,
                     startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'Aperture'
         self.url = "http://www.psychopy.org/builder/components/aperture.html"
-        self.exp.requirePsychopyLibs(['visual'])
         #params:
         #NB make some adjustments on the params defined by _visual component
         self.order = ['name', 'size', 'pos'] # make sure this is at top
-        self.params['size'].hint = "How big is the aperture? (a single number for diameter)"
-        self.params['size'].label="Size"
-        self.params['pos'].hint = "Where is the aperture centred?"
-        self.params['startVal'].hint = "When does the aperture come into effect?"
-        self.params['stopVal'].hint="When does the aperture stop having an effect?"
+        self.params['size'].hint = _("How big is the aperture? (a single number for diameter)")
+        self.params['size'].label=_("Size")  # only localize hints and labels
+        self.params['pos'].hint = _("Where is the aperture centred?")
         #inherited from _visual component but not needed
         del self.params['ori']
         del self.params['color']
@@ -74,4 +71,3 @@ class ApertureComponent(VisualComponent):
 
     def writeRoutineEndCode(self, buff):
         buff.writeIndented("%(name)s.enabled = False  # just in case it was left enabled\n" % (self.params))
-

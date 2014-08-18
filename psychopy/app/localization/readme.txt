@@ -1,0 +1,71 @@
+"""
+Localizing text strings in PsychoPy
+
+Notes by Jeremy R. Gray
+
+Sources:
+  - http://www.supernifty.org/blog/2011/09/16/python-localization-made-easy/
+  - http://bip.weizmann.ac.il/course/python/PyMOTW/PyMOTW/docs/gettext/
+  - https://webtranslateit.com/en/docs/file_formats/gettext_po/
+  - utils/{pygettext.py,msgfmt.py,makelocalealias.py} are from python 2.7 (PSF licence)
+  - windows mappings: http://msdn.microsoft.com/en-us/goglobal/bb896001.aspx
+  - python future: http://hg.python.org/cpython/file/ed62c4c70c4d/Lib/locale.py
+
+
+Intended usage:
+  - early in loading the app, e.g., in _psychopyApp.PsychoPyApp.OnInit(), do:
+      from psychopy.app import localization
+    This should be done after importing wx
+  - this will: 1) detect the system default or preferred (pref) locale;
+    2) intialize the locale setting globally; and 3) install _() function globally
+  - currently both the standard gettext and wxPython version are used
+
+Known limitations (July 2014):
+  - only strings are localized, not number format (separator , or .), currency, etc
+  - going forward, when adding more _() into the code there will be eventually be a name
+    conflict with the existing dummy variable _, which is sometimes used as a placeholder
+    when unpacking tuples or lists. find some of them with: git grep '_,'
+    expected effect is that localization will fail, should raise because a string
+    held in variable named _ is not callable
+  - not sure how right-to-left languages work
+  - use for localizing the app (PsychoPy), not for localizing user scripts.
+
+Files:
+  - psychopy/locale/LANG/LC_MESSAGES/ holds the text files and translations, where LANG 
+    is a 5 letter code like en_UK or ja_JP. poedit will re-make *.mo next to *.po
+    Such directories will be auto-detected by PsychoPy in users prefs -> app -> locale
+  - utils/ holds helper scripts for managing localization files and workflow. called 
+    manually, not by psychopy.
+
+Process:
+Do once:
+- edit the .py files to add _() around text strings to be localized
+  e.g.:  replace 'Welcome to PsychoPy2!' with _('Welcome to PsychoPy2!')
+  This process is mostly complete, but might be needed for new code.
+- use poedit to open a specific message catalog (*.po file).
+  To refresh the list of strings to be translated, in poedit click "Catalog menu > Update from sources"
+  To discover all instances of _() and dump to a file messages.pot (name customizable)
+    $ python utils/pygettext.py filename.py
+  Or more usefully, from within psychopy/psychopy/app/localization directory:
+    $ find ../.. -name '*.py' | grep -v tests | grep -v localization |  xargs python utils/pygettext.py
+- edit messages.pot manually:
+  "Content-Type: text/plain; charset=utf-8\n"
+  fill in various fields for the app.
+- messages.pot is now a template, copy to each destination LANG directory:
+   $ cp messages.pot ../locale/LANG/LC_MESSAGES/messages.po
+
+human translation:
+- doing a translation well requires a strong understanding of PsychoPy itself, especially
+  to know what are technical terms (like Routine) and so should not be translated, and to
+  know the context of messages and hints, which can be snippets
+- edit locale/LANG/LC_MESSAGES/messages.po to have the desired translations; e.g.: could use
+  poEdit from http://poedit.net or (debian-based) "sudo apt-get install poedit"
+
+generate .mo (binary) from .po (text):
+- using poedit (easiest): update catalog
+- by hand using utils/msgfmt or utils/pomo.py
+
+Notes:
+- could tar cz the res_po directory and utils -- not needed by end users
+- could distribute translations separately from PsychoPy itself
+"""
