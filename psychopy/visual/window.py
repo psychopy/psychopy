@@ -21,29 +21,27 @@ import ctypes
 #try to find avbin (we'll overload pyglet's load_library tool and then add some paths)
 haveAvbin = False
 if pyglet.version < "1.2":
-    import pyglet.lib
-
     # This piece of code does no longer work with pyglet 1.2alpha and results in the pyglet.gl
     # library to no longer be found when the window is created
+    import pyglet.lib
     import _pygletLibOverload
-
     pyglet.lib.load_library = _pygletLibOverload.load_library
-    #on windows try to load avbin now (other libs can interfere)
-    if sys.platform == 'win32':
-        #make sure we also check in SysWOW64 if on 64-bit windows
-        if 'C:\\Windows\\SysWOW64' not in os.environ['PATH']:
-            os.environ['PATH'] += ';C:\\Windows\\SysWOW64'
 
-        try:
-            from pyglet.media import avbin
-            haveAvbin = True
-        except ImportError:
-            haveAvbin = False
-            # either avbin isn't installed or scipy.stats has been imported
-            # (prevents avbin loading)
-        except WindowsError, e:
-            haveAvbin = False
+#on windows try to load avbin now (other libs can interfere)
+if sys.platform == 'win32':
+    #make sure we also check in SysWOW64 if on 64-bit windows
+    if 'C:\\Windows\\SysWOW64' not in os.environ['PATH']:
+        os.environ['PATH'] += ';C:\\Windows\\SysWOW64'
 
+    try:
+        from pyglet.media import avbin
+        haveAvbin = True
+    except ImportError:
+        haveAvbin = False
+        # either avbin isn't installed or scipy.stats has been imported
+        # (prevents avbin loading)
+    except WindowsError, e:
+        haveAvbin = False
 
 import psychopy  # so we can get the __path__
 from psychopy import core, platform_specific, logging, prefs, monitors, event
@@ -1230,7 +1228,7 @@ class Window(object):
                 # Below works but is not correct! _nswindow points to an objc reference
                 # of the window, not to the window id itself. I don't know how psychopy uses
                 # this feat further, but it has not resulted in crashes for me.
-                self._hw_handle=self.winHandle._nswindow  
+                self._hw_handle=self.winHandle._nswindow
             else:
                 self._hw_handle=self.winHandle._window.value
         elif sys.platform =='linux2':
@@ -1656,7 +1654,7 @@ class Window(object):
         return msPFavg, msPFstd, msPFmed  # msdrawAvg, msdrawSD, msfree
 
     def _startOfFlip(self):
-        """Custom hardware classes may want to prevent flipping from occurring and 
+        """Custom hardware classes may want to prevent flipping from occurring and
         can override this method as needed. Return True to indicate hardware flip."""
         return True
 
