@@ -25,25 +25,38 @@ PsychoPy 1.81.00
 
 (in repository)
 
+* IMPROVED: better unit tests for visual stimuli to prevent future bugs
 * FIXED: MovieStim was right-left flipping movies and this has been corrected. If you had been working around that by setting flipVertical=True then you'll need to undo that correction
+* ADDED: support for additional hardware:
+    * support for interacting with BlackBoxToolkit v2 psychopy.hardware.bbtk
+    * further support for CRS Bits# and Bits++ in psychopy.hardware.crs, including support for mono++ and color++ modes, button box, internal gamma correction and trigger ports
+    * labjack digital outputs can be used as a Parallel Port Component in Builder
+    * the screen rendering can now include a warping step to simulate spherical, cylindrical or custom warping (Jay Borseth)
+    * the screen now supports 'frame packing' whereby sequential frames can be packed into one, as the red, green and blue channels for monochrome high-rate projectors (Jay Borseth)
+* IMPROVED packaging:
+    * can now install on OSX using miniconda/anaconda distribution (Erik Kastman)
+    * pyopencv (cv2) added to Standalone as an alternative to avbin
+    * PySoundCard and PySoundFile added to Standalone
+    * application is now compatible with wxPython 2.8, 2.9 and 3.0
 * IMPROVED: stimulus attributes:
-    * All stimulus attributes now support new syntax, e.g. ``stim.pos = [0,0]`` as well as the previous ``stim.setPos([0,0])``. All docs are update to reflect this change.
-    * All numeric stimulus attributes now support operations. Use e.g. ``stim.pos += [0,0.5]``. Read more in :ref:`Operations <attrib-operations>`.
-    * Many more stimulus attributes can now be set after initialization. They have the same name as the init parameters. E.g. ``stim.win = mySecondWindow`` changes which Window the stimulus is drawn to
+    * Nearly all stimulus attributes now support new syntax, e.g. `stim.pos = [0,0]` as well as the previous `stim.setPos([0,0])`. All docs are update to reflect this change.
+    * All numeric stimulus attributes now support operations. Use e.g. `stim.pos += [0,0.5]`. Read more in :ref:`Operations <attrib-operations>`.
+    * Many more stimulus attributes can now be set after initialization. They have the same name as the init parameters. E.g. `stim.win = mySecondWindow` changes which Window the stimulus is drawn to
 * ADDED: Support for CRS devices:
     * both Bits# and Bits++ now supported and using advanced rendering modes (mono++ and color++)
     * Bits# also supports use of the infra-red button box
-* Logging:
-    * CHANGED: ``log=None`` and ``autoLog=None`` inherits from parents, with ``visual.Window`` at the top of the hierarchy. None is now default for all stimuli and setter methods.
+* IMPROVED: logging
+    * CHANGED: `log=None` and `autoLog=None` inherits from parents, with `visual.Window` at the top of the hierarchy. None is now default for all stimuli and setter methods.
     * FIXED: removed unneccessary (e.g. duplicate) logging.
     * IMPROVED: unnamed stimuli are now given a default name in the logs for easier identification, e.g. "unnamed ShapeStim".
-* IMPROVED: you can now specify the standard deviation (default=3) for gaussian mask in various stimuli by setting e.g. ``maskParams={'sd':5}`` during init or after init.
-* ADDED: localization (Builder and Coder)
+* IMPROVED: you can now specify the standard deviation (default=3) for gaussian mask in various stimuli by setting e.g. `maskParams={'sd':5}` during init or after init.
+* ADDED: language localization (Builder and Coder)
     * Can now display the app menus, tooltips, and so on in a language other than US English (selectable via prefs -> app -> locale)
     * Almost all displayed text can be translated (Jeremy Gray, Hiroyuki Sogo)
     * A Japanese translation is available (Hiroyuki Sogo)
     * Other translations will be easy to add; see online developer notes on using Poedit
-
+* FIXED: several other minor bugs (that would have given exceptions if encountered). Thanks particularly to Philip Wiesemann for finding several of these
+* FIXED: machines that didn't support shaders or framebuffer objects were raising an error on win.flip() if the useFBO argument was not manually set to False. Machines that don't support the new rendering methods are now handled more gracefully
 
 PsychoPy 1.80
 ------------------------------
