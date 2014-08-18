@@ -222,7 +222,6 @@ def getKeys(keyList=None, timeStamped=False):
             #then pyglet is running - just use this
             keys = _keyBuffer
             #_keyBuffer = []  # DO /NOT/ CLEAR THE KEY BUFFER ENTIRELY
-            print keys
 
     if keyList==None:
         _keyBuffer = [] #clear buffer entirely
