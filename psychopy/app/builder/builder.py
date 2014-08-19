@@ -4049,7 +4049,8 @@ class BuilderFrame(wx.Frame):
         menuBar.Append(self.fileMenu, _('&File'))
 
         #create a file history submenu
-        self.fileHistory = wx.FileHistory(maxFiles=10)
+        self.fileHistoryMaxFiles = 10
+        self.fileHistory = wx.FileHistory(maxFiles=self.fileHistoryMaxFiles)
         self.recentFilesMenu = wx.Menu()
         self.fileHistory.UseMenu(self.recentFilesMenu)
         for filename in self.appData['fileHistory']:
@@ -4401,11 +4402,27 @@ class BuilderFrame(wx.Frame):
         frameData['auiPerspective'] = self._mgr.SavePerspective()
         frameData['winW'], frameData['winH']=self.GetSize()
         frameData['winX'], frameData['winY']=self.GetPosition()
+
+        # truncate history to the recent-most last N unique files, where
+        # N = self.fileHistoryMaxFiles, as defined in makeMenus()
         for ii in range(self.fileHistory.GetCount()):
             self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
+        # fileClose gets calls multiple times, so remove redundancy while preserving order,
+        # end of the list is recent-most:
+        tmp = []
+        for f in self.appData['fileHistory'][-3 * self.fileHistoryMaxFiles:]:
+            if not f in tmp:
+                tmp.append(f)
+        self.appData['fileHistory'] = copy.copy(tmp[-self.fileHistoryMaxFiles:])
 
         #assign the data to this filename
         self.appData['frames'][self.filename] = frameData
+        # save the display data only for those frames in the history:
+        tmp2 = {}
+        for f in self.appData['frames'].keys():
+            if f in self.appData['fileHistory']:
+                tmp2[f] = self.appData['frames'][f]
+        self.appData['frames'] = copy.copy(tmp2)
 
         #close self
         self.routinePanel.removePages()
