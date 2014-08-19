@@ -195,11 +195,6 @@ class SettingsComponent:
         level=self.params['logging level'].val.upper()
 
         saveToDir = self.getSaveDataDir()
-        buff.writeIndentedLines("\n# Setup files for saving\n")
-        buff.writeIndented("dataDavingDir = os.path.expanduser('%s')\n" % saveToDir)
-        buff.writeIndented("if not os.path.isdir('%s'):\n" % saveToDir)
-        buff.writeIndented("    os.makedirs('%s')  # if this fails (e.g. permissions) we will get error\n" % saveToDir)
-
         #deprecated code: before v1.80.00 we had 'Saved data folder' param but fairly fixed filename
         if 'Saved data folder' in self.params:
             participantField=''
@@ -214,7 +209,12 @@ class SettingsComponent:
             del self.params['Saved data folder'] #so that we don't overwrite users changes doing this again
 
         #now write that data file name to the script
-        buff.writeIndented("filename = %s\n" %self.params['Data filename'])
+        buff.writeIndentedLines("\n# Setup files for saving\n")
+        buff.writeIndented("filename = %s\n" % self.params['Data filename'])
+        buff.writeIndented("filename = os.path.expanduser(filename)\n")
+        buff.writeIndented("dataSavingDir = os.path.split(filename)[0]\n")
+        buff.writeIndented("if not os.path.isdir(dataSavingDir):\n")
+        buff.writeIndented("    os.makedirs(dataSavingDir)  # if this fails (e.g. permissions) we will get error\n")
 
         #set up the ExperimentHandler
         buff.writeIndentedLines("\n# An ExperimentHandler isn't essential but helps with data saving\n")
@@ -278,15 +278,15 @@ class SettingsComponent:
                 buff.writeIndented("mx_adapter = contrib.obci.mx.MXAdapter(mx_address)\n")
                 buff.writeIndented("win = contrib.obci.Window(mx_adapter, size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                                (size, fullScr, screenNumber, allowGUI, allowStencil))
-                buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
+                buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n" %(self.params))
             else:
                 buff.writeIndented("win = contrib.obci.Window(None, size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                                (size, fullScr, screenNumber, allowGUI, allowStencil))
-                buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
+                buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n" %(self.params))
         else:
             buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                            (size, fullScr, screenNumber, allowGUI, allowStencil))
-        buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n" %(self.params))
+            buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n" %(self.params))
         if self.params['blendMode'].val:
             buff.writeIndented("    blendMode=%(blendMode)s, useFBO=True,\n" %(self.params))
 
