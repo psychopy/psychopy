@@ -1,3 +1,9 @@
+psychopy-openbci (1.80.2-1) unstable; urgency=medium
+
+  * Fix merge with upstream issues.
+
+ -- Karol Auguštin <karol@augustin.pl>  Tue, 19 Aug 2014 15:24:57 +0200
+
 psychopy-openbci (1.80.1-1) unstable; urgency=medium
 
   * New upstream release
