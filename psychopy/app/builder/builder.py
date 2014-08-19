@@ -2145,7 +2145,7 @@ class _BaseParamsDlg(wx.Dialog):
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)
             ctrls = self.addCategoryOfParams(theseParams, parent=page)
-            page.SetSizer(ctrls)
+            #page.SetSizer(ctrls)
             self.ctrls.AddPage(page, categName)
             self.panels.append(page) #so the validator finds this set of controls
             if 'customize_everything' in self.params.keys():
@@ -2158,10 +2158,11 @@ class _BaseParamsDlg(wx.Dialog):
         """Add all the params for a single category (after its tab has been created)
         """
         #create the sizers to fit the params and set row to zero
-        sizer= wx.GridBagSizer(vgap=2,hgap=2)
-        sizer.AddGrowableCol(1)#valueCtrl column
+        sizer = wx.GridBagSizer(vgap=2, hgap=2)
+        parent.SetSizer(sizer)
+        sizer.AddGrowableCol(1)  # valueCtrl column
         currRow = 0
-        self.useUpdates=False#does the dlg need an 'updates' row (do any params use it?)
+        self.useUpdates = False  # does the dlg need an 'updates' row (do any params use it?)
 
         #create a header row of titles
         if not self.suppressTitles:
@@ -2179,9 +2180,9 @@ class _BaseParamsDlg(wx.Dialog):
         #get all params and sort
         remaining = copy.copy(paramNames)
 
-        self.addParams(remaining)
+        self.addParams(paramNames, remaining, parent, sizer, currRow)
 
-    def addParams(self, remaining):
+    def addParams(self, paramNames, remaining, parent, sizer, currRow):
         #start with the name (always)
         if 'name' in remaining:
             self.addParam('name', parent, sizer, currRow)
@@ -2216,16 +2217,16 @@ class _BaseParamsDlg(wx.Dialog):
         startTypeParam = self.params['startType']
         startEstimParam = self.params['startEstim']
         #create label
-        label = wx.StaticText(self,-1,'Start', style=wx.ALIGN_CENTER)
+        label = wx.StaticText(parent,-1,'Start', style=wx.ALIGN_CENTER)
         startValues = {"value": startValParam.val, "type": startTypeParam.val, "estimation": startEstimParam.val}
-        self.startValCtrl = start_stop.StartPanel(self, value=startValues) ###wx.TextCtrl(parent,-1,unicode(startValParam.val))
+        self.startValCtrl = start_stop.StartPanel(parent, value=startValues) ###wx.TextCtrl(parent,-1,unicode(startValParam.val))
         startHints = {"value": startValParam.hint, "type": startTypeParam.hint, "estimation": startEstimParam.hint}
         self.startValCtrl.setToolTips(startHints)
-        startAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
-        startAllCtrlSizer.Add(self.startValCtrl, 1,flag=wx.EXPAND)
-        sizer.Add(label, (currRow,0),(1,1),wx.ALIGN_RIGHT)
+        #startAllCtrlSizer = wx.BoxSizer(orient=wx.VERTICAL)
+        #startAllCtrlSizer.Add(self.startValCtrl, 1,flag=wx.EXPAND)
         #add our new row
-        sizer.Add(startAllCrtlSizer,(currRow,1),(1,1),flag=wx.EXPAND)
+        sizer.Add(label, (currRow,0),(1,1),wx.ALIGN_RIGHT)
+        sizer.Add(self.startValCtrl,(currRow,1),(1,1),flag=wx.EXPAND)
         currRow+=1
         remaining.remove('startType')
         remaining.remove('startVal')
@@ -2236,15 +2237,16 @@ class _BaseParamsDlg(wx.Dialog):
         stopTypeParam = self.params['stopType']
         stopEstimParam = self.params['durationEstim']
         #create label
-        label = wx.StaticText(self,-1,'Stop', style=wx.ALIGN_CENTER)
+        label = wx.StaticText(parent,-1,'Stop', style=wx.ALIGN_CENTER)
         stopValues = {"value": stopValParam.val, "type": stopTypeParam.val, "estimation": stopEstimParam.val}
-        self.stopValCtrl = start_stop.StopPanel(self, value=stopValues) ###wx.TextCtrl(parent,-1,unicode(stopValParam.val))
+        self.stopValCtrl = start_stop.StopPanel(parent, value=stopValues) ###wx.TextCtrl(parent,-1,unicode(stopValParam.val))
         stopHints = {"value": stopValParam.hint, "type": stopTypeParam.hint, "estimation": stopEstimParam.hint}
         self.stopValCtrl.setToolTips(stopHints)
-        stopAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
-        stopAllCrtlSizer.Add(self.stopValCtrl, 1,flag=wx.EXPAND)
+        #stopAllCrtlSizer = wx.BoxSizer(orient=wx.VERTICAL)
+        #stopAllCrtlSizer.Add(self.stopValCtrl, 1,flag=wx.EXPAND)
         #add our new row
-        sizer.Add(stopAllCrtlSizer,(currRow,1),(1,1),flag=wx.EXPAND)
+        sizer.Add(label, (currRow,0),(1,1),wx.ALIGN_RIGHT)
+        sizer.Add(self.stopValCtrl,(currRow,1),(1,1),flag=wx.EXPAND)
         currRow+=1
         remaining.remove('stopType')
         remaining.remove('stopVal')
@@ -2266,7 +2268,7 @@ class _BaseParamsDlg(wx.Dialog):
                 value_ctrl.SetValue("$resources['%s']" % dialog.resource_name)
         return handler
 
-    def addParamToSizer(self,fieldName, advanced=False, valType=None):
+    def addParam(self, fieldName, parent, sizer, currRow, advanced=False, valType=None):
         """Add a parameter to the basic sizer
         """
         param=self.params[fieldName]
@@ -2279,7 +2281,6 @@ class _BaseParamsDlg(wx.Dialog):
         if fieldName=='name':
             ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.checkName)
         # self.valueCtrl = self.typeCtrl = self.updateCtrl
-        currRow = self.currRow[sizer]
         sizer.Add(ctrls.nameCtrl, (currRow,0), border=5,
             flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTRE_VERTICAL|wx.LEFT|wx.RIGHT)
         sizer.Add(ctrls.valueCtrl, (currRow,1), border=5,
@@ -2287,7 +2288,7 @@ class _BaseParamsDlg(wx.Dialog):
         if ctrls.updateCtrl:
             sizer.Add(ctrls.updateCtrl, (currRow, 2))
         if ctrls.typeCtrl:
-            sizer.Add(ctrls.typeCtrl, (currRow,3) )
+            sizer.Add(ctrls.typeCtrl, (currRow, 3))
         if fieldName in ['text', 'Text']:
             sizer.AddGrowableRow(currRow) #doesn't seem to work though
             #self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize, ctrls.valueCtrl)
@@ -2317,19 +2318,6 @@ class _BaseParamsDlg(wx.Dialog):
                     self.checkCodeWanted(ctrls.valueCtrl)
                 except:
                     pass
-
-        self.currRow[sizer] += 1
-
-    def addParam(self, fieldName, advanced=False, valType=None):
-        """Add a parameter to the basic sizer
-        """
-        if advanced:
-            sizer = self.advCtrlSizer
-            parent = self.advPanel.GetPane()
-        else:
-            sizer = self.ctrlSizer
-            parent = self
-        self.addParamToSizer(fieldName, sizer, parent, valType)        
 
     def openMonitorCenter(self,event):
         self.app.openMonitorCenter(event)
@@ -3144,8 +3132,6 @@ class DlgExperimentProperties(_BaseParamsDlg):
                                 size=size,style=style,helpUrl=helpUrl)
         self.frame=frame
         self.app=frame.app
-        
-        self.currRow = {}
 
         #for input devices:
         self.onFullScrChange(event=None)#do this just to set the initial values to be
@@ -3156,24 +3142,6 @@ class DlgExperimentProperties(_BaseParamsDlg):
         if self.OK:
             self.params = self.getParams()#get new vals from dlg
         self.Destroy()
-        
-    def addParams(self, remaining):
-        # create notebook with tabs
-        notebook = wx.Notebook(self)
-        pages_names = set(self.PARAM_TYPES.values())
-        pages = {}
-        for page_name in pages_names:
-            page = wx.Panel(notebook)
-            page_sizer = wx.GridBagSizer()
-            self.currRow[page_sizer] = 0
-            page.SetSizer(page_sizer)
-            notebook.AddPage(page, page_name)
-            pages[page_name] = page
-        for param, page_name in self.PARAM_TYPES.items():
-            self.addParamToSizer(param, pages[page_name].GetSizer(), pages[page_name])
-        self.ctrlSizer.Add(notebook, (0, 0), (1, 4), flag=wx.EXPAND | wx.ALL, border=5)
-        self.currRow[self.ctrlSizer] += 1
-        # for each field check its cathegory and add it to proper tab
 
     def onFullScrChange(self,event=None):
         """full-screen has been checked/unchecked. Show or hide the window size field accordingly"""
