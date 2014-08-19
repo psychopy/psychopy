@@ -61,6 +61,13 @@ PsychoPy 1.81.00
 PsychoPy 1.80
 ------------------------------
 
+PsychoPy 1.80.07
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Aug 2014
+
+FIXED: bug with timing of keys when using the `timestamped` argument
+
 PsychoPy 1.80.06
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
