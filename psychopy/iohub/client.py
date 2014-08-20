@@ -19,7 +19,7 @@ import json
 import signal
 from weakref import proxy
 
-from psychopy import  core as core, gui
+from psychopy import  core as core
 import psychopy.logging as psycho_logging
     
 if sys.platform != 'darwin':
@@ -2160,7 +2160,7 @@ class ioHubExperimentRuntime(object):
         """
         #print 'self.experimentConfig:', self.experimentConfig
         #print 'self._experimentConfigKeys:',self._experimentConfigKeys
-
+        from psychopy import gui
         experimentDlg=gui.DlgFromDict(self.experimentConfig, 'Experiment Launcher', self._experimentConfigKeys, self._experimentConfigKeys, {})
         if experimentDlg.OK:
             result= False
@@ -2177,6 +2177,7 @@ class ioHubExperimentRuntime(object):
         attributes that have been defined in the experiment configuration file. If OK is selected in the dialog,
         the experiment logic continues, otherwise the experiment session is terminated.
         """      
+        from psychopy import gui
         sessionDlg=gui.DlgFromDict(allSessionDialogVariables, 'Experiment Session Settings', [], sessionVariableOrder)
         result=None        
         if sessionDlg.OK:
