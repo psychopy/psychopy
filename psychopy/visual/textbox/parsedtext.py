@@ -166,7 +166,9 @@ class ParsedTextDocument(object):
         return c,c._length, c._gl_display_list, c._ords
 
     def getParsedLine(self,i):
-        return self._children[i]
+        if i < len(self._children):
+            return self._children[i]
+        return None
 
     def getParsedLines(self):
         return self._children
