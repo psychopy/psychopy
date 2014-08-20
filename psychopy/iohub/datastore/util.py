@@ -261,7 +261,7 @@ class ExperimentDataAccessUtility(object):
             return eventMappings
         return None
         
-    def getEventsByType(self, condition_str = None):
+    def getEventsByType(self):
         """
         Returns a dict of all event tables within the DataStore file that have
         atleast one event instance saved. Keys are Event Type constants, 
@@ -273,10 +273,7 @@ class ExperimentDataAccessUtility(object):
             events_by_type=dict()
             for event_type_id,event_mapping_info in eventTableMappings.iteritems():
                 try:
-                    cond="(type == %d)"%(event_type_id)
-                    if condition_str:
-                        cond+=" & "+condition_str
-                    events_by_type[event_type_id]= self.hdfFile.getNode(event_mapping_info.table_path).where(cond).next()
+                    events_by_type[event_type_id]= self.hdfFile.getNode(event_mapping_info.table_path).where("type == %d"%(event_type_id)).next()   
                 except StopIteration:
                     pass
             return events_by_type

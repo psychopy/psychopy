@@ -211,7 +211,9 @@ class EyeTracker(EyeTrackerDevice):
             self.setRecordingState(enabled)
             return enabled
         except Exception, e:
-            print2err("EyeTracker.enableEventReporting", str(e))
+            return createErrorResult("IOHUB_DEVICE_EXCEPTION",
+                    error_message="An unhandled exception occurred on the ioHub Server Process.",
+                    method="EyeTracker.enself._eyetribe.ableEventReporting", error=e)
 
     def setRecordingState(self,recording):
         """

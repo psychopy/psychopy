@@ -153,7 +153,7 @@ try:
             KEYBOARD_RELEASE=23
 
             #: Constant for a Keyboard Char Event.
-            #KEYBOARD_CHAR=24
+            KEYBOARD_CHAR=24
         
             #: Constant for a Mouse Button Press Event.
             MOUSE_BUTTON_PRESS=32

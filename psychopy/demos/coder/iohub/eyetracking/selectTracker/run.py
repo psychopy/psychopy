@@ -133,7 +133,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             self.hub.clearEvents('all')
             while not start_trial:
                 for event in kb.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS):
-                    if event.key == 'space':
+                    if event.key == ' ':
                         start_trial=True
                         break
                 self.hub.wait(0.2)
@@ -148,9 +148,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             trial['TRIAL_START']=flip_time
             self.hub.sendMessageEvent(text="TRIAL_START",sec_time=flip_time)
             self.hub.clearEvents('all')
-            tracker.setRecordingState(True)
-
-
+            tracker.setRecordingState(True)            
             
             # Get the image name for this trial
             #
@@ -192,7 +190,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                 # If one is found, set the trial end variable.
                 #
                 for event in kb.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS):
-                    if event.key == 'space':
+                    if event.key == ' ':
                         run_trial=False
                         break
         

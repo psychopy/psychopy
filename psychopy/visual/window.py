@@ -502,11 +502,6 @@ class Window(object):
     def _finishFBOrender(self):
         GL.glUseProgram(0)
 
-    @classmethod
-    def dispatchAllWindowEvents(cls):
-        wins = pyglet.window.get_platform().get_default_display().get_windows()
-        for win in wins: win.dispatch_events()
-
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your
         frame. (This replaces the win.update() method, better reflecting what
@@ -567,8 +562,6 @@ class Window(object):
 
             GL.glTranslatef(0.0, 0.0, -5.0)
 
-            # Currently only used if pyglet joystick has been added
-            # Since broken, should remove??
             for dispatcher in self._eventDispatchers:
                 dispatcher.dispatch_events()
 
@@ -576,8 +569,7 @@ class Window(object):
             self.winHandle.dispatch_events()
 
             # for pyglet 1.1.4 you needed to call media.dispatch for
-            # movie updating.
-            # If MovieStim2 /replaces/ MovieStim, the below can be removed.
+            # movie updating
             if pyglet.version < '1.2':
                 pyglet.media.dispatch_events()  # for sounds to be processed
             self.winHandle.flip()

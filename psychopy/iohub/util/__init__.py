@@ -18,8 +18,7 @@ import sys,os,inspect
 import psychopy
 from collections import Iterable
 
-from exception_tools import ioHubError
-from exception_tools import printExceptionDetailsToStdErr, print2err
+from exception_tools import ioHubConnectionException, ioHubServerError, printExceptionDetailsToStdErr, print2err, createErrorResult, ioHubError
 from psychopy.clock import MonotonicClock, monotonicClock
 
 # Path Update / Location functions
@@ -150,7 +149,7 @@ rad    = scipy.deg2rad
 ###############################################################################
 #
 ## A RingBuffer ( circular buffer) implemented using a numpy array as the backend. You can use
-## the summary stats methods etc. that are built into the numpy array class
+## the sumary stats methods etc. that are built into the numpty array class
 ## with this class as well. i.e ::
 ##      a = NumPyRingBuffer(max_size=100)
 ##      for i in xrange(0,150):

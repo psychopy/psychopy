@@ -65,7 +65,7 @@ def updateStimText(stim,text=None):
     """
     stime=core.getTime()*1000.0
     if text:    
-        stim.setText(text)
+        stim.text = text
     stim.draw()
     gl.glFinish()
     etime=core.getTime()*1000.0 

@@ -472,10 +472,7 @@ class TextBox(object):
     
 #        print 'cell[0,0]:',cellinfo[0,0,:]
         return cellinfo
-
-    def getTextGridCellForCharIndex(self,char_index):
-        return self._getTextWrappedDoc().getTextGridCellForCharIndex(char_index)
-
+    
     def getGlyphPositionForTextIndex(self,char_index):
         """
         For the provided char_index, which is the index of one chatacter in 
@@ -1203,7 +1200,7 @@ class TextBox(object):
             if line_spacing_units == 'ratio':
                 # run though _toPix to validate line_spacing value type only
                 r=self._toPix(line_spacing_height,'pix',self._window)[0]
-                return int(max_size[1]*r)
+                return max_size*r
                 
             return self._toPix(line_spacing_height,line_spacing_units,self._window)
         return 0
