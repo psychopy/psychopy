@@ -24,9 +24,9 @@ eyetracker.hw.tobii.EyeTracker:
             max: 2048
     monitor_event_types:           
         IOHUB_LIST:
-            valid_values: [ BinocularEyeSampleEvent, ]
-            min_length: 1
-            max_length: 1
+            valid_values: [ MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
+            min_length: 0
+            max_length: 8
     runtime_settings:
         sampling_rate: [25,30,60,120,400]
         track_eyes: [BINOCULAR,]
