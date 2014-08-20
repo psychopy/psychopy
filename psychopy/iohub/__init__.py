@@ -10,7 +10,6 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 """
 from __future__ import division
-
 from psychopy.clock import  MonotonicClock, monotonicClock
 import sys
 
@@ -28,31 +27,12 @@ if sys.version_info[0] != 2 or sys.version_info[1] >= 7:
     def construct_yaml_unistr(self, node):
         return self.construct_scalar(node)
     Loader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_unistr)
-    #SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
-
-#version info for ioHub
-__version__='0.9'
-__license__='GNU GPLv3 (or more recent equivalent)'
-__author__='iSolver Software Solutions'
-__author_email__='sol@isolver-software.com'
-__maintainer_email__='sol@isolver-software.com'
-__users_email__='sol@isolver-software.com'
-__url__='https://www.github.com/isolver/ioHub/'
-
-
-# check module is being loaded on a supported platform
-SUPPORTED_SYS_NAMES=['linux2','win32','cygwin','darwin']  
-if sys.platform not in SUPPORTED_SYS_NAMES:
-    print ''
-    print "ERROR: ioHub is not supported on the current OS platform. Supported options are: ", SUPPORTED_SYS_NAMES
-    print "EXITING......"
-    print ''
-    sys.exit(1)
 
 import constants
-from constants import EventConstants, DeviceConstants, KeyboardConstants, MouseConstants, EyeTrackerConstants
+from constants import EventConstants, DeviceConstants
+from constants import KeyboardConstants, MouseConstants, EyeTrackerConstants
 
-from util import print2err, printExceptionDetailsToStdErr, ioHubError, createErrorResult, ioHubServerError, ioHubConnectionException
+from util import print2err, printExceptionDetailsToStdErr, ioHubError
 from util import fix_encoding, OrderedDict, module_directory, updateDict
 from util import isIterable, getCurrentDateTimeString, convertCamelToSnake
 from util import ProgressBarDialog, MessageDialog, FileDialog, ioHubDialog
@@ -85,3 +65,72 @@ from util import Trigger, TimeTrigger, DeviceEventTrigger
 from util import ScreenState, ClearScreen, InstructionScreen, ImageScreen
 from util import ExperimentVariableProvider, SinusoidalMotion
 from util.targetpositionsequence import TargetStim, PositionGrid, TargetPosSequenceStim, ValidationProcedure
+
+def start(**kwargs):
+    """
+     ** Method under development, method should be used for testing only. **
+
+     Starts an instance of the iohub server. An iohub_config.yaml is looked for
+     in the the same directory as the script. If found, it is used to load
+     devices for the experiment session.
+
+     If no config files are found, the server is started with default device
+     settings.
+
+    :return:
+    """
+    import os
+
+    # Check that a psychopy Window has been created so that we can get info
+    # needed for the iohub Display device.
+    from psychopy import visual
+    openWindows = visual.window.openWindows
+    if len(openWindows) == 0:
+        print "The PsychoPy Window must be created prior to starting iohub. Exiting..."
+        sys.exit(1)
+
+    # TODO: Use info from win.monitor to set screen info and eye distance if possible.
+    #win = openWindows[0]
+
+    #win_methods = [m for m in dir(win) if m[0] != '_']
+    #pyglet_win_methods = [m for m in dir(win.winHandle) if m[0] != '_']
+
+    #print "Window methods:"
+    #for m in win_methods:
+    #    print m
+
+    #print "Pyglet Window methods:"
+    #for m in pyglet_win_methods:
+    #    print m
+
+    '''
+    Display:
+        name: display
+        reporting_unit_type: pix
+        device_number: 0
+        physical_dimensions:
+            width: 500
+            height: 281
+            unit_type: mm
+        default_eye_distance:
+            surface_center: 550
+            unit_type: mm
+        psychopy_monitor_name: default
+        override_using_psycho_settings: False
+    '''
+
+    if not kwargs.has_key('experiment_code'):
+        kwargs['experiment_code'] = 'default_exp'
+
+    if kwargs.has_key('iohub_config_name'):
+        print "Starting iohub with iohub_config_name provided."
+        return launchHubServer(**kwargs)
+
+    iohub_config_name = './iohub_config.yaml'
+    if os.path.isfile(os.path.normpath(os.path.abspath(iohub_config_name))):
+        kwargs['iohub_config_name'] = os.path.normpath(os.path.abspath(iohub_config_name))
+        print "Starting iohub with iohub_config_name:",kwargs['iohub_config_name']
+        return launchHubServer(**kwargs)
+
+    print "Starting iohub with default settings."
+    return launchHubServer(**kwargs)
