@@ -35,12 +35,12 @@ class MenuFrame(wx.Frame):
         self.menuBar = wx.MenuBar()
 
         self.viewMenu = wx.Menu()
-        self.menuBar.Append(self.viewMenu, '&View')
-        self.viewMenu.Append(self.app.IDs.openBuilderView, "&Open Builder view\t%s" %self.app.keys['switchToBuilder'], "Open a new Builder view")
+        self.menuBar.Append(self.viewMenu, _('&View'))
+        self.viewMenu.Append(self.app.IDs.openBuilderView, _("&Open Builder view\t%s") %self.app.keys['switchToBuilder'], _("Open a new Builder view"))
         wx.EVT_MENU(self, self.app.IDs.openBuilderView,  self.app.showBuilder)
-        self.viewMenu.Append(self.app.IDs.openCoderView, "&Open Coder view\t%s" %self.app.keys['switchToCoder'], "Open a new Coder view")
+        self.viewMenu.Append(self.app.IDs.openCoderView, _("&Open Coder view\t%s") %self.app.keys['switchToCoder'], _("Open a new Coder view"))
         wx.EVT_MENU(self, self.app.IDs.openCoderView,  self.app.showCoder)
-        item=self.viewMenu.Append(wx.ID_EXIT, "&Quit\t%s" %self.app.keys['quit'], "Terminate the program")
+        item=self.viewMenu.Append(wx.ID_EXIT, _("&Quit\t%s") %self.app.keys['quit'], _("Terminate the program"))
         self.Bind(wx.EVT_MENU, self.app.quit, item)
 
         self.SetMenuBar(self.menuBar)
@@ -61,6 +61,13 @@ class PsychoPyApp(wx.App):
         """
         self.version=psychopy.__version__
         self.SetAppName('PsychoPy2')
+
+        # import localization after wx:
+        from psychopy.app import localization  # needed by splash screen
+        self.localization = localization
+        self.locale = localization.wxlocale
+        self.locale.AddCatalog(self.GetAppName())
+
         #set default paths and prefs
         self.prefs = psychopy.prefs
         if self.prefs.app['debugMode']:
@@ -74,13 +81,13 @@ class PsychoPyApp(wx.App):
             splash = AS.AdvancedSplash(None, bitmap=splashBitmap, timeout=3000, style=AS.AS_TIMEOUT|wx.FRAME_SHAPED,
                                       shadowcolour=wx.RED)#could use this in future for transparency
             splash.SetTextPosition((10,240))
-            splash.SetText("  Loading libraries...")
+            splash.SetText(_("  Loading libraries..."))
         else:
             splash=None
 
         #LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
         #but then that they end up being local so keep track in self
-        if splash: splash.SetText("  Loading PsychoPy2...")
+        if splash: splash.SetText(_("  Loading PsychoPy2..."))
         from psychopy import compatibility
         from psychopy.app import coder, builder, dialogs, wxIDs, urls #import coder and builder here but only use them later
         self.keys = self.prefs.keys
@@ -151,17 +158,21 @@ class PsychoPyApp(wx.App):
         self.dpi = int(wx.GetDisplaySize()[0]/float(wx.GetDisplaySizeMM()[0])*25.4)
         if not (50<self.dpi<120): self.dpi=80#dpi was unreasonable, make one up
 
-        self._mainFont = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
+        if sys.platform=='win32': #wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32
+            self._mainFont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        else:
+            self._mainFont = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
         if hasattr(self._mainFont, 'Larger'):
             # Font.Larger is available since wyPython version 2.9.1
             # PsychoPy still supports 2.8 (see ensureMinimal above)
             self._mainFont = self._mainFont.Larger()
         self._codeFont = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FIXED_FONT)
         self._codeFont.SetFaceName(self.prefs.coder['codeFont'])
+        self._codeFont.SetPointSize(self._mainFont.GetPointSize()) #unify font size
 
         #create both frame for coder/builder as necess
         if splash:
-            splash.SetText("  Creating frames...")
+            splash.SetText(_("  Creating frames..."))
         self.coder = None
         self.builderFrames = []
         self.copiedRoutine=None
@@ -181,12 +192,13 @@ class PsychoPyApp(wx.App):
 
         ok, msg = compatibility.checkCompatibility(last, self.version, self.prefs, fix=True)
         if not ok and not self.firstRun and not self.testMode:  #tell the user what has changed
-            dlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title="Compatibility information")
+            dlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title=_("Compatibility information"))
             dlg.ShowModal()
 
         if self.prefs.app['showStartupTips'] and not self.testMode:
+            tipFile = os.path.join(self.prefs.paths['resources'], _("tips.txt"))
             tipIndex = self.prefs.appData['tipIndex']
-            tp = wx.CreateFileTipProvider(os.path.join(self.prefs.paths['resources'],"tips.txt"), tipIndex)
+            tp = wx.CreateFileTipProvider(tipFile, tipIndex)
             showTip = wx.ShowTip(None, tp)
             self.prefs.appData['tipIndex'] = tp.GetCurrentTip()
             self.prefs.saveAppData()
@@ -443,14 +455,11 @@ class PsychoPyApp(wx.App):
     def showAbout(self, event):
         logging.debug('PsychoPyApp: Showing about dlg')
 
-        licFile = open(os.path.join(self.prefs.paths['psychopy'],'LICENSE.txt'))
-        license = licFile.read()
-        licFile.close()
+        license = open(os.path.join(self.prefs.paths['psychopy'],'LICENSE.txt'), 'rU').read()
+        msg = _("""For stimulus generation and experimental control in python.
 
-        msg = """For stimulus generation and experimental control in python.
-
-            PsychoPy depends on your feedback. If something doesn't work then
-            let me/us know at psychopy-users@googlegroups.com""".replace('    ', '')
+            PsychoPy depends on your feedback. If something doesn't work
+            then let us know at psychopy-users@googlegroups.com""").replace('    ', '')
         info = wx.AboutDialogInfo()
         #info.SetIcon(wx.Icon(os.path.join(self.prefs.paths['resources'], 'psychopy.png'),wx.BITMAP_TYPE_PNG))
         info.SetName('PsychoPy')
@@ -467,9 +476,11 @@ class PsychoPyApp(wx.App):
         info.AddDeveloper('Yaroslav Halchenko')
         info.AddDeveloper('Erik Kastman')
         info.AddDeveloper('Michael MacAskill')
+        info.AddDeveloper('Hiroyuki Sogo')
         info.AddDocWriter('Jonathan Peirce')
         info.AddDocWriter('Jeremy Gray')
         info.AddDocWriter('Rebecca Sharman')
+        info.AddTranslator('Hiroyuki Sogo')
         if not self.testMode:
             wx.AboutBox(info)
 
@@ -484,4 +495,4 @@ class PsychoPyApp(wx.App):
 
 
 if __name__=='__main__':
-    raise "Do not launch the app from this script - use python psychopyApp.py instead"
+    sys.exit("Do not launch the app from this script - use python psychopyApp.py instead")

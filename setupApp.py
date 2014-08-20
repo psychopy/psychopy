@@ -37,7 +37,7 @@ setup(app=['psychopy/app/psychopyApp.py'],
                                   ],
                                   excludes=[],#anything we need to forcibly exclude?
                                   frameworks = ["libavbin.dylib","/usr/lib/libxml2.2.dylib", #"libyaml.dylib",
-                                                "libevent.dylib"],
+                                                "libevent.dylib","libffi.dylib"],
                                   resources=resources,
                                   argv_emulation=True,
                                   site_packages=True,
@@ -52,7 +52,7 @@ setup(app=['psychopy/app/psychopyApp.py'],
                                     'pyolib',
                                     'pandas','tables',#'cython',
                                     'msgpack','yaml','gevent',#for ioHub
-                                    'cv2',
+                                    'cv2','libsoundcard','libsoundfile',
                                     #these aren't needed, but liked
                                     'psychopy_ext','pyfilesec','rusocsci',
                                     ],

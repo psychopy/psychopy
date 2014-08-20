@@ -127,7 +127,11 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
         self._player.volume=volume
-        self._player_default_on_eos = self._player._on_eos
+        try:
+            self._player_default_on_eos = self._player.on_eos
+        except:
+            self._player_default_on_eos = self._player._on_eos #from pyglet 1.1.4?
+            
         self.filename=filename
         self.duration=None
         self.loop = loop

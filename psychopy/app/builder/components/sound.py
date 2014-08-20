@@ -8,7 +8,10 @@ from psychopy.app.builder import components #for getInitVals()
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'sound.png')
-tooltip = 'Sound: play recorded files or generated sounds'
+tooltip = _('Sound: play recorded files or generated sounds')
+
+# only use _localized values for label values, nothing functional:
+_localized = {'sound': _('Sound'), 'volume': _('Volume')}
 
 class SoundComponent(BaseComponent):
     """An event class for presenting sound stimuli"""
@@ -17,39 +20,25 @@ class SoundComponent(BaseComponent):
                 startType='time (s)', startVal='0.0',
                 stopType='duration (s)', stopVal='1.0',
                 startEstim='', durationEstim=''):
+        super(SoundComponent, self).__init__(exp, parentName, name,
+                startType=startType,startVal=startVal,
+                stopType=stopType, stopVal=stopVal,
+                startEstim=startEstim, durationEstim=durationEstim)
         self.type='Sound'
         self.url="http://www.psychopy.org/builder/components/sound.html"
-        self.parentName=parentName
-        self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['sound'])
         #params
-        self.order=[]#order for things (after name and timing params)
-        self.params={}
-        self.params['name']=Param(name, valType='code', hint="Everything needs a name (no spaces or punctuation)",
-            label="Name")
+        self.params['stopType'].allowedVals = ['duration (s)']
+        self.params['stopType'].hint = _('The maximum duration of a sound in seconds')
+        self.params['stopVal'].hint = _("When does the component end? (blank to use the duration of the media)")
         self.params['sound']=Param(sound, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) or a filename",
-            label="Sound")
-        self.params['startType']=Param(startType, valType='str',
-            allowedVals=['time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your start point?")
-        self.params['stopType']=Param(stopType, valType='str',
-            allowedVals=['duration (s)'],
-            hint="The maximum duration of a sound in seconds")
-        self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
-            hint="When does the sound start playing?")
-        self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="The maximum duration for the sound (blank to use the duration of the sound file)")
-        self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected start (s), purely for representing in the timeline")
-        self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected duration (s), purely for representing in the timeline")
+            hint=_("A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) or a filename"),
+            label=_localized['sound'])
         self.params['volume']=Param(volume, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="The volume (in range 0 to 1)",
-            label="Volume")
+            hint=_("The volume (in range 0 to 1)"),
+            label=_localized["volume"])
 
     def writeInitCode(self,buff):
         inits = components.getInitVals(self.params)#replaces variable params with sensible defaults

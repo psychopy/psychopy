@@ -1,0 +1,167 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <!-- names -->
+
+  <xsd:simpleType name="Name">
+     <xsd:restriction base="xsd:string">
+       <xsd:pattern value="\S+"/>
+     </xsd:restriction>
+  </xsd:simpleType>
+
+  <!-- parameter element -->
+
+  <xsd:simpleType name="ValType">
+     <xsd:restriction base="xsd:string">
+       <xsd:enumeration value="bool"/>
+       <xsd:enumeration value="code"/>
+       <xsd:enumeration value="extendedCode"/>
+       <xsd:enumeration value="num"/>
+       <xsd:enumeration value="str"/>
+     </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="Updates">
+     <xsd:restriction base="xsd:string">
+       <xsd:enumeration value="constant"/>
+       <xsd:enumeration value="None"/>
+       <xsd:enumeration value="set every frame"/>
+       <xsd:enumeration value="set every repeat"/>
+     </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:complexType name="Param">
+    <!--
+      important:
+      Attributes "name" and "value" are not checked for valid characters.
+    -->
+    <xsd:attribute name="name" type="xsd:string" use="required"/>
+    <xsd:attribute name="val" type="xsd:string" use="optional"/>
+    <xsd:attribute name="valType" type="ValType" use="optional"/>
+    <xsd:attribute name="updates" type="Updates" use="optional"/>
+  </xsd:complexType>
+
+  <!-- settings element -->
+
+  <xsd:complexType name="Settings">
+    <xsd:sequence>
+      <xsd:element name="Param" type="Param" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <!-- routines elements -->
+
+  <xsd:complexType name="Component">
+    <xsd:sequence>
+      <xsd:element name="Param" type="Param" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+    <xsd:attribute name="name" type="Name" use="required"/>
+  </xsd:complexType>
+
+  <xsd:group name="ComponentGroup">
+    <xsd:choice>
+      <xsd:element name="ApertureComponent" type="Component"/>
+      <xsd:element name="cedrusButtonBoxComponent" type="Component"/>
+      <xsd:element name="CodeComponent" type="Component"/>
+      <xsd:element name="DotsComponent" type="Component"/>
+      <xsd:element name="GratingComponent" type="Component"/>
+      <xsd:element name="ImageComponent" type="Component"/>
+      <xsd:element name="ioLabsButtonBoxComponent" type="Component"/>
+      <xsd:element name="KeyboardComponent" type="Component"/>
+      <xsd:element name="MicrophoneComponent" type="Component"/>
+      <xsd:element name="MouseComponent" type="Component"/>
+      <xsd:element name="MovieComponent" type="Component"/>
+      <xsd:element name="ParallelOutComponent" type="Component"/>
+      <xsd:element name="PolygonComponent" type="Component"/>
+      <xsd:element name="RatingScaleComponent" type="Component"/>
+      <xsd:element name="SoundComponent" type="Component"/>
+      <xsd:element name="StaticComponent" type="Component"/>
+      <xsd:element name="TextComponent" type="Component"/>
+    </xsd:choice>
+  </xsd:group>
+
+  <xsd:complexType name="Routine">
+    <xsd:sequence>
+      <xsd:group ref="ComponentGroup" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+    <xsd:attribute name="name" type="Name" use="required"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="Routines">
+    <xsd:sequence>
+      <xsd:element name="Routine" type="Routine" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <!-- flow elements -->
+
+  <xsd:simpleType name="LoopType">
+     <xsd:restriction base="xsd:string">
+       <xsd:enumeration value="MultiStairHandler"/>
+       <xsd:enumeration value="StairHandler"/>
+       <xsd:enumeration value="TrialHandler"/>
+     </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:complexType name="FlowRoutine">
+    <!--
+      important:
+      Attribute "name" is not checked for existence in Routines.
+    -->
+    <xsd:attribute name="name" type="Name" use="required"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="LoopInitiator">
+    <xsd:sequence>
+      <xsd:element name="Param" type="Param" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+    <xsd:attribute name="loopType" type="LoopType" use="required"/>
+    <xsd:attribute name="name" type="Name" use="required"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="LoopTerminator">
+    <xsd:attribute name="name" type="Name" use="required"/>
+  </xsd:complexType>
+
+  <xsd:group name="FlowGroup">
+    <xsd:choice>
+      <xsd:element name="Routine" type="FlowRoutine"/>
+      <!--
+        important:
+        Initiator/Terminator pairs and matching names are not checked.
+      -->
+      <xsd:element name="LoopInitiator" type="LoopInitiator"/>
+      <xsd:element name="LoopTerminator" type="LoopTerminator"/>
+    </xsd:choice>
+  </xsd:group>
+
+  <xsd:complexType name="Flow">
+    <xsd:sequence>
+      <xsd:choice>
+        <xsd:group ref="FlowGroup" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:choice>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <!-- experiment element -->
+
+  <xsd:complexType name="Experiment">
+    <xsd:all>
+      <xsd:element name="Settings" type="Settings"/>
+      <xsd:element name="Routines" type="Routines"/>
+      <xsd:element name="Flow" type="Flow"/>
+    </xsd:all>
+    <xsd:attribute name="version" type="xsd:string"/>
+    <xsd:attribute name="encoding" type="xsd:string"/>
+  </xsd:complexType>
+
+  <!-- root element -->
+
+  <xsd:element name="PsychoPy2experiment" type="Experiment">
+    <xsd:unique name="unique">
+      <xsd:selector xpath="./Routines/Routine/*|./Flow/LoopInitiator|./Routines/Routine"/>
+      <xsd:field xpath="@name"/>
+    </xsd:unique>
+  </xsd:element>
+
+</xsd:schema>

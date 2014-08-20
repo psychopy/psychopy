@@ -9,7 +9,12 @@ from psychopy import prefs
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'parallelOut.png')
-tooltip = 'Parallel out: send signals from the parallel port'
+tooltip = _('Parallel out: send signals from the parallel port')
+
+# only use _localized values for label values, nothing functional:
+_localized = {'address': _('Port address'), 'startData': _("Start data"),
+              'stopData': _("Stop data"), 'syncScreen': _('Sync to screen')
+              }
 
 class ParallelOutComponent(BaseComponent):
     """A class for sending signals from the parallel port"""
@@ -20,48 +25,41 @@ class ParallelOutComponent(BaseComponent):
                 startEstim='', durationEstim='',
                 address=None, startData="1", stopData="0",
                 syncScreen = True):
+        super(ParallelOutComponent, self).__init__(exp, parentName, name,
+                startType=startType,startVal=startVal,
+                stopType=stopType, stopVal=stopVal,
+                startEstim=startEstim, durationEstim=durationEstim)
         self.type='ParallelOut'
         self.url="http://www.psychopy.org/builder/components/parallelout.html"
-        self.parentName=parentName
-        self.exp=exp#so we can access the experiment if necess
         self.categories=['I/O']
         self.exp.requirePsychopyLibs(['parallel'])
         #params
-        self.params={}
         self.order=['address', 'startData', 'stopData']
-        self.params['name']=Param(name, valType='code', allowedTypes=[],
-            hint="Everything needs a name",
-            label="Name")
-        self.params['startType']=Param(startType, valType='str',
-            allowedVals=['time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your start point?")
-        self.params['stopType']=Param(stopType, valType='str',
-            allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your end point?")
-        self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
-            hint="When does the 'start' data get sent?")
-        self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="When does the 'end' data get sent?")
-        self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected start (s), purely for representing in the timeline")
-        self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected duration (s), purely for representing in the timeline")
+
         #main parameters
-        addressOptions = prefs.general['parallelPorts']
+        addressOptions = prefs.general['parallelPorts']+[u'LabJack U3']
+        if not address:
+            address = addressOptions[0]
         self.params['address'] = Param(address, valType='str', allowedVals=addressOptions,
-            hint="Parallel port to be used (you can change these options in preferences>general)")
+            hint=_("Parallel port to be used (you can change these options in preferences>general)"),
+            label=_localized['address'])
         self.params['startData'] = Param(startData, valType='code', allowedTypes=[],
-            hint="Data to be sent at 'start'")
+            hint=_("Data to be sent at 'start'"),
+            label=_localized['startData'])
         self.params['stopData'] = Param(stopData, valType='code', allowedTypes=[],
-            hint="Data to be sent at 'end'")
+            hint=_("Data to be sent at 'end'"),
+            label=_localized['stopData'])
         self.params['syncScreen']=Param(syncScreen, valType='bool',
             allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
-            hint="If the parallel port data relates to visual stimuli then sync its pulse to the screen refresh",
-            label="Sync to screen")
+            hint=_("If the parallel port data relates to visual stimuli then sync its pulse to the screen refresh"),
+            label=_localized['syncScreen'])
     def writeInitCode(self,buff):
-        buff.writeIndented("%(name)s = parallel.ParallelPort(address=%(address)s)\n" %(self.params))
+        if self.params['address'].val == 'LabJack U3':
+            buff.writeIndented("from psychopy.hardware import labjacks\n")
+            buff.writeIndented("%(name)s = labjacks.U3()\n" %(self.params))
+        else:
+            buff.writeIndented("%(name)s = parallel.ParallelPort(address=%(address)s)\n" %(self.params))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
         """

@@ -66,7 +66,7 @@ def _onPygletText(text, emulated=False):
     global useText
     if not useText: # _onPygletKey has handled the input
         return
-    keyTime=psychopy.clock.getTime() #capture when the key was pressed
+    keyTime=psychopy.core.getTime() #capture when the key was pressed
     if emulated:
         keySource = 'EmulatedKey'
     else:
@@ -91,7 +91,7 @@ def _onPygletKey(symbol, modifiers, emulated=False):
     """
 
     global useText
-    keyTime=psychopy.clock.getTime() #capture when the key was pressed
+    keyTime=psychopy.core.getTime() #capture when the key was pressed
     if emulated:
         thisKey = unicode(symbol)
         keySource = 'EmulatedKey'
@@ -243,7 +243,10 @@ def getKeys(keyList=None, timeStamped=False):
         keyNames = [k[0] for k in targets]
         return keyNames
     elif hasattr(timeStamped, 'getLastResetTime'):
-        relTuple = [(k[0],k[1]-timeStamped.getLastResetTime()) for k in targets]
+        #keys were originally time-stamped with core.monotonicClock._lastResetTime
+        #we need to shift that by the difference between it and our custom clock
+        timeBaseDiff = timeStamped.getLastResetTime() - psychopy.core.monotonicClock.getLastResetTime()
+        relTuple = [(k[0],k[1]-timeBaseDiff) for k in targets]
         return relTuple
     elif timeStamped==True:
         return targets

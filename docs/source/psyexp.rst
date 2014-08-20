@@ -2,6 +2,7 @@ PsychoPy Experiment file format (.psyexp)
 ============================================
 
 The file format used to save experiments constructed in PsychoPy builder was created especially for the purpose, but is an open format, using a basic xml form, that may be of use to other similar software. Indeed the builder itself could be used to generate experiments on different backends (such as Vision Egg, PsychToolbox or PyEPL). The xml format of the file makes it extremely platform independent, as well as moderately(?!) easy to read by a humans. There was a further suggestion to generate an XSD (or similar) `schema against which psyexp files could be validated <https://groups.google.com/forum/?fromgroups=#!topic/psychopy-dev/j3XkZEYj_PQ>`_. That is a low priority but welcome addition if you wanted to work on it(!)
+There is a basic XSD (XML Schema Definition) available in `psychopy/app/builder/experiment.xsd`.
 
 The simplest way to understand the file format is probably simply to create an experiment, save it and open the file in an xml-aware editor/viewer (e.g. change the file extension from .psyexp to .xml and then open it in firefox). An example (from the stroop demo) is shown below.
 
@@ -13,7 +14,7 @@ As with any xml file the format contains object `nodes` which can have direct pr
 
 Parameters
 ---------------------------
-Many of the nodes described within this xml description of the experiment contain Param entries, representing different parameters of that Component. All parameter nodes have a `name` property and a `val` property. Most also have a `valType` property, which can take values 'bool', 'code', 'str' and an `updates` property that specifies whether this parameter is changing during the experiment and, if so, whether it changes 'every frame' (of the monitor) or 'every repeat' (of the Routine).
+Many of the nodes described within this xml description of the experiment contain Param entries, representing different parameters of that Component. Nearly all parameter nodes have a `name` property and a `val` property. The parameter node with the name "advancedParams" does not have them. Most also have a `valType` property, which can take values 'bool', 'code', 'extendedCode', 'num', 'str' and an `updates` property that specifies whether this parameter is changing during the experiment and, if so, whether it changes 'every frame' (of the monitor) or 'every repeat' (of the Routine).
 
 .. _settingsXML:
 

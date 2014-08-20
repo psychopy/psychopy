@@ -2,7 +2,7 @@
 # Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from _base import *
+from keyboard import *
 from os import path
 
 from psychopy.app.builder.experiment import CodeGenerationException, _valid_var_re
@@ -11,9 +11,14 @@ __author__ = 'Jeremy Gray'
 
 thisFolder = path.abspath(path.dirname(__file__))  # abs path to the folder containing this path
 iconFile = path.join(thisFolder, 'ioLabs.png')
-tooltip = 'ioLabs ButtonBox: check and record response buttons on ioLab Systems ButtonBox'
+tooltip = _('ioLabs ButtonBox: check and record response buttons on ioLab Systems ButtonBox')
 
-class ioLabsButtonBoxComponent(BaseComponent):
+# only use _localized values for label values, nothing functional:
+_localized = {'active': _('Active buttons'), 'lights': _('Lights'),
+              'lights off': _('Lights off')
+              }
+
+class ioLabsButtonBoxComponent(KeyboardComponent):
     """An event class for checking an ioLab Systems buttonbox.
 
     This is based on keyboard component, several important differences:
@@ -31,66 +36,36 @@ class ioLabsButtonBoxComponent(BaseComponent):
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim=''):
+        super(ioLabsButtonBoxComponent, self).__init__(exp, parentName, name=name,
+                    store=store, discardPrev=discardPrev, correctAns=correctAns,
+                    forceEndRoutine=forceEndRoutine, storeCorrect=storeCorrect,
+                    startType=startType, startVal=startVal,
+                    stopType=stopType, stopVal=stopVal,
+                    startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'ioLabsButtonBox'
         self.url = "http://www.psychopy.org/builder/components/ioLabs.html"
-        self.exp = exp  # so we can access the experiment
         self.exp.requirePsychopyLibs(['hardware'])
-        self.parentName = parentName
+        del self.params['allowedKeys']
 
-        self.params = {}
         self.order = ['forceEndRoutine', 'active', #NB name and timing params always come 1st
             'lights', 'store', 'storeCorrect', 'correctAns']
-        self.params['name'] = Param(name, valType='code', hint="A name for this ButtonBox object (e.g. bbox)",
-            label="Name")
+
+        self.params['correctAns'].hint = _("What is the 'correct' response? NB, buttons are labelled 0 to 7 on a 8-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns")
+        self.params['store'].allowedVals = ['last button', 'first button', 'all buttons', 'nothing']
+        self.params['store'].hint = _('Choose which (if any) responses to store at end of a trial')
         self.params['active'] = Param(active, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint="Active buttons, such as '1,6', '(1,2,5,6)' or '0' (without quotes)",
-            label="Active buttons")
-        self.params['startType'] = Param(startType, valType='str',
-            allowedVals=['time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your start point?",
-            label="")
-        self.params['stopType'] = Param(stopType, valType='str',
-            allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
-            hint="How do you want to define your end point?")
-        self.params['startVal'] = Param(startVal, valType='code', allowedTypes=[],
-            hint="When does the bbox checking start?")
-        self.params['stopVal'] = Param(stopVal, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="When does the bbox checking end?")
-        self.params['startEstim'] = Param(startEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected start (s), purely for representing in the timeline")
-        self.params['durationEstim'] = Param(durationEstim, valType='code', allowedTypes=[],
-            hint="(Optional) expected duration (s), purely for representing in the timeline")
-        self.params['discard previous'] = Param(discardPrev, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="Do you want to discard all button presses occuring before the onset of this component?",
-            label="Discard previous")
-        self.params['store'] = Param(store, valType='str', allowedTypes=[],
-            allowedVals=['last button', 'first button', 'all buttons', 'nothing'],
-            updates='constant', allowedUpdates=[],
-            hint="Choose which (if any) responses to store at end of a trial",
-            label="Store")
-        self.params['forceEndRoutine'] = Param(forceEndRoutine, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="Should a button press force the end of the routine (e.g end the trial)?",
-            label="Force end of Routine")
-        self.params['storeCorrect'] = Param(storeCorrect, valType='bool', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="Do you want to save the response as correct/incorrect?",
-            label="Store correct")
+            hint=_("Active buttons, such as '1,6', '(1,2,5,6)' or '0' (without quotes)"),
+            label=_localized['active'])
+
         self.params['lights'] = Param(lights, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Turn ON the lights for the active buttons?",
-            label="Lights")
+            hint=_("Turn ON the lights for the active buttons?"),
+            label=_localized['lights'])
         self.params['lights off'] = Param(lightsOff, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Turn OFF all lights at the end of each routine?",
-            label="Lights off")
-        self.params['correctAns'] = Param(correctAns, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint="What is the 'correct' response? Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns",
-            label="Correct answer")
+            hint=_("Turn OFF all lights at the end of each routine?"),
+            label=_localized['lights off'])
 
     def writeStartCode(self, buff):
         # avoid duplicates; ok for init but not safe to do in routine, frame, etc

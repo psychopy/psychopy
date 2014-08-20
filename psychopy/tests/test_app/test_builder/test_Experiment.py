@@ -10,6 +10,7 @@ from psychopy import core, tests
 import pytest
 import locale
 import wx
+from lxml import etree
 import threading
 #from psychopy.info import _getSha1hexDigest as sha1hex
 
@@ -63,6 +64,28 @@ class TestExpt():
 
     def teardown(self):
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
+
+    def test_xsd(self):
+        # get files
+
+        psyexp_files = []
+
+        for root, dirs, files in os.walk(os.path.join(self.exp.prefsPaths['demos'], 'builder')):
+            for f in files:
+                if f.endswith('.psyexp'):
+                    psyexp_files.append(os.path.join(root, f))
+
+        # get schema
+
+        schema_name = path.join(self.exp.prefsPaths['appDir'], 'builder', 'experiment.xsd');
+        schema_root = etree.parse(schema_name)
+        schema = etree.XMLSchema(schema_root)
+
+        # validate files with schema
+
+        for psyexp_file in psyexp_files:
+            project_root = etree.parse(psyexp_file)
+            schema.assertValid(project_root)
 
     def test_missing_dotval(self):
         """search for a builder component gotcha:
@@ -197,6 +220,11 @@ class TestExpt():
 
         #savedLocale = '.'.join(locale.getlocale())
         locale.setlocale(locale.LC_ALL, '') # default
+        if not sys.platform.startswith('win'):
+            testlocList = ['en_US', 'en_US.UTF-8', 'ja_JP']
+        else:
+            testlocList = ['USA', 'JPN']
+
         for file in test_psyexp:
             # test for any diffs using various locale's:
             for loc in ['en_US', 'ja_JP']:
@@ -218,8 +246,7 @@ class TestExpt():
                 #diff_in_file_psyexp += diff_psyexp
                 #diff_pyc = (sha1_first != sha1_second)
                 #assert not diff_pyc
-        if self.exp.prefsApp['locale']:
-            locale.setlocale(locale.LC_ALL, self.exp.prefsApp['locale'])
+        #locale.setlocale(locale.LC_ALL,'C')
 
         assert not diff_in_file_py ### see known_py_diffs.txt; potentially a locale issue? ###
         #assert not diff_in_file_psyexp # was failing most times, uninformative

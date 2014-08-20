@@ -1,0 +1,3127 @@
+ApertureComponent.order: ['name', 'size', 'pos']
+ApertureComponent.name.default: aperture
+ApertureComponent.name.staticUpdater: None
+ApertureComponent.name.categ: Basic
+ApertureComponent.name.val: aperture
+ApertureComponent.name.allowedTypes: []
+ApertureComponent.name.hint: Name of this stimulus
+ApertureComponent.name.allowedUpdates: None
+ApertureComponent.name.allowedVals: []
+ApertureComponent.name.label: Name
+ApertureComponent.name.valType: code
+ApertureComponent.stopVal.default: 1.0
+ApertureComponent.stopVal.staticUpdater: None
+ApertureComponent.stopVal.categ: Basic
+ApertureComponent.stopVal.val: 1.0
+ApertureComponent.stopVal.allowedTypes: []
+ApertureComponent.stopVal.hint: When does the aperture stop having an effect?
+ApertureComponent.stopVal.allowedUpdates: []
+ApertureComponent.stopVal.allowedVals: []
+ApertureComponent.stopVal.label: 
+ApertureComponent.stopVal.updates: constant
+ApertureComponent.stopVal.valType: code
+ApertureComponent.durationEstim.default: 
+ApertureComponent.durationEstim.staticUpdater: None
+ApertureComponent.durationEstim.categ: Basic
+ApertureComponent.durationEstim.val: 
+ApertureComponent.durationEstim.allowedTypes: []
+ApertureComponent.durationEstim.hint: (Optional) expected duration (s) of stimulus, purely for representing in the timeline
+ApertureComponent.durationEstim.allowedUpdates: None
+ApertureComponent.durationEstim.allowedVals: []
+ApertureComponent.durationEstim.label: 
+ApertureComponent.durationEstim.updates: None
+ApertureComponent.durationEstim.valType: code
+ApertureComponent.pos.default: (0, 0)
+ApertureComponent.pos.staticUpdater: None
+ApertureComponent.pos.categ: Basic
+ApertureComponent.pos.val: (0, 0)
+ApertureComponent.pos.allowedTypes: []
+ApertureComponent.pos.hint: Where is the aperture centred?
+ApertureComponent.pos.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+ApertureComponent.pos.allowedVals: []
+ApertureComponent.pos.label: Position [x,y]
+ApertureComponent.pos.updates: constant
+ApertureComponent.pos.valType: code
+ApertureComponent.startEstim.default: 
+ApertureComponent.startEstim.staticUpdater: None
+ApertureComponent.startEstim.categ: Basic
+ApertureComponent.startEstim.val: 
+ApertureComponent.startEstim.allowedTypes: []
+ApertureComponent.startEstim.hint: (Optional) expected start (s) of stimulus, purely for representing in the timeline
+ApertureComponent.startEstim.allowedUpdates: None
+ApertureComponent.startEstim.allowedVals: []
+ApertureComponent.startEstim.label: 
+ApertureComponent.startEstim.updates: None
+ApertureComponent.startEstim.valType: code
+ApertureComponent.units.default: 'norm'
+ApertureComponent.units.staticUpdater: None
+ApertureComponent.units.categ: Basic
+ApertureComponent.units.val: norm
+ApertureComponent.units.allowedTypes: []
+ApertureComponent.units.hint: Units of dimensions for this stimulus
+ApertureComponent.units.allowedUpdates: None
+ApertureComponent.units.allowedVals: ['from exp settings', 'deg', 'cm', 'pix', 'norm']
+ApertureComponent.units.label: Units
+ApertureComponent.units.updates: None
+ApertureComponent.units.valType: str
+ApertureComponent.startType.default: 'time (s)'
+ApertureComponent.startType.staticUpdater: None
+ApertureComponent.startType.categ: Basic
+ApertureComponent.startType.val: time (s)
+ApertureComponent.startType.allowedTypes: []
+ApertureComponent.startType.hint: How do you want to define your start point?
+ApertureComponent.startType.allowedUpdates: None
+ApertureComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
+ApertureComponent.startType.label: 
+ApertureComponent.startType.updates: None
+ApertureComponent.startType.valType: str
+ApertureComponent.stopType.default: 'duration (s)'
+ApertureComponent.stopType.staticUpdater: None
+ApertureComponent.stopType.categ: Basic
+ApertureComponent.stopType.val: duration (s)
+ApertureComponent.stopType.allowedTypes: []
+ApertureComponent.stopType.hint: How do you want to define your end point?
+ApertureComponent.stopType.allowedUpdates: None
+ApertureComponent.stopType.allowedVals: ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+ApertureComponent.stopType.label: 
+ApertureComponent.stopType.updates: None
+ApertureComponent.stopType.valType: str
+ApertureComponent.startVal.default: 0.0
+ApertureComponent.startVal.staticUpdater: None
+ApertureComponent.startVal.categ: Basic
+ApertureComponent.startVal.val: 0.0
+ApertureComponent.startVal.allowedTypes: []
+ApertureComponent.startVal.hint: When does the aperture come into effect?
+ApertureComponent.startVal.allowedUpdates: None
+ApertureComponent.startVal.allowedVals: []
+ApertureComponent.startVal.label: 
+ApertureComponent.startVal.updates: None
+ApertureComponent.startVal.valType: code
+ApertureComponent.size.default: 1
+ApertureComponent.size.staticUpdater: None
+ApertureComponent.size.categ: Basic
+ApertureComponent.size.val: 1
+ApertureComponent.size.allowedTypes: []
+ApertureComponent.size.hint: How big is the aperture? (a single number for diameter)
+ApertureComponent.size.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+ApertureComponent.size.allowedVals: []
+ApertureComponent.size.label: Size
+ApertureComponent.size.updates: constant
+ApertureComponent.size.valType: code
+CodeComponent.order: ['name', 'Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment']
+CodeComponent.Begin Experiment.default: 
+CodeComponent.Begin Experiment.staticUpdater: None
+CodeComponent.Begin Experiment.categ: Basic
+CodeComponent.Begin Experiment.val: 
+CodeComponent.Begin Experiment.allowedTypes: []
+CodeComponent.Begin Experiment.hint: Code at the start of the experiment (initialization); right-click checks syntax
+CodeComponent.Begin Experiment.allowedUpdates: []
+CodeComponent.Begin Experiment.allowedVals: []
+CodeComponent.Begin Experiment.label: 
+CodeComponent.Begin Experiment.updates: constant
+CodeComponent.Begin Experiment.valType: extendedCode
+CodeComponent.name.default: code
+CodeComponent.name.staticUpdater: None
+CodeComponent.name.categ: Basic
+CodeComponent.name.val: code
+CodeComponent.name.allowedTypes: []
+CodeComponent.name.hint: 
+CodeComponent.name.allowedUpdates: None
+CodeComponent.name.allowedVals: []
+CodeComponent.name.label: Name
+CodeComponent.name.valType: code
+CodeComponent.Each Frame.default: 
+CodeComponent.Each Frame.staticUpdater: None
+CodeComponent.Each Frame.categ: Basic
+CodeComponent.Each Frame.val: 
+CodeComponent.Each Frame.allowedTypes: []
+CodeComponent.Each Frame.hint: Code to be run on every video frame during for the duration of this Routine; right-click checks syntax
+CodeComponent.Each Frame.allowedUpdates: []
+CodeComponent.Each Frame.allowedVals: []
+CodeComponent.Each Frame.label: 
+CodeComponent.Each Frame.updates: constant
+CodeComponent.Each Frame.valType: extendedCode
+CodeComponent.Begin Routine.default: 
+CodeComponent.Begin Routine.staticUpdater: None
+CodeComponent.Begin Routine.categ: Basic
+CodeComponent.Begin Routine.val: 
+CodeComponent.Begin Routine.allowedTypes: []
+CodeComponent.Begin Routine.hint: Code to be run at the start of each repeat of the Routine (e.g. each trial); right-click checks syntax
+CodeComponent.Begin Routine.allowedUpdates: []
+CodeComponent.Begin Routine.allowedVals: []
+CodeComponent.Begin Routine.label: 
+CodeComponent.Begin Routine.updates: constant
+CodeComponent.Begin Routine.valType: extendedCode
+CodeComponent.End Routine.default: 
+CodeComponent.End Routine.staticUpdater: None
+CodeComponent.End Routine.categ: Basic
+CodeComponent.End Routine.val: 
+CodeComponent.End Routine.allowedTypes: []
+CodeComponent.End Routine.hint: Code at the end of this repeat of the Routine (e.g. getting/storing responses); right-click checks syntax
+CodeComponent.End Routine.allowedUpdates: []
+CodeComponent.End Routine.allowedVals: []
+CodeComponent.End Routine.label: 
+CodeComponent.End Routine.updates: constant
+CodeComponent.End Routine.valType: extendedCode
+CodeComponent.End Experiment.default: 
+CodeComponent.End Experiment.staticUpdater: None
+CodeComponent.End Experiment.categ: Basic
+CodeComponent.End Experiment.val: 
+CodeComponent.End Experiment.allowedTypes: []
+CodeComponent.End Experiment.hint: Code at the end of the entire experiment (e.g. saving files, resetting computer); right-click checks syntax
+CodeComponent.End Experiment.allowedUpdates: []
+CodeComponent.End Experiment.allowedVals: []
+CodeComponent.End Experiment.label: 
+CodeComponent.End Experiment.updates: constant
+CodeComponent.End Experiment.valType: extendedCode
+DotsComponent.order: []
+DotsComponent.color.default: [1.0,1.0,1.0]
+DotsComponent.color.staticUpdater: None
+DotsComponent.color.categ: Basic
+DotsComponent.color.val: $[1.0,1.0,1.0]
+DotsComponent.color.allowedTypes: []
+DotsComponent.color.hint: Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)
+DotsComponent.color.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+DotsComponent.color.allowedVals: []
+DotsComponent.color.label: Color
+DotsComponent.color.updates: constant
+DotsComponent.color.valType: str
+DotsComponent.colorSpace.default: 'rgb'
+DotsComponent.colorSpace.staticUpdater: None
+DotsComponent.colorSpace.categ: Basic
+DotsComponent.colorSpace.val: rgb
+DotsComponent.colorSpace.allowedTypes: []
+DotsComponent.colorSpace.hint: Choice of color space for the color (rgb, dkl, lms)
+DotsComponent.colorSpace.allowedUpdates: None
+DotsComponent.colorSpace.allowedVals: ['rgb', 'dkl', 'lms']
+DotsComponent.colorSpace.label: Color space
+DotsComponent.colorSpace.updates: constant
+DotsComponent.colorSpace.valType: str
+DotsComponent.startVal.default: 0.0
+DotsComponent.startVal.staticUpdater: None
+DotsComponent.startVal.categ: Basic
+DotsComponent.startVal.val: 0.0
+DotsComponent.startVal.allowedTypes: []
+DotsComponent.startVal.hint: When does the stimulus start?
+DotsComponent.startVal.allowedUpdates: None
+DotsComponent.startVal.allowedVals: []
+DotsComponent.startVal.label: 
+DotsComponent.startVal.updates: None
+DotsComponent.startVal.valType: code
+DotsComponent.fieldPos.default: [0.0, 0.0]
+DotsComponent.fieldPos.staticUpdater: None
+DotsComponent.fieldPos.categ: Basic
+DotsComponent.fieldPos.val: [0.0, 0.0]
+DotsComponent.fieldPos.allowedTypes: []
+DotsComponent.fieldPos.hint: Where is the field centred (in the specified units)?
+DotsComponent.fieldPos.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+DotsComponent.fieldPos.allowedVals: []
+DotsComponent.fieldPos.label: Field position
+DotsComponent.fieldPos.updates: constant
+DotsComponent.fieldPos.valType: code
+DotsComponent.speed.default: 0.1
+DotsComponent.speed.staticUpdater: None
+DotsComponent.speed.categ: Basic
+DotsComponent.speed.val: 0.1
+DotsComponent.speed.allowedTypes: []
+DotsComponent.speed.hint: Speed of the dots (displacement per frame in the specified units)
+DotsComponent.speed.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+DotsComponent.speed.allowedVals: []
+DotsComponent.speed.label: Speed
+DotsComponent.speed.updates: constant
+DotsComponent.speed.valType: code
+DotsComponent.noiseDots.default: 'direction'
+DotsComponent.noiseDots.staticUpdater: None
+DotsComponent.noiseDots.categ: Advanced
+DotsComponent.noiseDots.val: direction
+DotsComponent.noiseDots.allowedTypes: []
+DotsComponent.noiseDots.hint: What governs the behaviour of the noise dots? See Scase et al.
+DotsComponent.noiseDots.allowedUpdates: None
+DotsComponent.noiseDots.allowedVals: ['direction', 'position', 'walk']
+DotsComponent.noiseDots.label: Noise dots
+DotsComponent.noiseDots.updates: None
+DotsComponent.noiseDots.valType: str
+DotsComponent.dotLife.default: 3
+DotsComponent.dotLife.staticUpdater: None
+DotsComponent.dotLife.categ: Basic
+DotsComponent.dotLife.val: 3
+DotsComponent.dotLife.allowedTypes: []
+DotsComponent.dotLife.hint: Number of frames before each dot is killed and randomly assigned a new position
+DotsComponent.dotLife.allowedUpdates: None
+DotsComponent.dotLife.allowedVals: []
+DotsComponent.dotLife.label: Dot lifetime
+DotsComponent.dotLife.updates: None
+DotsComponent.dotLife.valType: code
+DotsComponent.units.default: 'from exp settings'
+DotsComponent.units.staticUpdater: None
+DotsComponent.units.categ: Basic
+DotsComponent.units.val: from exp settings
+DotsComponent.units.allowedTypes: []
+DotsComponent.units.hint: Units of dimensions for this stimulus
+DotsComponent.units.allowedUpdates: None
+DotsComponent.units.allowedVals: ['from exp settings', 'deg', 'cm', 'pix', 'norm']
+DotsComponent.units.label: Units
+DotsComponent.units.updates: None
+DotsComponent.units.valType: str
+DotsComponent.opacity.default: 1
+DotsComponent.opacity.staticUpdater: None
+DotsComponent.opacity.categ: Basic
+DotsComponent.opacity.val: 1
+DotsComponent.opacity.allowedTypes: []
+DotsComponent.opacity.hint: Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)
+DotsComponent.opacity.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+DotsComponent.opacity.allowedVals: []
+DotsComponent.opacity.label: Opacity
+DotsComponent.opacity.updates: constant
+DotsComponent.opacity.valType: code
+DotsComponent.fieldShape.default: 'circle'
+DotsComponent.fieldShape.staticUpdater: None
+DotsComponent.fieldShape.categ: Basic
+DotsComponent.fieldShape.val: circle
+DotsComponent.fieldShape.allowedTypes: []
+DotsComponent.fieldShape.hint: What is the shape of the field?
+DotsComponent.fieldShape.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+DotsComponent.fieldShape.allowedVals: ['circle', 'square']
+DotsComponent.fieldShape.label: Field shape
+DotsComponent.fieldShape.updates: constant
+DotsComponent.fieldShape.valType: str
+DotsComponent.coherence.default: 1.0
+DotsComponent.coherence.staticUpdater: None
+DotsComponent.coherence.categ: Basic
+DotsComponent.coherence.val: 1.0
+DotsComponent.coherence.allowedTypes: []
+DotsComponent.coherence.hint: Coherence of the dots (fraction moving in the signal direction on any one frame)
+DotsComponent.coherence.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+DotsComponent.coherence.allowedVals: []
+DotsComponent.coherence.label: Coherence
+DotsComponent.coherence.updates: constant
+DotsComponent.coherence.valType: code
+DotsComponent.nDots.default: 100
+DotsComponent.nDots.staticUpdater: None
+DotsComponent.nDots.categ: Basic
+DotsComponent.nDots.val: 100
+DotsComponent.nDots.allowedTypes: []
+DotsComponent.nDots.hint: Number of dots in the field (for circular fields this will be average number of dots)
+DotsComponent.nDots.allowedUpdates: None
+DotsComponent.nDots.allowedVals: []
+DotsComponent.nDots.label: Number of dots
+DotsComponent.nDots.updates: constant
+DotsComponent.nDots.valType: code
+DotsComponent.stopVal.default: 1.0
+DotsComponent.stopVal.staticUpdater: None
+DotsComponent.stopVal.categ: Basic
+DotsComponent.stopVal.val: 1.0
+DotsComponent.stopVal.allowedTypes: []
+DotsComponent.stopVal.hint: When does the stimulus end?
+DotsComponent.stopVal.allowedUpdates: []
+DotsComponent.stopVal.allowedVals: []
+DotsComponent.stopVal.label: 
+DotsComponent.stopVal.updates: constant
+DotsComponent.stopVal.valType: code
+DotsComponent.durationEstim.default: 
+DotsComponent.durationEstim.staticUpdater: None
+DotsComponent.durationEstim.categ: Basic
+DotsComponent.durationEstim.val: 
+DotsComponent.durationEstim.allowedTypes: []
+DotsComponent.durationEstim.hint: (Optional) expected duration (s) of stimulus, purely for representing in the timeline
+DotsComponent.durationEstim.allowedUpdates: None
+DotsComponent.durationEstim.allowedVals: []
+DotsComponent.durationEstim.label: 
+DotsComponent.durationEstim.updates: None
+DotsComponent.durationEstim.valType: code
+DotsComponent.fieldSize.default: 1.0
+DotsComponent.fieldSize.staticUpdater: None
+DotsComponent.fieldSize.categ: Basic
+DotsComponent.fieldSize.val: 1.0
+DotsComponent.fieldSize.allowedTypes: []
+DotsComponent.fieldSize.hint: What is the size of the field (in the specified units)?
+DotsComponent.fieldSize.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+DotsComponent.fieldSize.allowedVals: []
+DotsComponent.fieldSize.label: Field size
+DotsComponent.fieldSize.updates: constant
+DotsComponent.fieldSize.valType: code
+DotsComponent.startEstim.default: 
+DotsComponent.startEstim.staticUpdater: None
+DotsComponent.startEstim.categ: Basic
+DotsComponent.startEstim.val: 
+DotsComponent.startEstim.allowedTypes: []
+DotsComponent.startEstim.hint: (Optional) expected start (s) of stimulus, purely for representing in the timeline
+DotsComponent.startEstim.allowedUpdates: None
+DotsComponent.startEstim.allowedVals: []
+DotsComponent.startEstim.label: 
+DotsComponent.startEstim.updates: None
+DotsComponent.startEstim.valType: code
+DotsComponent.signalDots.default: 'same'
+DotsComponent.signalDots.staticUpdater: None
+DotsComponent.signalDots.categ: Advanced
+DotsComponent.signalDots.val: same
+DotsComponent.signalDots.allowedTypes: []
+DotsComponent.signalDots.hint: On each frame are the signals dots remaining the same or changing? See Scase et al.
+DotsComponent.signalDots.allowedUpdates: None
+DotsComponent.signalDots.allowedVals: ['same', 'different']
+DotsComponent.signalDots.label: Signal dots
+DotsComponent.signalDots.updates: None
+DotsComponent.signalDots.valType: str
+DotsComponent.startType.default: 'time (s)'
+DotsComponent.startType.staticUpdater: None
+DotsComponent.startType.categ: Basic
+DotsComponent.startType.val: time (s)
+DotsComponent.startType.allowedTypes: []
+DotsComponent.startType.hint: How do you want to define your start point?
+DotsComponent.startType.allowedUpdates: None
+DotsComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
+DotsComponent.startType.label: 
+DotsComponent.startType.updates: None
+DotsComponent.startType.valType: str
+DotsComponent.stopType.default: 'duration (s)'
+DotsComponent.stopType.staticUpdater: None
+DotsComponent.stopType.categ: Basic
+DotsComponent.stopType.val: duration (s)
+DotsComponent.stopType.allowedTypes: []
+DotsComponent.stopType.hint: How do you want to define your end point?
+DotsComponent.stopType.allowedUpdates: None
+DotsComponent.stopType.allowedVals: ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+DotsComponent.stopType.label: 
+DotsComponent.stopType.updates: None
+DotsComponent.stopType.valType: str
+DotsComponent.name.default: dots
+DotsComponent.name.staticUpdater: None
+DotsComponent.name.categ: Basic
+DotsComponent.name.val: dots
+DotsComponent.name.allowedTypes: []
+DotsComponent.name.hint: 
+DotsComponent.name.allowedUpdates: None
+DotsComponent.name.allowedVals: []
+DotsComponent.name.label: Name
+DotsComponent.name.valType: code
+DotsComponent.dotSize.default: 2
+DotsComponent.dotSize.staticUpdater: None
+DotsComponent.dotSize.categ: Basic
+DotsComponent.dotSize.val: 2
+DotsComponent.dotSize.allowedTypes: []
+DotsComponent.dotSize.hint: Size of the dots IN PIXELS regardless of the set units
+DotsComponent.dotSize.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+DotsComponent.dotSize.allowedVals: []
+DotsComponent.dotSize.label: Dot Size
+DotsComponent.dotSize.updates: constant
+DotsComponent.dotSize.valType: code
+DotsComponent.dir.default: 0.0
+DotsComponent.dir.staticUpdater: None
+DotsComponent.dir.categ: Basic
+DotsComponent.dir.val: 0.0
+DotsComponent.dir.allowedTypes: []
+DotsComponent.dir.hint: Direction of motion for the signal dots (degrees)
+DotsComponent.dir.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+DotsComponent.dir.allowedVals: []
+DotsComponent.dir.label: Direction
+DotsComponent.dir.updates: constant
+DotsComponent.dir.valType: code
+GratingComponent.order: ['tex', 'mask']
+GratingComponent.opacity.default: 1
+GratingComponent.opacity.staticUpdater: None
+GratingComponent.opacity.categ: Basic
+GratingComponent.opacity.val: 1
+GratingComponent.opacity.allowedTypes: []
+GratingComponent.opacity.hint: Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)
+GratingComponent.opacity.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+GratingComponent.opacity.allowedVals: []
+GratingComponent.opacity.label: Opacity
+GratingComponent.opacity.updates: constant
+GratingComponent.opacity.valType: code
+GratingComponent.tex.default: 'sin'
+GratingComponent.tex.staticUpdater: None
+GratingComponent.tex.categ: Basic
+GratingComponent.tex.val: sin
+GratingComponent.tex.allowedTypes: []
+GratingComponent.tex.hint: The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename (including path)
+GratingComponent.tex.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+GratingComponent.tex.allowedVals: []
+GratingComponent.tex.label: Texture
+GratingComponent.tex.updates: constant
+GratingComponent.tex.valType: str
+GratingComponent.colorSpace.default: 'rgb'
+GratingComponent.colorSpace.staticUpdater: None
+GratingComponent.colorSpace.categ: Basic
+GratingComponent.colorSpace.val: rgb
+GratingComponent.colorSpace.allowedTypes: []
+GratingComponent.colorSpace.hint: Choice of color space for the color (rgb, dkl, lms)
+GratingComponent.colorSpace.allowedUpdates: None
+GratingComponent.colorSpace.allowedVals: ['rgb', 'dkl', 'lms']
+GratingComponent.colorSpace.label: Color space
+GratingComponent.colorSpace.updates: constant
+GratingComponent.colorSpace.valType: str
+GratingComponent.name.default: grating
+GratingComponent.name.staticUpdater: None
+GratingComponent.name.categ: Basic
+GratingComponent.name.val: grating
+GratingComponent.name.allowedTypes: []
+GratingComponent.name.hint: Name of this stimulus
+GratingComponent.name.allowedUpdates: None
+GratingComponent.name.allowedVals: []
+GratingComponent.name.label: Name
+GratingComponent.name.valType: code
+GratingComponent.color.default: [1,1,1]
+GratingComponent.color.staticUpdater: None
+GratingComponent.color.categ: Basic
+GratingComponent.color.val: $[1,1,1]
+GratingComponent.color.allowedTypes: []
+GratingComponent.color.hint: Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)
+GratingComponent.color.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+GratingComponent.color.allowedVals: []
+GratingComponent.color.label: Color
+GratingComponent.color.updates: constant
+GratingComponent.color.valType: str
+GratingComponent.stopVal.default: 1.0
+GratingComponent.stopVal.staticUpdater: None
+GratingComponent.stopVal.categ: Basic
+GratingComponent.stopVal.val: 1.0
+GratingComponent.stopVal.allowedTypes: []
+GratingComponent.stopVal.hint: When does the stimulus end?
+GratingComponent.stopVal.allowedUpdates: []
+GratingComponent.stopVal.allowedVals: []
+GratingComponent.stopVal.label: 
+GratingComponent.stopVal.updates: constant
+GratingComponent.stopVal.valType: code
+GratingComponent.durationEstim.default: 
+GratingComponent.durationEstim.staticUpdater: None
+GratingComponent.durationEstim.categ: Basic
+GratingComponent.durationEstim.val: 
+GratingComponent.durationEstim.allowedTypes: []
+GratingComponent.durationEstim.hint: (Optional) expected duration (s) of stimulus, purely for representing in the timeline
+GratingComponent.durationEstim.allowedUpdates: None
+GratingComponent.durationEstim.allowedVals: []
+GratingComponent.durationEstim.label: 
+GratingComponent.durationEstim.updates: None
+GratingComponent.durationEstim.valType: code
+GratingComponent.mask.default: 'None'
+GratingComponent.mask.staticUpdater: None
+GratingComponent.mask.categ: Basic
+GratingComponent.mask.val: None
+GratingComponent.mask.allowedTypes: []
+GratingComponent.mask.hint: An image to define the alpha mask (ie shape)- gauss, circle... or a filename (including path)
+GratingComponent.mask.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+GratingComponent.mask.allowedVals: []
+GratingComponent.mask.label: Mask
+GratingComponent.mask.updates: constant
+GratingComponent.mask.valType: str
+GratingComponent.pos.default: [0, 0]
+GratingComponent.pos.staticUpdater: None
+GratingComponent.pos.categ: Basic
+GratingComponent.pos.val: [0, 0]
+GratingComponent.pos.allowedTypes: []
+GratingComponent.pos.hint: Position of this stimulus (e.g. [1,2] )
+GratingComponent.pos.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+GratingComponent.pos.allowedVals: []
+GratingComponent.pos.label: Position [x,y]
+GratingComponent.pos.updates: constant
+GratingComponent.pos.valType: code
+GratingComponent.interpolate.default: 'linear'
+GratingComponent.interpolate.staticUpdater: None
+GratingComponent.interpolate.categ: Advanced
+GratingComponent.interpolate.val: linear
+GratingComponent.interpolate.allowedTypes: []
+GratingComponent.interpolate.hint: How should the image be interpolated if/when rescaled
+GratingComponent.interpolate.allowedUpdates: []
+GratingComponent.interpolate.allowedVals: ['linear', 'nearest']
+GratingComponent.interpolate.label: Interpolate
+GratingComponent.interpolate.updates: constant
+GratingComponent.interpolate.valType: str
+GratingComponent.startEstim.default: 
+GratingComponent.startEstim.staticUpdater: None
+GratingComponent.startEstim.categ: Basic
+GratingComponent.startEstim.val: 
+GratingComponent.startEstim.allowedTypes: []
+GratingComponent.startEstim.hint: (Optional) expected start (s) of stimulus, purely for representing in the timeline
+GratingComponent.startEstim.allowedUpdates: None
+GratingComponent.startEstim.allowedVals: []
+GratingComponent.startEstim.label: 
+GratingComponent.startEstim.updates: None
+GratingComponent.startEstim.valType: code
+GratingComponent.units.default: 'from exp settings'
+GratingComponent.units.staticUpdater: None
+GratingComponent.units.categ: Basic
+GratingComponent.units.val: from exp settings
+GratingComponent.units.allowedTypes: []
+GratingComponent.units.hint: Units of dimensions for this stimulus
+GratingComponent.units.allowedUpdates: None
+GratingComponent.units.allowedVals: ['from exp settings', 'deg', 'cm', 'pix', 'norm']
+GratingComponent.units.label: Units
+GratingComponent.units.updates: None
+GratingComponent.units.valType: str
+GratingComponent.texture resolution.default: 128
+GratingComponent.texture resolution.staticUpdater: None
+GratingComponent.texture resolution.categ: Advanced
+GratingComponent.texture resolution.val: 128
+GratingComponent.texture resolution.allowedTypes: []
+GratingComponent.texture resolution.hint: Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice
+GratingComponent.texture resolution.allowedUpdates: []
+GratingComponent.texture resolution.allowedVals: ['32', '64', '128', '256', '512']
+GratingComponent.texture resolution.label: Texture resolution
+GratingComponent.texture resolution.updates: constant
+GratingComponent.texture resolution.valType: code
+GratingComponent.phase.default: 0.0
+GratingComponent.phase.staticUpdater: None
+GratingComponent.phase.categ: Basic
+GratingComponent.phase.val: 0.0
+GratingComponent.phase.allowedTypes: []
+GratingComponent.phase.hint: Spatial positioning of the image on the grating (wraps in range 0-1.0)
+GratingComponent.phase.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+GratingComponent.phase.allowedVals: []
+GratingComponent.phase.label: Phase (in cycles)
+GratingComponent.phase.updates: constant
+GratingComponent.phase.valType: code
+GratingComponent.startType.default: 'time (s)'
+GratingComponent.startType.staticUpdater: None
+GratingComponent.startType.categ: Basic
+GratingComponent.startType.val: time (s)
+GratingComponent.startType.allowedTypes: []
+GratingComponent.startType.hint: How do you want to define your start point?
+GratingComponent.startType.allowedUpdates: None
+GratingComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
+GratingComponent.startType.label: 
+GratingComponent.startType.updates: None
+GratingComponent.startType.valType: str
+GratingComponent.ori.default: 0
+GratingComponent.ori.staticUpdater: None
+GratingComponent.ori.categ: Basic
+GratingComponent.ori.val: 0
+GratingComponent.ori.allowedTypes: []
+GratingComponent.ori.hint: Orientation of this stimulus (in deg)
+GratingComponent.ori.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+GratingComponent.ori.allowedVals: []
+GratingComponent.ori.label: Orientation
+GratingComponent.ori.updates: constant
+GratingComponent.ori.valType: code
+GratingComponent.stopType.default: 'duration (s)'
+GratingComponent.stopType.staticUpdater: None
+GratingComponent.stopType.categ: Basic
+GratingComponent.stopType.val: duration (s)
+GratingComponent.stopType.allowedTypes: []
+GratingComponent.stopType.hint: How do you want to define your end point?
+GratingComponent.stopType.allowedUpdates: None
+GratingComponent.stopType.allowedVals: ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+GratingComponent.stopType.label: 
+GratingComponent.stopType.updates: None
+GratingComponent.stopType.valType: str
+GratingComponent.startVal.default: 0.0
+GratingComponent.startVal.staticUpdater: None
+GratingComponent.startVal.categ: Basic
+GratingComponent.startVal.val: 0.0
+GratingComponent.startVal.allowedTypes: []
+GratingComponent.startVal.hint: When does the stimulus start?
+GratingComponent.startVal.allowedUpdates: None
+GratingComponent.startVal.allowedVals: []
+GratingComponent.startVal.label: 
+GratingComponent.startVal.updates: None
+GratingComponent.startVal.valType: code
+GratingComponent.sf.default: None
+GratingComponent.sf.staticUpdater: None
+GratingComponent.sf.categ: Basic
+GratingComponent.sf.val: None
+GratingComponent.sf.allowedTypes: []
+GratingComponent.sf.hint: Spatial frequency of image repeats across the grating in 1 or 2 dimensions, e.g. 4 or [2,3]
+GratingComponent.sf.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+GratingComponent.sf.allowedVals: []
+GratingComponent.sf.label: Spatial Freq.
+GratingComponent.sf.updates: constant
+GratingComponent.sf.valType: code
+GratingComponent.size.default: [0.5, 0.5]
+GratingComponent.size.staticUpdater: None
+GratingComponent.size.categ: Basic
+GratingComponent.size.val: [0.5, 0.5]
+GratingComponent.size.allowedTypes: []
+GratingComponent.size.hint: Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+GratingComponent.size.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+GratingComponent.size.allowedVals: []
+GratingComponent.size.label: Size [w,h]
+GratingComponent.size.updates: constant
+GratingComponent.size.valType: code
+ImageComponent.order: []
+ImageComponent.opacity.default: 1
+ImageComponent.opacity.staticUpdater: None
+ImageComponent.opacity.categ: Basic
+ImageComponent.opacity.val: 1
+ImageComponent.opacity.allowedTypes: []
+ImageComponent.opacity.hint: Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)
+ImageComponent.opacity.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+ImageComponent.opacity.allowedVals: []
+ImageComponent.opacity.label: Opacity
+ImageComponent.opacity.updates: constant
+ImageComponent.opacity.valType: code
+ImageComponent.flipVert.default: False
+ImageComponent.flipVert.staticUpdater: None
+ImageComponent.flipVert.categ: Basic
+ImageComponent.flipVert.val: False
+ImageComponent.flipVert.allowedTypes: []
+ImageComponent.flipVert.hint: Should the image be flipped vertically (top to bottom)?
+ImageComponent.flipVert.allowedUpdates: []
+ImageComponent.flipVert.allowedVals: []
+ImageComponent.flipVert.label: Flip vertically
+ImageComponent.flipVert.updates: constant
+ImageComponent.flipVert.valType: bool
+ImageComponent.colorSpace.default: 'rgb'
+ImageComponent.colorSpace.staticUpdater: None
+ImageComponent.colorSpace.categ: Advanced
+ImageComponent.colorSpace.val: rgb
+ImageComponent.colorSpace.allowedTypes: []
+ImageComponent.colorSpace.hint: Choice of color space for the color (rgb, dkl, lms)
+ImageComponent.colorSpace.allowedUpdates: None
+ImageComponent.colorSpace.allowedVals: ['rgb', 'dkl', 'lms']
+ImageComponent.colorSpace.label: Color space
+ImageComponent.colorSpace.updates: constant
+ImageComponent.colorSpace.valType: str
+ImageComponent.name.default: image
+ImageComponent.name.staticUpdater: None
+ImageComponent.name.categ: Basic
+ImageComponent.name.val: image
+ImageComponent.name.allowedTypes: []
+ImageComponent.name.hint: Name of this stimulus
+ImageComponent.name.allowedUpdates: None
+ImageComponent.name.allowedVals: []
+ImageComponent.name.label: Name
+ImageComponent.name.valType: code
+ImageComponent.color.default: [1,1,1]
+ImageComponent.color.staticUpdater: None
+ImageComponent.color.categ: Advanced
+ImageComponent.color.val: $[1,1,1]
+ImageComponent.color.allowedTypes: []
+ImageComponent.color.hint: Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)
+ImageComponent.color.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+ImageComponent.color.allowedVals: []
+ImageComponent.color.label: Color
+ImageComponent.color.updates: constant
+ImageComponent.color.valType: str
+ImageComponent.stopVal.default: 1.0
+ImageComponent.stopVal.staticUpdater: None
+ImageComponent.stopVal.categ: Basic
+ImageComponent.stopVal.val: 1.0
+ImageComponent.stopVal.allowedTypes: []
+ImageComponent.stopVal.hint: When does the stimulus end?
+ImageComponent.stopVal.allowedUpdates: []
+ImageComponent.stopVal.allowedVals: []
+ImageComponent.stopVal.label: 
+ImageComponent.stopVal.updates: constant
+ImageComponent.stopVal.valType: code
+ImageComponent.durationEstim.default: 
+ImageComponent.durationEstim.staticUpdater: None
+ImageComponent.durationEstim.categ: Basic
+ImageComponent.durationEstim.val: 
+ImageComponent.durationEstim.allowedTypes: []
+ImageComponent.durationEstim.hint: (Optional) expected duration (s) of stimulus, purely for representing in the timeline
+ImageComponent.durationEstim.allowedUpdates: None
+ImageComponent.durationEstim.allowedVals: []
+ImageComponent.durationEstim.label: 
+ImageComponent.durationEstim.updates: None
+ImageComponent.durationEstim.valType: code
+ImageComponent.mask.default: 'None'
+ImageComponent.mask.staticUpdater: None
+ImageComponent.mask.categ: Advanced
+ImageComponent.mask.val: None
+ImageComponent.mask.allowedTypes: []
+ImageComponent.mask.hint: An image to define the alpha mask through which the image is seen - gauss, circle, None or a filename (including path)
+ImageComponent.mask.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+ImageComponent.mask.allowedVals: []
+ImageComponent.mask.label: Mask
+ImageComponent.mask.updates: constant
+ImageComponent.mask.valType: str
+ImageComponent.pos.default: [0, 0]
+ImageComponent.pos.staticUpdater: None
+ImageComponent.pos.categ: Basic
+ImageComponent.pos.val: [0, 0]
+ImageComponent.pos.allowedTypes: []
+ImageComponent.pos.hint: Position of this stimulus (e.g. [1,2] )
+ImageComponent.pos.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+ImageComponent.pos.allowedVals: []
+ImageComponent.pos.label: Position [x,y]
+ImageComponent.pos.updates: constant
+ImageComponent.pos.valType: code
+ImageComponent.interpolate.default: 'linear'
+ImageComponent.interpolate.staticUpdater: None
+ImageComponent.interpolate.categ: Advanced
+ImageComponent.interpolate.val: linear
+ImageComponent.interpolate.allowedTypes: []
+ImageComponent.interpolate.hint: How should the image be interpolated if/when rescaled
+ImageComponent.interpolate.allowedUpdates: []
+ImageComponent.interpolate.allowedVals: ['linear', 'nearest']
+ImageComponent.interpolate.label: Interpolate
+ImageComponent.interpolate.updates: constant
+ImageComponent.interpolate.valType: str
+ImageComponent.startEstim.default: 
+ImageComponent.startEstim.staticUpdater: None
+ImageComponent.startEstim.categ: Basic
+ImageComponent.startEstim.val: 
+ImageComponent.startEstim.allowedTypes: []
+ImageComponent.startEstim.hint: (Optional) expected start (s) of stimulus, purely for representing in the timeline
+ImageComponent.startEstim.allowedUpdates: None
+ImageComponent.startEstim.allowedVals: []
+ImageComponent.startEstim.label: 
+ImageComponent.startEstim.updates: None
+ImageComponent.startEstim.valType: code
+ImageComponent.units.default: 'from exp settings'
+ImageComponent.units.staticUpdater: None
+ImageComponent.units.categ: Basic
+ImageComponent.units.val: from exp settings
+ImageComponent.units.allowedTypes: []
+ImageComponent.units.hint: Units of dimensions for this stimulus
+ImageComponent.units.allowedUpdates: None
+ImageComponent.units.allowedVals: ['from exp settings', 'deg', 'cm', 'pix', 'norm']
+ImageComponent.units.label: Units
+ImageComponent.units.updates: None
+ImageComponent.units.valType: str
+ImageComponent.texture resolution.default: 128
+ImageComponent.texture resolution.staticUpdater: None
+ImageComponent.texture resolution.categ: Advanced
+ImageComponent.texture resolution.val: 128
+ImageComponent.texture resolution.allowedTypes: []
+ImageComponent.texture resolution.hint: Resolution of the mask if one is used.
+ImageComponent.texture resolution.allowedUpdates: []
+ImageComponent.texture resolution.allowedVals: ['32', '64', '128', '256', '512']
+ImageComponent.texture resolution.label: Texture resolution
+ImageComponent.texture resolution.updates: constant
+ImageComponent.texture resolution.valType: code
+ImageComponent.startType.default: 'time (s)'
+ImageComponent.startType.staticUpdater: None
+ImageComponent.startType.categ: Basic
+ImageComponent.startType.val: time (s)
+ImageComponent.startType.allowedTypes: []
+ImageComponent.startType.hint: How do you want to define your start point?
+ImageComponent.startType.allowedUpdates: None
+ImageComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
+ImageComponent.startType.label: 
+ImageComponent.startType.updates: None
+ImageComponent.startType.valType: str
+ImageComponent.ori.default: 0
+ImageComponent.ori.staticUpdater: None
+ImageComponent.ori.categ: Basic
+ImageComponent.ori.val: 0
+ImageComponent.ori.allowedTypes: []
+ImageComponent.ori.hint: Orientation of this stimulus (in deg)
+ImageComponent.ori.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+ImageComponent.ori.allowedVals: []
+ImageComponent.ori.label: Orientation
+ImageComponent.ori.updates: constant
+ImageComponent.ori.valType: code
+ImageComponent.stopType.default: 'duration (s)'
+ImageComponent.stopType.staticUpdater: None
+ImageComponent.stopType.categ: Basic
+ImageComponent.stopType.val: duration (s)
+ImageComponent.stopType.allowedTypes: []
+ImageComponent.stopType.hint: How do you want to define your end point?
+ImageComponent.stopType.allowedUpdates: None
+ImageComponent.stopType.allowedVals: ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+ImageComponent.stopType.label: 
+ImageComponent.stopType.updates: None
+ImageComponent.stopType.valType: str
+ImageComponent.startVal.default: 0.0
+ImageComponent.startVal.staticUpdater: None
+ImageComponent.startVal.categ: Basic
+ImageComponent.startVal.val: 0.0
+ImageComponent.startVal.allowedTypes: []
+ImageComponent.startVal.hint: When does the stimulus start?
+ImageComponent.startVal.allowedUpdates: None
+ImageComponent.startVal.allowedVals: []
+ImageComponent.startVal.label: 
+ImageComponent.startVal.updates: None
+ImageComponent.startVal.valType: code
+ImageComponent.flipHoriz.default: False
+ImageComponent.flipHoriz.staticUpdater: None
+ImageComponent.flipHoriz.categ: Basic
+ImageComponent.flipHoriz.val: False
+ImageComponent.flipHoriz.allowedTypes: []
+ImageComponent.flipHoriz.hint: Should the image be flipped horizontally (left to right)?
+ImageComponent.flipHoriz.allowedUpdates: []
+ImageComponent.flipHoriz.allowedVals: []
+ImageComponent.flipHoriz.label: Flip horizontally
+ImageComponent.flipHoriz.updates: constant
+ImageComponent.flipHoriz.valType: bool
+ImageComponent.image.default: ''
+ImageComponent.image.staticUpdater: None
+ImageComponent.image.categ: Basic
+ImageComponent.image.val: 
+ImageComponent.image.allowedTypes: []
+ImageComponent.image.hint: The image to be displayed - a filename, including path
+ImageComponent.image.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+ImageComponent.image.allowedVals: []
+ImageComponent.image.label: Image
+ImageComponent.image.updates: constant
+ImageComponent.image.valType: str
+ImageComponent.size.default: [0.5, 0.5]
+ImageComponent.size.staticUpdater: None
+ImageComponent.size.categ: Basic
+ImageComponent.size.val: [0.5, 0.5]
+ImageComponent.size.allowedTypes: []
+ImageComponent.size.hint: Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+ImageComponent.size.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+ImageComponent.size.allowedVals: []
+ImageComponent.size.label: Size [w,h]
+ImageComponent.size.updates: constant
+ImageComponent.size.valType: code
+KeyboardComponent.order: ['forceEndRoutine', 'allowedKeys', 'store', 'storeCorrect', 'correctAns']
+KeyboardComponent.correctAns.default: ''
+KeyboardComponent.correctAns.staticUpdater: None
+KeyboardComponent.correctAns.categ: Basic
+KeyboardComponent.correctAns.val: 
+KeyboardComponent.correctAns.allowedTypes: []
+KeyboardComponent.correctAns.hint: What is the 'correct' key? Might be helpful to add a correctAns column and use $thisTrial.correctAns
+KeyboardComponent.correctAns.allowedUpdates: []
+KeyboardComponent.correctAns.allowedVals: []
+KeyboardComponent.correctAns.label: Correct answer
+KeyboardComponent.correctAns.updates: constant
+KeyboardComponent.correctAns.valType: str
+KeyboardComponent.storeCorrect.default: False
+KeyboardComponent.storeCorrect.staticUpdater: None
+KeyboardComponent.storeCorrect.categ: Basic
+KeyboardComponent.storeCorrect.val: False
+KeyboardComponent.storeCorrect.allowedTypes: []
+KeyboardComponent.storeCorrect.hint: Do you want to save the response as correct/incorrect?
+KeyboardComponent.storeCorrect.allowedUpdates: []
+KeyboardComponent.storeCorrect.allowedVals: []
+KeyboardComponent.storeCorrect.label: Store correct
+KeyboardComponent.storeCorrect.updates: constant
+KeyboardComponent.storeCorrect.valType: bool
+KeyboardComponent.name.default: key_resp
+KeyboardComponent.name.staticUpdater: None
+KeyboardComponent.name.categ: Basic
+KeyboardComponent.name.val: key_resp
+KeyboardComponent.name.allowedTypes: []
+KeyboardComponent.name.hint: A name for this keyboard object (e.g. response)
+KeyboardComponent.name.allowedUpdates: None
+KeyboardComponent.name.allowedVals: []
+KeyboardComponent.name.label: Name
+KeyboardComponent.name.valType: code
+KeyboardComponent.stopVal.default: 
+KeyboardComponent.stopVal.staticUpdater: None
+KeyboardComponent.stopVal.categ: Basic
+KeyboardComponent.stopVal.val: 
+KeyboardComponent.stopVal.allowedTypes: []
+KeyboardComponent.stopVal.hint: When does the keyboard checking end?
+KeyboardComponent.stopVal.allowedUpdates: []
+KeyboardComponent.stopVal.allowedVals: []
+KeyboardComponent.stopVal.label: 
+KeyboardComponent.stopVal.updates: constant
+KeyboardComponent.stopVal.valType: code
+KeyboardComponent.durationEstim.default: 
+KeyboardComponent.durationEstim.staticUpdater: None
+KeyboardComponent.durationEstim.categ: Basic
+KeyboardComponent.durationEstim.val: 
+KeyboardComponent.durationEstim.allowedTypes: []
+KeyboardComponent.durationEstim.hint: (Optional) expected duration (s), purely for representing in the timeline
+KeyboardComponent.durationEstim.allowedUpdates: None
+KeyboardComponent.durationEstim.allowedVals: []
+KeyboardComponent.durationEstim.label: 
+KeyboardComponent.durationEstim.updates: None
+KeyboardComponent.durationEstim.valType: code
+KeyboardComponent.forceEndRoutine.default: True
+KeyboardComponent.forceEndRoutine.staticUpdater: None
+KeyboardComponent.forceEndRoutine.categ: Basic
+KeyboardComponent.forceEndRoutine.val: True
+KeyboardComponent.forceEndRoutine.allowedTypes: []
+KeyboardComponent.forceEndRoutine.hint: Should the keypress force the end of the routine (e.g end the trial)?
+KeyboardComponent.forceEndRoutine.allowedUpdates: []
+KeyboardComponent.forceEndRoutine.allowedVals: []
+KeyboardComponent.forceEndRoutine.label: Force end of Routine
+KeyboardComponent.forceEndRoutine.updates: constant
+KeyboardComponent.forceEndRoutine.valType: bool
+KeyboardComponent.startEstim.default: 
+KeyboardComponent.startEstim.staticUpdater: None
+KeyboardComponent.startEstim.categ: Basic
+KeyboardComponent.startEstim.val: 
+KeyboardComponent.startEstim.allowedTypes: []
+KeyboardComponent.startEstim.hint: (Optional) expected start (s), purely for representing in the timeline
+KeyboardComponent.startEstim.allowedUpdates: None
+KeyboardComponent.startEstim.allowedVals: []
+KeyboardComponent.startEstim.label: 
+KeyboardComponent.startEstim.updates: None
+KeyboardComponent.startEstim.valType: code
+KeyboardComponent.discard previous.default: True
+KeyboardComponent.discard previous.staticUpdater: None
+KeyboardComponent.discard previous.categ: Basic
+KeyboardComponent.discard previous.val: True
+KeyboardComponent.discard previous.allowedTypes: []
+KeyboardComponent.discard previous.hint: Do you want to discard any keypresses occuring before the onset of this component?
+KeyboardComponent.discard previous.allowedUpdates: []
+KeyboardComponent.discard previous.allowedVals: []
+KeyboardComponent.discard previous.label: Discard previous
+KeyboardComponent.discard previous.updates: constant
+KeyboardComponent.discard previous.valType: bool
+KeyboardComponent.startType.default: 'time (s)'
+KeyboardComponent.startType.staticUpdater: None
+KeyboardComponent.startType.categ: Basic
+KeyboardComponent.startType.val: time (s)
+KeyboardComponent.startType.allowedTypes: []
+KeyboardComponent.startType.hint: How do you want to define your start point?
+KeyboardComponent.startType.allowedUpdates: None
+KeyboardComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
+KeyboardComponent.startType.label: 
+KeyboardComponent.startType.updates: None
+KeyboardComponent.startType.valType: str
+KeyboardComponent.allowedKeys.default: 'y','n','left','right','space'
+KeyboardComponent.allowedKeys.staticUpdater: None
+KeyboardComponent.allowedKeys.categ: Basic
+KeyboardComponent.allowedKeys.val: 'y','n','left','right','space'
+KeyboardComponent.allowedKeys.allowedTypes: []
+KeyboardComponent.allowedKeys.hint: A comma-separated list of keys (with quotes), such as 'q','right','space','left' 
+KeyboardComponent.allowedKeys.allowedUpdates: ['constant', 'set every repeat']
+KeyboardComponent.allowedKeys.allowedVals: []
+KeyboardComponent.allowedKeys.label: Allowed keys
+KeyboardComponent.allowedKeys.updates: constant
+KeyboardComponent.allowedKeys.valType: code
+KeyboardComponent.stopType.default: 'duration (s)'
+KeyboardComponent.stopType.staticUpdater: None
+KeyboardComponent.stopType.categ: Basic
+KeyboardComponent.stopType.val: duration (s)
+KeyboardComponent.stopType.allowedTypes: []
+KeyboardComponent.stopType.hint: How do you want to define your end point?
+KeyboardComponent.stopType.allowedUpdates: None
+KeyboardComponent.stopType.allowedVals: ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+KeyboardComponent.stopType.label: 
+KeyboardComponent.stopType.updates: None
+KeyboardComponent.stopType.valType: str
+KeyboardComponent.startVal.default: 0.0
+KeyboardComponent.startVal.staticUpdater: None
+KeyboardComponent.startVal.categ: Basic
+KeyboardComponent.startVal.val: 0.0
+KeyboardComponent.startVal.allowedTypes: []
+KeyboardComponent.startVal.hint: When does the keyboard checking start?
+KeyboardComponent.startVal.allowedUpdates: None
+KeyboardComponent.startVal.allowedVals: []
+KeyboardComponent.startVal.label: 
+KeyboardComponent.startVal.updates: None
+KeyboardComponent.startVal.valType: code
+KeyboardComponent.store.default: 'last key'
+KeyboardComponent.store.staticUpdater: None
+KeyboardComponent.store.categ: Basic
+KeyboardComponent.store.val: last key
+KeyboardComponent.store.allowedTypes: []
+KeyboardComponent.store.hint: Choose which (if any) keys to store at end of trial
+KeyboardComponent.store.allowedUpdates: []
+KeyboardComponent.store.allowedVals: ['last key', 'first key', 'all keys', 'nothing']
+KeyboardComponent.store.label: Store
+KeyboardComponent.store.updates: constant
+KeyboardComponent.store.valType: str
+MicrophoneComponent.order: []
+MicrophoneComponent.stereo.default: False
+MicrophoneComponent.stereo.staticUpdater: None
+MicrophoneComponent.stereo.categ: Basic
+MicrophoneComponent.stereo.val: False
+MicrophoneComponent.stereo.allowedTypes: []
+MicrophoneComponent.stereo.hint: Record two channels (stereo) or one (mono, smaller file)
+MicrophoneComponent.stereo.allowedUpdates: None
+MicrophoneComponent.stereo.allowedVals: []
+MicrophoneComponent.stereo.label: Stereo
+MicrophoneComponent.stereo.updates: None
+MicrophoneComponent.stereo.valType: bool
+MicrophoneComponent.name.default: mic_1
+MicrophoneComponent.name.staticUpdater: None
+MicrophoneComponent.name.categ: Basic
+MicrophoneComponent.name.val: mic_1
+MicrophoneComponent.name.allowedTypes: []
+MicrophoneComponent.name.hint: Everything needs a name (no spaces or punctuation)
+MicrophoneComponent.name.allowedUpdates: None
+MicrophoneComponent.name.allowedVals: []
+MicrophoneComponent.name.label: Name
+MicrophoneComponent.name.valType: code
+MicrophoneComponent.stopVal.default: 2.0
+MicrophoneComponent.stopVal.staticUpdater: None
+MicrophoneComponent.stopVal.categ: Basic
+MicrophoneComponent.stopVal.val: 2.0
+MicrophoneComponent.stopVal.allowedTypes: []
+MicrophoneComponent.stopVal.hint: 
+MicrophoneComponent.stopVal.allowedUpdates: []
+MicrophoneComponent.stopVal.allowedVals: []
+MicrophoneComponent.stopVal.label: 
+MicrophoneComponent.stopVal.updates: constant
+MicrophoneComponent.stopVal.valType: code
+MicrophoneComponent.durationEstim.default: 
+MicrophoneComponent.durationEstim.staticUpdater: None
+MicrophoneComponent.durationEstim.categ: Basic
+MicrophoneComponent.durationEstim.val: 
+MicrophoneComponent.durationEstim.allowedTypes: []
+MicrophoneComponent.durationEstim.hint: (Optional) expected duration (s), purely for representing in the timeline
+MicrophoneComponent.durationEstim.allowedUpdates: None
+MicrophoneComponent.durationEstim.allowedVals: []
+MicrophoneComponent.durationEstim.label: 
+MicrophoneComponent.durationEstim.updates: None
+MicrophoneComponent.durationEstim.valType: code
+MicrophoneComponent.startEstim.default: 
+MicrophoneComponent.startEstim.staticUpdater: None
+MicrophoneComponent.startEstim.categ: Basic
+MicrophoneComponent.startEstim.val: 
+MicrophoneComponent.startEstim.allowedTypes: []
+MicrophoneComponent.startEstim.hint: (Optional) expected start (s), purely for representing in the timeline
+MicrophoneComponent.startEstim.allowedUpdates: None
+MicrophoneComponent.startEstim.allowedVals: []
+MicrophoneComponent.startEstim.label: 
+MicrophoneComponent.startEstim.updates: None
+MicrophoneComponent.startEstim.valType: code
+MicrophoneComponent.startType.default: 'time (s)'
+MicrophoneComponent.startType.staticUpdater: None
+MicrophoneComponent.startType.categ: Basic
+MicrophoneComponent.startType.val: time (s)
+MicrophoneComponent.startType.allowedTypes: []
+MicrophoneComponent.startType.hint: How do you want to define your start point?
+MicrophoneComponent.startType.allowedUpdates: None
+MicrophoneComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
+MicrophoneComponent.startType.label: 
+MicrophoneComponent.startType.updates: None
+MicrophoneComponent.startType.valType: str
+MicrophoneComponent.stopType.default: 'duration (s)'
+MicrophoneComponent.stopType.staticUpdater: None
+MicrophoneComponent.stopType.categ: Basic
+MicrophoneComponent.stopType.val: duration (s)
+MicrophoneComponent.stopType.allowedTypes: []
+MicrophoneComponent.stopType.hint: The duration of the recording in seconds; blank = 0 sec
+MicrophoneComponent.stopType.allowedUpdates: None
+MicrophoneComponent.stopType.allowedVals: ['duration (s)']
+MicrophoneComponent.stopType.label: 
+MicrophoneComponent.stopType.updates: None
+MicrophoneComponent.stopType.valType: str
+MicrophoneComponent.startVal.default: 0.0
+MicrophoneComponent.startVal.staticUpdater: None
+MicrophoneComponent.startVal.categ: Basic
+MicrophoneComponent.startVal.val: 0.0
+MicrophoneComponent.startVal.allowedTypes: []
+MicrophoneComponent.startVal.hint: When does the sound start recording?
+MicrophoneComponent.startVal.allowedUpdates: None
+MicrophoneComponent.startVal.allowedVals: []
+MicrophoneComponent.startVal.label: 
+MicrophoneComponent.startVal.updates: None
+MicrophoneComponent.startVal.valType: code
+MouseComponent.order: []
+MouseComponent.name.default: mouse
+MouseComponent.name.staticUpdater: None
+MouseComponent.name.categ: Basic
+MouseComponent.name.val: mouse
+MouseComponent.name.allowedTypes: []
+MouseComponent.name.hint: Even mice need names!
+MouseComponent.name.allowedUpdates: None
+MouseComponent.name.allowedVals: []
+MouseComponent.name.label: Name
+MouseComponent.name.valType: code
+MouseComponent.timeRelativeTo.default: 'routine'
+MouseComponent.timeRelativeTo.staticUpdater: None
+MouseComponent.timeRelativeTo.categ: Basic
+MouseComponent.timeRelativeTo.val: routine
+MouseComponent.timeRelativeTo.allowedTypes: []
+MouseComponent.timeRelativeTo.hint: What should the values of mouse.time should be relative to?
+MouseComponent.timeRelativeTo.allowedUpdates: []
+MouseComponent.timeRelativeTo.allowedVals: ['experiment', 'routine']
+MouseComponent.timeRelativeTo.label: Time relative to
+MouseComponent.timeRelativeTo.updates: constant
+MouseComponent.timeRelativeTo.valType: str
+MouseComponent.stopVal.default: 1.0
+MouseComponent.stopVal.staticUpdater: None
+MouseComponent.stopVal.categ: Basic
+MouseComponent.stopVal.val: 1.0
+MouseComponent.stopVal.allowedTypes: []
+MouseComponent.stopVal.hint: When does the mouse stop being checked?
+MouseComponent.stopVal.allowedUpdates: []
+MouseComponent.stopVal.allowedVals: []
+MouseComponent.stopVal.label: 
+MouseComponent.stopVal.updates: constant
+MouseComponent.stopVal.valType: code
+MouseComponent.durationEstim.default: 
+MouseComponent.durationEstim.staticUpdater: None
+MouseComponent.durationEstim.categ: Basic
+MouseComponent.durationEstim.val: 
+MouseComponent.durationEstim.allowedTypes: []
+MouseComponent.durationEstim.hint: (Optional) expected duration (s), purely for representing in the timeline
+MouseComponent.durationEstim.allowedUpdates: None
+MouseComponent.durationEstim.allowedVals: []
+MouseComponent.durationEstim.label: 
+MouseComponent.durationEstim.updates: None
+MouseComponent.durationEstim.valType: code
+MouseComponent.forceEndRoutineOnPress.default: True
+MouseComponent.forceEndRoutineOnPress.staticUpdater: None
+MouseComponent.forceEndRoutineOnPress.categ: Basic
+MouseComponent.forceEndRoutineOnPress.val: True
+MouseComponent.forceEndRoutineOnPress.allowedTypes: []
+MouseComponent.forceEndRoutineOnPress.hint: Should a button press force the end of the routine (e.g end the trial)?
+MouseComponent.forceEndRoutineOnPress.allowedUpdates: []
+MouseComponent.forceEndRoutineOnPress.allowedVals: []
+MouseComponent.forceEndRoutineOnPress.label: End Routine on press
+MouseComponent.forceEndRoutineOnPress.updates: constant
+MouseComponent.forceEndRoutineOnPress.valType: bool
+MouseComponent.startEstim.default: 
+MouseComponent.startEstim.staticUpdater: None
+MouseComponent.startEstim.categ: Basic
+MouseComponent.startEstim.val: 
+MouseComponent.startEstim.allowedTypes: []
+MouseComponent.startEstim.hint: (Optional) expected start (s), purely for representing in the timeline
+MouseComponent.startEstim.allowedUpdates: None
+MouseComponent.startEstim.allowedVals: []
+MouseComponent.startEstim.label: 
+MouseComponent.startEstim.updates: None
+MouseComponent.startEstim.valType: code
+MouseComponent.startType.default: 'time (s)'
+MouseComponent.startType.staticUpdater: None
+MouseComponent.startType.categ: Basic
+MouseComponent.startType.val: time (s)
+MouseComponent.startType.allowedTypes: []
+MouseComponent.startType.hint: How do you want to define your start point?
+MouseComponent.startType.allowedUpdates: None
+MouseComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
+MouseComponent.startType.label: 
+MouseComponent.startType.updates: None
+MouseComponent.startType.valType: str
+MouseComponent.stopType.default: 'duration (s)'
+MouseComponent.stopType.staticUpdater: None
+MouseComponent.stopType.categ: Basic
+MouseComponent.stopType.val: duration (s)
+MouseComponent.stopType.allowedTypes: []
+MouseComponent.stopType.hint: How do you want to define your end point?
+MouseComponent.stopType.allowedUpdates: None
+MouseComponent.stopType.allowedVals: ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+MouseComponent.stopType.label: 
+MouseComponent.stopType.updates: None
+MouseComponent.stopType.valType: str
+MouseComponent.startVal.default: 0.0
+MouseComponent.startVal.staticUpdater: None
+MouseComponent.startVal.categ: Basic
+MouseComponent.startVal.val: 0.0
+MouseComponent.startVal.allowedTypes: []
+MouseComponent.startVal.hint: When does the mouse start being checked?
+MouseComponent.startVal.allowedUpdates: None
+MouseComponent.startVal.allowedVals: []
+MouseComponent.startVal.label: 
+MouseComponent.startVal.updates: None
+MouseComponent.startVal.valType: code
+MouseComponent.saveMouseState.default: 'final'
+MouseComponent.saveMouseState.staticUpdater: None
+MouseComponent.saveMouseState.categ: Basic
+MouseComponent.saveMouseState.val: final
+MouseComponent.saveMouseState.allowedTypes: []
+MouseComponent.saveMouseState.hint: How often should the mouse state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?
+MouseComponent.saveMouseState.allowedUpdates: None
+MouseComponent.saveMouseState.allowedVals: ['final', 'on click', 'every frame', 'never']
+MouseComponent.saveMouseState.label: Save mouse state
+MouseComponent.saveMouseState.updates: None
+MouseComponent.saveMouseState.valType: str
+MovieComponent.order: ['forceEndRoutine']
+MovieComponent.opacity.default: 1
+MovieComponent.opacity.staticUpdater: None
+MovieComponent.opacity.categ: Basic
+MovieComponent.opacity.val: 1
+MovieComponent.opacity.allowedTypes: []
+MovieComponent.opacity.hint: Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)
+MovieComponent.opacity.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+MovieComponent.opacity.allowedVals: []
+MovieComponent.opacity.label: Opacity
+MovieComponent.opacity.updates: constant
+MovieComponent.opacity.valType: code
+MovieComponent.name.default: movie
+MovieComponent.name.staticUpdater: None
+MovieComponent.name.categ: Basic
+MovieComponent.name.val: movie
+MovieComponent.name.allowedTypes: []
+MovieComponent.name.hint: Name of this stimulus
+MovieComponent.name.allowedUpdates: None
+MovieComponent.name.allowedVals: []
+MovieComponent.name.label: Name
+MovieComponent.name.valType: code
+MovieComponent.movie.default: ''
+MovieComponent.movie.staticUpdater: None
+MovieComponent.movie.categ: Basic
+MovieComponent.movie.val: 
+MovieComponent.movie.allowedTypes: []
+MovieComponent.movie.hint: A filename for the movie (including path)
+MovieComponent.movie.allowedUpdates: ['constant', 'set every repeat']
+MovieComponent.movie.allowedVals: []
+MovieComponent.movie.label: Movie file
+MovieComponent.movie.updates: constant
+MovieComponent.movie.valType: str
+MovieComponent.stopVal.default: 1.0
+MovieComponent.stopVal.staticUpdater: None
+MovieComponent.stopVal.categ: Basic
+MovieComponent.stopVal.val: 1.0
+MovieComponent.stopVal.allowedTypes: []
+MovieComponent.stopVal.hint: Leave blank simply to play the movie for its full duration
+MovieComponent.stopVal.allowedUpdates: []
+MovieComponent.stopVal.allowedVals: []
+MovieComponent.stopVal.label: 
+MovieComponent.stopVal.updates: constant
+MovieComponent.stopVal.valType: code
+MovieComponent.durationEstim.default: 
+MovieComponent.durationEstim.staticUpdater: None
+MovieComponent.durationEstim.categ: Basic
+MovieComponent.durationEstim.val: 
+MovieComponent.durationEstim.allowedTypes: []
+MovieComponent.durationEstim.hint: (Optional) expected duration (s) of stimulus, purely for representing in the timeline
+MovieComponent.durationEstim.allowedUpdates: None
+MovieComponent.durationEstim.allowedVals: []
+MovieComponent.durationEstim.label: 
+MovieComponent.durationEstim.updates: None
+MovieComponent.durationEstim.valType: code
+MovieComponent.pos.default: [0, 0]
+MovieComponent.pos.staticUpdater: None
+MovieComponent.pos.categ: Basic
+MovieComponent.pos.val: [0, 0]
+MovieComponent.pos.allowedTypes: []
+MovieComponent.pos.hint: Position of this stimulus (e.g. [1,2] )
+MovieComponent.pos.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+MovieComponent.pos.allowedVals: []
+MovieComponent.pos.label: Position [x,y]
+MovieComponent.pos.updates: constant
+MovieComponent.pos.valType: code
+MovieComponent.forceEndRoutine.default: False
+MovieComponent.forceEndRoutine.staticUpdater: None
+MovieComponent.forceEndRoutine.categ: Basic
+MovieComponent.forceEndRoutine.val: False
+MovieComponent.forceEndRoutine.allowedTypes: []
+MovieComponent.forceEndRoutine.hint: Should the end of the movie cause the end of the routine (e.g. trial)?
+MovieComponent.forceEndRoutine.allowedUpdates: []
+MovieComponent.forceEndRoutine.allowedVals: []
+MovieComponent.forceEndRoutine.label: Force end of Routine
+MovieComponent.forceEndRoutine.updates: constant
+MovieComponent.forceEndRoutine.valType: bool
+MovieComponent.startEstim.default: 
+MovieComponent.startEstim.staticUpdater: None
+MovieComponent.startEstim.categ: Basic
+MovieComponent.startEstim.val: 
+MovieComponent.startEstim.allowedTypes: []
+MovieComponent.startEstim.hint: (Optional) expected start (s) of stimulus, purely for representing in the timeline
+MovieComponent.startEstim.allowedUpdates: None
+MovieComponent.startEstim.allowedVals: []
+MovieComponent.startEstim.label: 
+MovieComponent.startEstim.updates: None
+MovieComponent.startEstim.valType: code
+MovieComponent.units.default: 'from exp settings'
+MovieComponent.units.staticUpdater: None
+MovieComponent.units.categ: Basic
+MovieComponent.units.val: from exp settings
+MovieComponent.units.allowedTypes: []
+MovieComponent.units.hint: Units of dimensions for this stimulus
+MovieComponent.units.allowedUpdates: None
+MovieComponent.units.allowedVals: ['from exp settings', 'deg', 'cm', 'pix', 'norm']
+MovieComponent.units.label: Units
+MovieComponent.units.updates: None
+MovieComponent.units.valType: str
+MovieComponent.startType.default: 'time (s)'
+MovieComponent.startType.staticUpdater: None
+MovieComponent.startType.categ: Basic
+MovieComponent.startType.val: time (s)
+MovieComponent.startType.allowedTypes: []
+MovieComponent.startType.hint: How do you want to define your start point?
+MovieComponent.startType.allowedUpdates: None
+MovieComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
+MovieComponent.startType.label: 
+MovieComponent.startType.updates: None
+MovieComponent.startType.valType: str
+MovieComponent.ori.default: 0
+MovieComponent.ori.staticUpdater: None
+MovieComponent.ori.categ: Basic
+MovieComponent.ori.val: 0
+MovieComponent.ori.allowedTypes: []
+MovieComponent.ori.hint: Orientation of this stimulus (in deg)
+MovieComponent.ori.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+MovieComponent.ori.allowedVals: []
+MovieComponent.ori.label: Orientation
+MovieComponent.ori.updates: constant
+MovieComponent.ori.valType: code
+MovieComponent.stopType.default: 'duration (s)'
+MovieComponent.stopType.staticUpdater: None
+MovieComponent.stopType.categ: Basic
+MovieComponent.stopType.val: duration (s)
+MovieComponent.stopType.allowedTypes: []
+MovieComponent.stopType.hint: How do you want to define your end point?
+MovieComponent.stopType.allowedUpdates: None
+MovieComponent.stopType.allowedVals: ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+MovieComponent.stopType.label: 
+MovieComponent.stopType.updates: None
+MovieComponent.stopType.valType: str
+MovieComponent.startVal.default: 0.0
+MovieComponent.startVal.staticUpdater: None
+MovieComponent.startVal.categ: Basic
+MovieComponent.startVal.val: 0.0
+MovieComponent.startVal.allowedTypes: []
+MovieComponent.startVal.hint: When does the stimulus start?
+MovieComponent.startVal.allowedUpdates: None
+MovieComponent.startVal.allowedVals: []
+MovieComponent.startVal.label: 
+MovieComponent.startVal.updates: None
+MovieComponent.startVal.valType: code
+MovieComponent.size.default: 
+MovieComponent.size.staticUpdater: None
+MovieComponent.size.categ: Basic
+MovieComponent.size.val: 
+MovieComponent.size.allowedTypes: []
+MovieComponent.size.hint: Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+MovieComponent.size.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+MovieComponent.size.allowedVals: []
+MovieComponent.size.label: Size [w,h]
+MovieComponent.size.updates: constant
+MovieComponent.size.valType: code
+ParallelOutComponent.order: ['address', 'startData', 'stopData']
+ParallelOutComponent.name.default: p_port
+ParallelOutComponent.name.staticUpdater: None
+ParallelOutComponent.name.categ: Basic
+ParallelOutComponent.name.val: p_port
+ParallelOutComponent.name.allowedTypes: []
+ParallelOutComponent.name.hint: Everything needs a name
+ParallelOutComponent.name.allowedUpdates: None
+ParallelOutComponent.name.allowedVals: []
+ParallelOutComponent.name.label: Name
+ParallelOutComponent.name.valType: code
+ParallelOutComponent.syncScreen.default: True
+ParallelOutComponent.syncScreen.staticUpdater: None
+ParallelOutComponent.syncScreen.categ: Basic
+ParallelOutComponent.syncScreen.val: True
+ParallelOutComponent.syncScreen.allowedTypes: []
+ParallelOutComponent.syncScreen.hint: If the parallel port data relates to visual stimuli then sync its pulse to the screen refresh
+ParallelOutComponent.syncScreen.allowedUpdates: []
+ParallelOutComponent.syncScreen.allowedVals: [True, False]
+ParallelOutComponent.syncScreen.label: Sync to screen
+ParallelOutComponent.syncScreen.updates: constant
+ParallelOutComponent.syncScreen.valType: bool
+ParallelOutComponent.stopData.default: 0
+ParallelOutComponent.stopData.staticUpdater: None
+ParallelOutComponent.stopData.categ: Basic
+ParallelOutComponent.stopData.val: 0
+ParallelOutComponent.stopData.allowedTypes: []
+ParallelOutComponent.stopData.hint: Data to be sent at 'end'
+ParallelOutComponent.stopData.allowedUpdates: None
+ParallelOutComponent.stopData.allowedVals: []
+ParallelOutComponent.stopData.label: 
+ParallelOutComponent.stopData.updates: None
+ParallelOutComponent.stopData.valType: code
+ParallelOutComponent.stopVal.default: 1.0
+ParallelOutComponent.stopVal.staticUpdater: None
+ParallelOutComponent.stopVal.categ: Basic
+ParallelOutComponent.stopVal.val: 1.0
+ParallelOutComponent.stopVal.allowedTypes: []
+ParallelOutComponent.stopVal.hint: When does the 'end' data get sent?
+ParallelOutComponent.stopVal.allowedUpdates: []
+ParallelOutComponent.stopVal.allowedVals: []
+ParallelOutComponent.stopVal.label: 
+ParallelOutComponent.stopVal.updates: constant
+ParallelOutComponent.stopVal.valType: code
+ParallelOutComponent.durationEstim.default: 
+ParallelOutComponent.durationEstim.staticUpdater: None
+ParallelOutComponent.durationEstim.categ: Basic
+ParallelOutComponent.durationEstim.val: 
+ParallelOutComponent.durationEstim.allowedTypes: []
+ParallelOutComponent.durationEstim.hint: (Optional) expected duration (s), purely for representing in the timeline
+ParallelOutComponent.durationEstim.allowedUpdates: None
+ParallelOutComponent.durationEstim.allowedVals: []
+ParallelOutComponent.durationEstim.label: 
+ParallelOutComponent.durationEstim.updates: None
+ParallelOutComponent.durationEstim.valType: code
+ParallelOutComponent.startEstim.default: 
+ParallelOutComponent.startEstim.staticUpdater: None
+ParallelOutComponent.startEstim.categ: Basic
+ParallelOutComponent.startEstim.val: 
+ParallelOutComponent.startEstim.allowedTypes: []
+ParallelOutComponent.startEstim.hint: (Optional) expected start (s), purely for representing in the timeline
+ParallelOutComponent.startEstim.allowedUpdates: None
+ParallelOutComponent.startEstim.allowedVals: []
+ParallelOutComponent.startEstim.label: 
+ParallelOutComponent.startEstim.updates: None
+ParallelOutComponent.startEstim.valType: code
+ParallelOutComponent.startType.default: 'time (s)'
+ParallelOutComponent.startType.staticUpdater: None
+ParallelOutComponent.startType.categ: Basic
+ParallelOutComponent.startType.val: time (s)
+ParallelOutComponent.startType.allowedTypes: []
+ParallelOutComponent.startType.hint: How do you want to define your start point?
+ParallelOutComponent.startType.allowedUpdates: None
+ParallelOutComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
+ParallelOutComponent.startType.label: 
+ParallelOutComponent.startType.updates: None
+ParallelOutComponent.startType.valType: str
+ParallelOutComponent.address.default: u'0x0378'
+ParallelOutComponent.address.staticUpdater: None
+ParallelOutComponent.address.categ: Basic
+ParallelOutComponent.address.val: 0x0378
+ParallelOutComponent.address.allowedTypes: []
+ParallelOutComponent.address.hint: Parallel port to be used (you can change these options in preferences>general)
+ParallelOutComponent.address.allowedUpdates: None
+ParallelOutComponent.address.allowedVals: [u'0x0378', u'0x03BC', u'/dev/parport0', u'/dev/parport1']
+ParallelOutComponent.address.label: 
+ParallelOutComponent.address.updates: None
+ParallelOutComponent.address.valType: str
+ParallelOutComponent.stopType.default: 'duration (s)'
+ParallelOutComponent.stopType.staticUpdater: None
+ParallelOutComponent.stopType.categ: Basic
+ParallelOutComponent.stopType.val: duration (s)
+ParallelOutComponent.stopType.allowedTypes: []
+ParallelOutComponent.stopType.hint: How do you want to define your end point?
+ParallelOutComponent.stopType.allowedUpdates: None
+ParallelOutComponent.stopType.allowedVals: ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+ParallelOutComponent.stopType.label: 
+ParallelOutComponent.stopType.updates: None
+ParallelOutComponent.stopType.valType: str
+ParallelOutComponent.startVal.default: 0.0
+ParallelOutComponent.startVal.staticUpdater: None
+ParallelOutComponent.startVal.categ: Basic
+ParallelOutComponent.startVal.val: 0.0
+ParallelOutComponent.startVal.allowedTypes: []
+ParallelOutComponent.startVal.hint: When does the 'start' data get sent?
+ParallelOutComponent.startVal.allowedUpdates: None
+ParallelOutComponent.startVal.allowedVals: []
+ParallelOutComponent.startVal.label: 
+ParallelOutComponent.startVal.updates: None
+ParallelOutComponent.startVal.valType: code
+ParallelOutComponent.startData.default: 1
+ParallelOutComponent.startData.staticUpdater: None
+ParallelOutComponent.startData.categ: Basic
+ParallelOutComponent.startData.val: 1
+ParallelOutComponent.startData.allowedTypes: []
+ParallelOutComponent.startData.hint: Data to be sent at 'start'
+ParallelOutComponent.startData.allowedUpdates: None
+ParallelOutComponent.startData.allowedVals: []
+ParallelOutComponent.startData.label: 
+ParallelOutComponent.startData.updates: None
+ParallelOutComponent.startData.valType: code
+PatchComponent.order: []
+PatchComponent.opacity.default: 1
+PatchComponent.opacity.staticUpdater: None
+PatchComponent.opacity.categ: Basic
+PatchComponent.opacity.val: 1
+PatchComponent.opacity.allowedTypes: []
+PatchComponent.opacity.hint: Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)
+PatchComponent.opacity.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+PatchComponent.opacity.allowedVals: []
+PatchComponent.opacity.label: Opacity
+PatchComponent.opacity.updates: constant
+PatchComponent.opacity.valType: code
+PatchComponent.colorSpace.default: 'rgb'
+PatchComponent.colorSpace.staticUpdater: None
+PatchComponent.colorSpace.categ: Advanced
+PatchComponent.colorSpace.val: rgb
+PatchComponent.colorSpace.allowedTypes: []
+PatchComponent.colorSpace.hint: Choice of color space for the color (rgb, dkl, lms)
+PatchComponent.colorSpace.allowedUpdates: None
+PatchComponent.colorSpace.allowedVals: ['rgb', 'dkl', 'lms']
+PatchComponent.colorSpace.label: Color space
+PatchComponent.colorSpace.updates: constant
+PatchComponent.colorSpace.valType: str
+PatchComponent.name.default: patch
+PatchComponent.name.staticUpdater: None
+PatchComponent.name.categ: Basic
+PatchComponent.name.val: patch
+PatchComponent.name.allowedTypes: []
+PatchComponent.name.hint: Name of this stimulus
+PatchComponent.name.allowedUpdates: None
+PatchComponent.name.allowedVals: []
+PatchComponent.name.label: Name
+PatchComponent.name.valType: code
+PatchComponent.color.default: [1,1,1]
+PatchComponent.color.staticUpdater: None
+PatchComponent.color.categ: Advanced
+PatchComponent.color.val: $[1,1,1]
+PatchComponent.color.allowedTypes: []
+PatchComponent.color.hint: Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)
+PatchComponent.color.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+PatchComponent.color.allowedVals: []
+PatchComponent.color.label: Color
+PatchComponent.color.updates: constant
+PatchComponent.color.valType: str
+PatchComponent.stopVal.default: 1.0
+PatchComponent.stopVal.staticUpdater: None
+PatchComponent.stopVal.categ: Basic
+PatchComponent.stopVal.val: 1.0
+PatchComponent.stopVal.allowedTypes: []
+PatchComponent.stopVal.hint: When does the stimulus end?
+PatchComponent.stopVal.allowedUpdates: []
+PatchComponent.stopVal.allowedVals: []
+PatchComponent.stopVal.label: 
+PatchComponent.stopVal.updates: constant
+PatchComponent.stopVal.valType: code
+PatchComponent.durationEstim.default: 
+PatchComponent.durationEstim.staticUpdater: None
+PatchComponent.durationEstim.categ: Basic
+PatchComponent.durationEstim.val: 
+PatchComponent.durationEstim.allowedTypes: []
+PatchComponent.durationEstim.hint: (Optional) expected duration (s) of stimulus, purely for representing in the timeline
+PatchComponent.durationEstim.allowedUpdates: None
+PatchComponent.durationEstim.allowedVals: []
+PatchComponent.durationEstim.label: 
+PatchComponent.durationEstim.updates: None
+PatchComponent.durationEstim.valType: code
+PatchComponent.mask.default: 'None'
+PatchComponent.mask.staticUpdater: None
+PatchComponent.mask.categ: Basic
+PatchComponent.mask.val: None
+PatchComponent.mask.allowedTypes: []
+PatchComponent.mask.hint: An image to define the alpha mask (ie shape)- 'gauss','circle'... or a filename (including path)
+PatchComponent.mask.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+PatchComponent.mask.allowedVals: []
+PatchComponent.mask.label: Mask
+PatchComponent.mask.updates: constant
+PatchComponent.mask.valType: str
+PatchComponent.pos.default: [0, 0]
+PatchComponent.pos.staticUpdater: None
+PatchComponent.pos.categ: Basic
+PatchComponent.pos.val: [0, 0]
+PatchComponent.pos.allowedTypes: []
+PatchComponent.pos.hint: Position of this stimulus (e.g. [1,2] )
+PatchComponent.pos.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+PatchComponent.pos.allowedVals: []
+PatchComponent.pos.label: Position [x,y]
+PatchComponent.pos.updates: constant
+PatchComponent.pos.valType: code
+PatchComponent.interpolate.default: 'linear'
+PatchComponent.interpolate.staticUpdater: None
+PatchComponent.interpolate.categ: Advanced
+PatchComponent.interpolate.val: linear
+PatchComponent.interpolate.allowedTypes: []
+PatchComponent.interpolate.hint: How should the image be interpolated if/when rescaled
+PatchComponent.interpolate.allowedUpdates: []
+PatchComponent.interpolate.allowedVals: ['linear', 'nearest']
+PatchComponent.interpolate.label: Interpolate
+PatchComponent.interpolate.updates: constant
+PatchComponent.interpolate.valType: str
+PatchComponent.sf.default: None
+PatchComponent.sf.staticUpdater: None
+PatchComponent.sf.categ: Advanced
+PatchComponent.sf.val: None
+PatchComponent.sf.allowedTypes: []
+PatchComponent.sf.hint: Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]
+PatchComponent.sf.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+PatchComponent.sf.allowedVals: []
+PatchComponent.sf.label: SF
+PatchComponent.sf.updates: constant
+PatchComponent.sf.valType: code
+PatchComponent.startEstim.default: 
+PatchComponent.startEstim.staticUpdater: None
+PatchComponent.startEstim.categ: Basic
+PatchComponent.startEstim.val: 
+PatchComponent.startEstim.allowedTypes: []
+PatchComponent.startEstim.hint: (Optional) expected start (s) of stimulus, purely for representing in the timeline
+PatchComponent.startEstim.allowedUpdates: None
+PatchComponent.startEstim.allowedVals: []
+PatchComponent.startEstim.label: 
+PatchComponent.startEstim.updates: None
+PatchComponent.startEstim.valType: code
+PatchComponent.units.default: 'from exp settings'
+PatchComponent.units.staticUpdater: None
+PatchComponent.units.categ: Basic
+PatchComponent.units.val: from exp settings
+PatchComponent.units.allowedTypes: []
+PatchComponent.units.hint: Units of dimensions for this stimulus
+PatchComponent.units.allowedUpdates: None
+PatchComponent.units.allowedVals: ['from exp settings', 'deg', 'cm', 'pix', 'norm']
+PatchComponent.units.label: Units
+PatchComponent.units.updates: None
+PatchComponent.units.valType: str
+PatchComponent.texture resolution.default: 128
+PatchComponent.texture resolution.staticUpdater: None
+PatchComponent.texture resolution.categ: Advanced
+PatchComponent.texture resolution.val: 128
+PatchComponent.texture resolution.allowedTypes: []
+PatchComponent.texture resolution.hint: Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice
+PatchComponent.texture resolution.allowedUpdates: []
+PatchComponent.texture resolution.allowedVals: ['32', '64', '128', '256', '512']
+PatchComponent.texture resolution.label: Texture resolution
+PatchComponent.texture resolution.updates: constant
+PatchComponent.texture resolution.valType: code
+PatchComponent.phase.default: 0.0
+PatchComponent.phase.staticUpdater: None
+PatchComponent.phase.categ: Advanced
+PatchComponent.phase.val: 0.0
+PatchComponent.phase.allowedTypes: []
+PatchComponent.phase.hint: Spatial positioning of the image on the patch (in range 0-1.0)
+PatchComponent.phase.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+PatchComponent.phase.allowedVals: []
+PatchComponent.phase.label: Phase
+PatchComponent.phase.updates: constant
+PatchComponent.phase.valType: code
+PatchComponent.startType.default: 'time (s)'
+PatchComponent.startType.staticUpdater: None
+PatchComponent.startType.categ: Basic
+PatchComponent.startType.val: time (s)
+PatchComponent.startType.allowedTypes: []
+PatchComponent.startType.hint: How do you want to define your start point?
+PatchComponent.startType.allowedUpdates: None
+PatchComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
+PatchComponent.startType.label: 
+PatchComponent.startType.updates: None
+PatchComponent.startType.valType: str
+PatchComponent.ori.default: 0
+PatchComponent.ori.staticUpdater: None
+PatchComponent.ori.categ: Basic
+PatchComponent.ori.val: 0
+PatchComponent.ori.allowedTypes: []
+PatchComponent.ori.hint: Orientation of this stimulus (in deg)
+PatchComponent.ori.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+PatchComponent.ori.allowedVals: []
+PatchComponent.ori.label: Orientation
+PatchComponent.ori.updates: constant
+PatchComponent.ori.valType: code
+PatchComponent.stopType.default: 'duration (s)'
+PatchComponent.stopType.staticUpdater: None
+PatchComponent.stopType.categ: Basic
+PatchComponent.stopType.val: duration (s)
+PatchComponent.stopType.allowedTypes: []
+PatchComponent.stopType.hint: How do you want to define your end point?
+PatchComponent.stopType.allowedUpdates: None
+PatchComponent.stopType.allowedVals: ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+PatchComponent.stopType.label: 
+PatchComponent.stopType.updates: None
+PatchComponent.stopType.valType: str
+PatchComponent.startVal.default: 0.0
+PatchComponent.startVal.staticUpdater: None
+PatchComponent.startVal.categ: Basic
+PatchComponent.startVal.val: 0.0
+PatchComponent.startVal.allowedTypes: []
+PatchComponent.startVal.hint: When does the stimulus start?
+PatchComponent.startVal.allowedUpdates: None
+PatchComponent.startVal.allowedVals: []
+PatchComponent.startVal.label: 
+PatchComponent.startVal.updates: None
+PatchComponent.startVal.valType: code
+PatchComponent.image.default: 'sin'
+PatchComponent.image.staticUpdater: None
+PatchComponent.image.categ: Basic
+PatchComponent.image.val: sin
+PatchComponent.image.allowedTypes: []
+PatchComponent.image.hint: The image to be displayed - 'sin','sqr'... or a filename (including path)
+PatchComponent.image.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+PatchComponent.image.allowedVals: []
+PatchComponent.image.label: Image
+PatchComponent.image.updates: constant
+PatchComponent.image.valType: str
+PatchComponent.size.default: [0.5, 0.5]
+PatchComponent.size.staticUpdater: None
+PatchComponent.size.categ: Basic
+PatchComponent.size.val: [0.5, 0.5]
+PatchComponent.size.allowedTypes: []
+PatchComponent.size.hint: Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
+PatchComponent.size.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+PatchComponent.size.allowedVals: []
+PatchComponent.size.label: Size [w,h]
+PatchComponent.size.updates: constant
+PatchComponent.size.valType: code
+PolygonComponent.order: ['nVertices']
+PolygonComponent.opacity.default: 1
+PolygonComponent.opacity.staticUpdater: None
+PolygonComponent.opacity.categ: Basic
+PolygonComponent.opacity.val: 1
+PolygonComponent.opacity.allowedTypes: []
+PolygonComponent.opacity.hint: Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)
+PolygonComponent.opacity.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+PolygonComponent.opacity.allowedVals: []
+PolygonComponent.opacity.label: Opacity
+PolygonComponent.opacity.updates: constant
+PolygonComponent.opacity.valType: code
+PolygonComponent.fillColorSpace.default: 'rgb'
+PolygonComponent.fillColorSpace.staticUpdater: None
+PolygonComponent.fillColorSpace.categ: Basic
+PolygonComponent.fillColorSpace.val: rgb
+PolygonComponent.fillColorSpace.allowedTypes: []
+PolygonComponent.fillColorSpace.hint: Choice of color space for the fill color (rgb, dkl, lms)
+PolygonComponent.fillColorSpace.allowedUpdates: None
+PolygonComponent.fillColorSpace.allowedVals: ['rgb', 'dkl', 'lms']
+PolygonComponent.fillColorSpace.label: Fill color space
+PolygonComponent.fillColorSpace.updates: constant
+PolygonComponent.fillColorSpace.valType: str
+PolygonComponent.name.default: polygon
+PolygonComponent.name.staticUpdater: None
+PolygonComponent.name.categ: Basic
+PolygonComponent.name.val: polygon
+PolygonComponent.name.allowedTypes: []
+PolygonComponent.name.hint: Name of this stimulus
+PolygonComponent.name.allowedUpdates: None
+PolygonComponent.name.allowedVals: []
+PolygonComponent.name.label: Name
+PolygonComponent.name.valType: code
+PolygonComponent.fillColor.default: [1,1,1]
+PolygonComponent.fillColor.staticUpdater: None
+PolygonComponent.fillColor.categ: Basic
+PolygonComponent.fillColor.val: $[1,1,1]
+PolygonComponent.fillColor.allowedTypes: []
+PolygonComponent.fillColor.hint: Fill color of this shape; Right-click to bring up a color-picker (rgb only)
+PolygonComponent.fillColor.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+PolygonComponent.fillColor.allowedVals: []
+PolygonComponent.fillColor.label: Fill color
+PolygonComponent.fillColor.updates: constant
+PolygonComponent.fillColor.valType: str
+PolygonComponent.stopVal.default: 1.0
+PolygonComponent.stopVal.staticUpdater: None
+PolygonComponent.stopVal.categ: Basic
+PolygonComponent.stopVal.val: 1.0
+PolygonComponent.stopVal.allowedTypes: []
+PolygonComponent.stopVal.hint: When does the stimulus end?
+PolygonComponent.stopVal.allowedUpdates: []
+PolygonComponent.stopVal.allowedVals: []
+PolygonComponent.stopVal.label: 
+PolygonComponent.stopVal.updates: constant
+PolygonComponent.stopVal.valType: code
+PolygonComponent.durationEstim.default: 
+PolygonComponent.durationEstim.staticUpdater: None
+PolygonComponent.durationEstim.categ: Basic
+PolygonComponent.durationEstim.val: 
+PolygonComponent.durationEstim.allowedTypes: []
+PolygonComponent.durationEstim.hint: (Optional) expected duration (s) of stimulus, purely for representing in the timeline
+PolygonComponent.durationEstim.allowedUpdates: None
+PolygonComponent.durationEstim.allowedVals: []
+PolygonComponent.durationEstim.label: 
+PolygonComponent.durationEstim.updates: None
+PolygonComponent.durationEstim.valType: code
+PolygonComponent.pos.default: [0, 0]
+PolygonComponent.pos.staticUpdater: None
+PolygonComponent.pos.categ: Basic
+PolygonComponent.pos.val: [0, 0]
+PolygonComponent.pos.allowedTypes: []
+PolygonComponent.pos.hint: Position of this stimulus (e.g. [1,2] )
+PolygonComponent.pos.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+PolygonComponent.pos.allowedVals: []
+PolygonComponent.pos.label: Position [x,y]
+PolygonComponent.pos.updates: constant
+PolygonComponent.pos.valType: code
+PolygonComponent.interpolate.default: 'linear'
+PolygonComponent.interpolate.staticUpdater: None
+PolygonComponent.interpolate.categ: Basic
+PolygonComponent.interpolate.val: linear
+PolygonComponent.interpolate.allowedTypes: []
+PolygonComponent.interpolate.hint: How should the image be interpolated if/when rescaled
+PolygonComponent.interpolate.allowedUpdates: []
+PolygonComponent.interpolate.allowedVals: ['linear', 'nearest']
+PolygonComponent.interpolate.label: Interpolate
+PolygonComponent.interpolate.updates: constant
+PolygonComponent.interpolate.valType: str
+PolygonComponent.lineWidth.default: 1
+PolygonComponent.lineWidth.staticUpdater: None
+PolygonComponent.lineWidth.categ: Basic
+PolygonComponent.lineWidth.val: 1
+PolygonComponent.lineWidth.allowedTypes: []
+PolygonComponent.lineWidth.hint: Width of the shape's line (always in pixels - this does NOT use 'units')
+PolygonComponent.lineWidth.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+PolygonComponent.lineWidth.allowedVals: []
+PolygonComponent.lineWidth.label: Line width
+PolygonComponent.lineWidth.updates: constant
+PolygonComponent.lineWidth.valType: code
+PolygonComponent.startEstim.default: 
+PolygonComponent.startEstim.staticUpdater: None
+PolygonComponent.startEstim.categ: Basic
+PolygonComponent.startEstim.val: 
+PolygonComponent.startEstim.allowedTypes: []
+PolygonComponent.startEstim.hint: (Optional) expected start (s) of stimulus, purely for representing in the timeline
+PolygonComponent.startEstim.allowedUpdates: None
+PolygonComponent.startEstim.allowedVals: []
+PolygonComponent.startEstim.label: 
+PolygonComponent.startEstim.updates: None
+PolygonComponent.startEstim.valType: code
+PolygonComponent.units.default: 'from exp settings'
+PolygonComponent.units.staticUpdater: None
+PolygonComponent.units.categ: Basic
+PolygonComponent.units.val: from exp settings
+PolygonComponent.units.allowedTypes: []
+PolygonComponent.units.hint: Units of dimensions for this stimulus
+PolygonComponent.units.allowedUpdates: None
+PolygonComponent.units.allowedVals: ['from exp settings', 'deg', 'cm', 'pix', 'norm']
+PolygonComponent.units.label: Units
+PolygonComponent.units.updates: None
+PolygonComponent.units.valType: str
+PolygonComponent.startType.default: 'time (s)'
+PolygonComponent.startType.staticUpdater: None
+PolygonComponent.startType.categ: Basic
+PolygonComponent.startType.val: time (s)
+PolygonComponent.startType.allowedTypes: []
+PolygonComponent.startType.hint: How do you want to define your start point?
+PolygonComponent.startType.allowedUpdates: None
+PolygonComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
+PolygonComponent.startType.label: 
+PolygonComponent.startType.updates: None
+PolygonComponent.startType.valType: str
+PolygonComponent.lineColor.default: [1,1,1]
+PolygonComponent.lineColor.staticUpdater: None
+PolygonComponent.lineColor.categ: Basic
+PolygonComponent.lineColor.val: $[1,1,1]
+PolygonComponent.lineColor.allowedTypes: []
+PolygonComponent.lineColor.hint: Line color of this shape; Right-click to bring up a color-picker (rgb only)
+PolygonComponent.lineColor.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+PolygonComponent.lineColor.allowedVals: []
+PolygonComponent.lineColor.label: Line color
+PolygonComponent.lineColor.updates: constant
+PolygonComponent.lineColor.valType: str
+PolygonComponent.ori.default: 0
+PolygonComponent.ori.staticUpdater: None
+PolygonComponent.ori.categ: Basic
+PolygonComponent.ori.val: 0
+PolygonComponent.ori.allowedTypes: []
+PolygonComponent.ori.hint: Orientation of this stimulus (in deg)
+PolygonComponent.ori.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+PolygonComponent.ori.allowedVals: []
+PolygonComponent.ori.label: Orientation
+PolygonComponent.ori.updates: constant
+PolygonComponent.ori.valType: code
+PolygonComponent.stopType.default: 'duration (s)'
+PolygonComponent.stopType.staticUpdater: None
+PolygonComponent.stopType.categ: Basic
+PolygonComponent.stopType.val: duration (s)
+PolygonComponent.stopType.allowedTypes: []
+PolygonComponent.stopType.hint: How do you want to define your end point?
+PolygonComponent.stopType.allowedUpdates: None
+PolygonComponent.stopType.allowedVals: ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+PolygonComponent.stopType.label: 
+PolygonComponent.stopType.updates: None
+PolygonComponent.stopType.valType: str
+PolygonComponent.startVal.default: 0.0
+PolygonComponent.startVal.staticUpdater: None
+PolygonComponent.startVal.categ: Basic
+PolygonComponent.startVal.val: 0.0
+PolygonComponent.startVal.allowedTypes: []
+PolygonComponent.startVal.hint: When does the stimulus start?
+PolygonComponent.startVal.allowedUpdates: None
+PolygonComponent.startVal.allowedVals: []
+PolygonComponent.startVal.label: 
+PolygonComponent.startVal.updates: None
+PolygonComponent.startVal.valType: code
+PolygonComponent.lineColorSpace.default: 'rgb'
+PolygonComponent.lineColorSpace.staticUpdater: None
+PolygonComponent.lineColorSpace.categ: Basic
+PolygonComponent.lineColorSpace.val: rgb
+PolygonComponent.lineColorSpace.allowedTypes: []
+PolygonComponent.lineColorSpace.hint: Choice of color space for the fill color (rgb, dkl, lms)
+PolygonComponent.lineColorSpace.allowedUpdates: None
+PolygonComponent.lineColorSpace.allowedVals: ['rgb', 'dkl', 'lms']
+PolygonComponent.lineColorSpace.label: Line color space
+PolygonComponent.lineColorSpace.updates: constant
+PolygonComponent.lineColorSpace.valType: str
+PolygonComponent.nVertices.default: 4
+PolygonComponent.nVertices.staticUpdater: None
+PolygonComponent.nVertices.categ: Basic
+PolygonComponent.nVertices.val: 4
+PolygonComponent.nVertices.allowedTypes: []
+PolygonComponent.nVertices.hint: How many vertices? 2=line, 3=triangle... (90 approximates a circle)
+PolygonComponent.nVertices.allowedUpdates: ['constant']
+PolygonComponent.nVertices.allowedVals: []
+PolygonComponent.nVertices.label: N Vertices
+PolygonComponent.nVertices.updates: constant
+PolygonComponent.nVertices.valType: int
+PolygonComponent.size.default: [0.5, 0.5]
+PolygonComponent.size.staticUpdater: None
+PolygonComponent.size.categ: Basic
+PolygonComponent.size.val: [0.5, 0.5]
+PolygonComponent.size.allowedTypes: []
+PolygonComponent.size.hint: Size of this stimulus [w,h]. Note that for a line only the first value is used, for triangle and rect the [w,h] is as expected, but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!! 
+PolygonComponent.size.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+PolygonComponent.size.allowedVals: []
+PolygonComponent.size.label: Size [w,h]
+PolygonComponent.size.updates: constant
+PolygonComponent.size.valType: code
+RatingScaleComponent.order: ['name', 'visualAnalogScale', 'categoryChoices', 'scaleDescription', 'low', 'high', 'labels', 'markerStart', 'size', 'pos', 'tickHeight']
+RatingScaleComponent.labels.default: ''
+RatingScaleComponent.labels.staticUpdater: None
+RatingScaleComponent.labels.categ: Basic
+RatingScaleComponent.labels.val: 
+RatingScaleComponent.labels.allowedTypes: []
+RatingScaleComponent.labels.hint: Labels for the ends of the scale, separated by commas
+RatingScaleComponent.labels.allowedUpdates: []
+RatingScaleComponent.labels.allowedVals: []
+RatingScaleComponent.labels.label: 
+RatingScaleComponent.labels.updates: constant
+RatingScaleComponent.labels.valType: str
+RatingScaleComponent.pos.default: '0, -0.4'
+RatingScaleComponent.pos.staticUpdater: None
+RatingScaleComponent.pos.categ: Advanced
+RatingScaleComponent.pos.val: 0, -0.4
+RatingScaleComponent.pos.allowedTypes: []
+RatingScaleComponent.pos.hint: x,y position on the screen
+RatingScaleComponent.pos.allowedUpdates: []
+RatingScaleComponent.pos.allowedVals: []
+RatingScaleComponent.pos.label: 
+RatingScaleComponent.pos.updates: constant
+RatingScaleComponent.pos.valType: str
+RatingScaleComponent.high.default: 7
+RatingScaleComponent.high.staticUpdater: None
+RatingScaleComponent.high.categ: Basic
+RatingScaleComponent.high.val: 7
+RatingScaleComponent.high.allowedTypes: []
+RatingScaleComponent.high.hint: Highest rating (top end of the scale); not used for categories.
+RatingScaleComponent.high.allowedUpdates: []
+RatingScaleComponent.high.allowedVals: []
+RatingScaleComponent.high.label: High
+RatingScaleComponent.high.updates: constant
+RatingScaleComponent.high.valType: code
+RatingScaleComponent.storeRating.default: True
+RatingScaleComponent.storeRating.staticUpdater: None
+RatingScaleComponent.storeRating.categ: Advanced
+RatingScaleComponent.storeRating.val: True
+RatingScaleComponent.storeRating.allowedTypes: []
+RatingScaleComponent.storeRating.hint: store the rating
+RatingScaleComponent.storeRating.allowedUpdates: []
+RatingScaleComponent.storeRating.allowedVals: []
+RatingScaleComponent.storeRating.label: 
+RatingScaleComponent.storeRating.updates: constant
+RatingScaleComponent.storeRating.valType: bool
+RatingScaleComponent.marker.default: 'triangle'
+RatingScaleComponent.marker.staticUpdater: None
+RatingScaleComponent.marker.categ: Basic
+RatingScaleComponent.marker.val: triangle
+RatingScaleComponent.marker.allowedTypes: []
+RatingScaleComponent.marker.hint: Style for the marker: triangle, circle, glow, slider, hover
+RatingScaleComponent.marker.allowedUpdates: []
+RatingScaleComponent.marker.allowedVals: []
+RatingScaleComponent.marker.label: 
+RatingScaleComponent.marker.updates: constant
+RatingScaleComponent.marker.valType: str
+RatingScaleComponent.startVal.default: 0.0
+RatingScaleComponent.startVal.staticUpdater: None
+RatingScaleComponent.startVal.categ: Basic
+RatingScaleComponent.startVal.val: 0.0
+RatingScaleComponent.startVal.allowedTypes: []
+RatingScaleComponent.startVal.hint: When does the rating scale start being shown?
+RatingScaleComponent.startVal.allowedUpdates: None
+RatingScaleComponent.startVal.allowedVals: []
+RatingScaleComponent.startVal.label: 
+RatingScaleComponent.startVal.updates: None
+RatingScaleComponent.startVal.valType: code
+RatingScaleComponent.markerStart.default: ''
+RatingScaleComponent.markerStart.staticUpdater: None
+RatingScaleComponent.markerStart.categ: Basic
+RatingScaleComponent.markerStart.val: 
+RatingScaleComponent.markerStart.allowedTypes: []
+RatingScaleComponent.markerStart.hint: initial position for the marker
+RatingScaleComponent.markerStart.allowedUpdates: []
+RatingScaleComponent.markerStart.allowedVals: []
+RatingScaleComponent.markerStart.label: 
+RatingScaleComponent.markerStart.updates: constant
+RatingScaleComponent.markerStart.valType: str
+RatingScaleComponent.disappear.default: False
+RatingScaleComponent.disappear.staticUpdater: None
+RatingScaleComponent.disappear.categ: Advanced
+RatingScaleComponent.disappear.val: False
+RatingScaleComponent.disappear.allowedTypes: []
+RatingScaleComponent.disappear.hint: Hide the scale when a rating has been accepted; False to remain on-screen
+RatingScaleComponent.disappear.allowedUpdates: []
+RatingScaleComponent.disappear.allowedVals: []
+RatingScaleComponent.disappear.label: 
+RatingScaleComponent.disappear.updates: constant
+RatingScaleComponent.disappear.valType: bool
+RatingScaleComponent.size.default: 1.0
+RatingScaleComponent.size.staticUpdater: None
+RatingScaleComponent.size.categ: Advanced
+RatingScaleComponent.size.val: 1.0
+RatingScaleComponent.size.allowedTypes: []
+RatingScaleComponent.size.hint: Relative size on the screen; size > 1 is larger than default; size < 1 is smaller
+RatingScaleComponent.size.allowedUpdates: []
+RatingScaleComponent.size.allowedVals: []
+RatingScaleComponent.size.label: 
+RatingScaleComponent.size.updates: constant
+RatingScaleComponent.size.valType: code
+RatingScaleComponent.tickHeight.default: ''
+RatingScaleComponent.tickHeight.staticUpdater: None
+RatingScaleComponent.tickHeight.categ: Advanced
+RatingScaleComponent.tickHeight.val: 
+RatingScaleComponent.tickHeight.allowedTypes: []
+RatingScaleComponent.tickHeight.hint: height of tick marks (1 is upward, 0 is hidden, -1 is downward)
+RatingScaleComponent.tickHeight.allowedUpdates: []
+RatingScaleComponent.tickHeight.allowedVals: []
+RatingScaleComponent.tickHeight.label: 
+RatingScaleComponent.tickHeight.updates: constant
+RatingScaleComponent.tickHeight.valType: str
+RatingScaleComponent.showAccept.default: True
+RatingScaleComponent.showAccept.staticUpdater: None
+RatingScaleComponent.showAccept.categ: Advanced
+RatingScaleComponent.showAccept.val: True
+RatingScaleComponent.showAccept.allowedTypes: []
+RatingScaleComponent.showAccept.hint: Should the accept button by visible?
+RatingScaleComponent.showAccept.allowedUpdates: []
+RatingScaleComponent.showAccept.allowedVals: []
+RatingScaleComponent.showAccept.label: 
+RatingScaleComponent.showAccept.updates: constant
+RatingScaleComponent.showAccept.valType: bool
+RatingScaleComponent.storeRatingTime.default: True
+RatingScaleComponent.storeRatingTime.staticUpdater: None
+RatingScaleComponent.storeRatingTime.categ: Advanced
+RatingScaleComponent.storeRatingTime.val: True
+RatingScaleComponent.storeRatingTime.allowedTypes: []
+RatingScaleComponent.storeRatingTime.hint: store the time taken to make the choice (in seconds)
+RatingScaleComponent.storeRatingTime.allowedUpdates: []
+RatingScaleComponent.storeRatingTime.allowedVals: []
+RatingScaleComponent.storeRatingTime.label: 
+RatingScaleComponent.storeRatingTime.updates: constant
+RatingScaleComponent.storeRatingTime.valType: bool
+RatingScaleComponent.forceEndRoutine.default: True
+RatingScaleComponent.forceEndRoutine.staticUpdater: None
+RatingScaleComponent.forceEndRoutine.categ: Advanced
+RatingScaleComponent.forceEndRoutine.val: True
+RatingScaleComponent.forceEndRoutine.allowedTypes: []
+RatingScaleComponent.forceEndRoutine.hint: Should accepting a rating cause the end of the routine (e.g. trial)?
+RatingScaleComponent.forceEndRoutine.allowedUpdates: []
+RatingScaleComponent.forceEndRoutine.allowedVals: []
+RatingScaleComponent.forceEndRoutine.label: 
+RatingScaleComponent.forceEndRoutine.updates: constant
+RatingScaleComponent.forceEndRoutine.valType: bool
+RatingScaleComponent.low.default: 1
+RatingScaleComponent.low.staticUpdater: None
+RatingScaleComponent.low.categ: Basic
+RatingScaleComponent.low.val: 1
+RatingScaleComponent.low.allowedTypes: []
+RatingScaleComponent.low.hint: Lowest rating (low end of the scale); not used for categories.
+RatingScaleComponent.low.allowedUpdates: []
+RatingScaleComponent.low.allowedVals: []
+RatingScaleComponent.low.label: Low
+RatingScaleComponent.low.updates: constant
+RatingScaleComponent.low.valType: code
+RatingScaleComponent.durationEstim.default: 
+RatingScaleComponent.durationEstim.staticUpdater: None
+RatingScaleComponent.durationEstim.categ: Basic
+RatingScaleComponent.durationEstim.val: 
+RatingScaleComponent.durationEstim.allowedTypes: []
+RatingScaleComponent.durationEstim.hint: (Optional) expected duration (s) of stimulus, purely for representing in the timeline
+RatingScaleComponent.durationEstim.allowedUpdates: None
+RatingScaleComponent.durationEstim.allowedVals: []
+RatingScaleComponent.durationEstim.label: 
+RatingScaleComponent.durationEstim.updates: None
+RatingScaleComponent.durationEstim.valType: code
+RatingScaleComponent.stopVal.default: 
+RatingScaleComponent.stopVal.staticUpdater: None
+RatingScaleComponent.stopVal.categ: Basic
+RatingScaleComponent.stopVal.val: 
+RatingScaleComponent.stopVal.allowedTypes: []
+RatingScaleComponent.stopVal.hint: How long to wait for a response (blank is forever)
+RatingScaleComponent.stopVal.allowedUpdates: []
+RatingScaleComponent.stopVal.allowedVals: []
+RatingScaleComponent.stopVal.label: 
+RatingScaleComponent.stopVal.updates: constant
+RatingScaleComponent.stopVal.valType: code
+RatingScaleComponent.visualAnalogScale.default: False
+RatingScaleComponent.visualAnalogScale.staticUpdater: None
+RatingScaleComponent.visualAnalogScale.categ: Basic
+RatingScaleComponent.visualAnalogScale.val: False
+RatingScaleComponent.visualAnalogScale.allowedTypes: []
+RatingScaleComponent.visualAnalogScale.hint: Show a continuous visual analog scale; returns 0.00 to 1.00; takes precedence over numeric scale or categorical choices
+RatingScaleComponent.visualAnalogScale.allowedUpdates: []
+RatingScaleComponent.visualAnalogScale.allowedVals: []
+RatingScaleComponent.visualAnalogScale.label: Visual analog scale
+RatingScaleComponent.visualAnalogScale.updates: constant
+RatingScaleComponent.visualAnalogScale.valType: bool
+RatingScaleComponent.startEstim.default: 
+RatingScaleComponent.startEstim.staticUpdater: None
+RatingScaleComponent.startEstim.categ: Basic
+RatingScaleComponent.startEstim.val: 
+RatingScaleComponent.startEstim.allowedTypes: []
+RatingScaleComponent.startEstim.hint: (Optional) expected start (s) of stimulus, purely for representing in the timeline
+RatingScaleComponent.startEstim.allowedUpdates: None
+RatingScaleComponent.startEstim.allowedVals: []
+RatingScaleComponent.startEstim.label: 
+RatingScaleComponent.startEstim.updates: None
+RatingScaleComponent.startEstim.valType: code
+RatingScaleComponent.startType.default: 'time (s)'
+RatingScaleComponent.startType.staticUpdater: None
+RatingScaleComponent.startType.categ: Basic
+RatingScaleComponent.startType.val: time (s)
+RatingScaleComponent.startType.allowedTypes: []
+RatingScaleComponent.startType.hint: How do you want to define your start point?
+RatingScaleComponent.startType.allowedUpdates: None
+RatingScaleComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
+RatingScaleComponent.startType.label: 
+RatingScaleComponent.startType.updates: None
+RatingScaleComponent.startType.valType: str
+RatingScaleComponent.stopType.default: 'condition'
+RatingScaleComponent.stopType.staticUpdater: None
+RatingScaleComponent.stopType.categ: Basic
+RatingScaleComponent.stopType.val: condition
+RatingScaleComponent.stopType.allowedTypes: []
+RatingScaleComponent.stopType.hint: How do you want to define your end point?
+RatingScaleComponent.stopType.allowedUpdates: None
+RatingScaleComponent.stopType.allowedVals: ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+RatingScaleComponent.stopType.label: 
+RatingScaleComponent.stopType.updates: None
+RatingScaleComponent.stopType.valType: str
+RatingScaleComponent.scaleDescription.default: ''
+RatingScaleComponent.scaleDescription.staticUpdater: None
+RatingScaleComponent.scaleDescription.categ: Basic
+RatingScaleComponent.scaleDescription.val: 
+RatingScaleComponent.scaleDescription.allowedTypes: []
+RatingScaleComponent.scaleDescription.hint: Brief instructions, such as a description of the scale numbers as seen by the subject.
+RatingScaleComponent.scaleDescription.allowedUpdates: []
+RatingScaleComponent.scaleDescription.allowedVals: []
+RatingScaleComponent.scaleDescription.label: Scale description
+RatingScaleComponent.scaleDescription.updates: constant
+RatingScaleComponent.scaleDescription.valType: str
+RatingScaleComponent.storeHistory.default: False
+RatingScaleComponent.storeHistory.staticUpdater: None
+RatingScaleComponent.storeHistory.categ: Advanced
+RatingScaleComponent.storeHistory.val: False
+RatingScaleComponent.storeHistory.allowedTypes: []
+RatingScaleComponent.storeHistory.hint: store the history of (selection, time)
+RatingScaleComponent.storeHistory.allowedUpdates: []
+RatingScaleComponent.storeHistory.allowedVals: []
+RatingScaleComponent.storeHistory.label: 
+RatingScaleComponent.storeHistory.updates: constant
+RatingScaleComponent.storeHistory.valType: bool
+RatingScaleComponent.categoryChoices.default: ''
+RatingScaleComponent.categoryChoices.staticUpdater: None
+RatingScaleComponent.categoryChoices.categ: Basic
+RatingScaleComponent.categoryChoices.val: 
+RatingScaleComponent.categoryChoices.allowedTypes: []
+RatingScaleComponent.categoryChoices.hint: A list of categories (non-numeric alternatives) to present, space or comma-separated; these take precedence over a numeric scale
+RatingScaleComponent.categoryChoices.allowedUpdates: []
+RatingScaleComponent.categoryChoices.allowedVals: []
+RatingScaleComponent.categoryChoices.label: Category choices
+RatingScaleComponent.categoryChoices.updates: constant
+RatingScaleComponent.categoryChoices.valType: str
+RatingScaleComponent.customize_everything.default: ''
+RatingScaleComponent.customize_everything.staticUpdater: None
+RatingScaleComponent.customize_everything.categ: Custom
+RatingScaleComponent.customize_everything.val: 
+RatingScaleComponent.customize_everything.allowedTypes: []
+RatingScaleComponent.customize_everything.hint: Use this text to create the rating scale as you would in a code component; overrides all dialog settings except time parameters, forceEndRoutine, storeRatingTime, storeRating
+RatingScaleComponent.customize_everything.allowedUpdates: []
+RatingScaleComponent.customize_everything.allowedVals: []
+RatingScaleComponent.customize_everything.label: 
+RatingScaleComponent.customize_everything.updates: constant
+RatingScaleComponent.customize_everything.valType: str
+RatingScaleComponent.name.default: rating
+RatingScaleComponent.name.staticUpdater: None
+RatingScaleComponent.name.categ: Basic
+RatingScaleComponent.name.val: rating
+RatingScaleComponent.name.allowedTypes: []
+RatingScaleComponent.name.hint: A rating scale only collects the response; it does not display the stimulus to be rated.
+RatingScaleComponent.name.allowedUpdates: None
+RatingScaleComponent.name.allowedVals: []
+RatingScaleComponent.name.label: Name
+RatingScaleComponent.name.valType: code
+RatingScaleComponent.singleClick.default: False
+RatingScaleComponent.singleClick.staticUpdater: None
+RatingScaleComponent.singleClick.categ: Advanced
+RatingScaleComponent.singleClick.val: False
+RatingScaleComponent.singleClick.allowedTypes: []
+RatingScaleComponent.singleClick.hint: Should clicking the line accept that rating (without needing to confirm via 'accept')?
+RatingScaleComponent.singleClick.allowedUpdates: []
+RatingScaleComponent.singleClick.allowedVals: []
+RatingScaleComponent.singleClick.label: 
+RatingScaleComponent.singleClick.updates: constant
+RatingScaleComponent.singleClick.valType: bool
+SettingsComponent.order: ['expName', 'Show info dlg', 'Experiment info', 'Data filename', 'Save excel file', 'Save csv file', 'Save wide csv file', 'Save psydat file', 'Save log file', 'logging level', 'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'color', 'colorSpace', 'Units']
+SettingsComponent.Show mouse.default: False
+SettingsComponent.Show mouse.staticUpdater: None
+SettingsComponent.Show mouse.categ: Screen
+SettingsComponent.Show mouse.val: False
+SettingsComponent.Show mouse.allowedTypes: []
+SettingsComponent.Show mouse.hint: Should the mouse be visible on screen?
+SettingsComponent.Show mouse.allowedUpdates: None
+SettingsComponent.Show mouse.allowedVals: []
+SettingsComponent.Show mouse.label: 
+SettingsComponent.Show mouse.updates: None
+SettingsComponent.Show mouse.valType: bool
+SettingsComponent.Data filename.default: 'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])
+SettingsComponent.Data filename.staticUpdater: None
+SettingsComponent.Data filename.categ: Data
+SettingsComponent.Data filename.val: 'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])
+SettingsComponent.Data filename.allowedTypes: []
+SettingsComponent.Data filename.hint: Code to create your custom file name base. Don't give a file extension - this will be added.
+SettingsComponent.Data filename.allowedUpdates: None
+SettingsComponent.Data filename.allowedVals: []
+SettingsComponent.Data filename.label: 
+SettingsComponent.Data filename.updates: None
+SettingsComponent.Data filename.valType: code
+SettingsComponent.Monitor.default: 'testMonitor'
+SettingsComponent.Monitor.staticUpdater: None
+SettingsComponent.Monitor.categ: Screen
+SettingsComponent.Monitor.val: testMonitor
+SettingsComponent.Monitor.allowedTypes: []
+SettingsComponent.Monitor.hint: Name of the monitor (from Monitor Center). Right-click to go there, then copy & paste a monitor name here.
+SettingsComponent.Monitor.allowedUpdates: None
+SettingsComponent.Monitor.allowedVals: []
+SettingsComponent.Monitor.label: 
+SettingsComponent.Monitor.updates: None
+SettingsComponent.Monitor.valType: str
+SettingsComponent.Enable Escape.default: True
+SettingsComponent.Enable Escape.staticUpdater: None
+SettingsComponent.Enable Escape.categ: Basic
+SettingsComponent.Enable Escape.val: True
+SettingsComponent.Enable Escape.allowedTypes: []
+SettingsComponent.Enable Escape.hint: Enable the <esc> key, to allow subjects to quit / break out of the experiment
+SettingsComponent.Enable Escape.allowedUpdates: None
+SettingsComponent.Enable Escape.allowedVals: []
+SettingsComponent.Enable Escape.label: 
+SettingsComponent.Enable Escape.updates: None
+SettingsComponent.Enable Escape.valType: bool
+SettingsComponent.color.default: [0,0,0]
+SettingsComponent.color.staticUpdater: None
+SettingsComponent.color.categ: Screen
+SettingsComponent.color.val: $[0,0,0]
+SettingsComponent.color.allowedTypes: []
+SettingsComponent.color.hint: Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)
+SettingsComponent.color.allowedUpdates: None
+SettingsComponent.color.allowedVals: []
+SettingsComponent.color.label: Color
+SettingsComponent.color.updates: None
+SettingsComponent.color.valType: str
+SettingsComponent.Window size (pixels).default: [1024, 768]
+SettingsComponent.Window size (pixels).staticUpdater: None
+SettingsComponent.Window size (pixels).categ: Screen
+SettingsComponent.Window size (pixels).val: [1024, 768]
+SettingsComponent.Window size (pixels).allowedTypes: []
+SettingsComponent.Window size (pixels).hint: Size of window (if not fullscreen)
+SettingsComponent.Window size (pixels).allowedUpdates: None
+SettingsComponent.Window size (pixels).allowedVals: []
+SettingsComponent.Window size (pixels).label: 
+SettingsComponent.Window size (pixels).updates: None
+SettingsComponent.Window size (pixels).valType: code
+SettingsComponent.Full-screen window.default: True
+SettingsComponent.Full-screen window.staticUpdater: None
+SettingsComponent.Full-screen window.categ: Screen
+SettingsComponent.Full-screen window.val: True
+SettingsComponent.Full-screen window.allowedTypes: []
+SettingsComponent.Full-screen window.hint: Run the experiment full-screen (recommended)
+SettingsComponent.Full-screen window.allowedUpdates: None
+SettingsComponent.Full-screen window.allowedVals: []
+SettingsComponent.Full-screen window.label: 
+SettingsComponent.Full-screen window.updates: None
+SettingsComponent.Full-screen window.valType: bool
+SettingsComponent.colorSpace.default: 'rgb'
+SettingsComponent.colorSpace.staticUpdater: None
+SettingsComponent.colorSpace.categ: Screen
+SettingsComponent.colorSpace.val: rgb
+SettingsComponent.colorSpace.allowedTypes: []
+SettingsComponent.colorSpace.hint: Needed if color is defined numerically (see PsychoPy documentation on color spaces)
+SettingsComponent.colorSpace.allowedUpdates: None
+SettingsComponent.colorSpace.allowedVals: ['rgb', 'dkl', 'lms']
+SettingsComponent.colorSpace.label: 
+SettingsComponent.colorSpace.updates: None
+SettingsComponent.colorSpace.valType: str
+SettingsComponent.Experiment info.default: {'participant':'', 'session':'001'}
+SettingsComponent.Experiment info.staticUpdater: None
+SettingsComponent.Experiment info.categ: Basic
+SettingsComponent.Experiment info.val: {'participant':'', 'session':'001'}
+SettingsComponent.Experiment info.allowedTypes: []
+SettingsComponent.Experiment info.hint: The info to present in a dialog box. Right-click to check syntax and preview the dialog box.
+SettingsComponent.Experiment info.allowedUpdates: None
+SettingsComponent.Experiment info.allowedVals: []
+SettingsComponent.Experiment info.label: 
+SettingsComponent.Experiment info.updates: None
+SettingsComponent.Experiment info.valType: code
+SettingsComponent.Save csv file.default: False
+SettingsComponent.Save csv file.staticUpdater: None
+SettingsComponent.Save csv file.categ: Data
+SettingsComponent.Save csv file.val: False
+SettingsComponent.Save csv file.allowedTypes: []
+SettingsComponent.Save csv file.hint: Save data from loops in comma-separated-value (.csv) format for maximum portability
+SettingsComponent.Save csv file.allowedUpdates: None
+SettingsComponent.Save csv file.allowedVals: []
+SettingsComponent.Save csv file.label: Save csv file (summaries)
+SettingsComponent.Save csv file.updates: None
+SettingsComponent.Save csv file.valType: bool
+SettingsComponent.Show info dlg.default: True
+SettingsComponent.Show info dlg.staticUpdater: None
+SettingsComponent.Show info dlg.categ: Basic
+SettingsComponent.Show info dlg.val: True
+SettingsComponent.Show info dlg.allowedTypes: []
+SettingsComponent.Show info dlg.hint: Start the experiment with a dialog to set info (e.g.participant or condition)
+SettingsComponent.Show info dlg.allowedUpdates: None
+SettingsComponent.Show info dlg.allowedVals: []
+SettingsComponent.Show info dlg.label: 
+SettingsComponent.Show info dlg.updates: None
+SettingsComponent.Show info dlg.valType: bool
+SettingsComponent.Save wide csv file.default: True
+SettingsComponent.Save wide csv file.staticUpdater: None
+SettingsComponent.Save wide csv file.categ: Data
+SettingsComponent.Save wide csv file.val: True
+SettingsComponent.Save wide csv file.allowedTypes: []
+SettingsComponent.Save wide csv file.hint: Save data from loops in comma-separated-value (.csv) format for maximum portability
+SettingsComponent.Save wide csv file.allowedUpdates: None
+SettingsComponent.Save wide csv file.allowedVals: []
+SettingsComponent.Save wide csv file.label: Save csv file (trial-by-trial)
+SettingsComponent.Save wide csv file.updates: None
+SettingsComponent.Save wide csv file.valType: bool
+SettingsComponent.Save psydat file.default: True
+SettingsComponent.Save psydat file.staticUpdater: None
+SettingsComponent.Save psydat file.categ: Data
+SettingsComponent.Save psydat file.val: True
+SettingsComponent.Save psydat file.allowedTypes: []
+SettingsComponent.Save psydat file.hint: Save data from loops in psydat format. This is useful for python programmers to generate analysis scripts.
+SettingsComponent.Save psydat file.allowedUpdates: None
+SettingsComponent.Save psydat file.allowedVals: [True]
+SettingsComponent.Save psydat file.label: 
+SettingsComponent.Save psydat file.updates: None
+SettingsComponent.Save psydat file.valType: bool
+SettingsComponent.expName.default: ''
+SettingsComponent.expName.staticUpdater: None
+SettingsComponent.expName.categ: Basic
+SettingsComponent.expName.val: 
+SettingsComponent.expName.allowedTypes: []
+SettingsComponent.expName.hint: Name of the entire experiment (taken by default from the filename on save)
+SettingsComponent.expName.allowedUpdates: None
+SettingsComponent.expName.allowedVals: []
+SettingsComponent.expName.label: Experiment name
+SettingsComponent.expName.updates: None
+SettingsComponent.expName.valType: str
+SettingsComponent.logging level.default: exp
+SettingsComponent.logging level.staticUpdater: None
+SettingsComponent.logging level.categ: Data
+SettingsComponent.logging level.val: exp
+SettingsComponent.logging level.allowedTypes: []
+SettingsComponent.logging level.hint: How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)
+SettingsComponent.logging level.allowedUpdates: None
+SettingsComponent.logging level.allowedVals: ['error', 'warning', 'data', 'exp', 'info', 'debug']
+SettingsComponent.logging level.label: Logging level
+SettingsComponent.logging level.updates: None
+SettingsComponent.logging level.valType: code
+SettingsComponent.blendMode.default: 'avg'
+SettingsComponent.blendMode.staticUpdater: None
+SettingsComponent.blendMode.categ: Screen
+SettingsComponent.blendMode.val: avg
+SettingsComponent.blendMode.allowedTypes: []
+SettingsComponent.blendMode.hint: Should new stimuli be added or averaged with the stimuli that have been drawn already
+SettingsComponent.blendMode.allowedUpdates: None
+SettingsComponent.blendMode.allowedVals: ['add', 'avg']
+SettingsComponent.blendMode.label: Blend mode
+SettingsComponent.blendMode.updates: None
+SettingsComponent.blendMode.valType: str
+SettingsComponent.Save excel file.default: False
+SettingsComponent.Save excel file.staticUpdater: None
+SettingsComponent.Save excel file.categ: Data
+SettingsComponent.Save excel file.val: False
+SettingsComponent.Save excel file.allowedTypes: []
+SettingsComponent.Save excel file.hint: Save data from loops in Excel (.xlsx) format
+SettingsComponent.Save excel file.allowedUpdates: None
+SettingsComponent.Save excel file.allowedVals: []
+SettingsComponent.Save excel file.label: 
+SettingsComponent.Save excel file.updates: None
+SettingsComponent.Save excel file.valType: bool
+SettingsComponent.Units.default: 'use prefs'
+SettingsComponent.Units.staticUpdater: None
+SettingsComponent.Units.categ: Screen
+SettingsComponent.Units.val: use prefs
+SettingsComponent.Units.allowedTypes: []
+SettingsComponent.Units.hint: Units to use for window/stimulus coordinates (e.g. cm, pix, deg)
+SettingsComponent.Units.allowedUpdates: None
+SettingsComponent.Units.allowedVals: ['use prefs', 'deg', 'pix', 'cm', 'norm', 'height']
+SettingsComponent.Units.label: 
+SettingsComponent.Units.updates: None
+SettingsComponent.Units.valType: str
+SettingsComponent.Save log file.default: True
+SettingsComponent.Save log file.staticUpdater: None
+SettingsComponent.Save log file.categ: Data
+SettingsComponent.Save log file.val: True
+SettingsComponent.Save log file.allowedTypes: []
+SettingsComponent.Save log file.hint: Save a detailed log (more detailed than the excel/csv files) of the entire experiment
+SettingsComponent.Save log file.allowedUpdates: None
+SettingsComponent.Save log file.allowedVals: []
+SettingsComponent.Save log file.label: 
+SettingsComponent.Save log file.updates: None
+SettingsComponent.Save log file.valType: bool
+SettingsComponent.Screen.default: 1.0
+SettingsComponent.Screen.staticUpdater: None
+SettingsComponent.Screen.categ: Screen
+SettingsComponent.Screen.val: 1
+SettingsComponent.Screen.allowedTypes: []
+SettingsComponent.Screen.hint: Which physical screen to run on (1 or 2)
+SettingsComponent.Screen.allowedUpdates: None
+SettingsComponent.Screen.allowedVals: []
+SettingsComponent.Screen.label: 
+SettingsComponent.Screen.updates: None
+SettingsComponent.Screen.valType: num
+SoundComponent.order: []
+SoundComponent.sound.default: 'A'
+SoundComponent.sound.staticUpdater: None
+SoundComponent.sound.categ: Basic
+SoundComponent.sound.val: A
+SoundComponent.sound.allowedTypes: []
+SoundComponent.sound.hint: A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) or a filename
+SoundComponent.sound.allowedUpdates: ['constant', 'set every repeat']
+SoundComponent.sound.allowedVals: []
+SoundComponent.sound.label: Sound
+SoundComponent.sound.updates: constant
+SoundComponent.sound.valType: str
+SoundComponent.volume.default: 1
+SoundComponent.volume.staticUpdater: None
+SoundComponent.volume.categ: Basic
+SoundComponent.volume.val: 1
+SoundComponent.volume.allowedTypes: []
+SoundComponent.volume.hint: The volume (in range 0 to 1)
+SoundComponent.volume.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+SoundComponent.volume.allowedVals: []
+SoundComponent.volume.label: Volume
+SoundComponent.volume.updates: constant
+SoundComponent.volume.valType: code
+SoundComponent.name.default: sound_1
+SoundComponent.name.staticUpdater: None
+SoundComponent.name.categ: Basic
+SoundComponent.name.val: sound_1
+SoundComponent.name.allowedTypes: []
+SoundComponent.name.hint: Everything needs a name (no spaces or punctuation)
+SoundComponent.name.allowedUpdates: None
+SoundComponent.name.allowedVals: []
+SoundComponent.name.label: Name
+SoundComponent.name.valType: code
+SoundComponent.stopVal.default: 1.0
+SoundComponent.stopVal.staticUpdater: None
+SoundComponent.stopVal.categ: Basic
+SoundComponent.stopVal.val: 1.0
+SoundComponent.stopVal.allowedTypes: []
+SoundComponent.stopVal.hint: The maximum duration for the sound (blank to use the duration of the sound file)
+SoundComponent.stopVal.allowedUpdates: []
+SoundComponent.stopVal.allowedVals: []
+SoundComponent.stopVal.label: 
+SoundComponent.stopVal.updates: constant
+SoundComponent.stopVal.valType: code
+SoundComponent.durationEstim.default: 
+SoundComponent.durationEstim.staticUpdater: None
+SoundComponent.durationEstim.categ: Basic
+SoundComponent.durationEstim.val: 
+SoundComponent.durationEstim.allowedTypes: []
+SoundComponent.durationEstim.hint: (Optional) expected duration (s), purely for representing in the timeline
+SoundComponent.durationEstim.allowedUpdates: None
+SoundComponent.durationEstim.allowedVals: []
+SoundComponent.durationEstim.label: 
+SoundComponent.durationEstim.updates: None
+SoundComponent.durationEstim.valType: code
+SoundComponent.startEstim.default: 
+SoundComponent.startEstim.staticUpdater: None
+SoundComponent.startEstim.categ: Basic
+SoundComponent.startEstim.val: 
+SoundComponent.startEstim.allowedTypes: []
+SoundComponent.startEstim.hint: (Optional) expected start (s), purely for representing in the timeline
+SoundComponent.startEstim.allowedUpdates: None
+SoundComponent.startEstim.allowedVals: []
+SoundComponent.startEstim.label: 
+SoundComponent.startEstim.updates: None
+SoundComponent.startEstim.valType: code
+SoundComponent.startType.default: 'time (s)'
+SoundComponent.startType.staticUpdater: None
+SoundComponent.startType.categ: Basic
+SoundComponent.startType.val: time (s)
+SoundComponent.startType.allowedTypes: []
+SoundComponent.startType.hint: How do you want to define your start point?
+SoundComponent.startType.allowedUpdates: None
+SoundComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
+SoundComponent.startType.label: 
+SoundComponent.startType.updates: None
+SoundComponent.startType.valType: str
+SoundComponent.stopType.default: 'duration (s)'
+SoundComponent.stopType.staticUpdater: None
+SoundComponent.stopType.categ: Basic
+SoundComponent.stopType.val: duration (s)
+SoundComponent.stopType.allowedTypes: []
+SoundComponent.stopType.hint: The maximum duration of a sound in seconds
+SoundComponent.stopType.allowedUpdates: None
+SoundComponent.stopType.allowedVals: ['duration (s)']
+SoundComponent.stopType.label: 
+SoundComponent.stopType.updates: None
+SoundComponent.stopType.valType: str
+SoundComponent.startVal.default: 0.0
+SoundComponent.startVal.staticUpdater: None
+SoundComponent.startVal.categ: Basic
+SoundComponent.startVal.val: 0.0
+SoundComponent.startVal.allowedTypes: []
+SoundComponent.startVal.hint: When does the sound start playing?
+SoundComponent.startVal.allowedUpdates: None
+SoundComponent.startVal.allowedVals: []
+SoundComponent.startVal.label: 
+SoundComponent.startVal.updates: None
+SoundComponent.startVal.valType: code
+StaticComponent.order: ['name']
+StaticComponent.code.default: 
+StaticComponent.code.staticUpdater: None
+StaticComponent.code.categ: Basic
+StaticComponent.code.val: 
+StaticComponent.code.allowedTypes: []
+StaticComponent.code.hint: Custom code to be run during the static period (after updates)
+StaticComponent.code.allowedUpdates: None
+StaticComponent.code.allowedVals: []
+StaticComponent.code.label: Custom code
+StaticComponent.code.updates: None
+StaticComponent.code.valType: code
+StaticComponent.name.default: ISI
+StaticComponent.name.staticUpdater: None
+StaticComponent.name.categ: Basic
+StaticComponent.name.val: ISI
+StaticComponent.name.allowedTypes: []
+StaticComponent.name.hint: Name of this component
+StaticComponent.name.allowedUpdates: None
+StaticComponent.name.allowedVals: []
+StaticComponent.name.label: Name
+StaticComponent.name.valType: code
+StaticComponent.stopVal.default: 0.5
+StaticComponent.stopVal.staticUpdater: None
+StaticComponent.stopVal.categ: Basic
+StaticComponent.stopVal.val: 0.5
+StaticComponent.stopVal.allowedTypes: []
+StaticComponent.stopVal.hint: When does the stimulus end?
+StaticComponent.stopVal.allowedUpdates: []
+StaticComponent.stopVal.allowedVals: []
+StaticComponent.stopVal.label: 
+StaticComponent.stopVal.updates: constant
+StaticComponent.stopVal.valType: code
+StaticComponent.durationEstim.default: 
+StaticComponent.durationEstim.staticUpdater: None
+StaticComponent.durationEstim.categ: Basic
+StaticComponent.durationEstim.val: 
+StaticComponent.durationEstim.allowedTypes: []
+StaticComponent.durationEstim.hint: (Optional) expected duration (s) of stimulus, purely for representing in the timeline
+StaticComponent.durationEstim.allowedUpdates: None
+StaticComponent.durationEstim.allowedVals: []
+StaticComponent.durationEstim.label: 
+StaticComponent.durationEstim.updates: None
+StaticComponent.durationEstim.valType: code
+StaticComponent.startEstim.default: 
+StaticComponent.startEstim.staticUpdater: None
+StaticComponent.startEstim.categ: Basic
+StaticComponent.startEstim.val: 
+StaticComponent.startEstim.allowedTypes: []
+StaticComponent.startEstim.hint: (Optional) expected start (s) of stimulus, purely for representing in the timeline
+StaticComponent.startEstim.allowedUpdates: None
+StaticComponent.startEstim.allowedVals: []
+StaticComponent.startEstim.label: 
+StaticComponent.startEstim.updates: None
+StaticComponent.startEstim.valType: code
+StaticComponent.startType.default: 'time (s)'
+StaticComponent.startType.staticUpdater: None
+StaticComponent.startType.categ: Basic
+StaticComponent.startType.val: time (s)
+StaticComponent.startType.allowedTypes: []
+StaticComponent.startType.hint: How do you want to define your start point?
+StaticComponent.startType.allowedUpdates: None
+StaticComponent.startType.allowedVals: ['time (s)', 'frame N']
+StaticComponent.startType.label: 
+StaticComponent.startType.updates: None
+StaticComponent.startType.valType: str
+StaticComponent.stopType.default: 'duration (s)'
+StaticComponent.stopType.staticUpdater: None
+StaticComponent.stopType.categ: Basic
+StaticComponent.stopType.val: duration (s)
+StaticComponent.stopType.allowedTypes: []
+StaticComponent.stopType.hint: How do you want to define your end point?
+StaticComponent.stopType.allowedUpdates: None
+StaticComponent.stopType.allowedVals: ['duration (s)', 'duration (frames)', 'time (s)', 'frame N']
+StaticComponent.stopType.label: 
+StaticComponent.stopType.updates: None
+StaticComponent.stopType.valType: str
+StaticComponent.startVal.default: 0.0
+StaticComponent.startVal.staticUpdater: None
+StaticComponent.startVal.categ: Basic
+StaticComponent.startVal.val: 0.0
+StaticComponent.startVal.allowedTypes: []
+StaticComponent.startVal.hint: When does the stimulus start?
+StaticComponent.startVal.allowedUpdates: None
+StaticComponent.startVal.allowedVals: []
+StaticComponent.startVal.label: 
+StaticComponent.startVal.updates: None
+StaticComponent.startVal.valType: code
+TextComponent.order: []
+TextComponent.opacity.default: 1
+TextComponent.opacity.staticUpdater: None
+TextComponent.opacity.categ: Basic
+TextComponent.opacity.val: 1
+TextComponent.opacity.allowedTypes: []
+TextComponent.opacity.hint: Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)
+TextComponent.opacity.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+TextComponent.opacity.allowedVals: []
+TextComponent.opacity.label: Opacity
+TextComponent.opacity.updates: constant
+TextComponent.opacity.valType: code
+TextComponent.colorSpace.default: 'rgb'
+TextComponent.colorSpace.staticUpdater: None
+TextComponent.colorSpace.categ: Basic
+TextComponent.colorSpace.val: rgb
+TextComponent.colorSpace.allowedTypes: []
+TextComponent.colorSpace.hint: Choice of color space for the color (rgb, dkl, lms)
+TextComponent.colorSpace.allowedUpdates: None
+TextComponent.colorSpace.allowedVals: ['rgb', 'dkl', 'lms']
+TextComponent.colorSpace.label: Color space
+TextComponent.colorSpace.updates: constant
+TextComponent.colorSpace.valType: str
+TextComponent.name.default: text
+TextComponent.name.staticUpdater: None
+TextComponent.name.categ: Basic
+TextComponent.name.val: text
+TextComponent.name.allowedTypes: []
+TextComponent.name.hint: 
+TextComponent.name.allowedUpdates: None
+TextComponent.name.allowedVals: []
+TextComponent.name.label: Name
+TextComponent.name.valType: code
+TextComponent.wrapWidth.default: 
+TextComponent.wrapWidth.staticUpdater: None
+TextComponent.wrapWidth.categ: Basic
+TextComponent.wrapWidth.val: 
+TextComponent.wrapWidth.allowedTypes: []
+TextComponent.wrapWidth.hint: How wide should the text get when it wraps? (in the specified units)
+TextComponent.wrapWidth.allowedUpdates: ['constant']
+TextComponent.wrapWidth.allowedVals: []
+TextComponent.wrapWidth.label: Wrap width
+TextComponent.wrapWidth.updates: constant
+TextComponent.wrapWidth.valType: code
+TextComponent.color.default: 'white'
+TextComponent.color.staticUpdater: None
+TextComponent.color.categ: Basic
+TextComponent.color.val: white
+TextComponent.color.allowedTypes: []
+TextComponent.color.hint: Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)
+TextComponent.color.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+TextComponent.color.allowedVals: []
+TextComponent.color.label: Color
+TextComponent.color.updates: constant
+TextComponent.color.valType: str
+TextComponent.text.default: u'Any text\n\nincluding line breaks'
+TextComponent.text.staticUpdater: None
+TextComponent.text.categ: Basic
+TextComponent.text.val: Any text
+
+including line breaks
+TextComponent.text.allowedTypes: []
+TextComponent.text.hint: The text to be displayed
+TextComponent.text.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+TextComponent.text.allowedVals: []
+TextComponent.text.label: Text
+TextComponent.text.updates: constant
+TextComponent.text.valType: str
+TextComponent.stopVal.default: 1.0
+TextComponent.stopVal.staticUpdater: None
+TextComponent.stopVal.categ: Basic
+TextComponent.stopVal.val: 1.0
+TextComponent.stopVal.allowedTypes: []
+TextComponent.stopVal.hint: When does the stimulus end?
+TextComponent.stopVal.allowedUpdates: []
+TextComponent.stopVal.allowedVals: []
+TextComponent.stopVal.label: 
+TextComponent.stopVal.updates: constant
+TextComponent.stopVal.valType: code
+TextComponent.durationEstim.default: 
+TextComponent.durationEstim.staticUpdater: None
+TextComponent.durationEstim.categ: Basic
+TextComponent.durationEstim.val: 
+TextComponent.durationEstim.allowedTypes: []
+TextComponent.durationEstim.hint: (Optional) expected duration (s) of stimulus, purely for representing in the timeline
+TextComponent.durationEstim.allowedUpdates: None
+TextComponent.durationEstim.allowedVals: []
+TextComponent.durationEstim.label: 
+TextComponent.durationEstim.updates: None
+TextComponent.durationEstim.valType: code
+TextComponent.pos.default: [0, 0]
+TextComponent.pos.staticUpdater: None
+TextComponent.pos.categ: Basic
+TextComponent.pos.val: [0, 0]
+TextComponent.pos.allowedTypes: []
+TextComponent.pos.hint: Position of this stimulus (e.g. [1,2] )
+TextComponent.pos.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+TextComponent.pos.allowedVals: []
+TextComponent.pos.label: Position [x,y]
+TextComponent.pos.updates: constant
+TextComponent.pos.valType: code
+TextComponent.flip.default: ''
+TextComponent.flip.staticUpdater: None
+TextComponent.flip.categ: Basic
+TextComponent.flip.val: 
+TextComponent.flip.allowedTypes: []
+TextComponent.flip.hint: horiz = left-right reversed; vert = up-down reversed; $var = variable
+TextComponent.flip.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+TextComponent.flip.allowedVals: []
+TextComponent.flip.label: Flip (mirror)
+TextComponent.flip.updates: constant
+TextComponent.flip.valType: str
+TextComponent.startEstim.default: 
+TextComponent.startEstim.staticUpdater: None
+TextComponent.startEstim.categ: Basic
+TextComponent.startEstim.val: 
+TextComponent.startEstim.allowedTypes: []
+TextComponent.startEstim.hint: (Optional) expected start (s) of stimulus, purely for representing in the timeline
+TextComponent.startEstim.allowedUpdates: None
+TextComponent.startEstim.allowedVals: []
+TextComponent.startEstim.label: 
+TextComponent.startEstim.updates: None
+TextComponent.startEstim.valType: code
+TextComponent.units.default: 'from exp settings'
+TextComponent.units.staticUpdater: None
+TextComponent.units.categ: Basic
+TextComponent.units.val: from exp settings
+TextComponent.units.allowedTypes: []
+TextComponent.units.hint: Units of dimensions for this stimulus
+TextComponent.units.allowedUpdates: None
+TextComponent.units.allowedVals: ['from exp settings', 'deg', 'cm', 'pix', 'norm']
+TextComponent.units.label: Units
+TextComponent.units.updates: None
+TextComponent.units.valType: str
+TextComponent.startType.default: 'time (s)'
+TextComponent.startType.staticUpdater: None
+TextComponent.startType.categ: Basic
+TextComponent.startType.val: time (s)
+TextComponent.startType.allowedTypes: []
+TextComponent.startType.hint: How do you want to define your start point?
+TextComponent.startType.allowedUpdates: None
+TextComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
+TextComponent.startType.label: 
+TextComponent.startType.updates: None
+TextComponent.startType.valType: str
+TextComponent.ori.default: 0
+TextComponent.ori.staticUpdater: None
+TextComponent.ori.categ: Basic
+TextComponent.ori.val: 0
+TextComponent.ori.allowedTypes: []
+TextComponent.ori.hint: Orientation of this stimulus (in deg)
+TextComponent.ori.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+TextComponent.ori.allowedVals: []
+TextComponent.ori.label: Orientation
+TextComponent.ori.updates: constant
+TextComponent.ori.valType: code
+TextComponent.stopType.default: 'duration (s)'
+TextComponent.stopType.staticUpdater: None
+TextComponent.stopType.categ: Basic
+TextComponent.stopType.val: duration (s)
+TextComponent.stopType.allowedTypes: []
+TextComponent.stopType.hint: How do you want to define your end point?
+TextComponent.stopType.allowedUpdates: None
+TextComponent.stopType.allowedVals: ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+TextComponent.stopType.label: 
+TextComponent.stopType.updates: None
+TextComponent.stopType.valType: str
+TextComponent.startVal.default: 0.0
+TextComponent.startVal.staticUpdater: None
+TextComponent.startVal.categ: Basic
+TextComponent.startVal.val: 0.0
+TextComponent.startVal.allowedTypes: []
+TextComponent.startVal.hint: When does the stimulus start?
+TextComponent.startVal.allowedUpdates: None
+TextComponent.startVal.allowedVals: []
+TextComponent.startVal.label: 
+TextComponent.startVal.updates: None
+TextComponent.startVal.valType: code
+TextComponent.font.default: 'Arial'
+TextComponent.font.staticUpdater: None
+TextComponent.font.categ: Basic
+TextComponent.font.val: Arial
+TextComponent.font.allowedTypes: []
+TextComponent.font.hint: The font name (e.g. Comic Sans)
+TextComponent.font.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+TextComponent.font.allowedVals: []
+TextComponent.font.label: Font
+TextComponent.font.updates: constant
+TextComponent.font.valType: str
+TextComponent.letterHeight.default: 0.1
+TextComponent.letterHeight.staticUpdater: None
+TextComponent.letterHeight.categ: Basic
+TextComponent.letterHeight.val: 0.1
+TextComponent.letterHeight.allowedTypes: []
+TextComponent.letterHeight.hint: Specifies the height of the letter (the width is then determined by the font)
+TextComponent.letterHeight.allowedUpdates: ['constant', 'set every repeat', 'set every frame']
+TextComponent.letterHeight.allowedVals: []
+TextComponent.letterHeight.label: Letter height
+TextComponent.letterHeight.updates: constant
+TextComponent.letterHeight.valType: code
+cedrusButtonBoxComponent.order: ['forceEndRoutine', 'allowedKeys', 'store', 'storeCorrect', 'correctAns']
+cedrusButtonBoxComponent.correctAns.default: 
+cedrusButtonBoxComponent.correctAns.staticUpdater: None
+cedrusButtonBoxComponent.correctAns.categ: Basic
+cedrusButtonBoxComponent.correctAns.val: 
+cedrusButtonBoxComponent.correctAns.allowedTypes: []
+cedrusButtonBoxComponent.correctAns.hint: What is the 'correct' response? NB, keys are labelled 0 to 6 on a 7-button box
+cedrusButtonBoxComponent.correctAns.allowedUpdates: []
+cedrusButtonBoxComponent.correctAns.allowedVals: []
+cedrusButtonBoxComponent.correctAns.label: Correct answer
+cedrusButtonBoxComponent.correctAns.updates: constant
+cedrusButtonBoxComponent.correctAns.valType: code
+cedrusButtonBoxComponent.storeCorrect.default: False
+cedrusButtonBoxComponent.storeCorrect.staticUpdater: None
+cedrusButtonBoxComponent.storeCorrect.categ: Basic
+cedrusButtonBoxComponent.storeCorrect.val: False
+cedrusButtonBoxComponent.storeCorrect.allowedTypes: []
+cedrusButtonBoxComponent.storeCorrect.hint: Do you want to save the response as correct/incorrect?
+cedrusButtonBoxComponent.storeCorrect.allowedUpdates: []
+cedrusButtonBoxComponent.storeCorrect.allowedVals: []
+cedrusButtonBoxComponent.storeCorrect.label: Store correct
+cedrusButtonBoxComponent.storeCorrect.updates: constant
+cedrusButtonBoxComponent.storeCorrect.valType: bool
+cedrusButtonBoxComponent.name.default: buttonBox
+cedrusButtonBoxComponent.name.staticUpdater: None
+cedrusButtonBoxComponent.name.categ: Basic
+cedrusButtonBoxComponent.name.val: buttonBox
+cedrusButtonBoxComponent.name.allowedTypes: []
+cedrusButtonBoxComponent.name.hint: A name for this ButtonBox object (e.g. bbox)
+cedrusButtonBoxComponent.name.allowedUpdates: None
+cedrusButtonBoxComponent.name.allowedVals: []
+cedrusButtonBoxComponent.name.label: Name
+cedrusButtonBoxComponent.name.valType: code
+cedrusButtonBoxComponent.deviceNumber.default: 0
+cedrusButtonBoxComponent.deviceNumber.staticUpdater: None
+cedrusButtonBoxComponent.deviceNumber.categ: Advanced
+cedrusButtonBoxComponent.deviceNumber.val: 0
+cedrusButtonBoxComponent.deviceNumber.allowedTypes: []
+cedrusButtonBoxComponent.deviceNumber.hint: Device number, if you have multiple devices which one do you want (0, 1, 2...)
+cedrusButtonBoxComponent.deviceNumber.allowedUpdates: []
+cedrusButtonBoxComponent.deviceNumber.allowedVals: []
+cedrusButtonBoxComponent.deviceNumber.label: Device number
+cedrusButtonBoxComponent.deviceNumber.updates: constant
+cedrusButtonBoxComponent.deviceNumber.valType: code
+cedrusButtonBoxComponent.stopVal.default: 1.0
+cedrusButtonBoxComponent.stopVal.staticUpdater: None
+cedrusButtonBoxComponent.stopVal.categ: Basic
+cedrusButtonBoxComponent.stopVal.val: 1.0
+cedrusButtonBoxComponent.stopVal.allowedTypes: []
+cedrusButtonBoxComponent.stopVal.hint: When to stop checking keys
+cedrusButtonBoxComponent.stopVal.allowedUpdates: []
+cedrusButtonBoxComponent.stopVal.allowedVals: []
+cedrusButtonBoxComponent.stopVal.label: 
+cedrusButtonBoxComponent.stopVal.updates: constant
+cedrusButtonBoxComponent.stopVal.valType: code
+cedrusButtonBoxComponent.durationEstim.default: 
+cedrusButtonBoxComponent.durationEstim.staticUpdater: None
+cedrusButtonBoxComponent.durationEstim.categ: Basic
+cedrusButtonBoxComponent.durationEstim.val: 
+cedrusButtonBoxComponent.durationEstim.allowedTypes: []
+cedrusButtonBoxComponent.durationEstim.hint: (Optional) expected duration (s), purely for representing in the timeline
+cedrusButtonBoxComponent.durationEstim.allowedUpdates: None
+cedrusButtonBoxComponent.durationEstim.allowedVals: []
+cedrusButtonBoxComponent.durationEstim.label: 
+cedrusButtonBoxComponent.durationEstim.updates: None
+cedrusButtonBoxComponent.durationEstim.valType: code
+cedrusButtonBoxComponent.useBoxTimer.default: False
+cedrusButtonBoxComponent.useBoxTimer.staticUpdater: None
+cedrusButtonBoxComponent.useBoxTimer.categ: Advanced
+cedrusButtonBoxComponent.useBoxTimer.val: False
+cedrusButtonBoxComponent.useBoxTimer.allowedTypes: []
+cedrusButtonBoxComponent.useBoxTimer.hint: According to Cedrus the response box timer has a drift - use with caution!
+cedrusButtonBoxComponent.useBoxTimer.allowedUpdates: []
+cedrusButtonBoxComponent.useBoxTimer.allowedVals: [True, False]
+cedrusButtonBoxComponent.useBoxTimer.label: Use box timer
+cedrusButtonBoxComponent.useBoxTimer.updates: constant
+cedrusButtonBoxComponent.useBoxTimer.valType: bool
+cedrusButtonBoxComponent.forceEndRoutine.default: True
+cedrusButtonBoxComponent.forceEndRoutine.staticUpdater: None
+cedrusButtonBoxComponent.forceEndRoutine.categ: Basic
+cedrusButtonBoxComponent.forceEndRoutine.val: True
+cedrusButtonBoxComponent.forceEndRoutine.allowedTypes: []
+cedrusButtonBoxComponent.forceEndRoutine.hint: Should a key press force the end of the routine (e.g end the trial)?
+cedrusButtonBoxComponent.forceEndRoutine.allowedUpdates: []
+cedrusButtonBoxComponent.forceEndRoutine.allowedVals: []
+cedrusButtonBoxComponent.forceEndRoutine.label: Force end of Routine
+cedrusButtonBoxComponent.forceEndRoutine.updates: constant
+cedrusButtonBoxComponent.forceEndRoutine.valType: bool
+cedrusButtonBoxComponent.startEstim.default: 
+cedrusButtonBoxComponent.startEstim.staticUpdater: None
+cedrusButtonBoxComponent.startEstim.categ: Basic
+cedrusButtonBoxComponent.startEstim.val: 
+cedrusButtonBoxComponent.startEstim.allowedTypes: []
+cedrusButtonBoxComponent.startEstim.hint: (Optional) expected start (s), purely for representing in the timeline
+cedrusButtonBoxComponent.startEstim.allowedUpdates: None
+cedrusButtonBoxComponent.startEstim.allowedVals: []
+cedrusButtonBoxComponent.startEstim.label: 
+cedrusButtonBoxComponent.startEstim.updates: None
+cedrusButtonBoxComponent.startEstim.valType: code
+cedrusButtonBoxComponent.discard previous.default: True
+cedrusButtonBoxComponent.discard previous.staticUpdater: None
+cedrusButtonBoxComponent.discard previous.categ: Basic
+cedrusButtonBoxComponent.discard previous.val: True
+cedrusButtonBoxComponent.discard previous.allowedTypes: []
+cedrusButtonBoxComponent.discard previous.hint: Do you want to discard all key presses occuring before the onset of this component?
+cedrusButtonBoxComponent.discard previous.allowedUpdates: []
+cedrusButtonBoxComponent.discard previous.allowedVals: []
+cedrusButtonBoxComponent.discard previous.label: Discard previous
+cedrusButtonBoxComponent.discard previous.updates: constant
+cedrusButtonBoxComponent.discard previous.valType: bool
+cedrusButtonBoxComponent.startType.default: 'time (s)'
+cedrusButtonBoxComponent.startType.staticUpdater: None
+cedrusButtonBoxComponent.startType.categ: Basic
+cedrusButtonBoxComponent.startType.val: time (s)
+cedrusButtonBoxComponent.startType.allowedTypes: []
+cedrusButtonBoxComponent.startType.hint: How do you want to define your start point?
+cedrusButtonBoxComponent.startType.allowedUpdates: None
+cedrusButtonBoxComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
+cedrusButtonBoxComponent.startType.label: 
+cedrusButtonBoxComponent.startType.updates: None
+cedrusButtonBoxComponent.startType.valType: str
+cedrusButtonBoxComponent.allowedKeys.default: 
+cedrusButtonBoxComponent.allowedKeys.staticUpdater: None
+cedrusButtonBoxComponent.allowedKeys.categ: Basic
+cedrusButtonBoxComponent.allowedKeys.val: 
+cedrusButtonBoxComponent.allowedKeys.allowedTypes: []
+cedrusButtonBoxComponent.allowedKeys.hint: Keys to be read (blank for any) or key numbers separated by commas
+cedrusButtonBoxComponent.allowedKeys.allowedUpdates: ['constant', 'set every repeat']
+cedrusButtonBoxComponent.allowedKeys.allowedVals: []
+cedrusButtonBoxComponent.allowedKeys.label: Allowed keys
+cedrusButtonBoxComponent.allowedKeys.updates: constant
+cedrusButtonBoxComponent.allowedKeys.valType: code
+cedrusButtonBoxComponent.stopType.default: 'duration (s)'
+cedrusButtonBoxComponent.stopType.staticUpdater: None
+cedrusButtonBoxComponent.stopType.categ: Basic
+cedrusButtonBoxComponent.stopType.val: duration (s)
+cedrusButtonBoxComponent.stopType.allowedTypes: []
+cedrusButtonBoxComponent.stopType.hint: How do you want to define your end point?
+cedrusButtonBoxComponent.stopType.allowedUpdates: None
+cedrusButtonBoxComponent.stopType.allowedVals: ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+cedrusButtonBoxComponent.stopType.label: 
+cedrusButtonBoxComponent.stopType.updates: None
+cedrusButtonBoxComponent.stopType.valType: str
+cedrusButtonBoxComponent.startVal.default: 0.0
+cedrusButtonBoxComponent.startVal.staticUpdater: None
+cedrusButtonBoxComponent.startVal.categ: Basic
+cedrusButtonBoxComponent.startVal.val: 0.0
+cedrusButtonBoxComponent.startVal.allowedTypes: []
+cedrusButtonBoxComponent.startVal.hint: When to start checking keys
+cedrusButtonBoxComponent.startVal.allowedUpdates: None
+cedrusButtonBoxComponent.startVal.allowedVals: []
+cedrusButtonBoxComponent.startVal.label: 
+cedrusButtonBoxComponent.startVal.updates: None
+cedrusButtonBoxComponent.startVal.valType: code
+cedrusButtonBoxComponent.store.default: 'first key'
+cedrusButtonBoxComponent.store.staticUpdater: None
+cedrusButtonBoxComponent.store.categ: Basic
+cedrusButtonBoxComponent.store.val: first key
+cedrusButtonBoxComponent.store.allowedTypes: []
+cedrusButtonBoxComponent.store.hint: Choose which (if any) responses to store at end of a trial
+cedrusButtonBoxComponent.store.allowedUpdates: []
+cedrusButtonBoxComponent.store.allowedVals: ['last key', 'first key', 'all keys', 'nothing']
+cedrusButtonBoxComponent.store.label: Store
+cedrusButtonBoxComponent.store.updates: constant
+cedrusButtonBoxComponent.store.valType: str
+ioLabsButtonBoxComponent.order: ['forceEndRoutine', 'active', 'lights', 'store', 'storeCorrect', 'correctAns']
+ioLabsButtonBoxComponent.correctAns.default: '0'
+ioLabsButtonBoxComponent.correctAns.staticUpdater: None
+ioLabsButtonBoxComponent.correctAns.categ: Basic
+ioLabsButtonBoxComponent.correctAns.val: 0
+ioLabsButtonBoxComponent.correctAns.allowedTypes: []
+ioLabsButtonBoxComponent.correctAns.hint: What is the 'correct' response? Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns
+ioLabsButtonBoxComponent.correctAns.allowedUpdates: []
+ioLabsButtonBoxComponent.correctAns.allowedVals: []
+ioLabsButtonBoxComponent.correctAns.label: Correct answer
+ioLabsButtonBoxComponent.correctAns.updates: constant
+ioLabsButtonBoxComponent.correctAns.valType: str
+ioLabsButtonBoxComponent.storeCorrect.default: False
+ioLabsButtonBoxComponent.storeCorrect.staticUpdater: None
+ioLabsButtonBoxComponent.storeCorrect.categ: Basic
+ioLabsButtonBoxComponent.storeCorrect.val: False
+ioLabsButtonBoxComponent.storeCorrect.allowedTypes: []
+ioLabsButtonBoxComponent.storeCorrect.hint: Do you want to save the response as correct/incorrect?
+ioLabsButtonBoxComponent.storeCorrect.allowedUpdates: []
+ioLabsButtonBoxComponent.storeCorrect.allowedVals: []
+ioLabsButtonBoxComponent.storeCorrect.label: Store correct
+ioLabsButtonBoxComponent.storeCorrect.updates: constant
+ioLabsButtonBoxComponent.storeCorrect.valType: bool
+ioLabsButtonBoxComponent.name.default: bbox
+ioLabsButtonBoxComponent.name.staticUpdater: None
+ioLabsButtonBoxComponent.name.categ: Basic
+ioLabsButtonBoxComponent.name.val: bbox
+ioLabsButtonBoxComponent.name.allowedTypes: []
+ioLabsButtonBoxComponent.name.hint: A name for this ButtonBox object (e.g. bbox)
+ioLabsButtonBoxComponent.name.allowedUpdates: None
+ioLabsButtonBoxComponent.name.allowedVals: []
+ioLabsButtonBoxComponent.name.label: Name
+ioLabsButtonBoxComponent.name.valType: code
+ioLabsButtonBoxComponent.discard previous.default: True
+ioLabsButtonBoxComponent.discard previous.staticUpdater: None
+ioLabsButtonBoxComponent.discard previous.categ: Basic
+ioLabsButtonBoxComponent.discard previous.val: True
+ioLabsButtonBoxComponent.discard previous.allowedTypes: []
+ioLabsButtonBoxComponent.discard previous.hint: Do you want to discard all button presses occuring before the onset of this component?
+ioLabsButtonBoxComponent.discard previous.allowedUpdates: []
+ioLabsButtonBoxComponent.discard previous.allowedVals: []
+ioLabsButtonBoxComponent.discard previous.label: Discard previous
+ioLabsButtonBoxComponent.discard previous.updates: constant
+ioLabsButtonBoxComponent.discard previous.valType: bool
+ioLabsButtonBoxComponent.lights.default: True
+ioLabsButtonBoxComponent.lights.staticUpdater: None
+ioLabsButtonBoxComponent.lights.categ: Basic
+ioLabsButtonBoxComponent.lights.val: True
+ioLabsButtonBoxComponent.lights.allowedTypes: []
+ioLabsButtonBoxComponent.lights.hint: Turn ON the lights for the active buttons?
+ioLabsButtonBoxComponent.lights.allowedUpdates: []
+ioLabsButtonBoxComponent.lights.allowedVals: []
+ioLabsButtonBoxComponent.lights.label: Lights
+ioLabsButtonBoxComponent.lights.updates: constant
+ioLabsButtonBoxComponent.lights.valType: bool
+ioLabsButtonBoxComponent.stopVal.default: 1.0
+ioLabsButtonBoxComponent.stopVal.staticUpdater: None
+ioLabsButtonBoxComponent.stopVal.categ: Basic
+ioLabsButtonBoxComponent.stopVal.val: 1.0
+ioLabsButtonBoxComponent.stopVal.allowedTypes: []
+ioLabsButtonBoxComponent.stopVal.hint: When does the bbox checking end?
+ioLabsButtonBoxComponent.stopVal.allowedUpdates: []
+ioLabsButtonBoxComponent.stopVal.allowedVals: []
+ioLabsButtonBoxComponent.stopVal.label: 
+ioLabsButtonBoxComponent.stopVal.updates: constant
+ioLabsButtonBoxComponent.stopVal.valType: code
+ioLabsButtonBoxComponent.durationEstim.default: 
+ioLabsButtonBoxComponent.durationEstim.staticUpdater: None
+ioLabsButtonBoxComponent.durationEstim.categ: Basic
+ioLabsButtonBoxComponent.durationEstim.val: 
+ioLabsButtonBoxComponent.durationEstim.allowedTypes: []
+ioLabsButtonBoxComponent.durationEstim.hint: (Optional) expected duration (s), purely for representing in the timeline
+ioLabsButtonBoxComponent.durationEstim.allowedUpdates: None
+ioLabsButtonBoxComponent.durationEstim.allowedVals: []
+ioLabsButtonBoxComponent.durationEstim.label: 
+ioLabsButtonBoxComponent.durationEstim.updates: None
+ioLabsButtonBoxComponent.durationEstim.valType: code
+ioLabsButtonBoxComponent.forceEndRoutine.default: True
+ioLabsButtonBoxComponent.forceEndRoutine.staticUpdater: None
+ioLabsButtonBoxComponent.forceEndRoutine.categ: Basic
+ioLabsButtonBoxComponent.forceEndRoutine.val: True
+ioLabsButtonBoxComponent.forceEndRoutine.allowedTypes: []
+ioLabsButtonBoxComponent.forceEndRoutine.hint: Should a button press force the end of the routine (e.g end the trial)?
+ioLabsButtonBoxComponent.forceEndRoutine.allowedUpdates: []
+ioLabsButtonBoxComponent.forceEndRoutine.allowedVals: []
+ioLabsButtonBoxComponent.forceEndRoutine.label: Force end of Routine
+ioLabsButtonBoxComponent.forceEndRoutine.updates: constant
+ioLabsButtonBoxComponent.forceEndRoutine.valType: bool
+ioLabsButtonBoxComponent.startEstim.default: 
+ioLabsButtonBoxComponent.startEstim.staticUpdater: None
+ioLabsButtonBoxComponent.startEstim.categ: Basic
+ioLabsButtonBoxComponent.startEstim.val: 
+ioLabsButtonBoxComponent.startEstim.allowedTypes: []
+ioLabsButtonBoxComponent.startEstim.hint: (Optional) expected start (s), purely for representing in the timeline
+ioLabsButtonBoxComponent.startEstim.allowedUpdates: None
+ioLabsButtonBoxComponent.startEstim.allowedVals: []
+ioLabsButtonBoxComponent.startEstim.label: 
+ioLabsButtonBoxComponent.startEstim.updates: None
+ioLabsButtonBoxComponent.startEstim.valType: code
+ioLabsButtonBoxComponent.stopType.default: 'duration (s)'
+ioLabsButtonBoxComponent.stopType.staticUpdater: None
+ioLabsButtonBoxComponent.stopType.categ: Basic
+ioLabsButtonBoxComponent.stopType.val: duration (s)
+ioLabsButtonBoxComponent.stopType.allowedTypes: []
+ioLabsButtonBoxComponent.stopType.hint: How do you want to define your end point?
+ioLabsButtonBoxComponent.stopType.allowedUpdates: None
+ioLabsButtonBoxComponent.stopType.allowedVals: ['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition']
+ioLabsButtonBoxComponent.stopType.label: 
+ioLabsButtonBoxComponent.stopType.updates: None
+ioLabsButtonBoxComponent.stopType.valType: str
+ioLabsButtonBoxComponent.startType.default: 'time (s)'
+ioLabsButtonBoxComponent.startType.staticUpdater: None
+ioLabsButtonBoxComponent.startType.categ: Basic
+ioLabsButtonBoxComponent.startType.val: time (s)
+ioLabsButtonBoxComponent.startType.allowedTypes: []
+ioLabsButtonBoxComponent.startType.hint: How do you want to define your start point?
+ioLabsButtonBoxComponent.startType.allowedUpdates: None
+ioLabsButtonBoxComponent.startType.allowedVals: ['time (s)', 'frame N', 'condition']
+ioLabsButtonBoxComponent.startType.label: 
+ioLabsButtonBoxComponent.startType.updates: None
+ioLabsButtonBoxComponent.startType.valType: str
+ioLabsButtonBoxComponent.lights off.default: False
+ioLabsButtonBoxComponent.lights off.staticUpdater: None
+ioLabsButtonBoxComponent.lights off.categ: Basic
+ioLabsButtonBoxComponent.lights off.val: False
+ioLabsButtonBoxComponent.lights off.allowedTypes: []
+ioLabsButtonBoxComponent.lights off.hint: Turn OFF all lights at the end of each routine?
+ioLabsButtonBoxComponent.lights off.allowedUpdates: []
+ioLabsButtonBoxComponent.lights off.allowedVals: []
+ioLabsButtonBoxComponent.lights off.label: Lights off
+ioLabsButtonBoxComponent.lights off.updates: constant
+ioLabsButtonBoxComponent.lights off.valType: bool
+ioLabsButtonBoxComponent.active.default: (0,1,2,3,4,5,6,7)
+ioLabsButtonBoxComponent.active.staticUpdater: None
+ioLabsButtonBoxComponent.active.categ: Basic
+ioLabsButtonBoxComponent.active.val: (0,1,2,3,4,5,6,7)
+ioLabsButtonBoxComponent.active.allowedTypes: []
+ioLabsButtonBoxComponent.active.hint: Active buttons, such as '1,6', '(1,2,5,6)' or '0' (without quotes)
+ioLabsButtonBoxComponent.active.allowedUpdates: ['constant', 'set every repeat']
+ioLabsButtonBoxComponent.active.allowedVals: []
+ioLabsButtonBoxComponent.active.label: Active buttons
+ioLabsButtonBoxComponent.active.updates: constant
+ioLabsButtonBoxComponent.active.valType: code
+ioLabsButtonBoxComponent.startVal.default: 0.0
+ioLabsButtonBoxComponent.startVal.staticUpdater: None
+ioLabsButtonBoxComponent.startVal.categ: Basic
+ioLabsButtonBoxComponent.startVal.val: 0.0
+ioLabsButtonBoxComponent.startVal.allowedTypes: []
+ioLabsButtonBoxComponent.startVal.hint: When does the bbox checking start?
+ioLabsButtonBoxComponent.startVal.allowedUpdates: None
+ioLabsButtonBoxComponent.startVal.allowedVals: []
+ioLabsButtonBoxComponent.startVal.label: 
+ioLabsButtonBoxComponent.startVal.updates: None
+ioLabsButtonBoxComponent.startVal.valType: code
+ioLabsButtonBoxComponent.store.default: 'first button'
+ioLabsButtonBoxComponent.store.staticUpdater: None
+ioLabsButtonBoxComponent.store.categ: Basic
+ioLabsButtonBoxComponent.store.val: first button
+ioLabsButtonBoxComponent.store.allowedTypes: []
+ioLabsButtonBoxComponent.store.hint: Choose which (if any) responses to store at end of a trial
+ioLabsButtonBoxComponent.store.allowedUpdates: []
+ioLabsButtonBoxComponent.store.allowedVals: ['last button', 'first button', 'all buttons', 'nothing']
+ioLabsButtonBoxComponent.store.label: Store
+ioLabsButtonBoxComponent.store.updates: constant
+ioLabsButtonBoxComponent.store.valType: str

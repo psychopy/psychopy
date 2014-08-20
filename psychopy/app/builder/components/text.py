@@ -2,19 +2,25 @@
 # Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from _visual import * #to get the template visual component
+from _visual import VisualComponent, Param  #to get the template visual component
 from os import path
 from psychopy.app.builder import components #for getInitVals()
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'text.png')
-tooltip = 'Text: present text stimuli'
+tooltip = _('Text: present text stimuli')
+
+# only use _localized values for label values, nothing functional:
+_localized = {'text': _('Text'),
+              'font': _('Font'), 'letterHeight': _('Letter height'),
+              'wrapWidth': _('Wrap width'), 'flip': _('Flip (mirror)')
+              }
 
 class TextComponent(VisualComponent):
     """An event class for presenting text-based stimuli"""
     categories = ['Stimuli']
     def __init__(self, exp, parentName, name='text',
-                text='Any text\n\nincluding line breaks',
+                text=_('Any text\n\nincluding line breaks'),  # effectively just a display-value
                 font='Arial',units='from exp settings', color='white', colorSpace='rgb',
                 pos=[0,0], letterHeight=0.1, ori=0,
                 startType='time (s)', startVal=0.0,
@@ -22,7 +28,7 @@ class TextComponent(VisualComponent):
                 flip='',
                 startEstim='', durationEstim='', wrapWidth=''):
         #initialise main parameters from base stimulus
-        VisualComponent.__init__(self, exp, parentName, name=name, units=units,
+        super(TextComponent, self).__init__(exp, parentName, name=name, units=units,
                     color=color, colorSpace=colorSpace,
                     pos=pos, ori=ori,
                     startType=startType, startVal=startVal,
@@ -30,32 +36,35 @@ class TextComponent(VisualComponent):
                     startEstim=startEstim, durationEstim=durationEstim)
         self.type='Text'
         self.url="http://www.psychopy.org/builder/components/text.html"
-        self.exp.requirePsychopyLibs(['visual'])
+
         #params
-        self.params['name']=Param(name, valType='code', allowedTypes=[],
-            label="Name")
         self.params['text']=Param(text, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="The text to be displayed",
-            label="Text")
+            hint=_("The text to be displayed"),
+            label=_localized['text'])
         self.params['font']=Param(font, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="The font name (e.g. Comic Sans)",
-            label="Font")
-        #change the hint for size
+            hint=_("The font name (e.g. Comic Sans)"),
+            label=_localized['font'])
         del self.params['size']#because you can't specify width for text
         self.params['letterHeight']=Param(letterHeight, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint="Specifies the height of the letter (the width is then determined by the font)",
-            label="Letter height")
+            hint=_("Specifies the height of the letter (the width is then determined by the font)"),
+            label=_localized['letterHeight'])
+
         self.params['wrapWidth']=Param(wrapWidth, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant'],
-            hint="How wide should the text get when it wraps? (in the specified units)",
-            label="Wrap width")
+            hint=_("How wide should the text get when it wraps? (in the specified units)"),
+            label=_localized['wrapWidth'], categ="Advanced")
         self.params['flip']=Param(flip, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat', 'set every frame'],
-            hint="horiz = left-right reversed; vert = up-down reversed; $var = variable",
-            label="Flip (mirror)")
+            hint=_("horiz = left-right reversed; vert = up-down reversed; $var = variable"),
+            label=_localized['flip'], categ="Advanced")
+        self.params['ori'].categ='Advanced'
+        self.params['opacity'].categ='Advanced'
+        self.params['ori'].categ='Advanced'
+        self.params['colorSpace'].categ='Advanced'
+        self.params['units'].categ='Advanced'
 
     def writeInitCode(self,buff):
         #do we need units code?
