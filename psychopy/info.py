@@ -182,7 +182,7 @@ class RunTimeInfo(dict):
         """system info"""
         # system encoding
         osEncoding=sys.getfilesystemencoding()
-        
+
         # machine name
         self['systemHostName'] = platform.node()
 
@@ -646,16 +646,17 @@ def getRAM():
     totalRAM = 'unknown'
 
     if sys.platform == 'darwin':
-        so = core.shellCall('vm_stat')
-        lines = so.splitlines()
+        lines = core.shellCall('vm_stat').splitlines()
         pageIndex = lines[0].find('page size of ')
         if  pageIndex > -1:
             pagesize = int(lines[0][pageIndex + len('page size of '):].split()[0])
-            free = float(lines[1].split()[-1])
-            freeRAM = int(free * pagesize / 1048576.)  # M
-            pieces = [lines[i].split()[-1] for i in range(1, 6)]
-            total = sum([float(x) for x in pieces])
-            totalRAM = int(total * pagesize / 1048576.)  # M
+            lineFree = [ln for ln in lines if ln.startswith('Pages free')][0]
+            lineSpec = [ln for ln in lines if ln.startswith('Pages speculative')][0]
+            free = float(lineFree.split()[-1])
+            spec = float(lineSpec.split()[-1])
+            freeRAM = int((free + spec) * pagesize / 1048576.)  # M
+            total = core.shellCall(['sysctl', 'hw.memsize']).split(':')
+            totalRAM = int(int(total[-1]) / 1048576.)  # M
     elif sys.platform == 'win32':
         if not haveCtypes:
             return 'unknown', 'unknown'
