@@ -147,9 +147,11 @@ class MouseDevice(Device):
             if Computer.system == 'win32':
                 import ctypes
                 _user32=ctypes.windll.user32
-                class POINT(ctypes.Structure):
-                    _fields_ = [ ('x',ctypes.c_long),
-                                 ('y',ctypes.c_long)]
+                POINT = ctypes.wintypes.POINT                  
+                
+                #class POINT(ctypes.Structure):
+                #    _fields_ = [ ('x',ctypes.c_long),
+                #                 ('y',ctypes.c_long)]
                 mpos=POINT()
                 ok = _user32.GetCursorPos(ctypes.byref(mpos))
                 if ok:

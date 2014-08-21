@@ -500,6 +500,15 @@ class Window(object):
     def _finishFBOrender(self):
         GL.glUseProgram(0)
 
+    @classmethod
+    def dispatchAllWindowEvents(cls):
+        """
+        Dispatches events for all pyglet windows. Used by iohub 2.0
+        psychopy kb event integration.
+        """
+        wins = pyglet.window.get_platform().get_default_display().get_windows()
+        for win in wins: win.dispatch_events()
+
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your
         frame. (This replaces the win.update() method, better reflecting what
@@ -1222,7 +1231,13 @@ class Window(object):
                                               screen=thisScreen,
                                               style=style)
         if sys.platform =='win32':
-            self._hw_handle=self.winHandle._hwnd
+            # pyHook window hwnd maps to:
+            # pyglet 1.14 -> window._hwnd
+            # pyglet 1.2a -> window._view_hwnd
+            if pyglet.version > "1.2":
+                self._hw_handle=self.winHandle._view_hwnd
+            else:
+                self._hw_handle=self.winHandle._hwnd
         elif sys.platform =='darwin':
             if pyglet.version > "1.2":
                 # Below works but is not correct! _nswindow points to an objc reference
