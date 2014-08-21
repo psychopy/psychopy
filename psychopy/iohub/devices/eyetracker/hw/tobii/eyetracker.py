@@ -11,7 +11,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 """
 
 import numpy as np 
-from ..... import print2err,printExceptionDetailsToStdErr, createErrorResult
+from ..... import print2err,printExceptionDetailsToStdErr
 from .....constants import EventConstants, EyeTrackerConstants
 from .... import Computer
 from ... import EyeTrackerDevice
@@ -214,9 +214,9 @@ class EyeTracker(EyeTrackerDevice):
             self.setRecordingState(enabled)
             return enabled
         except Exception, e:
-            return createErrorResult("IOHUB_DEVICE_EXCEPTION",
-                    error_message="An unhandled exception occurred on the ioHub Server Process.",
-                    method="EyeTracker.enableEventReporting", error=e)
+            print2err("Error during enableEventReporting")
+            printExceptionDetailsToStdErr()
+        return EyeTrackerConstants.EYETRACKER_ERROR
 
     def setRecordingState(self,recording):
         """
@@ -393,10 +393,6 @@ class EyeTracker(EyeTrackerDevice):
         try:
             logged_time,device_event_time,iohub_event_time,data_delay,eye_data_event=native_event_data
             
-            # TO DO: Convert the middle layer representation of a Tobii data event to 
-            # the array format needed by ioHub for the appropriete data type.        
-            # TO DO: integrate data into ioHub event handling
-            
     #        eyes[LEFT]['gaze_mm'][0]=eye_data_event.LeftGazePoint3D.x
     #        eyes[LEFT]['gaze_mm'][1]=eye_data_event.LeftGazePoint3D.y
     #        eyes[LEFT]['gaze_mm'][2]=eye_data_event.LeftGazePoint3D.z
@@ -423,6 +419,12 @@ class EyeTracker(EyeTrackerDevice):
             if right_gaze_x != -1 and right_gaze_y != -1:
                 right_gaze_x,right_gaze_y=self._eyeTrackerToDisplayCoords((right_gaze_x,right_gaze_y))
 
+            status=0
+            if eye_data_event.LeftValidity>=2:
+                status+=20
+            if eye_data_event.RightValidity>=2:
+                status+=2
+            
             # TO DO: Set CI to be equal to current time error stated in Tobii Sync manager
             confidenceInterval=0.0 
             binocSample=[
@@ -479,7 +481,7 @@ class EyeTracker(EyeTrackerDevice):
                          EyeTrackerConstants.UNDEFINED, # right velocity x
                          EyeTrackerConstants.UNDEFINED, # right velocity y
                          EyeTrackerConstants.UNDEFINED, # right velocity xy
-                         int(str(eye_data_event.LeftValidity)+str(eye_data_event.RightValidity))
+                         status
                          ]
     
             self._latest_sample=binocSample

@@ -17,7 +17,11 @@ import zmq.green as zmq
 
 import copy
 import msgpack
-
+try:
+    import msgpack_numpy as m
+    m.patch()
+except:
+    pass
 
 from .. import Computer, Device, DeviceEvent
 from ...constants import DeviceConstants,EventConstants
@@ -237,18 +241,18 @@ class RemoteEventSubscriber(Device):
                     network_delay=time_sync_state.local2RemoteTime(logged_time)-remote_logged_time
                     data[9]+=network_delay
 
-                if data[4]==EventConstants.KEYBOARD_CHAR:
-                    data[-2][0]=0
-                    data[-2][1]=0
-                    data[-2][2]=data[2]
-                    data[-2][3] = Computer._getNextEventID()
-                    data[-2][6]=logged_time
-                    remote_hub_time=data[-2][7]
-                    data[-2][7]=time_sync_state.remote2LocalTime(remote_hub_time)                    
-                    data[-2][8]==data[8]
-                    data[-2][9]+=network_delay
-                    
-                    data[-2]=tuple(data[-2])
+#                if data[4]==EventConstants.KEYBOARD_CHAR:
+#                    data[-2][0]=0
+#                    data[-2][1]=0
+#                    data[-2][2]=data[2]
+#                    data[-2][3] = Computer._getNextEventID()
+#                    data[-2][6]=logged_time
+#                    remote_hub_time=data[-2][7]
+#                    data[-2][7]=time_sync_state.remote2LocalTime(remote_hub_time)
+#                    data[-2][8]==data[8]
+#                    data[-2][9]+=network_delay
+#                    data[-2]=tuple(data[-2])
+
                 #print2err('SUB RX poll: ',data[0:8])
                 self._nativeEventCallback(data)                
                 #rtime=Computer.currentSec()*1000.0
