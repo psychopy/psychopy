@@ -10,7 +10,7 @@ from psychopy.app.builder.components import getAllComponents
 # motivation: catch deviations introduced during refactoring
 
 # what reference to use?
-profile = 'x.out.master.de55d49'
+profile = 'x.out.master.de55d49.txt'
 
 # always ignore hints, labels, and categories. other options:
 # should it be ok or an error if the param[field] order differs from the profile?
