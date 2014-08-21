@@ -27,6 +27,7 @@ unused channels to be fixed at ground, connect each unused channel to the GND
 pin.
 """
 
+
 import time
 from psychopy import core
 from psychopy.iohub import launchHubServer
@@ -50,7 +51,7 @@ try:
     kb=io.devices.keyboard
         
     mcu.enableEventReporting(True)
-    io.clearEvents("all")   
+    io.clearEvents("all")
     i=0
     print "Saving Analog Data to File. Press any Key to Quit..."
     aout=file('analog_output.txt','w')
