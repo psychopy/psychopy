@@ -13,15 +13,8 @@ from .. import Computer,Keyboard
 
 currentSec=Computer.getTime
 
-class RECT(ctypes.Structure):
-    _fields_ = [ ('left',ctypes.c_long),
-                ('top',ctypes.c_long),
-                ('right',ctypes.c_long),
-                ('bottom',ctypes.c_long)]
-
-class POINT(ctypes.Structure):
-    _fields_ = [ ('x',ctypes.c_long),
-                ('y',ctypes.c_long)]
+POINT = ctypes.wintypes.POINT
+RECT = ctypes.wintypes.RECT
 
 class Mouse(MouseDevice):
     """
@@ -104,12 +97,14 @@ class Mouse(MouseDevice):
             logged_time=currentSec()
             report_system_wide_events=self.getConfiguration().get('report_system_wide_events',True)
             pyglet_window_hnds=self._iohub_server._pyglet_window_hnds
+            #print2err ("pyglet_window_hnds: ",pyglet_window_hnds, " : ",event.Window)
             if event.Window in pyglet_window_hnds:
                 pass
             elif len(pyglet_window_hnds)>0 and report_system_wide_events is False:
                 # For the Mouse, always pass along events, but do not log
                 # events that occurred targeted for a non Psychopy win.
                 #
+                #print2err ("Skipping mouse event...",pyglet_window_hnds, " : ",event.Window)
                 return True
             self._scrollPositionY+= event.Wheel
             event.WheelAbsolute=self._scrollPositionY
