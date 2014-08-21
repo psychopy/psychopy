@@ -33,26 +33,3 @@ class ioHubError(Exception):
         for k,v in self.kwargs.iteritems():
             r+="\t{0}: {1}\n".format(k,v)
         return r
-
-class ioHubConnectionException(Exception):
-    pass
-
-class ioHubServerError(Exception):
-    def __init__(self, *args, **kwargs):
-        Exception.__init__(self, *args, **kwargs)
-        self.args = args
-        self.kwargs=kwargs
-        
-    def __str__(self):
-        return repr(self)
-
-    def __repr__(self):
-        r="ioHubServerError:\nArgs: {0}\n".format(self.args)
-        for k,v in self.kwargs.iteritems():
-            r+="\t{0}: {1}\n".format(k,v)
-        return r
-
-def createErrorResult(error_name,**kwargs):
-    print2err( "IOHUB_SERVER_ERROR",error_name,kwargs)
-    printExceptionDetailsToStdErr()
-    return "IOHUB_SERVER_ERROR",error_name,kwargs

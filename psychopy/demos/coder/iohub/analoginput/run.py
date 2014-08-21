@@ -131,7 +131,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         
                 # Get any new key values from keyboard *Char* Events.
                 #
-                key_values=[k.key for k in kb.getEvents(EventConstants.KEYBOARD_CHAR)]                
+                key_values=[k.key for k in kb.getEvents(EventConstants.KEYBOARD_RELEASE)]
                 
                 if u' ' in key_values:
                     break

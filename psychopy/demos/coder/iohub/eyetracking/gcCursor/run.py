@@ -165,7 +165,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             # start trial instuctions have been displayed.
             #
             self.hub.clearEvents('all')
-            while not [event for event in kb.getEvents(event_type_id=KEYBOARD_PRESS) if event.key == ' ']:
+            while not [event for event in kb.getEvents(event_type_id=KEYBOARD_PRESS) if event.char == ' ']:
                 self.hub.wait(0.2)
 
 
@@ -248,7 +248,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                 # If one is found, set the trial end variable and break.
                 # from the loop
                 for event in kb.getEvents(event_type_id=KEYBOARD_PRESS):
-                    if event.key == ' ':
+                    if event.char == ' ':
                         run_trial=False
                         break
 

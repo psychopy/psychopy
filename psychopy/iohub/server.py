@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import division
 """
 ioHub
 .. file: ioHub/server.py
@@ -16,14 +18,27 @@ import os,sys
 from operator import itemgetter
 from collections import deque
 import psychopy.iohub
-from psychopy.iohub import OrderedDict,print2err, printExceptionDetailsToStdErr, ioHubError, createErrorResult,convertCamelToSnake, DeviceConstants,EventConstants,Computer, DeviceEvent, import_device, IO_HUB_DIRECTORY, load, dump, Loader, Dumper
+from psychopy.iohub import OrderedDict, convertCamelToSnake, IO_HUB_DIRECTORY
+from psychopy.iohub import load, dump, Loader, Dumper
+from psychopy.iohub import print2err, printExceptionDetailsToStdErr, ioHubError
+from psychopy.iohub import DeviceConstants, EventConstants
+from psychopy.iohub import Computer, DeviceEvent, import_device
 from psychopy.iohub.devices.deviceConfigValidation import validateDeviceConfiguration
 from psychopy.iohub.net import MAX_PACKET_SIZE
 currentSec= Computer.currentSec
 
 import json
 import msgpack
-    
+try:
+    import msgpack_numpy as m
+    m.patch()
+except:
+    pass
+try:
+    import psutil
+except:
+    pass
+
 class udpServer(DatagramServer):
     def __init__(self,ioHubServer,address,coder='msgpack'):
         self.iohub=ioHubServer
@@ -73,10 +88,9 @@ class udpServer(DatagramServer):
             try:
                 result=getattr(self,callable_name)
             except:
-                self.sendResponse(createErrorResult('RPC_ATTRIBUTE_ERROR',
-                                        msg="The method name referenced could not be found by the RPC server.",
-                                        method_name=callable_name),
-                                    replyTo)
+                print2err("RPC_ATTRIBUTE_ERROR")
+                printExceptionDetailsToStdErr()
+                self.sendResponse('RPC_ATTRIBUTE_ERROR',replyTo)
                 return False
                 
             if result and callable(result):
@@ -94,20 +108,14 @@ class udpServer(DatagramServer):
                     self.sendResponse(edata,replyTo)
                     return True
                 except Exception,e:
-                    self.sendResponse(createErrorResult('RPC_RUNTIME_ERROR',
-                                      msg="An error occurred on the ioHub Server while evaulating an RPC request",
-                                      method_name=callable_name,
-                                      args=args,
-                                      kwargs=kwargs,
-                                      exception=str(e))
-                                ,replyTo)
+                    print2err("RPC_RUNTIME_ERROR")
+                    printExceptionDetailsToStdErr()
+                    self.sendResponse('RPC_RUNTIME_ERROR', replyTo)
                     return False
             else:
-                self.sendResponse(createErrorResult('RPC_NOT_CALLABLE_ERROR',
-                                    msg="The method name give is not callable (it is not a method).",
-                                    method_name=callable_name,
-                                    resolved_result=str(result))
-                                ,replyTo)
+                print2err("RPC_NOT_CALLABLE_ERROR")
+                printExceptionDetailsToStdErr()
+                self.sendResponse('RPC_NOT_CALLABLE_ERROR', replyTo)
                 return False
         elif request_type == 'STOP_IOHUB_SERVER':
             try:
@@ -115,10 +123,9 @@ class udpServer(DatagramServer):
             except:
                 printExceptionDetailsToStdErr
         else:
-            self.sendResponse(createErrorResult('RPC_TYPE_NOT_SUPPORTED_ERROR',
-                                    msg="The request type provided is not recognized by the ioHub Server.",
-                                    request_type=request_type),
-                                replyTo)
+            print2err("RPC_NOT_CALLABLE_ERROR")
+            printExceptionDetailsToStdErr()
+            self.sendResponse('RPC_NOT_CALLABLE_ERROR', replyTo)
             return False
             
     def handleGetEvents(self,replyTo):
@@ -132,11 +139,10 @@ class udpServer(DatagramServer):
             else:
                 self.sendResponse(('GET_EVENTS_RESULT', None),replyTo)
             return True
-        except Exception,e:
-            self.sendResponse(createErrorResult('IOHUB_GET_EVENTS_ERROR',
-                                    msg="An error occurred while events were being retrived from the ioHub Server",
-                                    exception=str(e)),
-                                replyTo)
+        except Exception, e:
+            print2err("IOHUB_GET_EVENTS_ERROR")
+            printExceptionDetailsToStdErr()
+            self.sendResponse('IOHUB_GET_EVENTS_ERROR', replyTo)
             return False
 
     def handleExperimentDeviceRequest(self,request,replyTo):
@@ -170,18 +176,18 @@ class udpServer(DatagramServer):
                 dev=ioServer.deviceDict.get(dclass,None)
             
             if dev is None:
-                self.sendResponse(createErrorResult('IOHUB_DEVICE_ERROR',
-                                        msg="An instance of the ioHub Device class provided is not enabled on the ioHub Server",
-                                        device_class=dclass),
-                                    replyTo)                
+                print2err("IOHUB_DEVICE_ERROR")
+                printExceptionDetailsToStdErr()
+                self.sendResponse('IOHUB_DEVICE_ERROR', replyTo)
                 return False
+
             
             try:
                 method=getattr(dev,dmethod)
             except:
-                self.sendResponse(createErrorResult('IOHUB_DEVICE_METHOD_ERROR',
-                                        msg="Device class {0} does not have a method called {1}".format(dclass,dmethod)),
-                                    replyTo)                
+                print2err("IOHUB_DEVICE_METHOD_ERROR")
+                printExceptionDetailsToStdErr()
+                self.sendResponse('IOHUB_DEVICE_METHOD_ERROR', replyTo)
                 return False
                 
             result=[]
@@ -197,15 +203,11 @@ class udpServer(DatagramServer):
                 self.sendResponse(('DEV_RPC_RESULT',result),replyTo)
                 return True
             except Exception, e:
-                self.sendResponse(createErrorResult('RPC_DEVICE_RUNTIME_ERROR',
-                                      msg="An error occurred on the ioHub Server while evaulating an Device RPC request",
-                                      device=dclass,
-                                      dmethod=dmethod,
-                                      args=args,
-                                      kwargs=kwargs,
-                                      exception=str(e))
-                                ,replyTo)
+                print2err("RPC_DEVICE_RUNTIME_ERROR")
+                printExceptionDetailsToStdErr()
+                self.sendResponse('RPC_DEVICE_RUNTIME_ERROR', replyTo)
                 return False
+
         elif request_type == 'GET_DEVICE_LIST':
             try:            
                 dev_list=[]
@@ -214,14 +216,10 @@ class udpServer(DatagramServer):
                 self.sendResponse(('GET_DEV_LIST_RESULT',len(dev_list),dev_list),replyTo)
                 return True
             except Exception, e:
+                print2err("RPC_DEVICE_RUNTIME_ERROR")
                 printExceptionDetailsToStdErr()
-                self.sendResponse(createErrorResult('RPC_DEVICE_RUNTIME_ERROR',
-                                      msg="An error occurred on the ioHub Server while getting the Device list for the Experiment Process",
-                                      devices=str(self.iohub.devices),
-                                      dev_list=str(dev_list),
-                                      exception=str(e))
-                                ,replyTo)
-                return False                
+                self.sendResponse('RPC_DEVICE_RUNTIME_ERROR', replyTo)
+                return False
 
         elif request_type == 'GET_DEV_INTERFACE':
             dclass=request.pop(0)
@@ -240,11 +238,11 @@ class udpServer(DatagramServer):
                 self.sendResponse(('GET_DEV_INTERFACE',data),replyTo)
                 return True
             else:
-                self.sendResponse(createErrorResult('GET_DEV_INTERFACE_ERROR',
-                                        msg="An error occurred on the ioHub Server while retrieving device interface information.",
-                                        device=dclass),
-                                  replyTo)
+                print2err("GET_DEV_INTERFACE_ERROR")
+                printExceptionDetailsToStdErr()
+                self.sendResponse('GET_DEV_INTERFACE_ERROR', replyTo)
                 return False
+
         elif request_type == 'ADD_DEVICE':
             dclass_name=request.pop(0)
             dconfig_dict=request.pop(1)
@@ -257,27 +255,28 @@ class udpServer(DatagramServer):
                 self.sendResponse(('ADD_DEVICE',data),replyTo)
                 return True
             else:
-                self.sendResponse(createErrorResult('ADD_DEVICE_ERROR',
-                                        msg="An error occurred on the ioHub Server while adding a device to be monitored.",
-                                        device=dclass_name,
-                                        config=dconfig_dict),
-                                  replyTo)
-            return False
+
+                print2err("ADD_DEVICE_ERROR")
+                printExceptionDetailsToStdErr()
+                self.sendResponse('ADD_DEVICE_ERROR', replyTo)
+                return False
         else:
-            self.sendResponse(createErrorResult('DEVICE_RPC_TYPE_NOT_SUPPORTED_ERROR',
-                                    msg="The device RPC request type provided is not recognized by the ioHub Server.",
-                                    request_type=request_type),
-                              replyTo)
+            print2err("DEVICE_RPC_TYPE_NOT_SUPPORTED_ERROR")
+            printExceptionDetailsToStdErr()
+            self.sendResponse('DEVICE_RPC_TYPE_NOT_SUPPORTED_ERROR', replyTo)
             return False
             
     def sendResponse(self,data,address):
         packet_data=None
         try:
-            max_size=MAX_PACKET_SIZE/2-20
-            packet_data=self.pack(data)
-            packet_data_length=len(packet_data)
-            if packet_data_length>= max_size:
-                num_packets=len(packet_data)/max_size+1
+            num_packets = -1
+            packet_data_length = -1
+            # TODO: Max packet size on OS X seems to be 8192 !!
+            max_size = int(MAX_PACKET_SIZE/2-20)
+            packet_data = self.pack(data)
+            packet_data_length = len(packet_data)
+            if packet_data_length >= max_size:
+                num_packets = int(packet_data_length//max_size)+1
                 self.sendResponse(('IOHUB_MULTIPACKET_RESPONSE',num_packets),address)
                 for p in xrange(num_packets-1):
                     self.socket.sendto(packet_data[p*max_size:(p+1)*max_size],address)
@@ -286,8 +285,11 @@ class udpServer(DatagramServer):
                 self.socket.sendto(packet_data,address)
         except:
             print2err('Error trying to send data to experiment process:')
-            print2err('data length:',len(data))
-            print2err("=============================")            
+            print2err('max_size: ',max_size)
+            print2err('data length: ',packet_data_length)
+            print2err('num_packets: ',num_packets)
+
+            print2err("=============================")
             printExceptionDetailsToStdErr()
             print2err("=============================")            
 
@@ -304,13 +306,9 @@ class udpServer(DatagramServer):
                 packet_data_length=len(packet_data)
                 print2err('packet Data length: ',len(packet_data))
 
-            data=createErrorResult('IOHUB_SERVER_RESPONSE_ERROR',       
-                                   msg="The ioHub Server Failed to send the intended response.",
-                                   first_data_element=str(first_data_element),
-                                   packet_data_length=packet_data_length,
-                                   max_packet_size=max_size)
-            packet_data=self.pack(data)
-            packet_data_length=len(packet_data)            
+            print2err("IOHUB_SERVER_RESPONSE_ERROR")
+            printExceptionDetailsToStdErr()
+            packet_data=self.pack('IOHUB_SERVER_RESPONSE_ERROR')
             self.socket.sendto(packet_data,address)
             
     def setExperimentInfo(self,experimentInfoList):
@@ -844,15 +842,26 @@ class ioServer(object):
     def _processDeviceEventIteration(self):
         for device in self.devices:
             try:
-                events=device._getNativeEventBuffer()
-                #if events and len(events)>0:
-                #    ioHub.print2err("_processDeviceEventIteration.....", device._event_listeners)
-                while len(events)>0:
-                    evt=events.popleft()
-                    e=device._getIOHubEventObject(evt)
+                events = device._getNativeEventBuffer()
+
+                while len(events) > 0:
+                    evt = events.popleft()
+                    e = device._getIOHubEventObject(evt)
                     if e is not None:
                         for l in device._getEventListeners(e[DeviceEvent.EVENT_TYPE_ID_INDEX]):
                             l._handleEvent(e)
+
+
+                filtered_events = []
+                for filter in device._filters.values():
+                    filtered_events.extend(filter._removeOutputEvents())
+
+                for i in range(len(filtered_events)):
+                    e = filtered_events[i]
+                    for l in device._getEventListeners(e[DeviceEvent.EVENT_TYPE_ID_INDEX]):
+                        l._handleEvent(e)
+
+
             except:
                 printExceptionDetailsToStdErr()
                 print2err("Error in processDeviceEvents: ", device, " : ", len(events), " : ", e)
@@ -867,10 +876,23 @@ class ioServer(object):
         self.eventBuffer.clear()
         return l
 
+    def checkForPsychopyProcess(self, sleep_interval):
+        while self._running:
+            if Computer.psychopy_process:
+                try:
+                    if Computer.psychopy_process.is_running() is False:
+                        Computer.psychopy_process = None
+                        psychopy.iohub.MessageDialog("PsychoPy Process dead. Should shut down.")
+                        self.shutdown()
+                        sys.exit(1)
+                except:
+                        sys.exit(2)
+            gevent.sleep(sleep_interval)
+
     def shutdown(self):
         try:
             self._running=False
-    
+
             if Computer.system=='linux2':
                 if self._hookManager:
                     self._hookManager.cancel()
@@ -878,12 +900,15 @@ class ioServer(object):
             while len(self.deviceMonitors) > 0:
                 m=self.deviceMonitors.pop(0)
                 m.running=False
+
             if self.eventBuffer:
                 self.clearEventBuffer()
+
             try:
                 self.closeDataStoreFile()
             except:
                 pass
+
             while len(self.devices) > 0:
                 d=self.devices.pop(0)
                 try:
@@ -891,7 +916,6 @@ class ioServer(object):
                         d._close()
                 except:
                         pass
-            gevent.sleep()
         except:
             print2err("Error in ioSever.shutdown():")
             printExceptionDetailsToStdErr()

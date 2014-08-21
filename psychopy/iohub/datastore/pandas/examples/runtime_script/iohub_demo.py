@@ -64,7 +64,7 @@ for t,trial in enumerate(trials):
         gabor.setPhase(0.01,'+')
         flip_time=loggedFlip(trial['LETTER'],color_mapping[trial['COLOR']])   
         #handle key presses each frame
-        key_events=kb.getEvents(event_type_id=EventConstants.KEYBOARD_CHAR)
+        key_events=kb.getEvents(event_type_id=EventConstants.KEYBOARD_RELEASE)
         
         for ke in key_events:
             if ke.key in key_mapping.keys():

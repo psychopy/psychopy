@@ -35,7 +35,7 @@ class TobiiPsychopyCalibrationGraphics(object):
     TEXT_POS=[0,0]
     TEXT_COLOR=[0,0,0]
     TEXT_HEIGHT=36
-    
+    _keyboard_key_index = EventConstants.getClass(EventConstants.KEYBOARD_RELEASE).CLASS_ATTRIBUTE_NAMES.index('key')
     def __init__(self, eyetrackerInterface,screenColor=None,
                  calibrationPointList=None):
         self._eyetrackerinterface=eyetrackerInterface
@@ -124,15 +124,15 @@ class TobiiPsychopyCalibrationGraphics(object):
     def _unregisterEventMonitors(self):
         if self._ioKeyboard:
             self._ioKeyboard._removeEventListener(self)
-     
+            
     def _handleEvent(self,ioe):
         event=copy.deepcopy(ioe)
         event_type_index=DeviceEvent.EVENT_TYPE_ID_INDEX
-        if event[event_type_index] == EventConstants.KEYBOARD_CHAR:
-            if event[-5] == u' ':
+        if event[event_type_index] == EventConstants.KEYBOARD_RELEASE:
+            if event[self._keyboard_key_index] == u'space':
                 self._msg_queue.put("SPACE_KEY_ACTION")
                 self.clearAllEventBuffers()
-            elif event[-5] == u'ESCAPE':
+            elif event[self._keyboard_key_index] == u'escape':
                 self._msg_queue.put("QUIT")
                 self.clearAllEventBuffers()
 
