@@ -89,7 +89,7 @@ text.setText(results)
 [s.draw() for s in stim]
 window.flip()
 
-while not keyboard.getPresses():
+while not keyboard.pressed:
     io.wait(0.05)
     io.clearEvents()
 

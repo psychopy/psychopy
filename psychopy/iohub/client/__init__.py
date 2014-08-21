@@ -1202,7 +1202,7 @@ class ioHubConnection(object):
                 d = local_class(self, device_class_name, device_config)
             else:
                 d = ioHubDeviceView(self, device_class_name, device_config)
-            #ioHub.print2err("Created ioHubDeviceView: {0}".format(d))
+            #print2err("Created ioHubDeviceView: {0}".format(d))
             setattr(self.devices, name, d)
             self.deviceByLabel[name] = d
             return d
