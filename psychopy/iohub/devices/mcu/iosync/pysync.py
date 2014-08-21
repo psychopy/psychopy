@@ -464,34 +464,43 @@ class T3MC(object):
         self._serial_port.flushInput()
 
     def _sendT3Request(self,request):
-        request.tx_time=getTime()
-        tx_count=self._serial_port.write(request.getTxByteArray())
-        self._serial_port.flush()
-        self._active_requests[request.getID()]=request
-        return tx_count
+        try:
+            request.tx_time=getTime()
+            tx_count=self._serial_port.write(request.getTxByteArray())
+            self._serial_port.flush()
+            self._active_requests[request.getID()]=request
+            return tx_count
+        except Exception, e:
+            print2err("ERROR During sendT3Request: ",e,". Has ioSync been disconnected?")
+            self.close()
 
     def getSerialRx(self):
-        while self._serial_port.inWaiting()>= 2:
-            request_id = ord(self._serial_port.read(1))
-            if request_id < T3Request.REQ_COUNTER_START:
-                event_byte_count = ord(self._serial_port.read(1))
-                time_bytes = [ord(c) for c in self._serial_port.read(6)]
-                remaining_byte_count= event_byte_count-(len(time_bytes)+2)
-                remaining_bytes = []
-                if remaining_byte_count > 0:
-                    remaining_bytes = [ord(c) for c in self._serial_port.read(remaining_byte_count)]
-                if request_id in EVENT_TYPE_2_CLASS.keys():
-                    event = EVENT_TYPE_2_CLASS[request_id](request_id, time_bytes, remaining_bytes)
-                    self._rx_events.append(event)
-            else:               
-                reply=T3Request._readRequestReply(self, request_id)
-                if reply:
-                    if reply._type == T3Request.SYNC_TIME_BASE:
-                        reply.syncWithT3Time()
-                    else:
-                        self._request_replies.append(reply)
+        try:
+            while self._serial_port.inWaiting()>= 2:
+                request_id = ord(self._serial_port.read(1))
+                if request_id < T3Request.REQ_COUNTER_START:
+                    event_byte_count = ord(self._serial_port.read(1))
+                    time_bytes = [ord(c) for c in self._serial_port.read(6)]
+                    remaining_byte_count= event_byte_count-(len(time_bytes)+2)
+                    remaining_bytes = []
+                    if remaining_byte_count > 0:
+                        remaining_bytes = [ord(c) for c in self._serial_port.read(remaining_byte_count)]
+                    if request_id in EVENT_TYPE_2_CLASS.keys():
+                        event = EVENT_TYPE_2_CLASS[request_id](request_id, time_bytes, remaining_bytes)
+                        self._rx_events.append(event)
                 else:
-                    print2err("INVAID REQUEST ID in reply:",  request_id)
+                    reply=T3Request._readRequestReply(self, request_id)
+                    if reply:
+                        if reply._type == T3Request.SYNC_TIME_BASE:
+                            reply.syncWithT3Time()
+                        else:
+                            self._request_replies.append(reply)
+                    else:
+                        print2err("INVALID REQUEST ID in reply:",  request_id)
+        except Exception, e:
+            print2err("ERROR During getSerialRx: ",e,". Has ioSync been disconnected?")
+            self.close()
+
     def closeSerial(self):
         if self._serial_port:
             self._serial_port.close()
