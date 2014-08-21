@@ -48,9 +48,14 @@ def run(rootScriptPathDir,configFilePath):
             for m in s.deviceMonitors:
                 m.start()
     
-            gevent.spawn(s.processDeviceEvents,0.001)
-    
+            gevent.spawn(s.processDeviceEvents, 0.001)
+
             sys.stdout.write("IOHUB_READY\n\r\n\r")
+
+            #print2err("Computer.psychopy_process: ", Computer.psychopy_process)
+            if Computer.psychopy_process:
+                gevent.spawn(s.checkForPsychopyProcess, 0.5)
+
             sys.stdout.flush()
             
             gevent.run()
@@ -63,7 +68,11 @@ def run(rootScriptPathDir,configFilePath):
     
             sys.stdout.write("IOHUB_READY\n\r\n\r")
             sys.stdout.flush()
-            
+
+            #print2err("Computer.psychopy_process: ", Computer.psychopy_process)
+            if Computer.psychopy_process:
+                 glets.append(gevent.spawn(s.checkForPsychopyProcess, 0.5))
+
             gevent.joinall(glets)
             
 
@@ -92,13 +101,24 @@ if __name__ == '__main__':
         rootScriptPathDir=sys.argv[2]
     if len(sys.argv)>=4:        
         configFileName=sys.argv[3]        
+    if len(sys.argv)>=5:
+        psychopy_pid = int(sys.argv[4])
         #ioHub.print2err("ioServer initial_offset: ",initial_offset)
     if len(sys.argv)<2:
+        psychopy_pid=None
         configFileName=None
         rootScriptPathDir=None
         initial_offset=iohub.getTime()
 
     Computer.isIoHubProcess=True
+
+    try:
+        import psutil
+        if psychopy_pid:
+            Computer.psychopy_process = psutil.Process(psychopy_pid)
+    except:
+        pass
+
     Computer.globalClock=MonotonicClock(initial_offset)        
 
     run(rootScriptPathDir=rootScriptPathDir, configFilePath=configFileName)
