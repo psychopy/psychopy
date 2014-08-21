@@ -210,23 +210,23 @@ class ioHubPandasDataView(object):
         if not self._event_data_by_type.get(n):
             try:
                 row=self.event_table_info.ix[n]
-                if not row['table_path'].endswith('KeyboardCharEvent'):
-                    event_data=self._hdf_store.select(row['table_path'])
-                    event_data=event_data[event_data.type == self.event_constants[n]]
-                    event_data['type']=n
-                    event_data.set_index(['experiment_id','session_id','time'],inplace=True)
-                    event_data.sort_index(inplace=True)
-                    event_data.reset_index('time',inplace=True)
-                    self._event_data_by_type[n]=event_data
-                else:
-                    raise AttributeError(self.__class__.__name__+" does not support "+n)
+#                #if not row['table_path'].endswith('KeyboardCharEvent'):
+                event_data=self._hdf_store.select(row['table_path'])
+                event_data=event_data[event_data.type == self.event_constants[n]]
+                event_data['type']=n
+                event_data.set_index(['experiment_id','session_id','time'],inplace=True)
+                event_data.sort_index(inplace=True)
+                event_data.reset_index('time',inplace=True)
+                self._event_data_by_type[n]=event_data
+#                else:
+#                    raise AttributeError(self.__class__.__name__+" does not support "+n)
             except Exception, e:
                 raise AttributeError(self.__class__.__name__+" does not have a data frame for "+n)
                 raise e
         return self._event_data_by_type[n]
 
     def _createGlobalEventData(self):
-        SKIP_EVENT_TYPES=['KEYBOARD_CHAR','KEYBOARD_KEY','MOUSE_INPUT', 'TOUCH']
+        SKIP_EVENT_TYPES=['KEYBOARD_KEY','MOUSE_INPUT', 'TOUCH'] #KEYBOARD_CHAR
         global_event_fields=['time','device_id','event_id','type','device_time',
                              'logged_time','confidence_interval','delay',
                              'filter_id']

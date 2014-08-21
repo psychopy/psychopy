@@ -3,7 +3,7 @@
 Demonstrates using Interest Areas to filter events by spatial locations. 
 
 NOTE: The use of Interest Areas within the datastore.panda module requires
-that the python module caled 'shapely' is installed on your python env.
+that the python module called 'shapely' is installed on your python env.
 s 
 @author: Sol
 """
