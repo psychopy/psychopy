@@ -2716,8 +2716,9 @@ class DlgLoopProperties(_BaseParamsDlg):
         panel.SetSizer(panelSizer)
         row=0
         for fieldName in ['name','loopType']:
-            self.globalCtrls[fieldName] = ctrls = ParamCtrls(dlg=self, parent=panel,
-                label=fieldName, param=self.currentHandler.params[fieldName])
+            self.globalCtrls[fieldName] = ctrls = ParamCtrls(parent=panel,
+                label=fieldName, param=self.currentHandler.params[fieldName],
+                exp=self.exp)
             panelSizer.Add(ctrls.nameCtrl, [row, 0], border=1,
                 flag=wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL | wx.ALL)
             panelSizer.Add(ctrls.valueCtrl, [row, 1], border=1,
@@ -2753,8 +2754,9 @@ class DlgLoopProperties(_BaseParamsDlg):
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             elif fieldName=='conditionsFile':
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
-                    param=handler.params[fieldName], browse=True)
+                ctrls=ParamCtrls(parent=panel, label=fieldName,
+                    param=handler.params[fieldName], browse=True,
+                    exp=self.exp)
                 self.Bind(wx.EVT_BUTTON, self.onChooseTrialsFile,ctrls.browseCtrl)
                 ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.viewConditions)
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
@@ -2766,15 +2768,15 @@ class DlgLoopProperties(_BaseParamsDlg):
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
                     text = """No parameters set"""
-                ctrls = ParamCtrls(dlg=self, parent=panel, label='conditions',
-                    param=text, noCtrls=True)#we'll create our own widgets
+                ctrls = ParamCtrls(parent=panel, label='conditions',
+                    param=text, exp=self.exp, noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
                 ctrls.valueCtrl = wx.StaticText(panel, label=text, size=size, style=wx.ALIGN_CENTER)
                 panelSizer.Add(ctrls.valueCtrl, (row, 0), span=(1,3), flag=wx.ALIGN_CENTER)
                 row += 1
             else: #normal text entry field
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
-                    param=handler.params[fieldName])
+                ctrls=ParamCtrls(parent=panel, label=fieldName,
+                    param=handler.params[fieldName], exp=self.exp)
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
                 row += 1
@@ -2807,8 +2809,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             elif fieldName=='conditionsFile':
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
-                    param=handler.params[fieldName], browse=True)
+                ctrls=ParamCtrls(parent=panel, label=fieldName,
+                    param=handler.params[fieldName], exp=self.exp, browse=True)
                 self.Bind(wx.EVT_BUTTON, self.onChooseTrialsFile,ctrls.browseCtrl)
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
@@ -2819,15 +2821,15 @@ class DlgLoopProperties(_BaseParamsDlg):
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
                     text = """No parameters set (select a file above)"""
-                ctrls = ParamCtrls(dlg=self, parent=panel, label='conditions',
-                    param=text, noCtrls=True)#we'll create our own widgets
+                ctrls = ParamCtrls(parent=panel, label='conditions',
+                    param=text, exp=self.exp, noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
                 ctrls.valueCtrl = wx.StaticText(panel, label=text, size=size, style=wx.ALIGN_CENTER)
                 panelSizer.Add(ctrls.valueCtrl, (row, 0), span=(1,3), flag=wx.ALIGN_CENTER)
                 row += 1
             else: #normal text entry field
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
-                    param=handler.params[fieldName])
+                ctrls=ParamCtrls(parent=panel, label=fieldName,
+                    param=handler.params[fieldName], exp=self.exp)
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
                 row += 1
@@ -2850,8 +2852,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             else: #normal text entry field
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,
-                    param=handler.params[fieldName])
+                ctrls=ParamCtrls(parent=panel, label=fieldName,
+                    param=handler.params[fieldName], exp=self.exp)
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
                 row += 1
