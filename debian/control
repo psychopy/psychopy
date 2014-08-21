@@ -14,14 +14,13 @@ Homepage: http://git.braintech.pl/psychopy.git
 Package: psychopy-openbci
 Architecture: all
 Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends},
-          python-pyglet | python-pygame,
+          python-pyglet,
           python-opengl,
           python-numpy, python-scipy, python-matplotlib,
           python-lxml,
           python-configobj,
 	  python-pyo,
-	  openbci-core (>=1.8.4)
-	  python-pyglet,
+	  openbci-core (>=1.8.4),
 	  python-tables
 Recommends: python-wxgtk2.8,
             python-pyglet, python-pygame,
