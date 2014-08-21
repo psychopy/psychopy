@@ -18,8 +18,15 @@ import gettext
 import os, sys, glob, codecs
 from psychopy import logging, prefs
 
-# Get a dict of locale aliases from wx.Locale() -- same cross-platform (Win 7, Mac 10.9)
 import wx
+
+# need a wx App for wx.Locale:
+try:
+    wx.Dialog(None, -1)
+except wx._core.PyNoAppError:
+    tmpApp = wx.PySimpleApp()
+
+# Get a dict of locale aliases from wx.Locale() -- same cross-platform (Win 7, Mac 10.9)
 locale = wx.Locale()
 aliases = {}
 wxIdFromCode = {}  # int: 0, 2-229
