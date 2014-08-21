@@ -52,10 +52,12 @@ try:
     mcu.enableEventReporting(True)
     io.clearEvents("all")   
     i=0
-    while not kb.getEvents():   
+    print "Saving Analog Data to File. Press any Key to Quit..."
+    aout=file('analog_output.txt','w')
+    while not kb.getKey(keys=['escape',]):
         mcu_events = mcu.getEvents()
         for mcu_evt in mcu_events:
-            print'{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}'.format(mcu_evt.time,
+            aout.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\n'.format(mcu_evt.time,
                                                                  mcu_evt.AI_0,
                                                                  mcu_evt.AI_1,
                                                                  mcu_evt.AI_2,
@@ -64,8 +66,10 @@ try:
                                                                  mcu_evt.AI_5,
                                                                  mcu_evt.AI_6,
                                                                  mcu_evt.AI_7,
-                                                                 )
+                                                                 ))
         core.wait(0.002,0)
+    aout.flush()
+    aout.close()
     io.clearEvents('all')
 except:
     import traceback

@@ -68,7 +68,7 @@ positions.randomize()
 # Use DeviceEventTrigger to create a keyboard char event trigger
 #     which will fire when the space key is pressed.
 kb_trigger = DeviceEventTrigger(io.getDevice('keyboard'),
-                                event_type=EventConstants.KEYBOARD_CHAR,
+                                event_type=EventConstants.KEYBOARD_RELEASE,
                                 event_attribute_conditions={'key': ' '},
                                 repeat_count=0)
 
@@ -126,7 +126,7 @@ io.quit()
 ## Ex: Using DeviceEventTrigger to create a keyboard char event trigger
 ##     which will fire when the space key is pressed.
 #kb_trigger = DeviceEventTrigger(io.getDevice('keyboard'),
-#                                event_type=EventConstants.KEYBOARD_CHAR,
+#                                event_type=EventConstants.KEYBOARD_RELEASE,
 #                                event_attribute_conditions={'key': ' '},
 #                                repeat_count=0)
 ## Ex: Using TimeTrigger which will fire 0.5 sec after the last update
