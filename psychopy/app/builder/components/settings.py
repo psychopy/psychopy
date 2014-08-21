@@ -14,7 +14,6 @@ DEFAULT_PARAM_VALUES = {
   'applianceType':'', 
   'applianceDevicePath':'/dev/ttyUSB0', 
   'applianceIntensity':'250'
-
 }
 
 class SettingsComponent:
@@ -23,7 +22,8 @@ class SettingsComponent:
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
                  logging='exp', color='$[0,0,0]', colorSpace='rgb', enableEscape=True, blendMode='avg',
                  saveXLSXFile=False, saveCSVFile=False, saveWideCSVFile=True, savePsydatFile=True,
-                 savedDataFolder='~', filename="'xxxx/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])"):
+                 savedDataFolder='~', filename="'xxxx/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])",
+                 paramValues=DEFAULT_PARAM_VALUES):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -108,6 +108,44 @@ class SettingsComponent:
             hint="How much output do you want in the log files? ('error' is fewest messages, 'debug' is most)",
             label="Logging level",
             categ='Data')
+
+        self.params['sendTags'] = Param(
+            paramValues['sendTags'], valType='bool',
+            hint='Send tags to OBCI Server?', label='Send tags to OBCI',
+            categ='OpenBCI')
+        self.params['saveTags'] = Param(
+            paramValues['saveTags'], valType='bool',
+            hint="Save tags to file?", label="Save tags in Psychopy",
+            categ='OpenBCI')
+        self.params["doSignal"] = Param(
+            paramValues['doSignal'], valType="bool",
+            hint="Should trigger used?", label="Send trigger to amplifier",
+            categ='OpenBCI')
+        self.params['serialTriggerDevice'] = Param(
+            paramValues['serialTriggerDevice'], valType='str',
+            hint="To which serial port is trigger connected?",
+            label="Device name for trigger", categ='OpenBCI')
+        self.params["saveSignal"] = Param(
+            paramValues['saveSignal'], valType="bool",
+            hint="Should amp signal be saved?",
+            label="Save signal and tags in OBCI", categ='OpenBCI')
+        self.params["obciDataDirectory"] = Param(
+            "~", valType="str",
+            hint="Remote directory in which OBCI will save experiment data",
+            label="OBCI data folder", categ='OpenBCI')
+
+        self.params['applianceType'] = Param(
+            paramValues['applianceType'], valType='str',
+            hint="Appliance type eg. dummy, appliance1, appliance2. Leave empty to try to detect automatically.",
+            label="Appliance Type", categ='OpenBCI')
+        self.params['applianceDevicePath'] = Param(
+            paramValues['applianceDevicePath'],
+            valType='str', hint="To which serial port is appliance connected?",
+            label="Appliance Device Path", categ="OpenBCI")
+        self.params['applianceIntensity'] = Param(
+            paramValues['applianceIntensity'], valType='int', hint="Appliance flickering intensity.",
+            label="Appliance Intensity", categ="OpenBCI")
+
     def getType(self):
         return self.__class__.__name__
     def getShortType(self):
@@ -157,11 +195,6 @@ class SettingsComponent:
         level=self.params['logging level'].val.upper()
 
         saveToDir = self.getSaveDataDir()
-        buff.writeIndentedLines("\n# Setup files for saving\n")
-        buff.writeIndented("dataDavingDir = os.path.expanduser('%s')\n" % saveToDir)
-        buff.writeIndented("if not os.path.isdir('%s'):\n" % saveToDir)
-        buff.writeIndented("    os.makedirs('%s')  # if this fails (e.g. permissions) we will get error\n" % saveToDir)
-
         #deprecated code: before v1.80.00 we had 'Saved data folder' param but fairly fixed filename
         if 'Saved data folder' in self.params:
             participantField=''
@@ -176,7 +209,12 @@ class SettingsComponent:
             del self.params['Saved data folder'] #so that we don't overwrite users changes doing this again
 
         #now write that data file name to the script
-        buff.writeIndented("filename = %s\n" %self.params['Data filename'])
+        buff.writeIndentedLines("\n# Setup files for saving\n")
+        buff.writeIndented("filename = %s\n" % self.params['Data filename'])
+        buff.writeIndented("filename = os.path.expanduser(filename)\n")
+        buff.writeIndented("dataSavingDir = os.path.split(filename)[0]\n")
+        buff.writeIndented("if not os.path.isdir(dataSavingDir):\n")
+        buff.writeIndented("    os.makedirs(dataSavingDir)  # if this fails (e.g. permissions) we will get error\n")
 
         #set up the ExperimentHandler
         buff.writeIndentedLines("\n# An ExperimentHandler isn't essential but helps with data saving\n")
@@ -240,15 +278,15 @@ class SettingsComponent:
                 buff.writeIndented("mx_adapter = contrib.obci.mx.MXAdapter(mx_address)\n")
                 buff.writeIndented("win = contrib.obci.Window(mx_adapter, size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                                (size, fullScr, screenNumber, allowGUI, allowStencil))
-                buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
+                buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n" %(self.params))
             else:
                 buff.writeIndented("win = contrib.obci.Window(None, size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                                (size, fullScr, screenNumber, allowGUI, allowStencil))
-                buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s" %(self.params))
+                buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n" %(self.params))
         else:
             buff.writeIndented("win = visual.Window(size=%s, fullscr=%s, screen=%s, allowGUI=%s, allowStencil=%s,\n" %
                            (size, fullScr, screenNumber, allowGUI, allowStencil))
-        buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n" %(self.params))
+            buff.writeIndented("    monitor=%(Monitor)s, color=%(color)s, colorSpace=%(colorSpace)s,\n" %(self.params))
         if self.params['blendMode'].val:
             buff.writeIndented("    blendMode=%(blendMode)s, useFBO=True,\n" %(self.params))
 

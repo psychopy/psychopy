@@ -41,9 +41,9 @@ def timeStopTest(component, codeBuffer):
 
 def durationStopTest(component, codeBuffer):
     if component.params['startType'].val=='time (s)':
-        codeBuffer.writeIndented("elif %(name)s.status == STARTED and t >= (%(startVal)s + (%(stopVal)s-win.monitorFramePeriod*0.75))):\n" % (component.params))
-    else: #start at frame and end with duratio (need to use approximation)
-        codeBuffer.writeIndented("elif %(name)s.status == STARTED and t >= (%(name)s.tStart + (%(stopVal)s-win.monitorFramePeriod*0.75))):\n" % (component.params))
+        codeBuffer.writeIndented("elif %(name)s.status == STARTED and t >= (%(startVal)s + (%(stopVal)s-win.monitorFramePeriod*0.75)):\n" % (component.params))
+    else: #start at frame and end with duration (need to use approximation)
+        codeBuffer.writeIndented("elif %(name)s.status == STARTED and t >= (%(name)s.tStart + (%(stopVal)s-win.monitorFramePeriod*0.75)):\n" % (component.params))
 
 def durationFramesStopTest(component, codeBuffer):
     codeBuffer.writeIndented("elif %(name)s.status == STARTED and frameN >= (%(name)s.frameNStart + %(stopVal)s):\n" % (component.params))
