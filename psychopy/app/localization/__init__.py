@@ -23,8 +23,7 @@ import wx
 # need a wx App for wx.Locale:
 try:
     wx.Dialog(None, -1)
-    tmpApp = None
-except:
+except wx._core.PyNoAppError:
     tmpApp = wx.PySimpleApp()
 
 # Get a dict of locale aliases from wx.Locale() -- same cross-platform (Win 7, Mac 10.9)
