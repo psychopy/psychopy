@@ -4,7 +4,7 @@
 # Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import gui, logging
+from psychopy import gui, logging, data_import
 from psychopy.tools.arraytools import extendArr, shuffleArray
 from psychopy.tools.fileerrortools import handleFileCollision
 import psychopy
