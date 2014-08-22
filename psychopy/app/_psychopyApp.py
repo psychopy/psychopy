@@ -46,6 +46,30 @@ class MenuFrame(wx.Frame):
         self.SetMenuBar(self.menuBar)
         self.Show()
 
+class _Showgui_Hack():
+    """Class with side-effect of restoring wx window switching/launching under wx-3.0
+
+    - might only be needed on some platforms (Mac 10.9.4 needs it for me);
+    - needs to be launched as an external script
+    - needs to be separate code (seg-faults as method of PsychoPyApp, or in-lined code)
+    - unlear why it works or what the deeper issue is, blah
+    - called at end of PsychoPyApp.onInit()
+    """
+    def __init__(self):
+        from psychopy import core
+        import os
+        # should be writable:
+        noopPath = os.path.join(psychopy.prefs.paths['userPrefsDir'], 'showgui_hack.py')
+        # code to open & immediately close a gui (= invisibly):
+        if not os.path.isfile(noopPath):
+            code = """from psychopy import gui
+                dlg = gui.Dlg().Show()  # non-blocking
+                try: dlg.Destroy()  # might as well
+                except: pass""".replace('    ', '')
+            with open(noopPath, 'wb') as fd:
+                fd.write(code)
+        core.shellCall([sys.executable, noopPath])  # append 'w' for pythonw seems not needed
+
 class PsychoPyApp(wx.App):
     def __init__(self, arg=0, **kwargs):
         wx.App.__init__(self, arg)
@@ -209,7 +233,19 @@ class PsychoPyApp(wx.App):
             self.Bind(wx.EVT_IDLE, self.checkUpdates)
         else:
             self.Bind(wx.EVT_IDLE, self.onIdle)
+
+        # doing this once subsequently enables the app to open & switch among
+        # wx-windows on some platforms (Mac 10.9.4) with wx-3.0:
+        if wx.version() >= '3.0' and sys.platform == 'darwin':
+            _Showgui_Hack()  # returns ~immediately, no display
+            # focus stays in never-land, so bring back to the app:
+            if mainFrame in ['both', 'builder']:
+                self.showBuilder()
+            else:
+                self.showCoder()
+
         return True
+
     def _wizard(self, selector, arg=''):
         from psychopy import core
         wizard = os.path.join(self.prefs.paths['psychopy'], 'wizard.py')

@@ -12,6 +12,14 @@ from psychopy.app import localization
 
 OK = wx.ID_OK
 
+def makeTempApp():
+    # need a wxApp for showing a gui, e.g., for expInfo dialog
+    if wx.version() < '2.9':
+        return wx.PySimpleApp()
+    else:
+        return wx.App(False)
+
+
 class Dlg(wx.Dialog):
     """A simple dialogue box. You can add text or input boxes
     (sequentially) and then retrieve the values.
@@ -46,7 +54,7 @@ class Dlg(wx.Dialog):
             wx.Dialog.__init__(self, None,-1,title,pos,size,style)
         except:
             global app
-            app = wx.PySimpleApp()
+            app = makeTempApp()
             wx.Dialog.__init__(self, None,-1,title,pos,size,style)
         self.inputFields = []
         self.inputFieldTypes= []
@@ -174,7 +182,6 @@ class Dlg(wx.Dialog):
         #self.myApp.Exit()
 
 
-
 class DlgFromDict(Dlg):
     """Creates a dialogue box that represents a dictionary of values.
     Any values changed by the user are change (in-place) by this
@@ -258,7 +265,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
         dlg = wx.FileDialog(None,prompt,
                           initFilePath, initFileName, allowed, wx.SAVE)
     except:
-        tmpApp = wx.PySimpleApp()
+        tmpApp = makeTempApp()
         dlg = wx.FileDialog(None,prompt,
                           initFilePath, initFileName, allowed, wx.SAVE)
     if dlg.ShowModal() == OK:
@@ -304,7 +311,7 @@ def fileOpenDlg(tryFilePath="",
         dlg = wx.FileDialog(None, prompt,
                           tryFilePath, tryFileName, allowed, wx.OPEN|wx.FILE_MUST_EXIST|wx.MULTIPLE)
     except:
-        tmpApp = wx.PySimpleApp()
+        tmpApp = makeTempApp()
         dlg = wx.FileDialog(None, prompt,
                           tryFilePath, tryFileName, allowed, wx.OPEN|wx.FILE_MUST_EXIST|wx.MULTIPLE)
     if dlg.ShowModal() == OK:
