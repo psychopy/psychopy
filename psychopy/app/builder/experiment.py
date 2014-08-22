@@ -614,7 +614,7 @@ class TrialHandler:
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
             hint=_("The start and end of the loop (see flow timeline)"))
         self.params['Selected rows']=Param(selectedRows, valType='code', updates=None, allowedUpdates=None,
-            hint=_("Select the rows form you condition file (the first is 0 not 1!). Examples: 0:5, 5:-1, randint(5)"))
+            hint=_("Select just a subset of rows from your condition file (the first is 0 not 1!). Examples: 0, 0:5, 5:-1"))
         self.params['loopType']=Param(loopType, valType='str',
             allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
             hint=_("How should the next condition value(s) be chosen?"))#NB staircase is added for the sake of the loop properties dialog
