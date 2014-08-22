@@ -3,8 +3,8 @@
 # Part of the PsychoPy library
 # Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+
 from psychopy import logging
-#from wxPython import wx
 import wx
 import numpy
 import string, os
@@ -12,12 +12,16 @@ from psychopy.app import localization
 
 OK = wx.ID_OK
 
-def makeTempApp():
-    # need a wxApp for showing a gui, e.g., for expInfo dialog
-    if wx.version() < '2.9':
-        return wx.PySimpleApp()
-    else:
-        return wx.App(False)
+def ensureWxApp():
+    # make sure there's a wxApp prior to showing a gui, e.g., for expInfo dialog
+    try:
+        wx.Dialog(None, -1)  # not shown; FileDialog gives same exception
+        return True
+    except wx._core.PyNoAppError:
+        if wx.version() < '2.9':
+            return wx.PySimpleApp()
+        else:
+            return wx.App(False)
 
 
 class Dlg(wx.Dialog):
@@ -50,12 +54,9 @@ class Dlg(wx.Dialog):
             labelButtonOK = _(" OK "),
             labelButtonCancel = _(" Cancel ")):
         style=style|wx.RESIZE_BORDER
-        try:
-            wx.Dialog.__init__(self, None,-1,title,pos,size,style)
-        except:
-            global app
-            app = makeTempApp()
-            wx.Dialog.__init__(self, None,-1,title,pos,size,style)
+        global app  # avoid recreating for every gui
+        app = ensureWxApp()
+        wx.Dialog.__init__(self, None,-1,title,pos,size,style)
         self.inputFields = []
         self.inputFieldTypes= []
         self.inputFieldNames= []
@@ -208,6 +209,7 @@ class DlgFromDict(Dlg):
     """
     def __init__(self, dictionary, title='',fixed=[], order=[], tip={}):
         Dlg.__init__(self, title)
+        #app = ensureWxApp() done by Dlg
         self.dictionary=dictionary
         keys = self.dictionary.keys()
         keys.sort()
@@ -226,7 +228,6 @@ class DlgFromDict(Dlg):
             else:
                 self.addField(field,self.dictionary[field], tip=tooltip)
         #show it and collect data
-        #tmp= wx.PySimpleApp()#this should have been done by Dlg ?
         self.show()
         if self.OK:
             for n,thisKey in enumerate(keys):
@@ -261,13 +262,9 @@ def fileSaveDlg(initFilePath="", initFileName="",
             #"txt (*.txt)|*.txt" \
             #"pickled files (*.pickle, *.pkl)|*.pickle" \
             #"shelved files (*.shelf)|*.shelf"
-    try:
-        dlg = wx.FileDialog(None,prompt,
-                          initFilePath, initFileName, allowed, wx.SAVE)
-    except:
-        tmpApp = makeTempApp()
-        dlg = wx.FileDialog(None,prompt,
-                          initFilePath, initFileName, allowed, wx.SAVE)
+    global app  # avoid recreating for every gui
+    app = ensureWxApp()
+    dlg = wx.FileDialog(None,prompt, initFilePath, initFileName, allowed, wx.SAVE)
     if dlg.ShowModal() == OK:
         #get names of images and their directory
         outName = dlg.GetFilename()
@@ -307,13 +304,10 @@ def fileOpenDlg(tryFilePath="",
             "pickled files (*.pickle, *.pkl)|*.pickle|" \
             "shelved files (*.shelf)|*.shelf|" \
             "All files (*.*)|*.*"
-    try:
-        dlg = wx.FileDialog(None, prompt,
-                          tryFilePath, tryFileName, allowed, wx.OPEN|wx.FILE_MUST_EXIST|wx.MULTIPLE)
-    except:
-        tmpApp = makeTempApp()
-        dlg = wx.FileDialog(None, prompt,
-                          tryFilePath, tryFileName, allowed, wx.OPEN|wx.FILE_MUST_EXIST|wx.MULTIPLE)
+    global app  # avoid recreating for every gui
+    app = ensureWxApp()
+    dlg = wx.FileDialog(None, prompt, tryFilePath, tryFileName, allowed,
+                        wx.OPEN|wx.FILE_MUST_EXIST|wx.MULTIPLE)
     if dlg.ShowModal() == OK:
         #get names of images and their directory
         fullPaths = dlg.GetPaths()
