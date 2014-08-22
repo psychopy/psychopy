@@ -537,7 +537,7 @@ class MainFrame(wx.Frame):
         self.ctrlScrPixHoriz.SetValue(str(self.currentMon.currentCalib['sizePix'][0]))
         self.ctrlScrPixVert.SetValue(str(self.currentMon.currentCalib['sizePix'][1]))
         #self.ctrlScrGamma.SetValue(str(self.currentMon.getGamma()))
-        self.ctrlCalibNotes.SetValue(self.currentMon.getNotes())
+        self.ctrlCalibNotes.SetValue(self.currentMon.getNotes() or '')
         self.ctrlUseBits.SetValue(self.currentMon.getUseBits())
         self.gammaGrid.setData(self.currentMon.getGammaGrid())
         if self.currentMon.getLinearizeMethod()==4:
