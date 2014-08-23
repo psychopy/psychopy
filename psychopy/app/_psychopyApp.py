@@ -497,7 +497,9 @@ class PsychoPyApp(wx.App):
             PsychoPy depends on your feedback. If something doesn't work
             then let us know at psychopy-users@googlegroups.com""").replace('    ', '')
         info = wx.AboutDialogInfo()
-        #info.SetIcon(wx.Icon(os.path.join(self.prefs.paths['resources'], 'psychopy.png'),wx.BITMAP_TYPE_PNG))
+        if wx.version() >= '3.':
+            icon = os.path.join(self.prefs.paths['resources'], 'psychopy.png')
+            info.SetIcon(wx.Icon(icon, wx.BITMAP_TYPE_PNG, 128, 128))
         info.SetName('PsychoPy')
         info.SetVersion('v'+psychopy.__version__)
         info.SetDescription(msg)
