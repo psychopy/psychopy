@@ -3979,14 +3979,13 @@ class BuilderFrame(wx.Frame):
             | wx.NO_BORDER
             | wx.TB_FLAT))
 
-        if sys.platform=='win32' or sys.platform.startswith('linux') or float(wx.version()[:3]) >= 2.8:
+        if sys.platform=='win32' or sys.platform.startswith('linux'):
             if self.appPrefs['largeIcons']:
                 toolbarSize = 32
             else:
                 toolbarSize = 16
         else:
-            toolbarSize = 32 #size 16 doesn't work on mac wx; does work with wx.version() == '2.8.7.1 (mac-unicode)'
-        self.toolbar.SetToolBitmapSize((toolbarSize,toolbarSize))
+            toolbarSize = 32  # mac: 16 either doesn't work, or looks really bad with wx3
         self.toolbar.SetToolBitmapSize((toolbarSize,toolbarSize))
         new_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'filenew%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
         open_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'fileopen%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
