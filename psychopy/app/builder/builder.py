@@ -489,16 +489,11 @@ class FlowPanel(wx.ScrolledWindow):
         self.btnInsertRoutine = platebtn.PlateButton(self,-1,labelRoutine, pos=(10,10))
         self.btnInsertLoop = platebtn.PlateButton(self,-1,labelLoop, pos=(10,30)) #spaces give size for CANCEL
 
-        self.labelTextGray = {'normal': wx.Colour(150,150,150, 20),'hlight':wx.Colour(150,150,150, 20)}
         self.labelTextRed = {'normal': wx.Colour(250,10,10, 250),'hlight':wx.Colour(250,10,10, 250)}
         self.labelTextBlack = {'normal': wx.Colour(0,0,0, 250),'hlight':wx.Colour(250,250,250, 250)}
 
         # use self.appData['flowSize'] to index a tuple to get a specific value, eg: (4,6,8)[self.appData['flowSize']]
         self.flowMaxSize = 2 # upper limit on increaseSize
-
-        if self.app.prefs.app['debugMode']:
-            self.btnViewNamespace = platebtn.PlateButton(self,-1,'namespace', pos=(10,70))
-            self.btnViewNamespace.SetLabelColor(**self.labelTextGray)
 
         self.draw()
 
@@ -506,8 +501,6 @@ class FlowPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
         self.Bind(wx.EVT_BUTTON, self.onInsertRoutine,self.btnInsertRoutine)
         self.Bind(wx.EVT_BUTTON, self.setLoopPoint1,self.btnInsertLoop)
-        if self.app.prefs.app['debugMode']:
-            self.Bind(wx.EVT_BUTTON, self.dumpNamespace, self.btnViewNamespace)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.SetDropTarget(FileDropTarget(builder = self.frame))
 
@@ -661,25 +654,6 @@ class FlowPanel(wx.ScrolledWindow):
             self.frame.addToUndoStack("ADD Loop `%s` to Flow" %handler.params['name'].val)
         self.clearMode()
         self.draw()
-    def dumpNamespace(self, evt=None):
-        nsu = self.frame.exp.namespace.user
-        if len(nsu) == 0:
-            print "______________________\n <namespace is empty>"
-            return
-        nsu.sort()
-        m = min(20, 2 + max([len(n) for n in nsu]))  # 2+len of longest word, or 20
-        fmt = "%-"+str(m)+"s"  # format string: each word padded to longest
-        nsu = map(lambda x: fmt % x, nsu)
-        c = min(6, max(2, len(nsu)//4))  # number of columns, 2 - 6
-        while len(nsu) % c:
-            nsu += [' '] # avoid index errors later
-        r = len(nsu) // c  # number of rows
-        print '_' * c * m
-        for i in range(r):
-            print ' '+''.join([nsu[i+j*r] for j in range(c)])  # typically to coder output
-        collisions = self.frame.exp.namespace.getCollisions()
-        if collisions:
-            print "*** collisions ***: %s" % str(collisions)
     def increaseSize(self, event=None):
         if self.appData['flowSize'] == self.flowMaxSize:
             self.appData['showLoopInfoInFlow'] = True
