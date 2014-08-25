@@ -53,7 +53,17 @@ from psychopy.visual.rect import Rect
 from psychopy.visual.circle import Circle
 
 # TextBox alternative to TextStim
-try:
+try:    
+    # Ensure monospace Fonts are available ....
+    font_names = []
+    from textbox import getFontManager
+    fm=getFontManager()
+    font_names = fm.getFontFamilyNames()
+    assert len(font_names) > 0
+
     from textbox import TextBox
-except:
-    logging.warn("TextBox stim could not be imported and won't be available")
+
+except Exception, e:
+    logging.warn("TextBox stim could not be imported and won't be available.")
+    if font_names is not None and len(font_names) == 0:
+        logging.warn("TextBox Font Manager Found No Fonts.")
