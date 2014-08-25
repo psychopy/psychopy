@@ -373,6 +373,21 @@ class HookManager(threading.Thread):
             auto_repeat=self.isKeyPressed(self.local_dpy.keycode_to_keysym(event.detail, 0))-1
         elif event.type == X.KeyRelease:
             ioHubEventID =EventConstants.KEYBOARD_RELEASE
+
+	uchar = key
+
+	# TODO: set key field to match psychopy key event value for evnt.
+	# key = ????
+
+	duration = 0.0
+	press_event_id = 0
+
+	if event.type == X.KeyRelease:
+	    #TODO: Set duration of key down event
+	    duration = 1.0
+
+	    # TODO: Set the associated press event id for the release event.
+	    press_event_id = 0
         
         return [[0,
                 0,
@@ -391,8 +406,14 @@ class HookManager(threading.Thread):
                 ucode,  # unicode value for char, otherwise, 0
                 key, # utf-8 encoded char or label for the key. (depending on whether it is a visible char or not)
                 event.state,  # The logical state of the button and modifier keys just before the event.
-                int(storewm["handle"], base=16)
+                int(storewm["handle"], base=16),
+		uchar,
+		duration,
+		press_event_id
                 ],]
+
+
+
 
     def makemousehookevent(self, event):
         """
