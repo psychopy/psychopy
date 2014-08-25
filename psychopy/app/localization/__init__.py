@@ -24,7 +24,10 @@ import wx
 try:
     wx.Dialog(None, -1)
 except wx._core.PyNoAppError:
-    tmpApp = wx.PySimpleApp()
+    if wx.version() < '2.9':
+        tmpApp = wx.PySimpleApp()
+    else:
+        tmpApp = wx.App(False)
 
 # Get a dict of locale aliases from wx.Locale() -- same cross-platform (Win 7, Mac 10.9)
 locale = wx.Locale()
