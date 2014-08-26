@@ -5,9 +5,6 @@ Data import functions
 import cPickle
 import re
 import numpy
-import csv
-
-from matplotlib import mlab
 
 from psychopy.errors import DataImportError, DataFormatError
 
@@ -19,6 +16,7 @@ except:
     haveOpenpyxl=False
 
 _nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
+
 
 def isValidVariableName(name):
     """Checks whether a certain string could be used as a valid variable.
@@ -60,6 +58,7 @@ def isValidVariableName(name):
         return False, "Variables cannot contain punctuation or spaces"
     return True, ""
 
+
 def _assertValidVarNames(fieldNames):
         """screens a list of names as candidate variable names. if all names are
         OK, return silently; else raise ImportError with msg
@@ -71,6 +70,7 @@ def _assertValidVarNames(fieldNames):
             if not OK: #tailor message to importConditions
                 msg = msg.replace('Variables', 'Parameters (column headers)')
                 raise DataImportError, '%s ("%s")' % (msg, name)
+
 
 def importPickleFromFile(dataFile):
     try:
@@ -120,6 +120,7 @@ def _getExcelCellName(col, row):
     """
     return "%s%i" %(openpyxl.cell.get_column_letter(col+1), row+1)#BEWARE - openpyxl uses indexing at 1, to fit with Excel
 
+
 def importXLSXFromFile(dataFile):
     if not haveOpenpyxl:
         raise DataFormatError, 'Openpyxl is required for XLSX files, but it was not found.'
@@ -152,6 +153,8 @@ def importXLSXFromFile(dataFile):
             fieldName = fieldNames[colN]
             thisTrial[fieldName] = val
         trialList.append(thisTrial)
+    return trialList, fieldNames
+
 
 FORMATS = {
     ".csv": importCSVFromFile,
