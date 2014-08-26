@@ -2300,6 +2300,12 @@ class _BaseParamsDlg(wx.Dialog):
         elif fieldName=='Monitor':
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.openMonitorCenter)
 
+        if ctrls.browseCtrl is not None:
+            self.Bind(
+                wx.EVT_BUTTON, self.browserHandler(ctrls.valueCtrl),
+                ctrls.browseCtrl)
+            sizer.Add(ctrls.browseCtrl, (currRow, 4))
+
         # use monospace font to signal code:
         if fieldName != 'name' and hasattr(ctrls.valueCtrl, 'GetFont'):
             font = ctrls.valueCtrl.GetFont()
@@ -2757,7 +2763,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 ctrls=ParamCtrls(parent=panel, label=fieldName,
                     param=handler.params[fieldName], browse=True,
                     exp=self.exp)
-                self.Bind(wx.EVT_BUTTON, self.onChooseTrialsFile,ctrls.browseCtrl)
+                self.Bind(wx.EVT_BUTTON, self.onChooseTrialsFile, ctrls.browseCtrl)
                 ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.viewConditions)
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
