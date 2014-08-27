@@ -11,7 +11,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 
 import sys
-from ..... import print2err, createErrorResult
+from ..... import print2err
 from ... import AnalogInputDevice, MultiChannelAnalogInputEvent
 from .... import Computer,  ioDeviceError
 
@@ -212,8 +212,6 @@ class AnalogInput(AnalogInputDevice):
                 print2err('------------- Error calling cbAInScan -----------')
                 printExceptionDetailsToStdErr()
                 print2err('-------------------------------------------------')
-                return createErrorResult("ANALOGINPUT_START_RECORDING_ERROR",
-                                    msg="Error occurred calling Measurement Computing function cbAInScan")                                         
             self._last_start_recording_time_post=currentSec()
 
         else:

@@ -25,7 +25,7 @@ eyetracker.hw.smi.iviewx.EyeTracker:
     # MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent  
     # If you would like to exclude certain events from being saved or streamed during runtime, 
     # remove them from the list below.
-    monitor_event_types: [ BinocularEyeSampleEvent, ]
+    monitor_event_types: [ BinocularEyeSampleEvent, MonocularEyeSampleEvent]
 
     # The iViewX network settings specify the pyViewX computer IIP and port and the
     # iViewX Apllication / Server Computer IP and port. By default the configuration

@@ -12,6 +12,11 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 from gevent import socket,sleep,Greenlet
 import msgpack
+try:
+    import msgpack_numpy as m
+    m.patch()
+except:
+    pass
 import struct
 from weakref import proxy
 from psychopy.iohub.util import NumPyRingBuffer as RingBuffer

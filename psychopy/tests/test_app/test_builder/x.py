@@ -1,7 +1,10 @@
 import sys, os
 
 import wx
-tmpApp = wx.PySimpleApp()
+if wx.version() < '2.9':
+    tmpApp = wx.PySimpleApp()
+else:
+    tmpApp = wx.App(False)
 from psychopy.app import builder
 from psychopy.app.builder.components import getAllComponents
 
@@ -10,9 +13,9 @@ from psychopy.app.builder.components import getAllComponents
 # motivation: catch deviations introduced during refactoring
 
 # use --out to generate a new target file (sent to sys.stdout, so redirect to a file)
-# or compare against a prior run (x.out.master.de55d49)
+# or compare against a prior run (x.out.master.de55d49.txt)
 
-# current target file is x.out.master.de55d49, which is the output of this script --out
+# current target file is x.out.master.de55d49.txt, which is the output of this script --out
 # as run on upstream/master branch @ de55d49, with edits to fix known-good changes
 # introduced by refactoring: nVertices 4, Patch interpolation 'linear'
 
@@ -21,7 +24,10 @@ try:
     allComp = getAllComponents(fetchIcons=False)
 except:
     import wx
-    tmpApp = wx.PySimpleApp()
+    if wx.version() < '2.9':
+        tmpApp = wx.PySimpleApp()
+    else:
+        tmpApp = wx.App(False)
     try: from psychopy.app import localization
     except: pass  # not needed if can't import it
     allComp = getAllComponents(fetchIcons=False)
@@ -29,7 +35,7 @@ except:
 exp = builder.experiment.Experiment()
 
 if not '--out' in sys.argv:
-    target = open('x.out.master.de55d49', 'rU').read()
+    target = open('x.out.master.de55d49.txt', 'rU').read()
     targetLines = target.splitlines()
     targetTag = {}
     for line in targetLines:

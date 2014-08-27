@@ -489,16 +489,11 @@ class FlowPanel(wx.ScrolledWindow):
         self.btnInsertRoutine = platebtn.PlateButton(self,-1,labelRoutine, pos=(10,10))
         self.btnInsertLoop = platebtn.PlateButton(self,-1,labelLoop, pos=(10,30)) #spaces give size for CANCEL
 
-        self.labelTextGray = {'normal': wx.Colour(150,150,150, 20),'hlight':wx.Colour(150,150,150, 20)}
         self.labelTextRed = {'normal': wx.Colour(250,10,10, 250),'hlight':wx.Colour(250,10,10, 250)}
         self.labelTextBlack = {'normal': wx.Colour(0,0,0, 250),'hlight':wx.Colour(250,250,250, 250)}
 
         # use self.appData['flowSize'] to index a tuple to get a specific value, eg: (4,6,8)[self.appData['flowSize']]
         self.flowMaxSize = 2 # upper limit on increaseSize
-
-        if self.app.prefs.app['debugMode']:
-            self.btnViewNamespace = platebtn.PlateButton(self,-1,'namespace', pos=(10,70))
-            self.btnViewNamespace.SetLabelColor(**self.labelTextGray)
 
         self.draw()
 
@@ -506,8 +501,6 @@ class FlowPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
         self.Bind(wx.EVT_BUTTON, self.onInsertRoutine,self.btnInsertRoutine)
         self.Bind(wx.EVT_BUTTON, self.setLoopPoint1,self.btnInsertLoop)
-        if self.app.prefs.app['debugMode']:
-            self.Bind(wx.EVT_BUTTON, self.dumpNamespace, self.btnViewNamespace)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.SetDropTarget(FileDropTarget(builder = self.frame))
 
@@ -661,25 +654,6 @@ class FlowPanel(wx.ScrolledWindow):
             self.frame.addToUndoStack("ADD Loop `%s` to Flow" %handler.params['name'].val)
         self.clearMode()
         self.draw()
-    def dumpNamespace(self, evt=None):
-        nsu = self.frame.exp.namespace.user
-        if len(nsu) == 0:
-            print "______________________\n <namespace is empty>"
-            return
-        nsu.sort()
-        m = min(20, 2 + max([len(n) for n in nsu]))  # 2+len of longest word, or 20
-        fmt = "%-"+str(m)+"s"  # format string: each word padded to longest
-        nsu = map(lambda x: fmt % x, nsu)
-        c = min(6, max(2, len(nsu)//4))  # number of columns, 2 - 6
-        while len(nsu) % c:
-            nsu += [' '] # avoid index errors later
-        r = len(nsu) // c  # number of rows
-        print '_' * c * m
-        for i in range(r):
-            print ' '+''.join([nsu[i+j*r] for j in range(c)])  # typically to coder output
-        collisions = self.frame.exp.namespace.getCollisions()
-        if collisions:
-            print "*** collisions ***: %s" % str(collisions)
     def increaseSize(self, event=None):
         if self.appData['flowSize'] == self.flowMaxSize:
             self.appData['showLoopInfoInFlow'] = True
@@ -3380,10 +3354,13 @@ class DlgConditions(wx.Dialog):
         try:
             self.madeApp = False
             wx.Dialog.__init__(self, None,-1,title,pos,size,style)
-        except: # only needed during development?
+        except wx._core.PyNoAppError: # only needed during development?
             self.madeApp = True
             global app
-            app = wx.PySimpleApp()
+            if wx.version() < '2.9':
+                app = wx.PySimpleApp()
+            else:
+                app = wx.App(False)
             wx.Dialog.__init__(self, None,-1,title,pos,size,style)
         self.trim = trim
         self.warning = '' # updated to warn about eg, trailing whitespace
@@ -3979,14 +3956,13 @@ class BuilderFrame(wx.Frame):
             | wx.NO_BORDER
             | wx.TB_FLAT))
 
-        if sys.platform=='win32' or sys.platform.startswith('linux') or float(wx.version()[:3]) >= 2.8:
+        if sys.platform=='win32' or sys.platform.startswith('linux'):
             if self.appPrefs['largeIcons']:
                 toolbarSize = 32
             else:
                 toolbarSize = 16
         else:
-            toolbarSize = 32 #size 16 doesn't work on mac wx; does work with wx.version() == '2.8.7.1 (mac-unicode)'
-        self.toolbar.SetToolBitmapSize((toolbarSize,toolbarSize))
+            toolbarSize = 32  # mac: 16 either doesn't work, or looks really bad with wx3
         self.toolbar.SetToolBitmapSize((toolbarSize,toolbarSize))
         new_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'filenew%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
         open_bmp = wx.Bitmap(os.path.join(self.app.prefs.paths['resources'], 'fileopen%i.png' %toolbarSize), wx.BITMAP_TYPE_PNG)
@@ -4049,7 +4025,8 @@ class BuilderFrame(wx.Frame):
         menuBar.Append(self.fileMenu, _('&File'))
 
         #create a file history submenu
-        self.fileHistory = wx.FileHistory(maxFiles=10)
+        self.fileHistoryMaxFiles = 10
+        self.fileHistory = wx.FileHistory(maxFiles=self.fileHistoryMaxFiles)
         self.recentFilesMenu = wx.Menu()
         self.fileHistory.UseMenu(self.recentFilesMenu)
         for filename in self.appData['fileHistory']:
@@ -4401,11 +4378,27 @@ class BuilderFrame(wx.Frame):
         frameData['auiPerspective'] = self._mgr.SavePerspective()
         frameData['winW'], frameData['winH']=self.GetSize()
         frameData['winX'], frameData['winY']=self.GetPosition()
+
+        # truncate history to the recent-most last N unique files, where
+        # N = self.fileHistoryMaxFiles, as defined in makeMenus()
         for ii in range(self.fileHistory.GetCount()):
             self.appData['fileHistory'].append(self.fileHistory.GetHistoryFile(ii))
+        # fileClose gets calls multiple times, so remove redundancy while preserving order,
+        # end of the list is recent-most:
+        tmp = []
+        for f in self.appData['fileHistory'][-3 * self.fileHistoryMaxFiles:]:
+            if not f in tmp:
+                tmp.append(f)
+        self.appData['fileHistory'] = copy.copy(tmp[-self.fileHistoryMaxFiles:])
 
         #assign the data to this filename
         self.appData['frames'][self.filename] = frameData
+        # save the display data only for those frames in the history:
+        tmp2 = {}
+        for f in self.appData['frames'].keys():
+            if f in self.appData['fileHistory']:
+                tmp2[f] = self.appData['frames'][f]
+        self.appData['frames'] = copy.copy(tmp2)
 
         #close self
         self.routinePanel.removePages()

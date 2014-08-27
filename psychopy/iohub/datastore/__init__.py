@@ -39,9 +39,9 @@ perhaps one less than this.  < S. Simpson Note: These are 'not' GIL bound
 threads and therefore actually improve performance > """
 
 DATA_FILE_TITLE = "ioHub DataStore - Experiment Data File."
-FILE_VERSION = '0.8.0.1'
+FILE_VERSION = '0.8.0.2'
 SCHEMA_AUTHORS = 'Sol Simpson'
-SCHEMA_MODIFIED_DATE = 'April 16th, 2014'
+SCHEMA_MODIFIED_DATE = 'May 4th, 2014'
 
         
 class ioHubpyTablesFile():
@@ -99,12 +99,13 @@ class ioHubpyTablesFile():
         
         # create tables dict of hdf5 path mappings
 
+
         try:
             self.TABLES['KEYBOARD_KEY']=self.emrtFile.root.data_collection.events.keyboard.KeyboardKeyEvent
         except:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
-        
+
         try:
             self.TABLES['KEYBOARD_CHAR']=self.emrtFile.root.data_collection.events.keyboard.KeyboardCharEvent
         except:
@@ -513,15 +514,19 @@ class ioHubpyTablesFile():
 
 def close_open_data_files(verbose):
     open_files = tables.file._open_files
-    are_open_files = len(open_files) > 0
-    if verbose and are_open_files:
-        print "Closing remaining open data files:"
-    for fileh in open_files.keys():
-        if verbose:
-            print "%s..." % (open_files[fileh].filename,)
-        open_files[fileh].close()
-        if verbose:
-            print "done"
+    clall = hasattr(open_files,'close_all')
+    if clall:
+        open_files.close_all()
+    else:
+        are_open_files = len(open_files) > 0
+        if verbose and are_open_files:
+            print2err("Closing remaining open data files:")
+        for fileh in open_files.keys():
+            if verbose:
+                print2err( "%s..." % (open_files[fileh].filename,))
+            open_files[fileh].close()
+            if verbose:
+                print2err("done")
 
 try:
     global registered_close_open_data_files

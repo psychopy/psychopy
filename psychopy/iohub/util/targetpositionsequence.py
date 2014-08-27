@@ -487,6 +487,7 @@ class TargetPosSequenceStim(object):
                    ]
                            
     def __init__(self,
+                 win,
                  target,            # The TargetStim instance to use.
                  positions,         # The PositionGrid instance to use.
                  background=None,   # Window background color to use (if any).
@@ -500,9 +501,12 @@ class TargetPosSequenceStim(object):
                                     # target and position. msgcategory can be
                                     # used to define the category string to
                                     # assign to each message.
+                 config=None,       # A config for all necessary kwargs. If this
+                                    # is provided, all other kwargs but io
+                                    # can be skipped.
                  io=None            # The ioHubConnection instance to use.
                 ):
-        self.win = target.win
+        self.win = win
         self.target = target
         self.background = background
         self.positions = positions
@@ -528,16 +532,16 @@ class TargetPosSequenceStim(object):
             t1 = triggers[0]
             if isinstance(t1, basestring):
                 # triggers is a list of strings, so try and create a list of
-                # DeviceEventTrigger's using keyboard device, KEYBOARD_CHAR
+                # DeviceEventTrigger's using keyboard device, KEYBOARD_RELEASE
                 # event type, and the triggers list elements each as the
                 # event.key.
                 kbtriggers=[]
                 kbdevice = io.getDevice('keyboard')
-                KEYBOARD_CHAR = EventConstants.KEYBOARD_CHAR
+                KEYBOARD_RELEASE = EventConstants.KEYBOARD_RELEASE
                 for c in triggers:
                     kbtriggers.append(DeviceEventTrigger(kbdevice,
-                                      event_type=KEYBOARD_CHAR,
-                                      event_attribute_conditions={'key':
+                                      event_type=KEYBOARD_RELEASE,
+                                      event_attribute_conditions={'char':
                                                                   c}
                                                          )
                                       )
@@ -552,11 +556,11 @@ class TargetPosSequenceStim(object):
             self.triggers = (TimeTrigger(start_time=None, delay=triggers),)
         elif isinstance(triggers, basestring):
             # triggers is a string, so try and create a
-            # DeviceEventTrigger using keyboard device, KEYBOARD_CHAR
+            # DeviceEventTrigger using keyboard device, KEYBOARD_RELEASE
             # event type, and triggers as the event.key.
             self.triggers = (DeviceEventTrigger(io.getDevice('keyboard'),
-                                event_type=EventConstants.KEYBOARD_CHAR,
-                                event_attribute_conditions={'key':
+                                event_type=EventConstants.KEYBOARD_RELEASE,
+                                event_attribute_conditions={'char':
                                                                 triggers}),)
         elif isinstance(triggers, Trigger):
             # A single Trigger object was provided
@@ -994,6 +998,96 @@ class TargetPosSequenceStim(object):
         return np.asanyarray(target_pos_samples)
 
 ################ Validation #######################
+"""
+target_graphics:
+    default: &default_target_stim
+        radius: 16,              # 16 pix outer radius.
+        fillcolor: [.5, .5, .5]  # 75% white fill color.
+        edgecolor: [-1, -1, -1]  # Fully black outer edge
+        edgewidth: 3             # with a 3 pixel width.
+        dotcolor: [1, -1, -1]    # Full red center dot
+        dotradius: 3             # with radius of 3 pixels.
+        units: pix               # Size & position units are in pix.
+        colorspace: rgb          # colors are in 'rgb' space (-1.0 - 1.0) range
+                                 # forevents r,g,b.
+        opacity: 1.0             # The transparency of the target (0.0 - 1.0)
+        contrast: 1.0            # The contrast of the target stim.
+
+position_grids:
+    default:  &default_position_grid
+        shape: 3            # Defines the number of columns and rows of
+                            # positions needed. If shape is an array of
+                            # two elements, it defines the col,row shape
+                            # for position layout. Position count will
+                            # equal rows*cols. If shape is a single
+                            # int, the position grid col,row shape will
+                            # be shape x shape.
+        posCount: None      # Defines the number of positions to
+                            # without any col,row position constraint.
+        leftMargin: None    # Specify the minimum valid horz position.
+        rightMargin: None   # Limit horz positions to be < max horz
+                            # position minus rightMargin.
+        topMargin: None     # Limit vert positions to be < max vert
+                            # position minus topMargin.
+        bottomMargin: None  # Specify the minimum valid vert position.
+        scale: 0.85         # Scale can be one or two numbers, each
+                            # between 0.0 and 1.0. If a tuple is
+                            # provided, it represents the horz, vert
+                            # scale to be applied to window width,
+                            # height. If a single number is
+                            # given, the same scale will be applied to
+                            # both window width and height. The scaled
+                            # window size is centered on the original
+                            # window size to define valid position area.
+        posList: None       # Provide an existing list of (x,y)
+                            # positions. If posList is provided, the
+                            # shape, posCount, margin and scale arg's
+                            # are ignored.
+        noiseStd: None      # Add a random shift to each position based
+                            # on a normal distribution with mean :  0.0
+                            # and sigma equal to noiseStd. Specify
+                            # value based on units being used.
+        firstposindex: 4    # Specify which position in the position
+                            # list should be displayed first. This
+                            # position is not effected by randomization.
+        repeatfirstpos: True # If the first position in the list should
+                            # be provided as the last position as well,
+                            # set to True. In this case, the number of
+                            # positions returned will be position
+                            # count + 1. False indicated the first
+                            # position should not be repeated.
+
+validation:
+    target: *default_target_stim
+    positions: *default_position_grid
+    targ_animation:
+        velocity: None             #800.0,
+        expandedscale: None        #2.0,
+        expansionduration: None    #0.1,
+        contractionduration: None  #0.1    background: None,
+    triggers:
+        TimeTrigger:
+            start_time: None
+            delay: 1.5
+        DeviceEventTrigger:
+            device: keyboard
+            event_type: KEYBOARD_RELEASE
+            event_attribuet_conditions:
+                key: space
+                repeat_count: 0
+    storeeventsfor: None
+    accuracy_period_start: 0.550
+    accuracy_period_stop: .150
+    show_intro_screen: True
+    intro_text: Validation procedure is now going to be performed.
+    show_results_screen: True
+    results_in_degrees: True
+    save_figure: SESSION_RESULTS_FOLDER
+
+
+"""
+
+
 
 class ValidationProcedure(object):
     """
@@ -1067,9 +1161,11 @@ class ValidationProcedure(object):
     See the validation.py demo in demos.coder.iohub.eyetracker for example usage.
     """
     def __init__(self,
-                 target,
-                 positions,
+                 win=None,
+                 target=None,
+                 positions=None,
                  target_animation_params={},
+                 randomize_positions=True,
                  background=None,
                  triggers=2.0,
                  storeeventsfor=None,
@@ -1079,21 +1175,59 @@ class ValidationProcedure(object):
                  intro_text="Validation procedure is now going to be performed.",
                  show_results_screen=True,
                  results_in_degrees=False,
-                 save_figure=None
+                 save_figure=None,
+                 configuration=None
                  ):
         self.io=ioHubConnection.getActiveConnection()
-        self.win=target.win
-        self.display_size=target.win.size
+
+        if configuration:
+            cfg = configuration
+            target = TargetStim(win, **cfg.get('target'))
+            self.randomize_positions = cfg.get('positions').get('randomize')
+            del cfg.get('positions')['randomize']
+            self.positions = PositionGrid(win.size, **cfg.get('positions'))
+            target_animation_params = cfg.get('targ_animation')
+
+            triggers = cfg.get('triggers')
+            trigger_list=[]
+            for trig_type, trig_kwargs in triggers.items():
+                if trig_type == 'DeviceEventTrigger':
+                    device_name = trig_kwargs.get('device')
+                    device = self.io.getDevice(device_name)
+                    event_type = EventConstants.getID(trig_kwargs.get('event_type'))
+                    det = DeviceEventTrigger(device, event_type, trig_kwargs.get('event_attribute_conditions'))
+                    trigger_list.append(det)
+                elif trig_type == 'TimeTrigger':
+                    start_time = trig_kwargs.get('start_time')
+                    delay = trig_kwargs.get('delay')
+                    tit = TimeTrigger(start_time,delay)
+                    trigger_list.append(tit)
+            triggers = trigger_list
+            background = cfg.get('background')
+            storeeventsfor = cfg.get('storeeventsfor')
+            accuracy_period_start = cfg.get('accuracy_period_start')
+            accuracy_period_stop = cfg.get('accuracy_period_stop')
+            show_intro_screen = cfg.get('show_intro_screen')
+            intro_text = cfg.get('intro_text')
+            show_results_screen = cfg.get('show_results_screen')
+            results_in_degrees = cfg.get('results_in_degrees')
+            save_figure = cfg.get('save_figure')
+
+        self.win=win
+        self.display_size=win.size
         if target_animation_params is None:
             target_animation_params={}
         self.animation_params=target_animation_params
+
+        if self.randomize_positions:
+            self.positions.randomize()
         self.accuracy_period_start=accuracy_period_start
         self.accuracy_period_stop=accuracy_period_stop
         self.show_intro_screen=show_intro_screen
         self.intro_text=intro_text
         self.show_results_screen=show_results_screen
         self.results_in_degrees=results_in_degrees
-        self.pix2deg=None       
+        self.pix2deg=None
         self.save_figure_path=save_figure
         if self.results_in_degrees:
             display=self.io.devices.display
@@ -1103,28 +1237,28 @@ class ValidationProcedure(object):
                                            self.display_size,
                                            display.getDefaultEyeDistance()
                                            ).pix2deg
-        
+
         self.validation_results=None
         if storeeventsfor is None:
-            storeeventsfor=[self.io.devices.keyboard, 
-                            self.io.devices.mouse, 
+            storeeventsfor=[self.io.devices.keyboard,
+                            self.io.devices.mouse,
                             self.io.devices.tracker,
                             self.io.devices.experiment
-                            ]            
+                            ]
 
         # Create the TargetPosSequenceStim instance; used to control the sequential
         # presentation of the target at each of the grid positions.
-        self.targetsequence = TargetPosSequenceStim(target=target,
-                                               positions=positions,
+        self.targetsequence = TargetPosSequenceStim(win, target=target,
+                                               positions=self.positions,
                                                background=background,
                                                triggers=triggers,
                                                storeeventsfor=storeeventsfor
                                                )
-        
+
         # Stim for results screen
         self.imagestim=None
         self.textstim=None
-        
+
         self.use_dpi=80
 
     def _waitForTrigger(self, trigger_key):
@@ -1135,7 +1269,7 @@ class ValidationProcedure(object):
         while show_screen:
             kb_events=self.io.devices.keyboard.getEvents()
             for kbe in kb_events:
-                if kbe.key==trigger_key:
+                if kbe.char==trigger_key:
                     show_screen=False
                     break
             core.wait(0.2,0.025)
@@ -1172,7 +1306,10 @@ class ValidationProcedure(object):
         
     def _generateImageName(self):
         from psychopy.iohub.util import getCurrentDateTimeString, normjoin
-        file_name='fig_'+getCurrentDateTimeString().replace(' ','_').replace(':','_')+'.png'
+        file_name='validation_'+getCurrentDateTimeString().replace(' ',
+                                                            '_').replace(':',
+                                                            '_').replace('-',
+                                                            '_')+'.png'
         if self.save_figure_path:
             return normjoin(self.save_figure_path,file_name)    
         rootScriptPath = os.path.dirname(sys.argv[0])
@@ -1381,7 +1518,11 @@ class ValidationProcedure(object):
             
             #pl.colorbar()
             fig.tight_layout()
-            return fig 
+
+            fig_name = self._generateImageName()
+            fig.savefig(fig_name, dpi=self.use_dpi)
+            self.io.sendMessageEvent("Validation Plot: %s"%(fig_name), 'VALIDATION')
+            return fig, fig_name
         except:
             print "\nError While Calculating Accuracy Stats:"
             import traceback
@@ -1395,15 +1536,12 @@ class ValidationProcedure(object):
         
     def _buildResultScreen(self,replot=False):
         if replot or self.imagestim is None:        
-            fig = self._createPlot()
+            fig, fig_image_path = self._createPlot()
             text_pos=(0,0)
             text='Accuracy Calculation not Possible do to Analysis Error. Press SPACE to continue.'
             
             if fig:
-                fig_name=self._generateImageName()
-                fig.savefig(fig_name,dpi=self.use_dpi)
-                
-                fig_image = Image.open(fig_name)
+                fig_image = Image.open(fig_image_path)
         
                 if self.imagestim:
                     self.imagestim.setImage(fig_image)

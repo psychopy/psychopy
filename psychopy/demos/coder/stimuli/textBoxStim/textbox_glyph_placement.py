@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 """
 Shows use of getGlyphPositionForTextIndex() to get exact bounding box for a
 given glyph based on an index in the text string being shown.
@@ -78,7 +78,7 @@ while True:
                 
     textbox.draw()
     mp=myMouse.getPos()
-    mouse_position.text = "%.3f,%.3f"%(mp[0],mp[1])
+    mouse_position.setText("%.3f,%.3f"%(mp[0], mp[1]))
     mouse_position.setPosition(mp)
     mouse_position.draw()
     # Update the display to show any stim changes

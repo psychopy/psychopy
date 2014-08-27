@@ -5,12 +5,12 @@ recursive-include psychopy/app/Resources *.icns
 recursive-include psychopy/app/Resources *.ico
 recursive-include psychopy/app/Resources *.ttf
 recursive-include psychopy/app/Resources *.desktop
-recursive-include psychopy/app *.spec
+recursive-include psychopy/app *.spec *.xsd
 
 recursive-include psychopy/monitors *.ico
 
-recursive-include psychopy/iohub *.yaml 
-recursive-include psychopy/iohub/devices/eyetracker/hw/sr_research/eyelink/win32 *.pyc *.dll *.pyd 
+recursive-include psychopy/iohub *.yaml
+recursive-include psychopy/iohub/devices/eyetracker/hw/sr_research/eyelink/win32 *.pyc *.dll *.pyd
 
 recursive-include psychopy/visual/textbox/fonts *.ttf
 

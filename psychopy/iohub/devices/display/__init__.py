@@ -19,7 +19,7 @@ from psychopy import misc
 
 from .. import Device,Computer
 from ...constants import DeviceConstants
-from ...util import ioHubDialog, print2err,printExceptionDetailsToStdErr, createErrorResult
+from ...util import ioHubDialog, print2err,printExceptionDetailsToStdErr
 
 currentSec=Computer.currentSec
             
@@ -179,12 +179,7 @@ class Display(Device):
         except Exception:
             print2err("ERROR GETTING PPD !")
             printExceptionDetailsToStdErr()
-            return createErrorResult("DEVICE_ATTRIBUTE_ERROR",
-                    error_message="An error occurred while calling a display \
-                                    instances getPixelsPerDegree() method.",
-                    method="Display.getPixelsPerDegree")
 
-        
     def getPixelResolution(self):
         """
         Get the Display's pixel resolution based on the current graphics mode.

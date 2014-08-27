@@ -18,8 +18,18 @@ import gettext
 import os, sys, glob, codecs
 from psychopy import logging, prefs
 
-# Get a dict of locale aliases from wx.Locale() -- same cross-platform (Win 7, Mac 10.9)
 import wx
+
+# need a wx App for wx.Locale:
+try:
+    wx.Dialog(None, -1)
+except wx._core.PyNoAppError:
+    if wx.version() < '2.9':
+        tmpApp = wx.PySimpleApp()
+    else:
+        tmpApp = wx.App(False)
+
+# Get a dict of locale aliases from wx.Locale() -- same cross-platform (Win 7, Mac 10.9)
 locale = wx.Locale()
 aliases = {}
 wxIdFromCode = {}  # int: 0, 2-229
@@ -35,7 +45,8 @@ for i in range(230):
         wxIdFromCode[info.CanonicalName] = i
         codeFromWxId[i] = info.CanonicalName
 
-for line in codecs.open(os.path.join(os.path.dirname(__file__), 'mappings'), 'rU', 'utf8').readlines():
+mappings = os.path.join(os.path.dirname(__file__), 'mappings.txt')
+for line in codecs.open(mappings, 'rU', 'utf8').readlines():
     try:
         can, win, name = line.strip().split(' ', 2)  # canonical, windows, name-with-spaces
     except ValueError:
@@ -66,7 +77,7 @@ def getID(lang=None):
         if not val:
             val = codeFromWxId[wx.LANGUAGE_DEFAULT]
     try:
-        # can't set wx.Locale here because no app yet
+        # out-dated: [can't set wx.Locale here because no app yet] now there is an app
         # here just determine the value to be used when it can be set
         language = wxIdFromCode[val]
     except KeyError:

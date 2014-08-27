@@ -6,26 +6,38 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 
 .. author:: Sol Simpson <sol@isolver-software.com>
 
-- Maintains a 48 bit microsecond clock so rollover will only occur if MCU is running without reset for ~ 8.9 years.
-- Handles serial requests from the host PC and sends necessary reply.
-- If analog input events are enabled, handles reading analog input lines and streaming analog samples to Host PC
-- If digital input events are enabled, handles reading digital input lines and sending a digital input event whenever the digital input byte value has changed.
-
-ioSync assigns the Teensy 3 pins in a fixed usage mapping. See below for what that mapping is.
-
 TODO:
-
+- When client connects to iosync, send teensy board version, KEYBOARD, DIGITAL_INPUT_TYPE, STATUS_LED values. Maybe anal;log input related settings as well.
 - Allow some constants to be set by user. For example analog input related constants.
-- Add support for setting per channel analog input thresholds which can be used for voice key or light key event detection.
-- Allow setting digital inputs as INPUT or PULLUP_INPUTs
-- Properly utilize (or remove) the 9th digital input bit.
-- Switch digital and analog input reads to use interupts, running at 5000 Hz if possible. **BACKUP CURRENT CODE BEFORE WORKING ON THIS. 
+- Allow setting digital inputs as INPUT or PULLUP_INPUTs (MUST change # define and recompile right now). ** Look into the bootloader cli
+  from here:https://www.pjrc.com/teensy/loader_cli.html Maybe different hex files can be made for different iosync setups.
+  If current running program is not the one selected / needed by user, the use cli to upload the right one.
+- Switch digital input reads to use interupts, running at 5000 Hz if possible. **BACKUP CURRENT CODE BEFORE WORKING ON THIS. 
+- Expand keyboard event generation to support any keys supported by Teensiduno.
+- Add support for setting what EXT_LED should be doing. Right now it does nothing. Perhaps have different alternatives that can be set:
+     - flash when iosync program starts on t3 hw. (current mode)
+     - stable when program is running but no events are enabled.
+     - flashing when collecting analog inputs and / or digital inputs. (maybe a different flash for each of the 3 possibilities)
+     - Only flash when client connects or disconnects (again, maybe different flash for each) 
+- Add support to reset mcu on command (optional disconnect as well???)
 
+Teensy 3.1 only:
+  - Switch analog reading to use ADC module so that dual AD converters can be used on teensy 3.1.
+  - Support DAC using AO_0 (A14) line on T3.1
 
+DONE but RETEST:
+
+- Use digitalWriteFast and digitalReadFast instead of digitalWrite / digitalRead.
+- Add support for setting per channel analog input thresholds which can be used for voice key or light key event detection. (IMPLEMENTED, but buggy)
 */
+#define EXT_LED 24
 
-// Program control defines. Change based on desired usage of ioSync
+// ****** Program control defines *******
+//
+// Change based on desired usage of ioSync
 
+// >>>>>> KEYBOARD DEVICE <<<<<<<
+//
 // GENERATE_KEYBOARD_EVENT support:
 //   To enable:
 //     - Uncomment the below KEYBOARD define.
@@ -39,8 +51,30 @@ TODO:
 //
 //#define KEYBOARD
 
+// >>>>>> DIGITAL_INPUT_TYPE <<<<<<<
+//
 // Setting Digital Input Type ( INPUT or INPUT_PULLUP )
 #define DIGITAL_INPUT_TYPE INPUT_PULLUP
+
+// >>>>>> LED Pin To Use <<<<<<<
+//
+// If ioSync is in an enclosure that has a status LED mounted to 
+// the enclosure panel, use EXT_LED for STATUS_LED.
+// If using ioSync with Teensy on a breadboard, just use pin 13, the onboard LED for status
+//
+//#define STATUS_LED EXT_LED
+#define STATUS_LED 13
+
+// ******************************************
+
+// Teensy 3 version check
+#ifdef __MK20DX128__
+  #define TEENSY_3
+#endif
+
+#ifdef __MK20DX256__
+  #define TEENSY_3_1
+#endif
 
 // Misc. Util functions
 
@@ -55,9 +89,6 @@ byte bytePow(byte x, byte p)
 }
 
 // PIN LABELS
-
-// teensy 3 board led pin
-#define LED 13
 
 // Non USB UART RT and TX can be accessed using 'Serial1' object in Teensiduino
 #define UART_RX RX1
@@ -89,14 +120,17 @@ byte DOUT_PINS[8]={
 byte DIN_PINS[8]={
   DI_0,DI_1,DI_2,DI_3,DI_4,DI_5,DI_6,DI_7};
 
-// Update : now being used in PULLUP input mmode. ##currently Teensy has 9 DINs setup, so we have one extra stand alone. 
-#define DIN_8 33
-
 // SPI related pins
 #define SPI_SS CS0 // pin 10 on T3, Device Select
 #define SPI_MOSI DOUT //pin 11 on T3, SPI Data Output 
 #define SPI_MISO DIN //pin 12 on T3, SPI Data Input
 #define SPI_SCK SCK // pin 13 on 3, Clock
+
+#ifdef TEENSY_3_1
+// Set A14 to be used as DAC channel 
+  #define AO_0 A14
+#endif
+
 
 // give Teensy 3 Pin numbers for Analog In
 #define AI_0 14
@@ -145,7 +179,58 @@ const double DIGITAL_ANALOG_10_STEP = 0.001171875;
 const byte PMW_PINS[4]={
   PMW_0,PMW_1,PMW_2,PMW_3};
 
+//-------------------------------------------------
+// SW RESET
 
+#define RESTART_ADDR       0xE000ED0C
+#define READ_RESTART()     (*(volatile uint32_t *)RESTART_ADDR)
+#define WRITE_RESTART(val) ((*(volatile uint32_t *)RESTART_ADDR) = (val))
+
+void SW_RESTART(){
+  // 0000101111110100000000000000100
+  // Assert [2]SYSRESETREQ
+  WRITE_RESTART(0x5FA0004);
+}
+
+// reboot CPU, run CPU_RESTART within the app. -------------
+
+#define CPU_RESTART_ADDR (uint32_t *)0xE000ED0C
+#define CPU_RESTART_VAL 0x5FA0004
+#define CPU_RESTART (*CPU_RESTART_ADDR = CPU_RESTART_VAL);
+
+// Teensy 3 Last Reset Reason ------------------------------
+// Get reason for last reset
+uint32_t resetReasonHw=0;
+
+// TODO: Rewrite and turn into a response from a command request
+void resetReason() {
+	uint16_t mask=1;
+	//Serial.print(strReason);
+	Serial.print(resetReasonHw,HEX);
+	do {
+		switch (mask & resetReasonHw){
+		//RCM_SRS0
+		case 0x0001: Serial.print(F(" wakeup")); break;
+		case 0x0002: Serial.print(F(" LowVoltage"));  break;
+		case 0x0004: Serial.print(F(" LossOfClock")); break;
+		case 0x0008: Serial.print(F(" LossOfLock")); break;
+		//case 0x0010 reserved
+		case 0x0020: Serial.print(F(" wdog")); break;
+		case 0x0040: Serial.print(F(" ExtResetPin")); break;
+		case 0x0080: Serial.print(F(" PwrOn")); break;
+
+		//RCM_SRS1
+		case 0x0100: Serial.print(F(" JTAG")); break;
+		case 0x0200: Serial.print(F(" CoreLockup")); break;
+		case 0x0400: Serial.print(F(" SoftWare")); break;
+		case 0x0800: Serial.print(F(" MDM_AP")); break;
+
+		case 0x1000: Serial.print(F(" EZPT")); break;
+		case 0x2000: Serial.print(F(" SACKERR")); break;
+		//default:  break;
+		}
+	} while (mask <<= 1);
+}
 //-------------------------------------------------
 // 48 bit usec timer used for time stamping
 
@@ -209,7 +294,8 @@ byte writeByteBufferToSerial(){
 #define RESET_STATE 8
 #define GENERATE_KEYBOARD_EVENT 9
 #define SET_ANALOG_THRESHOLDS 10
-#define REQUEST_TYPE_COUNT 11
+#define SET_ANALOG_OUTPUT 11
+#define REQUEST_TYPE_COUNT 12
 
 #define REQUEST_TX_HEADER_BYTE_COUNT 8
 
@@ -225,6 +311,7 @@ byte request_tx_byte_length[REQUEST_TYPE_COUNT]={
   REQUEST_TX_HEADER_BYTE_COUNT,
   REQUEST_TX_HEADER_BYTE_COUNT+2,
   REQUEST_TX_HEADER_BYTE_COUNT, 
+  REQUEST_TX_HEADER_BYTE_COUNT+2  
 };
 
 void NullHandlerRx(byte request_type,byte request_id,byte request_rx_byte_count);
@@ -238,6 +325,7 @@ void handleSyncTimebaseRx(byte request_type,byte request_id,byte request_rx_byte
 void handleResetStateRx(byte request_type,byte request_id,byte request_rx_byte_count);
 void handleGenerateKeyboardEventRx(byte request_type,byte request_id,byte request_rx_byte_count);
 void handleSetAnalogThresholdsEventRx(byte request_type,byte request_id,byte request_rx_byte_count);
+void handleSetAnalogOutRx(byte request_type,byte request_id,byte request_rx_byte_count);
 
 void (*requestHandlerFP[REQUEST_TYPE_COUNT])(byte request_type,byte request_id,byte request_rx_byte_count)={
   NullHandlerRx,
@@ -250,7 +338,8 @@ void (*requestHandlerFP[REQUEST_TYPE_COUNT])(byte request_type,byte request_id,b
   handleSyncTimebaseRx,
   handleResetStateRx,
   handleGenerateKeyboardEventRx,
-  handleSetAnalogThresholdsEventRx
+  handleSetAnalogThresholdsEventRx,
+  handleSetAnalogOutRx
 };
 
 elapsedMicros sinceLastSerialTx;
@@ -328,16 +417,51 @@ void handleSetDigitalOutStateRx(byte request_type,byte request_id,byte request_r
    2 - 7: usec time that pin was set.    
    */
 
-  byte new_dout_state=Serial.read();
+  byte dout=Serial.read();
+  ((dout & 0x01)) ? digitalWriteFast(2, HIGH) : digitalWriteFast(2, LOW);
+  ((dout & 0x02)) ? digitalWriteFast(3, HIGH) : digitalWriteFast(3, LOW);
+  ((dout & 0x04)) ? digitalWriteFast(4, HIGH) : digitalWriteFast(4, LOW);
+  ((dout & 0x08)) ? digitalWriteFast(5, HIGH) : digitalWriteFast(5, LOW);
+  ((dout & 0x10)) ? digitalWriteFast(25, HIGH) : digitalWriteFast(25, LOW);
+  ((dout & 0x20)) ? digitalWriteFast(26, HIGH) : digitalWriteFast(26, LOW);
+  ((dout & 0x40)) ? digitalWriteFast(27, HIGH) : digitalWriteFast(27, LOW);
+  ((dout & 0x80)) ? digitalWriteFast(28, HIGH) : digitalWriteFast(28, LOW);
 
   int i=0;
   for (byte mask = 00000001; mask>0; mask <<= 1) { //iterate through bit mask
-    digitalWrite(DOUT_PINS[i],new_dout_state & mask); // set 1
+    digitalWrite(DOUT_PINS[i],dout & mask); // set 1
     i++;
   }
 }
 
 //------------------------
+void handleSetAnalogOutRx(byte request_type,byte request_id,byte request_rx_byte_count){
+  /*
+  SET_ANALOG_OUTPUT: Sets the analog output line (AO_0; a.k.a A14) to the 12 bit value 
+  given as part of the input.
+   
+   RX bytes ( 4 ):
+   0: SET_ANALOG_OUTPUT
+   1: Request ID
+   2: Rx Byte Count
+   3-4: 12 bit output value packed in two bytes
+   
+   TX Bytes ( 7 ):
+   0: Request ID
+   1: Tx Byte Count
+   2 - 7: usec time that pin was set.    
+   */
+  char dac_value[2]={
+    0,0  }; //12 bit output value packed in two bytes
+  Serial.readBytes(dac_value,2);
+  
+  #ifdef TEENSY_3_1   
+
+  // TODO : COMPLETE !!!
+  // Python Side needs to be completed too!
+  #endif
+
+}
 
 void handleSetDigitalOutPinRx(byte request_type,byte request_id,byte request_rx_byte_count){
   /*
@@ -360,11 +484,9 @@ void handleSetDigitalOutPinRx(byte request_type,byte request_id,byte request_rx_
     0,0  }; // pin number, Pin state
   Serial.readBytes(pin_value,2);
 
-  //  if (pin_value[1]==0)
-  //    digitalWrite(DOUT_PINS[pin_value[0]],LOW); // set 0
-  //  else
-  //    digitalWrite(DOUT_PINS[pin_value[0]],HIGH); // set 1
-  digitalWrite(DOUT_PINS[pin_value[0]],pin_value[1]);
+  digitalWriteFast(DOUT_PINS[pin_value[0]],pin_value[1]);
+  //digitalWrite(DOUT_PINS[pin_value[0]],pin_value[1]);
+
 }
 
 //------------------------
@@ -427,9 +549,15 @@ void handleGetDigitalInStateRx(byte request_type,byte request_id,byte request_rx
    2 - 7: usec time that pin was set.
    8: digital input line value as a byte between 0 and 255    
    */
-  byte din_value=0;
-  for (int i=0;i<sizeof(DIN_PINS);i++)
-    din_value+=bytePow(2,i)*digitalRead(DIN_PINS[i]);
+  byte din_value = 0;
+  if (digitalReadFast(6)) din_value |= (1<<0);
+  if (digitalReadFast(7)) din_value |= (1<<1);
+  if (digitalReadFast(8)) din_value |= (1<<2);
+  if (digitalReadFast(9)) din_value |= (1<<3);
+  if (digitalReadFast(29)) din_value |= (1<<4);
+  if (digitalReadFast(30)) din_value |= (1<<5);
+  if (digitalReadFast(31)) din_value |= (1<<6);
+  if (digitalReadFast(32)) din_value |= (1<<7);
 
   tx_byte_buffer[tx_byte_buffer_index]=din_value;
   tx_byte_buffer_index+=1; 
@@ -513,10 +641,6 @@ void handleEnableInputStreamingRx(byte request_type,byte request_id,byte request
 byte  last_digital_input_state=0;
 byte current_digital_input_state=0;
 
-//DIN_8 is set as a PULLUP. 
-byte  last_pullup_input_state=1;
-byte current_pullup_input_state=1;
-
 void inputLineReadTimerCallback(void){
   if (digital_input_streaming_enabled>0){
       addDigitalEventToByteBuffer(); // check for digital input change event
@@ -542,9 +666,13 @@ void inputLineReadTimerCallback(void){
 
 byte addDigitalEventToByteBuffer(){
     // Check for digital input state changes
-    current_pullup_input_state=digitalRead(DIN_8);
-    if (current_pullup_input_state!=last_pullup_input_state){
-      updateUsecTime();
+    current_digital_input_state=0;
+    for (byte i=0;i<sizeof(DIN_PINS);i++)
+      current_digital_input_state+=(bytePow(2,i)*digitalRead(DIN_PINS[i]));
+
+    updateUsecTime();
+      
+    if (current_digital_input_state!=last_digital_input_state){
       if (byteBufferFreeSize()<DIGITAL_EVENT_TX_BYTE_COUNT)
         return 0;
       tx_byte_buffer[tx_byte_buffer_index]=DIGITAL_INPUT_EVENT;
@@ -555,32 +683,9 @@ byte addDigitalEventToByteBuffer(){
       tx_byte_buffer[tx_byte_buffer_index+5]=t3_usec_time.bytes[3];
       tx_byte_buffer[tx_byte_buffer_index+6]=t3_usec_time.bytes[4];
       tx_byte_buffer[tx_byte_buffer_index+7]=t3_usec_time.bytes[5];
-      tx_byte_buffer[tx_byte_buffer_index+8]=current_pullup_input_state;
-      last_pullup_input_state=current_pullup_input_state;       
+      tx_byte_buffer[tx_byte_buffer_index+8]=current_digital_input_state;
+      last_digital_input_state=current_digital_input_state;       
       tx_byte_buffer_index=tx_byte_buffer_index+DIGITAL_EVENT_TX_BYTE_COUNT;
-    }
-    else{
-        current_digital_input_state=0;
-        for (byte i=0;i<sizeof(DIN_PINS);i++)
-          current_digital_input_state+=(bytePow(2,i)*digitalRead(DIN_PINS[i]));
-    
-        updateUsecTime();
-          
-        if (current_digital_input_state!=last_digital_input_state){
-          if (byteBufferFreeSize()<DIGITAL_EVENT_TX_BYTE_COUNT)
-            return 0;
-          tx_byte_buffer[tx_byte_buffer_index]=DIGITAL_INPUT_EVENT;
-          tx_byte_buffer[tx_byte_buffer_index+1]=DIGITAL_EVENT_TX_BYTE_COUNT;
-          tx_byte_buffer[tx_byte_buffer_index+2]=t3_usec_time.bytes[0];
-          tx_byte_buffer[tx_byte_buffer_index+3]=t3_usec_time.bytes[1];
-          tx_byte_buffer[tx_byte_buffer_index+4]=t3_usec_time.bytes[2];
-          tx_byte_buffer[tx_byte_buffer_index+5]=t3_usec_time.bytes[3];
-          tx_byte_buffer[tx_byte_buffer_index+6]=t3_usec_time.bytes[4];
-          tx_byte_buffer[tx_byte_buffer_index+7]=t3_usec_time.bytes[5];
-          tx_byte_buffer[tx_byte_buffer_index+8]=current_digital_input_state;
-          last_digital_input_state=current_digital_input_state;       
-          tx_byte_buffer_index=tx_byte_buffer_index+DIGITAL_EVENT_TX_BYTE_COUNT;
-        }
     }
 }
 
@@ -670,14 +775,23 @@ void initDigitalOutputs(){
   for (int i=0;i<sizeof(DOUT_PINS);i++){
     pinMode(DOUT_PINS[i], OUTPUT);
     digitalWrite(DOUT_PINS[i], LOW);
-  }  
+  }
+  pinMode(STATUS_LED, OUTPUT);  
+  digitalWrite(STATUS_LED, LOW);  
 }
- 
+
 void initDigitalInputs(){
   for (int i=0;i<sizeof(DIN_PINS);i++){
     pinMode(DIN_PINS[i], DIGITAL_INPUT_TYPE);
   }
-  pinMode(DIN_8, INPUT_PULLUP);
+}
+
+void initAnalogOutput(){
+#ifdef TEENSY_3_1
+  analogWriteResolution(12);
+  //analogReference(1); //non zero for internal ref gives 1.2v pp
+  analogReference(0); //Zero for default/ ext ref gives 3.3v pp
+#endif
 }
 
 void initAnalogInputs(){
@@ -690,14 +804,10 @@ void initAnalogInputs(){
   //  INTERNAL:  1.0 ±0.3V (0.97 to 1.03 V) (source http://www.pjrc.com/teensy/K20P64M50SF0.pdf)
   //  EXTERNAL: Use the input applied to the AGND. See here from some considerations if this is used. http://forum.pjrc.com/threads/23585-AREF-is-making-me-lose-my-hair 
   analogReference(AIN_REF);
-
   // Analog input bit resolution 10 - 16 bits are supported
   analogReadRes(AIN_RES);
-
   // HW Analog Input Sample Averaging. 1 = No Averaging to 32 = average 32 samples in HW, max value is 32
   analogReadAveraging(AIN_AVERAGING);
-
-
 }
 
 void initUsec48(){
@@ -717,8 +827,29 @@ void setup()
   initDigitalInputs();
   initAnalogInputs();
   
+#ifdef TEENSY_3_1  
+  initAnalogOutput();  
+#endif
+
   sinceLastInputRead=0;
   sinceLastSerialTx=0;
+  
+  
+  //To be able to call resetReason(); and get last reset
+  //cause printed to serial term.
+  //K20 - on startup
+  resetReasonHw= RCM_SRS0;
+  resetReasonHw |= (RCM_SRS1<<8);
+  
+  //# flash ext led 4 times indicating prog start
+  int i =0;
+  for (i=0;i<4;i++){
+    digitalWrite(STATUS_LED, HIGH);
+    delay(350);
+    digitalWrite(STATUS_LED, LOW);
+    delay(150);
+  }
+    digitalWrite(STATUS_LED, LOW);  
 }
 
 //---------------------------------------

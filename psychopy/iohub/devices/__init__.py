@@ -12,7 +12,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
 
-import gc, os, sys
+import gc, os, sys, copy
 import collections
 from collections import deque
 from operator import itemgetter
@@ -180,7 +180,13 @@ class Computer(object):
     #: True if the current process is the ioHub Server Process. False if the
     #: current process is the Experiment Runtime Process.
     isIoHubProcess=False
-    
+
+    #: If Computer class is on the iohub server process, psychopy_process is
+    #: the psychopy process created from the pid passed to iohub on startup.
+    #: The iohub server checks that this process exists
+    #: (server.checkForPsychopyProcess()) and shuts down if it does not.
+    psychopy_process = None
+
     #: True if the current process is currently in high or real-time priority mode
     #: (enabled by calling Computer.enableHighPriority() or Computer.enableRealTimePriority() )
     #: False otherwise.
@@ -208,16 +214,16 @@ class Computer(object):
         processingUnitCount=multiprocessing.cpu_count()
     
     #: The OS processes ID of the current Python process.
-    currentProcessID=os.getpid()
+    # currentProcessID=os.getpid()
     
     #: Access to the psutil.Process class for the current system Process.
     #: On OS X, this is the returned value from multiprocessing.current_process()
     if _psutil_available:
-        currentProcess=psutil.Process(currentProcessID)
+        currentProcess = psutil.Process()
     else:
         
         import multiprocessing
-        currentProcess=multiprocessing.current_process()
+        currentProcess = multiprocessing.current_process()
         
     #: The OS process ID of the ioHub Process.
     ioHubServerProcessID=None
@@ -793,7 +799,7 @@ class Device(ioObject):
     
     _display_device=None
     _iohub_server=None
-            
+    next_filter_id = 1
     DEVICE_TYPE_ID=None
     DEVICE_TYPE_STRING=None
     
@@ -804,7 +810,8 @@ class Device(ioObject):
                                             '_last_callback_time',
                                             '_is_reporting_events',
                                             '_configuration',
-                                            'monitor_event_types']
+                                            'monitor_event_types',
+                                            '_filters']
     
     def __init__(self,*args,**kwargs):        
         #: The user defined name given to this device instance. A device name must be
@@ -859,16 +866,16 @@ class Device(ioObject):
         self.manufacture_date=None
 
         
-        ioObject.__init__(self,*args,**kwargs)
+        ioObject.__init__(self, *args, **kwargs)
 
         self._is_reporting_events = kwargs.get('auto_report_events', False)
-        self._iohub_event_buffer=dict()
-        self._event_listeners=dict()
-        self._configuration=kwargs
-        self._last_poll_time=0
-        self._last_callback_time=0
-        self._native_event_buffer=deque(maxlen=self.event_buffer_length)
-
+        self._iohub_event_buffer = dict()
+        self._event_listeners = dict()
+        self._configuration = kwargs
+        self._last_poll_time = 0
+        self._last_callback_time = 0
+        self._native_event_buffer = deque(maxlen=self.event_buffer_length)
+        self._filters = dict()
         
     def getConfiguration(self):
         """
@@ -908,34 +915,46 @@ class Device(ioObject):
         Returns:   
             (list): New events that the ioHub has received since the last getEvents() or clearEvents() call to the device. Events are ordered by the ioHub time of each event, older event at index 0. The event object type is determined by the asType parameter passed to the method. By default a namedtuple object is returned for each event. 
         """
+        eventTypeID = None
+        clearEvents = True
         if len(args)==1:
             eventTypeID=args[0]
-            clearEvents=kwargs.get('clearEvents',True)
         elif len(args)==2:
             eventTypeID=args[0]
             clearEvents=args[1]
-        else:
+
+        if eventTypeID is None:
             eventTypeID=kwargs.get('event_type_id',None)
             if eventTypeID is None:
-                eventTypeID=kwargs.get('event_type',None)    
-            clearEvents=kwargs.get('clearEvents',True)
+                eventTypeID=kwargs.get('event_type',None)
+        clearEvents=kwargs.get('clearEvents',True)
+
+        filter_id=kwargs.get('filter_id',None)
 
         currentEvents=[]
         if eventTypeID:
             currentEvents=list(self._iohub_event_buffer.get(eventTypeID,[]))
+
+            if filter_id:
+                currentEvents = [e for e in currentEvents if e[DeviceEvent.EVENT_FILTER_ID_INDEX] == filter_id]
+
             if clearEvents is True and len(currentEvents)>0:
-                self._iohub_event_buffer[eventTypeID]=[]
+                self.clearEvents(eventTypeID,filter_id=filter_id)
         else:
-            [currentEvents.extend(l) for l in self._iohub_event_buffer.values()]
+            if filter_id:
+                [currentEvents.extend([fe for fe in l if fe[DeviceEvent.EVENT_FILTER_ID_INDEX] == filter_id]) for l in self._iohub_event_buffer.values()]
+            else:
+                [currentEvents.extend(l) for l in self._iohub_event_buffer.values()]
+
             if clearEvents is True and len(currentEvents)>0:
-                self.clearEvents()
+                self.clearEvents(filter_id=filter_id)
 
         if len(currentEvents)>0:
             currentEvents=sorted(currentEvents, key=itemgetter(DeviceEvent.EVENT_HUB_TIME_INDEX))
         return currentEvents
 
 
-    def clearEvents(self):
+    def clearEvents(self, event_type=None, filter_id=None):
         """
         Clears any DeviceEvents that have occurred since the last call to the device's getEvents(),
         or clearEvents() methods.
@@ -950,7 +969,21 @@ class Device(ioObject):
         Returns:
             None
         """
-        self._iohub_event_buffer.clear()
+        if event_type:
+            if filter_id:
+                event_que = self._iohub_event_buffer[event_type]
+                newque = deque([e for e in event_que if e[DeviceEvent.EVENT_FILTER_ID_INDEX] != filter_id], maxlen=self.event_buffer_length)
+                self._iohub_event_buffer[event_type] = newque
+            else:
+                self._iohub_event_buffer.setdefault(event_type,
+                                deque(maxlen=self.event_buffer_length)).clear()
+        else:
+            if filter_id:
+                for event_type, event_deque in self._iohub_event_buffer.items():
+                    newque = deque([e for e in event_deque if e[DeviceEvent.EVENT_FILTER_ID_INDEX] != filter_id], maxlen=self.event_buffer_length)
+                    self._iohub_event_buffer[event_type] = newque
+            else:
+                self._iohub_event_buffer.clear()
 
     def enableEventReporting(self,enabled=True):
         """
@@ -979,9 +1012,92 @@ class Device(ioObject):
         """
         return self._is_reporting_events
 
+    def addFilter(self, filter_file_path, filter_class_name, kwargs):
+        """
+        Take the filter_file_path and add the filters module dir to sys.path
+        if it does not already exist.
+
+        Then import the filter module (file) class based on filter_class_name.
+        Create a filter instance, and add it to the _filters dict:
+
+        self._filters[filter_file_path+'.'+filter_class_name]
+
+        :param filter_path:
+        :return:
+        """
+        try:
+            import importlib
+            from psychopy.iohub import EventConstants, convertCamelToSnake
+    
+            filter_file_path = os.path.normpath(os.path.abspath(filter_file_path))
+            fdir, ffile = os.path.split(filter_file_path)
+            if not ffile.endswith(".py"):
+                ffile = ffile+".py"
+            if os.path.isdir(fdir) and os.path.exists(filter_file_path):
+                if fdir not in sys.path:
+                    sys.path.append(fdir)
+    
+                # import module using ffile
+                filter_module = importlib.import_module(ffile[:-3])
+    
+                # import class filter_class_name
+                filter_class = getattr(filter_module, filter_class_name, None)
+                if filter_class is None:
+                    print2err("Can not create Filter, filter class not found")
+                    return -1
+                else:
+                    # Create instance of class
+                    # For now, just use a class level counter.
+                    filter_class_instance = filter_class(**kwargs)
+                    filter_class_instance._parent_device_type = self.DEVICE_TYPE_ID
+                    # Add to filter list for device
+                    filter_key = filter_file_path+'.'+filter_class_name
+                    filter_class_instance._filter_key = filter_key
+                    self._filters[filter_key] = filter_class_instance
+                    return filter_class_instance.filter_id
+    
+            else:
+                print2err("Could not add filter . File not found.")
+            return -1
+        except:
+            printExceptionDetailsToStdErr()
+            print2err("ERROR During Add Filter")
+            
+    def removeFilter(self, filter_file_path, filter_class_name):
+        filter_key = filter_file_path+'.'+filter_class_name
+        if filter_key in self._filters:
+            del self._filters[filter_key]
+            return True
+        return False
+
+    def resetFilter(self,filter_file_path, filter_class_name):
+        filter_key = filter_file_path+'.'+filter_class_name
+        if filter_key in self._filters:
+            self._filters[filter_key].reset()
+            return True
+        return False
+
+    def enableFilters(self,yes=True):
+        for f in self._filters.values():
+            f.enable = yes
+
     def _handleEvent(self,e):
-        self._iohub_event_buffer.setdefault(e[DeviceEvent.EVENT_TYPE_ID_INDEX],[]).append(e)
-        
+        event_type_id = e[DeviceEvent.EVENT_TYPE_ID_INDEX]
+        self._iohub_event_buffer.setdefault(event_type_id,
+                               deque(maxlen=self.event_buffer_length)).append(e)
+
+        # Add the event to any filters bound to the device which
+        # list wanting the event's type and events filter_id
+        input_evt_filter_id = e[DeviceEvent.EVENT_FILTER_ID_INDEX]
+        for event_filter in self._filters.values():
+            if event_filter.enable is True:
+                current_filter_id = event_filter.filter_id
+                if current_filter_id != input_evt_filter_id:
+                    # stops circular event processing
+                    evt_filter_ids= event_filter.input_event_types.get(event_type_id, [])
+                    if input_evt_filter_id in evt_filter_ids:
+                        event_filter._addInputEvent(copy.deepcopy(e))
+
     def _getNativeEventBuffer(self):
         return self._native_event_buffer
 
@@ -1000,7 +1116,22 @@ class Device(ioObject):
             
     def _getEventListeners(self,forEventType):
         return self._event_listeners.get(forEventType,[])
-        
+
+    def getCurrentDeviceState(self, clear_events=True):
+        result_dict={}
+
+        events = {key:tuple(value) for key, value in self._iohub_event_buffer.items()}
+        result_dict['events'] = events
+        if clear_events:
+            self.clearEvents()
+
+        result_dict['reporting_events'] = self._is_reporting_events
+
+        return result_dict
+
+    def resetState(self):
+        self.clearEvents()
+
     def _poll(self):
         """
         The _poll method is used when an ioHub Device needs to periodically
@@ -1029,7 +1160,7 @@ class Device(ioObject):
             when being transferred between the ioHub and Experiment processes.
             
             The ioHub Process can convert these list event representations to 
-            one of several, user-friendly object formats ( namedtuple [default], dict, or the correct
+            one of several, user-friendly, object formats ( namedtuple [default], dict, or the correct
             ioHub.devices.DeviceEvent subclass. ) for use within the experiment script.
         
         If an ioHub Device uses polling to check for new device events, the ioHub
@@ -1134,7 +1265,7 @@ class Device(ioObject):
         
         If the ioHub Device has been implemented to use the _poll() method of checking for
         new events, then this method simply should return what it is passed, and is the
-        default implmentation for the method.
+        default implementation for the method.
         
         If the ioHub Device has been implemented to use the event callback method
         to register new native device events with the ioHub Process, then this method should be
@@ -1398,3 +1529,4 @@ try:
 except:
     print2err("Warning: display device module could not be imported.")
     printExceptionDetailsToStdErr()
+

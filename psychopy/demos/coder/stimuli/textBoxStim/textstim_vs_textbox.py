@@ -3,7 +3,7 @@
 ** Be sure to change the 'display_resolution' variable on line 29 so that
    it matches your screen resolution.
   
-Tests the performance of the TextBos and TextStim components for three 
+Tests the performance of the TextBox and TextStim components for three 
 different conditions:
    * Time to create and perform the first build() of each stim type.
    * Time to change the stim text to be displayed and call draw().
@@ -25,7 +25,7 @@ import pyglet.gl as gl
 # Variables to control text string length etc.
 text_length=160
 chng_txt_each_flips=5
-max_flip_count=60*60
+max_flip_count=60*10
 display_resolution=1920,1080
 
 # Circular buffers to store timing measures
@@ -65,7 +65,7 @@ def updateStimText(stim,text=None):
     """
     stime=core.getTime()*1000.0
     if text:    
-        stim.text = text
+        stim.setText(text)
     stim.draw()
     gl.glFinish()
     etime=core.getTime()*1000.0 
@@ -128,8 +128,8 @@ textstim_init_dur=etime-stime
 
 # Start the draw duration tests, for text change and no text change conditions.
 
-#stim_draw_orders=[[textstim,textbox],[textbox,textstim]]
-stim_draw_orders=[[textstim,textbox],]
+stim_draw_orders=[[textstim,textbox],[textbox,textstim]]
+#stim_draw_orders=[[textstim,textbox],]
 for stim1, stim2 in stim_draw_orders:
     stim1_txt_change_draw_times.clear()    
     stim2_txt_change_draw_times.clear()    
