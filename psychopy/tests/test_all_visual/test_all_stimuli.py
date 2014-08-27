@@ -96,6 +96,20 @@ class _baseVisualTest:
         image.draw()
         utils.compareScreenshot('imageAndGauss_%s.png' %(self.contextName), win)
         win.flip()
+    def test_numpyFilterMask(self):
+        """if the mask is passed in as a numpy array it goes through a different 
+        set of rules when turned into a texture. But the outcome should be as above
+        """
+        win = self.win
+        from psychopy import filters
+        gaussMask = filters.makeMask(128, 'gauss')
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
+        image = visual.ImageStim(win, image=fileName, mask=gaussMask,
+                                 size=size, flipHoriz=True, flipVert=True)
+        image.draw()
+        utils.compareScreenshot('imageAndGauss_%s.png' %(self.contextName), win)
+        win.flip()
     def test_greyscaleImage(self):
         win = self.win
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'greyscale.jpg')
