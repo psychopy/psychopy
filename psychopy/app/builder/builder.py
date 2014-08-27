@@ -3354,10 +3354,13 @@ class DlgConditions(wx.Dialog):
         try:
             self.madeApp = False
             wx.Dialog.__init__(self, None,-1,title,pos,size,style)
-        except: # only needed during development?
+        except wx._core.PyNoAppError: # only needed during development?
             self.madeApp = True
             global app
-            app = wx.PySimpleApp()
+            if wx.version() < '2.9':
+                app = wx.PySimpleApp()
+            else:
+                app = wx.App(False)
             wx.Dialog.__init__(self, None,-1,title,pos,size,style)
         self.trim = trim
         self.warning = '' # updated to warn about eg, trailing whitespace

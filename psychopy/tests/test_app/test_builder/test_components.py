@@ -34,7 +34,10 @@ class TestComponents():
             cls.allComp = getAllComponents(fetchIcons=False)
         except:
             import wx
-            tmpApp = wx.PySimpleApp()
+            if wx.version() < '2.9':
+                tmpApp = wx.PySimpleApp()
+            else:
+                tmpApp = wx.App(False)
             try: from psychopy.app import localization
             except: pass  # not needed if can't import it
             cls.allComp = getAllComponents(fetchIcons=False)
