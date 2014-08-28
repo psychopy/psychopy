@@ -11,6 +11,7 @@ import subprocess   # Simple git commandline management
 from subprocess import CalledProcessError
 import psychopy     # For currently loaded version
 from psychopy import prefs as _p
+from psychopy import tools #strangely, we have to do this only so that it can be reloaded!
 
 VERSIONSDIR = os.path.join(_p.paths['userPrefsDir'], 'version')
 
@@ -61,6 +62,7 @@ def useVersion(requestedVersion):
 
     # Reload!
     reload(psychopy)
+    reload(tools)
     # TODO Best way to check for other submodules that have already been imported?
 
     return True  # Success!
