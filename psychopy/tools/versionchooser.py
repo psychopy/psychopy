@@ -14,6 +14,15 @@ from psychopy import prefs as _p
 
 VERSIONSDIR = os.path.join(_p.paths['userPrefsDir'], 'version')
 
+class TmpCwd(object):
+    """A class that will switch path but revert as it gets garbage collected
+    """
+    def __init__(self, newPath):
+        self.prevPath = os.getcwd()
+        os.chdir(newPath)
+    def __del__(self):
+        os.chdir(self.prevPath)
+
 def useVersion(requestedVersion):
     """Manage paths and checkout psychopy libraries for requested versions of psychopy.
 
@@ -41,7 +50,8 @@ def useVersion(requestedVersion):
         raise ScriptError(
             "Please request a version before importing any psychopy modules. "
             "Found: %s" % imported)
-    if _versionOk(psychopy.__version__, requestedVersion): return  # No switching needed
+    if _versionOk(psychopy.__version__, requestedVersion):
+        return  # No switching needed
     if not _gitPresent():  # Switching required, so make sure `git` is available.
         raise ScriptError("Please install git to specify a version with useVersion()")
 
@@ -62,13 +72,12 @@ def _versionOk(loaded,requested):
     # return eval("'%s' %s '%s'" % (loaded, requestComparator, requestVers))
     #     # e.g. returns True if loaded > requested '1.80.05' > '1.80.04'
 
-
 def _setupRequested(requestedVersion):
     """Checkout or Clone requested version."""
-    if not os.path.exists(VERSIONSDIR): os.mkdir(VERSIONSDIR)
-    repoPath = os.path.join(VERSIONSDIR,'psychopy')
+    if not os.path.exists(_p.paths['userPrefsDir']):
+        os.mkdir(_p.paths['userPrefsDir'])
     try:
-        if os.path.exists(repoPath):
+        if os.path.exists(VERSIONSDIR):
             _checkoutRequested(requestedVersion)
         else:
             _cloneRequested(requestedVersion)
@@ -76,48 +85,55 @@ def _setupRequested(requestedVersion):
         if 'did not match any file(s) known to git' in e.output:
             print "'%s' is not a valid Psychopy version." % requestedVersion
             raise
+    return VERSIONSDIR
 
-    return repoPath
+def getCurrentTag():
+    """Returns the current tag name from the version repository
+    """
+    tmpPath = TmpCwd(VERSIONSDIR)
+    cmd = 'git describe --always --tag'
+    vers = subprocess.check_output(cmd.split()).split('-')[0]
+    return vers
 
 def _checkoutRequested(requestedVersion):
-    """Look for a path matching the request, return it if found or return None for the search"""
-    prevPath = os.getcwd()
-    try:
-        os.chdir(os.path.join(VERSIONSDIR,'psychopy'))
+    """Look for a tag matching the request, return it if found or return None for the search"""
+    tmpPath = TmpCwd(VERSIONSDIR)
+    # Check tag of repo
+    if getCurrentTag()==requestedVersion: #nothing to do!
+        return 1
+
+    # See if the tag already exists in repos (no need for internet)
+    cmd = 'git tag'
+    if requestedVersion not in subprocess.check_output(['git','tag']):
         # Grab new tags
+        print "Couldn't find version %r locally. Trying github..." %(requestedVersion)
         cmd = 'git fetch github'
-        print cmd
         out = subprocess.check_output(cmd.split())
+        #after fetching from github check if it's there now!
+        versions = subprocess.check_output(['git','tag'])
+        if requestedVersion not in versions:
+            print "%r is not a valid version. Please choose one of:  %r" %(requestedVersion, versions.split())
+            return 0
 
-        # Check tag of repo
-        cmd = 'git describe --always --tag'
-        print cmd
-        vers = subprocess.check_output(cmd.split()).split('-')[0]
-
-        # Checkout the requested tag if required
-        if not _versionOk(vers,requestedVersion):
-            cmd = 'git checkout %s' % requestedVersion
-            out = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT)
-    finally:
-        os.chdir(prevPath)
-
+    # Checkout the requested tag
+    cmd = 'git checkout %s' % requestedVersion
+    out = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT)
+    return 1
 
 def _cloneRequested(requestedVersion):
     """Check out a new copy of the requested version"""
-    prevPath = os.getcwd()
-    try:
-        os.chdir(VERSIONSDIR)
-        print 'Cloning Psychopy Library from Github - this may take a while'
-        cmd = ['git', 'clone', '-o', 'github', 'https://github.com/psychopy/releases']
-        print ' '.join(cmd)
-        out = subprocess.check_output(cmd)
 
-        os.chdir('psychopy')
-        cmd = ['git', 'checkout', requestedVersion]
-        print ' '.join(cmd)
-        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
-    finally:
-        os.chdir(prevPath)
+    tmpPath = TmpCwd(_p.paths['userPrefsDir'])
+    print 'got here'
+    print 'Cloning Psychopy Library from Github - this may take a while'
+    cmd = ['git', 'clone', '-o', 'github', 'https://github.com/psychopy/releases', 'version']
+    print ' '.join(cmd)
+    out = subprocess.check_output(cmd)
+
+    os.chdir('version')
+    cmd = ['git', 'checkout', requestedVersion]
+    print ' '.join(cmd)
+    out = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
 
 
 def _gitPresent():
