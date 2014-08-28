@@ -135,7 +135,7 @@ class LogFile:
         """
         #work out if this is a filename or a stream to write to
         if f==None:
-            self.stream = sys.stdout
+            self.stream = 'stdout'
         elif hasattr(f, 'write'):
             self.stream=f
         elif type(f) in [unicode, str]:
@@ -157,9 +157,14 @@ class LogFile:
         """Write directy to the log file (without using logging functions).
         Useful to send messages that only this file receives
         """
-        self.stream.write(txt)
+        #find the current stdout if we're the console logger
+        if self.stream=='stdout':
+            stream = sys.stdout
+        else:
+            stream = self.stream
+        stream.write(txt)
         try:
-            self.stream.flush()
+            stream.flush()
         except:
             pass
 class _Logger:
