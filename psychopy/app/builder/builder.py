@@ -2012,7 +2012,13 @@ class ParamCtrls:
             # stash original non-localized choices:
             self.valueCtrl._choices = copy.copy(param.allowedVals)
             # set display to the localized version of the currently selected value:
-            index = param.allowedVals.index(param.val)
+            try:
+                index = param.allowedVals.index(param.val)
+            except:
+                logging.warn("%r was given as parameter %r but it isn't in "
+                    "the list of allowed values %s. Reverting to use %r for this Component" %(param.val, fieldName, param.allowedVals, param.allowedVals[0]))
+                logging.flush()
+                index=0
             self.valueCtrl.SetSelection(index)
         else:
             #create the full set of ctrls
