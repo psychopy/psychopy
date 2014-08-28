@@ -8,6 +8,7 @@ python setup.py install
 
 del C:\Python27\Lib\site-packages\psychopy.pth
 xcopy /I /Y psychopy\*.txt C:\Python27
+xcopy /I /Y C:\Windows\System32\avbin.dll avbin.dll
 rem build the installer
 makensis.exe /v3 buildCompleteInstaller.nsi
 

@@ -10,16 +10,15 @@ import os,sys,re
 import subprocess   # Simple git commandline management
 from subprocess import CalledProcessError
 import psychopy     # For currently loaded version
-from psychopy import preferences
+from psychopy import prefs as _p
 
-_p = preferences.preferences.Preferences()
 VERSIONSDIR = os.path.join(_p.paths['userPrefsDir'], 'version')
 
 def useVersion(requestedVersion):
     """Manage paths and checkout psychopy libraries for requested versions of psychopy.
 
-    Inputs: 
-        * requestedVersion : A string with the requested version of Psychopy to use 
+    Inputs:
+        * requestedVersion : A string with the requested version of Psychopy to use
           (NB Must be an exact version to checkout; ">=1.80.04" is NOT allowable yet.)
 
     Outputs:
@@ -77,7 +76,7 @@ def _setupRequested(requestedVersion):
         if 'did not match any file(s) known to git' in e.output:
             print "'%s' is not a valid Psychopy version." % requestedVersion
             raise
-            
+
     return repoPath
 
 def _checkoutRequested(requestedVersion):
@@ -109,10 +108,10 @@ def _cloneRequested(requestedVersion):
     try:
         os.chdir(VERSIONSDIR)
         print 'Cloning Psychopy Library from Github - this may take a while'
-        cmd = ['git', 'clone', '-o', 'github', 'https://github.com/psychopy/psychopy']
+        cmd = ['git', 'clone', '-o', 'github', 'https://github.com/psychopy/releases']
         print ' '.join(cmd)
         out = subprocess.check_output(cmd)
-        
+
         os.chdir('psychopy')
         cmd = ['git', 'checkout', requestedVersion]
         print ' '.join(cmd)
@@ -139,7 +138,7 @@ def _switchVersionTo(requestedPath):
     # NB When installed with pip/easy_install psychopy will live in
     # a site-packages directory, which should *not* be removed as it may contain
     # other relevant and needed packages.
-    # 
+    #
     # Instead just prepend the current path to make sure it is loaded first.
     sys.path = [requestedPath] + sys.path
 

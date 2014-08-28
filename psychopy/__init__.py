@@ -37,3 +37,5 @@ for pathName in prefs.general['paths']:
 
 
 __all__ = ["gui", "misc", "visual", "core", "event", "data", "filters", "sound"]
+
+from .tools.versionchooser import useVersion
