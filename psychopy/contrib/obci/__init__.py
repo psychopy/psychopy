@@ -63,10 +63,10 @@ class TagOnFlip(object):
         self.saveTags = saveTags
         self.tagDescription = tagDescription
 
-    def setTagdescription(self, description):
+    def setTagDescription(self, description):
         self.tagDescription = description
 
-    def setTagname(self, name):
+    def setTagName(self, name):
         self.tagName = name
 
     def scheduleStart(self):
