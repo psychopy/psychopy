@@ -11,17 +11,10 @@ import subprocess   # Simple git commandline management
 from subprocess import CalledProcessError
 import psychopy     # For currently loaded version
 from psychopy import prefs as _p
+from psychopy import logging, tools
 
-VERSIONSDIR = os.path.join(_p.paths['userPrefsDir'], 'version')
-
-class TmpCwd(object):
-    """A class that will switch path but revert as it gets garbage collected
-    """
-    def __init__(self, newPath):
-        self.prevPath = os.getcwd()
-        os.chdir(newPath)
-    def __del__(self):
-        os.chdir(self.prevPath)
+USERDIR = _p.paths['userPrefsDir']
+VERSIONSDIR = os.path.join(USERDIR, 'versions')
 
 def useVersion(requestedVersion):
     """Manage paths and checkout psychopy libraries for requested versions of psychopy.
@@ -61,6 +54,10 @@ def useVersion(requestedVersion):
 
     # Reload!
     reload(psychopy)
+    reload(logging)
+    if requestedVersion>="1.80":
+        reload(tools) #this is just because this file is withint tools!
+    print "Now using PsychoPy library version: ", psychopy.__version__
     # TODO Best way to check for other submodules that have already been imported?
 
     return True  # Success!
@@ -83,57 +80,53 @@ def _setupRequested(requestedVersion):
             _cloneRequested(requestedVersion)
     except CalledProcessError as e:
         if 'did not match any file(s) known to git' in e.output:
-            print "'%s' is not a valid Psychopy version." % requestedVersion
+            logging.error("'%s' is not a valid Psychopy version." % requestedVersion)
             raise
     return VERSIONSDIR
 
 def getCurrentTag():
     """Returns the current tag name from the version repository
     """
-    tmpPath = TmpCwd(VERSIONSDIR)
     cmd = 'git describe --always --tag'
-    vers = subprocess.check_output(cmd.split()).split('-')[0]
+    vers = subprocess.check_output(cmd.split(), cwd=VERSIONSDIR).split('-')[0]
     return vers
 
 def _checkoutRequested(requestedVersion):
     """Look for a tag matching the request, return it if found or return None for the search"""
-    tmpPath = TmpCwd(VERSIONSDIR)
     # Check tag of repo
     if getCurrentTag()==requestedVersion: #nothing to do!
         return 1
 
     # See if the tag already exists in repos (no need for internet)
     cmd = 'git tag'
-    if requestedVersion not in subprocess.check_output(['git','tag']):
+    if requestedVersion not in subprocess.check_output(['git','tag'], cwd=VERSIONSDIR):
         # Grab new tags
-        print "Couldn't find version %r locally. Trying github..." %(requestedVersion)
+        logging.info("Couldn't find version %r locally. Trying github..." %(requestedVersion))
         cmd = 'git fetch github'
         out = subprocess.check_output(cmd.split())
         #after fetching from github check if it's there now!
-        versions = subprocess.check_output(['git','tag'])
+        versions = subprocess.check_output(['git','tag'], cwd=VERSIONSDIR)
         if requestedVersion not in versions:
-            print "%r is not a valid version. Please choose one of:  %r" %(requestedVersion, versions.split())
+            logging.error("%r is not a valid version. Please choose one of:  %r" %(requestedVersion, versions.split()))
             return 0
 
     # Checkout the requested tag
     cmd = 'git checkout %s' % requestedVersion
-    out = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT)
+    out = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT, cwd=VERSIONSDIR)
+    logging.debug(out)
     return 1
 
 def _cloneRequested(requestedVersion):
     """Check out a new copy of the requested version"""
 
-    tmpPath = TmpCwd(_p.paths['userPrefsDir'])
-    print 'got here'
     print 'Cloning Psychopy Library from Github - this may take a while'
-    cmd = ['git', 'clone', '-o', 'github', 'https://github.com/psychopy/releases', 'version']
+    cmd = ['git', 'clone', '-o', 'github', 'https://github.com/psychopy/versions', 'versions']
     print ' '.join(cmd)
-    out = subprocess.check_output(cmd)
+    out = subprocess.check_output(cmd, cwd=USERDIR)
 
-    os.chdir('version')
     cmd = ['git', 'checkout', requestedVersion]
-    print ' '.join(cmd)
-    out = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+    out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, cwd=VERSIONSDIR)
+    logging.debug(out)
 
 
 def _gitPresent():

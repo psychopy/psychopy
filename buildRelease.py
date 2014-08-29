@@ -7,33 +7,34 @@
         - commit, tag and push(?)
 
     It should be run from the root of the main git repository, which should be
-    next to a clone of the psychopy/releases git repository
+    next to a clone of the psychopy/versions git repository
 """
 
 import os, sys, shutil, subprocess
 from os.path import join
+from createInitFile import createInitFile
 
-def getSHA():
+MAIN = os.path.split(__file__)[0]
+VERSIONS = join(MAIN,'..','versions')
+
+def getSHA(cwd='.'):
+    if cwd=='.':
+        cwd = os.getcwd()
     #get the SHA of the git HEAD
-    SHA_string = subprocess.check_output(['git', 'rev-parse', 'HEAD']).split()[0]
+    SHA_string = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], cwd=cwd).split()[0]
     #convert to hex from a string and return it
-    return hex(int(SHA_string, 16))
+    print 'got here', SHA_string, cwd
+    return SHA_string
 
 def buildRelease(versionStr, noCommit=False, interactive=True):
     #
-    dest = join("..","releases","psychopy")
+    createInitFile(dist='sdist', version=versionStr, sha=getSHA())
+    dest = join(VERSIONS,"psychopy")
     shutil.rmtree(dest)
     ignores = shutil.ignore_patterns("demos", "docs", "tests", "pylink",
                                      "*.pyo", "*.pyc", "*.orig", "*.bak",
                                      ".DS_Store", ".coverage")
     shutil.copytree("psychopy", dest, symlinks=False, ignore=ignores)
-
-    #if making a release from previous versions (jon only) then we need to patch in the version chooser
-    if not os.path.isfile(join(dest,'tools','versionchooser.py')):
-        shutil.copyfile("/home/lpzjwp/code/versionchooser.py", join(dest,'tools','versionchooser.py'))
-        initFile = open(join(dest,'__init__.py'), 'a') #append to the end of the file
-        initFile.write("\nfrom .tools.versionchooser import useVersion\n\n")
-        initFile.close()
 
     #todo: would be nice to check here that we didn't accidentally add anything large (check new folder size)
     Mb = float(subprocess.check_output(["du", "-bsc", dest]).split()[0])/10**6
@@ -46,24 +47,26 @@ def buildRelease(versionStr, noCommit=False, interactive=True):
         if ok != "y":
             return False
 
-    os.chdir(dest)
-    lastSHA = getSHA()
+    lastSHA = getSHA(cwd=VERSIONS)
     print 'updating: git add --all'
-    subprocess.call(["git", "add", "--all"])
+    output = subprocess.check_output(["git", "add", "--all"], cwd=VERSIONS)
     if interactive:
-        ok = subprocess.call(["cola"])
+        ok = subprocess.call(["cola"], cwd=VERSIONS)
         if lastSHA==getSHA():
             #we didn't commit the changes so quit
             print("no git commit was made: exiting")
             return False
     else:
-        print "committing: git commit -m 'candidate for %s'" %versionStr
-        subprocess.call(["git", "commit", "-m", "'candidate for %s'" %versionStr])
+        print "committing: git commit -m 'release version %s'" %versionStr
+        subprocess.call(["git", "commit", "-m", "'release version %s'" %versionStr], cwd=VERSIONS)
 
     print "tagging: git tag -m 'release %s'" %versionStr
-    ok = subprocess.call(["git", "tag", versionStr, "-m", "'release %s'" %versionStr])
+    ok = subprocess.call(["git", "tag", versionStr, "-m", "'release %s'" %versionStr], cwd=VERSIONS)
 
-    print "tags are now:", subprocess.check_output(["git","tag"]).split()
+    print "tags are now:", subprocess.check_output(["git","tag"], cwd=VERSIONS).split()
+    #revert thte __init__ file to non-ditribution state
+    print 'reverting master branch...'
+    print subprocess.check_output(["git","checkout", "--", "."], cwd=MAIN)
     return True #success
 
 if __name__=="__main__":
