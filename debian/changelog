@@ -1,3 +1,9 @@
+psychopy-openbci (1.80.6-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Fri, 29 Aug 2014 19:17:49 +0200
+
 psychopy-openbci (1.80.5-1) unstable; urgency=medium
 
   * New upstream release.
