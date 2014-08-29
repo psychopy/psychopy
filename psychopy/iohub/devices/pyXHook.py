@@ -52,15 +52,18 @@ from Xlib import X, XK, display#, error
 from Xlib.ext import record
 from Xlib.protocol import rq
 from keyboard.keysym2ucs import keysym2ucs
-
+import pyglet.window.key as keymapper
 from .. import print2err
 from ..devices import Computer
 from ..constants import EventConstants,MouseConstants
 
 getTime = Computer.getTime
+
+X.NumLockMask = (1<<4)
 #######################################################################
 ########################START CLASS DEF################################
 #######################################################################
+
 
 class HookManager(threading.Thread):
     """
@@ -80,7 +83,16 @@ class HookManager(threading.Thread):
         # Give these some initial values
         self.mouse_position_x = 0
         self.mouse_position_y = 0
-        self.ison = {"SHIFT":False, "CAPS_LOCK":False}
+        #self.ison = {"SHIFT":False, "CAPS_LOCK":False}
+
+         # Assign default function actions (do nothing).
+        self.KeyDown = lambda x: True
+        self.KeyUp = lambda x: True
+        self.MouseAllButtonsDown = lambda x: True
+        self.MouseAllButtonsUp = lambda x: True
+        self.MouseAllMotion = lambda x: True
+        self.contextEventMask = [X.KeyPress,X.MotionNotify]
+        
 
         # Used to hold any keys currently pressed and the repeat count
         # of each key.
@@ -90,19 +102,6 @@ class HookManager(threading.Thread):
         # release event. So values > 1 == auto repeat keys.
         self.key_states=dict()
 
-        # Compile our regex statements.
-        self.isshift = re.compile('^SHIFT')
-        self.iscaps = re.compile('^CAPS_LOCK')
-        self.shiftablechar = re.compile('^[a-z0-9]$|^minus$|^equal$|^bracketleft$|^bracketright$|^semicolon$|^backslash$|^apostrophe$|^comma$|^period$|^slash$|^grave$')
-        self.logrelease = re.compile('.*')
-        self.isspace = re.compile('^SPACE$')
-
-        # Assign default function actions (do nothing).
-        self.KeyDown = lambda x: True
-        self.KeyUp = lambda x: True
-        self.MouseAllButtonsDown = lambda x: True
-        self.MouseAllButtonsUp = lambda x: True
-        self.MouseAllMotion = lambda x: True
         self.contextEventMask = [X.KeyPress,X.MotionNotify]
 
         # Hook to our display.
@@ -193,72 +192,28 @@ class HookManager(threading.Thread):
         data = reply.data
         while len(data):
             event, data = rq.EventField(None).parse_binary_value(data, self.record_dpy.display, None, None)
-
+            
             event.iohub_logged_time=logged_time
 
             if event.type == X.KeyPress:
-                hookevent = self.keypressevent(event)
+                hookevent = self.makekeyhookevent(event)
                 self.KeyDown(hookevent)
             elif event.type == X.KeyRelease:
-                hookevent = self.keyreleaseevent(event)
+                hookevent = self.makekeyhookevent(event)
                 self.KeyUp(hookevent)
             elif event.type == X.ButtonPress:
                 hookevent = self.buttonpressevent(event)
-                self.MouseAllButtonsDown(hookevent)
             elif event.type == X.ButtonRelease and event.detail not in (4,5):
                 # 1 mouse wheel scroll event was generating a button press
                 # and a button release event for each single scroll, so allow
                 # wheel scroll events through for buttonpressevent, but not for
                 # buttonreleaseevent so 1 scroll action causes 1 scroll event.
                 hookevent = self.buttonreleaseevent(event)
-                self.MouseAllButtonsUp(hookevent)
             elif event.type == X.MotionNotify:
                 # use mouse moves to record mouse position, since press and release events
                 # do not give mouse position info (event.root_x and event.root_y have
                 # bogus info).
                 hookevent=self.mousemoveevent(event)
-                self.MouseAllMotion(hookevent)
-
-    def keypressevent(self, event):
-        key_state_sym=self.local_dpy.keycode_to_keysym(event.detail, 0)
-        matchto = self.lookup_keysym(key_state_sym)
-        if self.key_states.get(key_state_sym,None) is not None:
-            self.key_states[key_state_sym]+=1
-        else:
-            self.key_states[key_state_sym]=1
-
-        if self.isshift.match(matchto.upper()):
-            self.ison["SHIFT"] = self.ison["SHIFT"] + 1
-        elif self.iscaps.match(matchto.upper()):
-            if self.ison["CAPS_LOCK"] == False:
-                self.ison["SHIFT"] = self.ison["SHIFT"] + 1
-                self.ison["CAPS_LOCK"] = True
-            elif self.ison["CAPS_LOCK"] == True:
-                self.ison["SHIFT"] = self.ison["SHIFT"] - 1
-                self.ison["CAPS_LOCK"] = False
-
-        if self.ison["SHIFT"] == False:
-            keysym = self.local_dpy.keycode_to_keysym(event.detail, 0)
-        else:
-            keysym = self.local_dpy.keycode_to_keysym(event.detail, 1)
-
-        return self.makekeyhookevent(keysym, event)
-
-    def keyreleaseevent(self, event):
-        if self.ison["SHIFT"] == False:
-            keysym = self.local_dpy.keycode_to_keysym(event.detail, 0)
-        else:
-            keysym = self.local_dpy.keycode_to_keysym(event.detail, 1)
-
-        matchto_sym=self.local_dpy.keycode_to_keysym(event.detail, 0)
-        matchto = self.lookup_keysym(matchto_sym)
-
-        if self.key_states.get(matchto_sym,None):
-            del self.key_states[matchto_sym]
-        if self.isshift.match(matchto.upper()):
-            self.ison["SHIFT"] = self.ison["SHIFT"] - 1
-
-        return self.makekeyhookevent(keysym, event)
 
     def buttonpressevent(self, event):
         r= self.makemousehookevent(event)
@@ -315,7 +270,16 @@ class HookManager(threading.Thread):
     def code2iokeysym(self,keysym):
         return self._XK_CODE2NAMES.get(keysym,["[%d]"%(keysym),])[0]
 
-    def makekeyhookevent(self, keysym, event):
+    def updateKeysPressedState(self, key_code, pressed_event):
+        matchto_sym=self.local_dpy.keycode_to_keysym(key_code, 0)        
+        keyautocount=self.key_states.setdefault(matchto_sym,0)
+        
+        if pressed_event:
+            self.key_states[matchto_sym]=keyautocount+1
+        else:
+            del self.key_states[matchto_sym]
+                
+    def makekeyhookevent(self, event):
         """
         Creates an incomplete ioHub keyboard event in list format. It is incomplete
         as some of the elements of the array are filled in by the ioHub server when
@@ -354,6 +318,44 @@ class HookManager(threading.Thread):
         For ButtonPress and ButtonRelease, this is the button of the event.
         For MotionNotify, this is either X.NotifyNormal or X.NotifyHint.
         """
+        keysym=None
+#        auto_repeat=0        
+
+        #modifiers = 0
+#        X.ShiftMask
+#        if state & xlib.ShiftMask:
+#            modifiers |= key.MOD_SHIFT
+#        if state & xlib.ControlMask:
+#            modifiers |= key.MOD_CTRL
+#        if state & xlib.LockMask:
+#            modifiers |= key.MOD_CAPSLOCK
+#        if state & xlib.Mod1Mask:
+#            modifiers |= key.MOD_ALT
+#        if state & xlib.Mod2Mask:
+#            modifiers |= key.MOD_NUMLOCK
+#        if state & xlib.Mod4Mask:
+#            modifiers |= key.MOD_WINDOWS
+#        if state & xlib.Mod5Mask:
+#            modifiers |= key.MOD_SCROLLLOCK
+#        return modifiers
+        
+        mod_mask = event.state
+        key_code = event.detail      
+        key_shifted = mod_mask & X.ShiftMask or mod_mask & X.LockMask
+        unshifted_keysym = self.local_dpy.keycode_to_keysym(key_code, 0)
+        keysym = self.local_dpy.keycode_to_keysym(key_code, key_shifted)
+        
+        if event.type == X.KeyPress:
+            # Now done in lunux2.py            
+            # self.updateKeysPressedState(key_code,True)
+            ioHubEventID=EventConstants.KEYBOARD_PRESS
+            #auto_repeat=self.key_states.get(unshifted_keysym)
+            
+        elif event.type == X.KeyRelease:
+            # Now done in lunux2.py            
+            #self.updateKeysPressedState(key_code,False)        
+            ioHubEventID =EventConstants.KEYBOARD_RELEASE   
+            #auto_repeat = 0                 
 
         # See if there is a unicode mapping for the character....
         key=''
@@ -364,31 +366,15 @@ class HookManager(threading.Thread):
             # If not, use the generated mapping tables to get a key label
             ucode=0
             key=unicode(self.lookup_keysym(keysym),encoding='utf-8')
+        uchar = key
 
         storewm = self.xwindowinfo()
 
-        auto_repeat=0
-        if event.type == X.KeyPress:
-            ioHubEventID=EventConstants.KEYBOARD_PRESS
-            auto_repeat=self.isKeyPressed(self.local_dpy.keycode_to_keysym(event.detail, 0))-1
-        elif event.type == X.KeyRelease:
-            ioHubEventID =EventConstants.KEYBOARD_RELEASE
-
-	uchar = key
-
-	# TODO: set key field to match psychopy key event value for evnt.
-	# key = ????
-
-	duration = 0.0
-	press_event_id = 0
-
-	if event.type == X.KeyRelease:
-	    #TODO: Set duration of key down event
-	    duration = 1.0
-
-	    # TODO: Set the associated press event id for the release event.
-	    press_event_id = 0
-        
+        # Key == psychpy key event vals == psyglet key strings lower()
+        key = keymapper.symbol_string(unshifted_keysym).lower()
+        #print2err('keymapper: ',unshifted_keysym," ", keysym2ucs(unshifted_keysym)," ",key)
+        #print2err("Key Event: ", key, " ", uchar, " ", keysym, " ", event.state,'\n----')
+                        
         return [[0,
                 0,
                 0, #device id (not currently used)
@@ -400,20 +386,18 @@ class HookManager(threading.Thread):
                 0.0, # confidence interval not set for keybaord or mouse devices.
                 0.0, # delay not set for keybaord or mouse devices.
                 0,   # filter level not used
-                auto_repeat,
+                0, # auto_repeat to be filled in within linux2.py ,
                 event.detail, #scan / Keycode of event.
                 keysym, # KeyID / VK code for key pressed
                 ucode,  # unicode value for char, otherwise, 0
-                key, # utf-8 encoded char or label for the key. (depending on whether it is a visible char or not)
+                key, #psychpy key event val
                 event.state,  # The logical state of the button and modifier keys just before the event.
                 int(storewm["handle"], base=16),
-		uchar,
-		duration,
-		press_event_id
+                uchar,# utf-8 encoded char or label for the key. (depending on whether it is a visible char or not)
+                0.0,
+                0
                 ],]
-
-
-
+    
 
     def makemousehookevent(self, event):
         """

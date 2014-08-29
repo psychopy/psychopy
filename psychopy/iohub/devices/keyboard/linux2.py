@@ -21,46 +21,68 @@ class Keyboard(ioHubKeyboardDevice):
     def __init__(self,*args,**kwargs):
         ioHubKeyboardDevice.__init__(self,*args,**kwargs['dconfig'])
 
-    def _nativeEventCallback(self,event):
-        try:
-            if self.isReportingEvents():             
-                logged_time=getTime()
-                event_array=event[0]
-	        from . import KeyboardInputEvent        
-    	        report_system_wide_events = self.getConfiguration().get(
-	        'report_system_wide_events', True)
+    def _nativeEventCallback(self,event):        
+        try:            
+            self._last_callback_time = getTime()
 
-	        pyglet_window_hnds = self._iohub_server._pyglet_window_hnds
-	        if event_array[KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('window_id')] in pyglet_window_hnds:
-	            pass
-	        elif len(pyglet_window_hnds) > 0 and report_system_wide_events is False:
-	            # For keyboard, when report_system_wide_events is false
-	            # do not record kb events that are not targeted for
-	            # a PsychoPy window, still allow them to pass to the desktop 
-	            # apps.
-	            return True
+            if self.isReportingEvents():             
+                event_array=event[0]
+                from . import KeyboardInputEvent        
+                report_system_wide_events = self.getConfiguration().get(
+                'report_system_wide_events', True)
+
+                win_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('window_id')
+
+                pyglet_window_hnds = self._iohub_server._pyglet_window_hnds
+                if event_array[win_id_index] in pyglet_window_hnds:
+                    pass
+                elif len(
+                        pyglet_window_hnds) > 0 and report_system_wide_events is False:
+                    # For keyboard, when report_system_wide_events is false
+                    # do not record kb events that are not targeted for
+                    # a PsychoPy window, still allow them to pass to the desktop 
+                    # apps.
+                    return True
+
+
+                auto_repeated_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('auto_repeated')
+                #key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
+                key_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key_id')
+                event_type_index = KeyboardInputEvent.EVENT_TYPE_ID_INDEX
+                event_id_index = KeyboardInputEvent.EVENT_ID_INDEX
+                event_modifiers_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('modifiers')
                 
-                if event_array[KeyboardInputEvent.EVENT_TYPE_ID_INDEX] == EventConstants.KEYBOARD_PRESS:
-                    repeat_pressed_count=event_array[KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('auto_repeated')]
-                    if self._report_auto_repeats is False and repeat_pressed_count > 0:
+                key_already_pressed = self._key_states.get(event_array[key_id_index], None)
+                if key_already_pressed and  event_array[event_type_index] == EventConstants.KEYBOARD_PRESS:
+                    event_array[auto_repeated_index] = key_already_pressed[1] + 1
+                    if self._report_auto_repeats is False and event_array[auto_repeated_index] > 0:
                         return True
+    
+          
+                duration = 0.0
+                press_event_id = 0
+                # TODO: Set duration of key down event
+                # and the associated press event id for the release event.
+                if event_array[event_type_index]==EventConstants.KEYBOARD_RELEASE:
+                    duration = 1.0   
+                    press_event_id = 0
+                    # update necessary 2 fields in array....
+            
                 
-                event_array[KeyboardInputEvent.EVENT_ID_INDEX]=Computer._getNextEventID()
+                event_array[event_id_index]=Computer._getNextEventID()
                 
-                mod_key=event_array[KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')]
+                mod_key=event_array[key_id_index]
                 if mod_key in self._modifier_states.keys():
                     current_state=self._modifier_states[mod_key]
-                    if event_array[KeyboardInputEvent.EVENT_TYPE_ID_INDEX]==EventConstants.KEYBOARD_PRESS and current_state is False:
+                    if event_array[event_type_index]==EventConstants.KEYBOARD_PRESS and current_state is False:
                         self._modifier_states[mod_key]=True
                         ioHubKeyboardDevice._modifier_value+=KeyboardConstants._modifierCodes.getID(mod_key)
-                    elif event_array[KeyboardInputEvent.EVENT_TYPE_ID_INDEX]==EventConstants.KEYBOARD_RELEASE and current_state is True:
+                    elif event_array[event_type_index]==EventConstants.KEYBOARD_RELEASE and current_state is True:
                         self._modifier_states[mod_key]=False
                         ioHubKeyboardDevice._modifier_value-=KeyboardConstants._modifierCodes.getID(mod_key)
         
-                event_array[KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('modifiers')]=ioHubKeyboardDevice._modifier_value
+                event_array[event_modifiers_index]=ioHubKeyboardDevice._modifier_value
                 self._addNativeEventToBuffer(event_array)
-                
-                self._last_callback_time=logged_time
         except:
             printExceptionDetailsToStdErr()
         

@@ -240,7 +240,7 @@ while QUIT_EXP is False:
             psychopy_key = psychopy_keys[0]
             psychopy_key_stim.setText(psychopy_key)
         if psychopy_key and psychopy_key != kbe.key:
-            psychopy_iohub_key_mismatch.setText("Key Values !=: [%s] vs [%s]"%(kbe.key, psychopy_key))
+            psychopy_iohub_key_mismatch.setText("!!io.key [%s] vs psychokey [%s] !!"%(kbe.key, psychopy_key))
         elif psychopy_key:
             psychopy_iohub_key_mismatch.setText("")
 
