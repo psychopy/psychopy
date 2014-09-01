@@ -17,7 +17,10 @@ import platform
 import tempfile, pickle
 import codecs
 
-tmpApp = wx.PySimpleApp()
+if wx.version() < '2.9':
+    tmpApp = wx.PySimpleApp()
+else:
+    tmpApp = wx.App(False)
 from psychopy.app import localization
 from psychopy import info, data, visual, gui, core, __version__, web, prefs, event
 

@@ -526,7 +526,10 @@ class ListWidget(GlobSizer):
         """
         pass
 if __name__=='__main__':
-    app = wx.PySimpleApp()
+    if wx.version() < '2.9':
+        app = wx.PySimpleApp()
+    else:
+        app = wx.App(False)
     dlg = wx.Dialog(None)
     init = [{'Field':'Participant','Default':''},{'Field':'Session','Default':'001'}]
     listCtrl = ListWidget(dlg, value = init, order=['Field','Default'])

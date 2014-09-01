@@ -739,6 +739,7 @@ class TextureMixin(object):
             data = intensity #float_uint8(intensity)
         elif pixFormat==GL.GL_ALPHA:
             internalFormat = GL.GL_ALPHA
+            dataType = GL.GL_UNSIGNED_BYTE
             if wasImage:
                 data = intensity
             else:
@@ -752,6 +753,7 @@ class TextureMixin(object):
             elif internalFormat==GL.GL_RGB32F_ARB:
                 internalFormat=GL.GL_RGBA32F_ARB
         texture = data.ctypes#serialise
+
         #bind the texture in openGL
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, id)#bind that name to the target

@@ -21,11 +21,13 @@ class ioHubDialog(object):
         self.dialog=None
         self.display_index=display_index
         if ioHubDialog.wxapp is None:
-            ioHubDialog.wxapp = wx.GetApp()
-        if ioHubDialog.wxapp is None:
-            ioHubDialog.wxapp = wx.App(False)
+            if wx.version() < '2.9':
+                ioHubDialog.wxapp = wx.PySimpleApp()
+            else:
+                ioHubDialog.wxapp = wx.GetApp()
+                if ioHubDialog.wxapp is None:
+                    ioHubDialog.wxapp = wx.App(False)
 
-        
     def set_frame_display(self):
         """
         Centers a wx window on the given Display index.

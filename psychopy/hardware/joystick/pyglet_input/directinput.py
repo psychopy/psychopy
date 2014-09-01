@@ -162,6 +162,10 @@ class DirectInputDevice(base.Device):
             index = event.dwOfs // 4
             self.controls[index]._set_value(event.dwData)
 
+    def dispatch_events(self):
+        # standardize the method signature
+        self._dispatch_events()
+
 _i_dinput = None
 
 def _init_directinput():
