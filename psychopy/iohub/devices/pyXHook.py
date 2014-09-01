@@ -358,15 +358,15 @@ class HookManager(threading.Thread):
             #auto_repeat = 0                 
 
         # See if there is a unicode mapping for the character....
-        key=''
+        uchar=''
         ucode=keysym2ucs(keysym)
         if ucode!=-1:
-            key=unichr(ucode).encode('utf-8')
+            uchar=unichr(ucode).encode('utf-8')
         else:
             # If not, use the generated mapping tables to get a key label
             ucode=0
-            key=unicode(self.lookup_keysym(keysym),encoding='utf-8')
-        uchar = key
+            uchar=unicode(self.lookup_keysym(keysym),encoding='utf-8')
+
 
         storewm = self.xwindowinfo()
 

@@ -24,54 +24,46 @@ class Keyboard(ioHubKeyboardDevice):
     def _nativeEventCallback(self,event):        
         try:            
             self._last_callback_time = getTime()
-
             if self.isReportingEvents():             
                 event_array=event[0]
-                from . import KeyboardInputEvent        
+                from . import KeyboardInputEvent  
+                
+                print2err('--')
+                ## Check if key event window id is in list of psychopy
+                #  windows and what report_system_wide_events value is                 
+                win_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('window_id')
                 report_system_wide_events = self.getConfiguration().get(
                 'report_system_wide_events', True)
-
-                win_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('window_id')
-
                 pyglet_window_hnds = self._iohub_server._pyglet_window_hnds
+                
+                # win id seems to be OK on win and linux. OSX untested.
+                # print2err('winID, id_list: ',pyglet_window_hnds," , ",event_array[win_id_index])
+                
                 if event_array[win_id_index] in pyglet_window_hnds:
                     pass
-                elif len(
-                        pyglet_window_hnds) > 0 and report_system_wide_events is False:
-                    # For keyboard, when report_system_wide_events is false
-                    # do not record kb events that are not targeted for
-                    # a PsychoPy window, still allow them to pass to the desktop 
-                    # apps.
+                elif len(pyglet_window_hnds) > 0 and report_system_wide_events is False:
                     return True
 
-
                 auto_repeated_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('auto_repeated')
-                #key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
+                key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
                 key_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key_id')
                 event_type_index = KeyboardInputEvent.EVENT_TYPE_ID_INDEX
-                event_id_index = KeyboardInputEvent.EVENT_ID_INDEX
                 event_modifiers_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('modifiers')
-                
+
+                # Check if the event is an auto repeat event or not, and
+                # what the state of _report_auto_repeats is.
                 key_already_pressed = self._key_states.get(event_array[key_id_index], None)
                 if key_already_pressed and  event_array[event_type_index] == EventConstants.KEYBOARD_PRESS:
                     event_array[auto_repeated_index] = key_already_pressed[1] + 1
                     if self._report_auto_repeats is False and event_array[auto_repeated_index] > 0:
                         return True
-    
-          
-                duration = 0.0
-                press_event_id = 0
-                # TODO: Set duration of key down event
-                # and the associated press event id for the release event.
-                if event_array[event_type_index]==EventConstants.KEYBOARD_RELEASE:
-                    duration = 1.0   
-                    press_event_id = 0
-                    # update necessary 2 fields in array....
-            
-                
+
+                # set event id for event since it has passed all filters
+                event_id_index = KeyboardInputEvent.EVENT_ID_INDEX
                 event_array[event_id_index]=Computer._getNextEventID()
                 
-                mod_key=event_array[key_id_index]
+                print2err('mod key:',event_array[key_id_index]," , ",self._modifier_states.keys())
+                mod_key=event_array[key_index]
                 if mod_key in self._modifier_states.keys():
                     current_state=self._modifier_states[mod_key]
                     if event_array[event_type_index]==EventConstants.KEYBOARD_PRESS and current_state is False:
@@ -82,6 +74,11 @@ class Keyboard(ioHubKeyboardDevice):
                         ioHubKeyboardDevice._modifier_value-=KeyboardConstants._modifierCodes.getID(mod_key)
         
                 event_array[event_modifiers_index]=ioHubKeyboardDevice._modifier_value
+                is_pressed = event_array[event_type_index] == EventConstants.KEYBOARD_PRESS
+                
+                self._updateKeyboardEventState(event_array, is_pressed)          
+
+
                 self._addNativeEventToBuffer(event_array)
         except:
             printExceptionDetailsToStdErr()
