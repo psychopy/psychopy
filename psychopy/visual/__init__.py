@@ -55,6 +55,7 @@ from psychopy.visual.circle import Circle
 # TextBox alternative to TextStim
 try:    
     # Ensure monospace Fonts are available ....
+    import textbox
     font_names = []
     from textbox import getFontManager
     fm=getFontManager()
