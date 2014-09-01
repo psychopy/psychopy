@@ -21,7 +21,9 @@ class ioHubDialog(object):
         self.dialog=None
         self.display_index=display_index
         if ioHubDialog.wxapp is None:
-            ioHubDialog.wxapp = wx.PySimpleApp()
+            ioHubDialog.wxapp = wx.GetApp()
+        if ioHubDialog.wxapp is None:
+            ioHubDialog.wxapp = wx.App(False)
 
         
     def set_frame_display(self):
