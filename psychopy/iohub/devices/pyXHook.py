@@ -372,6 +372,9 @@ class HookManager(threading.Thread):
 
         # Key == psychpy key event vals == psyglet key strings lower()
         key = keymapper.symbol_string(unshifted_keysym).lower()
+        if len(key) > 1 and key[0] == '_':
+            # handle fixup of number key variable name strings.
+            key = key[:-1]
         #print2err('keymapper: ',unshifted_keysym," ", keysym2ucs(unshifted_keysym)," ",key)
         #print2err("Key Event: ", key, " ", uchar, " ", keysym, " ", event.state,'\n----')
                         

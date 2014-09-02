@@ -130,13 +130,13 @@ VK_OEM_COMMA = 0xBC
 VK_OEM_MINUS = 0xBD
 VK_OEM_PERIOD = 0xBE
 #endif
-VK_OEM_2 = 0xBF
-VK_OEM_3 = 0xC0
-VK_OEM_4 = 0xDB
-VK_OEM_5 = 0xDC
-VK_OEM_6 = 0xDD
-VK_OEM_7 = 0xDE
-VK_OEM_8 = 0xDF
+#VK_OEM_2 = 0xBF
+#VK_OEM_3 = 0xC0
+#VK_OEM_4 = 0xDB
+#VK_OEM_5 = 0xDC
+#VK_OEM_6 = 0xDD
+#VK_OEM_7 = 0xDE
+#VK_OEM_8 = 0xDF
 #if (_WIN32_WINNT >= 0x0500)
 VK_OEM_102 = 0xE2
 #endif
@@ -153,3 +153,11 @@ VK_ZOOM = 0xFB
 VK_NONAME = 0xFC
 VK_PA1 = 0xFD
 VK_OEM_CLEAR = 0xFE
+
+_vkey_names = {}
+for _name, _value in locals().copy().items():
+    if _name[:2] != '__' and _name.upper() == _name and _name.startswith('VK_'):
+        _vkey_names[_value] = _name[3:]
+        if _name[3:].startswith('OEM_'):
+            _vkey_names[_value] = _name[7:]    
+
