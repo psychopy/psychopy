@@ -421,6 +421,9 @@ class DeviceMonitor(Greenlet):
                 gevent.sleep(i)
             else:
                 gevent.sleep(0.0)
+                
+    def __del__(self):
+        self.device = None
 
 class ioServer(object):
     eventBuffer=None
@@ -620,6 +623,12 @@ class ioServer(object):
                             if pythoncom.PumpWaitingMessages() == 1:
                                 raise KeyboardInterrupt()               
         
+                        def __del__(self):
+                            #if self._mouseHooked and self._hookManager:
+                            #    self._hookManager.UnhookMouse()
+                            #elif self._keyboardHooked and self._hookManager:
+                            #    self._hookManager.UnhookKeyboard()
+                            self._hookManager=None
                     #print2err("Creating pyHook Monitor......")
                     self._hookDevice=pyHookDevice()
                     hookMonitor=DeviceMonitor(self._hookDevice, self.config.get('windows_msgpump_interval', 0.00375))
@@ -896,7 +905,13 @@ class ioServer(object):
             if Computer.system=='linux2':
                 if self._hookManager:
                     self._hookManager.cancel()
-    
+            elif Computer.system=='win32':
+                if self._hookDevice and self._hookDevice._hookManager:
+                    #self._hookDevice._hookManager = None #.UnhookMouse()
+                    #self._hookDevice._hookManager.UnhookKeyboard()
+                    self._hookDevice._hookManager = None
+                    self._hookDevice = None
+                    
             while len(self.deviceMonitors) > 0:
                 m=self.deviceMonitors.pop(0)
                 m.running=False

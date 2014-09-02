@@ -585,7 +585,7 @@ class EyeTracker(EyeTrackerDevice):
                                 if ic == 2:
                                     g[i]=g[i]/2.0
                                 elif ic == 0:
-                                    g[i]=0 //pylink.MISSING_DATA
+                                    g[i]=0 #pylink.MISSING_DATA
                             
                             self._latest_gaze_position=g
                         else:
