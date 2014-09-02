@@ -28,7 +28,7 @@ class Keyboard(ioHubKeyboardDevice):
                 event_array=event[0]
                 from . import KeyboardInputEvent  
                 
-                print2err('--')
+                #print2err('--')
                 ## Check if key event window id is in list of psychopy
                 #  windows and what report_system_wide_events value is                 
                 win_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('window_id')
@@ -37,7 +37,7 @@ class Keyboard(ioHubKeyboardDevice):
                 pyglet_window_hnds = self._iohub_server._pyglet_window_hnds
                 
                 # win id seems to be OK on win and linux. OSX untested.
-                print2err('winID, id_list: ',pyglet_window_hnds," , ",event_array[win_id_index])
+                #print2err('winID, id_list: ',pyglet_window_hnds," , ",event_array[win_id_index])
                 
                 if event_array[win_id_index] in pyglet_window_hnds:
                     pass
@@ -56,9 +56,10 @@ class Keyboard(ioHubKeyboardDevice):
                 auto_repeat_count = event_array[auto_repeated_index] 
                 # Check if the event is an auto repeat event or not, and
                 # what the state of _report_auto_repeats is.
-                print2err('auto_repeat_count: ',auto_repeat_count,
-                          " , ",is_pressed, " : ", 
-                          self._report_auto_repeats)
+
+                #print2err('auto_repeat_count: ',auto_repeat_count," , ",
+                #         is_pressed, " : ", self._report_auto_repeats)
+                
                 if auto_repeat_count > 0 and is_pressed:
                     if self._report_auto_repeats is False:
                         return True
@@ -66,9 +67,9 @@ class Keyboard(ioHubKeyboardDevice):
                 # set event id for event since it has passed all filters
                 event_id_index = KeyboardInputEvent.EVENT_ID_INDEX
                 event_array[event_id_index]=Computer._getNextEventID()
-                
-                modifiers_state = event_array[event_modifiers_index]               
-                print2err('modifiers_state:', modifiers_state)
+   
+                ioHubKeyboardDevice._modifier_value = event_array[event_modifiers_index]  
+                #print2err('Issueing KB Event:', event_array[event_id_index])
                                 
                 self._updateKeyboardEventState(event_array, is_pressed)          
 

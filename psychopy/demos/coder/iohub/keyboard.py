@@ -257,7 +257,7 @@ while QUIT_EXP is False:
         demo_timeout_start = kbe.time
 
         if (kbe.key.lower() == 'q' and (
-                        'CONTROL_LEFT' in kbe.modifiers or 'CONTROL_LEFT' in kbe.modifiers)):
+                        'CONTROL_LEFT' in kbe.modifiers or 'CONTROL_RIGHT' in kbe.modifiers)):
             QUIT_EXP = True
             break
 

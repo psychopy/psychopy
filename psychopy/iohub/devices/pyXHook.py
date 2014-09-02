@@ -44,11 +44,9 @@
 #             - optimized keysym lookup by loading into a dict cache
 #             - started adding support for reporting unicode keys
 
-import re
-import time
 import threading
 import unicodedata
-from Xlib import X, XK, display#, error
+from Xlib import X, XK, display
 from Xlib.ext import record
 from Xlib.protocol import rq
 from keyboard.keysym2ucs import keysym2ucs
@@ -58,7 +56,6 @@ from ..constants import EventConstants,MouseConstants, ModifierKeyCodes
 
 getTime = Computer.getTime
 
-X.NumLockMask = (1<<4)
 #######################################################################
 ########################START CLASS DEF################################
 #######################################################################
@@ -95,10 +92,10 @@ class HookManager(threading.Thread):
 
         # Used to hold any keys currently pressed and the repeat count
         # of each key.
-        # If a charsym is not in the dict, it is not pressed.
+        # If a key str is not in the dict, it is not pressed.
         # If it is in the list, the value == the number of times
         # a press event has been reeived for the key and no
-        # release event. So values > 1 == auto repeat keys.
+        # release event. So values >= 1 == auto repeat keys.
         self.key_states=dict()
 
         self.contextEventMask = [X.KeyPress,X.MotionNotify]
@@ -157,13 +154,13 @@ class HookManager(threading.Thread):
     def HookMouse(self):
         pass
 
-    def isKeyPressed(self,keysym):
+    def isKeyPressed(self,key_str_id):
         """
         Returns 0 if key is not pressed, otherwise a
         possitive int, representing the auto repeat count ( return val - 1)
         of key press events that have occurred for the key.
         """
-        return self.key_states.get(keysym,0)
+        return self.key_states.get(key_str_id,0)
 
     def getPressedKeys(self,repeatCounts=False):
         """
@@ -269,81 +266,43 @@ class HookManager(threading.Thread):
     def code2iokeysym(self,keysym):
         return self._XK_CODE2NAMES.get(keysym,["[%d]"%(keysym),])[0]
 
-    def updateKeysPressedState(self, key_code, pressed_event):
-        matchto_sym=self.local_dpy.keycode_to_keysym(key_code, 0)        
-        keyautocount=self.key_states.setdefault(matchto_sym,0)
+    def updateKeysPressedState(self, key_str, pressed_event):       
+        keyautocount=self.key_states.setdefault(key_str,-1)
         
         if pressed_event:
-            self.key_states[matchto_sym]=keyautocount+1
+            self.key_states[key_str]=keyautocount+1
         else:
-            del self.key_states[matchto_sym]
+            del self.key_states[key_str]
                 
     def makekeyhookevent(self, event):
         """
-        Creates an incomplete ioHub keyboard event in list format. It is incomplete
-        as some of the elements of the array are filled in by the ioHub server when
-        it receives the events.
+        Creates a ioHub keyboard event in list format, completing as much
+        as possible from within pyXHook. 
 
-        For event attributes see: http://python-xlib.sourceforge.net/doc/html/python-xlib_13.html
-
-        time
-        The server X time when this event was generated.
-
-        root
-        The root window which the source window is an inferior of.
-
-        window
-        The window the event is reported on.
-
-        same_screen
-        Set to 1 if window is on the same screen as root, 0 otherwise.
-
-        child
-        If the source window is an inferior of window, child is set to the child of window that is the ancestor of (or is) the source window. Otherwise it is set to X.NONE.
-
-        root_x
-        root_y
-        The pointer coordinates at the time of the event, relative to the root window.
-
-        event_x
-        event_y
-        The pointer coordinates at the time of the event, relative to window. If window is not on the same screen as root, these are set to 0.
-
-        state
-        The logical state of the button and modifier keys just before the event.
-
-        detail
-        For KeyPress and KeyRelease, this is the keycode of the event key.
-        For ButtonPress and ButtonRelease, this is the button of the event.
-        For MotionNotify, this is either X.NotifyNormal or X.NotifyHint.
+        For xlib KeyPress and KeyRelease event attributes see: 
+        http://python-xlib.sourceforge.net/doc/html/python-xlib_13.html
         """
-        keysym=None
-        uchar = u''
-        ucode = 0
-        modifier_key_state = 0
-                
         mod_mask = event.state
         key_code = event.detail
 
+        uchar = u''
+        ucode = 0
+        modifier_key_state = 0
+        is_pressed_key = True        
         auto_repeat_count=0
-                 
-        if event.type == X.KeyPress:
-            # Now done in lunux2.py            
-            self.updateKeysPressedState(key_code,True)
-            ioHubEventID=EventConstants.KEYBOARD_PRESS
-            auto_repeat_count = self.local_dpy.keycode_to_keysym(key_code, 0)
-            
-        elif event.type == X.KeyRelease:
-            # Now done in lunux2.py            
-            self.updateKeysPressedState(key_code,False)        
-            ioHubEventID =EventConstants.KEYBOARD_RELEASE   
-            auto_repeat_count = 0                 
-
-            
         key=None
         unshifteducode=0
+                 
+        if event.type == X.KeyPress:
+            event_type_id=EventConstants.KEYBOARD_PRESS            
+        elif event.type == X.KeyRelease:
+            is_pressed_key = False
+            event_type_id =EventConstants.KEYBOARD_RELEASE   
+            auto_repeat_count = 0                 
+            
+        # Start by getting the default evt.key value for the event
+        #
         unshifted_keysym = self.local_dpy.keycode_to_keysym(key_code, 0)
-
         unshifteducode=keysym2ucs(unshifted_keysym)
         if unshifteducode!=-1:
             key=unichr(unshifteducode).encode('utf-8')
@@ -351,33 +310,40 @@ class HookManager(threading.Thread):
             # If not, use the generated mapping tables to get a key label
             key=unicode(self.lookup_keysym(unshifted_keysym),encoding='utf-8')
             unshifteducode=0
+        # May as well set the char field to == key to start,
         uchar=key
         ucode = unshifteducode
         
+        # Now get char for the pressed key that factors in any active
+        # shift modifiers, updating the evt char field.
+        #
         shiftuchar=None       
         lockuchar = None
         if mod_mask & X.ShiftMask == X.ShiftMask:
             shiftkeysym = self.local_dpy.keycode_to_keysym(key_code, 1)
             shiftucode=keysym2ucs(shiftkeysym)
-            #print2err("mod_mask & X.ShiftMask: ",mod_mask & X.ShiftMask," , ",shiftkeysym," , ",shiftucode)
             if shiftucode!=-1:
                 shiftuchar=unichr(shiftucode).encode('utf-8')
             else:
-                # If not, use the generated mapping tables to get a key label
                 shiftucode=0
                 shiftuchar=unicode(self.lookup_keysym(shiftkeysym),encoding='utf-8')
             
             if shiftuchar:
                 uchar = shiftuchar
                 ucode = shiftucode        
+        
+        # If a shift modifier is active, CAPS_LOCK is skipped by iohub
+        # right now. Not sure if this results in expected key vs char values
+        # all the time; but looks good to me so far. If a shift mod
+        # is not pressed, then act on the CAPS_LOCK being active and update.
+        # char field
+        #
         elif mod_mask & X.LockMask == X.LockMask:
             lockkeysym = self.local_dpy.keycode_to_keysym(key_code, 2)
             lockucode=keysym2ucs(lockkeysym)
-            #print2err("mod_mask & X.LockMask: ",mod_mask & X.ShiftMask," , ",lockkeysym," , ",lockucode)
             if lockucode!=-1:
                 lockuchar=unichr(lockucode).encode('utf-8')
             else:
-                # If not, use the generated mapping tables to get a key label
                 lockucode=0
                 lockuchar=unicode(self.lookup_keysym(lockkeysym),encoding='utf-8')
 
@@ -392,70 +358,69 @@ class HookManager(threading.Thread):
                         uchar = uchar.upper()
 
 
+        # Finally, update char value if NUM_LOCK is active.
         numlckuchar = None
         if mod_mask & 16 == 16:
             numlckkeysym = self.local_dpy.keycode_to_keysym(key_code, 3)
             numlckucode=keysym2ucs(numlckkeysym)
-            #print2err("mod_mask & 16: ",mod_mask & 16," , ",numlckkeysym," , ",numlckucode)
             if numlckucode!=-1:
                 numlckuchar=unichr(numlckucode).encode('utf-8')
             else:
-                # If not, use the generated mapping tables to get a key label
                 numlckucode=0
                 numlckuchar=unicode(self.lookup_keysym(numlckkeysym),encoding='utf-8')
 
             if numlckuchar and numlckuchar.lower().startswith('keypad_'):
                 uchar =  u'num_'+numlckuchar.lower()[7:]
- 
-
+        
+        # Clean up the labels for uchar and key fields
+        # that do not have a natural glyph.
         if uchar and len(uchar)>1:
-            uchar = uchar.lower()
-            
+            uchar = uchar.lower()            
         if uchar and uchar.startswith('keypad_'):
             uchar =  u'num_'+uchar[7:]
         elif uchar and (uchar.startswith('vk_') or uchar.startswith('xk_')):
             uchar = u''+uchar[3:]
             if uchar.startswith('kp_'):
                 uchar = u'num_'+uchar[3:]
-
+        
+        key = key.lower()        
         if key and key.startswith('keypad_'):
             key =  u'num_'+key[7:]
         elif key and (key.startswith('vk_') or key.startswith('xk_')):
-            key = u''+key[3:]
+            key = key[3:]
             if key.startswith('kp_'):
                 key = u'num_'+key[3:]
 
+        if uchar == u'[0]':
+            uchar = key
+
+
+        # Update currently active modifiers
+        #
         if mod_mask & 2 == 2:
             # CAPSLOCK is active:
             modifier_key_state+=ModifierKeyCodes.CAPS_LOCK
+
         if mod_mask & 16 == 16:
-            # CAPSLOCK is active:
-            modifier_key_state+=ModifierKeyCodes.NUMLOCK
+            # NUM_LOCK is active:
+            modifier_key_state+=ModifierKeyCodes.NUM_LOCK
 
-        # TODO: Update modifier_key_state based on which
-        # modifier keys are currently pressed.
-#        modifier_key_state+=ModifierKeyCodes.CAPS_LOCK
-#        modifier_key_state+=ModifierKeyCodes.NUMLOCK
-#        modifier_key_state+=ModifierKeyCodes.SHIFT_LEFT
-#        modifier_key_state+=ModifierKeyCodes.SHIFT_RIGHT
-#        modifier_key_state+=ModifierKeyCodes.CONTROL_LEFT
-#        modifier_key_state+=ModifierKeyCodes.CONTROL_RIGHT
-#        modifier_key_state+=ModifierKeyCodes.ALT_LEFT
-#        modifier_key_state+=ModifierKeyCodes.ALT_RIGHT
-#        modifier_key_state+=ModifierKeyCodes.COMMAND_LEFT
-#        modifier_key_state+=ModifierKeyCodes.COMMAND_RIGHT
-#
-#        modifier_key_state+=ModifierKeyCodes.MOD_FUNCTION
-#        modifier_key_state+=ModifierKeyCodes.MOD_HELP
-                
-#        print2err("key and uchars: ", key ," , ", uchar , " , " , shiftuchar, " , " ,
-#                  lockuchar , " , " , numlckuchar , " , ",mod_mask)#,
+        self.updateKeysPressedState(key,is_pressed_key)
 
+        pressed_key_list = self.getPressedKeys()
+        for pk in pressed_key_list:
+            if pk not in ['caps_lock','num_lock']:
+                is_mod_id = ModifierKeyCodes.getID(pk.upper())
+                if is_mod_id:
+                    modifier_key_state+=is_mod_id
+
+
+        #return event to iohub
         return [[0,
                 0,
                 0, #device id (not currently used)
                 0, #to be assigned by ioHub server# Computer._getNextEventID(),
-                ioHubEventID,
+                event_type_id,
                 event.time*self.DEVICE_TIME_TO_SECONDS,
                 event.iohub_logged_time,
                 event.iohub_logged_time,
@@ -516,29 +481,29 @@ class HookManager(threading.Thread):
         """
         px,py = event.root_x,event.root_y
         storewm = self.xwindowinfo()
-        ioHubEventID=0
+        event_type_id=0
         event_state=[]
         event_detail=[]
         dy=0
 
         if event.type == 6:
             if event.state < 128:
-                ioHubEventID=EventConstants.MOUSE_MOVE
+                event_type_id=EventConstants.MOUSE_MOVE
             else:
-                ioHubEventID=EventConstants.MOUSE_DRAG
+                event_type_id=EventConstants.MOUSE_DRAG
 
         if event.type in [4,5]:
             if event.type == 5:
-                ioHubEventID=EventConstants.MOUSE_BUTTON_RELEASE
+                event_type_id=EventConstants.MOUSE_BUTTON_RELEASE
             elif event.type == 4:
-                ioHubEventID=EventConstants.MOUSE_BUTTON_PRESS
+                event_type_id=EventConstants.MOUSE_BUTTON_PRESS
 
             if event.detail == 4 and event.type==4:
-                ioHubEventID=EventConstants.MOUSE_SCROLL
+                event_type_id=EventConstants.MOUSE_SCROLL
                 self.scroll_y+=1
                 dy=1
             elif event.detail == 5 and event.type==4:
-                ioHubEventID=EventConstants.MOUSE_SCROLL
+                event_type_id=EventConstants.MOUSE_SCROLL
                 self.scroll_y-=1
                 dy=-1
 
@@ -570,7 +535,7 @@ class HookManager(threading.Thread):
         currentButton=0
         pressed=0
         currentButtonID=0
-        if event.type in [4,5] and ioHubEventID != EventConstants.MOUSE_SCROLL:
+        if event.type in [4,5] and event_type_id != EventConstants.MOUSE_SCROLL:
 
             currentButton=self.ioHubMouseButtonMapping.get(event.detail)
             currentButtonID=MouseConstants.getID(currentButton)
@@ -586,7 +551,7 @@ class HookManager(threading.Thread):
                 0,
                 0, #device id (not currently used)
                 0, #to be assigned by ioHub server# Computer._getNextEventID(),
-                ioHubEventID,
+                event_type_id,
                 event.time*self.DEVICE_TIME_TO_SECONDS ,
                 event.iohub_logged_time,
                 event.iohub_logged_time,

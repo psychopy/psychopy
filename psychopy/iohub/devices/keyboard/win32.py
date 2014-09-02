@@ -38,7 +38,7 @@ class Keyboard(ioHubKeyboardDevice):
         win32_vk.VK_MENU: 'MOD_ALT',
         win32_vk.VK_CONTROL: 'MOD_CTRL',
         #win32_vk. : 'MOD_CMD',
-        win32_vk.VK_NUMLOCK: 'NUMLOCK'
+        win32_vk.VK_NUM_LOCK: 'NUM_LOCK'
     }
 
 
