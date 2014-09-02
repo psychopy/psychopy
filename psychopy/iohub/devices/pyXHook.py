@@ -47,15 +47,14 @@
 import re
 import time
 import threading
-
+import unicodedata
 from Xlib import X, XK, display#, error
 from Xlib.ext import record
 from Xlib.protocol import rq
 from keyboard.keysym2ucs import keysym2ucs
-import pyglet.window.key as keymapper
 from .. import print2err
 from ..devices import Computer
-from ..constants import EventConstants,MouseConstants
+from ..constants import EventConstants,MouseConstants, ModifierKeyCodes
 
 getTime = Computer.getTime
 
@@ -319,65 +318,139 @@ class HookManager(threading.Thread):
         For MotionNotify, this is either X.NotifyNormal or X.NotifyHint.
         """
         keysym=None
-#        auto_repeat=0        
-
-        #modifiers = 0
-#        X.ShiftMask
-#        if state & xlib.ShiftMask:
-#            modifiers |= key.MOD_SHIFT
-#        if state & xlib.ControlMask:
-#            modifiers |= key.MOD_CTRL
-#        if state & xlib.LockMask:
-#            modifiers |= key.MOD_CAPSLOCK
-#        if state & xlib.Mod1Mask:
-#            modifiers |= key.MOD_ALT
-#        if state & xlib.Mod2Mask:
-#            modifiers |= key.MOD_NUMLOCK
-#        if state & xlib.Mod4Mask:
-#            modifiers |= key.MOD_WINDOWS
-#        if state & xlib.Mod5Mask:
-#            modifiers |= key.MOD_SCROLLLOCK
-#        return modifiers
-        
+        uchar = u''
+        ucode = 0
+        modifier_key_state = 0
+                
         mod_mask = event.state
-        key_code = event.detail      
-        key_shifted = mod_mask & X.ShiftMask or mod_mask & X.LockMask
-        unshifted_keysym = self.local_dpy.keycode_to_keysym(key_code, 0)
-        keysym = self.local_dpy.keycode_to_keysym(key_code, key_shifted)
-        
+        key_code = event.detail
+
+        auto_repeat_count=0
+                 
         if event.type == X.KeyPress:
             # Now done in lunux2.py            
-            # self.updateKeysPressedState(key_code,True)
+            self.updateKeysPressedState(key_code,True)
             ioHubEventID=EventConstants.KEYBOARD_PRESS
-            #auto_repeat=self.key_states.get(unshifted_keysym)
+            auto_repeat_count = self.local_dpy.keycode_to_keysym(key_code, 0)
             
         elif event.type == X.KeyRelease:
             # Now done in lunux2.py            
-            #self.updateKeysPressedState(key_code,False)        
+            self.updateKeysPressedState(key_code,False)        
             ioHubEventID =EventConstants.KEYBOARD_RELEASE   
-            #auto_repeat = 0                 
+            auto_repeat_count = 0                 
 
-        # See if there is a unicode mapping for the character....
-        uchar=''
-        ucode=keysym2ucs(keysym)
-        if ucode!=-1:
-            uchar=unichr(ucode).encode('utf-8')
+            
+        key=None
+        unshifteducode=0
+        unshifted_keysym = self.local_dpy.keycode_to_keysym(key_code, 0)
+
+        unshifteducode=keysym2ucs(unshifted_keysym)
+        if unshifteducode!=-1:
+            key=unichr(unshifteducode).encode('utf-8')
         else:
             # If not, use the generated mapping tables to get a key label
-            ucode=0
-            uchar=unicode(self.lookup_keysym(keysym),encoding='utf-8')
+            key=unicode(self.lookup_keysym(unshifted_keysym),encoding='utf-8')
+            unshifteducode=0
+        uchar=key
+        ucode = unshifteducode
+        
+        shiftuchar=None       
+        lockuchar = None
+        if mod_mask & X.ShiftMask == X.ShiftMask:
+            shiftkeysym = self.local_dpy.keycode_to_keysym(key_code, 1)
+            shiftucode=keysym2ucs(shiftkeysym)
+            #print2err("mod_mask & X.ShiftMask: ",mod_mask & X.ShiftMask," , ",shiftkeysym," , ",shiftucode)
+            if shiftucode!=-1:
+                shiftuchar=unichr(shiftucode).encode('utf-8')
+            else:
+                # If not, use the generated mapping tables to get a key label
+                shiftucode=0
+                shiftuchar=unicode(self.lookup_keysym(shiftkeysym),encoding='utf-8')
+            
+            if shiftuchar:
+                uchar = shiftuchar
+                ucode = shiftucode        
+        elif mod_mask & X.LockMask == X.LockMask:
+            lockkeysym = self.local_dpy.keycode_to_keysym(key_code, 2)
+            lockucode=keysym2ucs(lockkeysym)
+            #print2err("mod_mask & X.LockMask: ",mod_mask & X.ShiftMask," , ",lockkeysym," , ",lockucode)
+            if lockucode!=-1:
+                lockuchar=unichr(lockucode).encode('utf-8')
+            else:
+                # If not, use the generated mapping tables to get a key label
+                lockucode=0
+                lockuchar=unicode(self.lookup_keysym(lockkeysym),encoding='utf-8')
+
+            if lockuchar:
+                uchar = lockuchar
+                ucode = lockucode
+
+            if uchar and len(uchar) == 1:
+                ucat = unicodedata.category(u''+uchar)
+                if len(ucat)>=2:
+                    if ucat[:2].lower() == 'll':
+                        uchar = uchar.upper()
 
 
-        storewm = self.xwindowinfo()
+        numlckuchar = None
+        if mod_mask & 16 == 16:
+            numlckkeysym = self.local_dpy.keycode_to_keysym(key_code, 3)
+            numlckucode=keysym2ucs(numlckkeysym)
+            #print2err("mod_mask & 16: ",mod_mask & 16," , ",numlckkeysym," , ",numlckucode)
+            if numlckucode!=-1:
+                numlckuchar=unichr(numlckucode).encode('utf-8')
+            else:
+                # If not, use the generated mapping tables to get a key label
+                numlckucode=0
+                numlckuchar=unicode(self.lookup_keysym(numlckkeysym),encoding='utf-8')
 
-        # Key == psychpy key event vals == psyglet key strings lower()
-        key = keymapper.symbol_string(unshifted_keysym).lower()
-        if len(key) > 1 and key[0] == '_':
-            # handle fixup of number key variable name strings.
-            key = key[:-1]
-        #print2err('keymapper: ',unshifted_keysym," ", keysym2ucs(unshifted_keysym)," ",key)
-        #print2err("Key Event: ", key, " ", uchar, " ", keysym, " ", event.state,'\n----')
-                        
+            if numlckuchar and numlckuchar.lower().startswith('keypad_'):
+                uchar =  u'num_'+numlckuchar.lower()[7:]
+ 
+
+        if uchar and len(uchar)>1:
+            uchar = uchar.lower()
+            
+        if uchar and uchar.startswith('keypad_'):
+            uchar =  u'num_'+uchar[7:]
+        elif uchar and (uchar.startswith('vk_') or uchar.startswith('xk_')):
+            uchar = u''+uchar[3:]
+            if uchar.startswith('kp_'):
+                uchar = u'num_'+uchar[3:]
+
+        if key and key.startswith('keypad_'):
+            key =  u'num_'+key[7:]
+        elif key and (key.startswith('vk_') or key.startswith('xk_')):
+            key = u''+key[3:]
+            if key.startswith('kp_'):
+                key = u'num_'+key[3:]
+
+        if mod_mask & 2 == 2:
+            # CAPSLOCK is active:
+            modifier_key_state+=ModifierKeyCodes.CAPS_LOCK
+        if mod_mask & 16 == 16:
+            # CAPSLOCK is active:
+            modifier_key_state+=ModifierKeyCodes.NUMLOCK
+
+        # TODO: Update modifier_key_state based on which
+        # modifier keys are currently pressed.
+#        modifier_key_state+=ModifierKeyCodes.CAPS_LOCK
+#        modifier_key_state+=ModifierKeyCodes.NUMLOCK
+#        modifier_key_state+=ModifierKeyCodes.SHIFT_LEFT
+#        modifier_key_state+=ModifierKeyCodes.SHIFT_RIGHT
+#        modifier_key_state+=ModifierKeyCodes.CONTROL_LEFT
+#        modifier_key_state+=ModifierKeyCodes.CONTROL_RIGHT
+#        modifier_key_state+=ModifierKeyCodes.ALT_LEFT
+#        modifier_key_state+=ModifierKeyCodes.ALT_RIGHT
+#        modifier_key_state+=ModifierKeyCodes.COMMAND_LEFT
+#        modifier_key_state+=ModifierKeyCodes.COMMAND_RIGHT
+#
+#        modifier_key_state+=ModifierKeyCodes.MOD_FUNCTION
+#        modifier_key_state+=ModifierKeyCodes.MOD_HELP
+                
+#        print2err("key and uchars: ", key ," , ", uchar , " , " , shiftuchar, " , " ,
+#                  lockuchar , " , " , numlckuchar , " , ",mod_mask)#,
+
         return [[0,
                 0,
                 0, #device id (not currently used)
@@ -389,13 +462,13 @@ class HookManager(threading.Thread):
                 0.0, # confidence interval not set for keybaord or mouse devices.
                 0.0, # delay not set for keybaord or mouse devices.
                 0,   # filter level not used
-                0, # auto_repeat to be filled in within linux2.py ,
-                event.detail, #scan / Keycode of event.
-                keysym, # KeyID / VK code for key pressed
+                auto_repeat_count, # auto_repeat 
+                unshifted_keysym,#scan / Keycode of event.
+                event.detail, # KeyID / VK code for key pressed
                 ucode,  # unicode value for char, otherwise, 0
                 key, #psychpy key event val
-                event.state,  # The logical state of the button and modifier keys just before the event.
-                int(storewm["handle"], base=16),
+                modifier_key_state,  # The logical state of the button and modifier keys just before the event.
+                int(self.xwindowinfo()["handle"], base=16),
                 uchar,# utf-8 encoded char or label for the key. (depending on whether it is a visible char or not)
                 0.0,
                 0

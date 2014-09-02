@@ -37,7 +37,7 @@ class Keyboard(ioHubKeyboardDevice):
                 pyglet_window_hnds = self._iohub_server._pyglet_window_hnds
                 
                 # win id seems to be OK on win and linux. OSX untested.
-                # print2err('winID, id_list: ',pyglet_window_hnds," , ",event_array[win_id_index])
+                print2err('winID, id_list: ',pyglet_window_hnds," , ",event_array[win_id_index])
                 
                 if event_array[win_id_index] in pyglet_window_hnds:
                     pass
@@ -50,32 +50,26 @@ class Keyboard(ioHubKeyboardDevice):
                 event_type_index = KeyboardInputEvent.EVENT_TYPE_ID_INDEX
                 event_modifiers_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('modifiers')
 
+                is_pressed = event_array[event_type_index] == EventConstants.KEYBOARD_PRESS
+
+                # AUto repeat value provided by pyXHook code
+                auto_repeat_count = event_array[auto_repeated_index] 
                 # Check if the event is an auto repeat event or not, and
                 # what the state of _report_auto_repeats is.
-                key_already_pressed = self._key_states.get(event_array[key_id_index], None)
-                if key_already_pressed and  event_array[event_type_index] == EventConstants.KEYBOARD_PRESS:
-                    event_array[auto_repeated_index] = key_already_pressed[1] + 1
-                    if self._report_auto_repeats is False and event_array[auto_repeated_index] > 0:
+                print2err('auto_repeat_count: ',auto_repeat_count,
+                          " , ",is_pressed, " : ", 
+                          self._report_auto_repeats)
+                if auto_repeat_count > 0 and is_pressed:
+                    if self._report_auto_repeats is False:
                         return True
 
                 # set event id for event since it has passed all filters
                 event_id_index = KeyboardInputEvent.EVENT_ID_INDEX
                 event_array[event_id_index]=Computer._getNextEventID()
                 
-                print2err('mod key:',event_array[key_id_index]," , ",self._modifier_states.keys())
-                mod_key=event_array[key_index]
-                if mod_key in self._modifier_states.keys():
-                    current_state=self._modifier_states[mod_key]
-                    if event_array[event_type_index]==EventConstants.KEYBOARD_PRESS and current_state is False:
-                        self._modifier_states[mod_key]=True
-                        ioHubKeyboardDevice._modifier_value+=KeyboardConstants._modifierCodes.getID(mod_key)
-                    elif event_array[event_type_index]==EventConstants.KEYBOARD_RELEASE and current_state is True:
-                        self._modifier_states[mod_key]=False
-                        ioHubKeyboardDevice._modifier_value-=KeyboardConstants._modifierCodes.getID(mod_key)
-        
-                event_array[event_modifiers_index]=ioHubKeyboardDevice._modifier_value
-                is_pressed = event_array[event_type_index] == EventConstants.KEYBOARD_PRESS
-                
+                modifiers_state = event_array[event_modifiers_index]               
+                print2err('modifiers_state:', modifiers_state)
+                                
                 self._updateKeyboardEventState(event_array, is_pressed)          
 
 
