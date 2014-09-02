@@ -423,7 +423,8 @@ class Keyboard(ioHubDeviceView):
             key = pumpKeys()
             if key:
                 return key
-            time.sleep(checkInterval-(getTime()-ltime))
+            sleep_dur=max(checkInterval-(getTime()-ltime),0.0001)
+            time.sleep(sleep_dur)
 
         while getTime() < timeout:
             key = pumpKeys()

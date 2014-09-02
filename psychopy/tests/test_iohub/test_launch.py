@@ -97,4 +97,4 @@ def testDefaultServerLaunch():
     
 
 if __name__ == '__main__':
-    testDefaultLaunch()
+    testDefaultServerLaunch()
