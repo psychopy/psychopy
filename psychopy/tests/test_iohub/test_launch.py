@@ -8,9 +8,17 @@
 import pytest
 import os
 
+imports_ok = False
 travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
-from psychopy.iohub import launchHubServer, Computer, EventConstants
+try:
+    from psychopy.iohub import launchHubServer, Computer, EventConstants
+    imports_ok = True
+except:
+    print "psychopy.iohub could not be imported:"
+    import traceback
+    traceback.print_exc()
+
 from psychopy.core import getTime
     
 def testDefaultServerLaunch():
@@ -97,4 +105,5 @@ def testDefaultServerLaunch():
     
 
 if __name__ == '__main__':
-    testDefaultServerLaunch()
+    if imports_ok is True:
+        testDefaultServerLaunch()
