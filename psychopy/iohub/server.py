@@ -656,7 +656,8 @@ class ioServer(object):
                 from .devices import pyXHook
                 if self._hookManager is None:
                     #iohub.log("Creating pyXHook Monitors....")
-                    self._hookManager = pyXHook.HookManager()
+                    log_events = self.config.get('log_raw_kb_mouse_events',False)
+                    self._hookManager = pyXHook.HookManager(log_events)
                     self._hookManager._mouseHooked=False
                     self._hookManager._keyboardHooked=False
 
