@@ -9,6 +9,8 @@ import pytest
 import os
 
 imports_ok = False
+launchHubServer = None
+
 travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
 try:
@@ -24,14 +26,12 @@ from psychopy.core import getTime
 def testDefaultServerLaunch():
     """
     """
-    io=launchHubServer()
- 
+    io = launchHubServer()
+
     io_proc = Computer.getIoHubProcess()
     io_proc_pid = io_proc.pid
     assert io != None and io_proc_pid > 0
-    
-    io.clearEvents('all')
-    
+
     # check that a kb and mouse have been created
     keyboard=io.devices.keyboard
     mouse=io.devices.mouse
@@ -39,60 +39,48 @@ def testDefaultServerLaunch():
     assert keyboard != None
     assert mouse != None
 
-    # wait for a kb event for 2.5 seconds; 
-    # should timeout if no kb events occur.
-    start_time = getTime()
-    key_releases = keyboard.waitForRelease(2.5)
-    end_time = getTime()
-    assert end_time - start_time < 2.75    
-    assert end_time - start_time > 2.25    
-    assert len(key_releases) == 0
-
-
-    # Check for no events.
-    all_new_evts = io.getEvents()
-    assert len(all_new_evts) == 0
     
-    ## send 2 experiment msg events, getting current time they were sent    
-    #
-    io.sendMessageEvent("Test Message")
-    io.sendMessageEvent("Test Message2")
-    send_msg_time = getTime()   
-    
-    
-    ## Test process priority setting
+    ## Test process priority setting (to High)
     #
     io.enableHighPriority()
-    
+
+    # Check that high priority has been enabled on iohub server
     if Computer.system == 'win32':
         import psutil
-        if psutil.version_info[0] >=2:
+        if psutil.version_info[0] >= 2:
             assert io_proc.nice() == psutil.HIGH_PRIORITY_CLASS
         else:
             assert io_proc.get_nice() == psutil.HIGH_PRIORITY_CLASS
-            
     elif Computer.system == 'linux2':
         import psutil
-        if psutil.version_info[0] >=2:
+        if psutil.version_info[0] >= 2:
             assert io_proc.nice() == 10
         else:
             assert io_proc.get_nice() == 10
-            
     elif Computer.system == 'darwin':
         pass
 
-    # Get the 2 exp. msg events sent before. Check that only 2 events exist, 
-    # and that the time diff between the time msg's were sent and each 
-    # msg.time iohub time stamp is very small. i.e. delay is low and 2 proc's
-    # are using same time base.
-    #      
-    msg_events = io.getEvents(device_label = 'experiment')
-    assert len(msg_events) == 2
-    assert msg_events[0].text == "Test Message"
-    assert msg_events[1].text == "Test Message2"
-    assert send_msg_time - msg_events[0].time > 0 and send_msg_time - msg_events[0].time < 0.003
-    assert send_msg_time - msg_events[1].time > 0 and send_msg_time - msg_events[1].time < 0.003
-    
+
+    ## Test iohub process priority setting (to Normal)
+    #
+    io.disableHighPriority()
+
+    # Check that normal  priority has been restored on iohub server
+    if Computer.system == 'win32':
+        import psutil
+        if psutil.version_info[0] >= 2:
+            assert io_proc.nice() == psutil.NORMAL_PRIORITY_CLASS
+        else:
+            assert io_proc.get_nice() == psutil.NORMAL_PRIORITY_CLASS
+    elif Computer.system == 'linux2':
+        import psutil
+        if psutil.version_info[0] >= 2:
+            assert io_proc.nice() < 10
+        else:
+            assert io_proc.get_nice() < 10
+    elif Computer.system == 'darwin':
+        pass
+
     # Check that iohub pid is valid and alive
     import psutil
     assert psutil.pid_exists(io_proc_pid)
