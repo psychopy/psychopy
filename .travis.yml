@@ -16,7 +16,8 @@ before_install:
   - sudo apt-cache policy           # What is actually available?
   - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
   - travis_retry sudo apt-get install -qq python-pyglet python-pygame python-opengl
-  - travis_retry sudo apt-get install -qq python-gevent python-yaml 
+  - travis_retry sudo apt-get install -qq python-gevent>=1.0
+  - travis_retry sudo apt-get install -qq python-yaml 
   - travis_retry sudo apt-get install -qq python-xlib
   # - travis_retry sudo apt-get install -qq python-msgpack #is in ubuntu universe (no permissions)
   - travis_retry sudo pip install msgpack-python
