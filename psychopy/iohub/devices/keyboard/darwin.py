@@ -58,10 +58,12 @@ class Keyboard(ioHubKeyboardDevice):
                         0,  # ScanCode
                         0,  # KeyID 
                         0,  # ucode
-                        u'',# Unicode key utf-8 encoded / Key Name Constant ( i.e. SPACE, ESCAPE, ENTER, etc )
+                        u'',# key
                         None,# mods
-                        0 ] # event.Window]
-    
+                        0, #win num
+                        u'', #char
+                        0.0, #duration
+                        0] #press evt id
     __slots__=['_loop_source','_tap','_device_loop','_CGEventTapEnable','_loop_mode','_last_general_mod_states','_ring_buffer']
 
     def __init__(self,*args,**kwargs):
@@ -174,15 +176,19 @@ class Keyboard(ioHubKeyboardDevice):
         ucode=0
 
         key_name=ns_event.characters()
+        #unshifted_key_name=key_name
+
         if key_name and len(key_name)>0:
             ucode=ord(key_name)
             #print2err('characters hit: [',key_name, '] ', ucode, ' ', len(key_name))                 
             #print2err("characters ucategory: ",ucategory(unichr(ucode)))
-        
+
+        unshifted_key_name = ns_event.charactersIgnoringModifiers()
+
         if ucode == 0 or ucategory(unichr(ucode))[0] == 'C':
-            key_name=ns_event.charactersIgnoringModifiers()
+            key_name=unshifted_key_name
             if key_name and len(key_name)>0:
-                ucode=ord(key_name)   
+                ucode=ord(key_name)
                 #print2err(" charactersIgnoringModifiers ucategory: ",ucategory(unichr(ucode)))
                 #print2err('charactersIgnoringModifiers hit: [',key_name, '] ', ord(key_name[-1]), ' ', len(key_name))                 
         
@@ -211,7 +217,7 @@ class Keyboard(ioHubKeyboardDevice):
                         key_name=key_name[5:]
                     key_name=u''+key_name
                     
-        return key_name,ucode,key_code
+        return key_name,ucode,key_code,unshifted_key_name
 
     
     def _poll(self):
@@ -226,32 +232,31 @@ class Keyboard(ioHubKeyboardDevice):
             if self.isReportingEvents():
                 logged_time=getTime()
 
-                  
                 if etype == Qz.kCGEventTapDisabledByTimeout:
                     print2err("** WARNING: Keyboard Tap Disabled due to timeout. Re-enabling....: ", etype)
                     Qz.CGEventTapEnable(self._tap, True)
                     return event
                
                 confidence_interval=logged_time-self._last_poll_time
-                delay=0.0 # No point trying to guess for the keyboard or mouse.
-                            # May add a 'default_delay' prefernce to the device config settings,
-                            # so if a person knows the average delay for something like the kb or mouse
-                            # they are using, then they could specify it in the config file and it could be used here.
+                delay=0.0
                 iohub_time = logged_time-delay
-                device_time=Qz.CGEventGetTimestamp(event)*self.DEVICE_TIME_TO_SECONDS                        
+                device_time=Qz.CGEventGetTimestamp(event)*self.DEVICE_TIME_TO_SECONDS
                 key_code = Qz.CGEventGetIntegerValueField(event, Qz.kCGKeyboardEventKeycode)                    
                 key_name=None
                 window_number=0       
                 ioe_type=None
                 ucode=0 # the int version of the unicode utf-8 ichar
+                unshifted_key_name=None
+
+
                 is_auto_repeat= Qz.CGEventGetIntegerValueField(event, Qz.kCGKeyboardEventAutorepeat)
-                #np_key=keyFromNumpad(flags)     
-                                        
+                #np_key=keyFromNumpad(flags)
+
                 # This is a modifier state change event, so we need to manually determine
                 # which mod key was either pressed or released that resulted in the state change....
                 if etype == Qz.kCGEventFlagsChanged:
                     try:
-                        ioe_type, key_name=self._handleModifierChangeEvent(event)
+                        ioe_type, key_name = self._handleModifierChangeEvent(event)
 #                        print2err('_handleModifierChangeEvent: ',ioe_type, ' ',key_name)
                     except Exception, e:
                         print2err("kCGEventFlagsChanged failed: ",e)
@@ -260,23 +265,25 @@ class Keyboard(ioHubKeyboardDevice):
                     # This is an actual button press / release event, so handle it....
                     try:
                         keyEvent = NSEvent.eventWithCGEvent_(event)
-                        key_name,ucode,key_code=self._getKeyNameForEvent(keyEvent)
+                        key_name,ucode,key_code,unshifted_key_name=self._getKeyNameForEvent(keyEvent)
                         window_number=keyEvent.windowNumber()
 
-                        #report_system_wide_events=self.getConfiguration().get('report_system_wide_events',True)
-            
-                        #pyglet_window_hnds=self._iohub_server._pyglet_window_hnds
-                        #print2err("pyglet_window_hnds: ",pyglet_window_hnds)
-                        #if event.Window in pyglet_window_hnds:
-                        #    pass
-                        #elif len(pyglet_window_hnds)>0 and report_system_wide_events is False:
+                        report_system_wide_events=self.getConfiguration().get('report_system_wide_events',True)
+
+                        # Can not seem to figure out how to get window handle id from evt to match with pyget in darwin, so
+                        # Comparing event target process ID to the psychopy windows process ID,
+                        #yglet_window_hnds=self._iohub_server._pyglet_window_hnds
+                        #print2err("pyglet_window_hnds: ",window_number, " , ",pyglet_window_hnds)
+                        targ_proc = Qz.CGEventGetIntegerValueField(event,Qz.kCGEventTargetUnixProcessID)
+                        psych_proc = Computer.psychopy_process.pid
+                        if targ_proc == psych_proc:
+                            pass
+                        elif report_system_wide_events is False:
                             # For keyboard, when report_system_wide_events is false
                             # do not record kb events that are not targeted for
                             # a PsychoPy window, still allow them to pass to the desktop 
                             # apps.
-                        #    return event
-
-
+                            return event
 
                         if etype == Qz.kCGEventKeyUp:
                             ioe_type=EventConstants.KEYBOARD_RELEASE
@@ -285,6 +292,7 @@ class Keyboard(ioHubKeyboardDevice):
                     except Exception,e:
                         print2err("Create NSEvent failed: ",e)
                         printExceptionDetailsToStdErr()
+
                 if ioe_type: 
                     # The above logic resulted in finding a key press or release event
                     # from the expected events OR from modifier state changes. So,
@@ -302,7 +310,11 @@ class Keyboard(ioHubKeyboardDevice):
                         # TO DO: dead char we need to deal with??
                         key_name=u'DEAD_KEY?'
                         print2err("DEAD KEY HIT?")
-                    else:    
+                    else:
+                        if unshifted_key_name in [None,-1] or len(unshifted_key_name)==0:
+                            print2err("Unshifted:",unshifted_key_name, ":",key_name)
+                            unshifted_key_name = key_name.lower().encode('utf-8')
+
                         ioe=self._EVENT_TEMPLATE_LIST
                         ioe[3]=Computer._getNextEventID()
                         ioe[4]=ioe_type #event type code
@@ -317,12 +329,16 @@ class Keyboard(ioHubKeyboardDevice):
                         ioe[12]=key_code # Quartz does not give the scancode, so fill this with keycode
                         ioe[13]=key_code #key_code
                         ioe[14]=ucode
-                        ioe[15]=key_name.encode('utf-8') 
+                        ioe[15]=unshifted_key_name.lower()
                         ioe[16]=ioHubKeyboardDevice._modifier_value
                         ioe[17]=window_number
-                        #print2err('OSX event handler: ',ucode,' ',iohub_time,' ',window_number)
+                        ioe[18]=key_name.encode('utf-8')
+
+
+                        ioHubKeyboardDevice._updateKeyboardEventState(self, ioe,
+                                                          ioe_type == EventConstants.KEYBOARD_PRESS)
+
                         self._addNativeEventToBuffer(copy(ioe))
-                        #print2err("**Final values:key_name [",key_name,"] ucode: ",ucode, ' key_code: ',key_code)
                 else:
                     print2err("\nWARNING: KEYBOARD RECEIVED A [ {0} ] KB EVENT, BUT COULD NOT GENERATE AN IOHUB EVENT FROM IT !!".format(etype)," [",key_name,"] ucode: ",ucode, ' key_code: ',key_code)
                     
