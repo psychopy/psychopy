@@ -155,12 +155,11 @@ class FontManager(object):
                     print
                     print ' --- Error --- '
                     print 'Error opening font path:', fp
-                    print 'Loaded OK count:', len(fi_list)
                     import traceback
                     traceback.print_exc()
-                    return None
 
-
+        print 'Loaded OK count:', len(fi_list)
+                    
         self.font_family_styles.sort()
 
         return fi_list

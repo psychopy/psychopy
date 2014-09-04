@@ -271,17 +271,19 @@ while QUIT_EXP is False:
         # in the event.
         #self.hub.sendMessageEvent("Flip %s"%(str(currentPosition),), sec_time=flip_time)
 
+
+
+
+#if i:
+#    from matplotlib import pyplot as plt
+#    plt.hist(data[:i], 50)
+#    plt.ylabel("Count")
+#    plt.xlabel("duration (msec)")
+#    plt.title("keyboard.getKeys() Execution Duration (msec)")
+#    plt.show()
+
 # Done demo loop, cleanup explicitly
 #
 io.quit()
-window.close()
-
-
-if i:
-    from matplotlib import pyplot as plt
-    plt.hist(data[:i], 50)
-    plt.ylabel("Count")
-    plt.xlabel("duration (msec)")
-    plt.title("keyboard.getKeys() Execution Duration (msec)")
-    plt.show()
-
+core.quit()
+#window.close()
