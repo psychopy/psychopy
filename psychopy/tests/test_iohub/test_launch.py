@@ -2,21 +2,11 @@
 """
 import pytest
 import os
-
-imports_ok = False
-launchHubServer = None
+import psychopy
+from psychopy.iohub import launchHubServer, Computer
 
 travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
-try:
-    from psychopy.iohub import launchHubServer, Computer
-    imports_ok = True
-except:
-    print "psychopy.iohub could not be imported:"
-    import traceback
-    traceback.print_exc()
-
-    
 def testDefaultServerLaunch():
     """
     """
@@ -45,5 +35,4 @@ def testDefaultServerLaunch():
     
 
 if __name__ == '__main__':
-    if imports_ok is True:
-        testDefaultServerLaunch()
+    testDefaultServerLaunch()
