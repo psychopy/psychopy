@@ -51,7 +51,7 @@ setup(app=['psychopy/app/psychopyApp.py'],
                                     'objc','Quartz','AppKit','QTKit','Cocoa','Foundation','CoreFoundation',
                                     'pyolib',
                                     'pandas','tables',#'cython',
-                                    'msgpack','yaml','gevent',#for ioHub
+                                    'msgpack','yaml','gevent','psutil',#for ioHub
                                     'cv2','libsoundcard','libsoundfile',
                                     #these aren't needed, but liked
                                     'psychopy_ext','pyfilesec','rusocsci',

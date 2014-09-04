@@ -1,10 +1,5 @@
 """ Test starting and stopping iohub server
 """
-
-#from psychopy.visual import Window, ShapeStim
-#from psychopy import event, core
-#from psychopy.constants import NOT_STARTED
-
 import pytest
 import os
 
@@ -20,6 +15,7 @@ except:
     print "psychopy.iohub could not be imported:"
     import traceback
     traceback.print_exc()
+
     
 def testDefaultServerLaunch():
     """

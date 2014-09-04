@@ -59,11 +59,19 @@ Run PsychoPy using your local copy
 Now that you've fetched the latest version of psychopy using git, you should run this version in order to try out yours/others latest improvements. See `this guide <http://www.ehow.com/how_8510325_set-python-path.html>`_ on how to permanently run your git version of psychopy instead of the version you previously installed.
 
 *Run git version for just one session (Linux and Mac only)*:
-If you want to switch between the latest-and-greatest development version from git and the stable version installed on your system, you can choose to only temporarily run the git version. Open a terminal and set a temporary python path to your psychopy git folder, then start your editor of choice::
+If you want to switch between the latest-and-greatest development version from git and the stable version installed on your system, you can choose to only temporarily run the git version. Open a terminal and set a temporary python path to your psychopy git folder::
 
 	$ export PYTHONPATH=/path/to/local/git/folder/
-	$ psychopy
 
+To check that worked you should open python in the terminal and try to import psychopy::
+
+	$ python
+	Python 2.7.6 (default, Mar 22 2014, 22:59:56) 
+	[GCC 4.8.2] on linux2
+	Type "help", "copyright", "credits" or "license" for more information.
+	>>> import psychopy
+
+PsychoPy depends on a lot of other packages and you may get a variety of failures to import them until you have them all installed in your custom environment!
 
 Fixing bugs and making minor improvements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
