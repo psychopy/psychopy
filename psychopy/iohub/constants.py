@@ -618,7 +618,7 @@ try:
                 VK_F23  =  0x86
                 VK_F24  =  0x87
             
-                VK_NUMLOCK  =  0x90
+                VK_NUM_LOCK  =  0x90
                 VK_SCROLL  =  0x91
             
                 VK_LEFT_SHIFT  =  0xA0
@@ -946,7 +946,7 @@ try:
         _mod_names=['CONTROL_LEFT','CONTROL_RIGHT','SHIFT_LEFT',
                    'SHIFT_RIGHT','ALT_LEFT','ALT_RIGHT',
                    'COMMAND_LEFT','COMMAND_RIGHT','CAPS_LOCK',
-                   'MOD_SHIFT','MOD_ALT','MOD_CTRL','MOD_CMD','NUMLOCK','MOD_FUNCTION','MOD_HELP']
+                   'MOD_SHIFT','MOD_ALT','MOD_CTRL','MOD_CMD','NUM_LOCK','MOD_FUNCTION','MOD_HELP']
         CONTROL_LEFT = 1
         CONTROL_RIGHT = 2
         SHIFT_LEFT = 4
@@ -960,7 +960,7 @@ try:
         MOD_ALT=1024
         MOD_CTRL=2048
         MOD_CMD=4096
-        NUMLOCK=8192
+        NUM_LOCK=8192
         MOD_FUNCTION=16384
         MOD_HELP=32768            
     ModifierKeyCodes.initialize()

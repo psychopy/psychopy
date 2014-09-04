@@ -725,9 +725,9 @@ class TrialHandler(_BaseTrialHandler):
         else:
             self.trialList =trialList
         #convert any entry in the TrialList into a TrialType object (with obj.key or obj[key] access)
-        for n, entry in enumerate(trialList):
+        for n, entry in enumerate(self.trialList):
             if type(entry)==dict:
-                trialList[n]=TrialType(entry)
+                self.trialList[n]=TrialType(entry)
         self.nReps = int(nReps)
         self.nTotal = self.nReps*len(self.trialList)
         self.nRemaining =self.nTotal #subtract 1 each trial

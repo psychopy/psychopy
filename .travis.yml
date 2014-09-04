@@ -16,6 +16,10 @@ before_install:
   - sudo apt-cache policy           # What is actually available?
   - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
   - travis_retry sudo apt-get install -qq python-pyglet python-pygame python-opengl
+  - travis_retry sudo pip install gevent # Don't use apt-get (too old version of gevent)
+  - travis_retry sudo apt-get install -qq python-yaml python-xlib
+  - travis_retry sudo apt-get install -qq python-psutil
+  - travis_retry sudo pip install msgpack-python #not apt-get (no permissions for universe)
   - travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
   - travis_retry sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-mock python-wxgtk2.8 libavbin0 python-pyo
 install:
