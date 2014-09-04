@@ -11,14 +11,8 @@ import os
 imports_ok = False
 travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
-try:
-    global launchHubServer, Computer
-    from psychopy.iohub import launchHubServer, Computer
-    imports_ok = True
-except:
-    print "psychopy.iohub could not be imported:"
-    import traceback
-    traceback.print_exc()
+from psychopy.iohub import launchHubServer, Computer
+imports_ok = True
     
 def testDefaultServerLaunch():
     """
