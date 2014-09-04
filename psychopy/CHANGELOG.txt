@@ -51,6 +51,14 @@ PsychoPy 1.81.00
 PsychoPy 1.80
 ------------------------------
 
+PsychoPy 1.80.08
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Aug 2014
+
+FIXED: bug with using numpy arrays as masks; they were being interpreted as floats but should have been bytes
+
+
 PsychoPy 1.80.07
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
