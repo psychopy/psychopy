@@ -147,6 +147,9 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._retracerate = win._monitorFrameRate
         if self._retracerate is None:
             self._retracerate = win.getActualFrameRate()
+        if self._retracerate is None:
+            logging.warning("FrameRate could not be supplied by psychopy; defaulting to 60.0")
+            self._retracerate = 60.0
         self.filename = filename
         self.loop = loop
         self.flipVert = flipVert
@@ -459,8 +462,9 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             rt = (self._next_frame_sec - 1.0/self._retracerate) - self._video_track_clock.getTime()
             return rt
         except:
-            import traceback
-            traceback.print_exc()
+            #import traceback
+            #traceback.print_exc()
+            logging.WARNING("MovieStim2.getTimeToNextFrameDraw failed.")
             return 0.0
 
     def shouldDrawVideoFrame(self):
