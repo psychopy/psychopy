@@ -54,12 +54,58 @@ from .. import print2err
 from ..devices import Computer
 from ..constants import EventConstants,MouseConstants, ModifierKeyCodes
 
+jdumps = lambda x : str(x)
+try:
+    import ujson
+    jdumps = ujson.dumps
+except:
+    import json
+    jdumps = json.dumps   
+    
 getTime = Computer.getTime
 
 #######################################################################
 ########################START CLASS DEF################################
 #######################################################################
 
+def event2json(event):
+    """
+    Instance Variable: KeyButtonPointerEvent time
+        The server X time when this event was generated.
+    Instance Variable: KeyButtonPointerEvent root
+        The root window which the source window is an inferior of.
+    Instance Variable: KeyButtonPointerEvent window
+        The window the event is reported on.
+    Instance Variable: KeyButtonPointerEvent same_screen
+        Set to 1 if window is on the same screen as root, 0 otherwise.
+    Instance Variable: KeyButtonPointerEvent child
+        If the source window is an inferior of window, child is set to the child of window that is the ancestor of (or is) the source window. Otherwise it is set to X.NONE.
+    Instance Variable: KeyButtonPointerEvent root_x
+        Instance Variable: KeyButtonPointerEvent root_y
+    The pointer coordinates at the time of the event, relative to the root window.
+        Instance Variable: KeyButtonPointerEvent event_x
+    Instance Variable: KeyButtonPointerEvent event_y
+        The pointer coordinates at the time of the event, relative to window. If window is not on the same screen as root, these are set to 0.
+    Instance Variable: KeyButtonPointerEvent state
+        The logical state of the button and modifier keys just before the event.
+    Instance Variable: KeyButtonPointerEvent detail
+        For KeyPress and KeyRelease, this is the keycode of the event key.
+        For ButtonPress and ButtonRelease, this is the button of the event.
+        For MotionNotify, this is either X.NotifyNormal or X.NotifyHint.
+    """    
+    return jdumps(dict(type=event.type,
+                send_event=event.send_event,
+                time=event.time,
+                root=str(event.root),
+                window=str(event.window),
+                same_screen=event.same_screen,
+                child=str(event.child),
+                root_x=event.root_x,
+                root_y=event.root_y,
+                event_x=event.event_x,
+                event_y=event.event_y,
+                state=event.state,
+                detail=event.detail))
 
 class HookManager(threading.Thread):
     """
@@ -68,10 +114,14 @@ class HookManager(threading.Thread):
     to the associated callback functions set.
     """
     DEVICE_TIME_TO_SECONDS = 0.001
-    def __init__(self):
+    evt_types = [X.KeyRelease, X.KeyPress,X.ButtonRelease, X.ButtonPress, X.MotionNotify]
+    def __init__(self, log_event_details=False):
         threading.Thread.__init__(self)
         self.finished = threading.Event()
 
+        self.log_events = log_event_details
+        self.log_events_file = None
+        
         # Window handle tracking
         self.last_windowvar = None
         self.last_xwindowinfo = None
@@ -134,12 +184,20 @@ class HookManager(threading.Thread):
                         'client_died': False,
                 }])
 
-        # Enable the context; this only returns after a call to record_disable_context,
-        # while calling the callback function in the meantime
-        self.record_dpy.record_enable_context(self.ctx, self.processevents)
-        # Finally free the context
-        self.record_dpy.record_free_context(self.ctx)
-
+        if self.log_events:
+            import datetime
+            cdate = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")        
+            with open("x11_events_{0}.log".format(cdate), "w") as self.log_events_file:	
+                # Enable the context; this only returns after a call to record_disable_context,
+                # while calling the callback function in the meantime
+                self.record_dpy.record_enable_context(self.ctx, self.processevents)
+                # Finally free the context
+                self.record_dpy.record_free_context(self.ctx)
+        else:
+            self.record_dpy.record_enable_context(self.ctx, self.processevents)
+            # Finally free the context
+            self.record_dpy.record_free_context(self.ctx)       
+            
     def cancel(self):
         self.finished.set()
         self.local_dpy.record_disable_context(self.ctx)
@@ -186,11 +244,14 @@ class HookManager(threading.Thread):
             # not an event
             return
         data = reply.data
+            
         while len(data):
             event, data = rq.EventField(None).parse_binary_value(data, self.record_dpy.display, None, None)
             
+            if self.log_events_file and event.type in self.evt_types:
+                self.log_events_file.write(event2json(event)+'\n')
+               
             event.iohub_logged_time=logged_time
-
             if event.type == X.KeyPress:
                 hookevent = self.makekeyhookevent(event)
                 self.KeyDown(hookevent)

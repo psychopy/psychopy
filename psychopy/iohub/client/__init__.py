@@ -369,7 +369,9 @@ class ioHubConnection(object):
         self._iohub_server_config=None
 
         self._shutdown_attempted=False
-        self._startServer(ioHubConfig, ioHubConfigAbsPath)
+        self.iohub_status = self._startServer(ioHubConfig, ioHubConfigAbsPath)
+        if self.iohub_status != "OK":
+            raise RuntimeError("Error starting ioHub server: %s"%(self.iohub_status))
 
     @classmethod
     def getActiveConnection(cls):
@@ -926,8 +928,7 @@ class ioHubConnection(object):
             ioHubConfig=dict(monitor_devices=[dict(Keyboard={}),dict(Display={}),dict(Mouse={})])
         elif ioHubConfig is not None and ioHubConfigAbsPath is None:
             if 'monitor_devices' not in ioHubConfig:
-                print2err("ERROR: ioHubConfig must be provided with 'monitor_devices' key.")
-                sys.exit(1)
+                return "ERROR: ioHubConfig must be provided with 'monitor_devices' key."
             if 'data_store' in ioHubConfig:
                 iods=ioHubConfig['data_store']
                 if 'experiment_info' in iods and 'session_info' in iods:
@@ -935,14 +936,12 @@ class ioHubConnection(object):
                     session_info=iods['session_info']
 
                 else:
-                    print2err("ERROR: ioHubConfig:ioDataStore must contain both a 'experiment_info' and a 'session_info' key with a dict value each.")
-                    sys.exit(1)
+                    return "ERROR: ioHubConfig:ioDataStore must contain both a 'experiment_info' and a 'session_info' key with a dict value each."
 
         elif ioHubConfigAbsPath  is not None and ioHubConfig is None:
             ioHubConfig=load(file(ioHubConfigAbsPath,u'r'), Loader=Loader)
         else:
-            print2err("ERROR: Both a ioHubConfig dict object AND a path to an ioHubConfig file can not be provided.")
-            sys.exit(1)
+            return "ERROR: Both a ioHubConfig dict object AND a path to an ioHubConfig file can not be provided."
 
         if ioHubConfig:
             updateDict(ioHubConfig,hub_defaults_config)
@@ -994,8 +993,10 @@ class ioHubConnection(object):
                         os.kill(iohub_pid, signal.SIGKILL) #code
                     except OSError:  # no such process
                         pass  # not sure if this is *always* the right thing to do
-            except:
-                printExceptionDetailsToStdErr()
+            except Exception, e:
+                print "Warning: Exception while checking for existing iohub process:"
+                import traceback
+                traceback.print_exc()
 
         if sys.platform == 'darwin':
             self._osxKillAndFreePort()
@@ -1009,7 +1010,7 @@ class ioHubConnection(object):
             Computer.ioHubServerProcess=self._server_process
 
         hubonline=False
-
+        stdout_read_data=""
         if Computer.system == 'win32':
             #print 'IOSERVER STARTING UP....'
             # wait for server to send back 'IOHUB_READY' text over stdout, indicating it is running
@@ -1027,9 +1028,7 @@ class ioHubConnection(object):
                         #print "Ending Serving connection attempt due to timeout...."
                         break
                     elif server_output.rstrip() == 'IOHUB_FAILED':
-                        print "ioHub Failed to start, exiting...."
-                        time.sleep(0.25)
-                        sys.exit(1)
+                        return "ioHub sstartup failed, reveived IOHUB_FAILED"
 
 
                 else:
@@ -1042,19 +1041,17 @@ class ioHubConnection(object):
                     hubonline=True
                     break
                 elif r and r.rstrip().strip() == 'IOHUB_FAILED':
-                    print "ioHub sent IOHUB_FAILED, exiting...."
-                    time.sleep(0.25)
-                    sys.exit(1)
-
+                    return "ioHub startup failed, reveived IOHUB_FAILED"
+                else:
+                    stdout_read_data+="startup_read: {0}\n".format(r)
         # If ioHub server did not repond correctly, terminate process and exit the program.
         if hubonline is False:
-            print "ioHub could not be contacted, exiting...."
             try:
                 self._server_process.terminate()
             except Exception as e:
                 raise e
             finally:
-                sys.exit(1)
+                return "ioHub startup timed out. iohub Server startup Failed. "+stdout_read_data
 
         #print '* IOHUB SERVER ONLINE *'
         ioHubConnection.ACTIVE_CONNECTION=proxy(self)
@@ -1070,15 +1067,10 @@ class ioHubConnection(object):
             #print 'ioclient registering existing windows:',whs
             self.registerPygletWindowHandles(*whs)
 
-
-        try:
-            iopFile= open(iopFileName,'w')
-            iopFile.write("ioHub PID: "+str(Computer.ioHubServerProcessID))
-            iopFile.flush()
-            iopFile.close()
-        except:
-            printExceptionDetailsToStdErr()
-
+        iopFile= open(iopFileName,'w')
+        iopFile.write("ioHub PID: "+str(Computer.ioHubServerProcessID))
+        iopFile.flush()
+        iopFile.close()
 
         if experiment_info:
             #print 'Sending experiment_info: {0}'.format(experiment_info)
@@ -1099,8 +1091,9 @@ class ioHubConnection(object):
         try:
             self._createDeviceList(ioHubConfig['monitor_devices'])
         except Exception as e:
-            print "Errror in _createDeviceList: ",str(e)
+            return "Error in _createDeviceList: ",str(e)
         #print 'Created Experiment Process Device List'
+        return "OK"
 
     def _get_maxsize(self, maxsize):
         """

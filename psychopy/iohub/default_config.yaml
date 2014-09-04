@@ -1,8 +1,13 @@
 global_event_buffer: 2048
 udp_port: 9034
-windows_msgpump_interval: 0.001
+windows_msgpump_interval: 0.01
 data_store:
     enable: False
     filename: events
     multiple_experiments: False
     flush_interval: 32
+# If True, OS level kb and mouse event details that iohub uses to generate
+# associated device events will be logged. Only supported by linux right now.
+# File is saved to experiment script folder, with name x11_events_{0}.log, 
+# where {0} = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")
+log_raw_kb_mouse_events: False

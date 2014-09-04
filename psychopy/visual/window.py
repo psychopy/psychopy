@@ -1240,11 +1240,9 @@ class Window(object):
                 self._hw_handle=self.winHandle._hwnd
         elif sys.platform =='darwin':
             if pyglet.version > "1.2":
-                # Below works but is not correct! _nswindow points to an objc reference
-                # of the window, not to the window id itself. I don't know how psychopy uses
-                # this feat further, but it has not resulted in crashes for me.
-                self._hw_handle=self.winHandle._nswindow
+                self._hw_handle= self.winHandle._nswindow.windowNumber()
             else:
+                # TODO: check if this works on pyglet 1.4
                 self._hw_handle=self.winHandle._window.value
         elif sys.platform =='linux2':
             self._hw_handle=self.winHandle._window
