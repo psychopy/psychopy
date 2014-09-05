@@ -14,10 +14,13 @@ Movie2 does require:
 """
 
 from psychopy import visual, core, event
-import time
+import time, os
 
 videopath=r'./jwpIntro.mov'
-
+videopath = os.path.join(os.getcwd(),videopath)
+if not os.path.exists(videopath):
+    raise RuntimeError("Video File could not be found:"+videopath)
+    
 win = visual.Window([1024, 768])
 
 # Create your movie stim.
