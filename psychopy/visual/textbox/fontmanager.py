@@ -149,17 +149,9 @@ class FontManager(object):
                             fi_list.append(self._createFontInfo(fp,face))
                     else:
                         fi_list.append(self._createFontInfo(fp,face))
-                except FT_Exception, fte:
+                except Exception:
                     pass
-                except Exception, e:
-                    print
-                    print ' --- Error --- '
-                    print 'Error opening font path:', fp
-                    import traceback
-                    traceback.print_exc()
 
-        print 'Loaded OK count:', len(fi_list)
-                    
         self.font_family_styles.sort()
 
         return fi_list

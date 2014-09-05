@@ -1,24 +1,17 @@
 """ Test starting and stopping iohub server
 """
-
-#from psychopy.visual import Window, ShapeStim
-#from psychopy import event, core
-#from psychopy.constants import NOT_STARTED
-
 import pytest
 import os
+import psychopy
+from psychopy.iohub import launchHubServer, Computer
 
-imports_ok = False
 travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
-from psychopy.iohub import launchHubServer, Computer
-imports_ok = True
-    
 def testDefaultServerLaunch():
     """
     """
-    io=launchHubServer()
- 
+    io = launchHubServer()
+
     io_proc = Computer.getIoHubProcess()
     io_proc_pid = io_proc.pid
     assert io != None and io_proc_pid > 0
@@ -42,5 +35,4 @@ def testDefaultServerLaunch():
     
 
 if __name__ == '__main__':
-    if imports_ok is True:
-        testDefaultServerLaunch()
+    testDefaultServerLaunch()
