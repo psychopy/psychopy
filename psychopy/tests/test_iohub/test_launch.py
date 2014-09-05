@@ -4,12 +4,16 @@ import pytest
 import os
 import psychopy
 from psychopy.iohub import launchHubServer, Computer
+from psychopy.tests import utils
 
 travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
 def testDefaultServerLaunch():
     """
     """
+    if travis:
+        utils.skip_under_travis()
+
     io = launchHubServer()
 
     io_proc = Computer.getIoHubProcess()
