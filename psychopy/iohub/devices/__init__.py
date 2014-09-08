@@ -258,17 +258,24 @@ class Computer(object):
             return False
         
         if Computer.inHighPriorityMode is False:
+            if psutil.version_info[0]>1:
+                set_nice = Computer.currentProcess.nice
+                get_nice = Computer.currentProcess.nice
+            else:
+                set_nice = Computer.currentProcess.set_nice
+                get_nice = Computer.currentProcess.get_nice
+
             if disable_gc:
                 gc.disable()
             if Computer.system=='win32':
-                Computer.currentProcess.set_nice(psutil.HIGH_PRIORITY_CLASS)
+                set_nice(psutil.HIGH_PRIORITY_CLASS)
                 Computer.inHighPriorityMode=True
             elif Computer.system=='linux2':
-                current_nice=Computer.currentProcess.get_nice()
+                current_nice=get_nice()
                 Computer._process_original_nice_value=current_nice
                 if current_nice <10:
-                    Computer.currentProcess.set_nice(10)
-                    Computer.currentProcess.get_nice()
+                    set_nice(10)
+                    get_nice()
                     Computer.inHighPriorityMode = True
                     
 
@@ -296,15 +303,23 @@ class Computer(object):
         if Computer.inHighPriorityMode is False:
             if disable_gc:
                 gc.disable()
+
+            if psutil.version_info[0]>1:
+                set_nice = Computer.currentProcess.nice
+                get_nice = Computer.currentProcess.nice
+            else:
+                set_nice = Computer.currentProcess.set_nice
+                get_nice = Computer.currentProcess.get_nice
+
             if Computer.system=='win32':
-                Computer.currentProcess.set_nice(psutil.REALTIME_PRIORITY_CLASS)
+                set_nice(psutil.REALTIME_PRIORITY_CLASS)
                 Computer.inHighPriorityMode = True
             elif Computer.system=='linux2':
-                current_nice=Computer.currentProcess.get_nice()
+                current_nice=get_nice()
                 Computer._process_original_nice_value=current_nice
                 if current_nice <16:
-                    Computer.currentProcess.set_nice(16)
-                    Computer.currentProcess.get_nice()
+                    set_nice(16)
+                    get_nice()
                     Computer.inHighPriorityMode = True
 
     @staticmethod
@@ -324,7 +339,6 @@ class Computer(object):
             None
         """
         if _psutil_available is False:
-            print2err("Computer.disableRealTimePriority is not supported on OS X")
             return False
 
         Computer.disableHighPriority()
@@ -347,16 +361,22 @@ class Computer(object):
         """
         
         if _psutil_available is False:
-            print2err("Computer.disableHighPriority is not supported on OS X")
             return False
         try:
             if Computer.inHighPriorityMode is True:
                 gc.enable()
+                if psutil.version_info[0]>1:
+                    set_nice = Computer.currentProcess.nice
+                    get_nice = Computer.currentProcess.nice
+                else:
+                    set_nice = Computer.currentProcess.set_nice
+                    get_nice = Computer.currentProcess.get_nice
+
                 if Computer.system=='win32':
-                    Computer.currentProcess.set_nice(psutil.NORMAL_PRIORITY_CLASS)
+                    set_nice(psutil.NORMAL_PRIORITY_CLASS)
                     Computer.inHighPriorityMode=False
                 elif Computer.system=='linux2' and Computer._process_original_nice_value > 0:
-                    Computer.currentProcess.set_nice(Computer._process_original_nice_value)
+                    set_nice(Computer._process_original_nice_value)
                     Computer.inHighPriorityMode=False
         except psutil.AccessDenied:
             print2err("WARNING: Could not disable increased priority for process {0}".format(Computer.currentProcessID))
