@@ -63,7 +63,7 @@ import server
 
 from util import Trigger, TimeTrigger, DeviceEventTrigger
 from util import ScreenState, ClearScreen, InstructionScreen, ImageScreen
-from util import ExperimentVariableProvider, SinusoidalMotion
+from util import ExperimentVariableProvider, SinusoidalMotion, to_numeric
 from util.targetpositionsequence import TargetStim, PositionGrid, TargetPosSequenceStim, ValidationProcedure
 
 def start(**kwargs):
