@@ -174,16 +174,18 @@ class Keyboard(ioHubKeyboardDevice):
     def _getKeyNameForEvent(self,ns_event):
         key_code=ns_event.keyCode()  
         ucode=0
-
+        unshifted_key_name = ns_event.charactersIgnoringModifiers()
+        #print2err("----")
         key_name=ns_event.characters()
         #unshifted_key_name=key_name
+        #print2err("key_code: ",key_code," : ",unshifted_key_name," : ",key_name)
 
         if key_name and len(key_name)>0:
             ucode=ord(key_name)
             #print2err('characters hit: [',key_name, '] ', ucode, ' ', len(key_name))                 
             #print2err("characters ucategory: ",ucategory(unichr(ucode)))
 
-        unshifted_key_name = ns_event.charactersIgnoringModifiers()
+
 
         if ucode == 0 or ucategory(unichr(ucode))[0] == 'C':
             key_name=unshifted_key_name
@@ -200,9 +202,9 @@ class Keyboard(ioHubKeyboardDevice):
                 key_name=u''+umac_key_name 
                 #ucode=ord(key_name[-1]) 
 #                print2err('mac ucode hit: [',key_name, '] ', ucode, ' ', len(key_name))
-                
+
         if key_name is None or len(key_name)==0:# or ucategory(unichr(ucode))[0] == 'C':
-                            
+
             key_name=KeyboardConstants._virtualKeyCodes.getName(key_code)
             if key_name:
                 if key_name.startswith('VK_'):
@@ -216,7 +218,8 @@ class Keyboard(ioHubKeyboardDevice):
                     if key_name.startswith('ANSI_'):
                         key_name=key_name[5:]
                     key_name=u''+key_name
-                    
+
+        #print2err("key_code END: ",key_code," : ",unshifted_key_name," : ",key_name)
         return key_name,ucode,key_code,unshifted_key_name
 
     
@@ -266,10 +269,12 @@ class Keyboard(ioHubKeyboardDevice):
                     try:
                         keyEvent = NSEvent.eventWithCGEvent_(event)
                         key_name,ucode,key_code,unshifted_key_name=self._getKeyNameForEvent(keyEvent)
+
+                        if etype == Qz.kCGEventKeyDown and self._report_auto_repeats is False and self._key_states.get(key_code, None):
+                            return event
+
                         window_number=keyEvent.windowNumber()
-
                         report_system_wide_events=self.getConfiguration().get('report_system_wide_events',True)
-
                         # Can not seem to figure out how to get window handle id from evt to match with pyget in darwin, so
                         # Comparing event target process ID to the psychopy windows process ID,
                         #yglet_window_hnds=self._iohub_server._pyglet_window_hnds
@@ -302,17 +307,14 @@ class Keyboard(ioHubKeyboardDevice):
                     # index 0 and 1 are session and exp. ID's
                     # index 3 is device id (not yet supported)
                     #key_name='£'
-                    if ioe_type == EventConstants.KEYBOARD_PRESS:                       
-                        if is_auto_repeat > 0 and self._report_auto_repeats is False:
-                            return event
-
                     if key_name is None or len(key_name)==0:
                         # TO DO: dead char we need to deal with??
                         key_name=u'DEAD_KEY?'
                         print2err("DEAD KEY HIT?")
                     else:
+                        #print2err("Unshifted:",unshifted_key_name, ":",key_name," : ",key_code)
+
                         if unshifted_key_name in [None,-1] or len(unshifted_key_name)==0:
-                            print2err("Unshifted:",unshifted_key_name, ":",key_name)
                             unshifted_key_name = key_name.lower().encode('utf-8')
 
                         ioe=self._EVENT_TEMPLATE_LIST
@@ -334,11 +336,11 @@ class Keyboard(ioHubKeyboardDevice):
                         ioe[17]=window_number
                         ioe[18]=key_name.encode('utf-8')
 
-
+                        ioe = copy(ioe)
                         ioHubKeyboardDevice._updateKeyboardEventState(self, ioe,
                                                           ioe_type == EventConstants.KEYBOARD_PRESS)
 
-                        self._addNativeEventToBuffer(copy(ioe))
+                        self._addNativeEventToBuffer(ioe)
                 else:
                     print2err("\nWARNING: KEYBOARD RECEIVED A [ {0} ] KB EVENT, BUT COULD NOT GENERATE AN IOHUB EVENT FROM IT !!".format(etype)," [",key_name,"] ucode: ",ucode, ' key_code: ',key_code)
                     
