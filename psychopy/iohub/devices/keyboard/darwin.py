@@ -175,10 +175,10 @@ class Keyboard(ioHubKeyboardDevice):
         key_code=ns_event.keyCode()  
         ucode=0
         unshifted_key_name = ns_event.charactersIgnoringModifiers()
-        print2err("----")
+        #print2err("----")
         key_name=ns_event.characters()
         #unshifted_key_name=key_name
-        print2err("key_code: ",key_code," : ",unshifted_key_name," : ",key_name)
+        #print2err("key_code: ",key_code," : ",unshifted_key_name," : ",key_name)
 
         if key_name and len(key_name)>0:
             ucode=ord(key_name)
@@ -219,7 +219,7 @@ class Keyboard(ioHubKeyboardDevice):
                         key_name=key_name[5:]
                     key_name=u''+key_name
 
-        print2err("key_code END: ",key_code," : ",unshifted_key_name," : ",key_name)
+        #print2err("key_code END: ",key_code," : ",unshifted_key_name," : ",key_name)
         return key_name,ucode,key_code,unshifted_key_name
 
     
@@ -312,7 +312,7 @@ class Keyboard(ioHubKeyboardDevice):
                         key_name=u'DEAD_KEY?'
                         print2err("DEAD KEY HIT?")
                     else:
-                        print2err("Unshifted:",unshifted_key_name, ":",key_name," : ",key_code)
+                        #print2err("Unshifted:",unshifted_key_name, ":",key_name," : ",key_code)
 
                         if unshifted_key_name in [None,-1] or len(unshifted_key_name)==0:
                             unshifted_key_name = key_name.lower().encode('utf-8')
