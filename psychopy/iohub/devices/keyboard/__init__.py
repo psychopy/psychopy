@@ -79,18 +79,21 @@ class ioHubKeyboardDevice(Device):
 
     def _updateKeyboardEventState(self, kb_event, is_press):
         key_id_index=KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key_id')
+        #print2err("==========")
+        #print2err("ispress:",is_press," : ",kb_event)
         if is_press:
             key_state = self._key_states.setdefault(kb_event[key_id_index], [kb_event, -1])
             key_state[1] += 1
         else:
-            key_id_index=KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key_id')
             key_press = self._key_states.get(kb_event[key_id_index],None)
+            #print2err('update key release:', key_press)
             if key_press is None:
                 return None
             else:
                 duration_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('duration')
                 press_evt_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('press_event_id')
                 kb_event[duration_index] = kb_event[DeviceEvent.EVENT_HUB_TIME_INDEX]-key_press[0][DeviceEvent.EVENT_HUB_TIME_INDEX]
+                #print2err('Release times :',kb_event[DeviceEvent.EVENT_HUB_TIME_INDEX]," : ",key_press[0][DeviceEvent.EVENT_HUB_TIME_INDEX])
                 kb_event[press_evt_id_index] = key_press[0][DeviceEvent.EVENT_ID_INDEX]
                 del self._key_states[kb_event[key_id_index]]
 
