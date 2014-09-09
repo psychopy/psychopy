@@ -394,6 +394,10 @@ class Window(object):
         Can be overridden by each stimulus, if units is specified on initialization.
         See :ref:`units` for explanation of options."""
         self.__dict__['units'] = value
+
+    def setUnits(self, value, log=True):
+        setAttribute(self, 'units', value, log=log)
+
     @attributeSetter
     def waitBlanking(self, value):
         """*None*, True or False.
@@ -1737,5 +1741,3 @@ def _onResize(width, height):
         #GL.gluPerspective(90, 1.0*width/height, 0.1, 100.0)
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
-
-
