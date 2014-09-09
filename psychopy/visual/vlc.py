@@ -114,7 +114,7 @@ def find_lib():
                 for r in w.HKEY_LOCAL_MACHINE, w.HKEY_CURRENT_USER:
                     try:
                         r = w.OpenKey(r, 'Software\\VideoLAN\\VLC')
-                        plugin_path, _ = w.QueryValueEx(r, 'InstallDir')
+                        plugin_path, _junk = w.QueryValueEx(r, 'InstallDir')
                         w.CloseKey(r)
                         break
                     except w.error:
@@ -228,7 +228,7 @@ class _Cstruct(ctypes.Structure):
     _fields_ = []  # list of 2-tuples ('name', ctyptes.<type>)
 
     def __str__(self):
-        l = [' %s:\t%s' % (n, getattr(self, n)) for n, _ in self._fields_]
+        l = [' %s:\t%s' % (n, getattr(self, n)) for n, _junk in self._fields_]
         return '\n'.join([self.__class__.__name__] + l)
 
     def __repr__(self):
@@ -823,7 +823,7 @@ class CallbackDecorators(object):
     Callback = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p)
     Callback.__doc__ = '''Callback function notification
 \param p_event the event triggering the callback
-    ''' 
+    '''
     LogCb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, Log_ptr, ctypes.c_char_p, ctypes.c_void_p)
     LogCb.__doc__ = '''Callback prototype for LibVLC log message handler.
 \param data data pointer as given to L{libvlc_log_set}()
@@ -834,7 +834,7 @@ class CallbackDecorators(object):
 \note Log message handlers <b>must</b> be thread-safe.
 \warning The message context pointer, the format string parameters and the
          variable arguments are only valid until the callback returns.
-    ''' 
+    '''
     VideoLockCb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ListPOINTER(ctypes.c_void_p))
     VideoLockCb.__doc__ = '''Callback prototype to allocate and lock a picture buffer.
 Whenever a new video frame needs to be decoded, the lock callback is
@@ -846,7 +846,7 @@ planes must be aligned on 32-bytes boundaries.
             of void pointers, this callback must initialize the array) [OUT]
 \return a private pointer for the display and unlock callbacks to identify
         the picture buffers
-    ''' 
+    '''
     VideoUnlockCb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ListPOINTER(ctypes.c_void_p))
     VideoUnlockCb.__doc__ = '''Callback prototype to unlock a picture buffer.
 When the video frame decoding is complete, the unlock callback is invoked.
@@ -859,7 +859,7 @@ but before the picture is displayed.
                callback [IN]
 \param planes pixel planes as defined by the @ref libvlc_video_lock_cb
               callback (this parameter is only for convenience) [IN]
-    ''' 
+    '''
     VideoDisplayCb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p)
     VideoDisplayCb.__doc__ = '''Callback prototype to display a picture.
 When the video frame needs to be shown, as determined by the media playback
@@ -867,7 +867,7 @@ clock, the display callback is invoked.
 \param opaque private pointer as passed to L{libvlc_video_set_callbacks}() [IN]
 \param picture private pointer returned from the @ref libvlc_video_lock_cb
                callback [IN]
-    ''' 
+    '''
     VideoFormatCb = ctypes.CFUNCTYPE(ctypes.POINTER(ctypes.c_uint), ListPOINTER(ctypes.c_void_p), ctypes.c_char_p, ctypes.POINTER(ctypes.c_uint), ctypes.POINTER(ctypes.c_uint), ctypes.POINTER(ctypes.c_uint), ctypes.POINTER(ctypes.c_uint))
     VideoFormatCb.__doc__ = '''Callback prototype to configure picture buffers format.
 This callback gets the format of the video as output by the video decoder
@@ -891,47 +891,47 @@ the pixel height.
 Furthermore, we recommend that pitches and lines be multiple of 32
 to not break assumption that might be made by various optimizations
 in the video decoders, video filters and/or video converters.
-    ''' 
+    '''
     VideoCleanupCb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p)
     VideoCleanupCb.__doc__ = '''Callback prototype to configure picture buffers format.
 \param opaque private pointer as passed to L{libvlc_video_set_callbacks}()
               (and possibly modified by @ref libvlc_video_format_cb) [IN]
-    ''' 
+    '''
     AudioPlayCb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_uint, ctypes.c_int64)
     AudioPlayCb.__doc__ = '''Callback prototype for audio playback.
 \param data data pointer as passed to L{libvlc_audio_set_callbacks}() [IN]
 \param samples pointer to the first audio sample to play back [IN]
 \param count number of audio samples to play back
 \param pts expected play time stamp (see libvlc_delay())
-    ''' 
+    '''
     AudioPauseCb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int64)
     AudioPauseCb.__doc__ = '''Callback prototype for audio pause.
 \note The pause callback is never called if the audio is already paused.
 \param data data pointer as passed to L{libvlc_audio_set_callbacks}() [IN]
 \param pts time stamp of the pause request (should be elapsed already)
-    ''' 
+    '''
     AudioResumeCb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int64)
     AudioResumeCb.__doc__ = '''Callback prototype for audio resumption (i.e. restart from pause).
 \note The resume callback is never called if the audio is not paused.
 \param data data pointer as passed to L{libvlc_audio_set_callbacks}() [IN]
 \param pts time stamp of the resumption request (should be elapsed already)
-    ''' 
+    '''
     AudioFlushCb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int64)
     AudioFlushCb.__doc__ = '''Callback prototype for audio buffer flush
 (i.e. discard all pending buffers and stop playback as soon as possible).
 \param data data pointer as passed to L{libvlc_audio_set_callbacks}() [IN]
-    ''' 
+    '''
     AudioDrainCb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p)
     AudioDrainCb.__doc__ = '''Callback prototype for audio buffer drain
 (i.e. wait for pending buffers to be played).
 \param data data pointer as passed to L{libvlc_audio_set_callbacks}() [IN]
-    ''' 
+    '''
     AudioSetVolumeCb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_float, ctypes.c_bool)
     AudioSetVolumeCb.__doc__ = '''Callback prototype for audio volume change.
 \param data data pointer as passed to L{libvlc_audio_set_callbacks}() [IN]
 \param volume software volume (1. = nominal, 0. = mute)
 \param mute muted flag
-    ''' 
+    '''
     AudioSetupCb = ctypes.CFUNCTYPE(ctypes.POINTER(ctypes.c_int), ListPOINTER(ctypes.c_void_p), ctypes.c_char_p, ctypes.POINTER(ctypes.c_uint), ctypes.POINTER(ctypes.c_uint))
     AudioSetupCb.__doc__ = '''Callback prototype to setup the audio playback.
 This is called when the media player needs to create a new audio output.
@@ -941,12 +941,12 @@ This is called when the media player needs to create a new audio output.
 \param rate sample rate [IN/OUT]
 \param channels channels count [IN/OUT]
 \return 0 on success, anything else to skip audio playback
-    ''' 
+    '''
     AudioCleanupCb = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p)
     AudioCleanupCb.__doc__ = '''Callback prototype for audio playback cleanup.
 This is called when the media player no longer needs an audio output.
 \param opaque data pointer as passed to L{libvlc_audio_set_callbacks}() [IN]
-    ''' 
+    '''
 cb = CallbackDecorators
  # End of generated enum types #
 
@@ -1210,7 +1210,7 @@ class EventManager(_Ctype):
 
     @note: Only a single notification can be registered
     for each event type in an EventManager instance.
-    
+
     '''
 
     _callback_handler = None
@@ -1287,7 +1287,7 @@ class Instance(_Ctype):
       - a string
       - a list of strings as first parameters
       - the parameters given as the constructor parameters (must be strings)
-    
+
     '''
 
     def __new__(cls, *args):
@@ -1753,11 +1753,11 @@ class Instance(_Ctype):
 
 class Media(_Ctype):
     '''Create a new Media instance.
-    
+
     Usage: Media(MRL, *options)
 
     See vlc.Instance.media_new documentation for details.
-    
+
     '''
 
     def __new__(cls, *args):
@@ -2053,11 +2053,11 @@ class MediaLibrary(_Ctype):
 
 class MediaList(_Ctype):
     '''Create a new MediaList instance.
-    
+
     Usage: MediaList(list_of_MRLs)
 
     See vlc.Instance.media_list_new documentation for details.
-    
+
     '''
 
     def __new__(cls, *args):
@@ -2073,10 +2073,10 @@ class MediaList(_Ctype):
 
     def get_instance(self):
         return getattr(self, '_instance', None)
-    
+
     def add_media(self, mrl):
         """Add media instance to media list.
-        
+
         The L{lock} should be held upon entering this function.
         @param mrl: a media instance or a MRL.
         @return: 0 on success, -1 if the media list is read-only.
@@ -2193,7 +2193,7 @@ class MediaListPlayer(_Ctype):
     It may take as parameter either:
       - a vlc.Instance
       - nothing
-    
+
     '''
 
     def __new__(cls, arg=None):
@@ -2319,13 +2319,13 @@ class MediaPlayer(_Ctype):
     It may take as parameter either:
       - a string (media URI), options... In this case, a vlc.Instance will be created.
       - a vlc.Instance, a string (media URI), options...
-    
+
     '''
 
     def __new__(cls, *args):
         if len(args) == 1 and isinstance(args[0], _Ints):
             return _Constructor(cls, args[0])
-        
+
         if args and isinstance(args[0], Instance):
             instance = args[0]
             args = args[1:]
@@ -2397,13 +2397,13 @@ class MediaPlayer(_Ctype):
         Specify where the media player should render its video
         output. If LibVLC was built without Win32/Win64 API output
         support, then this has no effects.
-           
+
         @param drawable: windows handle of the drawable.
         """
         if not isinstance(drawable, ctypes.c_void_p):
             drawable = ctypes.c_void_p(int(drawable))
         libvlc_media_player_set_hwnd(self, drawable)
-            
+
     def video_get_width(self, num=0):
         """Get the width of a video in pixels.
 
@@ -2562,12 +2562,12 @@ class MediaPlayer(_Ctype):
         If you want to use it along with Qt4 see the QMacCocoaViewContainer. Then
         the following code should work:
         @begincode
-        
+
             NSView *video = [[NSView alloc] init];
             QMacCocoaViewContainer *container = new QMacCocoaViewContainer(video, parent);
             L{set_nsobject}(mp, video);
             [video release];
-        
+
         @endcode
         You can find a live example in VLCVideoView in VLCKit.framework.
         @param drawable: the drawable that is either an NSView or an object following the VLCOpenGLVideoViewEmbedding protocol.
@@ -4388,18 +4388,18 @@ def libvlc_video_set_callbacks(mp, lock, unlock, display, opaque):
     '''
     print 'libvlc_video_set_callbacks 1'
     sys.stdout.flush()
-    
+
     f = _Cfunctions.get('libvlc_video_set_callbacks', None) or \
         _Cfunction('libvlc_video_set_callbacks', ((1,), (1,), (1,), (1,), (1,),), None,
                     None, MediaPlayer, VideoLockCb, VideoUnlockCb, VideoDisplayCb, ctypes.c_void_p)
     print 'libvlc_video_set_callbacks 2'
     sys.stdout.flush()
- 
+
     r= f(mp, lock, unlock, display, opaque)
     print 'libvlc_video_set_callbacks 3'
     sys.stdout.flush()
     return r
-    
+
 def libvlc_video_set_format(mp, chroma, width, height, pitch):
     '''Set decoded video chroma and dimensions.
     This only works in combination with L{libvlc_video_set_callbacks}(),
@@ -4425,7 +4425,7 @@ def libvlc_video_set_format(mp, chroma, width, height, pitch):
     print 'libvlc_video_set_format 3'
     sys.stdout.flush()
     return r
-    
+
 def libvlc_video_set_format_callbacks(mp, setup, cleanup):
     '''Set decoded video chroma and dimensions. This only works in combination with
     L{libvlc_video_set_callbacks}().
@@ -4454,12 +4454,12 @@ def libvlc_media_player_set_nsobject(p_mi, drawable):
     If you want to use it along with Qt4 see the QMacCocoaViewContainer. Then
     the following code should work:
     @begincode
-    
+
         NSView *video = [[NSView alloc] init];
         QMacCocoaViewContainer *container = new QMacCocoaViewContainer(video, parent);
         L{libvlc_media_player_set_nsobject}(mp, video);
         [video release];
-    
+
     @endcode
     You can find a live example in VLCVideoView in VLCKit.framework.
     @param p_mi: the Media Player.

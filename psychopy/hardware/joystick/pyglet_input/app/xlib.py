@@ -2,14 +2,14 @@
 # pyglet
 # Copyright (c) 2006-2008 Alex Holkner
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions 
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #  * Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright 
+#  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
@@ -112,7 +112,7 @@ class XlibEventLoop(PlatformEventLoop):
         # on a device.
         if not pending_devices and (timeout is None or not timeout):
             iwtd = self._select_devices
-            pending_devices, _, _ = select.select(iwtd, (), (), timeout)
+            pending_devices, _junk, _junk = select.select(iwtd, (), (), timeout)
 
         if not pending_devices:
             return False
@@ -125,7 +125,7 @@ class XlibEventLoop(PlatformEventLoop):
         for window in app.windows:
             if window._needs_resize:
                 window.switch_to()
-                window.dispatch_event('on_resize', 
+                window.dispatch_event('on_resize',
                                       window._width, window._height)
                 window.dispatch_event('on_expose')
                 window._needs_resize = False
