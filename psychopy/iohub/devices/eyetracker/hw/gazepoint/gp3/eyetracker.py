@@ -204,18 +204,18 @@ class EyeTracker(EyeTrackerDevice):
                 self._gp3.connect(address)
 
                 init_connection_str='<SET ID="ENABLE_SEND_CURSOR" STATE="1" />\r\n'
+                init_connection_str+='<SET ID="ENABLE_SEND_POG_LEFT" STATE="1" />\r\n'
+                init_connection_str+='<SET ID="ENABLE_SEND_POG_RIGHT" STATE="1" />\r\n'
+                #init_connection_str+='<SET ID="ENABLE_SEND_PUPIL_LEFT" STATE="1" />\r\n'
+                #init_connection_str+='<SET ID="ENABLE_SEND_PUPIL_RIGHT" STATE="1" />\r\n'
                 init_connection_str+='<SET ID="ENABLE_SEND_POG_FIX" STATE="1" />\r\n'
                 init_connection_str+='<SET ID="ENABLE_SEND_DATA" STATE="0" />\r\n'
                 init_connection_str+='<SET ID="ENABLE_SEND_COUNTER" STATE="1" />\r\n'
                 init_connection_str+='<SET ID="ENABLE_SEND_TIME" STATE="1" />\r\n'
                 init_connection_str+='<SET ID="ENABLE_SEND_TIME_TICK" STATE="1" />\r\n'
                 self._gp3.sendall(str.encode(init_connection_str))
-#                self._gp3.send(str.encode('<SET ID="ENABLE_SEND_POG_LEFT" STATE="1" />\r\n'))
-#                self._gp3.send(str.encode('<SET ID="ENABLE_SEND_POG_RIGHT" STATE="1" />\r\n'))
-#                self._gp3.send(str.encode('<SET ID="ENABLE_SEND_POG_BEST" STATE="1" />\r\n'))
-#                self._gp3.send(str.encode('<SET ID="ENABLE_SEND_PUPIL_LEFT" STATE="1" />\r\n'))
-#                self._gp3.send(str.encode('<SET ID="ENABLE_SEND_PUPIL_RIGHT" STATE="1" />\r\n'))
-#                self._gp3.send(str.encode('<SET ID="ENABLE_SEND_USER_DATA" />\r\n'))
+#               self._gp3.send(str.encode('<SET ID="ENABLE_SEND_POG_BEST" STATE="1" />\r\n'))
+#               self._gp3.send(str.encode('<SET ID="ENABLE_SEND_USER_DATA" />\r\n'))
                 # block for upp to 1 second to get reply txt.
                 strStatus = self._checkForNetData(1.0)
                 if strStatus:
@@ -399,7 +399,7 @@ class EyeTracker(EyeTrackerDevice):
             for m in msgs:
                 if m.get('type') == 'REC':
                     # Always tracks binoc, so always use BINOCULAR_EYE_SAMPLE
-                    print2err("REC MSG: ",m)
+                    #print2err("REC MSG: ",m)
                     event_type=EventConstants.BINOCULAR_EYE_SAMPLE
 
                     # <REC TIME="2.123" TIME_TICK="79876879598675" FPOGX="0.00000"
@@ -423,21 +423,21 @@ class EyeTracker(EyeTrackerDevice):
 
                     # TODO: fill in eye sample specific data fields
                     # IMP: Use _eyeTrackerToDisplayCoords method to set values for array
-                    left_gaze_x = 0.0
-                    left_gaze_y = 0.0
+                    left_gaze_x = m.get('LPOGX',EyeTrackerConstants.UNDEFINED)
+                    left_gaze_y = m.get('LPOGY',EyeTrackerConstants.UNDEFINED)
                     left_gaze_x, left_gaze_y = self._eyeTrackerToDisplayCoords((left_gaze_x,left_gaze_y))
-                    left_pupil_size = 0.0
+                    left_pupil_size = EyeTrackerConstants.UNDEFINED
 
                     # IMP: Use _eyeTrackerToDisplayCoords method to set values for array
-                    right_gaze_x = 0.0
-                    right_gaze_y = 0.0
+                    right_gaze_x = m.get('RPOGX',EyeTrackerConstants.UNDEFINED)
+                    right_gaze_y = m.get('RPOGY',EyeTrackerConstants.UNDEFINED)
                     right_gaze_x, right_gaze_y = self._eyeTrackerToDisplayCoords((right_gaze_x,right_gaze_y))
-                    right_pupil_size = 0.0
+                    right_pupil_size = EyeTrackerConstants.UNDEFINED
 
                     #TODO: Set combined vars to the GP3 provided
                     # left / right eye pos avg. data
-                    combined_gaze_x = 0.0
-                    combined_gaze_y = 0.0
+                    combined_gaze_x = m.get('FPOGX',EyeTrackerConstants.UNDEFINED)
+                    combined_gaze_y = m.get('FPOGY',EyeTrackerConstants.UNDEFINED)
                     combined_gaze_x, combined_gaze_y = self._eyeTrackerToDisplayCoords((combined_gaze_x,combined_gaze_y))
 
                     # TODO: status field set to indicate missing data
