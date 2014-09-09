@@ -219,7 +219,7 @@ while QUIT_EXP is False:
     # recent event in the list of a given event type is what you will see.
     #
     t1 = core.getTime()
-    events = keyboard.getKey()
+    events = keyboard.getKeys()
 
     if len(events) > 0:
         t2 = core.getTime()
@@ -245,7 +245,7 @@ while QUIT_EXP is False:
             psychopy_iohub_key_mismatch.setText("")
 
         modifiers_stim.setText(str(kbe.modifiers))
-        all_pressed_stim.setText(str(keyboard.pressed.keys()))
+        all_pressed_stim.setText(str(keyboard.state.keys()))
 
         if kbe.type == "KEYBOARD_PRESS":
             keypress_duration_stim.setText("")

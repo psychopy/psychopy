@@ -556,8 +556,8 @@ try:
                 VK_MODECHANGE  =  0x1F
             
                 VK_SPACE  =  0x20
-                VK_PAGE_UP  =  0x21
-                VK_PAGE_DOWN  =  0x22
+                VK_PAGEUP  =  0x21
+                VK_PAGEDOWN  =  0x22
                 VK_END  =  0x23
                 VK_HOME  =  0x24
                 VK_LEFT  =  0x25
@@ -621,8 +621,8 @@ try:
                 VK_NUM_LOCK  =  0x90
                 VK_SCROLL  =  0x91
             
-                VK_LEFT_SHIFT  =  0xA0
-                VK_RIGHT_SHIFT  =  0xA1
+                VK_LSHIFT  =  0xA0
+                VK_RSHIFT  =  0xA1
                 VK_LEFT_CTRL  =  0xA2
                 VK_RIGHT_CTRL  =  0xA3
                 VK_LEFT_ALT  =  0xA4
