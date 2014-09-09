@@ -394,6 +394,11 @@ class Window(object):
         Can be overridden by each stimulus, if units is specified on initialization.
         See :ref:`units` for explanation of options."""
         self.__dict__['units'] = value
+
+    def setUnits(self, value):
+        """no logging"""
+        self.__dict__['units'] = value
+
     @attributeSetter
     def waitBlanking(self, value):
         """*None*, True or False.

@@ -907,7 +907,7 @@ class RatingScale(MinimalStim):
         Sets response flags: `self.noResponse`, `self.timedOut`.
         `draw()` only draws the rating scale, not the item to be rated.
         """
-        self.win.units = 'norm'  # original units do get restored
+        self.win.setUnits(u'norm')  # get restored; no logging
         if self.firstDraw:
             self.firstDraw = False
             self.clock.reset()
@@ -1113,7 +1113,7 @@ class RatingScale(MinimalStim):
             self.history.append((tmpRating, self.getRT()))  # tuple
 
         # restore user's units:
-        self.win.units = self.savedWinUnits
+        self.win.setUnits(self.savedWinUnits)  # no logging
 
     def reset(self, log=True):
         """Restores the rating-scale to its post-creation state.
