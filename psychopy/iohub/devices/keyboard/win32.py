@@ -232,7 +232,7 @@ class Keyboard(ioHubKeyboardDevice):
                     for c in range(result):
                         uchar = ord(self._unichar[c])
                         ucat = ucategory(self._unichar[c])
-                    char = self._unichar[0:result]
+                    char = self._unichar[0:result].lower()
                     char = char.encode('utf-8')
             elif result == -1:
                 char = self._unichar[0].encode('utf-8')
@@ -242,7 +242,7 @@ class Keyboard(ioHubKeyboardDevice):
             if result == 0 or ucat and ucat[0] == 'C':
                 lukey, _ = KeyboardConstants._getKeyNameAndModsForEvent(event)
                 if lukey and len(lukey) > 0:
-                    char = lukey
+                    char = lukey.lower()
 
             # Get evt.key field >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                             
