@@ -8,16 +8,16 @@ Inital Version: May 6th, 2013, Sol Simpson
 Updated June 22nd: Added demo timeout. SS
 """
 
-MAX_KEY_EVENT_COUNT = 500
 WINDOW_SIZE = 1024,768
 
 from psychopy import core, visual, event
 from psychopy.iohub import launchHubServer
 
+# Start iohub process. The iohub process can be accessed using the 'io' variable.
 io = launchHubServer()
-display = io.devices.display
+
+# Creating a 'keyboard' variable that is used to access the iohub Keyboard device.
 keyboard = io.devices.keyboard
-mouse = io.devices.mouse
 
 dw, dh = WINDOW_SIZE
 dw = dw / 2
@@ -49,7 +49,7 @@ title_label = visual.TextStim(window, units=unit_type,
                                alignHoriz='center',
                                alignVert='top', wrapWidth=dw * 2)
 title2_label = visual.TextStim(window, units=unit_type,
-                              text=u'Press CTRL + Q to Exit Demo',
+                              text=u'Press escape key to Exit Demo',
                               pos=[0, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT],
                               height=TEXT_STIM_HEIGHT,
                               color=[0.25, 0.2, 1], colorSpace='rgb',
@@ -117,15 +117,6 @@ psychopy_key_label = visual.TextStim(window, units=unit_type,
                                    colorSpace='rgb', alignHoriz='left',
                                    alignVert='top',
                                    wrapWidth=LABEL_WRAP_LENGTH)
-psychopy_iohub_key_mismatch = visual.TextStim(window, units=unit_type,
-                                   text=u'',
-                                   pos=[0,
-                                        TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 9],
-                                   height=TEXT_STIM_HEIGHT, color=[1, -1, -1],
-                                   colorSpace='rgb', alignHoriz='center',
-                                   alignVert='top',
-                                   wrapWidth=dw*2)
-
 # dynamic stim
 #
 key_text_stim = visual.TextStim(window, units=unit_type, text=u'',
@@ -187,7 +178,7 @@ STIM_LIST = [title_label, title2_label, key_text_label, char_label,
              modifiers_label, keypress_duration_label, all_pressed__label,
              event_type_label,psychopy_key_label,
              key_text_stim, char_stim, modifiers_stim, keypress_duration_stim,
-             all_pressed_stim, event_type_stim,psychopy_key_stim,psychopy_iohub_key_mismatch]
+             all_pressed_stim, event_type_stim,psychopy_key_stim]
 
 
 # Clear all events from the global and device level ioHub Event Buffers.
@@ -197,38 +188,15 @@ io.clearEvents('all')
 QUIT_EXP = False
 demo_timeout_start = core.getTime()
 
-# Loop until we get a CTRL+q event or until 120 seconds has passed 
+# Loop until we get a 'escape' key is pressed,
+# or until 15 seconds passed since last keyboard event.
 #
-import numpy as np
-
-data = np.zeros(MAX_KEY_EVENT_COUNT)
-i = 0
 while QUIT_EXP is False:
-
-    # Keep the ioHub global event buffer cleared since we are not using it.
-    #  Not required, but does not hurt.
-    #
-    io.clearEvents()
-
     # Redraw stim and window flip...
-    #n
     [s.draw() for s in STIM_LIST]
     flip_time = window.flip()
-    # Update text fields based on all Keyboard Event types that have occurred
-    # since the last call to getEvents of clearEvents(). This means that the most
-    # recent event in the list of a given event type is what you will see.
-    #
-    t1 = core.getTime()
-    events = keyboard.getKeys()
 
-    if len(events) > 0:
-        t2 = core.getTime()
-        d = (t2 - t1) * 1000.0
-        data[i] = d
-        i += 1
-    if i == MAX_KEY_EVENT_COUNT:
-        QUIT_EXP = True
-        break
+    events = keyboard.getKeys()
 
     for kbe in events:
         key_text_stim.setText(kbe.key)
@@ -239,10 +207,6 @@ while QUIT_EXP is False:
         if psychopy_keys:
             psychopy_key = psychopy_keys[0]
             psychopy_key_stim.setText(psychopy_key)
-        if psychopy_key and psychopy_key != kbe.key:
-            psychopy_iohub_key_mismatch.setText("!!io.key [%s] vs psychokey [%s] !!"%(kbe.key, psychopy_key))
-        elif psychopy_key:
-            psychopy_iohub_key_mismatch.setText("")
 
         modifiers_stim.setText(str(kbe.modifiers))
         all_pressed_stim.setText(str(keyboard.state.keys()))
@@ -256,34 +220,12 @@ while QUIT_EXP is False:
 
         demo_timeout_start = kbe.time
 
-        if (kbe.key.lower() == 'q' and (
-                        'CONTROL_LEFT' in kbe.modifiers or 'CONTROL_RIGHT' in kbe.modifiers)):
+        # Note that keyboard events can be compared to a string, matching when
+        # the event.key or .char == basestring value.
+        if kbe == 'escape':
             QUIT_EXP = True
             break
 
     if flip_time - demo_timeout_start > 15.0:
         print "Ending Demo Due to 15 Seconds of Inactivity."
         break
-
-        # Send a message to the iohub with the message text that a flip
-        # occurred and what the mouse position was. Since we know the
-        # psychopy-iohub time the flip occurred on, we can set that directly
-        # in the event.
-        #self.hub.sendMessageEvent("Flip %s"%(str(currentPosition),), sec_time=flip_time)
-
-
-
-
-#if i:
-#    from matplotlib import pyplot as plt
-#    plt.hist(data[:i], 50)
-#    plt.ylabel("Count")
-#    plt.xlabel("duration (msec)")
-#    plt.title("keyboard.getKeys() Execution Duration (msec)")
-#    plt.show()
-
-# Done demo loop, cleanup explicitly
-#
-io.quit()
-core.quit()
-#window.close()
