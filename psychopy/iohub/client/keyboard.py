@@ -11,6 +11,8 @@ from psychopy.core import getTime
 from psychopy.visual.window import Window
 
 """
+TEXT NEEDS SOME UPDATING
+
 Discussed changes (from emails with Jon and Jonas)
 
 
@@ -25,10 +27,9 @@ keyboard.getEvents() # current func with smaller number of fields returned and
         .tDown= 3.28
         .tUp = 4.56
 
-.key: exactly, the lookup table value
-.char: exactly, what iohub puts in .key right now, for keys that have a visible glyph only though
+.key: The unmodified key value pressed.
+.char: The key value, as determined by the active modifiers.
 .time: I like .time better, and fits with the full detail fields better.
-.tUp: I do not think we need the tup for a key/Press/ event.
 
 A KeyRelease event would be the same as key press, but the time is the time the
 key was released, and the event would have a .duration field.
@@ -89,7 +90,7 @@ class KeyboardEvent(ioEvent):
     Note that keyboard events can be compared using a single character
     basestring. For example:
 
-        kb_evts = keyboard.getKey(['a','b','c'])
+        kb_evts = keyboard.getKeys(['a','b','c'])
         for event in kb_evts:
             if event.key == 'b' or event.char == 'b':
                 return True
@@ -97,7 +98,7 @@ class KeyboardEvent(ioEvent):
 
     can be written as:
 
-        if 'b' in keyboard.getKey(['a','b','c']):
+        if 'b' in keyboard.getKeys(['a','b','c']):
             return True
         return False
     """
@@ -279,7 +280,7 @@ class Keyboard(ioHubDeviceView):
 
 
     @property
-    def pressed(self):
+    def state(self):
         """
         Returns all currently pressed keys as a dictionary of key : time values.
         The key is taken from the originating press event .key attribute. The
@@ -315,7 +316,7 @@ class Keyboard(ioHubDeviceView):
         return self._reporting
 
 
-    def getKey(self, keys=None, chars=None, mods=None, duration=None,
+    def getKeys(self, keys=None, chars=None, mods=None, duration=None,
                 clear=True, etype=None):
         """
         Returns a list of  KeyboardPress and Keyboard Release events that have
@@ -387,11 +388,11 @@ class Keyboard(ioHubDeviceView):
         return sorted(return_events, key=lambda x: x.time)
 
 
-    def waitForKey(self, maxWait=None, keys=None, chars=None, mods=None,
+    def waitForKeys(self, maxWait=None, keys=None, chars=None, mods=None,
                    duration=None, clear=True, etype=None, checkInterval=0.002):
         """
         Waits for up to maxWait seconds for a keyboard event that matches
-        the provided criteria. See getKey for a description of the arguments
+        the provided criteria. See getKeys for a description of the arguments
         shared between the two methods.
 
         checkInterval is used to define how often geyKeys() should be called.
@@ -411,7 +412,7 @@ class Keyboard(ioHubDeviceView):
         key = None
 
         def pumpKeys():
-            key = self.getKey(keys, chars, mods, duration, clear, etype)
+            key = self.getKeys(keys, chars, mods, duration, clear, etype)
             if key:
                 return key
             Window.dispatchAllWindowEvents()
@@ -434,7 +435,7 @@ class Keyboard(ioHubDeviceView):
         return key
 
 
-    def getPress(self, keys=None, chars=None, mods=None, clear=True):
+    def getPresses(self, keys=None, chars=None, mods=None, clear=True):
         """
         See the getKeys() method documentation. This method is identical, but
         only returns KeyboardPress events.
@@ -445,18 +446,18 @@ class Keyboard(ioHubDeviceView):
         :param clear: bool
         :return: tuple
         """
-        return self.getKey(keys, chars, mods, None, clear, self.KEY_PRESS)
+        return self.getKeys(keys, chars, mods, None, clear, self.KEY_PRESS)
 
-    def waitForPress(self, maxWait=None, keys=None, chars=None, mods=None,
+    def waitForPresses(self, maxWait=None, keys=None, chars=None, mods=None,
                    duration=None, clear=True, checkInterval=0.002):
         """
-        See the waitForKey() method documentation. This method is identical, but
+        See the waitForKeys() method documentation. This method is identical, but
         only returns KeyboardPress events.
         """
-        return self.waitForKey(maxWait, keys, chars, mods, duration, clear,
+        return self.waitForKeys(maxWait, keys, chars, mods, duration, clear,
                                self.KEY_PRESS, checkInterval)
 
-    def getRelease(self, keys=None, chars=None, mods=None, duration=None,
+    def getReleases(self, keys=None, chars=None, mods=None, duration=None,
                     clear=True):
         """
         See the getKeys() method documentation. This method is identical, but
@@ -469,14 +470,14 @@ class Keyboard(ioHubDeviceView):
         :param clear: bool
         :return: tuple
         """
-        return self.getKey(keys, chars, mods, duration, clear,
+        return self.getKeys(keys, chars, mods, duration, clear,
                             self.KEY_RELEASE)
 
-    def waitForRelease(self, maxWait=None, keys=None, chars=None, mods=None,
+    def waitForReleases(self, maxWait=None, keys=None, chars=None, mods=None,
                    duration=None, clear=True, checkInterval=0.002):
         """
-        See the waitForKey() method documentation. This method is identical, but
+        See the waitForKeys() method documentation. This method is identical, but
         only returns KeyboardRelease events.
         """
-        return self.waitForKey(maxWait, keys, chars, mods, duration, clear,
+        return self.waitForKeys(maxWait, keys, chars, mods, duration, clear,
                                self.KEY_RELEASE, checkInterval)

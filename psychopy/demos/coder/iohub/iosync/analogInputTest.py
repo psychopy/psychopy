@@ -55,7 +55,7 @@ try:
     i=0
     print "Saving Analog Data to File. Press any Key to Quit..."
     aout=file('analog_output.txt','w')
-    while not kb.getKey(keys=['escape',]):
+    while not kb.getKeys(keys=['escape',]):
         mcu_events = mcu.getEvents()
         for mcu_evt in mcu_events:
             aout.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\n'.format(mcu_evt.time,
