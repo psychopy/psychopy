@@ -255,7 +255,7 @@ class EyeTrackerEventParser(eventfilters.DeviceEventFilter):
                 # is returned, add it to the to be processed sample list.
                 filtered_event = self.addToFieldFilters(current_mono_evt)
                 if filtered_event:
-                    filtered_event, _ = filtered_event
+                    filtered_event, _junk = filtered_event
                     x_vel_thresh, y_vel_thresh = self.addVelocityToAdaptiveThreshold(filtered_event)
                     filtered_event[self.io_event_ix('raw_x')] = x_vel_thresh
                     filtered_event[self.io_event_ix('raw_y')] = y_vel_thresh
@@ -468,7 +468,7 @@ class EyeTrackerEventParser(eventfilters.DeviceEventFilter):
             self._addVelocity(prev_samp, curr_samp)
             filtered_event = self.addToFieldFilters(curr_samp)
             if filtered_event:
-                filtered_event, _ = filtered_event
+                filtered_event, _junk = filtered_event
                 samples_for_processing.append(filtered_event)
             prev_samp = curr_samp
         return samples_for_processing
@@ -793,4 +793,3 @@ class EyeTrackerEventParser(eventfilters.DeviceEventFilter):
                 sample[self.io_event_ix('time')]-existing_start_event[self.io_event_ix('time')],
                 sample[self.io_event_ix('status')]
                 ]
-

@@ -163,7 +163,7 @@ class Preferences:
         if resultOfValidate == True:
             return
         vtor = validate.Validator()
-        for (section_list, key, _) in configobj.flatten_errors(cfg, resultOfValidate):
+        for (section_list, key, _junk) in configobj.flatten_errors(cfg, resultOfValidate):
             if key is not None:
                 cfg[', '.join(section_list)][key] = vtor.get_default_value(cfg.configspec[', '.join(section_list)][key])
             else:

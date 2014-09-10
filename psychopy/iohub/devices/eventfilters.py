@@ -469,10 +469,10 @@ if __name__ == '__main__':
         filtered_x=None
         filtered_y=None
         if r:
-            _, filtered_x=r
+            _junk, filtered_x=r
 
         r = my_filter.add(e['y_position'])
         if r:
-            _, filtered_y=r
+            _junk, filtered_y=r
 
         print "filtered values: ", filtered_x, filtered_y
