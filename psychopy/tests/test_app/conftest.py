@@ -4,6 +4,12 @@
 """
 py.test fixtures to create an instance of PsychoPyApp for testing
 """
+import sys
+if '--run' in sys.argv:
+    sys.argv.remove('--run')
+if '-r' in sys.argv:
+    sys.argv.remove('-r')
+    
 from psychopy.app import psychopyApp
 
 def pytest_configure(config):
