@@ -2033,7 +2033,7 @@ class CoderFrame(wx.Frame):
             fullPath = fullPath.replace(' ','\ ')
             pythonExec = sys.executable.replace(' ','\ ')
             command = '%s -u %s' %(pythonExec, fullPath)# the quotes would break a unix system command
-            self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_MAKE_GROUP_LEADER, self.scriptProcess)
+            self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
         self.toolbar.EnableTool(self.IDs.tbRun,False)
         self.toolbar.EnableTool(self.IDs.tbStop,True)
 

@@ -79,18 +79,21 @@ class ioHubKeyboardDevice(Device):
 
     def _updateKeyboardEventState(self, kb_event, is_press):
         key_id_index=KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key_id')
+        #print2err("==========")
+        #print2err("ispress:",is_press," : ",kb_event)
         if is_press:
             key_state = self._key_states.setdefault(kb_event[key_id_index], [kb_event, -1])
             key_state[1] += 1
         else:
-            key_id_index=KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key_id')
             key_press = self._key_states.get(kb_event[key_id_index],None)
+            #print2err('update key release:', key_press)
             if key_press is None:
                 return None
             else:
                 duration_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('duration')
                 press_evt_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('press_event_id')
                 kb_event[duration_index] = kb_event[DeviceEvent.EVENT_HUB_TIME_INDEX]-key_press[0][DeviceEvent.EVENT_HUB_TIME_INDEX]
+                #print2err('Release times :',kb_event[DeviceEvent.EVENT_HUB_TIME_INDEX]," : ",key_press[0][DeviceEvent.EVENT_HUB_TIME_INDEX])
                 kb_event[press_evt_id_index] = key_press[0][DeviceEvent.EVENT_ID_INDEX]
                 del self._key_states[kb_event[key_id_index]]
 
@@ -268,62 +271,4 @@ class KeyboardReleaseEvent(KeyboardKeyEvent):
     __slots__=[]
     def __init__(self,*args,**kwargs):
         KeyboardKeyEvent.__init__(self,*args,**kwargs)
-
-
-#class KeyboardCharEvent(KeyboardReleaseEvent):
-#    '''
-#    A KeyboardCharEvent is generated when a key on the keyboard is pressed and then
-#    released. The KeyboardKeyEvent includes information about the key that was
-#    released, as well as a refernce to the KeyboardPressEvent that is associated
-#    with the KeyboardReleaseEvent. Any auto-repeat functionality that may be
-#    created by the OS keyboard driver is ignored regardless of the keyboard
-#    device 'report_auto_repeat_press_events' configuration setting.
-#
-#    ..note: A KeyboardCharEvent and the associated KeyboardReleaseEvent for it have
-#            the same event.time value, as should be expected. The cuurent event sorting
-#            process result in the KeyboardCharEvent occuring right before the
-#            KeyboardReleaseEvent in an event list that has both together. While this
-#            is 'technically' valid since both events have the same event.time,
-#            it would be more intuitive and logical if the KeyboardReleaseEvent
-#            occurred just before the KeyboardCharEvent in an event list. This will be
-#            addressed at a later date.
-#
-#    Event Type ID: EventConstants.KEYBOARD_CHAR
-#
-#    Event Type String: 'KEYBOARD_CHAR'
-#    '''
-#    _newDataTypes = [ ('press_event',KeyboardPressEvent.NUMPY_DTYPE),  # contains the keyboard press event that is
-#                                                                      # associated with the release event
-#
-#                      ('duration',N.float32)  # duration of the Keyboard char event
-#    ]
-#    EVENT_TYPE_ID=EventConstants.KEYBOARD_CHAR
-#    EVENT_TYPE_STRING='KEYBOARD_CHAR'
-#    IOHUB_DATA_TABLE=EVENT_TYPE_STRING
-#    __slots__=[e[0] for e in _newDataTypes]
-#    def __init__(self,*args,**kwargs):
-#        """
-#        """
-#
-#        #: The pressEvent attribute of the KeyboardCharEvent contains a reference
-#        #: to the associated KeyboardPressEvent
-#        #: that the KeyboardCharEvent is based on. The press event is the *first*
-#        #: press of the key registered with the ioHub Server before the key is
-#        #: released, so any key auto repeat key events are always ignored.
-#        #: KeyboardPressEvent class type.
-#        self.press_event=None
-#
-#        #: The ioHub time difference between the KeyboardReleaseEvent and
-#        #: KeyboardPressEvent events that have formed the KeyboardCharEvent.
-#        #: float type. seconds.msec-usec format
-#        self.duration=None
-#
-#        KeyboardReleaseEvent.__init__(self,*args,**kwargs)
-#
-#    @classmethod
-#    def _convertFields(cls,event_value_list):
-#        KeyboardReleaseEvent._convertFields(event_value_list)
-#        press_event_index=cls.CLASS_ATTRIBUTE_NAMES.index('press_event')
-#        event_value_list[press_event_index]=KeyboardPressEvent.createEventAsNamedTuple(event_value_list[press_event_index])
-
 

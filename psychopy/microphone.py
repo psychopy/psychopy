@@ -459,7 +459,7 @@ def getMarkerOnset(filename, chunk=128, secs=0.5, marker_hz=19000, marker_durati
     start = onsetChunks - 4
     stop = int(onsetChunks + marker_duration*sampleRate/chunk) + 4
     backwards = dftProfile[max(start, 0):min(stop, len(dftProfile))]
-    offChunks, _ = thresh2SD(backwards[::-1], thr=thr)
+    offChunks, _junk = thresh2SD(backwards[::-1], thr=thr)
     offSecs = (start + len(backwards) - offChunks) * chunk / sampleRate  # in secs
 
     return onsetSecs, offSecs
@@ -497,7 +497,7 @@ def getDftBins(data=None, sampleRate=None, low=100, high=8000, chunk=64):
     bins = []
     i = chunk
     if sampleRate:
-        _, freq = getDft(data[:chunk], sampleRate)  # just to get freq vector
+        _junk, freq = getDft(data[:chunk], sampleRate)  # just to get freq vector
         band = (freq > low) & (freq < high)  # band (frequency range)
     while i <= len(data):
         magn = getDft(data[i-chunk:i])
@@ -568,7 +568,7 @@ def getRMS(data):
     if isinstance(data, basestring):
         if not os.path.isfile(data):
             raise ValueError('getRMS: could not find file %s' % data)
-        _, data = wavfile.read(data)
+        _junk, data = wavfile.read(data)
         data_tr = np.transpose(data)
         data = data_tr / 32768.
     elif not isinstance(data, np.ndarray):
@@ -773,7 +773,7 @@ class Speech2Text(object):
         if ext not in ['.flac', '.wav']:
             raise SoundFormatNotSupported("Unsupported filetype: %s\n" % ext)
         if ext == '.wav':
-            _, samplingrate = readWavFile(filename)
+            _junk, samplingrate = readWavFile(filename)
         if samplingrate not in [16000, 8000]:
             raise SoundFormatNotSupported('Speech2Text sample rate must be 16000 or 8000 Hz')
         self.filename = filename
@@ -935,7 +935,7 @@ def flac2wav(path, keep=True):
     for flacfile in flac_files:
         wavname = flacfile.strip('.flac') + '.wav'
         flac_cmd = [flac_path, "-d", "--totally-silent", "-f", "-o", wavname, flacfile]
-        _, se = core.shellCall(flac_cmd, stderr=True)
+        _junk, se = core.shellCall(flac_cmd, stderr=True)
         if se:
             logging.error(se)
         if not keep:
@@ -968,12 +968,12 @@ def wav2flac(path, keep=True, level=5):
     for wavname in wav_files:
         flacfile = wavname.replace('.wav', '.flac')
         flac_cmd = [flac_path, "-%d" % level, "-f", "--totally-silent", "-o", flacfile, wavname]
-        _, se = core.shellCall(flac_cmd, stderr=True)
+        _junk, se = core.shellCall(flac_cmd, stderr=True)
         if se or not os.path.isfile(flacfile): # just try again
             # ~2% incidence when recording for 1s, 650+ trials
             # never got two in a row; core.wait() does not help
             logging.warn('Failed to convert to .flac; trying again')
-            _, se = core.shellCall(flac_cmd, stderr=True)
+            _junk, se = core.shellCall(flac_cmd, stderr=True)
             if se:
                 logging.error(se)
         if not keep:

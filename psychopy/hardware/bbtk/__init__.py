@@ -177,7 +177,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
             """
             state = line[:12]
             timeSecs = int(line[-14:-2])/10.0**6
-            evts=[]o
+            evts=[]
             evt=''
             if lastState is None:
                 evts.append({'evt':'', 'state':state, 'time':timeSecs})

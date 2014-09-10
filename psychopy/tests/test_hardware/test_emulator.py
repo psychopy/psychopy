@@ -16,7 +16,7 @@ from psychopy.hardware.emulator import *
 travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
 BASE_MR_SETTINGS = {
-    'TR': 0.2,    # duration (sec) per volume
+    'TR': 0.5,    # duration (sec) per volume
     'volumes': 3, # number of whole-brain 3D volumes / frames
     'sync': '5',  # character to use as the sync timing event; assumed to come at start of a volume
     'skip': 1     # number of volumes lacking a sync pulse at start of scan (for T1 stabilization)

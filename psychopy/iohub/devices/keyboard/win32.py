@@ -79,7 +79,7 @@ class Keyboard(ioHubKeyboardDevice):
 
             report_system_wide_events = self.getConfiguration().get(
                 'report_system_wide_events', True)
-                
+
             pyglet_window_hnds = self._iohub_server._pyglet_window_hnds
             if event.Window in pyglet_window_hnds:
                 pass
@@ -87,7 +87,7 @@ class Keyboard(ioHubKeyboardDevice):
                     pyglet_window_hnds) > 0 and report_system_wide_events is False:
                 # For keyboard, when report_system_wide_events is false
                 # do not record kb events that are not targeted for
-                # a PsychoPy window, still allow them to pass to the desktop 
+                # a PsychoPy window, still allow them to pass to the desktop
                 # apps.
                 return True
 
@@ -201,7 +201,7 @@ class Keyboard(ioHubKeyboardDevice):
             # time of the second message.
             device_time = event.Time / 1000.0  # convert to sec
             time = notifiedTime
-            
+
             # since this is a keyboard device using a callback method,
             # confidence_interval is not applicable
             confidence_interval = 0.0
@@ -212,13 +212,13 @@ class Keyboard(ioHubKeyboardDevice):
             delay = 0.0
 
             #
-            ## check for unicode char        
+            ## check for unicode char
             #
 
             result = self._user32.ToUnicode(event.KeyID, event.ScanCode,
                                             ctypes.byref(self._keyboard_state),
                                             ctypes.byref(self._unichar), 8, 0)
-                                                        
+
             uchar = 0
             char = None
             ucat = None
@@ -232,7 +232,7 @@ class Keyboard(ioHubKeyboardDevice):
                     for c in range(result):
                         uchar = ord(self._unichar[c])
                         ucat = ucategory(self._unichar[c])
-                    char = self._unichar[0:result]
+                    char = self._unichar[0:result].lower()
                     char = char.encode('utf-8')
             elif result == -1:
                 char = self._unichar[0].encode('utf-8')
@@ -240,12 +240,12 @@ class Keyboard(ioHubKeyboardDevice):
                 ucat = ucategory(self._unichar[0])
 
             if result == 0 or ucat and ucat[0] == 'C':
-                lukey, _ = KeyboardConstants._getKeyNameAndModsForEvent(event)
+                lukey, _junk = KeyboardConstants._getKeyNameAndModsForEvent(event)
                 if lukey and len(lukey) > 0:
-                    char = lukey
+                    char = lukey.lower()
 
             # Get evt.key field >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                                            
+
             prev_shift =  self._keyboard_state[win32_vk.VK_SHIFT]
             temp_unichar =  (ctypes.c_wchar * 8)()
             self._keyboard_state[win32_vk.VK_SHIFT] = 0
@@ -254,7 +254,7 @@ class Keyboard(ioHubKeyboardDevice):
                                             ctypes.byref(temp_unichar), 8, 0)
 
             self._keyboard_state[win32_vk.VK_SHIFT] = prev_shift
-            
+
             key = None
             ucat2 = None
             if result2 > 0:
@@ -263,10 +263,10 @@ class Keyboard(ioHubKeyboardDevice):
                     ucat2 = ucategory(temp_unichar[0])
                 else:
                     for c in range(result2):
-                        ucat2 = ucategory(temp_unichar[c])                    
+                        ucat2 = ucategory(temp_unichar[c])
                     key = temp_unichar[0:result2]
                     key = key.encode('utf-8')
-            
+
             if event.Key.lower().startswith('numpad'):
                 key = 'num_%s'%(event.Key[6:])
             elif ucat2 == 'Cc':
@@ -274,11 +274,11 @@ class Keyboard(ioHubKeyboardDevice):
 
             if key is None and char:
                 key = char
-            
+
             #print2err('>>KEY: {0} {1} {2} {3}  {4} {5}'.format(
             #event.flags, event.Ascii, event.Key, key.lower(), uchar2, ucat2))
             #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-         
+
             kb_event = [0,
                         0,
                         0,  #device id (not currently used)
