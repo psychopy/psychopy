@@ -11,6 +11,8 @@ from psychopy.core import getTime
 from psychopy.visual.window import Window
 
 """
+TEXT NEEDS SOME UPDATING
+
 Discussed changes (from emails with Jon and Jonas)
 
 
@@ -25,10 +27,9 @@ keyboard.getEvents() # current func with smaller number of fields returned and
         .tDown= 3.28
         .tUp = 4.56
 
-.key: exactly, the lookup table value
-.char: exactly, what iohub puts in .key right now, for keys that have a visible glyph only though
+.key: The unmodified key value pressed.
+.char: The key value, as determined by the active modifiers.
 .time: I like .time better, and fits with the full detail fields better.
-.tUp: I do not think we need the tup for a key/Press/ event.
 
 A KeyRelease event would be the same as key press, but the time is the time the
 key was released, and the event would have a .duration field.
