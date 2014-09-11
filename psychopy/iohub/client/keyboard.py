@@ -301,7 +301,7 @@ class Keyboard(ioHubDeviceView):
 
         :return: bool
         """
-        return self._reportingEvents
+        return self._reporting
 
 
     @reporting.setter
@@ -314,7 +314,6 @@ class Keyboard(ioHubDeviceView):
         """
         self._reporting = self.enableEventReporting(r)
         return self._reporting
-
 
     def getKeys(self, keys=None, chars=None, mods=None, duration=None,
                 clear=True, etype=None):
@@ -387,8 +386,7 @@ class Keyboard(ioHubDeviceView):
 
         return sorted(return_events, key=lambda x: x.time)
 
-
-    def waitForKeys(self, maxWait=None, keys=None, chars=None, mods=None,
+    def waitForKeys(self, keys=None, maxWait=None, chars=None, mods=None,
                    duration=None, clear=True, etype=None, checkInterval=0.002):
         """
         Waits for up to maxWait seconds for a keyboard event that matches
@@ -406,10 +404,10 @@ class Keyboard(ioHubDeviceView):
         """
         start_time = getTime()
         if maxWait is None:
-            maxWait = 7200.00
+            maxWait = 7200.0
 
         timeout = start_time+maxWait
-        key = None
+        key = []
 
         def pumpKeys():
             key = self.getKeys(keys, chars, mods, duration, clear, etype)
@@ -434,7 +432,6 @@ class Keyboard(ioHubDeviceView):
 
         return key
 
-
     def getPresses(self, keys=None, chars=None, mods=None, clear=True):
         """
         See the getKeys() method documentation. This method is identical, but
@@ -448,13 +445,13 @@ class Keyboard(ioHubDeviceView):
         """
         return self.getKeys(keys, chars, mods, None, clear, self.KEY_PRESS)
 
-    def waitForPresses(self, maxWait=None, keys=None, chars=None, mods=None,
+    def waitForPresses(self, keys=None, maxWait=None, chars=None, mods=None,
                    duration=None, clear=True, checkInterval=0.002):
         """
         See the waitForKeys() method documentation. This method is identical, but
         only returns KeyboardPress events.
         """
-        return self.waitForKeys(maxWait, keys, chars, mods, duration, clear,
+        return self.waitForKeys(keys, maxWait, chars, mods, duration, clear,
                                self.KEY_PRESS, checkInterval)
 
     def getReleases(self, keys=None, chars=None, mods=None, duration=None,
@@ -473,11 +470,11 @@ class Keyboard(ioHubDeviceView):
         return self.getKeys(keys, chars, mods, duration, clear,
                             self.KEY_RELEASE)
 
-    def waitForReleases(self, maxWait=None, keys=None, chars=None, mods=None,
+    def waitForReleases(self, keys=None, maxWait=None, chars=None, mods=None,
                    duration=None, clear=True, checkInterval=0.002):
         """
         See the waitForKeys() method documentation. This method is identical, but
         only returns KeyboardRelease events.
         """
-        return self.waitForKeys(maxWait, keys, chars, mods, duration, clear,
+        return self.waitForKeys(keys, maxWait, chars, mods, duration, clear,
                                self.KEY_RELEASE, checkInterval)
