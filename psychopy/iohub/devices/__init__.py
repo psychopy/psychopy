@@ -273,10 +273,8 @@ class Computer(object):
             elif Computer.system=='linux2':
                 current_nice=get_nice()
                 Computer._process_original_nice_value=current_nice
-                if current_nice <10:
-                    set_nice(10)
-                    get_nice()
-                    Computer.inHighPriorityMode = True
+                set_nice(-10)
+                Computer.inHighPriorityMode = True
                     
 
     @staticmethod
@@ -317,10 +315,8 @@ class Computer(object):
             elif Computer.system=='linux2':
                 current_nice=get_nice()
                 Computer._process_original_nice_value=current_nice
-                if current_nice <16:
-                    set_nice(16)
-                    get_nice()
-                    Computer.inHighPriorityMode = True
+                set_nice(-18)
+                Computer.inHighPriorityMode = True
 
     @staticmethod
     def disableRealTimePriority():
@@ -375,7 +371,7 @@ class Computer(object):
                 if Computer.system=='win32':
                     set_nice(psutil.NORMAL_PRIORITY_CLASS)
                     Computer.inHighPriorityMode=False
-                elif Computer.system=='linux2' and Computer._process_original_nice_value > 0:
+                elif Computer.system=='linux2':
                     set_nice(Computer._process_original_nice_value)
                     Computer.inHighPriorityMode=False
         except psutil.AccessDenied:
@@ -532,13 +528,13 @@ class Computer(object):
         cpu_count=Computer.cpuCount
         print "System processor count:", cpu_count
         if cpu_count == 2:
-            print 'Assigning experiment process to CPU 0, ioHubServer process to CPU 1'
+            #print 'Assigning experiment process to CPU 0, ioHubServer process to CPU 1'
             Computer.setProcessAffinities([0,],[1,])
         elif cpu_count == 4:
-            print 'Assigning experiment process to CPU 0,1, ioHubServer process to CPU 2,3'
+            #print 'Assigning experiment process to CPU 0,1, ioHubServer process to CPU 2,3'
             Computer.setProcessAffinities([0,1],[2,3])
         elif cpu_count == 8:
-            print 'Assigning experiment process to CPU 2,3, ioHubServer process to CPU 4,5, attempting to assign all others to 0,1,6,7'
+            #print 'Assigning experiment process to CPU 2,3, ioHubServer process to CPU 4,5, attempting to assign all others to 0,1,6,7'
             Computer.setProcessAffinities([2,3],[4,5])
             Computer.setAllOtherProcessesAffinity([0,1,6,7],[Computer.currentProcessID,Computer.ioHubServerProcessID])
         else:

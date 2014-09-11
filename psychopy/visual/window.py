@@ -721,7 +721,7 @@ class Window(object):
                             "unnecessary because Window.waitBlanking=False")
 
         #Do the flipping with last flip as special case
-        for _ in range(flips-1):
+        for _junk in range(flips-1):
             self.flip(clearBuffer=False)
         self.flip(clearBuffer=clearBuffer)
 

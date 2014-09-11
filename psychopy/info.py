@@ -196,7 +196,7 @@ class RunTimeInfo(dict):
 
         # platform name, etc
         if sys.platform in ['darwin']:
-            OSXver, _, architecture = platform.mac_ver()
+            OSXver, _junk, architecture = platform.mac_ver()
             platInfo = 'darwin ' + OSXver + ' ' + architecture
             # powerSource = ...
         elif sys.platform.startswith('linux'):
