@@ -91,30 +91,30 @@ controlModifierActive = lambda v : Qz.kCGEventFlagMaskControl & v > 0
 commandModifierActive = lambda v : Qz.kCGEventFlagMaskCommand & v > 0
 
 modifier_name_mappings=dict(
-        CONTROL_LEFT = 'lctrl',
-        CONTROL_RIGHT = 'rctrl',
-        SHIFT_LEFT = 'lshift',
-        SHIFT_RIGHT = 'rshift',
-        ALT_LEFT = 'loption',
-        ALT_RIGHT = 'roption',
-        COMMAND_LEFT = 'lcommand',
-        COMMAND_RIGHT = 'rcommand',
-        CAPS_LOCK = 'capslock',
+        lctrl = 'lctrl',
+        rctrl = 'rctrl',
+        lshift = 'lshift',
+        rshift = 'rshift',
+        lalt = 'loption',
+        ralt = 'roption',
+        lcmd = 'lcommand',
+        rcmd = 'rcommand',
+        capslock = 'capslock',
         #MOD_SHIFT=512,
         #MOD_ALT=1024,
         #MOD_CTRL=2048,
         #MOD_CMD=4096,
-        NUM_LOCK='numlock',
+        numlock='numlock',
         MOD_FUNCTION='modfunction',
         MOD_HELP='modhelp')
 
 class Keyboard(ioHubKeyboardDevice):
     _last_mod_names = []
-    _OS_MODIFIERS=([(0x00001,'CONTROL_LEFT'),(0x02000,'CONTROL_RIGHT'),
-                    (0x00002,'SHIFT_LEFT'),(0x00004,'SHIFT_RIGHT'),
-                    (0x00020,'ALT_LEFT'),(0x00040,'ALT_RIGHT'),
-                    (0x000008, 'COMMAND_LEFT'),(0x000010,'COMMAND_RIGHT'),
-                    (Qz.kCGEventFlagMaskAlphaShift, 'CAPS_LOCK'),
+    _OS_MODIFIERS=([(0x00001,'lctrl'),(0x02000,'rctrl'),
+                    (0x00002,'lshift'),(0x00004,'rshift'),
+                    (0x00020,'lalt'),(0x00040,'ralt'),
+                    (0x000008, 'lcmd'),(0x000010,'rcmd'),
+                    (Qz.kCGEventFlagMaskAlphaShift, 'capslock'),
                     (Qz.kCGEventFlagMaskSecondaryFn, "MOD_FUNCTION"),
                     (Qz.kCGEventFlagMaskHelp , "MOD_HELP")])        # 0x400000
 

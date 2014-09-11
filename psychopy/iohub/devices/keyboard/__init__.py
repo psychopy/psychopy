@@ -54,25 +54,6 @@ class ioHubKeyboardDevice(Device):
     def getModifierState(cls):
         return cls._modifier_value
 
-#    def getPressedKeys(self):
-#        """
-#        Return the set of currently pressed keys on the keyboard device and the
-#        time that each key was pressed, as a dict object ( dict key == keyboard
-#        key, dict values == associated keypress time for each key).
-#
-#        Modifier keys are not included even if pressed when this method is called.
-#
-#        Args:
-#            None
-#
-#        Returns:
-#            dict: Dict of currently pressed keyboard keys.
-#        """
-#        r={}
-#        for e in self.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS,clearEvents=False):
-#            r[e[-3]]=e[DeviceEvent.EVENT_HUB_TIME_INDEX]
-#        return r
-
     def resetState(self):
         Device.clearEvents()
         self._key_states.clear()
