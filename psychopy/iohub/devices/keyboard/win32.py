@@ -44,11 +44,22 @@ class Keyboard(ioHubKeyboardDevice):
         ioHubKeyboardDevice.__init__(self, *args, **kwargs['dconfig'])
         self._user32 = ctypes.windll.user32
         self._keyboard_state = (ctypes.c_ubyte * 256)()
+        self._unichar = (ctypes.c_wchar * 8)()
+
+        self.resetKeyAndModState()
+
+    def resetKeyAndModState(self):
         for i in range(256):
             self._keyboard_state[i] = 0
 
-        self._unichar = (ctypes.c_wchar * 8)()
-
+        ioHubKeyboardDevice._modifier_value = 0
+        for stateKeyID in [win32_vk.VK_SCROLL,win32_vk.VK_NUM_LOCK,win32_vk.VK_CAPITAL]:
+            state = pyHook.GetKeyState(stateKeyID)
+            if state:
+                self._keyboard_state[stateKeyID]=state
+                modKeyName = Keyboard._win32_modifier_mapping.get(stateKeyID, None)
+                mod_value = KeyboardConstants._modifierCodes.getID(modKeyName)
+                ioHubKeyboardDevice._modifier_value += mod_value
 
     def _updateKeyMapState(self,event):
         keyID = event.KeyID
@@ -93,24 +104,22 @@ class Keyboard(ioHubKeyboardDevice):
 
         return modKeyName
 
-    def _updateModValue(self,keyID, is_press, modKeyName):
-        mod_value = KeyboardConstants._modifierCodes.getID(modKeyName)
-        if keyID not in [win32_vk.VK_CAPITAL, win32_vk.VK_SCROLL,
-                        win32_vk.VK_NUM_LOCK]:
-            if is_press:
-                ioHubKeyboardDevice._modifier_value += mod_value
-            else:
-                ioHubKeyboardDevice._modifier_value -= mod_value
-        else:
-            if is_press:
-                if (ioHubKeyboardDevice._modifier_value & mod_value) == mod_value:
-                   ioHubKeyboardDevice._modifier_value -= mod_value
-                else:
+    def _updateModValue(self,keyID, is_press):
+        modKeyName = Keyboard._win32_modifier_mapping.get(keyID, None)
+        if modKeyName:
+            mod_value = KeyboardConstants._modifierCodes.getID(modKeyName)
+            if keyID not in [win32_vk.VK_CAPITAL, win32_vk.VK_SCROLL,
+                            win32_vk.VK_NUM_LOCK]:
+                if is_press:
                     ioHubKeyboardDevice._modifier_value += mod_value
-
-        if ioHubKeyboardDevice._modifier_value is None:
-            ioHubKeyboardDevice._modifier_value = 0
-
+                else:
+                    ioHubKeyboardDevice._modifier_value -= mod_value
+            else:
+                if is_press:
+                    if (ioHubKeyboardDevice._modifier_value & mod_value) == mod_value:
+                       ioHubKeyboardDevice._modifier_value -= mod_value
+                    else:
+                        ioHubKeyboardDevice._modifier_value += mod_value
         return ioHubKeyboardDevice._modifier_value
 
     def _nativeEventCallback(self, event):
@@ -145,10 +154,11 @@ class Keyboard(ioHubKeyboardDevice):
                 if self._report_auto_repeats is False and event.RepeatCount > 0:
                     return True
 
+            event.Modifiers = 0
             event.scroll_state = pyHook.GetKeyState(win32_vk.VK_SCROLL)
             event.num_state = pyHook.GetKeyState(win32_vk.VK_NUM_LOCK)
             event.cap_state = pyHook.GetKeyState(win32_vk.VK_CAPITAL)
-            event.Modifiers = 0
+
             self._addNativeEventToBuffer((notifiedTime, event))
         # pyHook require the callback to return True to inform the windows
         # low level hook functionality to pass the event on.
@@ -173,8 +183,9 @@ class Keyboard(ioHubKeyboardDevice):
             char = None
 
             modKeyName = self._updateKeyMapState(event)
+            event.Modifiers = self._updateModValue(keyID, is_press)
+
             if modKeyName:
-                event.Modifiers = self._updateModValue(keyID, is_press, modKeyName)
                 key = modKeyName
                 char = u''
             else:
