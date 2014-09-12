@@ -19,15 +19,9 @@ import json
 import signal
 from weakref import proxy
 
-from psychopy import  core as core
 import psychopy.logging as psycho_logging
 
-if sys.platform != 'darwin':
-    try:
-        import psutil
-        _psutil_available=True
-    except ImportError, e:
-        print 'Note: psutil python package could not be imported. Process priority and cpu affinity settings will not be available.'
+import psutil
 
 from .. import IO_HUB_DIRECTORY,isIterable, load, dump, Loader, Dumper, updateDict
 from .. import MessageDialog, win32MessagePump
@@ -981,18 +975,12 @@ class ioHubConnection(object):
                 os.remove(iopFileName)
                 other,iohub_pid=line.split(':')
                 iohub_pid=int(iohub_pid.strip())
-                if sys.platform != 'darwin':
-                    try:
-                        old_iohub_process=psutil.Process(iohub_pid)
-                        if old_iohub_process.name == 'python.exe':
-                            old_iohub_process.kill()
-                    except psutil.NoSuchProcess:
-                        pass
-                else:
-                    try:
-                        os.kill(iohub_pid, signal.SIGKILL) #code
-                    except OSError:  # no such process
-                        pass  # not sure if this is *always* the right thing to do
+                try:
+                    old_iohub_process = psutil.Process(iohub_pid)
+                    if old_iohub_process.name == 'python.exe':
+                        old_iohub_process.kill()
+                except psutil.NoSuchProcess:
+                    pass
             except Exception, e:
                 print "Warning: Exception while checking for existing iohub process:"
                 import traceback
@@ -1004,10 +992,7 @@ class ioHubConnection(object):
         # start subprocess, get pid, and get psutil process object for affinity and process priority setting
         self._server_process = subprocess.Popen(subprocessArgList,stdout=subprocess.PIPE)
         Computer.ioHubServerProcessID = self._server_process.pid
-        if sys.platform != 'darwin':
-            Computer.ioHubServerProcess=psutil.Process(Computer.ioHubServerProcessID)
-        else:
-            Computer.ioHubServerProcess=self._server_process
+        Computer.ioHubServerProcess=psutil.Process(self._server_process.pid)
 
         hubonline=False
         stdout_read_data=""
@@ -1394,31 +1379,16 @@ class ioHubConnection(object):
 
     def _shutDownServer(self):
         if self._shutdown_attempted is False:
-            from psychopy.visual import window
-            window.IOHUB_ACTIVE=False
+            import psychopy
+            psychopy.visual.window.IOHUB_ACTIVE=False
             self._shutdown_attempted=True
-            TimeoutError = Exception
-            if sys.platform != 'darwin':
-                TimeoutError=psutil.TimeoutExpired
-
+            TimeoutError = psutil.TimeoutExpired
             try:
                 self.udp_client.sendTo(('STOP_IOHUB_SERVER',))
                 self.udp_client.close()
                 if Computer.ioHubServerProcess:
-                    if sys.platform != 'darwin':
-                        r=Computer.ioHubServerProcess.wait(timeout=5)
-                        print 'ioHub Server Process Completed With Code: ',r
-                    else:
-                        t=Computer.getTime()
-                        while Computer.getTime()-t<5.0:
-                            Computer.ioHubServerProcess.poll()
-                            status=Computer.ioHubServerProcess.returncode
-                            if status != None:
-                                print 'ioHub Server Process Completed With Code: ',status
-                                return True
-                            time.sleep(0.1)
-                        print "Warning: TimeoutExpired, Killing ioHub Server process."
-                        self._osxKillAndFreePort()
+                    r=Computer.ioHubServerProcess.wait(timeout=5)
+                    print 'ioHub Server Process Completed With Code: ',r
             except TimeoutError:
                 print "Warning: TimeoutExpired, Killing ioHub Server process."
                 Computer.ioHubServerProcess.kill()

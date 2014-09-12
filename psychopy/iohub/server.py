@@ -34,10 +34,8 @@ try:
     m.patch()
 except:
     pass
-try:
-    import psutil
-except:
-    pass
+
+import psutil
 
 class udpServer(DatagramServer):
     def __init__(self,ioHubServer,address,coder='msgpack'):

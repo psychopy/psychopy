@@ -17,17 +17,7 @@ import collections
 from collections import deque
 from operator import itemgetter
 import numpy as N
-
-global _psutil_available
-_psutil_available=False
-
-if sys.platform != 'darwin':
-    try:
-        import psutil
-        _psutil_available=True
-    except ImportError, e:
-        print 'Note: psutil python package could not be imported. Process priority and cpu affinity settings will not be available.'
-
+import psutil
 from ..util import convertCamelToSnake, print2err,printExceptionDetailsToStdErr
 from psychopy.clock import monotonicClock
 
@@ -166,7 +156,7 @@ class Computer(object):
         currently supported on OS X.
     
     The Computer class also has methods to monitor current Computer memory 
-    and CPU usage. The psutil Process object (if available) can access
+    and CPU usage. The psutil Process object can access
     process level memory, CPU, thread count, disk, and network utilization. 
 
     The Computer class contains only static or class level methods, so an instance 
@@ -205,34 +195,20 @@ class Computer(object):
     #: This includes cpu's, cpu cores, and hyperthreads. Notes:
     #:      * processingUnitCount = num_cpus*num_cores_per_cpu*num_hyperthreads.
     #:      * For single core CPU's,  num_cores_per_cpu = 1.
-    #:      * For CPU's that do not support hyperthreading,  num_hyperthreads = 1, otherwise num_hyperthreads = 2.  
-    processingUnitCount=None
-    if _psutil_available:
-        processingUnitCount=psutil.NUM_CPUS
-    else:
-        import multiprocessing
-        processingUnitCount=multiprocessing.cpu_count()
-    
-    #: The OS processes ID of the current Python process.
-    # currentProcessID=os.getpid()
+    #:      * For CPU's that do not support hyperthreading,  num_hyperthreads = 1, otherwise num_hyperthreads = 2.
+    processingUnitCount = psutil.cpu_count()
+    coreCount = psutil.cpu_count(False) #hyperthreads not included
     
     #: Access to the psutil.Process class for the current system Process.
-    #: On OS X, this is the returned value from multiprocessing.current_process()
-    if _psutil_available:
-        currentProcess = psutil.Process()
-    else:
-        
-        import multiprocessing
-        currentProcess = multiprocessing.current_process()
-        
+    currentProcess = psutil.Process()
+
     #: The OS process ID of the ioHub Process.
     ioHubServerProcessID=None
     
-    #: On Windows and Linux, the psutil Process object for the ioHub Process.
-    #: On OS X, None.
+    #: The psutil Process object for the ioHub Process.
     ioHubServerProcess=None
     
-    _process_original_nice_value=-1 # used on linux.
+    _process_original_nice_value=0 # used on linux.
     
     def __init__(self):
         print2err("WARNING: Computer is a static class, no need to create an instance. just use Computer.xxxxxx")
@@ -246,36 +222,25 @@ class Computer(object):
         useful for the duration of a trial, for example, where you enable at
         start of trial and disable at end of trial. 
         
-        On Linux, the process is set to a nice level of 10.
+        On Linux, the process is set to a nice level of -10.
 
         This method is not supported on OS X.
         
         Args:
             disable_gc (bool): True = Turn of the Python Garbage Collector. False = Leave the Garbage Collector running. Default: True
         """
-        if _psutil_available is False:
-            print2err("Computer.enableHighPriority is not supported on OS X")
-            return False
-        
         if Computer.inHighPriorityMode is False:
-            if psutil.version_info[0]>1:
-                set_nice = Computer.currentProcess.nice
-                get_nice = Computer.currentProcess.nice
-            else:
-                set_nice = Computer.currentProcess.set_nice
-                get_nice = Computer.currentProcess.get_nice
+            nice_val = -10
+            Computer._process_original_nice_value = Computer.currentProcess.nice()
+            if Computer.system=='win32':
+                nice_val = psutil.HIGH_PRIORITY_CLASS
 
             if disable_gc:
                 gc.disable()
-            if Computer.system=='win32':
-                set_nice(psutil.HIGH_PRIORITY_CLASS)
-                Computer.inHighPriorityMode=True
-            elif Computer.system=='linux2':
-                current_nice=get_nice()
-                Computer._process_original_nice_value=current_nice
-                set_nice(-10)
-                Computer.inHighPriorityMode = True
-                    
+
+            Computer.currentProcess.nice(nice_val)
+            Computer.inHighPriorityMode=True
+
 
     @staticmethod
     def enableRealTimePriority(disable_gc=True):
@@ -294,29 +259,17 @@ class Computer(object):
         Args:
             disable_gc (bool): True = Turn of the Python Garbage Collector. False = Leave the Garbage Collector running. Default: True
         """
-        if _psutil_available is False:
-            print2err("Computer.enableRealtimePriority is not supported on OS X")
-            return False
-
         if Computer.inHighPriorityMode is False:
+            nice_val = -18
+            Computer._process_original_nice_value = Computer.currentProcess.nice()
+            if Computer.system=='win32':
+                nice_val = psutil.REALTIME_PRIORITY_CLASS
+
             if disable_gc:
                 gc.disable()
 
-            if psutil.version_info[0]>1:
-                set_nice = Computer.currentProcess.nice
-                get_nice = Computer.currentProcess.nice
-            else:
-                set_nice = Computer.currentProcess.set_nice
-                get_nice = Computer.currentProcess.get_nice
-
-            if Computer.system=='win32':
-                set_nice(psutil.REALTIME_PRIORITY_CLASS)
-                Computer.inHighPriorityMode = True
-            elif Computer.system=='linux2':
-                current_nice=get_nice()
-                Computer._process_original_nice_value=current_nice
-                set_nice(-18)
-                Computer.inHighPriorityMode = True
+            Computer.currentProcess.nice(nice_val)
+            Computer.inHighPriorityMode=True
 
     @staticmethod
     def disableRealTimePriority():
@@ -334,9 +287,6 @@ class Computer(object):
         Return: 
             None
         """
-        if _psutil_available is False:
-            return False
-
         Computer.disableHighPriority()
 
     @staticmethod
@@ -355,25 +305,13 @@ class Computer(object):
         Return: 
             None
         """
-        
-        if _psutil_available is False:
-            return False
         try:
             if Computer.inHighPriorityMode is True:
+                nice_val = Computer._process_original_nice_value
                 gc.enable()
-                if psutil.version_info[0]>1:
-                    set_nice = Computer.currentProcess.nice
-                    get_nice = Computer.currentProcess.nice
-                else:
-                    set_nice = Computer.currentProcess.set_nice
-                    get_nice = Computer.currentProcess.get_nice
 
-                if Computer.system=='win32':
-                    set_nice(psutil.NORMAL_PRIORITY_CLASS)
-                    Computer.inHighPriorityMode=False
-                elif Computer.system=='linux2':
-                    set_nice(Computer._process_original_nice_value)
-                    Computer.inHighPriorityMode=False
+                Computer.currentProcess.nice(nice_val)
+                Computer.inHighPriorityMode=False
         except psutil.AccessDenied:
             print2err("WARNING: Could not disable increased priority for process {0}".format(Computer.currentProcessID))
 
@@ -447,9 +385,7 @@ class Computer(object):
             (list,list) Tuple of two lists: PsychoPy Process affinity ID list and ioHub Process affinity ID list. 
 
         """
-        if _psutil_available is False:
-            return range(Computer.processingUnitCount),range(Computer.processingUnitCount),
-        return Computer.currentProcess.get_cpu_affinity(),Computer.ioHubServerProcess.get_cpu_affinity()
+        Computer.currentProcess.cpu_affinity(),Computer.ioHubServerProcess.cpu_affinity()
 
     @staticmethod
     def setProcessAffinities(experimentProcessorList, ioHubProcessorList):
@@ -493,11 +429,8 @@ class Computer(object):
         Returns:
            None
         """
-        if _psutil_available is False:
-            print2err("Computer.setProcessAffinities is not supported on OSX.")
-            return
-        Computer.currentProcess.set_cpu_affinity(experimentProcessorList)
-        Computer.ioHubServerProcess.set_cpu_affinity(ioHubProcessorList)
+        Computer.currentProcess.cpu_affinity(experimentProcessorList)
+        Computer.ioHubServerProcess.cpu_affinity(ioHubProcessorList)
 
     @staticmethod
     def autoAssignAffinities():
@@ -522,11 +455,7 @@ class Computer(object):
         Returns:
             None
         """
-        if _psutil_available is False:
-            print2err("Computer.autoAssignAffinities is not supported on OSX.")
-            return
-        cpu_count=Computer.cpuCount
-        print "System processor count:", cpu_count
+        cpu_count=Computer.processingUnitCount
         if cpu_count == 2:
             #print 'Assigning experiment process to CPU 0, ioHubServer process to CPU 1'
             Computer.setProcessAffinities([0,],[1,])
@@ -552,9 +481,7 @@ class Computer(object):
         Returns:
             None        
         """
-        if _psutil_available is False:
-            return range(Computer.processingUnitCount)
-        return Computer.currentProcess.get_cpu_affinity()
+        return Computer.currentProcess.cpu_affinity()
 
     @staticmethod
     def setCurrentProcessAffinity(processorList):
@@ -569,10 +496,7 @@ class Computer(object):
             None
         
         """
-        if _psutil_available is False:
-            print2err("Computer.setCurrentProcessAffinity is not supported on OSX.")
-            return
-        return Computer.currentProcess.set_cpu_affinity(processorList)
+        return Computer.currentProcess.cpu_affinity(processorList)
 
     @staticmethod
     def setProcessAffinityByID(process_id,processor_list):
@@ -588,12 +512,8 @@ class Computer(object):
         Returns:
             None
         """
-        if _psutil_available is False:
-            print2err("Computer.setProcessAffinityByID is not supported on OSX.")
-            return
-            
         p=psutil.Process(process_id)
-        return p.set_cpu_affinity(processor_list)
+        return p.cpu_affinity(processor_list)
 
     @staticmethod
     def getProcessAffinityByID(process_id):
@@ -607,10 +527,8 @@ class Computer(object):
         Returns:
            processorList (list): list of int processor ID's to set process with the given processID too. An empty list means all processors.
         """
-        if _psutil_available is False:
-            return range(Computer.processingUnitCount)
         p=psutil.Process(process_id)
-        return p.get_cpu_affinity()
+        return p.cpu_affinity()
 
     @staticmethod
     def setAllOtherProcessesAffinity(processor_list, exclude_process_id_list=[]):
@@ -636,16 +554,12 @@ class Computer(object):
         Returns:
            None
         """
-        if _psutil_available is False:
-            print2err("Computer.setAllOtherProcessesAffinity is not supported on OSX.")
-            return
-        for p in psutil.process_iter():
-            if p.pid not in exclude_process_id_list:
+        for p in psutil.pids():
+            if p not in exclude_process_id_list:
                 try:
-                    p.set_cpu_affinity(processor_list)
-                    print2err('Set OK process affinity: %s : %ld'%(p.name,p.pid))
+                    psutil.Process(p).cpu_affinity(processor_list)
                 except Exception:
-                    print2err('ERROR setting process affinity: %s : %ld'%(p.name,p.pid))
+                    pass
 
     @staticmethod
     def currentTime():
@@ -712,29 +626,22 @@ class Computer(object):
         * vmem.used: the used amount of memory in bytes.
         * vmem.free: the amount of memory that is free in bytes.On Windows, this is the same as vmem.available.           
         """
-        if _psutil_available is False:
-            print2err("Computer.getPhysicalSystemMemoryInfo is not supported on OS X")
-            return False
-        
         m= psutil.virtual_memory()
         return m
 
     @staticmethod
     def getCPUTimeInfo(percpu=False):
         """
-        Return information about the computers CPU usage.
+        Return a float representing the current CPU utilization as a percentage.
         
         Args:
-           percpu (bool): If True, a list of cputimes objects is returned, one for each processing unit for the computer. If False, only a single cputimes object is returned.
-                      
+           percpu (bool): If True, a list of cputimes objects is returned,
+                          one for each processing unit for the computer.
+                          If False, only a single cputimes object is returned.
         Returns:
            object: (user=float, system=float, idle=float)        
         """
-        if _psutil_available is False:
-            print2err("Computer.getCPUTimeInfo is not supported on OS X")
-            return False
-
-        return psutil.cpu_times(percpu)
+        return psutil.cpu_times_percent(percpu=percpu)
 
 
     @staticmethod
@@ -742,8 +649,7 @@ class Computer(object):
         """
         Get the current / Local process. 
         
-        On Windows and Linux, this is a psutil.Process class instance. 
-        On OS X, it is a multiprocessing.Process instance.
+        On Windows and Linux, this is a psutil.Process class instance.
 
         Args:
            None
@@ -759,8 +665,7 @@ class Computer(object):
         """
         Get the ioHub Process. 
         
-        On Windows and Linux, this is a psutil.Process class instance. 
-        On OS X, it is a multiprocessing.Process instance.
+        On Windows and Linux, this is a psutil.Process class instance.
 
         Args:
            None
