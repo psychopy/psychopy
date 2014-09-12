@@ -109,14 +109,13 @@ while True:
     mouse_events=mouse.getEvents()
     if kb_events:
         # timeout immediately on any keyboard event
-        demo_timeout_start=-100.0 
+        break
     elif mouse_events:
         demo_timeout_start=mouse_events[-1].time
 
     if flip_time-demo_timeout_start>15.0:
         print "Ending Demo Due to 15 Seconds of Inactivity."
-        io.quit()
-        core.quit()
+        break
 
     # Clear out events that were not accessed this frame.
     io.clearEvents()

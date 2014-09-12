@@ -534,7 +534,7 @@ try:
         class VirtualKeyCodes(Constants):
                 # Mainly from the pyHook lookup Table, some from Pyglet
                 VK_CANCEL  =  0x03
-                VK_BACK  =  0x08
+                VK_BACKSPACE  =  0x08
                 VK_TAB  =  0x09
                 VK_CLEAR  =  0x0C
                 VK_RETURN  =  0x0D
@@ -543,7 +543,7 @@ try:
                 VK_CONTROL  =  0x11
                 VK_MENU  =  0x12
                 VK_PAUSE  =  0x13
-                VK_CAPS_LOCK  =  0x14
+                VK_capslock  =  0x14
                 VK_CAPITAL  =  0x14
                 VK_HANGUL  =  0x15
                 VK_JUNJA  =  0x17
@@ -572,9 +572,9 @@ try:
                 VK_DELETE  =  0x2E
                 VK_HELP  =  0x2F
             
-                VK_LEFT_CMD  =  0x5B
-                VK_RIGHT_CMD  =  0x5C
-                VK_APPS  =  0x5D
+                VK_lcmd  =  0x5B
+                VK_rcmd  =  0x5C
+                VK_menu  =  0x5D
             
                 VK_NUMPAD0  =  0x60
                 VK_NUMPAD1  =  0x61
@@ -618,15 +618,15 @@ try:
                 VK_F23  =  0x86
                 VK_F24  =  0x87
             
-                VK_NUM_LOCK  =  0x90
-                VK_SCROLL  =  0x91
+                VK_numlock  =  0x90
+                VK_scrolllock  =  0x91
             
-                VK_LSHIFT  =  0xA0
-                VK_RSHIFT  =  0xA1
-                VK_LEFT_CTRL  =  0xA2
-                VK_RIGHT_CTRL  =  0xA3
-                VK_LEFT_ALT  =  0xA4
-                VK_RIGHT_ALT  =  0xA5
+                VK_lshift  =  0xA0
+                VK_rshift  =  0xA1
+                VK_lctrl  =  0xA2
+                VK_rctrl  =  0xA3
+                VK_lalt  =  0xA4
+                VK_ralt  =  0xA5
                 VK_BROWSER_BACK  =  0xA6
                 VK_BROWSER_FORWARD  =  0xA7
                 VK_BROWSER_REFRESH  =  0xA8
@@ -943,26 +943,27 @@ try:
         VirtualKeyCodes._keys.remove(VirtualKeyCodes.getID('UNDEFINED'))
     
     class ModifierKeyCodes(Constants):
-        _mod_names=['CONTROL_LEFT','CONTROL_RIGHT','SHIFT_LEFT',
-                   'SHIFT_RIGHT','ALT_LEFT','ALT_RIGHT',
-                   'COMMAND_LEFT','COMMAND_RIGHT','CAPS_LOCK',
-                   'MOD_SHIFT','MOD_ALT','MOD_CTRL','MOD_CMD','NUM_LOCK','MOD_FUNCTION','MOD_HELP']
-        CONTROL_LEFT = 1
-        CONTROL_RIGHT = 2
-        SHIFT_LEFT = 4
-        SHIFT_RIGHT = 8
-        ALT_LEFT = 16
-        ALT_RIGHT = 32
-        COMMAND_LEFT = 64
-        COMMAND_RIGHT = 128
-        CAPS_LOCK = 256
+        _mod_names=['lctrl','rctrl','lshift',
+                   'rshift','lalt','ralt',
+                   'lcmd','rcmd','capslock',
+                   'MOD_SHIFT','MOD_ALT','MOD_CTRL','MOD_CMD','numlock','function','modhelp','scrolllock']
+        lctrl = 1
+        rctrl = 2
+        lshift = 4
+        rshift = 8
+        lalt = 16
+        ralt = 32
+        lcmd = 64
+        rcmd = 128
+        capslock = 256
         MOD_SHIFT=512
         MOD_ALT=1024
         MOD_CTRL=2048
         MOD_CMD=4096
-        NUM_LOCK=8192
-        MOD_FUNCTION=16384
-        MOD_HELP=32768            
+        numlock=8192
+        function=16384
+        modhelp=32768
+        scrolllock=modhelp*2
     ModifierKeyCodes.initialize()
     ModifierKeyCodes._keys.remove(ModifierKeyCodes.getID('UNDEFINED'))
     
@@ -995,7 +996,7 @@ try:
             if vcode_name:
                 return vcode_name[3:],mods
     
-            if mods is None or ('CONTROL_LEFT' not in mods and 'CONTROL_RIGHT' not in mods):
+            if mods is None or ('lctrl' not in mods and 'rctrl' not in mods):
                 ascii_name=KeyboardConstants._asciiKeyCodes.getName(keyEvent.Ascii)
                 if ascii_name:
                     if ascii_name[-1] == '_': # it is a number between 0 and 9

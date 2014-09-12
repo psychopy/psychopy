@@ -60,13 +60,13 @@ QZ_UP = 0x7E
 QZ_KP1 = 0x53
 QZ_KP2 = 0x54
 QZ_KP3 = 0x55
-QZ_KP_ENTER = 0x4C
+QZ_NUM_ENTER = 0x4C
 QZ_LCTRL = 0x3B
-QZ_LOPTION = 0x3A
-QZ_LCOMMAND = 0x37
+QZ_LALT = 0x3A
+QZ_LCMD = 0x37
 QZ_SPACE = 0x31
-QZ_RCOMMAND = 0x36
-QZ_ROPTION = 0x3D
+QZ_RCMD = 0x36
+QZ_RALT = 0x3D
 QZ_RCTRL = 0x3E
 QZ_FUNCTION = 0x3F
 QZ_LEFT = 0x7B
@@ -77,7 +77,7 @@ QZ_KP_PERIOD = 0x41
 QZ_F1=145 #Keycode on Apple wireless kb
 QZ_F2=144 #Keycode on Apple wireless kb
 QZ_F3=160 #Keycode on Apple wireless kb
-QZF4=131 #Keycode on Apple wireless kb
+QZ_F4=131 #Keycode on Apple wireless kb
 
 code2label={}
 for k,v in locals().items():

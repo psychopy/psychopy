@@ -1106,11 +1106,11 @@ class RatingScale(MinimalStim):
             if self.showAccept:
                 self.acceptBox.setFillColor(self.acceptFillColor, log=False)
                 self.acceptBox.setLineColor(self.acceptLineColor, log=False)
-
-        # build up response history:
-        tmpRating = self.getRating()
-        if self.history[-1][0] != tmpRating and self.markerPlacedBySubject:
-            self.history.append((tmpRating, self.getRT()))  # tuple
+        else:
+            # build up response history if no decision or skip yet:
+            tmpRating = self.getRating()
+            if self.history[-1][0] != tmpRating and self.markerPlacedBySubject:
+                self.history.append((tmpRating, self.getRT()))  # tuple
 
         # restore user's units:
         self.win.setUnits(self.savedWinUnits, log=False)
