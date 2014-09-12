@@ -184,11 +184,14 @@ class Keyboard(ioHubKeyboardDevice):
                                                     kTISPropertyUnicodeKeyLayoutData)
         layout = objcify(layout_p)
         layoutbytes = layout.bytes()
-        print2err("layoutbytes: ",type(layoutbytes)," : ",dir(layoutbytes))
+        if hasattr(layoutbytes, 'tobytes') :
+            layoutbytes_vp = layoutbytes.tobytes()
+        else:
+            layoutbytes_vp = memoryview(bytearray(layoutbytes)).tobytes()
         keysdown = ctypes.c_uint32()
         length = UniCharCount()
         chars = UniChar4()
-        retval = carbon.UCKeyTranslate(layoutbytes.tobytes(),
+        retval = carbon.UCKeyTranslate(layoutbytes_vp,
                                        keycode,
                                        kUCKeyActionDisplay,
                                        modifier_state,
