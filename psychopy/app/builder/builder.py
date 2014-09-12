@@ -14,7 +14,7 @@ import numpy
 import experiment, components
 
 try:
-    _  # is the app-global text translation function defined?
+    _translate  # is the app-global text translation function defined?
 except NameError:
     from psychopy.app import localization
 
@@ -2321,7 +2321,7 @@ class _BaseParamsDlg(wx.Dialog):
         labelEstim = wx.StaticText(parent,-1,_translate('Expected start (s)'), style=wx.ALIGN_CENTER)
         labelEstim.SetForegroundColour('gray')
         #the method to be used to interpret this start/stop
-        self.startTypeCtrl = wx.Choice(parent, choices=map(_,startTypeParam.allowedVals))
+        self.startTypeCtrl = wx.Choice(parent, choices=map(_translate,startTypeParam.allowedVals))
         self.startTypeCtrl.SetStringSelection(_translate(startTypeParam.val))
         self.startTypeCtrl.SetToolTipString(self.params['startType'].hint)
         #the value to be used as the start/stop
@@ -2356,7 +2356,7 @@ class _BaseParamsDlg(wx.Dialog):
         labelEstim = wx.StaticText(parent,-1,_translate('Expected duration (s)'), style=wx.ALIGN_CENTER)
         labelEstim.SetForegroundColour('gray')
         #the method to be used to interpret this start/stop
-        self.stopTypeCtrl = wx.Choice(parent, choices=map(_,stopTypeParam.allowedVals))
+        self.stopTypeCtrl = wx.Choice(parent, choices=map(_translate,stopTypeParam.allowedVals))
         self.stopTypeCtrl.SetStringSelection(_translate(stopTypeParam.val))
         self.stopTypeCtrl.SetToolTipString(self.params['stopType'].hint)
         #the value to be used as the start/stop

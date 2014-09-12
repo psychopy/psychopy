@@ -112,7 +112,11 @@ except IOError:
     trans = gettext.NullTranslations()
 trans.install(unicode=True)
 
-__builtins__['_translate'] = _  # stash a reference
+# to avoid a crash, PsychoPy app uses a nonstandard name _translate instead of _
+# seems like a var in a dependency is named _, clobbering _ as global translation:
+__builtins__['_translate'] = _
+del(__builtins__['_'])  # idea: force psychopy code to use _translate
+
 
 #__builtins__['_'] = wx.GetTranslation
 # this seems to have no effect, needs more investigation:
