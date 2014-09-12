@@ -77,13 +77,13 @@ class StdOutFrame(wx.Frame):
         self.fileMenu = wx.Menu()
 #        item = self.fileMenu.Append(wx.ID_SAVE,   "&Save output window\t%s" %app.keys['save'])
 #        self.Bind(wx.EVT_MENU, self.save, item)
-        item = self.fileMenu.Append(wx.ID_CLOSE,   _("&Close output window\t%s") %app.keys['close'])
+        item = self.fileMenu.Append(wx.ID_CLOSE,   _translate("&Close output window\t%s") %app.keys['close'])
         self.Bind(wx.EVT_MENU, self.closeFrame, item)
         self.fileMenu.AppendSeparator()
-        item = self.fileMenu.Append(wx.ID_EXIT, _("&Quit (PsychoPy)\t%s") %app.keys['quit'], _("Terminate the application"))
+        item = self.fileMenu.Append(wx.ID_EXIT, _translate("&Quit (PsychoPy)\t%s") %app.keys['quit'], _translate("Terminate the application"))
         self.Bind(wx.EVT_MENU, self.quit, item)
 
-        self.menuBar.Append(self.fileMenu, _("&File"))
+        self.menuBar.Append(self.fileMenu, _translate("&File"))
         self.SetMenuBar(self.menuBar)
         
         self.stdoutCtrl = StdOutRich(parent=self, style=wx.TE_MULTILINE, size=size)

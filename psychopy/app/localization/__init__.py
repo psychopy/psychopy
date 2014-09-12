@@ -3,7 +3,7 @@
 
 """Language localization for PsychoPy.
 
-Sets the locale value as a wx languageID (int) and initializes gettext translation _():
+Sets the locale value as a wx languageID (int) and initializes gettext translation _translate():
     from psychopy.app import localization
 """
 
@@ -111,6 +111,8 @@ except IOError:
     logging.debug("Locale for '%s' not found. Using default." % lang)
     trans = gettext.NullTranslations()
 trans.install(unicode=True)
+
+__builtins__['_translate'] = _  # stash a reference
 
 #__builtins__['_'] = wx.GetTranslation
 # this seems to have no effect, needs more investigation:

@@ -3,224 +3,224 @@
 #Rebuild this file if comments in *.spec files are modified.
 
 #baseNoArch.spec,[general],line25
-_("which system to use as a backend for drawing")
+_translate("which system to use as a backend for drawing")
 
 #baseNoArch.spec,[general],line27
-_("the default units for windows and visual stimuli")
+_translate("the default units for windows and visual stimuli")
 
 #baseNoArch.spec,[general],line29
-_("full screen is best for accurate timing")
+_translate("full screen is best for accurate timing")
 
 #baseNoArch.spec,[general],line31
-_("enable subjects to use the mouse and GUIs during experiments")
+_translate("enable subjects to use the mouse and GUIs during experiments")
 
 #baseNoArch.spec,[general],line33
-_("'version' is for internal usage, not for the user")
+_translate("'version' is for internal usage, not for the user")
 
 #baseNoArch.spec,[general],line35
-_("Add paths here to your custom Python modules")
+_translate("Add paths here to your custom Python modules")
 
 #baseNoArch.spec,[general],line37
-_("choice of audio library")
+_translate("choice of audio library")
 
 #baseNoArch.spec,[general],line39
-_("audio driver to use")
+_translate("audio driver to use")
 
 #baseNoArch.spec,[general],line41
-_("path to flac (lossless audio compression) on this operating system")
+_translate("path to flac (lossless audio compression) on this operating system")
 
 #baseNoArch.spec,[general],line43
-_("a list of parallel ports")
+_translate("a list of parallel ports")
 
 #baseNoArch.spec,[general],line46
-_("display tips when starting PsychoPy")
+_translate("display tips when starting PsychoPy")
 
 #baseNoArch.spec,[app],line48
-_("size of icons in the Coder and Builder toolbars (top of window)")
+_translate("size of icons in the Coder and Builder toolbars (top of window)")
 
 #baseNoArch.spec,[app],line50
-_("what windows to display when PsychoPy starts")
+_translate("what windows to display when PsychoPy starts")
 
 #baseNoArch.spec,[app],line52
-_("reset preferences to defaults on next restart of PsychoPy")
+_translate("reset preferences to defaults on next restart of PsychoPy")
 
 #baseNoArch.spec,[app],line54
-_("save any unsaved preferences before closing the window")
+_translate("save any unsaved preferences before closing the window")
 
 #baseNoArch.spec,[app],line56
-_("enable features for debugging PsychoPy itself, including unit-tests")
+_translate("enable features for debugging PsychoPy itself, including unit-tests")
 
 #baseNoArch.spec,[app],line58
-_("language to use in menus etc; not all translations are available. Select a value, then restart the app.")
+_translate("language to use in menus etc; not all translations are available. Select a value, then restart the app.")
 
 #baseNoArch.spec,[app],line60
-_("a list of font names; the first one found on the system will be used")
+_translate("a list of font names; the first one found on the system will be used")
 
 #baseNoArch.spec,[app],line63
-_("Font size (in pts) takes an integer between 6 and 24")
+_translate("Font size (in pts) takes an integer between 6 and 24")
 
 #baseNoArch.spec,[coder],line65
-_("for coder shell window, which shell to use")
+_translate("for coder shell window, which shell to use")
 
 #baseNoArch.spec,[coder],line71
-_("newline for python files: unix = \\n, dos = \\r\\n")
+_translate("newline for python files: unix = \\n, dos = \\r\\n")
 
 #baseNoArch.spec,[coder],line78
-_("whether to automatically reload a previously open experiment")
+_translate("whether to automatically reload a previously open experiment")
 
 #baseNoArch.spec,[coder],line80
-_("if False will create scripts with an 'easier' but more cluttered namespace")
+_translate("if False will create scripts with an 'easier' but more cluttered namespace")
 
 #baseNoArch.spec,[coder],line83
-_("folder names for custom components; expects a comma-separated list")
+_translate("folder names for custom components; expects a comma-separated list")
 
 #baseNoArch.spec,[builder],line85
-_("a list of components to hide (eg, because you never use them)")
+_translate("a list of components to hide (eg, because you never use them)")
 
 #baseNoArch.spec,[builder],line87
-_("where the Builder demos are located on this computer (after unpacking)")
+_translate("where the Builder demos are located on this computer (after unpacking)")
 
 #baseNoArch.spec,[builder],line89
-_("name of the folder where subject data should be saved (relative to the script)")
+_translate("name of the folder where subject data should be saved (relative to the script)")
 
 #baseNoArch.spec,[builder],line91
-_("Panels arrangement: topFlow = Flow on top, Components on left")
+_translate("Panels arrangement: topFlow = Flow on top, Components on left")
 
 #baseNoArch.spec,[builder],line93
-_("Display text in a floating window that describes the experiment")
+_translate("Display text in a floating window that describes the experiment")
 
 #baseNoArch.spec,[builder],line95
-_("Upper limit on how many components can be in favorites")
+_translate("Upper limit on how many components can be in favorites")
 
 #baseNoArch.spec,[builder],line97
-_("the http proxy for usage stats and auto-updating; format is host: port")
+_translate("the http proxy for usage stats and auto-updating; format is host: port")
 
 #baseNoArch.spec,[builder],line99
-_("override the above proxy settings with values found in the environment (if possible)")
+_translate("override the above proxy settings with values found in the environment (if possible)")
 
 #baseNoArch.spec,[builder],line101
-_("allow PsychoPy to send anonymous usage stats; please allow if possible, its helps PsychoPy's development")
+_translate("allow PsychoPy to send anonymous usage stats; please allow if possible, its helps PsychoPy's development")
 
 #baseNoArch.spec,[builder],line104
-_("allow PsychoPy to check for new features and bug fixes")
+_translate("allow PsychoPy to check for new features and bug fixes")
 
 #baseNoArch.spec,[connections],line106
-_("max time to wait for a connection response")
+_translate("max time to wait for a connection response")
 
 #baseNoArch.spec,[connections],line108
-_("open an existing file")
+_translate("open an existing file")
 
 #baseNoArch.spec,[connections],line110
-_("start a new experiment or script")
+_translate("start a new experiment or script")
 
 #baseNoArch.spec,[connections],line112
-_("save a Builder or Coder file")
+_translate("save a Builder or Coder file")
 
 #baseNoArch.spec,[connections],line114
-_("save a Builder or Coder file under a new name")
+_translate("save a Builder or Coder file under a new name")
 
 #baseNoArch.spec,[connections],line117
-_("Coder: print the file")
+_translate("Coder: print the file")
 
 #baseNoArch.spec,[keyBindings],line119
-_("close the Builder or Coder window")
+_translate("close the Builder or Coder window")
 
 #baseNoArch.spec,[keyBindings],line121
-_("end the application (PsychoPy)")
+_translate("end the application (PsychoPy)")
 
 #baseNoArch.spec,[keyBindings],line123
-_("open the preferences dialog")
+_translate("open the preferences dialog")
 
 #baseNoArch.spec,[keyBindings],line125
-_("Coder: cut")
+_translate("Coder: cut")
 
 #baseNoArch.spec,[keyBindings],line127
-_("Coder: copy")
+_translate("Coder: copy")
 
 #baseNoArch.spec,[keyBindings],line129
-_("Coder: paste")
+_translate("Coder: paste")
 
 #baseNoArch.spec,[keyBindings],line131
-_("Coder: duplicate")
+_translate("Coder: duplicate")
 
 #baseNoArch.spec,[keyBindings],line133
-_("Coder: indent code by one level (4 spaces)")
+_translate("Coder: indent code by one level (4 spaces)")
 
 #baseNoArch.spec,[keyBindings],line136
-_("Coder: reduce indentation by one level (4 spaces)")
+_translate("Coder: reduce indentation by one level (4 spaces)")
 
 #baseNoArch.spec,[keyBindings],line138
-_("Coder: indent to fit python syntax")
+_translate("Coder: indent to fit python syntax")
 
 #baseNoArch.spec,[keyBindings],line140
-_("Coder: find")
+_translate("Coder: find")
 
 #baseNoArch.spec,[keyBindings],line142
-_("Coder: find again")
+_translate("Coder: find again")
 
 #baseNoArch.spec,[keyBindings],line144
-_("Coder: undo")
+_translate("Coder: undo")
 
 #baseNoArch.spec,[keyBindings],line146
-_("Coder: redo")
+_translate("Coder: redo")
 
 #baseNoArch.spec,[keyBindings],line148
-_("Coder: add a # to the start of the line(s)")
+_translate("Coder: add a # to the start of the line(s)")
 
 #baseNoArch.spec,[keyBindings],line150
-_("Coder: remove # from start of line(s)")
+_translate("Coder: remove # from start of line(s)")
 
 #baseNoArch.spec,[keyBindings],line152
-_("Coder: fold this block of code")
+_translate("Coder: fold this block of code")
 
 #baseNoArch.spec,[keyBindings],line154
-_("Coder: check for basic syntax errors")
+_translate("Coder: check for basic syntax errors")
 
 #baseNoArch.spec,[keyBindings],line156
-_("convert a Builder .psyexp script into a python script and open it in the Coder")
+_translate("convert a Builder .psyexp script into a python script and open it in the Coder")
 
 #baseNoArch.spec,[keyBindings],line158
-_("launch a script, Builder or Coder, or run unit-tests")
+_translate("launch a script, Builder or Coder, or run unit-tests")
 
 #baseNoArch.spec,[keyBindings],line160
-_("attempt to interrupt and halt a running script")
+_translate("attempt to interrupt and halt a running script")
 
 #baseNoArch.spec,[keyBindings],line162
-_("Coder: show / hide white-space dots")
+_translate("Coder: show / hide white-space dots")
 
 #baseNoArch.spec,[keyBindings],line165
-_("Coder: show / hide end of line characters")
+_translate("Coder: show / hide end of line characters")
 
 #baseNoArch.spec,[keyBindings],line167
-_("Builder: create a new routine")
+_translate("Builder: create a new routine")
 
 #baseNoArch.spec,[keyBindings],line169
-_("Builder: copy an existing routine")
+_translate("Builder: copy an existing routine")
 
 #baseNoArch.spec,[keyBindings],line171
-_("Builder: paste the copied routine")
+_translate("Builder: paste the copied routine")
 
 #baseNoArch.spec,[keyBindings],line174
-_("Coder: show / hide the output panel")
+_translate("Coder: show / hide the output panel")
 
 #baseNoArch.spec,[keyBindings],line176
-_("switch to Builder window from Coder")
+_translate("switch to Builder window from Coder")
 
 #baseNoArch.spec,[keyBindings],line180
-_("switch to Coder window from Builder")
+_translate("switch to Coder window from Builder")
 
 #baseNoArch.spec,[keyBindings],line182
-_("increase display size in Flow")
+_translate("increase display size in Flow")
 
 #baseNoArch.spec,[keyBindings],line184
-_("decrease display size in Flow")
+_translate("decrease display size in Flow")
 
 #baseNoArch.spec,[keyBindings],line186
-_("increase display size of Routines")
+_translate("increase display size of Routines")
 
 #baseNoArch.spec,[keyBindings],line188
-_("decrease display size of Routines")
+_translate("decrease display size of Routines")
 
 #baseNoArch.spec,[keyBindings],line190
-_("show or hide the readme (info) for this experiment if possible")
+_translate("show or hide the readme (info) for this experiment if possible")
 

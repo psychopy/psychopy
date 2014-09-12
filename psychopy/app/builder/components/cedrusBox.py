@@ -10,11 +10,11 @@ __author__ = 'Jon Peirce'
 
 thisFolder = path.abspath(path.dirname(__file__))  # abs path to the folder containing this path
 iconFile = path.join(thisFolder, 'cedrusBox.png')
-tooltip = _('Cedrus Button Box: Cedrus response boxes, using the pyxid library provided by Cedrus')
+tooltip = _translate('Cedrus Button Box: Cedrus response boxes, using the pyxid library provided by Cedrus')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'deviceNumber': _('Device number'),
-              'useBoxTimer': _("Use box timer")}
+_localized = {'deviceNumber': _translate('Device number'),
+              'useBoxTimer': _translate("Use box timer")}
 
 class cedrusButtonBoxComponent(KeyboardComponent):
     """An event class for checking an Cedrus RBxxx button boxes using XID library
@@ -46,12 +46,12 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         self.url = "http://www.psychopy.org/builder/components/cedrusButtonBox.html"
         self.exp.requirePsychopyLibs(['hardware'])
 
-        self.params['correctAns'].hint = _("What is the 'correct' response? NB, buttons are labelled 0 to 6 on a 7-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns")
+        self.params['correctAns'].hint = _translate("What is the 'correct' response? NB, buttons are labelled 0 to 6 on a 7-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns")
         self.params['correctAns'].valType = 'code'
-        self.params['allowedKeys'].hint = _('Keys to be read (blank for any) or key numbers separated by commas')
+        self.params['allowedKeys'].hint = _translate('Keys to be read (blank for any) or key numbers separated by commas')
         self.params['deviceNumber'] = Param(deviceNumber, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_("Device number, if you have multiple devices which one do you want (0, 1, 2...)"),
+            hint=_translate("Device number, if you have multiple devices which one do you want (0, 1, 2...)"),
             label=_localized['deviceNumber'], categ='Advanced')
         #self.params['getReleaseTime'] = Param(getReleaseTime, valType='bool', allowedVals=[True, False],
         #    updates='constant', allowedUpdates=[],
@@ -59,7 +59,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         #    label="Get release time")
         self.params['useBoxTimer'] = Param(getReleaseTime, valType='bool', allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
-            hint=_("According to Cedrus the response box timer has a drift - use with caution!"),
+            hint=_translate("According to Cedrus the response box timer has a drift - use with caution!"),
             label=_localized['useBoxTimer'], categ='Advanced')
 
     def writeStartCode(self, buff):

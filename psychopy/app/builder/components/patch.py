@@ -8,12 +8,12 @@ from psychopy.app.builder.components import getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'patch.png')
-tooltip = _('Patch: present images (bmp, jpg, tif...) or textures like gratings')
+tooltip = _translate('Patch: present images (bmp, jpg, tif...) or textures like gratings')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'image': _('Image/tex'), 'mask': _('Mask'), 'sf': _('Spatial frequency'),
-              'phase': _('Phase (in cycles)'), 'texture resolution': _('Texture resolution'),
-              'interpolate': _('Interpolate')
+_localized = {'image': _translate('Image/tex'), 'mask': _translate('Mask'), 'sf': _translate('Spatial frequency'),
+              'phase': _translate('Phase (in cycles)'), 'texture resolution': _translate('Texture resolution'),
+              'interpolate': _translate('Interpolate')
               }
 class PatchComponent(VisualComponent):
     """An event class for presenting image-based stimuli"""
@@ -37,27 +37,27 @@ class PatchComponent(VisualComponent):
         self.params['colorSpace'].categ = "Advanced"
         self.params['image']=Param(image, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("The image to be displayed - 'sin','sqr'... or a filename (including path)"),
+            hint=_translate("The image to be displayed - 'sin','sqr'... or a filename (including path)"),
             label=_localized['image'])
         self.params['mask']=Param(mask, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("An image to define the alpha mask (ie shape)- gauss, circle... or a filename (including path)"),
+            hint=_translate("An image to define the alpha mask (ie shape)- gauss, circle... or a filename (including path)"),
             label=_localized['mask'])
         self.params['sf']=Param(sf, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]"),
+            hint=_translate("Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]"),
             label=_localized['sf'], categ="Advanced")
         self.params['phase']=Param(phase, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("Spatial positioning of the image on the patch (in range 0-1.0)"),
+            hint=_translate("Spatial positioning of the image on the patch (in range 0-1.0)"),
             label=_localized['phase'], categ="Advanced")
         self.params['texture resolution']=Param(texRes, valType='code', allowedVals=['32','64','128','256','512'],
             updates='constant', allowedUpdates=[],
-            hint=_("Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice"),
+            hint=_translate("Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice"),
             label=_localized['texture resolution'], categ="Advanced")
         self.params['interpolate']=Param(interpolate, valType='str', allowedVals=['linear','nearest'],
             updates='constant', allowedUpdates=[],
-            hint=_("How should the image be interpolated if/when rescaled"),
+            hint=_translate("How should the image be interpolated if/when rescaled"),
             label=_localized['interpolate'], categ="Advanced")
 
     def writeInitCode(self,buff):

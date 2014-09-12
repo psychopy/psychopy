@@ -12,7 +12,7 @@ __author__ = 'Jeremy Gray, Jon Peirce'
 
 thisFolder = path.abspath(path.dirname(__file__)) # the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'aperture.png')
-tooltip = _('Aperture: restrict the drawing of stimuli to a given region')
+tooltip = _translate('Aperture: restrict the drawing of stimuli to a given region')
 
 class ApertureComponent(VisualComponent):
     """An event class for using GL stencil to restrict the viewing area to a
@@ -33,9 +33,9 @@ class ApertureComponent(VisualComponent):
         #params:
         #NB make some adjustments on the params defined by _visual component
         self.order = ['name', 'size', 'pos'] # make sure this is at top
-        self.params['size'].hint = _("How big is the aperture? (a single number for diameter)")
-        self.params['size'].label=_("Size")  # only localize hints and labels
-        self.params['pos'].hint = _("Where is the aperture centred?")
+        self.params['size'].hint = _translate("How big is the aperture? (a single number for diameter)")
+        self.params['size'].label=_translate("Size")  # only localize hints and labels
+        self.params['pos'].hint = _translate("Where is the aperture centred?")
         #inherited from _visual component but not needed
         del self.params['ori']
         del self.params['color']

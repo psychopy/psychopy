@@ -10,9 +10,9 @@ from psychopy.app.builder import components #for getInitVals()
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'microphone.png')
-tooltip = _('Microphone: basic sound capture (fixed onset & duration), okay for spoken words')
+tooltip = _translate('Microphone: basic sound capture (fixed onset & duration), okay for spoken words')
 
-_localized = {'stereo': _('Stereo')}
+_localized = {'stereo': _translate('Stereo')}
 
 class MicrophoneComponent(BaseComponent):
     """An event class for capturing short sound stimuli"""
@@ -31,10 +31,10 @@ class MicrophoneComponent(BaseComponent):
         self.exp.requirePsychopyLibs(['microphone'])
         #params
         self.params['stereo']=Param(stereo, valType='bool',
-            hint=_("Record two channels (stereo) or one (mono, smaller file)"),
+            hint=_translate("Record two channels (stereo) or one (mono, smaller file)"),
             label=_localized['stereo'])
         self.params['stopType'].allowedVals = ['duration (s)']
-        self.params['stopType'].hint = _('The duration of the recording in seconds; blank = 0 sec')
+        self.params['stopType'].hint = _translate('The duration of the recording in seconds; blank = 0 sec')
     def writeStartCode(self,buff):
         # filename should have date_time, so filename_wav should be unique
         buff.writeIndented("wavDirName = filename + '_wav'\n")
