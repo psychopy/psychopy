@@ -151,7 +151,7 @@ class Keyboard(ioHubKeyboardDevice):
         # Same to do for the _active_modifiers bool lookup array
         self._last_general_mod_states=dict(shift_on=False,alt_on=False,cmd_on=False,ctrl_on=False)
 
-        self._codedict = {self._createStringForKey(code,0): code for code in range(128)}
+        #self._codedict = {self._createStringForKey(code,0): code for code in range(128)}
 
         self._loop_source=None
         self._tap=None
@@ -184,6 +184,7 @@ class Keyboard(ioHubKeyboardDevice):
                                                     kTISPropertyUnicodeKeyLayoutData)
         layout = objcify(layout_p)
         layoutbytes = layout.bytes()
+        print2err("layoutbytes: ",type(layoutbytes)," : ",dir(layoutbytes))
         keysdown = ctypes.c_uint32()
         length = UniCharCount()
         chars = UniChar4()
@@ -201,8 +202,8 @@ class Keyboard(ioHubKeyboardDevice):
         CoreFoundation.CFRelease(keyboard)
         return s
 
-    def _keyCodeForChar(self, c):
-        return self._codedict[c]
+    #def _keyCodeForChar(self, c):
+    #    return self._codedict[c]
 
     def _poll(self):
         self._last_poll_time=getTime()            
