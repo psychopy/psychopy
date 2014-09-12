@@ -142,8 +142,10 @@ class MessageEvent(DeviceEvent):
         DeviceEvent.__init__(self, *args,**kwargs)
 
     @staticmethod
-    def _createAsList(text,category='',msg_offset=0.0, sec_time=None,set_event_id=Computer.isIoHubProcess):
+    def _createAsList(text,category='',msg_offset=0.0, sec_time=None,set_event_id=None):
         csec=currentSec()
+        if set_event_id is None:
+            set_event_id = Computer.is_iohub_process
         if sec_time is not None:
             csec=sec_time
         event_num=0        

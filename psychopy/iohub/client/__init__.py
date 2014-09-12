@@ -329,6 +329,9 @@ class ioHubConnection(object):
 
         if ioHubConnection.ACTIVE_CONNECTION is not None:
             raise AttributeError("An existing ioHubConnection is already open. Use ioHubConnection.getActiveConnection() to access it; or use ioHubConnection.quit() to close it.")
+
+        Computer.psychopy_process = psutil.Process()
+
         # udp port setup
         self.udp_client = None
 
@@ -821,7 +824,7 @@ class ioHubConnection(object):
         run on. By default the ioHub Process can run on any CPU or CPU core.
 
         The processor_list argument must be a list of 'processor' id's; integers in
-        the range of 0 to Computer.processingUnitCount-1, representing the
+        the range of 0 to Computer.processing_unit_count-1, representing the
         processing unit indexes that the ioHub Server should be allowed to run on.
         If processor_list is given as an empty list, the ioHub Process will be
         able to run on any processing unit on the computer.
@@ -829,7 +832,7 @@ class ioHubConnection(object):
         This method is not supported on OS X at this time.
 
         Args:
-            processor_list (list): A list of integer values between 0 and Computer.processingUnitCount-1, where values in the list indicate processing unit indexes that the ioHub process is able to run on.
+            processor_list (list): A list of integer values between 0 and Computer.processing_unit_count-1, where values in the list indicate processing unit indexes that the ioHub process is able to run on.
 
         Returns:
             None
@@ -961,9 +964,9 @@ class ioHubConnection(object):
         run_script=os.path.join(IO_HUB_DIRECTORY,'launchHubProcess.py')
         subprocessArgList=[sys.executable,
                            run_script,
-                           "%.6f"%Computer.globalClock.getLastResetTime(),
+                           "%.6f"%Computer.global_clock.getLastResetTime(),
                            rootScriptPath, ioHubConfigAbsPath,
-                           str(Computer.currentProcess.pid)]
+                           str(Computer.current_process.pid)]
 
         # check for existing ioHub Process based on process if saved to file
         iopFileName=os.path.join(rootScriptPath ,'.iohpid')
@@ -991,8 +994,8 @@ class ioHubConnection(object):
 
         # start subprocess, get pid, and get psutil process object for affinity and process priority setting
         self._server_process = subprocess.Popen(subprocessArgList,stdout=subprocess.PIPE)
-        Computer.ioHubServerProcessID = self._server_process.pid
-        Computer.ioHubServerProcess=psutil.Process(self._server_process.pid)
+        Computer.iohub_process_id = self._server_process.pid
+        Computer.iohub_process = psutil.Process(self._server_process.pid)
 
         hubonline=False
         stdout_read_data=""
@@ -1001,7 +1004,7 @@ class ioHubConnection(object):
             # wait for server to send back 'IOHUB_READY' text over stdout, indicating it is running
             # and ready to receive network packets
             server_output='hi there'
-            ctime = Computer.globalClock.getTime
+            ctime = Computer.global_clock.getTime
 
             timeout_time=ctime()+ioHubConfig.get('start_process_timeout',30.0)# timeout if ioServer does not reply in 10 seconds
             while server_output and ctime()<timeout_time:
@@ -1053,7 +1056,7 @@ class ioHubConnection(object):
             self.registerPygletWindowHandles(*whs)
 
         iopFile= open(iopFileName,'w')
-        iopFile.write("ioHub PID: "+str(Computer.ioHubServerProcessID))
+        iopFile.write("ioHub PID: "+str(Computer.iohub_process_id))
         iopFile.flush()
         iopFile.close()
 
@@ -1386,22 +1389,22 @@ class ioHubConnection(object):
             try:
                 self.udp_client.sendTo(('STOP_IOHUB_SERVER',))
                 self.udp_client.close()
-                if Computer.ioHubServerProcess:
-                    r=Computer.ioHubServerProcess.wait(timeout=5)
+                if Computer.iohub_process:
+                    r=Computer.iohub_process.wait(timeout=5)
                     print 'ioHub Server Process Completed With Code: ',r
             except TimeoutError:
                 print "Warning: TimeoutExpired, Killing ioHub Server process."
-                Computer.ioHubServerProcess.kill()
+                Computer.iohub_process.kill()
             except Exception:
                 print "Warning: Unhandled Exception. Killing ioHub Server process."
-                if Computer.ioHubServerProcess:
-                    Computer.ioHubServerProcess.kill()
+                if Computer.iohub_process:
+                    Computer.iohub_process.kill()
                 printExceptionDetailsToStdErr()
             finally:
                 ioHubConnection.ACTIVE_CONNECTION=None
                 self._server_process=None
-                Computer.ioHubServerProcessID=None
-                Computer.ioHubServerProcess=None
+                Computer.iohub_process_id=None
+                Computer.iohub_process=None
             return True
 
     def _isErrorReply(self,data):
@@ -2094,7 +2097,7 @@ class ioHubExperimentRuntime(object):
 
     def _setInitialProcessAffinities(self,ioHubInfo):
             # set process affinities based on config file settings
-            cpus=range(Computer.processingUnitCount)
+            cpus=range(Computer.processing_unit_count)
             experiment_process_affinity=cpus
             other_process_affinity=cpus
             iohub_process_affinity=cpus
@@ -2115,7 +2118,7 @@ class ioHubExperimentRuntime(object):
                 Computer.setProcessAffinities(experiment_process_affinity,iohub_process_affinity)
 
             if len(other_process_affinity) < len(cpus):
-                ignore=[Computer.currentProcessID,Computer.ioHubServerProcessID]
+                ignore=[Computer.currentProcessID,Computer.iohub_process_id]
                 Computer.setAllOtherProcessesAffinity(other_process_affinity,ignore)
 
     def start(self,*sys_argv):

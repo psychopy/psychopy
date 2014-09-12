@@ -432,7 +432,7 @@ class ioServer(object):
         self._session_id=None
         self._experiment_id=None
 
-        self.log("Server Time Offset: {0}".format(Computer.globalClock.getLastResetTime()))
+        self.log("Server Time Offset: {0}".format(Computer.global_clock.getLastResetTime()))
 
         self._hookManager=None
         self.emrt_file=None

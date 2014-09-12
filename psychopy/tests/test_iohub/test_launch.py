@@ -15,8 +15,5 @@ def testDefaultServerLaunch():
     mouse=io.devices.mouse
     assert keyboard != None
     assert mouse != None
-
     stopHubProcess()
 
-if __name__ == '__main__':
-    testDefaultServerLaunch()
