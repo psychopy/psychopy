@@ -6,7 +6,7 @@ Keyboard Reaction Time Calulation shown within a line length matching task.
 
 Inital Version: May 6th, 2013, Sol Simpson
 """
-from psychopy import visual, core
+from psychopy import  core,  visual
 from psychopy.iohub import launchHubServer
 from math import fabs
 
@@ -89,10 +89,7 @@ text.setText(results)
 [s.draw() for s in stim]
 window.flip()
 
-while not keyboard.state:
+io.clearEvents('all')
+while not keyboard.getPresses():
     io.wait(0.05)
     io.clearEvents()
-
-# Quit the ioHub Process
-io.quit()
-core.quit()

@@ -37,7 +37,7 @@
 #      modifications made so it integrated with the ioHub module more effecively
 #     ( but therefore making this version not useful for general application usage)
 #
-# March, 2013: -Fixed an existing bug that caused CAPS_LOCK not to have an effect,
+# March, 2013: -Fixed an existing bug that caused capslock not to have an effect,
 #              -Added tracking of what keys are pressed and how many auto repeat
 #              press events each has received.
 # April, 2013: - Modified to directly return ioHub device event arrays
@@ -129,7 +129,6 @@ class HookManager(threading.Thread):
         # Give these some initial values
         self.mouse_position_x = 0
         self.mouse_position_y = 0
-        #self.ison = {"SHIFT":False, "CAPS_LOCK":False}
 
          # Assign default function actions (do nothing).
         self.KeyDown = lambda x: True
@@ -393,10 +392,10 @@ class HookManager(threading.Thread):
                 uchar = shiftuchar
                 ucode = shiftucode        
         
-        # If a shift modifier is active, CAPS_LOCK is skipped by iohub
+        # If a shift modifier is active, capslock is skipped by iohub
         # right now. Not sure if this results in expected key vs char values
         # all the time; but looks good to me so far. If a shift mod
-        # is not pressed, then act on the CAPS_LOCK being active and update.
+        # is not pressed, then act on the capslock being active and update.
         # char field
         #
         elif mod_mask & X.LockMask == X.LockMask:
@@ -419,7 +418,7 @@ class HookManager(threading.Thread):
                         uchar = uchar.upper()
 
 
-        # Finally, update char value if NUM_LOCK is active.
+        # Finally, update char value if numlock is active.
         numlckuchar = None
         if mod_mask & 16 == 16:
             numlckkeysym = self.local_dpy.keycode_to_keysym(key_code, 3)
@@ -459,18 +458,18 @@ class HookManager(threading.Thread):
         # Update currently active modifiers
         #
         if mod_mask & 2 == 2:
-            # CAPSLOCK is active:
-            modifier_key_state+=ModifierKeyCodes.CAPS_LOCK
+            # capslock is active:
+            modifier_key_state+=ModifierKeyCodes.capslock
 
         if mod_mask & 16 == 16:
             # NUM_LOCK is active:
-            modifier_key_state+=ModifierKeyCodes.NUM_LOCK
+            modifier_key_state+=ModifierKeyCodes.numlock
 
         self.updateKeysPressedState(key,is_pressed_key)
 
         pressed_key_list = self.getPressedKeys()
         for pk in pressed_key_list:
-            if pk not in ['caps_lock','num_lock']:
+            if pk not in ['capslock','numlock']:
                 is_mod_id = ModifierKeyCodes.getID(pk.upper())
                 if is_mod_id:
                     modifier_key_state+=is_mod_id
