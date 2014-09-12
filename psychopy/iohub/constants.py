@@ -946,7 +946,7 @@ try:
         _mod_names=['lctrl','rctrl','lshift',
                    'rshift','lalt','ralt',
                    'lcmd','rcmd','capslock',
-                   'MOD_SHIFT','MOD_ALT','MOD_CTRL','MOD_CMD','numlock','MOD_FUNCTION','MOD_HELP','scrolllock']
+                   'MOD_SHIFT','MOD_ALT','MOD_CTRL','MOD_CMD','numlock','function','modhelp','scrolllock']
         lctrl = 1
         rctrl = 2
         lshift = 4
@@ -961,9 +961,9 @@ try:
         MOD_CTRL=2048
         MOD_CMD=4096
         numlock=8192
-        MOD_FUNCTION=16384
-        MOD_HELP=32768
-        scrolllock=MOD_HELP*2
+        function=16384
+        modhelp=32768
+        scrolllock=modhelp*2
     ModifierKeyCodes.initialize()
     ModifierKeyCodes._keys.remove(ModifierKeyCodes.getID('UNDEFINED'))
     

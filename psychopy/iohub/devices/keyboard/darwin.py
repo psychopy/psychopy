@@ -83,30 +83,30 @@ from unicodedata import category as ucategory
 getTime = Computer.getTime
 
 eventHasModifiers = lambda v: Qz.kCGEventFlagMaskNonCoalesced - v != 0     
-keyFromNumpad = lambda v: Qz.kCGEventFlagMaskNumericPad & v > 0   
-caplocksEnabled = lambda v : Qz.kCGEventFlagMaskAlphaShift & v > 0 
-shiftModifierActive = lambda v : Qz.kCGEventFlagMaskShift & v > 0
-altModifierActive = lambda v : Qz.kCGEventFlagMaskAlternate & v > 0
-controlModifierActive = lambda v : Qz.kCGEventFlagMaskControl & v > 0
-commandModifierActive = lambda v : Qz.kCGEventFlagMaskCommand & v > 0
+keyFromNumpad = lambda v: Qz.kCGEventFlagMaskNumericPad & v == Qz.kCGEventFlagMaskNumericPad
+caplocksEnabled = lambda v : Qz.kCGEventFlagMaskAlphaShift & v == Qz.kCGEventFlagMaskAlphaShift
+shiftModifierActive = lambda v : Qz.kCGEventFlagMaskShift & v == Qz.kCGEventFlagMaskShift
+altModifierActive = lambda v : Qz.kCGEventFlagMaskAlternate & v == Qz.kCGEventFlagMaskAlternate
+controlModifierActive = lambda v : Qz.kCGEventFlagMaskControl & v == Qz.kCGEventFlagMaskControl
+fnModifierActive = lambda v : Qz.kCGEventFlagMaskSecondaryFn & v == Qz.kCGEventFlagMaskSecondaryFn
 
 modifier_name_mappings=dict(
         lctrl = 'lctrl',
         rctrl = 'rctrl',
         lshift = 'lshift',
         rshift = 'rshift',
-        lalt = 'loption',
-        ralt = 'roption',
-        lcmd = 'lcommand',
-        rcmd = 'rcommand',
+        lalt = 'lalt',
+        ralt = 'lalt',
+        lcmd = 'lcmd',
+        rcmd = 'lcmd',
         capslock = 'capslock',
         #MOD_SHIFT=512,
         #MOD_ALT=1024,
         #MOD_CTRL=2048,
         #MOD_CMD=4096,
         numlock='numlock',
-        MOD_FUNCTION='modfunction',
-        MOD_HELP='modhelp')
+        function='function',
+        modhelp='modhelp')
 
 class Keyboard(ioHubKeyboardDevice):
     _last_mod_names = []
@@ -115,8 +115,8 @@ class Keyboard(ioHubKeyboardDevice):
                     (0x00020,'lalt'),(0x00040,'ralt'),
                     (0x000008, 'lcmd'),(0x000010,'rcmd'),
                     (Qz.kCGEventFlagMaskAlphaShift, 'capslock'),
-                    (Qz.kCGEventFlagMaskSecondaryFn, "MOD_FUNCTION"),
-                    (Qz.kCGEventFlagMaskHelp , "MOD_HELP")])        # 0x400000
+                    (Qz.kCGEventFlagMaskSecondaryFn, "function"),
+                    (Qz.kCGEventFlagMaskHelp , "modhelp")])        # 0x400000
 
     DEVICE_TIME_TO_SECONDS=0.000000001
     
@@ -230,11 +230,21 @@ class Keyboard(ioHubKeyboardDevice):
                 device_time=Qz.CGEventGetTimestamp(event)*self.DEVICE_TIME_TO_SECONDS
                 key_code = Qz.CGEventGetIntegerValueField(event, Qz.kCGKeyboardEventKeycode)
                 nsEvent = NSEvent.eventWithCGEvent_(event)
+                # should NSFunctionKeyMask, NSNumericPadKeyMask be used??
+
                 window_number=nsEvent.windowNumber()
 
                 if etype in [Qz.kCGEventKeyDown, Qz.kCGEventKeyUp, Qz.kCGEventFlagsChanged]:
                     key_mods = Qz.CGEventGetFlags(event)
                     ioHubKeyboardDevice._modifier_value, mod_names = self._checkForLeftRightModifiers(key_mods)
+
+                    if fnModifierActive(key_mods) and keyFromNumpad(key_mods):
+                        # Atleast on mac mini wireless kb, arrow keys have
+                        # fnModifierActive at all times, even when fn key is not pressed.
+                        # When fn key 'is' pressed, and arrow key is pressed, then keyFromNumpad becomes false.
+                        mod_names.remove('function')
+                        ioHubKeyboardDevice._modifier_value-=KeyboardConstants._modifierCodes.getID('function')
+
                     char_value = None
                     if etype !=  Qz.kCGEventFlagsChanged:
                         char_value = nsEvent.characters()
@@ -255,6 +265,11 @@ class Keyboard(ioHubKeyboardDevice):
 
                     key_value=self._createStringForKey(key_code,0)
 
+                    if fnModifierActive(key_mods):
+                        tmp = char_value
+                        char_value = char_value2
+                        char_value2 = tmp
+
                     #print2err("key_str: [{0}], {1}, {2}".format(key_str,len(key_str),type(key_str)))
                     if len(char_value)==0 or unicodedata.category(char_value) == 'Cc':
                         char_value=code2label.get(key_code, u'')
@@ -265,7 +280,7 @@ class Keyboard(ioHubKeyboardDevice):
 
                     is_auto_repeat= Qz.CGEventGetIntegerValueField(event, Qz.kCGKeyboardEventAutorepeat)
 
-                    #print2err(" Key Event: [",char_value,'] : [',key_value,'] : ',char_value2,' : ',mod_names," : ")
+                    #print2err(" Key Event: k=[",key_value,'] : c=[',char_value,'] : c2=[',char_value2,'] : ',mod_names," : ",key_mods," : fn=",fnModifierActive(key_mods)," : np=",keyFromNumpad(key_mods))
 
                     # TODO: CHeck AUTO REPEATES
                     #if etype == Qz.kCGEventKeyDown and self._report_auto_repeats is False and self._key_states.get(key_code, None):
@@ -305,7 +320,7 @@ class Keyboard(ioHubKeyboardDevice):
 
                     ioe[12]=key_code # Quartz does not give the scancode, so fill this with keycode
                     ioe[13]=key_code #key_code
-                    ioe[14]=char_value2 #Alternative char value, need to test with more KBs if / when it should be used.
+                    ioe[14]=char_value2.encode('utf-8') #Alternative char value, need to test with more KBs if / when it should be used.
                     ioe[15]=key_value
                     ioe[16]=ioHubKeyboardDevice._modifier_value
                     ioe[17]=window_number
