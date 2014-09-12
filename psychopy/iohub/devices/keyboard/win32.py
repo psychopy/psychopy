@@ -122,6 +122,49 @@ class Keyboard(ioHubKeyboardDevice):
                         ioHubKeyboardDevice._modifier_value += mod_value
         return ioHubKeyboardDevice._modifier_value
 
+    def _getCharValue(self, event, remove_mods=False):
+        char = u''
+        ucat = None
+        ucode = 0
+
+        prev_shift =  self._keyboard_state[win32_vk.VK_SHIFT]
+        prev_numlock = self._keyboard_state[win32_vk.VK_NUM_LOCK]
+
+        if remove_mods:
+            self._keyboard_state[win32_vk.VK_SHIFT] = 0
+            self._keyboard_state[win32_vk.VK_NUM_LOCK] = 0
+
+        result = self._user32.ToUnicode(event.KeyID, event.ScanCode,
+                                        ctypes.byref(self._keyboard_state),
+                                        ctypes.byref(self._unichar), 8, 0)
+
+        if remove_mods:
+            self._keyboard_state[win32_vk.VK_SHIFT] = prev_shift
+            self._keyboard_state[win32_vk.VK_NUM_LOCK] = prev_numlock
+
+        if result > 0:
+            if result == 1:
+                char = self._unichar[0].encode('utf-8')
+                ucode = ord(self._unichar[0])
+                ucat = ucategory(self._unichar[0])
+            else:
+                for c in range(result):
+                    ucode = ord(self._unichar[c])
+                    ucat = ucategory(self._unichar[c])
+                char = self._unichar[0:result].lower()
+                char = char.encode('utf-8')
+        elif result == -1:
+            char = self._unichar[0].encode('utf-8')
+            ucode = ord(self._unichar[0])
+            ucat = ucategory(self._unichar[0])
+
+        if result == 0 or ucat and ucat[0] == 'C':
+            lukey, _junk = KeyboardConstants._getKeyNameAndModsForEvent(event)
+            if lukey and len(lukey) > 0:
+                char = lukey.lower()
+
+        return char, ucode, ucat
+
     def _nativeEventCallback(self, event):
         if self.isReportingEvents():
             notifiedTime = getTime()
@@ -178,76 +221,27 @@ class Keyboard(ioHubKeyboardDevice):
             # we support setting a delay in the device properties based on
             # external testing for a given keyboard, we will leave at 0.
             delay = 0.0
+            ucode = 0
             key = None
-            uchar = 0
-            char = None
-
             modKeyName = self._updateKeyMapState(event)
             event.Modifiers = self._updateModValue(keyID, is_press)
+
+            # Get key and char fields.....
 
             if modKeyName:
                 key = modKeyName
                 char = u''
+                ucode = 0
             else:
-                #
-                ## check for unicode char field
-                #
-                result = self._user32.ToUnicode(event.KeyID, event.ScanCode,
-                                                ctypes.byref(self._keyboard_state),
-                                                ctypes.byref(self._unichar), 8, 0)
+                char, ucode, ucat = self._getCharValue(event)
 
-                ucat = None
-                if result > 0:
-                    if result == 1:
-                        char = self._unichar[0].encode('utf-8')
-                        uchar = ord(self._unichar[0])
-                        ucat = ucategory(self._unichar[0])
-                    else:
-                        for c in range(result):
-                            uchar = ord(self._unichar[c])
-                            ucat = ucategory(self._unichar[c])
-                        char = self._unichar[0:result].lower()
-                        char = char.encode('utf-8')
-                elif result == -1:
-                    char = self._unichar[0].encode('utf-8')
-                    uchar = ord(self._unichar[0])
-                    ucat = ucategory(self._unichar[0])
+                ckey = KeyboardConstants._getKeyName(event)
+                if ckey.startswith('num_'):
+                    key = ckey
+                else:
+                   key, _, ucat2 = self._getCharValue(event, True)
 
-                if result == 0 or ucat and ucat[0] == 'C':
-                    lukey, _junk = KeyboardConstants._getKeyNameAndModsForEvent(event)
-                    if lukey and len(lukey) > 0:
-                        char = lukey.lower()
-
-                # Get evt.key field >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-                prev_shift =  self._keyboard_state[win32_vk.VK_SHIFT]
-                temp_unichar =  (ctypes.c_wchar * 8)()
-                self._keyboard_state[win32_vk.VK_SHIFT] = 0
-                result2 = self._user32.ToUnicode(event.KeyID, event.ScanCode,
-                                                ctypes.byref(self._keyboard_state),
-                                                ctypes.byref(temp_unichar), 8, 0)
-
-                self._keyboard_state[win32_vk.VK_SHIFT] = prev_shift
-
-                key = None
-                ucat2 = None
-                if result2 > 0:
-                    if result2 == 1:
-                        key = temp_unichar[0].encode('utf-8')
-                        ucat2 = ucategory(temp_unichar[0])
-                    else:
-                        for c in range(result2):
-                            ucat2 = ucategory(temp_unichar[c])
-                        key = temp_unichar[0:result2]
-                        key = key.encode('utf-8')
-
-                if event.Key.lower().startswith('numpad'):
-                    key = 'num_%s'%(event.Key[6:])
-                elif ucat2 == 'Cc':
-                    key = event.Key
-
-                if key is None and char:
-                    key = char
+            #print2err("evt.Key: {0}, ScanCode: {1}, Key: [{2}], Char: [{3}]".format(event.Key, event.ScanCode,key,char))
 
             kb_event = [0,
                         0,
@@ -263,7 +257,7 @@ class Keyboard(ioHubKeyboardDevice):
                         event.RepeatCount,
                         event.ScanCode,
                         event.KeyID,
-                        uchar,
+                        ucode,
                         key.lower(),
                         event.Modifiers,
                         event.Window,

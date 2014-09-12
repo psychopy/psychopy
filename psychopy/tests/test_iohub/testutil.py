@@ -1,6 +1,8 @@
+import pytest
+
 __author__ = 'Sol'
 
-import psutil
+import psutil, sys
 from psychopy.iohub import launchHubServer, Computer
 
 from psychopy.tests.utils import skip_under_travis
@@ -34,3 +36,15 @@ def stopHubProcess():
     assert not psutil.pid_exists(io_proc_pid)
 
     assert ioHubConnection.getActiveConnection() is None
+
+skip_not_completed = pytest.mark.skipif(True,
+                                       reason="Cannot be tested until the test is completed.")
+
+skip_under_windoz = pytest.mark.skipif(sys.platform == 'win32',
+                                       reason="Cannot be tested under Windoz.")
+
+skip_under_linux = pytest.mark.skipif(sys.platform == 'linux2',
+                                       reason="Cannot be tested under Linux.")
+
+skip_under_osx = pytest.mark.skipif(sys.platform == 'darwin',
+                                       reason="Cannot be tested under OS X.")

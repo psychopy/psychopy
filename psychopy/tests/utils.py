@@ -163,9 +163,14 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
 
 _travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')  # in Travis-CI testing
 
+# Alternative skip_under_travis implementation;
+# Seems fine, but Jon / Jeremy can decide to use it or loose it.
+#
+# skip_under_travis = pytest.mark.skipif(_travisTesting == True,
+#                                       reason="Cannot be tested under Travis-CI")
+
 def skip_under_travis(fn=None):
     """Skip if a test is executed under Travis testing environment
-
     Could also be used as a decorator (if argument provided) or
     unparametrized in the code
     """

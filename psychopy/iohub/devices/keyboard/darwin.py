@@ -151,7 +151,7 @@ class Keyboard(ioHubKeyboardDevice):
         # Same to do for the _active_modifiers bool lookup array
         self._last_general_mod_states=dict(shift_on=False,alt_on=False,cmd_on=False,ctrl_on=False)
 
-        self._codedict = {self._createStringForKey(code,0): code for code in range(128)}
+        #self._codedict = {self._createStringForKey(code,0): code for code in range(128)}
 
         self._loop_source=None
         self._tap=None
@@ -184,10 +184,14 @@ class Keyboard(ioHubKeyboardDevice):
                                                     kTISPropertyUnicodeKeyLayoutData)
         layout = objcify(layout_p)
         layoutbytes = layout.bytes()
+        if hasattr(layoutbytes, 'tobytes') :
+            layoutbytes_vp = layoutbytes.tobytes()
+        else:
+            layoutbytes_vp = memoryview(bytearray(layoutbytes)).tobytes()
         keysdown = ctypes.c_uint32()
         length = UniCharCount()
         chars = UniChar4()
-        retval = carbon.UCKeyTranslate(layoutbytes.tobytes(),
+        retval = carbon.UCKeyTranslate(layoutbytes_vp,
                                        keycode,
                                        kUCKeyActionDisplay,
                                        modifier_state,
@@ -201,8 +205,8 @@ class Keyboard(ioHubKeyboardDevice):
         CoreFoundation.CFRelease(keyboard)
         return s
 
-    def _keyCodeForChar(self, c):
-        return self._codedict[c]
+    #def _keyCodeForChar(self, c):
+    #    return self._codedict[c]
 
     def _poll(self):
         self._last_poll_time=getTime()            
@@ -229,6 +233,11 @@ class Keyboard(ioHubKeyboardDevice):
                 ioe_type = None
                 device_time=Qz.CGEventGetTimestamp(event)*self.DEVICE_TIME_TO_SECONDS
                 key_code = Qz.CGEventGetIntegerValueField(event, Qz.kCGKeyboardEventKeycode)
+
+                # Check Auto repeats
+                if etype == Qz.kCGEventKeyDown and self._report_auto_repeats is False and self._key_states.get(key_code, None):
+                    return event
+
                 nsEvent = NSEvent.eventWithCGEvent_(event)
                 # should NSFunctionKeyMask, NSNumericPadKeyMask be used??
 
@@ -282,10 +291,6 @@ class Keyboard(ioHubKeyboardDevice):
 
                     #print2err(" Key Event: k=[",key_value,'] : c=[',char_value,'] : c2=[',char_value2,'] : ',mod_names," : ",key_mods," : fn=",fnModifierActive(key_mods)," : np=",keyFromNumpad(key_mods))
 
-                    # TODO: CHeck AUTO REPEATES
-                    #if etype == Qz.kCGEventKeyDown and self._report_auto_repeats is False and self._key_states.get(key_code, None):
-                    #    return event
-
                     # TODO: CHeck WINDOW BOUNDS
 
                     #report_system_wide_events=self.getConfiguration().get('report_system_wide_events',True)
@@ -320,7 +325,7 @@ class Keyboard(ioHubKeyboardDevice):
 
                     ioe[12]=key_code # Quartz does not give the scancode, so fill this with keycode
                     ioe[13]=key_code #key_code
-                    ioe[14]=char_value2.encode('utf-8') #Alternative char value, need to test with more KBs if / when it should be used.
+                    ioe[14]=key_code #Alternative char value, need to test with more KBs if / when it should be used.
                     ioe[15]=key_value
                     ioe[16]=ioHubKeyboardDevice._modifier_value
                     ioe[17]=window_number
