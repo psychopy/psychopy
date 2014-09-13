@@ -352,7 +352,7 @@ class HookManager(threading.Thread):
         auto_repeat_count=0
         key=None
         unshifteducode=0
-                 
+        print2err("--------------------------------")
         if event.type == X.KeyPress:
             event_type_id=EventConstants.KEYBOARD_PRESS            
         elif event.type == X.KeyRelease:
@@ -373,7 +373,8 @@ class HookManager(threading.Thread):
         # May as well set the char field to == key to start,
         uchar=key
         ucode = unshifteducode
-        
+
+        print2err("unshifted: key: [{0}], char: [{1}], ucode: [{2}], keycode: [{3}]".format(key,uchar,ucode,key_code))
         # Now get char for the pressed key that factors in any active
         # shift modifiers, updating the evt char field.
         #
@@ -410,28 +411,33 @@ class HookManager(threading.Thread):
             if lockuchar:
                 uchar = lockuchar
                 ucode = lockucode
-
             if uchar and len(uchar) == 1:
                 ucat = unicodedata.category(u''+uchar)
                 if len(ucat)>=2:
                     if ucat[:2].lower() == 'll':
                         uchar = uchar.upper()
 
+        print2err("shifted: key: [{0}], char: [{1}], ucode: [{2}], keycode: [{3}]".format(key,uchar,ucode,key_code))
 
         # Finally, update char value if numlock is active.
         numlckuchar = None
         if mod_mask & 16 == 16:
             numlckkeysym = self.local_dpy.keycode_to_keysym(key_code, 3)
             numlckucode=keysym2ucs(numlckkeysym)
+            print2err("inner1: numlckkeysym: [{0}], numlckucode: [{1}]".format(numlckkeysym,numlckucode))
             if numlckucode!=-1:
                 numlckuchar=unichr(numlckucode).encode('utf-8')
             else:
                 numlckucode=0
                 numlckuchar=unicode(self.lookup_keysym(numlckkeysym),encoding='utf-8')
+            print2err("inner2: numlckkeysym: [{0}], numlckucode: [{1}], numlckuchar: [{2}]".format(numlckkeysym,numlckucode,numlckuchar))
 
             if numlckuchar and numlckuchar.lower().startswith('keypad_'):
                 uchar =  u'num_'+numlckuchar.lower()[7:]
-        
+            print2err("inner3: uchar: [{0}], ucode: [{1}]".format(uchar,ucode))
+
+        print2err("numlock: key: [{0}], char: [{1}], ucode: [{2}], keycode: [{3}]".format(key,uchar,ucode,key_code))
+
         # Clean up the labels for uchar and key fields
         # that do not have a natural glyph.
         if uchar and len(uchar)>1:
@@ -450,6 +456,8 @@ class HookManager(threading.Thread):
             key = key[3:]
             if key.startswith('kp_'):
                 key = u'num_'+key[3:]
+
+        print2err("final: key: [{0}], char: [{1}], ucode: [{2}], keycode: [{3}]".format(key,uchar,ucode,key_code))
 
         if uchar == u'[0]':
             uchar = key
@@ -470,8 +478,9 @@ class HookManager(threading.Thread):
         pressed_key_list = self.getPressedKeys()
         for pk in pressed_key_list:
             if pk not in ['capslock','numlock']:
-                is_mod_id = ModifierKeyCodes.getID(pk.upper())
+                is_mod_id = ModifierKeyCodes.getID(pk)
                 if is_mod_id:
+                    print2err("mod_str: {0}, mod_id: {1}".format(pk,is_mod_id))
                     modifier_key_state+=is_mod_id
 
 

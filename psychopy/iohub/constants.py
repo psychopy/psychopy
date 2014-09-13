@@ -664,7 +664,14 @@ try:
                     return cls._names.get(id,None)
     
         VirtualKeyCodes.initialize()
-    
+
+    elif sys.platform == 'linux2':
+        class VirtualKeyCodes(Constants):
+            @classmethod
+            def getName(cls,id):
+                return cls._names.get(id,None)
+        VirtualKeyCodes.initialize()
+
     elif sys.platform == 'darwin':
         class AnsiKeyCodes(Constants):
             ANSI_Equal    = 0x18 
@@ -921,8 +928,7 @@ try:
             KEY_RIGHT = 124 
             KEY_DOWN = 125 
             KEY_UP = 126 
-	
-	        
+
             @classmethod
             def getName(cls,id):
                 return cls._names.get(id,None)
@@ -1366,8 +1372,10 @@ try:
         pass
             
 except:
-    from . import printExceptionDetailsToStdErr
-    printExceptionDetailsToStdErr()
+    import traceback
+    traceback.print_exc()
+    #from . import printExceptionDetailsToStdErr
+    #printExceptionDetailsToStdErr()
     
 #class SerialConstants(Constants):
 #    import serial
