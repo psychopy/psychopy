@@ -76,6 +76,23 @@ setup(app=['psychopy/app/psychopyApp.py'],
                                   ),
                           )))
 
+
+#ugly hack for opencv2:
+#    As of opencv 2.4.5 the cv2.so binary used rpath to a fixed location to find libs and
+#    even more annoyingly it then appended 'lib' to the rpath as well. These were fine
+#    for the packaged framework python but the libs in an app bundle are different.
+#    We'll create some links so the appear in the same place as in the framework python
+rpath = "dist/PsychoPy2.app/Contents/Resources/"
+for libPath in opencvLibs:
+    libname = os.path.split(libPath)[-1]
+    realPath = "../../Frameworks/"+libname #relative path (w.r.t. the fake)
+    fakePath = os.path.join(rpath, "lib", libname)
+    os.symlink(realPath, fakePath)
+#they even did this for Python lib itself, which is in diff location
+realPath = "../Frameworks/Python.framework/Python" #relative path (w.r.t. the fake)
+fakePath = os.path.join(rpath, "Python")
+os.symlink(realPath, fakePath)
+
 if writeNewInit:
     #remove unwanted info about this system post-build
     createInitFile.createInitFile(dist=None)
