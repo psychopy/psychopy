@@ -12,7 +12,7 @@ if 'testMonitor' not in calibTools.getAllMonitors():
         width=30,
         distance=57,
         gamma=1.0,
-        # can't always localize the notes easily; need app created first to import localization and use _( ) => issues
+        # can't always localize the notes easily; need app created first to import localization and use _translate( ) => issues
         notes='default (not very useful) monitor'
         )
     defMon.setSizePix([1024,768])

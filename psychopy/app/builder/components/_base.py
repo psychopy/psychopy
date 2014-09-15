@@ -8,10 +8,10 @@ from psychopy.app.builder.experiment import Param
 from psychopy.constants import *
 
 # only use _localized values for label values, nothing functional
-_localized = {'name': _('Name'),  # fieldName: display label
-              'startType': _('start type'), 'stopType': _('stop type'),
-              'startVal': _('Start'), 'stopVal': _('Stop'),
-              'startEstim': _('Expected start (s)'), 'durationEstim': _('Expected duration (s)')
+_localized = {'name': _translate('Name'),  # fieldName: display label
+              'startType': _translate('start type'), 'stopType': _translate('stop type'),
+              'startVal': _translate('Start'), 'stopVal': _translate('Stop'),
+              'startEstim': _translate('Expected start (s)'), 'durationEstim': _translate('Expected duration (s)')
              }
 
 class BaseComponent(object):
@@ -28,28 +28,28 @@ class BaseComponent(object):
 
         self.params={}
         self.params['name']=Param(name, valType='code',
-            hint=_("Name of this component (alpha-numeric or _, no spaces)"),
+            hint=_translate("Name of this component (alpha-numeric or _, no spaces)"),
             label=_localized['name'])
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
-            hint=_("How do you want to define your start point?"),
+            hint=_translate("How do you want to define your start point?"),
             label=_localized['startType'])
         self.params['stopType']=Param(stopType, valType='str',
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
-            hint=_("How do you want to define your end point?"),
+            hint=_translate("How do you want to define your end point?"),
             label=_localized['stopType'])
         self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
-            hint=_("When does the component start?"),
+            hint=_translate("When does the component start?"),
             label=_localized['startVal'])
         self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_("When does the component end? (blank is endless)"),
+            hint=_translate("When does the component end? (blank is endless)"),
             label=_localized['stopVal'])
         self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
-            hint=_("(Optional) expected start (s), purely for representing in the timeline"),
+            hint=_translate("(Optional) expected start (s), purely for representing in the timeline"),
             label=_localized['startEstim'])
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
-            hint=_("(Optional) expected duration (s), purely for representing in the timeline"),
+            hint=_translate("(Optional) expected duration (s), purely for representing in the timeline"),
             label=_localized['durationEstim'])
 
         self.order=['name']  # name first, then timing, then others

@@ -8,10 +8,10 @@ from psychopy.app.builder import components #for getInitVals()
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'sound.png')
-tooltip = _('Sound: play recorded files or generated sounds')
+tooltip = _translate('Sound: play recorded files or generated sounds')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'sound': _('Sound'), 'volume': _('Volume')}
+_localized = {'sound': _translate('Sound'), 'volume': _translate('Volume')}
 
 class SoundComponent(BaseComponent):
     """An event class for presenting sound stimuli"""
@@ -29,15 +29,15 @@ class SoundComponent(BaseComponent):
         self.exp.requirePsychopyLibs(['sound'])
         #params
         self.params['stopType'].allowedVals = ['duration (s)']
-        self.params['stopType'].hint = _('The maximum duration of a sound in seconds')
-        self.params['stopVal'].hint = _("When does the component end? (blank to use the duration of the media)")
+        self.params['stopType'].hint = _translate('The maximum duration of a sound in seconds')
+        self.params['stopVal'].hint = _translate("When does the component end? (blank to use the duration of the media)")
         self.params['sound']=Param(sound, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint=_("A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) or a filename"),
+            hint=_translate("A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) or a filename"),
             label=_localized['sound'])
         self.params['volume']=Param(volume, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("The volume (in range 0 to 1)"),
+            hint=_translate("The volume (in range 0 to 1)"),
             label=_localized["volume"])
 
     def writeInitCode(self,buff):

@@ -11,50 +11,50 @@ dlgSize = (520,600)#this will be overridden by the size of the scrolled panel ma
 # labels mappings for display:
 _localized = {
         # section labels:
-            'general': _('General'), 'app': _('App'),
+            'general': _translate('General'), 'app': _translate('App'),
             'builder': "Builder", 'coder': "Coder",  # not localized
-            'connections': _('Connections'), 'keyBindings': _('Key bindings'),
+            'connections': _translate('Connections'), 'keyBindings': _translate('Key bindings'),
         # pref labels:
-            'winType': _("window type"), 'units': _("units"),
-            'fullscr': _("full-screen"), 'allowGUI': _("allow GUI"), 'paths': _('paths'),
-            'audioLib': _("audio library"), 'audioDriver': _("audio driver"),
-            'flac': _('flac audio compression'),
-            'parallelPorts': _("parallel ports"), 'showStartupTips': _("show start-up tips"),
-            'largeIcons': _("large icons"), 'defaultView': _("default view"),
-            'resetPrefs': _('reset preferences'), 'autoSavePrefs': _('auto-save prefs'),
-            'debugMode': _('debug mode'), 'locale': _('locale'),
-            'codeFont': _('code font'), 'commentFont': _('comment font'),
-            'outputFont': _('output font'), 'outputFontSize': _('output font size'),
-            'codeFontSize': _('code font size'),
-            'showSourceAsst': _('show source asst'), 'showOutput': _('show output'),
-            'reloadPrevFiles': _('reload previous files'),
-            'preferredShell': _('preferred shell'), 'newlineConvention': _('newline convention'),
-            'reloadPrevExp': _('reload previous exp'), 'unclutteredNamespace': _('uncluttered namespace'),
-            'componentsFolders': _('components folders'), 'hiddenComponents': _('hidden components'),
-            'unpackedDemosDir': _('unpacked demos dir'), 'savedDataFolder': _('saved data folder'),
-            'topFlow': _('Flow at top'), 'alwaysShowReadme': _('always show readme'),
-            'maxFavorites': _('max favorites'), 'proxy': _('proxy'),
-            'autoProxy': _('auto-proxy'), 'allowUsageStats': _('allow usage stats'),
-            'checkForUpdates': _('check for updates'), 'timeout': _('timeout'),
-            'open': _('open'), 'new': _('new'), 'save': _('save'),
-            'saveAs': _('save as'), 'print': _('print'), 'close': _('close'), 'quit': _('quit'),
-            'preferences': _('preferences'), 'cut': _('cut'), 'copy': _('copy'),
-            'paste': _('paste'), 'duplicate': _('duplicate'), 'indent': _('indent'),
-            'dedent': _('dedent'), 'smartIndent': _('smart indent'),
-            'find': _('find'), 'findAgain': _('find again'), 'undo': _('undo'), 'redo': _('redo'),
-            'comment': _('comment'), 'uncomment': _('uncomment'), 'fold': _('fold'),
-            'analyseCode': _('analyze code'), 'compileScript': _('compile script'), 'runScript': _('run script'),
-            'stopScript': _('stop script'), 'toggleWhitespace': _('toggle whitespace'),
-            'toggleEOLs': _('toggle EOLs'), 'toggleIndentGuides': _('toggle indent guides'),
-            'newRoutine': _('new Routine'), 'copyRoutine': _('copy Routine'),
-            'pasteRoutine': _('paste Routine'), 'toggleOutputPanel': _('toggle output panel'),
-            'switchToBuilder': _('switch to Builder'), 'switchToCoder': _('switch to Coder'),
-            'largerFlow': _('larger Flow'), 'smallerFlow': _('smaller Flow'),
-            'largerRoutine': _('larger routine'), 'smallerRoutine': _('smaller routine'),
-            'toggleReadme': _('toggle readme'),
+            'winType': _translate("window type"), 'units': _translate("units"),
+            'fullscr': _translate("full-screen"), 'allowGUI': _translate("allow GUI"), 'paths': _translate('paths'),
+            'audioLib': _translate("audio library"), 'audioDriver': _translate("audio driver"),
+            'flac': _translate('flac audio compression'),
+            'parallelPorts': _translate("parallel ports"), 'showStartupTips': _translate("show start-up tips"),
+            'largeIcons': _translate("large icons"), 'defaultView': _translate("default view"),
+            'resetPrefs': _translate('reset preferences'), 'autoSavePrefs': _translate('auto-save prefs'),
+            'debugMode': _translate('debug mode'), 'locale': _translate('locale'),
+            'codeFont': _translate('code font'), 'commentFont': _translate('comment font'),
+            'outputFont': _translate('output font'), 'outputFontSize': _translate('output font size'),
+            'codeFontSize': _translate('code font size'),
+            'showSourceAsst': _translate('show source asst'), 'showOutput': _translate('show output'),
+            'reloadPrevFiles': _translate('reload previous files'),
+            'preferredShell': _translate('preferred shell'), 'newlineConvention': _translate('newline convention'),
+            'reloadPrevExp': _translate('reload previous exp'), 'unclutteredNamespace': _translate('uncluttered namespace'),
+            'componentsFolders': _translate('components folders'), 'hiddenComponents': _translate('hidden components'),
+            'unpackedDemosDir': _translate('unpacked demos dir'), 'savedDataFolder': _translate('saved data folder'),
+            'topFlow': _translate('Flow at top'), 'alwaysShowReadme': _translate('always show readme'),
+            'maxFavorites': _translate('max favorites'), 'proxy': _translate('proxy'),
+            'autoProxy': _translate('auto-proxy'), 'allowUsageStats': _translate('allow usage stats'),
+            'checkForUpdates': _translate('check for updates'), 'timeout': _translate('timeout'),
+            'open': _translate('open'), 'new': _translate('new'), 'save': _translate('save'),
+            'saveAs': _translate('save as'), 'print': _translate('print'), 'close': _translate('close'), 'quit': _translate('quit'),
+            'preferences': _translate('preferences'), 'cut': _translate('cut'), 'copy': _translate('copy'),
+            'paste': _translate('paste'), 'duplicate': _translate('duplicate'), 'indent': _translate('indent'),
+            'dedent': _translate('dedent'), 'smartIndent': _translate('smart indent'),
+            'find': _translate('find'), 'findAgain': _translate('find again'), 'undo': _translate('undo'), 'redo': _translate('redo'),
+            'comment': _translate('comment'), 'uncomment': _translate('uncomment'), 'fold': _translate('fold'),
+            'analyseCode': _translate('analyze code'), 'compileScript': _translate('compile script'), 'runScript': _translate('run script'),
+            'stopScript': _translate('stop script'), 'toggleWhitespace': _translate('toggle whitespace'),
+            'toggleEOLs': _translate('toggle EOLs'), 'toggleIndentGuides': _translate('toggle indent guides'),
+            'newRoutine': _translate('new Routine'), 'copyRoutine': _translate('copy Routine'),
+            'pasteRoutine': _translate('paste Routine'), 'toggleOutputPanel': _translate('toggle output panel'),
+            'switchToBuilder': _translate('switch to Builder'), 'switchToCoder': _translate('switch to Coder'),
+            'largerFlow': _translate('larger Flow'), 'smallerFlow': _translate('smaller Flow'),
+            'largerRoutine': _translate('larger routine'), 'smallerRoutine': _translate('smaller routine'),
+            'toggleReadme': _translate('toggle readme'),
         # pref wxChoice lists:
-            'last': _('same as last session'), 'both': _('both Builder & Coder'),
-            'keep': _('same as in the file'),  # line endings
+            'last': _translate('same as last session'), 'both': _translate('both Builder & Coder'),
+            'keep': _translate('same as in the file'),  # line endings
             # not translated:
             'pix': 'pix', 'deg': 'deg', 'cm': 'cm', 'norm': 'norm', 'height': 'height',
             'pyshell': 'pyshell', 'iPython': 'iPython'
@@ -66,7 +66,7 @@ class PreferencesDlg(wx.Dialog):
     def __init__(self,app,
             pos=wx.DefaultPosition, size=dlgSize,
             style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT|wx.TAB_TRAVERSAL|wx.RESIZE_BORDER):
-        wx.Dialog.__init__(self,None,-1,_("PsychoPy Preferences"),pos,size,style)
+        wx.Dialog.__init__(self,None,-1,_translate("PsychoPy Preferences"),pos,size,style)
         self.app=app
         self.Center()
         self.prefsCfg = self.app.prefs.userPrefsCfg
@@ -103,24 +103,24 @@ class PreferencesDlg(wx.Dialog):
         sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
         btnsizer = wx.StdDialogButtonSizer()
         #ok
-        btn = wx.Button(self, wx.ID_OK, _('OK'))
-        btn.SetHelpText(_("Save prefs (in all sections) and close window"))
+        btn = wx.Button(self, wx.ID_OK, _translate('OK'))
+        btn.SetHelpText(_translate("Save prefs (in all sections) and close window"))
         btn.Bind(wx.EVT_BUTTON, self.onOK)
         btn.SetDefault()
         btnsizer.AddButton(btn)
         #cancel
-        btn = wx.Button(self, wx.ID_CANCEL, _('Cancel'))
-        btn.SetHelpText(_("Cancel any changes (to any panel)"))
+        btn = wx.Button(self, wx.ID_CANCEL, _translate('Cancel'))
+        btn.SetHelpText(_translate("Cancel any changes (to any panel)"))
         btn.Bind(wx.EVT_BUTTON, self.onCancel)
         btnsizer.AddButton(btn)
         #apply
-        btn = wx.Button(self, wx.ID_APPLY, _('Apply'))
-        btn.SetHelpText(_("Apply these prefs (in all sections) and continue"))
+        btn = wx.Button(self, wx.ID_APPLY, _translate('Apply'))
+        btn.SetHelpText(_translate("Apply these prefs (in all sections) and continue"))
         btn.Bind(wx.EVT_BUTTON, self.onApply)
         btnsizer.AddButton(btn)
         #help
-        btn = wx.Button(self, wx.ID_HELP, _('Help'))
-        btn.SetHelpText(_("Get help on prefs"))
+        btn = wx.Button(self, wx.ID_HELP, _translate('Help'))
+        btn.SetHelpText(_translate("Get help on prefs"))
         btn.Bind(wx.EVT_BUTTON, self.onHelp)
         btnsizer.AddButton(btn)
         btnsizer.Realize()
@@ -184,7 +184,7 @@ class PreferencesDlg(wx.Dialog):
             if len(hints):
                 # use only one comment line, from right above the pref
                 hint = hints[-1].lstrip().lstrip('#').lstrip()
-                ctrls.valueCtrl.SetToolTipString(_(hint))
+                ctrls.valueCtrl.SetToolTipString(_translate(hint))
             else:
                 ctrls.valueCtrl.SetToolTipString('')
 

@@ -22,30 +22,32 @@ Intended usage:
 
 Known limitations (July 2014):
   - only strings are localized, not number format (separator , or .), currency, etc
-  - going forward, when adding more _() into the code there will be eventually be a name
-    conflict with the existing dummy variable _, which is sometimes used as a placeholder
-    when unpacking tuples or lists. find some of them with: git grep '_,'
-    expected effect is that localization will fail, should raise because a string
-    held in variable named _ is not callable
+  - PsychoPy uses the nonstandard name, _translate(), to avoid a name conflict with
+    a dummy variable _, which is sometimes used as a placeholder when unpacking
+    tuples or lists. PsychoPy depends on several packages, and some of them use
+    _ as a dummy variable, which is qutie widespread as a practice, unfortunately.
   - not sure how right-to-left languages work
   - use for localizing the app (PsychoPy), not for localizing user scripts.
 
 Files:
-  - psychopy/locale/LANG/LC_MESSAGES/ holds the text files and translations, where LANG 
+  - psychopy/locale/LANG/LC_MESSAGES/ holds the text files and translations, where LANG
     is a 5 letter code like en_UK or ja_JP. poedit will re-make *.mo next to *.po
     Such directories will be auto-detected by PsychoPy in users prefs -> app -> locale
-  - utils/ holds helper scripts for managing localization files and workflow. called 
+  - utils/ holds helper scripts for managing localization files and workflow. called
     manually, not by psychopy.
 
 Process:
 Do once:
-- edit the .py files to add _() around text strings to be localized
-  e.g.:  replace 'Welcome to PsychoPy2!' with _('Welcome to PsychoPy2!')
+- edit the .py files to add _translate() around text strings to be localized
+  e.g.:  replace 'Welcome to PsychoPy2!' with _translate('Welcome to PsychoPy2!')
   This process is mostly complete, but might be needed for new code.
 - use poedit to open a specific message catalog (*.po file).
+  In poedit "properties", add _translate as one of the "Sources keywords"
   To refresh the list of strings to be translated, in poedit click "Catalog menu > Update from sources"
-  To discover all instances of _() and dump to a file messages.pot (name customizable)
-    $ python utils/pygettext.py filename.py
+
+  poedit will do the following automatically, and is much easier than doing by hand:
+  To discover all instances of _translate() and dump to a file messages.pot (name customizable)
+    $ python utils/pygettext.py filename.py  BUT: need to signal PsychoPy uses _translate not _
   Or more usefully, from within psychopy/psychopy/app/localization directory:
     $ find ../.. -name '*.py' | grep -v tests | grep -v localization |  xargs python utils/pygettext.py
 - edit messages.pot manually:
@@ -58,14 +60,14 @@ human translation:
 - doing a translation well requires a strong understanding of PsychoPy itself, especially
   to know what are technical terms (like Routine) and so should not be translated, and to
   know the context of messages and hints, which can be snippets
-- edit locale/LANG/LC_MESSAGES/messages.po to have the desired translations; e.g.: could use
+- edit locale/LANG/LC_MESSAGES/messages.po to have the desired translations. Use
   poEdit from http://poedit.net or (debian-based) "sudo apt-get install poedit"
 
 generate .mo (binary) from .po (text):
-- using poedit (easiest): update catalog
-- by hand using utils/msgfmt or utils/pomo.py
+- use poedit (easiest): update catalog
+- by hand (not recommended): use utils/msgfmt or utils/pomo.py (watch for _translate vs _)
 
 Notes:
-- could tar cz the res_po directory and utils -- not needed by end users
+- *.po files and utils are not needed by end users
 - could distribute translations separately from PsychoPy itself
 """

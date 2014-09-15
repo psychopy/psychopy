@@ -9,11 +9,11 @@ from psychopy import prefs
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'parallelOut.png')
-tooltip = _('Parallel out: send signals from the parallel port')
+tooltip = _translate('Parallel out: send signals from the parallel port')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'address': _('Port address'), 'startData': _("Start data"),
-              'stopData': _("Stop data"), 'syncScreen': _('Sync to screen')
+_localized = {'address': _translate('Port address'), 'startData': _translate("Start data"),
+              'stopData': _translate("Stop data"), 'syncScreen': _translate('Sync to screen')
               }
 
 class ParallelOutComponent(BaseComponent):
@@ -41,18 +41,18 @@ class ParallelOutComponent(BaseComponent):
         if not address:
             address = addressOptions[0]
         self.params['address'] = Param(address, valType='str', allowedVals=addressOptions,
-            hint=_("Parallel port to be used (you can change these options in preferences>general)"),
+            hint=_translate("Parallel port to be used (you can change these options in preferences>general)"),
             label=_localized['address'])
         self.params['startData'] = Param(startData, valType='code', allowedTypes=[],
-            hint=_("Data to be sent at 'start'"),
+            hint=_translate("Data to be sent at 'start'"),
             label=_localized['startData'])
         self.params['stopData'] = Param(stopData, valType='code', allowedTypes=[],
-            hint=_("Data to be sent at 'end'"),
+            hint=_translate("Data to be sent at 'end'"),
             label=_localized['stopData'])
         self.params['syncScreen']=Param(syncScreen, valType='bool',
             allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
-            hint=_("If the parallel port data relates to visual stimuli then sync its pulse to the screen refresh"),
+            hint=_translate("If the parallel port data relates to visual stimuli then sync its pulse to the screen refresh"),
             label=_localized['syncScreen'])
     def writeInitCode(self,buff):
         if self.params['address'].val == 'LabJack U3':

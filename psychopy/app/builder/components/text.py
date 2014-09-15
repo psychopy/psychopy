@@ -8,19 +8,19 @@ from psychopy.app.builder import components #for getInitVals()
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'text.png')
-tooltip = _('Text: present text stimuli')
+tooltip = _translate('Text: present text stimuli')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'text': _('Text'),
-              'font': _('Font'), 'letterHeight': _('Letter height'),
-              'wrapWidth': _('Wrap width'), 'flip': _('Flip (mirror)')
+_localized = {'text': _translate('Text'),
+              'font': _translate('Font'), 'letterHeight': _translate('Letter height'),
+              'wrapWidth': _translate('Wrap width'), 'flip': _translate('Flip (mirror)')
               }
 
 class TextComponent(VisualComponent):
     """An event class for presenting text-based stimuli"""
     categories = ['Stimuli']
     def __init__(self, exp, parentName, name='text',
-                text=_('Any text\n\nincluding line breaks'),  # effectively just a display-value
+                text=_translate('Any text\n\nincluding line breaks'),  # effectively just a display-value
                 font='Arial',units='from exp settings', color='white', colorSpace='rgb',
                 pos=[0,0], letterHeight=0.1, ori=0,
                 startType='time (s)', startVal=0.0,
@@ -40,25 +40,25 @@ class TextComponent(VisualComponent):
         #params
         self.params['text']=Param(text, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("The text to be displayed"),
+            hint=_translate("The text to be displayed"),
             label=_localized['text'])
         self.params['font']=Param(font, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("The font name (e.g. Comic Sans)"),
+            hint=_translate("The font name (e.g. Comic Sans)"),
             label=_localized['font'])
         del self.params['size']#because you can't specify width for text
         self.params['letterHeight']=Param(letterHeight, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("Specifies the height of the letter (the width is then determined by the font)"),
+            hint=_translate("Specifies the height of the letter (the width is then determined by the font)"),
             label=_localized['letterHeight'])
 
         self.params['wrapWidth']=Param(wrapWidth, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant'],
-            hint=_("How wide should the text get when it wraps? (in the specified units)"),
+            hint=_translate("How wide should the text get when it wraps? (in the specified units)"),
             label=_localized['wrapWidth'], categ="Advanced")
         self.params['flip']=Param(flip, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat', 'set every frame'],
-            hint=_("horiz = left-right reversed; vert = up-down reversed; $var = variable"),
+            hint=_translate("horiz = left-right reversed; vert = up-down reversed; $var = variable"),
             label=_localized['flip'], categ="Advanced")
         self.params['ori'].categ='Advanced'
         self.params['opacity'].categ='Advanced'

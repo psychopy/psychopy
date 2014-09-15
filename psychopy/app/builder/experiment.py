@@ -287,7 +287,7 @@ class Experiment:
         elif name == 'Saved data folder':
             #deprecated in 1.80 for more complete data filename control
             params[name] = Param(paramNode.get('val'), valType='code', allowedTypes=[],
-                hint=_("Name of the folder in which to save data and log files (blank defaults to the builder pref)"),
+                hint=_translate("Name of the folder in which to save data and log files (blank defaults to the builder pref)"),
                 categ='Data')
         elif 'val' in paramNode.keys():
             if paramNode.get('val')=='window units':#changed this value in 1.70.00
@@ -604,22 +604,22 @@ class TrialHandler:
         self.order=['name']#make name come first (others don't matter)
         self.params={}
         self.params['name']=Param(name, valType='code', updates=None, allowedUpdates=None,
-            hint=_("Name of this loop"))
+            hint=_translate("Name of this loop"))
         self.params['nReps']=Param(nReps, valType='code', updates=None, allowedUpdates=None,
-            hint=_("Number of repeats (for each condition)"))
+            hint=_translate("Number of repeats (for each condition)"))
         self.params['conditions']=Param(conditions, valType='str', updates=None, allowedUpdates=None,
-            hint=_("A list of dictionaries describing the parameters in each condition"))
+            hint=_translate("A list of dictionaries describing the parameters in each condition"))
         self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None, label='Conditions',
-            hint=_("Name of a file specifying the parameters for each condition (.csv, .xlsx, or .pkl). Browse to select a file. Right-click to preview file contents, or create a new file."))
+            hint=_translate("Name of a file specifying the parameters for each condition (.csv, .xlsx, or .pkl). Browse to select a file. Right-click to preview file contents, or create a new file."))
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
-            hint=_("The start and end of the loop (see flow timeline)"))
+            hint=_translate("The start and end of the loop (see flow timeline)"))
         self.params['Selected rows']=Param(selectedRows, valType='code', updates=None, allowedUpdates=None,
-            hint=_("Select just a subset of rows from your condition file (the first is 0 not 1!). Examples: 0, 0:5, 5:-1"))
+            hint=_translate("Select just a subset of rows from your condition file (the first is 0 not 1!). Examples: 0, 0:5, 5:-1"))
         self.params['loopType']=Param(loopType, valType='str',
             allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
-            hint=_("How should the next condition value(s) be chosen?"))#NB staircase is added for the sake of the loop properties dialog
+            hint=_translate("How should the next condition value(s) be chosen?"))#NB staircase is added for the sake of the loop properties dialog
         self.params['random seed']=Param(randomSeed, valType='code', updates=None, allowedUpdates=None,
-            hint=_("To have a fixed random sequence provide an integer of your choosing here. Leave blank to have a new random sequence on each run of the experiment."))
+            hint=_translate("To have a fixed random sequence provide an integer of your choosing here. Leave blank to have a new random sequence on each run of the experiment."))
     def writeInitCode(self,buff):
         #no longer needed - initialise the trial handler just before it runs
         pass
@@ -714,31 +714,31 @@ class StairHandler:
         self.exp=exp
         self.order=['name']#make name come first (others don't matter)
         self.params={}
-        self.params['name']=Param(name, valType='code', hint=_("Name of this loop"))
+        self.params['name']=Param(name, valType='code', hint=_translate("Name of this loop"))
         self.params['nReps']=Param(nReps, valType='code',
-            hint=_("(Minimum) number of trials in the staircase"))
+            hint=_translate("(Minimum) number of trials in the staircase"))
         self.params['start value']=Param(startVal, valType='code',
-            hint=_("The initial value of the parameter"))
+            hint=_translate("The initial value of the parameter"))
         self.params['max value']=Param(maxVal, valType='code',
-            hint=_("The maximum value the parameter can take"))
+            hint=_translate("The maximum value the parameter can take"))
         self.params['min value']=Param(minVal, valType='code',
-            hint=_("The minimum value the parameter can take"))
+            hint=_translate("The minimum value the parameter can take"))
         self.params['step sizes']=Param(stepSizes, valType='code',
-            hint=_("The size of the jump at each step (can change on each 'reversal')"))
+            hint=_translate("The size of the jump at each step (can change on each 'reversal')"))
         self.params['step type']=Param(stepType, valType='str', allowedVals=['lin','log','db'],
-            hint=_("The units of the step size (e.g. 'linear' will add/subtract that value each step, whereas 'log' will ad that many log units)"))
+            hint=_translate("The units of the step size (e.g. 'linear' will add/subtract that value each step, whereas 'log' will ad that many log units)"))
         self.params['N up']=Param(nUp, valType='code',
-            hint=_("The number of 'incorrect' answers before the value goes up"))
+            hint=_translate("The number of 'incorrect' answers before the value goes up"))
         self.params['N down']=Param(nDown, valType='code',
-            hint=_("The number of 'correct' answers before the value goes down"))
+            hint=_translate("The number of 'correct' answers before the value goes down"))
         self.params['N reversals']=Param(nReversals, valType='code',
-            hint=_("Minimum number of times the staircase must change direction before ending"))
+            hint=_translate("Minimum number of times the staircase must change direction before ending"))
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['loopType']=Param('staircase', valType='str',
             allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
-            hint=_("How should the next trial value(s) be chosen?"))#NB this is added for the sake of the loop properties dialog
+            hint=_translate("How should the next trial value(s) be chosen?"))#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
-            hint=_('Where to loop from and to (see values currently shown in the flow view)'))
+            hint=_translate('Where to loop from and to (see values currently shown in the flow view)'))
     def writeInitCode(self,buff):
         #not needed - initialise the staircase only when needed
         pass
@@ -796,23 +796,23 @@ class MultiStairHandler:
         self.exp=exp
         self.order=['name']#make name come first
         self.params={}
-        self.params['name']=Param(name, valType='code', hint=_("Name of this loop"))
+        self.params['name']=Param(name, valType='code', hint=_translate("Name of this loop"))
         self.params['nReps']=Param(nReps, valType='code',
-            hint=_("(Minimum) number of trials in *each* staircase"))
+            hint=_translate("(Minimum) number of trials in *each* staircase"))
         self.params['stairType']=Param(stairType, valType='str', allowedVals=['simple','QUEST','quest'],
-            hint=_("How to select the next staircase to run"))
+            hint=_translate("How to select the next staircase to run"))
         self.params['switchMethod']=Param(switchStairs, valType='str', allowedVals=['random','sequential','fullRandom'],
-            hint=_("How to select the next staircase to run"))
+            hint=_translate("How to select the next staircase to run"))
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['loopType']=Param('staircase', valType='str',
         allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
-            hint=_("How should the next trial value(s) be chosen?"))#NB this is added for the sake of the loop properties dialog
+            hint=_translate("How should the next trial value(s) be chosen?"))#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
-            hint=_('Where to loop from and to (see values currently shown in the flow view)'))
+            hint=_translate('Where to loop from and to (see values currently shown in the flow view)'))
         self.params['conditions']=Param(conditions, valType='str', updates=None, allowedUpdates=None,
-            hint=_("A list of dictionaries describing the differences between each staircase"))
+            hint=_translate("A list of dictionaries describing the differences between each staircase"))
         self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
-            hint=_("An xlsx or csv file specifying the parameters for each condition"))
+            hint=_translate("An xlsx or csv file specifying the parameters for each condition"))
     def writeInitCode(self,buff):
         pass #don't initialise at start of exp, create when needed
     def writeLoopStartCode(self,buff):
@@ -1354,13 +1354,13 @@ class NameSpace():
         # strings used as codes, separate function from display value:
         self._localized = {
             "one of your Components, Routines, or condition parameters":
-                _("one of your Components, Routines, or condition parameters"),
-            "Builder variable": _("Builder variable"),
-            "Psychopy module": _("Psychopy module"),
-            "numpy function": _("numpy function"),
-            "python keyword": _("python keyword"),
+                _translate("one of your Components, Routines, or condition parameters"),
+            "Builder variable": _translate("Builder variable"),
+            "Psychopy module": _translate("Psychopy module"),
+            "numpy function": _translate("numpy function"),
+            "python keyword": _translate("python keyword"),
             " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name":
-                _(" Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"),
+                _translate(" Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"),
             None: ''  # not needed but possible output from isPossiblyDerivable()
             }
 
