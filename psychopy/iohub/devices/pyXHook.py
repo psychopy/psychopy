@@ -1,7 +1,6 @@
-
 # pyxhook -- an extension to emulate some of the PyHook library on linux.
 #
-#    Copyright (C) 2008 Tim Alexander <dragonfyre13@gmail.com>
+# Copyright (C) 2008 Tim Alexander <dragonfyre13@gmail.com>
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -46,22 +45,25 @@
 
 import threading
 import unicodedata
-from Xlib import X, XK, display
+import ctypes as ct
+from Xlib import X, display
 from Xlib.ext import record
 from Xlib.protocol import rq
-from keyboard.keysym2ucs import keysym2ucs
 from .. import print2err
 from ..devices import Computer
-from ..constants import EventConstants,MouseConstants, ModifierKeyCodes
+from ..constants import EventConstants, MouseConstants, ModifierKeyCodes
 
-jdumps = lambda x : str(x)
+
+jdumps = lambda x: str(x)
 try:
     import ujson
+
     jdumps = ujson.dumps
 except:
     import json
-    jdumps = json.dumps   
-    
+
+    jdumps = json.dumps
+
 getTime = Computer.getTime
 
 #######################################################################
@@ -92,20 +94,37 @@ def event2json(event):
         For KeyPress and KeyRelease, this is the keycode of the event key.
         For ButtonPress and ButtonRelease, this is the button of the event.
         For MotionNotify, this is either X.NotifyNormal or X.NotifyHint.
-    """    
+    """
     return jdumps(dict(type=event.type,
-                send_event=event.send_event,
-                time=event.time,
-                root=str(event.root),
-                window=str(event.window),
-                same_screen=event.same_screen,
-                child=str(event.child),
-                root_x=event.root_x,
-                root_y=event.root_y,
-                event_x=event.event_x,
-                event_y=event.event_y,
-                state=event.state,
-                detail=event.detail))
+                       send_event=event.send_event,
+                       time=event.time,
+                       root=str(event.root),
+                       window=str(event.window),
+                       same_screen=event.same_screen,
+                       child=str(event.child),
+                       root_x=event.root_x,
+                       root_y=event.root_y,
+                       event_x=event.event_x,
+                       event_y=event.event_y,
+                       state=event.state,
+                       detail=event.detail))
+
+from pyglet.libs.x11 import xlib as _xlib
+
+#xlib modifier constants to iohub str constants
+key_mappings = {'num_lock': 'numlock',
+                'caps_lock': 'capslock',
+                'scroll_lock': 'scrolllock',
+                'shift_l': 'lshift',
+                'shift_r': 'rshift',
+                'alt_l': 'lalt',
+                'alt_r': 'ralt',
+                'control_l': 'lctrl',
+                'control_r': 'rctrl',
+                'super_l': 'lcmd',
+                'super_r': 'rcmd'
+}
+
 
 class HookManager(threading.Thread):
     """
@@ -114,52 +133,65 @@ class HookManager(threading.Thread):
     to the associated callback functions set.
     """
     DEVICE_TIME_TO_SECONDS = 0.001
-    evt_types = [X.KeyRelease, X.KeyPress,X.ButtonRelease, X.ButtonPress, X.MotionNotify]
+    evt_types = [X.KeyRelease, X.KeyPress, X.ButtonRelease, X.ButtonPress, X.MotionNotify]
+
     def __init__(self, log_event_details=False):
         threading.Thread.__init__(self)
         self.finished = threading.Event()
 
         self.log_events = log_event_details
         self.log_events_file = None
-        
-        # Window handle tracking
-        self.last_windowvar = None
-        self.last_xwindowinfo = None
-                        
+
         # Give these some initial values
         self.mouse_position_x = 0
         self.mouse_position_y = 0
 
-         # Assign default function actions (do nothing).
+        # Assign default function actions (do nothing).
         self.KeyDown = lambda x: True
         self.KeyUp = lambda x: True
         self.MouseAllButtonsDown = lambda x: True
         self.MouseAllButtonsUp = lambda x: True
         self.MouseAllMotion = lambda x: True
-        self.contextEventMask = [X.KeyPress,X.MotionNotify]
-        
+        self.contextEventMask = [X.KeyPress, X.MotionNotify]
+
 
         # Used to hold any keys currently pressed and the repeat count
         # of each key.
-        # If a key str is not in the dict, it is not pressed.
-        # If it is in the list, the value == the number of times
-        # a press event has been reeived for the key and no
-        # release event. So values >= 1 == auto repeat keys.
-        self.key_states=dict()
+        self.key_states = dict()
 
-        self.contextEventMask = [X.KeyPress,X.MotionNotify]
+        self.contextEventMask = [X.KeyPress, X.MotionNotify]
 
         # Hook to our display.
         self.local_dpy = display.Display()
         self.record_dpy = display.Display()
 
-        self.ioHubMouseButtonMapping={1:'MOUSE_BUTTON_LEFT',
-                                 2:'MOUSE_BUTTON_MIDDLE',
-                                 3:'MOUSE_BUTTON_RIGHT'
-                                }
-        self.pressedMouseButtons=0
-        self.scroll_y=0
-        self.create_runtime_keysym_maps()
+        self.ioHubMouseButtonMapping = {1: 'MOUSE_BUTTON_LEFT',
+                                        2: 'MOUSE_BUTTON_MIDDLE',
+                                        3: 'MOUSE_BUTTON_RIGHT'
+        }
+        self.pressedMouseButtons = 0
+        self.scroll_y = 0
+
+        # Direct xlib ctypes wrapping for better / faster keyboard event -> key,
+        # char field mapping.
+        self._xlib = _xlib
+        self._xdisplay = _xlib.XOpenDisplay(None)
+        self._xroot = _xlib.XDefaultRootWindow(self._xdisplay)
+        self._keysym = _xlib.KeySym()
+        self._compose = _xlib.XComposeStatus()
+        self._tmp_compose = _xlib.XComposeStatus()
+        self._revert = ct.c_int(0)
+        self._charbuf = (ct.c_char * 17)()
+        self._cwin = _xlib.Window()
+        self._revert_to_return = ct.c_int()
+
+        self._xkey_evt = _xlib.XKeyEvent()
+        self._xkey_evt.serial = 1  # not known, make it up.
+        self._xkey_evt.send_event = 0
+        self._xkey_evt.subwindow = 0
+        self._xkey_evt.display = self._xdisplay
+        self._xkey_evt.root = self._xroot  #', Window),
+        self._xkey_evt.subwindow = 0  #', Window)
 
     def run(self):
         # Check if the extension is present
@@ -169,24 +201,25 @@ class HookManager(threading.Thread):
 
         # Create a recording context; we only want key and mouse events
         self.ctx = self.record_dpy.record_create_context(
-                0,
-                [record.AllClients],
-                [{
-                        'core_requests': (0, 0),
-                        'core_replies': (0, 0),
-                        'ext_requests': (0, 0, 0, 0),
-                        'ext_replies': (0, 0, 0, 0),
-                        'delivered_events': (0, 0),
-                        'device_events': tuple(self.contextEventMask), #(X.KeyPress, X.ButtonPress),
-                        'errors': (0, 0),
-                        'client_started': False,
-                        'client_died': False,
-                }])
+            0,
+            [record.AllClients],
+            [{
+                 'core_requests': (0, 0),
+                 'core_replies': (0, 0),
+                 'ext_requests': (0, 0, 0, 0),
+                 'ext_replies': (0, 0, 0, 0),
+                 'delivered_events': (0, 0),
+                 'device_events': tuple(self.contextEventMask),  #(X.KeyPress, X.ButtonPress),
+                 'errors': (0, 0),
+                 'client_started': False,
+                 'client_died': False,
+             }])
 
         if self.log_events:
             import datetime
-            cdate = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")        
-            with open("x11_events_{0}.log".format(cdate), "w") as self.log_events_file:	
+
+            cdate = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")
+            with open("x11_events_{0}.log".format(cdate), "w") as self.log_events_file:
                 # Enable the context; this only returns after a call to record_disable_context,
                 # while calling the callback function in the meantime
                 self.record_dpy.record_enable_context(self.ctx, self.processevents)
@@ -195,12 +228,14 @@ class HookManager(threading.Thread):
         else:
             self.record_dpy.record_enable_context(self.ctx, self.processevents)
             # Finally free the context
-            self.record_dpy.record_free_context(self.ctx)       
-            
+            self.record_dpy.record_free_context(self.ctx)
+
     def cancel(self):
         self.finished.set()
         self.local_dpy.record_disable_context(self.ctx)
         self.local_dpy.flush()
+        self._xlib.XCloseDisplay(self._xdisplay)
+        self._xlib = None
 
     def printevent(self, event):
         print2err(event)
@@ -211,15 +246,23 @@ class HookManager(threading.Thread):
     def HookMouse(self):
         pass
 
-    def isKeyPressed(self,key_str_id):
+    def updateKeysPressedState(self, key_str, pressed_event):
+        keyautocount = self.key_states.setdefault(key_str, -1)
+        if pressed_event:
+            self.key_states[key_str] = keyautocount + 1
+        else:
+            del self.key_states[key_str]
+        return self.key_states
+
+    def isKeyPressed(self, key_str_id):
         """
         Returns 0 if key is not pressed, otherwise a
         possitive int, representing the auto repeat count ( return val - 1)
         of key press events that have occurred for the key.
         """
-        return self.key_states.get(key_str_id,0)
+        return self.key_states.get(key_str_id, 0)
 
-    def getPressedKeys(self,repeatCounts=False):
+    def getPressedKeys(self, repeatCounts=False):
         """
         If repeatCounts == False (default), returns a list
         of all the key symbol strings currently pressed.
@@ -228,12 +271,11 @@ class HookManager(threading.Thread):
         sybol strs, pressedCount.
         """
         if repeatCounts:
-            return self.key_states.items()
+            return self.key_states
         return self.key_states.keys()
 
-
     def processevents(self, reply):
-        logged_time=getTime()
+        logged_time = getTime()
         if reply.category != record.FromServer:
             return
         if reply.client_swapped:
@@ -243,14 +285,14 @@ class HookManager(threading.Thread):
             # not an event
             return
         data = reply.data
-            
+
         while len(data):
             event, data = rq.EventField(None).parse_binary_value(data, self.record_dpy.display, None, None)
-            
+
             if self.log_events_file and event.type in self.evt_types:
-                self.log_events_file.write(event2json(event)+'\n')
-               
-            event.iohub_logged_time=logged_time
+                self.log_events_file.write(event2json(event) + '\n')
+
+            event.iohub_logged_time = logged_time
             if event.type == X.KeyPress:
                 hookevent = self.makekeyhookevent(event)
                 self.KeyDown(hookevent)
@@ -259,7 +301,7 @@ class HookManager(threading.Thread):
                 self.KeyUp(hookevent)
             elif event.type == X.ButtonPress:
                 hookevent = self.buttonpressevent(event)
-            elif event.type == X.ButtonRelease and event.detail not in (4,5):
+            elif event.type == X.ButtonRelease and event.detail not in (4, 5):
                 # 1 mouse wheel scroll event was generating a button press
                 # and a button release event for each single scroll, so allow
                 # wheel scroll events through for buttonpressevent, but not for
@@ -269,245 +311,141 @@ class HookManager(threading.Thread):
                 # use mouse moves to record mouse position, since press and release events
                 # do not give mouse position info (event.root_x and event.root_y have
                 # bogus info).
-                hookevent=self.mousemoveevent(event)
+                hookevent = self.mousemoveevent(event)
 
     def buttonpressevent(self, event):
-        r= self.makemousehookevent(event)
+        r = self.makemousehookevent(event)
         return r
 
     def buttonreleaseevent(self, event):
-        r= self.makemousehookevent(event)
+        r = self.makemousehookevent(event)
         return r
 
     def mousemoveevent(self, event):
         self.mouse_position_x = event.root_x
         self.mouse_position_y = event.root_y
-        r= self.makemousehookevent(event)
+        r = self.makemousehookevent(event)
         return r
 
-    def create_runtime_keysym_maps(self):
-        self._XK_NAME2CODE=dict()
-        for name in dir(XK):
-            if name.startswith("XK_"):
-                self._XK_NAME2CODE[name]=getattr(XK, name)
+    def getKeyChar(self, kb_event):
+        keycode = kb_event.detail
 
-        # Create a CODE2NAMES dict, checking for duplicates and handling
-        # them when found
-        self._XK_CODE2NAMES=dict()
-        for n,c in self._XK_NAME2CODE.iteritems():
-            names=self._XK_CODE2NAMES.get(c,[])
-            names.append(n)
-            self._XK_CODE2NAMES[c]=names
+        # get char string for keyboard event.
+        _xlib.XGetInputFocus(self._xdisplay, ct.byref(self._cwin), ct.byref(self._revert_to_return))
+        self._xkey_evt.window = self._cwin
+        self._xkey_evt.type = kb_event.type
+        # >>> How many of these event fields really need to be filled in for XLookupString to work?
+        self._xkey_evt.time = kb_event.time  #', Time),
+        self._xkey_evt.x = kb_event.event_x  #', c_int),
+        self._xkey_evt.y = kb_event.event_y  #', c_int),
+        self._xkey_evt.x_root = kb_event.root_x  #', c_int),
+        self._xkey_evt.y_root = kb_event.root_y  #', c_int),
+        self._xkey_evt.state = kb_event.state  #', c_uint),
+        self._xkey_evt.keycode = keycode  #', c_uint),
+        self._xkey_evt.same_screen = kb_event.same_screen  #', c_int),
+        # <<<
 
-        # Get the iohub name -> XK name mapping dict and put any associated
-        # names a) in the _XK_NAME2CODE dict b) as element index 0 of the
-        # codes _XK_CODE2NAMES name list.
+        count = _xlib.XLookupString(ct.byref(self._xkey_evt), self._charbuf, 16, ct.byref(self._keysym),
+                                    ct.byref(self._compose))
+        char = ''
+        ucat = ''
+        if count > 0:
+            char = u'' + self._charbuf[0:count]
+            ucat = unicodedata.category(char)
+            char = char.encode('utf-8')
 
-        import keyboard.iohub2xk_names as io2xk
+        # special char char handling
+        # Setting count == 0 makes key use XKeysymToString return value.
+        if ucat.lower() == 'cc':
+            if char == '\r':
+                char = '\n'
+                count = 0
+            elif char == '\t':
+                count = 0
+            elif char != '\n':
+                char = ''
+                count = 0
 
-        for io_name in dir(io2xk):
-            if io_name[0] != '_':
-                xk_name=getattr(io2xk,io_name)
-                try:
-                    code=self._XK_NAME2CODE[xk_name]
-                except:
-                    pass
-
-            self._XK_NAME2CODE[io_name]=code
-            self._XK_CODE2NAMES[code].insert(0,io_name)
-
-
-    def lookup_keysym(self, keysym):
-       return self.code2iokeysym(keysym)
-
-    def keysym2code(self,keysym):
-        return self._XK_NAME2CODE.get(keysym,0)
-
-    def code2iokeysym(self,keysym):
-        return self._XK_CODE2NAMES.get(keysym,["[%d]"%(keysym),])[0]
-
-    def updateKeysPressedState(self, key_str, pressed_event):       
-        keyautocount=self.key_states.setdefault(key_str,-1)
-        
-        if pressed_event:
-            self.key_states[key_str]=keyautocount+1
+        # Get key value
+        keysym = _xlib.XKeycodeToKeysym(self._xdisplay, keycode, 0)
+        key = _xlib.XKeysymToString(keysym)
+        if key:
+            key = key.lower()
+            if key and key.startswith('kp_'):
+                key = 'num_%s' % (key[3:])
+            elif key in key_mappings:
+                key = key_mappings[key]
+            elif count > 0:
+                self._xkey_evt.state = 0
+                count = _xlib.XLookupString(ct.byref(self._xkey_evt), self._charbuf, 16,
+                                            ct.byref(self._keysym), ct.byref(self._tmp_compose))
+                key = ''
+                if count > 0:
+                    key = u'' + self._charbuf[0:count]
+                    key = key.encode('utf-8')
         else:
-            del self.key_states[key_str]
-                
+            key = ''
+
+        return keycode, keysym, key, char
+
+
     def makekeyhookevent(self, event):
         """
         Creates a ioHub keyboard event in list format, completing as much
-        as possible from within pyXHook. 
-
-        For xlib KeyPress and KeyRelease event attributes see: 
-        http://python-xlib.sourceforge.net/doc/html/python-xlib_13.html
+        as possible from within pyXHook.
         """
-        mod_mask = event.state
-        key_code = event.detail
+        key_code, keysym, key, char = self.getKeyChar(event)
 
-        uchar = u''
-        ucode = 0
-        modifier_key_state = 0
-        is_pressed_key = True        
-        auto_repeat_count=0
-        key=None
-        unshifteducode=0
-        print2err("--------------------------------")
-        if event.type == X.KeyPress:
-            event_type_id=EventConstants.KEYBOARD_PRESS            
-        elif event.type == X.KeyRelease:
+        event_type_id = EventConstants.KEYBOARD_PRESS
+        is_pressed_key = event.type == X.KeyPress
+        if not is_pressed_key:
             is_pressed_key = False
-            event_type_id =EventConstants.KEYBOARD_RELEASE   
-            auto_repeat_count = 0                 
-            
-        # Start by getting the default evt.key value for the event
-        #
-        unshifted_keysym = self.local_dpy.keycode_to_keysym(key_code, 0)
-        unshifteducode=keysym2ucs(unshifted_keysym)
-        if unshifteducode!=-1:
-            key=unichr(unshifteducode).encode('utf-8')
-        else:
-            # If not, use the generated mapping tables to get a key label
-            key=unicode(self.lookup_keysym(unshifted_keysym),encoding='utf-8')
-            unshifteducode=0
-        # May as well set the char field to == key to start,
-        uchar=key
-        ucode = unshifteducode
+            event_type_id = EventConstants.KEYBOARD_RELEASE
 
-        print2err("unshifted: key: [{0}], char: [{1}], ucode: [{2}], keycode: [{3}]".format(key,uchar,ucode,key_code))
-        # Now get char for the pressed key that factors in any active
-        # shift modifiers, updating the evt char field.
-        #
-        shiftuchar=None       
-        lockuchar = None
-        if mod_mask & X.ShiftMask == X.ShiftMask:
-            shiftkeysym = self.local_dpy.keycode_to_keysym(key_code, 1)
-            shiftucode=keysym2ucs(shiftkeysym)
-            if shiftucode!=-1:
-                shiftuchar=unichr(shiftucode).encode('utf-8')
-            else:
-                shiftucode=0
-                shiftuchar=unicode(self.lookup_keysym(shiftkeysym),encoding='utf-8')
-            
-            if shiftuchar:
-                uchar = shiftuchar
-                ucode = shiftucode        
-        
-        # If a shift modifier is active, capslock is skipped by iohub
-        # right now. Not sure if this results in expected key vs char values
-        # all the time; but looks good to me so far. If a shift mod
-        # is not pressed, then act on the capslock being active and update.
-        # char field
-        #
-        elif mod_mask & X.LockMask == X.LockMask:
-            lockkeysym = self.local_dpy.keycode_to_keysym(key_code, 2)
-            lockucode=keysym2ucs(lockkeysym)
-            if lockucode!=-1:
-                lockuchar=unichr(lockucode).encode('utf-8')
-            else:
-                lockucode=0
-                lockuchar=unicode(self.lookup_keysym(lockkeysym),encoding='utf-8')
+        pressed_keys = self.updateKeysPressedState(key, is_pressed_key)
+        auto_repeat_count = pressed_keys.get(key)
 
-            if lockuchar:
-                uchar = lockuchar
-                ucode = lockucode
-            if uchar and len(uchar) == 1:
-                ucat = unicodedata.category(u''+uchar)
-                if len(ucat)>=2:
-                    if ucat[:2].lower() == 'll':
-                        uchar = uchar.upper()
-
-        print2err("shifted: key: [{0}], char: [{1}], ucode: [{2}], keycode: [{3}]".format(key,uchar,ucode,key_code))
-
-        # Finally, update char value if numlock is active.
-        numlckuchar = None
-        if mod_mask & 16 == 16:
-            numlckkeysym = self.local_dpy.keycode_to_keysym(key_code, 3)
-            numlckucode=keysym2ucs(numlckkeysym)
-            print2err("inner1: numlckkeysym: [{0}], numlckucode: [{1}]".format(numlckkeysym,numlckucode))
-            if numlckucode!=-1:
-                numlckuchar=unichr(numlckucode).encode('utf-8')
-            else:
-                numlckucode=0
-                numlckuchar=unicode(self.lookup_keysym(numlckkeysym),encoding='utf-8')
-            print2err("inner2: numlckkeysym: [{0}], numlckucode: [{1}], numlckuchar: [{2}]".format(numlckkeysym,numlckucode,numlckuchar))
-
-            if numlckuchar and numlckuchar.lower().startswith('keypad_'):
-                uchar =  u'num_'+numlckuchar.lower()[7:]
-            print2err("inner3: uchar: [{0}], ucode: [{1}]".format(uchar,ucode))
-
-        print2err("numlock: key: [{0}], char: [{1}], ucode: [{2}], keycode: [{3}]".format(key,uchar,ucode,key_code))
-
-        # Clean up the labels for uchar and key fields
-        # that do not have a natural glyph.
-        if uchar and len(uchar)>1:
-            uchar = uchar.lower()            
-        if uchar and uchar.startswith('keypad_'):
-            uchar =  u'num_'+uchar[7:]
-        elif uchar and (uchar.startswith('vk_') or uchar.startswith('xk_')):
-            uchar = u''+uchar[3:]
-            if uchar.startswith('kp_'):
-                uchar = u'num_'+uchar[3:]
-        
-        key = key.lower()        
-        if key and key.startswith('keypad_'):
-            key =  u'num_'+key[7:]
-        elif key and (key.startswith('vk_') or key.startswith('xk_')):
-            key = key[3:]
-            if key.startswith('kp_'):
-                key = u'num_'+key[3:]
-
-        print2err("final: key: [{0}], char: [{1}], ucode: [{2}], keycode: [{3}]".format(key,uchar,ucode,key_code))
-
-        if uchar == u'[0]':
-            uchar = key
-
-
-        # Update currently active modifiers
+        mod_mask = event.state
+        modifier_key_state = 0
+        # Update currently active modifiers (modifier_key_state)
         #
         if mod_mask & 2 == 2:
             # capslock is active:
-            modifier_key_state+=ModifierKeyCodes.capslock
-
+            modifier_key_state += ModifierKeyCodes.capslock
         if mod_mask & 16 == 16:
-            # NUM_LOCK is active:
-            modifier_key_state+=ModifierKeyCodes.numlock
+            # numlock is active:
+            modifier_key_state += ModifierKeyCodes.numlock
 
-        self.updateKeysPressedState(key,is_pressed_key)
-
-        pressed_key_list = self.getPressedKeys()
-        for pk in pressed_key_list:
-            if pk not in ['capslock','numlock']:
+        for pk in pressed_keys.keys():
+            if pk not in ['capslock', 'numlock']:
                 is_mod_id = ModifierKeyCodes.getID(pk)
                 if is_mod_id:
-                    print2err("mod_str: {0}, mod_id: {1}".format(pk,is_mod_id))
-                    modifier_key_state+=is_mod_id
-
+                    modifier_key_state += is_mod_id
 
         #return event to iohub
         return [[0,
-                0,
-                0, #device id (not currently used)
-                0, #to be assigned by ioHub server# Computer._getNextEventID(),
-                event_type_id,
-                event.time*self.DEVICE_TIME_TO_SECONDS,
-                event.iohub_logged_time,
-                event.iohub_logged_time,
-                0.0, # confidence interval not set for keybaord or mouse devices.
-                0.0, # delay not set for keybaord or mouse devices.
-                0,   # filter level not used
-                auto_repeat_count, # auto_repeat 
-                unshifted_keysym,#scan / Keycode of event.
-                event.detail, # KeyID / VK code for key pressed
-                ucode,  # unicode value for char, otherwise, 0
-                key, #psychpy key event val
-                modifier_key_state,  # The logical state of the button and modifier keys just before the event.
-                int(self.xwindowinfo()["handle"], base=16),
-                uchar,# utf-8 encoded char or label for the key. (depending on whether it is a visible char or not)
-                0.0,
-                0
-                ],]
-    
+                 0,
+                 0,  #device id (not currently used)
+                 0,  #to be assigned by ioHub server# Computer._getNextEventID(),
+                 event_type_id,
+                 event.time * self.DEVICE_TIME_TO_SECONDS,
+                 event.iohub_logged_time,
+                 event.iohub_logged_time,
+                 0.0,  # confidence interval not set for keybaord or mouse devices.
+                 0.0,  # delay not set for keybaord or mouse devices.
+                 0,  # filter level not used
+                 auto_repeat_count,  # auto_repeat
+                 key_code,  #scan / Keycode of event.
+                 keysym,  # KeyID / VK code for key pressed
+                 0,  # unicode value for char, otherwise, 0
+                 key,  #psychpy key event val
+                 modifier_key_state,  # The logical state of the button and modifier keys just before the event.
+                 int(self._cwin.value),
+                 char,  # utf-8 encoded char or label for the key. (depending on whether it is a visible char or not)
+                 0.0,
+                 0
+                ], ]
+
 
     def makemousehookevent(self, event):
         """
@@ -548,126 +486,101 @@ class HookManager(threading.Thread):
         For ButtonPress and ButtonRelease, this is the button of the event.
         For MotionNotify, this is either X.NotifyNormal or X.NotifyHint.
         """
-        px,py = event.root_x,event.root_y
-        storewm = self.xwindowinfo()
-        event_type_id=0
-        event_state=[]
-        event_detail=[]
-        dy=0
+        px, py = event.root_x, event.root_y
+        event_type_id = 0
+        event_state = []
+        event_detail = []
+        dy = 0
+
+        _xlib.XGetInputFocus(self._xdisplay, ct.byref(self._cwin), ct.byref(self._revert_to_return))
 
         if event.type == 6:
             if event.state < 128:
-                event_type_id=EventConstants.MOUSE_MOVE
+                event_type_id = EventConstants.MOUSE_MOVE
             else:
-                event_type_id=EventConstants.MOUSE_DRAG
+                event_type_id = EventConstants.MOUSE_DRAG
 
-        if event.type in [4,5]:
+        if event.type in [4, 5]:
             if event.type == 5:
-                event_type_id=EventConstants.MOUSE_BUTTON_RELEASE
+                event_type_id = EventConstants.MOUSE_BUTTON_RELEASE
             elif event.type == 4:
-                event_type_id=EventConstants.MOUSE_BUTTON_PRESS
+                event_type_id = EventConstants.MOUSE_BUTTON_PRESS
 
-            if event.detail == 4 and event.type==4:
-                event_type_id=EventConstants.MOUSE_SCROLL
-                self.scroll_y+=1
-                dy=1
-            elif event.detail == 5 and event.type==4:
-                event_type_id=EventConstants.MOUSE_SCROLL
-                self.scroll_y-=1
-                dy=-1
+            if event.detail == 4 and event.type == 4:
+                event_type_id = EventConstants.MOUSE_SCROLL
+                self.scroll_y += 1
+                dy = 1
+            elif event.detail == 5 and event.type == 4:
+                event_type_id = EventConstants.MOUSE_SCROLL
+                self.scroll_y -= 1
+                dy = -1
 
-        if event.state&1 == 1:
+        if event.state & 1 == 1:
             event_state.append('SHIFT')
-        if event.state&4 == 4:
+        if event.state & 4 == 4:
             event_state.append('ALT')
-        if event.state&64 == 64:
+        if event.state & 64 == 64:
             event_state.append('WIN_MENU')
-        if event.state&8 == 8:
+        if event.state & 8 == 8:
             event_state.append('CTRL')
 
             event_state.append('MOUSE_BUTTON_LEFT')
-        if event.state&512 ==512:
+        if event.state & 512 == 512:
             event_state.append('MOUSE_BUTTON_MIDDLE')
-        if event.state&1024 == 1024:
+        if event.state & 1024 == 1024:
             event_state.append('MOUSE_BUTTON_RIGHT')
 
-        if event.detail==1:
+        if event.detail == 1:
             event_detail.append('MOUSE_BUTTON_LEFT')
-        if event.detail==2:
+        if event.detail == 2:
             event_detail.append('MOUSE_BUTTON_MIDDLE')
-        if event.detail==3:
+        if event.detail == 3:
             event_detail.append('MOUSE_BUTTON_RIGHT')
 
         # TODO implement mouse event to display index detection
-        display_index=0
+        display_index = 0
 
-        currentButton=0
-        pressed=0
-        currentButtonID=0
-        if event.type in [4,5] and event_type_id != EventConstants.MOUSE_SCROLL:
+        currentButton = 0
+        pressed = 0
+        currentButtonID = 0
+        if event.type in [4, 5] and event_type_id != EventConstants.MOUSE_SCROLL:
 
-            currentButton=self.ioHubMouseButtonMapping.get(event.detail)
-            currentButtonID=MouseConstants.getID(currentButton)
+            currentButton = self.ioHubMouseButtonMapping.get(event.detail)
+            currentButtonID = MouseConstants.getID(currentButton)
 
-            pressed = event.type==4
+            pressed = event.type == 4
 
             if pressed is True:
-                self.pressedMouseButtons+=currentButtonID
+                self.pressedMouseButtons += currentButtonID
             else:
-                self.pressedMouseButtons-=currentButtonID
+                self.pressedMouseButtons -= currentButtonID
 
-        return[ [0,
-                0,
-                0, #device id (not currently used)
-                0, #to be assigned by ioHub server# Computer._getNextEventID(),
-                event_type_id,
-                event.time*self.DEVICE_TIME_TO_SECONDS ,
-                event.iohub_logged_time,
-                event.iohub_logged_time,
-                0.0, # confidence interval not set for keybaord or mouse devices.
-                0.0, # delay not set for keybaord or mouse devices.
-                0,   # filter level not used
-                display_index, #event.DisplayIndex,
-            pressed,
-            currentButtonID,
-            self.pressedMouseButtons,
-            px, #mouse x pos
-            py, # mouse y post
-            0, #scroll_dx not supported
-            0, #scroll_x
-            dy,
-            self.scroll_y,
-            0, #mod state, filled in when event received by iohub
-            int(storewm["handle"], base=16)],]
+        return [[0,
+                 0,
+                 0,  #device id (not currently used)
+                 0,  #to be assigned by ioHub server# Computer._getNextEventID(),
+                 event_type_id,
+                 event.time * self.DEVICE_TIME_TO_SECONDS,
+                 event.iohub_logged_time,
+                 event.iohub_logged_time,
+                 0.0,  # confidence interval not set for keybaord or mouse devices.
+                 0.0,  # delay not set for keybaord or mouse devices.
+                 0,  # filter level not used
+                 display_index,  #event.DisplayIndex,
+                 pressed,
+                 currentButtonID,
+                 self.pressedMouseButtons,
+                 px,  #mouse x pos
+                 py,  # mouse y post
+                 0,  #scroll_dx not supported
+                 0,  #scroll_x
+                 dy,
+                 self.scroll_y,
+                 0,  #mod state, filled in when event received by iohub
+                 int(self._cwin.value)], ]
         # TO DO: Implement multimonitor location based on mouse location support.
         # Currently always uses monitor index 0
 
-
-
-    def xwindowinfo(self):
-        try:
-            windowvar = self.local_dpy.get_input_focus().focus
-            wmname = windowvar.get_wm_name()
-            wmclass = windowvar.get_wm_class()
-            if wmname is None and wmclass is None:
-                windowvar = windowvar.query_tree().parent
-                wmname = windowvar.get_wm_name()
-                wmclass = windowvar.get_wm_class()
-            if self.last_windowvar == windowvar:
-                return self.last_xwindowinfo
-            else:
-                self.last_windowvar=windowvar                
-            wmhandle = str(windowvar).split('(')[-1][:-1]            
-            if wmhandle is None:
-                wmhandle = '0x00'
-            if wmclass:
-                wmclass = wmclass[0]
-            self.last_xwindowinfo = {"name":wmname, "class":wmclass, "handle":wmhandle}
-        except:
-            self.last_windowvar=None
-            self.last_xwindowinfo = {"name":None, "class":None, "handle":'0x00'}
-        return self.last_xwindowinfo
- 
 #
 #
 #######################################################################
