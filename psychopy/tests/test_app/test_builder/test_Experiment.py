@@ -252,6 +252,22 @@ class TestExpt():
         #assert not diff_in_file_psyexp # was failing most times, uninformative
         #assert not diff_in_file_pyc    # oops, was failing every time despite identical .py file
 
+    def test_future(self):
+        """An experiment file with made-up params and routines to see whether
+        future versions of experiments will get loaded.
+        """
+        expfile = path.join(self.exp.prefsPaths['tests'], 'data', 'futureParams.psyexp')
+        self.exp.loadFromXML(expfile) # reload the edited file
+        script = self.exp.writeScript(expPath=expfile) #we don't test this script but make sure it builds
+        self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
+        py_file = os.path.join(self.tmp_dir, 'testFutureFile.py')
+        # save the script:
+        f = codecs.open(py_file, 'w', 'utf-8')
+        f.write(script.getvalue())
+        f.close()
+        #check that files compiles too
+        self._checkCompile(py_file)
+
     def test_Run_FastStroopPsyExp(self):
         # start from a psyexp file, loadXML, execute, get keypresses from a emulator thread
 
