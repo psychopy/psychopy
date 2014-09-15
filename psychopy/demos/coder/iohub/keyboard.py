@@ -2,15 +2,9 @@
 """
 iohub_keyboard.py
 
-Displays event information from ioHub Keyboard Events. 
-
-Inital Version: May 6th, 2013, Sol Simpson
-Updated June 22nd: Added demo timeout. SS
+Displays information from ioHub Keyboard Events
+vs. psychopy.event.geKeys().
 """
-
-# alt displaying as cmd
-# numpad keys ??
-
 WINDOW_SIZE = 1024,768
 
 from psychopy import core, visual, event
