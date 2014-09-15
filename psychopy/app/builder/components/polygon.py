@@ -44,17 +44,17 @@ class PolygonComponent(VisualComponent):
             updates='constant', allowedUpdates=['constant'],
             hint=_("How many vertices? 2=line, 3=triangle... (90 approximates a circle)"),
             label=_localized['nVertices'])
-        self.params['fillColorSpace']=Param(fillColorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
+        self.params['fillColorSpace']=Param(fillColorSpace, valType='str', allowedVals=['rgb','dkl','lms','hsv'],
             updates='constant',
-            hint=_("Choice of color space for the fill color (rgb, dkl, lms)"),
+            hint=_("Choice of color space for the fill color (rgb, dkl, lms, hsv)"),
             label=_localized['fillColorSpace'], categ='Advanced')
         self.params['fillColor']=Param(fillColor, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Fill color of this shape; Right-click to bring up a color-picker (rgb only)"),
             label=_localized['fillColor'], categ='Advanced')
-        self.params['lineColorSpace']=Param(lineColorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
+        self.params['lineColorSpace']=Param(lineColorSpace, valType='str', allowedVals=['rgb','dkl','lms','hsv'],
             updates='constant',
-            hint=_("Choice of color space for the fill color (rgb, dkl, lms)"),
+            hint=_("Choice of color space for the fill color (rgb, dkl, lms, hsv)"),
             label=_localized['lineColorSpace'], categ='Advanced')
         self.params['lineColor']=Param(lineColor, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
