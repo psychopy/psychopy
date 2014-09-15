@@ -2030,7 +2030,7 @@ class ParamCtrls:
             if fieldName in ['allowedKeys', 'image', 'movie', 'scaleDescription', 'sound', 'Begin Routine']:
                 self.valueCtrl.SetFocus()
         self.valueCtrl.SetToolTipString(param.hint)
-        if len(param.allowedVals)==1:
+        if len(param.allowedVals)==1 or param.readOnly:
             self.valueCtrl.Disable()#visible but can't be changed
 
         # add a NameValidator to name valueCtrl

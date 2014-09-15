@@ -309,7 +309,22 @@ class Experiment:
                 # lowAnchorText highAnchorText will trigger obsolete error when run the script
                 params[name].val = v
             else:
-                params[name].val = paramNode.get('val')
+                if name in params:
+                    params[name].val = paramNode.get('val')
+                else:
+                    #we found an unknown parameter (probably from the future)
+                    params[name] = Param(paramNode.get('val'),
+                                    valType=paramNode.get('val'), allowedTypes=[],
+                                    hint=_translate("This parameter is not known by this version of PsychoPy. It might be worth upgrading"))
+                    params[name].allowedTypes = paramNode.get('allowedTypes')
+                    if params[name].allowedTypes is None:
+                        params[name].allowedTypes = []
+                    params[name].readOnly=True
+                    logging.warn(_translate("Parameter %r is not known to this version of "
+                        "PsychoPy but has come from your experiment file (saved by "
+                        "a future version of PsychoPy?). This experiment may not "
+                        "run correctly in the current version." %name))
+                    logging.flush()
         #get the value type and update rate
         if 'valType' in paramNode.keys():
             params[name].valType = paramNode.get('valType')
@@ -372,11 +387,18 @@ class Experiment:
             #self._getXMLparam(params=routine.params, paramNode=routineNode)
             self.routines[routineNode.get('name')]=routine
             for componentNode in routineNode:
+                allCompons = getAllComponents(self.prefsBuilder['componentsFolders'])
                 componentType=componentNode.tag
-                #create an actual component of that type
-                component=getAllComponents(self.prefsBuilder['componentsFolders'])[componentType](\
-                    name=componentNode.get('name'),
-                    parentName=routineNode.get('name'), exp=self)
+                if componentType in allCompons:
+                    #create an actual component of that type
+                    component=getAllComponents(self.prefsBuilder['componentsFolders'])[componentType](\
+                        name=componentNode.get('name'),
+                        parentName=routineNode.get('name'), exp=self)
+                else:
+                    from components._base import UnknownComponent
+                    component = UnknownComponent(
+                        name=componentNode.get('name'),
+                        parentName=routineNode.get('name'), exp=self)
                 # check for components that were absent in older versions of the builder and change the default behavior
                 # (currently only the new behavior of choices for RatingScale, HS, November 2012)
                 # HS's modification superceded Jan 2014, removing several RatingScale options
@@ -545,6 +567,7 @@ class Param:
         self.allowedVals=allowedVals
         self.staticUpdater = None
         self.categ = categ
+        self.readOnly = False
     def __str__(self):
         if self.valType == 'num':
             try:
