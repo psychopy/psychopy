@@ -78,7 +78,7 @@ class TestComponents():
         err = []
         for compName in sorted(self.allComp):
             comp = self.allComp[compName](parentName='x', exp=self.exp)
-            order = '%s.order: %s' % (compName, eval("comp.order"))
+            order = '%s.order:%s' % (compName, eval("comp.order"))
             if not order+'\n' in target:
                 tag = order.split(':',1)[0]
                 try:
@@ -90,14 +90,14 @@ class TestComponents():
                     err.append(mismatch)
             for parName in comp.params.keys():
                 # default is what you get from param.__str__, which returns its value
-                default = '%s.%s.default: %s' % (compName, parName, comp.params[parName])
+                default = '%s.%s.default:%s' % (compName, parName, comp.params[parName])
                 lineFields = []
                 for field in fields:
                     if parName == 'name' and field == 'updates':
                         continue
                         # ignore b/c never want to change the name *during a running experiment*
                         # the default name.updates varies across components: need to ignore or standardize
-                    f = '%s.%s.%s: %s' % (compName, parName, field, eval("comp.params[parName].%s" % field))
+                    f = '%s.%s.%s:%s' % (compName, parName, field, eval("comp.params[parName].%s" % field))
                     lineFields.append(f)
 
                 for line in [default] + lineFields:

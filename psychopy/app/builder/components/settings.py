@@ -92,7 +92,7 @@ class SettingsComponent(object):
             hint=_("Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to bring up a color-picker.)"),
             label=_localized["color"],
             categ='Screen')
-        self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
+        self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms','hsv'],
             hint=_("Needed if color is defined numerically (see PsychoPy documentation on color spaces)"),
             label=_localized["colorSpace"],
             categ="Screen")

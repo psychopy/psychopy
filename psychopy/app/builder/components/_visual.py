@@ -38,9 +38,9 @@ class VisualComponent(BaseComponent):
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
             hint=_("Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)"),
             label=_localized['opacity'])
-        self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms'],
+        self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms','hsv'],
             updates='constant',
-            hint=_("Choice of color space for the color (rgb, dkl, lms)"),
+            hint=_("Choice of color space for the color (rgb, dkl, lms, hsv)"),
             label=_localized['colorSpace'])
         self.params['pos']=Param(pos, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
