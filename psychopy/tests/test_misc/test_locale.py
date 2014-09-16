@@ -26,7 +26,7 @@ class XXXTestLocalization(object):
 
         for lang in ['En_US', 'Ja_JP', 'ja_JP']:
             setlang = localization.getID(lang)
-            out = _(welcome)
+            out = _translate(welcome)
             assert setlang == lang.lower()[:2]
             assert out == trans[setlang]
 

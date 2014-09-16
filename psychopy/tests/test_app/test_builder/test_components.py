@@ -5,12 +5,12 @@ import pytest
 from psychopy.app import builder
 from psychopy.app.builder.components import getAllComponents
 
-# use "python x.py --out" to generate a new profile to test against
+# use "python genComponsTemplate.py --out" to generate a new profile to test against
 #   = analogous to a baseline image to compare screenshots
 # motivation: catch deviations introduced during refactoring
 
 # what reference to use?
-profile = 'x.out.master.de55d49.txt'
+profile = 'componsTemplate.f9926c8.txt'
 
 # always ignore hints, labels, and categories. other options:
 # should it be ok or an error if the param[field] order differs from the profile?

@@ -10,15 +10,15 @@ from psychopy.app.builder.experiment import TrialHandler
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'keyboard.png')
-tooltip = _('Keyboard: check and record keypresses')
+tooltip = _translate('Keyboard: check and record keypresses')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'allowedKeys': _('Allowed keys'),
-              'discard previous': _('Discard previous'),
-              'store': _('Store'),
-              'forceEndRoutine': _('Force end of Routine'),
-              'storeCorrect': _('Store correct'),
-              'correctAns': _('Correct answer')
+_localized = {'allowedKeys': _translate('Allowed keys'),
+              'discard previous': _translate('Discard previous'),
+              'store': _translate('Store'),
+              'forceEndRoutine': _translate('Force end of Routine'),
+              'storeCorrect': _translate('Store correct'),
+              'correctAns': _translate('Correct answer')
               }
 
 class KeyboardComponent(BaseComponent):
@@ -43,29 +43,29 @@ class KeyboardComponent(BaseComponent):
             ]
         self.params['allowedKeys']=Param(allowedKeys, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint=_("A comma-separated list of keys (with quotes), such as 'q','right','space','left' "),
+            hint=_translate("A comma-separated list of keys (with quotes), such as 'q','right','space','left' "),
             label=_localized['allowedKeys'])
 
         # hints say 'responses' not 'key presses' because the same hint is also used with button boxes
         self.params['discard previous']=Param(discardPrev, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_("Do you want to discard all responses occuring before the onset of this component?"),
+            hint=_translate("Do you want to discard all responses occuring before the onset of this component?"),
             label=_localized['discard previous'])
         self.params['store']=Param(store, valType='str', allowedTypes=[],allowedVals=['last key', 'first key', 'all keys', 'nothing'],
             updates='constant', allowedUpdates=[],
-            hint=_("Choose which (if any) responses to store at the end of a trial"),
+            hint=_translate("Choose which (if any) responses to store at the end of a trial"),
             label=_localized['store'])
         self.params['forceEndRoutine']=Param(forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_("Should a response force the end of the Routine (e.g end the trial)?"),
+            hint=_translate("Should a response force the end of the Routine (e.g end the trial)?"),
             label=_localized['forceEndRoutine'])
         self.params['storeCorrect']=Param(storeCorrect, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_("Do you want to save the response as correct/incorrect?"),
+            hint=_translate("Do you want to save the response as correct/incorrect?"),
             label=_localized['storeCorrect'])
         self.params['correctAns']=Param(correctAns, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_("What is the 'correct' key? Might be helpful to add a correctAns column and use $thisTrial.correctAns"),
+            hint=_translate("What is the 'correct' key? Might be helpful to add a correctAns column and use $thisTrial.correctAns"),
             label=_localized['correctAns'])
     def writeRoutineStartCode(self,buff):
         buff.writeIndented("%(name)s = event.BuilderKeyResponse()  # create an object of type KeyResponse\n" %self.params)

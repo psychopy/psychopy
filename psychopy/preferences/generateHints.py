@@ -68,6 +68,6 @@ except: # If hints.py could not be opend as a writable file, output to STDOUT.
 
 for i in range(len(comments_all)):
     fp.write('#%s,%s,line%i\n' % tuple(locations_all[i])) #escape backslashes
-    fp.write('_("%s")\n\n' % comments_all[i].replace('\\','\\\\').replace('"','\\"')) #escape double quotation marks
+    fp.write('_translate("%s")\n\n' % comments_all[i].replace('\\','\\\\').replace('"','\\"')) #escape double quotation marks
 fp.close()
 

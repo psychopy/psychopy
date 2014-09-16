@@ -11,11 +11,11 @@ __author__ = 'Jeremy Gray'
 
 thisFolder = path.abspath(path.dirname(__file__))  # abs path to the folder containing this path
 iconFile = path.join(thisFolder, 'ioLabs.png')
-tooltip = _('ioLabs ButtonBox: check and record response buttons on ioLab Systems ButtonBox')
+tooltip = _translate('ioLabs ButtonBox: check and record response buttons on ioLab Systems ButtonBox')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'active': _('Active buttons'), 'lights': _('Lights'),
-              'lights off': _('Lights off')
+_localized = {'active': _translate('Active buttons'), 'lights': _translate('Lights'),
+              'lights off': _translate('Lights off')
               }
 
 class ioLabsButtonBoxComponent(KeyboardComponent):
@@ -50,21 +50,21 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
         self.order = ['forceEndRoutine', 'active', #NB name and timing params always come 1st
             'lights', 'store', 'storeCorrect', 'correctAns']
 
-        self.params['correctAns'].hint = _("What is the 'correct' response? NB, buttons are labelled 0 to 7 on a 8-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns")
+        self.params['correctAns'].hint = _translate("What is the 'correct' response? NB, buttons are labelled 0 to 7 on a 8-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns")
         self.params['store'].allowedVals = ['last button', 'first button', 'all buttons', 'nothing']
-        self.params['store'].hint = _('Choose which (if any) responses to store at end of a trial')
+        self.params['store'].hint = _translate('Choose which (if any) responses to store at end of a trial')
         self.params['active'] = Param(active, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint=_("Active buttons, such as '1,6', '(1,2,5,6)' or '0' (without quotes)"),
+            hint=_translate("Active buttons, such as '1,6', '(1,2,5,6)' or '0' (without quotes)"),
             label=_localized['active'])
 
         self.params['lights'] = Param(lights, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_("Turn ON the lights for the active buttons?"),
+            hint=_translate("Turn ON the lights for the active buttons?"),
             label=_localized['lights'])
         self.params['lights off'] = Param(lightsOff, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_("Turn OFF all lights at the end of each routine?"),
+            hint=_translate("Turn OFF all lights at the end of each routine?"),
             label=_localized['lights off'])
 
     def writeStartCode(self, buff):
