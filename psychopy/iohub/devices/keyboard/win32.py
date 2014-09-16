@@ -18,10 +18,24 @@ from ... import print2err, printExceptionDetailsToStdErr
 from ...constants import KeyboardConstants, EventConstants
 from .. import Computer
 
-import win32_vk
+win32_vk = KeyboardConstants._virtualKeyCodes
 
 getTime = Computer.getTime
 
+# Map key value when numlock is ON
+# to value when numlock is OFF.
+numpad_key_value_mappings = dict(Numpad0 = 'insert',
+                                 Numpad1 = 'end',
+                                 Numpad2 = 'down',
+                                 Numpad3 = 'pagedown',
+                                 Numpad4 = 'left',
+                                 Numpad5 = ' ',
+                                 Numpad6 = 'right',
+                                 Numpad7 = 'home',
+                                 Numpad8 = 'up',
+                                 Numpad9 = 'pageup',
+                                 Decimal = 'delete'
+                                 )
 
 class Keyboard(ioHubKeyboardDevice):
     _win32_modifier_mapping = {
@@ -122,48 +136,50 @@ class Keyboard(ioHubKeyboardDevice):
                         ioHubKeyboardDevice._modifier_value += mod_value
         return ioHubKeyboardDevice._modifier_value
 
-    def _getCharValue(self, event, remove_mods=False):
-        char = u''
-        ucat = None
-        ucode = 0
+    def _getKeyCharValue(self, event):
+        key = None
+        char = ''
+        ucat = ''
 
-        prev_shift =  self._keyboard_state[win32_vk.VK_SHIFT]
-        prev_numlock = self._keyboard_state[win32_vk.VK_NUM_LOCK]
-
-        if remove_mods:
-            self._keyboard_state[win32_vk.VK_SHIFT] = 0
-            self._keyboard_state[win32_vk.VK_NUM_LOCK] = 0
-
+        # Get char value
+        #
         result = self._user32.ToUnicode(event.KeyID, event.ScanCode,
                                         ctypes.byref(self._keyboard_state),
                                         ctypes.byref(self._unichar), 8, 0)
 
-        if remove_mods:
+        if result > 0:
+            char = self._unichar[result-1].encode('utf-8')
+            ucat = ucategory(self._unichar[result-1])
+
+        # Get .key value
+        #
+        if event.Key in numpad_key_value_mappings:
+            key = numpad_key_value_mappings[event.Key]
+        elif ucat.lower() != 'cc':
+            prev_shift = self._keyboard_state[win32_vk.VK_SHIFT]
+            prev_numlock = self._keyboard_state[win32_vk.VK_NUM_LOCK]
+            prev_caps = self._keyboard_state[win32_vk.VK_CAPITAL]
+            self._keyboard_state[win32_vk.VK_SHIFT] = 0
+            self._keyboard_state[win32_vk.VK_NUM_LOCK] = 0
+            result = self._user32.ToUnicode(event.KeyID, event.ScanCode,
+                                            ctypes.byref(self._keyboard_state),
+                                            ctypes.byref(self._unichar), 8, 0)
             self._keyboard_state[win32_vk.VK_SHIFT] = prev_shift
             self._keyboard_state[win32_vk.VK_NUM_LOCK] = prev_numlock
+            self._keyboard_state[win32_vk.VK_CAPITAL] = prev_caps
+            if result > 0:
+                key = self._unichar[result-1].encode('utf-8')
 
-        if result > 0:
-            if result == 1:
-                char = self._unichar[0].encode('utf-8')
-                ucode = ord(self._unichar[0])
-                ucat = ucategory(self._unichar[0])
-            else:
-                for c in range(result):
-                    ucode = ord(self._unichar[c])
-                    ucat = ucategory(self._unichar[c])
-                char = self._unichar[0:result].lower()
-                char = char.encode('utf-8')
-        elif result == -1:
-            char = self._unichar[0].encode('utf-8')
-            ucode = ord(self._unichar[0])
-            ucat = ucategory(self._unichar[0])
+        if key is None:
+            key = KeyboardConstants._getKeyName(event)
 
-        if result == 0 or ucat and ucat[0] == 'C':
-            lukey, _junk = KeyboardConstants._getKeyNameAndModsForEvent(event)
-            if lukey and len(lukey) > 0:
-                char = lukey.lower()
+        # misc. char value cleanup.
+        if key == 'return':
+            char = '\n'.encode('utf-8')
+        elif key in ('escape','backspace'):
+            char = ''
 
-        return char, ucode, ucat
+        return key.lower(), char
 
     def _nativeEventCallback(self, event):
         if self.isReportingEvents():
@@ -171,17 +187,10 @@ class Keyboard(ioHubKeyboardDevice):
 
             report_system_wide_events = self.getConfiguration().get(
                 'report_system_wide_events', True)
-
-            pyglet_window_hnds = self._iohub_server._pyglet_window_hnds
-            if event.Window in pyglet_window_hnds:
-                pass
-            elif len(
-                    pyglet_window_hnds) > 0 and report_system_wide_events is False:
-                # For keyboard, when report_system_wide_events is false
-                # do not record kb events that are not targeted for
-                # a PsychoPy window, still allow them to pass to the desktop
-                # apps.
-                return True
+            if report_system_wide_events is False:
+                pyglet_window_hnds = self._iohub_server._pyglet_window_hnds
+                if len(pyglet_window_hnds) > 0 and event.Window not in pyglet_window_hnds:
+                 return True
 
             event.Type = EventConstants.KEYBOARD_RELEASE
             if event.Message in [pyHook.HookConstants.WM_KEYDOWN,
@@ -221,8 +230,6 @@ class Keyboard(ioHubKeyboardDevice):
             # we support setting a delay in the device properties based on
             # external testing for a given keyboard, we will leave at 0.
             delay = 0.0
-            ucode = 0
-            key = None
             modKeyName = self._updateKeyMapState(event)
             event.Modifiers = self._updateModValue(keyID, is_press)
 
@@ -230,18 +237,9 @@ class Keyboard(ioHubKeyboardDevice):
 
             if modKeyName:
                 key = modKeyName
-                char = u''
-                ucode = 0
+                char = ''
             else:
-                char, ucode, ucat = self._getCharValue(event)
-
-                ckey = KeyboardConstants._getKeyName(event)
-                if ckey.startswith('num_'):
-                    key = ckey
-                else:
-                   key, _, ucat2 = self._getCharValue(event, True)
-
-            #print2err("evt.Key: {0}, ScanCode: {1}, Key: [{2}], Char: [{3}]".format(event.Key, event.ScanCode,key,char))
+                key, char = self._getKeyCharValue(event)
 
             kb_event = [0,
                         0,
@@ -257,14 +255,14 @@ class Keyboard(ioHubKeyboardDevice):
                         event.RepeatCount,
                         event.ScanCode,
                         event.KeyID,
-                        ucode,
-                        key.lower(),
+                        0,
+                        key,
                         event.Modifiers,
                         event.Window,
                         char,  # .char
                         0.0,  # duration
                         0  # press_event_id
-            ]
+                    ]
 
             ioHubKeyboardDevice._updateKeyboardEventState(self, kb_event,
                                                           is_press)

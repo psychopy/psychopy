@@ -545,6 +545,7 @@ try:
                 VK_PAUSE  =  0x13
                 VK_capslock  =  0x14
                 VK_CAPITAL  =  0x14
+                VK_CAPS_LOCK = 0x14
                 VK_HANGUL  =  0x15
                 VK_JUNJA  =  0x17
                 VK_FINAL  =  0x18
@@ -572,6 +573,9 @@ try:
                 VK_DELETE  =  0x2E
                 VK_HELP  =  0x2F
             
+                VK_LWIN = 0x5B
+                VK_RWIN = 0x5C
+                VK_APPS = 0x5D
                 VK_lcmd  =  0x5B
                 VK_rcmd  =  0x5C
                 VK_menu  =  0x5D
@@ -618,15 +622,24 @@ try:
                 VK_F23  =  0x86
                 VK_F24  =  0x87
             
+                VK_NUM_LOCK = 0x90
+                VK_SCROLL = 0x91
+                VK_LSHIFT = 0xA0
+                VK_RSHIFT = 0xA1
+                VK_LCONTROL = 0xA2
+                VK_RCONTROL = 0xA3
+                VK_LMENU = 0xA4
+                VK_RMENU = 0xA5
+
                 VK_numlock  =  0x90
                 VK_scrolllock  =  0x91
-            
                 VK_lshift  =  0xA0
                 VK_rshift  =  0xA1
                 VK_lctrl  =  0xA2
                 VK_rctrl  =  0xA3
                 VK_lalt  =  0xA4
                 VK_ralt  =  0xA5
+
                 VK_BROWSER_BACK  =  0xA6
                 VK_BROWSER_FORWARD  =  0xA7
                 VK_BROWSER_REFRESH  =  0xA8
