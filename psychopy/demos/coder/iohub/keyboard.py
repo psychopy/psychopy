@@ -2,12 +2,9 @@
 """
 iohub_keyboard.py
 
-Displays event information from ioHub Keyboard Events. 
-
-Inital Version: May 6th, 2013, Sol Simpson
-Updated June 22nd: Added demo timeout. SS
+Displays information from ioHub Keyboard Events
+vs. psychopy.event.geKeys().
 """
-
 WINDOW_SIZE = 1024,768
 
 from psychopy import core, visual, event
@@ -49,7 +46,7 @@ title_label = visual.TextStim(window, units=unit_type,
                                alignHoriz='center',
                                alignVert='top', wrapWidth=dw * 2)
 title2_label = visual.TextStim(window, units=unit_type,
-                              text=u'Press escape key to Exit Demo',
+                              text=u'Press "Q" Key to Exit Demo',
                               pos=[0, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT],
                               height=TEXT_STIM_HEIGHT,
                               color=[0.25, 0.2, 1], colorSpace='rgb',
@@ -203,10 +200,10 @@ while QUIT_EXP is False:
         char_stim.setText(kbe.char)
 
         psychopy_keys = event.getKeys()
-        psychopy_key=None
         if psychopy_keys:
-            psychopy_key = psychopy_keys[0]
-            psychopy_key_stim.setText(psychopy_key)
+            psychopy_key_stim.setText(psychopy_keys[0])
+        elif kbe.type == "KEYBOARD_PRESS":
+            psychopy_key_stim.setText('')
 
         modifiers_stim.setText(str(kbe.modifiers))
         all_pressed_stim.setText(str(keyboard.state.keys()))
@@ -222,7 +219,7 @@ while QUIT_EXP is False:
 
         # Note that keyboard events can be compared to a string, matching when
         # the event.key or .char == basestring value.
-        if kbe == 'escape':
+        if kbe == 'q':
             QUIT_EXP = True
             break
 

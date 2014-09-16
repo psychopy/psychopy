@@ -586,12 +586,12 @@ try:
                 VK_NUMPAD7  =  0x67
                 VK_NUMPAD8  =  0x68
                 VK_NUMPAD9  =  0x69
-                VK_MULTIPLY  =  0x6A
-                VK_ADD  =  0x6B
+                VK_NUMPADMULTIPLY  =  0x6A
+                VK_NUMPADADD  =  0x6B
                 VK_SEPARATOR  =  0x6C
-                VK_SUBTRACT  =  0x6D
-                VK_DECIMAL  =  0x6E
-                VK_DIVIDE  =  0x6F
+                VK_NUMPADSUBTRACT  =  0x6D
+                VK_NUMPADDECIMAL  =  0x6E
+                VK_NUMPADDIVIDE  =  0x6F
             
                 VK_F1  =  0x70
                 VK_F2  =  0x71
@@ -664,19 +664,14 @@ try:
                     return cls._names.get(id,None)
     
         VirtualKeyCodes.initialize()
-            
+
     elif sys.platform == 'linux2':
-        
         class VirtualKeyCodes(Constants):
-        
             @classmethod
             def getName(cls,id):
                 return cls._names.get(id,None)
-        
         VirtualKeyCodes.initialize()
 
-
-    
     elif sys.platform == 'darwin':
         class AnsiKeyCodes(Constants):
             ANSI_Equal    = 0x18 
@@ -933,8 +928,7 @@ try:
             KEY_RIGHT = 124 
             KEY_DOWN = 125 
             KEY_UP = 126 
-	
-	        
+
             @classmethod
             def getName(cls,id):
                 return cls._names.get(id,None)
@@ -986,26 +980,24 @@ try:
         @classmethod
         def getName(cls,id):
             return cls._names.get(id,None)
-    
+
+
+        @classmethod
+        def _getKeyName(cls,keyEvent):
+            vcode_name = KeyboardConstants._virtualKeyCodes.getName(keyEvent.KeyID)
+            if vcode_name:
+                if vcode_name.startswith('VK_NUMPAD'):
+                    return 'num_%s'%(vcode_name[9:].lower())
+                return vcode_name[3:].lower()
+            else:
+                phkey = keyEvent.Key.lower()
+                if phkey.startswith('numpad'):
+                    phkey = 'num_%s'%(phkey.Key[6:])
+                return phkey
+
         @classmethod
         def _getKeyNameAndModsForEvent(cls,keyEvent):
-    
-            mods= cls.getModifiersForEvent(keyEvent)
-    
-            vcode_name=KeyboardConstants._virtualKeyCodes.getName(keyEvent.KeyID)
-            if vcode_name:
-                return vcode_name[3:],mods
-    
-            if mods is None or ('lctrl' not in mods and 'rctrl' not in mods):
-                ascii_name=KeyboardConstants._asciiKeyCodes.getName(keyEvent.Ascii)
-                if ascii_name:
-                    if ascii_name[-1] == '_': # it is a number between 0 and 9
-                        return ascii_name[1],mods
-                    return ascii_name,mods
-    
-            # TODO: When key mapper falls to this stage, clean up OEM_XXXX mappings that pyHook has.
-    
-            return keyEvent.GetKey().upper(),mods
+            return cls._getKeyName(keyEvent), cls.getModifiersForEvent(keyEvent)
     
     
         @classmethod
@@ -1380,8 +1372,10 @@ try:
         pass
             
 except:
-    from . import printExceptionDetailsToStdErr
-    printExceptionDetailsToStdErr()
+    import traceback
+    traceback.print_exc()
+    #from . import printExceptionDetailsToStdErr
+    #printExceptionDetailsToStdErr()
     
 #class SerialConstants(Constants):
 #    import serial

@@ -11,79 +11,63 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 """
 
 from . import ioHubKeyboardDevice
-from ... import print2err,printExceptionDetailsToStdErr
+from ... import printExceptionDetailsToStdErr
 from .. import Computer
-from ...constants import EventConstants,KeyboardConstants
+from ...constants import EventConstants
 
 getTime = Computer.getTime
 
+
 class Keyboard(ioHubKeyboardDevice):
-    def __init__(self,*args,**kwargs):
-        ioHubKeyboardDevice.__init__(self,*args,**kwargs['dconfig'])
+    event_id_index = None
 
-    def _nativeEventCallback(self,event):        
-        try:            
+    def __init__(self, *args, **kwargs):
+        ioHubKeyboardDevice.__init__(self, *args, **kwargs['dconfig'])
+
+        if self.event_id_index == None:
+            from . import KeyboardInputEvent
+            Keyboard.auto_repeated_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('auto_repeated')
+            Keyboard.key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
+            Keyboard.key_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key_id')
+            Keyboard.event_type_index = KeyboardInputEvent.EVENT_TYPE_ID_INDEX
+            Keyboard.event_modifiers_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('modifiers')
+            Keyboard.win_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('window_id')
+            Keyboard.event_id_index = KeyboardInputEvent.EVENT_ID_INDEX
+
+
+    def _nativeEventCallback(self, event):
+        try:
             self._last_callback_time = getTime()
-            if self.isReportingEvents():             
-                event_array=event[0]
-                from . import KeyboardInputEvent  
-                
-                #print2err('--')
-                ## Check if key event window id is in list of psychopy
-                #  windows and what report_system_wide_events value is                 
-                win_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('window_id')
+            if self.isReportingEvents():
+                event_array = event[0]
+
+                # Check if key event window id is in list of psychopy
+                # windows and what report_system_wide_events value is
                 report_system_wide_events = self.getConfiguration().get(
-                'report_system_wide_events', True)
-                pyglet_window_hnds = self._iohub_server._pyglet_window_hnds
-                
-                # win id seems to be OK on win and linux. OSX untested.
-                #print2err('winID, id_list: ',pyglet_window_hnds," , ",event_array[win_id_index])
-                
-                if event_array[win_id_index] in pyglet_window_hnds:
-                    pass
-                elif len(pyglet_window_hnds) > 0 and report_system_wide_events is False:
-                    return True
+                    'report_system_wide_events', True)
+                if report_system_wide_events is False:
+                    pyglet_window_hnds = self._iohub_server._pyglet_window_hnds
+                    if len(pyglet_window_hnds) > 0 and event_array[self.win_id_index] not in pyglet_window_hnds:
+                        return True
 
-                auto_repeated_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('auto_repeated')
-                key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
-                key_id_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key_id')
-                event_type_index = KeyboardInputEvent.EVENT_TYPE_ID_INDEX
-                event_modifiers_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('modifiers')
+                is_pressed = event_array[self.event_type_index] == EventConstants.KEYBOARD_PRESS
 
-                is_pressed = event_array[event_type_index] == EventConstants.KEYBOARD_PRESS
-
-                # AUto repeat value provided by pyXHook code
-                auto_repeat_count = event_array[auto_repeated_index] 
-                # Check if the event is an auto repeat event or not, and
-                # what the state of _report_auto_repeats is.
-
-                #print2err('auto_repeat_count: ',auto_repeat_count," , ",
-                #         is_pressed, " : ", self._report_auto_repeats)
-                
-                if auto_repeat_count > 0 and is_pressed:
-                    if self._report_auto_repeats is False:
+                if is_pressed and self._report_auto_repeats is False:
+                    # AUto repeat value provided by pyXHook code
+                    auto_repeat_count = event_array[self.auto_repeated_index]
+                    if auto_repeat_count > 0:
                         return True
 
                 # set event id for event since it has passed all filters
-                event_id_index = KeyboardInputEvent.EVENT_ID_INDEX
-                event_array[event_id_index]=Computer._getNextEventID()
-   
-                ioHubKeyboardDevice._modifier_value = event_array[event_modifiers_index]  
-                #print2err('Issueing KB Event:', event_array[event_id_index])
-                                
-                self._updateKeyboardEventState(event_array, is_pressed)          
+                event_array[self.event_id_index] = Computer._getNextEventID()
+                ioHubKeyboardDevice._modifier_value = event_array[self.event_modifiers_index]
 
+                self._updateKeyboardEventState(event_array, is_pressed)
 
                 self._addNativeEventToBuffer(event_array)
         except:
             printExceptionDetailsToStdErr()
-        
-        # Must return original event or no mouse events will get to OSX!
         return 1
-            
-    def _getIOHubEventObject(self,native_event_data):
-        #ioHub.print2err('Event: ',native_event_data)
+
+    def _getIOHubEventObject(self, native_event_data):
         return native_event_data
-
-
-        
