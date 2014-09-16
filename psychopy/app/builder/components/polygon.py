@@ -8,14 +8,14 @@ from psychopy.app.builder.components import getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'polygon.png')
-tooltip = _('Polygon: any regular polygon (line, triangle, square...circle)')
+tooltip = _translate('Polygon: any regular polygon (line, triangle, square...circle)')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'nVertices': _('Num. vertices'),
-              'fillColorSpace': _('Fill color-space'), 'fillColor': _('Fill color'),
-              'lineColorSpace': _('Line color-space'), 'lineColor': _('Line color'),
-              'lineWidth': _('Line width'),
-              'interpolate': _('Interpolate'), 'size': _("Size [w,h]")
+_localized = {'nVertices': _translate('Num. vertices'),
+              'fillColorSpace': _translate('Fill color-space'), 'fillColor': _translate('Fill color'),
+              'lineColorSpace': _translate('Line color-space'), 'lineColor': _translate('Line color'),
+              'lineWidth': _translate('Line width'),
+              'interpolate': _translate('Interpolate'), 'size': _translate("Size [w,h]")
               }
 
 class PolygonComponent(VisualComponent):
@@ -42,35 +42,35 @@ class PolygonComponent(VisualComponent):
         #params
         self.params['nVertices']=Param(nVertices, valType='int',
             updates='constant', allowedUpdates=['constant'],
-            hint=_("How many vertices? 2=line, 3=triangle... (90 approximates a circle)"),
+            hint=_translate("How many vertices? 2=line, 3=triangle... (90 approximates a circle)"),
             label=_localized['nVertices'])
         self.params['fillColorSpace']=Param(fillColorSpace, valType='str', allowedVals=['rgb','dkl','lms','hsv'],
             updates='constant',
-            hint=_("Choice of color space for the fill color (rgb, dkl, lms, hsv)"),
+            hint=_translate("Choice of color space for the fill color (rgb, dkl, lms, hsv)"),
             label=_localized['fillColorSpace'], categ='Advanced')
         self.params['fillColor']=Param(fillColor, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("Fill color of this shape; Right-click to bring up a color-picker (rgb only)"),
+            hint=_translate("Fill color of this shape; Right-click to bring up a color-picker (rgb only)"),
             label=_localized['fillColor'], categ='Advanced')
         self.params['lineColorSpace']=Param(lineColorSpace, valType='str', allowedVals=['rgb','dkl','lms','hsv'],
             updates='constant',
-            hint=_("Choice of color space for the fill color (rgb, dkl, lms, hsv)"),
+            hint=_translate("Choice of color space for the fill color (rgb, dkl, lms, hsv)"),
             label=_localized['lineColorSpace'], categ='Advanced')
         self.params['lineColor']=Param(lineColor, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("Line color of this shape; Right-click to bring up a color-picker (rgb only)"),
+            hint=_translate("Line color of this shape; Right-click to bring up a color-picker (rgb only)"),
             label=_localized['lineColor'], categ='Advanced')
         self.params['lineWidth']=Param(lineWidth, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("Width of the shape's line (always in pixels - this does NOT use 'units')"),
+            hint=_translate("Width of the shape's line (always in pixels - this does NOT use 'units')"),
             label=_localized['lineWidth'])
         self.params['interpolate']=Param(interpolate, valType='str', allowedVals=['linear','nearest'],
             updates='constant', allowedUpdates=[],
-            hint=_("How should the image be interpolated if/when rescaled"),
+            hint=_translate("How should the image be interpolated if/when rescaled"),
             label=_localized['interpolate'], categ='Advanced')
         self.params['size']=Param(size, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("Size of this stimulus [w,h]. Note that for a line only the first value is used, for triangle and rect the [w,h] is as expected,\n but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!! "),
+            hint=_translate("Size of this stimulus [w,h]. Note that for a line only the first value is used, for triangle and rect the [w,h] is as expected,\n but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!! "),
             label=_localized['size'])
         del self.params['color']
         del self.params['colorSpace']

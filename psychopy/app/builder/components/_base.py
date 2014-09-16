@@ -8,10 +8,10 @@ from psychopy.app.builder.experiment import Param
 from psychopy.constants import *
 
 # only use _localized values for label values, nothing functional
-_localized = {'name': _('Name'),  # fieldName: display label
-              'startType': _('start type'), 'stopType': _('stop type'),
-              'startVal': _('Start'), 'stopVal': _('Stop'),
-              'startEstim': _('Expected start (s)'), 'durationEstim': _('Expected duration (s)')
+_localized = {'name': _translate('Name'),  # fieldName: display label
+              'startType': _translate('start type'), 'stopType': _translate('stop type'),
+              'startVal': _translate('Start'), 'stopVal': _translate('Stop'),
+              'startEstim': _translate('Expected start (s)'), 'durationEstim': _translate('Expected duration (s)')
              }
 
 class BaseComponent(object):
@@ -28,28 +28,28 @@ class BaseComponent(object):
 
         self.params={}
         self.params['name']=Param(name, valType='code',
-            hint=_("Name of this component (alpha-numeric or _, no spaces)"),
+            hint=_translate("Name of this component (alpha-numeric or _, no spaces)"),
             label=_localized['name'])
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
-            hint=_("How do you want to define your start point?"),
+            hint=_translate("How do you want to define your start point?"),
             label=_localized['startType'])
         self.params['stopType']=Param(stopType, valType='str',
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
-            hint=_("How do you want to define your end point?"),
+            hint=_translate("How do you want to define your end point?"),
             label=_localized['stopType'])
         self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
-            hint=_("When does the component start?"),
+            hint=_translate("When does the component start?"),
             label=_localized['startVal'])
         self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_("When does the component end? (blank is endless)"),
+            hint=_translate("When does the component end? (blank is endless)"),
             label=_localized['stopVal'])
         self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
-            hint=_("(Optional) expected start (s), purely for representing in the timeline"),
+            hint=_translate("(Optional) expected start (s), purely for representing in the timeline"),
             label=_localized['startEstim'])
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
-            hint=_("(Optional) expected duration (s), purely for representing in the timeline"),
+            hint=_translate("(Optional) expected duration (s), purely for representing in the timeline"),
             label=_localized['durationEstim'])
 
         self.order=['name']  # name first, then timing, then others
@@ -242,6 +242,47 @@ class BaseComponent(object):
         return self.__class__.__name__
     def getShortType(self):
         return self.getType().replace('Component','')
+
+class UnknownComponent(BaseComponent):
+    """This is used by Builder to represent a component that was not known by the
+    current installed version of PsychoPy (most likely from the future). We want
+    this to be loaded, represented and saved but not used in any script-outputs.
+    It should have nothing but a name - other params will be added by the loader
+    """
+    def __init__(self, exp, parentName, name=''):
+        self.type='Unknown'
+        self.exp=exp#so we can access the experiment if necess
+        self.parentName=parentName#to access the routine too if needed
+        self.params={}
+        self.params['name']=Param(name, valType='code',
+            hint=_translate("Name of this component (alpha-numeric or _, no spaces)"),
+            label=_localized['name'])
+        self.order=['name']  # name first, then timing, then others
+    #make sure nothing gets written into experiment for an unknown object class!
+    def writeRoutineStartCode(self,buff):
+        pass
+    def writeStartCode(self,buff):
+        pass
+    def writeInitCode(self,buff):
+        pass
+    def writeFrameCode(self,buff):
+        pass
+    def writeRoutineStartCode(self,buff):
+        pass
+    def writeRoutineEndCode(self,buff):
+        pass
+    def writeExperimentEndCode(self,buff):
+        pass
+    def writeTimeTestCode(self,buff):
+        pass
+    def writeStartTestCode(self,buff):
+        pass
+    def writeStopTestCode(self,buff):
+        pass
+    def writeParamUpdates(self, buff, updateType, paramNames=None):
+        pass
+    def writeParamUpdate(self, buff, compName, paramName, val, updateType, params=None):
+        pass
 
 def canBeNumeric(inStr):
     """Determines whether the input can be converted to a float

@@ -3,7 +3,7 @@ Localization (I18N, translation)
 
 PsychoPy is used worldwide. Starting with v1.81, many parts of PsychoPy itself (the app) can be translated into any language that has a unicode character set. A translation affects what the experimenter sees while creating and running experiments; it is completely separate from what is shown to the subject. Translations of the online documentation will need a completely different approach.
 
-In the app, translation is handled by a function with a standard name, ``_()``, which takes a string argument. It returns a translated, unicode version of the string in the locale / language that was selected when starting the app. If no translation is available for that locale, the original string is returned (= English).
+In the app, translation is handled by a function, ``_translate()``, which takes a string argument. (The standard name is ``_()``, but unfortunately this conflicts with _ as used in some external packages that PsychoPy depends on.) The ``_translate()`` function returns a translated, unicode version of the string in the locale / language that was selected when starting the app. If no translation is available for that locale, the original string is returned (= English).
 
 A locale setting (e.g., 'ja_JP' for Japanese) allows the end-user (= the experimenter) to control the langauge that will be used for display within the app itself. (It can potentially control other display conventions as well, not just the language.) PsychoPy will obtain the locale from the user preference (if set), or the OS.
 
@@ -27,6 +27,8 @@ A free app called poedit is useful for managing a translation. For a given langu
     - make a new directory `psychopy/app/locale/LANG/LC_MESSAGE/` if needed. Your `LANG` will be auto-detected within PsychoPy only if you follow this convention. You can copy metadata (such as the project name) from another .po file.
 
   Set your name and e-mail address from "Preferences..." of "File" menu. Set translation properties (such as project name, language and charset) from Catalog Properties Dialog, which can be opened from "Properties..." of "Catalog" menu.
+
+  In poedit's properties dialog, set the "source keywords" to include '_translate'. This allows poedit to find the strings in PsychoPy that are to be translated.
 
   To add paths where Poedit scans .py files, open "Sources paths" tab on the Catalog Properties Dialog, and set "Base path:" to "../../../../../" (= psychopy/psychopy/). Nothing more should be needed.
   If you've created new catalog, save your catalog to `psychopy/app/locale/LANG/LC_MESSAGE/messages.po`.
@@ -63,17 +65,17 @@ There are a few things to keep in mind when working on the app's code to make it
 
 - In PsychoPy's code, the language to be used should always be English with American spellings (e.g., "color").
 
-- Within the app, the return value from ``_()`` (i.e., a translated string) should be used only for display purposes: in menus, tooltips, etc. A translated value should never be used as part of the logic or internal functioning of PsychoPy. It is purely a "skin". Internally, everything must be in en_US.
+- Within the app, the return value from ``_translate()`` should be used only for display purposes: in menus, tooltips, etc. A translated value should never be used as part of the logic or internal functioning of PsychoPy. It is purely a "skin". Internally, everything must be in en_US.
 
-- Basic usage is exactly what you expect: ``_("hello")`` will return a unicode string at run-time, using mappings for the current locale as provided by a translator in a .mo file. (Not all translations are available yet, see above to start a new one.) To have the app display a translated string to the experimenter, just display the return value from the underscore translation function.
+- Basic usage is exactly what you expect: ``_translate("hello")`` will return a unicode string at run-time, using mappings for the current locale as provided by a translator in a .mo file. (Not all translations are available yet, see above to start a new one.) To have the app display a translated string to the experimenter, just display the return value from the underscore translation function.
 
-- The strings to be translated must appear somewhere in the app code base as explicit strings within ``_()``. If you need to translate a variable, e.g., named ``str_var`` using the expression ``_(str_var)``, somewhere else you need to explicitly give all the possible values that ``str_var`` can take, and enclose each of them within the translate function. Its okay for that to be elsewhere, even in another file, but not in a comment. This allows poedit to discover of all the strings that need to be translated. (This is one of the purposes of the `_localized` dict at the top of some modules.)
+- The strings to be translated must appear somewhere in the app code base as explicit strings within ``_translate()``. If you need to translate a variable, e.g., named ``str_var`` using the expression ``_translate(str_var)``, somewhere else you need to explicitly give all the possible values that ``str_var`` can take, and enclose each of them within the translate function. Its okay for that to be elsewhere, even in another file, but not in a comment. This allows poedit to discover of all the strings that need to be translated. (This is one of the purposes of the `_localized` dict at the top of some modules.)
 
-- ``_()`` should not be given a null string to translate; if you use a variable, check that it is not '' to avoid invoking ``_('')``.
+- ``_translate()`` should not be given a null string to translate; if you use a variable, check that it is not '' to avoid invoking ``_translate('')``.
 
-- Strings that contain formatting placeholders (e.g., %d, %s, %.4f) require a little more thought. Single placeholders are easy enough: ``_("hello, %s") % name``.
+- Strings that contain formatting placeholders (e.g., %d, %s, %.4f) require a little more thought. Single placeholders are easy enough: ``_translate("hello, %s") % name``.
 
-- Strings with multiple formatting placeholders require named arguments, because positional arguments are not always sufficient to disambiguate things depending on the phrase and the language to be translated into: ``_("hello, %(first)s %(last)s") % {'first': firstname, 'last': lastname}``
+- Strings with multiple formatting placeholders require named arguments, because positional arguments are not always sufficient to disambiguate things depending on the phrase and the language to be translated into: ``_translate("hello, %(first)s %(last)s") % {'first': firstname, 'last': lastname}``
 
 - Localizing drop-down menus is a little more involved. Such menus should display localized strings, but return selected values as integers (``GetSelection()`` returns the position within the list). Do not use ``GetStringSelection()``, because this will return the localized string, breaking the rule about a strict separation of display and logic. See Builder ParamDialogs for examples.
 

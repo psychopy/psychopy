@@ -6,10 +6,10 @@ from _base import BaseComponent, Param
 from os import path
 
 # only use _localized values for label values, nothing functional:
-_localized = {'units': _('Units'),
-              'color': _('Color'), 'colorSpace': _('Color space'),
-              'opacity': _('Opacity'), 'pos': _('Position [x,y]'),
-              'ori': _('Orientation'), 'size': _('Size [w,h]')
+_localized = {'units': _translate('Units'),
+              'color': _translate('Color'), 'colorSpace': _translate('Color space'),
+              'opacity': _translate('Opacity'), 'pos': _translate('Position [x,y]'),
+              'ori': _translate('Orientation'), 'size': _translate('Size [w,h]')
               }
 
 class VisualComponent(BaseComponent):
@@ -28,31 +28,31 @@ class VisualComponent(BaseComponent):
         self.psychopyLibs=['visual']#needs this psychopy lib to operate
 
         self.params['units']=Param(units, valType='str', allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm'],
-            hint=_("Units of dimensions for this stimulus"),
+            hint=_translate("Units of dimensions for this stimulus"),
             label=_localized['units'])
         self.params['color']=Param(color, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)"),
+            hint=_translate("Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)"),
             label=_localized['color'])
         self.params['opacity']=Param(opacity, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)"),
+            hint=_translate("Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)"),
             label=_localized['opacity'])
         self.params['colorSpace']=Param(colorSpace, valType='str', allowedVals=['rgb','dkl','lms','hsv'],
             updates='constant',
-            hint=_("Choice of color space for the color (rgb, dkl, lms, hsv)"),
+            hint=_translate("Choice of color space for the color (rgb, dkl, lms, hsv)"),
             label=_localized['colorSpace'])
         self.params['pos']=Param(pos, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("Position of this stimulus (e.g. [1,2] )"),
+            hint=_translate("Position of this stimulus (e.g. [1,2] )"),
             label=_localized['pos'])
         self.params['size']=Param(size, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "),
+            hint=_translate("Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "),
             label=_localized['size'])
         self.params['ori']=Param(ori, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat','set every frame'],
-            hint=_("Orientation of this stimulus (in deg)"),
+            hint=_translate("Orientation of this stimulus (in deg)"),
             label=_localized['ori'])
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
