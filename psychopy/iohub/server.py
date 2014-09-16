@@ -819,12 +819,9 @@ class ioServer(object):
             if exp and self._session_id and self._experiment_id:
                 while len(self._logMessageBuffer):
                     lm=self._logMessageBuffer.popleft()
-                    #print2err('>>>!!! Logging BACKLOGGED LogEvent: ',lm,", ",(exp, self._session_id, self._experiment_id))
                     exp.log(*lm)
-                #print2err('>>>!!! Logging LogEvent: ',(text,level,log_time),", ",(exp, self._session_id, self._experiment_id))
                 exp.log(text,level,log_time)
             else:
-                #print2err('>>>!!! Adding LogEvent to _logMessageBuffer: ',(text,level,log_time),", ",(exp, self._session_id, self._experiment_id))
                 self._logMessageBuffer.append((text,level,log_time))
         except:
             printExceptionDetailsToStdErr()
