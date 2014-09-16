@@ -2821,9 +2821,13 @@ class DlgLoopProperties(_BaseParamsDlg):
         panelSizer = wx.GridBagSizer(5,5)
         panel.SetSizer(panelSizer)
         row=0
-        for fieldName in ['name','loopType']:
+        for fieldName in ['name','loopType','isTrials']:
+            try:
+                label = self.currentHandler.params[fieldName].label
+            except:
+                label = fieldName
             self.globalCtrls[fieldName] = ctrls = ParamCtrls(dlg=self, parent=panel,
-                label=fieldName,fieldName=fieldName,
+                label=label,fieldName=fieldName,
                 param=self.currentHandler.params[fieldName])
             panelSizer.Add(ctrls.nameCtrl, [row, 0], border=1,
                 flag=wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL | wx.ALL)
@@ -2854,13 +2858,21 @@ class DlgLoopProperties(_BaseParamsDlg):
             keys.append('conditions')
         #then step through them
         for fieldName in keys:
+            #try and get alternative "label" for the parameter
+            try:
+                label = self.currentHandler.params[fieldName].label
+                if not label: #it might exist but be empty
+                    label = fieldName
+            except:
+                label = fieldName
+            #handle special cases
             if fieldName=='endPoints':
                 continue#this was deprecated in v1.62.00
             if fieldName in self.globalCtrls:
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             elif fieldName=='conditionsFile':
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,fieldName=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=label,fieldName=fieldName,
                     param=handler.params[fieldName], browse=True)
                 self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,ctrls.browseCtrl)
                 ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.viewConditions)
@@ -2880,7 +2892,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 panelSizer.Add(ctrls.valueCtrl, (row, 0), span=(1,3), flag=wx.ALIGN_CENTER)
                 row += 1
             else: #normal text entry field
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,fieldName=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=label,fieldName=fieldName,
                     param=handler.params[fieldName])
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
