@@ -284,16 +284,13 @@ class TestExpt():
         # save it
         f = codecs.open(py_file, 'w', 'utf-8')
         f.write(script.getvalue().replace("core.quit()", "pass"))
-        f.write("del thisExp\n")
+        f.write("del thisExp\n") #garbage collect the experiment so files are auto-saved
         f.close()
-        #run it
-        f = codecs.open(py_file, 'r', 'utf-8')
-        for line in f.readlines()[:40]:
-            print line[:-1]
-        f.close()
+        #run the file (and make sure we return to this location afterwards)
+        wd = os.getcwd()
         execfile(py_file)
+        os.chdir(wd)
         #load the data
-        print glob.glob(datafileBase+"/*")
         dat = data.importConditions(datafileBase+".csv")
         assert len(dat)==8 # because 4 'blocks' with 2 trials each (3 stims per trial)
     def test_Run_FastStroopPsyExp(self):
