@@ -1243,11 +1243,10 @@ class Window(object):
             else:
                 self._hw_handle=self.winHandle._hwnd
         elif sys.platform =='darwin':
-            if pyglet.version > "1.2":
-                self._hw_handle= self.winHandle._nswindow.windowNumber()
-            else:
-                # TODO: check if this works on pyglet 1.4
-                self._hw_handle=self.winHandle._window.value
+            try:
+                self._hw_handle=self.winHandle._window.value #python 32bit (1.4. or 1.2 pyglet)
+            except:
+                self._hw_handle= self.winHandle._nswindow.windowNumber()#pyglet 1.2 with 64bit python?
         elif sys.platform =='linux2':
             self._hw_handle=self.winHandle._window
 
