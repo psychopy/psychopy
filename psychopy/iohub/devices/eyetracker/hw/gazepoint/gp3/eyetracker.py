@@ -206,6 +206,7 @@ class EyeTracker(EyeTrackerDevice):
                 init_connection_str='<SET ID="ENABLE_SEND_CURSOR" STATE="1" />\r\n'
                 init_connection_str+='<SET ID="ENABLE_SEND_POG_LEFT" STATE="1" />\r\n'
                 init_connection_str+='<SET ID="ENABLE_SEND_POG_RIGHT" STATE="1" />\r\n'
+                init_connection_str+='<SET ID="ENABLE_SEND_USER_DATA" STATE="1"/>\r\n'
                 #init_connection_str+='<SET ID="ENABLE_SEND_PUPIL_LEFT" STATE="1" />\r\n'
                 #init_connection_str+='<SET ID="ENABLE_SEND_PUPIL_RIGHT" STATE="1" />\r\n'
                 init_connection_str+='<SET ID="ENABLE_SEND_POG_FIX" STATE="1" />\r\n'
@@ -257,14 +258,20 @@ class EyeTracker(EyeTrackerDevice):
         """
         return self._gp3 is not None
 
-    def sendMessage(self,message_contents,time_offset=None):
+    def sendMessage(self, message_contents, time_offset=None):
         """
-        The sendMessage method is not supported by the TheEyeTribe implementation
-        of the Common Eye Tracker Interface, as the TheEyeTribe SDK does not support
-        saving eye data to a native data file during recording.
+        The sendMessage method sends the message_contents str to the GP3.
         """
-        # TODO TET Implementation, NOT part of common API methods ever used
-        return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
+        try:
+            if time_offset is not None:
+                print2err("Warning: GP3 EyeTracker.sendMessage time_offset arguement is ignored by this eye tracker interface.")
+            if self._gp3 and self.isRecordingEnabled() is True:
+                strMessage='<SET ID="USER_DATA" VALUE="{0}"/>\r\n'.format(message_contents)
+                self._gp3.sendall(strMessage)
+        except:
+            print2err('Problems sending message: {0}'.FORMAT(message_contents))
+            printExceptionDetailsToStdErr()
+        return EyeTrackerConstants.EYETRACKER_OK
 
     def sendCommand(self, key, value=None):
         """
@@ -284,7 +291,6 @@ class EyeTracker(EyeTrackerDevice):
 #            bool: True if setup / calibration procedure passed, False otherwise. If false, should likely exit experiment.
 #        """
 #        try:
-#            # TODO TET Implementation
 #            calibration_properties=self.getConfiguration().get('calibration')
 #            screenColor=calibration_properties.get('screen_background_color')
 #            # [r,g,b] of screen
@@ -502,10 +508,12 @@ class EyeTracker(EyeTrackerDevice):
 
                     self._addNativeEventToBuffer((binocSample,(combined_gaze_x,combined_gaze_y)))
 
+                elif m.get('type') == 'ACK':
+                    print2err("ACK Received: ", m)
                 else:
                     # Message type is not being handled.
                     print2err("UNHANDLED GP3 MESSAGE: ", m)
-                
+
         except Exception:
             print2err("ERROR occurred during GP3 Sample Callback.")
             printExceptionDetailsToStdErr()

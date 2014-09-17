@@ -269,27 +269,8 @@ class EyeTrackerDevice(Device):
                  * EyeTrackerConstants.EYETRACKER_ERROR if this method is supported and starting_state is, but an error occurred during the method (other than a failed calibration or drift correct result).
                  * EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED if the eye tracker implementation does not support this method or the specified starting_state.
         """
-        
-        # Implementation Note: Change this list to only include the states your eye tracker can support.
-        IMPLEMENTATION_SUPPORTED_STATES=[EyeTrackerConstants.getName(EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE),
-                                         EyeTrackerConstants.getName(EyeTrackerConstants.CALIBRATION_START_STATE),
-                                         EyeTrackerConstants.getName(EyeTrackerConstants.VALIDATION_START_STATE)]
-        
-        if starting_state in IMPLEMENTATION_SUPPORTED_STATES:
+        return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
 
-            if starting_state == EyeTrackerConstants.getName(EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE):
-                # Implementation Note: Run your custom implementation logic for the method here
-                print2err("EyeTracker should handle runSetupProcedure method with starting_state of {0} now.".format(starting_state))
-                
-                # Implementation Note: result should be changed to return one of
-                #       EyeTrackerConstants.EYETRACKER_OK 
-                #       EyeTrackerConstants.EYETRACKER_CALIBRATION_ERROR 
-                #       EyeTrackerConstants.EYETRACKER_ERROR 
-                result = EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
-                return result
-            else:
-                return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
-                
     def setRecordingState(self,recording):
         """
         The setRecordingState method is used to start or stop the recording 
