@@ -22,6 +22,8 @@ It is usually best to use trial information that is contained in an external fil
 
 As the column names from the input file are used in this way they must have legal variable names i.e. they must be unique, have no punctuation or spaces (underscores are ok) and must not start with a digit.
 
+The parameter `Is trials` exists because some loops are not there to indicate trials *per se* but a set of stimuli within a trial, or a set of blocks. In these cases we don't want the data file to add an extra line with each pass around the loop. This parameter can be unchecked to improve (hopefully) your data file outputs. [Added in v1.81.00]
+
 .. _trialTypes:
 
 Method of Constants

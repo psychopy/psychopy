@@ -609,7 +609,8 @@ class TrialHandler:
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
     def __init__(self, exp, name, loopType='random', nReps=5,
-        conditions=[], conditionsFile='',endPoints=[0,1],randomSeed='', selectedRows=''):
+        conditions=[], conditionsFile='',endPoints=[0,1],randomSeed='', selectedRows='',
+        isTrials = True):
         """
         @param name: name of the loop e.g. trials
         @type name: string
@@ -643,6 +644,9 @@ class TrialHandler:
             hint=_translate("How should the next condition value(s) be chosen?"))#NB staircase is added for the sake of the loop properties dialog
         self.params['random seed']=Param(randomSeed, valType='code', updates=None, allowedUpdates=None,
             hint=_translate("To have a fixed random sequence provide an integer of your choosing here. Leave blank to have a new random sequence on each run of the experiment."))
+        self.params['isTrials']=Param(isTrials, valType='bool', updates=None, allowedUpdates=None,
+            hint=_translate("Indicates that this loop generates TRIALS, rather than BLOCKS of trials or stimuli within a trial. It alters how data files are output"),
+            label = _translate("Is trials"))
     def writeInitCode(self,buff):
         #no longer needed - initialise the trial handler just before it runs
         pass
@@ -692,32 +696,35 @@ class TrialHandler:
             buff.writeIndented(buff.oneIndent+"for paramName in %s.keys():\n" %self.thisName)
             buff.writeIndented(buff.oneIndent*2+"exec(paramName + '= %s.' + paramName)\n" %self.thisName)
     def writeLoopEndCode(self,buff):
-        buff.writeIndentedLines("thisExp.nextEntry()\n\n")
+        #Just within the loop advance data line if loop is whole trials
+        if self.params['isTrials'].val == True:
+            buff.writeIndentedLines("thisExp.nextEntry()\n\n")
+        #end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("# completed %s repeats of '%s'\n" \
             %(self.params['nReps'], self.params['name']))
         buff.writeIndented("\n")
-
         #save data
-        ##a string to show all the available variables (if the conditions isn't just None or [None])
-        saveExcel=self.exp.settings.params['Save excel file'].val
-        saveCSV = self.exp.settings.params['Save csv file'].val
-        #get parameter names
-        if saveExcel or saveCSV:
-            buff.writeIndented("# get names of stimulus parameters\n" %self.params)
-            buff.writeIndented("if %(name)s.trialList in ([], [None], None):  params = []\n" %self.params)
-            buff.writeIndented("else:  params = %(name)s.trialList[0].keys()\n" %self.params)
-        #write out each type of file
-        if saveExcel or saveCSV:
-            buff.writeIndented("# save data for this loop\n")
-        if saveExcel:
-            buff.writeIndented("%(name)s.saveAsExcel(filename + '.xlsx', sheetName='%(name)s',\n" %self.params)
-            buff.writeIndented("    stimOut=params,\n")
-            buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
-        if saveCSV:
-            buff.writeIndented("%(name)s.saveAsText(filename + '%(name)s.csv', delim=',',\n" %self.params)
-            buff.writeIndented("    stimOut=params,\n")
-            buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
+        if self.params['isTrials'].val == True:
+            ##a string to show all the available variables (if the conditions isn't just None or [None])
+            saveExcel=self.exp.settings.params['Save excel file'].val
+            saveCSV = self.exp.settings.params['Save csv file'].val
+            #get parameter names
+            if saveExcel or saveCSV:
+                buff.writeIndented("# get names of stimulus parameters\n" %self.params)
+                buff.writeIndented("if %(name)s.trialList in ([], [None], None):  params = []\n" %self.params)
+                buff.writeIndented("else:  params = %(name)s.trialList[0].keys()\n" %self.params)
+            #write out each type of file
+            if saveExcel or saveCSV:
+                buff.writeIndented("# save data for this loop\n")
+            if saveExcel:
+                buff.writeIndented("%(name)s.saveAsExcel(filename + '.xlsx', sheetName='%(name)s',\n" %self.params)
+                buff.writeIndented("    stimOut=params,\n")
+                buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
+            if saveCSV:
+                buff.writeIndented("%(name)s.saveAsText(filename + '%(name)s.csv', delim=',',\n" %self.params)
+                buff.writeIndented("    stimOut=params,\n")
+                buff.writeIndented("    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
     def getType(self):
         return 'TrialHandler'
 
@@ -726,7 +733,8 @@ class StairHandler:
     """
     def __init__(self, exp, name, nReps='50', startVal='', nReversals='',
             nUp=1, nDown=3, minVal=0,maxVal=1,
-            stepSizes='[4,4,2,2,1]', stepType='db', endPoints=[0,1]):
+            stepSizes='[4,4,2,2,1]', stepType='db', endPoints=[0,1],
+            isTrials = True):
         """
         @param name: name of the loop e.g. trials
         @type name: string
@@ -762,6 +770,9 @@ class StairHandler:
             hint=_translate("How should the next trial value(s) be chosen?"))#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
             hint=_translate('Where to loop from and to (see values currently shown in the flow view)'))
+        self.params['isTrials']=Param(isTrials, valType='bool', updates=None, allowedUpdates=None,
+            hint=_translate("Indicates that this loop generates TRIALS, rather than BLOCKS of trials or stimuli within a trial. It alters how data files are output"),
+            label = _translate("Is trials"))
     def writeInitCode(self,buff):
         #not needed - initialise the staircase only when needed
         pass
@@ -791,15 +802,19 @@ class StairHandler:
         buff.writeIndented("currentLoop = %s\n" %(self.params['name']))
         buff.writeIndented("level = %s\n" %(self.thisName))
     def writeLoopEndCode(self,buff):
-        buff.writeIndentedLines("thisExp.nextEntry()\n\n")
+        #Just within the loop advance data line if loop is whole trials
+        if self.params['isTrials'].val == True:
+            buff.writeIndentedLines("thisExp.nextEntry()\n\n")
+        #end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("# staircase completed\n")
         buff.writeIndented("\n")
         #save data
-        if self.exp.settings.params['Save excel file'].val:
-            buff.writeIndented("%(name)s.saveAsExcel(filename + '.xlsx', sheetName='%(name)s')\n" %self.params)
-        if self.exp.settings.params['Save csv file'].val:
-            buff.writeIndented("%(name)s.saveAsText(filename + '%(name)s.csv', delim=',')\n" %self.params)
+        if self.params['isTrials'].val == True:
+            if self.exp.settings.params['Save excel file'].val:
+                buff.writeIndented("%(name)s.saveAsExcel(filename + '.xlsx', sheetName='%(name)s')\n" %self.params)
+            if self.exp.settings.params['Save csv file'].val:
+                buff.writeIndented("%(name)s.saveAsText(filename + '%(name)s.csv', delim=',')\n" %self.params)
     def getType(self):
         return 'StairHandler'
 
@@ -808,7 +823,8 @@ class MultiStairHandler:
     """
     def __init__(self, exp, name, nReps='50', stairType='simple',
         switchStairs='random',
-        conditions=[], conditionsFile='', endPoints=[0,1]):
+        conditions=[], conditionsFile='', endPoints=[0,1],
+        isTrials=True):
         """
         @param name: name of the loop e.g. trials
         @type name: string
@@ -836,7 +852,9 @@ class MultiStairHandler:
             hint=_translate("A list of dictionaries describing the differences between each staircase"))
         self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
             hint=_translate("An xlsx or csv file specifying the parameters for each condition"))
-    def writeInitCode(self,buff):
+        self.params['isTrials']=Param(isTrials, valType='bool', updates=None, allowedUpdates=None,
+            hint=_translate("Indicates that this loop generates TRIALS, rather than BLOCKS of trials or stimuli within a trial. It alters how data files are output"),
+            label = _translate("Is trials"))
         pass #don't initialise at start of exp, create when needed
     def writeLoopStartCode(self,buff):
         #create a 'thisName' for use in "for thisTrial in trials:"
@@ -864,15 +882,19 @@ class MultiStairHandler:
             buff.writeIndented("for paramName in condition.keys():\n")
             buff.writeIndented(buff.oneIndent+"exec(paramName + '= condition[paramName]')\n")
     def writeLoopEndCode(self,buff):
-        buff.writeIndentedLines("thisExp.nextEntry()\n\n")
+        #Just within the loop advance data line if loop is whole trials
+        if self.params['isTrials'].val == True:
+            buff.writeIndentedLines("thisExp.nextEntry()\n\n")
+        #end of the loop. dedent
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("# all staircases completed\n")
         buff.writeIndented("\n")
         #save data
-        if self.exp.settings.params['Save excel file'].val:
-            buff.writeIndented("%(name)s.saveAsExcel(filename + '.xlsx')\n" %self.params)
-        if self.exp.settings.params['Save csv file'].val:
-            buff.writeIndented("%(name)s.saveAsText(filename + '%(name)s.csv', delim=',')\n" %self.params)
+        if self.params['isTrials'].val == True:
+            if self.exp.settings.params['Save excel file'].val:
+                buff.writeIndented("%(name)s.saveAsExcel(filename + '.xlsx')\n" %self.params)
+            if self.exp.settings.params['Save csv file'].val:
+                buff.writeIndented("%(name)s.saveAsText(filename + '%(name)s.csv', delim=',')\n" %self.params)
     def getType(self):
         return 'MultiStairHandler'
 

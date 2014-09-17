@@ -122,29 +122,30 @@ class RunTimeInfo(dict):
     def _setExperimentInfo(self, author, version, verbose):
         # try to auto-detect __author__ and __version__ in sys.argv[0] (= the users's script)
         if not author or not version:
-            f = open(sys.argv[0], 'r')
-            lines = f.read()
-            f.close()
-        if not author and '__author__' in lines:
-            linespl = lines.splitlines()
-            while linespl[0].find('__author__') == -1:
-                linespl.pop(0)
-            auth = linespl[0]
-            if len(auth) and '=' in auth:
-                try:
-                    author = str(eval(auth[auth.find('=')+1 :]))
-                except:
-                    pass
-        if not version and '__version__' in lines:
-            linespl = lines.splitlines()
-            while linespl[0].find('__version__') == -1:
-                linespl.pop(0)
-            ver = linespl[0]
-            if len(ver) and ver.find('=') > 0:
-                try:
-                    version = str(eval(ver[ver.find('=')+1 :]))
-                except:
-                    pass
+            if os.path.isfile(sys.argv[0]):
+                f = open(sys.argv[0], 'r')
+                lines = f.read()
+                f.close()
+            if not author and '__author__' in lines:
+                linespl = lines.splitlines()
+                while linespl[0].find('__author__') == -1:
+                    linespl.pop(0)
+                auth = linespl[0]
+                if len(auth) and '=' in auth:
+                    try:
+                        author = str(eval(auth[auth.find('=')+1 :]))
+                    except:
+                        pass
+            if not version and '__version__' in lines:
+                linespl = lines.splitlines()
+                while linespl[0].find('__version__') == -1:
+                    linespl.pop(0)
+                ver = linespl[0]
+                if len(ver) and ver.find('=') > 0:
+                    try:
+                        version = str(eval(ver[ver.find('=')+1 :]))
+                    except:
+                        pass
 
         if author or verbose:
             self['experimentAuthor'] = author
