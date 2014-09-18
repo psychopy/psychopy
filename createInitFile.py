@@ -88,10 +88,20 @@ def _getGitShaString(dist=None, sha=None):
     """
     shaStr='n/a'
     if dist is not None:
-        #see if we're in a git repo and fetch from there
-        output = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).split()[0]
-        if output:
-            shaStr = output
+        proc = subprocess.Popen('git rev-parse --short HEAD',
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                cwd='.', shell=True)
+        repo_commit, _ = proc.communicate()
+        del proc#to get rid of the background process
+        if repo_commit:
+            shaStr=repo_commit.strip()#remove final linefeed
+        else:
+            shaStr='n/a'
+        #this looks neater but raises errors on win32
+        #        output = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).split()[0]
+        #        if output:
+        #            shaStr = output
     return shaStr
 
 def _getPlatformString(dist=None):
