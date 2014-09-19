@@ -23,11 +23,23 @@ PsychoPy 1.81.00
     * labjack digital outputs can be used as a Parallel Port Component in Builder
     * the screen rendering can now include a warping step to simulate spherical, cylindrical or custom warping (Jay Borseth)
     * the screen now supports 'frame packing' whereby sequential frames can be packed into one, as the red, green and blue channels for monochrome high-rate projectors (Jay Borseth)
+    * ioHub eye tracker interface for GazePoint GP3 (Martin Guest)
+    * ioHub Serial device:
+        * Support for simple fixed width or marker delimited serial rx stream -> device event parsing.
+        * Demo created showing usage with PST Response box added (Richard Höchenberger)
+    * ioHub ioSync device:
+        * Use Teensy 3.0 / 3.1 MCU. Connect via USB 2.0.
+        * 8 / 8 digital inputs / outputs
+        * 8 analog inputs (~12 - 13 bit effective resolution)
+        * 1000 Hz sampling rate for analog and digital inputs.
+        * Keyboard Host support (useful for testing keyboard delay variability from software alone)
 * IMPROVED packaging:
     * can now install on OSX using miniconda/anaconda distribution (Erik Kastman)
     * pyopencv (cv2) added to Standalone as an alternative to avbin
     * PySoundCard and PySoundFile added to Standalone
+    * psutil added to Standalone
     * application is now compatible with wxPython 2.8, 2.9 and 3.0
+* ADDED: MovieStim2 stimulus type. Compared to MovieStim, improved performance and wider range of media encoding support has been reported from testing feedback on all OS's.
 * IMPROVED: stimulus attributes:
     * Nearly all stimulus attributes now support new syntax, e.g. `stim.pos = [0,0]` as well as the previous `stim.setPos([0,0])`. All docs are update to reflect this change.
     * All numeric stimulus attributes now support operations. Use e.g. `stim.pos += [0,0.5]`.
@@ -45,6 +57,13 @@ PsychoPy 1.81.00
     * Almost all displayed text can be translated (Jeremy Gray, Hiroyuki Sogo)
     * A Japanese translation is available (Hiroyuki Sogo)
     * Other translations will be easy to add; see online developer notes on using Poedit
+* IMPROVED: psychopy.ioHub
+    * CHANGED: Keyboard device and events are more user-friendly.
+      Note: This release is not backwards compatible with earlier versions of the ioHub Keyboard device or event data file.
+      Please see documentation for details.
+    * Backend integration between iohub and psychopy continues to improve.
+    * ioHub can now be used in OS X 10.9 with PsychoPy2 Coder. NOTE: Must add Coder app to accessibility list.
+    * Several bug fixes.
 * FIXED: several other minor bugs (that would have given exceptions if encountered). Thanks particularly to Philip Wiesemann for finding several of these
 * FIXED: machines that didn't support shaders or framebuffer objects were raising an error on win.flip() if the useFBO argument was not manually set to False. Machines that don't support the new rendering methods are now handled more gracefully
 
