@@ -19,7 +19,8 @@ import os, sys, time, glob, weakref
 import numpy as np
 import shaders
 from copy import copy
-from psychopy import logging, core , visual
+from psychopy import logging, core, visual
+from psychopy.hardware import serialdevice
 import serial
 import pyglet.gl as GL
 
@@ -276,7 +277,7 @@ class BitsPlusPlus(object):
         elif self.mode[:4]=='bits':
             self._drawLUTtoScreen()
 
-class BitsSharp(BitsPlusPlus):
+class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     """A class to support functions of the Bits#
 
     This device uses the CDC (serial port) connection to the bits box. To use it
@@ -287,30 +288,21 @@ class BitsSharp(BitsPlusPlus):
     On OSX, if you don't specify a port then the first match of /dev/tty.usbmodemfa* will be used
     ON linux, if you don't specify a port then /dev/ttyS0 will be used
     """
+    name='CRS Bits#'
     def __init__(self, win=None, portName=None, mode=''):
-        self.OK=False
-        if portName is not None:
-            self.OK = self._connect(portName)
-        else:
-            if sys.platform == 'darwin':
-                portNames = glob.glob('/dev/tty.usbmodem*')
-                if not portNames:
-                    logging.error("Could not connect to Bits Sharp: No serial ports were found at /dev/tty.usbmodemfa*")
-                    return None
-            elif sys.platform.startswith('linux'):
-                portNames = glob.glob('/dev/ttyS*')
-            else:
-                portNames = ['COM18','COM17','COM16','COM15','COM12','COM11','COM10','COM9','COM8','COM7','COM6','COM5','COM4','COM3','COM2','COM1']
 
-            for portName in portNames:
-                self.OK = self._connect(portName)
-                if self.OK:
-                    break #we have an active BitsSharp device :-)
+        serialdevice.SerialDevice.__init__(self, port=portName, baudrate=19200,
+                 byteSize=8, stopBits=1,
+                 parity="N", #'N'one, 'E'ven, 'O'dd, 'M'ask,
+                 eol='\n',
+                 maxAttempts=1, pauseDuration=0.1,
+                 checkAwake=True)
         if not self.OK:
             return
         #we have a confirmed connection. Now check details about device and system
+        if not hasattr(self, 'info'):
+            self.info = self.getInfo()
         self.config = None
-        self.info = self.getInfo()
         self.mode = mode
         self.win = win
         if self.win is not None:
@@ -327,34 +319,10 @@ class BitsSharp(BitsPlusPlus):
 
     def __del__(self):
         """If the user discards this object then close the serial port so it is released"""
-        if hasattr(self, '_com'):
-            self._com.close()
+        if hasattr(self, 'com'):
+            self.com.close()
 
-    def _connect(self, portName=None):
-        if portName is None:
-            portName = self.portName
-        self._com = serial.Serial(portName)
-        self._com.setBaudrate(19200)
-        self._com.setParity('N')#none
-        self._com.setStopbits(1)
-        if not self._com.isOpen():
-            try:
-                self._com.open()
-            except:
-                return False
-        #we found a device but is it ours?! Test a known command with
-        if self.isActive():
-            self.portName = portName
-            return True
-        else:
-            self.portName = None
-            self._com.close()
-            self._com = None
-            return False
-
-    def isActive(self):
-        """Tests whether we have a successful active communication with the device
-        """
+    def isAwake(self):
         self.info = self.getInfo()
         return len(self.info['ProductType'])>0 #if we got a productType then this is a bits device
 
@@ -466,7 +434,7 @@ class BitsSharp(BitsPlusPlus):
         """
         #define sub-function oneAttempt
         def oneAttempt():
-            self._com.flushInput()
+            self.com.flushInput()
             self.sendMessage('$GetVideoLine=[%i, %i]\r' %(lineN, nPixels))
             #prepare to read
             t0 = time.time()
@@ -486,22 +454,12 @@ class BitsSharp(BitsPlusPlus):
                 return vals
         return None
 
-
-    #helper functions (lower level)
-    def sendMessage(self, msg):
-        """Sends a string message to the BitsSharp. If the user has not ended the
-        string with '\r' this will be added.
-        """
-        if not msg.endswith('\r'):
-            msg += '\r'
-        self._com.write(msg)
-        logging.debug("Sent BitsSharp message: %s" %(repr(msg)))
     def read(self, timeout=0.1):
         """Get the current waiting characters from the serial port if there are any
         """
-        self._com.setTimeout(timeout)
-        nChars = self._com.inWaiting()
-        raw = self._com.read(nChars)
+        self.com.setTimeout(timeout)
+        nChars = self.com.inWaiting()
+        raw = self.com.read(nChars)
         if raw: #don't bother if we found nothing on input
             logging.debug("Got BitsSharp reply: %s" %(repr(raw)))
         return raw
@@ -538,21 +496,23 @@ class BitsSharp(BitsPlusPlus):
                 level=1
                 self._warnTesting()
             else:
+                logging.info("Bits# config matches current system: %s on %s" %(self.config.gfxCard, self.config.os))
                 return 1
         #it didn't so switch to doing the test
         if level==1:
             errs = self.config.testLUT()
-            if errs.sum()>0:
+            if (errs**2).sum() != 0:
                 level=2
+                logging.info("Bits# found a config file but the LUT didn't work as identity. We'll try to find a working one.")
             else:
                 return 1
         if level==2:
             ok = self.config.findIdentityLUT()
             return ok
     def _warnTesting(self):
-        msg = "We need to run some tests on your graphics card (hopefully just once).\n" + \
-            "The BitsSharp will go into status mode while this is done.\n" + \
-            "It can take a minute of two."
+        msg = "We need to run some tests on your graphics card (hopefully just once). " + \
+            "The BitsSharp will go into status mode while this is done. " + \
+            "It can take a minute or two."
         logging.warn(msg)
         logging.flush()
         msgOnScreen = visual.TextStim(self.win, msg)
@@ -643,6 +603,8 @@ class Config(object):
         """
         if self._getGfxCardString() != self.gfxCard:
             logging.warn("The graphics card or it's driver has changed. We'll re-check the identity LUT for the card")
+            print 'stored', self.gfxCard
+            print 'now', self._getGfxCardString()
             return 0
         if self._getOSstring() != self.os:
             logging.warn("The OS has been changed/updated. We'll re-check the identity LUT for the card")
@@ -714,7 +676,7 @@ class Config(object):
                     lowestErr = errs.mean()
                     bestLUTname = LUTname
         if lowestErr==0:
-            print "The %r identity LUT produced zero error. We'll use that!"
+            print "The %r identity LUT produced zero error. We'll use that!" %(LUTname)
             return
 
         print "Best was %r LUT (mean err = %.3f). Optimising that..." %(bestLUTname, lowestErr)
