@@ -1247,7 +1247,49 @@ def importTrialTypes(fileName, returnFieldNames=False):
     logging.warning("importTrialTypes is DEPRECATED (as of v1.70.00). Please use `importConditions` for identical functionality.")
     return importConditions(fileName, returnFieldNames)
 
-def importConditions(fileName, returnFieldNames=False):
+def sliceFromString(sliceString):
+    """Convert a text string into a valid slice object
+    which can be used as indices for a list or array.
+
+    >>> sliceFromString("0:10")
+    slice(0,10,None)
+    >>> sliceFromString("0::3")
+    slice(0,None,3)
+    >>> sliceFromString("-8:")
+    slice(-8,None,None)
+    """
+    sliceArgs = []
+    for val in sliceString.split(':'):
+        if len(val)==0:
+            sliceArgs.append(None)
+        else:
+            sliceArgs.append(int(round(float(val))))
+            #nb int(round(float(x))) is needed for x='4.3'
+    return apply(slice, sliceArgs)
+
+def indicesFromString(indsString):
+    """Convert a text string into a valid list of indices
+    """
+    # "6"
+    try:
+        inds = int(round(float(indsString)))
+        return [inds]
+    except:
+        pass
+    # "-6::2"
+    try:
+        inds = sliceFromString(indsString)
+        return inds
+    except:
+        pass
+    # "1,4,8"
+    try:
+        inds = list(eval(indsString))
+        return inds
+    except:
+        pass
+
+def importConditions(fileName, returnFieldNames=False, indices=""):
     """Imports a list of conditions from an .xlsx, .csv, or .pkl file
 
     The output is suitable as an input to :class:`TrialHandler` `trialTypes` or to
@@ -1265,6 +1307,14 @@ def importConditions(fileName, returnFieldNames=False):
         - be unique
         - begin with a letter (upper or lower case)
         - contain no spaces or other punctuation (underscores are permitted)
+
+
+    `indices` can be a string to be used as a set of condition indices to be used
+    e.g.:
+        "1,2,4"
+        "2:5"       # 2,3,4 (doesn't include last whole value)
+        "-10:2:"    #tenth from last to the last in steps of 2
+        "random(5)*8" #5 random vals 0-8
 
     """
     def _assertValidVarNames(fieldNames, fileName):
@@ -1285,6 +1335,15 @@ def importConditions(fileName, returnFieldNames=False):
         return []
     if not os.path.isfile(fileName):
         raise ImportError('Conditions file not found: %s' %os.path.abspath(fileName))
+
+    if isinstance(indices, basestring) and len(indices)>0:
+        indices = indicesFromString(indices)
+        if not isinstance(indices, slice):
+            for n in indices:
+                try:
+                    assert n == int(n)
+                except:
+                    raise TypeError, "importConditions() was given some `indices` but could not parse them"
 
     if fileName.endswith('.csv'):
         #use csv import library to fetch the fieldNames
@@ -1356,6 +1415,14 @@ def importConditions(fileName, returnFieldNames=False):
                 fieldName = fieldNames[colN]
                 thisTrial[fieldName] = val
             trialList.append(thisTrial)
+    
+    if isinstance(indices,slice):
+        trialList = trialList[indices]
+    elif len(indices)>0:
+        allConds = trialList
+        trialList=[]
+        for ii in indices:
+            trialList.append(allConds[ii])
 
     logging.exp('Imported %s as conditions, %d conditions, %d params' %
                  (fileName, len(trialList), len(fieldNames)))

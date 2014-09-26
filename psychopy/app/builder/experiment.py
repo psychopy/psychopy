@@ -664,11 +664,10 @@ class TrialHandler:
             condsStr="data.importConditions(%s)" %self.params['conditionsFile']
         else:
             # a subset of a conditions file
-            condsStr="data.importConditions(%(conditionsFile)s)[%(Selected rows)s]" %(self.params)
+            condsStr="data.importConditions(%(conditionsFile)s, indices='%(Selected rows)s')" %(self.params)
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         #write the code
-        buff.writeIndentedLines("\n# set up handler to look after randomisation of conditions etc\n")
         buff.writeIndented("%(name)s = data.TrialHandler(nReps=%(nReps)s, method=%(loopType)s, \n" %(inits))
         buff.writeIndented("    extraInfo=expInfo, originPath=%s,\n" %repr(self.exp.expPath))
         buff.writeIndented("    trialList=%s,\n" %(condsStr))
