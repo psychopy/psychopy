@@ -22,6 +22,16 @@ win32_vk = KeyboardConstants._virtualKeyCodes
 
 getTime = Computer.getTime
 
+jdumps = lambda x: str(x)
+try:
+    import ujson
+
+    jdumps = ujson.dumps
+except:
+    import json
+
+    jdumps = json.dumps
+
 # Map key value when numlock is ON
 # to value when numlock is OFF.
 numpad_key_value_mappings = dict(Numpad0 = 'insert',
@@ -181,6 +191,25 @@ class Keyboard(ioHubKeyboardDevice):
 
         return key.lower(), char
 
+    def _evt2json(self, event):
+        return jdumps(dict(Type=event.Type,
+                       Time = event.Time,
+                       KeyID=event.KeyID,
+                       ScanCode=event.ScanCode,
+                       Ascii=event.Ascii,
+                       flags=event.flags,
+                       Key=event.Key,
+                       scroll_state=event.scroll_state,
+                       num_state=event.num_state,
+                       cap_state=event.cap_state))
+
+    def _addEventToTestLog(self, event_data):
+        if self._log_events_file is None:
+            import datetime
+            cdate = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")
+            self._log_events_file = open("win32_events_{0}.log".format(cdate), "w")
+        self._log_events_file.write(self._evt2json(event_data)+'\n')
+
     def _nativeEventCallback(self, event):
         if self.isReportingEvents():
             notifiedTime = getTime()
@@ -210,6 +239,9 @@ class Keyboard(ioHubKeyboardDevice):
             event.scroll_state = pyHook.GetKeyState(win32_vk.VK_SCROLL)
             event.num_state = pyHook.GetKeyState(win32_vk.VK_NUM_LOCK)
             event.cap_state = pyHook.GetKeyState(win32_vk.VK_CAPITAL)
+
+            if self.getConfiguration().get('log_events_for_testing', False):
+                self._addEventToTestLog(event)
 
             self._addNativeEventToBuffer((notifiedTime, event))
         # pyHook require the callback to return True to inform the windows

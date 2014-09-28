@@ -299,10 +299,10 @@ class Keyboard(ioHubDeviceView):
     @property
     def reporting(self):
         """
-        The state of device event reporting.
-        * True:  keyboard events are being reported.
-        * False: keyboard events are not being reported.
-        
+        Specifies if the the keyboard device is reporting / recording events.
+          * True:  keyboard events are being reported.
+          * False: keyboard events are not being reported.
+
         By default, the Keyboard starts reporting events automatically when the
         ioHub process is started and continues to do so until the process is
         stopped.
@@ -322,10 +322,7 @@ class Keyboard(ioHubDeviceView):
     @reporting.setter
     def reporting(self, r):
         """
-        Sets the state of device event monitoring. True indicates that the
-        device should be monitoring and reporting any new events that occur.
-        False indicates that the device should stop monitored for events,
-        so none will be reported.
+        Sets the state of keyboard event reporting / recording.
         """
         self._reporting = self.enableEventReporting(r)
         return self._reporting
