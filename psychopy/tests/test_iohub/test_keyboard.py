@@ -79,10 +79,6 @@ class TestKeyboard:
         kbstate = self.keyboard.state
         assert type(kbstate) is dict
 
-    def test_modifiers(self):
-        kbmodifiers = self.keyboard.modifiers
-        assert type(kbmodifiers) in [list, tuple]
-
     def test_reporting(self):
         reporting_state = self.keyboard.reporting
         assert reporting_state is True

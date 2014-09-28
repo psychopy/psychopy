@@ -373,10 +373,10 @@ class udpServer(DatagramServer):
         return self.iohub.clearEventBuffer()
 
     def enableHighPriority(self,disable_gc=True):
-        Computer.enableHighPriority(disable_gc)
+        return Computer.enableHighPriority(disable_gc)
 
     def disableHighPriority(self):
-        Computer.disableHighPriority()
+        return Computer.disableHighPriority()
 
     def getProcessAffinity(self):
         return Computer.getCurrentProcessAffinity()
