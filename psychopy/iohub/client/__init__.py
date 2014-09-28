@@ -705,7 +705,8 @@ class ioHubConnection(object):
             disable_gc(bool): True = Turn off the Python Garbage Collector. False (Default) = Leave the Garbage Collector running.
         """
 
-        self._sendToHubServer(('RPC','enableHighPriority',(disable_gc,)))
+        r=self._sendToHubServer(('RPC','enableHighPriority',(disable_gc,)))
+        return r[2]
 
     def disableHighPriority(self):
         """
@@ -725,7 +726,8 @@ class ioHubConnection(object):
         Returns:
             None
         """
-        self._sendToHubServer(('RPC','disableHighPriority'))
+        r=self._sendToHubServer(('RPC','disableHighPriority'))
+        return r[2]
 
     def getProcessAffinity(self):
         """
