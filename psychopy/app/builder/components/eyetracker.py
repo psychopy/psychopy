@@ -8,7 +8,7 @@ from psychopy.app.builder.experiment import Param
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'eyetracker.png')
-tooltip = _('Eyetracker: use one of several eyetrackers to follow gaze')
+tooltip = _translate('Eyetracker: use one of several eyetrackers to follow gaze')
 
 class EyetrackerComponent(BaseComponent):
     """A class for using one of several eyetrackers to follow gaze"""
@@ -29,30 +29,30 @@ class EyetrackerComponent(BaseComponent):
 
         #standard params (can ignore)
         self.params['name']=Param(name, valType='code', allowedTypes=[],
-            hint=_("Name of this component (alpha-numeric or _, no spaces)"),
+            hint=_translate("Name of this component (alpha-numeric or _, no spaces)"),
             label="Name")
         self.params['startType']=Param(startType, valType='str',
             allowedVals=['time (s)', 'frame N', 'condition'],
-            hint=_("How do you want to define your start point?"))
+            hint=_translate("How do you want to define your start point?"))
         self.params['stopType']=Param(stopType, valType='str',
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N', 'condition'],
-            hint=_("How do you want to define your end point?"))
+            hint=_translate("How do you want to define your end point?"))
         self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
-            hint=_("When does the component start?"))
+            hint=_translate("When does the component start?"))
         self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_("When does the component end? (blank is endless)"))
+            hint=_translate("When does the component end? (blank is endless)"))
         self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
-            hint=_("(Optional) expected start (s), purely for representing in the timeline"))
+            hint=_translate("(Optional) expected start (s), purely for representing in the timeline"))
         self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
-            hint=_("(Optional) expected duration (s), purely for representing in the timeline"))
+            hint=_translate("(Optional) expected duration (s), purely for representing in the timeline"))
 
         #useful params for the eyetracker - keep to a minimum if possible! ;-)
         self.params['Config file'] = Param(configFile, valType='str',
-            hint=_("How do you want to define your start point?"))
+            hint=_translate("How do you want to define your start point?"))
         self.params['saveState']=Param(save, valType='str',
             allowedVals=['final', 'every frame', 'never'],
-            hint=_("How often should the eyetracker state (x,y,pupilsize...) be stored? On every video frame, every click or just at the end of the Routine?"),
+            hint=_translate("How often should the eyetracker state (x,y,pupilsize...) be stored? On every video frame, every click or just at the end of the Routine?"),
             label="Save eyetracker state")
 
     def writePreWindowCode(self,buff):

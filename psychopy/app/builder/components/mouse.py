@@ -8,12 +8,12 @@ from psychopy.app.builder.experiment import Param
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'mouse.png')
-tooltip = _('Mouse: query mouse position and buttons')
+tooltip = _translate('Mouse: query mouse position and buttons')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'saveMouseState': _('Save mouse state'),
-              'forceEndRoutineOnPress': _('End Routine on press'),
-              'timeRelativeTo': _('Time relative to')
+_localized = {'saveMouseState': _translate('Save mouse state'),
+              'forceEndRoutineOnPress': _translate('End Routine on press'),
+              'timeRelativeTo': _translate('Time relative to')
               }
 
 class MouseComponent(BaseComponent):
@@ -35,16 +35,16 @@ class MouseComponent(BaseComponent):
         #params
         self.params['saveMouseState']=Param(save, valType='str',
             allowedVals=['final','on click', 'every frame', 'never'],
-            hint=_("How often should the mouse state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?"),
+            hint=_translate("How often should the mouse state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?"),
             label=_localized['saveMouseState'])
         self.params['forceEndRoutineOnPress']=Param(forceEndRoutineOnPress, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_("Should a button press force the end of the routine (e.g end the trial)?"),
+            hint=_translate("Should a button press force the end of the routine (e.g end the trial)?"),
             label=_localized['forceEndRoutineOnPress'])
         self.params['timeRelativeTo']=Param(timeRelativeTo, valType='str',
             allowedVals=['experiment','routine'],
             updates='constant', allowedUpdates=[],
-            hint=_("What should the values of mouse.time should be relative to?"),
+            hint=_translate("What should the values of mouse.time should be relative to?"),
             label=_localized['timeRelativeTo'])
     def writeInitCode(self,buff):
         buff.writeIndented("%(name)s = event.Mouse(win=win)\n" %(self.params))

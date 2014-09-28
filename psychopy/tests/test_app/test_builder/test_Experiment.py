@@ -6,7 +6,7 @@ import py_compile
 import difflib
 from tempfile import mkdtemp
 import codecs
-from psychopy import core, tests
+from psychopy import core, tests, data
 import pytest
 import locale
 import wx
@@ -53,6 +53,7 @@ class TestExpt():
     def setup_class(cls):
         # print "D: CREATING THE EXP"
         cls.exp = psychopy.app.builder.experiment.Experiment() # create once, not every test
+        cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
     def setup(self):
         """This setup is done for each test individually
@@ -60,10 +61,10 @@ class TestExpt():
         self.here = path.abspath(path.dirname(__file__))
         self.known_diffs_file   = path.join(self.here, 'known_py_diffs.txt')
         self.tmp_diffs_file     = path.join(self.here, 'tmp_py_diffs.txt') # not deleted by mkdtemp cleanup
-        self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
-    def teardown(self):
-        shutil.rmtree(self.tmp_dir, ignore_errors=True)
+    @classmethod
+    def teardown_class(cls):
+        shutil.rmtree(cls.tmp_dir, ignore_errors=True)
 
     def test_xsd(self):
         # get files
@@ -252,6 +253,46 @@ class TestExpt():
         #assert not diff_in_file_psyexp # was failing most times, uninformative
         #assert not diff_in_file_pyc    # oops, was failing every time despite identical .py file
 
+    def test_future(self):
+        """An experiment file with made-up params and routines to see whether
+        future versions of experiments will get loaded.
+        """
+        expfile = path.join(self.exp.prefsPaths['tests'], 'data', 'futureParams.psyexp')
+        self.exp.loadFromXML(expfile) # reload the edited file
+        script = self.exp.writeScript(expPath=expfile) #we don't test this script but make sure it builds
+        py_file = os.path.join(self.tmp_dir, 'testFutureFile.py')
+        # save the script:
+        f = codecs.open(py_file, 'w', 'utf-8')
+        f.write(script.getvalue())
+        f.close()
+        #check that files compiles too
+        self._checkCompile(py_file)
+
+    def test_loopBlocks(self):
+        """An experiment file with made-up params and routines to see whether
+        future versions of experiments will get loaded.
+        """
+        #load the test experiment (with a stims loop, trials loop and blocks loop)
+        expfile = path.join(self.exp.prefsPaths['tests'], 'data', 'testLoopsBlocks.psyexp')
+        self.exp.loadFromXML(expfile) # reload the edited file
+        #alter the settings so the data goes to our tmp dir
+        datafileBase = os.path.join(self.tmp_dir, 'testLoopsBlocks')
+        self.exp.settings.params['Data filename'].val = repr(datafileBase)
+        #write the script from the experiment
+        script = self.exp.writeScript(expPath=expfile)
+        py_file = os.path.join(self.tmp_dir, 'testLoopBlocks.py')
+        # save it
+        f = codecs.open(py_file, 'w', 'utf-8')
+        f.write(script.getvalue().replace("core.quit()", "pass"))
+        f.write("del thisExp\n") #garbage collect the experiment so files are auto-saved
+        f.close()
+        #run the file (and make sure we return to this location afterwards)
+        wd = os.getcwd()
+        execfile(py_file)
+        os.chdir(wd)
+        #load the data
+        dat = data.importConditions(datafileBase+".csv")
+        assert len(dat)==8 # because 4 'blocks' with 2 trials each (3 stims per trial)
     def test_Run_FastStroopPsyExp(self):
         # start from a psyexp file, loadXML, execute, get keypresses from a emulator thread
 
@@ -348,8 +389,9 @@ class Test_ExptComponents():
     def setup(self):
         # dirs and files:
         pass
-    def teardown(self):
-        shutil.rmtree(self.tmp_dir, ignore_errors=True)
+    @classmethod
+    def teardown_class(cls):
+        shutil.rmtree(cls.tmp_dir, ignore_errors=True)
 
 #    def _send_OK_after(self):
 #        #this is supposed to help with sending button clicks but not working

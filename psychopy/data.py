@@ -248,7 +248,6 @@ class ExperimentHandler(object):
         If `matrixOnly=True` then the file will not contain a header row, which can be handy if you want to append data
         to an existing file of the same format.
         """
-
         #create the file or print to stdout
         if appendFile:
             writeFormat = 'a'
@@ -294,6 +293,7 @@ class ExperimentHandler(object):
                     f.write(delim)
             f.write('\n')
         f.close()
+        print "saved data to %r" %f.name
         self.saveWideText=False
     def saveAsPickle(self,fileName, fileCollisionMethod='rename'):
         """Basically just saves a copy of self (with data) to a pickle file.

@@ -8,10 +8,10 @@ from psychopy.app.builder import components #for getInitVals()
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'movie.png')
-tooltip = _('Movie: play movie files')
+tooltip = _translate('Movie: play movie files')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'movie': _('Movie file'), 'forceEndRoutine': _('Force end of Routine')}
+_localized = {'movie': _translate('Movie file'), 'forceEndRoutine': _translate('Force end of Routine')}
 
 class MovieComponent(VisualComponent):
     """An event class for presenting movie-based stimuli"""
@@ -33,14 +33,14 @@ class MovieComponent(VisualComponent):
         self.order = ['forceEndRoutine']#comes immediately after name and timing params
 
         #params
-        self.params['stopVal'].hint=_("When does the component end? (blank to use the duration of the media)")
+        self.params['stopVal'].hint=_translate("When does the component end? (blank to use the duration of the media)")
         self.params['movie']=Param(movie, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint=_("A filename for the movie (including path)"),
+            hint=_translate("A filename for the movie (including path)"),
             label=_localized['movie'])
         self.params['forceEndRoutine']=Param(forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_("Should the end of the movie cause the end of the routine (e.g. trial)?"),
+            hint=_translate("Should the end of the movie cause the end of the routine (e.g. trial)?"),
             label=_localized['forceEndRoutine'])
         #these are normally added but we don't want them for a movie
         del self.params['color']

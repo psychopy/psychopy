@@ -229,7 +229,8 @@ class Keyboard(ioHubKeyboardDevice):
                 confidence_interval=logged_time-self._last_poll_time
                 delay=0.0
                 iohub_time = logged_time-delay
-
+                char_value = None
+                key_value = None
                 ioe_type = None
                 device_time=Qz.CGEventGetTimestamp(event)*self.DEVICE_TIME_TO_SECONDS
                 key_code = Qz.CGEventGetIntegerValueField(event, Qz.kCGKeyboardEventKeycode)
@@ -254,7 +255,6 @@ class Keyboard(ioHubKeyboardDevice):
                         mod_names.remove('function')
                         ioHubKeyboardDevice._modifier_value-=KeyboardConstants._modifierCodes.getID('function')
 
-                    char_value = None
                     if etype !=  Qz.kCGEventFlagsChanged:
                         char_value = nsEvent.characters()
                         if etype == Qz.kCGEventKeyUp:
@@ -268,28 +268,22 @@ class Keyboard(ioHubKeyboardDevice):
                             ioe_type=EventConstants.KEYBOARD_RELEASE
                     Keyboard._last_mod_names = mod_names
 
-                    char_value2=self._createStringForKey(key_code,key_mods)
-                    if char_value is None:
-                        char_value = char_value2
+                    if char_value is None or fnModifierActive(key_mods):
+                        char_value = self._createStringForKey(key_code,key_mods)
+
+                    if len(char_value) != 1 or unicodedata.category(char_value).lower() == 'cc':
+                        char_value = ''
 
                     key_value=self._createStringForKey(key_code,0)
+                    if len(key_value)==0 or unicodedata.category(key_value).lower() == 'cc':
+                        key_value=code2label.get(key_code, '')
 
-                    if fnModifierActive(key_mods):
-                        tmp = char_value
-                        char_value = char_value2
-                        char_value2 = tmp
-
-                    #print2err("key_str: [{0}], {1}, {2}".format(key_str,len(key_str),type(key_str)))
-                    if len(char_value)==0 or unicodedata.category(char_value) == 'Cc':
-                        char_value=code2label.get(key_code, u'')
-                    if len(char_value2)==0 or unicodedata.category(char_value2) == 'Cc':
-                        char_value2=code2label.get(key_code, u'')
-                    if len(key_value)==0 or unicodedata.category(key_value) == 'Cc':
-                        key_value=code2label.get(key_code, u'')
+                    if key_value == 'tab':
+                        char_value = '\t'
+                    elif key_value == 'return':
+                        char_value = '\n'
 
                     is_auto_repeat= Qz.CGEventGetIntegerValueField(event, Qz.kCGKeyboardEventAutorepeat)
-
-                    #print2err(" Key Event: k=[",key_value,'] : c=[',char_value,'] : c2=[',char_value2,'] : ',mod_names," : ",key_mods," : fn=",fnModifierActive(key_mods)," : np=",keyFromNumpad(key_mods))
 
                     # TODO: CHeck WINDOW BOUNDS
 
@@ -325,7 +319,7 @@ class Keyboard(ioHubKeyboardDevice):
 
                     ioe[12]=key_code # Quartz does not give the scancode, so fill this with keycode
                     ioe[13]=key_code #key_code
-                    ioe[14]=key_code #Alternative char value, need to test with more KBs if / when it should be used.
+                    ioe[14] = 0 #unicode number field no longer used.
                     ioe[15]=key_value
                     ioe[16]=ioHubKeyboardDevice._modifier_value
                     ioe[17]=window_number

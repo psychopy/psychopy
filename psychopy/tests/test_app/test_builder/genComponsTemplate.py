@@ -61,7 +61,7 @@ mismatches = []
 for compName in sorted(allComp):
     comp = allComp[compName](parentName='x', exp=exp)
 
-    order = '%s.order: %s' % (compName, eval("comp.order"))
+    order = '%s.order:%s' % (compName, eval("comp.order"))
     out = [order]
     if '--out' in sys.argv:
         print order.encode('utf8')
@@ -75,7 +75,7 @@ for compName in sorted(allComp):
         mismatches.append(err)
     for parName in comp.params.keys():
         # default is what you get from param.__str__, which returns its value
-        default = '%s.%s.default: %s' % (compName, parName, comp.params[parName])
+        default = '%s.%s.default:%s' % (compName, parName, comp.params[parName])
         out.append(default)
         lineFields = []
         for field in fields:
@@ -83,7 +83,7 @@ for compName in sorted(allComp):
                 continue
                 # ignore b/c never want to change the name *during a running experiment*
                 # the default name.updates value varies across existing components
-            f = '%s.%s.%s: %s' % (compName, parName, field, eval("comp.params[parName].%s" % field))
+            f = '%s.%s.%s:%s' % (compName, parName, field, eval("comp.params[parName].%s" % field))
             lineFields.append(f)
 
         for line in [default] + lineFields:
