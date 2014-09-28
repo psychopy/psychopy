@@ -71,6 +71,8 @@ Keyboard:
     #
     event_buffer_length: 256
 
+    log_events_for_testing: False
+
     # The device manufacturer's name.
     #   It is not used by the ioHub, so is FYI only.
     #

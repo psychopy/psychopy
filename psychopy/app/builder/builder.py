@@ -2885,7 +2885,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
                     text = _translate("No parameters set")
-                ctrls = ParamCtrls(dlg=self, parent=panel, label='conditions',fieldName=fieldName,
+                ctrls = ParamCtrls(dlg=self, parent=panel, label=label, fieldName=fieldName,
                     param=text, noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
                 ctrls.valueCtrl = wx.StaticText(panel, label=text, size=size, style=wx.ALIGN_CENTER)
@@ -2921,13 +2921,21 @@ class DlgLoopProperties(_BaseParamsDlg):
             keys.append('conditions')
         #then step through them
         for fieldName in keys:
+            #try and get alternative "label" for the parameter
+            try:
+                label = handler.params[fieldName].label
+                if not label: #it might exist but be empty
+                    label = fieldName
+            except:
+                label = fieldName
+            #handle special cases
             if fieldName=='endPoints':
                 continue  #this was deprecated in v1.62.00
             if fieldName in self.globalCtrls:
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             elif fieldName=='conditionsFile':
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,fieldName=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=label, fieldName=fieldName,
                     param=handler.params[fieldName], browse=True)
                 self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,ctrls.browseCtrl)
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
@@ -2939,14 +2947,14 @@ class DlgLoopProperties(_BaseParamsDlg):
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
                     text = _translate("No parameters set (select a file above)")
-                ctrls = ParamCtrls(dlg=self, parent=panel, label='conditions',fieldName=fieldName,
+                ctrls = ParamCtrls(dlg=self, parent=panel, label=label, fieldName=fieldName,
                     param=text, noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
                 ctrls.valueCtrl = wx.StaticText(panel, label=text, size=size, style=wx.ALIGN_CENTER)
                 panelSizer.Add(ctrls.valueCtrl, (row, 0), span=(1,3), flag=wx.ALIGN_CENTER)
                 row += 1
             else: #normal text entry field
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,fieldName=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=label, fieldName=fieldName,
                     param=handler.params[fieldName])
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
@@ -2964,13 +2972,21 @@ class DlgLoopProperties(_BaseParamsDlg):
         handler=self.stairHandler
         #loop through the params
         for fieldName in handler.params:
+            #try and get alternative "label" for the parameter
+            try:
+                label = handler.params[fieldName].label
+                if not label: #it might exist but be empty
+                    label = fieldName
+            except:
+                label = fieldName
+            #handle special cases
             if fieldName=='endPoints':
                 continue#this was deprecated in v1.62.00
             if fieldName in self.globalCtrls:
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             else: #normal text entry field
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,fieldName=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=label, fieldName=fieldName,
                     param=handler.params[fieldName])
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])

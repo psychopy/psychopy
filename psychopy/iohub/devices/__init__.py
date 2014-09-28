@@ -258,12 +258,17 @@ class Computer(object):
             if Computer.system=='win32':
                 nice_val = psutil.HIGH_PRIORITY_CLASS
 
-            if disable_gc:
-                gc.disable()
+            try:
+                Computer.current_process.nice(nice_val)
+                Computer.in_high_priority_mode=True
 
-            Computer.current_process.nice(nice_val)
-            Computer.in_high_priority_mode=True
+                if disable_gc:
+                    gc.disable()
 
+            except psutil.AccessDenied:
+                print2err("WARNING: Could not increased priority for process {0}".format(Computer.current_process.pid))
+                return False
+        return True
 
     @staticmethod
     def enableRealTimePriority(disable_gc=True):
@@ -288,11 +293,17 @@ class Computer(object):
             if Computer.system=='win32':
                 nice_val = psutil.REALTIME_PRIORITY_CLASS
 
-            if disable_gc:
-                gc.disable()
+            try:
+                Computer.current_process.nice(nice_val)
+                Computer.in_high_priority_mode=True
 
-            Computer.current_process.nice(nice_val)
-            Computer.in_high_priority_mode=True
+                if disable_gc:
+                    gc.disable()
+
+            except psutil.AccessDenied:
+                print2err("WARNING: Could not increased priority for process {0}".format(Computer.current_process.pid))
+                return False
+        return True
 
     @staticmethod
     def disableRealTimePriority():
@@ -310,7 +321,7 @@ class Computer(object):
         Return: 
             None
         """
-        Computer.disableHighPriority()
+        return Computer.disableHighPriority()
 
     @staticmethod
     def disableHighPriority():
@@ -336,7 +347,9 @@ class Computer(object):
                 Computer.current_process.nice(nice_val)
                 Computer.in_high_priority_mode=False
         except psutil.AccessDenied:
-            print2err("WARNING: Could not disable increased priority for process {0}".format(Computer.currentProcessID))
+            print2err("WARNING: Could not disable increased priority for process {0}".format(Computer.current_process.pid))
+            return False
+        return True
 
     @staticmethod
     def getProcessingUnitCount():

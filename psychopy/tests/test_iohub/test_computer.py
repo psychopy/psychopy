@@ -8,25 +8,7 @@ from psychopy.core import getTime
 @skip_under_travis
 class TestComputer:
     """
-    Keyboard Device tests. Starts iohub server, runs test set, then
-    stops iohub server.
-
-    Since there is no way to currently automate keyboard event generation in
-    a way that would actually test the iohub keyboard event processing logic,
-    each test simply calls one of the device methods / properties and checks
-    that the return type is as expected.
-
-    Each method is called with no args; that should be improved.
-
-    Following methods are not yet tested:
-            addFilter
-            enableFilters
-            getConfiguration
-            getCurrentDeviceState
-            getModifierState
-            removeFilter
-            resetFilter
-            resetState
+    Computer Device tests.
     """
 
     @classmethod
@@ -35,6 +17,7 @@ class TestComputer:
         usually contains tests).
         """
         cls.io = startHubProcess()
+        cls.computer = Computer
 
     @classmethod
     def teardown_class(cls):
@@ -86,21 +69,21 @@ class TestComputer:
         assert psycho_priority == 'normal'
         assert iohub_priority == 'normal'
 
-        Computer.enableHighPriority()
+        priority_change_ok = Computer.enableHighPriority()
         new_psycho_priority = Computer.getProcessPriority(psycho_proc)
-        assert new_psycho_priority == 'high'
+        assert priority_change_ok == False or new_psycho_priority == 'high'
 
-        self.io.enableHighPriority()
+        priority_change_ok = self.io.enableHighPriority()
         new_io_priority = Computer.getProcessPriority(iohub_proc)
-        assert new_io_priority == 'high'
+        assert priority_change_ok == False or new_io_priority == 'high'
 
-        Computer.disableHighPriority()
+        priority_change_ok = Computer.disableHighPriority()
         new_psycho_priority = Computer.getProcessPriority(psycho_proc)
-        assert new_psycho_priority == 'normal'
+        assert priority_change_ok == False or new_psycho_priority == 'normal'
 
-        self.io.disableHighPriority()
+        priority_change_ok = self.io.disableHighPriority()
         new_io_priority = Computer.getProcessPriority(iohub_proc)
-        assert new_io_priority == 'normal'
+        assert priority_change_ok == False or new_io_priority == 'normal'
 
     @skip_not_completed
     def test_procAffinity(self):

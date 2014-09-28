@@ -52,7 +52,7 @@ from Xlib.protocol import rq
 from .. import print2err
 from ..devices import Computer
 from ..constants import EventConstants, MouseConstants, ModifierKeyCodes
-
+import xlib as _xlib
 
 jdumps = lambda x: str(x)
 try:
@@ -108,8 +108,6 @@ def event2json(event):
                        event_y=event.event_y,
                        state=event.state,
                        detail=event.detail))
-
-from pyglet.libs.x11 import xlib as _xlib
 
 #xlib modifier constants to iohub str constants
 key_mappings = {'num_lock': 'numlock',
