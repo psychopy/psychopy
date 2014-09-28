@@ -43,11 +43,14 @@ class ioHubKeyboardDevice(Device):
     DEVICE_TYPE_ID=DeviceConstants.KEYBOARD
     DEVICE_TYPE_STRING='KEYBOARD'
     _modifier_value=0
-    __slots__=['_key_states','_modifier_states','_report_auto_repeats']
+    __slots__=['_key_states','_modifier_states','_report_auto_repeats','_log_events_file']
     def __init__(self,*args,**kwargs):
         self._key_states=dict()
         self._modifier_states=dict(zip(ModifierKeyCodes._mod_names,[False]*len(ModifierKeyCodes._mod_names)))
         self._report_auto_repeats=kwargs.get('report_auto_repeat_press_events',False)
+
+        self._log_events_file = None
+
         Device.__init__(self,*args,**kwargs)
 
     @classmethod
@@ -57,6 +60,9 @@ class ioHubKeyboardDevice(Device):
     def resetState(self):
         Device.clearEvents()
         self._key_states.clear()
+
+    def _addEventToTestLog(self,event_data):
+        print2err("Keyboard._addEventToTestLog must be implemented by platform specific Keyboard type.")
 
     def _updateKeyboardEventState(self, kb_event, is_press):
         key_id_index=KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key_id')
@@ -85,6 +91,13 @@ class ioHubKeyboardDevice(Device):
         dstate['modifiers'] = mods
         dstate['pressed_keys'] = presses
         return dstate
+
+
+    def _close(self):
+        if self._log_events_file:
+            self._log_events_file.close()
+            self._log_events_file = None
+        Device._close(self)
 
 if Computer.system == 'win32':
     from win32 import Keyboard

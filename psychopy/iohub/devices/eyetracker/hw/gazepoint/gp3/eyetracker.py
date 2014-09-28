@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
-"""
-ioHub
-Common Eye Tracker Interface for the GazePoint GP3 system.
-.. file: ioHub/devices/eyetracker/hw/gazepoint/gp3/eyetracker.py
-
-Distributed under the terms of the GNU General Public License
-(GPL version 3 or any later version).
-
-.. moduleauthor:: ????
-.. fileauthor:: ???
-"""
+# ioHub Python Module
+# .. file: psychopy/iohub/devices/eyetracker/hw/gazepoint/gp3/eyetracker.py
+#
+# .. fileauthor:: Martin Guest Sol Simpson
+#
+# Distributed under the terms of the GNU General Public License
+# (GPL version 3 or any later version).
+#
+#
 
 import numpy as np 
 from ...... import print2err,printExceptionDetailsToStdErr
@@ -59,12 +57,42 @@ def to_numeric(lit):
 
 class EyeTracker(EyeTrackerDevice):
     """
-    TheEyeTribe implementation of the Common Eye Tracker Interface can be used
-    by providing the following EyeTracker path as the device class in 
-    the iohub_config.yaml device settings file:
+    The Gazepoint GP3 implementation of the Common Eye Tracker Interface can be
+    used by providing the following EyeTracker class path as the eye tracker
+    device name in the iohub_config.yaml device settings file::
         
-        eyetracker.hw.theeyetribe.EyeTracker
-        
+        eyetracker.hw.gazepoint.gp3.EyeTracker
+
+    .. note:: The Gazepoint control application **must** be running
+              while using this interface.
+
+    The Gazepoint GP3 interface supports:
+    * connection / disconnection to the GP3 device.
+    * Starting / stopping when eye position data is collected.
+    * Sending text messages to the GP3 system.
+    * current gaze position information, using the FPOGX, FPOGY fields from
+      the most receint REC message received from the GP3
+    * Generation of the BinocularEyeSampleEvent type based on the GP3 REC
+      message type. The following fields of an eye sample event are populated
+      populated:
+        * device_time: uses TIME field of the REC message
+        * logged_time: the time the REC message was received / read.
+        * time: currently set to equal the time the REC message was received.
+        * left_gaze_x: uses LFOGX
+        * left_gaze_y: uses LFOGY
+        * right_gaze_x: uses RFOGX
+        * right_gaze_y: uses
+
+    The Gazepoint GP3 interface uses a polling method to check for new eye
+    tracker data. The default polling interval is 5 msec. This can be changed
+    in the device's configuration settings for the experiment if needed.
+
+    The following functionality has not yet been implemented in the ioHub GP3
+    interface:
+    * Built-in calibration graphics
+    * Storing pupil size data within the sample events
+    * Calculation of the REC event delay in ioHub. Therefore the event time
+      stamps should not be considered msec accurate.
     """
 
     # GP3 tracker times are received as msec
@@ -73,10 +101,6 @@ class EyeTracker(EyeTrackerDevice):
     EVENT_CLASS_NAMES=['MonocularEyeSampleEvent','BinocularEyeSampleEvent','FixationStartEvent',
                          'FixationEndEvent', 'SaccadeStartEvent', 'SaccadeEndEvent',
                          'BlinkStartEvent', 'BlinkEndEvent']
-
-    # Set in the __init__ to to be the instance of the pyTribe.TheEyeTribe
-    # interface.
-
     _recording=False
     __slots__=['_gp3','_rx_buffer']
     #_hpb=None
@@ -104,7 +128,9 @@ class EyeTracker(EyeTrackerDevice):
         
     def trackerTime(self):
         """
-        Current eye tracker time in the eye tracker's native time base. 
+        TO DO: Method not implemented in GP3 interface.
+
+        Current eye tracker time in the eye tracker's native time base.
         The TET system uses a usec timebase.
         
         Args: 
@@ -121,6 +147,8 @@ class EyeTracker(EyeTrackerDevice):
         
     def trackerSec(self):
         """
+        TO DO: Method not implemented in GP3 interface.
+
         Current eye tracker time, normalized to sec.msec format.
 
         Args: 
@@ -174,7 +202,10 @@ class EyeTracker(EyeTrackerDevice):
                         msg = dict(type=msgtoks[0])
                         for t in msgtoks[1:]:
                             tkey, tval = t.split("=")
-                            msg[tkey]=to_numeric(tval.strip('"'))
+                            try:
+                                msg[tkey]=to_numeric(tval.strip('"'))
+                            except:
+                                msg[tkey] = tval
                         msgs.append(msg)
                 else:
                     print2err("Incomplete Message Found: [",msgtxt,']')
@@ -185,11 +216,11 @@ class EyeTracker(EyeTrackerDevice):
 
     def setConnectionState(self, enable):
         """
-        setConnectionState is a no-op when using the TET system, as the
-        connection is established when the TheEyeTribe EyeTracker class is created,
-        and remains active until the program ends, or a error occurs resulting
-        in the loss of the tracker connection.
+        Connects or disconnects from the GP3 eye tracking hardware.
 
+        By default, when ioHub is started, a connection is automatically made,
+        and when the experiment completes and ioHub is closed, so is the GP3
+        connection.
         Args:
             enable (bool): True = enable the connection, False = disable the connection.
 
@@ -215,8 +246,6 @@ class EyeTracker(EyeTrackerDevice):
                 init_connection_str+='<SET ID="ENABLE_SEND_TIME" STATE="1" />\r\n'
                 init_connection_str+='<SET ID="ENABLE_SEND_TIME_TICK" STATE="1" />\r\n'
                 self._gp3.sendall(str.encode(init_connection_str))
-#               self._gp3.send(str.encode('<SET ID="ENABLE_SEND_POG_BEST" STATE="1" />\r\n'))
-#               self._gp3.send(str.encode('<SET ID="ENABLE_SEND_USER_DATA" />\r\n'))
                 # block for upp to 1 second to get reply txt.
                 strStatus = self._checkForNetData(1.0)
                 if strStatus:
@@ -244,7 +273,7 @@ class EyeTracker(EyeTrackerDevice):
         
     def isConnected(self):
         """
-        isConnected returns whether the TheEyeTribe is connected to the experiment PC
+        isConnected returns whether the GP3 is connected to the experiment PC
         and if the tracker state is valid. Returns True if the tracker can be 
         put into Record mode, etc and False if there is an error with the tracker
         or tracker connection with the experiment PC.
@@ -272,43 +301,6 @@ class EyeTracker(EyeTrackerDevice):
             print2err('Problems sending message: {0}'.FORMAT(message_contents))
             printExceptionDetailsToStdErr()
         return EyeTrackerConstants.EYETRACKER_OK
-
-    def sendCommand(self, key, value=None):
-        """
-        The sendCommand method is not supported by the TheEyeTribe Common Eye Tracker
-        Interface.
-        """
-        
-        # TODO TET Implementation, NOT part of common API methods ever used
-        return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
-
-#    def runSetupProcedure(self,starting_state=EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE):
-#        """
-#        runSetupProcedure performs a calibration routine for the TheEyeTribe
-#        eye tracking system.
-#        
-#        Result:
-#            bool: True if setup / calibration procedure passed, False otherwise. If false, should likely exit experiment.
-#        """
-#        try:
-#            calibration_properties=self.getConfiguration().get('calibration')
-#            screenColor=calibration_properties.get('screen_background_color')
-#            # [r,g,b] of screen
-#
-#            #genv=TETPsychopyCalibrationGraphics(self,screenColor=screenColor)
-#
-#            #calibrationOK=genv.runCalibration()
-#            #genv.window.close()
-#            
-#            #genv._unregisterEventMonitors()
-#            #genv.clearAllEventBuffers()
-#            
-#            return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
-#            
-#        except:
-#            print2err("Error during runSetupProcedure")
-#            printExceptionDetailsToStdErr()
-#        return EyeTrackerConstants.EYETRACKER_ERROR
 
     def enableEventReporting(self,enabled=True):
         """
@@ -381,7 +373,7 @@ class EyeTracker(EyeTrackerDevice):
 
     def _poll(self):
         """
-        This method is called by gp3 every n msec based on the polling  interval
+        This method is called by gp3 every n msec based on the polling interval
         set in the eye tracker config. Default is 5 msec
         """
         try:
@@ -405,14 +397,7 @@ class EyeTracker(EyeTrackerDevice):
             for m in msgs:
                 if m.get('type') == 'REC':
                     # Always tracks binoc, so always use BINOCULAR_EYE_SAMPLE
-                    #print2err("REC MSG: ",m)
                     event_type=EventConstants.BINOCULAR_EYE_SAMPLE
-
-                    # <REC TIME="2.123" TIME_TICK="79876879598675" FPOGX="0.00000"
-                    # FPOGY="0.00000" FPOGS="0.00000"
-                    # FPOGD="0.44469" FPOGID="0" FPOGV="0" CX="0.53281"
-                    # CY="0.59082" CS="0" />
-                    #data = incomingData.split('"')
 
                     event_timestamp = m.get('TIME',EyeTrackerConstants.UNDEFINED) #in seconds, take from the REC TIME field
 

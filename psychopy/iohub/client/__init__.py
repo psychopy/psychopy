@@ -221,90 +221,7 @@ class ioHubConnection(object):
     instances that have been created so that events from the device can be
     monitored. These device objects can be accessed via the ioHubConnection
     .devices attribute, providing 'dot name' attribute access, or by using the
-    .deviceByLabel dictionary attribute; which stores the device names as keys, and
-    the PsychoPy Process represention of the ioHub Device as the values.
-
-    For example, to print the available methods for each device registered with
-    the ioHub Process, assuming *hub* refers to the ioHubConnection instance::
-
-        for device_name,device_access in hub.deviceByLabel.iteritems():
-            print 'Device Name: ',device_name
-            print 'Device Interface:'
-            for method in device_access.getDeviceInterface():
-                print '\t',method
-                print "--------------"
-
-        # Will return the following assuming only default devices were created:
-
-        Device Name:  keyboard
-        Device Interface:
-        	clearEvents
-        	enableEventReporting
-        	getConfiguration
-        	getEvents
-        	isReportingEvents
-        --------------
-        Device Name:  mouse
-        Device Interface:
-        	clearEvents
-        	enableEventReporting
-        	getConfiguration
-        	getCurrentButtonStates
-        	getDisplayIndex
-        	getDisplayIndexForMousePosition
-        	getEvents
-        	getPosition
-        	getPositionAndDelta
-        	getScroll
-        	getSystemCursorVisibility
-        	getlockedMouseDisplayID
-        	isReportingEvents
-        	lockMouseToDisplayID
-        	setPosition
-        	setScroll
-        	setSystemCursorVisibility
-        --------------
-        Device Name:  display
-        Device Interface:
-        	clearEvents
-        	enableEventReporting
-        	getDisplayCount
-        	getConfiguration
-        	getCoordBounds
-        	getCoordinateType
-        	getDefaultEyeDistance
-        	getDeviceNumber
-        	getDisplayIndexForNativePixelPosition
-        	getEvents
-        	getIndex
-        	getOrigin
-        	getPhysicalDimensions
-        	getPixelResolution
-        	getPixelsPerDegree
-        	getPsychopyMonitorName
-        	getRetraceInterval
-        	getRuntimeInfo
-        	isReportingEvents
-
-        --------------
-        Device Name:  experiment
-        Device Interface:
-        	clearEvents
-        	critical
-        	data
-        	debug
-        	enableEventReporting
-        	error
-        	exp
-        	fatal
-        	getConfiguration
-        	getEvents
-        	info
-        	isReportingEvents
-        	log
-        	warn
-        	warning
-        --------------
+    .deviceByLabel dictionary attribute; which stores the device names as keys,
 
     Using the .devices attribute is handy if you know the name of the device to be
     accessed and you are sure it is actually enabled on the ioHub Process.
@@ -404,54 +321,6 @@ class ioHubConnection(object):
             device (ioHubDeviceView) : the PsychoPy Process represention for the device that matches the name provided.
         """
         return self.deviceByLabel.get(deviceName,None)
-
-    def getSessionID(self):
-        return self.experimentSessionID
-
-    def getSessionMetaData(self):
-        """
-        Returns a dict representing the experiment session data that is being
-        used for the current ioHub Experiment Session. Changing values in the
-        dict has no effect on the session data that has already been saved to
-        the ioHub DataStore.
-
-        Args:
-            None
-
-        Returns:
-            dict: Experiment Session metadata saved to the ioHub DataStore. None if the ioHub DataStore is not enabled.
-        """
-        return self._sessionMetaData
-
-    def getExperimentID(self):
-        return self.experimentID
-
-    def getExperimentMetaData(self):
-        """
-        Returns a dict representing the experiment data that is being
-        used for the current ioHub Experiment.
-
-        Args:
-            None
-
-        Returns:
-            dict: Experiment metadata saved to the ioHub DataStore. None if the ioHub DataStore is not enabled.
-        """
-        return self._experimentMetaData
-
-    def getHubServerConfig(self):
-        """
-        Returns a dict containing the ioHub Server configuration that is being
-        used for the current ioHub experiment.
-
-        Args:
-            None
-
-        Returns:
-            dict: ioHub Server configuration.
-        """
-
-        return self._iohub_server_config
 
     def getEvents(self, device_label=None, as_type ='namedtuple'):
         """
@@ -555,6 +424,79 @@ class ioHubConnection(object):
                 return True
             return False
 
+    def sendMessageEvent(self,text,category='',offset=0.0,sec_time=None):
+        """
+        Create and send an Experiment MessageEvent to the ioHub Server Process
+        for storage with the rest of the event data being recorded in the ioDataStore.
+
+        .. note::
+            MessageEvents can be thought of as DeviceEvents from the virtual PsychoPy
+            Process "Device".
+
+        Args:
+            text (str): The text message for the message event. Can be up to 128 characters in length.
+
+            category (str): A 0 - 32 character grouping code for the message that can be used to sort or group messages by 'types' during post hoc analysis.
+
+            offset (float): The sec.msec offset to apply to the time stamp of the message event. If you send the event before or after the time the event actually occurred, and you know what the offset value is, you can provide it here and it will be applied to the ioHub time stamp for the MessageEvent.
+
+            sec_time (float): The time stamp to use for the message in sec.msec format. If not provided, or None, then the MessageEvent is time stamped when this method is called using the global timer.
+
+        Returns:
+            bool: True
+        """
+        self._sendToHubServer(('EXP_DEVICE','EVENT_TX',[MessageEvent._createAsList(text,category=category,msg_offset=offset,sec_time=sec_time),]))
+        return True
+
+    def getHubServerConfig(self):
+        """
+        Returns a dict containing the ioHub Server configuration that is being
+        used for the current ioHub experiment.
+
+        Args:
+            None
+
+        Returns:
+            dict: ioHub Server configuration.
+        """
+
+        return self._iohub_server_config
+
+
+    def getSessionID(self):
+        return self.experimentSessionID
+
+    def getSessionMetaData(self):
+        """
+        Returns a dict representing the experiment session data that is being
+        used for the current ioHub Experiment Session. Changing values in the
+        dict has no effect on the session data that has already been saved to
+        the ioHub DataStore.
+
+        Args:
+            None
+
+        Returns:
+            dict: Experiment Session metadata saved to the ioHub DataStore. None if the ioHub DataStore is not enabled.
+        """
+        return self._sessionMetaData
+
+    def getExperimentID(self):
+        return self.experimentID
+
+    def getExperimentMetaData(self):
+        """
+        Returns a dict representing the experiment data that is being
+        used for the current ioHub Experiment.
+
+        Args:
+            None
+
+        Returns:
+            dict: Experiment metadata saved to the ioHub DataStore. None if the ioHub DataStore is not enabled.
+        """
+        return self._experimentMetaData
+
     def wait(self,delay,check_hub_interval=0.02):
         """
         Pause the experiment script execution for a duration equal to the
@@ -615,84 +557,44 @@ class ioHubConnection(object):
 
         return Computer.currentTime()-stime
 
-    def sendMessageEvent(self,text,category='',offset=0.0,sec_time=None):
+    def createTrialHandlerRecordTable(self, trials):
         """
-        Create and send an Experiment MessageEvent to the ioHub Server Process
-        for storage with the rest of the event data being recorded in the ioDataStore.
+        Create a condition variable table in the ioHub data file based on
+        the a psychopy TrialHandler. By doing so, the iohub data file
+        can contain the DV and IV values used for each trial of an experiment
+        session, along with all the iohub device events recorded by iohub
+        during the session. Example psychopy code usage::
 
-        .. note::
-            MessageEvents can be thought of as DeviceEvents from the virtual PsychoPy
-            Process "Device".
-
-        Args:
-            text (str): The text message for the message event. Can be up to 128 characters in length.
-
-            category (str): A 0 - 32 character grouping code for the message that can be used to sort or group messages by 'types' during post hoc analysis.
-
-            offset (float): The sec.msec offset to apply to the time stamp of the message event. If you send the event before or after the time the event actually occurred, and you know what the offset value is, you can provide it here and it will be applied to the ioHub time stamp for the MessageEvent.
-
-            sec_time (float): The time stamp to use for the message in sec.msec format. If not provided, or None, then the MessageEvent is time stamped when this method is called using the global timer.
-
-        Returns:
-            bool: True
-        """
-        self._sendToHubServer(('EXP_DEVICE','EVENT_TX',[MessageEvent._createAsList(text,category=category,msg_offset=offset,sec_time=sec_time),]))
-        return True
-
-    def initializeConditionVariableTable(self, condition_variable_provider):
-        """
-        Create a condition variable table in the ioDataStore (in the class_table_mapping
-        group) when utilizing the iohub.util.ExperimentVariableProvider class in the
-        experiment handling script. Each Dependent and Independent variable defined by the
-        condition_variable_provider instance results in a column created in the ioDataStore
-        for the experiment.
-
-        Column names match the condition variable names defined for the ExperimentVariableProvider.
-
-        Args:
-            condition_variable_provider: The ExperimentVariableProvider class instance that you have created for use during the experiment.
-
-        Returns:
-            None
-        """
-        r=self._sendToHubServer(('RPC','initializeConditionVariableTable',(self.experimentID,self.experimentSessionID,condition_variable_provider._numpyConditionVariableDescriptor)))
-        return r[2]
-
-    def createTrialHandlerRecordTable(self,trials):
-        """
-        This method allow the use of psychopy TrialHandler's with
-        the ioDataStore Experiment Conditions table.
-
-        Example psychopy code usage:
-
-            # to load a trial handler and
-            # create an associated ioDataStore Table
+            # Load a trial handler and
+            # create an associated table in the iohub data file
             #
             from psychopy.data import TrialHandler,importConditions
+
             exp_conditions=importConditions('trial_conditions.xlsx')
             trials = TrialHandler(exp_conditions,1)
 
-            # then pass the trial object to this method..
+            # Inform the ioHub server about the TrialHandler
             #
-            self.createTrialHandlerRecordTable(trials)
+            io.createTrialHandlerRecordTable(trials)
 
-            #to read each row of the trial handler
+            # Read a row of the trial handler for
+            # each trial of your experiment
             #
             for trial in trials:
                 # do whatever...
-                pass
 
-            # during the trial, trial variable values can be updated
+
+            # During the trial, trial variable values can be updated
             #
             trial['TRIAL_START']=flip_time
 
             # At the end of each trial, before getting
             # the next trial handler row, send the trial
-            # variable states to the ioDataStore
+            # variable states to iohub so they can be stored for future
+            # reference.
             #
-            self.addTrialHandlerRecord(trial.values())
+            io.addTrialHandlerRecord(trial.values())
 
-        TODO: Base str field lengths on max str length found in trial data.
         """
         trial=trials.trialList[0]
         numpy_trial_condition_types=[]
@@ -714,6 +616,35 @@ class ioHubConnection(object):
 
         self.initializeConditionVariableTable(ConditionVariableDescription)
 
+    def addTrialHandlerRecord(self,cv_row):
+        """
+        Adds the values from a TriaHandler row / record to the iohub data file
+        for future data analysis use.
+
+        :param cv_row:
+        :return: None
+        """
+        self.addRowToConditionVariableTable(cv_row)
+
+    def initializeConditionVariableTable(self, condition_variable_provider):
+        """
+        Create a condition variable table in the ioDataStore (in the class_table_mapping
+        group) when utilizing the iohub.util.ExperimentVariableProvider class in the
+        experiment handling script. Each Dependent and Independent variable defined by the
+        condition_variable_provider instance results in a column created in the ioDataStore
+        for the experiment.
+
+        Column names match the condition variable names defined for the ExperimentVariableProvider.
+
+        Args:
+            condition_variable_provider: The ExperimentVariableProvider class instance that you have created for use during the experiment.
+
+        Returns:
+            None
+        """
+        r=self._sendToHubServer(('RPC','initializeConditionVariableTable',(self.experimentID,self.experimentSessionID,condition_variable_provider._numpyConditionVariableDescriptor)))
+        return r[2]
+
     def addRowToConditionVariableTable(self,data):
         """
         Add a row to the condition variable table for the current
@@ -734,9 +665,6 @@ class ioHubConnection(object):
                 data[i]=d.encode('utf-8')
         r=self._sendToHubServer(('RPC','addRowToConditionVariableTable',(self.experimentID,self.experimentSessionID,data)))
         return r[2]
-
-    def addTrialHandlerRecord(self,cv_row):
-        self.addRowToConditionVariableTable(cv_row)
 
     def registerPygletWindowHandles(self,*winHandles):
         """
@@ -777,7 +705,8 @@ class ioHubConnection(object):
             disable_gc(bool): True = Turn off the Python Garbage Collector. False (Default) = Leave the Garbage Collector running.
         """
 
-        self._sendToHubServer(('RPC','enableHighPriority',(disable_gc,)))
+        r=self._sendToHubServer(('RPC','enableHighPriority',(disable_gc,)))
+        return r[2]
 
     def disableHighPriority(self):
         """
@@ -797,7 +726,8 @@ class ioHubConnection(object):
         Returns:
             None
         """
-        self._sendToHubServer(('RPC','disableHighPriority'))
+        r=self._sendToHubServer(('RPC','disableHighPriority'))
+        return r[2]
 
     def getProcessAffinity(self):
         """
@@ -1437,143 +1367,41 @@ class ioHubConnection(object):
         except:
             pass
 
-
-#quickConnect
-#TODO: Test launchHubServer with diff arg inputs and new iohub_config_name kwarg.
 def launchHubServer(**kwargs):
     """
-    The launchHubServer function can be used to start the ioHub Process
-    without the need to create experiment or iohub (.yaml) configuration files.
+    The launchHubServer function is used to start the ioHub Process
+    by the main psychopy experiment script.
 
-    All values passed to the launchHubServer method must be kwarg inputs.
+    To use ioHub for keyboard and mouse event reporting only, simply use
+    the function in a way similar to the following::
 
-    Valid keyword args that the launchHubServer function will process are:
+        from psychopy.iohub import launchHubServer
 
-    * experiment_code: The label being used for the experiment being run.
-    * session_code: A unique session code for the current run of the experiment.
-    * psychopy_monitor_name: The name of the PsychoPy Monitor settings file that should be used to define physical characteristics of the ioHub Display device being created.
-    * iohub_config_name: A string providing the absolute path and file name of an iohub_config yaml file to load and use for configuring monitored devices. Any other device name kwargs are ignored.
-    * Any valid ioHub Device class names: Each class name would be given as a kwarg label, and the value of the kwarg must be a dict object containing the Device Configuration Settings that need to be changed from ioHub Device type defaults.
-
-    Device class name kwarg value dictionaries must be properly formatted and contain valid
-    configuration settings for the device in question.For details on Device Configuration
-    Settings please see the Configuration Files and Dictionary Section of the documentation.
-
-    If experiment_code is not provided, regardless of the session_code,
-    then the ioHub DataStore will not be enabled for the experiment session and
-    no events will be saved by the ioHub Process. Events will still be sent to
-    the PsychoPy Process when request ofcourse.
-
-    If experiment_code is provided, but session_code is not, then it is assumed you would like
-    an autogenerated session code to be created for the session. The session code
-    will be based on the current system time, using the format 'S_%Y_%b_%d_%H%M';
-    i.e. if the current time is 1:23 pm on May 30th, 2012, then the
-    session_code created will be 'S_2012_05_30_1323'.
-
-    If the psychopy_monitor_name kwarg is not provided or is None, then a PsychoPy
-    Monitor Configuration file will be created, or updated, using the default settings
-    for the ioHub Display Device. If a valid psychopy_monitor_name value is provided,
-    and no Display kwarg is provided specifying ioHub Display Configuration values to use,
-    then the physical size of the ioHub Display, as well as the eye to Display distance,
-    are set to match those foundin the PsychoPy Monitor Configuration associated
-    with the name given by psychopy_monitor_name.
-
-    A couple examples will help clarify how this function can be used. The examples
-    all assume that the following python code  has already been entered into the
-    python script::
-
-        # -*- coding: utf-8 -*-
-        #
-        ## Testing the iohub.client.launchHubServer function.
-        #
-
-        from iohub.client import launchHubServer
-
-        # End of common script header code for these examples.
-
-    The first example can be used to create and connect to the ioHub Process,
-    with the ioDataStore disabled, using only default device configuration
-    settings::
-
+        # Start the ioHub process. The return variable is what is used
+        # during the experiment to control the iohub process itself,
+        # as well as any running iohub devices.
         io=launchHubServer()
 
+        # By default, ioHub will create Keyboard and Mouse devices and
+        # start monitoring for any events from these devices only.
         keyboard=io.devices.keyboard
+        mouse=io.devices.mouse
+
+        # As a simple example, use the keyboard to have the experiment
+        # wait until a key is pressed.
 
         print "Press any Key to Exit Example....."
 
-        while not keyboard.getEvents():
-            io.wait(0.25)
+        keys = keyboard.waitForKeys()
 
-        print "A Keyboard Event was Detected; exiting Test."
+        print "Key press detected, exiting experiment."
 
-        io.quit()
+    launchHubServer() accepts several kwarg inputs, which can be used when
+    more complex device types are being used in the experiment. Examples
+    are eye tracker and analog input devices.
 
-    Next, lets create a simple example that ensures the ioHub Display Device
-    that is created uses the psychopy monitor configuration file name
-    set by psychopy_monitor_name (assuming it is a valid psychopy monitor configuration).
-    The ioHub DataStore is still disabled.::
-
-        io=launchHubServer(psychopy_monitor_name='testMonitor')
-
-        display=io.devices.display
-
-        print 'Display Psychopy Monitor Name: ', display.getPsychopyMonitorName()
-        print 'Display Default Eye Distance: ', display.getDefaultEyeDistance()
-        print 'Display Physical Dimensions: ', display.getPhysicalDimensions()
-
-        io.quit()
-
-    Next, an example that adds the kwargs necessary to enable the ioHub DataStore
-    using an experiment_code and session_code specified by the script.::
-
-        import time
-
-        psychopy_mon_name='testMonitor'
-        exp_code='gap_endo_que'
-        sess_code='S_{0}'.format(long(time.mktime(time.localtime())))
-        print 'Current Session Code will be: ', sess_code
-
-        io=launchHubServer(psychopy_monitor_name=psychopy_mon_name, experiment_code=exp_code, session_code=sess_code)
-
-        display=io.devices.display
-
-        print 'Display Psychopy Monitor Name: ', display.getPsychopyMonitorName()
-        print 'Display Default Eye Distance: ', display.getDefaultEyeDistance()
-        print 'Display Physical Dimensions: ', display.getPhysicalDimensions()
-
-        from pprint import pprint
-
-        print 'Experiment Metadata: '
-        pprint(io.getExperimentMetaData())
-        print 'Session Metadata: '
-        pprint(io.getSessionMetaData())
-
-        io.quit()
-
-    Finally, an example that only provides the experiment_code so the ioHub DataStore
-    is enabled using an auto generated session_code.::
-
-        psychopy_mon_name='testMonitor'
-        exp_code='gap_endo_que'
-        io=launchHubServer(psychopy_monitor_name=psychopy_mon_name, experiment_code=exp_code)
-
-        display=io.devices.display
-
-        print 'Display Psychopy Monitor Name: ', display.getPsychopyMonitorName()
-        print 'Display Default Eye Distance: ', display.getDefaultEyeDistance()
-        print 'Display Physical Dimensions: ', display.getPhysicalDimensions()
-
-        from pprint import pprint
-
-        print 'Experiment Metadata: '
-        pprint(io.getExperimentMetaData())
-        print 'Session Metadata: '
-        pprint(io.getSessionMetaData())
-
-        io.quit()
-
-
-    The source code for all the above little examples is in the examples/manual/launchHubServer folder.
+    Please see the psychopy/demos/coder/iohub/launchHub.py demo for examples
+    of different ways to use the launchHubServer function.
     """
     experiment_code=kwargs.get('experiment_code',-1)
     if experiment_code != -1:
