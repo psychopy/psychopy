@@ -1289,7 +1289,7 @@ def indicesFromString(indsString):
     except:
         pass
 
-def importConditions(fileName, returnFieldNames=False, indices=""):
+def importConditions(fileName, returnFieldNames=False, selection=""):
     """Imports a list of conditions from an .xlsx, .csv, or .pkl file
 
     The output is suitable as an input to :class:`TrialHandler` `trialTypes` or to
@@ -1309,12 +1309,15 @@ def importConditions(fileName, returnFieldNames=False, indices=""):
         - contain no spaces or other punctuation (underscores are permitted)
 
 
-    `indices` can be a string to be used as a set of condition indices to be used
+    `selection` is used to select a subset of condition indices to be used
+    It can be a list/array of indices, a python `slice` object or a string to
+    be parsed as either option.
     e.g.:
-        "1,2,4"
+        "1,2,4" or [1,2,4] or (1,2,4) are the same
         "2:5"       # 2,3,4 (doesn't include last whole value)
         "-10:2:"    #tenth from last to the last in steps of 2
-        "random(5)*8" #5 random vals 0-8
+        slice(-10,2,None) #the same as above
+        random(5)*8 #5 random vals 0-8
 
     """
     def _assertValidVarNames(fieldNames, fileName):
@@ -1335,15 +1338,6 @@ def importConditions(fileName, returnFieldNames=False, indices=""):
         return []
     if not os.path.isfile(fileName):
         raise ImportError('Conditions file not found: %s' %os.path.abspath(fileName))
-
-    if isinstance(indices, basestring) and len(indices)>0:
-        indices = indicesFromString(indices)
-        if not isinstance(indices, slice):
-            for n in indices:
-                try:
-                    assert n == int(n)
-                except:
-                    raise TypeError, "importConditions() was given some `indices` but could not parse them"
 
     if fileName.endswith('.csv'):
         #use csv import library to fetch the fieldNames
@@ -1415,14 +1409,23 @@ def importConditions(fileName, returnFieldNames=False, indices=""):
                 fieldName = fieldNames[colN]
                 thisTrial[fieldName] = val
             trialList.append(thisTrial)
-    
-    if isinstance(indices,slice):
-        trialList = trialList[indices]
-    elif len(indices)>0:
+    #if we have a selection then try to parse it
+    if isinstance(selection, basestring) and len(selection)>0:
+        selection = indicesFromString(selection)
+        if not isinstance(selection, slice):
+            for n in selection:
+                try:
+                    assert n == int(n)
+                except:
+                    raise TypeError, "importConditions() was given some `indices` but could not parse them"
+    #the selection might now be a slice or a series of indices
+    if isinstance(selection,slice):
+        trialList = trialList[selection]
+    elif len(selection)>0:
         allConds = trialList
         trialList=[]
-        for ii in indices:
-            trialList.append(allConds[ii])
+        for ii in selection:
+            trialList.append(allConds[int(round(ii))])
 
     logging.exp('Imported %s as conditions, %d conditions, %d params' %
                  (fileName, len(trialList), len(fieldNames)))

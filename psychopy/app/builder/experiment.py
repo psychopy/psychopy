@@ -335,6 +335,8 @@ class Experiment:
                 params[name].valType='str'# these components were changed in v1.60.01
             elif name in ['allowedKeys'] and paramNode.get('valType')=='str':
                 params[name].valType='code'# these components were changed in v1.70.00
+            elif name == 'Selected rows': #changed in 1.81.00 from 'code' to 'str' to allow string or variable
+                params[name].valType = 'str'
             #conversions based on valType
             if params[name].valType=='bool': exec("params[name].val=%s" %params[name].val)
         if 'updates' in paramNode.keys():
@@ -637,7 +639,7 @@ class TrialHandler:
             hint=_translate("Name of a file specifying the parameters for each condition (.csv, .xlsx, or .pkl). Browse to select a file. Right-click to preview file contents, or create a new file."))
         self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
             hint=_translate("The start and end of the loop (see flow timeline)"))
-        self.params['Selected rows']=Param(selectedRows, valType='code', updates=None, allowedUpdates=None,
+        self.params['Selected rows']=Param(selectedRows, valType='str', updates=None, allowedUpdates=None,
             hint=_translate("Select just a subset of rows from your condition file (the first is 0 not 1!). Examples: 0, 0:5, 5:-1"))
         self.params['loopType']=Param(loopType, valType='str',
             allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
@@ -664,7 +666,7 @@ class TrialHandler:
             condsStr="data.importConditions(%s)" %self.params['conditionsFile']
         else:
             # a subset of a conditions file
-            condsStr="data.importConditions(%(conditionsFile)s, indices='%(Selected rows)s')" %(self.params)
+            condsStr="data.importConditions(%(conditionsFile)s, selection=%(Selected rows)s)" %(self.params)
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         #write the code

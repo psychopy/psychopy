@@ -49,6 +49,37 @@ could result in the following possible sequences. `sequential` could only ever g
 
 It is possible to achieve any sequence you like, subject to any constraints that are logically possible. To do so, in the file you specify every trial in the desired order, and the for the loop select `sequential` order and nReps=1.
 
+Selecting a subset of conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In the standard :ref:`trialTypes` you would use all the rows/conditions within your conditions file. However there are often times when you want to select a subset of your trials before randomising and repeating.
+
+The paramater `Select rows` allows this. You can specify which rows you want to use by inserting values here:
+
+    - `0,2,5` gives the 1st, 3rd and 5th entry of a list - Python starts with index zero)
+    - `random(4)*10` gives 4 indices from 0 to 10 (so selects 4 out of 11 conditions)
+    - `5:10` selects the 6th to 9th rows
+    - `$myIndices` uses a variable that you've already created
+
+Note in the last case that `5:8` isn't valid syntax for a variable so you cannot do::
+
+    myIndices = 5:8
+
+but you can do::
+
+    myIndices = slice(5,8) #python object to represent a slice
+    myIndices = "5:8" #a string that PsychoPy can then parse as a slice later
+    myIndices = "5:8:2" #as above but
+
+Note that PsychoPy uses Python's built-in slicing syntax (where the first index is zero and the last entry of a slice doesn't get included). You might want to check the outputs of your selection in the Python shell (bottom of the Coder view) like this::
+
+    >>> range(100)[5:8] #slice 5:8 of a standard set of indices
+    [5, 6, 7]
+    >>> range(100)[5:10:2] #slice 5:8 of a standard set of indices
+    [5, 7, 9, 11, 13, 15, 17, 19]
+
+Check that the conditions you wanted to select are the ones you intended!
+
 .. _staircaseMethods:
 
 Staircase methods
