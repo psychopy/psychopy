@@ -64,7 +64,7 @@ def setAttribute(self, attrib, value, log, operation=False, stealth=False):
             value = value
 
         # Apply operation except for the case when new or old value are None or string-like
-        if value is not None and not isinstance(value, basestring) \
+        if value is not None and not isinstance(value, basestring) and \
             oldValue is not None and not isinstance(oldValue, basestring):
             value = numpy.array(value, float)
 
