@@ -84,13 +84,16 @@ class SerialDevice(object):
                 for repN in range(self.maxAttempts):
                     awake = self.isAwake()
                     if awake:
+                        logging.info("Opened port %s and looks like a %s" %(self.portString, self.name))
                         self.OK = True
                         self.pause()
                         break
                 if not awake:
-                    logging.info("Opened port %s but it didn't respond like a %s" %(self.portString, self.type))
+                    logging.info("Opened port %s but it didn't respond like a %s" %(self.portString, self.name))
                     self.com.close()
                     self.OK=False
+                else:
+                    break
 
         if self.OK:# we have successfully sent and read a command
             logging.info("Successfully opened %s with a %s" %(self.portString, self.name))

@@ -349,6 +349,8 @@ class Experiment:
                 params[name].valType='str'# these components were changed in v1.60.01
             elif name in ['allowedKeys'] and paramNode.get('valType')=='str':
                 params[name].valType='code'# these components were changed in v1.70.00
+            elif name == 'Selected rows': #changed in 1.81.00 from 'code' to 'str' to allow string or variable
+                params[name].valType = 'str'
             #conversions based on valType
             if params[name].valType=='bool': exec("params[name].val=%s" %params[name].val)
         if 'updates' in paramNode.keys():
@@ -680,7 +682,7 @@ class TrialHandler:
             condsStr="data.importConditions(%s)" %self.params['conditionsFile']
         else:
             # a subset of a conditions file
-            condsStr="data.importConditions(%(conditionsFile)s)[%(Selected rows)s]" %(self.params)
+            condsStr="data.importConditions(%(conditionsFile)s, selection=%(Selected rows)s)" %(self.params)
         #also a 'thisName' for use in "for thisTrial in trials:"
         self.thisName = self.exp.namespace.makeLoopIndex(self.params['name'].val)
         #write the code

@@ -14,23 +14,27 @@ You don't need to worry about setting the high- and low-bit pixels. Just draw as
 normal and PsychoPy will do the conversions for you
 """
 
-from psychopy import visual, core, event
+from psychopy import visual, core, event, logging
 from psychopy.hardware import crs
+logging.console.setLevel(logging.INFO)
 
-win = visual.Window(screen=1, fullscr=True, useFBO=True)
+win = visual.Window([800,600,],screen=1, fullscr=False, useFBO=True, autoLog=False)
 
 #initialise BitsSharp
 #you need to give this the psychopy Window so that it can override various
 #window functions (e.g. to override gamma settings etc)
 bits = crs.BitsSharp(win=win, mode='mono++')
 print bits.info
+if not bits.OK:
+    print 'failed to connect to Bits box'
+    core.quit()
 
 core.wait(0.1)
 # now, you can change modes using
 bits.mode = 'color++' # 'color++', 'mono++', 'bits++', 'auto++' or 'status'
 
 #create a  stimulus and draw as normal
-stim = visual.GratingStim(win,tex='sin', units='pix', size=400, sf=0.01, mask='gauss')
+stim = visual.GratingStim(win,tex='sin', units='pix', size=400, sf=0.01, mask='gauss', autoLog=False)
 globalClock = core.Clock()
 while len(event.getKeys())<1:
     t = globalClock.getTime()
