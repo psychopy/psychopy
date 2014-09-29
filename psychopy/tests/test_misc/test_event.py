@@ -110,7 +110,7 @@ class _baseTest:
             assert k in event.getKeys(keyList=[k, 'd'])
 
             # waitKeys implicitly clears events, so use a thread to add a delayed key press
-            assert event.waitKeys(maxWait=-1) == None
+            assert event.waitKeys(maxWait=-1) is None
             keyThread = DelayedFakeKey(k)
             keyThread.start()
             assert event.waitKeys(maxWait=.1) == [k]

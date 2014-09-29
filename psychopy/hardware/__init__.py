@@ -121,7 +121,7 @@ def findPhotometer(ports=None, device=None):
 
 
     #determine candidate ports
-    if ports == None:
+    if ports is None:
         ports = getSerialPorts()
     elif type(ports) in [int,float] or isinstance(ports,basestring):
         ports=[ports] #so that we can iterate

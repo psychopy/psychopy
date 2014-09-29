@@ -513,14 +513,14 @@ class TextureMixin(object):
         wasImage=False #change this if image loading works
         useShaders = stim.useShaders
         interpolate = stim.interpolate
-        if dataType==None:
+        if dataType is None:
             if useShaders and pixFormat==GL.GL_RGB:
                 dataType = GL.GL_FLOAT
             else:
                 dataType = GL.GL_UNSIGNED_BYTE
 
         # Fill out unspecified portions of maskParams with default values
-        if maskParams == None:
+        if maskParams is None:
             maskParams = {}
         allMaskParams = {'fringeWidth': 0.2, 'sd': 3}  # fringeWidth affects the proportion of the stimulus diameter that is devoted to the raised cosine.
         allMaskParams.update(maskParams)
@@ -1084,7 +1084,8 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
-        if units==None: units=self.units#need to change this to create several units from one
+        if units is None:
+            units=self.units#need to change this to create several units from one
         setAttribute(self, 'size', val2array(newSize, False), log, operation)
     def setOri(self, newOri, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,

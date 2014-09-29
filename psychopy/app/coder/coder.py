@@ -1816,7 +1816,8 @@ class CoderFrame(wx.Frame):
         #self.fileHistory.AddFileToHistory(newPath)#thisis done by setCurrentDoc
     def expectedModTime(self, doc):
         # check for possible external changes to the file, based on mtime-stamps
-        if doc==None: return True#we have no file loaded
+        if doc is None:
+            return True#we have no file loaded
         if not os.path.exists(doc.filename): # files that don't exist DO have the expected mod-time
             return True
         actualModTime = os.path.getmtime(doc.filename)
@@ -1835,8 +1836,9 @@ class CoderFrame(wx.Frame):
         if self.currentDoc.AutoCompActive():
             self.currentDoc.AutoCompCancel()
 
-        if doc==None:doc=self.currentDoc
-        if filename==None:
+        if doc is None:
+            doc=self.currentDoc
+        if filename is None:
             filename = doc.filename
         if filename.startswith('untitled'):
             self.fileSaveAs(filename)
@@ -1912,12 +1914,13 @@ class CoderFrame(wx.Frame):
         if self.currentDoc.AutoCompActive():
             self.currentDoc.AutoCompCancel()
 
-        if doc==None:
+        if doc is None:
             doc = self.currentDoc
             docId=self.notebook.GetSelection()
         else:
             docId = self.findDocID(doc.filename)
-        if filename==None: filename = doc.filename
+        if filename is None:
+            filename = doc.filename
         initPath, filename = os.path.split(filename)#if we have an absolute path then split it
         #set wildcards
         if sys.platform=='darwin':
@@ -1950,10 +1953,10 @@ class CoderFrame(wx.Frame):
         except:
             pass
     def fileClose(self, event, filename=None, checkSave=True):
-        if self.currentDoc == None:
+        if self.currentDoc is None:
             self.closeFrame()  # so a coder window with no files responds like the builder window to self.keys.close
             return
-        if filename==None:
+        if filename is None:
             filename = self.currentDoc.filename
         self.currentDoc = self.notebook.GetPage(self.notebook.GetSelection())
         if self.currentDoc.UNSAVED and checkSave:
@@ -2155,7 +2158,7 @@ class CoderFrame(wx.Frame):
         #self.currentDoc.ToggleFoldAll(expand = False)
     def setOutputWindow(self, event=None, value=None):
         #show/hide the output window (from the view menu control)
-        if value==None:
+        if value is None:
             value=self.outputChk.IsChecked()
         if value:
             #show the pane

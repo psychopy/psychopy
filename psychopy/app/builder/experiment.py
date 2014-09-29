@@ -96,7 +96,7 @@ class Experiment:
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
         #get prefs (from app if poss or from cfg files)
-        if prefs==None:
+        if prefs is None:
             prefs = psychopy.prefs
         #deepCopy doesn't like the full prefs object to be stored, so store each subset
         self.prefsAppDataCfg=prefs.appDataCfg
@@ -136,7 +136,7 @@ class Experiment:
         Can take a Routine object directly or will create
         an empty one if none is given.
         """
-        if routine==None:
+        if routine is None:
             self.routines[routineName]=Routine(routineName, exp=self)#create a deafult routine with this name
         else:
             self.routines[routineName]=routine
@@ -657,10 +657,10 @@ class TrialHandler:
             label=_localized['Selected rows'], hint=_translate("Select just a subset of rows from your condition file (the first is 0 not 1!). Examples: 0, 0:5, 5:-1"))
         self.params['loopType']=Param(loopType, valType='str',
             allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
-            label=_localized['loopType'], 
+            label=_localized['loopType'],
             hint=_translate("How should the next condition value(s) be chosen?"))#NB staircase is added for the sake of the loop properties dialog
         self.params['random seed']=Param(randomSeed, valType='code', updates=None, allowedUpdates=None,
-            label=_localized['random seed'], 
+            label=_localized['random seed'],
             hint=_translate("To have a fixed random sequence provide an integer of your choosing here. Leave blank to have a new random sequence on each run of the experiment."))
         self.params['isTrials']=Param(isTrials, valType='bool', updates=None, allowedUpdates=None,
             hint=_translate("Indicates that this loop generates TRIALS, rather than BLOCKS of trials or stimuli within a trial. It alters how data files are output"),
@@ -785,7 +785,7 @@ class StairHandler:
         #these two are really just for making the dialog easier (they won't be used to generate code)
         self.params['loopType']=Param('staircase', valType='str',
             allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
-            label=_localized['loopType'], 
+            label=_localized['loopType'],
             hint=_translate("How should the next trial value(s) be chosen?"))#NB this is added for the sake of the loop properties dialog
         self.params['endPoints']=Param(endPoints,valType='num',
             label=_localized['endPoints'], hint=_translate('Where to loop from and to (see values currently shown in the flow view)'))
@@ -990,7 +990,7 @@ class Flow(list):
             for comp in toBeRemoved:
                 self.remove(comp)
         elif component.getType()=='Routine':
-            if id==None:
+            if id is None:
                 #a Routine may come up multiple times - remove them all
                 #self.remove(component)#cant do this - two empty routines (with diff names) look the same to list comparison
                 toBeRemoved = []

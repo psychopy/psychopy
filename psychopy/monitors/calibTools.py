@@ -60,7 +60,7 @@ def findPR650(ports=None):
     logging.error("DEPRECATED (as of v.1.60.01). Use psychopy.hardware.findPhotometer() instead, which "\
     +"finds a wider range of devices")
 
-    if ports==None:
+    if ports is None:
         if sys.platform=='darwin':
             ports=[]
             #try some known entries in /dev/tty. used by keyspan
@@ -181,7 +181,7 @@ class Monitor:
         """
         thisGamma = self.getGamma()
         #run the test just on this
-        if thisGamma == None \
+        if thisGamma is None \
             or numpy.alltrue(numpy.array(thisGamma)==numpy.array([1,1,1])):
             return True
         else:
@@ -199,7 +199,7 @@ class Monitor:
     def setCalibDate(self, date=None):
         """Sets the calibration to a given date/time or to the current
         date/time if none given. (Also returns the date as set)"""
-        if date==None:
+        if date is None:
             date=time.localtime()
         self.currentCalib['calibDate'] = date
         return date
@@ -342,7 +342,7 @@ class Monitor:
         if not 'dkl_rgb' in self.currentCalib: RECOMPUTE=True
         if RECOMPUTE:
             nm, power = self.getSpectra()
-            if nm==None:
+            if nm is None:
                 return None
             else:
                 return makeDKL2RGB(nm, power)
@@ -358,7 +358,7 @@ class Monitor:
         if not 'lms_rgb' in self.currentCalib: RECOMPUTE=True
         if RECOMPUTE:
             nm, power = self.getSpectra()
-            if nm==None:
+            if nm is None:
                 return None
             else:
                 return makeLMS2RGB(nm, power)
@@ -401,7 +401,7 @@ class Monitor:
         verbose=True):
         """create a new (empty) calibration for this monitor and
         makes this the current calibration"""
-        if calibName==None:
+        if calibName is None:
             calibName= strFromDate(time.localtime())
         #add to the list of calibrations
         self.calibNames.append(calibName)
@@ -473,7 +473,7 @@ class Monitor:
         """
         Stores the settings for the current calibration settings as new monitor.
         """
-        if calibName==None:
+        if calibName is None:
             calibName= strFromDate(time.localtime())
         #add to the list of calibrations
         self.calibNames.append(calibName)
@@ -746,7 +746,7 @@ def getLumSeries(lumLevels=8,
     """
     import psychopy.event, psychopy.visual
     from psychopy import core
-    if photometer==None:
+    if photometer is None:
         havePhotom = False
     elif not hasattr(photometer, 'getLum'):
         logging.error("photometer argument to monitors.getLumSeries should be a type of photometer "+\
@@ -987,19 +987,19 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
     elif eq==3:#NB method 3 was an interpolation method that didn't work well
         pass
     elif eq==4:
-        nMissing = sum([a==None, b==None, k==None])
+        nMissing = sum([a is None, b is None, k is None])
         #check params
         if nMissing>1:
             raise AttributeError, "For eq=4, gammaFun needs 2 of a,b,k to be specified"
         elif nMissing==1:
-            if a==None:
+            if a is None:
                 a = minLum-b**(1.0/gamma)       #when y=min, x=0
-            elif b==None:
+            elif b is None:
                 if a>=minLum:
                     b=0.1**(1.0/gamma)#can't take inv power of -ve
                 else:
                     b = (minLum-a)**(1.0/gamma)     #when y=min, x=0
-            elif k==None:
+            elif k is None:
                 k = (maxLum - a)**(1.0/gamma) - b #when y=max, x=1
         #this is the same as Pelli and Zhang (but different inverse function)
         yy = a+(b+k*xx)**gamma #Pelli and Zhang (1991)

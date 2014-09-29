@@ -678,7 +678,7 @@ class RatingScale(MinimalStim):
             scaledTickSize = self.baseSize * self.size
             vert = [[-1 * scaledTickSize * 1.8, scaledTickSize * 3],
                     [ scaledTickSize * 1.8, scaledTickSize * 3], [0, -0.005]]
-            if markerColor == None or not isValidColor(markerColor):
+            if markerColor is None or not isValidColor(markerColor):
                 markerColor = 'DarkBlue'
             self.marker = ShapeStim(win=self.win, units='norm', vertices=vert,
                 lineWidth=0.1, lineColor=markerColor, fillColor=markerColor,
@@ -689,13 +689,13 @@ class RatingScale(MinimalStim):
                     [ scaledTickSize * 1.8, scaledTickSize],
                     [ scaledTickSize * 1.8, -1 * scaledTickSize],
                     [-1 * scaledTickSize * 1.8, -1 * scaledTickSize]]
-            if markerColor == None or not isValidColor(markerColor):
+            if markerColor is None or not isValidColor(markerColor):
                 markerColor = 'black'
             self.marker = ShapeStim(win=self.win, units='norm', vertices=vert,
                 lineWidth=0.1, lineColor=markerColor, fillColor=markerColor,
                 name=self.name+'.markerSlider', opacity=0.7, autoLog=False)
         elif self.markerStyle == 'glow':
-            if markerColor == None or not isValidColor(markerColor):
+            if markerColor is None or not isValidColor(markerColor):
                 markerColor = 'White'
             self.marker = PatchStim(win=self.win, units='norm',
                 tex='sin', mask='gauss', color=markerColor, opacity = 0.85,
@@ -709,7 +709,7 @@ class RatingScale(MinimalStim):
                     self.markerBaseSize *= .7
                 self.marker.setSize(self.markerBaseSize/2., log=False)
         elif self.markerStyle == 'custom':
-            if markerColor == None:
+            if markerColor is None:
                 if hasattr(marker, 'color'):
                     try:
                         if not marker.color: # 0 causes other problems, so ignore it here
@@ -725,7 +725,7 @@ class RatingScale(MinimalStim):
                 marker.name = 'customMarker'
             self.marker = marker
         else:  # 'circle':
-            if markerColor == None or not isValidColor(markerColor):
+            if markerColor is None or not isValidColor(markerColor):
                 markerColor = 'DarkRed'
             x,y = self.win.size
             windowRatio = float(y)/x

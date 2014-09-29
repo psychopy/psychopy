@@ -223,7 +223,7 @@ def getKeys(keyList=None, timeStamped=False):
             keys = _keyBuffer
             #_keyBuffer = []  # DO /NOT/ CLEAR THE KEY BUFFER ENTIRELY
 
-    if keyList==None:
+    if keyList is None:
         _keyBuffer = [] #clear buffer entirely
         targets=keys  # equivalent behavior to getKeys()
     else:
@@ -274,7 +274,7 @@ def waitKeys(maxWait=float('inf'), keyList=None, timeStamped=False):
 
     # Check for keypresses until maxWait is exceeded
     timer = psychopy.core.Clock()
-    while key == None and timer.getTime() < maxWait:
+    while key is None and timer.getTime() < maxWait:
         # Pump events on pyglet windows if they exist
         if havePyglet:
             wins = pyglet.window.get_platform().get_default_display().get_windows()

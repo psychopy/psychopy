@@ -24,7 +24,7 @@ class Keyboard(ioHubKeyboardDevice):
     def __init__(self, *args, **kwargs):
         ioHubKeyboardDevice.__init__(self, *args, **kwargs['dconfig'])
 
-        if self.event_id_index == None:
+        if self.event_id_index is None:
             from . import KeyboardInputEvent
             Keyboard.auto_repeated_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('auto_repeated')
             Keyboard.key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')

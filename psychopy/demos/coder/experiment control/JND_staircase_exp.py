@@ -71,7 +71,7 @@ for thisIncrement in staircase: #will step through the staircase
 
     #get response
     thisResp=None
-    while thisResp==None:
+    while thisResp is None:
         allKeys=event.waitKeys()
         for thisKey in allKeys:
             if (thisKey=='left' and targetSide==-1) or (thisKey=='right' and targetSide==1):

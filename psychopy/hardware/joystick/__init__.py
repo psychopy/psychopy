@@ -182,6 +182,7 @@ class Joystick(object):
         """
         if backend=='pyglet':
             val=self.getAllAxes()[axisId]
-            if val==None: val=0
+            if val is None:
+                val=0
             return val
         else: return self._device.get_axis(axisId)

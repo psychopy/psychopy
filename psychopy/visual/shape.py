@@ -59,7 +59,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  interpolate=True,
                  lineRGB=None,
                  fillRGB=None,
-                 name=None, 
+                 name=None,
                  autoLog=None,
                  autoDraw=False):
         """ """  # all doc is in the attributes
@@ -113,7 +113,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     def lineWidth(self, value):
         """int or float
         specifying the line width in **pixels**
-        
+
         :ref:`Operations <attrib-operations>` supported.
         """
         self.__dict__['lineWidth'] = value
@@ -124,7 +124,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     def closeShape(self, value):
         """True or False
         Do you want the last vertex to be automatically connected to the first?
-        
+
         If you're using `Polygon`, `Circle` or `Rect`, closeShape=True is assumed
         and shouldn't be changed.
         """
@@ -205,14 +205,14 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                     colorAttrib='fillColor',#the name for this color
                     )
         logAttrib(self, log, 'fillColor', value='%s (%s)' %(self.fillColor, self.fillColorSpace))
-    
+
     @attributeSetter
     def size(self, value):
-        """Int/Float or :ref:`x,y-pair <attrib-xy>`. 
+        """Int/Float or :ref:`x,y-pair <attrib-xy>`.
         Sets the size of the shape.
         Size is independent of the units of shape and will simply scale the shape's vertices by the factor given.
         Use a tuple or list of two values to scale asymmetrically.
- 
+
         :ref:`Operations <attrib-operations>` supported."""
         self.__dict__['size'] = numpy.array(value, float)
         self._needVertexUpdate = True
@@ -224,15 +224,15 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     @attributeSetter
     def vertices(self, value):
-        """a list of lists or a numpy array (Nx2) specifying xy positions of 
+        """a list of lists or a numpy array (Nx2) specifying xy positions of
         each vertex, relative to the centre of the field.
-        
+
         If you're using `Polygon`, `Circle` or `Rect`, this shouldn't be used.
-        
+
         :ref:`Operations <attrib-operations>` supported.
         """
         self.__dict__['vertices'] = numpy.array(value, float)
-        
+
         # Check shape
         if not (self.vertices.shape==(2,) or (len(self.vertices.shape) == 2 and self.vertices.shape[1] == 2)):
             raise ValueError("New value for setXYs should be 2x1 or Nx2")
@@ -242,7 +242,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         but use this method if you need to suppress the log message
         """
         setAttribute(self, 'vertices', value, log, operation)
-    
+
     def draw(self, win=None, keepMatrix=False): #keepMatrix option is needed by Aperture
         """
         Draw the stimulus in its relevant window. You must call
@@ -250,7 +250,8 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         stimulus to appear on that frame and then update the screen
         again.
         """
-        if win==None: win=self.win
+        if win is None:
+            win=self.win
         self._selectWindow(win)
 
         vertsPix = self.verticesPix #will check if it needs updating (check just once)

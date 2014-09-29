@@ -69,9 +69,9 @@ class RadialStim(GratingStim):
                  depth=0,
                  rgbPedestal = (0.0,0.0,0.0),
                  interpolate=False,
-                 name=None, 
+                 name=None,
                  autoLog=None,
-                 maskParams=None):        
+                 maskParams=None):
         """ """ # Empty docstring on __init__, Simply inherits methods from GratingStim
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
@@ -134,7 +134,7 @@ class RadialStim(GratingStim):
 
         #
         self._updateEverything()
-        
+
         # set autoLog now that params have been initialised
         self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
         if self.autoLog:
@@ -174,7 +174,7 @@ class RadialStim(GratingStim):
             fromFile=0
         elif self.mask == "gauss":
             # Set SD if specified
-            if self.maskParams == None:    
+            if self.maskParams is None:
                 sigma = 1.0 / 3
             else:
                 sigma = 1.0 / self.maskParams['sd']
@@ -223,18 +223,18 @@ class RadialStim(GratingStim):
         but use this method if you need to suppress the log message
         """
         setAttribute(self, 'mask', value, log)
-    
+
     def _setRadialAtribute(self, attr, value):
         """ Internal helper function to reduce redundancy """
         self.__dict__[attr] = value  # dict to avoid recursing the attributeSetter
         self._updateTextureCoords()
         self._needUpdate = True
-    
+
     @attributeSetter
     def angularCycles(self, value):
-        """Float (but Int is prettiest). Set the number of cycles going around the stimulus. 
+        """Float (but Int is prettiest). Set the number of cycles going around the stimulus.
         i.e. it controls the number of 'spokes'.
-        
+
         :ref:`Operations <attrib-operations>` supported."""
         self._setRadialAtribute('angularCycles', value)
     def setAngularCycles(self, value, operation='', log=None):
@@ -242,12 +242,12 @@ class RadialStim(GratingStim):
         but use this method if you need to suppress the log message
         """
         setAttribute(self, 'angularCycles', value, log, operation)  # calls the attributeSetter
-    
+
     @attributeSetter
     def radialCycles(self, value):
-        """Float (but Int is prettiest). Set the number of texture cycles from centre to periphery, 
+        """Float (but Int is prettiest). Set the number of texture cycles from centre to periphery,
         i.e. it controls the number of 'rings'.
-        
+
         :ref:`Operations <attrib-operations>` supported."""
         self._setRadialAtribute('radialCycles', value)
     def setRadialCycles(self, value, operation='', log=None):
@@ -255,15 +255,15 @@ class RadialStim(GratingStim):
         but use this method if you need to suppress the log message
         """
         setAttribute(self, 'radialCycles', value, log, operation)  # calls the attributeSetter
-        
+
     @attributeSetter
     def angularPhase(self, value):
         """Float. Set the angular phase (like orientation) of the texture (wraps 0-1).
 
         This is akin to setting the orientation of the texture around the
-        stimulus in radians. If possible, it is more efficient to rotate the 
+        stimulus in radians. If possible, it is more efficient to rotate the
         stimulus using its `ori` setting instead.
-       
+
         :ref:`Operations <attrib-operations>` supported."""
         self._setRadialAtribute('angularPhase', value)
     def setAngularPhase(self, value, operation='', log=None):
@@ -274,10 +274,10 @@ class RadialStim(GratingStim):
 
     @attributeSetter
     def radialPhase(self, value):
-        """Float. Set the radial phase of the texture (wraps 0-1). This is the 
-        phase of the texture from the centre to the perimeter of the stimulus 
+        """Float. Set the radial phase of the texture (wraps 0-1). This is the
+        phase of the texture from the centre to the perimeter of the stimulus
         (in radians). Can be used to drift concentric rings out/inwards.
-        
+
         :ref:`Operations <attrib-operations>` supported."""
         self._setRadialAtribute('radialPhase', value)
     def setRadialPhase(self, value, operation='', log=None):
@@ -285,7 +285,7 @@ class RadialStim(GratingStim):
         but use this method if you need to suppress the log message
         """
         setAttribute(self, 'radialPhase', value, log, operation)  # calls the attributeSetter
-    
+
     def _updateEverything(self):
         """Internal helper function for angularRes and visibleWedge (and init)"""
         self._triangleWidth = pi * 2 / self.angularRes
@@ -303,18 +303,18 @@ class RadialStim(GratingStim):
             #generate a displaylist ID
             self._listID = GL.glGenLists(1)
             self._updateList()#ie refresh display list
-    
+
     @attributeSetter
     def angularRes(self, value):
         """The number of triangles used to make the sti.
-        
+
          :ref:`Operations <attrib-operations>` supported."""
         self.__dict__['angularRes'] = value
         self._updateEverything()
     @attributeSetter
     def visibleWedge(self, value):
         """tuple (start, end) in degrees. Determines visible range. (0, 360) is full visibility.
-        
+
         :ref:`Operations <attrib-operations>` supported."""
         self.__dict__['visibleWedge'] = numpy.array(value)
         self._updateEverything()
@@ -328,7 +328,8 @@ class RadialStim(GratingStim):
 
         If `win` is specified then override the normal window of this stimulus.
         """
-        if win==None: win=self.win
+        if win is None:
+            win=self.win
         self._selectWindow(win)
 
         #do scaling

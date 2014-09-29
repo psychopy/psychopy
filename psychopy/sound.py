@@ -349,7 +349,7 @@ class SoundPyo(_SoundBase):
             Not applied to sounds from files.
         """
         global pyoSndServer
-        if pyoSndServer==None or pyoSndServer.getIsBooted()==0:
+        if pyoSndServer is None or pyoSndServer.getIsBooted()==0:
             initPyo(rate=sampleRate)
 
         self.sampleRate=pyoSndServer.getSamplingRate()
