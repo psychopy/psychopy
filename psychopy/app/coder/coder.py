@@ -459,7 +459,6 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPENMID, wx.stc.STC_MARK_BOXMINUSCONNECTED, "white", "#808080")
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL, wx.stc.STC_MARK_TCORNER,           "white", "#808080")
 
-        self.DragAcceptFiles(True)
         self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
         self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
         #self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
@@ -1156,18 +1155,19 @@ class CoderFrame(wx.Frame):
         self.notebook = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600),
             style= wx.aui.AUI_NB_TOP | wx.aui.AUI_NB_TAB_SPLIT | wx.aui.AUI_NB_SCROLL_BUTTONS | \
                 wx.aui.AUI_NB_TAB_MOVE | wx.aui.AUI_NB_CLOSE_ON_ACTIVE_TAB | wx.aui.AUI_NB_WINDOWLIST_BUTTON)
-        self.notebook.DragAcceptFiles(True)
+
         self.paneManager.AddPane(self.notebook, wx.aui.AuiPaneInfo().
                           Name("Editor").Caption(_translate("Editor")).
                           CenterPane(). #'center panes' expand to fill space
                           CloseButton(False).MaximizeButton(True))
 
         self.notebook.SetFocus()
+        self.notebook.SetDropTarget(FileDropTarget(coder = self))
 
         self.notebook.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
         self.notebook.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
         #self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
-        self.DragAcceptFiles(True)
+        self.SetDropTarget(FileDropTarget(coder = self))
         self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
         self.Bind(wx.EVT_FIND, self.OnFindNext)
         self.Bind(wx.EVT_FIND_NEXT, self.OnFindNext)
@@ -1189,7 +1189,6 @@ class CoderFrame(wx.Frame):
                                  Name("Shelf").Caption(_translate("Shelf")).
                                  RightDockable(True).LeftDockable(True).CloseButton(False).
                                  Bottom())
-        self.shelf.DragAcceptFiles(True)
 
         #create output viewer
         self._origStdOut = sys.stdout#keep track of previous output
