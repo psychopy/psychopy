@@ -821,7 +821,7 @@ class TextureMixin(object):
         :ref:`Operations <attrib-operations>` supported.
         """
         self.__dict__['texRes'] = value
-        
+
         # ... now rebuild textures (call attributeSetters without logging).
         if hasattr(self, 'tex'): setAttribute(self, 'tex', self.tex, log=False)
         if hasattr(self, 'mask'): setAttribute(self, 'mask', self.mask, log=False)
@@ -1021,7 +1021,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         value = val2array(value)  # Check correct user input
         self._requestedSize = value  #to track whether we're just using a default
         # None --> set to default
-        if value == None:
+        if value is None:
             """Set the size to default (e.g. to the size of the loaded image etc)"""
             #calculate new size
             if self._origSize is None:  #not an image from a file
@@ -1104,7 +1104,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
 
         # Set attribute with operation and log
         setAttribute(self, attrib, val, log, op)
-        
+
         # For DotStim
         if attrib in ['nDots','coherence']:
             self.coherence=round(self.coherence*self.nDots)/self.nDots

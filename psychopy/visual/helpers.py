@@ -134,11 +134,11 @@ def setColor(obj, color, colorSpace=None, operation='',
                 log=True):
     """Provides the workings needed by setColor, and can perform this for
     any arbitrary color type (e.g. fillColor,lineColor etc).
-    
+
     OBS: log argument is deprecated - has no effect now. Logging should be done
     when setColor() is called.
     """
-    
+
     #how this works:
     #rather than using obj.rgb=rgb this function uses setattr(obj,'rgb',rgb)
     #color represents the color in the native space
@@ -147,7 +147,7 @@ def setColor(obj, color, colorSpace=None, operation='',
     #rgbAttrib is the attribute name that rgb is stored under, e.g. lineRGB for obj.lineRGB
     #colorSpace and takes name from colorAttrib+space e.g. obj.lineRGBSpace=colorSpace
 
-    if colorSpaceAttrib==None:
+    if colorSpaceAttrib is None:
         colorSpaceAttrib = colorAttrib+'Space'
 
     # Handle strings and returns immediately as operations, colorspace etc. does not apply here.
@@ -175,7 +175,7 @@ def setColor(obj, color, colorSpace=None, operation='',
     else:
         color = val2array(color, length=3)  # enforces length 1 or 3
 
-        if color==None:
+        if color is None:
             setattr(obj,rgbAttrib,None)#e.g. obj.rgb=[0,0,0]
             obj.__dict__[colorSpaceAttrib] = None  #e.g. obj.colorSpace='hex'
             obj.__dict__[colorAttrib] = None  #e.g. obj.color='#000000'
@@ -183,7 +183,7 @@ def setColor(obj, color, colorSpace=None, operation='',
 
     #at this point we have a numpy array of 3 vals
     #check if colorSpace is given and use obj.colorSpace if not
-    if colorSpace==None:
+    if colorSpace is None:
         colorSpace=getattr(obj,colorSpaceAttrib)
         #using previous color space - if we got this far in the _stColor function
         #then we haven't been given a color name - we don't know what color space to use.
