@@ -66,7 +66,7 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None):
         shutil.copyfile(pathToActual,pathToCorrect)
         assert foundComparisonFile #deliberately raise an error to see the warning message
         return
-    if delim==None:
+    if delim is None:
         if pathToCorrect.endswith('.csv'): delim=','
         elif pathToCorrect.endswith('.dlm'): delim='\t'
 
@@ -76,7 +76,7 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None):
         txtCorrect = open(pathToCorrect, 'r').readlines()
         assert len(txtActual)==len(txtCorrect), "The data file has the wrong number of lines"
         for lineN in range(len(txtActual)):
-            if delim==None:
+            if delim is None:
                 #just compare the entire line
                 assert lineActual==lineCorrect
             else:#word by word instead

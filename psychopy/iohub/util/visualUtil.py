@@ -27,12 +27,12 @@ class ScreenState(object):
     experimentRuntime = None
     window = None
 
-    def __init__(self,experimentRuntime=None, eventTriggers=None, timeout=None, 
+    def __init__(self,experimentRuntime=None, eventTriggers=None, timeout=None,
                  background_color=(255, 255, 255)):
         if ScreenState.experimentRuntime is None:
             ScreenState.experimentRuntime=weakref.ref(experimentRuntime)
             ScreenState.window=weakref.ref(experimentRuntime.window)
-            
+
         w, h=self.experimentRuntime().devices.display.getPixelResolution()
         self._screen_background_fill = visual.Rect(self.window(), w, h,
                                                    lineColor=background_color,
@@ -50,7 +50,7 @@ class ScreenState(object):
             eventTriggers=[eventTriggers, ]
         elif eventTriggers is None:
             eventTriggers = []
-            
+
         self.event_triggers = eventTriggers
         self._start_time = None
         self.timeout = timeout
@@ -79,10 +79,10 @@ class ScreenState(object):
 
     def getStateStartTime(self):
         return self._start_time
-        
+
     def getEventTriggers(self):
         return self.event_triggers
-        
+
     def setTimeout(self, timeout):
         self.timeout = timeout
 
@@ -99,49 +99,49 @@ class ScreenState(object):
         """
         Switches to the screen state defined by the class instance. The screen
         stim are built and a flip occurs.
-        
-        Three conditions can cause the switchTo method to then return, 
+
+        Three conditions can cause the switchTo method to then return,
         based on whether a timeout and / or DeviceEventTriggers
-        have been set with the Screen state when switchTo is called. In all cases 
+        have been set with the Screen state when switchTo is called. In all cases
         a tuple of three values is returned, some elements of which may be None
         depending on what resulted in the state exit. The three conditions are:
-            
+
             #. If no timeout or DeviceEventTriggers have been specified with the ScreenState, switchto() returns after the window.flip() with::
-                
+
                     (stateStartTime, None, None)
-                
+
                where stateStartTime is the time the call to flip() returned.
-            
+
             #. If a timeout has been specified, and that amount of time elapses from the startStartTime, then switchTo() returns with::
 
                     (stateStartTime, stateDuration, None)
-                
+
                where:
-                   
+
                       * stateStartTime is the time the call to flip() returned.
                       * stateDuration is the time switchTo() returned minus
                       * stateStartTime; so it should be close to the timeout specified. It may be rounded to the next flip() time interval if something in the state is causing the screen to be updated each frame.
-            
-            #. If 1 - N DeviceEventTriggers have been set with the ScreenState, they are monitored to determine if any have triggered. 
-               If a DeviceEventTrigger has triggered, the triggering event and the triggers callback function are retrieved. 
+
+            #. If 1 - N DeviceEventTriggers have been set with the ScreenState, they are monitored to determine if any have triggered.
+               If a DeviceEventTrigger has triggered, the triggering event and the triggers callback function are retrieved.
                The deviceEventTrigger is then reset, and the callback is called.
-            
+
         If a callback returns True, the ScreenState is exited, returning (stateStartTime, stateDuration, exitTriggeringEvent), where:
 
                 * **stateStartTime** is the time the call to flip() returned.
                 * **stateDuration** is the time switchTo() returned minus stateStartTime; so it should be close to the timeout specified. It may be rounded to the next flip() time interval if something in the state is causing the screen to be updated each frame.
                 * **exitTriggeringEvent** is the Device event (in dict form) that caused the ScreenState to exit.
-            
+
         If the callback returns False, the ScreenState is not exited, and the the timeout period and DeviceEventTriggers cintinue to be checked.
-         """       
+         """
         ER = self.experimentRuntime()
         localClearEvents = ER.hub.clearEvents
         if clearEvents is False:
-            localClearEvents = lambda clearEvents: clearEvents==None
+            localClearEvents = lambda clearEvents: clearEvents is None
 
         event_triggers = self.event_triggers
 
-        for trigger in event_triggers:        
+        for trigger in event_triggers:
             trigger.resetTrigger()
 
         lastMsgPumpTime = 0
@@ -245,14 +245,14 @@ class ClearScreen(ScreenState):
         if text is None:
             text = "CLR_SCREEN SYNC: [%s] "%(text)
         return ScreenState.flip(self, text)
-        
+
 
 class InstructionScreen(ScreenState):
     def __init__(self, experimentRuntime, text='Default Text',
                  eventTriggers=None, timeout=None, text_color=[0, 0, 0],
                  text_pos=[0, 0], text_height=32,
                  background_color=(255, 255, 255)):
-        
+
         ScreenState.__init__(self,experimentRuntime, eventTriggers, timeout,
                              background_color)
 
@@ -285,22 +285,22 @@ class InstructionScreen(ScreenState):
 
 
 class ImageScreen(ScreenState):
-    def __init__(self, experimentRuntime, imageName, imagePos=(0,0), 
-                 imageSize=None, eventTriggers=None, timeout=None, 
+    def __init__(self, experimentRuntime, imageName, imagePos=(0,0),
+                 imageSize=None, eventTriggers=None, timeout=None,
                  background_color=(255, 255, 255)):
-        
-        ScreenState.__init__(self, experimentRuntime, eventTriggers, 
+
+        ScreenState.__init__(self, experimentRuntime, eventTriggers,
                              timeout, background_color)
-                             
+
         w, h = self.experimentRuntime().devices.display.getPixelResolution()
 
         if imageSize is None:
             from PIL import Image
             imageSize = Image.open(imageName).size
 
-        self.stim['IMAGE'] = visual.ImageStim(self.window(), image=imageName, 
+        self.stim['IMAGE'] = visual.ImageStim(self.window(), image=imageName,
                                 pos=imagePos, size=imageSize, name=imageName)
-                                
+
         self.stim['IMAGE'].imageName = imageName
         self.stimNames.append('IMAGE')
 
@@ -332,7 +332,7 @@ class ImageScreen(ScreenState):
 class Trigger(object):
     __slots__ = ['trigger_function', 'user_kwargs', '_last_triggered_event',
                  'repeat_count', 'triggered_count','_last_triggered_time']
-    
+
     def __init__(self, trigger_function=lambda a, b, c: True==True,
                  user_kwargs={}, repeat_count=0):
         self.trigger_function = trigger_function
@@ -341,7 +341,7 @@ class Trigger(object):
         self._last_triggered_time = None
         self.repeat_count = repeat_count
         self.triggered_count = 0
-        
+
     def triggered(self, **kwargs):
         if 0 <= self.repeat_count < self.triggered_count:
             return False
@@ -352,14 +352,14 @@ class Trigger(object):
 
     def getTriggeringTime(self):
         return self._last_triggered_time
-        
+
     def getTriggeredStateCallback(self):
         return self.trigger_function, self.user_kwargs
 
     def resetLastTriggeredInfo(self):
         self._last_triggered_event = None
         self._last_triggered_time = None
-        
+
     def resetTrigger(self):
         self.resetLastTriggeredInfo()
         self.triggered_count = 0
@@ -438,7 +438,7 @@ class DeviceEventTrigger(Trigger):
     """
     DeviceEventTrigger are used by SCreenState objects. A DeviceEventTrigger
     associates a set of conditions for a DeviceEvent that must be met before
-    the classes triggered() method returns True. 
+    the classes triggered() method returns True.
     """
     _lastEventsByDevice = dict()
     __slots__ = ['device', 'event_type', 'event_attribute_conditions']
@@ -478,7 +478,7 @@ class DeviceEventTrigger(Trigger):
                         pass
                     else:
                         foundEvent = False
-                        
+
             if foundEvent is True:
                 self._last_triggered_time=getTime()
                 self._last_triggered_event = event
@@ -533,16 +533,16 @@ rand = scipy.rand
 arange = scipy.arange
 rad = scipy.deg2rad
 
-  
+
 class SinusoidalMotion(object):
-    def __init__(self, 
+    def __init__(self,
                  amplitude_xy=(15.0, 0.0),       # max horz,vert excursion
                  peak_velocity_xy=(10.0, 10.0),  # deg/s peak velocity x , y
                  phase_xy=(90.0, 90.0),          # in degrees for x, y
                  display=None,                   # ioHub display class
                  start_time=0.0,  # in seconds , 0.0 means use first flip time
-                 ):       
-        self.amplX , self.amplY = amplitude_xy 
+                 ):
+        self.amplX , self.amplY = amplitude_xy
         self.peakVelX, self.peakVelY = peak_velocity_xy
         self.phaseX, self.phaseY = rad(phase_xy[0]), rad(phase_xy[1])
         self.startTime = start_time
@@ -551,17 +551,17 @@ class SinusoidalMotion(object):
 
         self.reportedRetraceInterval = display.getRetraceInterval()
         print "Display retrace interval: ", self.reportedRetraceInterval
-        
-        # calculate the omega constants needed for the simple 
-        # harmonic motion equations: 
-        
-        self.wX = 0.0         
-        if self.amplX != 0.0: 
+
+        # calculate the omega constants needed for the simple
+        # harmonic motion equations:
+
+        self.wX = 0.0
+        if self.amplX != 0.0:
             self.freqX = self.peakVelX/(-2.0*self.amplX*pi)
             self.wX = 2.0*pi*self.freqX
 
-        self.wY = 0.0 
-        if self.amplY != 0: 
+        self.wY = 0.0
+        if self.amplY != 0:
             self.freqY = self.peakVelY/(-2.0*self.amplY*pi)
             self.wY = 2.0*pi*self.freqY
 

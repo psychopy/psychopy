@@ -88,7 +88,7 @@ class ExperimentHandler(object):
         self.name=name
         self.version=version
         self.runtimeInfo=runtimeInfo
-        if extraInfo==None:
+        if extraInfo is None:
             self.extraInfo = {}
         else:
             self.extraInfo=extraInfo
@@ -358,7 +358,7 @@ class _BaseTrialHandler(object):
         """Return the ExperimentHandler that this handler is attached to, if any.
         Returns None if not attached
         """
-        if self._exp==None or self._exp not in _experiments:
+        if self._exp is None or self._exp not in _experiments:
             return None
         else:
             return _experiments[self._exp]
@@ -444,7 +444,7 @@ class _BaseTrialHandler(object):
             matrixOnly=matrixOnly)
 
         #set default delimiter if none given
-        if delim==None:
+        if delim is None:
             if fileName[-4:] in ['.csv','.CSV']:
                 delim=','
             else:
@@ -580,7 +580,7 @@ class _BaseTrialHandler(object):
 
         #loop through lines in the data matrix
         for lineN, line in enumerate(dataArray):
-            if line==None:
+            if line is None:
                 continue
             for colN, entry in enumerate(line):
                 if entry in [None]:
@@ -613,7 +613,7 @@ class _BaseTrialHandler(object):
         the calling script is the originPath (fine from a standard python script).
         """
         #self.originPath and self.origin (the contents of the origin file)
-        if originPath==None or not os.path.isfile(originPath):
+        if originPath is None or not os.path.isfile(originPath):
             try:
                 originPath = inspect.getouterframes(inspect.currentframe())[1][1]
                 if self.autoLog:
@@ -2732,7 +2732,7 @@ class DataHandler(dict):
         """
         if not thisType in self:
             self.addDataType(thisType)
-        if position==None:
+        if position is None:
             #'ran' is always the first thing to update
             if thisType=='ran':
                 repN = sum(self['ran'][self.trials.thisIndex])
@@ -2810,7 +2810,7 @@ class _baseFunctionFit:
         """Evaluate xx for the current parameters of the model, or for arbitrary params
         if these are given.
         """
-        if params==None:
+        if params is None:
             params = self.params
         global _chance
         _chance=self.expectedMin
@@ -2822,7 +2822,7 @@ class _baseFunctionFit:
         """Evaluate yy for the current parameters of the model, or for arbitrary params
         if these are given.
         """
-        if params==None:
+        if params is None:
             params=self.params #so the user can set params for this particular inv
         xx = self._inverse(yy, *params)
         return xx

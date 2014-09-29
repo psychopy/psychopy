@@ -317,7 +317,7 @@ class PsychoPyApp(wx.App):
         return table
     def showCoder(self, event=None, fileList=None):
         from psychopy.app import coder#have to reimport because it is ony local to __init__ so far
-        if self.coder==None:
+        if self.coder is None:
             self.coder=coder.CoderFrame(None, -1,
                       title="PsychoPy2 Coder (IDE) (v%s)" %self.version,
                       files = fileList, app=self)
@@ -353,7 +353,7 @@ class PsychoPyApp(wx.App):
             self.SetTopWindow(thisFrame)
     #def showShell(self, event=None):
     #    from psychopy.app import ipythonShell#have to reimport because it is ony local to __init__ so far
-    #    if self.shell==None:
+    #    if self.shell is None:
     #        self.shell = ipythonShell.ShellFrame(None, -1,
     #            title="IPython in PsychoPy (v%s)" %self.version, app=self)
     #        self.shell.Show()
@@ -408,7 +408,7 @@ class PsychoPyApp(wx.App):
     def MacOpenFile(self,fileName):
         logging.debug('PsychoPyApp: Received Mac file dropped event')
         if fileName.endswith('.py'):
-            if self.coder==None:
+            if self.coder is None:
                 self.showCoder()
             self.coder.setCurrentDoc(fileName)
         elif fileName.endswith('.psyexp'):
@@ -464,7 +464,7 @@ class PsychoPyApp(wx.App):
         #save info about current frames for next run
         if self.coder and len(self.builderFrames)==0:
             self.prefs.appData['lastFrame']='coder'
-        elif self.coder==None:
+        elif self.coder is None:
             self.prefs.appData['lastFrame']='builder'
         else:
             self.prefs.appData['lastFrame']='both'

@@ -72,11 +72,11 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  element=None,
                  signalDots='same',
                  noiseDots='direction',
-                 name=None, 
+                 name=None,
                  autoLog=None):
         """
         :Parameters:
-        
+
             fieldSize : (x,y) or [x,y] or single value (applied to both dimensions)
                 Sizes can be negative and can extend beyond the window.
             """
@@ -130,12 +130,12 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._dotsDir[self._signalDots] = self.dir*pi/180
 
         self._update_dotsXY()
-        
+
         # set autoLog now that params have been initialised
         self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
         if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
-        
+
     def set(self, attrib, val, op='', log=None):
         """DEPRECATED: DotStim.set() is obsolete and may not be supported in future
         versions of PsychoPy. Use the specific method for each parameter instead
@@ -154,13 +154,13 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Float specified in pixels (overridden if `element` is specified).
         :ref:`operations <attrib-operations>` are supported."""
         self.__dict__['dotSize'] = dotSize
-        
+
     @attributeSetter
     def dotLife(self, dotLife):
         """Int. Number of frames each dot lives for (-1=infinite).
-        Dot lives are initiated randomly from a uniform distribution from 0 to dotLife. 
+        Dot lives are initiated randomly from a uniform distribution from 0 to dotLife.
         If changed while drawing, the lives of all dots will be randomly initiated again.
-        
+
         :ref:`operations <attrib-operations>` are supported."""
         self.__dict__['dotLife'] = dotLife
         self._dotsLife = abs(self.dotLife) * numpy.random.rand(self.nDots)
@@ -173,7 +173,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         randomised on each frame. This corresponds to Scase et al's (1996) categories of RDK.
         """
         self.__dict__['signalDots'] = signalDots
-    
+
     @attributeSetter
     def noiseDots(self, noiseDots):
         """Str. *'direction'*, 'position' or 'walk'
@@ -185,7 +185,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         self.__dict__['noiseDots'] = noiseDots
         self.coherence = self.coherence  # update using attributeSetter
-        
+
     @attributeSetter
     def element(self, element):
         """*None* or a visual stimulus object
@@ -193,16 +193,16 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         ``.setPos([x,y])`` method (e.g. a GratingStim, TextStim...)!!
         DotStim assumes that the element uses pixels as units.
         ``None`` defaults to dots.
-        
+
         See `ElementArrayStim` for a faster implementation of this idea.
         """
         self.__dict__['element'] = element
 
     @attributeSetter
     def fieldPos(self, pos):
-        """Specifying the location of the centre of the stimulus using a :ref:`x,y-pair <attrib-xy>`. 
+        """Specifying the location of the centre of the stimulus using a :ref:`x,y-pair <attrib-xy>`.
         See e.g. :class:`.ShapeStim` for more documentation/examples on how to set position.
-        
+
         :ref:`operations <attrib-operations>` are supported.
         """
         # Isn't there a way to use BaseVisualStim.pos.__doc__ as docstring here?
@@ -216,13 +216,13 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
     def setPos(self, newPos=None, operation='', units=None, log=None):
         """Obsolete - users should use setFieldPos instead of setPos
         """
-        logging.error("User called DotStim.setPos(pos). Use DotStim.SetFieldPos(pos) instead.")    
-    
-    @attributeSetter    
+        logging.error("User called DotStim.setPos(pos). Use DotStim.SetFieldPos(pos) instead.")
+
+    @attributeSetter
     def coherence(self, coherence):
         """Scalar between 0 and 1. Change the coherence (%) of the DotStim. This will be rounded according
         to the number of dots in the stimulus.
-        
+
         :ref:`operations <attrib-operations>` are supported.
         """
         if not 0 <= coherence <= 1:
@@ -240,22 +240,22 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         but use this method if you need to suppress the log message
         """
         setAttribute(self, 'coherence', val, log, op)  # calls attributeSetter
-    
+
     @attributeSetter
     def dir(self, dir):
         """float (degrees). direction of the coherent dots. :ref:`operations <attrib-operations>` are supported.
         """
         signalDots = self._dotsDir == (self.dir * pi / 180)  #check which dots are signal before setting new dir
         self.__dict__['dir'] = dir
-        
+
         #dots currently moving in the signal direction also need to update their direction
-        self._dotsDir[signalDots] = self.dir * pi / 180  
+        self._dotsDir[signalDots] = self.dir * pi / 180
     def setDir(self, val, op='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         setAttribute(self, 'dir', val, log, op)
-    
+
     @attributeSetter
     def speed(self, speed):
         """float. speed of the dots (in *units*/frame). :ref:`operations <attrib-operations>` are supported.
@@ -272,7 +272,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         stimulus to appear on that frame and then update the screen
         again.
         """
-        if win==None: win=self.win
+        if win is None:
+            win=self.win
         self._selectWindow(win)
 
         self._update_dotsXY()
@@ -280,7 +281,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         GL.glPushMatrix()#push before drawing, pop after
 
         #draw the dots
-        if self.element==None:
+        if self.element is None:
             win.setScale('pix')
             GL.glPointSize(self.dotSize)
 

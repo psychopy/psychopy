@@ -266,7 +266,7 @@ class PrefCtrls:
         Different types of control have different methods for retrieving value.
         This function checks them all and returns the value or None.
         """
-        if ctrl==None:
+        if ctrl is None:
             return None
         elif hasattr(ctrl, '_choices'): #for wx.Choice
             return ctrl._choices[ctrl.GetSelection()]

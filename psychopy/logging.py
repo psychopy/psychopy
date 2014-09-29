@@ -134,7 +134,7 @@ class LogFile:
 
         """
         #work out if this is a filename or a stream to write to
-        if f==None:
+        if f is None:
             self.stream = 'stdout'
         elif hasattr(f, 'write'):
             self.stream=f

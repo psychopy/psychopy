@@ -6,7 +6,7 @@ logging.console.setLevel(logging.DEBUG)
 
 def test_PR655():
     pr655 = hardware.findPhotometer(device='PR655')
-    if pr655==None:
+    if pr655 is None:
         logging.warning('no device found')
     else:
         print 'type:', pr655.type

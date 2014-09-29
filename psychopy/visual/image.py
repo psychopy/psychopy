@@ -214,7 +214,8 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self.clearTextures()#remove textures from graphics card to prevent crash
 
     def draw(self, win=None):
-        if win==None: win=self.win
+        if win is None:
+            win=self.win
         self._selectWindow(win)
 
         GL.glPushMatrix()#push before the list, pop after
@@ -239,7 +240,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self.__dict__['image'] = self._imName = value
 
         wasLumImage = self.isLumImage
-        if value==None:
+        if value is None:
             datatype = GL.GL_FLOAT
         else:
             datatype = GL.GL_UNSIGNED_BYTE
@@ -247,7 +248,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
             pixFormat=GL.GL_RGB, dataType=datatype,
             maskParams=self.maskParams, forcePOW2=False)
         #if user requested size=None then update the size for new stim here
-        if hasattr(self, '_requestedSize') and self._requestedSize==None:
+        if hasattr(self, '_requestedSize') and self._requestedSize is None:
             self.size = None  # set size to default
         #if we switched to/from lum image then need to update shader rule
         if wasLumImage != self.isLumImage:

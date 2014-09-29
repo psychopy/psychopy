@@ -94,17 +94,17 @@ def _exceptionRaisingPhotometer(port):
 
 def test_findPhotometer():
     # findPhotometer with no ports should return None
-    assert (hw.findPhotometer(ports=[])==None)
+    assert (hw.findPhotometer(ports=[]) is None)
     # likewise, if an empty device list is used return None
-    assert (hw.findPhotometer(device=[])==None)
+    assert (hw.findPhotometer(device=[]) is None)
     # even when both are empty
-    assert (hw.findPhotometer(device=[],ports=[])==None)
+    assert (hw.findPhotometer(device=[],ports=[]) is None)
 
     # non-existant photometers return None, for now
-    assert (hw.findPhotometer(device="thisIsNotAPhotometer!")==None)
+    assert (hw.findPhotometer(device="thisIsNotAPhotometer!") is None)
 
     # if the photometer raises an exception don't crash, return None
-    assert (hw.findPhotometer(device=[_exceptionRaisingPhotometer],ports="foobar")==None)
+    assert (hw.findPhotometer(device=[_exceptionRaisingPhotometer],ports="foobar") is None)
 
     # specifying a photometer should work
     assert hw.findPhotometer(device=[_workingPhotometer],ports="foobar") == _MockPhotometer

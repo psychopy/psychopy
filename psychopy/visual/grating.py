@@ -173,7 +173,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         """
 
         # Recode phase to numpy array
-        if value == None:
+        if value is None:
             """Set the sf to default (e.g. to the 1.0/size of the loaded image etc)"""
             if self.units in ['pix', 'pixels'] \
                 or self._origSize is not None and self.units in ['deg', 'cm']:
@@ -220,7 +220,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self._createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self,
             res=self.texRes, maskParams=self.maskParams)
         #if user requested size=None then update the size for new stim here
-        if hasattr(self, '_requestedSize') and self._requestedSize == None:
+        if hasattr(self, '_requestedSize') and self._requestedSize is None:
             self.size = None  # Reset size do default
         self.__dict__['tex'] = value
         self._needTextureUpdate = False
@@ -242,7 +242,8 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         stimulus to appear on that frame and then update the screen
         again.
         """
-        if win==None: win=self.win
+        if win is None:
+            win=self.win
         self._selectWindow(win)
 
         #do scaling

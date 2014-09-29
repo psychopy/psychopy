@@ -100,7 +100,7 @@ def cm2deg(cm, monitor, correctFlat=False):
     #get monitor dimensions
     dist = monitor.getDistance()
     #check they all exist
-    if dist==None:
+    if dist is None:
         raise ValueError("Monitor %s has no known distance (SEE MONITOR CENTER)" %monitor.name)
     if correctFlat:
         return np.arctan(np.radians(cm/dist))
@@ -125,7 +125,7 @@ def deg2cm(degrees, monitor, correctFlat=False):
     #get monitor dimensions
     dist = monitor.getDistance()
     #check they all exist
-    if dist==None:
+    if dist is None:
         raise ValueError("Monitor %s has no known distance (SEE MONITOR CENTER)" %monitor.name)
     if correctFlat:
         rads = radians(degrees)
@@ -158,9 +158,9 @@ def cm2pix(cm, monitor):
     #get monitor params and raise error if necess
     scrWidthCm = monitor.getWidth()
     scrSizePix = monitor.getSizePix()
-    if scrSizePix==None:
+    if scrSizePix is None:
         raise ValueError("Monitor %s has no known size in pixels (SEE MONITOR CENTER)" %monitor.name)
-    if scrWidthCm==None:
+    if scrWidthCm is None:
         raise ValueError("Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name)
 
     return cm*scrSizePix[0]/float(scrWidthCm)
@@ -173,9 +173,9 @@ def pix2cm(pixels, monitor):
     #get monitor params and raise error if necess
     scrWidthCm = monitor.getWidth()
     scrSizePix = monitor.getSizePix()
-    if scrSizePix==None:
+    if scrSizePix is None:
         raise ValueError("Monitor %s has no known size in pixels (SEE MONITOR CENTER)" %monitor.name)
-    if scrWidthCm==None:
+    if scrWidthCm is None:
         raise ValueError("Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name)
     return pixels*float(scrWidthCm)/scrSizePix[0]
 
@@ -184,9 +184,9 @@ def deg2pix(degrees, monitor, correctFlat=False):
     #get monitor params and raise error if necess
     scrWidthCm = monitor.getWidth()
     scrSizePix = monitor.getSizePix()
-    if scrSizePix==None:
+    if scrSizePix is None:
         raise ValueError("Monitor %s has no known size in pixels (SEE MONITOR CENTER)" %monitor.name)
-    if scrWidthCm==None:
+    if scrWidthCm is None:
         raise ValueError("Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name)
 
     cmSize = deg2cm(degrees, monitor, correctFlat)
@@ -197,9 +197,9 @@ def pix2deg(pixels, monitor, correctFlat=False):
     #get monitor params and raise error if necess
     scrWidthCm = monitor.getWidth()
     scrSizePix = monitor.getSizePix()
-    if scrSizePix==None:
+    if scrSizePix is None:
         raise ValueError("Monitor %s has no known size in pixels (SEE MONITOR CENTER)" %monitor.name)
-    if scrWidthCm==None:
+    if scrWidthCm is None:
         raise ValueError("Monitor %s has no known width in cm (SEE MONITOR CENTER)" %monitor.name)
     cmSize=pixels*float(scrWidthCm)/scrSizePix[0]
     return cm2deg(cmSize, monitor, correctFlat)

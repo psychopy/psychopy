@@ -54,7 +54,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
                  pos     =(0.0,0.0),
                  flipHoriz=False,
                  flipVert=False,
-                 name=None, 
+                 name=None,
                  autoLog=None):
         """ """  # all doc is in the attributeSetter
         #what local vars are defined (these are the init params) for use by __repr__
@@ -63,7 +63,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         self.autoLog = False
         self.__dict__['win'] = win
         super(SimpleImageStim, self).__init__(name=name)
-        
+
         self.units = units  # call attributeSetter
         self.useShaders = win._haveShaders  # call attributeSetter. Use shaders if available by default, this is a good thing
         self.pos = pos  # call attributeSetter
@@ -100,12 +100,12 @@ class SimpleImageStim(MinimalStim, WindowMixin):
             self.imArray = numpy.flipud(self.imArray)  # Numpy and pyglet disagree about ori so ud<=>lr
         self.__dict__['flipHoriz'] = value
         self._needStrUpdate=True
-    
+
     def setFlipHoriz(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'flipHoriz', newVal, log)
-    
+
     @attributeSetter
     def flipVert(self, value):
         """True/False. If set to True then the image will be flipped vertically (top-to-bottom).
@@ -119,7 +119,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'flipVert', newVal, log)
-    
+
     def _updateImageStr(self):
         self._imStr=self.imArray.tostring()
         self._needStrUpdate=False
@@ -130,7 +130,8 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         stimulus to appear on that frame and then update the screen
         again.
         """
-        if win==None: win=self.win
+        if win is None:
+            win=self.win
         self._selectWindow(win)
         #push the projection matrix and set to orthorgaphic
         GL.glMatrixMode(GL.GL_PROJECTION)
@@ -177,19 +178,20 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         NB this method does not flag the need for updates any more - that is
         done by specific methods as described above.
         """
-        if op==None: op=''
+        if op is None:
+            op=''
         #format the input value as float vectors
         if type(val) in (tuple, list):
             val=numpy.array(val, float)
 
         setAttribute(self, attrib, val, log, op)
-    
+
     @attributeSetter
     def pos(self, value):
         """:ref:`x,y-pair <attrib-xy>` specifying the he centre of the image
-        relative to the window center. Stimuli can be positioned off-screen, 
-        beyond the window! 
-        
+        relative to the window center. Stimuli can be positioned off-screen,
+        beyond the window!
+
         :ref:`operations <attrib-operations>` are supported."""
         self.__dict__['pos'] = val2array(value, withNone=False)
         self._calcPosRendered()
@@ -197,7 +199,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'pos', newPos, log, operation)
-    
+
     @attributeSetter
     def depth(self, value):
         """DEPRECATED. Depth is now controlled simply by drawing order."""

@@ -81,20 +81,20 @@ class TextStim(BaseVisualStim, ColorMixin):
                  alignVert='center',
                  fontFiles=[],
                  wrapWidth=None,
-                 flipHoriz=False, 
+                 flipHoriz=False,
                  flipVert=False,
-                 name=None, 
+                 name=None,
                  autoLog=None):
         """
         **Performance OBS:** in general, TextStim is slower than many other visual
         stimuli, i.e. it takes longer to change some attributes. In general, it's
-        the attributes that affect the shapes of the letters: 
+        the attributes that affect the shapes of the letters:
         ``text``, ``height``, ``font``, ``bold`` etc. These make the next .draw()
         slower because that sets the text again. You can make the draw()
-        quick by calling re-setting the text (```myTextStim.text = myTextStim.text) 
+        quick by calling re-setting the text (```myTextStim.text = myTextStim.text)
         when you've changed the parameters.
-        
-        In general, other attributes which merely affect the presentation of 
+
+        In general, other attributes which merely affect the presentation of
         unchanged shapes are as fast as usual. This includes ``pos``, ``opacity`` etc.
         """
 
@@ -158,24 +158,24 @@ class TextStim(BaseVisualStim, ColorMixin):
         """Float/int or None (set default).
         The height of the letters (including the entire box that surrounds the letters
         in the font). The width of the letters is then defined by the font.
-        
+
         :ref:`Operations <attrib-operations>` supported."""
         #height in pix (needs to be done after units which is done during _Base.__init__)
-        if height == None:
+        if height is None:
             if self.units in defaultLetterHeight:
                 height = defaultLetterHeight[self.units]
             else:
                 raise AttributeError, "TextStim does now know a default letter height for units %s" %(repr(self.units))
         self.__dict__['height'] = height
         self._heightPix = convertToPix(pos = numpy.array([0, 0]), vertices=numpy.array([0, self.height]), units=self.units, win=self.win)[1]
-        
+
         #need to update the font to reflect the change
-        self.setFont(self.font, log=False)    
+        self.setFont(self.font, log=False)
     def setHeight(self, height, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message. """
         setAttribute(self, 'height', height, log)
-    
+
     @attributeSetter
     def font(self, font):
         """String. Set the font to be used for text rendering.
@@ -185,7 +185,7 @@ class TextStim(BaseVisualStim, ColorMixin):
             self._font = pyglet.font.load(font, int(self._heightPix), dpi=72, italic=self.italic, bold=self.bold)
             self.__dict__['font'] = font
         else:
-            if font == None or len(font) == 0:
+            if font is None or len(font) == 0:
                 self.__dict__['font'] = pygame.font.get_default_font()
             elif font in pygame.font.get_fonts():
                 self.__dict__['font'] = font
@@ -198,7 +198,7 @@ class TextStim(BaseVisualStim, ColorMixin):
                             self.__dict__['font'] = thisFont  #take the first match
                             break #stop at the first one we find
                     #trhen check if we were successful
-                    if self.font == None and font != "":
+                    if self.font is None and font != "":
                         #we didn't find a ttf filename
                         logging.warning("Found %s but it doesn't end .ttf. Using default font." %fontFilenames[0])
                         self.__dict__['font'] = pygame.font.get_default_font()
@@ -221,8 +221,8 @@ class TextStim(BaseVisualStim, ColorMixin):
     def setFont(self, font, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
-        setAttribute(self, 'font', font, log)        
-    
+        setAttribute(self, 'font', font, log)
+
     @attributeSetter
     def text(self, text):
         """String
@@ -238,7 +238,7 @@ class TextStim(BaseVisualStim, ColorMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'text', text, log)
-    
+
     def _setTextShaders(self,value=None):
         """Set the text to be rendered using the current font
         """
@@ -441,7 +441,7 @@ class TextStim(BaseVisualStim, ColorMixin):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
         setAttribute(self, 'flipHoriz', newVal, log)
-    
+
     @attributeSetter
     def flipVert(self, value):
         """If set to True then the text will be flipped vertically (top-to-bottom).
@@ -465,55 +465,55 @@ class TextStim(BaseVisualStim, ColorMixin):
        Allow (or not) antialiasing the text. OBS: sets text, slow."""
         self.__dict__['antialias'] = value
         self._needSetText = True
-    
+
     @attributeSetter
     def bold(self, value):
         """True/False.
         Make the text bold (better to use a bold font name)."""
         self.__dict__['bold'] = value
         self.font = self.font  # call attributeSetter
-    
+
     @attributeSetter
     def italic(self, value):
         """True/False.
         Make the text italic (better to use a italic font name)."""
         self.__dict__['italic'] = value
         self.font = self.font  # call attributeSetter
-    
+
     @attributeSetter
     def alignVert(self, value):
         """The vertical alignment ('top', 'bottom' or 'center')"""
         self.__dict__['alignVert'] = value
         self._needSetText = True
-        
+
     @attributeSetter
     def alignHoriz(self, value):
         """The horizontal alignment ('left', 'right' or 'center')"""
         self.__dict__['alignHoriz'] = value
         self._needSetText = True
-    
+
     @attributeSetter
     def fontFiles(self, fontFiles):
-        """A list of additional files if the font is not in the standard system 
+        """A list of additional files if the font is not in the standard system
         location (include the full path). OBS: fonts are added every time this
         value is set. Previous aren't deleted.
-        
+
         E.g.::
-            
+
             stim.fontFiles = ['SpringRage.ttf']  # load file(s)
             stim.font = 'SpringRage'  # set to font
             """
         self.__dict__['fontFiles'] += fontFiles
         for thisFont in fontFiles:
             pyglet.font.add_file(thisFont)
-    
+
     @attributeSetter
     def wrapWidth(self, wrapWidth):
         """Int/float or None (set default).
         The width the text should run before wrapping.
-        
+
         :ref:`Operations <attrib-operations>` supported."""
-        if wrapWidth == None:
+        if wrapWidth is None:
             if self.units in defaultWrapWidth:
                 wrapWidth = defaultWrapWidth[self.units]
             else:
@@ -542,7 +542,8 @@ class TextStim(BaseVisualStim, ColorMixin):
 
         If win is specified then override the normal window of this stimulus.
         """
-        if win==None: win=self.win
+        if win is None:
+            win=self.win
         self._selectWindow(win)
 
         GL.glPushMatrix()

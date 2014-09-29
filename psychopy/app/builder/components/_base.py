@@ -136,7 +136,7 @@ class BaseComponent(object):
         """write updates to the buffer for each parameter that needs it
         updateType can be 'experiment', 'routine' or 'frame'
         """
-        if paramNames==None:
+        if paramNames is None:
             paramNames = self.params.keys()
         for thisParamName in paramNames:
             if thisParamName=='advancedParams':
@@ -150,7 +150,7 @@ class BaseComponent(object):
         This should not need overriding for different components - try to keep
         constant
         """
-        if params==None:
+        if params is None:
             params=self.params
         #first work out the name for the set____() function call
         if paramName=='advancedParams':

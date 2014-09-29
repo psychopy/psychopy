@@ -103,7 +103,7 @@ class StaticPeriod(object):
         self.countdown = CountdownTimer()
         self.name = name
         self.win = win
-        if screenHz == None:
+        if screenHz is None:
             self.frameTime = 0
         else:
             self.frameTime = 1.0/screenHz

@@ -154,7 +154,7 @@ def makePalette(images, verbose=False):
         img = images[0]
     else: img = images
 
-    if hist == None: # colors > 256:  use PIL dithered image & palette
+    if hist is None: # colors > 256:  use PIL dithered image & palette
         palette=None
     else:
         # Make two lists of the colors.
@@ -198,7 +198,7 @@ def rgb2palette (imgRgb, palette=None, verbose=False):     # image could be a "R
 
     # find the most popular colors, limiting the max number to 256
     # any "excess" colors with be transformed later to the closest palette match
-    if palette==None:
+    if palette is None:
         palette=makePalette(imgRgb)
 
     numPalette= numpy.reshape(numpy.asarray(palette), [256,3])
@@ -210,7 +210,7 @@ def rgb2palette (imgRgb, palette=None, verbose=False):     # image could be a "R
     if verbose:    print 'Defining the new image using the newly created palette ...'
 
     # Each pixel gets a palette color index
-    if datalist == None:
+    if datalist is None:
         datalist = list (imgRgb.getdata())      # xsize*ysize list of color 3-tuples
     #end if
 
@@ -256,7 +256,7 @@ def makeMPEG(filename, images, codec='mpeg1video', codecParams = None, verbose=F
         bitrate= 9800000
 
     #set other params (or receive params dictionary)
-    if codecParams == None:
+    if codecParams is None:
         codecParams= { \
             'type': 0,
             'gop_size': 12,

@@ -367,7 +367,7 @@ def test_shellCall():
         echo, se = shellCall(arg1, stdin=msg, stderr=True)
         assert echo == msg
     echo, se = shellCall(12, stdin=msg)
-    assert echo == None
+    assert echo is None
 
 if __name__ == '__main__':
     testMonotonicClock()
