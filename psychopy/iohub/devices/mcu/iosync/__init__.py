@@ -71,8 +71,8 @@ MCU Access
 
 """
 
-import pysync
-from pysync import T3MC,T3Request,T3Event,getTime
+import piosync
+from piosync import ioSyncDevice,T3Request,T3Event,getTime
 from psychopy.iohub import print2err,printExceptionDetailsToStdErr,Computer
 from ... import Device, DeviceEvent
 from ....constants import DeviceConstants, EventConstants
@@ -108,7 +108,7 @@ class MCU(Device):
         self._last_sync_time=0.0
 
         if self.serial_port.lower() == 'auto':
-            syncPorts = T3MC.findSyncs()
+            syncPorts = ioSyncDevice.findSyncs()
             if len(syncPorts) == 1:
                 self.serial_port = syncPorts[0]
             elif len(syncPorts) > 1:
@@ -121,7 +121,7 @@ class MCU(Device):
     def setConnectionState(self,enable):
         if enable is True:
             if self._mcu is None:
-                self._mcu = T3MC(self.serial_port)
+                self._mcu = ioSyncDevice(self.serial_port)
                 self._resetLocalState()
 
         elif enable is False:
@@ -207,8 +207,8 @@ class MCU(Device):
         self._request_dict[request.getID()]=request
         return request.asdict()
 
-    def generateKeyboardEvent(self, use_char, press_duration):
-        request=self._mcu.generateKeyboardEvent(use_char, press_duration)
+    def generateKeyboardEvent(self, key_list=0, modifier_state=0):
+        request=self._mcu.generateKeyboardEvent(key_list, modifier_state)
         self._request_dict[request.getID()]=request
         return request.asdict()
         
@@ -345,7 +345,7 @@ class MCU(Device):
             logged_time=getTime()
 
             if self.isConnected():            
-                self._mcu.getSerialRx()
+                self._mcu.poll()
                 if logged_time-self._last_sync_time>=self.time_sync_interval:
                     self._mcu._runTimeSync()
                     self._last_sync_time=logged_time
