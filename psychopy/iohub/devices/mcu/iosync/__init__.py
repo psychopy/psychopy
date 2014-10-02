@@ -72,7 +72,7 @@ MCU Access
 """
 
 import piosync
-from piosync import ioSyncDevice,T3Request,T3Event,getTime
+from piosync import ioSyncDevice,ioSyncRequest,ioSyncEvent,getTime
 from psychopy.iohub import print2err,printExceptionDetailsToStdErr,Computer
 from ... import Device, DeviceEvent
 from ....constants import DeviceConstants, EventConstants
@@ -136,7 +136,7 @@ class MCU(Device):
         return self._mcu != None
            
     def getDeviceTime(self):
-        return T3Request.sync_state.local2RemoteTime(getTime())
+        return ioSyncRequest.sync_state.local2RemoteTime(getTime())
         
     def getSecTime(self):
         """
@@ -366,16 +366,16 @@ class MCU(Device):
                 # need to be used to adjust iohub time
                 iohub_time=event.local_time
                 elist = None
-                if event.getTypeInt() == T3Event.ANALOG_INPUT_EVENT:
+                if event.type() == ioSyncEvent.ANALOG_INPUT_EVENT:
                     elist = [EventConstants.UNDEFINED,]*19
                     elist[4] = AnalogInputEvent.EVENT_TYPE_ID
                     for i, v in enumerate(event.ain_channels):
                         elist[(i+11)]=v
-                elif event.getTypeInt() == T3Event.DIGITAL_INPUT_EVENT:
+                elif event.type() == ioSyncEvent.DIGITAL_INPUT_EVENT:
                     elist = [EventConstants.UNDEFINED,]*12
                     elist[4] = DigitalInputEvent.EVENT_TYPE_ID
                     elist[-1] = event.getDigitalInputByte()
-                elif event.getTypeInt() == T3Event.THRESHOLD_EVENT:
+                elif event.type() == ioSyncEvent.THRESHOLD_EVENT:
                     elist = [EventConstants.UNDEFINED,]*19
                     elist[4] = ThresholdEvent.EVENT_TYPE_ID
                     for i, v in enumerate(event.threshold_state_changed):
