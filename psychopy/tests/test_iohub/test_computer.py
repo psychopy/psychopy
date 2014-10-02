@@ -34,7 +34,7 @@ class TestComputer:
         tc = Computer.getTime()
         tp = getTime()
 
-        assert ta < tb < tc < tp
+        assert ta <= tb <= tc <= tp
         assert tp - ta < 0.002
 
     def test_getProcesses(self):
