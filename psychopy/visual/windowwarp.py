@@ -84,7 +84,7 @@ class Warper():
         """
         self.win = win
         # monkey patch the warp method
-        win._warp = self.drawWarp
+        win._renderFBO = self.drawWarp
         self.warp = warp
         self.warpfile = warpfile
         self.warpGridsize = warpGridsize
