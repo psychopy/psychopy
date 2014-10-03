@@ -548,7 +548,7 @@ class Window(object):
                 GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
                 GL.glColorMask(True, True, True, True)
 
-                self._warp()
+                self._renderFBO()
 
                 GL.glEnable(GL.GL_BLEND)
                 self._finishFBOrender()
@@ -1674,7 +1674,7 @@ class Window(object):
         can override this method as needed. Return True to indicate hardware flip."""
         return True
 
-    def _warp(self):
+    def _renderFBO(self):
         '''Perform a warp operation (in this case a copy operation without any warping)'''
         GL.glBegin(GL.GL_QUADS)
         GL.glTexCoord2f(0.0, 0.0)
