@@ -158,7 +158,7 @@ class DateStringValueError(ValidationError):
         self.msg="A date string value is required for the given Device configuration parameter."
         self.device_config_param_name=device_config_param_name
         self.value_given=value_given
-        
+
     def __str__(self):
         return "\n{0}:\n\tmsg: {1}\n\tparam_name: {2}\n\tvalue: {3}\n".format(self.__class__.__name__,self.msg,self.device_config_param_name,self.value_given)
 
@@ -201,9 +201,9 @@ def isValidRgb255Color(config_param_name,color,constraints):
                     raise ColorValueError(config_param_name,color)
         else:
             raise ColorValueError(config_param_name,color)
-            
+
         return color
-        
+
     raise ColorValueError(config_param_name,color)
 
 def isValidString(config_param_name,value,constraints):
@@ -214,8 +214,8 @@ def isValidString(config_param_name,value,constraints):
         min_length=int(constraints.get('min_length'))
         max_length=int(constraints.get('max_length'))
         first_char_alpha=bool(constraints.get('first_char_alpha'))
-        
-            
+
+
         if len(value)>=min_length:
             if len(value)<=max_length:
                 if first_char_alpha is True and value[0].isalpha() is False:
@@ -234,11 +234,11 @@ def isValidFloat(config_param_name,value,constraints):
         constraints.setdefault('max',MAX_VALID_FLOAT_VALUE)
         minv=float(constraints.get('min'))
         maxv=float(constraints.get('max'))
-        
+
         if value>=minv:
             if value<=maxv:
                 return value
-                
+
     raise FloatValueError(config_param_name,value,constraints)
 
 def isValidInt(config_param_name,value,constraints):
@@ -247,11 +247,11 @@ def isValidInt(config_param_name,value,constraints):
         constraints.setdefault('max',MAX_VALID_INT_VALUE)
         minv=int(constraints.get('min'))
         maxv=int(constraints.get('max'))
-        
+
         if value>=minv:
             if value<=maxv:
                 return value
-                
+
     raise IntValueError(config_param_name,value,constraints)
 
 def isValidNumber(config_param_name,value,constraints):
@@ -265,7 +265,7 @@ def isValidNumber(config_param_name,value,constraints):
         except:
             raise NumberValueError(config_param_name,value,constraints)
 
-    
+
 def isBool(config_param_name,value,valid_value):
     try:
         value=bool(value)
@@ -300,40 +300,40 @@ def isValidList(config_param_name,value,constraints):
         min_length=constraints.get('min_length',1)
         max_length=constraints.get('max_length',128)
 
-        if min_length == 0 and value == None or value == 'None':
+        if min_length == 0 and value is None or value == 'None':
             return value
 
         valid_values=constraints.get('valid_values',[])
-        
+
         if len(valid_values)==0:
             return value
-            
-        if not isinstance(value,(list,tuple)):         
+
+        if not isinstance(value,(list,tuple)):
             if value not in valid_values:
                 raise NonSupportedValueError(config_param_name,value,constraints)
             elif min_length in [0,1]:
                 return value
-                
+
         current_length=len(value)
-        
+
         if current_length<min_length or current_length>max_length:
             raise NonSupportedValueError(config_param_name,value,constraints)
-        
+
         for v in value:
             if v not in valid_values:
                 raise NonSupportedValueError(config_param_name,v,valid_values)
-        
+
         return value
-            
+
     except:
         raise NonSupportedValueError(config_param_name,value,constraints)
-       
+
 
 def isValueValid(config_param_name,value,valid_values):
     if value not in valid_values:
         raise NonSupportedValueError(config_param_name,value,valid_values)
     return value
-        
+
 CONFIG_VALIDATION_KEY_WORD_MAPPINGS=dict(IOHUB_STRING=isValidString,
                                  IOHUB_BOOL=isBool,
                                  IOHUB_FLOAT=isValidFloat,
@@ -348,14 +348,14 @@ CONFIG_VALIDATION_KEY_WORD_MAPPINGS=dict(IOHUB_STRING=isValidString,
 # load a support_settings_values.yaml
 
 def loadYamlFile(yaml_file_path,print_file=False):
-    yaml_file_contents=load(file(yaml_file_path,'r'), Loader=Loader)    
+    yaml_file_contents=load(file(yaml_file_path,'r'), Loader=Loader)
 #    if print_file:
 #        print 'yaml_file_contents:'
 #        print 'file: ',yaml_file_path
-#        print 'contents:'    
-#        pprint(yaml_file_contents)    
+#        print 'contents:'
+#        pprint(yaml_file_contents)
     return yaml_file_contents
-    
+
 _current_dir=module_directory(isValidString)
 
 def buildConfigParamValidatorMapping(device_setting_validation_dict,param_validation_func_mapping,parent_name):
@@ -365,8 +365,8 @@ def buildConfigParamValidatorMapping(device_setting_validation_dict,param_valida
             current_param_path=param_name
         else:
             current_param_path="%s.%s"%(parent_name,param_name)
-            
-        keyword_validator_function=None        
+
+        keyword_validator_function=None
         if isinstance(param_name,basestring):
             keyword_validator_function=CONFIG_VALIDATION_KEY_WORD_MAPPINGS.get(param_name,None)
 
@@ -390,14 +390,14 @@ def buildConfigParamValidatorMapping(device_setting_validation_dict,param_valida
             param_validation_func_mapping[current_param_path]=isValueValid,[param_config,]
 #            ioHub.print2err('ADDED MAPPING')
 
-def validateConfigDictToFuncMapping(param_validation_func_mapping,current_device_config,parent_param_path):    
-    validation_results=dict(errors=[],not_found=[])    
+def validateConfigDictToFuncMapping(param_validation_func_mapping,current_device_config,parent_param_path):
+    validation_results=dict(errors=[],not_found=[])
     for config_param,config_value in current_device_config.iteritems():
         if parent_param_path is None:
             current_param_path=config_param
         else:
             current_param_path="%s.%s"%(parent_param_path,config_param)
-            
+
         param_validation=param_validation_func_mapping.get(current_param_path,None)
         if param_validation:
             param_validation_func,constraints=param_validation
@@ -408,35 +408,35 @@ def validateConfigDictToFuncMapping(param_validation_func_mapping,current_device
             except ValidationError:
                 validation_results['errors'].append((config_param,config_value))
                 #ioHub.print2err("Device Config Validation Error: param: {0}, value: {1}\nError: {2}".format(config_param,config_value,e))
-                
+
         elif isinstance(config_value,dict):
             validateConfigDictToFuncMapping(param_validation_func_mapping,config_value,current_param_path)
         else:
-            validation_results['not_found'].append((config_param,config_value))    
+            validation_results['not_found'].append((config_param,config_value))
     return validation_results
-            
+
 def validateDeviceConfiguration(relative_module_path,device_class_name,current_device_config):
     validation_file_path=os.path.join(_current_dir,relative_module_path[len('psychopy.iohub.devices.'):].replace('.',os.path.sep),'supported_config_settings.yaml')
 
     device_settings_validation_dict=loadYamlFile(validation_file_path,print_file=True)
     device_settings_validation_dict=device_settings_validation_dict[device_settings_validation_dict.keys()[0]]
-    
+
     param_validation_func_mapping=dict()
     parent_config_param_path=None
     buildConfigParamValidatorMapping(device_settings_validation_dict,param_validation_func_mapping,parent_config_param_path)
-    
+
 #    ioHub.print2err("#### buildConfigParamValidatorMapping results:\n\ncurrent_device_config: {0}\n\n validation_rules config: {1}\n\n Config Constants Mapping: {2}\n".format(current_device_config,device_settings_validation_dict,param_validation_func_mapping))
-    
+
     validation_results=validateConfigDictToFuncMapping(param_validation_func_mapping,current_device_config,None)
 
-#    ioHub.print2err('=================================================')    
-#    ioHub.print2err('{0} VALIDATION RESULTS: '.format(device_class_name))    
+#    ioHub.print2err('=================================================')
+#    ioHub.print2err('{0} VALIDATION RESULTS: '.format(device_class_name))
 #    ioHub.print2err('\tPARAMS NOT FOUND: {0} '.format(len(validation_results['not_found'])))
 #    for p,v in validation_results['not_found']:
 #        ioHub.print2err('\tparam: {0}\t\tvalue: {1}'.format(p,v))
 #    ioHub.print2err('\tPARAMS WITH ERROR: {0} '.format(len(validation_results['errors'])))
 #    for p,v in validation_results['errors']:
 #        ioHub.print2err('\tparam: {0}\t\tvalue: {1}'.format(p,v))
-#    ioHub.print2err('=================================================')    
-    
-    return validation_results 
+#    ioHub.print2err('=================================================')
+
+    return validation_results

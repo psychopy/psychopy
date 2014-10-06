@@ -19,7 +19,7 @@ class attributeSetter(object):
     def __set__(self, obj, value):
         newValue = self.func(obj, value)
         logAttrib(obj, log=None, attrib=self.func.__name__, value=value)  # log=None defaults to obj.autoLog
-        
+
         # Useful for inspection/debugging. Keeps track of all settings of attributes.
         """
         import traceback
@@ -35,24 +35,24 @@ class attributeSetter(object):
 def setAttribute(self, attrib, value, log, operation=False, stealth=False):
     """
     This function is useful to direct the old set* functions to the
-    @attributeSetter. It has the same functionality but supports logging control 
+    @attributeSetter. It has the same functionality but supports logging control
     as well, making it useful for cross-@attributeSetter calls as well with log=False.
-    
+
     Typical usage: e.g. in setSize(self, value, operation, log=None) do::
-    
+
         def setSize(self, value, operation, log=None):
             setAttribute(self, 'size', value, log, operation)  # call attributeSetter
-    
+
     Sets an object property (scalar or numpy array), optionally with an operation
-    given in a string. If operation is None or '', value is multiplied with old 
+    given in a string. If operation is None or '', value is multiplied with old
     to keep shape.
-    
-    If stealth is True, then use self.__dict[key] = value and avoid calling attributeSetters. 
-    If stealth is False, use setattr(). autoLog controls the value of autoLog during this setattr().    
-    
+
+    If stealth is True, then use self.__dict[key] = value and avoid calling attributeSetters.
+    If stealth is False, use setattr(). autoLog controls the value of autoLog during this setattr().
+
     History: introduced in version 1.79 to avoid exec-calls. Even though it looks
     complex, it is very fast :-)"""
-    
+
     # Change the value of "value" if there is an operation. Even if it is '',
     # which indicates that this value could potentially be subjected to an operation.
     if operation is not False:
@@ -62,11 +62,12 @@ def setAttribute(self, attrib, value, log, operation=False, stealth=False):
             # attribute is not set yet. Set it to None to skip operation and just set value.
             oldValue = None
             value = value
-        
+
         # Apply operation except for the case when new or old value are None or string-like
-        if None not in (value, oldValue) and type(value) not in (str, unicode) and type(oldValue) not in (str, unicode):
+        if value is not None and not isinstance(value, basestring) and \
+            oldValue is not None and not isinstance(oldValue, basestring):
             value = numpy.array(value, float)
-    
+
             # Calculate new value using operation
             if operation in ('', None):
                 if value.shape is () and not isinstance(oldValue, attributeSetter):  # scalar
@@ -85,10 +86,10 @@ def setAttribute(self, attrib, value, log, operation=False, stealth=False):
                 value = oldValue % value
             else:
                 raise ValueError('Unsupported value "', operation, '" for operation when setting', attrib, 'in', self.__class__.__name__)
-        
+
         elif operation not in ('', None):
             raise TypeError('operation %s invalid for %s (old value) and %s (operation value)' %(operation.__repr__(), oldValue, value))
-        
+
     # Ok, operation or not, change the attribute in self without callback to attributeSetters
     if stealth:
         self.__dict__[attrib] = value  # without logging as well
@@ -110,7 +111,7 @@ def logAttrib(obj, log, attrib, value=None):
     if log or log is None and obj.autoLog:
         if value is None:
             value = getattr(obj, attrib)
-        
+
         # Log on next flip
         message = "%s: %s = %s" % (obj.name, attrib, value.__repr__())
         try:

@@ -7,7 +7,8 @@
             first_char_alpha: True    
     save_events: IOHUB_BOOL
     stream_events: IOHUB_BOOL
-    auto_report_events: IOHUB_BOOL    
+    auto_report_events: IOHUB_BOOL
+    log_events_for_testing: IOHUB_BOOL
     report_auto_repeat_press_events: IOHUB_BOOL    
     report_system_wide_events: IOHUB_BOOL    
     event_buffer_length:

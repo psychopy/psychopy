@@ -30,7 +30,7 @@ def getIcons(filename=None):
     png files work best, but anything that wx.Image can import should be fine
     """
     icons={}
-    if filename==None:
+    if filename is None:
         filename=join(dirname(abspath(__file__)),'base.png')
     im = Image.open(filename)
     icons['48'] = pilToBitmap(im)
@@ -47,10 +47,10 @@ def getIcons(filename=None):
 def getComponents(folder=None, fetchIcons=True):
     """Get a dictionary of available component objects for the Builder experiments.
 
-    If folder==None then the built-in components will be returned, otherwise
+    If folder is None then the built-in components will be returned, otherwise
     the components found in the folder provided will be returned.
     """
-    if folder==None:
+    if folder is None:
         folder = dirname(__file__)
     os.sys.path.append(folder)
     components={}

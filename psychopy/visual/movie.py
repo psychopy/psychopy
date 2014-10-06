@@ -131,7 +131,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
             self._player_default_on_eos = self._player.on_eos
         except:
             self._player_default_on_eos = self._player._on_eos #from pyglet 1.1.4?
-            
+
         self.filename=filename
         self.duration=None
         self.loop = loop
@@ -147,8 +147,9 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         self.status=NOT_STARTED
 
         #size
-        if size == None: self.size= numpy.array([self.format.width,
-                                                 self.format.height] , float)
+        if size is None:
+            self.size= numpy.array([self.format.width,
+                                    self.format.height] , float)
         else:
             self.size = val2array(size)
 
@@ -272,7 +273,8 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         elif self.status == FINISHED and not self.loop:
             return
 
-        if win==None: win=self.win
+        if win is None:
+            win=self.win
         self._selectWindow(win)
 
         #make sure that textures are on and GL_TEXTURE0 is active
@@ -281,7 +283,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         if pyglet.version>='1.2': #for pyglet 1.1.4 this was done via media.dispatch_events
             self._player.update_texture()
         frameTexture = self._player.get_texture()
-        if frameTexture==None:
+        if frameTexture is None:
             return
 
         GL.glColor4f(1,1,1, self.opacity)  # sets opacity (1,1,1 = RGB placeholder)

@@ -154,7 +154,7 @@ class Dlg(wx.Dialog):
         self.sizer.Add(buttons,1,flag=wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM,border=5)
 
         self.SetSizerAndFit(self.sizer)
-        if self.pos == None:
+        if self.pos is None:
             self.Center()
         if self.ShowModal() == wx.ID_OK:
             self.data=[]
@@ -257,7 +257,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
 
     If user cancels the None is returned.
     """
-    if allowed==None:
+    if allowed is None:
         allowed = "All files (*.*)|*.*"  #\
             #"txt (*.txt)|*.txt" \
             #"pickled files (*.pickle, *.pkl)|*.pickle" \
@@ -298,7 +298,7 @@ def fileOpenDlg(tryFilePath="",
 
     If user cancels, then None is returned.
     """
-    if allowed==None:
+    if allowed is None:
         allowed = "PsychoPy Data (*.psydat)|*.psydat|"\
             "txt (*.txt,*.dlm,*.csv)|*.txt;*.dlm;*.csv|" \
             "pickled files (*.pickle, *.pkl)|*.pickle|" \

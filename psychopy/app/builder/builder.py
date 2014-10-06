@@ -1774,7 +1774,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         btn = evt.GetEventObject()
         self._rightClicked = btn
         index = self.getIndexInSizer(btn, self.panels['Favorites'])
-        if index==None:
+        if index is None:
             #not currently in favs
             msg = "Add to favorites"
             function = self.onAddToFavorites
@@ -1943,7 +1943,7 @@ class ParamCtrls:
         #try to find the experiment
         self.exp=None
         tryForExp = self.dlg
-        while self.exp==None:
+        while self.exp is None:
             if hasattr(tryForExp,'frame'):
                 self.exp=tryForExp.frame.exp
             else:
@@ -2048,7 +2048,7 @@ class ParamCtrls:
                 self.typeCtrl.Disable()#visible but can't be changed
 
         #create update control
-        if param.allowedUpdates==None or len(param.allowedUpdates)==0:
+        if param.allowedUpdates is None or len(param.allowedUpdates)==0:
             pass
         else:
             #updates = display-only version of allowed updates
@@ -2075,7 +2075,7 @@ class ParamCtrls:
         """Different types of control have different methods for retrieving value.
         This function checks them all and returns the value or None.
         """
-        if ctrl == None:
+        if ctrl is None:
             return None
         elif hasattr(ctrl,'GetText'):
             return ctrl.GetText()
@@ -2100,7 +2100,7 @@ class ParamCtrls:
         """Different types of control have different methods for retrieving value.
         This function checks them all and returns the value or None.
         """
-        if ctrl == None:
+        if ctrl is None:
             return None
         elif hasattr(ctrl, 'SetValue'): #e.g. TextCtrl
             ctrl.SetValue(newVal)
@@ -2758,7 +2758,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             nReps=50, stairType='simple', switchStairs='random',
             conditions=[], conditionsFile='')
         #replace defaults with the loop we were given
-        if loop==None:
+        if loop is None:
             self.currentType='random'
             self.currentHandler=self.trialHandler
         elif loop.type=='TrialHandler':
@@ -2885,7 +2885,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
                     text = _translate("No parameters set")
-                ctrls = ParamCtrls(dlg=self, parent=panel, label='conditions',fieldName=fieldName,
+                ctrls = ParamCtrls(dlg=self, parent=panel, label=label, fieldName=fieldName,
                     param=text, noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
                 ctrls.valueCtrl = wx.StaticText(panel, label=text, size=size, style=wx.ALIGN_CENTER)
@@ -2921,13 +2921,21 @@ class DlgLoopProperties(_BaseParamsDlg):
             keys.append('conditions')
         #then step through them
         for fieldName in keys:
+            #try and get alternative "label" for the parameter
+            try:
+                label = handler.params[fieldName].label
+                if not label: #it might exist but be empty
+                    label = fieldName
+            except:
+                label = fieldName
+            #handle special cases
             if fieldName=='endPoints':
                 continue  #this was deprecated in v1.62.00
             if fieldName in self.globalCtrls:
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             elif fieldName=='conditionsFile':
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,fieldName=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=label, fieldName=fieldName,
                     param=handler.params[fieldName], browse=True)
                 self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,ctrls.browseCtrl)
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
@@ -2939,14 +2947,14 @@ class DlgLoopProperties(_BaseParamsDlg):
                     text=self.getTrialsSummary(handler.params['conditions'].val)
                 else:
                     text = _translate("No parameters set (select a file above)")
-                ctrls = ParamCtrls(dlg=self, parent=panel, label='conditions',fieldName=fieldName,
+                ctrls = ParamCtrls(dlg=self, parent=panel, label=label, fieldName=fieldName,
                     param=text, noCtrls=True)#we'll create our own widgets
                 size = wx.Size(350, 50)
                 ctrls.valueCtrl = wx.StaticText(panel, label=text, size=size, style=wx.ALIGN_CENTER)
                 panelSizer.Add(ctrls.valueCtrl, (row, 0), span=(1,3), flag=wx.ALIGN_CENTER)
                 row += 1
             else: #normal text entry field
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,fieldName=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=label, fieldName=fieldName,
                     param=handler.params[fieldName])
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
@@ -2964,13 +2972,21 @@ class DlgLoopProperties(_BaseParamsDlg):
         handler=self.stairHandler
         #loop through the params
         for fieldName in handler.params:
+            #try and get alternative "label" for the parameter
+            try:
+                label = handler.params[fieldName].label
+                if not label: #it might exist but be empty
+                    label = fieldName
+            except:
+                label = fieldName
+            #handle special cases
             if fieldName=='endPoints':
                 continue#this was deprecated in v1.62.00
             if fieldName in self.globalCtrls:
                 #these have already been made and inserted into sizer
                 ctrls=self.globalCtrls[fieldName]
             else: #normal text entry field
-                ctrls=ParamCtrls(dlg=self, parent=panel, label=fieldName,fieldName=fieldName,
+                ctrls=ParamCtrls(dlg=self, parent=panel, label=label, fieldName=fieldName,
                     param=handler.params[fieldName])
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
@@ -3664,7 +3680,7 @@ class DlgConditions(wx.Dialog):
         DlgConditions(previewData, parent=self.parent, title=_translate('PREVIEW'), fixed=True)
     def onNeedsResize(self, event=None):
         self.SetSizerAndFit(self.border) # do outer-most sizer
-        if self.pos==None:
+        if self.pos is None:
             self.Center()
     def show(self):
         """called internally; to display, pass gui=True to init
@@ -3734,7 +3750,7 @@ class DlgConditions(wx.Dialog):
 
         # finally, its show time:
         self.SetSizerAndFit(self.border)
-        if self.pos==None:
+        if self.pos is None:
             self.Center()
         if self.ShowModal() == wx.ID_OK:
             self.getData(typeSelected=True) # set self.data and self.types, from fields
@@ -4207,7 +4223,7 @@ class BuilderFrame(wx.Frame):
     def fileOpen(self, event=None, filename=None, closeCurrent=True):
         """Open a FileDialog, then load the file if possible.
         """
-        if filename==None:
+        if filename is None:
             dlg = wx.FileDialog(self, message=_translate("Open file ..."), style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST,
                 wildcard=_translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"))
             if dlg.ShowModal() != wx.ID_OK:
@@ -4241,7 +4257,7 @@ class BuilderFrame(wx.Frame):
     def fileSave(self,event=None, filename=None):
         """Save file, revert to SaveAs if the file hasn't yet been saved
         """
-        if filename==None:
+        if filename is None:
             filename = self.filename
         if filename.startswith('untitled'):
             if not self.fileSaveAs(filename):
@@ -4261,7 +4277,7 @@ class BuilderFrame(wx.Frame):
             usingDefaultName=True
         else:
             usingDefaultName=False
-        if filename==None:
+        if filename is None:
             filename = self.filename
         initPath, filename = os.path.split(filename)
 
@@ -4316,7 +4332,7 @@ class BuilderFrame(wx.Frame):
     def updateReadme(self):
         """Check whether there is a readme file in this folder and try to show it"""
         #create the frame if we don't have one yet
-        if not hasattr(self, 'readmeFrame') or self.readmeFrame==None:
+        if not hasattr(self, 'readmeFrame') or self.readmeFrame is None:
             self.readmeFrame=ReadmeFrame(parent=self)
         #look for a readme file
         if self.filename and self.filename!='untitled.psyexp':
@@ -4339,7 +4355,7 @@ class BuilderFrame(wx.Frame):
         if not self.readmeFrame.IsShown():
             self.readmeFrame.Show(value)
     def toggleReadme(self, evt=None):
-        if self.readmeFrame == None:
+        if self.readmeFrame is None:
            self.updateReadme()
            self.showReadme()
         else:
@@ -4378,7 +4394,7 @@ class BuilderFrame(wx.Frame):
             ok = self.checkSave()
             if not ok:
                 return False  #user cancelled
-        if self.filename==None:
+        if self.filename is None:
             frameData=self.appData['defaultFrame']
         else:
             frameData = dict(self.appData['defaultFrame'])
@@ -4430,7 +4446,7 @@ class BuilderFrame(wx.Frame):
         self.routinePanel.redrawRoutines()
         self.updateWindowTitle()
     def updateWindowTitle(self, newTitle=None):
-        if newTitle==None:
+        if newTitle is None:
             shortName = os.path.split(self.filename)[-1]
             newTitle='%s - PsychoPy Builder' %(shortName)
         self.SetTitle(newTitle)
@@ -4442,7 +4458,7 @@ class BuilderFrame(wx.Frame):
 
         Call with ``newVal=None``, to only update the save icon(s)
         """
-        if newVal==None:
+        if newVal is None:
             newVal= self.getIsModified()
         else:
             self.isModified=newVal
@@ -4468,7 +4484,7 @@ class BuilderFrame(wx.Frame):
         If we are at end of stack already then simply append the action.
         If not (user has done an undo) then remove orphan actions and then append.
         """
-        if state==None:
+        if state is None:
             state=copy.deepcopy(self.exp)
         #remove actions from after the current level
         if self.currentUndoLevel>1:
@@ -4580,7 +4596,7 @@ class BuilderFrame(wx.Frame):
     def runFile(self, event=None):
         #get abs path of experiment so it can be stored with data at end of exp
         expPath = self.filename
-        if expPath==None or expPath.startswith('untitled'):
+        if expPath is None or expPath.startswith('untitled'):
             ok = self.fileSave()
             if not ok:
                 return  # save file before compiling script
@@ -4663,7 +4679,7 @@ class BuilderFrame(wx.Frame):
         """Paste the current routine from self.app.copiedRoutine to a new page
         in self.routinePanel after promting for a new name
         """
-        if self.app.copiedRoutine == None:
+        if self.app.copiedRoutine is None:
             return -1
         defaultName = self.exp.namespace.makeValid(self.app.copiedRoutine.name)
         message = _translate('New name for copy of "%(copied)s"?  [%(default)s]') % {'copied':self.app.copiedRoutine.name, 'default':defaultName}
@@ -4772,7 +4788,7 @@ class ReadmeFrame(wx.Frame):
         self.filename=filename
         self.expName = self.parent.exp.getExpName()
         #check we can read
-        if filename==None:#check if we can write to the directory
+        if filename is None:#check if we can write to the directory
             return False
         elif not os.path.exists(filename):
             self.filename = None

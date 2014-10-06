@@ -26,7 +26,7 @@ def dkl2rgb(dkl, conversionMatrix=None):
         rgb(NxNx3) = dkl2rgb(dkl_NxNx3(el,az,radius), conversionMatrix)
 
     """
-    if conversionMatrix==None:
+    if conversionMatrix is None:
         conversionMatrix = numpy.asarray([ \
             #LUMIN    %L-M    %L+M-S  (note that dkl has to be in cartesian coords first!)
             [1.0000, 1.0000, -0.1462],#R
@@ -66,7 +66,7 @@ def dklCart2rgb(LUM, LM, S, conversionMatrix=None):
     NxNx3.append(3)
     dkl_cartesian = numpy.asarray([LUM.reshape([-1]), LM.reshape([-1]), S.reshape([-1])])
 
-    if conversionMatrix==None:
+    if conversionMatrix is None:
         conversionMatrix = numpy.asarray([ \
             #LUMIN    %L-M    %L+M-S  (note that dkl has to be in cartesian coords first!)
             [1.0000, 1.0000, -0.1462],#R
@@ -139,7 +139,7 @@ def lms2rgb(lms_Nx3, conversionMatrix=None):
 
     lms_3xN = numpy.transpose(lms_Nx3)#its easier to use in the other orientation!
 
-    if conversionMatrix==None:
+    if conversionMatrix is None:
         cones_to_rgb = numpy.asarray([ \
             #L        M        S
             [ 4.97068857, -4.14354132, 0.17285275],#R
@@ -162,7 +162,7 @@ def rgb2dklCart(picture, conversionMatrix=None):
     origShape = picture.shape
 
     #this is the inversion of the dkl2rgb conversion matrix
-    if conversionMatrix==None:
+    if conversionMatrix is None:
         conversionMatrix = numpy.asarray([\
             #LUMIN->%L-M->L+M-S
             [ 0.25145542,  0.64933633,  0.09920825],
@@ -203,7 +203,7 @@ def rgb2lms(rgb_Nx3, conversionMatrix=None):
 
     rgb_3xN = numpy.transpose(rgb_Nx3)#its easier to use in the other orientation!
 
-    if conversionMatrix==None:
+    if conversionMatrix is None:
         cones_to_rgb = numpy.asarray([ \
             #L        M        S
             [ 4.97068857, -4.14354132, 0.17285275],#R

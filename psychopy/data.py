@@ -88,7 +88,7 @@ class ExperimentHandler(object):
         self.name=name
         self.version=version
         self.runtimeInfo=runtimeInfo
-        if extraInfo==None:
+        if extraInfo is None:
             self.extraInfo = {}
         else:
             self.extraInfo=extraInfo
@@ -358,7 +358,7 @@ class _BaseTrialHandler(object):
         """Return the ExperimentHandler that this handler is attached to, if any.
         Returns None if not attached
         """
-        if self._exp==None or self._exp not in _experiments:
+        if self._exp is None or self._exp not in _experiments:
             return None
         else:
             return _experiments[self._exp]
@@ -444,7 +444,7 @@ class _BaseTrialHandler(object):
             matrixOnly=matrixOnly)
 
         #set default delimiter if none given
-        if delim==None:
+        if delim is None:
             if fileName[-4:] in ['.csv','.CSV']:
                 delim=','
             else:
@@ -580,7 +580,7 @@ class _BaseTrialHandler(object):
 
         #loop through lines in the data matrix
         for lineN, line in enumerate(dataArray):
-            if line==None:
+            if line is None:
                 continue
             for colN, entry in enumerate(line):
                 if entry in [None]:
@@ -613,7 +613,7 @@ class _BaseTrialHandler(object):
         the calling script is the originPath (fine from a standard python script).
         """
         #self.originPath and self.origin (the contents of the origin file)
-        if originPath==None or not os.path.isfile(originPath):
+        if originPath is None or not os.path.isfile(originPath):
             try:
                 originPath = inspect.getouterframes(inspect.currentframe())[1][1]
                 if self.autoLog:
@@ -1247,7 +1247,49 @@ def importTrialTypes(fileName, returnFieldNames=False):
     logging.warning("importTrialTypes is DEPRECATED (as of v1.70.00). Please use `importConditions` for identical functionality.")
     return importConditions(fileName, returnFieldNames)
 
-def importConditions(fileName, returnFieldNames=False):
+def sliceFromString(sliceString):
+    """Convert a text string into a valid slice object
+    which can be used as indices for a list or array.
+
+    >>> sliceFromString("0:10")
+    slice(0,10,None)
+    >>> sliceFromString("0::3")
+    slice(0,None,3)
+    >>> sliceFromString("-8:")
+    slice(-8,None,None)
+    """
+    sliceArgs = []
+    for val in sliceString.split(':'):
+        if len(val)==0:
+            sliceArgs.append(None)
+        else:
+            sliceArgs.append(int(round(float(val))))
+            #nb int(round(float(x))) is needed for x='4.3'
+    return apply(slice, sliceArgs)
+
+def indicesFromString(indsString):
+    """Convert a text string into a valid list of indices
+    """
+    # "6"
+    try:
+        inds = int(round(float(indsString)))
+        return [inds]
+    except:
+        pass
+    # "-6::2"
+    try:
+        inds = sliceFromString(indsString)
+        return inds
+    except:
+        pass
+    # "1,4,8"
+    try:
+        inds = list(eval(indsString))
+        return inds
+    except:
+        pass
+
+def importConditions(fileName, returnFieldNames=False, selection=""):
     """Imports a list of conditions from an .xlsx, .csv, or .pkl file
 
     The output is suitable as an input to :class:`TrialHandler` `trialTypes` or to
@@ -1265,6 +1307,17 @@ def importConditions(fileName, returnFieldNames=False):
         - be unique
         - begin with a letter (upper or lower case)
         - contain no spaces or other punctuation (underscores are permitted)
+
+
+    `selection` is used to select a subset of condition indices to be used
+    It can be a list/array of indices, a python `slice` object or a string to
+    be parsed as either option.
+    e.g.:
+        "1,2,4" or [1,2,4] or (1,2,4) are the same
+        "2:5"       # 2,3,4 (doesn't include last whole value)
+        "-10:2:"    #tenth from last to the last in steps of 2
+        slice(-10,2,None) #the same as above
+        random(5)*8 #5 random vals 0-8
 
     """
     def _assertValidVarNames(fieldNames, fileName):
@@ -1356,6 +1409,23 @@ def importConditions(fileName, returnFieldNames=False):
                 fieldName = fieldNames[colN]
                 thisTrial[fieldName] = val
             trialList.append(thisTrial)
+    #if we have a selection then try to parse it
+    if isinstance(selection, basestring) and len(selection)>0:
+        selection = indicesFromString(selection)
+        if not isinstance(selection, slice):
+            for n in selection:
+                try:
+                    assert n == int(n)
+                except:
+                    raise TypeError, "importConditions() was given some `indices` but could not parse them"
+    #the selection might now be a slice or a series of indices
+    if isinstance(selection,slice):
+        trialList = trialList[selection]
+    elif len(selection)>0:
+        allConds = trialList
+        trialList=[]
+        for ii in selection:
+            trialList.append(allConds[int(round(ii))])
 
     logging.exp('Imported %s as conditions, %d conditions, %d params' %
                  (fileName, len(trialList), len(fieldNames)))
@@ -2662,7 +2732,7 @@ class DataHandler(dict):
         """
         if not thisType in self:
             self.addDataType(thisType)
-        if position==None:
+        if position is None:
             #'ran' is always the first thing to update
             if thisType=='ran':
                 repN = sum(self['ran'][self.trials.thisIndex])
@@ -2740,7 +2810,7 @@ class _baseFunctionFit:
         """Evaluate xx for the current parameters of the model, or for arbitrary params
         if these are given.
         """
-        if params==None:
+        if params is None:
             params = self.params
         global _chance
         _chance=self.expectedMin
@@ -2752,7 +2822,7 @@ class _baseFunctionFit:
         """Evaluate yy for the current parameters of the model, or for arbitrary params
         if these are given.
         """
-        if params==None:
+        if params is None:
             params=self.params #so the user can set params for this particular inv
         xx = self._inverse(yy, *params)
         return xx

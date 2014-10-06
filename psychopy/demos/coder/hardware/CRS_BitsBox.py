@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 #coding=utf-8
 
-# Part of the PsychoPy library
-# Copyright (C) 2014 Jonathan Peirce
-# Distributed under the terms of the GNU General Public License (GPL).
+
+# IT LOOKS LIKE THE MONO++ and COLOR++ SHADERS ARE ONLY WORKING ON A FEW SELECT 
+# GRAPHICS CARDS AT THE MOMENT. Jon is working on this as a high
+# priority issue and it will be fixed soon!
+
+
 
 """This demo shows you how to use a CRS BitsSharp device with PsychoPy
 
@@ -14,25 +17,30 @@ You don't need to worry about setting the high- and low-bit pixels. Just draw as
 normal and PsychoPy will do the conversions for you
 """
 
-from psychopy import visual, core, event
+from psychopy import visual, core, event, logging
 from psychopy.hardware import crs
+logging.console.setLevel(logging.INFO)
 
-win = visual.Window(screen=1, fullscr=True, useFBO=True)
+win = visual.Window([1024,768],screen=0, useFBO=True, 
+    fullscr=True, allowGUI=False, autoLog=False)
 
 #initialise BitsSharp
 #you need to give this the psychopy Window so that it can override various
 #window functions (e.g. to override gamma settings etc)
-bits = crs.BitsSharp(win=win, mode='mono++')
+bits = crs.BitsSharp(win=win, mode='bits++')
 print bits.info
+if not bits.OK:
+    print 'failed to connect to Bits box'
+core.quit()
 
 core.wait(0.1)
 # now, you can change modes using
-bits.mode = 'color++' # 'color++', 'mono++', 'bits++', 'auto++' or 'status'
+bits.mode = 'mono++' # 'color++', 'mono++', 'bits++', 'auto++' or 'status'
 
 #create a  stimulus and draw as normal
-stim = visual.GratingStim(win,tex='sin', units='pix', size=400, sf=0.01, mask='gauss')
+stim = visual.GratingStim(win,tex='sin', units='pix', size=400, sf=0.01, mask='gauss', autoLog=False)
 globalClock = core.Clock()
-while len(event.getKeys())<1:
+while globalClock.getTime()<3:
     t = globalClock.getTime()
     stim.phase = t*3 #drift at 3Hz
     stim.draw()
@@ -52,7 +60,7 @@ bits.checkConfig(level=1)
 
 #color++ and mono++ are super-easy. Just switch to that mode and draw as normal
 #bits++ mode still needs a LUT, which means extra commands
-bits.mode = "bits++" #get out of status screen
+bits.mode = "color++" #get out of status screen
 core.wait(3) #wait to get back out of status mode
 for frameN in range(300):
     stim.draw()

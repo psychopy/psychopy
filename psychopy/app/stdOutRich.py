@@ -5,17 +5,17 @@ class StdOutRich(wx.richtext.RichTextCtrl):
     """A rich text ctrl for handling stdout/stderr
     """
     def __init__(self, parent, style, size=None, font=None, fontSize=None):
-        if size==None:
+        if size is None:
             wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style)
         else:
             wx.richtext.RichTextCtrl.__init__(self,parent=parent, style=style, size=size)
-            
-        if font and fontSize: 
+
+        if font and fontSize:
             currFont = self.GetFont()
             currFont.SetFaceName(font)
             currFont.SetPointSize(fontSize)
             self.BeginFont(currFont)
-        
+
         self.parent=parent
         self.Bind(wx.EVT_TEXT_URL, parent.onURL)
         #define style for filename links (URLS) needs wx as late as 2.8.4.0
@@ -23,7 +23,7 @@ class StdOutRich(wx.richtext.RichTextCtrl):
         #self.urlStyle.SetTextColour(wx.BLUE)
         #self.urlStyle.SetFontWeight(wx.BOLD)
         #self.urlStyle.SetFontUnderlined(False)
-        
+
     def write(self,inStr):
         self.MoveEnd()#always 'append' text rather than 'writing' it
         """tracebacks have the form:
@@ -34,7 +34,7 @@ class StdOutRich(wx.richtext.RichTextCtrl):
         """
         for thisLine in inStr.splitlines(True):
             if len(re.findall('".*", line.*',thisLine))>0:
-                #this line contains a file/line location so write as URL 
+                #this line contains a file/line location so write as URL
                 #self.BeginStyle(self.urlStyle) #this should be done with styles, but they don't exist in wx as late as 2.8.4.0
                 self.BeginBold()
                 self.BeginTextColour(wx.BLUE)
@@ -44,13 +44,13 @@ class StdOutRich(wx.richtext.RichTextCtrl):
                 self.EndBold()
                 self.EndTextColour()
             elif len(re.findall('WARNING',thisLine))>0:
-                self.BeginTextColour([0,150,0])  
+                self.BeginTextColour([0,150,0])
                 self.WriteText(thisLine)
-                self.EndTextColour()     
+                self.EndTextColour()
             elif len(re.findall('ERROR', thisLine))>0:
                 self.BeginTextColour([150,0,0])
                 self.WriteText(thisLine)
-                self.EndTextColour()         
+                self.EndTextColour()
             else:
                 #line to write as simple text
                 self.WriteText(thisLine)
@@ -59,20 +59,20 @@ class StdOutRich(wx.richtext.RichTextCtrl):
 
     def flush(self):
         pass#we need this so that stdout has a flush method, but can't do much with it
-        
+
 class StdOutFrame(wx.Frame):
     """A frame for holding stdOut/stdErr with ability to save and clear
     """
     def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy output", size=wx.DefaultSize):
         wx.Frame.__init__(self, parent, ID, title, size=size)
         panel = wx.Panel(self)
-        
+
         self.parent=parent#e.g. the builder frame
         self.app=app
         self.stdoutOrig=sys.stdout
         self.stderrOrig=sys.stderr
         self.lenLastRun=0
-        
+
         self.menuBar = wx.MenuBar()
         self.fileMenu = wx.Menu()
 #        item = self.fileMenu.Append(wx.ID_SAVE,   "&Save output window\t%s" %app.keys['save'])
@@ -85,9 +85,9 @@ class StdOutFrame(wx.Frame):
 
         self.menuBar.Append(self.fileMenu, _translate("&File"))
         self.SetMenuBar(self.menuBar)
-        
+
         self.stdoutCtrl = StdOutRich(parent=self, style=wx.TE_MULTILINE, size=size)
-        
+
         self.mainSizer=wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(self.stdoutCtrl)
         self.SetSizerAndFit(self.mainSizer)
@@ -111,7 +111,7 @@ class StdOutFrame(wx.Frame):
     def save(self):
         pass
     def write(self, text):
-        self.stdoutCtrl.write(text)    
+        self.stdoutCtrl.write(text)
     def flush(self):
         self.stdoutCtrl.flush()
     def onURL(self, evt):

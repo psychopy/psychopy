@@ -68,12 +68,12 @@ class Updater:
                 app.updater.checkForUpdates()#if updates are found further dialogs will prompt
         """
         self.app=app
-        if runningVersion==None:  self.runningVersion=psychopy.__version__
+        if runningVersion is None:  self.runningVersion=psychopy.__version__
         else:  self.runningVersion=runningVersion
 
         #self.headers = {'User-Agent' : psychopy.constants.PSYCHOPY_USERAGENT}
         self.latest=None
-        if web.proxies==None:
+        if web.proxies is None:
             web.setupProxy()
 
     def getLatestInfo(self, warnMsg=False):
@@ -88,7 +88,7 @@ class Updater:
     def suggestUpdate(self, confirmationDlg=False):
         """Query user about whether to update (if it's possible to do the update)
         """
-        if self.latest==None:#we haven't checked for updates yet
+        if self.latest is None:#we haven't checked for updates yet
             self.latest=self.getLatestInfo()
 
         if self.latest==-1: return -1#failed to find out about updates
@@ -337,7 +337,7 @@ class InstallUpdateDialog(wx.Dialog):
         info=""#return this at the end
 
         if type(zfile) in [str, unicode] and os.path.isfile(zfile):#zfile is filename not an actual file
-            if v==None: #try and deduce it
+            if v is None: #try and deduce it
                 zFilename = os.path.split(zfile)[-1]
                 searchName = re.search('[0-9]*\.[0-9]*\.[0-9]*.', zFilename)
                 if searchName!=None:

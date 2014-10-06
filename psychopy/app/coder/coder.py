@@ -459,7 +459,6 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPENMID, wx.stc.STC_MARK_BOXMINUSCONNECTED, "white", "#808080")
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL, wx.stc.STC_MARK_TCORNER,           "white", "#808080")
 
-        self.DragAcceptFiles(True)
         self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
         self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
         #self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
@@ -1156,18 +1155,19 @@ class CoderFrame(wx.Frame):
         self.notebook = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600),
             style= wx.aui.AUI_NB_TOP | wx.aui.AUI_NB_TAB_SPLIT | wx.aui.AUI_NB_SCROLL_BUTTONS | \
                 wx.aui.AUI_NB_TAB_MOVE | wx.aui.AUI_NB_CLOSE_ON_ACTIVE_TAB | wx.aui.AUI_NB_WINDOWLIST_BUTTON)
-        self.notebook.DragAcceptFiles(True)
+
         self.paneManager.AddPane(self.notebook, wx.aui.AuiPaneInfo().
                           Name("Editor").Caption(_translate("Editor")).
                           CenterPane(). #'center panes' expand to fill space
                           CloseButton(False).MaximizeButton(True))
 
         self.notebook.SetFocus()
+        self.notebook.SetDropTarget(FileDropTarget(coder = self))
 
         self.notebook.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
         self.notebook.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
         #self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
-        self.DragAcceptFiles(True)
+        self.SetDropTarget(FileDropTarget(coder = self))
         self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
         self.Bind(wx.EVT_FIND, self.OnFindNext)
         self.Bind(wx.EVT_FIND_NEXT, self.OnFindNext)
@@ -1189,7 +1189,6 @@ class CoderFrame(wx.Frame):
                                  Name("Shelf").Caption(_translate("Shelf")).
                                  RightDockable(True).LeftDockable(True).CloseButton(False).
                                  Bottom())
-        self.shelf.DragAcceptFiles(True)
 
         #create output viewer
         self._origStdOut = sys.stdout#keep track of previous output
@@ -1816,7 +1815,8 @@ class CoderFrame(wx.Frame):
         #self.fileHistory.AddFileToHistory(newPath)#thisis done by setCurrentDoc
     def expectedModTime(self, doc):
         # check for possible external changes to the file, based on mtime-stamps
-        if doc==None: return True#we have no file loaded
+        if doc is None:
+            return True#we have no file loaded
         if not os.path.exists(doc.filename): # files that don't exist DO have the expected mod-time
             return True
         actualModTime = os.path.getmtime(doc.filename)
@@ -1835,8 +1835,9 @@ class CoderFrame(wx.Frame):
         if self.currentDoc.AutoCompActive():
             self.currentDoc.AutoCompCancel()
 
-        if doc==None:doc=self.currentDoc
-        if filename==None:
+        if doc is None:
+            doc=self.currentDoc
+        if filename is None:
             filename = doc.filename
         if filename.startswith('untitled'):
             self.fileSaveAs(filename)
@@ -1912,12 +1913,13 @@ class CoderFrame(wx.Frame):
         if self.currentDoc.AutoCompActive():
             self.currentDoc.AutoCompCancel()
 
-        if doc==None:
+        if doc is None:
             doc = self.currentDoc
             docId=self.notebook.GetSelection()
         else:
             docId = self.findDocID(doc.filename)
-        if filename==None: filename = doc.filename
+        if filename is None:
+            filename = doc.filename
         initPath, filename = os.path.split(filename)#if we have an absolute path then split it
         #set wildcards
         if sys.platform=='darwin':
@@ -1950,10 +1952,10 @@ class CoderFrame(wx.Frame):
         except:
             pass
     def fileClose(self, event, filename=None, checkSave=True):
-        if self.currentDoc == None:
+        if self.currentDoc is None:
             self.closeFrame()  # so a coder window with no files responds like the builder window to self.keys.close
             return
-        if filename==None:
+        if filename is None:
             filename = self.currentDoc.filename
         self.currentDoc = self.notebook.GetPage(self.notebook.GetSelection())
         if self.currentDoc.UNSAVED and checkSave:
@@ -2155,7 +2157,7 @@ class CoderFrame(wx.Frame):
         #self.currentDoc.ToggleFoldAll(expand = False)
     def setOutputWindow(self, event=None, value=None):
         #show/hide the output window (from the view menu control)
-        if value==None:
+        if value is None:
             value=self.outputChk.IsChecked()
         if value:
             #show the pane

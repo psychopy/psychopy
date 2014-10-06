@@ -499,11 +499,6 @@ class Window(object):
                              'args': args,
                              'kwargs': kwargs})
 
-    def _prepareFBOrender(self):
-        GL.glUseProgram(self._progFBOtoFrame)
-    def _finishFBOrender(self):
-        GL.glUseProgram(0)
-
     @classmethod
     def dispatchAllWindowEvents(cls):
         """
@@ -548,14 +543,14 @@ class Window(object):
                 GL.glColor3f(1.0, 1.0, 1.0)  # glColor multiplies with texture
                 GL.glColorMask(True, True, True, True)
 
-                self._warp()
+                self._renderFBO()
 
                 GL.glEnable(GL.GL_BLEND)
                 self._finishFBOrender()
 
-        #update the bits++ LUT
-        if self.bits!=None: #try using modern BitsBox/BitsSharp class in pycrsltd
-            self.bits._finishFBOrender()
+        #call this before flip() whether FBO was used or not
+        self._afterFBOrender()
+
         if self.winType == "pyglet":
             #make sure this is current context
             if glob_vars.currWindow != self:
@@ -1202,9 +1197,11 @@ class Window(object):
             stencil_size = 8
         else:
             stencil_size = 0
+        vsync = 0
         # options that the user might want
         config = GL.Config(depth_size=8, double_buffer=True,
-                           stencil_size=stencil_size, stereo=self.stereo)
+                           stencil_size=stencil_size, stereo=self.stereo,
+                           vsync=vsync)
         allScrs = \
             pyglet.window.get_platform().get_default_display().get_screens()
         # Screen (from Exp Settings) is 1-indexed,
@@ -1674,7 +1671,7 @@ class Window(object):
         can override this method as needed. Return True to indicate hardware flip."""
         return True
 
-    def _warp(self):
+    def _renderFBO(self):
         '''Perform a warp operation (in this case a copy operation without any warping)'''
         GL.glBegin(GL.GL_QUADS)
         GL.glTexCoord2f(0.0, 0.0)
@@ -1686,6 +1683,15 @@ class Window(object):
         GL.glTexCoord2f(1.0, 0.0)
         GL.glVertex2f(1.0, -1.0)
         GL.glEnd()
+
+    def _prepareFBOrender(self):
+        GL.glUseProgram(self._progFBOtoFrame)
+
+    def _finishFBOrender(self):
+        GL.glUseProgram(0)
+
+    def _afterFBOrender(self):
+        pass
 
     def _endOfFlip(self, clearBuffer):
         """Override end of flip with custom color channel masking if required"""

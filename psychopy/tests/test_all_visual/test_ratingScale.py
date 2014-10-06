@@ -151,7 +151,7 @@ class Test_class_RatingScale:
         assert r.markerPosFixed == False
         assert r.frame == 0
         assert r.status == NOT_STARTED
-        assert r.history == None
+        assert r.history is None
 
         assert r.autoRescaleFactor == 1
         r = RatingScale(self.win, low=0, high=30)
@@ -262,7 +262,7 @@ class Test_class_RatingScale:
         r.timedOut = True
         assert r.getRT() == r.maxTime
         r.timedOut = False
-        assert r.getRT() == None
+        assert r.getRT() is None
         r.noResponse = False
         assert r.getRT() == r.decisionTime
 
@@ -270,7 +270,7 @@ class Test_class_RatingScale:
         r.noResponse = True
         r.markerPlacedAt = 0
         r.status = FINISHED
-        assert r.getRating() == None
+        assert r.getRating() is None
 
         r.status = FINISHED + 1
         assert r.getRating() == 1

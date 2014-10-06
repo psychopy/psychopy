@@ -44,15 +44,15 @@ def unicodeToFloat(val):
     """Convert a unicode object from wx dialogs into a float, accounting for
     locale settings (comma might be dec place)
     """
-    if val=='None': 
+    if val=='None':
         val=None
     else:
-        try: 
+        try:
             val=locale.atof(val)
-        except ValueError: 
+        except ValueError:
             return None #ignore values that can't be a float
     return val
-    
+
 class SimpleGrid(grid.Grid): ##, wxGridAutoEditMixin):
     def __init__(self, parent, id=-1, rows=[], cols=[], data=None):
         self.parent=parent
@@ -101,7 +101,7 @@ class PlotFrame(wx.Frame):
         wx.Frame.__init__(self, parent, ID, title, pos, size, style)
         panel = wx.Panel(self, -1)
         self.sizer = wx.GridBagSizer(1,1)
-        if not plotCanvas==None:
+        if plotCanvas is not None:
             self.addCanvas(plotCanvas)
         wx.EVT_SIZE(self, self.OnSize)
     def addCanvas(self, canvas):
@@ -462,7 +462,7 @@ class MainFrame(wx.Frame):
         """update the list of calibrations either from the current
         monitor or to a given list
         """
-        if thisList==None: #fetch it from monitor file
+        if thisList is None: #fetch it from monitor file
             thisList = self.currentMon.calibNames
         #populate the listbox
         self.ctrlCalibList.Set(thisList)
@@ -512,7 +512,7 @@ class MainFrame(wx.Frame):
         self.loadMonitor(self.currentMonName)
     def onChangeCalibSelection(self, event, newCalib=None):
         #get data under current calibration
-        if newCalib == None:
+        if newCalib is None:
             #probably came from an event - check the new name
             newCalib = self.ctrlCalibList.GetStringSelection()
         #do the load and check new name
@@ -558,7 +558,7 @@ class MainFrame(wx.Frame):
         if not 'spectraRGB' in self.currentMon.currentCalib:
             self.btnPlotSpectra.Enable(False)
         else: self.btnPlotSpectra.Enable(True)
-        if self.currentMon.getLevelsPre()==None:
+        if self.currentMon.getLevelsPre() is None:
             self.choiceLinearMethod.Disable()
         else: self.choiceLinearMethod.Enable()
 

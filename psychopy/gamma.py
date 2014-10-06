@@ -130,7 +130,7 @@ def createLinearRamp(win, rampType=None):
         Known to be used by:
             OSX 10.6.0 with NVidia Geforce-9200M
     """
-    if rampType==None:
+    if rampType is None:
         #try to determine rampType from heuristics
         #get sys info
         driver = pyglet.gl.gl_info.get_renderer()

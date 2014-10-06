@@ -1,4 +1,12 @@
-__author__ = 'Sol'
+# -*- coding: utf-8 -*-
+# ioHub Python Module
+# .. file: psychopy/iohub/client/keyboard.py
+#
+# fileauthor: Sol Simpson <sol@isolver-software.com>
+#
+# Copyright (C) 2012-2014 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License
+# (GPL version 3 or any later version).
 
 from collections import deque
 import time
@@ -11,9 +19,7 @@ from psychopy.core import getTime
 from psychopy.visual.window import Window
 
 """
-TEXT NEEDS SOME UPDATING
-
-Discussed changes (from emails with Jon and Jonas)
+Keyboard Device and Events Types
 
 
 keyboard.getPresses()
@@ -30,17 +36,6 @@ keyboard.getEvents() # current func with smaller number of fields returned and
 .key: The unmodified key value pressed.
 .char: The key value, as determined by the active modifiers.
 .time: I like .time better, and fits with the full detail fields better.
-
-A KeyRelease event would be the same as key press, but the time is the time the
-key was released, and the event would have a .duration field.
-So .time - .duration = associated keyPress event (if there is one).
-
-Keyboard events will also have a modifiers field , being a list.
-
-Pressing a modifier will result in a keypress and release event,
-with char = None and key = to modifier constant
-(just like any other non visible keys like arrows,
-function keys, delete, home, insert, etc)
 
 Examples
 ----------------------
@@ -120,7 +115,13 @@ class KeyboardEvent(ioEvent):
     @property
     def key(self):
         """
-        The psychopy string constant of the keyboard event, if available.
+        This field is filled in for every keyboard event. The value of the
+        field is determined using the following rules:
+
+        * For printable keys, the value will be the same as the .char field,
+          but as if no modifiers were active.
+        * For non printable keys, such as control keys or modifier keys,
+          a string constant is used. All constants are lower case.
 
         :return: str
         """
@@ -130,9 +131,11 @@ class KeyboardEvent(ioEvent):
     @property
     def char(self):
         """
-        The unicode value of the keyboard event, if available.
+        The unicode value of the keyboard event, if available. This field is
+        only populated when the keyboard event results in a character that
+        could be printable.
 
-        :return: unicode
+        :return: unicode, '' if no char value is available for the event.
         """
         return self._char
 
@@ -141,9 +144,19 @@ class KeyboardEvent(ioEvent):
     def modifiers(self):
         """
         A list of any modifier keys that were pressed when this keyboard event
-        occurred.
+        occurred.  Each element of the list contains a keyboard modifier string
+        constant. Possible values are:
 
-        Each element of the list contains a keyboard modifier string constant.
+        * 'lctrl', 'rctrl'
+        * 'lshift', 'rshift'
+        * 'lalt', 'ralt' (the alt keys are also labelled as 'option' keys on Apple Keyboards)
+        * 'lcmd', 'rcmd' (The cmd keys map to the 'windows' key(s) on Windows keyboards.
+        * 'menu'
+        * 'capslock'
+        * 'numlock'
+        * 'function' (OS X only)
+        * 'modhelp' (OS X only)
+
         If no modifiers were active when the event occurred, an empty list is
         returned.
 
@@ -166,11 +179,17 @@ class KeyboardEvent(ioEvent):
         return not self.__eq__()
 
 class KeyboardPress(KeyboardEvent):
+    """
+    An iohub Keyboard device key press event.
+    """
     def __init__(self, ioe_array):
         super(KeyboardPress, self).__init__(ioe_array)
 
 
 class KeyboardRelease(KeyboardEvent):
+    """
+    An iohub Keyboard device key release event.
+    """
     _attrib_index = dict()
     _attrib_index['duration'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index(
         'duration')
@@ -221,8 +240,8 @@ class KeyboardRelease(KeyboardEvent):
 
 class Keyboard(ioHubDeviceView):
     """
-    The Keyboard device provides access to the current keyboard state, as well as
-    KeyboardPress and KeyboardRelease Events.
+    The Keyboard device provides access to KeyboardPress and KeyboardRelease
+    events as well as the current keyboard state.
     """
     KEY_PRESS = EventConstants.KEYBOARD_PRESS
     KEY_RELEASE = EventConstants.KEYBOARD_RELEASE
@@ -233,7 +252,6 @@ class Keyboard(ioHubDeviceView):
                                        device_config)
         self._events = dict()
         self._reporting = False
-        self._modifiers = []
         self._pressed_keys = {}
         self._device_config = device_config
         self._event_buffer_length = self._device_config.get(
@@ -249,8 +267,6 @@ class Keyboard(ioHubDeviceView):
         """
         kb_state = self.getCurrentDeviceState()
         self._reporting = kb_state.get('reporting_events')
-        self._modifiers = KeyboardConstants._modifierCodes2Labels(
-            kb_state.get('modifiers', 0))
 
         pressed_keys = kb_state.get('pressed_keys')
         self._pressed_keys.clear()
@@ -264,27 +280,15 @@ class Keyboard(ioHubDeviceView):
                 maxlen=self._event_buffer_length)).extend(
                 [self._type2class[etype](e) for e in event_arrays])
 
-
-    @property
-    def modifiers(self):
-        """
-        Returns the currently active keyboard modifiers as string constants.
-        Possible modifier values are:
-
-        TO BE COMPLETED
-
-        :return: tuple
-        """
-        self._syncDeviceState()
-        return self._modifiers
-
-
     @property
     def state(self):
         """
         Returns all currently pressed keys as a dictionary of key : time values.
-        The key is taken from the originating press event .key attribute. The
-        time value is the psychopy core.getTime() time the key was pressed.
+        The key is taken from the originating press event .key field. The
+        time value is  time of the key press event.
+
+        Note that any pressed, or active, modifier keys are included in the
+        return value.
 
         :return: dict
         """
@@ -295,11 +299,22 @@ class Keyboard(ioHubDeviceView):
     @property
     def reporting(self):
         """
-        Returns the state of device event monitoring. True indicates that events
-        from the device will be made available. False indicates that the device
-        is not currently being monitored for events, so none will be reported.
+        Specifies if the the keyboard device is reporting / recording events.
+          * True:  keyboard events are being reported.
+          * False: keyboard events are not being reported.
 
-        :return: bool
+        By default, the Keyboard starts reporting events automatically when the
+        ioHub process is started and continues to do so until the process is
+        stopped.
+
+        This property can be used to read or set the device reporting state::
+
+          # Read the reporting state of the keyboard.
+          is_reporting_keyboard_event = keyboard.reporting
+
+          # Stop the keyboard from reporting any new events.
+          keyboard.reporting = False
+
         """
         return self._reporting
 
@@ -307,58 +322,39 @@ class Keyboard(ioHubDeviceView):
     @reporting.setter
     def reporting(self, r):
         """
-        Sets the state of device event monitoring. True indicates that the
-        device should be monitoring and reporting any new events that occur.
-        False indicates that the device should stop monitored for events,
-        so none will be reported.
+        Sets the state of keyboard event reporting / recording.
         """
         self._reporting = self.enableEventReporting(r)
         return self._reporting
 
     def getKeys(self, keys=None, chars=None, mods=None, duration=None,
-                clear=True, etype=None):
+                 etype=None, clear=True):
         """
-        Returns a list of  KeyboardPress and Keyboard Release events that have
-        occurred since the last time this method was called with
-        clear=True (default), or the keyboard.clear() method was last called.
+        Return a list of any KeyboardPress or KeyboardRelease events that have
+        occurred since the last time either:
 
-        The events being returned can optionally be filtered based on the
-        keys, chars, or timePeriod arg values provided. A value of None
-        indicates that the arg should not be used for event filtering.
+        * this method was called with the kwarg clear=True (default)
+        * the keyboard.clear() method was called.
 
-        The keys arg can be used to filter the available events using a list of
-        Keyboard key constants. Only events where the event.key attribute
-        matches one of the keys values will be returned. An empty keys list value
-        is treated the same as a None value.
+        Other than the 'clear' kwarg, any non None or empty list kwargs
+        passed to the method filter the possible events that can be returned
+        using the keyboard event field with the associated name.
 
-        The chars arg can be used to filter the available events using a list of
-        Keyboard unicode char values. Only events where the event.char attribute
-        matches one of the chars values will be returned. An empty chars list
-        is treated the same as a None value.
+        If multiple filter criteria are provided, only events that match **all**
+        specified criteria are returned.
 
-        The mods arg can be used to filter the available events using a list of
-        Keyboard modifier str constants. Only events where > 1 element of the
-        mods arg is found in event.modifiers will be returned.
-        An empty mods list is treated the same as a None value.
-
-        The duration filter can be used to filter KeyboardRelease events only.
-        If the duration arg > 0, then release_event.duration > duration. If
-        the duration arg is < 0, then release_event.duration < -(duration).
-
-        If multiple filter arguments are provided, events will be filtered by
-        using 'and' to combine the filter options.
-
-        If no KeyboardPress or Release events are found,
+        If no KeyboardEvent's are found that match the filtering criteria,
         an empty tuple is returned.
 
         Returned events are sorted by time.
 
-        :param keys: list of key constant strings
-        :param chars: unicode char or list there of
-        :param mods: list of modifier constant strings
-        :param duration: float
-        :param clear: bool
-        :return: tuple
+        :param keys: Filter returned events using a list of key constant strings. Only events with a .key value that is within the keys list will be returned.
+        :param chars: Filter returned events using a list of event char values. Only events with a .char value that is within the chars list will be returned.
+        :param mods: Filter returned events using a list of modifier constant strings. Only events that have a modifier matching atleast one of the values in the mods list will be returned.
+        :param duration: Applied to KeyboardRelease events only. If the duration kwarg value > 0, then events where event.duration > duration are returned. If the duration kwarg value < 0.0, then events where event.duration < -(duration) are returned.
+        :param keys: Filter returned events based on one of the two Keyboard event type constants (Keyboard.KEY_PRESS, Keyboard.KEY_RELEASE).
+        :param etype: True (default) means the keyboard event buffer is cleared after this method is called. If False, the keyboard event buffer is not changed.
+        :return: tuple of KeyboardEvent instances, or ()
         """
         self._syncDeviceState()
 
@@ -386,21 +382,36 @@ class Keyboard(ioHubDeviceView):
 
         return sorted(return_events, key=lambda x: x.time)
 
-    def waitForKeys(self, keys=None, maxWait=None, chars=None, mods=None,
-                   duration=None, clear=True, etype=None, checkInterval=0.002):
+    def getPresses(self, keys=None, chars=None, mods=None, clear=True):
         """
-        Waits for up to maxWait seconds for a keyboard event that matches
-        the provided criteria. See getKeys for a description of the arguments
-        shared between the two methods.
+        See the getKeys() method documentation. This method is identical, but
+        only returns KeyboardPress events.
+        """
+        return self.getKeys(keys, chars, mods, None, self.KEY_PRESS,  clear)
 
-        checkInterval is used to define how often geyKeys() should be called.
-        The method sleeps between keyboard event checks, up until
-        checkInterval*2.0 sec prior to the maxWait. After that time, keyboard
-        events are constantly checked until the method times out.
+    def getReleases(self, keys=None, chars=None, mods=None, duration=None,
+                    clear=True):
+        """
+        See the getKeys() method documentation. This method is identical, but
+        only returns KeyboardRelease events.
+        """
+        return self.getKeys(keys, chars, mods, duration, self.KEY_RELEASE, clear)
 
-        :param maxWait: float
-        :param checkInterval: float
-        :return: tuple
+    def waitForKeys(self, maxWait=None, keys=None, chars=None, mods=None,
+                   duration=None, etype=None, clear=True, checkInterval=0.002):
+        """
+        Blocks experiment execution until at least one matching KeyboardEvent
+        occurs, or until maxWait seconds has passed since the method was called.
+
+        Keyboard events are filtered using any non None kwargs values
+        in the same way as the getKeys() method. See getKeys() for a description
+        of the arguments shared between the two methods.
+
+        As soon as at least one matching KeyboardEvent occur prior to maxWait,
+        the matching events are returned as a tuple.
+
+        :param maxWait: Specifies the maximum time (in seconds) that the method will block for. If 0, waitForKeys() is identical to getKeys(). If None, the methods blocks indefinately.
+        :param checkInterval: Specifies the number of seconds.msecs between geyKeys() calls while waiting. The method sleeps between geyKeys() calls, up until checkInterval*2.0 sec prior to the maxWait. After that time, keyboard events are constantly checked until the method times out.
         """
         start_time = getTime()
         if maxWait is None:
@@ -410,7 +421,7 @@ class Keyboard(ioHubDeviceView):
         key = []
 
         def pumpKeys():
-            key = self.getKeys(keys, chars, mods, duration, clear, etype)
+            key = self.getKeys(keys, chars, mods, duration, etype, clear)
             if key:
                 return key
             Window.dispatchAllWindowEvents()
@@ -429,52 +440,23 @@ class Keyboard(ioHubDeviceView):
             key = pumpKeys()
             if key:
                 return key
-
         return key
 
-    def getPresses(self, keys=None, chars=None, mods=None, clear=True):
-        """
-        See the getKeys() method documentation. This method is identical, but
-        only returns KeyboardPress events.
-
-        :param keys: list of key constant strings
-        :param chars: unicode char or list there of
-        :param mods: list of modifier constant strings
-        :param clear: bool
-        :return: tuple
-        """
-        return self.getKeys(keys, chars, mods, None, clear, self.KEY_PRESS)
-
-    def waitForPresses(self, keys=None, maxWait=None, chars=None, mods=None,
+    def waitForPresses(self, maxWait=None, keys=None, chars=None, mods=None,
                    duration=None, clear=True, checkInterval=0.002):
         """
         See the waitForKeys() method documentation. This method is identical, but
         only returns KeyboardPress events.
         """
-        return self.waitForKeys(keys, maxWait, chars, mods, duration, clear,
-                               self.KEY_PRESS, checkInterval)
+        return self.waitForKeys(maxWait, keys, chars, mods, duration,
+                                self.KEY_PRESS, clear, checkInterval)
 
-    def getReleases(self, keys=None, chars=None, mods=None, duration=None,
-                    clear=True):
-        """
-        See the getKeys() method documentation. This method is identical, but
-        only returns KeyboardRelease events.
 
-        :param keys: list of key constant strings
-        :param chars: unicode char or list there of
-        :param mods: list of modifier constant strings
-        :param duration: float
-        :param clear: bool
-        :return: tuple
-        """
-        return self.getKeys(keys, chars, mods, duration, clear,
-                            self.KEY_RELEASE)
-
-    def waitForReleases(self, keys=None, maxWait=None, chars=None, mods=None,
+    def waitForReleases(self, maxWait=None, keys=None, chars=None, mods=None,
                    duration=None, clear=True, checkInterval=0.002):
         """
         See the waitForKeys() method documentation. This method is identical, but
         only returns KeyboardRelease events.
         """
-        return self.waitForKeys(keys, maxWait, chars, mods, duration, clear,
-                               self.KEY_RELEASE, checkInterval)
+        return self.waitForKeys(maxWait, keys, chars, mods, duration,
+                                self.KEY_RELEASE, clear, checkInterval)

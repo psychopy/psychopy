@@ -188,7 +188,7 @@ class BufferImageStim(ImageStim):
         Allows dynamic position, size, rotation, mirroring, and opacity.
         Limitations / bugs: not sure what happens with shaders & self._updateList()
         """
-        if win==None:
+        if win is None:
             win=self.win
         self._selectWindow(win)
 

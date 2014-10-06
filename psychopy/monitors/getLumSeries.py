@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """This function can be run as a script or imported and run as a function. The advantage of running
-as a script is that this won't interact with your existing namespace (e.g. avbin can load because scipy 
+as a script is that this won't interact with your existing namespace (e.g. avbin can load because scipy
 won't already have been loaded).
 """
 
@@ -44,7 +44,7 @@ def getLumSeries(lumLevels=8,
     """
     import psychopy.event, psychopy.visual
     from psychopy import core
-    if photometer==None:
+    if photometer is None:
         havePhotom = False
     elif not hasattr(photometer, 'getLum'):
         logging.error("photometer argument to monitors.getLumSeries should be a type of photometer "+\
@@ -138,16 +138,16 @@ def getLumSeries(lumLevels=8,
                 else:
                     #otherwise just this gun
                     lumsList[gun,valN] =  actualLum
-     
+
                 #check for quit request
                 for thisKey in psychopy.event.getKeys():
                     if thisKey in ['q', 'Q', 'escape']:
                         myWin.close()
                         return numpy.array([])
-     
+
             elif autoMode=='semi':
                 print "At DAC value %i" % DACval
-     
+
                 done = False
                 while not done:
                     #check for quit request

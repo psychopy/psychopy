@@ -99,7 +99,7 @@ class RunTimeInfo(dict):
         self._setCurrentProcessInfo(verbose, userProcsDetailed)
 
         # need a window for frame-timing, and some openGL drivers want a window open
-        if win == None: # make a temporary window, later close it
+        if win is None: # make a temporary window, later close it
             win = visual.Window(fullscr=True, monitor="testMonitor", autoLog=False)
             refreshTest = 'grating'
             usingTempWin = True
