@@ -126,7 +126,7 @@ class MCU(Device):
 
         elif enable is False:
             if self._mcu:
-                self._mcu.resetState(blocking=True)
+                self._mcu.resetState()
                 self._mcu.close()
                 self._mcu=None
                 
@@ -165,6 +165,8 @@ class MCU(Device):
             enable_analog = 'AnalogInputEvent' in event_types
             enable_digital = 'DigitalInputEvent' in event_types
             enable_threshold = 'ThresholdEvent' in event_types
+            #print2err("enable_analog: {0}, enable_digital: {1}".format(enable_analog,enable_digital))
+            self._mcu.flushSerialInput()
             self._enableInputEvents(enable_digital, enable_analog, enable_threshold)
         elif enabled is False and self.isReportingEvents() is True:
             if self.isConnected():
@@ -228,7 +230,7 @@ class MCU(Device):
         self._last_sync_time = getTime()
 
     def resetState(self):
-        request = self._mcu.resetState(blocking=True)
+        request = self._mcu.resetState()
         self._resetLocalState()
         self._request_dict[request.getID()]=request
         return request.asdict()
@@ -336,7 +338,7 @@ class MCU(Device):
             return resp_return
 
     def _enableInputEvents(self, enable_digital, enable_analog, threshold_events):
-        self._mcu.enableEvents(enable_digital,enable_analog, threshold_events)
+        self._mcu.enableInputEvents(enable_digital,enable_analog, threshold_events)
 
     def _poll(self):
         try:
@@ -353,7 +355,7 @@ class MCU(Device):
 
             confidence_interval=logged_time-self._last_callback_time
     
-            events = self._mcu.getEvents()
+            events = self._mcu.getRxEvents()
             for event in events:             
                 current_MCU_time = event.device_time#self.getSecTime()
                 device_time = event.device_time
