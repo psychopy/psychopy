@@ -1,8 +1,8 @@
 # experiment_config.yaml: settings related to the experiment being run when the run.py script is launched,
 # any custom session variables you want displayed in a dialog for input at the start of the experiment
 
-title: smiTrackerTest
-code: smi_t1
+title: selecteyetracker
+code: et_select
 version: '1.0'
 description: User looks at an image and program counts fixations and dwell times.
 session_defaults:
