@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 """Determine screen gamma using motion-nulling method 
 of Ledgeway and Smith, 1994, Vision Research, 34, 2727–2740
+A similar system had been used early for chromatic isoluminance:
+Anstis SM, Cavanagh P. A minimum motion technique for judging equiluminance. 
+In: Sharpe MJD & LT Colour vision: Psychophysics and physiology. London: Academic Press; 1983. pp. 66-77.
 
 Instructions: on each trial press the up/down cursor keys depending on 
 the apparent direction of motion of the bars."""

@@ -295,7 +295,7 @@ class BitsSharp(BitsPlusPlus):
             if sys.platform == 'darwin':
                 portNames = glob.glob('/dev/tty.usbmodem*')
                 if not portNames:
-                    logging.error("Could not connect to Bits Sharp: No serial ports were found at /dev/tty.usbmodemfa*")
+                    raise Exception, "Could not connect to Bits Sharp: No serial ports were found at /dev/tty.usbmodemfa*"
                     return None
             elif sys.platform.startswith('linux'):
                 portNames = glob.glob('/dev/ttyS*')
@@ -542,19 +542,22 @@ class BitsSharp(BitsPlusPlus):
         #it didn't so switch to doing the test
         if level==1:
             errs = self.config.testLUT()
-            if errs.sum()>0:
+            if errs.sum()!=0:
+                logging.warning("The LUT in the config file we found did not give a true identity pass-through")
                 level=2
             else:
+                logging.info("We found a LUT in the config file and it worked as identity")
                 return 1
         if level==2:
+            logging.info("Doing a fresh search for an identity LUT")
             ok = self.config.findIdentityLUT()
             return ok
     def _warnTesting(self):
-        msg = "We need to run some tests on your graphics card (hopefully just once).\n" + \
-            "The BitsSharp will go into status mode while this is done.\n" + \
-            "It can take a minute of two."
-        logging.warn(msg)
-        logging.flush()
+        msg = "We need to run some tests on your graphics card (hopefully just once).\n" +\
+            "The BitsSharp will go into status mode while this is done.\n" +\
+            "It can take a minute or two..."
+        print(msg)
+        sys.stdout.flush()
         msgOnScreen = visual.TextStim(self.win, msg)
         msgOnScreen.draw()
         self.win.flip()
