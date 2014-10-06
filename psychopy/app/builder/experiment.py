@@ -85,7 +85,7 @@ class IndentingBuffer(StringIO.StringIO):
         else:
             self.indentLevel=newLevel
 
-class Experiment:
+class Experiment(object):
     """
     An experiment contains a single Flow and at least one
     Routine. The Flow controls how Routines are organised
@@ -620,7 +620,7 @@ class Param:
         else:
             raise TypeError, "Can't represent a Param of type %s" %self.valType
 
-class TrialHandler:
+class TrialHandler(object):
     """A looping experimental control object
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
@@ -746,7 +746,7 @@ class TrialHandler:
     def getType(self):
         return 'TrialHandler'
 
-class StairHandler:
+class StairHandler(object):
     """A staircase experimental control object.
     """
     def __init__(self, exp, name, nReps='50', startVal='', nReversals='',
@@ -837,7 +837,7 @@ class StairHandler:
     def getType(self):
         return 'StairHandler'
 
-class MultiStairHandler:
+class MultiStairHandler(object):
     """To handle multiple interleaved staircases
     """
     def __init__(self, exp, name, nReps='50', stairType='simple',
@@ -916,8 +916,11 @@ class MultiStairHandler:
                 buff.writeIndented("%(name)s.saveAsText(filename + '%(name)s.csv', delim=',')\n" %self.params)
     def getType(self):
         return 'MultiStairHandler'
+    def writeInitCode(self,buff):
+        #not needed - initialise the staircase only when needed
+        pass
 
-class LoopInitiator:
+class LoopInitiator(object):
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""
     def __init__(self, loop):
@@ -933,7 +936,7 @@ class LoopInitiator:
         return 'LoopInitiator'
     def writeExperimentEndCode(self,buff):#not needed
         pass
-class LoopTerminator:
+class LoopTerminator(object):
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""
     def __init__(self, loop):
