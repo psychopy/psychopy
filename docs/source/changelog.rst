@@ -23,16 +23,31 @@ PsychoPy 1.81
 PsychoPy 1.81.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(in repository)
+Released Sept 2014
 
+* IMPROVED: cross-version compatibility:
+    * In Builder experiments from 'future' versions can be opened and unknown objects will be ignored (but kept)
+    * In Code you can now do `import psychopy; psychopy.useVersion('X.XX.XX') to switch to any version greater than 1.76.00 (including versions not installed and future versions). This only affects the lib, not the application. (Thanks Erik Kastman for most of the work on this)
 * IMPROVED: better unit tests for visual stimuli to prevent future bugs
-* FIXED: MovieStim was right-left flipping movies and this has been corrected. If you had been working around that by setting flipVertical=True then you'll need to undo that correction
+* :blue:`FIXED: MovieStim was right-left flipping movies and this has been corrected. If you had been working around that by setting flipVertical=True then you'll need to undo that correction`
+* IMPROVED: Can now select a subset of conditions in Builder loops and in `data.importConditions()` function (thanks Mike MacAskill for help)
+* IMPROVED: In Builder, loops that don't reflect trials (e.g. stimuli within a trial or blocks of trials) can be flagged as such, resulting in neater data files
 * ADDED: support for additional hardware:
-    * support for interacting with BlackBoxToolkit v2 psychopy.hardware.bbtk
-    * further support for CRS Bits# and Bits++ in psychopy.hardware.crs, including support for mono++ and color++ modes, button box, internal gamma correction and trigger ports
+    * basic support for interacting with BlackBoxToolkit v2 psychopy.hardware.bbtk
+    * :blue:`added basic support for CRS Bits# in psychopy.hardware.crs. New way to interface with Bits++ as well, using a class rather than a Window argument. See demo in demos>hardware`
     * labjack digital outputs can be used as a Parallel Port Component in Builder
     * the screen rendering can now include a warping step to simulate spherical, cylindrical or custom warping (Jay Borseth)
     * the screen now supports 'frame packing' whereby sequential frames can be packed into one, as the red, green and blue channels for monochrome high-rate projectors (Jay Borseth)
+    * ioHub eye tracker interface for GazePoint GP3 (Martin Guest)
+    * ioHub Serial device:
+        * Support for simple fixed width or marker delimited serial rx stream -> device event parsing.
+        * Demo created showing usage with PST Response box added (Richard Höchenberger)
+    * ioHub ioSync device:
+        * Use Teensy 3.0 / 3.1 MCU. Connect via USB 2.0.
+        * 8 / 8 digital inputs / outputs
+        * 8 analog inputs (~12 - 13 bit effective resolution)
+        * 1000 Hz sampling rate for analog and digital inputs.
+        * Keyboard Host support (useful for testing keyboard delay variability from software alone)
 * IMPROVED packaging:
     * can now install on OSX using miniconda/anaconda distribution (Erik Kastman)
     * pyopencv (cv2) added to Standalone as an alternative to avbin
@@ -42,9 +57,6 @@ PsychoPy 1.81.00
     * Nearly all stimulus attributes now support new syntax, e.g. `stim.pos = [0,0]` as well as the previous `stim.setPos([0,0])`. All docs are update to reflect this change.
     * All numeric stimulus attributes now support operations. Use e.g. `stim.pos += [0,0.5]`. Read more in :ref:`Operations <attrib-operations>`.
     * Many more stimulus attributes can now be set after initialization. They have the same name as the init parameters. E.g. `stim.win = mySecondWindow` changes which Window the stimulus is drawn to
-* ADDED: Support for CRS devices:
-    * both Bits# and Bits++ now supported and using advanced rendering modes (mono++ and color++)
-    * Bits# also supports use of the infra-red button box
 * IMPROVED: logging
     * CHANGED: `log=None` and `autoLog=None` inherits from parents, with `visual.Window` at the top of the hierarchy. None is now default for all stimuli and setter methods.
     * FIXED: removed unneccessary (e.g. duplicate) logging.

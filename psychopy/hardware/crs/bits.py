@@ -67,12 +67,13 @@ class BitsPlusPlus(object):
                     contrast=1.0,
                     gamma=[1.0,1.0,1.0],
                     nEntries=256,
-                    mode='bits++',):
+                    mode='bits++'):
         self.win = win
         self.contrast=contrast
         self.nEntries=nEntries
         self.mode = mode
         self.method = 'fast' #used to allow setting via USB which was 'slow'
+        self.gammaCorrect = 'software' #Bits++ didn't do its own correction so we need to
 
         if len(gamma)>2: # [Lum,R,G,B] or [R,G,B]
             self.gamma=gamma[-3:]
@@ -95,6 +96,10 @@ class BitsPlusPlus(object):
         self.LUT=np.zeros((256,3),'d')        #just a place holder
         self.setLUT()#this will set self.LUT and update self._LUTandHEAD
         self._setupShaders()
+        #replace window methods with our custom ones
+        self.win._prepareFBOrender = self._prepareFBOrender
+        self.win._finishFBOrender = self._finishFBOrender
+        self.win._afterFBOrender = self._afterFBOrender
 
     def setLUT(self,newLUT=None, gammaCorrect=True, LUTrange=1.0):
         """Sets the LUT to a specific range of values in Bits++ mode only
@@ -172,15 +177,14 @@ class BitsPlusPlus(object):
                 self.LUT[startII:endII, : ] = self.win.monitor.lineariseLums(self.LUT[startII:endII, : ], overrideGamma=gamma)
 
         #update the bits++ box with new LUT
-        if self.method=='fast':
-            #get bits into correct order, shape and add to header
-            ramp16 = (self.LUT*(2**16-1)).astype(np.uint16) #go from ubyte to uint16
-            ramp16 = np.reshape(ramp16,(256,1,3))
-            #set most significant bits
-            self._HEADandLUT[12::2,:,:] = (ramp16[:,:,:]>>8).astype(np.uint8)
-            #set least significant bits
-            self._HEADandLUT[13::2,:,:] = (ramp16[:,:,:]&255).astype(np.uint8)
-            self._HEADandLUTstr = self._HEADandLUT.tostring()
+        #get bits into correct order, shape and add to header
+        ramp16 = (self.LUT*(2**16-1)).astype(np.uint16) #go from ubyte to uint16
+        ramp16 = np.reshape(ramp16,(256,1,3))
+        #set most significant bits
+        self._HEADandLUT[12::2,:,:] = (ramp16[:,:,:]>>8).astype(np.uint8)
+        #set least significant bits
+        self._HEADandLUT[13::2,:,:] = (ramp16[:,:,:]&255).astype(np.uint8)
+        self._HEADandLUTstr = self._HEADandLUT.tostring()
 
     def _drawLUTtoScreen(self):
         """(private) Used to set the LUT in Bits++ mode.
@@ -189,7 +193,6 @@ class BitsPlusPlus(object):
         since this will automatically draw the LUT as part of the screen refresh.
         """
         #push the projection matrix and set to orthorgaphic
-
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glPushMatrix()
         GL.glLoadIdentity()
@@ -199,21 +202,24 @@ class BitsPlusPlus(object):
         GL.glLoadIdentity()
 
         #draw the pixels
-        GL.glActiveTextureARB(GL_multitexture.GL_TEXTURE0_ARB)
+        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glActiveTextureARB(GL_multitexture.GL_TEXTURE1_ARB)
+        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glRasterPos2i(0,1)
-        GL.glDrawPixelsub(GL.GL_RGB, self._HEADandLUT)
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
+        GL.glDrawPixels(self._HEADandLUT.size,1,
+            GL.GL_RGB,GL.GL_UNSIGNED_BYTE,
+            self._HEADandLUTstr)
         #GL.glDrawPixels(524,1, GL.GL_RGB,GL.GL_UNSIGNED_BYTE, self._HEADandLUTstr)
         #return to 3D mode (go and pop the projection matrix)
         GL.glMatrixMode( GL.GL_PROJECTION )
         GL.glPopMatrix()
         GL.glMatrixMode( GL.GL_MODELVIEW )
 
-    def setContrast(self,contrast,LUTrange=1.0):
+    def setContrast(self,contrast,LUTrange=1.0, gammaCorrect=None):
         """Set the contrast of the LUT for bits++ mode only
 
         :Parameters:
@@ -238,8 +244,13 @@ class BitsPlusPlus(object):
 
         """
         self.contrast = contrast
+        if gammaCorrect is None:
+            if gammaCorrect not in [False, "hardware"]:
+                gammaCorrect = False
+            else:
+                gammaCorrect = True
         #setLUT uses contrast automatically
-        self.setLUT(newLUT=None, gammaCorrect=True, LUTrange=LUTrange)
+        self.setLUT(newLUT=None, gammaCorrect=gammaCorrect, LUTrange=LUTrange)
 
     def setGamma(self, newGamma):
         """Set the LUT to have the requested gamma value
@@ -274,7 +285,8 @@ class BitsPlusPlus(object):
     def _finishFBOrender(self):
         if self.mode[:4] in ['mono','colo']:
             GL.glUseProgram(0)
-        elif self.mode[:4]=='bits':
+    def _afterFBOrender(self):
+        if self.mode.startswith('bits'):
             self._drawLUTtoScreen()
 
 class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
@@ -287,9 +299,28 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     On windows you must specify the COM port name.
     On OSX, if you don't specify a port then the first match of /dev/tty.usbmodemfa* will be used
     ON linux, if you don't specify a port then /dev/ttyS0 will be used
+
+    :params:
+
+    win: a PsychoPy :ref:`~psychopy.visual.Window` object (required)
+
+    portName: the (virtual) serial port to which the device is connected. If None
+        then PsychoPy will search available serial ports and test communication
+
+    mode: 'bits++', 'color++', 'mono++', 'status'
+
+    checkConfig: integer
+        Allows you to specify how much checking of the device is done to ensure
+        a valid identity look-up table. If you specify one level and it fails
+        then the check will be escalated to the next level (e.g. if we check
+        level 1 and find that it fails we try to find a new LUT):
+            0 don't check at all
+            1 check that the graphics driver and OS version haven't changed since last LUT calibration
+            2 check that the current LUT calibration still provides identity (requires switch to status mode)
+            3 search for a new identity look-up table (requires switch to status mode)
     """
     name='CRS Bits#'
-    def __init__(self, win=None, portName=None, mode=''):
+    def __init__(self, win=None, portName=None, mode='', checkConfig=1):
 
         serialdevice.SerialDevice.__init__(self, port=portName, baudrate=19200,
                  byteSize=8, stopBits=1,
@@ -299,12 +330,25 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                  checkAwake=True)
         if not self.OK:
             return
+
+        #the following are used by bits++ mode
+        self._HEADandLUT = np.zeros((524,1,3),np.uint8)
+        self._HEADandLUT[:12,:,0] = np.asarray([ 36, 63, 8, 211, 3, 112, 56, 34,0,0,0,0]).reshape([12,1])#R
+        self._HEADandLUT[:12,:,1] = np.asarray([ 106, 136, 19, 25, 115, 68, 41, 159,0,0,0,0]).reshape([12,1])#G
+        self._HEADandLUT[:12,:,2] = np.asarray([ 133, 163, 138, 46, 164, 9, 49, 208,0,0,0,0]).reshape([12,1])#B
+        self.LUT=np.zeros((256,3),'d')        #just a place holder
+
+        #replace window methods with our custom ones
+        self.win = win
+        self.win._prepareFBOrender = self._prepareFBOrender
+        self.win._finishFBOrender = self._finishFBOrender
+        self.win._afterFBOrender = self._afterFBOrender
+
         #we have a confirmed connection. Now check details about device and system
         if not hasattr(self, 'info'):
             self.info = self.getInfo()
         self.config = None
         self.mode = mode
-        self.win = win
         if self.win is not None:
             if not hasattr(self.win, '_prepareFBOrender'):
                 logging.error("BitsSharp was given an object as win argument but this is not a visual.Window")
@@ -312,7 +356,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             self.win._finishFBOrender = self._finishFBOrender
             self._setupShaders()
             #now check that we have a valid configuration of the box
-            self.checkConfig(level=0)
+            self.checkConfig(level=checkConfigLevel)
         else:
             self.config = None # makes no sense if we have a window?
             logging.warning("%s was not given any PsychoPy win" %(self))
@@ -323,11 +367,13 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             self.com.close()
 
     def isAwake(self):
+        """Test whether we have an active connection on the virtual serial port
+        """
         self.info = self.getInfo()
         return len(self.info['ProductType'])>0 #if we got a productType then this is a bits device
 
     def getInfo(self):
-        """Returns a python dictionary of info about the box
+        """Returns a python dictionary of info about the Bits Sharp box
         """
         self.read(timeout=0.5) #clear input buffer
         info={}
@@ -347,6 +393,14 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
 
     @property
     def mode(self):
+        """Get/set the mode of the BitsSharp to one of:
+            "bits++"
+            "mono++" (not currently working?)
+            "color++" (not currently working?)
+            "status"
+            "storage"
+            "auto"
+        """
         return self.__dict__['mode']
 
     @mode.setter
@@ -365,6 +419,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         elif value.startswith('bits'):
             self.sendMessage('$BitsPlusPlus\r')
             self.__dict__['mode'] = 'bits++'
+            self.setLUT()
             logging.info('Switched %s to %s mode' %(self.info['ProductType'], self.__dict__['mode']))
         elif value.startswith('mono'):
             self.sendMessage('$monoPlusPlus\r')
@@ -375,9 +430,27 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             self.__dict__['mode'] = 'color++'
             logging.info('Switched %s to %s mode' %(self.info['ProductType'], self.__dict__['mode']))
         elif value.startswith('auto'):
-            self.sendMessage('$colorPlusPlus\r')
+            self.sendMessage('$autoPlusPlus\r')
             self.__dict__['mode'] = 'auto++'
             logging.info('Switched %s to %s mode' %(self.info['ProductType'], self.__dict__['mode']))
+
+    def setLUT(self,newLUT=None, gammaCorrect=False, LUTrange=1.0, contrast=None):
+        """SetLUT is only really needed for bits++ mode of bits# to set the
+        look-up table (256 values with 14bits each).
+
+        For the BitsPlusPlus device the deafult is to perform gamma correction
+        here but on the BitsSharp it seems better to have the device perform
+        that itself as the last step so gamma correction is off here by default.
+
+        If no contrast has yet been set (it isn't needed for other modes) then
+        it will be set to 1 here.
+
+        """
+        if contrast is not None: # we were given a new contrast value so use it
+            self.contrast = contrast
+        elif not hasattr(self, 'contrast'): #we don't have one yet so create a default
+            self.contrast = 1.0
+        BitsPlusPlus.setLUT(self, newLUT, gammaCorrect, LUTrange)
 
     @property
     def temporalDithering(self):
@@ -469,52 +542,57 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         raise NotImplemented
     def stop(self):
         raise NotImplemented
-    def checkConfig(self, level=0):
+
+    def checkConfig(self, level=1):
         """Checks whether there is a configuration for this device and whether it's correct
 
         :params:
 
                 level: integer
 
-                    0: check that we have a config file and that the graphics
+                    0: do nothing
+
+                    1: check that we have a config file and that the graphics
                     card and operating system match that specified in the file. Then assume
                     identity LUT is correct
 
-                    1: switch the box to status mode and check that the
+                    2: switch the box to status mode and check that the
                     identity LUT is currently working
 
-                    2: force a fresh search for the identity LUT
+                    3: force a fresh search for the identity LUT
         """
         #if we haven't fetched a config yet then do so
         if not self.config:
             self.config = Config(self)
         #check that this matches the prev config for our graphics card etc
-        if level==0:
+        if level==1:
             ok = self.config.quickCheck()
             if not ok:
                 #didn't match our graphics card or OS
-                level=1
+                level=2
                 self._warnTesting()
             else:
                 logging.info("Bits# config matches current system: %s on %s" %(self.config.gfxCard, self.config.os))
                 return 1
         #it didn't so switch to doing the test
-        if level==1:
+        if level==2:
             errs = self.config.testLUT()
             if (errs**2).sum() != 0:
-                level=2
+                level=3
                 logging.info("Bits# found a config file but the LUT didn't work as identity. We'll try to find a working one.")
             else:
+                logging.info("We found a LUT in the config file and it worked as identity")
                 return 1
-        if level==2:
+        if level==3:
             ok = self.config.findIdentityLUT()
-            return ok
+        return ok
+
     def _warnTesting(self):
-        msg = "We need to run some tests on your graphics card (hopefully just once). " + \
-            "The BitsSharp will go into status mode while this is done. " + \
-            "It can take a minute or two."
-        logging.warn(msg)
-        logging.flush()
+        msg = "We need to run some tests on your graphics card (hopefully just once).\n" +\
+            "The BitsSharp will go into status mode while this is done.\n" +\
+            "It can take a minute or two..."
+        print(msg)
+        sys.stdout.flush()
         msgOnScreen = visual.TextStim(self.win, msg)
         msgOnScreen.draw()
         self.win.flip()
@@ -603,8 +681,6 @@ class Config(object):
         """
         if self._getGfxCardString() != self.gfxCard:
             logging.warn("The graphics card or it's driver has changed. We'll re-check the identity LUT for the card")
-            print 'stored', self.gfxCard
-            print 'now', self._getGfxCardString()
             return 0
         if self._getOSstring() != self.os:
             logging.warn("The OS has been changed/updated. We'll re-check the identity LUT for the card")
@@ -649,7 +725,9 @@ class Config(object):
         nVerifications = 50, #number of repeats (successful) to check dithering has been eradicated
         plotResults=False,
         ):
-        """Search for the identity LUT for this card/operating system
+        """Search for the identity LUT for this card/operating system.
+        This requires that the window being tested is fullscreen on the Bits#
+        monitor (or at least occupys the first 256 pixels in the top left corner!)
 
         :params:
 
@@ -667,6 +745,7 @@ class Config(object):
 
         lowestErr = 1000000000
         bestLUTname = None
+        logging.flush()
         for LUTname, currentLUT in LUTs.items():
             print 'Checking %r LUT:' %(LUTname),
             for n in range(1):
@@ -689,9 +768,10 @@ class Config(object):
             currentLUT -= tweaks
             currentLUT[currentLUT>1] = 1.0
             currentLUT[currentLUT<0] = 0.0
-            errProgression.append(errs.mean())
-            if errs.mean()>0:
-                print "%.3f" %errs.mean(),
+            MSE = (errs**2).mean()**(-0.5)
+            errProgression.append(MSE)
+            if MSE>0:
+                print "%.3f" %MSE,
                 corrInARow=0
             else:
                 print ".",
@@ -701,11 +781,13 @@ class Config(object):
                 self.identityLUT = currentLUT
                 self.save() #it worked so save this configuration for future
                 break
+            elif len(errProgression)>10 and max(errProgression)-min(errProgression)<0.001:
+                print "Trying to correct the gamma table was having no effect. Make sure the window was fullscreen and on the Bits# screen"
+                break
 
         #did we get here by failure?!
         if n==(maxIterations-1):
-            print "failed to converge on a successful identity LUT. This is BAD! psychopy.hardware.crs.Config needs improving"
-
+            print "failed to converge on a successful identity LUT. This is BAD!"
 
         if plotResults:
             import pylab
@@ -759,12 +841,12 @@ def init():
     (Recommended that you use the BitsPlusPlus class rather than
     calling this directly)
     """
+    retVal = False
     if haveBitsDLL:
         try:
             retVal = _bits.bitsInit() #returns null if fails?
         except:
             logging.error('bits.init() barfed!')
-            return 0
     return retVal
 
 def setVideoMode(videoMode):
