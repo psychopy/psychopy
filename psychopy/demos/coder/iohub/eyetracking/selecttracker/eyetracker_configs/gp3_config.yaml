@@ -1,9 +1,0 @@
-monitor_devices:
-    - eyetrackerhw.gazepoint.gp3.EyeTracker:
-        enable: True
-        name: tracker
-        device_timer:
-            interval: 0.002
-        event_buffer_length: 256
-        monitor_event_types: [ BinocularEyeSampleEvent, ]
-

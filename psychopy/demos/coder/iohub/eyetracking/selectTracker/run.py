@@ -43,7 +43,8 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         # Let's make some short-cuts to the devices we will be using in this 'experiment'.
         tracker=self.hub.devices.tracker
         display=self.hub.devices.display
-        keyboard=self.hub.devices.keyboard
+        kb=self.hub.devices.kb
+        mouse=self.hub.devices.mouse            
                     
         # Create a psychopy window, full screen resolution, full screen mode...
         #
@@ -224,7 +225,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
      
         # wait until any key is pressed
         self.hub.clearEvents('all')
-        while not keyboard.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS):
+        while not kb.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS):
             self.hub.wait(0.2)
             
         # So the experiment is done, all trials have been run.
@@ -261,14 +262,13 @@ if __name__ == "__main__":
         # by the Experiment _runtime
         # as normal.
         eye_tracker_config_files={
-                                  'GazePoint GP3':'eyetracker_configs/gp3_config.yaml',
                                   'LC Technologies EyeGaze':'eyetracker_configs/eyegaze_config.yaml',
                                   'SMI iViewX':'eyetracker_configs/iviewx_config.yaml',
                                   'SR Research EyeLink':'eyetracker_configs/eyelink_config.yaml',
                                   'Tobii Technologies Eye Trackers':'eyetracker_configs/tobii_config.yaml'
                                   }
         
-        info = {'Eye Tracker Type': ['Select', 'GazePoint GP3', 'LC Technologies EyeGaze',
+        info = {'Eye Tracker Type': ['Select', 'LC Technologies EyeGaze', 
                                      'SMI iViewX', 'SR Research EyeLink', 'Tobii Technologies Eye Trackers']}
         
         dlg_info=dict(info)

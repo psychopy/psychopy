@@ -2,7 +2,7 @@
 # ioHub Python Module
 # .. file: psychopy/iohub/devices/eyetracker/hw/gazepoint/gp3/eyetracker.py
 #
-# .. fileauthor:: Martin Guest, Sol Simpson
+# .. fileauthor:: Martin Guest Sol Simpson
 #
 # Distributed under the terms of the GNU General Public License
 # (GPL version 3 or any later version).
