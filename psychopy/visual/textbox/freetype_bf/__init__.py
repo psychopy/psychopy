@@ -42,16 +42,26 @@ if not FT_Library_filename:
     for p in paths_to_try:
         try:
             __dll__ = ctypes.CDLL(p)
-        except OSError:
-            pass
-        if __dll__ is not None:
+        except:
+            __dll__ = None
+        if __dll__:
+            break
+
+if __dll__ is None:
+    # Handle situations where 32 and 64 bit versions of dll are in sys path.
+    # If 'freetype.dll' fails to load, then freetype32 and freetype64
+    # are also tried.
+    library_names = 'freetype', 'freetype32', 'freetype64'
+    for lname in library_names:
+        try:
+            FT_Library_filename = ctypes.util.find_library(lname)
+            __dll__ = ctypes.CDLL(FT_Library_filename)
+        except:
+            __dll__ = None
+        if __dll__:
             break
 
 if not __dll__:
-    FT_Library_filename = ctypes.util.find_library('freetype')
-    __dll__ = ctypes.CDLL(FT_Library_filename)
-
-if not FT_Library_filename and not __dll__:
     raise Exception('Freetype library not found')
 
 
