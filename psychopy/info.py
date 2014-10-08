@@ -599,11 +599,10 @@ def _getUserNameUID():
     :Author:
         - 2010 written by Jeremy Gray
     """
-    try:
-        user = os.environ['USER']
-    except KeyError:
-        user = os.environ['USERNAME']
-    uid = '-1'
+    user = os.environ.get('USER', None) or os.environ.get('USERNAME', None)
+    if not user:
+        return 'undefined', '-1'
+
     if sys.platform not in ['win32']:
         uid = shellCall('id -u')
     else:

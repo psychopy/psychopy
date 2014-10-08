@@ -40,7 +40,9 @@ if sys.platform == 'win32':
         haveAvbin = False
         # either avbin isn't installed or scipy.stats has been imported
         # (prevents avbin loading)
-    except WindowsError, e:
+    except Exception, e:
+        # WindowsError on some systems
+        # AttributeError if using avbin5 from pyglet 1.2?
         haveAvbin = False
     except AttributeError:
         # avbin is not found, causing exception in pyglet 1.2?? (running psychopy 1.81 standalone on windows 7):
