@@ -10,10 +10,10 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 
 
-ioSync MCU Device. 
+ioSync MCU Device.
 ===================
 
-Uses a Teensy 3 or 3.1 and the ioSync.ino MCU sketch to create a general purpose 
+Uses a Teensy 3 or 3.1 and the ioSync.ino MCU sketch to create a general purpose
 digital and analog I/O device connected to the ioHub PC via a USB cable.
 
 See pysync.py file for details on how ioSync uses the Teensy 3 pins.
@@ -23,11 +23,11 @@ General capabilities:
 
 Timing
 -------
-  
-- 48 bit MCU usec timer, so MCU clock rolls every 8.9 years. 
+
+- 48 bit MCU usec timer, so MCU clock rolls every 8.9 years.
 - Uses Cristian’s Algorithm (http://en.wikipedia.org/wiki/Cristian’s_algorithm)
   to convert MCU times to ioHub times, correcting for offset and drift between
-  the time bases.  
+  the time bases.
 
 
 MCU Events
@@ -40,23 +40,23 @@ DigitalInputEvent
 
   Read 8 digital input lines. DIN state can be requested, or an change in DIN
   state can generate a MCU DigitalInputEvent which can be accessed using the
-  iohub device getEvents() method, and is stored in the ioHub Data Store.
-  
+  iohub device getRxEvents() method, and is stored in the ioHub Data Store.
+
 
 AnalogInputEvent
 ````````````````
 
   Read 8 channels of Analog Input, streamed at 1000Hz. Each read of the analog
-  input lines is turned into a MCU AnalogInputEvent which can be accessed using 
-  the iohub device getEvents() method, and is stored in the ioHub Data Store.
-  Effective resolution of analog inputs is TBD, but will likely be between 
+  input lines is turned into a MCU AnalogInputEvent which can be accessed using
+  the iohub device getRxEvents() method, and is stored in the ioHub Data Store.
+  Effective resolution of analog inputs is TBD, but will likely be between
   11 - 13 bits.
 
 MCU Control
 ------------
 
 - Connect / Disconnect from the MCU
-- Start / Stop recording of MCU events 
+- Start / Stop recording of MCU events
 - Set the state of 8 digital output lines.
     * setDigitalOutputByte() : set all eight DOUT lines using an 8 bit byte value
     * setDigitalOutputPin(): set the state of a single DOUT line.
@@ -70,9 +70,9 @@ MCU Access
 
 
 """
+import pysync
+from pysync import T3MC,T3Request,T3Event
 
-import piosync
-from piosync import ioSyncDevice,ioSyncRequest,ioSyncEvent,getTime
 from psychopy.iohub import print2err,printExceptionDetailsToStdErr,Computer
 from ... import Device, DeviceEvent
 from ....constants import DeviceConstants, EventConstants
@@ -108,7 +108,7 @@ class MCU(Device):
         self._last_sync_time=0.0
 
         if self.serial_port.lower() == 'auto':
-            syncPorts = ioSyncDevice.findSyncs()
+            syncPorts = T3MC.findSyncs()
             if len(syncPorts) == 1:
                 self.serial_port = syncPorts[0]
             elif len(syncPorts) > 1:
@@ -121,7 +121,7 @@ class MCU(Device):
     def setConnectionState(self,enable):
         if enable is True:
             if self._mcu is None:
-                self._mcu = ioSyncDevice(self.serial_port)
+                self._mcu = T3MC(self.serial_port)
                 self._resetLocalState()
 
         elif enable is False:
@@ -136,7 +136,7 @@ class MCU(Device):
         return self._mcu != None
            
     def getDeviceTime(self):
-        return ioSyncRequest.sync_state.local2RemoteTime(getTime())
+        return T3Request.sync_state.local2RemoteTime(getTime())
         
     def getSecTime(self):
         """
@@ -205,8 +205,8 @@ class MCU(Device):
         self._request_dict[request.getID()]=request
         return request.asdict()
 
-    def generateKeyboardEvent(self, key_list=0, modifier_state=0):
-        request=self._mcu.generateKeyboardEvent(key_list, modifier_state)
+    def generateKeyboardEvent(self, use_char, press_duration):
+        request=self._mcu.generateKeyboardEvent(use_char, press_duration)
         self._request_dict[request.getID()]=request
         return request.asdict()
         
@@ -336,14 +336,14 @@ class MCU(Device):
             return resp_return
 
     def _enableInputEvents(self, enable_digital, enable_analog, threshold_events):
-        self._mcu.enableEvents(enable_digital,enable_analog, threshold_events)
+        self._mcu.enableInputEvents(enable_digital,enable_analog, threshold_events)
 
     def _poll(self):
         try:
             logged_time=getTime()
 
             if self.isConnected():            
-                self._mcu.poll()
+                self._mcu.getSerialRx()
                 if logged_time-self._last_sync_time>=self.time_sync_interval:
                     self._mcu._runTimeSync()
                     self._last_sync_time=logged_time
@@ -353,7 +353,7 @@ class MCU(Device):
 
             confidence_interval=logged_time-self._last_callback_time
     
-            events = self._mcu.getEvents()
+            events = self._mcu.getRxEvents()
             for event in events:             
                 current_MCU_time = event.device_time#self.getSecTime()
                 device_time = event.device_time
@@ -364,16 +364,16 @@ class MCU(Device):
                 # need to be used to adjust iohub time
                 iohub_time=event.local_time
                 elist = None
-                if event.type() == ioSyncEvent.ANALOG_INPUT_EVENT:
+                if event.getTypeInt() == T3Event.ANALOG_INPUT_EVENT:
                     elist = [EventConstants.UNDEFINED,]*19
                     elist[4] = AnalogInputEvent.EVENT_TYPE_ID
                     for i, v in enumerate(event.ain_channels):
                         elist[(i+11)]=v
-                elif event.type() == ioSyncEvent.DIGITAL_INPUT_EVENT:
+                elif event.getTypeInt() == T3Event.DIGITAL_INPUT_EVENT:
                     elist = [EventConstants.UNDEFINED,]*12
                     elist[4] = DigitalInputEvent.EVENT_TYPE_ID
                     elist[-1] = event.getDigitalInputByte()
-                elif event.type() == ioSyncEvent.THRESHOLD_EVENT:
+                elif event.getTypeInt() == T3Event.THRESHOLD_EVENT:
                     elist = [EventConstants.UNDEFINED,]*19
                     elist[4] = ThresholdEvent.EVENT_TYPE_ID
                     for i, v in enumerate(event.threshold_state_changed):
