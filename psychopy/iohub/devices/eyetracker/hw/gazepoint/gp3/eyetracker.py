@@ -9,51 +9,16 @@
 #
 #
 
-import numpy as np 
-from ...... import print2err,printExceptionDetailsToStdErr
-from ......constants import EventConstants, EyeTrackerConstants
+from ...... import print2err, printExceptionDetailsToStdErr, to_numeric
+from ......constants import EyeTrackerConstants
 from ..... import Computer
 from .... import EyeTrackerDevice
 from ....eye_events import *
-from gevent import socket, sleep
+from gevent import socket
 import errno
-#from ...... import to_numeric
 
-getTime=Computer.getTime
-
-def to_numeric(lit):
-    'Return value of numeric literal string or ValueError exception'
-    # Handle '0'
-    if lit == '0': return 0
-    # Hex/Binary
-    litneg = lit[1:] if lit[0] == '-' else lit
-    if litneg[0] == '0':
-        if litneg[1] in 'xX':
-            return int(lit,16)
-        elif litneg[1] in 'bB':
-            return int(lit,2)
-        else:
-            try:
-                return int(lit,8)
-            except ValueError:
-                pass
-
-    # Int/Float/Complex
-    try:
-        return int(lit)
-    except ValueError:
-        pass
-    try:
-        return float(lit)
-    except ValueError:
-        pass
-    try:
-        return complex(lit)
-    except ValueError:
-        pass
-
-    # return original str
-    return lit
+ET_UNDEFINED = EyeTrackerConstants.UNDEFINED
+getTime = Computer.getTime
 
 class EyeTracker(EyeTrackerDevice):
     """
@@ -81,7 +46,11 @@ class EyeTracker(EyeTrackerDevice):
         * left_gaze_x: uses LFOGX
         * left_gaze_y: uses LFOGY
         * right_gaze_x: uses RFOGX
-        * right_gaze_y: uses
+        * right_gaze_y: uses RFOGY
+        * combined_gaze_x: uses FPOGX
+        * combined_gaze_Y: uses FPOGY
+        * left_pupil_size: uses LPD and is diameter in pixels
+        * right_pupil_size: uses RPD and is diamter in pixels
 
     The Gazepoint GP3 interface uses a polling method to check for new eye
     tracker data. The default polling interval is 5 msec. This can be changed
@@ -90,7 +59,6 @@ class EyeTracker(EyeTrackerDevice):
     The following functionality has not yet been implemented in the ioHub GP3
     interface:
     * Built-in calibration graphics
-    * Storing pupil size data within the sample events
     * Calculation of the REC event delay in ioHub. Therefore the event time
       stamps should not be considered msec accurate.
     """
@@ -238,9 +206,10 @@ class EyeTracker(EyeTrackerDevice):
                 init_connection_str+='<SET ID="ENABLE_SEND_POG_LEFT" STATE="1" />\r\n'
                 init_connection_str+='<SET ID="ENABLE_SEND_POG_RIGHT" STATE="1" />\r\n'
                 init_connection_str+='<SET ID="ENABLE_SEND_USER_DATA" STATE="1"/>\r\n'
-                #init_connection_str+='<SET ID="ENABLE_SEND_PUPIL_LEFT" STATE="1" />\r\n'
-                #init_connection_str+='<SET ID="ENABLE_SEND_PUPIL_RIGHT" STATE="1" />\r\n'
+                init_connection_str+='<SET ID="ENABLE_SEND_PUPIL_LEFT" STATE="1" />\r\n'
+                init_connection_str+='<SET ID="ENABLE_SEND_PUPIL_RIGHT" STATE="1" />\r\n'
                 init_connection_str+='<SET ID="ENABLE_SEND_POG_FIX" STATE="1" />\r\n'
+                init_connection_str+='<SET ID="ENABLE_SEND_POG_BEST" STATE="1" />\r\n'
                 init_connection_str+='<SET ID="ENABLE_SEND_DATA" STATE="0" />\r\n'
                 init_connection_str+='<SET ID="ENABLE_SEND_COUNTER" STATE="1" />\r\n'
                 init_connection_str+='<SET ID="ENABLE_SEND_TIME" STATE="1" />\r\n'
@@ -399,7 +368,7 @@ class EyeTracker(EyeTrackerDevice):
                     # Always tracks binoc, so always use BINOCULAR_EYE_SAMPLE
                     event_type=EventConstants.BINOCULAR_EYE_SAMPLE
 
-                    event_timestamp = m.get('TIME',EyeTrackerConstants.UNDEFINED) #in seconds, take from the REC TIME field
+                    event_timestamp = m.get('TIME',ET_UNDEFINED) #in seconds, take from the REC TIME field
 
                     # TODO event_delay, how to calulate TBD.
                     event_delay = 0.0 # SHOULD BE something like
@@ -412,28 +381,45 @@ class EyeTracker(EyeTrackerDevice):
 
                     self._last_poll_time = logged_time
 
-                    # TODO: fill in eye sample specific data fields
-                    # IMP: Use _eyeTrackerToDisplayCoords method to set values for array
-                    left_gaze_x = m.get('LPOGX',EyeTrackerConstants.UNDEFINED)
-                    left_gaze_y = m.get('LPOGY',EyeTrackerConstants.UNDEFINED)
+                    left_gaze_x = m.get('LPOGX',ET_UNDEFINED)
+                    left_gaze_y = m.get('LPOGY',ET_UNDEFINED)
                     left_gaze_x, left_gaze_y = self._eyeTrackerToDisplayCoords((left_gaze_x,left_gaze_y))
-                    left_pupil_size = EyeTrackerConstants.UNDEFINED
+                    left_pupil_size = m.get('LPD',ET_UNDEFINED) #diameter of pupil in pixels
 
-                    # IMP: Use _eyeTrackerToDisplayCoords method to set values for array
-                    right_gaze_x = m.get('RPOGX',EyeTrackerConstants.UNDEFINED)
-                    right_gaze_y = m.get('RPOGY',EyeTrackerConstants.UNDEFINED)
+                    right_gaze_x = m.get('RPOGX',ET_UNDEFINED)
+                    right_gaze_y = m.get('RPOGY',ET_UNDEFINED)
                     right_gaze_x, right_gaze_y = self._eyeTrackerToDisplayCoords((right_gaze_x,right_gaze_y))
-                    right_pupil_size = EyeTrackerConstants.UNDEFINED
+                    right_pupil_size = m.get('RPD',ET_UNDEFINED) #diameter of pupil in pixels
 
-                    #TODO: Set combined vars to the GP3 provided
                     # left / right eye pos avg. data
-                    combined_gaze_x = m.get('FPOGX',EyeTrackerConstants.UNDEFINED)
-                    combined_gaze_y = m.get('FPOGY',EyeTrackerConstants.UNDEFINED)
+                    combined_gaze_x = m.get('FPOGX',ET_UNDEFINED)
+                    combined_gaze_y = m.get('FPOGY',ET_UNDEFINED)
                     combined_gaze_x, combined_gaze_y = self._eyeTrackerToDisplayCoords((combined_gaze_x,combined_gaze_y))
 
-                    # TODO: status field set to indicate missing data
-                    # val 2 = left eye missing data, 20 = right eye missing data, 22 = both eyes missing
+                    #
+                    # The X and Y-coordinates of the left and right eye pupil
+                    # in the camera image, as a fraction of the
+                    # camera image size.
+                    left_raw_x = m.get('LPCX',ET_UNDEFINED)
+                    left_raw_y = m.get('LPCY',ET_UNDEFINED)
+                    right_raw_x = m.get('RPCX',ET_UNDEFINED)
+                    right_raw_y = m.get('RPCY',ET_UNDEFINED)
+
+
+                    left_eye_status = m.get('LPOGV',ET_UNDEFINED)
+                    right_eye_status = m.get('RPOGV',ET_UNDEFINED)
+
+                    # 0 = both eyes OK
                     status = 0
+                    if left_eye_status == right_eye_status and right_eye_status == 0:
+                        # both eyes are missing
+                        status = 22
+                    elif left_eye_status == 0:
+                        # Just left eye missing
+                        status = 20
+                    elif right_eye_status == 0:
+                        # Just right eye missing
+                        status = 2
 
 
                     binocSample=[
@@ -450,44 +436,42 @@ class EyeTracker(EyeTrackerDevice):
                              0,
                              left_gaze_x,
                              left_gaze_y,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             left_raw_x,
+                             left_raw_y,
                              left_pupil_size,
-                             # TODO: Confirm what 'pupil size' actually is in GP3
-                             EyeTrackerConstants.PUPIL_AREA,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
+                             EyeTrackerConstants.PUPIL_DIAMETER,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
                              right_gaze_x,
                              right_gaze_y,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             right_raw_x,
+                             right_raw_y,
                              right_pupil_size,
-                             # TODO: Confirm what 'pupil size' actually is in GP3
-                             EyeTrackerConstants.PUPIL_AREA,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
-                             EyeTrackerConstants.UNDEFINED,
+                             EyeTrackerConstants.PUPIL_DIAMETER,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
+                             ET_UNDEFINED,
                              status
                                  ]
 

@@ -10,10 +10,10 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 
 
-ioSync MCU Device. 
+ioSync MCU Device.
 ===================
 
-Uses a Teensy 3 or 3.1 and the ioSync.ino MCU sketch to create a general purpose 
+Uses a Teensy 3 or 3.1 and the ioSync.ino MCU sketch to create a general purpose
 digital and analog I/O device connected to the ioHub PC via a USB cable.
 
 See pysync.py file for details on how ioSync uses the Teensy 3 pins.
@@ -23,11 +23,11 @@ General capabilities:
 
 Timing
 -------
-  
-- 48 bit MCU usec timer, so MCU clock rolls every 8.9 years. 
+
+- 48 bit MCU usec timer, so MCU clock rolls every 8.9 years.
 - Uses Cristian’s Algorithm (http://en.wikipedia.org/wiki/Cristian’s_algorithm)
   to convert MCU times to ioHub times, correcting for offset and drift between
-  the time bases.  
+  the time bases.
 
 
 MCU Events
@@ -40,23 +40,23 @@ DigitalInputEvent
 
   Read 8 digital input lines. DIN state can be requested, or an change in DIN
   state can generate a MCU DigitalInputEvent which can be accessed using the
-  iohub device getEvents() method, and is stored in the ioHub Data Store.
-  
+  iohub device getRxEvents() method, and is stored in the ioHub Data Store.
+
 
 AnalogInputEvent
 ````````````````
 
   Read 8 channels of Analog Input, streamed at 1000Hz. Each read of the analog
-  input lines is turned into a MCU AnalogInputEvent which can be accessed using 
-  the iohub device getEvents() method, and is stored in the ioHub Data Store.
-  Effective resolution of analog inputs is TBD, but will likely be between 
+  input lines is turned into a MCU AnalogInputEvent which can be accessed using
+  the iohub device getRxEvents() method, and is stored in the ioHub Data Store.
+  Effective resolution of analog inputs is TBD, but will likely be between
   11 - 13 bits.
 
 MCU Control
 ------------
 
 - Connect / Disconnect from the MCU
-- Start / Stop recording of MCU events 
+- Start / Stop recording of MCU events
 - Set the state of 8 digital output lines.
     * setDigitalOutputByte() : set all eight DOUT lines using an 8 bit byte value
     * setDigitalOutputPin(): set the state of a single DOUT line.
@@ -70,9 +70,9 @@ MCU Access
 
 
 """
-
 import pysync
-from pysync import T3MC,T3Request,T3Event,getTime
+from pysync import T3MC,T3Request,T3Event
+
 from psychopy.iohub import print2err,printExceptionDetailsToStdErr,Computer
 from ... import Device, DeviceEvent
 from ....constants import DeviceConstants, EventConstants
@@ -126,7 +126,7 @@ class MCU(Device):
 
         elif enable is False:
             if self._mcu:
-                self._mcu.resetState()
+                self._mcu.resetState(blocking=True)
                 self._mcu.close()
                 self._mcu=None
                 
@@ -165,8 +165,6 @@ class MCU(Device):
             enable_analog = 'AnalogInputEvent' in event_types
             enable_digital = 'DigitalInputEvent' in event_types
             enable_threshold = 'ThresholdEvent' in event_types
-            #print2err("enable_analog: {0}, enable_digital: {1}".format(enable_analog,enable_digital))
-            self._mcu.flushSerialInput()
             self._enableInputEvents(enable_digital, enable_analog, enable_threshold)
         elif enabled is False and self.isReportingEvents() is True:
             if self.isConnected():
@@ -230,7 +228,7 @@ class MCU(Device):
         self._last_sync_time = getTime()
 
     def resetState(self):
-        request = self._mcu.resetState()
+        request = self._mcu.resetState(blocking=True)
         self._resetLocalState()
         self._request_dict[request.getID()]=request
         return request.asdict()

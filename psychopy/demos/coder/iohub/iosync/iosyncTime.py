@@ -51,20 +51,11 @@ rxtimes = results[:, 2]
 
 e2edelays = rxtimes - txtimes
 msgintervals = txtimes[1:]-txtimes[:-1]
-#print e2edelays
-#print msgintervals
 mintime = min(txtimes.min(), iotimes.min(), rxtimes.min())
 maxtime = max(txtimes.max(), iotimes.max(), rxtimes.max())
 
 from matplotlib import pylab as pl
-
 pl.xlim(mintime-1.0, maxtime+1.0)
-
-#print 'txtimes:',txtimes.shape
-#print 'e2edelays:',e2edelays.shape
-#print 'msgintervals:',msgintervals.shape
-
-
 pl.plot(txtimes, e2edelays, label="Round Trip Delay")
 pl.plot(txtimes[1:], msgintervals, label="Msg Tx Intervals")
 pl.xlabel("Time (msec)")

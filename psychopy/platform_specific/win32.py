@@ -15,6 +15,8 @@
     #define THREAD_PRIORITY_HIGHEST         2
     #define THREAD_PRIORITY_TIME_CRITICAL   15
 
+import os
+
 try:
     from ctypes import windll
     windll=windll.kernel32
@@ -23,23 +25,24 @@ except:
     importWindllFailed = True
     log.debug("rush() not available because import windll failed in ext/win32.py")
 
+FALSE = 0
+
+PROCESS_SET_INFORMATION = 0x0200
+PROCESS_QUERY_INFORMATION = 0x0400
+
 NORMAL_PRIORITY_CLASS    =32
-IDLE_PRIORITY_CLASS      =64
 HIGH_PRIORITY_CLASS      =128
-REALTIME_PRIORITY_CLASS  =1600
-THREAD_PRIORITY_IDLE         =   -15
-THREAD_PRIORITY_LOWEST       =   -2
-THREAD_PRIORITY_BELOW_NORMAL =   -1
+REALTIME_PRIORITY_CLASS  =256
 THREAD_PRIORITY_NORMAL       =   0
-THREAD_PRIORITY_ABOVE_NORMAL =   1
 THREAD_PRIORITY_HIGHEST      =   2
-THREAD_PRIORITY_TIME_CRITICAL=   15
+THREAD_PRIORITY_TIME_CRITICAL =   15
+
 #sleep signals
 ES_CONTINUOUS = 0x80000000
 ES_DISPLAY_REQUIRED = 0x00000002
 ES_SYSTEM_REQUIRED = 0x00000001
 
-def rush(value=True):
+def rush(enable=True, real_time = False):
     """Raise the priority of the current thread/process
     Win32 and OS X only so far - on linux use os.nice(niceIncrement)
 
@@ -53,11 +56,18 @@ def rush(value=True):
     if importWindllFailed:
         return False
 
-    thr=windll.GetCurrentThread()
-    pr =windll.GetCurrentProcess()
-    if value:
+    pr_rights = PROCESS_QUERY_INFORMATION | PROCESS_SET_INFORMATION
+    pr = windll.OpenProcess(pr_rights, FALSE, os.getpid())
+    thr = windll.GetCurrentThread()
+
+    if enable is True:
+        if real_time is False:
+            windll.SetPriorityClass(pr, HIGH_PRIORITY_CLASS)
+            windll.SetThreadPriority(thr, THREAD_PRIORITY_HIGHEST)
+        else:
             windll.SetPriorityClass(pr, REALTIME_PRIORITY_CLASS)
             windll.SetThreadPriority(thr, THREAD_PRIORITY_TIME_CRITICAL)
+
     else:
             windll.SetPriorityClass(pr, NORMAL_PRIORITY_CLASS)
             windll.SetThreadPriority(thr, THREAD_PRIORITY_NORMAL)

@@ -44,6 +44,13 @@ if sys.platform == 'win32':
         # WindowsError on some systems
         # AttributeError if using avbin5 from pyglet 1.2?
         haveAvbin = False
+    except AttributeError:
+        # avbin is not found, causing exception in pyglet 1.2?? (running psychopy 1.81 standalone on windows 7):
+        #
+        # File "C:\Program Files (x86)\PsychoPy2\lib\site-packages\pyglet\media\avbin.py", line 158, in <module>
+        # av.avbin_get_version.restype = ctypes.c_int
+        # AttributeError: 'NoneType' object has no attribute 'avbin_get_version'
+        haveAvbin = False
 
 import psychopy  # so we can get the __path__
 from psychopy import core, platform_specific, logging, prefs, monitors, event

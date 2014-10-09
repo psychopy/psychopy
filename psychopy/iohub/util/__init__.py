@@ -395,21 +395,25 @@ except:
     # just use the version provided if verlib is not installed.
     validate_version=lambda version: version
 
-
 def to_numeric(lit):
-    'Return value of numeric literal string or ValueError exception'
+    """
+    Return value of a numeric literal string. If the string can not be converted
+    then the original string is returned.
+    :param lit:
+    :return:
+    """
     # Handle '0'
     if lit == '0': return 0
     # Hex/Binary
     litneg = lit[1:] if lit[0] == '-' else lit
     if litneg[0] == '0':
         if litneg[1] in 'xX':
-            return int(lit,16)
+            return int(lit, 16)
         elif litneg[1] in 'bB':
-            return int(lit,2)
+            return int(lit, 2)
         else:
             try:
-                return int(lit,8)
+                return int(lit, 8)
             except ValueError:
                 pass
 

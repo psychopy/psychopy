@@ -53,7 +53,7 @@ try:
     mcu.enableEventReporting(True)
     io.clearEvents("all")
     i=0
-    print "Saving Analog Data to File. Press any Key to Quit..."
+    print "Saving Analog Data to File. Press 'escape' Key to Quit..."
     aout=file('analog_output.txt','w')
     while not kb.getKeys(keys=['escape',]):
         mcu_events = mcu.getEvents()
