@@ -24,9 +24,11 @@ if not importCtypesFailed:
     class _SchedParams(ctypes.Structure):
         _fields_ = [('sched_priority', ctypes.c_int)]#
 
-def rush(value=True):
+def rush(value=True, realtime=False):
     """Raise the priority of the current thread/process using
         - sched_setscheduler
+
+    realtime arg is not used in linux implementation.
 
     NB for rush() to work on (debian-based?) linux requires that the script is run using a copy of python that
     is allowed to change priority, eg: sudo setcap cap_sys_nice=eip <sys.executable>, and maybe restart PsychoPy.

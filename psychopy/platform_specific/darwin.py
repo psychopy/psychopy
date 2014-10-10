@@ -83,11 +83,13 @@ def getBusFreq():
     cocoa.sysctl(ctypes.byref(mib), 2, ctypes.byref(val), ctypes.byref(intSize), 0, 0)
     return val.value
 
-def rush(value=True):
+def rush(value=True, realtime = False):
     """Raise the priority of the current thread/process
     Win32 and OS X only so far - on linux use os.nice(niceIncrement)
 
-    Set with rush(True) or rush(False)
+    Set with rush(True) or rush(False).
+
+    realtime arg is not used by osx implementation.
 
     Beware and don't take priority until after debugging your code
     and ensuring you have a way out (e.g. an escape sequence of
