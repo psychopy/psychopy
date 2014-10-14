@@ -393,6 +393,9 @@ class ConfigWizard(object):
 
         msg = ''
         warn = False
+        # assure that we have a list
+        if items['systemUserProcFlagged'] is None:
+            items['systemUserProcFlagged'] = []
         items['systemUserProcFlagged'].sort()
         self.badBgProc = [p for p,pid in items['systemUserProcFlagged']]
         if len(self.badBgProc):
