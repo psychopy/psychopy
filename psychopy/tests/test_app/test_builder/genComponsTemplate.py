@@ -35,7 +35,7 @@ except:
 exp = builder.experiment.Experiment()
 
 if not '--out' in sys.argv:
-    target = open('x.out.master.de55d49.txt', 'rU').read()
+    target = open('componsTemplate.txt', 'rU').read()
     targetLines = target.splitlines()
     targetTag = {}
     for line in targetLines:
