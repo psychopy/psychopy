@@ -6,7 +6,7 @@
 import sys, platform
 
 #dummy methods Should be overridden by imports below if they exist
-def rush(value=False):
+def rush(value=False, realtime = False):
     """
     """
     #dummy method.

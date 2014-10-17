@@ -23,7 +23,8 @@ try:
     importWindllFailed = False
 except:
     importWindllFailed = True
-    log.debug("rush() not available because import windll failed in ext/win32.py")
+    from .. import logging
+    logging.log.debug("rush() not available because import windll failed in ext/win32.py")
 
 FALSE = 0
 
@@ -42,9 +43,8 @@ ES_CONTINUOUS = 0x80000000
 ES_DISPLAY_REQUIRED = 0x00000002
 ES_SYSTEM_REQUIRED = 0x00000001
 
-def rush(enable=True, real_time = False):
+def rush(enable=True, realtime=False):
     """Raise the priority of the current thread/process
-    Win32 and OS X only so far - on linux use os.nice(niceIncrement)
 
     Set with rush(True) or rush(False)
 
@@ -61,7 +61,7 @@ def rush(enable=True, real_time = False):
     thr = windll.GetCurrentThread()
 
     if enable is True:
-        if real_time is False:
+        if realtime is False:
             windll.SetPriorityClass(pr, HIGH_PRIORITY_CLASS)
             windll.SetThreadPriority(thr, THREAD_PRIORITY_HIGHEST)
         else:
