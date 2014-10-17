@@ -77,7 +77,7 @@ import psychopy  # so we can get the __path__
 from psychopy import core, logging
 
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import logAttrib
+from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 
 import numpy
@@ -458,6 +458,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         Get the number of sec.msec remaining until the next movie video frame
         should be drawn.
         """
+        rt = (self._next_frame_sec - 1.0/self._retracerate) - self._video_track_clock.getTime()
         try:
             rt = (self._next_frame_sec - 1.0/self._retracerate) - self._video_track_clock.getTime()
             return rt
@@ -548,9 +549,10 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
 
         This method should be called on every frame that the movie is meant to
         appear"""
-        if self.status != PLAYING:
+        if self.status==NOT_STARTED or (self.status==FINISHED and self.loop):
+            self.play()
+        elif self.status == FINISHED and not self.loop:
             return
-
         return_next_frame_index = False
         if win is None:
             win = self.win
@@ -659,20 +661,17 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
     def __del__(self):
         self._unload()
 
+    def setAutoDraw(self, val, log=None):
+        """Add or remove a stimulus from the list of stimuli that will be
+        automatically drawn on each flip
 
-#    def setAutoDraw(self, val, log=True):
-#        """Add or remove a stimulus from the list of stimuli that will be
-#        automatically drawn on each flip
-#
-#        :parameters:
-#            - val: True/False
-#                True to add the stimulus to the draw list, False to remove it
-#        """
-#        if val:
-#            self.play(log=False)  # set to play in case stopped
-#        else:
-#            self.pause(log=False)
-#        #add to drawing list and update status
-#        self.autoDraw = val
-#    def __del__(self):
-#        self._player.next()
+        :parameters:
+            - val: True/False
+                True to add the stimulus to the draw list, False to remove it
+        """
+        if val:
+            self.play(log=False)  # set to play in case stopped
+        else:
+            self.pause(log=False)
+        #add to drawing list and update status
+        setAttribute(self, 'autoDraw', val, log)
