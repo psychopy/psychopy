@@ -437,6 +437,9 @@ class ConfigWizard(object):
                     elif pkg == 'pyserial':
                         exec('import serial')
                         ver = serial.VERSION
+                    elif pkg == 'pywin32':
+                        exec('import win32api')
+                        ver = 'import ok'
                     else:
                         exec('import ' + pkg)
                         try: ver = eval(pkg+'.__version__')
