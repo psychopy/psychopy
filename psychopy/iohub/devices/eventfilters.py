@@ -260,7 +260,7 @@ class WeightedAverageFilter(MovingWindowFilter):
 
 class StampFilter(MovingWindowFilter):
     """
-    Implements The Stampe Filter (written by Dave Stampe of SR Research).
+    Implements The Stampe Filter (created by Dave Stampe of SR Research).
     The filter has a window length of 3. If the window values (v1,v2,v3) are
     non monotonic, then the middle value is replaced by the mean of v1 and v3.
     Otherwise v2 is returned unmodified.
