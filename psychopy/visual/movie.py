@@ -43,7 +43,7 @@ import psychopy.event
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
-from psychopy.tools.attributetools import logAttrib
+from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy import makeMovies
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 
@@ -341,7 +341,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         else:
             self.pause(log=False)
         #add to drawing list and update status
-        self.__dict__['autoDraw'] = val
-        logAttrib(self, log, 'autoDraw')
+        setAttribute(self, 'autoDraw', val, log)
+
     def __del__(self):
         self._player.next()

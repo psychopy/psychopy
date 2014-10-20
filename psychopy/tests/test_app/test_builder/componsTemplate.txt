@@ -1462,6 +1462,18 @@ MovieComponent.startVal.label:Start
 MovieComponent.startVal.readOnly:False
 MovieComponent.startVal.updates:None
 MovieComponent.startVal.valType:code
+MovieComponent.backend.default:'avbin'
+MovieComponent.backend.staticUpdater:None
+MovieComponent.backend.categ:Basic
+MovieComponent.backend.val:avbin
+MovieComponent.backend.allowedTypes:[]
+MovieComponent.backend.hint:What underlying lib to use for loading movies
+MovieComponent.backend.allowedUpdates:None
+MovieComponent.backend.allowedVals:['avbin', 'opencv']
+MovieComponent.backend.label:
+MovieComponent.backend.readOnly:False
+MovieComponent.backend.updates:None
+MovieComponent.backend.valType:str
 MovieComponent.size.default:
 MovieComponent.size.staticUpdater:None
 MovieComponent.size.categ:Basic

@@ -21,7 +21,7 @@ class MovieComponent(VisualComponent):
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim='',
-                forceEndRoutine=False):
+                forceEndRoutine=False, backend='avbin'):
         #initialise main parameters from base stimulus
         super(MovieComponent, self).__init__(exp,parentName,name=name, units=units,
                     pos=pos, size=size, ori=ori,
@@ -38,6 +38,8 @@ class MovieComponent(VisualComponent):
             updates='constant', allowedUpdates=['constant','set every repeat'],
             hint=_translate("A filename for the movie (including path)"),
             label=_localized['movie'])
+        self.params['backend']=Param(backend, valType='str', allowedVals=['avbin','opencv'],
+            hint=_translate("What underlying lib to use for loading movies"),)
         self.params['forceEndRoutine']=Param(forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=_translate("Should the end of the movie cause the end of the routine (e.g. trial)?"),
@@ -58,7 +60,10 @@ class MovieComponent(VisualComponent):
             params = components.getInitVals(self.params)
         else:
             params = self.params
-        buff.writeIndented("%s = visual.MovieStim(win=win, name='%s',%s\n" %(params['name'],params['name'],unitsStr))
+        if self.params['backend'].val=='avbin':
+            buff.writeIndented("%s = visual.MovieStim(win=win, name='%s',%s\n" %(params['name'],params['name'],unitsStr))
+        else:
+            buff.writeIndented("%s = visual.MovieStim2(win=win, name='%s',%s\n" %(params['name'],params['name'],unitsStr))
         buff.writeIndented("    filename=%(movie)s,\n" %(params))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n" %(params))
         if self.params['size'].val != '':

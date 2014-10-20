@@ -9,8 +9,11 @@ from psychopy import data, __version__, logging
 from psychopy.constants import FOREVER
 from lxml import etree
 import re, os
+try:
+    _translate  # is the app-global text translation function defined?
+except NameError:
+    from psychopy.app import localization
 import locale
-
 # predefine some regex's; deepcopy complains if do in NameSpace.__init__()
 _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")  # detect "code wanted"
 _valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names

@@ -393,6 +393,9 @@ class ConfigWizard(object):
 
         msg = ''
         warn = False
+        # assure that we have a list
+        if items['systemUserProcFlagged'] is None:
+            items['systemUserProcFlagged'] = []
         items['systemUserProcFlagged'].sort()
         self.badBgProc = [p for p,pid in items['systemUserProcFlagged']]
         if len(self.badBgProc):
@@ -434,6 +437,9 @@ class ConfigWizard(object):
                     elif pkg == 'pyserial':
                         exec('import serial')
                         ver = serial.VERSION
+                    elif pkg == 'pywin32':
+                        exec('import win32api')
+                        ver = 'import ok'
                     else:
                         exec('import ' + pkg)
                         try: ver = eval(pkg+'.__version__')
