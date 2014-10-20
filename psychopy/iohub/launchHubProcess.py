@@ -8,15 +8,16 @@ import gevent
 import json
 import os,sys
 
-import psychopy.iohub  as iohub   
+import psychopy.iohub
 from psychopy.iohub.server import ioServer
 from psychopy.iohub import Computer, updateDict,printExceptionDetailsToStdErr, print2err, MonotonicClock, load, dump, Loader, Dumper
 
 def run(rootScriptPathDir,configFilePath):
+    psychopy.iohub.EXP_SCRIPT_DIRECTORY = rootScriptPathDir
+
     import tempfile
     tdir=tempfile.gettempdir()
     cdir,cfile=os.path.split(configFilePath)
-
     if tdir==cdir:
         tf=open(configFilePath)
         ioHubConfig=json.loads(tf.read())
@@ -25,7 +26,7 @@ def run(rootScriptPathDir,configFilePath):
     else:
         ioHubConfig=load(file(configFilePath,'r'), Loader=Loader)
 
-    hub_defaults_config=load(file(os.path.join(iohub.IO_HUB_DIRECTORY,'default_config.yaml'),'r'), Loader=Loader)
+    hub_defaults_config=load(file(os.path.join(psychopy.iohub.IO_HUB_DIRECTORY,'default_config.yaml'),'r'), Loader=Loader)
     updateDict(ioHubConfig,hub_defaults_config)
     try:
         s = ioServer(rootScriptPathDir, ioHubConfig)
@@ -108,7 +109,7 @@ if __name__ == '__main__':
         psychopy_pid=None
         configFileName=None
         rootScriptPathDir=None
-        initial_offset=iohub.getTime()
+        initial_offset=psychopy.iohub.getTime()
 
     Computer.is_iohub_process=True
 
