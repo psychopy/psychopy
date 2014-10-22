@@ -22,15 +22,34 @@ class Serial(Device):
     are used to define how the serial input data should be parsed, and what
     conditions create a serial input event to be generated.
     """
+    _bytesizes = {5: serial.FIVEBITS,
+                  6: serial.SIXBITS,
+                  7: serial.SEVENBITS,
+                  8: serial.EIGHTBITS,
+                  }
+
+    _parities = {'NONE': serial.PARITY_NONE,
+                  'EVEN': serial.PARITY_EVEN,
+                  'ODD': serial.PARITY_ODD,
+                  'MARK': serial.PARITY_MARK,
+                  'SPACE': serial.PARITY_SPACE
+                  }
+
+    _stopbits = {'ONE': serial.STOPBITS_ONE,
+                  'ONE_AND_HALF': serial.STOPBITS_ONE_POINT_FIVE,
+                  'TWO': serial.STOPBITS_TWO
+                  }
+
     DEVICE_TIMEBASE_TO_SEC = 1.0
     _newDataTypes = [('port', N.str, 32), ('baud', N.str, 32),]
     EVENT_CLASS_NAMES = ['SerialInputEvent','SerialByteChangeEvent']
     DEVICE_TYPE_ID = DeviceConstants.SERIAL
     DEVICE_TYPE_STRING = "SERIAL"
-    _mcu_slots = ['port', 'baud', '_serial', '_timeout', '_rx_buffer',
+    _serial_slots = ['port', 'baud', 'bytesize', 'parity', 'stopbits', '_serial', '_timeout', '_rx_buffer',
                   '_parser_config', '_parser_state', '_event_count',
                   '_byte_diff_mode','_custom_parser','_custom_parser_kwargs']
-    __slots__ = [e for e in _mcu_slots]
+    __slots__ = [e for e in _serial_slots]
+
     def __init__(self, *args, **kwargs):
         Device.__init__(self, *args, **kwargs['dconfig'])
         self._serial = None
@@ -42,6 +61,9 @@ class Serial(Device):
                 if len(pports) > 1:
                     print2err("Warning: Serial device port configuration set to 'auto'.\nMultiple serial ports found:\n", pports, "\n** Using port ", self.port)
         self.baud = self.getConfiguration().get('baud')
+        self.bytesize = self._bytesizes[self.getConfiguration().get('bytesize')]
+        self.parity = self._parities[self.getConfiguration().get('parity')]
+        self.stopbits = self._stopbits[self.getConfiguration().get('stopbits')]
 
         self._parser_config = self.getConfiguration().get('event_parser')
         self._byte_diff_mode = None
@@ -262,10 +284,7 @@ class Serial(Device):
         return tx_count
 
     def read(self):
-        rx = ''
-        while self._serial.inWaiting() > 0:
-            rx = rx + self._serial.read(self._serial.inWaiting())
-        return rx
+        return self._serial.read(self._serial.inWaiting())
 
     def closeSerial(self):
         if self._serial:
@@ -350,7 +369,6 @@ class Serial(Device):
                     read_time = getTime()
                     if newrx:
                         try:
-
                             serial_events = self._custom_parser(read_time, newrx,
                                                             parser_state,
                                                             **self._custom_parser_kwargs)

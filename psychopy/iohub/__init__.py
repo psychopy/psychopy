@@ -16,6 +16,11 @@ if sys.platform == 'darwin':
 from psychopy.clock import  MonotonicClock, monotonicClock
 
 try:
+    import ujson as json
+except:
+    import json
+
+try:
     from yaml import load, dump
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
