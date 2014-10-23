@@ -390,9 +390,14 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         GL.glEndList()
 
     def __del__(self):
-        if hasattr(self, '_listID'):
+        try:
             GL.glDeleteLists(self._listID, 1)
+        except:
+            pass #probably we don't have a _listID property
+        try:
             self.clearTextures()#remove textures from graphics card to prevent crash
+        except:
+            pass
 
     def _calcCyclesPerStim(self):
         if self.units in ['norm', 'height']:
