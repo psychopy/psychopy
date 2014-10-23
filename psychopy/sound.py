@@ -568,11 +568,15 @@ def initPyo(rate=44100, stereo=True, buffer=128):
                 logging.warning('No audio outputs found (no speakers connected?')
                 return -1
             #check for valid input (mic)
-            devNames, devIDs = pyo.pa_get_input_devices()
+            devNames, devIDs = pyo.pa_get_input_devices() # If no input device is available, devNames and devIDs are empty lists.
             audioInputName, inputID = _bestDriver(devNames, devIDs)
-            if inputID is None:
-                audioInputName = 'Windows Default Input' #using the default input because we didn't find the one(s) requested
-                inputID = pyo.pa_get_default_input()
+            if len(devIDs)>0 and inputID is None: # Input devices were found, but requested devices were not found
+                defaultID = pyo.pa_get_default_input()
+                if defaultID is not None and defaultID != -1: # default input is found
+                    audioInputName = 'Windows Default Input' #using the default input because we didn't find the one(s) requested
+                    inputID = defaultID
+                else:
+                    inputID = None # default input is not available
             if inputID is not None:
                 logging.info('Using sound-input driver: %s (ID=%i)' %(audioInputName, inputID))
                 maxInputChnls = pyo.pa_get_input_max_channels(inputID)
