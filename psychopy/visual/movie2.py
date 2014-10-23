@@ -160,10 +160,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self.volume = volume
         self._av_stream_time_offset = 0.145
         self._no_audio = noAudio
-        if self._no_audio:
-            self._requested_fps = fps
-        else:
-            self._requested_fps = None
+        self._requested_fps = fps
         self._vframe_callback = vframe_callback
         self._reset()
         self.loadMovie(self.filename)
@@ -252,10 +249,19 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._format = self._video_stream.get(cv2.cv.CV_CAP_PROP_FORMAT)
         # TODO: Read depth from video source
         self._video_frame_depth = 3
-        if self._no_audio:
+
+        cv_fps = self._video_stream.get(cv2.cv.CV_CAP_PROP_FPS)
+        if self._requested_fps:
+            if self._no_audio is False and cv_fps != self._requested_fps:
+                self._no_audio = True
+                logging.error("MovieStim2 video fps != requested fps. Disabling Audio Stream.")
+                logging.flush()
+
+        if self._no_audio and self._requested_fps:
             self._video_frame_rate = self._requested_fps
         else:
             self._video_frame_rate = self._video_stream.get(cv2.cv.CV_CAP_PROP_FPS)
+
         self._inter_frame_interval = 1.0/self._video_frame_rate
 
         # Create a numpy array that can hold one video frame, as returned by cv2.
@@ -458,9 +464,10 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         Get the number of sec.msec remaining until the next movie video frame
         should be drawn.
         """
-        rt = (self._next_frame_sec - 1.0/self._retracerate) - self._video_track_clock.getTime()
+#        rt = (self._next_frame_sec - 1.0/self._retracerate) - self._video_track_clock.getTime()
         try:
             rt = (self._next_frame_sec - 1.0/self._retracerate) - self._video_track_clock.getTime()
+            #print "getTimeToNextFrameDraw: ",self.getCurrentFrameNumber(), rt
             return rt
         except:
             #import traceback
@@ -507,16 +514,26 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
 
     def _getNextFrame(self):
         # get next frame info ( do not decode frame yet)
-        if self._video_stream.grab():
-            self._prev_frame_index = self._next_frame_index
-            self._prev_frame_sec = self._next_frame_sec
-            self._next_frame_sec = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_MSEC)/1000.0
-            self._next_frame_index = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
-            self._video_perc_done = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_AVI_RATIO)
-            self._next_frame_displayed = False
-            return self._next_frame_sec
-        else:
-            self._onEos()
+        while 1:
+            if self._video_stream.grab():
+                self._prev_frame_index = self._next_frame_index
+                self._prev_frame_sec = self._next_frame_sec
+                self._next_frame_index = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
+                if self._requested_fps and self._no_audio:
+                    self._next_frame_sec = self._next_frame_index/self._requested_fps#*self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_MSEC)/1000.0
+                else:
+                    self._next_frame_sec = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_MSEC)/1000.0
+                self._video_perc_done = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_AVI_RATIO)
+                self._next_frame_displayed = False
+                if self.getTimeToNextFrameDraw() > -self._inter_frame_interval/2.0:
+                    return self._next_frame_sec
+                else:
+                    logging.warning("MovieStim2 dropping video frame index: %d"%(self._next_frame_index))
+                    logging.flush()
+            else:
+                self._onEos()
+                break
+
 
     def _updateFrameTexture(self):
         # decode frame into np array and move to opengl tex
