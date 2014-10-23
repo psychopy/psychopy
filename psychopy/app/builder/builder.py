@@ -2058,9 +2058,9 @@ class ParamCtrls:
                     updateLabels.append(_translate("set during: %(routineName)s.%(staticName)s") % {'routineName':routineName, 'staticName':static.params['name']})
             self.updateCtrl = wx.Choice(parent, choices=updateLabels)
             # stash non-localized choices to allow retrieval by index:
-            self.updateCtrl._choices = copy.copy(param.allowedUpdates)
+            self.updateCtrl._choices = copy.copy(updateLabels)
             # get index of the currently set update value, set display:
-            index = param.allowedUpdates.index(param.updates)
+            index = updateLabels.index(param.updates)
             self.updateCtrl.SetSelection(index)  # set by integer index, not string value
 
         if param.allowedUpdates!=None and len(param.allowedUpdates)==1:
@@ -2084,9 +2084,12 @@ class ParamCtrls:
             if isinstance(self.valueCtrl, dialogs.ListWidget):
                 val = self.expInfoFromListWidget(val)
             return val
+        elif hasattr(ctrl, 'GetStringSelection'): #for wx.Choice
+            return ctrl.GetStringSelection()
         elif hasattr(ctrl, 'GetSelection'): #for wx.Choice
             # _choices is defined during __init__ for all wx.Choice() ctrls
             # as the non-localized values (allowedVals, allowedUpdates):
+            print ctrl._choices, ctrl.GetSelection(), ctrl.GetStringSelection()
             return ctrl._choices[ctrl.GetSelection()]
         elif hasattr(ctrl, 'GetLabel'): #for wx.StaticText
             return ctrl.GetLabel()
