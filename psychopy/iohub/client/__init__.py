@@ -1442,6 +1442,23 @@ def launchHubServer(**kwargs):
 
         device_list=[]
 
+
+        def isFunction(func):
+            import types
+            return isinstance(func, types.FunctionType)
+
+        def func2str(func):
+            return "%s.%s"%(func.__module__, func.__name__)
+
+        def configfuncs2str(config):
+            for k, v in config.items():
+                if isinstance(v,dict):
+                    configfuncs2str(v)
+                if isFunction(v):
+                    config[k] = func2str(v)
+
+        configfuncs2str(device_dict)
+
         # Ensure a Display Device has been defined. If note, create one.
         # Insert Display device as first device in dev. list.
         if 'Display' not in device_dict:

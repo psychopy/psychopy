@@ -11,14 +11,30 @@ mcu.iosync.MCU:
             max_length: 32
     baud:
         IOHUB_INT:
+            min: 1
+            max: 1000000
+    bytesize:
+        IOHUB_INT:
+            min: 5
+            max: 8
+
+    parity:
+        IOHUB_LIST:
+            valid_values: [NONE, EVEN, ODD, MARK, SPACE]
             min_length: 1
-            max_length: 1000000
+            max_length: 1
+
+    stopbits:
+        IOHUB_LIST:
+            valid_values: [ONE, ONE_AND_HALF, TWO]
+            min_length: 1
+            max_length: 1
 
     event_parser:
         fixed_length:
             IOHUB_INT:
-                min_length: 0
-                max_length: 256
+                min: 0
+                max: 256
         prefix:
             IOHUB_STRING:
                 min_length: 0
@@ -30,6 +46,16 @@ mcu.iosync.MCU:
                 max_length: 32
                 first_char_alpha: False
         byte_diff: IOHUB_BOOL
+        parser_function:
+            IOHUB_STRING:
+                min_length: 0
+                max_length: 64
+                first_char_alpha: True
+        parser_kwargs:
+            IOHUB_LIST:
+                valid_values:
+                min_length: 0
+                max_length: 1024
 
     device_timer:
         interval:

@@ -16,6 +16,11 @@ if sys.platform == 'darwin':
 from psychopy.clock import  MonotonicClock, monotonicClock
 
 try:
+    import ujson as json
+except:
+    import json
+
+try:
     from yaml import load, dump
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
@@ -29,6 +34,8 @@ if sys.version_info[0] != 2 or sys.version_info[1] >= 7:
     def construct_yaml_unistr(self, node):
         return self.construct_scalar(node)
     Loader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_unistr)
+
+EXP_SCRIPT_DIRECTORY = ''
 
 import constants
 from constants import EventConstants, DeviceConstants

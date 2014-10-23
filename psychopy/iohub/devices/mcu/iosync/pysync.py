@@ -270,7 +270,7 @@ class T3Request(object):
 
     @classmethod
     def _readRequestReply(cls,t3,request_id):
-        request=t3.getActiveRequests().pop(request_id,None)
+        request=t3.getPendingRequests().pop(request_id,None)
         if request is None:
             return None
         request.rx_time=getTime()

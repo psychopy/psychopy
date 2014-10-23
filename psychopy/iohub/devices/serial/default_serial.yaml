@@ -28,6 +28,12 @@ serial.Serial:
 
     baud: 9600
 
+    bytesize: 8
+
+    parity: NONE
+
+    stopbits: ONE
+
     event_parser:
         fixed_length: 255
         prefix:
