@@ -342,12 +342,21 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         cstat = self.status
         if cstat != PLAYING:
             self.status = PLAYING
+
+            if self._next_frame_sec is None:
+                # movie has no current position, need to reset the clock
+                # to zero in order to have the timing logic work
+                # otherwise the video stream would skip frames until the
+                # time since creating the movie object has passed
+                self._video_track_clock.reset()
+
             if cstat == PAUSED:
                 # toggle audio pause
                 if self._audio_stream_player:
                     self._audio_stream_player.pause()
                     self._audio_stream_clock.reset(-self._audio_stream_player.get_time()/1000.0)
-                self._video_track_clock.reset(-self._next_frame_sec)
+                if self._next_frame_sec:
+                    self._video_track_clock.reset(-self._next_frame_sec)
             else:
                 self._video_track_clock.reset(-self._getNextFrame())
 
