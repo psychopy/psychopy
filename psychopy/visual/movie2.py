@@ -339,20 +339,31 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
     def play(self, log=True):
         """Continue a paused movie from current position.
         """
-        if self.status != PLAYING:
+        cstat = self.status
+        if cstat != PLAYING:
+            self.status = PLAYING
 
-            if self.status == PAUSED:
+            if self._next_frame_sec is None:
+                # movie has no current position, need to reset the clock
+                # to zero in order to have the timing logic work
+                # otherwise the video stream would skip frames until the
+                # time since creating the movie object has passed
+                self._video_track_clock.reset()
+
+            if cstat == PAUSED:
                 # toggle audio pause
                 if self._audio_stream_player:
                     self._audio_stream_player.pause()
                     self._audio_stream_clock.reset(-self._audio_stream_player.get_time()/1000.0)
+                if self._next_frame_sec:
+                    self._video_track_clock.reset(-self._next_frame_sec)
+            else:
+                self._video_track_clock.reset(-self._getNextFrame())
 
-            self.status = PLAYING
             if log and self.autoLog:
                     self.win.logOnFlip("Set %s playing" %(self.name),
                                        level=logging.EXP, obj=self)
 
-            self._video_track_clock.reset(-self._getNextFrame())
             self._updateFrameTexture()
             self.win.callOnFlip(self._flipCallback)
             return self._next_frame_index
@@ -514,7 +525,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
 
     def _getNextFrame(self):
         # get next frame info ( do not decode frame yet)
-        while 1:
+        while self.status == PLAYING:
             if self._video_stream.grab():
                 self._prev_frame_index = self._next_frame_index
                 self._prev_frame_sec = self._next_frame_sec

@@ -120,7 +120,7 @@ class TheEyeTribe(object):
     STATE_TRACKING_FIXATED = 0x20 # true: ((state & mask) != 0)
                                # false: ((state & mask) == 0)
 
-    def __init__(self):
+    def __init__(self, server_ip='127.0.0.1', server_port=6555):
         """
         When an instance of TheEyeTribe client interface is created,
         it creates two greenlets, a EyeTribeTransportManager and a 
@@ -133,7 +133,9 @@ class TheEyeTribe(object):
         # by the server based on get requests from the client.
         self._tracker_state={}
         
-        self._transport_manager = EyeTribeTransportManager(self)
+        self._transport_manager = EyeTribeTransportManager(self,
+                                                           address=server_ip,
+                                                           port=server_port)
         self._transport_manager.start()
         
         #self.sendSetMessage(push=True, version=1)
@@ -356,13 +358,13 @@ class EyeTribeTransportManager(gevent.Greenlet):
     reply dict's. The type of server reply received is used to determine
     if it should be passed back to the HeartbeatPump or to the TheEyeTribe.
     """
-    def __init__(self, client_interface):
+    def __init__(self, client_interface,address='127.0.0.1',port=6555):
         self.server_response_count=0
         self._client_interface=proxy(client_interface)
         gevent.Greenlet.__init__(self)
         self._tracker_requests_queue = queue.Queue()
         self._running = False
-        self._socket = self.createConnection()
+        self._socket = self.createConnection(host=address, port=port)
         
     def _run(self):
         self._running = True
@@ -437,14 +439,12 @@ class EyeTribeTransportManager(gevent.Greenlet):
             msg=json.dumps(msg)
         self._tracker_requests_queue.put(msg)        
         
-    def createConnection(self, host='localhost', port=6555):
+    def createConnection(self, host='127.0.0.1', port=6555):
         # Open a socket to the eye tracker server
         try:
             hbp = socket.socket()
             hbp.connect((host, port))
-            #print 'current timeout:',hbp.gettimeout()
             hbp.settimeout(0.01)
-            #print 'current timeout2:',hbp.gettimeout()
             return hbp
         except Exception, e:
             print2err('** Error creating exception:', e)

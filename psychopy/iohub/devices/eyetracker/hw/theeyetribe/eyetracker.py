@@ -116,7 +116,11 @@ class EyeTracker(EyeTrackerDevice):
         """
         if enable is True and self._eyetribe is None:
             try:
-                EyeTracker._eyetribe=TheEyeTribe()
+                net_settings = self.getConfiguration().get('network_settings')
+                host_ip = net_settings.get('server_address')
+                host_port = net_settings.get('server_port')
+                EyeTracker._eyetribe=TheEyeTribe(server_ip=host_ip,
+                                                 server_port=host_port)
                 # set the iohub eyetracker _handleNativeEvent to be what
                 # id called by TheEyeTribe when a sample is received.
                 self._eyetribe.processSample=self._handleNativeEvent

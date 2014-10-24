@@ -26,6 +26,12 @@ eyetracker.hw.theyetribe.EyeTracker:
     # BinocularEyeSampleEvent event type.
     monitor_event_types: [ BinocularEyeSampleEvent,]
 
+    network_settings:
+        # IP address of TET server app
+        server_address: "127.0.0.1"
+        # Port of TET server app
+        server_port: 6555
+
     # The model name of the TheEyeTribe device that you wish to connect to can be specified here,
     # and only TheEyeTribe systems matching that model name will be considered as possible candidates for connection.
     # If you only have one TheEyeTribe system connected to the computer, this field can just be left empty.

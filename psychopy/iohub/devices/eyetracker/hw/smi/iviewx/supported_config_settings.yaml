@@ -55,7 +55,7 @@ eyetracker.hw.smi.iviewx.EyeTracker:
             # overlay be displayed following a validation procedure?
             show_validation_accuracy_window: IOHUB_BOOL
 
-        network_settings:
+    network_settings:
         # IP address of iView X computer
         send_ip_address: IOHUB_IP_ADDRESS_V4
         # Port being used by iView X SDK for sending data to iView X 
