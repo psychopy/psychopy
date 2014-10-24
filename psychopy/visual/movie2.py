@@ -352,6 +352,12 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                     self.win.logOnFlip("Set %s playing" %(self.name),
                                        level=logging.EXP, obj=self)
 
+            if self._next_frame_sec is None:
+                # movie has no current position, need to reset the clock
+                # to zero in order to have the timing logic work
+                # otherwise the video stream would skip frames until the
+                # time since creating the movie object has passed
+                self._video_track_clock.reset()
             self._video_track_clock.reset(-self._getNextFrame())
             self._updateFrameTexture()
             self.win.callOnFlip(self._flipCallback)
