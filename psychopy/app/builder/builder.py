@@ -81,6 +81,10 @@ _localized = {
         'Responses': _translate('Responses'), 'Custom': _translate('Custom'), 'I/O': _translate('I/O')
     }
 
+# used for getting internal value from display value
+_unlocalized = {
+        _translate('from exp settings'):'from exp settings'
+    }
 
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
@@ -2051,16 +2055,19 @@ class ParamCtrls:
         if param.allowedUpdates is None or len(param.allowedUpdates)==0:
             pass
         else:
-            #updates = display-only version of allowed updates
+            #updateLabels = display-only version of allowed updates
+            #allowedUpdates = internal (English) version of allowed updates
             updateLabels = [_localized[upd] for upd in param.allowedUpdates]
+            allowedUpdates = copy.copy(param.allowedUpdates)
             for routineName, routine in self.exp.routines.items():
                 for static in routine.getStatics():
                     updateLabels.append(_translate("set during: %(routineName)s.%(staticName)s") % {'routineName':routineName, 'staticName':static.params['name']})
+                    allowedUpdates.append("set during: %(routineName)s.%(staticName)s" % {'routineName':routineName, 'staticName':static.params['name']})
             self.updateCtrl = wx.Choice(parent, choices=updateLabels)
             # stash non-localized choices to allow retrieval by index:
             self.updateCtrl._choices = copy.copy(updateLabels)
             # get index of the currently set update value, set display:
-            index = updateLabels.index(param.updates)
+            index = allowedUpdates.index(param.updates)
             self.updateCtrl.SetSelection(index)  # set by integer index, not string value
 
         if param.allowedUpdates!=None and len(param.allowedUpdates)==1:
@@ -2262,6 +2269,19 @@ class _BaseParamsDlg(wx.Dialog):
                         self.paramCtrls['name'].valueCtrl.SetFocus()
                     if 'expName' in self.paramCtrls:# ExperimentSettings has expName instead
                         self.paramCtrls['expName'].valueCtrl.SetFocus()
+
+        #try to find the experiment
+        self.exp=None
+        tryForExp = self
+        while self.exp is None:
+            if hasattr(tryForExp,'frame'):
+                self.exp=tryForExp.frame.exp
+            else:
+                try:
+                    tryForExp=tryForExp.parent#try going up a level
+                except:
+                    tryForExp.parent
+
     def addCategoryOfParams(self, paramNames, parent):
         """Add all the params for a single category (after its tab has been created)
         """
@@ -2656,11 +2676,25 @@ class _BaseParamsDlg(wx.Dialog):
             else:
                 ctrls = self.paramCtrls[fieldName]#the various dlg ctrls for this param
                 param.val = ctrls.getValue()
+
+                #get internal code if param val is localized value
+                if param.val in _unlocalized.keys():
+                    param.val = _unlocalized[param.val]
+
                 if ctrls.typeCtrl:
                     param.valType = ctrls.getType()
                 if ctrls.updateCtrl:
-                    #may also need to update a static
-                    updates = ctrls.getUpdates()
+                    #updateLabels = display-only version of allowed updates
+                    #allowedUpdates = internal (English) version of allowed updates
+                    updateLabels = [_localized[upd] for upd in param.allowedUpdates]
+                    allowedUpdates = copy.copy(param.allowedUpdates)
+                    for routineName, routine in self.exp.routines.items():
+                        for static in routine.getStatics():
+                            updateLabels.append(_translate("set during: %(routineName)s.%(staticName)s") % {'routineName':routineName, 'staticName':static.params['name']})
+                            allowedUpdates.append("set during: %(routineName)s.%(staticName)s" % {'routineName':routineName, 'staticName':static.params['name']})
+                    #get internal (English) version of allowed updates
+                    index = updateLabels.index(ctrls.getUpdates())
+                    updates = allowedUpdates[index]
                     if param.updates != updates:
                         self._updateStaticUpdates(fieldName, param.updates, updates)
                         param.updates=updates
