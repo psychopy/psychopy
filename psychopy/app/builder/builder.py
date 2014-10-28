@@ -82,9 +82,12 @@ _localized = {
     }
 
 # used for getting internal value from display value
-_unlocalized = {
-        _translate('from exp settings'):'from exp settings'
-    }
+_unlocalized = {}
+for key in _localized.keys():
+    if _localized[key] in _unlocalized.keys():
+        logging.warn("%s has multiple translation. This parameter may not be work properly." % (key))
+    _unlocalized[_localized[key]] = key
+
 
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
