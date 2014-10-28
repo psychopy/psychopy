@@ -2053,14 +2053,17 @@ class ParamCtrls:
         else:
             #updates = display-only version of allowed updates
             updateLabels = [_localized[upd] for upd in param.allowedUpdates]
+            #allowedUpdates = extend version of allowed updates that includes "set during:static period"
+            allowedUpdates = copy.copy(param.allowedUpdates)
             for routineName, routine in self.exp.routines.items():
                 for static in routine.getStatics():
                     updateLabels.append(_translate("set during: %(routineName)s.%(staticName)s") % {'routineName':routineName, 'staticName':static.params['name']})
+                    allowedUpdates.append("set during: %(routineName)s.%(staticName)s" % {'routineName':routineName, 'staticName':static.params['name']})
             self.updateCtrl = wx.Choice(parent, choices=updateLabels)
             # stash non-localized choices to allow retrieval by index:
-            self.updateCtrl._choices = copy.copy(updateLabels)
+            self.updateCtrl._choices = copy.copy(allowedUpdates)
             # get index of the currently set update value, set display:
-            index = updateLabels.index(param.updates)
+            index = allowedUpdates.index(param.updates)
             self.updateCtrl.SetSelection(index)  # set by integer index, not string value
 
         if param.allowedUpdates!=None and len(param.allowedUpdates)==1:
@@ -2084,12 +2087,9 @@ class ParamCtrls:
             if isinstance(self.valueCtrl, dialogs.ListWidget):
                 val = self.expInfoFromListWidget(val)
             return val
-        elif hasattr(ctrl, 'GetStringSelection'): #for wx.Choice
-            return ctrl.GetStringSelection()
         elif hasattr(ctrl, 'GetSelection'): #for wx.Choice
             # _choices is defined during __init__ for all wx.Choice() ctrls
             # as the non-localized values (allowedVals, allowedUpdates):
-            print ctrl._choices, ctrl.GetSelection(), ctrl.GetStringSelection()
             return ctrl._choices[ctrl.GetSelection()]
         elif hasattr(ctrl, 'GetLabel'): #for wx.StaticText
             return ctrl.GetLabel()
