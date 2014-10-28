@@ -2073,10 +2073,14 @@ class ParamCtrls:
             self.browseCtrl = wx.Button(parent, -1, _translate("Browse...")) #we don't need a label for this
     def _getCtrlValue(self, ctrl):
         """Retrieve the current value form the control (whatever type of ctrl it
-        is, e.g. checkbox.GetValue, textctrl.GetStringSelection
-        """
-        """Different types of control have different methods for retrieving value.
+        is, e.g. checkbox.GetValue, choice.GetSelection)
+        Different types of control have different methods for retrieving value.
         This function checks them all and returns the value or None.
+
+        .. note::
+            Don't use GetStringSelection() here to avoid that translated value 
+            is returned. Instead, use GetSelection() to get index of selection 
+            and get untranslated value from _choices attribute.
         """
         if ctrl is None:
             return None
@@ -2089,7 +2093,7 @@ class ParamCtrls:
             return val
         elif hasattr(ctrl, 'GetSelection'): #for wx.Choice
             # _choices is defined during __init__ for all wx.Choice() ctrls
-            # as the non-localized values (allowedVals, allowedUpdates):
+            # NOTE: add untranslated value to _choices if _choices[ctrl.GetSelection()] fails.
             return ctrl._choices[ctrl.GetSelection()]
         elif hasattr(ctrl, 'GetLabel'): #for wx.StaticText
             return ctrl.GetLabel()
@@ -2097,11 +2101,15 @@ class ParamCtrls:
             print "failed to retrieve the value for %s" %(ctrl)
             return None
     def _setCtrlValue(self, ctrl, newVal):
-        """Set the current value form the control (whatever type of ctrl it
-        is, e.g. checkbox.SetValue, textctrl.SetStringSelection
-        """
-        """Different types of control have different methods for retrieving value.
+        """Set the current value of the control (whatever type of ctrl it
+        is, e.g. checkbox.SetValue, choice.SetSelection)
+        Different types of control have different methods for retrieving value.
         This function checks them all and returns the value or None.
+
+        .. note::
+            Don't use SetStringSelection() here to avoid using tranlated 
+            value.  Instead, get index of the value using _choices attribute
+            and use SetSelection() to set the value.
         """
         if ctrl is None:
             return None
@@ -2109,6 +2117,7 @@ class ParamCtrls:
             ctrl.SetValue(newVal)
         elif hasattr(ctrl, 'SetSelection'): #for wx.Choice
             # _choices = list of non-localized strings, set during __init__
+            # NOTE: add untranslated value to _choices if _choices.index(newVal) fails.
             index = ctrl._choices.index(newVal)
             # set the display to the localized version of the string:
             ctrl.SetSelection(index)
