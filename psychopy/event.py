@@ -128,6 +128,7 @@ def _onPygletMousePress(x,y, button, modifiers):
 
 def _onPygletMouseRelease(x,y, button, modifiers):
     global mouseButtons
+    label = 'unknownButton'
     if button == pyglet.window.mouse.LEFT:
         mouseButtons[0]=0
         label='Left'
