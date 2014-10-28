@@ -10,6 +10,15 @@ Changelog
 PsychoPy 1.81
 ------------------------------
 
+PsychoPy 1.81.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Oct 2014
+
+* FIXED: bug with gamma not being set from the Monitor file
+* FIXED: MovieStim2 warnings about dropped frames were crippling the output window
+* FIXED: new issue (in 1.81.01) with several drop-down menus in Builder not allowing to select that option
+
 PsychoPy 1.81.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

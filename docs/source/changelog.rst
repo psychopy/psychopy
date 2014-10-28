@@ -20,6 +20,15 @@ Changelog
 PsychoPy 1.81
 ------------------------------
 
+PsychoPy 1.81.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Oct 2014
+
+* FIXED: bug with gamma not being set from the Monitor file
+* FIXED: MovieStim2 warnings about dropped frames were crippling the output window
+* FIXED: new issue (in 1.81.01) with several drop-down menus in Builder not allowing to select that option
+
 PsychoPy 1.81.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -27,7 +36,7 @@ Released Oct 2014
 
 * FIXED: bug with rendering of Movies from Builder (autoDraw() not working)
 * ADDED: option to use new movie backend from Builder (there is now an option to select `opencv` or `avbin` for movie rendering)
-* FIXED: uf MovieStim2 couldn't load frames fast enough it ran slow (should drop frames but stay synchronised). (Sol)
+* FIXED: MovieStim2 couldn't load frames fast enough it ran slow (should drop frames but stay synchronised). (Sol)
 * FIXED: fix spurious warnings about GratingStim.__del__
 * FIXED: pyo audio crashed on windows if no mic/input was found (Sogo Hiroyuki)
 * ADDED: serial port device in iohub (Sol)
