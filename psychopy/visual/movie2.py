@@ -62,6 +62,7 @@ Testing has only been done on Windows and Linux so far.
 # If True, a print will be done on each flip a new movie frame is displayed
 # giving the frame index, flip time, and time since last movie frame flip.
 PRINT_FRAME_FLIP_TIMES = False
+reportNDroppedFrames = 10
 
 import os
 
@@ -165,6 +166,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._reset()
         self.loadMovie(self.filename)
         self.setVolume(volume)
+        self.nDroppedFrames = 0
 
         self.aspectRatio = self._video_width/float(self._video_height)
         #size
@@ -551,8 +553,13 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                 if self.getTimeToNextFrameDraw() > -self._inter_frame_interval/2.0:
                     return self._next_frame_sec
                 else:
-                    logging.warning("MovieStim2 dropping video frame index: %d"%(self._next_frame_index))
-                    logging.flush()
+                    self.nDroppedFrames += 1
+                    if self.nDroppedFrames < reportNDroppedFrames:
+                        logging.warning("MovieStim2 dropping video frame index: %d"%(self._next_frame_index))
+                    elif self.nDroppedFrames == reportNDroppedFrames:
+                        logging.warning("Multiple Movie frames have "
+                                        "occurred - I'll stop bothering you "
+                                        "about them!")
             else:
                 self._onEos()
                 break
