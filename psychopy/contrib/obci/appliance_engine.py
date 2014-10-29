@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 # author: Mateusz Kruszyński
-
 from obci.devices import blinker_factory
 from obci.configs import settings
+
+
 class ApplianceEngine(object):
     def __init__(self, appliance_type, dev_path, intensity):
         self.status = None
@@ -51,19 +52,23 @@ class ApplianceEngine(object):
     beginning of every routine
     on the basis of those values blink values to-be-sent to appliance
     will be determined in self._current_start/end_values"""
-    def setStartvalues(self, v=None):
+    def setStartValues(self, v=None):
         self.start_values = v
-    def setStartindex(self, i=None):
+
+    def setStartIndex(self, i=None):
         self.start_index = i
-    def setStartvalue(self, v=None):
+
+    def setStartValue(self, v=None):
         self.start_value = v
-    def setEndvalues(self, v=None):
+
+    def setEndValues(self, v=None):
         self.end_values = v
-    def setEndindex(self, i=None):
+
+    def setEndIndex(self, i=None):
         self.end_index = i
-    def setEndvalue(self, v=None):
+
+    def setEndValue(self, v=None):
         self.end_value = v
-        
 
     def current_start_values(self):
         vals, changed = self._update(self._curr_values, self.start_values,
@@ -126,6 +131,3 @@ class ApplianceEngine(object):
     def _assert_values(self, values):
         if len(values) != self._size:
             raise Exception("Appliance parameters Error! Incorrect size of values list. Should be "+str(self._size)+" but got "+str(len(self._curr_values)))
-
-
-        
