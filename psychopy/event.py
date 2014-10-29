@@ -128,6 +128,7 @@ def _onPygletMousePress(x,y, button, modifiers):
 
 def _onPygletMouseRelease(x,y, button, modifiers):
     global mouseButtons
+    label = 'unknownButton'
     if button == pyglet.window.mouse.LEFT:
         mouseButtons[0]=0
         label='Left'
@@ -324,7 +325,7 @@ class Mouse:
                 # to avoid circular imports, visualOpenWindows is defined by visual.py
                 # to be the same object as visual.openWindows and is added by visual.py
                 # into event's namespace; it's circular to "import visual" here in event
-                self.win = visualOpenWindows[0]
+                self.win = visualOpenWindows[0]()
                 logging.info('Mouse: using default window')
             except NameError, IndexError:
                 logging.error('Mouse: failed to get a default visual.Window (need to create one first)')

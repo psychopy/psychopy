@@ -4,7 +4,9 @@ PsychoPy is an open-source application to allow the presentation of stimuli and 
 News
 ====================
 
-**Latest version**: 1.81.00 was released October 2014, with improved cross-version compatibility (including the ability for scripts to specify the version of the lib they should run on) and additional hardware support
+:ref:`Python for Neuroscience workshop <P4N>` (aka bootcamp) will be running again 21-23rd April 2015 (sorry, it's a beginners stream only this year) For 
+
+**Latest version**: 1.81.01 was released October 2014, with improved cross-version compatibility (including the ability for scripts to specify the version of the lib they should run on) and additional hardware support
 
 See complete :doc:`changelog` for complete list of additions and fixes
 

@@ -9,35 +9,36 @@ Do you want to get started using Python_ (and PsychoPy_) for your studies in beh
 
 `PsychoPy`_ is a modern, powerful, easy-to-use software package for conducting studies in psychophysics, neuroimaging and experimental psychology. It's become the package of choice in very many labs worldwide (see `PsychoPy usage stats <http://www.psychopy.org/usage.php>`_). It comes with a graphical interface (Builder) as well as a `Python` scripting interface (Coder), which will be the primary focus at this workshop.
 
+The workshop is led by Jon Peirce, who created the core of PsychoPy and has over 10 years experience of Python programming and teaching students.
+
 Details
 ------------
 
-    :Spaces: 30 beginner, 30 intermediate
-    :When: 28 April - 30 April May (inclusive)
+    :Spaces: 30 beginner
+    :When: 21-23 April 2015 (inclusive)
     :Where: School of Psychology, University of Nottingham
     :Cost: £300
-    :Includes: Refreshments and lunch. Accommodation is not included but can be booked cheaply via the University Accommodation Office (details on booking)
+    :Includes: Refreshments and lunch. There is an accommodation package too, costing around £44 per night including bed and breakfast
     :Content:
         Material will cover *Python* programming basics as well as PsychoPy-specific coding. Note that this is not a workshop about PsychoPy Builder; we'll really be focussing on programming.
         
-    Bookings can be made now at `Nottingham's online store <http://store.nottingham.ac.uk/browse/extra_info.asp?compid=1&modid=2&catid=49&prodid=323>`_. Places are limited but a waiting list will be maintained if you are unable to get onto the course.
+The booking system will be available shortly
 
-There will be two streams: 
+Is this suitable for you? 
+----------------------------
 
-    - Beginner: you might have done some programming but you don't know Python syntax
-    - Intermediate: you know basic Python syntax but you have relatively little experience with PsychoPy code
+The target audience is those that want to learn to program in Python for general use in science. We will focus on generating experiments: presenting stimuli and collecting responses, but also on basic analyses and plotting in Python as well.
+
+We'll provide you with additional 'intermediate' material as well, for you to build on what you've learnt, but if you're already a proficient programmer in Python then this is probably not the course for you.
     
 Schedule
 ------------------------
 
-Some sessions will be self-paced (shown in green) and some will be all together (shown in grey). We'll not start the first formal session until 10am on Day 1 (coffee available from 9am though) and we'll finish at 4pm on Day 3 to allow some travel flexibility. But you are welcome to hang around and continue working if you prefer.
+Some sessions will be self-paced (shown in green). We'll not start the first formal session until 10am on Day 1 (coffee available from 9am though) and we'll finish at 4pm on Day 3 to allow some travel flexibility. But you are welcome to hang around and continue working if you prefer.
 
 [All sessions subject to change]
 
 .. image:: ../images/scheduleBeginner.png
-   :scale: 80 %
-
-.. image:: ../images/scheduleIntermed.png
    :scale: 80 %
    
 
