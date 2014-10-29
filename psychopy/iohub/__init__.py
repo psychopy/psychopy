@@ -65,7 +65,7 @@ try:
 except Exception, e:
     print2err("WARNING: ioHub DataStore could not be loaded. DataStore functionality will be disabled. Error: ")
     printExceptionDetailsToStdErr()
-    
+
 import client
 from client import ioHubConnection, launchHubServer, ioHubExperimentRuntime
 import server
@@ -97,7 +97,7 @@ def start(**kwargs):
         sys.exit(1)
 
     # TODO: Use info from win.monitor to set screen info and eye distance if possible.
-    #win = openWindows[0]
+    #win = openWindows[0]()
 
     #win_methods = [m for m in dir(win) if m[0] != '_']
     #pyglet_win_methods = [m for m in dir(win.winHandle) if m[0] != '_']

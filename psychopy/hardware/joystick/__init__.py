@@ -80,7 +80,7 @@ class Joystick(object):
                 logging.error("You need to open a window before creating your joystick")
             else:
                 for win in visual.openWindows:
-                    win._eventDispatchers.append(self._device.device)
+                    win()._eventDispatchers.append(self._device.device)
         else:
             pygame.joystick.init()
             self._device=pygame.joystick.Joystick(id)

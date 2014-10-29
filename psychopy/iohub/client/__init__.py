@@ -981,7 +981,7 @@ class ioHubConnection(object):
         if window.openWindows:
             whs=[]
             for w in window.openWindows:
-                whs.append(w._hw_handle)
+                whs.append(w()._hw_handle)
             #print 'ioclient registering existing windows:',whs
             self.registerPygletWindowHandles(*whs)
 
