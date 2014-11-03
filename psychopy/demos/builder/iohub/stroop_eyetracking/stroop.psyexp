@@ -1,23 +1,24 @@
-<PsychoPy2experiment version="1.78.01" encoding="utf-8">
+<PsychoPy2experiment version="1.81.02" encoding="utf-8">
   <Settings>
     <Param name="Show mouse" val="False" valType="bool" updates="None"/>
-    <Param name="Save csv file" val="False" valType="bool" updates="None"/>
+    <Param name="Data filename" val="u'data' + os.sep + '%s_%s' %(expInfo['Participant'], expInfo['date'])" valType="code" updates="None"/>
     <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
     <Param name="Enable Escape" val="True" valType="bool" updates="None"/>
     <Param name="color" val="black" valType="str" updates="None"/>
     <Param name="Window size (pixels)" val="[1680, 1050]" valType="code" updates="None"/>
     <Param name="Full-screen window" val="False" valType="bool" updates="None"/>
     <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
-    <Param name="Save log file" val="True" valType="bool" updates="None"/>
     <Param name="Experiment info" val="{u'Eye Tracker': u'SMI_iview_std.yaml', u'Participant': u''}" valType="code" updates="None"/>
-    <Param name="Save excel file" val="False" valType="bool" updates="None"/>
+    <Param name="Save csv file" val="False" valType="bool" updates="None"/>
+    <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
     <Param name="Save wide csv file" val="True" valType="bool" updates="None"/>
     <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
     <Param name="expName" val="stroop" valType="str" updates="None"/>
     <Param name="logging level" val="warning" valType="code" updates="None"/>
+    <Param name="blendMode" val="avg" valType="str" updates="None"/>
+    <Param name="Save excel file" val="False" valType="bool" updates="None"/>
     <Param name="Units" val="pix" valType="str" updates="None"/>
-    <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
-    <Param name="Saved data folder" val="" valType="code" updates="None"/>
+    <Param name="Save log file" val="True" valType="bool" updates="None"/>
     <Param name="Screen" val="1" valType="num" updates="None"/>
   </Settings>
   <Routines>
@@ -62,7 +63,6 @@
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0" valType="code" updates="None"/>
         <Param name="sf" val="40" valType="code" updates="constant"/>
-        <Param name="advancedParams"/>
         <Param name="size" val="[16,16]" valType="code" updates="constant"/>
       </GratingComponent>
       <GratingComponent name="gaze_cursor">
@@ -85,8 +85,7 @@
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
         <Param name="sf" val="40" valType="code" updates="constant"/>
-        <Param name="advancedParams"/>
-        <Param name="size" val="$mean_pupil_size" valType="code" updates="set every frame"/>
+        <Param name="size" val="(30,30)" valType="code" updates="set every frame"/>
       </GratingComponent>
       <KeyboardComponent name="resp">
         <Param name="correctAns" val="$corrAns" valType="str" updates="constant"/>
@@ -104,12 +103,12 @@
         <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>
       <CodeComponent name="eye_track_code">
-        <Param name="Begin Experiment" val="maintain_fix_pix_boundary=66.0&#10;eyetracker =False#will change if we get one!&#10;PUP_SZ_BUFF_LEN=5&#10;PUPIL_SZ_MULT=10.0&#10;pupil_size_mw=None&#10;last_sample_id=None&#10;mean_pupil_size=[20,20]&#10;&#10;if expInfo['Eye Tracker']:&#10;    try:&#10;        from psychopy.iohub import EventConstants,ioHubConnection,load,Loader&#10;        from psychopy.iohub.util import NumPyRingBuffer&#10;        from psychopy.data import getDateStr&#10;        # Load the specified iohub configuration file converting it to a python dict.&#10;        io_config=load(file(expInfo['Eye Tracker'],'r'), Loader=Loader)&#10;&#10;        # Add / Update the session code to be unique. Here we use the psychopy getDateStr() function for session code generation&#10;        session_info=io_config.get('data_store').get('session_info')&#10;        session_info.update(code=&quot;S_%s&quot;%(getDateStr()))&#10;&#10;        # Create an ioHubConnection instance, which starts the ioHubProcess, and informs it of the requested devices and their configurations.&#10;        io=ioHubConnection(io_config)&#10;&#10;        iokeyboard=io.devices.keyboard&#10;        mouse=io.devices.mouse&#10;        if io.getDevice('tracker'):&#10;            eyetracker=io.getDevice('tracker')&#10;&#10;            pupil_size_mw=NumPyRingBuffer(PUP_SZ_BUFF_LEN)&#10;&#10;            win.winHandle.minimize()&#10;            eyetracker.runSetupProcedure()&#10;            win.winHandle.activate()&#10;            win.winHandle.maximize()&#10;&#10;    except Exception, e:&#10;       import sys&#10;       print &quot;!! Error starting ioHub: &quot;,e,&quot; Exiting...&quot;&#10;       sys.exit(1)&#10;&#10;    display_gaze=False&#10;    x,y=0,0" valType="extendedCode" updates="constant"/>
+        <Param name="Begin Experiment" val="maintain_fix_pix_boundary=66.0&#10;eyetracker =False#will change if we get one!&#10;&#10;if expInfo['Eye Tracker']:&#10;    try:&#10;        from psychopy.iohub import EventConstants,ioHubConnection,load,Loader&#10;        from psychopy.iohub.util import NumPyRingBuffer&#10;        from psychopy.data import getDateStr&#10;        # Load the specified iohub configuration file converting it to a python dict.&#10;        io_config=load(file(expInfo['Eye Tracker'],'r'), Loader=Loader)&#10;&#10;        # Add / Update the session code to be unique. Here we use the psychopy getDateStr() function for session code generation&#10;        session_info=io_config.get('data_store').get('session_info')&#10;        session_info.update(code=&quot;S_%s&quot;%(getDateStr()))&#10;&#10;        # Create an ioHubConnection instance, which starts the ioHubProcess, and informs it of the requested devices and their configurations.&#10;        io=ioHubConnection(io_config)&#10;&#10;        iokeyboard=io.devices.keyboard&#10;        mouse=io.devices.mouse&#10;        if io.getDevice('tracker'):&#10;            eyetracker=io.getDevice('tracker')&#10;&#10;            win.winHandle.minimize()&#10;            eyetracker.runSetupProcedure()&#10;            win.winHandle.activate()&#10;            win.winHandle.maximize()&#10;&#10;    except Exception, e:&#10;       import sys&#10;       print &quot;!! Error starting ioHub: &quot;,e,&quot; Exiting...&quot;&#10;       sys.exit(1)&#10;&#10;    display_gaze=False&#10;    x,y=0,0" valType="extendedCode" updates="constant"/>
         <Param name="name" val="eye_track_code" valType="code" updates="None"/>
-        <Param name="Each Frame" val="if eyetracker:&#10;    # check for 'g' key press to toggle gaze cursor visibility&#10;    iokeys=iokeyboard.getEvents(EventConstants.KEYBOARD_PRESS)&#10;    for iok in iokeys:&#10;        if iok.key==u'g':&#10;            display_gaze=not display_gaze&#10;&#10;    # get /eye tracker gaze/ position &#10;    gpos=eyetracker.getPosition()&#10;    if type(gpos) in [list,tuple]:&#10;        x,y=gpos[0], gpos[1]&#10;        d=np.sqrt(x**2+y**2)&#10;        if d&gt;maintain_fix_pix_boundary:&#10;            heldFixation = False #unless otherwise&#10;&#10;    # get latest Eye Sample for pupil size data&#10;    lsamp=eyetracker.getLastSample()&#10;    if lsamp and lsamp[3]!= last_sample_id:&#10;        lsamp=io._eventListToNamedTuple(lsamp)&#10;        last_sample_id=lsamp.event_id&#10;        pl=lsamp.left_pupil_measure1&#10;        pr=lsamp.right_pupil_measure1&#10;&#10;        pupil_sz=0.0&#10;        if pl &gt; 0.0 and pr &gt; 0.0:&#10;            pupil_sz=(pl+pr)/2.0&#10;        elif pl &gt; 0.0:&#10;            pupil_sz=pl&#10;        elif pr &gt; 0.0:&#10;            pupil_sz=pr&#10;&#10;        if pupil_sz&gt;0.0:&#10;            pupil_size_mw.append(pupil_sz)&#10;            mean_pupil_size=pupil_size_mw.mean()*PUPIL_SZ_MULT&#10;            mean_pupil_size=[mean_pupil_size,mean_pupil_size]&#10;        else:&#10;            mean_pupil_size=[20,20]" valType="extendedCode" updates="constant"/>
         <Param name="Begin Routine" val="if eyetracker:&#10;    heldFixation = True #unless otherwise&#10;    io.clearEvents('all')&#10;    eyetracker.setRecordingState(True)&#10;" valType="extendedCode" updates="constant"/>
-        <Param name="End Routine" val="if eyetracker:&#10;    eyetracker.setRecordingState(False)&#10;    #add eye-track data to data file&#10;    trials.addData(&quot;heldFixation&quot;, heldFixation)&#10;    trials.addData(&quot;pupil_size&quot;, pupil_size_mw.mean())&#10;    pupil_size_mw.clear()&#10;    " valType="extendedCode" updates="constant"/>
+        <Param name="End Routine" val="if eyetracker:&#10;    eyetracker.setRecordingState(False)&#10;    #add eye-track data to data file&#10;    trials.addData(&quot;heldFixation&quot;, heldFixation)&#10;    " valType="extendedCode" updates="constant"/>
         <Param name="End Experiment" val="if eyetracker:&#10;    eyetracker.setConnectionState(False)&#10;    io.quit()" valType="extendedCode" updates="constant"/>
+        <Param name="Each Frame" val="if eyetracker:&#10;    # check for 'g' key press to toggle gaze cursor visibility&#10;    if iokeyboard.getPresses(keys=['g',]):&#10;        display_gaze=not display_gaze&#10;&#10;    # get /eye tracker gaze/ position &#10;    gpos=eyetracker.getPosition()&#10;    if type(gpos) in [list,tuple]:&#10;        x,y=gpos[0], gpos[1]&#10;        d=np.sqrt(x**2+y**2)&#10;        if d&gt;maintain_fix_pix_boundary:&#10;            heldFixation = False #unless otherwise" valType="extendedCode" updates="constant"/>
       </CodeComponent>
     </Routine>
     <Routine name="instruct">
@@ -177,11 +176,13 @@
     <LoopInitiator loopType="TrialHandler" name="trials">
       <Param name="conditionsFile" val="trialTypes.xlsx" valType="str" updates="None"/>
       <Param name="name" val="trials" valType="code" updates="None"/>
+      <Param name="isTrials" val="True" valType="bool" updates="None"/>
       <Param name="random seed" val="" valType="code" updates="None"/>
       <Param name="loopType" val="random" valType="str" updates="None"/>
       <Param name="nReps" val="5" valType="num" updates="None"/>
       <Param name="endPoints" val="[1, 2]" valType="num" updates="None"/>
       <Param name="conditions" val="[{u'stimColor': u'red', u'stimText': u'red', u'congruent': 1, u'corrAns': u'left'}, {u'stimColor': u'green', u'stimText': u'red', u'congruent': 0, u'corrAns': u'down'}, {u'stimColor': u'green', u'stimText': u'green', u'congruent': 1, u'corrAns': u'down'}, {u'stimColor': u'blue', u'stimText': u'green', u'congruent': 0, u'corrAns': u'right'}, {u'stimColor': u'blue', u'stimText': u'blue', u'congruent': 1, u'corrAns': u'right'}, {u'stimColor': u'red', u'stimText': u'blue', u'congruent': 0, u'corrAns': u'left'}]" valType="str" updates="None"/>
+      <Param name="Selected rows" val="" valType="code" updates="None"/>
     </LoopInitiator>
     <Routine name="trial"/>
     <LoopTerminator name="trials"/>
