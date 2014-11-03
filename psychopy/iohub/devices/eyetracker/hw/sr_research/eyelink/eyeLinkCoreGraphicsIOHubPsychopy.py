@@ -366,9 +366,9 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         event_type_index = DeviceEvent.EVENT_TYPE_ID_INDEX
         if event[event_type_index] == EventConstants.KEYBOARD_RELEASE:
             from psychopy.iohub.devices.keyboard import KeyboardInputEvent
-            char_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('char')
+            key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
             modifiers_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('modifiers')
-            char = event[char_index]
+            char = event[key_index]
             #mods = event[modifiers_index]
 
             if char:
@@ -393,9 +393,9 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
                 self.state = "validation"
             elif char == "a":
                 pylink_key = ord(char)
-            elif char == "page_up":
+            elif char == "pageup":
                 pylink_key = pylink.PAGE_UP
-            elif char == "page_down":
+            elif char == "pagedown":
                 pylink_key = pylink.PAGE_DOWN
             elif char == "-":
                 pylink_key = ord(char)
