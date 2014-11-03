@@ -21,6 +21,12 @@ monitor_devices:
     - Experiment:
         name: experimentRuntime
 
+# TheEyeTribe Config (uncomment to use)
+#    - eyetracker.hw.theeyetribe.EyeTracker:
+#        enable: True
+#        name: tracker
+#        monitor_event_types: [BinocularEyeSampleEvent, ]
+
 # LC EyeGaze Config (uncomment to use)
 #    - eyetracker.hw.lc_technologies.eyegaze.EyeTracker:
 #        enable: True
