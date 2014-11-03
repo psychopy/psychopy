@@ -64,7 +64,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         # in this 'example'.
         tracker=self.hub.devices.tracker
         display=self.hub.devices.display
-        kb=self.hub.devices.kb
+        kb=self.hub.devices.keyboard
         mouse=self.hub.devices.mouse
 
         KEYBOARD_PRESS=EventConstants.KEYBOARD_PRESS

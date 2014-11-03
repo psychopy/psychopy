@@ -13,7 +13,7 @@ monitor_devices:
         psychopy_monitor_name: default
 
     - Keyboard:
-        name: kb
+        name: keyboard
 
     - Mouse:
         name: mouse
