@@ -331,7 +331,6 @@ class EyeTracker(EyeTrackerDevice):
         sample is received from the eye tracker.
         """
         try:
-            print2err('_handleNativeEvent CALLED')
             logged_time=Computer.getTime()
             tracker_time=self.trackerSec()           
 

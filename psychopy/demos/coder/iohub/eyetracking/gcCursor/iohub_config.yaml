@@ -13,13 +13,19 @@ monitor_devices:
         psychopy_monitor_name: default
 
     - Keyboard:
-        name: kb
+        name: keyboard
 
     - Mouse:
         name: mouse
 
     - Experiment:
         name: experimentRuntime
+
+# TheEyeTribe Config (uncomment to use)
+#    - eyetracker.hw.theeyetribe.EyeTracker:
+#        enable: True
+#        name: tracker
+#        monitor_event_types: [BinocularEyeSampleEvent, ]
 
 # LC EyeGaze Config (uncomment to use)
 #    - eyetracker.hw.lc_technologies.eyegaze.EyeTracker:
