@@ -20,6 +20,10 @@ Changelog
 PsychoPy 1.81
 ------------------------------
 
+PsychoPy 1.81.03
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* IMPROVED: RatingScale will always display a custom description ('scale') if provided by the user
+
 PsychoPy 1.81.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
