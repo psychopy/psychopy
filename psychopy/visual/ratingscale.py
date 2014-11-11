@@ -750,10 +750,12 @@ class RatingScale(MinimalStim):
         self.textSize = 0.2 * textSize * self.size
         self.textSizeSmall = self.textSize * 0.6
 
-        if self.choices or not scale:
-            scale = ''
-        elif scale == '<default>':
-            scale = unicode(self.low) + u' = not at all . . . extremely = ' + unicode(self.high)
+        # set the description text if not already set by user:
+        if scale == '<default>':
+            if self.choices:
+                scale = ''
+            else:
+                scale = unicode(self.low) + u' = not at all . . . extremely = ' + unicode(self.high)
 
         # create the TextStim:
         self.scaleDescription = TextStim(win=self.win, height=self.textSizeSmall,
