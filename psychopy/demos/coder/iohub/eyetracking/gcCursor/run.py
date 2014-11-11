@@ -61,8 +61,23 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         self.hub.createTrialHandlerRecordTable(trials)
 
         # Let's make some short-cuts to the devices we will be using
-        # in this 'example'.
-        tracker=self.hub.devices.tracker
+        # in this demo.
+        try:
+            tracker=self.hub.devices.tracker
+        except:
+            # No eye tracker config found in iohub_config.yaml
+            from psychopy.iohub.util import MessageDialog
+            md = MessageDialog(title="No Eye Tracker Configuration Found",
+                               msg="Update the iohub_config.yaml file by "
+                               "uncommenting\nthe appropriate eye tracker "
+                               "config lines.\n\nPress OK to exit demo.",
+                               showButtons=MessageDialog.OK_BUTTON,
+                               dialogType=MessageDialog.ERROR_DIALOG,
+                               allowCancel=False,
+                               display_index=0)
+            md.show()
+            return 1
+
         display=self.hub.devices.display
         kb=self.hub.devices.keyboard
         mouse=self.hub.devices.mouse
