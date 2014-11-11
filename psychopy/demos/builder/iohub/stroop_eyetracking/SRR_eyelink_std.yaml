@@ -30,7 +30,7 @@ monitor_devices:
             interval: 0.001
         monitor_event_types: [ MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
         simulation_mode: False
-        enable_interface_without_connection: True
+        enable_interface_without_connection: False
         network_settings: 100.1.1.1
         default_native_data_file_name: et_data
         runtime_settings:
