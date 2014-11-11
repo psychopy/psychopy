@@ -11,7 +11,7 @@
 from collections import deque
 import time
 
-from psychopy.iohub.client import ioHubDeviceView, ioEvent
+from psychopy.iohub.client import ioHubDeviceView, ioEvent, DeviceRPC
 from psychopy.iohub.devices import DeviceEvent
 from psychopy.iohub.devices.keyboard import KeyboardInputEvent
 from psychopy.iohub.constants import EventConstants, KeyboardConstants
@@ -309,6 +309,13 @@ class Keyboard(ioHubDeviceView):
         """
         self._reporting = self.enableEventReporting(r)
         return self._reporting
+
+    def clearEvents(self, event_type=None, filter_id=None):
+        for etype, elist in self._events.items():
+            if event_type is None or event_type == etype:
+                elist.clear()
+        r = DeviceRPC(self.hubClient._sendToHubServer, self.device_class, 'clearEvents')
+        return r(event_type=event_type,filter_id=filter_id)
 
     def getKeys(self, keys=None, chars=None, mods=None, duration=None,
                  etype=None, clear=True):
