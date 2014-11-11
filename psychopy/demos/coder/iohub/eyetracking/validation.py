@@ -56,7 +56,7 @@ positions = PositionGrid(
         firstposindex=4,    # Use the center position grid location as the
                             # first point in the position order.
         repeatfirstpos=True # As the last target position to display, use the
-    )                       # value of eventsthe first target position.
+    )                       # value of the first target position.
 
 # randomize the grid position presentation order (not including
 # the first position).

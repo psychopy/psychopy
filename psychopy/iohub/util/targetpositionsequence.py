@@ -1179,6 +1179,8 @@ class ValidationProcedure(object):
                  configuration=None
                  ):
         self.io=ioHubConnection.getActiveConnection()
+        self.randomize_positions = randomize_positions
+        self.positions = positions
 
         if configuration:
             cfg = configuration
