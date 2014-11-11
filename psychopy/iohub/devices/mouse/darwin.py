@@ -162,9 +162,9 @@ class Mouse(MouseDevice):
                         if self._last_display_index is not None:
                             display_index=self._last_display_index
                         else:    
-                            print2err("!!! _nativeEventCallback error: mouse event pos {0} not in any display bounds!!!".format(event.Position))
-                            print2err("!!!  -> SKIPPING EVENT")
-                            print2err("===============")
+                            #print2err("!!! _nativeEventCallback error: mouse event pos {0} not in any display bounds!!!".format(event.Position))
+                            #print2err("!!!  -> SKIPPING EVENT")
+                            #print2err("===============")
                             return event
             
 #                    result=self._validateMousePosition((px,py),display_index)
