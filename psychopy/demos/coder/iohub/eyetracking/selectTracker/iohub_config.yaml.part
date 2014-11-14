@@ -12,7 +12,7 @@ monitor_devices:
             unit_type: mm
         psychopy_monitor_name: default
     - Keyboard:
-        name: kb
+        name: keyboard
     - Mouse:
         name: mouse
     - Experiment:

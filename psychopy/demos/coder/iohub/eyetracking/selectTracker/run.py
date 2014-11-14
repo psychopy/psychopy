@@ -43,9 +43,12 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         # Let's make some short-cuts to the devices we will be using in this 'experiment'.
         tracker=self.hub.devices.tracker
         display=self.hub.devices.display
-        kb=self.hub.devices.kb
+        kb=self.hub.devices.keyboard
         mouse=self.hub.devices.mouse            
                     
+        # Start by running the eye tracker default setup procedure.
+        tracker.runSetupProcedure()
+
         # Create a psychopy window, full screen resolution, full screen mode...
         #
         res=display.getPixelResolution()
@@ -56,23 +59,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                                     screen= display.getIndex()
                                     )
 
-        # Start by running the eye tracker default setup procedure.
-        # if validation results are returned, they would be in the form of a dict,
-        # so print them, otherwise just check that EYETRACKER_OK was returned.
-        #
-        # minimize the psychopy experiment window
-        #
-        window.winHandle.minimize()
-
-        result=tracker.runSetupProcedure()
-        if isinstance(result,dict):
-            print "Validation Accuracy Results: ", result
-
-        # restore the psychopy experiment window
-        #
-        window.winHandle.maximize()
-        window.winHandle.activate()
-        
         # Create a dict of image stim for trials and a gaze blob to show gaze position.
         #
         display_coord_type=display.getCoordinateType()
@@ -101,8 +87,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         
         # wait until a key event occurs after the instructions are displayed
         self.hub.clearEvents('all')
-        while not kb.getEvents():
-            self.hub.wait(0.2)
+        kb.waitForPresses()
             
         
         # Send some information to the ioHub DataStore as experiment messages
@@ -129,14 +114,8 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             
             start_trial=False
             
-            # wait until a space key 'press' event occurs after the instructions are displayed
-            self.hub.clearEvents('all')
-            while not start_trial:
-                for event in kb.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS):
-                    if event.key == 'space':
-                        start_trial=True
-                        break
-                self.hub.wait(0.2)
+            # wait until a space key event occurs after the instructions are displayed
+            kb.waitForPresses(keys=' ')
 
             # So request to start trial has occurred...
             # Clear the screen, start recording eye data, and clear all events
@@ -191,10 +170,8 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                 # Check any new keyboard char events for a space key.
                 # If one is found, set the trial end variable.
                 #
-                for event in kb.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS):
-                    if event.key == 'space':
-                        run_trial=False
-                        break
+                if ' ' in kb.getPresses():
+                    run_trial = False
         
             # So the trial has ended, send a message to the DataStore
             # with the trial end time and stop recording eye data.
@@ -224,17 +201,14 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         self.hub.sendMessageEvent(text="SHOW_DONE_TEXT",sec_time=flip_time)
      
         # wait until any key is pressed
-        self.hub.clearEvents('all')
-        while not kb.getEvents(event_type_id=EventConstants.KEYBOARD_PRESS):
-            self.hub.wait(0.2)
+        kb.waitForPresses()
             
         # So the experiment is done, all trials have been run.
         # Clear the screen and show an 'experiment  done' message using the 
         # instructionScreen state. What for the trigger to exit that state.
         # (i.e. the space key was pressed)
         #
-        flip_time=window.flip()
-        self.hub.sendMessageEvent(text='EXPERIMENT_COMPLETE',sec_time=flip_time)
+        self.hub.sendMessageEvent(text='EXPERIMENT_COMPLETE')
         ### End of experiment logic
 
 

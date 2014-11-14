@@ -67,15 +67,15 @@ class FixationTarget(object):
 
 # Intro Screen
 class BlankScreen(object):
-    WINDOW_BACKGROUND_COLOR=(128,128,128)
-    def __init__(self,psychopy_win):
+    def __init__(self, psychopy_win, color):
         self.display_size = psychopy_win.size
         w,h = self.display_size
         self.win = psychopy_win
+        self.color = color
         self.background = visual.Rect(self.win, w, h,
-                                                   lineColor=self.WINDOW_BACKGROUND_COLOR,
+                                                   lineColor=self.color,
                                                    lineColorSpace='rgb255',
-                                                   fillColor=self.WINDOW_BACKGROUND_COLOR,
+                                                   fillColor=self.color,
                                                    fillColorSpace='rgb255',
                                                    units='pix',
                                                    name='BACKGROUND',
@@ -295,16 +295,14 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         self.window = visual.Window(display.getPixelResolution(),
                                   monitor=display.getPsychopyMonitorName(),
                                   units=display.getCoordinateType(),
+                                  color=self.WINDOW_BACKGROUND_COLOR,
+                                  colorSpace='rgb255',
                                   fullscr=True,
                                   allowGUI=False,
                                   screen=display.getIndex()
                                   )
 
-        self.window.setColor(color=self.WINDOW_BACKGROUND_COLOR,
-                             colorSpace='rgb255')
-        self.window.flip(clearBuffer=True)
-
-        self.blankdisplay = BlankScreen(self.window)
+        self.blankdisplay = BlankScreen(self.window,self.WINDOW_BACKGROUND_COLOR)
         self.textmsg = TextLine(self.window)
         self.introscreen = IntroScreen(self.window)
         self.fixationpoint = FixationTarget(self)
@@ -410,7 +408,6 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
             elif char == "right":
                 pylink_key = pylink.CURS_RIGHT
             else:
-                #print2err("EyeLink Setup: Unhandled keyboard evt: [%s] [%s]"%(char, mods))
                 return
             self.keys.append(pylink.KeyInput(pylink_key, 0))
 

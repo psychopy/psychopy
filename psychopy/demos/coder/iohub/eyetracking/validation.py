@@ -56,7 +56,7 @@ positions = PositionGrid(
         firstposindex=4,    # Use the center position grid location as the
                             # first point in the position order.
         repeatfirstpos=True # As the last target position to display, use the
-    )                       # value of eventsthe first target position.
+    )                       # value of the first target position.
 
 # randomize the grid position presentation order (not including
 # the first position).
@@ -83,7 +83,7 @@ r=tracker.runSetupProcedure()
 
 # define a dict containing any animation params to be used
 
-targ_anim_param=dict(
+targ_anim_param = dict(
                     velocity=None,#800.0,
                     expandedscale=None,#2.0,
                     expansionduration=None,#0.1,
@@ -91,7 +91,7 @@ targ_anim_param=dict(
                     )
                         
 # Run a validation procedure 
-validation_proc=ValidationProcedure(
+validation_proc=ValidationProcedure(win,
                                     target,
                                     positions,
                                     target_animation_params=targ_anim_param,
@@ -107,13 +107,12 @@ validation_proc=ValidationProcedure(
                                     )                        
 
 # Run the validation process. The method does not return until the process
-# is complete.
-# Returns the validation calculation results and data collected for the
-# analysis.                       
+# is complete. Returns the validation calculation results and data collected
+# for the analysis.
 results = validation_proc.display()
 
-# The lasst calculated validation results can also be retrieved using
-results = validation_proc.getValidationResults() 
+# The last calculated validation results can also be retrieved using
+# results = validation_proc.getValidationResults()
 
 io.quit()
 

@@ -11,7 +11,7 @@
 from collections import deque
 import time
 
-from psychopy.iohub.client import ioHubDeviceView, ioEvent
+from psychopy.iohub.client import ioHubDeviceView, ioEvent, DeviceRPC
 from psychopy.iohub.devices import DeviceEvent
 from psychopy.iohub.devices.keyboard import KeyboardInputEvent
 from psychopy.iohub.constants import EventConstants, KeyboardConstants
@@ -21,24 +21,8 @@ from psychopy.visual.window import Window
 """
 Keyboard Device and Events Types
 
-
-keyboard.getPresses()
-keyboard.getReleases()
-keyboard.getEvents() # current func with smaller number of fields returned and
-                     # likely some extra kwarg filter options.
-
-  keyPress
-        .key = 'space' #the name of the key (equal to the current)
-        .char = ' '   #the unicode representation of it (not a unicode number)
-        .tDown= 3.28
-        .tUp = 4.56
-
-.key: The unmodified key value pressed.
-.char: The key value, as determined by the active modifiers.
-.time: I like .time better, and fits with the full detail fields better.
-
-Examples
-----------------------
+Example Keyboard Event Field Mappings
+--------------------------------------
 
 Keyboard Key Pressed	evt.char	evt.key	        evt.modifiers
 (modifiers not shown)
@@ -49,7 +33,7 @@ a	                    u"a"	    u"a"	        []
 A	                    u"A"	    u"a"	        could be any of ['lshift'],
                                                     ['rshift'], or ['capslock']
 Insert	                None	    u'insert'
-[space]	                u" "	    u"space"
+[space]	                u" "	    u" "
 Num Lock	            None	    u'numlock'
 8	                    u"8"	    u'8'
 *	                    u'*'	    u'8'	        either ['lshift'], ['rshift']
@@ -80,6 +64,17 @@ Numlock OFF
 
 class KeyboardEvent(ioEvent):
     """
+
+        This field is filled in for every keyboard event. The value of the
+        field is determined using the following rules:
+        * For printable keys, the value will be the same as the .char field,
+          but as if no modifiers were active.
+        * For non printable keys, such as control keys or modifier keys,
+          a string constant is used. All constants are lower case.
+
+        :return: str
+        """
+    """
     Base class for KeyboardPress and KeyboardRelease events.
 
     Note that keyboard events can be compared using a single character
@@ -93,9 +88,8 @@ class KeyboardEvent(ioEvent):
 
     can be written as:
 
-        if 'b' in keyboard.getKeys(['a','b','c']):
-            return True
-        return False
+        return 'b' in keyboard.getKeys(['a','b','c'])
+
     """
     _attrib_index = dict()
     _attrib_index['key'] = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
@@ -114,17 +108,6 @@ class KeyboardEvent(ioEvent):
 
     @property
     def key(self):
-        """
-        This field is filled in for every keyboard event. The value of the
-        field is determined using the following rules:
-
-        * For printable keys, the value will be the same as the .char field,
-          but as if no modifiers were active.
-        * For non printable keys, such as control keys or modifier keys,
-          a string constant is used. All constants are lower case.
-
-        :return: str
-        """
         return self._key
 
 
@@ -326,6 +309,13 @@ class Keyboard(ioHubDeviceView):
         """
         self._reporting = self.enableEventReporting(r)
         return self._reporting
+
+    def clearEvents(self, event_type=None, filter_id=None):
+        for etype, elist in self._events.items():
+            if event_type is None or event_type == etype:
+                elist.clear()
+        r = DeviceRPC(self.hubClient._sendToHubServer, self.device_class, 'clearEvents')
+        return r(event_type=event_type,filter_id=filter_id)
 
     def getKeys(self, keys=None, chars=None, mods=None, duration=None,
                  etype=None, clear=True):
