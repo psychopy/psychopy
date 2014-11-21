@@ -42,11 +42,7 @@ class SoundComponent(BaseComponent):
 
     def writeInitCode(self,buff):
         inits = components.getInitVals(self.params)#replaces variable params with sensible defaults
-        if self.params['stopType'].val=='duration (s)' and len(self.params['stopVal'].val)>0:
-            durationSetting=", secs=%(stopVal)s" %self.params
-        else:
-            durationSetting=""
-        buff.writeIndented("%s = sound.Sound(%s%s)\n" %(inits['name'], inits['sound'], durationSetting))
+        buff.writeIndented("%s = sound.Sound(%s, secs=-1)\n" %(inits['name'], inits['sound']))
         buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" %(inits))
     def writeFrameCode(self,buff):
         """Write the code that will be called every frame
