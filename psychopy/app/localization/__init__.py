@@ -33,7 +33,7 @@ except wx._core.PyNoAppError:
 locale = wx.Locale()
 aliases = {}
 wxIdFromCode = {}  # int: 0, 2-229
-codeFromWxId = {}  # used in directory names e.g. ja_JP; never JPN ala Windows
+codeFromWxId = {wx.LANGUAGE_DEFAULT: 'en_US'}  # used in directory names e.g. ja_JP; never JPN ala Windows
 winmap = {}  # get windows 3-letter code (=val) from canonical form (=key); use only for setting locale (non-wx)
 locname = {}  # descriptive name, if available; 5-letter code if not
 reverseMap = {}
