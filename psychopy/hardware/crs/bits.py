@@ -309,7 +309,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
 
     mode: 'bits++', 'color++', 'mono++', 'status'
 
-    checkConfig: integer
+    checkConfigLevel: integer
         Allows you to specify how much checking of the device is done to ensure
         a valid identity look-up table. If you specify one level and it fails
         then the check will be escalated to the next level (e.g. if we check
@@ -320,7 +320,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             3 search for a new identity look-up table (requires switch to status mode)
     """
     name='CRS Bits#'
-    def __init__(self, win=None, portName=None, mode='', checkConfig=1):
+    def __init__(self, win=None, portName=None, mode='', checkConfigLevel=1):
 
         serialdevice.SerialDevice.__init__(self, port=portName, baudrate=19200,
                  byteSize=8, stopBits=1,
