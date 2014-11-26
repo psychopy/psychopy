@@ -218,7 +218,7 @@ class KeyboardRelease(KeyboardEvent):
 
     def __str__(self):
         return "%s, duration: %.3f press_event_id: %d" % (
-            KeyboardEvent.__str__(self), self.duration, self.press_event_id)
+            KeyboardEvent.__str__(self), self.duration, self.pressEventID)
 
 
 class Keyboard(ioHubDeviceView):
