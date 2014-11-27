@@ -164,7 +164,7 @@ class IntroScreen(object):
             wrapWidth=self.display_size[0]*.8))
 
         self.introlines.append(visual.TextStim(self.window,
-            text="* V: Start Calidation Procedure",
+            text="* V: Start Validation Procedure",
             pos=(left_margin,topline_y-space_per_lines*(len(self.introlines)+2)),
             height = font_height,
             color=(0, 0, 0), colorSpace='rgb255',
