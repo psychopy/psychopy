@@ -6,6 +6,7 @@
 
 import wx
 from wx import grid
+from psychopy.app import localization
 from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
 import time, os
