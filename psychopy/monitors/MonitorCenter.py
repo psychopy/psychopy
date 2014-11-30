@@ -6,6 +6,7 @@
 
 import wx
 from wx import grid
+from wx.lib import intctrl
 from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
 import time, os
@@ -702,7 +703,7 @@ class MainFrame(wx.Frame):
             if calibDlg.ShowModal()!=wx.ID_OK:
                 calibDlg.Destroy()
                 return 1
-            nPoints = int(calibDlg.ctrlNPoints.GetStringSelection())
+            nPoints = int(calibDlg.ctrlNPoints.GetValue())
             stimSize = unicodeToFloat(calibDlg.ctrlStimSize.GetValue())
             useBits = calibDlg.ctrlUseBits.GetValue()
             calibDlg.Destroy()
@@ -780,7 +781,7 @@ class MainFrame(wx.Frame):
         if calibDlg.ShowModal()!=wx.ID_OK:
             calibDlg.Destroy()
             return 1
-        nPoints = int(calibDlg.ctrlNPoints.GetStringSelection())
+        nPoints = int(calibDlg.ctrlNPoints.GetValue())
         stimSize = unicodeToFloat(calibDlg.ctrlStimSize.GetValue())
         useBits = calibDlg.ctrlUseBits.GetValue()
         calibDlg.Destroy()
@@ -1056,9 +1057,7 @@ class GammaDlg(wx.Dialog):
         self.ctrlUseBits.SetValue(self.useBits)
 
         self.labelNPoints = wx.StaticText(self, -1, _translate('Number of calibration points:'))
-        self.ctrlNPoints = wx.Choice(self, -1,
-            choices=['3','4','5','6','7','8','10','16','48','64','256'])
-        self.ctrlNPoints.SetStringSelection('8')
+        self.ctrlNPoints = intctrl.IntCtrl(self, -1, value=8)
 
         self.labelStimSize = wx.StaticText(self, -1, _translate('Patch size (fraction of screen):'))
         self.ctrlStimSize = wx.TextCtrl(self, -1,'0.3')

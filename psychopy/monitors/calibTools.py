@@ -70,7 +70,7 @@ def findPR650(ports=None):
             if len(ports)==0: logging.error("couldn't find likely serial port in /dev/tty.* Check for \
                 serial port name manually, check drivers installed etc...")
         elif sys.platform=='win32':
-            ports = range(11)
+            ports = range(20)
     elif type(ports) in [int,float]:
         ports=[ports] #so that we can iterate
     pr650=None

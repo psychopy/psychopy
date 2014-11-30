@@ -289,23 +289,6 @@ class Window(object):
         self.viewOri = float(viewOri)
         self.stereo = stereo  # use quad buffer if requested (and if possible)
 
-        # setup bits++ if needed. NB The new preferred method is for this to be
-        # handled by the bits class instead. (we pass the Window to bits not passing
-        # bits to the window)
-        self.bits = None
-        if bitsMode is not None:
-            logging.warn("Use of Window(bitsMode=******) is deprecated. See the Coder>Demos>Hardware demo for new methods")
-            self.bitsMode = bitsMode  # could be [None, 'fast', 'slow']
-            logging.warn("calling Window(...,bitsMode='fast') is deprecated. XXX provide further info")
-            from psychopy.hardware.crs import bits
-            self.bits = self.interface = bits.BitsBox(self)
-            self.haveBits = True
-            if hasattr(self.monitor, 'lineariseLums'):
-                #rather than a gamma value we could use bits++ and provide a
-                # complete linearised lookup table using
-                # monitor.lineariseLums(lumLevels)
-                self.__dict__['gamma'] = None
-
         #load color conversion matrices
         self.dkl_rgb = self.monitor.getDKL_RGB()
         self.lms_rgb = self.monitor.getLMS_RGB()
@@ -349,8 +332,25 @@ class Window(object):
         self.blendMode = self.blendMode
 
         # gamma
+        self.bits = None #this may change in a few lines time!
         self.__dict__['gamma'] = gamma
         self._setupGamma(gamma)
+
+        # setup bits++ if needed. NB The new preferred method is for this to be
+        # handled by the bits class instead. (we pass the Window to bits not passing
+        # bits to the window)
+        if bitsMode is not None:
+            logging.warn("Use of Window(bitsMode=******) is deprecated. See the Coder>Demos>Hardware demo for new methods")
+            self.bitsMode = bitsMode  # could be [None, 'fast', 'slow']
+            logging.warn("calling Window(...,bitsMode='fast') is deprecated. XXX provide further info")
+            from psychopy.hardware.crs.bits import BitsPlusPlus
+            self.bits = self.interface = BitsPlusPlus(self)
+            self.haveBits = True
+            if hasattr(self.monitor, 'lineariseLums'):
+                #rather than a gamma value we could use bits++ and provide a
+                # complete linearised lookup table using
+                # monitor.lineariseLums(lumLevels)
+                self.__dict__['gamma'] = None
 
         self.frameClock = core.Clock()  # from psycho/core
         self.frames = 0  # frames since last fps calc

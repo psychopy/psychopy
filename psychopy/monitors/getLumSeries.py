@@ -52,19 +52,15 @@ def getLumSeries(lumLevels=8,
         return None
     else: havePhotom = True
 
-    if useBits:
-        #all gamma transforms will occur in calling the Bits++ LUT
-        #which improves the precision (14bit not 8bit gamma)
-        bitsMode='fast'
-    else: bitsMode=None
-
     if gamma==1:
         initRGB= 0.5**(1/2.0)*2-1
     else: initRGB=0.8
     #setup screen and "stimuli"
     myWin = psychopy.visual.Window(fullscr = 0, size=winSize,
-        gamma=gamma,units='norm',monitor=monitor,allowGUI=True,winType='pyglet',
-        bitsMode=bitsMode)
+        gamma=gamma,units='norm',monitor=monitor,allowGUI=True,winType='pyglet')
+    if useBits=='Bits++':
+        from psychopy.hardware import crs
+        bits = crs.BitsPlusPlus(myWin, gamma=[1,1,1])
     instructions="Point the photometer at the central bar. Hit a key when ready (or wait 30s)"
     message = psychopy.visual.TextStim(myWin, text = instructions,height=0.1,
         pos=(0,-0.85), rgb=[1,-1,-1])
@@ -159,6 +155,8 @@ def getLumSeries(lumLevels=8,
                             done = True
 
     myWin.close() #we're done with the visual stimuli
-    if havePhotom: return lumsList
-    else: return numpy.array([])
+    if havePhotom:
+        return lumsList
+    else:
+        return numpy.array([])
 

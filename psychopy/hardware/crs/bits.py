@@ -72,7 +72,7 @@ class BitsPlusPlus(object):
     def __init__(self,
                     win,
                     contrast=1.0,
-                    gamma=[1.0,1.0,1.0],
+                    gamma=None,
                     nEntries=256,
                     mode='bits++',
                     rampType = 'configFile'):
@@ -83,10 +83,13 @@ class BitsPlusPlus(object):
         self.method = 'fast' #used to allow setting via USB which was 'slow'
         self.gammaCorrect = 'software' #Bits++ doesn't do its own correction so we need to
 
-        if len(gamma)>2: # [Lum,R,G,B] or [R,G,B]
-            self.gamma=gamma[-3:]
-        else:
-            self.gamma = [gamma, gamma, gamma]
+        if self.gammaCorrect=='software':
+            if gamma is None:
+                self.gamma = win.gamma #inherit from window
+            elif len(gamma)>2: # [Lum,R,G,B] or [R,G,B]
+                self.gamma=gamma[-3:]
+            else:
+                self.gamma = [gamma, gamma, gamma]
 
         if init():
             setVideoMode(NOGAMMACORRECT|VIDEOENCODEDCOMMS)
