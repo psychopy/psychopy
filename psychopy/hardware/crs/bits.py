@@ -382,8 +382,9 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             self._setupShaders()
             #now check that we have a valid configuration of the box
             if checkConfigLevel:
-                self.checkConfig(level=checkConfigLevel)
-            self.win.gammaRamp = self.config.identityLUT
+                ok = self.checkConfig(level=checkConfigLevel)
+            else:
+                self.win.gammaRamp = self.config.identityLUT
         else:
             self.config = None # makes no sense if we have a window?
             logging.warning("%s was not given any PsychoPy win" %(self))
@@ -536,6 +537,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         def oneAttempt():
             self.com.flushInput()
             self.sendMessage('$GetVideoLine=[%i, %i]\r' %(lineN, nPixels))
+            self.__dict__['mode'] = 'status' #the box implicitly ends up in status mode
             #prepare to read
             t0 = time.time()
             raw=""
@@ -588,6 +590,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
 
                     3: force a fresh search for the identity LUT
         """
+        prevMode = self.mode
         #if we haven't fetched a config yet then do so
         if not self.config:
             self.config = Config(self)
@@ -600,6 +603,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                 level=2
                 self._warnTesting()
             else:
+                self.mode = prevMode
                 logging.info("Bits# config matches current system: %s on %s" %(self.config.gfxCard, self.config.os))
                 return 1
         #it didn't so switch to doing the test
@@ -609,10 +613,14 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                 level=3
                 logging.info("Bits# found a config file but the LUT didn't work as identity. We'll try to find a working one.")
             else:
+                self.config.identityLUT = self.win.winHandle.getGammaRamp(self.win.winHandle).transpose()
+                self.config.save()
+                self.mode = prevMode
                 logging.info("We found a LUT in the config file and it worked as identity")
                 return 1
         if level==3:
             ok = self.config.findIdentityLUT(demoMode=demoMode, logFile=logFile)
+        self.mode = prevMode
         return ok
 
     def _warnTesting(self):
@@ -709,7 +717,7 @@ class Config(object):
         """Check whether the current graphics card and OS match those of the last saved LUT
         """
         if self._getGfxCardString() != self.gfxCard:
-            logging.warn("The graphics card or it's driver has changed. We'll re-check the identity LUT for the card")
+            logging.warn("The graphics card or its driver has changed. We'll re-check the identity LUT for the card")
             return 0
         if self._getOSstring() != self.os:
             logging.warn("The OS has been changed/updated. We'll re-check the identity LUT for the card")
