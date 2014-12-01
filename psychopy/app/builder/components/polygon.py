@@ -36,7 +36,7 @@ class PolygonComponent(VisualComponent):
                     stopType=stopType, stopVal=stopVal,
                     startEstim=startEstim, durationEstim=durationEstim)
         self.type='Polygon'
-        self.url="http://www.psychopy.org/builder/components/shape.html"
+        self.url="http://www.psychopy.org/builder/components/polygon.html"
         self.exp.requirePsychopyLibs(['visual'])
         self.order=['nVertices']
         #params
