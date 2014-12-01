@@ -26,8 +26,6 @@ import numpy
 #    but to do that it needs to be in fullscreen mode
 #logging.console.setLevel(logging.INFO)
 win = visual.Window([1024,768], useFBO=True, fullscr=True, screen = 0)
-win.gamma = 1 #make sure that the window is set to identity LUT
-
 bitsBox = crs.BitsPlusPlus(win, mode='bits++', 
         rampType='configFile') #change this to an integer to use a specific identityLUT
 
