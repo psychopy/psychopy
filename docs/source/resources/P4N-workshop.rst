@@ -1,7 +1,9 @@
 .. _P4N:
 
-P4N 2014: Python for Neuroscience (and Psychology)
+P4N 2015: Python for Neuroscience (and Psychology)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can place bookings NOW at `Python for Neuroscience workshop bookings <http://store.nottingham.ac.uk/browse/extra_info.asp?compid=1&modid=2&deptid=9&catid=49&prodid=466&searchresults=1>`_
 
 Do you want to get started using Python_ (and PsychoPy_) for your studies in behavioural sciences? Maybe you keep meaning to switch from another package and haven't gotten around to it. This workshop will get you off the ground with building and analysing your experiments using Python.
 
@@ -17,13 +19,11 @@ Details
     :Spaces: 30 beginner
     :When: 21-23 April 2015 (inclusive)
     :Where: School of Psychology, University of Nottingham
-    :Cost: £300
+    :Cost: £350
     :Includes: Refreshments and lunch. There is an accommodation package too, costing around £44 per night including bed and breakfast
     :Content:
         Material will cover *Python* programming basics as well as PsychoPy-specific coding. Note that this is not a workshop about PsychoPy Builder; we'll really be focussing on programming.
         
-The booking system will be available shortly
-
 Is this suitable for you? 
 ----------------------------
 
