@@ -31,13 +31,10 @@ except wx._core.PyNoAppError:
 
 # Get a dict of locale aliases from wx.Locale() -- same cross-platform (Win 7, Mac 10.9)
 locale = wx.Locale()
-aliases = {}
-wxIdFromCode = {}  # int: 0, 2-229
-codeFromWxId = {}  # used in directory names e.g. ja_JP; never JPN ala Windows
-winmap = {}  # get windows 3-letter code (=val) from canonical form (=key); use only for setting locale (non-wx)
-locname = {}  # descriptive name, if available; 5-letter code if not
-reverseMap = {}
-
+aliases = {u'English (U.S.)': 'en_US'}
+# set defaults because locale.GetLanguageInfo(0) can return None on some systems:
+wxIdFromCode = {'en_US': wx.LANGUAGE_DEFAULT}  # int: 0 default, 2-229
+codeFromWxId = {wx.LANGUAGE_DEFAULT: 'en_US'}  # used in directory names e.g. ja_JP; never JPN ala Windows
 for i in range(230):
     info = locale.GetLanguageInfo(i)
     if info:
@@ -45,6 +42,10 @@ for i in range(230):
         wxIdFromCode[info.CanonicalName] = i
         codeFromWxId[i] = info.CanonicalName
 
+# read all known mappings cross-platform from a file:
+winmap = {'en_US': 'ENU'}  # get windows 3-letter code (=val) from canonical form (=key); use only for setting locale (non-wx)
+locname = {'en_US': u'English (U.S.)'}  # descriptive name, if available; 5-letter code if not
+reverseMap = {u'English (U.S.)': 'en_US'}
 mappings = os.path.join(os.path.dirname(__file__), 'mappings.txt')
 for line in codecs.open(mappings, 'rU', 'utf8').readlines():
     try:
