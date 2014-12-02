@@ -167,7 +167,7 @@ class _SoundBase(object):
     def _setSndFromFreq(self, thisFreq, secs, hamming=True):
         # note freq -> array -> sound
         if secs<0: #if secs=-1 then they want infinite duration - create 1sec and loop it
-            secs=1.0
+            secs=10.0
             self.loops = -1
         nSamples = int(secs*self.sampleRate)
         outArr = numpy.arange(0.0,1.0, 1.0/nSamples)
