@@ -9,7 +9,7 @@
 import os, sys
 
 #version info for PsychoPy
-__version__='1.81.02'
+__version__='1.81.03'
 __license__='GNU GPLv3 (or more recent equivalent)'
 __author__='Jonathan Peirce'
 __author_email__='jon@peirce.org.uk'

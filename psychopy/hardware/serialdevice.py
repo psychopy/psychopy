@@ -5,6 +5,7 @@ ports and check for the expected device
 # Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+import sys
 from psychopy import logging
 import time
 
@@ -100,6 +101,10 @@ class SerialDevice(object):
         logging.flush() #we aren't in a time-critical period so flush messages
 
     def _findPossiblePorts(self):
+        #serial's built-in check doesn't work too well on win32 so just try all
+        if sys.platform == 'win32':
+            return ['COM'+str(i) for i in range(20)]
+        #on linux and mac the options are too wide so use serial.tools
         from serial.tools import list_ports
         poss = list_ports.comports()
         #filter out any that report 'n/a' for their hardware

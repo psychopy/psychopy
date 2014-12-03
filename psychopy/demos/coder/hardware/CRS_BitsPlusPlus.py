@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-from psychopy import visual, core, event
+from psychopy import visual, core, event, logging
 from psychopy.hardware import crs
 import numpy
 
@@ -24,15 +24,19 @@ import numpy
 #    - the shaders aren't working for mono++ and color++ modes
 #    - for BitsSharp, the device will try to deduce the identity LUT of the screen
 #    but to do that it needs to be in fullscreen mode
+#logging.console.setLevel(logging.INFO)
+win = visual.Window([1024,768], useFBO=True, fullscr=True, screen = 0)
+bitsBox = crs.BitsPlusPlus(win, mode='bits++', 
+        rampType='configFile') #change this to an integer to use a specific identityLUT
 
-win = visual.Window([1280,1024], useFBO=True, fullscr=True, screen = 0)
-win.setGamma(1) #make sure that the window is set to identity LUT
-
-bitsBox = crs.BitsPlusPlus(win, mode='bits++')
 #BitsSharp can check identity LUT automatically:
-#bitsBox = crs.BitsSharp(win, mode='bits++', checkConfig=1) 
+#bitsBox = crs.BitsSharp(win, mode='bits++', checkConfigLevel=1) 
+#if not bitsBox.OK:
+#    print 'failed to connect to Bits box'
+#else:
+#    print 'found %s on %s' %(bitsBox.type, bitsBox.com.port)
 
-grating = visual.PatchStim(win,mask = 'gauss',sf=2)
+grating = visual.PatchStim(win,mask = 'gauss', ori=45, sf=2)
 
 #---using bits++ with one stimulus
 globalClock = core.Clock()
@@ -53,11 +57,7 @@ while True:
         break
     event.clearEvents('mouse')#only really needed for pygame windows
 
-
 #reset the bits++ (and update the window so that this is done properly)
-
 bitsBox.setContrast(1)
-
 win.flip()
-
 core.quit()

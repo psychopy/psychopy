@@ -49,11 +49,7 @@ class TestPyo(object):
         with pytest.raises(ValueError):
             sound.Sound('this is not a file name')
         with pytest.raises(ValueError):
-            sound.Sound(-1)
-        with pytest.raises(ValueError):
-            sound.Sound(440, secs=-1)
-        with pytest.raises(ValueError):
-            sound.Sound(440, secs=0)
+            sound.Sound(-1) #negative frequency makes no sense
         with pytest.raises(DeprecationWarning):
             sound.setaudioLib('foo')
 

@@ -22,7 +22,14 @@ PsychoPy 1.81
 
 PsychoPy 1.81.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Dec 2014
+
+* ADDED: Sounds in Builder can now have a duration set by a variable (changing each repeat). The work on this may cause some systems to have a periodic 'tick' in the sound if they last longer than 10s (probably dependent on sound card and driver)
 * IMPROVED: RatingScale will always display a custom description ('scale') if provided by the user
+* ADDED: Monitor Center can now calibrate non-primary monitors
+* FIXED: components in Builder can now be 'stopped' at the same time as they are started and never show up (previously at least one frame was always required)
+* FIXED: several issues with Bits++ causing a rendering glitch and not being able to calibrate from Monitor Centre
 
 PsychoPy 1.81.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

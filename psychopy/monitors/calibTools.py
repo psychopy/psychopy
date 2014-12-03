@@ -70,7 +70,7 @@ def findPR650(ports=None):
             if len(ports)==0: logging.error("couldn't find likely serial port in /dev/tty.* Check for \
                 serial port name manually, check drivers installed etc...")
         elif sys.platform=='win32':
-            ports = range(11)
+            ports = range(20)
     elif type(ports) in [int,float]:
         ports=[ports] #so that we can iterate
     pr650=None
@@ -715,7 +715,8 @@ def getLumSeries(lumLevels=8,
     useBits=False,
     autoMode='auto',
     stimSize = 0.3,
-    photometer=None):
+    photometer=None,
+    screen = 0):
     """
     Automatically measures a series of gun values and measures
     the luminance with a photometer.
@@ -766,7 +767,7 @@ def getLumSeries(lumLevels=8,
     #setup screen and "stimuli"
     myWin = psychopy.visual.Window(fullscr = 0, size=winSize,
         gamma=gamma,units='norm',monitor=monitor,allowGUI=True,winType='pyglet',
-        bitsMode=bitsMode)
+        bitsMode=bitsMode, screen=screen)
     instructions="Point the photometer at the central bar. Hit a key when ready (or wait 30s)"
     message = psychopy.visual.TextStim(myWin, text = instructions,height=0.1,
         pos=(0,-0.85), rgb=[1,-1,-1])

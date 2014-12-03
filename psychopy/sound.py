@@ -117,8 +117,6 @@ class _SoundBase(object):
                 octave (8) is generally painful
         """
         self._snd = None  # Re-init sound to ensure bad values will raise error during setting
-        if secs <= 0:
-            raise ValueError('Sound: bad requested duration %.0f' % secs)
 
         try:#could be '440' meaning 440
             value = float(value)
@@ -168,6 +166,9 @@ class _SoundBase(object):
 
     def _setSndFromFreq(self, thisFreq, secs, hamming=True):
         # note freq -> array -> sound
+        if secs<0: #if secs=-1 then they want infinite duration - create 1sec and loop it
+            secs=10.0
+            self.loops = -1
         nSamples = int(secs*self.sampleRate)
         outArr = numpy.arange(0.0,1.0, 1.0/nSamples)
         outArr *= 2*numpy.pi*thisFreq*secs
@@ -202,6 +203,7 @@ class SoundPygame(_SoundBase):
         """
         self.name=name#only needed for autoLogging
         self.autoLog=autoLog
+        self.loops = 0 #-1 for infinite, or a number of loops
         #check initialisation
         if not mixer.get_init():
             pygame.mixer.init(sampleRate, -16, 2, 3072)
@@ -216,7 +218,7 @@ class SoundPygame(_SoundBase):
         self._snd=None
         self.setSound(value=value, secs=secs, octave=octave)
 
-    def play(self, fromStart=True, log=True, loops=0):
+    def play(self, fromStart=True, log=True, loops=None):
         """Starts playing the sound on an available channel.
 
         Parameters
@@ -238,6 +240,8 @@ class SoundPygame(_SoundBase):
         If you call play() whiles something is already playing the sounds will
         be played over each other.
         """
+        if loops is None:
+            loops = self.loops
         self._snd.play(loops=loops)
         self.status=STARTED
         if log and self.autoLog:
@@ -365,7 +369,7 @@ class SoundPyo(_SoundBase):
         #try to create sound; set volume and loop before setSound (else needsUpdate=True)
         self._snd=None
         self.volume = min(1.0, max(0.0, volume))
-        self.loops = int(loops)
+        self.loops = int(loops) #-1 for infinite or a number of loops
 
         self.setSound(value=value, secs=secs, octave=octave, hamming=hamming)
         self.needsUpdate = False

@@ -6,6 +6,9 @@
 
 import wx
 from wx import grid
+
+from wx.lib import intctrl
+from psychopy.app import localization
 from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
 import time, os
@@ -702,11 +705,13 @@ class MainFrame(wx.Frame):
             if calibDlg.ShowModal()!=wx.ID_OK:
                 calibDlg.Destroy()
                 return 1
-            nPoints = int(calibDlg.ctrlNPoints.GetStringSelection())
+            nPoints = int(calibDlg.ctrlNPoints.GetValue())
             stimSize = unicodeToFloat(calibDlg.ctrlStimSize.GetValue())
             useBits = calibDlg.ctrlUseBits.GetValue()
             calibDlg.Destroy()
             autoMode = calibDlg.methodChoiceBx.GetStringSelection()
+            screen = int(calibDlg.ctrlScrN.GetValue())-1 #lib starts at zero but here we allow 1
+
             #run the calibration itself
             lumLevels=monitors.DACrange(nPoints)
             lumsPre = monitors.getLumSeries(photometer=self.photom,
@@ -714,7 +719,8 @@ class MainFrame(wx.Frame):
                                                  useBits=useBits,
                                                  autoMode=autoMode,
                                                  winSize=self.currentMon.getSizePix(),
-                                                 stimSize=stimSize, monitor=self.currentMon)
+                                                 stimSize=stimSize, monitor=self.currentMon,
+                                                 screen=screen)
 
             #allow user to type in values
             if autoMode=='semi':
@@ -780,11 +786,12 @@ class MainFrame(wx.Frame):
         if calibDlg.ShowModal()!=wx.ID_OK:
             calibDlg.Destroy()
             return 1
-        nPoints = int(calibDlg.ctrlNPoints.GetStringSelection())
+        nPoints = int(calibDlg.ctrlNPoints.GetValue())
         stimSize = unicodeToFloat(calibDlg.ctrlStimSize.GetValue())
         useBits = calibDlg.ctrlUseBits.GetValue()
         calibDlg.Destroy()
         autoMode = calibDlg.methodChoiceBx.GetStringSelection()
+        screen = int(calibDlg.ctrlScrN.GetValue())-1 #lib starts at zero but here we allow 1
 
         lumLevels=monitors.DACrange(nPoints)
         lumsPost = monitors.getLumSeries(photometer=self.photom,
@@ -795,6 +802,7 @@ class MainFrame(wx.Frame):
                                               stimSize=stimSize,
                                               monitor = self.currentMon,
                                               gamma=None,#causes the function to use monitor settings
+                                              screen=screen,
                                               )
 
         if len(lumsPost)>1:
@@ -1056,9 +1064,10 @@ class GammaDlg(wx.Dialog):
         self.ctrlUseBits.SetValue(self.useBits)
 
         self.labelNPoints = wx.StaticText(self, -1, _translate('Number of calibration points:'))
-        self.ctrlNPoints = wx.Choice(self, -1,
-            choices=['3','4','5','6','7','8','10','16','48','64','256'])
-        self.ctrlNPoints.SetStringSelection('8')
+        self.ctrlNPoints = intctrl.IntCtrl(self, -1, value=8)
+
+        self.labelScrN = wx.StaticText(self, -1, 'Screen number (primary is 1)')
+        self.ctrlScrN = intctrl.IntCtrl(self, -1, value=1)
 
         self.labelStimSize = wx.StaticText(self, -1, _translate('Patch size (fraction of screen):'))
         self.ctrlStimSize = wx.TextCtrl(self, -1,'0.3')
@@ -1066,6 +1075,8 @@ class GammaDlg(wx.Dialog):
         pad=5
         mainSizer.Add((0,0),1,wx.ALL, pad)
         mainSizer.Add(self.methodChoiceBx,1,wx.ALL, pad)
+        mainSizer.Add(self.labelScrN,1,wx.ALL, pad)
+        mainSizer.Add( self.ctrlScrN,1,wx.ALL, pad)
         mainSizer.Add(self.labelNPoints,1,wx.ALL, pad)
         mainSizer.Add( self.ctrlNPoints,1,wx.ALL, pad)
         mainSizer.Add(self.labelStimSize,1,wx.ALL, pad)
