@@ -615,7 +615,7 @@ class _BaseTrialHandler(object):
         #self.originPath and self.origin (the contents of the origin file)
         if originPath is None or not os.path.isfile(originPath):
             try:
-                originPath = inspect.getouterframes(inspect.currentframe())[1][1]
+                originPath = inspect.getouterframes(inspect.currentframe())[2][1]
                 if self.autoLog:
                     logging.debug("Using %s as origin file" %originPath)
             except:

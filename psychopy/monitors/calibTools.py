@@ -294,6 +294,8 @@ class Monitor:
         """Gets the min,max,gamma values for the each gun"""
         if 'linearizeMethod' in self.currentCalib:
             return self.currentCalib['linearizeMethod']
+        elif 'lineariseMethod' in self.currentCalib:
+            return self.currentCalib['lineariseMethod']
         else:
             return None
     def getMeanLum(self):
@@ -788,7 +790,7 @@ def getLumSeries(lumLevels=8,
         instructions="Point the photometer at the central white bar. Hit a key when ready (or wait %iss)" %tRemain
         backPatch.draw()
         testPatch.draw()
-        message.setText(instructions)
+        message.setText(instructions, log=False)
         message.draw()
         myWin.flip()
         if len(psychopy.event.getKeys()):
