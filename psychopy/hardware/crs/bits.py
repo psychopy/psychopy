@@ -201,11 +201,10 @@ class BitsPlusPlus(object):
             logging.warning('newLUT can be None, nx1 or nx3')
 
         #do gamma correction if necessary
-        if gammaCorrect==True:
+        if self.gammaCorrect == 'software' :
             gamma=self.gamma
             if hasattr(self.win.monitor, 'lineariseLums'):
                 self.LUT[startII:endII, : ] = self.win.monitor.lineariseLums(self.LUT[startII:endII, : ], overrideGamma=gamma)
-
         #update the bits++ box with new LUT
         #get bits into correct order, shape and add to header
         ramp16 = (self.LUT*(2**16-1)).astype(np.uint16) #go from ubyte to uint16
@@ -350,7 +349,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             3 search for a new identity look-up table (requires switch to status mode)
     """
     name='CRS Bits#'
-    def __init__(self, win=None, portName=None, mode='', checkConfigLevel=1):
+    def __init__(self, win=None, portName=None, mode='', checkConfigLevel=1, gammaCorrect = 'hardware', gamma = None):
 
         #import pyglet.GL late so that we can import bits.py without it initially
         global GL, visual
