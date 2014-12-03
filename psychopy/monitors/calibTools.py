@@ -790,7 +790,7 @@ def getLumSeries(lumLevels=8,
         instructions="Point the photometer at the central white bar. Hit a key when ready (or wait %iss)" %tRemain
         backPatch.draw()
         testPatch.draw()
-        message.setText(instructions)
+        message.setText(instructions, log=False)
         message.draw()
         myWin.flip()
         if len(psychopy.event.getKeys()):

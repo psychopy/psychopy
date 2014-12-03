@@ -18,10 +18,11 @@ import os, sys, time, glob, weakref
 import numpy as np
 import shaders
 from copy import copy
-from psychopy import logging, core, visual
+from psychopy import logging, core
 from psychopy.hardware import serialdevice
 import serial
-import pyglet.gl as GL
+
+global GL, visual
 
 plotResults = False
 if plotResults:
@@ -83,6 +84,11 @@ class BitsPlusPlus(object):
         self.method = 'fast' #used to allow setting via USB which was 'slow'
         self.gammaCorrect = 'software' #Bits++ doesn't do its own correction so we need to
 
+        #import pyglet.GL late so that we can import bits.py without it initially
+        global GL, visual
+        from psychopy import visual
+        import pyglet.gl as GL
+
         if self.gammaCorrect=='software':
             if gamma is None:
                 self.gamma = win.gamma #inherit from window
@@ -90,7 +96,6 @@ class BitsPlusPlus(object):
                 self.gamma=gamma[-3:]
             else:
                 self.gamma = [gamma, gamma, gamma]
-
         if init():
             setVideoMode(NOGAMMACORRECT|VIDEOENCODEDCOMMS)
             self.initialised=True
@@ -347,6 +352,12 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     name='CRS Bits#'
     def __init__(self, win=None, portName=None, mode='', checkConfigLevel=1):
 
+        #import pyglet.GL late so that we can import bits.py without it initially
+        global GL, visual
+        from psychopy import visual
+        import pyglet.gl as GL
+
+        #look for device on valid serial ports
         serialdevice.SerialDevice.__init__(self, port=portName, baudrate=19200,
                  byteSize=8, stopBits=1,
                  parity="N", #'N'one, 'E'ven, 'O'dd, 'M'ask,
