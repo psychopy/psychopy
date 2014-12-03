@@ -310,6 +310,56 @@ class Dlg(QtGui.QDialog):
             self.OK = True
             return self.data
 
+class DlgFromDict(Dlg):
+    """Creates a dialogue box that represents a dictionary of values.
+    Any values changed by the user are change (in-place) by this
+    dialogue box.
+    e.g.:
+
+    ::
+
+        info = {'Observer':'jwp', 'GratingOri':45, 'ExpVersion': 1.1, 'Group': ['Test', 'Control']}
+        dictDlg = gui.DlgFromDict(dictionary=info, title='TestExperiment', fixed=['ExpVersion'])
+        if dictDlg.OK:
+            print info
+        else: print 'User Cancelled'
+
+    In the code above, the contents of *info* will be updated to the values
+    returned by the dialogue box.
+
+    If the user cancels (rather than pressing OK),
+    then the dictionary remains unchanged. If you want to check whether
+    the user hit OK, then check whether DlgFromDict.OK equals
+    True or False
+
+    See GUI.py for a usage demo, including order and tip (tooltip).
+    """
+    def __init__(self, dictionary, title='',fixed=[], order=[], tip={}, screen=-1):
+        Dlg.__init__(self, title, screen=screen)
+        self.dictionary = dictionary
+        keys = self.dictionary.keys()
+        keys.sort()
+        if len(order):
+            keys = order + list(set(keys).difference(set(order)))
+        types=dict([])
+        for field in keys:
+            #DEBUG: print field, type(dictionary[field])
+            types[field] = type(self.dictionary[field])
+            tooltip = ''
+            if field in tip.keys():
+                tooltip = tip[field]
+            if field in fixed:
+                self.addFixedField(field, self.dictionary[field], tip=tooltip)
+            elif type(self.dictionary[field]) in [list, tuple]:
+                self.addField(field,choices=self.dictionary[field], tip=tooltip)
+            else:
+                self.addField(field, self.dictionary[field], tip=tooltip)
+
+        ok_data = self.exec_()
+        if ok_data:
+            for n,thisKey in enumerate(keys):
+                self.dictionary[thisKey]=ok_data[n]
+
 
 def fileSaveDlg(initFilePath="", initFileName="",
                 prompt=_translate("Select file to save"),
@@ -513,6 +563,16 @@ if __name__ == '__main__':
                       choices=['R1', 'R2', 'R3'], tip="This field is readonly.")
     ok_data = dlg.show()
     print "Dlg ok_data:", ok_data
+
+    # Test Dict Dialog
+
+    info = {'Observer':'jwp', 'GratingOri':45, 'ExpVersion': 1.1, 'Group': ['Test', 'Control']}
+    dictDlg = DlgFromDict(dictionary=info, title='TestExperiment', fixed=['ExpVersion'])
+    if dictDlg.OK:
+        print info
+    else:
+        print 'User Cancelled'
+
 
     # Test File Dialogs
 
