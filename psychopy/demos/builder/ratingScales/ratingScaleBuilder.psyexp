@@ -1,4 +1,4 @@
-<PsychoPy2experiment version="1.79.01" encoding="utf-8">
+<PsychoPy2experiment version="1.81.03" encoding="utf-8">
   <Settings>
     <Param name="Show mouse" val="False" valType="bool" updates="None"/>
     <Param name="Data filename" val="u'data' + os.path.sep + '%s_%s' %(expInfo['participant'], expInfo['date'])" valType="code" updates="None"/>
@@ -6,19 +6,20 @@
     <Param name="Enable Escape" val="True" valType="bool" updates="None"/>
     <Param name="color" val="$[0,0,0]" valType="str" updates="None"/>
     <Param name="Window size (pixels)" val="[1000, 700]" valType="code" updates="None"/>
-    <Param name="Screen" val="1" valType="num" updates="None"/>
+    <Param name="Full-screen window" val="False" valType="bool" updates="None"/>
     <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
-    <Param name="Save log file" val="True" valType="bool" updates="None"/>
-    <Param name="Save csv file" val="False" valType="bool" updates="None"/>
     <Param name="Experiment info" val="{u'session': u'001', u'participant': u'demo'}" valType="code" updates="None"/>
-    <Param name="Save excel file" val="True" valType="bool" updates="None"/>
+    <Param name="Save csv file" val="False" valType="bool" updates="None"/>
+    <Param name="Show info dlg" val="False" valType="bool" updates="None"/>
     <Param name="Save wide csv file" val="True" valType="bool" updates="None"/>
     <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
     <Param name="expName" val="ratingScaleBuilder" valType="str" updates="None"/>
     <Param name="logging level" val="exp" valType="code" updates="None"/>
+    <Param name="blendMode" val="avg" valType="str" updates="None"/>
+    <Param name="Save excel file" val="True" valType="bool" updates="None"/>
     <Param name="Units" val="use prefs" valType="str" updates="None"/>
-    <Param name="Show info dlg" val="False" valType="bool" updates="None"/>
-    <Param name="Full-screen window" val="False" valType="bool" updates="None"/>
+    <Param name="Save log file" val="True" valType="bool" updates="None"/>
+    <Param name="Screen" val="1" valType="num" updates="None"/>
   </Settings>
   <Routines>
     <Routine name="trial">
@@ -48,7 +49,7 @@
         <Param name="categoryChoices" val="" valType="str" updates="constant"/>
         <Param name="customize_everything" val="" valType="str" updates="constant"/>
         <Param name="name" val="rating" valType="code" updates="None"/>
-        <Param name="singleClick" val="True" valType="bool" updates="constant"/>
+        <Param name="singleClick" val="False" valType="bool" updates="constant"/>
       </RatingScaleComponent>
       <TextComponent name="stimulus_to_rate">
         <Param name="opacity" val="1" valType="code" updates="constant"/>
@@ -75,10 +76,10 @@
       <CodeComponent name="code">
         <Param name="Begin Experiment" val="" valType="extendedCode" updates="constant"/>
         <Param name="name" val="code" valType="code" updates="None"/>
-        <Param name="Each Frame" val="" valType="extendedCode" updates="constant"/>
         <Param name="Begin Routine" val="# uses data from `rating` obtained on the previous routine:&#10;result = &quot;You pressed &quot; + str(rating.getRating())&#10;if rating.getRT() &lt; 1:&#10;    result += ', quickly.'&#10;else:&#10;    result += ', slowly.'" valType="extendedCode" updates="constant"/>
         <Param name="End Routine" val="" valType="extendedCode" updates="constant"/>
         <Param name="End Experiment" val="" valType="extendedCode" updates="constant"/>
+        <Param name="Each Frame" val="" valType="extendedCode" updates="constant"/>
       </CodeComponent>
       <TextComponent name="text">
         <Param name="opacity" val="1" valType="code" updates="constant"/>
@@ -144,11 +145,13 @@
     <LoopInitiator loopType="TrialHandler" name="trials">
       <Param name="conditionsFile" val="conditions.pkl" valType="str" updates="None"/>
       <Param name="name" val="trials" valType="code" updates="None"/>
+      <Param name="isTrials" val="True" valType="bool" updates="None"/>
       <Param name="random seed" val="" valType="code" updates="None"/>
       <Param name="loopType" val="sequential" valType="str" updates="None"/>
       <Param name="nReps" val="1" valType="code" updates="None"/>
       <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
       <Param name="conditions" val="[{'thing': u'thing-1'}, {'thing': u'thing-2'}]" valType="str" updates="None"/>
+      <Param name="Selected rows" val="" valType="code" updates="None"/>
     </LoopInitiator>
     <Routine name="trial"/>
     <Routine name="feedback"/>
