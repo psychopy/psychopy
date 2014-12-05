@@ -224,6 +224,15 @@ class RatingScaleComponent(BaseComponent):
             self.params['startVal'].val = 0 # time, frame
             if self.params['startType'].val == 'condition':
                 self.params['startVal'].val = 'True'
+
+        if self.params['startType'].val == 'frame N':
+            buff.writeIndented("if frameN > %(startVal)s and %(name)s.status == NOT_STARTED:\n" % self.params)
+        elif self.params['startType'].val == 'condition':
+            buff.writeIndented("if %(startVal)s and %(name)s.status == NOT_STARTED:\n" % self.params)
+        else: # self.params['startType'].val == 'time (s)':
+            buff.writeIndented("if t > %(startVal)s and %(name)s.status == NOT_STARTED:\n" % self.params)
+        buff.writeIndented("    %(name)s.setAutoDraw(True)\n" % (self.params))
+
         if self.params['startType'].val == 'frame N':
             buff.writeIndented("if frameN > %(startVal)s:\n" % self.params)
         elif self.params['startType'].val == 'condition':
@@ -231,7 +240,7 @@ class RatingScaleComponent(BaseComponent):
         else: # self.params['startType'].val == 'time (s)':
             buff.writeIndented("if t > %(startVal)s:\n" % self.params)
         buff.setIndentLevel(1, relative=True)
-        buff.writeIndented("%(name)s.draw()\n" % (self.params))
+
         # if requested, force end of trial when the subject 'accepts' the current rating:
         if self.params['forceEndRoutine'].val:
             buff.writeIndented("continueRoutine = %s.noResponse\n" % (name))
