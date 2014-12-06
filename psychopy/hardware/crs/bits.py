@@ -379,6 +379,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         self.win._finishFBOrender = self._finishFBOrender
         self.win._afterFBOrender = self._afterFBOrender
 
+        self.gammaCorrect = gammaCorrect #Bits++ doesn't do its own correction so we need to
+        self.gamma = gamma
         #we have a confirmed connection. Now check details about device and system
         if not hasattr(self, 'info'):
             self.info = self.getInfo()
