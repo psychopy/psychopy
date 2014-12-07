@@ -6,7 +6,7 @@ psychopy.iohub Specific Requirements
 Computer Specifications
 ------------------------
 
-The design / requirments of your experiment itself can obviously influence
+The design / requirements of your experiment itself can obviously influence
 what the minimum computer specification should be to provide good timing /
 performance.
 
@@ -28,7 +28,7 @@ constrains should be noted:
 
 1. The pyglet graphics backend must be used; pygame is not supported.
 2. ioHub devices that report position data use the unit type defined by the
-   Psychopy Window. However, position data is reported using the full screen
+   PsychoPy Window. However, position data is reported using the full screen
    area and size the window was created in. Therefore, for accurate window position
    reporting, the PsychoPy window must be made full screen.
 3. On OS X, Assistive Device support must be enabled when using psychopy.iohub.
@@ -42,7 +42,7 @@ constrains should be noted:
 Software Requirements
 ----------------------
 
-When running Psychopy using the OS X or Windows standalone distribution,
+When running PsychoPy using the OS X or Windows standalone distribution,
 all the necessary python package dependencies have already been installed, so
 the rest of this section can be skipped.
 
@@ -72,5 +72,5 @@ Linux installations only
     #. `python-xlib <http://sourceforge.net/projects/python-xlib/>`_ The Python X11R6 client-side implementation.
 
 OSX installations only
-    #. `pyobjc <http://pythonhosted.org/pyobjc/>`_ : A  Python ObjectiveC binding.
+    #. `pyobjc <http://pythonhosted.org/pyobjc/>`_ : A Python ObjectiveC binding.
 

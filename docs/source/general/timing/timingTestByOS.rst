@@ -9,7 +9,7 @@ All of the below tests were conducted with 'normal' systems rather than anything
     - the machines were connected to network
     - did not have anti-virus turned off (except Ubuntu had no anti-virus)
     - they even all had dropbox clients running
-    - linux was the standard (not 'realtime' kernel)
+    - Linux was the standard (not 'realtime' kernel)
 
 No applications were actively being used by the operator while tests were run.
 
@@ -47,4 +47,4 @@ RAM               4GB               4GB             2GB              4GB
 I'll gradually try to update these tests to include:
     - longer runs (one per night!)
     - a faster Mac
-    - a real-time linux kernel
+    - a real-time Linux kernel

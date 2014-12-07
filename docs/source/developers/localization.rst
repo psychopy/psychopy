@@ -5,7 +5,7 @@ PsychoPy is used worldwide. Starting with v1.81, many parts of PsychoPy itself (
 
 In the app, translation is handled by a function, ``_translate()``, which takes a string argument. (The standard name is ``_()``, but unfortunately this conflicts with _ as used in some external packages that PsychoPy depends on.) The ``_translate()`` function returns a translated, unicode version of the string in the locale / language that was selected when starting the app. If no translation is available for that locale, the original string is returned (= English).
 
-A locale setting (e.g., 'ja_JP' for Japanese) allows the end-user (= the experimenter) to control the langauge that will be used for display within the app itself. (It can potentially control other display conventions as well, not just the language.) PsychoPy will obtain the locale from the user preference (if set), or the OS.
+A locale setting (e.g., 'ja_JP' for Japanese) allows the end-user (= the experimenter) to control the language that will be used for display within the app itself. (It can potentially control other display conventions as well, not just the language.) PsychoPy will obtain the locale from the user preference (if set), or the OS.
 
 Workflow: 1) Make a translation from English (en_US) to another language. You'll need a strong understanding of PsychoPy, English, and the other language. 2) In some cases it will be necessary to adjust PsychoPy's code, but only if new code has been added to the app and that code displays text. Then re-do step 1 to translate the newly added strings.
 
@@ -14,7 +14,7 @@ See notes in ``psychopy/app/localization/readme.txt``.
 Make a translation (.po file)
 ------------------------------
 
-As a translator, you will likely introduce many new people to PsychoPy, and your translations will greatly influence their experience. Try to be completely accurate; its better to leave something in English if you are unsure how PsychoPy is supposed to work.
+As a translator, you will likely introduce many new people to PsychoPy, and your translations will greatly influence their experience. Try to be completely accurate; it is better to leave something in English if you are unsure how PsychoPy is supposed to work.
 
 To translate a given language, you'll need to know the standard 5-character code (see `psychopy/app/localization/mappings`). E.g., for Japanese, wherever LANG appears in the documentation here, you should use the actual code, i.e., "ja_JP" (without quotes).
 
@@ -43,7 +43,7 @@ A free app called poedit is useful for managing a translation. For a given langu
 
 - If there are formatting arguments in the original string (``%s``, ``%(first)i``), the same number of arguments must also appear in the translation (but their order is not constrained to be the original order). If they are named (e.g., ``%(first)i``), that part should not be translated--here ``first`` is a python name.
 
-- If you think your translation might have room for improvement, indicate that its "fuzzy". (Saving Notes does not work for me on Mac, seems like a bug in poedit.)
+- If you think your translation might have room for improvement, indicate that it is "fuzzy". (Saving Notes does not work for me on Mac, seems like a bug in poedit.)
 
 - After making a new translation, saving it in poedit will save the .po file and also make an associated .mo file. You need to update the .mo file if you want to see your changes reflected in PsychoPy.
 
@@ -69,7 +69,7 @@ There are a few things to keep in mind when working on the app's code to make it
 
 - Basic usage is exactly what you expect: ``_translate("hello")`` will return a unicode string at run-time, using mappings for the current locale as provided by a translator in a .mo file. (Not all translations are available yet, see above to start a new one.) To have the app display a translated string to the experimenter, just display the return value from the underscore translation function.
 
-- The strings to be translated must appear somewhere in the app code base as explicit strings within ``_translate()``. If you need to translate a variable, e.g., named ``str_var`` using the expression ``_translate(str_var)``, somewhere else you need to explicitly give all the possible values that ``str_var`` can take, and enclose each of them within the translate function. Its okay for that to be elsewhere, even in another file, but not in a comment. This allows poedit to discover of all the strings that need to be translated. (This is one of the purposes of the `_localized` dict at the top of some modules.)
+- The strings to be translated must appear somewhere in the app code base as explicit strings within ``_translate()``. If you need to translate a variable, e.g., named ``str_var`` using the expression ``_translate(str_var)``, somewhere else you need to explicitly give all the possible values that ``str_var`` can take, and enclose each of them within the translate function. It is okay for that to be elsewhere, even in another file, but not in a comment. This allows poedit to discover of all the strings that need to be translated. (This is one of the purposes of the `_localized` dict at the top of some modules.)
 
 - ``_translate()`` should not be given a null string to translate; if you use a variable, check that it is not '' to avoid invoking ``_translate('')``.
 

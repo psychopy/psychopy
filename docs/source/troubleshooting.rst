@@ -83,7 +83,7 @@ On OS X and Linux the files are::
     ~/.psychopy2/appData.cfg
     ~/.psychopy2/userPrefs.cfg
 
-On windows they are::
+On Windows they are::
 
     ${DOCS AND SETTINGS}\{USER}\Application Data\psychopy2\appData.cfg
     ${DOCS AND SETTINGS}\{USER}\Application Data\psychopy2\userPrefs.cfg

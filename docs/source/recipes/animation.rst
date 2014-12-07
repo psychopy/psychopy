@@ -41,7 +41,7 @@ Fade-in / fade-out effects
 
 Key idea: vary the **opacity** of the stimulus over frames.
 
-Question:  I'd like to present an image with the image appearing progressively and disappearing progressively too. How to do that?
+Question: I'd like to present an image with the image appearing progressively and disappearing progressively too. How to do that?
 
 Answer: The Patch stimulus has an opacity field.  Set the button next to it to be "set every frame" so that its value can be changed progressively, and enter an equation in the box that does what you want.
 

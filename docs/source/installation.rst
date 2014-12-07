@@ -34,7 +34,7 @@ Windows
 
 Once installed, you'll now find a link to the PsychoPy application in > Start > Programs > PsychoPy2. Click that and the Configuration Wizard should start. 
 
-The wizard will try to make sure you have reasonably current drivers for your graphics card. You may be directed to download the latest drivers from the vendor, rather than using the pre-installed windows drivers. If necessary, get new drivers directly from the graphics card vendor; don't rely on Windows updates. The windows-supplied drivers are buggy and sometimes don't support OpenGL at all.
+The wizard will try to make sure you have reasonably current drivers for your graphics card. You may be directed to download the latest drivers from the vendor, rather than using the pre-installed Windows drivers. If necessary, get new drivers directly from the graphics card vendor; don't rely on Windows updates. The Windows-supplied drivers are buggy and sometimes don't support OpenGL at all.
 
 The StandAlone installer adds the PsychoPy folder to your path, so you can run the included version of python from the command line. If you have your own version of python installed as well then you need to check which one is run by default, and change your path according to your personal preferences.
 
