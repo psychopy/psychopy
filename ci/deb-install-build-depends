@@ -12,8 +12,15 @@ sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
 sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-mock python-wxgtk2.8 libavbin0 python-pyo
 sudo apt-get install -qq python-yaml python-xlib
 sudo apt-get install -qq flac
-#sudo apt-get install -qq language-pack-en-base  # English locales
-sudo apt-get install -qq language-pack-ja-base  # Japanese locale
+
+case $DIST in
+ ubuntu|native)
+	sudo apt-get install -qq language-pack-ja-base  # Japanese locale
+	;;
+ debian)
+	# not sure which one yet -- what is the need?
+	;;
+esac
 
 # sudo dpkg-reconfigure locales
 # locale -a       # list available locales

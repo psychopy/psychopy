@@ -6,6 +6,7 @@ exclude_tests="not needs_sound"
 if [ "$COVERAGE" != "1" ]; then
    echo "I: running tests"
    xvfb-run -s "$xvfb_options" \
+    python \
     psychopy/tests/runPytest.py -v -s -m "$exclude_tests"
 else
    echo "I: running tests with coverage"
