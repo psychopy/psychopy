@@ -25,7 +25,7 @@ Building stimuli is extremely easy. All you need to do is create a
 
     from psychopy import visual, core  # import some libraries from PsychoPy
 
-	#create a window
+    #create a window
     mywin = visual.Window([800,600], monitor="testMonitor", units="deg")
 
     #create some stimuli

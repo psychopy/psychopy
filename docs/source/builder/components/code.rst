@@ -103,9 +103,9 @@ Selected contents of `the numpy library and numpy.random <http://docs.scipy.org/
     
     - `linspace() <http://docs.scipy.org/doc/numpy/reference/generated/numpy.linspace.html>`_: Create an array of linearly spaced values.
     
-    - `log()`, `log10()`: The natural and base-10 log functions, respectively. (Its a lowercase-L in log).
+    - `log()`, `log10()`: The natural and base-10 log functions, respectively. (It is a lowercase-L in log).
     
-    - `sum()`, `len()`: For the sum and length of a list or array. To find an average, its better to use `average()` (due to the potential for integer division issues with `sum()/len()` ).
+    - `sum()`, `len()`: For the sum and length of a list or array. To find an average, it is better to use `average()` (due to the potential for integer division issues with `sum()/len()` ).
     
     - `average()`, `sqrt()`, `std()`: For average (mean), square root, and standard deviation, respectively. **Note:** Be sure that the numpy standard deviation formula is the one you want!
     

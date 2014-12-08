@@ -21,7 +21,7 @@ Writing optimal scripts
 
    #. run in full-screen mode (rather than simply filling the screen with your window). This way the OS doesn't have to spend time working out what application is currently getting keyboard/mouse events.
    #. don't generate your stimuli when you need them. Generate them in advance and then just modify them later with the methods like setContrast(), setOrientation() etc...
-   #. calls to the following functions are comparatively slow; they require more cpu time than most other functions and then have to send a large amount of data to the graphics card. Try to use these methods in inter-trial intervals. This is especially true when you need to load an image from disk too as the texture.
+   #. calls to the following functions are comparatively slow; they require more CPU time than most other functions and then have to send a large amount of data to the graphics card. Try to use these methods in inter-trial intervals. This is especially true when you need to load an image from disk too as the texture.
          #. GratingStim.setTexture()
          #. RadialStim.setTexture()
          #. TextStim.setText()

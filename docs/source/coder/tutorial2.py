@@ -30,7 +30,7 @@ staircase = data.StairHandler(startVal = 20.0,
 #create window and stimuli
 win = visual.Window([800,600],allowGUI=True, monitor='testMonitor', units='deg')
 foil = visual.GratingStim(win, sf=1, size=4, mask='gauss', ori=expInfo['refOrientation'])
-target = visual.GratingStim(win, sf=1,  size=4, mask='gauss', ori=expInfo['refOrientation'])
+target = visual.GratingStim(win, sf=1, size=4, mask='gauss', ori=expInfo['refOrientation'])
 fixation = visual.GratingStim(win, color=-1, colorSpace='rgb', tex=None, mask='circle',size=0.2)
 #and some handy clocks to keep track of time
 globalClock = core.Clock()

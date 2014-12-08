@@ -16,20 +16,20 @@ There are three main steps, the first being by far the most involved.
 1. File: newcomp.py
 -------------------
 
-Its pretty straightforward to model a new Component on one of the existing ones. Be prepared to specify what your Component needs to do at several different points in time: before the first trial, every frame, at the end of each routine, and at the end of the experiment. In addition, you may need to sacrifice some complexity in order to keep things streamlined enough for a Builder (see e.g., ratingscale.py).
+It's pretty straightforward to model a new Component on one of the existing ones. Be prepared to specify what your Component needs to do at several different points in time: before the first trial, every frame, at the end of each routine, and at the end of the experiment. In addition, you may need to sacrifice some complexity in order to keep things streamlined enough for a Builder (see e.g., ratingscale.py).
 
-Your new Component class (in your file `newcomp.py`) should inherit from BaseComponent (in _base.py), VisualComponent (in _visual.py), or KeyboardComponent(in keyboard.py). You may need to rewrite some or all some of these methods, to override default behavior.::
+Your new Component class (in your file `newcomp.py`) should inherit from BaseComponent (in _base.py), VisualComponent (in _visual.py), or KeyboardComponent (in keyboard.py). You may need to rewrite some or all some of these methods, to override default behavior.::
 
     class NewcompComponent(BaseComponent): # or (VisualComponent)
         def __init__(...):
-            super(NewcompComponent, self)__init__(...):
+            super(NewcompComponent, self).__init__(...)
                 ...
         def writeInitCode(self, buff):
         def writeRoutineStartCode(self, buff):
         def writeFrameCode(self, buff):
         def writeRoutineEndCode(self, buff):
 
-Calling `super()` will create the basic default set of `params` that almost every component will need: `name`, `startVal`, `startType`, etc. Some of these fields may need to be overridden (e.g., `durationEstim` in sound.py). Inheriting from VisualComponent (which in turn inherits from Base) adds default visual params, plus arranges for Builder scripts to import `psychopy.visual`. If your component will need other libs, call `self.exp.requirePsychopyLib(['neededLib'])` (see e.g., parallelPort.py).
+Calling `super()` will create the basic default set of `params` that almost every component will need: `name`, `startVal`, `startType`, etc. Some of these fields may need to be overridden (e.g., `durationEstim` in sound.py). Inheriting from VisualComponent (which in turn inherits from BaseComponent) adds default visual params, plus arranges for Builder scripts to import `psychopy.visual`. If your component will need other libs, call `self.exp.requirePsychopyLib(['neededLib'])` (see e.g., parallelPort.py).
 
 At the top of a component file is a dict named `_localized`. These mappings allow a strict separation of internal string values (= used in logic, never displayed) from values used for display in the Builder interface (= for display only, possibly translated, never used in logic). The `.hint` and `.label` fields of `params['someParam']` should always be set to a localized value, either by using a dict entry such as `_localized['message']`, or via the globally available translation function, `_('message')`. Localized values must **not** be used elsewhere in a component definition.
 
@@ -64,9 +64,9 @@ Yet other names get derived from user-entered names, like trials --> thisTrial.
 
 self.params is a key construct that you build up in __init__. You need name, startTime, duration, and several other params to be defined or you get errors. 'name' should be of type 'code'.
 
-The Param() class is defined in `psychopy.app.builder.experiment.Param()`. A very useful thing that Param's know is how to create a string suitable for writing into the .py script. In particular, the `__str__` representation of a Param will format its value (`.val`) based on its type (`.valType`) appropriately. This means that you don't need to check or handle whether the user entered a plain string, a string with a code trigger character ($), or the field was of type `code` in the first place. If you simply request the `str()` representation of the param, it is formatted correctly.
+The Param() class is defined in `psychopy.app.builder.experiment.Param()`. A very useful thing that Params know is how to create a string suitable for writing into the .py script. In particular, the `__str__` representation of a Param will format its value (`.val`) based on its type (`.valType`) appropriately. This means that you don't need to check or handle whether the user entered a plain string, a string with a code trigger character ($), or the field was of type `code` in the first place. If you simply request the `str()` representation of the param, it is formatted correctly.
 
-To indicate that a param (eg, `thisParam`) should be considered as an advanced feature, set its category to advanced: `self.params['thisParam'].categ = 'Advanced`. Then the GUI shown to the experimenter will place it on the 'Advanced' tab. Other categories work similarly (`Custom`, etc).
+To indicate that a param (eg, `thisParam`) should be considered as an advanced feature, set its category to advanced: `self.params['thisParam'].categ = 'Advanced'`. Then the GUI shown to the experimenter will place it on the 'Advanced' tab. Other categories work similarly (`Custom`, etc).
 
 During development, it can sometimes be helpful to save the params into the xxx_lastrun.py file as comments, so I could see what was happening::
 
@@ -90,7 +90,7 @@ Notes & gotchas
     param[].val :
         If you have a boolean variable (e.g., my_flag) as one of your params, note that `self.param["my_flag"]` is always True (the param exists --> True). So in a boolean context you almost always want the `.val` part, e.g., `if self.param["my_flag"].val:`.
 
-        However, you do not always want `.val`. Specifically, in a string/unicode context (= to trigger the self-formatting features of Param()'s), you almost always want `"%s" % self.param['my_flag']`, without `.val`. Note that it's better to do this via `"%s"` than `str()` because `str(self.param["my_flag"])` coerces things to type str (squashing unicode) whereas `%s` works for both str and unicode.
+        However, you do not always want `.val`. Specifically, in a string/unicode context (= to trigger the self-formatting features of Param()s), you almost always want `"%s" % self.param['my_flag']`, without `.val`. Note that it's better to do this via `"%s"` than `str()` because `str(self.param["my_flag"])` coerces things to type str (squashing unicode) whereas `%s` works for both str and unicode.
 
 
 2. Icon: newcomp.png

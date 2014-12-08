@@ -62,7 +62,7 @@ and then insert the following into the `Begin Routine` section (this will get ru
 Draw your message to the screen
 -------------------------------------
 
-Using one of the above methods to generate you `msg` in a :ref:`code`, you then need to present it to the participant by adding a :ref:`text` to your `feedback` Routine and setting its text to `$msg`. 
+Using one of the above methods to generate your `msg` in a :ref:`code`, you then need to present it to the participant by adding a :ref:`text` to your `feedback` Routine and setting its text to `$msg`.
 
 .. warning::
 
