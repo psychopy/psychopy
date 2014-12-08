@@ -4,16 +4,34 @@ language: python
 python:
   - "2.7"
 env:
+ global:
+  - NEURODEBIAN=1
  matrix:
-  - COVERAGE=1
+  # Do not be greedy and enable all at once -- free public services
+  # might start puking into your face.  Select known to
+  # fail/representative set:
+  #- DIST=debian REL=wheezy ARCH=i386
+  - DIST=debian REL=wheezy ARCH=amd64
+  - DIST=debian REL=jessie ARCH=i386
+  #- DIST=debian REL=jessie ARCH=amd64
+  #- DIST=debian REL=sid ARCH=i386
+  - DIST=debian REL=sid ARCH=amd64 COVERAGE=1
+  #- DIST=ubuntu REL=precise ARCH=i386
+  - DIST=ubuntu REL=precise ARCH=amd64
+  #- DIST=ubuntu REL=saucy ARCH=i386
+  #- DIST=ubuntu REL=saucy ARCH=amd64
+  #- DIST=ubuntu REL=trusty ARCH=i386
+  - DIST=ubuntu REL=trusty ARCH=amd64
 virtualenv:
   system_site_packages: true
 before_install:
-  - ci/deb-install-build-depends
-  - ci/deb-install-build-depends-pip
+  - wget -q http://neuro.debian.net/travis-chroot
+  - chmod +x travis-chroot
+  - ./travis-chroot run ci/deb-install-build-depends
+  - ./travis-chroot run ci/deb-install-build-depends-pip
 install:
-  - flac -version
+  - ./travis-chroot run flac -version
 script:
-  - ci/run-tests
+  - ./travis-chroot run ci/run-tests
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi
+  - ./travis-chroot run ci/report-coverage
