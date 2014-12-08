@@ -497,7 +497,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         except:
             #import traceback
             #traceback.print_exc()
-            logging.WARNING("MovieStim2.getTimeToNextFrameDraw failed.")
+            logging.warning("MovieStim2.getTimeToNextFrameDraw failed.")
             return 0.0
 
     def shouldDrawVideoFrame(self):
@@ -647,6 +647,8 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         GL.glPopClientAttrib()
         GL.glPopAttrib()
         GL.glPopMatrix()
+        #GL.glActiveTexture(0)
+        #GL.glDisable(GL.GL_TEXTURE_2D)
         if return_next_frame_index:
             self.win.callOnFlip(self._flipCallback)
             return self._next_frame_index

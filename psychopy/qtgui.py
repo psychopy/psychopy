@@ -278,7 +278,6 @@ class Dlg(QtGui.QDialog):
 
         :return: self.data
         """
-        QtGui.QDialog.show(self)
         return self.display()
 
     def exec_(self):
@@ -292,16 +291,16 @@ class Dlg(QtGui.QDialog):
         self.layout.addWidget(self.buttonBox, self.irow, 0, 1, 2)
 
         # Center Dialog on appropriate screen
-        # TODO: Check that this is working right, may not be vertically
-        desktop = QtGui.QDesktopWidget()
+        frameGm = self.frameGeometry()
+        desktop = QtGui.QApplication.desktop()
         qtscreen = self.screen
         if self.screen <= 0:
             qtscreen = desktop.primaryScreen()
-        screen_center = desktop.screenGeometry(qtscreen).center()
-        qr = self.frameGeometry()
-        self.move(screen_center.x() - qr.width() / 4,
-                  screen_center.y() - qr.height() / 4)
+        centerPoint = desktop.screenGeometry(qtscreen).center()
+        frameGm.moveCenter(centerPoint)
+        self.move(frameGm.topLeft())
 
+        QtGui.QDialog.show(self)
         self.raise_()
         self.activateWindow()
 
@@ -394,6 +393,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
                   "shelved files (*.shelf)"
     global qtapp  # avoid recreating for every gui
     qtapp = ensureQtApp()
+
     r = QtGui.QFileDialog.getSaveFileName(parent=None,
                                           caption=prompt,
                                           directory=os.path.join(initFilePath,
