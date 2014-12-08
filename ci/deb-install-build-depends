@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Enable NeuroDebian
+bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
+
+echo "I: available repositories"
+apt-cache policy           # What is actually available?
+
+sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
+sudo apt-get install -qq python-pyglet python-pygame python-opengl
+sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
+sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-mock python-wxgtk2.8 libavbin0 python-pyo
+sudo apt-get install -qq python-yaml python-xlib
+sudo apt-get install -qq flac
+#sudo apt-get install -qq language-pack-en-base  # English locales
+sudo apt-get install -qq language-pack-ja-base  # Japanese locale
+
+# sudo dpkg-reconfigure locales
+# locale -a       # list available locales
+
+pip install gevent # Don't use apt-get (too old version of gevent)
+pip install -qq psutil # Don't use apt-get (too old version of psutil)
+pip install msgpack-python #not apt-get (no permissions for universe)

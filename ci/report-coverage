@@ -1,0 +1,3 @@
+#!/bin/bash
+
+[ "$COVERAGE" != 1 ] || coveralls

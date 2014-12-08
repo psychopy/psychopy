@@ -1,0 +1,10 @@
+#!/bin/bash
+# Additional pieces which could have come from deb but not ATM for
+# various reasons, and instead comes via pip
+
+pip install gevent     # Don't use apt-get (too old version of gevent)
+pip install psutil # Don't use apt-get (too old version of psutil)
+pip install msgpack-python #not apt-get (no permissions for universe)
+pip install pyserial pycrsltd
+
+[ "$COVERAGE" != "1" ] || pip install -q coveralls
