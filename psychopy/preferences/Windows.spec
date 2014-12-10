@@ -75,8 +75,11 @@
     codeFontSize = integer(6,24, default=10)
     # Font size (in pts) takes an integer between 6 and 24
     outputFontSize = integer(6,24, default=10)
+    # activate the source assistant panel
     showSourceAsst = boolean(default=False)
+    # activate the output and shell panels
     showOutput = boolean(default=True)
+    # reload previously opened files after start
     reloadPrevFiles = boolean(default=True)
     # for coder shell window, which shell to use
     preferredShell = option('ipython','pyshell',default='pyshell')
@@ -110,7 +113,7 @@
     proxy = string(default="")
     # override the above proxy settings with values found in the environment (if possible)
     autoProxy = boolean(default=True)
-    # allow PsychoPy to send anonymous usage stats; please allow if possible, its helps PsychoPy's development
+    # allow PsychoPy to send anonymous usage stats; please allow if possible, it helps PsychoPy's development
     allowUsageStats = boolean(default=True)
     # allow PsychoPy to check for new features and bug fixes
     checkForUpdates = boolean(default=True)
@@ -178,6 +181,7 @@
     toggleWhitespace = string(default='Ctrl+Shift+W')
     # Coder: show / hide end of line characters
     toggleEOLs = string(default='Ctrl+Shift+L')
+    # Coder: show / hide indentation level lines
     toggleIndentGuides = string(default='Ctrl+Shift+I')
 
     # Builder: create a new routine
