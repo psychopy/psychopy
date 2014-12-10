@@ -1,8 +1,7 @@
 # vim ft=yaml
 # travis-ci.org and coveralls definition for PsychoPy tests
-language: python
-python:
-  - "2.7"
+# Using erlang to avoid any interferance with python within chroots
+language: erlang
 env:
  global:
   - NEURODEBIAN=1
