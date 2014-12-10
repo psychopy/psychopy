@@ -6,6 +6,7 @@ bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
 echo "I: available repositories"
 apt-cache policy           # What is actually available?
 
+sudo apt-get build-dep psychopy python-wxversion # should capture the majority of build-depends
 sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
 sudo apt-get install -qq python-pip python-pyglet python-pygame python-opengl
 sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
