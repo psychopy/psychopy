@@ -23,6 +23,11 @@ case $DIST in
 	;;
 esac
 
+sudo apt-get install lsof
+echo "Mounts"
+sudo mount
+sudo lsof | grep '/dev'
+
 # sudo dpkg-reconfigure locales
 # locale -a       # list available locales
 
