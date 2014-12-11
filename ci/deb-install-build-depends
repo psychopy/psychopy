@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Enable NeuroDebian
+bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
+
+echo "I: available repositories"
+apt-cache policy           # What is actually available?
+
+sudo apt-get build-dep psychopy python-wxversion # should capture the majority of build-depends
+sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
+sudo apt-get install -qq python-pip python-pyglet python-pygame python-opengl
+sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
+sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-mock python-wxgtk2.8 libavbin0 python-pyo
+sudo apt-get install -qq python-yaml python-xlib
+sudo apt-get install -qq flac
+
+case $DIST in
+ ubuntu|native)
+	sudo apt-get install -qq language-pack-ja-base  # Japanese locale
+	;;
+ debian)
+    sudo bash -c "echo 'ja_JP.UTF-8 UTF-8' >> /etc/locale.gen'"
+    sudo apt-get install locales
+    sudo dpkg-reconfigure locales
+	# not sure which one yet -- what is the need?
+	;;
+esac
+
+sudo apt-get install lsof
+echo "Mounts"
+sudo mount
+sudo lsof | grep '/dev'
+
+# sudo dpkg-reconfigure locales
+# locale -a       # list available locales
+

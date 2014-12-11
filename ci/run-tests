@@ -1,0 +1,16 @@
+#!/bin/bash
+
+xvfb_options="-screen 0 1024x768x24 -ac +extension GLX +render -noreset"
+exclude_tests="not needs_sound"
+
+if [ "$COVERAGE" != "1" ]; then
+   echo "I: running tests"
+   xvfb-run -s "$xvfb_options" \
+    python \
+    psychopy/tests/runPytest.py -s -m "$exclude_tests"
+else
+   echo "I: running tests with coverage"
+   xvfb-run -s "$xvfb_options" \
+    coverage run --rcfile=.travis_coveragerc \
+    psychopy/tests/runPytest.py -s -m "$exclude_tests"
+fi

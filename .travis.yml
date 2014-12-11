@@ -1,37 +1,36 @@
 # vim ft=yaml
 # travis-ci.org and coveralls definition for PsychoPy tests
-language: python
-python:
-  - "2.7"
+# Using erlang to avoid any interferance with python within chroots
+language: erlang
+env:
+ global:
+  - NEURODEBIAN=1
+ matrix:
+  # Do not be greedy and enable all at once -- free public services
+  # might start puking into your face.  Select known to
+  # fail/representative set:
+  #- DIST=debian REL=wheezy ARCH=i386
+  - DIST=debian REL=wheezy ARCH=amd64
+  - DIST=debian REL=jessie ARCH=i386
+  #- DIST=debian REL=jessie ARCH=amd64
+  #- DIST=debian REL=sid ARCH=i386
+  - DIST=debian REL=sid ARCH=amd64 COVERAGE=1
+  #- DIST=ubuntu REL=precise ARCH=i386
+  - DIST=ubuntu REL=precise ARCH=amd64
+  #- DIST=ubuntu REL=saucy ARCH=i386
+  #- DIST=ubuntu REL=saucy ARCH=amd64
+  #- DIST=ubuntu REL=trusty ARCH=i386
+  - DIST=ubuntu REL=trusty ARCH=amd64
 virtualenv:
   system_site_packages: true
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install lsb-release
-  - source /etc/lsb-release
-  - echo ${DISTRIB_CODENAME}
-  - wget -O- http://neuro.debian.net/lists/${DISTRIB_CODENAME}.us-nh.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
-  - wget -q -O- http://neuro.debian.net/_static/neuro.debian.net.asc | sudo apt-key add -
-  - travis_retry sudo apt-get update -qq
-  - sudo apt-cache policy           # What is actually available?
-  - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
-  - travis_retry sudo apt-get install -qq python-pyglet python-pygame python-opengl
-  - travis_retry sudo pip install gevent # Don't use apt-get (too old version of gevent)
-  - travis_retry sudo apt-get install -qq python-yaml python-xlib
-  - travis_retry sudo pip install -qq psutil # Don't use apt-get (too old version of psutil)
-  - travis_retry sudo pip install msgpack-python #not apt-get (no permissions for universe)
-  - travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
-  - travis_retry sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-mock python-wxgtk2.8 libavbin0 python-pyo
+  - wget -q http://neuro.debian.net/travis-chroot
+  - chmod +x travis-chroot
+  - ./travis-chroot run ci/deb-install-build-depends
+  - ./travis-chroot run ci/deb-install-build-depends-pip
 install:
-  - travis_retry sudo apt-get install -qq flac
-  - flac -version
-  #- travis_retry sudo apt-get install -qq language-pack-en-base  # English locales
-  - travis_retry sudo apt-get install -qq language-pack-ja-base  # Japanese locale
-  #- sudo dpkg-reconfigure locales
-  #- locale -a       # list available locales
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install -q coveralls; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install -q pyserial pycrsltd; fi
+  - ./travis-chroot run flac -version
 script:
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then xvfb-run -s "-screen 0 1024x768x24 -ac +extension GLX +render -noreset" coverage run --rcfile=.travis_coveragerc psychopy/tests/runPytest.py -v -s -m "not needs_sound"; else { echo "TODO while avoiding duplication"; exit 1; } fi
+  - ./travis-chroot run ci/run-tests
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi
+  - ./travis-chroot run ci/report-coverage
