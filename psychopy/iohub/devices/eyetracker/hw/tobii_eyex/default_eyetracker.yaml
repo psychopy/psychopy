@@ -1,0 +1,83 @@
+eyetracker.hw.tobii_eyex.EyeTracker:
+    # Indicates if the device should actually be loaded at experiment runtime.
+    enable: True
+
+    # The variable name of the device that will be used to access the ioHub Device class
+    # during experiment run-time, via the devices.[name] attribute of the ioHub
+    # connection or experiment runtime class.
+    name: tracker
+
+    # Should eye tracker events be saved to the ioHub DataStore file when the device
+    # is recording data ?
+    save_events: True
+
+    # Should eye tracker events be sent to the Experiment process when the device
+    # is recording data ?
+    stream_events: True
+
+    # How many eye events (including samples) should be saved in the ioHub event buffer before
+    # old eye events start being replaced by new events. When the event buffer reaches
+    # the maximum event length of the buffer defined here, older events will start to be dropped.
+    event_buffer_length: 1024
+
+    # The Tobii implementation of the common eye tracker interface supports the
+    # BinocularEyeSampleEvent event type.
+    monitor_event_types: [ BinocularEyeSampleEvent,]
+
+    # The model name of the Tobii device that you wish to connect to can be specified here,
+    # and only Tobii systems matching that model name will be considered as possible candidates for connection.
+    # If you only have one Tobii system connected to the computer, this field can just be left empty.
+    model_name:
+
+    # The serial number of the Tobii device that you wish to connect to can be specified here,
+    # and only the Tobii system matching that serial number will be connected to, if found.
+    # If you only have one Tobii system connected to the computer, this field can just be left empty,
+    # in which case the first Tobii device found will be connected to.
+    serial_number:
+
+    calibration:
+        # TODO
+        # Should the PsychoPy Window created by the PsychoPy Process be minimized
+        # before displaying the Calibration Window created by the ioHub Process.
+        #
+        minimize_psychopy_win: False
+
+        # The Tobii ioHub Common Eye Tracker Interface currently support 
+        # a 3, 5 and 9 point calibration mode.
+        # THREE_POINTS,FIVE_POINTS,NINE_POINTS
+        #
+        type: NINE_POINTS
+
+        # Should the target positions be randomized?
+        #
+        randomize: True
+
+    runtime_settings:
+        # TODO: Does the EyeX support others?
+        sampling_rate: 60
+
+        # TODO: Tobii EyeX may support more than BINOCULAR tracking mode.
+        track_eyes: BINOCULAR
+            
+    # manufacturer_name is used to store the name of the maker of the eye tracking
+    # device. This is for informational purposes only.
+    manufacturer_name: Tobii Technology
+    
+    model_number: Tobii EyeX
+    
+    # Do not change this value.
+    auto_report_events: False
+    
+    # The below parameters are not used by the Tobii common eye tracker
+    # interface implementation. They can be ignored an left out of your
+    # device configuration, or you can complete any ones that are relevent for FYI
+    # purposes only at this time.
+    device_number: 0
+    
+    manufacture_date: DD-MM-YYYY
+    
+    software_version: N/A
+    
+    hardware_version: N/A
+    
+    firmware_version: N/A
