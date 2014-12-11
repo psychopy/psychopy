@@ -19,6 +19,9 @@ case $DIST in
 	sudo apt-get install -qq language-pack-ja-base  # Japanese locale
 	;;
  debian)
+    sudo bash -c "echo 'ja_JP.UTF-8 UTF-8' >> /etc/locale.gen'"
+    sudo apt-get install locales
+    sudo dpkg-reconfigure locales
 	# not sure which one yet -- what is the need?
 	;;
 esac
