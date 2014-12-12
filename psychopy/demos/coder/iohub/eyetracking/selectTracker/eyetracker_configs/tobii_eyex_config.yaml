@@ -1,0 +1,6 @@
+# Tobii EyeX
+monitor_devices:
+    - eyetracker.hw.tobii_eyex.EyeTracker:
+        enable: True
+        name: tracker
+
