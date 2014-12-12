@@ -41,7 +41,6 @@ class EyeTracker(EyeTrackerDevice):
     def __init__(self,*args,**kwargs):        
         EyeTrackerDevice.__init__(self,*args,**kwargs)
 
-        # TODO: New interface doesn't allow choosing a model name and serial number yet
         model_name=self.model_name
         serial_num=self.serial_number
         
@@ -69,11 +68,10 @@ class EyeTracker(EyeTrackerDevice):
             None
             
         Returns:
-            float: current native eye tracker time. (in ???? for the Tobii EyeX)
+            float: current native eye tracker time. (in usec for the Tobii EyeX)
         """
-        if self._tobii:
-            # TODO
-            return self._tobii.getCurrentEyeTrackerTime()
+        if EyeTracker._tobii_start_usec:
+            return EyeTracker._tobii_start_usec + (tobii_marker - EyeTracker._tobii_start_marker)
         return EyeTrackerConstants.EYETRACKER_ERROR
         
     def trackerSec(self):
@@ -86,9 +84,8 @@ class EyeTracker(EyeTrackerDevice):
         Returns:
             float: current native eye tracker time in sec.msec-usec format.
         """
-        if self._tobii:
-            # TODO
-            return self._tobii.getCurrentEyeTrackerTime()*self.DEVICE_TIMEBASE_TO_SEC
+        if EyeTracker._tobii_start_usec:
+            return self.trackerTime()*self.DEVICE_TIMEBASE_TO_SEC
         return EyeTrackerConstants.EYETRACKER_ERROR
 
     def setConnectionState(self,enable):
@@ -331,7 +328,7 @@ class EyeTracker(EyeTrackerDevice):
                     EyeTracker._tobii_start_marker = tobii_marker
                     EyeTracker._tobii_start_usec = logged_usec
 
-                tobii_usec = self._tobii_start_usec + (tobii_marker - EyeTracker._tobii_start_marker)
+                tobii_usec = EyeTracker._tobii_start_usec + (tobii_marker - EyeTracker._tobii_start_marker)
                 tobii_event_time = tobii_usec * self.DEVICE_TIMEBASE_TO_SEC
                 
                 data_delay = tobii_usec - logged_usec
@@ -339,7 +336,7 @@ class EyeTracker(EyeTrackerDevice):
                 iohub_event_time = (logged_usec - data_delay) * self.DEVICE_TIMEBASE_TO_SEC # in sec.msec_usec
 
                 data_delay = data_delay * self.DEVICE_TIMEBASE_TO_SEC
-                print2err("data delay in sec: %g" % data_delay)
+                #print2err("data delay: %gms" % (data_delay * 1000))
                 
                 self._addNativeEventToBuffer((logged_sec,tobii_event_time,iohub_event_time,data_delay,eye_data_event))
                 return True
@@ -369,32 +366,33 @@ class EyeTracker(EyeTrackerDevice):
         try:
             logged_time,device_event_time,iohub_event_time,data_delay,eye_data_event=native_event_data
             
-            # TODO: Don't use binocular every time, sometimes driver reports only left and sometimes only right
+
             event_type=EventConstants.BINOCULAR_EYE_SAMPLE
 
             left_eye = eye_data_event.left.gaze_point_on_display_normalized
             right_eye = eye_data_event.right.gaze_point_on_display_normalized
             left_gaze_x=left_eye.x
             left_gaze_y=left_eye.y
+            left_gaze_z=left_eye.z
             right_gaze_x=right_eye.x
             right_gaze_y=right_eye.y
+            right_gaze_z=right_eye.z
     
-            # TODO
             if left_gaze_x != -1 and left_gaze_y != -1:
                 left_gaze_x,left_gaze_y=self._eyeTrackerToDisplayCoords((left_gaze_x,left_gaze_y))
 
             if right_gaze_x != -1 and right_gaze_y != -1:
                 right_gaze_x,right_gaze_y=self._eyeTrackerToDisplayCoords((right_gaze_x,right_gaze_y))
 
+
             status=0
-            # TODO: Not sure how this status should be affected in new world
-            #if eye_data_event.LeftValidity>=2:
-            #    status+=20
-            #if eye_data_event.RightValidity>=2:
-            #    status+=2
-            
-            # TODO: Does Tobii driver supply current time error?
+
             confidenceInterval=0.0 
+
+            # NOTE: Not 100% sure what confidence interval should be. I see the irony.
+            if self._latest_sample is not None:
+                confidenceInterval = device_event_time - self._latest_sample[5]
+
             binocSample=[
                          0,
                          0,
@@ -409,7 +407,7 @@ class EyeTracker(EyeTrackerDevice):
                          0, # filtered id (always 0 right now)
                          left_gaze_x,
                          left_gaze_y,
-                         EyeTrackerConstants.UNDEFINED, # Left Eye Angle z
+                         left_gaze_z,
                          eye_data_event.left.eye_position_from_eye_tracker_mm.x,
                          eye_data_event.left.eye_position_from_eye_tracker_mm.y,
                          eye_data_event.left.eye_position_from_eye_tracker_mm.z,
@@ -428,7 +426,7 @@ class EyeTracker(EyeTrackerDevice):
                          EyeTrackerConstants.UNDEFINED, # Left velocity xy
                          right_gaze_x,
                          right_gaze_y,
-                         EyeTrackerConstants.UNDEFINED, # Right Eye Angle z 
+                         right_gaze_z,
                          eye_data_event.right.eye_position_from_eye_tracker_mm.x,
                          eye_data_event.right.eye_position_from_eye_tracker_mm.y,
                          eye_data_event.right.eye_position_from_eye_tracker_mm.z,
@@ -452,17 +450,6 @@ class EyeTracker(EyeTrackerDevice):
             
             self._latest_gaze_position=[left_gaze_x,left_gaze_y]
 
-            # TODO: confidence checks
-            #if eye_data_event.LeftValidity>=2 and eye_data_event.RightValidity >=2:
-            #    self._latest_gaze_position=None
-            #elif eye_data_event.LeftValidity<2 and eye_data_event.RightValidity<2:
-            #    self._latest_gaze_position=[(right_gaze_x+left_gaze_x)/2.0,
-            #                                    (right_gaze_y+left_gaze_y)/2.0]
-            #elif eye_data_event.LeftValidity<2:
-            #    self._latest_gaze_position=[left_gaze_x,left_gaze_y]
-            #elif eye_data_event.RightValidity<2:
-            #    self._latest_gaze_position=[right_gaze_x,right_gaze_y]
-    
             self._last_callback_time=logged_time
             
             return binocSample
