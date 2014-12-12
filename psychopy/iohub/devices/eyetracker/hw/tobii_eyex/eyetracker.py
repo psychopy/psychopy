@@ -50,18 +50,14 @@ class EyeTracker(EyeTrackerDevice):
         if serial_num and len(serial_num)==0:
             serial_num = None
                 
-        
         EyeTracker._tobii=None
         try:
             EyeTracker._tobii=interface.TobiiPythonInterface()
         except:
             print2err("Error creating Tobii interface")
             printExceptionDetailsToStdErr()
-        
-        # TODO: Not sure how to set sampling rate yet, defaults to 60
-        #if self._tobii and self._runtime_settings['sampling_rate'] and self._runtime_settings['sampling_rate'] in self._tobii.getAvailableSamplingRates():
-        #    self._tobii.setSamplingRate(self._runtime_settings['sampling_rate'])
     
+        EyeTracker._tobii_start_marker=None
         self._latest_sample=None
         self._latest_gaze_position=None
         
@@ -219,6 +215,7 @@ class EyeTracker(EyeTrackerDevice):
         
         elif self._tobii and recording is False and self.isRecordingEnabled():
             self._tobii.stop_tracking()            
+            EyeTracker._tobii_start_marker=None
             #ioHub.print2err("Stopping Tracking... ")
             self._latest_sample=None
             self._latest_gaze_position=None
@@ -302,7 +299,6 @@ class EyeTracker(EyeTrackerDevice):
         return self._latest_gaze_position
     
     def _setSamplingRate(self,sampling_rate):
-        # TODO: Can the new EyeX drivers do this?
         EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
 
     def _poll(self):
@@ -324,21 +320,28 @@ class EyeTracker(EyeTrackerDevice):
         """
         if self.isReportingEvents():
             try:
-                logged_time_iohub_usec=Computer.getTime()/self.DEVICE_TIMEBASE_TO_SEC
-                logged_time_tobii_local_usec=eye_data_event.timestamp
+                logged_sec = Computer.getTime()
+                logged_usec = logged_sec / self.DEVICE_TIMEBASE_TO_SEC
+
+                tobii_marker = eye_data_event.timestamp
+
+                # This timestamp starts at a random number of microseconds so we need to track when we started
+                # Nothing we can really do about drift
+                if EyeTracker._tobii_start_marker is None:
+                    EyeTracker._tobii_start_marker = tobii_marker
+                    EyeTracker._tobii_start_usec = logged_usec
+
+                tobii_usec = self._tobii_start_usec + (tobii_marker - EyeTracker._tobii_start_marker)
+                tobii_event_time = tobii_usec * self.DEVICE_TIMEBASE_TO_SEC
                 
-                # TODO: Get a real time from the tracker instead of super-faking it
-                #data_time_in_tobii_local_time=self._tobii._sync_manager.convert_from_remote_to_local(eye_data_event.Timestamp)
-                data_time_in_tobii_local_time=logged_time_iohub_usec
+                data_delay = tobii_usec - logged_usec
                 
-                data_delay=logged_time_tobii_local_usec - data_time_in_tobii_local_time
+                iohub_event_time = (logged_usec - data_delay) * self.DEVICE_TIMEBASE_TO_SEC # in sec.msec_usec
+
+                data_delay = data_delay * self.DEVICE_TIMEBASE_TO_SEC
+                print2err("data delay in sec: %g" % data_delay)
                 
-                logged_time=logged_time_iohub_usec*self.DEVICE_TIMEBASE_TO_SEC
-                device_event_time=data_time_in_tobii_local_time*self.DEVICE_TIMEBASE_TO_SEC
-                iohub_event_time=(logged_time_iohub_usec - data_delay)*self.DEVICE_TIMEBASE_TO_SEC # in sec.msec_usec
-                data_delay=data_delay*self.DEVICE_TIMEBASE_TO_SEC
-                
-                self._addNativeEventToBuffer((logged_time,device_event_time,iohub_event_time,data_delay,eye_data_event))
+                self._addNativeEventToBuffer((logged_sec,tobii_event_time,iohub_event_time,data_delay,eye_data_event))
                 return True
             except:
                 print2err("ERROR IN _handleNativeEvent")
