@@ -22,6 +22,7 @@ before_install:
   - travis_retry sudo pip install msgpack-python #not apt-get (no permissions for universe)
   - travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
   - travis_retry sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-mock python-wxgtk2.8 libavbin0 python-pyo
+  - travis_retry sudo pip install pandas #not apt-get (no permissions for universe)
 install:
   - travis_retry sudo apt-get install -qq flac
   - flac -version
