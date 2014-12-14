@@ -35,7 +35,7 @@ Options:
     -h, --help       prints this help and exit
 
     --firstrun       launches configuration wizard
-    --nosplash       suppresses splash screen
+    --no-splash      suppresses splash screen
 
 """
         sys.exit()
