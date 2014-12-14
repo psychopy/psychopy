@@ -40,7 +40,7 @@ infoCopy = eval(repr(runInfo)) # this works, but the type() of all values is now
 print """If that's more detail than you want, try: runInfo = info.RunTimeInfo(...,verbose=False,...)."""
 
 # To get the same info in python syntax, use "print repr(info)". You could write this format into 
-# a data file, and its fairly readable. And because its python syntax you could later simply 
+# a data file, and it's fairly readable. And because its python syntax you could later simply
 # import your data file into python to reconstruct the dict.
 
 print "\nYou can extract single items from info, using keys, e.g.:"
@@ -62,7 +62,7 @@ try:
             if len(runInfo['systemUserProcFlagged']):
                 print 'other programs running? (command, process-ID):',info['systemUserProcFlagged']
         else: 
-            print """Try defining the window as full-screen (its not currently), i.e. at the top of the demo change to:
+            print """Try defining the window as full-screen (it's not currently), i.e. at the top of the demo change to:
     myWin = visual.Window((800,600), fullscr=True, ...
 and re-run the demo."""
 except:
