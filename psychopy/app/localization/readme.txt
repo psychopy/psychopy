@@ -17,7 +17,7 @@ Intended usage:
       from psychopy.app import localization
     This should be done after importing wx
   - this will: 1) detect the system default or preferred (pref) locale;
-    2) intialize the locale setting globally; and 3) install _() function globally
+    2) initialize the locale setting globally; and 3) install _() function globally
   - currently both the standard gettext and wxPython version are used
 
 Known limitations (July 2014):
@@ -25,7 +25,7 @@ Known limitations (July 2014):
   - PsychoPy uses the nonstandard name, _translate(), to avoid a name conflict with
     a dummy variable _, which is sometimes used as a placeholder when unpacking
     tuples or lists. PsychoPy depends on several packages, and some of them use
-    _ as a dummy variable, which is qutie widespread as a practice, unfortunately.
+    _ as a dummy variable, which is quite widespread as a practice, unfortunately.
   - not sure how right-to-left languages work
   - use for localizing the app (PsychoPy), not for localizing user scripts.
 
@@ -39,7 +39,7 @@ Files:
 Process:
 Do once:
 - edit the .py files to add _translate() around text strings to be localized
-  e.g.:  replace 'Welcome to PsychoPy2!' with _translate('Welcome to PsychoPy2!')
+  e.g.: replace 'Welcome to PsychoPy2!' with _translate('Welcome to PsychoPy2!')
   This process is mostly complete, but might be needed for new code.
 - use poedit to open a specific message catalog (*.po file).
   In poedit "properties", add _translate as one of the "Sources keywords"
@@ -49,7 +49,7 @@ Do once:
   To discover all instances of _translate() and dump to a file messages.pot (name customizable)
     $ python utils/pygettext.py filename.py  BUT: need to signal PsychoPy uses _translate not _
   Or more usefully, from within psychopy/psychopy/app/localization directory:
-    $ find ../.. -name '*.py' | grep -v tests | grep -v localization |  xargs python utils/pygettext.py
+    $ find ../.. -name '*.py' | grep -v tests | grep -v localization | xargs python utils/pygettext.py
 - edit messages.pot manually:
   "Content-Type: text/plain; charset=utf-8\n"
   fill in various fields for the app.
