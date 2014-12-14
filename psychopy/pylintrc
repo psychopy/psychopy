@@ -1,5 +1,5 @@
 # pylint can flag things that might (and only *might*) warrant extra scrutiny.
-# Many issues it finds do not pose a problem, and its best not to change them.
+# Many issues it finds do not pose a problem, and it's best not to change them.
 
 # This rc file is an attempt to be explicit about what coding practices are
 # followed across the psychopy project, and what is worth changing. In general,
