@@ -27,7 +27,7 @@ Cognitive psychology
 
  - Navon (1977) - global/local processing in perception
 
- - branchedExp - OK, this one isn't really an experiment. It just shows how to do branching in the builder
+ - branchedExp - OK, this one isn't really an experiment. It just shows how to do branching in the Builder
 
 Psychophysics studies
 --------------------------
