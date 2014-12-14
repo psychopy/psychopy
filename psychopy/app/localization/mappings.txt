@@ -41,7 +41,7 @@ en_AU ENA
 en_CB ENB
 en_CA ENC
 en_SG ENE
-en_GB ENG English (U. K.)
+en_GB ENG English  (U. K.)
 en_IE ENI
 en_JM ENJ
 en_BZ ENL
@@ -50,9 +50,9 @@ en_IN ENN
 en_PH ENP
 en_ZA ENS
 en_TT ENT
-en_US ENU English (U. S.)
+en_US ENU English  (U. S.)
 en_ZW ENW
-en_NZ ENZ English (New Zealand)
+en_NZ ENZ English  (New Zealand)
 es_PA ESA
 es_BO ESB
 es_CR ESC
@@ -134,7 +134,7 @@ pa_IN PAN
 ps_AF PAS
 pl_PL PLK polski  (Polish)
 pt_BR PTB
-pt_PT PTG português  (Portugese)
+pt_PT PTG português  (Portuguese)
 rm_CH RMC
 ro_RO ROM limba română  (Romanian)
 ru_RU RUS Русский язык  (Russian)
@@ -157,7 +157,7 @@ tn_ZA TSN
 tt_RU TTT
 tk_TM TUK
 ug_CN UIG
-uk_UA UKR Українська  (Ukranian)
+uk_UA UKR Українська  (Ukrainian)
 ur_PK URD
 vi_VN VIT
 wo_SN WOL
