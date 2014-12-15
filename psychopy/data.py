@@ -1235,6 +1235,8 @@ class TrialHandler(_BaseTrialHandler):
         if f != sys.stdout:
             f.close()
             logging.info('saved wide-format data to %s' %f.name)
+            
+        df= df.convert_objects() # Converts numbers to numeric, such as float64, boolean to bool. Otherwise they all are "object" type, i.e. strings
         return df
         
     def addData(self, thisType, value, position=None):
