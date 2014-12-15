@@ -415,7 +415,7 @@ class PsychoPyApp(wx.App):
             self.newBuilderFrame(fileName=fileName)
     def terminateHubProcess(self):
         """
-        Send a UPD message to iohub informing it to exit.
+        Send a UDP message to iohub informing it to exit.
 
         Use this when force quiting the experiment script process so iohub
         knows to exit as well.

@@ -3,7 +3,7 @@ from random import random
 from psychopy import data
 
 #create your list of stimuli
-#NB as of version 1.62 you could simpmly import an excel spreadsheet with this
+#NB as of version 1.62 you could simply import an excel spreadsheet with this
 #using data.importTrialTypes('someFile.xlsx')
 stimList = []
 for ori in range(90,180,30):

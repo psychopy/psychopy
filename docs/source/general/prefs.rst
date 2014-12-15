@@ -55,7 +55,7 @@ outputFontSize = integer(6,24, default=12)
 
 showSourceAsst:
     Do you want to show the `source assistant` panel (to the right of the Coder view)?
-    On windows this provides help about the current function if it can be found. On
+    On Windows this provides help about the current function if it can be found. On
     OS X the source assistant is of limited use and is disabled by default.
     
 analysisLevel:

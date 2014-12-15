@@ -17,7 +17,7 @@ win = visual.Window([400,400])
 core.wait(2)
 clock = core.Clock() #a clock to check times from 
 
-#a fucntion to be called on certain 
+#a function to be called on certain
 def printFrame(frameN, tReceived):
     tPrinted = clock.getTime()
     print frameN, tReceived, tPrinted

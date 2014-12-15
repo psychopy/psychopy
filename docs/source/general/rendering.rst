@@ -121,7 +121,7 @@ This mode is exactly akin to the real-world scenario of objects with varying deg
 blendMode = 'add'
 ~~~~~~~~~~~~~~~~~~~~
 
-If the the window `blendMode` is set to 'add' then the value of the new stimulus does not in any way *replace* 
+If the window `blendMode` is set to 'add' then the value of the new stimulus does not in any way *replace*
 that of the existing stimuli that have been drawn; it is added to it. In this case the 
 value of `opacity` still affects the weighting of the new stimulus being drawn but the
 first stimulus to be drawn is never 'occluded' as such. The sum is performed using the

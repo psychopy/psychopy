@@ -24,4 +24,4 @@ There will be very limited spaces available (probably 30) in order that particip
 
 The registration charge of £75 is to cover costs and, hopefully, lunch. This will be invoiced so that it can be claimed back.
 
-The workshop will include a mixture of demonstrations and periods of users creating their own experiment in the software. Time will be spent partly on the graphical interface and partly on writing Python code. Please bring a laptop with PsychoPy installed, as well as ideas for a simple experiment to build. That will allow you to ge the most out of the session.
+The workshop will include a mixture of demonstrations and periods of users creating their own experiment in the software. Time will be spent partly on the graphical interface and partly on writing Python code. Please bring a laptop with PsychoPy installed, as well as ideas for a simple experiment to build. That will allow you to get the most out of the session.

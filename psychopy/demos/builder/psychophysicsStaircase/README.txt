@@ -14,7 +14,7 @@ Analysing your data:
     After the experiment a data/ folder will have been created for you, and it
     will contain an excel file with your data.
     
-    For a staircase the data file contains a numebr of things that could be used
+    For a staircase the data file contains a number of things that could be used
     in the analysis; the intensity of the stimulus at each of the reversal points,
     the intensity on every trial and the response (correct or incorrect) on every
     trial too.

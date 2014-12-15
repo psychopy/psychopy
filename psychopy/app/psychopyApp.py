@@ -19,7 +19,7 @@ if __name__=='__main__':
 
 Usage:  python PsychoPy.py [options] [file]
 
-Without options or files provided starts the psychopy using prefs to
+Without options or files provided this starts PsychoPy using prefs to
 decide on the view(s) to open.  If optional [file] is provided action
 depends on the type of the [file]:
 
@@ -35,7 +35,7 @@ Options:
     -h, --help       prints this help and exit
 
     --firstrun       launches configuration wizard
-    --nosplash       suppresses splash screen
+    --no-splash      suppresses splash screen
 
 """
         sys.exit()

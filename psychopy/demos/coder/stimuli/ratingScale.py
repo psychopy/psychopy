@@ -97,7 +97,7 @@ for d in data:
 # Example 3 --------(two simultaneous ratings)--------
 instr = visual.TextStim(win, text="""Example 3. This example shows how one could obtain two ratings at the same time, e.g., to allow explicit comparison between images during ratings.
 
-In such a situation, the subject will have to use the mouse (and not keyboard) to respond. The subject has to respond on both scales in order to go on to the next screen. Both of these considerations mean that its best to disallow the subject to skip a rating.
+In such a situation, the subject will have to use the mouse (and not keyboard) to respond. The subject has to respond on both scales in order to go on to the next screen. Both of these considerations mean that it's best to disallow the subject to skip a rating.
 
 Press any key to start Example 3 (or escape to quit).""")
 

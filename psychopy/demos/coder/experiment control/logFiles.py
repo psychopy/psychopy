@@ -22,7 +22,7 @@ So setting to DEBUG level will include all possible messages, setting to ERROR w
 globalClock = core.Clock()#if this isn't provided the log times will reflect secs since python started
 logging.setDefaultClock(globalClock)#use this for
 
-logging.console.setLevel(logging.DEBUG)#set the console to receive nearly all messges
+logging.console.setLevel(logging.DEBUG)#set the console to receive nearly all messages
 logDat = logging.LogFile('logLastRun.log',
     filemode='w',#if you set this to 'a' it will append instead of overwriting
     level=logging.WARNING)#errors, data and warnings will be sent to this logfile

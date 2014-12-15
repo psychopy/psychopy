@@ -17,5 +17,5 @@ Notes:
     (e.g. based on the outcome of the previous trials).
     
     The second, simpler, method is to set the nReps of a loop to be zero.
-    This is handy while testing you experiment to run only a subset of the
+    This is handy while testing your experiment to run only a subset of the
     trials (e.g. to skip the practice trials).

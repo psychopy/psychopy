@@ -28,7 +28,7 @@ The parameter `Is trials` exists because some loops are not there to indicate tr
 
 Method of Constants
 ^^^^^^^^^^^^^^^^^^^^^
-Selecting a loop type of `random`, `sequential`, or `fullRandom` will result in a :term:`method of constants` experiment, whereby the types of trials that can occur are predetermined. That is, the trials cannot vary depending on how the subject has responded on a previous trial. In this case, a file must be provided that describes the parameters for the repeats. This should be an Excel 2007 (:term:`xlsx`) file or a comma-separated-value (:term:`csv` ) file in which columns refer to parameters that are needed to describe stimuli etc. and rows one for each type of trial. These can easily be generated from a spreadsheet package like excel. (Note that csv files can also be generated using most text editors, as long as they allow you to save the file as "plain text"; other output formats will *not* work, including "rich text".) The top row should be a row of headers: text labels describing the contents of the respective columns. (Headers must also not include spaces or other characters other than letters, numbers or underscores and must not be the same as any variable names used elsewhere in your experiment.) For example, a file containing the following table::
+Selecting a loop type of `random`, `sequential`, or `fullRandom` will result in a :term:`method of constants` experiment, whereby the types of trials that can occur are predetermined. That is, the trials cannot vary depending on how the subject has responded on a previous trial. In this case, a file must be provided that describes the parameters for the repeats. This should be an Excel 2007 (:term:`xlsx`) file or a comma-separated-value (:term:`csv` ) file in which columns refer to parameters that are needed to describe stimuli etc. and rows one for each type of trial. These can easily be generated from a spreadsheet package like Excel. (Note that csv files can also be generated using most text editors, as long as they allow you to save the file as "plain text"; other output formats will *not* work, including "rich text".) The top row should be a row of headers: text labels describing the contents of the respective columns. (Headers must also not include spaces or other characters other than letters, numbers or underscores and must not be the same as any variable names used elsewhere in your experiment.) For example, a file containing the following table::
 
   ori	text	corrAns
   0	aaa	left
@@ -54,7 +54,7 @@ Selecting a subset of conditions
 
 In the standard :ref:`trialTypes` you would use all the rows/conditions within your conditions file. However there are often times when you want to select a subset of your trials before randomising and repeating.
 
-The paramater `Select rows` allows this. You can specify which rows you want to use by inserting values here:
+The parameter `Select rows` allows this. You can specify which rows you want to use by inserting values here:
 
     - `0,2,5` gives the 1st, 3rd and 5th entry of a list - Python starts with index zero)
     - `random(4)*10` gives 4 indices from 0 to 10 (so selects 4 out of 11 conditions)
@@ -93,7 +93,7 @@ Accessing loop parameters from components
 The parameters from your loops are accessible to any component enclosed within that loop. The simplest (and default) way to address these variables is simply to call them by the name of the parameter, prepended with `$` to indicate that this is the name of a variable. For example, if your Flow contains a loop with the above table as its input trial types file then you could give one of your stimuli an orientation `$ori` which would depend on the current trial type being presented. Example scenarios:
 
 #. You want to loop randomly over some conditions in a loop called `trials`. Your conditions are stored in a csv file with headings 'ori', 'text', 'corrAns' which you provide to this loop. You can then access these values from any component using `$ori`, `$text`, and `$corrAns`
-#. You create a random loop called `blocks` and give it an excel file with a single column called `movieName` listing filenames to be played. On each repeat you can access this with `$movieName`
+#. You create a random loop called `blocks` and give it an Excel file with a single column called `movieName` listing filenames to be played. On each repeat you can access this with `$movieName`
 #. You create a staircase loop called `stairs`. On each trial you can access the current value in the staircase with `$thisStair`
 
 .. note::
