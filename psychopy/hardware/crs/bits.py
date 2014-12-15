@@ -616,6 +616,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                 self._warnTesting()
             else:
                 self.mode = prevMode
+                self.win.winHandle.setGammaRamp(self.win.winHandle, self.config.identityLUT)
                 logging.info("Bits# config matches current system: %s on %s" %(self.config.gfxCard, self.config.os))
                 return 1
         #it didn't so switch to doing the test
@@ -623,12 +624,12 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             errs = self.config.testLUT(demoMode=demoMode)
             if (errs**2).sum() != 0:
                 level=3
-                logging.info("Bits# found a config file but the LUT didn't work as identity. We'll try to find a working one.")
+                logging.info("The current LUT didn't work as identity. We'll try to find a working one.")
             else:
                 self.config.identityLUT = self.win.winHandle.getGammaRamp(self.win.winHandle).transpose()
                 self.config.save()
                 self.mode = prevMode
-                logging.info("We found a LUT in the config file and it worked as identity")
+                logging.info("We found a LUT and it worked as identity")
                 return 1
         if level==3:
             ok = self.config.findIdentityLUT(demoMode=demoMode, logFile=logFile)
@@ -827,6 +828,8 @@ class Config(object):
                 bestLUTname = LUTname
         if lowestErr==0:
             print "The %r identity LUT produced zero error. We'll use that!" %(LUTname)
+            self.identityLUT = LUTs[bestLUTname]
+            self.save() #it worked so save this configuration for future
             return
 
         print "Best was %r LUT (mean err = %.3f). Optimising that..." %(bestLUTname, lowestErr)
