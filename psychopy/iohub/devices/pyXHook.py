@@ -401,7 +401,7 @@ class HookManager(threading.Thread):
             event_type_id = EventConstants.KEYBOARD_RELEASE
 
         pressed_keys = self.updateKeysPressedState(key, is_pressed_key)
-        auto_repeat_count = pressed_keys.get(key)
+        auto_repeat_count = pressed_keys.get(key, 0)
 
         mod_mask = event.state
         modifier_key_state = 0
