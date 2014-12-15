@@ -10,7 +10,7 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
 
-from gevent import socket,sleep,Greenlet
+from psychopy.iohub import Computer
 import msgpack
 try:
     import msgpack_numpy as m
@@ -20,10 +20,12 @@ except:
 import struct
 from weakref import proxy
 from psychopy.iohub.util import NumPyRingBuffer as RingBuffer
-from psychopy.iohub import Computer, print2err, printExceptionDetailsToStdErr
+from psychopy.iohub import print2err, printExceptionDetailsToStdErr
 getTime=Computer.getTime
 
 MAX_PACKET_SIZE=64*1024
+
+from gevent import sleep, Greenlet
 
 class SocketConnection(object):
     def __init__(self,local_host=None,local_port=None,remote_host=None,remote_port=None,rcvBufferLength=1492, broadcast=False, blocking=0, timeout=0):
@@ -44,6 +46,12 @@ class SocketConnection(object):
         self.unpack=self.unpacker.unpack
 
     def initSocket(self,broadcast=False,blocking=0, timeout=0):
+        if Computer.is_iohub_process is True:
+            from gevent import socket
+        else:
+            import socket
+
+
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         if broadcast is True:
@@ -94,6 +102,10 @@ class UDPClientConnection(SocketConnection):
     def __init__(self,remote_host='127.0.0.1',remote_port=9000,rcvBufferLength = MAX_PACKET_SIZE,broadcast=False,blocking=1, timeout=1):
         SocketConnection.__init__(self,remote_host=remote_host,remote_port=remote_port,rcvBufferLength=rcvBufferLength,broadcast=broadcast,blocking=blocking, timeout=timeout)
     def initSocket(self,**kwargs):
+        if Computer.is_iohub_process is True:
+            from gevent import socket
+        else:
+            import socket
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, MAX_PACKET_SIZE)
 

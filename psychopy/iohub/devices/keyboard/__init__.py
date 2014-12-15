@@ -145,6 +145,14 @@ class KeyboardInputEvent(DeviceEvent):
                     ]
     __slots__=[e[0] for e in _newDataTypes]
     def __init__(self,*args,**kwargs):
+
+        #: The auto repeat count for the keyboard event. 0 indicates the event
+        #: was generated from an actual keyboard event. > 0 means the event
+        #: was generated from the operating system's auto repeat settings for
+        #: keyboard presses that are longer than an OS specified duration.
+        #: This represents the physical key id on the keyboard layout.
+        self.auto_repeated = 0
+
         #: The scan code for the keyboard event.
         #: This represents the physical key id on the keyboard layout.
         #: The Linux and Windows ioHub interface provide's scan codes; the OS X implementation does not.

@@ -9,8 +9,11 @@ import json
 import os,sys
 
 import psychopy.iohub
+from psychopy.iohub import Computer
+Computer.is_iohub_process = True
 from psychopy.iohub.server import ioServer
-from psychopy.iohub import Computer, updateDict,printExceptionDetailsToStdErr, print2err, MonotonicClock, load, dump, Loader, Dumper
+
+from psychopy.iohub import updateDict,printExceptionDetailsToStdErr, print2err, MonotonicClock, load, Loader
 
 def run(rootScriptPathDir,configFilePath):
     psychopy.iohub.EXP_SCRIPT_DIRECTORY = rootScriptPathDir
@@ -110,8 +113,6 @@ if __name__ == '__main__':
         configFileName=None
         rootScriptPathDir=None
         initial_offset=psychopy.iohub.getTime()
-
-    Computer.is_iohub_process=True
 
     try:
         import psutil

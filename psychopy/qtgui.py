@@ -288,6 +288,7 @@ class Dlg(QtGui.QDialog):
         updated values coming from each of the input fields created.
         Otherwise, None is returned.
         """
+
         self.layout.addWidget(self.buttonBox, self.irow, 0, 1, 2)
 
         # Center Dialog on appropriate screen

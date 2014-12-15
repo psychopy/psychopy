@@ -29,7 +29,6 @@ from .. import print2err,printExceptionDetailsToStdErr,ioHubError
 from ..devices import Computer, DeviceEvent, import_device
 from ..devices.experiment import MessageEvent, LogEvent
 from ..constants import DeviceConstants, EventConstants
-from ..net import UDPClientConnection
 from .. import _DATA_STORE_AVAILABLE
 
 currentSec= Computer.currentSec
@@ -671,7 +670,6 @@ class ioHubConnection(object):
         Sends 1 - n Window handles to iohub so it can determine if kb or
         mouse events were targeted at a psychopy window or other window.
         """
-        #print2err(">>CLIENT.registerPygletWindowHandles:",winHandles)
         r=self._sendToHubServer(('RPC','registerPygletWindowHandles',winHandles))
         return r[2]
 
@@ -680,8 +678,6 @@ class ioHubConnection(object):
         Sends 1 - n Window handles to iohub so it can determine if kb or
         mouse events were targeted at a psychopy window or other window.
         """
-        #print2err(">>CLIENT.unregisterPygletWindowHandles:",winHandles)
-
         r=self._sendToHubServer(('RPC','unregisterPygletWindowHandles',winHandles))
         return r[2]
 
@@ -727,6 +723,50 @@ class ioHubConnection(object):
             None
         """
         r=self._sendToHubServer(('RPC','disableHighPriority'))
+        return r[2]
+
+    def enableRealTimePriority(self, disable_gc=False):
+        """
+        Sets the priority of the **ioHub Process** to real-time priority
+        and optionally (default is False) disables the python GC if the
+        disable_gc parameter is set to True.
+
+        This is method is useful for the duration of a trial, or relatively short
+        periods of time where time critical processing is a priority. The
+        normal usage pattern is to call enableRealTimePriority() at the start of a
+        trial and disableRealTimePriority() is called at the end of a trial.
+
+        Improvements in timing and execution speed depend on computer load,
+        hardware configuration, as well as the OS being used.
+
+        This method is not supported on OS X at this time.
+
+        Args:
+            disable_gc(bool): True = Turn off the Python Garbage Collector. False (Default) = Leave the Garbage Collector running.
+        """
+
+        r=self._sendToHubServer(('RPC','enableRealTimePriority',(disable_gc,)))
+        return r[2]
+
+    def disableRealTimePriority(self):
+        """
+        Sets the priority of the **ioHub Process** to normal priority
+        and enables the python GC if it had been disabled by a earlier call to
+        enableRealTimePriority().
+
+        In general enableRealTimePriority() would be called at start of a trial
+        where time critical processing is important, disableRealTimePriority()
+        would be called at the end of the trial or time critical period.
+
+        This method is not supported on OS X at this time.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        r=self._sendToHubServer(('RPC','disableRealTimePriority'))
         return r[2]
 
     def getProcessAffinity(self):
@@ -888,6 +928,8 @@ class ioHubConnection(object):
                 tfile.close()
 
         self._iohub_server_config=ioHubConfig
+
+        from psychopy.iohub.net import UDPClientConnection
 
         self.udp_client=UDPClientConnection(remote_port=ioHubConfig.get('udp_port',9000))
 

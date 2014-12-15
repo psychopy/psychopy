@@ -14,7 +14,6 @@ Distributed under the terms of the GNU General Public License
 
 import gevent
 import zmq.green as zmq
-
 import copy
 import msgpack
 try:
@@ -26,8 +25,7 @@ except:
 from .. import Computer, Device, DeviceEvent
 from ...constants import DeviceConstants,EventConstants
 from ... import print2err,printExceptionDetailsToStdErr
-from psychopy.iohub.net import ioHubTimeGreenSyncManager,TimeSyncState
-  
+
 class EventPublisher(Device):
     """
     The ioHub EventPublisher Device can be used to publish events created by any locally 
@@ -188,7 +186,12 @@ class RemoteEventSubscriber(Device):
     
                 self._time_sync_manager=None
                 if device_config.get('remote_iohub_address'):
+                    from psychopy.iohub.net import TimeSyncState
+
                     self._time_sync_state=TimeSyncState()
+
+                    from psychopy.iohub.net import ioHubTimeGreenSyncManager
+
                     self._time_sync_manager=ioHubTimeGreenSyncManager(device_config.get('remote_iohub_address'),self._time_sync_state)
                     self._time_sync_manager.start()   
                 
@@ -241,23 +244,8 @@ class RemoteEventSubscriber(Device):
                     network_delay=time_sync_state.local2RemoteTime(logged_time)-remote_logged_time
                     data[9]+=network_delay
 
-#                if data[4]==EventConstants.KEYBOARD_CHAR:
-#                    data[-2][0]=0
-#                    data[-2][1]=0
-#                    data[-2][2]=data[2]
-#                    data[-2][3] = Computer._getNextEventID()
-#                    data[-2][6]=logged_time
-#                    remote_hub_time=data[-2][7]
-#                    data[-2][7]=time_sync_state.remote2LocalTime(remote_hub_time)
-#                    data[-2][8]==data[8]
-#                    data[-2][9]+=network_delay
-#                    data[-2]=tuple(data[-2])
-
-                #print2err('SUB RX poll: ',data[0:8])
-                self._nativeEventCallback(data)                
-                #rtime=Computer.currentSec()*1000.0
+                self._nativeEventCallback(data)
                 gevent.sleep(0)
-                #print2err('-------------------------')
             except zmq.ZMQError,z:
                 break
             except Exception:

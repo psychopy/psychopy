@@ -10,7 +10,6 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 .. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
 .. fileauthor:: Sol Simpson <sol@isolver-software.com>
 """
-
 import gevent
 from gevent.server import DatagramServer
 from gevent import Greenlet
@@ -24,10 +23,13 @@ from psychopy.iohub import print2err, printExceptionDetailsToStdErr, ioHubError
 from psychopy.iohub import DeviceConstants, EventConstants
 from psychopy.iohub import Computer, DeviceEvent, import_device
 from psychopy.iohub.devices.deviceConfigValidation import validateDeviceConfiguration
-from psychopy.iohub.net import MAX_PACKET_SIZE
 currentSec= Computer.currentSec
 
-import json
+try:
+    import ujson as json
+except:
+    import json
+
 import msgpack
 try:
     import msgpack_numpy as m
@@ -37,8 +39,13 @@ except:
 
 import psutil
 
+MAX_PACKET_SIZE = 64*1024
+
 class udpServer(DatagramServer):
     def __init__(self,ioHubServer,address,coder='msgpack'):
+        global MAX_PACKET_SIZE
+        import psychopy.iohub.net
+        MAX_PACKET_SIZE = psychopy.iohub.net.MAX_PACKET_SIZE
         self.iohub=ioHubServer
         self.feed=None
         self._running=True
@@ -377,6 +384,12 @@ class udpServer(DatagramServer):
 
     def disableHighPriority(self):
         return Computer.disableHighPriority()
+
+    def enableRealTimePriority(self,disable_gc=True):
+        return Computer.enableRealTimePriority(disable_gc)
+
+    def disableRealTimePriority(self):
+        return Computer.disableRealTimePriority()
 
     def getProcessAffinity(self):
         return Computer.getCurrentProcessAffinity()
