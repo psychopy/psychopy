@@ -75,7 +75,7 @@ class ConfigWizard(object):
             dlg.addText(_translate("drivers cannot support PsychoPy, so you'll need to update the drivers."), color='red')
             msg = _translate("""<p>Critical issue:\n</p><p>Your video card (%(card)s) has drivers
                 that cannot support the high-performance features that PsychoPy depends on.
-                Fortunately, its typically free and straightforward to get new drivers
+                Fortunately, it's typically free and straightforward to get new drivers
                 directly from the manufacturer.</p>
                 <p><strong>To update the drivers:</strong>
                 <li> You'll need administrator privileges.
@@ -583,7 +583,7 @@ class BenchmarkWizard(ConfigWizard):
                             autoLog=False)
 
         # do system info etc first to get fps, add to list later because
-        # its nicer for benchmark results to appears at top of the report:
+        # it's nicer for benchmark results to appears at top of the report:
         diagnostics = self.runDiagnostics(win, verbose=True)
         info = {}
         for k, v, m, w in diagnostics:  # list of tuples --> dict, ignore msg m, warning w
@@ -628,7 +628,7 @@ class BenchmarkWizard(ConfigWizard):
                 dlg = gui.Dlg(title=self.name + ' result')
                 dlg.addText('')
                 if status and status.startswith('success good_upload'):
-                    dlg.addText(_translate('Configutation data were successfully uploaded to'))
+                    dlg.addText(_translate('Configuration data were successfully uploaded to'))
                     dlg.addText('http://upload.psychopy.org/benchmark/report.html')
                     dlg.addText(_translate('Thanks for participating!'))
                 else:
