@@ -165,9 +165,9 @@ monitor_devices:
 #                 inner_line_color: [0,0,0]
 #                 animate:
 #                     enable: True
-#                     movement_velocity: 750.0  # 500 pix / sec
+#                     movement_velocity: 750.0  # 750 pix / sec
 #                     expansion_ratio: 3.0  # expands to 3 x the starting size
-#                     expansion_speed: 45.0  # exapands at 30.0 pix / sec
+#                     expansion_speed: 45.0  # exapands at 45.0 pix / sec
 #                     contract_only: True        
 #        runtime_settings:
 #            sampling_rate: 60
