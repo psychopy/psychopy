@@ -539,7 +539,6 @@ class Window(object):
             thisStim.draw()
 
         flipThisFrame = self._startOfFlip()
-
         if self.useFBO:
             if flipThisFrame:
                 self._prepareFBOrender()
@@ -809,6 +808,8 @@ class Window(object):
         if buffer == 'back':
             GL.glReadBuffer(GL.GL_BACK)
         else:
+            if self.useFBO:
+                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
             GL.glReadBuffer(GL.GL_FRONT)
 
         #fetch the data with glReadPixels
