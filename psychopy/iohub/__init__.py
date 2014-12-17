@@ -9,6 +9,7 @@
 # (GPL version 3 or any later version).
 
 from __future__ import division
+
 import sys
 if sys.platform == 'darwin':
     import objc
@@ -68,21 +69,23 @@ except Exception, e:
 
 import client
 from client import ioHubConnection, launchHubServer, ioHubExperimentRuntime
-import server
+
 
 from util import Trigger, TimeTrigger, DeviceEventTrigger
 from util import ScreenState, ClearScreen, InstructionScreen, ImageScreen
 from util import ExperimentVariableProvider, SinusoidalMotion, to_numeric
 from util.targetpositionsequence import TargetStim, PositionGrid, TargetPosSequenceStim, ValidationProcedure
 
-def start(**kwargs):
+def _start(**kwargs):
     """
-     Starts an instance of the iohub server. An iohub_config.yaml is looked for
-     in the the same directory as the script. If found, it is used to load
-     devices for the experiment session.
+    Do not use this method. Incomplete. May go away.
 
-     If no config files are found, the server is started with default device
-     settings.
+    Starts an instance of the iohub server. An iohub_config.yaml is looked for
+    in the the same directory as the script. If found, it is used to load
+    devices for the experiment session.
+
+    If no config files are found, the server is started with default device
+    settings.
 
     :return:
     """

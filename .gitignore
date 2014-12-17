@@ -79,6 +79,9 @@ appData.cfg
 *.iohpid
 *.paths
 *.EDF
+*.mp4
+*.hdf5
+*.7z
 
 # Documentation generated files #
 #################################
@@ -86,4 +89,3 @@ appData.cfg
 .idea
 builddocs.sh
 nonSphinx
-*.hdf5
