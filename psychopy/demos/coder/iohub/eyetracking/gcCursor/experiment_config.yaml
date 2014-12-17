@@ -1,7 +1,7 @@
 # experiment_config.yaml: settings related to the experiment being run when the run.py script is launched,
 # any custom session variables you want displayed in a dialog for input at the start of the experiment
 
-title: GC Curson Demo
+title: GC Cursor Demo
 code: gc_cursor
 version: '1.0'
 description: User looks at an images while their eye position is plotted in real-time.
