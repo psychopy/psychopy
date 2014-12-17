@@ -239,11 +239,12 @@ if __name__ == "__main__":
                                   'LC Technologies EyeGaze':'eyetracker_configs/eyegaze_config.yaml',
                                   'SMI iViewX':'eyetracker_configs/iviewx_config.yaml',
                                   'SR Research EyeLink':'eyetracker_configs/eyelink_config.yaml',
-                                  'Tobii Technologies Eye Trackers':'eyetracker_configs/tobii_config.yaml'
+                                  'Tobii Technologies Eye Trackers':'eyetracker_configs/tobii_config.yaml',
+                                  'Tobii Technologies EyeX Tracker':'eyetracker_configs/tobii_eyex_config.yaml',
                                   }
         
         info = {'Eye Tracker Type': ['Select', 'LC Technologies EyeGaze', 
-                                     'SMI iViewX', 'SR Research EyeLink', 'Tobii Technologies Eye Trackers']}
+                                     'SMI iViewX', 'SR Research EyeLink', 'Tobii Technologies Eye Trackers', 'Tobii Technologies EyeX Tracker']}
         
         dlg_info=dict(info)
         infoDlg = gui.DlgFromDict(dictionary=dlg_info, title='Select Eye Tracker')

@@ -9,7 +9,7 @@ sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
 
 # Start ioHub event monitoring process
 iohub_config = {
-    "eyetracker.hw.tobii.EyeTracker":{'name':'tracker'},
+    "eyetracker.hw.tobii_eyex.EyeTracker":{'name':'tracker'},
     "experiment_code": exp_code,
     "session_code": sess_code
 }
