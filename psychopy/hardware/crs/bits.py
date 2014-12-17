@@ -347,6 +347,11 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             1 check that the graphics driver and OS version haven't changed since last LUT calibration
             2 check that the current LUT calibration still provides identity (requires switch to status mode)
             3 search for a new identity look-up table (requires switch to status mode)
+
+    gammaCorrect: string governing how gamma correction is performed
+        'hardware': use the gamma correction file stored on the hardware
+        'FBO': gamma correct using shaders when rendering the FBO to back buffer
+        'bitsMode': in bits++ mode there is a user-controlled LUT that we can use for gamma correction
     """
     name='CRS Bits#'
     def __init__(self, win=None, portName=None, mode='', checkConfigLevel=1, gammaCorrect = 'hardware', gamma = None):
@@ -462,14 +467,20 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             self.setLUT()
             logging.info('Switched %s to %s mode' %(self.info['ProductType'], self.__dict__['mode']))
         elif value.startswith('mono'):
+            if not self.win.useFBO:
+                raise Exception, "Mono++ mode requires a PsychoPy Window with useFBO=True"
             self.sendMessage('$monoPlusPlus\r')
             self.__dict__['mode'] = 'mono++'
             logging.info('Switched %s to %s mode' %(self.info['ProductType'], self.__dict__['mode']))
         elif value.startswith('colo'):
+            if not self.win.useFBO:
+                raise Exception, "Color++ mode requires a PsychoPy Window with useFBO=True"
             self.sendMessage('$colorPlusPlus\r')
             self.__dict__['mode'] = 'color++'
             logging.info('Switched %s to %s mode' %(self.info['ProductType'], self.__dict__['mode']))
         elif value.startswith('auto'):
+            if not self.win.useFBO:
+                raise Exception, "Auto++ mode requires a PsychoPy Window with useFBO=True"
             self.sendMessage('$autoPlusPlus\r')
             self.__dict__['mode'] = 'auto++'
             logging.info('Switched %s to %s mode' %(self.info['ProductType'], self.__dict__['mode']))
