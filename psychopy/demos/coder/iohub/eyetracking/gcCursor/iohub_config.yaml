@@ -153,7 +153,7 @@ monitor_devices:
 #            # The associated target attribute properties can be supplied
 #            # for the fixation target used during calibration.
 #            # Sizes are in pixels, colors in rgb255 format:
-#            target_attributes.
+#            target_attributes:
 #                 outer_diameter: 35
 #                 outer_stroke_width: 2
 #                 outer_fill_color: [128,128,128]
