@@ -810,7 +810,7 @@ class Config(object):
         #use bits sharp to test
         if demoMode:
             return [0]*256
-        pixels = bits.getVideoLine(lineN=5, nPixels=256)
+        pixels = bits.getVideoLine(lineN=50, nPixels=256)
         errs = pixels-expected
         if self.logFile:
             for ii, channel in enumerate('RGB'):
@@ -820,7 +820,7 @@ class Config(object):
                 self.logFile.write('\n')
         return errs
 
-    def findIdentityLUT(self, maxIterations = 1000, errCorrFactor = 1.0/2048, # amount of correction done for each iteration
+    def findIdentityLUT(self, maxIterations = 1000, errCorrFactor = 1.0/5000, # amount of correction done for each iteration
         nVerifications = 50, #number of repeats (successful) to check dithering has been eradicated
         demoMode = True, #generate the screen but don't go into status mode
         logFile = '',
@@ -850,8 +850,11 @@ class Config(object):
 
         if plotResults:
             pyplot.Figure()
+            pyplot.subplot(1,2,1)
             pyplot.plot([0,255],[0,255], '-k')
             errPlot = pyplot.plot(range(256), range(256), '.r')[0]
+            pyplot.subplot(1,2,2)
+            pyplot.plot(200,0.01, '.w')
             pyplot.show(block=False)
 
         lowestErr = 1000000000
@@ -887,6 +890,12 @@ class Config(object):
             errProgression.append(meanErr)
             if plotResults:
                 errPlot.set_ydata(range(256)+errs[:,0])
+                pyplot.subplot(1,2,2)
+                if meanErr == 0:
+                    point='.k'
+                else:
+                    point='.r'
+                pyplot.plot(n,meanErr,'.k')
                 pyplot.draw()
             if meanErr>0:
                 print "%.3f" %meanErr,

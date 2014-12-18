@@ -1,13 +1,6 @@
 #!/usr/bin/env python
 #coding=utf-8
 
-
-# IT LOOKS LIKE THE MONO++ and COLOR++ SHADERS ARE ONLY WORKING ON A FEW SELECT 
-# GRAPHICS CARDS AT THE MOMENT. Jon is working on this as a high
-# priority issue and it will be fixed soon!
-
-
-
 """This demo shows you how to use a CRS BitsSharp device with PsychoPy
 
 As of version 1.81.00 PsychoPy can make use of the Bits# in any of its rendering
