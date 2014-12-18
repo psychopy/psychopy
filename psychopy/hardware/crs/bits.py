@@ -352,22 +352,34 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         'hardware': use the gamma correction file stored on the hardware
         'FBO': gamma correct using shaders when rendering the FBO to back buffer
         'bitsMode': in bits++ mode there is a user-controlled LUT that we can use for gamma correction
+
+    noComms: bool
+        If True then don't try to communicate with the device at all (passive mode).
+        This can be useful if you want to debug the system without actually
+        having a Bits# connected.
     """
     name='CRS Bits#'
-    def __init__(self, win=None, portName=None, mode='', checkConfigLevel=1, gammaCorrect = 'hardware', gamma = None):
+    def __init__(self, win=None, portName=None, mode='', checkConfigLevel=1,
+                 gammaCorrect = 'hardware', gamma = None,
+                 noComms=False):
 
         #import pyglet.GL late so that we can import bits.py without it initially
         global GL, visual
         from psychopy import visual
         import pyglet.gl as GL
 
-        #look for device on valid serial ports
-        serialdevice.SerialDevice.__init__(self, port=portName, baudrate=19200,
-                 byteSize=8, stopBits=1,
-                 parity="N", #'N'one, 'E'ven, 'O'dd, 'M'ask,
-                 eol='\n',
-                 maxAttempts=1, pauseDuration=0.1,
-                 checkAwake=True)
+        if noComms:
+            self.noComms = True
+            self.OK = True
+        else:
+            #look for device on valid serial ports
+            serialdevice.SerialDevice.__init__(self, port=portName, baudrate=19200,
+                     byteSize=8, stopBits=1,
+                     parity="N", #'N'one, 'E'ven, 'O'dd, 'M'ask,
+                     eol='\n',
+                     maxAttempts=1, pauseDuration=0.1,
+                     checkAwake=True)
+            self.noComms = False
         if not self.OK:
             return
 
@@ -420,6 +432,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     def getInfo(self):
         """Returns a python dictionary of info about the Bits Sharp box
         """
+        if self.noComms:
+            return {'ProductType':'Bits#','SerialNumber':'n/a','FirmwareDate':'n/a'}
         self.read(timeout=0.5) #clear input buffer
         info={}
         #get product ('Bits_Sharp'?)
@@ -484,6 +498,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             self.sendMessage('$autoPlusPlus\r')
             self.__dict__['mode'] = 'auto++'
             logging.info('Switched %s to %s mode' %(self.info['ProductType'], self.__dict__['mode']))
+        else:
+            raise AttributeError, "Bits# doesn't know how to use mode %r. Should be 'mono++', 'color++' etc" %value
 
     def setLUT(self,newLUT=None, gammaCorrect=False, LUTrange=1.0, contrast=None):
         """SetLUT is only really needed for bits++ mode of bits# to set the
@@ -582,6 +598,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     def read(self, timeout=0.1):
         """Get the current waiting characters from the serial port if there are any
         """
+        if self.noComms:
+            return
         self.com.setTimeout(timeout)
         nChars = self.com.inWaiting()
         raw = self.com.read(nChars)
