@@ -371,7 +371,10 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         if noComms:
             self.noComms = True
             self.OK = True
+            self.sendMessage = self._nullSendMessage
+            self.getResponse = self._nullGetResponse
         else:
+            self.noComms = False
             #look for device on valid serial ports
             serialdevice.SerialDevice.__init__(self, port=portName, baudrate=19200,
                      byteSize=8, stopBits=1,
@@ -379,7 +382,6 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                      eol='\n',
                      maxAttempts=1, pauseDuration=0.1,
                      checkAwake=True)
-            self.noComms = False
         if not self.OK:
             return
 
@@ -417,7 +419,13 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         else:
             self.config = None # makes no sense if we have a window?
             logging.warning("%s was not given any PsychoPy win" %(self))
-
+    
+    #some empty methods that we can use to replace serial methods if noComms
+    def _nullSendMessage(self, message, autoLog=True):
+        pass
+    def _nullGetResponse(self, length=1, timeout=0.1):
+        pass
+    
     def __del__(self):
         """If the user discards this object then close the serial port so it is released"""
         if hasattr(self, 'com'):
