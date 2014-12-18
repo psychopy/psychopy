@@ -419,13 +419,13 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         else:
             self.config = None # makes no sense if we have a window?
             logging.warning("%s was not given any PsychoPy win" %(self))
-    
+
     #some empty methods that we can use to replace serial methods if noComms
     def _nullSendMessage(self, message, autoLog=True):
         pass
     def _nullGetResponse(self, length=1, timeout=0.1):
         pass
-    
+
     def __del__(self):
         """If the user discards this object then close the serial port so it is released"""
         if hasattr(self, 'com'):
@@ -639,6 +639,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
 
                     3: force a fresh search for the identity LUT
         """
+        if self.noComms:
+            demoMode = True
         prevMode = self.mode
         #if we haven't fetched a config yet then do so
         if not self.config:
@@ -659,6 +661,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         #it didn't so switch to doing the test
         if level==2:
             errs = self.config.testLUT(demoMode=demoMode)
+            if demoMode:
+                return 1
             if (errs**2).sum() != 0:
                 level=3
                 logging.info("The current LUT didn't work as identity. We'll try to find a working one.")
