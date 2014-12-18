@@ -387,41 +387,38 @@ class ioHubConnection(object):
 
     def clearEvents(self,device_label=None):
         """
-        Clears events from the ioHub Process's Global Event Buffer (by default) so
-        that uneeded events are not sent to the PsychoPy Process the next time
-        iohub.getEvents() is called.
+        Clears events from the ioHub Process's Global Event Buffer (by default)
+        so that unneeded events are not sent to the PsychoPy Process the
+        next time getEvents() is called.
 
         If device_label is None ( the default ), then all events in the ioHub
-        *Global Event Buffer* are cleared, which leaves the *Device Event Buffers*
-        unaffected.
+        *Global Event Buffer* are cleared, but the *Device Event Buffers*
+        are unaffected.
 
-        If device_label is a str giving a valid device name, then events
-        that were received from that device are returned and the
-        *Device Event Buffer* for that device is cleared on the ioHub Server,
-        but the *Global Event Buffer* is not affected.
+        If device_label is a str giving a valid device name, then that
+        *Device Event Buffers* is cleared, but the *Global Event Buffer* is not
+        affected.
 
-        .. note::
-            To clear all events from both the ioHub *Global Event Buffer* and
-            all *Device Event Buffer's*, set the device_label argument to 'all'.
-
+        If device_label is 'all', then events from both the ioHub
+        *Global Event Buffer* and all *Device Event Buffer's* are cleared.
         Args:
-            device_label (str): name of the device to clear events from, or None (the default) to clear all events from the "Global Event Buffer", or 'all', to clear events from both the *Global Event Buffer* and all device level *Device Event Buffer's*.
+            device_label (str): device name, 'all', or None
 
         Returns:
-            int: The number of events cleared by the request on the ioHub Server.
+            None
         """
-        if device_label is None or device_label.lower() == 'all':
-            self._sendToHubServer(('RPC','clearEventBuffer'))
+        if device_label is None:
             self.allEvents=[]
-            if device_label and device_label.lower() == 'all':
-                [self.deviceByLabel[label].clearEvents() for label in self.deviceByLabel]
-            return True
+            self._sendToHubServer(('RPC','clearEventBuffer',[False,]))
+        elif device_label.lower() == 'all':
+            self.allEvents=[]
+            self._sendToHubServer(('RPC','clearEventBuffer',[True,]))
+            #if device_label and device_label.lower() == 'all':
+            #    [self.deviceByLabel[label].clearEvents() for label in self.deviceByLabel]
         else:
             d=self.deviceByLabel.get(device_label,None)
             if d:
                 d.clearEvents()
-                return True
-            return False
 
     def sendMessageEvent(self,text,category='',offset=0.0,sec_time=None):
         """
@@ -681,93 +678,55 @@ class ioHubConnection(object):
         r=self._sendToHubServer(('RPC','unregisterPygletWindowHandles',winHandles))
         return r[2]
 
+    def getTime(self):
+        """
+        **Deprecated Method:** Use Computer.getTime instead. Remains here for
+        testing time bases between processes only.
+        """
+        return self._sendToHubServer(('RPC','getTime'))[2]
+
+    def setPriority(self, level='normal', disable_gc=False):
+        """
+        See Computer.setPriority documentation, where current process will be
+        the iohub process.
+        """
+        return self._sendToHubServer(('RPC','setPriority', [level, disable_gc]))[2]
+
+
+    def getPriority(self):
+        """
+        See Computer.getPriority documentation, where current process will be
+        the iohub process.
+        """
+        return self._sendToHubServer(('RPC','getPriority'))[2]
+
     def enableHighPriority(self,disable_gc=False):
         """
-        Sets the priority of the **ioHub Process** to high priority
-        and optionally (default is False) disables the python GC if the
-        disable_gc parameter is set to True.
-
-        This is method is useful for the duration of a trial, or relatively short
-        periods of time where time critial processing is a priority. The
-        normal usage pattern is to call enableHighPriority() at the start of a
-        trial and disableHighPriority() is called at the end of a trial.
-
-        Improvements in timing and execution speed depend on computer load,
-        hardware configuration, as well as the OS being used.
-
-        This method is not supported on OS X at this time.
-
-        Args:
-            disable_gc(bool): True = Turn off the Python Garbage Collector. False (Default) = Leave the Garbage Collector running.
+        **Deprecated Method:** Use setPriority('high', disable_gc) instead.
         """
 
-        r=self._sendToHubServer(('RPC','enableHighPriority',(disable_gc,)))
-        return r[2]
+        return self.setPriority('high', disable_gc)
 
     def disableHighPriority(self):
         """
-        Sets the priority of the **ioHub Process** to normal priority
-        and enables the python GC if it had been disabled by a earlier call to
-        enableHighPriority().
-
-        In general enableHighPriority() would be called at start of a trial
-        where time critial processing is important, disableHighPriority() would be
-        called at the end of thlaunchHubProcesse trial or time critical period.
-
-        This method is not supported on OS X at this time.
-
-        Args:
-            None
-
-        Returns:
-            None
+        **Deprecated Method:** Use setPriority('normal') instead.
         """
-        r=self._sendToHubServer(('RPC','disableHighPriority'))
-        return r[2]
+        return self.setPriority('normal')
+
 
     def enableRealTimePriority(self, disable_gc=False):
         """
-        Sets the priority of the **ioHub Process** to real-time priority
-        and optionally (default is False) disables the python GC if the
-        disable_gc parameter is set to True.
-
-        This is method is useful for the duration of a trial, or relatively short
-        periods of time where time critical processing is a priority. The
-        normal usage pattern is to call enableRealTimePriority() at the start of a
-        trial and disableRealTimePriority() is called at the end of a trial.
-
-        Improvements in timing and execution speed depend on computer load,
-        hardware configuration, as well as the OS being used.
-
-        This method is not supported on OS X at this time.
-
-        Args:
-            disable_gc(bool): True = Turn off the Python Garbage Collector. False (Default) = Leave the Garbage Collector running.
+        **Deprecated Method:** Use setPriority('realtime', disable_gc) instead.
         """
+        return self.setPriority('realtime', disable_gc)
 
-        r=self._sendToHubServer(('RPC','enableRealTimePriority',(disable_gc,)))
-        return r[2]
 
     def disableRealTimePriority(self):
         """
-        Sets the priority of the **ioHub Process** to normal priority
-        and enables the python GC if it had been disabled by a earlier call to
-        enableRealTimePriority().
-
-        In general enableRealTimePriority() would be called at start of a trial
-        where time critical processing is important, disableRealTimePriority()
-        would be called at the end of the trial or time critical period.
-
-        This method is not supported on OS X at this time.
-
-        Args:
-            None
-
-        Returns:
-            None
+        **Deprecated Method:** Use setPriority('normal') instead.
         """
-        r=self._sendToHubServer(('RPC','disableRealTimePriority'))
-        return r[2]
+        return self.setPriority('normal')
+
 
     def getProcessAffinity(self):
         """

@@ -240,6 +240,7 @@ class Keyboard(ioHubDeviceView):
         self._event_buffer_length = self._device_config.get(
             'event_buffer_length')
 
+        self._clearEventsRPC = DeviceRPC(self.hubClient._sendToHubServer, self.device_class, 'clearEvents')
 
     def _syncDeviceState(self):
         """
@@ -311,11 +312,11 @@ class Keyboard(ioHubDeviceView):
         return self._reporting
 
     def clearEvents(self, event_type=None, filter_id=None):
+        result = self._clearEventsRPC(event_type=event_type,filter_id=filter_id)
         for etype, elist in self._events.items():
             if event_type is None or event_type == etype:
                 elist.clear()
-        r = DeviceRPC(self.hubClient._sendToHubServer, self.device_class, 'clearEvents')
-        return r(event_type=event_type,filter_id=filter_id)
+        return result
 
     def getKeys(self, keys=None, chars=None, mods=None, duration=None,
                  etype=None, clear=True):

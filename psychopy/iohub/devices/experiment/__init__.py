@@ -68,7 +68,6 @@ class Experiment(Device):
             native_event_data[DeviceEvent.EVENT_DELAY_INDEX]=native_event_data[DeviceEvent.EVENT_LOGGED_TIME_INDEX]-native_event_data[DeviceEvent.EVENT_DEVICE_TIME_INDEX]
     
             native_event_data[DeviceEvent.EVENT_HUB_TIME_INDEX]=native_event_data[DeviceEvent.EVENT_DEVICE_TIME_INDEX]
-    
             self._addNativeEventToBuffer(native_event_data)
 
             self._last_callback_time=notifiedTime

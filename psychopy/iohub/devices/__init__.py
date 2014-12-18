@@ -131,6 +131,9 @@ class ioObject(object):
                     rpcList.append(d)
         return rpcList
 
+REALTIME_PRIORITY_CLASS = -18
+HIGH_PRIORITY_CLASS = -10
+
 class Computer(object):
     """
     The Computer class does not actually extend the ioHub.devices.Device class.
@@ -208,14 +211,23 @@ class Computer(object):
     #: The psutil Process object for the ioHub Process.
     iohub_process=None
 
-    _process_original_nice_value=0 # used on linux.
+    _process_original_nice_value=psutil.Process().nice() # used on linux.
 
     def __init__(self):
         print2err("WARNING: Computer is a static class, no need to create an instance. just use Computer.xxxxxx")
 
 
     @staticmethod
-    def getProcessPriority(proc):
+    def getProcessPriority(proc=None):
+        """
+        **Deprecated Method:** Use Computer.getPriority() instead.
+
+        :param proc:
+        :return: success(bool)
+        """
+
+        if proc is None:
+            proc = psutil.Process()
         proc_priority = proc.nice()
         if Computer.system == 'win32':
             if proc_priority == psutil.HIGH_PRIORITY_CLASS:
@@ -224,22 +236,57 @@ class Computer(object):
                 return 'realtime'
             if proc_priority == psutil.NORMAL_PRIORITY_CLASS:
                 return 'normal'
-            if proc_priority == psutil.BELOW_NORMAL_PRIORITY_CLASS:
-                return 'low'
         else:
-            if proc_priority <= -15:
+            if proc_priority <= REALTIME_PRIORITY_CLASS:
                 return 'realtime'
-            if proc_priority <= -10:
+            if proc_priority <= HIGH_PRIORITY_CLASS:
                 return 'high'
-            if proc_priority >= -3 and proc_priority <= 3:
+            if proc_priority == Computer._process_original_nice_value:
                 return 'normal'
-            if proc_priority > 5:
-                return 'low'
-        return 'unknown'
+        return proc_priority
+
+    @staticmethod
+    def getPriority():
+        """
+        Returns the current processes priority as a string.
+
+        This method is not supported on OS X.
+
+        :return: 'normal', 'high', or 'realtime'
+        """
+        return Computer.getProcessPriority()
+
+    @staticmethod
+    def setPriority(level='normal', disable_gc=False):
+        """
+        Attempts to change the current processes priority based on level.
+        Supported levels are:
+
+          * 'normal': sets the current process priority to NORMAL_PRIORITY_CLASS on Windows, or to the processes original nice value on Linux.
+          * 'high': sets the current process priority to HIGH_PRIORITY_CLASS on Windows, or to a nice value of -10 value on Linux.
+          * 'realtime': sets the current process priority to REALTIME_PRIORITY_CLASS on Windows, or to a nice value of -18 value on Linux.
+
+        If level is 'normal', Python GC is also enabled.
+        If level is 'high' or 'realtime', and disable_gc is True, then the Python garbage collection (GC) thread is suspended.
+
+        This method is not supported on OS X.
+
+        :return: Priority level of process when method returns.
+        """
+        if level.lower() == 'normal':
+            Computer.disableRealTimePriority()
+        elif level.lower() == 'high':
+            Computer.enableHighPriority(disable_gc)
+        elif level.lower() == 'realtime':
+            Computer.enableRealTimePriority(disable_gc)
+
+        return Computer.getPriority()
 
     @staticmethod
     def enableHighPriority(disable_gc=True):
         """
+        **Deprecated Method:** Use Computer.setPriority('high', disable_gc) instead.
+
         Sets the priority of the current process to high priority
         and optionally (default is true) disable the python GC. This is very
         useful for the duration of a trial, for example, where you enable at
@@ -253,7 +300,7 @@ class Computer(object):
             disable_gc (bool): True = Turn of the Python Garbage Collector. False = Leave the Garbage Collector running. Default: True
         """
         if Computer.in_high_priority_mode is False:
-            nice_val = -10
+            nice_val = HIGH_PRIORITY_CLASS
             Computer._process_original_nice_value = Computer.current_process.nice()
             if Computer.system=='win32':
                 nice_val = psutil.HIGH_PRIORITY_CLASS
@@ -273,6 +320,8 @@ class Computer(object):
     @staticmethod
     def enableRealTimePriority(disable_gc=True):
         """
+        **Deprecated Method:** Use Computer.setPriority('high', disable_gc) instead.
+
         Sets the priority of the current process to real-time priority class
         and optionally (default is true) disable the python GC. This is very
         useful for the duration of a trial, for example, where you enable at
@@ -288,7 +337,7 @@ class Computer(object):
             disable_gc (bool): True = Turn of the Python Garbage Collector. False = Leave the Garbage Collector running. Default: True
         """
         if Computer.in_high_priority_mode is False:
-            nice_val = -18
+            nice_val = REALTIME_PRIORITY_CLASS
             Computer._process_original_nice_value = Computer.current_process.nice()
             if Computer.system=='win32':
                 nice_val = psutil.REALTIME_PRIORITY_CLASS
@@ -308,6 +357,8 @@ class Computer(object):
     @staticmethod
     def disableRealTimePriority():
         """
+        **Deprecated Method:** Use Computer.setPriority('normal') instead.
+
         Sets the priority of the Current Process back to normal priority
         and enables the python GC. In general you would call
         enableRealTimePriority() at start of trial and call
@@ -326,6 +377,8 @@ class Computer(object):
     @staticmethod
     def disableHighPriority():
         """
+        **Deprecated Method:** Use Computer.setPriority('normal') instead.
+
         Sets the priority of the Current Process back to normal priority
         and enables the python GC. In general you would call
         enableHighPriority() at start of trial and call
@@ -872,6 +925,7 @@ class Device(ioObject):
         Returns:
             (list): New events that the ioHub has received since the last getEvents() or clearEvents() call to the device. Events are ordered by the ioHub time of each event, older event at index 0. The event object type is determined by the asType parameter passed to the method. By default a namedtuple object is returned for each event.
         """
+        self._iohub_server.processDeviceEvents()
         eventTypeID = None
         clearEvents = True
         if len(args)==1:
@@ -896,7 +950,7 @@ class Device(ioObject):
                 currentEvents = [e for e in currentEvents if e[DeviceEvent.EVENT_FILTER_ID_INDEX] == filter_id]
 
             if clearEvents is True and len(currentEvents)>0:
-                self.clearEvents(eventTypeID,filter_id=filter_id)
+                self.clearEvents(eventTypeID,filter_id=filter_id, call_proc_events=False)
         else:
             if filter_id:
                 [currentEvents.extend([fe for fe in l if fe[DeviceEvent.EVENT_FILTER_ID_INDEX] == filter_id]) for l in self._iohub_event_buffer.values()]
@@ -904,14 +958,14 @@ class Device(ioObject):
                 [currentEvents.extend(l) for l in self._iohub_event_buffer.values()]
 
             if clearEvents is True and len(currentEvents)>0:
-                self.clearEvents(filter_id=filter_id)
+                self.clearEvents(filter_id=filter_id, call_proc_events=False)
 
         if len(currentEvents)>0:
             currentEvents=sorted(currentEvents, key=itemgetter(DeviceEvent.EVENT_HUB_TIME_INDEX))
         return currentEvents
 
 
-    def clearEvents(self, event_type=None, filter_id=None):
+    def clearEvents(self, event_type=None, filter_id=None, call_proc_events=True):
         """
         Clears any DeviceEvents that have occurred since the last call to the device's getEvents(),
         or clearEvents() methods.
@@ -926,6 +980,9 @@ class Device(ioObject):
         Returns:
             None
         """
+        if call_proc_events:
+            self._iohub_server.processDeviceEvents()
+
         if event_type:
             if filter_id:
                 event_que = self._iohub_event_buffer[event_type]
@@ -955,6 +1012,7 @@ class Device(ioObject):
         Returns:
             bool: The current reporting state.
         """
+        self.clearEvents()
         self._is_reporting_events=enabled
         return self._is_reporting_events
 
@@ -1076,11 +1134,11 @@ class Device(ioObject):
 
     def getCurrentDeviceState(self, clear_events=True):
         result_dict={}
-
+        self._iohub_server.processDeviceEvents()
         events = {key:tuple(value) for key, value in self._iohub_event_buffer.items()}
         result_dict['events'] = events
         if clear_events:
-            self.clearEvents()
+            self.clearEvents(call_proc_events=False)
 
         result_dict['reporting_events'] = self._is_reporting_events
 
