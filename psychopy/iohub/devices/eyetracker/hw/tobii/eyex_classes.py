@@ -21,6 +21,7 @@ import platform
 from ctypes import *
 from .....constants import EventConstants, EyeTrackerConstants
 from .... import Computer
+from ..... import print2err
 
 DEBUG = False
 
@@ -175,6 +176,8 @@ class TobiiEyeXTracker():
                                     POINTER(TobiiGazeDataExtensions),
                                     c_void_p)
 
+        self.async_callback_type = callback_generator(None, c_uint32, c_void_p)
+
         self.error_callback_type = callback_generator(None, c_uint32, c_void_p)
 
 
@@ -203,7 +206,9 @@ class TobiiEyeXTracker():
         self.dll.tobiigaze_connect(self.eye_tracker, byref(self.error_code))  
         self.dll.tobiigaze_get_device_info(self.eye_tracker, byref(self.info), byref(self.error_code));
 
+        self._calibrationPoints = []
         self._isConnected = True
+        self._start_timestamp = None
         self._mainloop = True
         self._last_usec = Computer.getTime() * 0.000001 
 
@@ -260,7 +265,7 @@ class TobiiEyeXTracker():
         # Use hacky last time from event handler
         return self._last_usec
 
-    def getDelayInMicroseconds(self, timestamp):
+    def getDelayInMicroseconds(self, timestamp, convert_to_sec):
         """
         The Tobii EyeX timestamp starts at a random number of
         microseconds, so we need to track when we started.
@@ -268,7 +273,7 @@ class TobiiEyeXTracker():
         """
         if self._start_timestamp is None:
             self._start_timestamp = timestamp
-            self._start_usec = logged_usec
+            self._start_usec = timestamp * convert_to_sec
 
         value = self._start_usec + (timestamp - self._start_timestamp)
 
@@ -276,10 +281,72 @@ class TobiiEyeXTracker():
 
         return value
 
-
     def disconnect(self):
         self.dll.tobiigaze_break_event_loop(self.eye_tracker)
         self.dll.tobiigaze_disconnect(self.eye_tracker)
         self.dll.tobiigaze_destroy(self.eye_tracker)
         self._isConnected = False
         
+
+    """
+    ###############################################################################
+    Calibration code to imitate the older API
+    Weird because we have to wrap callbacks
+    """
+
+    def WrapAsyncCallback(self, callback):
+        if callback == None:
+            def callback(error, data):
+                return 0
+        return self.async_callback_type(callback)
+
+    def StartCalibration(self, callback):
+        print2err("Trying to start")
+        nativeCallback = self.WrapAsyncCallback(callback)
+        self.dll.tobiigaze_calibration_start_async(self.eye_tracker, nativeCallback, None)
+
+    def StopCalibration(self, callback):
+        print2err("Trying to stop")
+        nativeCallback = self.WrapAsyncCallback(callback)
+        self.dll.tobiigaze_calibration_stop_async(self.eye_tracker, nativeCallback, None)
+
+    def ClearCalibration(self):
+        print2err("Trying to clear")
+        for p in self._calibrationPoints:
+            RemoveCalibrationPoint(p, None)
+
+    def AddCalibrationPoint(self, p, callback):
+        # This probably has to take a calibration point in the other Tobii world and put it into this one
+        print2err("Hey I got a calibration point")
+        print2err(dir(p))
+        point = TobiiGazePoint2D()
+        point.x = p[0]
+        point.y = p[1]
+        nativeCallback = self.WrapAsyncCallback(callback)
+        self._calibrationPoints.push(point)
+        self.dll.tobiigaze_calibration_add_point_async(self.eye_tracker, point, nativeCallback, None)
+
+    def RemoveCalibrationPoint(self, p, callback):
+        print2err("Trying to remove")
+        # TODO: remove point from _calibrationPoints
+        nativeCallback = self.WrapAsyncCallback(callback)
+        self.dll.tobiigaze_calibration_remove_point_async(self.eye_tracker, p, nativeCallback, None)
+        
+    def ComputeCalibration(self, callback):
+        print2err("Trying to compute")
+        nativeCallback = self.WrapAsyncCallback(callback)
+        self.dll.tobiigaze_calibration_compute_and_set_async(self.eye_tracker, nativeCallback, None)
+
+    def GetCalibration(self, callback):
+        print2err("Trying to get")
+        calibration = TobiiGazeCalibration()
+        nativeCallback = self.WrapAsyncCallback(callback)
+        self.dll.tobiigaze_calibration_get_calibration_async(self.eye_tracker, calibration, nativeCallback, None)
+
+    def SetCalibration(self, calibration, callback):
+        print2err("Trying to set")
+        # TODO: Wrap calibration?
+        # calibration = TobiiGazeCalibration()
+        nativeCallback = self.WrapAsyncCallback(callback)
+        self.dll.tobiigaze_calibration_set_calibration_async(self.eye_tracker, calibration, nativeCallback, None)
+

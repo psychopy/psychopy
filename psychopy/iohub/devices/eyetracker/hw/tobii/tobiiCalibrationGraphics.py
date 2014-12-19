@@ -39,7 +39,11 @@ class TobiiPsychopyCalibrationGraphics(object):
     def __init__(self, eyetrackerInterface,screenColor=None,
                  calibrationPointList=None):
         self._eyetrackerinterface=eyetrackerInterface
-        self._tobii = eyetrackerInterface._tobii._eyetracker
+        # The EyeX interface has to fake the other API's calibration stuff
+        if eyetrackerInterface._isEyeX:
+            self._tobii = eyetrackerInterface._tobii
+        else:
+            self._tobii = eyetrackerInterface._tobii._eyetracker
         self.screenSize = eyetrackerInterface._display_device.getPixelResolution()
         self.width=self.screenSize[0]
         self.height=self.screenSize[1]
@@ -313,7 +317,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             self.drawCalibrationTarget(i,(x,y))
             self.clearAllEventBuffers()
             stime=currentTime()
-            
+
             def waitingForNextTargetTime():
                 return True
             
@@ -629,6 +633,7 @@ class TobiiPsychopyCalibrationGraphics(object):
         ftime=self.window.flip(clearBuffer=True)
         current_size=max_osize
         while current_size>orad:
+            print2err("Current size {0}".format(current_size))
             sec_dur=ftime-stime
             if sec_dur<0.0:
                 sec_dur=0.0
@@ -637,7 +642,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             self.calibrationPointOUTER.radius = current_size
             self.calibrationPointOUTER.draw()          
             self.calibrationPointINNER.draw()            
-            ftime=self.window.flip(clearBuffer=True)  
+            ftime=self.window.flip(clearBuffer=True)
        
     def drawCalibrationTarget(self,target_number,tp): 
         """

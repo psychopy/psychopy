@@ -172,11 +172,6 @@ monitor_devices:
 #        runtime_settings:
 #            sampling_rate: 60
 
-# Tobii EyeX (uncomment below device config to use)
-#    - eyetracker.hw.tobii_eyex.EyeTracker:
-#        enable: True
-#        name: tracker
-
 data_store:
     enable: True
 

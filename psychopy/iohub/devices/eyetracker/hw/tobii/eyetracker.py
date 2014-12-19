@@ -408,23 +408,16 @@ class EyeTracker(EyeTrackerDevice):
         Logic for the EyeX native event type goes here
         """
 
-        # TODO: Enable correct-ish time delay tracking math
-        """
+        # Enable correct-ish time delay tracking math
         logged_sec = Computer.getTime()
         logged_usec = logged_sec / self.DEVICE_TIMEBASE_TO_SEC
 
-        tobii_usec = self._tobii.getDelayInMicroseconds(eye_data_event.timestamp)
+        tobii_usec = self._tobii.getDelayInMicroseconds(eye_data_event.timestamp, self.DEVICE_TIMEBASE_TO_SEC)
         tobii_event_time = tobii_usec * self.DEVICE_TIMEBASE_TO_SEC
         
         data_delay = tobii_usec - logged_usec
         iohub_event_time = (logged_usec - data_delay) * self.DEVICE_TIMEBASE_TO_SEC # in sec.msec_usec
         data_delay = data_delay * self.DEVICE_TIMEBASE_TO_SEC
-        """
-
-        logged_sec = Computer.getTime()
-        tobii_event_time = logged_sec
-        data_delay = 0.0
-        iohub_event_time = logged_sec
 
         #print2err("data delay: %gms" % (data_delay * 1000))
         self._addNativeEventToBuffer((logged_sec,tobii_event_time,iohub_event_time,data_delay,eye_data_event))
