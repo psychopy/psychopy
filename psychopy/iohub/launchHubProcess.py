@@ -52,7 +52,7 @@ def run(rootScriptPathDir,configFilePath):
             for m in s.deviceMonitors:
                 m.start()
     
-            gevent.spawn(s.processDeviceEvents, 0.001)
+            gevent.spawn(s.processEventsTasklet, 0.01)
 
             sys.stdout.write("IOHUB_READY\n\r\n\r")
 
@@ -68,7 +68,7 @@ def run(rootScriptPathDir,configFilePath):
             for m in s.deviceMonitors:
                 m.start()
                 glets.append(m)
-            glets.append(gevent.spawn(s.processDeviceEvents,0.001))
+            glets.append(gevent.spawn(s.processEventsTasklet,0.01))
     
             sys.stdout.write("IOHUB_READY\n\r\n\r")
             sys.stdout.flush()

@@ -37,6 +37,14 @@ class TestComputer:
         assert ta <= tb <= tc <= tp
         assert tp - ta < 0.002
 
+        ta = getTime()
+        tb = self.io.getTime()
+        tc = self.io.getTime()
+        tp = getTime()
+
+        assert ta <= tb <= tc <= tp
+        assert tp - ta < 0.01
+
     def test_getProcesses(self):
         assert Computer.is_iohub_process is False
         assert Computer.psychopy_process == Computer.getCurrentProcess()
@@ -61,13 +69,39 @@ class TestComputer:
         assert cc <= puc
 
     def test_procPriority(self):
+        local_priority = Computer.getPriority()
+        iohub_priority_rpc = self.io.getPriority()
+        assert local_priority == 'normal'
+        assert iohub_priority_rpc == 'normal'
+
+        priority_level = Computer.setPriority('high', True)
+        assert priority_level == 'high'
+        priority_level = self.io.setPriority('high', True)
+        assert priority_level == 'high'
+        priority_level = Computer.setPriority('normal')
+        assert priority_level == 'normal'
+        priority_level = self.io.setPriority('normal')
+        assert priority_level == 'normal'
+
+        priority_level = Computer.setPriority('realtime')
+        assert priority_level == 'realtime'
+        priority_level = self.io.setPriority('realtime')
+        assert priority_level == 'realtime'
+        priority_level = Computer.setPriority('normal')
+        assert priority_level == 'normal'
+        priority_level = self.io.setPriority('normal')
+        assert priority_level == 'normal'
+
+        # >> Deprecated functionality tests
         psycho_proc = Computer.psychopy_process
         iohub_proc = Computer.getIoHubProcess()
 
         psycho_priority = Computer.getProcessPriority(psycho_proc)
         iohub_priority = Computer.getProcessPriority(iohub_proc)
         assert psycho_priority == 'normal'
+        assert local_priority == psycho_priority
         assert iohub_priority == 'normal'
+        assert iohub_priority == iohub_priority_rpc
 
         priority_change_ok = Computer.enableHighPriority()
         new_psycho_priority = Computer.getProcessPriority(psycho_proc)

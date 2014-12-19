@@ -24,8 +24,6 @@ from ... import print2err,printExceptionDetailsToStdErr
 from ...constants import KeyboardConstants, DeviceConstants, EventConstants, ModifierKeyCodes
 from .. import Device, Computer
 
-import pyglet.window.key as keymapper
-
 getTime = Computer.getTime
 
 

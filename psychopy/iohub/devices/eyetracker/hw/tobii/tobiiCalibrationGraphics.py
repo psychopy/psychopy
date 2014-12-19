@@ -143,7 +143,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             if self._eyetrackerinterface._iohub_server:
                 for dm in self._eyetrackerinterface._iohub_server.deviceMonitors:
                     dm.device._poll()
-                self._eyetrackerinterface._iohub_server._processDeviceEventIteration()
+                self._eyetrackerinterface._iohub_server.processDeviceEvents()
             self._lastMsgPumpTime=currentTime()
 
     def getNextMsg(self):

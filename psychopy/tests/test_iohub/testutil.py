@@ -5,6 +5,8 @@ __author__ = 'Sol'
 import psutil, sys
 from psychopy.iohub import launchHubServer, Computer
 
+getTime = Computer.getTime
+
 from psychopy.tests.utils import skip_under_travis
 
 @skip_under_travis

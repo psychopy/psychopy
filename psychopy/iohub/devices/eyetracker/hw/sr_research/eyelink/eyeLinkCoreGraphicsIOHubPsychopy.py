@@ -425,7 +425,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
             if self._iohub_server:
                 for dm in self._iohub_server.deviceMonitors:
                     dm.device._poll()
-                self._iohub_server._processDeviceEventIteration()
+                self._iohub_server.processDeviceEvents()
             self._lastMsgPumpTime=Computer.getTime()
         if len(self.keys) > 0:
             k = self.keys

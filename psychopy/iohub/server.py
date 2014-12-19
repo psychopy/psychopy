@@ -135,6 +135,7 @@ class udpServer(DatagramServer):
             
     def handleGetEvents(self,replyTo):
         try:
+            self.iohub.processDeviceEvents()
             currentEvents=list(self.iohub.eventBuffer)
             self.iohub.eventBuffer.clear()
 
@@ -376,20 +377,40 @@ class udpServer(DatagramServer):
             return self.iohub.emrt_file._addRowToConditionVariableTable(experiment_id,session_id,data)
         return False
 
-    def clearEventBuffer(self):
-        return self.iohub.clearEventBuffer()
+    def clearEventBuffer(self, clear_device_level_buffers=False):
+        """
 
-    def enableHighPriority(self,disable_gc=True):
-        return Computer.enableHighPriority(disable_gc)
+        :param clear_device_level_buffers:
+        :return:
+        """
+        r = self.iohub.clearEventBuffer()
+        if clear_device_level_buffers is True:
+            for device in self.iohub.devices:
+                try:
+                    device.clearEvents(call_proc_events=False)
+                except:
+                    pass
 
-    def disableHighPriority(self):
-        return Computer.disableHighPriority()
+    def getTime(self):
+        """
+        See Computer.getTime documentation, where current process will be
+        the ioHub Server process.
+        """
+        return Computer.getTime()
 
-    def enableRealTimePriority(self,disable_gc=True):
-        return Computer.enableRealTimePriority(disable_gc)
+    def setPriority(self, level='normal', disable_gc=False):
+        """
+        See Computer.setPriority documentation, where current process will be
+        the ioHub Server process.
+        """
+        return Computer.setPriority(level, disable_gc)
 
-    def disableRealTimePriority(self):
-        return Computer.disableRealTimePriority()
+    def getPriority(self):
+        """
+        See Computer.getPriority documentation, where current process will be
+        the ioHub Server process.
+        """
+        return Computer.getPriority()
 
     def getProcessAffinity(self):
         return Computer.getCurrentProcessAffinity()
@@ -405,7 +426,7 @@ class udpServer(DatagramServer):
 
     def shutDown(self):
         try:
-            self.disableHighPriority()
+            self.setPriority('normal')
             self.iohub.shutdown()
             self._running=False
             self.stop()
@@ -852,12 +873,14 @@ class ioServer(object):
             pytablesfile.flush()
             pytablesfile.close()
             
-    def processDeviceEvents(self,sleep_interval):
+    def processEventsTasklet(self,sleep_interval):
         while self._running:
-            self._processDeviceEventIteration()
-            gevent.sleep(sleep_interval)
+            stime=Computer.getTime()
+            self.processDeviceEvents()
+            dur = sleep_interval - (Computer.getTime()-stime)
+            gevent.sleep(max(0.0, dur))
 
-    def _processDeviceEventIteration(self):
+    def processDeviceEvents(self):
         for device in self.devices:
             try:
                 events = device._getNativeEventBuffer()
@@ -889,7 +912,9 @@ class ioServer(object):
     def _handleEvent(self,event):
         self.eventBuffer.append(event)
 
-    def clearEventBuffer(self):
+    def clearEventBuffer(self, call_proc_events=True):
+        if call_proc_events is True:
+            self.processDeviceEvents()
         l= len(self.eventBuffer)
         self.eventBuffer.clear()
         return l
