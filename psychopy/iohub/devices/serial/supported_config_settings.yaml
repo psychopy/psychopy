@@ -105,7 +105,7 @@ serial.Serial:
             min_length: 1
             max_length: 8
 
-serial.PSTBox:
+serial.PstBox:
     enable: IOHUB_BOOL
     name:
         IOHUB_STRING:
@@ -174,7 +174,7 @@ serial.PSTBox:
     auto_report_events: False
     monitor_event_types:
         IOHUB_LIST:
-            valid_values: [SerialInputEvent, SerialByteChangeEvent]
+            valid_values: [SerialInputEvent, PstBoxButtonEvent]
             min_length: 0
             max_length: 2
     event_buffer_length:
