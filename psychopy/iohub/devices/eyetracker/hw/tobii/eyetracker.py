@@ -201,6 +201,9 @@ class EyeTracker(EyeTrackerDevice):
             bool: True if setup / calibration procedue passed, False otherwise. If false, should likely exit experiment.
         """
         try:
+            if self._isEyeX:
+                return False
+
             calibration_properties=self.getConfiguration().get('calibration')
             screenColor=calibration_properties.get('screen_background_color')                     # [r,g,b] of screen
 
