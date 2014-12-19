@@ -633,7 +633,6 @@ class TobiiPsychopyCalibrationGraphics(object):
         ftime=self.window.flip(clearBuffer=True)
         current_size=max_osize
         while current_size>orad:
-            print2err("Current size {0}".format(current_size))
             sec_dur=ftime-stime
             if sec_dur<0.0:
                 sec_dur=0.0
