@@ -139,7 +139,7 @@ try:
         SERIAL_BYTE_CHANGE = 106
 
         MULTI_CHANNEL_ANALOG_INPUT=122
-    
+
         MESSAGE=151
         LOG=152
 
@@ -299,6 +299,7 @@ try:
         GAMEPAD = 80
         MCU = 100
         SERIAL = 110
+        PSTBOX = 111
         ANALOGINPUT = 120
         EXPERIMENT = 150
         DISPLAY = 190
@@ -337,7 +338,10 @@ try:
             MCU = 100
 
             #: Constant for a General Purpose Serial Interface Device.
-            MCU = 110
+            SERIAL = 110
+
+            #: Constant for PST Serial Response Box
+            PSTBOX = 111
 
             #: Constant for an AnalogInput Device.
             ANALOGINPUT = 120

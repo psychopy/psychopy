@@ -460,6 +460,160 @@ class Serial(Device):
         self.setConnectionState(False)
         Device._close(self)
 
+
+class PSTBox(Serial):
+    """
+    Provides convenient access to the PST Serial Response Box.
+
+    """
+    EVENT_CLASS_NAMES = ['SerialInputEvent', 'PstBoxButtonEvent']
+    DEVICE_TYPE_ID = DeviceConstants.PSTBOX
+    DEVICE_TYPE_STRING = "PSTBOX"
+    # Only add new attributes for the subclass, the device metaclass pulls them together. 
+    _serial_slots = [
+        '_nlamps', '_lamp_state',
+        '_streaming_state', '_button_query_state', '_state',
+        '_button_bytes', '_nbuttons'
+    ]
+    __slots__ = [e for e in _serial_slots]
+
+    def __init__(self, *args, **kwargs):
+        Serial.__init__(self, *args, **kwargs['dconfig'])
+
+        # Any class instance attribute must be specified in the __slots__ list.
+        # So '_nbuttons' needs to be added to __slots__ for this class.
+        # If uses a class level attribute, when it makes sense, then this does not need to
+        # be in slots.
+        self._nbuttons = 5
+        # Buttons 0--4, from left to right:
+        # [1, 2, 4, 8, 16]
+        # FIXME Make use of msgpack-numpy
+        self._button_bytes = list(
+            (2**N.arange(self._nbuttons)).astype(N.uint8)
+        )
+
+        self._nlamps = 5
+        self._lamp_state = N.repeat(False, self._nlamps)
+        self._streaming_state = True
+        self._button_query_state = True
+
+        update_lamp_state = True
+        self._state = N.r_[
+            self._lamp_state, self._button_query_state, update_lamp_state,
+            self._streaming_state
+        ]
+
+        self._update_state()
+
+    def _update_state(self):
+        update_lamp_state = True
+
+        # `state` becomes an array of bools.
+        state = N.r_[
+            self._lamp_state, self._button_query_state, update_lamp_state,
+            self._streaming_state
+        ]
+
+        # Convert the new state into a bitmask, collapse it into a
+        # single byte and send it to the response box.
+        state_bits = (2**N.arange(9))[state]
+        self.write(chr(N.sum(state_bits)))
+
+        # Set the `update lamp` bit to LOW again.
+        state[6] = False
+        self._state = state
+
+    def getState(self):
+        # FIXME Make use of msgpack-numpy
+        return [bool(x) for x in self._state]
+
+    def getLampState(self):
+        # FIXME Make use of msgpack-numpy
+        return [bool(x) for x in self._lamp_state]
+
+    def setLampState(self, state):
+        """
+        Change the state of the lamps (on/off)
+
+        Parameters
+        ----------
+        state : array_like
+            The requested lamp states, from left to right. `0` means off,
+            and `1` means on.
+
+        """
+        if len(state) != self._nlamps:
+            raise ValueError('Please specify a number of states that is '
+                             'equal to the number of lamps on the '
+                             'response box.')
+
+        state = N.array(state).astype('bool')
+        self._lamp_state = state
+        self._update_state()
+
+    def getStreamingState(self):
+        return self._streaming_state
+
+    def setStreamingState(self, state):
+        """
+        Switch on or off streaming mode.
+
+        Parameters
+        ----------
+        state : bool
+            ``True`` will enable streaming, ``False`` will disable it.
+
+        """
+        self._streaming_state = bool(state)
+        self._update_state()
+
+    def getButtonQueryState(self):
+        return self._button_query_state
+
+    def setButtonQueryState(self, state):
+        """
+        Switch on or off button querying.
+
+        Parameters
+        ----------
+        state : bool
+            ``True`` will enable querying, ``False`` will disable it.
+
+        """
+        self._button_query_state = bool(state)
+        self._update_state()
+
+    def _createByteChangeSerialEvent(self, logged_time, read_time,
+                                     prev_byte, new_byte):
+        self._event_count += 1
+        confidence_interval = read_time - self._last_poll_time
+
+        prev_byte = ord(prev_byte)
+        new_byte = ord(new_byte)
+
+        if new_byte != 0:  # Button was pressed
+            button = self._button_bytes.index(new_byte)
+            button_event = 'press'
+        else:  # Button was released
+            button = self._button_bytes.index(prev_byte)
+            button_event = 'release'
+
+        events = [
+            0, 0, 0, Computer._getNextEventID(),
+            EventConstants.PSTBOX_BUTTON,
+            read_time,
+            logged_time,
+            read_time,
+            confidence_interval,
+            0.0,
+            0,
+            self.port,
+            button,
+            button_event
+        ]
+        self._addNativeEventToBuffer(events)
+
+
 class SerialInputEvent(DeviceEvent):
     _newDataTypes = [
             ('port', N.str, 32),
@@ -473,6 +627,7 @@ class SerialInputEvent(DeviceEvent):
     def __init__(self, *args, **kwargs):
         DeviceEvent.__init__(self, *args, **kwargs)
 
+
 class SerialByteChangeEvent(DeviceEvent):
     _newDataTypes = [
             ('port', N.str, 32),
@@ -483,6 +638,25 @@ class SerialByteChangeEvent(DeviceEvent):
     EVENT_TYPE_STRING = 'SERIAL_BYTE_CHANGE'
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING
     __slots__ = [e[0] for e in _newDataTypes]
+
+    def __init__(self, *args, **kwargs):
+        DeviceEvent.__init__(self, *args, **kwargs)
+
+class PstBoxButtonEvent(DeviceEvent):
+    # Add new fields for PstBoxButtonEvent
+    _newDataTypes = [
+        ('port', N.str, 32), # could be needed to identify events from >1 connected button box; if that is ever supported.
+        ('button', N.uint8),
+        ('button_event', N.str, 7)
+    ]
+
+    __slots__ = [e[0] for e in _newDataTypes]
+
+    # Specify Event constants associated with the event class, 
+    # and the key to the hdf5 table these events should be stored in.
+    EVENT_TYPE_ID = EventConstants.PSTBOX_BUTTON
+    EVENT_TYPE_STRING = 'PSTBOX_BUTTON'
+    IOHUB_DATA_TABLE = EVENT_TYPE_STRING    
 
     def __init__(self, *args, **kwargs):
         DeviceEvent.__init__(self, *args, **kwargs)
