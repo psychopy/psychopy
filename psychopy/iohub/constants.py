@@ -137,7 +137,8 @@ try:
 
         SERIAL_INPUT = 105
         SERIAL_BYTE_CHANGE = 106
-
+        PSTBOX_BUTTON = 107
+        
         MULTI_CHANNEL_ANALOG_INPUT=122
 
         MESSAGE=151
@@ -231,6 +232,9 @@ try:
             #: Constant for a serial event due to a rx stream byte value change.
             SERIAL_BYTE_CHANGE = 106
 
+            #: Constant for a PST Box serial interface event due to a button state change.
+            PSTBOX_BUTTON = 107
+            
             #: Constant for an Experiment Message Event.
             MESSAGE=151
 
