@@ -535,10 +535,10 @@ class MainFrame(wx.Frame):
         #insert values from new calib into GUI
         self.ctrlCalibDate.SetValue(
             monitors.strFromDate(self.currentMon.getCalibDate()))
-        self.ctrlScrDist.SetValue(str(self.currentMon.getDistance()))
-        self.ctrlScrWidth.SetValue(str(self.currentMon.getWidth()))
-        self.ctrlScrPixHoriz.SetValue(str(self.currentMon.currentCalib['sizePix'][0]))
-        self.ctrlScrPixVert.SetValue(str(self.currentMon.currentCalib['sizePix'][1]))
+        self.ctrlScrDist.SetValue(locale.str(self.currentMon.getDistance()))
+        self.ctrlScrWidth.SetValue(locale.str(self.currentMon.getWidth()))
+        self.ctrlScrPixHoriz.SetValue(locale.str(self.currentMon.currentCalib['sizePix'][0]))
+        self.ctrlScrPixVert.SetValue(locale.str(self.currentMon.currentCalib['sizePix'][1]))
         #self.ctrlScrGamma.SetValue(str(self.currentMon.getGamma()))
         self.ctrlCalibNotes.SetValue(self.currentMon.getNotes() or '')
         self.ctrlUseBits.SetValue(self.currentMon.getUseBits())
