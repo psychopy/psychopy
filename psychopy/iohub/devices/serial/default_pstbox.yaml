@@ -5,7 +5,7 @@
 # created by the ioHub Process will be assigned the default value
 # indicated here.
 #
-serial.PstBox:
+serial.Pstbox:
     
     # name: The unique name to assign to the device instance created.
     #   The device is accessed from within the PsychoPy script 
@@ -17,7 +17,7 @@ serial.PstBox:
     # monitor_event_types: Specify which of the device's supported event
     #   types you would like the ioHub to monitor for.
     #
-    monitor_event_types: [SerialInputEvent, PstBoxButtonEvent]
+    monitor_event_types: [SerialInputEvent, PstboxButtonEvent]
     # serial_port: On Windows, serial ports will be in the form
     #    'COMx', where x is the serial port number, usually ranging between 1 
     #    and 32. For example, COM6 would indicate that serial port 6 should be

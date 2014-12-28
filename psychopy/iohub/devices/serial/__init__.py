@@ -461,14 +461,14 @@ class Serial(Device):
         Device._close(self)
 
 
-class PstBox(Serial):
+class Pstbox(Serial):
     """
     Provides convenient access to the PST Serial Response Box.
 
     """
-    EVENT_CLASS_NAMES = ['SerialInputEvent', 'PstBoxButtonEvent']
+    EVENT_CLASS_NAMES = ['SerialInputEvent', 'PstboxButtonEvent']
     DEVICE_TYPE_ID = DeviceConstants.PSTBOX
-    DEVICE_TYPE_STRING = "PSTBOX"
+    DEVICE_TYPE_STRING = 'PSTBOX'
     # Only add new attributes for the subclass, the device metaclass pulls them together. 
     _serial_slots = [
         '_nlamps', '_lamp_state',
@@ -478,7 +478,7 @@ class PstBox(Serial):
     __slots__ = [e for e in _serial_slots]
 
     def __init__(self, *args, **kwargs):
-        Serial.__init__(self, *args, **kwargs['dconfig'])
+        Serial.__init__(self, *args, **kwargs)
 
         # Any class instance attribute must be specified in the __slots__ list.
         # So '_nbuttons' needs to be added to __slots__ for this class.
@@ -642,8 +642,8 @@ class SerialByteChangeEvent(DeviceEvent):
     def __init__(self, *args, **kwargs):
         DeviceEvent.__init__(self, *args, **kwargs)
 
-class PstBoxButtonEvent(DeviceEvent):
-    # Add new fields for PstBoxButtonEvent
+class PstboxButtonEvent(DeviceEvent):
+    # Add new fields for PstboxButtonEvent
     _newDataTypes = [
         ('port', N.str, 32), # could be needed to identify events from >1 connected button box; if that is ever supported.
         ('button', N.uint8),
