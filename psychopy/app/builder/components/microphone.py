@@ -70,7 +70,8 @@ class MicrophoneComponent(BaseComponent):
             currLoop = self.exp._expHandler
 
         #write the actual code
-        buff.writeIndented("# check responses\n" %self.params)
+        buff.writeIndented("# %(name)s stop & responses\n" %self.params)
+        buff.writeIndented("%s.stop()  # sometimes helpful\n" % self.params['name'])
         buff.writeIndented("if not %(name)s.savedFile:\n"%self.params)
         buff.writeIndented("    %(name)s.savedFile = None\n" %(self.params))
         buff.writeIndented("# store data for %s (%s)\n" %(currLoop.params['name'], currLoop.type))
