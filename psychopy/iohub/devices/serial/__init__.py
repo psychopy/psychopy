@@ -487,10 +487,7 @@ class Pstbox(Serial):
         self._nbuttons = 5
         # Buttons 0--4, from left to right:
         # [1, 2, 4, 8, 16]
-        # FIXME Make use of msgpack-numpy
-        self._button_bytes = list(
-            (2**N.arange(self._nbuttons)).astype(N.uint8)
-        )
+        self._button_bytes = 2**N.arange(self._nbuttons, dtype='uint8')
 
         self._nlamps = 5
         self._lamp_state = N.repeat(False, self._nlamps)
@@ -524,12 +521,10 @@ class Pstbox(Serial):
         self._state = state
 
     def getState(self):
-        # FIXME Make use of msgpack-numpy
-        return [bool(x) for x in self._state]
+        return self._state
 
     def getLampState(self):
-        # FIXME Make use of msgpack-numpy
-        return [bool(x) for x in self._lamp_state]
+        return self._lamp_state
 
     def setLampState(self, state):
         """
@@ -592,10 +587,10 @@ class Pstbox(Serial):
         new_byte = ord(new_byte)
 
         if new_byte != 0:  # Button was pressed
-            button = self._button_bytes.index(new_byte)
+            button = N.where(self._button_bytes == new_byte)[0][0]
             button_event = 'press'
         else:  # Button was released
-            button = self._button_bytes.index(prev_byte)
+            button = N.where(self._button_bytes == prev_byte)[0][0]
             button_event = 'release'
 
         events = [
