@@ -8,7 +8,7 @@ from psychopy import logging
 from psychopy.tools.arraytools import extendArr, shuffleArray
 from psychopy.tools.fileerrortools import handleFileCollision
 import psychopy
-from pandas import DataFrame
+from pandas import DataFrame, read_csv
 import cPickle, string, sys, os, time, copy
 import numpy
 from scipy import optimize, special
@@ -1349,14 +1349,12 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         raise ImportError('Conditions file not found: %s' %os.path.abspath(fileName))
 
     if fileName.endswith('.csv'):
-        #use csv import library to fetch the fieldNames
-        f = open(fileName, 'rU')#the U converts line endings to os.linesep (not unicode!)
-        trialsArr = numpy.recfromcsv(f, case_sensitive=True)
+        trialsArr = read_csv(fileName) # use pandas reader, which can handle commas in fields, etc
+        trialsArr = trialsArr.to_records(index=False) # convert the resulting dataframe to a numpy recarry
         if trialsArr.shape == ():  # convert 0-D to 1-D with one element:
             trialsArr = trialsArr[numpy.newaxis]
         fieldNames = trialsArr.dtype.names
         _assertValidVarNames(fieldNames, fileName)
-        f.close()
         #convert the record array into a list of dicts
         trialList = []
         for trialN, trialType in enumerate(trialsArr):
