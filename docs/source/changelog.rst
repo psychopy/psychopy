@@ -20,6 +20,11 @@ Changelog
 PsychoPy 1.81
 ------------------------------
 
+PsychoPy 1.81.04
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FIXED: builder: microphone recordings are explicitly stopped at the end of every trial
+
 PsychoPy 1.81.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
