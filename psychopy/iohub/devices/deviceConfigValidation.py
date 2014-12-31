@@ -12,7 +12,7 @@ Created on Thu Mar 14 16:32:33 2013
 import socket
 import os
 
-from psychopy.iohub import module_directory, load, dump, Loader, Dumper
+from psychopy.iohub import module_directory, load, dump, Loader, Dumper, print2err
 
 
 class ValidationError(Exception):
@@ -416,8 +416,10 @@ def validateConfigDictToFuncMapping(param_validation_func_mapping,current_device
     return validation_results
 
 def validateDeviceConfiguration(relative_module_path,device_class_name,current_device_config):
-    validation_file_path=os.path.join(_current_dir,relative_module_path[len('psychopy.iohub.devices.'):].replace('.',os.path.sep),'supported_config_settings.yaml')
-
+    validation_file_path=os.path.join(_current_dir,relative_module_path[len('psychopy.iohub.devices.'):].replace('.',os.path.sep),'supported_config_settings_{0}.yaml'.format(device_class_name.lower()))
+    if not os.path.exists(validation_file_path):
+        validation_file_path=os.path.join(_current_dir,relative_module_path[len('psychopy.iohub.devices.'):].replace('.',os.path.sep),'supported_config_settings.yaml')
+    #print2err("{0} using config settings file: ".format(device_class_name.lower()),validation_file_path)
     device_settings_validation_dict=loadYamlFile(validation_file_path,print_file=True)
     device_settings_validation_dict=device_settings_validation_dict[device_settings_validation_dict.keys()[0]]
 
@@ -430,7 +432,7 @@ def validateDeviceConfiguration(relative_module_path,device_class_name,current_d
     validation_results=validateConfigDictToFuncMapping(param_validation_func_mapping,current_device_config,None)
 
 #    ioHub.print2err('=================================================')
-#    ioHub.print2err('{0} VALIDATION RESULTS: '.format(device_class_name))
+#    print2err('{0} VALIDATION RESULTS: '.format(device_class_name))
 #    ioHub.print2err('\tPARAMS NOT FOUND: {0} '.format(len(validation_results['not_found'])))
 #    for p,v in validation_results['not_found']:
 #        ioHub.print2err('\tparam: {0}\t\tvalue: {1}'.format(p,v))
