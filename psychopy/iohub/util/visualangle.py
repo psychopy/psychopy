@@ -4,11 +4,11 @@ from __future__ import division
 Pixel to Visual Angle Calculation.
 
 Uses "symmetric angles" formula provided by Dr. Josh Borah 
-(jborah AT asleyetracking.com), via email corespondance in 2012.
+(jborah AT asleyetracking.com), via email correspondence in 2012.
 
 Assumptions:
    1) unit origin == position 0.0, 0.0 == screen center
-   2) Eye is orthoganal to origin of 2D plane
+   2) Eye is orthogonal to origin of 2D plane
    
 """
 
@@ -56,9 +56,6 @@ class VisualAngleCalc(object):
 
         x_mm=self.mmpp_x*pixel_x
         y_mm=self.mmpp_y*pixel_y
-        
-#        Ah=arctan(x_mm,sqrt(power(eye_dist_mm,2)+power(y_mm,2)))
-#        Av=arctan(y_mm,sqrt(power(eye_dist_mm,2)+power(x_mm,2)))
 
         Ah = arctan(x_mm, hypot(eye_dist_mm, y_mm))
         Av = arctan(y_mm, hypot(eye_dist_mm, x_mm))

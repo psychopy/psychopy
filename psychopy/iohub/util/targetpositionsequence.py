@@ -146,7 +146,7 @@ class PositionGrid(object):
                                     # equal rows*cols. If shape is a single
                                     # int, the position grid col,row shape will
                                     # be shape x shape.
-                posCount=None,      # Defines the number of positions to
+                posCount=None,      # Defines the number of positions to create
                                     # without any col,row position constraint.
                 leftMargin=None,    # Specify the minimum valid horz position.
                 rightMargin=None,   # Limit horz positions to be < max horz
