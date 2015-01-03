@@ -57,3 +57,5 @@ class SoundComponent(BaseComponent):
             self.writeStopTestCode(buff)
             buff.writeIndented("%s.stop()  # stop the sound (if longer than duration)\n" %(self.params['name']))
             buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the time test
+    def writeRoutineEndCode(self,buff):
+        buff.writeIndented("%.stop() #ensure sound has stopped at end of routine\n" %(self.params['name']))
