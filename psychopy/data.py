@@ -1161,17 +1161,19 @@ class TrialHandler(_BaseTrialHandler):
     
         # collect parameter names related to the stimuli:
         if self.trialList[0]:
-            header = self.trialList[0].keys()
+            headerExceptExtraInfo = self.trialList[0].keys()
         else:
-            header = []
+            headerExceptExtraInfo = []
         # and then add parameter names related to data (e.g. RT)
-        header.extend(self.data.dataTypes)
+        headerExceptExtraInfo.extend(self.data.dataTypes)
+        headerExceptExtraInfo.insert(0,"TrialNumber")
         # get the extra 'wide' parameter names into the header line:
-        header.insert(0,"TrialNumber")
+        headerExtraInfo = []
         if (self.extraInfo != None):
             for key in self.extraInfo:
-                header.insert(0, key)
-        df = DataFrame(columns = header)
+                headerExtraInfo.insert(0, key)
+        headerAll = headerExtraInfo + headerExceptExtraInfo
+        df = DataFrame(columns = headerAll)
         
         # loop through each trial, gathering the actual values:
         dataOut = []
@@ -1192,16 +1194,20 @@ class TrialHandler(_BaseTrialHandler):
     
                 # create a dictionary representing each trial:
                 # this is wide format, so we want fixed information (e.g. subject ID, date, etc) repeated every line if it exists:
-                if (self.extraInfo != None):
+                if (self.extraInfo != None):  
                     nextEntry = self.extraInfo.copy()
                 else:
                     nextEntry = {}
+                l = len(nextEntry) #starting index, after including extraInfo
     
                 # add a trial number so the original order of the data can always be recovered if sorted during analysis:
                 trialCount += 1
     
-                # now collect the value from each trial of the variables named in the header:
-                for parameterName in header:
+                for parameterName in headerExtraInfo: 
+                    nextEntry[parameterName] = self.extraInfo[parameterName]
+                    
+                # now collect the value from each trial of the variables named in the headerExceptExtraInfo:
+                for parameterName in headerExceptExtraInfo:
                     # the header includes both trial and data variables, so need to check before accessing:
                     if self.trialList[trialTypeIndex] and parameterName in self.trialList[trialTypeIndex]:
                         nextEntry[parameterName] = self.trialList[trialTypeIndex][parameterName]
@@ -1220,14 +1226,14 @@ class TrialHandler(_BaseTrialHandler):
         if not matrixOnly:
         # write the header row:
             nextLine = ''
-            for parameterName in header:
+            for parameterName in headerAll:
                 nextLine = nextLine + parameterName + delim
             f.write(nextLine[:-1] + '\n') # remove the final orphaned tab character
     
         # write the data matrix:
         for trial in dataOut:
             nextLine = ''
-            for parameterName in header:
+            for parameterName in headerAll:
                 nextLine = nextLine + unicode(trial[parameterName]) + delim
             nextLine = nextLine[:-1] # remove the final orphaned tab character
             f.write(nextLine + '\n')
@@ -1235,8 +1241,7 @@ class TrialHandler(_BaseTrialHandler):
         if f != sys.stdout:
             f.close()
             logging.info('saved wide-format data to %s' %f.name)
-            
-        df= df.convert_objects() # Converts numbers to numeric, such as float64, boolean to bool. Otherwise they all are "object" type, i.e. strings
+        df= df.convert_objects()   #Converts numbers to numeric, such as float64, boolean to bool. Otherwise they will all be "object" type, i.e. strings
         return df
         
     def addData(self, thisType, value, position=None):
