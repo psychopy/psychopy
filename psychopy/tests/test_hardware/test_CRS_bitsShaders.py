@@ -14,6 +14,7 @@ try:
     from PIL import Image
 except ImportError:
     import Image
+import os
 
 _travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')  # in Travis-CI testing
 
