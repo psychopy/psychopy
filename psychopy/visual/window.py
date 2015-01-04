@@ -808,9 +808,9 @@ class Window(object):
         if buffer == 'back':
             GL.glReadBuffer(GL.GL_BACK)
         else:
+            GL.glReadBuffer(GL.GL_FRONT)
             if self.useFBO:
                 GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
-            GL.glReadBuffer(GL.GL_FRONT)
 
         #fetch the data with glReadPixels
         #pyglet.gl stores the data in a ctypes buffer
@@ -821,6 +821,9 @@ class Window(object):
 
         im = im.transpose(Image.FLIP_TOP_BOTTOM)
         im = im.convert('RGB')
+
+        if self.useFBO and buffer == 'front':
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
 
         return im
 

@@ -347,22 +347,41 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             1 check that the graphics driver and OS version haven't changed since last LUT calibration
             2 check that the current LUT calibration still provides identity (requires switch to status mode)
             3 search for a new identity look-up table (requires switch to status mode)
+
+    gammaCorrect: string governing how gamma correction is performed
+        'hardware': use the gamma correction file stored on the hardware
+        'FBO': gamma correct using shaders when rendering the FBO to back buffer
+        'bitsMode': in bits++ mode there is a user-controlled LUT that we can use for gamma correction
+
+    noComms: bool
+        If True then don't try to communicate with the device at all (passive mode).
+        This can be useful if you want to debug the system without actually
+        having a Bits# connected.
     """
     name='CRS Bits#'
-    def __init__(self, win=None, portName=None, mode='', checkConfigLevel=1, gammaCorrect = 'hardware', gamma = None):
+    def __init__(self, win=None, portName=None, mode='', checkConfigLevel=1,
+                 gammaCorrect = 'hardware', gamma = None,
+                 noComms=False):
 
         #import pyglet.GL late so that we can import bits.py without it initially
         global GL, visual
         from psychopy import visual
         import pyglet.gl as GL
 
-        #look for device on valid serial ports
-        serialdevice.SerialDevice.__init__(self, port=portName, baudrate=19200,
-                 byteSize=8, stopBits=1,
-                 parity="N", #'N'one, 'E'ven, 'O'dd, 'M'ask,
-                 eol='\n',
-                 maxAttempts=1, pauseDuration=0.1,
-                 checkAwake=True)
+        if noComms:
+            self.noComms = True
+            self.OK = True
+            self.sendMessage = self._nullSendMessage
+            self.getResponse = self._nullGetResponse
+        else:
+            self.noComms = False
+            #look for device on valid serial ports
+            serialdevice.SerialDevice.__init__(self, port=portName, baudrate=19200,
+                     byteSize=8, stopBits=1,
+                     parity="N", #'N'one, 'E'ven, 'O'dd, 'M'ask,
+                     eol='\n',
+                     maxAttempts=1, pauseDuration=0.1,
+                     checkAwake=True)
         if not self.OK:
             return
 
@@ -401,6 +420,12 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             self.config = None # makes no sense if we have a window?
             logging.warning("%s was not given any PsychoPy win" %(self))
 
+    #some empty methods that we can use to replace serial methods if noComms
+    def _nullSendMessage(self, message, autoLog=True):
+        pass
+    def _nullGetResponse(self, length=1, timeout=0.1):
+        pass
+
     def __del__(self):
         """If the user discards this object then close the serial port so it is released"""
         if hasattr(self, 'com'):
@@ -415,6 +440,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     def getInfo(self):
         """Returns a python dictionary of info about the Bits Sharp box
         """
+        if self.noComms:
+            return {'ProductType':'Bits#','SerialNumber':'n/a','FirmwareDate':'n/a'}
         self.read(timeout=0.5) #clear input buffer
         info={}
         #get product ('Bits_Sharp'?)
@@ -462,17 +489,25 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             self.setLUT()
             logging.info('Switched %s to %s mode' %(self.info['ProductType'], self.__dict__['mode']))
         elif value.startswith('mono'):
+            if not self.win.useFBO:
+                raise Exception, "Mono++ mode requires a PsychoPy Window with useFBO=True"
             self.sendMessage('$monoPlusPlus\r')
             self.__dict__['mode'] = 'mono++'
             logging.info('Switched %s to %s mode' %(self.info['ProductType'], self.__dict__['mode']))
         elif value.startswith('colo'):
+            if not self.win.useFBO:
+                raise Exception, "Color++ mode requires a PsychoPy Window with useFBO=True"
             self.sendMessage('$colorPlusPlus\r')
             self.__dict__['mode'] = 'color++'
             logging.info('Switched %s to %s mode' %(self.info['ProductType'], self.__dict__['mode']))
         elif value.startswith('auto'):
+            if not self.win.useFBO:
+                raise Exception, "Auto++ mode requires a PsychoPy Window with useFBO=True"
             self.sendMessage('$autoPlusPlus\r')
             self.__dict__['mode'] = 'auto++'
             logging.info('Switched %s to %s mode' %(self.info['ProductType'], self.__dict__['mode']))
+        else:
+            raise AttributeError, "Bits# doesn't know how to use mode %r. Should be 'mono++', 'color++' etc" %value
 
     def setLUT(self,newLUT=None, gammaCorrect=False, LUTrange=1.0, contrast=None):
         """SetLUT is only really needed for bits++ mode of bits# to set the
@@ -571,6 +606,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     def read(self, timeout=0.1):
         """Get the current waiting characters from the serial port if there are any
         """
+        if self.noComms:
+            return
         self.com.setTimeout(timeout)
         nChars = self.com.inWaiting()
         raw = self.com.read(nChars)
@@ -602,6 +639,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
 
                     3: force a fresh search for the identity LUT
         """
+        if self.noComms:
+            demoMode = True
         prevMode = self.mode
         #if we haven't fetched a config yet then do so
         if not self.config:
@@ -622,6 +661,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         #it didn't so switch to doing the test
         if level==2:
             errs = self.config.testLUT(demoMode=demoMode)
+            if demoMode:
+                return 1
             if (errs**2).sum() != 0:
                 level=3
                 logging.info("The current LUT didn't work as identity. We'll try to find a working one.")
@@ -769,7 +810,7 @@ class Config(object):
         #use bits sharp to test
         if demoMode:
             return [0]*256
-        pixels = bits.getVideoLine(lineN=5, nPixels=256)
+        pixels = bits.getVideoLine(lineN=50, nPixels=256)
         errs = pixels-expected
         if self.logFile:
             for ii, channel in enumerate('RGB'):
@@ -779,7 +820,7 @@ class Config(object):
                 self.logFile.write('\n')
         return errs
 
-    def findIdentityLUT(self, maxIterations = 1000, errCorrFactor = 1.0/2048, # amount of correction done for each iteration
+    def findIdentityLUT(self, maxIterations = 1000, errCorrFactor = 1.0/5000, # amount of correction done for each iteration
         nVerifications = 50, #number of repeats (successful) to check dithering has been eradicated
         demoMode = True, #generate the screen but don't go into status mode
         logFile = '',
@@ -809,8 +850,11 @@ class Config(object):
 
         if plotResults:
             pyplot.Figure()
+            pyplot.subplot(1,2,1)
             pyplot.plot([0,255],[0,255], '-k')
             errPlot = pyplot.plot(range(256), range(256), '.r')[0]
+            pyplot.subplot(1,2,2)
+            pyplot.plot(200,0.01, '.w')
             pyplot.show(block=False)
 
         lowestErr = 1000000000
@@ -846,6 +890,12 @@ class Config(object):
             errProgression.append(meanErr)
             if plotResults:
                 errPlot.set_ydata(range(256)+errs[:,0])
+                pyplot.subplot(1,2,2)
+                if meanErr == 0:
+                    point='.k'
+                else:
+                    point='.r'
+                pyplot.plot(n,meanErr,'.k')
                 pyplot.draw()
             if meanErr>0:
                 print "%.3f" %meanErr,

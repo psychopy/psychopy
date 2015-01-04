@@ -81,9 +81,9 @@ from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 
+import ctypes
 import numpy
 import cv2
-from arrayimage2 import ArrayInterfaceImage
 import vlc
 from psychopy.clock import Clock
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
@@ -117,7 +117,8 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                  depth=0.0,
                  noAudio=False,
                  vframe_callback=None,
-                 fps=None
+                 fps=None,
+                 interpolate = True,
         ):
         """
         :Parameters:
@@ -163,6 +164,10 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._no_audio = noAudio
         self._requested_fps = fps
         self._vframe_callback = vframe_callback
+        self.interpolate = interpolate
+        #create texture id number
+        self._texID = GL.GLuint()
+        GL.glGenTextures(1, ctypes.byref(self._texID))
         self._reset()
         self.loadMovie(self.filename)
         self.setVolume(volume)
@@ -190,8 +195,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self.duration = None
         self.status = NOT_STARTED
         self._numpy_frame = None
-        self._frame_texture = None
-        self._frame_data_interface = None
+        GL.glDeleteTextures(1, self._texID)
         self._video_stream = None
         self._total_frame_count = None
         self._video_width = None
@@ -271,15 +275,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                                           self._video_width,
                                           self._video_frame_depth),
                                          dtype=numpy.uint8)
-
-        # Uses a preallocated numpy array as the pyglet ImageData data
-        self._frame_data_interface = ArrayInterfaceImage(self._numpy_frame,
-                                                         allow_copy=False,
-                                                         rectangle=True,
-                                                         force_rectangle=True)
-        #frame texture; transformed so it looks right in psychopy
-        self._frame_texture = self._frame_data_interface.texture.get_transform(flip_x=not self.flipHoriz,
-                                                    flip_y=not self.flipVert)
+        
 
         self.duration = self._total_frame_count * self._inter_frame_interval
         self.status = NOT_STARTED
@@ -564,7 +560,6 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                 self._onEos()
                 break
 
-
     def _updateFrameTexture(self):
         # decode frame into np array and move to opengl tex
         ret, f = self._video_stream.retrieve()
@@ -577,9 +572,33 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                     print "MovieStim2 Error: vframe_callback raised an exception. Using original frame data."
                     import traceback
                     traceback.print_exc()
-            #self._numpy_frame[:] = f[...,::-1]
-            numpy.copyto(self._numpy_frame, frame_array)
-            self._frame_data_interface.dirty()
+            
+            #bind the texture in openGL
+            GL.glEnable(GL.GL_TEXTURE_2D)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)#bind that name to the target
+            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
+            GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)  # data from PIL/numpy is packed, but default for GL is 4 bytes
+            #important if using bits++ because GL_LINEAR
+            #sometimes extrapolates to pixel vals outside range
+            if self.interpolate:
+                GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_LINEAR)
+                if self.useShaders:#GL_GENERATE_MIPMAP was only available from OpenGL 1.4
+                    GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+                    GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
+                    GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB,
+                        frame_array.shape[1],frame_array.shape[0], 0,
+                        GL.GL_RGB, GL.GL_UNSIGNED_BYTE, frame_array.ctypes)
+                else:#use glu
+                    GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)
+                    GL.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, GL.GL_RGB,
+                        frame_array.shape[1],frame_array.shape[0], GL.GL_RGB, GL.GL_UNSIGNED_BYTE, frame_array.ctypes)
+            else:
+                GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_NEAREST)
+                GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,GL.GL_NEAREST)
+                GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB,
+                                frame_array.shape[1],frame_array.shape[0], 0,
+                                GL.GL_RGB, GL.GL_UNSIGNED_BYTE, frame_array.ctypes)
+            GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
         else:
             raise RuntimeError("Could not load video frame data.")
 
@@ -626,20 +645,20 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self.win.setScale('pix')
         #move to centre of stimulus and rotate
         vertsPix = self.verticesPix
-        t=self._frame_texture.tex_coords
+        
         array = (GL.GLfloat * 32)(
-             t[0],  t[1],
+             1,  1, #texture coords
              vertsPix[0,0], vertsPix[0,1],    0.,  #vertex
-             t[3],  t[4],
+             0,  1,
              vertsPix[1,0], vertsPix[1,1],    0.,
-             t[6],  t[7],
+             0, 0,
              vertsPix[2,0], vertsPix[2,1],    0.,
-             t[9],  t[10],
+             1, 0,
              vertsPix[3,0], vertsPix[3,1],    0.,
              )
         GL.glPushAttrib(GL.GL_ENABLE_BIT)
-        GL.glEnable(self._frame_texture.target)
-        GL.glBindTexture(self._frame_texture.target, self._frame_texture.id)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
         #2D texture array, 3D vertex array
         GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array)
@@ -689,7 +708,6 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         if self._video_stream:
             self._video_stream.release()
         self._video_stream = None
-        self._frame_data_interface = None
         self._numpy_frame = None
 
         self._releaseeAudioStream()
