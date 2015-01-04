@@ -93,9 +93,9 @@ def test_bitsShaders():
             fr = np.array(win._getFrame('front').transpose(Image.ROTATE_270))
             if not _travisTesting:
                 assert np.alltrue(thisExpected['lowR'] == fr[0:10,-1,0])
-            assert np.alltrue(thisExpected['lowG'] == fr[0:10,-1,1])
-            assert np.alltrue(thisExpected['highR'] == fr[250:256,-1,0])
-            assert np.alltrue(thisExpected['highG'] == fr[250:256,-1,1])
+                assert np.alltrue(thisExpected['lowG'] == fr[0:10,-1,1])
+                assert np.alltrue(thisExpected['highR'] == fr[250:256,-1,0])
+                assert np.alltrue(thisExpected['highG'] == fr[250:256,-1,1])
 
             print 'R', repr(fr[0:10,-1,0]), repr(fr[250:256,-1,0])
             print 'G', repr(fr[0:10,-1,1]), repr(fr[250:256,-1,0])
