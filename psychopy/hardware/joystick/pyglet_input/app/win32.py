@@ -41,9 +41,9 @@ import ctypes
 from pyglet import app
 from base import PlatformEventLoop
 
-from pyglet.window.win32 import _kernel32, _user32, types, constants
-from pyglet.window.win32.constants import *
-from pyglet.window.win32.types import *
+from pyglet.libs.win32 import _kernel32, _user32, types, constants
+from pyglet.libs.win32.constants import *
+from pyglet.libs.win32.types import *
 
 class Win32EventLoop(PlatformEventLoop):
     def __init__(self):
