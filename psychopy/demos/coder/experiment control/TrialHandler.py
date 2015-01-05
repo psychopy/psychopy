@@ -13,7 +13,7 @@ for ori in range(90,180,30):
             )
 
 #organise them with the trial handler
-trials = data.TrialHandler(stimList,10,extraInfo= {'participant':"Nobody",'session':1)
+trials = data.TrialHandler(stimList,10,extraInfo= {'participant':"Nobody",'session':1})
 trials.data.addDataType('choice')#this will help store things with the stimuli
 trials.data.addDataType('RT')#add as many types as you like
 
