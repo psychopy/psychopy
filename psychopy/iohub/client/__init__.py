@@ -60,7 +60,7 @@ class DeviceRPC(object):
         if len(r)==1:
             r=r[0]
 
-        if r and self.method_name == 'getEvents':
+        if self.method_name == 'getEvents' and r:
             asType='namedtuple'
             if 'asType' in kwargs:
                 asType=kwargs['asType']
