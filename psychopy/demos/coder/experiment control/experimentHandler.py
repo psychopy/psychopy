@@ -41,7 +41,7 @@ for thisRep in outerLoop:#the outer loop doesn't save any data
             staircase.addData(0)
         exp.addData('id',id)
         exp.nextEntry()
-#exp should then automatically save the pickle and csv data files when it gets deleted (end of script)
 for e in exp.entries:
     print e
-print 'done'
+print "Done. 'exp' experimentHandler will now (end of script) save data to testExp.csv"
+print " and also to testExp.psydat, which is 'exp' pickled"
