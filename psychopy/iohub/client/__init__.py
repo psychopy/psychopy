@@ -385,7 +385,7 @@ class ioHubConnection(object):
 
         return []
 
-    def clearEvents(self,device_label=None):
+    def clearEvents(self,device_label='all'):
         """
         Clears events from the ioHub Process's Global Event Buffer (by default)
         so that unneeded events are not sent to the PsychoPy Process the
@@ -413,8 +413,6 @@ class ioHubConnection(object):
         elif device_label.lower() == 'all':
             self.allEvents=[]
             self._sendToHubServer(('RPC','clearEventBuffer',[True,]))
-            #if device_label and device_label.lower() == 'all':
-            #    [self.deviceByLabel[label].clearEvents() for label in self.deviceByLabel]
         else:
             d=self.deviceByLabel.get(device_label,None)
             if d:
