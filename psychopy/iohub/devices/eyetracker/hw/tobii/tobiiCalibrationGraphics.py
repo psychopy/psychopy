@@ -345,6 +345,11 @@ class TobiiPsychopyCalibrationGraphics(object):
                 calibration_sequence_completed=True
         
         if calibration_sequence_completed:
+            # The EyeX interface is slower to add calibration points,
+            # have to give it a moment before computing
+            if self._eyetrackerinterface._isEyeX:
+                time.sleep(3.0)
+
             self._tobii.ComputeCalibration(self.on_compute_calibration)
  
             msg=1

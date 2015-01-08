@@ -297,7 +297,10 @@ class TobiiEyeXTracker():
 
     def WrapAsyncCallback(self, callback, name):
         def callback_wrapper(error, data):
-            print2err("Got callback for {0}".format(name))
+            if DEBUG:
+                print2err("Got callback for {0}".format(name))
+            if error > 0:
+                raise Exception("Got async callback error {0} in {1}: {2}".format(error, name, data))
 
             if callback == None:
                 return 0
@@ -310,52 +313,63 @@ class TobiiEyeXTracker():
         return c
 
     def StartCalibration(self, callback):
-        print2err("Trying to start")
         nativeCallback = self.WrapAsyncCallback(callback, "start")
         self.dll.tobiigaze_calibration_start_async(self.eye_tracker, nativeCallback, None)
 
     def StopCalibration(self, callback):
-        print2err("Trying to stop")
         nativeCallback = self.WrapAsyncCallback(callback, "stop")
         self.dll.tobiigaze_calibration_stop_async(self.eye_tracker, nativeCallback, None)
 
     def ClearCalibration(self):
-        print2err("Trying to clear")
         for p in self._calibrationPoints:
             RemoveCalibrationPoint(p, None)
 
     def AddCalibrationPoint(self, p, callback):
-        # This probably has to take a calibration point in the other Tobii world and put it into this one
-        print2err("Hey I got a calibration point")
-        print2err(dir(p))
+        # This has to take a calibration point from the other Tobii API and put it into this one
         point = TobiiGazePoint2d()
         point.x = c_double(p.x)
         point.y = c_double(p.y)
+
         nativeCallback = self.WrapAsyncCallback(callback, "add")
         self._calibrationPoints.append(point)
-        self.dll.tobiigaze_calibration_add_point_async(self.eye_tracker, point, nativeCallback, None)
+        self.dll.tobiigaze_calibration_add_point_async(self.eye_tracker, addressof(point), nativeCallback, None)
 
     def RemoveCalibrationPoint(self, p, callback):
-        print2err("Trying to remove")
-        # TODO: remove point from _calibrationPoints?
+        # This has to take a calibration point from the other Tobii API and put it into this one
+        point = TobiiGazePoint2d()
+        point.x = c_double(p.x)
+        point.y = c_double(p.y)
+
+        # Remove the point from our internal tracking list
+        remove_index = -1
+        for index, c in enumerate(self._calibrationPoints):
+            if c.x == p.x and p.y == c.y:
+                remove_index = index
+        if remove_index >= 0:
+            self._calibrationPoints.pop(remove_index)
+
         nativeCallback = self.WrapAsyncCallback(callback, "remove")
-        self.dll.tobiigaze_calibration_remove_point_async(self.eye_tracker, p, nativeCallback, None)
+        self.dll.tobiigaze_calibration_remove_point_async(self.eye_tracker, addressof(point), nativeCallback, None)
         
     def ComputeCalibration(self, callback):
-        print2err("Trying to compute")
+        if DEBUG:
+            print2err("Computing calibration")
         nativeCallback = self.WrapAsyncCallback(callback, "compute")
         self.dll.tobiigaze_calibration_compute_and_set_async(self.eye_tracker, nativeCallback, None)
 
     def GetCalibration(self, callback):
-        print2err("Trying to get")
+        if DEBUG:
+            print2err("Trying to get calibration")
+
+        callback(0, None)
+
+        """
+        TODO: Returns error and no data in testing, and there are no examples
+        of usage in the API docs and samples, so we can't use this yet,
+        but it's not crucial for calibration to complete
+
         calibration = TobiiGazeCalibration()
         nativeCallback = self.WrapAsyncCallback(callback, "get")
-        self.dll.tobiigaze_calibration_get_calibration_async(self.eye_tracker, calibration, nativeCallback, None)
-
-    def SetCalibration(self, calibration, callback):
-        print2err("Trying to set")
-        # TODO: Wrap calibration?
-        # calibration = TobiiGazeCalibration()
-        nativeCallback = self.WrapAsyncCallback(callback, "set")
-        self.dll.tobiigaze_calibration_set_calibration_async(self.eye_tracker, calibration, nativeCallback, None)
+        self.dll.tobiigaze_get_calibration_async(self.eye_tracker, nativeCallback, None)
+        """
 
