@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2014 Jonathan Peirce
+# Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from _visual import VisualComponent, Param  #to get the template visual component

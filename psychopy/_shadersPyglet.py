@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2014 Jonathan Peirce
+# Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from ctypes import byref, cast, c_int, c_char, c_char_p, POINTER, create_string_buffer

@@ -8,7 +8,7 @@ Sets the locale value as a wx languageID (int) and initializes gettext translati
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2014 Jonathan Peirce
+# Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy Gray, July 2014
