@@ -409,16 +409,24 @@ class EyeTracker(EyeTrackerDevice):
     def _handleNativeEyeXEvent(self,eye_data_event):
         """
         Logic for the EyeX native event type goes here
+
+        There's no way to get the EyeX clock currently, all we have
+        is a timestamp on each event.
+
+        See discussion here: https://github.com/dgfitch/psychopy/commit/30d8f1f732fe0902c13222e3b9dc690a0de4d75b#commitcomment-9053635
+
+        For now, we are just returning a delay of 0.
         """
 
-        # Enable correct-ish time delay tracking math
+        # Correct-ish time delay tracking math
         logged_sec = Computer.getTime()
         logged_usec = logged_sec / self.DEVICE_TIMEBASE_TO_SEC
 
         tobii_usec = self._tobii.getDelayInMicroseconds(eye_data_event.timestamp, self.DEVICE_TIMEBASE_TO_SEC)
         tobii_event_time = tobii_usec * self.DEVICE_TIMEBASE_TO_SEC
         
-        data_delay = tobii_usec - logged_usec
+        # For now, we are just returning a delay of 0 because tobii_usec is unreliable
+        data_delay = 0
         iohub_event_time = (logged_usec - data_delay) * self.DEVICE_TIMEBASE_TO_SEC # in sec.msec_usec
         data_delay = data_delay * self.DEVICE_TIMEBASE_TO_SEC
 
