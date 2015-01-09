@@ -36,4 +36,3 @@ script:
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then xvfb-run -s "-screen 0 1024x768x24 -ac +extension GLX +render -noreset" coverage run --rcfile=.travis_coveragerc psychopy/tests/runPytest.py -v -s -m "not needs_sound"; else { echo "TODO while avoiding duplication"; exit 1; } fi
 after_success:
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi
- then coveralls; fi
