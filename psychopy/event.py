@@ -361,7 +361,10 @@ class Mouse:
         if usePygame:
             mouse.set_pos(newPosPix)
         else:
-            self.win.winHandle.set_mouse_position(*newPosPix)
+            if hasattr(self.win.winHandle, 'set_mouse_position'):
+                self.win.winHandle.set_mouse_position(*newPosPix)
+            else:
+                print 'cannot set mouse position with XlibWindows (maybe others)'
 
     def getPos(self):
         """Returns the current position of the mouse,
