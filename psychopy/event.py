@@ -347,9 +347,10 @@ class Mouse:
         (will match the current units for the Window it lives in)
         """
         return self.win.units
+
     def setPos(self,newPos=(0,0)):
-        """Sets the current position of the mouse (pygame only),
-        in the same units as the :class:`~visual.Window` (0,0) is at centre
+        """Sets the current position of the mouse,
+        in the same units as the :class:`~visual.Window`. (0,0) is the center.
 
         :Parameters:
             newPos : (x,y) or [x,y]
@@ -360,7 +361,12 @@ class Mouse:
             newPosPix[1] = self.win.size[1]/2-newPosPix[1]
             newPosPix[0] = self.win.size[0]/2+newPosPix[0]
             mouse.set_pos(newPosPix)
-        else: print "pyglet does not support setting the mouse position yet"
+        else:
+            if hasattr(self.win.winHandle, 'set_mouse_position'):
+                newPosPix = self.win.size / 2 + newPosPix
+                self.win.winHandle.set_mouse_position(*newPosPix)
+            else:
+                logging.error('mouse position could not be set (pyglet %s)' % pyglet.version)
 
     def getPos(self):
         """Returns the current position of the mouse,
