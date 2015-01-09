@@ -117,7 +117,7 @@ class TobiiGazeDataEye(Structure):
         ("eye_position_from_eye_tracker_mm", TobiiGazePoint3d),
         ("eye_position_in_track_box_normalized", TobiiGazePoint3d),
         ("gaze_point_from_eye_tracker_mm", TobiiGazePoint3d),
-        ("gaze_point_on_display_normalized", TobiiGazePoint3d),
+        ("gaze_point_on_display_normalized", TobiiGazePoint2d),
     ]
     
 class TobiiGazeData(Structure):
