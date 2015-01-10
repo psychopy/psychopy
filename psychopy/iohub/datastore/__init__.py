@@ -39,9 +39,9 @@ perhaps one less than this.  < S. Simpson Note: These are 'not' GIL bound
 threads and therefore actually improve performance > """
 
 DATA_FILE_TITLE = "ioHub DataStore - Experiment Data File."
-FILE_VERSION = '0.8.0.2'
+FILE_VERSION = '0.8.1.1'
 SCHEMA_AUTHORS = 'Sol Simpson'
-SCHEMA_MODIFIED_DATE = 'May 4th, 2014'
+SCHEMA_MODIFIED_DATE = 'Dec 19th, 2014'
 
         
 class ioHubpyTablesFile():
@@ -179,6 +179,12 @@ class ioHubpyTablesFile():
             pass
 
         try:
+            self.TABLES['PSTBOX_BUTTON'] = self.emrtFile.root.data_collection.events.serial.PstBoxButtonEvent
+        except:
+            # Just means the table for this event type has not been created as the event type is not being recorded
+            pass
+
+        try:
             self.TABLES['MONOCULAR_EYE_SAMPLE']=self.emrtFile.root.data_collection.events.eyetracker.MonocularEyeSampleEvent
         except:
             # Just means the table for this event type has not been created as the event type is not being recorded
@@ -278,6 +284,7 @@ class ioHubpyTablesFile():
         self._eventGroupMappings['DIGITAL_INPUT']=self.emrtFile.root.data_collection.events.mcu
         self._eventGroupMappings['SERIAL_INPUT']=self.emrtFile.root.data_collection.events.serial
         self._eventGroupMappings['SERIAL_BYTE_CHANGE']=self.emrtFile.root.data_collection.events.serial
+        self._eventGroupMappings['PSTBOX_BUTTON']=self.emrtFile.root.data_collection.events.serial
         self._eventGroupMappings['MESSAGE']=self.emrtFile.root.data_collection.events.experiment
         self._eventGroupMappings['LOG']=self.emrtFile.root.data_collection.events.experiment
         self._eventGroupMappings['MONOCULAR_EYE_SAMPLE']=self.emrtFile.root.data_collection.events.eyetracker
