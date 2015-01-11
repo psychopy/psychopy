@@ -84,9 +84,9 @@ def addUnitTypeConversion(unit_label, mapping_func):
 
         return pix
     """
-    if unit_label in unit2PixMappings:
+    if unit_label in _unit2PixMappings:
         raise ValueError("The unit type label [{0}] is already registered with PsychoPy".format(unit_label))
-    unit2PixMappings[unit_label]=mapping_func
+    _unit2PixMappings[unit_label] = mapping_func
 
 #
 # Built in conversion functions follow ...
