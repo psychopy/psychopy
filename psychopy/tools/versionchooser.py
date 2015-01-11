@@ -25,7 +25,7 @@ def useVersion(requestedVersion):
 
     Outputs:
         * Returns True if requested version was successfully loaded.
-          Raises a ScriptError if git is needed and not present, or if other psychopy modules
+          Raises a RuntimeError if git is needed and not present, or if other psychopy modules
           have already been loaded. Raises a subprocess CalledProcessError if an invalid
           git tag/version was checked out.
 
@@ -40,13 +40,13 @@ def useVersion(requestedVersion):
     # Sanity Checks
     imported = _psychopyComponentsImported()
     if len(imported):
-        raise ScriptError(
+        raise RuntimeError(
             "Please request a version before importing any psychopy modules. "
             "Found: %s" % imported)
     if _versionOk(psychopy.__version__, requestedVersion):
         return  # No switching needed
     if not _gitPresent():  # Switching required, so make sure `git` is available.
-        raise ScriptError("Please install git to specify a version with useVersion()")
+        raise RuntimeError("Please install git to specify a version with useVersion()")
 
     # Setup Requested Version
     requestedPath = _setupRequested(requestedVersion)
