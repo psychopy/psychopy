@@ -20,7 +20,7 @@ def useVersion(requestedVersion):
     """Manage paths and checkout psychopy libraries for requested versions of psychopy.
 
     Inputs:
-        * requestedVersion : A string with the requested version of Psychopy to use
+        * requestedVersion : A string with the requested version of PsychoPy to use
           (NB Must be an exact version to checkout; ">=1.80.04" is NOT allowable yet.)
 
     Outputs:
@@ -32,7 +32,7 @@ def useVersion(requestedVersion):
 
     Usage (at the top of an experiment script):
 
-        from psychopy.versionchooser import useVersion
+        from psychopy.tools.versionchooser import useVersion
         useVersion('1.80.04')
         from psychopy import visual, event, ...
 
