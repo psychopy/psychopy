@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 # Part of the PsychoPy library
-# Copyright (C) 2014 Jonathan Peirce
+# Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 '''Functions and classes related to unit conversion respective to a particular
@@ -84,9 +84,9 @@ def addUnitTypeConversion(unit_label, mapping_func):
 
         return pix
     """
-    if unit_label in unit2PixMappings:
+    if unit_label in _unit2PixMappings:
         raise ValueError("The unit type label [{0}] is already registered with PsychoPy".format(unit_label))
-    unit2PixMappings[unit_label]=mapping_func
+    _unit2PixMappings[unit_label] = mapping_func
 
 #
 # Built in conversion functions follow ...

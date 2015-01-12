@@ -1,5 +1,5 @@
 # Part of the PsychoPy library
-# Copyright (C) 2014 Jonathan Peirce
+# Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from _base import *
@@ -58,4 +58,4 @@ class SoundComponent(BaseComponent):
             buff.writeIndented("%s.stop()  # stop the sound (if longer than duration)\n" %(self.params['name']))
             buff.setIndentLevel(-1, relative=True)#because of the 'if' statement of the time test
     def writeRoutineEndCode(self,buff):
-        buff.writeIndented("%.stop() #ensure sound has stopped at end of routine\n" %(self.params['name']))
+        buff.writeIndented("%s.stop() #ensure sound has stopped at end of routine\n" %(self.params['name']))

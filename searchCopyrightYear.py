@@ -72,7 +72,7 @@ for file in files:
     lines = [line for line in contents if \
              line.find("Peirce") > -1 and \
              line.find(oldYear) > -1 and \
-             (line.lower().find("(c)") > -1 or line.lower().find("copyright") > -1) 
+             (line.lower().find("(c)") > -1 or line.lower().find("copyright") > -1)
              ]
     for i,line in enumerate(lines): #allow multiple lines per file, each gets its own replace command
         #print i+1, file
@@ -85,14 +85,21 @@ for file in files:
                 badLines += 1
                 print file+": expected <last-year> somewhere between single-quotes:", line
                 continue # skip the line
-        if line.find('$') > -1 or line.find('/') > -1:
+        if '$' in line:
             badLines += 1
-            print file+": cannot handle '$' or '/' in line:", line
+            print file+": cannot handle '$' in line:", line
             continue
+        sep = '/'  # perl search-replace separator
+        if sep in line:
+            sep = '|'  # try this one instead
+            if sep in line:
+                badLines += 1
+                print file+": cannot handle '"+sep+"' in line:", line
+                continue
         newLine = line.replace(oldYear, newYear) # should not contain characters that will mess with perl 's/oldLine/newLine/'
         cmd = "echo "+file+"\n  " # helps with debugging, if the perl s/// flails due to a bad character -> you know what file to look at
-        cmd += "perl -pi -e 's/\Q"+line+"\E/"+newLine+"/' '"+file+"'\n" # only match one line, avoid s///g
-        tmp.write(cmd) 
+        cmd += "perl -pi -e 's"+sep+"\Q"+line+"\E"+sep+newLine+sep+"' '"+file+"'\n" # only match one line, avoid s///g
+        tmp.write(cmd)
         targetFiles += 1
 tmp.write('echo Updated %d files.\n' % targetFiles)
 tmp.close()

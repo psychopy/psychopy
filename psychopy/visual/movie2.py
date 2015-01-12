@@ -53,7 +53,7 @@ Testing has only been done on Windows and Linux so far.
 '''
 
 # Part of the PsychoPy library
-# Copyright (C) 2014 Jonathan Peirce
+# Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 #
 # Contributed by Sol Simpson, April 2014.
