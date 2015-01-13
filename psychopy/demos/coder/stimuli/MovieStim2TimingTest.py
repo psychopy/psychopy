@@ -28,7 +28,7 @@ INCLUDE_AUDIO_TRACK = True
 WINDOW_SIZE = [1280, 720]
 
 # If True,WINDOW_SIZE is ignored and a full screen PsychoPy Window is created.
-USE_FULLSCREEN_WINDOW = True
+USE_FULLSCREEN_WINDOW = False
 
 # On systems with > 1 screen, the index of the screen to open the window in.
 SCREEN_NUMBER = 0

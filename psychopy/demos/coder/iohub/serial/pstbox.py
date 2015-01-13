@@ -13,7 +13,7 @@ from psychopy.iohub.devices import Computer
 #
 
 # Settings for serial port (PST response box) communication.
-SERIAL_PORT = 'COM5'
+SERIAL_PORT = 'COM20'
 BAUDRATE = 19200
 
 # configure iohub
@@ -77,13 +77,17 @@ grating = visual.PatchStim(win, pos=(0, 0),
 #
 
 # Display instruction.
-instruction.draw()
-win.flip()
 pstbox.clearEvents()
+ctime = core.getTime()
 # Check if we collected any button events.
 # If we did, use the first one to determine response time.
 while not pstbox.getEvents():
-    continue
+     instruction.draw()
+     win.flip()
+     if core.getTime()-ctime > 30.0:
+        print("Timeout waiting for button event. Exiting...")
+        io.quit()
+        core.quit()
 
 win.flip()
 

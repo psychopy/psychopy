@@ -81,11 +81,54 @@ class ioHubpyTablesFile():
         for event_cls_name,event_cls in event_class_dict.iteritems():
             if event_cls.IOHUB_DATA_TABLE:
                 event_table_label=event_cls.IOHUB_DATA_TABLE
-                if event_table_label not in self.TABLES:
-                    self.TABLES[event_table_label]=self.emrtFile.createTable(self._eventGroupMappings[event_table_label],eventTableLabel2ClassName(event_table_label),event_cls.NUMPY_DTYPE, title="%s Data"%(device_instance.__class__.__name__,),filters=dfilter.copy())
-                    self.flush()
-    
-                self.addClassMapping(event_cls,self.TABLES[event_table_label])
+                if event_table_label not in self.TABLES.keys():
+                    try:
+                        self.TABLES[event_table_label]=self.emrtFile.createTable(self._eventGroupMappings[event_table_label],eventTableLabel2ClassName(event_table_label),event_cls.NUMPY_DTYPE, title="%s Data"%(device_instance.__class__.__name__,),filters=dfilter.copy())
+                        self.flush()
+                        #print2err("----------- CREATED TABLES ENTRY ------------")
+                        #print2err("\tevent_cls: {0}".format(event_cls))
+                        #print2err("\tevent_cls_name: {0}".format(event_cls_name))
+                        #print2err("\tevent_table_label: {0}".format(event_table_label))
+                        #print2err("\teventTableLabel2ClassName: {0}".format(eventTableLabel2ClassName(event_table_label)))
+                        #print2err("\t_eventGroupMappings[event_table_label]: {0}".format(self._eventGroupMappings[event_table_label]))
+                        #print2err("----------------------------------------------")
+                    except NodeError:
+                        self.TABLES[event_table_label]=self._eventGroupMappings[event_table_label]._f_get_child(eventTableLabel2ClassName(event_table_label))# self.emrtFile.createTable(,eventTableLabel2ClassName(event_table_label),event_cls.NUMPY_DTYPE, title="%s Data"%(device_instance.__class__.__name__,),filters=dfilter.copy())
+                        #print2err("----------- USED EXISTING TABLE FOR TABLES ENTRY ------------")
+                        #print2err("\tevent_cls: {0}".format(event_cls))
+                        #print2err("\tevent_cls_name: {0}".format(event_cls_name))
+                        #print2err("\tevent_table_label: {0}".format(event_table_label))
+                        #print2err("\teventTableLabel2ClassName: {0}".format(eventTableLabel2ClassName(event_table_label)))
+                        #print2err("\t_eventGroupMappings[event_table_label]: {0}".format(self._eventGroupMappings[event_table_label]))
+                        #print2err("----------------------------------------------")
+
+                    except Exception, e:
+                        print2err("---------------ERROR------------------")
+                        print2err("Exception %s in iohub.datastore.updateDataStoreStructure:"%(e.__class__.__name__))
+                        print2err("\tevent_cls: {0}".format(event_cls))
+                        print2err("\tevent_cls_name: {0}".format(event_cls_name))
+                        print2err("\tevent_table_label: {0}".format(event_table_label))
+                        print2err("\teventTableLabel2ClassName: {0}".format(eventTableLabel2ClassName(event_table_label)))
+                        print2err("\t_eventGroupMappings[event_table_label]: {0}".format(self._eventGroupMappings[event_table_label]))
+                        print2err("\tException: {0}".format(e))
+                        print2err("--------------------------------------")
+
+                if self.TABLES.has_key(event_table_label):
+                        #print2err("---------------ADDING CLASS MAPPING------------------")
+                        #print2err("\tevent_cls: {0}".format(event_cls))
+                        #print2err("\tevent_cls_name: {0}".format(event_cls_name))
+                        #print2err("\tevent_table_label: {0}".format(event_table_label))
+                        #print2err("\teventTableLabel2ClassName: {0}".format(eventTableLabel2ClassName(event_table_label)))
+                        #print2err("\t_eventGroupMappings[event_table_label]: {0}".format(self._eventGroupMappings[event_table_label]))
+                        #print2err("----------------------------------------------")
+                        self.addClassMapping(event_cls, self.TABLES[event_table_label])
+                else:
+                        print2err("---- IOHUB.DATASTORE CANNOT ADD CLASS MAPPING ----")
+                        print2err("\t** TABLES missing key: {0}".format(event_table_label))
+                        print2err("\tevent_cls: {0}".format(event_cls))
+                        print2err("\tevent_cls_name: {0}".format(event_cls_name))
+                        print2err("\teventTableLabel2ClassName: {0}".format(eventTableLabel2ClassName(event_table_label)))
+                        print2err("----------------------------------------------")
 
 
     def loadTableMappings(self):

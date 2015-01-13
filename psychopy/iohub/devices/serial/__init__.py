@@ -478,7 +478,7 @@ class Pstbox(Serial):
     """
     Provides convenient access to the PST Serial Response Box.
     """
-    EVENT_CLASS_NAMES = ['SerialInputEvent', 'PstboxButtonEvent']
+    EVENT_CLASS_NAMES = ['PstboxButtonEvent',]
     DEVICE_TYPE_ID = DeviceConstants.PSTBOX
     DEVICE_TYPE_STRING = 'PSTBOX'
     # Only add new attributes for the subclass, the device metaclass
@@ -687,13 +687,16 @@ class Pstbox(Serial):
         prev_byte = ord(prev_byte)
         new_byte = ord(new_byte)
 
-        if new_byte != 0:  # Button was pressed
-            button = N.where(self._button_bytes == new_byte)[0][0]
-            button_event = 'press'
-        else:  # Button was released
-            button = N.where(self._button_bytes == prev_byte)[0][0]
-            button_event = 'release'
-
+        try:
+            if new_byte != 0:  # Button was pressed
+                button = N.where(self._button_bytes == new_byte)[0][0]
+                button_event = 'press'
+            else:  # Button was released
+                button = N.where(self._button_bytes == prev_byte)[0][0]
+                button_event = 'release'
+        except:
+            # Handles when data rx does not match either N.where within the try
+            return
         events = [
             0, 0, 0, Computer._getNextEventID(),
             EventConstants.PSTBOX_BUTTON,
@@ -749,24 +752,11 @@ class PstboxButtonEvent(DeviceEvent):
         ('button_event', N.str, 7)
     ]
 
+    EVENT_TYPE_ID = EventConstants.PSTBOX_BUTTON
+    EVENT_TYPE_STRING = 'PSTBOX_BUTTON'
+    IOHUB_DATA_TABLE = EVENT_TYPE_STRING    
+
+
     __slots__ = [e[0] for e in _newDataTypes]
-    
-    # This should now work assuming prev_byte and current_byte fields are
-    # really wanted for this event type.
-    
-    # Regardless, the following changes need to be added to this file, 
-    EVENT_TYPE_ID = EventConstants.PSTBOX_BUTTON
-    EVENT_TYPE_STRING = 'PSTBOX_BUTTON'
-    IOHUB_DATA_TABLE = EVENT_TYPE_STRING    
-    
-    # DONE: Update constants.py and iohub.datastore.__init__.py to add PSTBOX_BUTTON and event type
-    # table creation
-
-    # Specify Event constants associated with the event class, 
-    # and the key to the hdf5 table these events should be stored in.
-    EVENT_TYPE_ID = EventConstants.PSTBOX_BUTTON
-    EVENT_TYPE_STRING = 'PSTBOX_BUTTON'
-    IOHUB_DATA_TABLE = EVENT_TYPE_STRING    
-
     def __init__(self, *args, **kwargs):
         DeviceEvent.__init__(self, *args, **kwargs)
