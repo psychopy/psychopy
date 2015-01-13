@@ -61,7 +61,6 @@ Testing has only been done on Windows and Linux so far.
 
 # If True, a print will be done on each flip a new movie frame is displayed
 # giving the frame index, flip time, and time since last movie frame flip.
-PRINT_FRAME_FLIP_TIMES = False
 reportNDroppedFrames = 10
 
 import os
@@ -165,9 +164,10 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._requested_fps = fps
         self._vframe_callback = vframe_callback
         self.interpolate = interpolate
-        #create texture id number
-        self._texID = GL.GLuint()
-        GL.glGenTextures(1, ctypes.byref(self._texID))
+
+        self.useTexSubImage2D = True
+
+        self._texID = None
         self._reset()
         self.loadMovie(self.filename)
         self.setVolume(volume)
@@ -195,7 +195,9 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self.duration = None
         self.status = NOT_STARTED
         self._numpy_frame = None
-        GL.glDeleteTextures(1, self._texID)
+        if self._texID is not None:
+            GL.glDeleteTextures(1, self._texID)
+            self._texID = None
         self._video_stream = None
         self._total_frame_count = None
         self._video_width = None
@@ -209,7 +211,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._next_frame_index = None
         self._prev_frame_index = None
         self._video_perc_done = None
-        self._last_video_flip_time = None
+#        self._last_video_flip_time = None
         self._next_frame_displayed = False
         self._video_track_clock = Clock()
 
@@ -246,6 +248,10 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         # Create Video Stream stuff
         self._video_stream = cv2.VideoCapture()
         self._video_stream.open(filename)
+        vfstime = core.getTime()
+        while not self._video_stream.isOpened() and core.getTime()-vfstime < 1.0:
+          raise RuntimeError( "Error when reading image file")
+
         if not self._video_stream.isOpened():
           raise RuntimeError( "Error when reading image file")
 
@@ -266,7 +272,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         if self._no_audio and self._requested_fps:
             self._video_frame_rate = self._requested_fps
         else:
-            self._video_frame_rate = self._video_stream.get(cv2.cv.CV_CAP_PROP_FPS)
+            self._video_frame_rate = cv_fps
 
         self._inter_frame_interval = 1.0/self._video_frame_rate
 
@@ -275,8 +281,6 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                                           self._video_width,
                                           self._video_frame_depth),
                                          dtype=numpy.uint8)
-        
-
         self.duration = self._total_frame_count * self._inter_frame_interval
         self.status = NOT_STARTED
 
@@ -322,16 +326,6 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._vlc_instance = None
 
     def _flipCallback(self):
-        import inspect
-        flip_time = inspect.currentframe().f_back.f_locals.get('now')
-        if PRINT_FRAME_FLIP_TIMES:
-            if self._last_video_flip_time is None:
-                self._last_video_flip_time=flip_time
-            print 'Frame %d\t%.4f\t%.4f'%(self.getCurrentFrameIndex(), flip_time,
-                                          flip_time-self._last_video_flip_time)
-        if flip_time is None:
-            raise RuntimeError("Movie2._flipCallback: Can not access the currect flip time.")
-        self._last_video_flip_time = flip_time
         self._next_frame_displayed = True
 
     def play(self, log=True):
@@ -562,17 +556,22 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
 
     def _updateFrameTexture(self):
         # decode frame into np array and move to opengl tex
-        ret, f = self._video_stream.retrieve()
+        ret, _ = self._video_stream.retrieve(self._numpy_frame)
         if ret:
-            frame_array = cv2.cvtColor(f, cv2.COLOR_BGR2RGB)
-            if callable(self._vframe_callback):
-                try:
-                    frame_array = self._vframe_callback(self._next_frame_index, frame_array)
-                except:
-                    print "MovieStim2 Error: vframe_callback raised an exception. Using original frame data."
-                    import traceback
-                    traceback.print_exc()
-            
+            #if callable(self._vframe_callback):
+            #    try:
+            #        self._vframe_callback(self._next_frame_index, self._numpy_frame)
+            #    except:
+            #        print "MovieStim2 Error: vframe_callback raised an exception. Using original frame data."
+            #        import traceback
+            #        traceback.print_exc()
+
+            useSubTex=self.useTexSubImage2D
+            if self._texID is None:
+                self._texID = GL.GLuint()
+                GL.glGenTextures(1, ctypes.byref(self._texID))
+                useSubTex=False
+
             #bind the texture in openGL
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)#bind that name to the target
@@ -585,19 +584,30 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                 if self.useShaders:#GL_GENERATE_MIPMAP was only available from OpenGL 1.4
                     GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
                     GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
-                    GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB,
-                        frame_array.shape[1],frame_array.shape[0], 0,
-                        GL.GL_RGB, GL.GL_UNSIGNED_BYTE, frame_array.ctypes)
+                    if useSubTex is False:
+                        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, pyglet.gl.GL_RGB8,
+                            self._numpy_frame.shape[1],self._numpy_frame.shape[0], 0,
+                            GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
+                    else:
+                        GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
+                            self._numpy_frame.shape[1], self._numpy_frame.shape[0],
+                            GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
+
                 else:#use glu
                     GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)
-                    GL.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, GL.GL_RGB,
-                        frame_array.shape[1],frame_array.shape[0], GL.GL_RGB, GL.GL_UNSIGNED_BYTE, frame_array.ctypes)
+                    GL.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, GL.GL_RGB8,
+                        self._numpy_frame.shape[1],self._numpy_frame.shape[0], GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
             else:
                 GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_NEAREST)
                 GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,GL.GL_NEAREST)
-                GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB,
-                                frame_array.shape[1],frame_array.shape[0], 0,
-                                GL.GL_RGB, GL.GL_UNSIGNED_BYTE, frame_array.ctypes)
+                if useSubTex is False:
+                    GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB8,
+                                    self._numpy_frame.shape[1],self._numpy_frame.shape[0], 0,
+                                    GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
+                else:
+                    GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
+                        self._numpy_frame.shape[1], self._numpy_frame.shape[0],
+                        GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
             GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
         else:
             raise RuntimeError("Could not load video frame data.")
