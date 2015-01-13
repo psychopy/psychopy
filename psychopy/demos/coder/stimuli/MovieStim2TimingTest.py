@@ -19,7 +19,7 @@ other configuration settings:
 ##   Test Config.
 
 # Relative path (from this scripts folder) for the video clip to be played .
-video_name=r'./Epic.mp4'
+video_name=r'./jwpIntro.mov'
 
 # If False, no audio tracks will be played.
 INCLUDE_AUDIO_TRACK = True
