@@ -13,7 +13,7 @@ from psychopy.iohub.devices import Computer
 #
 
 # Settings for serial port (PST response box) communication.
-SERIAL_PORT = 'COM20'
+SERIAL_PORT = 'COM5'
 BAUDRATE = 19200
 
 # configure iohub
