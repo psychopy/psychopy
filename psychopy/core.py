@@ -49,6 +49,25 @@ def quit():
             thisThread.stop()
             while thisThread.running==0:
                 pass#wait until it has properly finished polling
+
+    # Try to close any open windows now, so it is not done in window.__del__(), which often causes python to
+    # output:
+    #
+    #   Exception TypeError: "'NoneType' object is not callable" in <bound method Window.__del__ of
+    #   <psychopy.visual.window.Window object at 0x7f6315c2e0d0>> ignored
+    #
+    # which I guess is because so much is being done in close, when python is shutting down, some of the referenced
+    # objects have already been GC'ed.
+    #
+    # This only fixes the issue if the script calls core.quit() of course.
+    from psychopy.visual.window import openWindows
+    if openWindows:
+        for w in openWindows:
+            try:
+                w().close()
+            except:
+                pass
+
     sys.exit(0)#quits the python session entirely
 
 def shellCall(shellCmd, stdin='', stderr=False):
