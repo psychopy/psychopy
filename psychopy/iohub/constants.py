@@ -137,9 +137,10 @@ try:
 
         SERIAL_INPUT = 105
         SERIAL_BYTE_CHANGE = 106
-
+        PSTBOX_BUTTON = 107
+        
         MULTI_CHANNEL_ANALOG_INPUT=122
-    
+
         MESSAGE=151
         LOG=152
 
@@ -231,6 +232,9 @@ try:
             #: Constant for a serial event due to a rx stream byte value change.
             SERIAL_BYTE_CHANGE = 106
 
+            #: Constant for a PST Box serial interface event due to a button state change.
+            PSTBOX_BUTTON = 107
+            
             #: Constant for an Experiment Message Event.
             MESSAGE=151
 
@@ -299,6 +303,7 @@ try:
         GAMEPAD = 80
         MCU = 100
         SERIAL = 110
+        PSTBOX = 111
         ANALOGINPUT = 120
         EXPERIMENT = 150
         DISPLAY = 190
@@ -337,7 +342,10 @@ try:
             MCU = 100
 
             #: Constant for a General Purpose Serial Interface Device.
-            MCU = 110
+            SERIAL = 110
+
+            #: Constant for PST Serial Response Box
+            PSTBOX = 111
 
             #: Constant for an AnalogInput Device.
             ANALOGINPUT = 120
