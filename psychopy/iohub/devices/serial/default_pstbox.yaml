@@ -83,7 +83,7 @@ serial.Pstbox:
     #   False = Do not start reporting events for this device until enableEventReporting(True)
     #   is set for the device during experiment runtime.
     #
-    auto_report_events: False
+    auto_report_events: True
 
     # event_buffer_length: Specify the maximum number of events (for each
     #   event type the device produces) that can be stored by the ioHub Server

@@ -16,7 +16,7 @@ from psychopy.iohub.devices import Computer
 SERIAL_PORT = 'COM5'
 BAUDRATE = 19200
 
-# configure iohub
+# ioHub configuration.
 psychopy_mon_name = 'Monitor_01'
 exp_code = 'pstbox'
 sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
@@ -37,14 +37,12 @@ print('Switching on lamp #3...')
 pstbox.setLampState([0, 0, 1, 0, 0])
 print('...done.')
 
-# Start collecting data from the PST box in the background.
-pstbox.enableEventReporting(True)
-
 # Create a window.
-win = visual.Window(display.getPixelResolution(),
-                    units='pix',
-                    fullscr=True, allowGUI=False,
-                    screen=0)
+win = visual.Window(
+    display.getPixelResolution(),
+    units='pix', fullscr=True, allowGUI=False,
+    screen=0
+)
 
 #####################################################################
 
@@ -56,19 +54,24 @@ win = visual.Window(display.getPixelResolution(),
 instruction = visual.TextStim(
     win,
     text='Push a button as soon as the colored figure appears.\n\n'
-         'Push any button to start.')
+         'Push any button to start.'
+)
 
 # Fixation spot.
-fixSpot = visual.PatchStim(win, tex='none', mask='gauss',
-                           pos=(0, 0), size=(30, 30), color='black',
-                           autoLog=False)
+fixSpot = visual.PatchStim(
+    win, tex='none', mask='gauss',
+    pos=(0, 0), size=(30, 30), color='black',
+    autoLog=False
+)
 
 # Visual stimulus.
-grating = visual.PatchStim(win, pos=(0, 0),
-                           tex='sin', mask='gauss',
-                           color=[1.0, 0.5, -1.0],
-                           size=(300.0, 300.0), sf=(0.01, 0.0),
-                           autoLog=False)
+grating = visual.PatchStim(
+    win, pos=(0, 0),
+    tex='sin', mask='gauss',
+    color=[1.0, 0.5, -1.0],
+    size=(300.0, 300.0), sf=(0.01, 0.0),
+    autoLog=False
+)
 
 #####################################################################
 
@@ -76,19 +79,20 @@ grating = visual.PatchStim(win, pos=(0, 0),
 # Start the experiment.
 #
 
-# Display instruction.
 pstbox.clearEvents()
-ctime = core.getTime()
-# Check if we collected any button events.
-# If we did, use the first one to determine response time.
+start_time = computer.getTime()
+
+# Display instruction and check if we collected any button events.
+# If there is no button press within a 30 s period, quit.
+instruction.draw()
+win.flip()
 while not pstbox.getEvents():
-     instruction.draw()
-     win.flip()
-     if core.getTime()-ctime > 30.0:
-        print("Timeout waiting for button event. Exiting...")
+    if core.getTime() - start_time > 30:
+        print('Timeout waiting for button event. Exiting...')
         io.quit()
         core.quit()
 
+# Clear the screen.
 win.flip()
 
 nreps = 10
@@ -99,7 +103,7 @@ io.wait(2)
 for i in range(nreps):
     print('Trial #', i)
 
-    # Raise process prioritoes.
+    # Raise process priorities.
     computer.setPriority('high')
     io.setPriority('high')
 
@@ -112,9 +116,9 @@ for i in range(nreps):
     pstbox.clearEvents()
 
     # Wait a variable time until the stimulus is being presented.
-    io.wait(1+np.random.rand())
+    io.wait(1 + np.random.rand())
 
-    # Draw the stimulus.
+    # Draw the stimulus and have it displayed for approx. 0.5 s.
     grating.draw()
     t0 = win.flip()
     io.wait(0.5)
@@ -160,8 +164,7 @@ print('---')
 # Shut down.
 #
 
-# Stop recording events from the PST box and switch off all lamps.
-pstbox.enableEventReporting(False)
+# Switch off all lamps.
 pstbox.setLampState([0, 0, 0, 0, 0])
 
 # Close the window and quit the program.
