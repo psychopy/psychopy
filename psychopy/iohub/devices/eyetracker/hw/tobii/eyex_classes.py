@@ -302,7 +302,7 @@ class TobiiEyeXTracker():
             if DEBUG:
                 print2err("Got callback for {0}".format(name))
             if error > 0:
-                raise Exception("Got async callback error {0} in {1}: {2}".format(error, name, data))
+                print2err("Got calibration {0} callback error: {1} with data {2}".format(name, error, data))
 
             if callback == None:
                 return 0
