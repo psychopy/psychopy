@@ -531,16 +531,14 @@ class TobiiPsychopyCalibrationGraphics(object):
         if len(events)==0:
             return (left_eye_cam_x,left_eye_cam_y,left_eye_cam_z),(right_eye_cam_x,right_eye_cam_y,right_eye_cam_z)
         
-        event=events[-1]                
-        if event.left_eye_cam_x != -1.0:
+        event=events[-1]
+        if abs(event.left_eye_cam_x) != 1.0 and abs(event.left_eye_cam_y) != 1.0:
             left_eye_cam_x=1.0-event.left_eye_cam_x
-        if event.left_eye_cam_y != -1.0:
             left_eye_cam_y=event.left_eye_cam_y
         if event.left_eye_cam_z != 0.0:
             left_eye_cam_z=event.left_eye_cam_z
-        if event.right_eye_cam_x != -1.0:
+        if abs(event.right_eye_cam_x) != 1.0 and abs(event.right_eye_cam_y) != 1.0:
             right_eye_cam_x=1.0-event.right_eye_cam_x
-        if event.right_eye_cam_y != -1.0:
             right_eye_cam_y=event.right_eye_cam_y
         if event.right_eye_cam_z != 0.0:
             right_eye_cam_z=event.right_eye_cam_z

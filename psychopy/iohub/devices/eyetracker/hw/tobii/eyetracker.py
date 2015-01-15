@@ -588,21 +588,6 @@ class EyeTracker(EyeTrackerDevice):
         right_gaze_x=right_eye.x
         right_gaze_y=right_eye.y
 
-        """
-        def dumpPoint(eye):
-            return (eye.x, eye.y, eye.z)
-
-        def dumpGazeEye(name,eye):
-            print2err(name)
-            print2err("pos_mm:    ", dumpPoint(eye.eye_position_from_eye_tracker_mm))
-            print2err("pos_box:   ", dumpPoint(eye.eye_position_in_track_box_normalized))
-            print2err("gaze_mm:   ", dumpPoint(eye.gaze_point_from_eye_tracker_mm))
-            print2err("gaze_norm: ", dumpPoint(eye.gaze_point_on_display_normalized))
-
-        dumpGazeEye("left",eye_data_event.left)
-        dumpGazeEye("right",eye_data_event.right)
-        """
-
         if left_gaze_x != -1 and left_gaze_y != -1:
             left_gaze_x,left_gaze_y=self._eyeTrackerToDisplayCoords((left_gaze_x,left_gaze_y))
 
@@ -632,11 +617,10 @@ class EyeTracker(EyeTrackerDevice):
                         0, # filtered id (always 0 right now)
                         left_gaze_x,
                         left_gaze_y,
-                        EyeTrackerConstants.UNDEFINED, # Left Eye Angle z
-
-                        eye_data_event.left.eye_position_from_eye_tracker_mm.x,
-                        eye_data_event.left.eye_position_from_eye_tracker_mm.y,
-                        eye_data_event.left.eye_position_from_eye_tracker_mm.z,
+                        EyeTrackerConstants.UNDEFINED,
+                        eye_data_event.left.eye_position_in_track_box_normalized.x,
+                        eye_data_event.left.eye_position_in_track_box_normalized.y,
+                        eye_data_event.left.eye_position_in_track_box_normalized.z,
                         EyeTrackerConstants.UNDEFINED, # Left Eye Angle x
                         EyeTrackerConstants.UNDEFINED, # Left Eye Angle y
                         EyeTrackerConstants.UNDEFINED, # Left Camera Sensor position x
@@ -652,10 +636,10 @@ class EyeTracker(EyeTrackerDevice):
                         EyeTrackerConstants.UNDEFINED, # Left velocity xy
                         right_gaze_x,
                         right_gaze_y,
-                        EyeTrackerConstants.UNDEFINED, # Right Eye Angle z 
-                        eye_data_event.right.eye_position_from_eye_tracker_mm.x,
-                        eye_data_event.right.eye_position_from_eye_tracker_mm.y,
-                        eye_data_event.right.eye_position_from_eye_tracker_mm.z,
+                        EyeTrackerConstants.UNDEFINED,
+                        eye_data_event.right.eye_position_in_track_box_normalized.x,
+                        eye_data_event.right.eye_position_in_track_box_normalized.y,
+                        eye_data_event.right.eye_position_in_track_box_normalized.z,
                         EyeTrackerConstants.UNDEFINED, # Right Eye Angle x
                         EyeTrackerConstants.UNDEFINED, # Right Eye Angle y
                         EyeTrackerConstants.UNDEFINED, #Right Camera Sensor position x
