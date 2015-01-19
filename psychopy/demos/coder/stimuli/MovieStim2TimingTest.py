@@ -19,13 +19,13 @@ other configuration settings:
 # #   Test Config.
 
 # Relative path (from this scripts folder) for the video clip to be played .
-video_name = r'./jwpIntro.mov'
+video_name = r'./calibration.mov'
 
 # If False, no audio tracks will be played.
 INCLUDE_AUDIO_TRACK = True
 
 # Size of the PsychoPy Window to create (in pixels).
-WINDOW_SIZE = [1280, 720]
+WINDOW_SIZE = [1366, 768]
 
 # If True,WINDOW_SIZE is ignored and a full screen PsychoPy Window is created.
 USE_FULLSCREEN_WINDOW = False
@@ -429,6 +429,10 @@ def createResultsFile():
             f.write("\n** System Info **\n")
             f.write(formattedDictStr(getSysInfo(win)))
 
+
+def saveVideoFrameResults():
+    if video_results is not None:
+        with open(getResultsFilePath(), 'a') as f:
             video_results_array = np.asarray(video_results_data,dtype=np.float32)
             playack_duration = video_results_array[-1][2]
             dropped_count = video_results_array[-1][4]
@@ -459,11 +463,6 @@ def createResultsFile():
             f.write("flip_interval:\tcurrent frame_num frame_flip_time - last frame_flip_time.\n")
             f.write("per_frame_interval:\tEquals flip_interval / frame_num_dx.\n")
             f.write("fps:\tEquals playback_duration / current frame_num.\n")
-
-
-def saveVideoFrameResults():
-    if video_results is not None:
-        with open(getResultsFilePath(), 'a') as f:
             f.write("\n** Per Frame Video Playback Data **\n")
             f.writelines(video_results)
             for vfd in video_results_data:
