@@ -1381,7 +1381,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         """
         maxTime, nonSlip = self.routine.getMaxTime()
         if self.routine.hasOnlyStaticComp():
-            maxTime = max(maxTime, int(maxTime) + 1.0)
+            maxTime = int(maxTime) + 1.0
         return maxTime
     def drawTimeGrid(self, dc, yPosTop, yPosBottom, labelAbove=True):
         """Draws the grid of lines and labels the time axes
