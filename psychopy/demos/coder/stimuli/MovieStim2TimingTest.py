@@ -41,8 +41,8 @@ SLEEP_IF_NO_FLIP = True
 
 # If True, data about each process running on the computer when this script
 # is executed is saved to the results file. Set to False if you do not want
-# this information saved.
-SAVE_PER_PROCESS_DATA = True
+# this information saved. If a string, processes with that name are saved
+SAVE_PER_PROCESS_DATA = 'python.exe'
 
 # If you do not want any results file saved at all, set this to None, otherwise
 # keep it as an empty list.
@@ -176,7 +176,7 @@ frame_num	frame_flip_time	playback_duration	frame_num_dx	dropped_count
 from psychopy import visual, core, event
 
 getTime = core.getTime
-import time, os
+import time, os, numpy as np
 
 #
 ## Globals
@@ -187,7 +187,7 @@ last_frame_time = 0
 first_flip_time = 0
 flip_dur = 0
 draw_dur = 0
-
+video_results_data=[]
 
 def getVideoFilePath():
     videopath = os.path.normpath(os.path.join(os.getcwd(), video_name))
@@ -313,7 +313,7 @@ def getSysInfo(win):
     sys_info['Processes'] = OrderedDict()
     if sys.platform == 'darwin':
         sys_info['Processes']['Failed'] = 'Not Supported on OSX.'
-    elif SAVE_PER_PROCESS_DATA is True:
+    elif SAVE_PER_PROCESS_DATA:
         try:
             import psutil
 
@@ -322,7 +322,7 @@ def getSysInfo(win):
                 vattrs = ['name', 'exe', 'ppid', 'num_threads', 'memory_percent', 'cpu_percent', 'cpu_affinity', 'nice',
                           'num_ctx_switches']
                 procinfo = proc.as_dict(attrs=vattrs, ad_value=u"Access Denied")
-                if procinfo['exe'] is not u"Access Denied":
+                if procinfo['exe'] is not u"Access Denied" and (SAVE_PER_PROCESS_DATA is True or SAVE_PER_PROCESS_DATA == procinfo['name']):
                     sys_info['Processes'][pkey] = procinfo
         except:
             sys_info['Processes']['Failed'] = 'psutil 2.x + is required.'
@@ -395,9 +395,8 @@ def storeVideoFrameInfo(flip_time, frame_num):
             fps = last_frame_ix / movie_playback_dur
 
         last_frame_time = flip_time
-
-        video_results.append("%d\t%.6f\t%.6f\t%d\t%d\t%.6f\t%.6f\t%.6f\t%.6f\t%.3f\n" % (
-        frame_num, flip_time, movie_playback_dur, ixdx, drop_count, draw_dur, flip_dur, ifi, per_frame_interval, fps))
+        #video_results.append("%d\t%.6f\t%.6f\t%d\t%d\t%.6f\t%.6f\t%.6f\t%.6f\t%.3f\n" % (
+        video_results_data.append((frame_num, flip_time, movie_playback_dur, ixdx, drop_count, draw_dur, flip_dur, ifi, per_frame_interval, fps))
         # <<<<< Playback stats calculations
 
 
@@ -412,6 +411,8 @@ def createResultsFile():
             f.write("Video File:\n")
             f.write("\tName:\t{0}\n".format(video_name))
             f.write("\tFrame Count:\t{0}\n".format(mov._total_frame_count))
+            mov_duration = mov._total_frame_count/mov._video_stream.get(cv2.cv.CV_CAP_PROP_FPS)
+            f.write("\tVideo Duration:\t{0}\n".format(mov_duration))
             f.write("\tWidth:\t{0}\n".format(mov._video_width))
             f.write("\tHeight:\t{0}\n".format(mov._video_height))
             f.write("\tFPS (Format,Requested):\t{0}\n".format(
@@ -427,6 +428,25 @@ def createResultsFile():
 
             f.write("\n** System Info **\n")
             f.write(formattedDictStr(getSysInfo(win)))
+
+            video_results_array = np.asarray(video_results_data,dtype=np.float32)
+            playack_duration = video_results_array[-1][2]
+            dropped_count = video_results_array[-1][4]
+            draw_tarray = video_results_array[:,5]
+            flip_tarray = video_results_array[:,6]
+            vframedur_tarray = draw_tarray + flip_tarray
+            iflipi_tarray = video_results_array[:,7]
+            iframei_tarray = video_results_array[:,8]
+
+            f.write("\n** Video Playback Stats **\n")
+            f.write("Playback Time: %.3f\n"%(playack_duration))
+            f.write("Total Frames Dropped: %d\n"%(int(dropped_count)))
+            f.write("Draw duration (min, max, mean): (%.6f, %.6f, %.6f)\n"%(draw_tarray.min(),draw_tarray.max(),draw_tarray.mean()))
+            f.write("Flip duration (min, max, mean): (%.6f, %.6f, %.6f)\n"%(flip_tarray.min(),flip_tarray.max(),flip_tarray.mean()))
+            f.write("Draw+Flip duration (min, max, mean): (%.6f, %.6f, %.6f)\n"%(vframedur_tarray.min(),vframedur_tarray.max(),vframedur_tarray.mean()))
+            f.write("Frame Display Interval (min, max, mean): (%.6f, %.6f, %.6f)\n"%(iflipi_tarray.min(),iflipi_tarray.max(),iflipi_tarray.mean()))
+            f.write("Effective Frame Interval (min, max, mean): (%.6f, %.6f, %.6f)\n"%(iframei_tarray.min(),iframei_tarray.max(),iframei_tarray.mean()))
+
 
             f.write("\n** Column Definitions **\n")
             f.write("frame_num:\tThe frame index being displayed. Range is 1 to video frame count.\n")
@@ -446,6 +466,8 @@ def saveVideoFrameResults():
         with open(getResultsFilePath(), 'a') as f:
             f.write("\n** Per Frame Video Playback Data **\n")
             f.writelines(video_results)
+            for vfd in video_results_data:
+                f.write("%.0f\t%.6f\t%.6f\t%.0f\t%.0f\t%.6f\t%.6f\t%.6f\t%.6f\t%.3f\n"%vfd)
         del video_results[:]
 
 
