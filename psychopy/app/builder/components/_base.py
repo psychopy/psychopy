@@ -209,22 +209,21 @@ class BaseComponent(object):
             return None, None, True#this component does not have any start/stop
         startType=self.params['startType'].val
         stopType=self.params['stopType'].val
+        numericStart = canBeNumeric(self.params['startVal'].val)
+        numericStop = canBeNumeric(self.params['stopVal'].val)
         #deduce a start time (s) if possible
         #user has given a time estimate
         if canBeNumeric(self.params['startEstim'].val):
             startTime=float(self.params['startEstim'].val)
-        elif startType=='time (s)' and canBeNumeric(self.params['startVal'].val):
+        elif startType=='time (s)' and numericStart:
             startTime=float(self.params['startVal'].val)
         else: startTime=None
         #if we have an exact
-        if stopType=='time (s)' and canBeNumeric(self.params['stopVal'].val):
+        if stopType=='time (s)' and numericStop:
             duration=float(self.params['stopVal'].val)-startTime
-            nonSlipSafe=True
-        elif stopType=='duration (s)' and canBeNumeric(self.params['stopVal'].val):
+        elif stopType=='duration (s)' and numericStop:
             duration=float(self.params['stopVal'].val)
-            nonSlipSafe=True
         else:
-            nonSlipSafe=False
             #deduce duration (s) if possible. Duration used because component time icon needs width
             if canBeNumeric(self.params['durationEstim'].val):
                 duration=float(self.params['durationEstim'].val)
@@ -232,6 +231,7 @@ class BaseComponent(object):
                 duration=FOREVER#infinite duration
             else:
                 duration=None
+        nonSlipSafe = numericStart and numericStop
         return startTime, duration, nonSlipSafe
     def getPosInRoutine(self):
         """Find the index (position) in the parent Routine (0 for top)

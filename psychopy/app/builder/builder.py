@@ -1068,7 +1068,7 @@ class FlowPanel(wx.ScrolledWindow):
             fontSizeDelta = (8,4,0)[self.appData['flowSize']]
             font.SetPointSize(1000/self.dpi-fontSizeDelta)
 
-        maxTime, nonSlip, onlyStaticComps = routine.getMaxTime()
+        maxTime, nonSlip = routine.getMaxTime()
         if nonSlip:
             rgbFill=nonSlipFill
             rgbEdge=nonSlipEdge
@@ -1379,9 +1379,9 @@ class RoutineCanvas(wx.ScrolledWindow):
     def getMaxTime(self):
         """Return the max time to be drawn in the window
         """
-        maxTime, nonSlip, onlyStaticComps = self.routine.getMaxTime()
-        if onlyStaticComps:
-            maxTime= maxTime+0.5
+        maxTime, nonSlip = self.routine.getMaxTime()
+        if self.routine.hasOnlyStaticComp():
+            maxTime = int(maxTime) + 1.0
         return maxTime
     def drawTimeGrid(self, dc, yPosTop, yPosBottom, labelAbove=True):
         """Draws the grid of lines and labels the time axes
@@ -2078,8 +2078,8 @@ class ParamCtrls:
         This function checks them all and returns the value or None.
 
         .. note::
-            Don't use GetStringSelection() here to avoid that translated value 
-            is returned. Instead, use GetSelection() to get index of selection 
+            Don't use GetStringSelection() here to avoid that translated value
+            is returned. Instead, use GetSelection() to get index of selection
             and get untranslated value from _choices attribute.
         """
         if ctrl is None:
@@ -2107,7 +2107,7 @@ class ParamCtrls:
         This function checks them all and returns the value or None.
 
         .. note::
-            Don't use SetStringSelection() here to avoid using tranlated 
+            Don't use SetStringSelection() here to avoid using tranlated
             value.  Instead, get index of the value using _choices attribute
             and use SetSelection() to set the value.
         """
