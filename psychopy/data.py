@@ -299,7 +299,7 @@ class ExperimentHandler(object):
             f.write('\n')
         f.close()
         print "saved data to %r" %f.name
-        self.saveWideText=False
+
     def saveAsPickle(self,fileName, fileCollisionMethod='rename'):
         """Basically just saves a copy of self (with data) to a pickle file.
 
@@ -309,6 +309,18 @@ class ExperimentHandler(object):
 
             fileCollisionMethod: Collision method passed to :func:`~psychopy.tools.fileerrortools.handleFileCollision`
         """
+        # Store the current state of self.savePickle for later use:
+        # We are going to set self.savePickle to False before saving,
+        # so PsychoPy won't try to save it again after loading from
+        # disk.
+        #
+        # After saving, the initial state of self.savePickle is restored.
+        #
+        # See https://groups.google.com/d/msg/psychopy-dev/Z4m_UX88q8U/UGuh1eeyjMEJ
+        # for details.
+        savePickle = self.savePickle
+        self.savePickle = False
+
         #otherwise use default location
         if not fileName.endswith('.psydat'):
             fileName+='.psydat'
@@ -319,8 +331,8 @@ class ExperimentHandler(object):
         f = open(fileName, 'wb')
         cPickle.dump(self, f)
         f.close()
-        #no need to save again
-        self.savePickle=False
+        logging.info('saved data to %s' % f.name)
+        self.savePickle = savePickle
 
     def abort(self):
         """Inform the ExperimentHandler that the run was aborted.
