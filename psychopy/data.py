@@ -400,7 +400,7 @@ class _BaseTrialHandler(object):
         cPickle.dump(self, f)
         f.close()
     def saveAsText(self,fileName,
-                   stimOut=[],
+                   stimOut=None,
                    dataOut=('n','all_mean','all_std', 'all_raw'),
                    delim=None,
                    matrixOnly=False,
@@ -438,6 +438,9 @@ class _BaseTrialHandler(object):
                 will add this output to the end of the specified file if it already exists
 
         """
+        if stimOut is None:
+            stimOut = []
+
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
             if self.autoLog:
                 logging.info('TrialHandler.saveAsText called but no trials completed. Nothing saved')
@@ -483,17 +486,19 @@ class _BaseTrialHandler(object):
             f.close()
             if self.autoLog:
                 logging.info('saved data to %s' %f.name)
-    def printAsText(self, stimOut=[],
+    def printAsText(self, stimOut=None,
                     dataOut=('all_mean', 'all_std', 'all_raw'),
                     delim='\t',
                     matrixOnly=False,
                   ):
         """Exactly like saveAsText() except that the output goes
         to the screen instead of a file"""
+        if stimOut is None:
+            stimOut = []
         self.saveAsText('stdout', stimOut, dataOut, delim, matrixOnly)
 
     def saveAsExcel(self,fileName, sheetName='rawData',
-                    stimOut=[],
+                    stimOut=None,
                     dataOut=('n','all_mean','all_std', 'all_raw'),
                     matrixOnly=False,
                     appendFile=True,
@@ -538,6 +543,8 @@ class _BaseTrialHandler(object):
 
 
         """
+        if stimOut is None:
+            stimOut = []
 
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
             if self.autoLog:
