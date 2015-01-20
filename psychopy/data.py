@@ -266,13 +266,15 @@ class ExperimentHandler(object):
 
         if fileName=='stdout':
             f = sys.stdout
-        elif fileName[-4:] in ['.csv', '.CSV','.dlm','.DLM', '.tsv','.TSV']:
+        elif fileName[-4:] in ['.dlm','.DLM', '.tsv', '.TSV', '.txt', '.TXT', '.csv', '.CSV']:
             f = codecs.open(fileName, writeFormat, encoding="utf-8")
         else:
             if delim == ',':
                 f = codecs.open(fileName+'.csv', writeFormat, encoding="utf-8")
+            elif delim == '\t':
+                f = codecs.open(fileName+'.tsv', writeFormat, encoding="utf-8")
             else:
-                f = codecs.open(fileName+'.dlm', writeFormat, encoding="utf-8")
+                f = codecs.open(fileName+'.txt', writeFormat, encoding="utf-8")
 
         names = self._getAllParamNames()
         names.extend(self.dataNames)
@@ -411,8 +413,7 @@ class _BaseTrialHandler(object):
          :Parameters:
 
             fileName:
-                will have .dlm appended (so you can double-click it to
-                open in excel) and can include path info.
+                will have .tsv appended and can include path info.
 
             stimOut:
                 the stimulus attributes to be output. To use this you need to
@@ -460,13 +461,13 @@ class _BaseTrialHandler(object):
             writeFormat = 'w' #will overwrite a file
         if fileName == 'stdout':
             f = sys.stdout
-        elif fileName[-4:] in ['.dlm','.DLM', '.csv', '.CSV']:
+        elif fileName[-4:] in ['.dlm','.DLM', '.tsv', '.TSV', '.txt', '.TXT', '.csv', '.CSV']:
             f = codecs.open(fileName, writeFormat, encoding="utf-8")
         else:
             if delim==',':
                 f= codecs.open(fileName+'.csv', writeFormat, encoding="utf-8")
             else:
-                f=codecs.open(fileName+'.dlm', writeFormat, encoding="utf-8")
+                f=codecs.open(fileName+'.tsv', writeFormat, encoding="utf-8")
 
         #loop through lines in the data matrix
         for line in dataArray:
@@ -1129,7 +1130,7 @@ class TrialHandler(_BaseTrialHandler):
         :Parameters:
 
             fileName:
-                if extension is not specified, '.csv' will be appended if the delimiter is ',', else '.txt' will be appended.
+                if extension is not specified, '.csv' will be appended if the delimiter is ',', else '.tsv' will be appended.
                 Can include path info.
 
             delim:
@@ -1158,6 +1159,8 @@ class TrialHandler(_BaseTrialHandler):
         else:
             if delim==',':
                 f = codecs.open(fileName+'.csv', writeFormat, encoding="utf-8")
+            elif delim=='\t':
+                f = codecs.open(fileName+'.tsv', writeFormat, encoding="utf-8")
             else:
                 f = codecs.open(fileName+'.txt', writeFormat, encoding="utf-8")
 
@@ -1811,7 +1814,7 @@ class StairHandler(_BaseTrialHandler):
 
             fileName: a string
                 The name of the file, including path if needed. The extension
-                `.dlm` will be added if not included.
+                `.tsv` will be added if not included.
 
             delim: a string
                 the delimitter to be used (e.g. '\t' for tab-delimitted, ',' for csv files)
@@ -1828,13 +1831,15 @@ class StairHandler(_BaseTrialHandler):
         #create the file or print to stdout
         if fileName=='stdout':
             f = sys.stdout
-        elif fileName[-4:] in ['.dlm','.DLM', '.csv','.CSV']:
+        elif fileName[-4:] in ['.dlm','.DLM', '.tsv', '.TSV', '.txt', '.TXT', '.csv', '.CSV']:
             f= file(fileName,'w')
         else:
             if delim==',':
                 f = file(fileName+'.csv','w')
+            elif delim=='\t':
+                f = file(fileName+'.tsv','w')
             else:
-                f = file(fileName+'.dlm','w')
+                f = file(fileName+'.txt','w')
 
         #write the data
         reversalStr = str(self.reversalIntensities)
@@ -2790,7 +2795,7 @@ class MultiStairHandler(_BaseTrialHandler):
 
             fileName: a string
                 The name of the file, including path if needed. The extension
-                `.dlm` will be added if not included.
+                `.tsv` will be added if not included.
 
             delim: a string
                 the delimitter to be used (e.g. '\t' for tab-delimitted, ',' for csv files)
