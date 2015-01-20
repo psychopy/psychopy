@@ -7,6 +7,7 @@
 from psychopy import logging
 from psychopy.tools.arraytools import extendArr, shuffleArray
 from psychopy.tools.fileerrortools import handleFileCollision
+from psychopy.tools.filetools import openOutputFile, genDelimiter
 import psychopy
 from pandas import DataFrame, read_csv
 import cPickle, string, sys, os, time, copy
@@ -30,6 +31,7 @@ except ImportError:
 
 _experiments=weakref.WeakValueDictionary()
 _nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
+
 
 class ExperimentHandler(object):
     """A container class for keeping track of multiple loops/handlers
@@ -241,7 +243,8 @@ class ExperimentHandler(object):
         self.thisEntry = {}
     def saveAsWideText(self, fileName, delim=None,
                    matrixOnly=False,
-                   appendFile=False):
+                   appendFile=False,
+                   encoding='utf-8'):
         """Saves a long, wide-format text file, with one line representing the attributes and data
         for a single trial. Suitable for analysis in R and SPSS.
 
@@ -250,31 +253,17 @@ class ExperimentHandler(object):
 
         If `matrixOnly=True` then the file will not contain a header row, which can be handy if you want to append data
         to an existing file of the same format.
+
+        encoding:
+            The encoding to use when saving a the file. Defaults to `utf-8`.
         """
+        #set default delimiter if none given
+        if delim is None:
+            delim = genDelimiter(fileName)
+
         #create the file or print to stdout
-        if appendFile:
-            writeFormat = 'a'
-        else:
-            writeFormat = 'w' #will overwrite a file
-        if os.path.exists(fileName) and writeFormat == 'w':
-            logging.warning('Data file, %s, will be overwritten' %fileName)
-
-        if fileName[-4:] in ['.csv', '.CSV']:
-            delim = ','
-        else:
-            delim = '\t'
-
-        if fileName=='stdout':
-            f = sys.stdout
-        elif fileName[-4:] in ['.dlm','.DLM', '.tsv', '.TSV', '.txt', '.TXT', '.csv', '.CSV']:
-            f = codecs.open(fileName, writeFormat, encoding="utf-8")
-        else:
-            if delim == ',':
-                f = codecs.open(fileName+'.csv', writeFormat, encoding="utf-8")
-            elif delim == '\t':
-                f = codecs.open(fileName+'.tsv', writeFormat, encoding="utf-8")
-            else:
-                f = codecs.open(fileName+'.txt', writeFormat, encoding="utf-8")
+        f = openOutputFile(fileName, append=appendFile, delim=delim,
+                           encoding=encoding)
 
         names = self._getAllParamNames()
         names.extend(self.dataNames)
@@ -418,6 +407,7 @@ class _BaseTrialHandler(object):
                    matrixOnly=False,
                    appendFile=True,
                    summarised=True,
+                   encoding='utf-8'
                    ):
         """
         Write a text file with the data and various chosen stimulus attributes
@@ -449,6 +439,9 @@ class _BaseTrialHandler(object):
             appendFile:
                 will add this output to the end of the specified file if it already exists
 
+            encoding:
+                The encoding to use when saving a the file. Defaults to `utf-8`.
+
         """
         if stimOut is None:
             stimOut = []
@@ -464,25 +457,11 @@ class _BaseTrialHandler(object):
 
         #set default delimiter if none given
         if delim is None:
-            if fileName[-4:] in ['.csv','.CSV']:
-                delim=','
-            else:
-                delim='\t'
+            delim = genDelimiter(fileName)
 
         #create the file or print to stdout
-        if appendFile:
-            writeFormat = 'a'
-        else:
-            writeFormat = 'w' #will overwrite a file
-        if fileName == 'stdout':
-            f = sys.stdout
-        elif fileName[-4:] in ['.dlm','.DLM', '.tsv', '.TSV', '.txt', '.TXT', '.csv', '.CSV']:
-            f = codecs.open(fileName, writeFormat, encoding="utf-8")
-        else:
-            if delim==',':
-                f= codecs.open(fileName+'.csv', writeFormat, encoding="utf-8")
-            else:
-                f=codecs.open(fileName+'.tsv', writeFormat, encoding="utf-8")
+        f = openOutputFile(fileName, append=appendFile, delim=delim,
+                           encoding=encoding)
 
         #loop through lines in the data matrix
         for line in dataArray:
@@ -1128,6 +1107,7 @@ class TrialHandler(_BaseTrialHandler):
                    delim='\t',
                    matrixOnly=False,
                    appendFile=True,
+                   encoding='utf-8'
                   ):
         """
         Write a text file with the session, stimulus, and data values from each trial in chronological order.
@@ -1161,27 +1141,17 @@ class TrialHandler(_BaseTrialHandler):
             appendFile:
                 will add this output to the end of the specified file if it already exists.
 
+             encoding:
+                The encoding to use when saving a the file. Defaults to `utf-8`.
+
         """
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
             logging.info('TrialHandler.saveAsWideText called but no trials completed. Nothing saved')
             return -1
 
         #create the file or print to stdout
-        if appendFile:
-            writeFormat = 'a'
-        else:
-            writeFormat = 'w' #will overwrite a file
-        if fileName == 'stdout':
-            f = sys.stdout
-        elif fileName[-4:] in ['.dlm','.DLM', '.tsv', '.TSV', '.txt', '.TXT', '.csv', '.CSV']:
-            f = codecs.open(fileName, writeFormat, encoding="utf-8")
-        else:
-            if delim==',':
-                f = codecs.open(fileName+'.csv', writeFormat, encoding="utf-8")
-            elif delim=='\t':
-                f = codecs.open(fileName+'.tsv', writeFormat, encoding="utf-8")
-            else:
-                f = codecs.open(fileName+'.txt', writeFormat, encoding="utf-8")
+        f = openOutputFile(fileName, append=appendFile, delim=delim,
+                           encoding=encoding)
 
         # collect parameter names related to the stimuli:
         if self.trialList[0]:
@@ -1823,8 +1793,9 @@ class StairHandler(_BaseTrialHandler):
             self._nextIntensity = self.minVal
 
     def saveAsText(self,fileName,
-                   delim='\t',
+                   delim=None,
                    matrixOnly=False,
+                   encoding='utf-8'
                   ):
         """
         Write a text file with the data
@@ -1840,6 +1811,10 @@ class StairHandler(_BaseTrialHandler):
 
             matrixOnly: True/False
                 If True, prevents the output of the `extraInfo` provided at initialisation.
+
+            encoding:
+                The encoding to use when saving a the file. Defaults to `utf-8`.
+
         """
 
         if self.thisTrialN<1:
@@ -1847,18 +1822,13 @@ class StairHandler(_BaseTrialHandler):
                 logging.debug('StairHandler.saveAsText called but no trials completed. Nothing saved')
             return -1
 
+        #set default delimiter if none given
+        if delim is None:
+            delim = genDelimiter(fileName)
+
         #create the file or print to stdout
-        if fileName=='stdout':
-            f = sys.stdout
-        elif fileName[-4:] in ['.dlm','.DLM', '.tsv', '.TSV', '.txt', '.TXT', '.csv', '.CSV']:
-            f= file(fileName,'w')
-        else:
-            if delim==',':
-                f = file(fileName+'.csv','w')
-            elif delim=='\t':
-                f = file(fileName+'.tsv','w')
-            else:
-                f = file(fileName+'.txt','w')
+        f = openOutputFile(fileName, append=False, delim=delim,
+                           encoding=encoding)
 
         #write the data
         reversalStr = str(self.reversalIntensities)
@@ -2800,8 +2770,9 @@ class MultiStairHandler(_BaseTrialHandler):
                 matrixOnly=matrixOnly, appendFile=append)
             append = True
     def saveAsText(self,fileName,
-                   delim='\t',
-                   matrixOnly=False):
+                   delim=None,
+                   matrixOnly=False,
+                   encoding='utf-8'):
         """
         Write out text files with the data.
 
@@ -2821,6 +2792,10 @@ class MultiStairHandler(_BaseTrialHandler):
 
             matrixOnly: True/False
                 If True, prevents the output of the `extraInfo` provided at initialisation.
+
+            encoding:
+                The encoding to use when saving a the file. Defaults to `utf-8`.
+
         """
         if self.totalTrials<1:
             if self.autoLog:
@@ -2831,7 +2806,7 @@ class MultiStairHandler(_BaseTrialHandler):
             label = thisStair.condition['label']
             thisFileName = fileName+"_"+label
             thisStair.saveAsText(fileName=thisFileName, delim=delim,
-                matrixOnly=matrixOnly)
+                matrixOnly=matrixOnly, encoding=encoding)
     def printAsText(self,
                    delim='\t',
                    matrixOnly=False):
