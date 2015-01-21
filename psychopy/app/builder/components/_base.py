@@ -218,8 +218,7 @@ class BaseComponent(object):
         elif startType=='time (s)' and numericStart:
             startTime=float(self.params['startVal'].val)
         else: startTime=None
-        #if we have an exact
-        if stopType=='time (s)' and numericStop:
+        if stopType=='time (s)' and numericStop and startTime is not None:
             duration=float(self.params['stopVal'].val)-startTime
         elif stopType=='duration (s)' and numericStop:
             duration=float(self.params['stopVal'].val)
@@ -231,7 +230,7 @@ class BaseComponent(object):
                 duration=FOREVER#infinite duration
             else:
                 duration=None
-        nonSlipSafe = numericStart and numericStop
+        nonSlipSafe = numericStop and (numericStart or stopType == 'time (s)')
         return startTime, duration, nonSlipSafe
     def getPosInRoutine(self):
         """Find the index (position) in the parent Routine (0 for top)
