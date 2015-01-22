@@ -13,10 +13,12 @@ import numpy
 from scipy import optimize, special
 from matplotlib import mlab    #used for importing csv files
 from contrib.quest import *    #used for QuestHandler
+from contrib.psi import *   #used for PsiHandler
 import inspect #so that Handlers can find the script that called them
 import codecs, locale
 import weakref
 import re
+import warnings
 
 try:
     import openpyxl
@@ -2185,6 +2187,163 @@ class QuestHandler(StairHandler):
             self.finished = True
         else:
             self.finished = False
+
+
+class PsiHandler(StairHandler):
+    """
+    Handler to implement the "Psi" adaptive psychophysical method (Kontsevich & Tyler, 1999).
+    
+    This implementation assumes the form of the psychometric function to be a cumulative Gaussian.
+    Psi estimates the two free parameters of the psychometric function, the location (alpha) and slope (beta),
+    using Bayes' rule and grid approximation of the posterior distribution. It chooses stimuli to present by
+    minimizing the entropy of this grid. Because this grid is represented internally as a 4-D array, one
+    must choose the intensity, alpha, and beta ranges carefully so as to avoid a Memory Error. Maximum likelihood
+    is used to estimate Lambda, the most likely location/slope pair. Because Psi estimates the entire
+    psychometric function, any threshold defined on the function may be estimated once Lambda is determined.
+    
+    It is advised that Lambda estimates are examined after completion of the Psi procedure. If the
+    estimated alpha or beta values equal your specified search bounds, then the search range most likely did
+    not contain the true value. In this situation the procedure should be repeated with appropriately adjusted bounds.
+    
+    Because Psi is a Bayesian method, it can be initialized with a prior from existing research. A function
+    to save the posterior over Lambda as a Numpy binary file is included.
+    """
+    
+    def __init__(self,
+                 nTrials,
+                 intensRange, alphaRange, betaRange,
+                 intensPrecision, alphaPrecision, betaPrecision,
+                 delta,
+                 extraInfo=None,
+                 stepType='lin',
+                 TwoAFC=False,
+                 prior=None,
+                 fromFile=False,
+                 name=''):
+        
+        
+        """
+        Initializes the handler and creates an internal Psi Object for grid approximation.
+        
+        Parameters:
+        
+            nTrials (int)
+                The number of trials to run.
+                
+            intensRange (list)
+                Two element list containing the (inclusive) endpoints of the stimuli intensity range.
+            
+            alphaRange  (list)
+                Two element list containing the (inclusive) endpoints of the alpha (location parameter) range.
+            
+            betaRange   (list)
+                Two element list containing the (inclusive) endpoints of the beta (slope parameter) range.
+            
+            intensPrecision (float or int)
+                If stepType == 'lin', this specifies the step size of the stimuli intensity range.
+                If stepType == 'log', this specifies the number of steps in the stimuli intensity range.
+            
+            alphaPrecision  (float)
+                The step size of the alpha (location parameter) range.
+            
+            betaPrecision   (float)
+                The step size of the beta (slope parameter) range.
+            
+            delta   (float)
+                The guess rate.
+            
+            extraInfo   (dict)
+                Optional dictionary object used in PsychoPy's built-in logging system.
+            
+            stepType    (str)
+                The type of steps to be used when constructing the stimuli intensity range. If 'lin' then evenly spaced steps are used. If 'log' then logarithmically spaced steps are used.
+                Defaults to 'lin'.
+            
+            TwoAFC  (bool)
+                If True then the d' based psychometric function from Kontsevich & Tyler (1999) will be used. If False then a Yes/No task is assumed.
+            
+            prior   (numpy.ndarray or str)
+                Optional prior distribution with which to initialize the Psi Object. This can either be a numpy.ndarray object or the path to a numpy binary file (.npy) containing the ndarray.
+            
+            fromFile    (str)
+                Flag specifying whether prior is a file pathname or not.
+            
+            name    (str)
+                Optional name for the PsiHandler used in PsychoPy's built-in logging system.
+        """
+        # Initialize parent class first
+        StairHandler.__init__(self, startVal=None, nTrials=nTrials, extraInfo=extraInfo, method=None, stepType=stepType, minVal=intensRange[0], maxVal=intensRange[1], name=name)
+        
+        # Create Psi object
+        if prior is not None and fromFile:
+            try:
+                prior = numpy.load(prior)
+            except IOError:
+                warnings.warn("The specified pickle file could not be read. Using a uniform prior instead.")
+                prior = None
+        self._psi = PsiObject(intensRange, alphaRange, betaRange, intensPrecision, alphaPrecision, betaPrecision, delta, stepType, TwoAFC, prior)
+        self._psi.update(None)
+        
+            
+    def addResponse(self, result, intensity=None):
+        """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
+        Supplying an `intensity` value here indicates that you did not use the
+        recommended intensity in your last trial and the staircase will
+        replace its recorded value with the one you supplied here.
+        """
+        self.data.append(result)
+
+        #if needed replace the existing intensity with this custom one
+        if intensity is not None:
+            self.intensities.pop()
+            self.intensities.append(intensity)
+        #add the current data to experiment if possible
+        if self.getExp() is not None:#update the experiment handler too
+            self.getExp().addData(self.name+".response", result)
+        self._psi.update(result)
+    
+    def next(self):
+        """Advances to next trial and returns it."""
+        self._checkFinished()
+        if self.finished==False:
+            #update pointer for next trial
+            self.thisTrialN+=1
+            self.intensities.append(self._psi.nextIntensity)
+            return self._psi.nextIntensity
+        else:
+            self._terminate()
+
+    def _checkFinished(self):
+        """checks if we are finished
+        Updates attribute: `finished`
+        """
+        if self.nTrials is not None and len(self.intensities) >= self.nTrials:
+            self.finished = True
+        else:
+            self.finished = False
+            
+    def estimateLambda(self):
+        """Returns a tuple of (location, slope)"""
+        return self._psi.estimateLambda()
+    
+    def estimateThreshold(self, thresh, lamb=None):
+        """Returns an intensity estimate for the provided probability. The optional argument 'lamb' allows thresholds to be estimated without having to recompute the maximum likelihood lambda."""
+        if lamb is not None:
+            try:
+                if len(lamb) != 2:
+                    warnings.warn("Invalid user-specified lambda pair. A new estimate of lambda will be computed.", SyntaxWarning)
+                    lamb = None
+            except TypeError:
+                warnings.warn("Invalid user-specified lambda pair. A new estimate of lambda will be computed.", SyntaxWarning)
+                lamb = None
+        return self._psi.estimateThreshold(thresh, lamb)
+        
+    def savePosterior (self, filename):
+        """Saves the posterior array over probLambda as a pickle file with the specified name."""
+        try:
+            self._psi.savePosterior(filename)
+        except IOError:
+            warnings.warn("An error occurred while trying to save the posterior array. Continuing without saving...")
 
 
 class MultiStairHandler(_BaseTrialHandler):
