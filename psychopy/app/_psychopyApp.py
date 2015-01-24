@@ -248,7 +248,7 @@ class PsychoPyApp(wx.App):
 
     def _wizard(self, selector, arg=''):
         from psychopy import core
-        wizard = os.path.join(self.prefs.paths['psychopy'], 'wizard.py')
+        wizard = os.path.join(self.prefs.paths['psychopy'], 'tools', 'wizard.py')
         so, se = core.shellCall([sys.executable, wizard, selector, arg], stderr=True)
         if se and self.prefs.app['debugMode']:
             print se  # stderr contents; sometimes meaningless
