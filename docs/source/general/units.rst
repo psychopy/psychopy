@@ -60,8 +60,13 @@ Spatial frequency: cycles per degree
 
 Requires : information about the screen width in cm and pixels and the viewing distance in cm
 
-Assumes : that pixels are square (see above) and that all parts of the screen are a constant distance from the eye (i.e. that the screen is curved!). This (clearly incorrect assumption) is common to most studies that report the size of their stimulus in degrees of visual angle. The resulting error is small at moderate eccentricities (a 0.2% error in size calculation at 3 deg eccentricity) but grows as stimuli are placed further from the centre of the screen (a 2% error at 10 deg). For studies of peripheral vision this should be corrected for. PsychoPy also makes no correction for the thickness of the screen glass, which refracts the image slightly.
+There are actually three variants: 'deg', 'degFlat', and 'degFlatPos'
 
+**'deg'** :  Most people using degrees of visual angle choose to make the assumption that a degree of visual angle spans the same number of pixels at all parts of the screen. This isn't actually true for standard flat screens - a degree of visual angle at the edge of the screen spans more pixels because it is further from the eye. For moderate eccentricities the error is small (a 0.2% error in size calculation at 3 deg eccentricity) but grows as stimuli are placed further from the centre of the screen (a 2% error at 10 deg). For most studies this form of calculation is preferred, as it does not result in a warped appearance of visual stimuli, but if you need greater precision at far eccentricities then choose one of the alternatives below.
+
+**'degFlatPos'** : This accounts for flat screens in calculating position coordinates of visual stimuli but leaves size and spatial frequency uncorrected. This means that an evenly spaced grid of visual stimuli will appear warped in position but will 
+
+**'degFlat'**: This corrects the calculations of degrees for flatness of the screen for each vertex your your stimuli. Square stimuli in the periphery will, therefore, become more spaced apart but they will also get larger and rhomboid in the pixels that they occupy.
 
 .. _unitsPix:
 

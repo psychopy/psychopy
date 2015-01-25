@@ -97,7 +97,7 @@ class SettingsComponent(object):
             label=_localized["colorSpace"],
             categ="Screen")
         self.params['Units']=Param(units, valType='str', allowedTypes=[],
-            allowedVals=['use prefs', 'deg','pix','cm','norm','height'],
+            allowedVals=['use prefs', 'deg','pix','cm','norm','height', 'degFlatPos','degFlat'],
             hint=_translate("Units to use for window/stimulus coordinates (e.g. cm, pix, deg)"),
             label=_localized["Units"],
             categ='Screen')

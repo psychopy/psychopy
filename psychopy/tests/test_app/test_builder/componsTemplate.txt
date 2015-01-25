@@ -65,7 +65,7 @@ ApertureComponent.units.val:norm
 ApertureComponent.units.allowedTypes:[]
 ApertureComponent.units.hint:Units of dimensions for this stimulus
 ApertureComponent.units.allowedUpdates:None
-ApertureComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm']
+ApertureComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm', 'height', 'degFlatPos', 'degFlat']
 ApertureComponent.units.label:Units
 ApertureComponent.units.readOnly:False
 ApertureComponent.units.updates:None
@@ -282,7 +282,7 @@ DotsComponent.units.val:from exp settings
 DotsComponent.units.allowedTypes:[]
 DotsComponent.units.hint:Units of dimensions for this stimulus
 DotsComponent.units.allowedUpdates:None
-DotsComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm']
+DotsComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm', 'height', 'degFlatPos', 'degFlat']
 DotsComponent.units.label:Units
 DotsComponent.units.readOnly:False
 DotsComponent.units.updates:None
@@ -593,7 +593,7 @@ GratingComponent.units.val:from exp settings
 GratingComponent.units.allowedTypes:[]
 GratingComponent.units.hint:Units of dimensions for this stimulus
 GratingComponent.units.allowedUpdates:None
-GratingComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm']
+GratingComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm', 'height', 'degFlatPos', 'degFlat']
 GratingComponent.units.label:Units
 GratingComponent.units.readOnly:False
 GratingComponent.units.updates:None
@@ -731,18 +731,6 @@ ImageComponent.colorSpace.label:Color space
 ImageComponent.colorSpace.readOnly:False
 ImageComponent.colorSpace.updates:constant
 ImageComponent.colorSpace.valType:str
-ImageComponent.flipHoriz.default:False
-ImageComponent.flipHoriz.staticUpdater:None
-ImageComponent.flipHoriz.categ:Advanced
-ImageComponent.flipHoriz.val:False
-ImageComponent.flipHoriz.allowedTypes:[]
-ImageComponent.flipHoriz.hint:Should the image be flipped horizontally (left to right)?
-ImageComponent.flipHoriz.allowedUpdates:[]
-ImageComponent.flipHoriz.allowedVals:[]
-ImageComponent.flipHoriz.label:Flip horizontally
-ImageComponent.flipHoriz.readOnly:False
-ImageComponent.flipHoriz.updates:constant
-ImageComponent.flipHoriz.valType:bool
 ImageComponent.name.default:image
 ImageComponent.name.staticUpdater:None
 ImageComponent.name.categ:Basic
@@ -845,7 +833,7 @@ ImageComponent.units.val:from exp settings
 ImageComponent.units.allowedTypes:[]
 ImageComponent.units.hint:Units of dimensions for this stimulus
 ImageComponent.units.allowedUpdates:None
-ImageComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm']
+ImageComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm', 'height', 'degFlatPos', 'degFlat']
 ImageComponent.units.label:Units
 ImageComponent.units.readOnly:False
 ImageComponent.units.updates:None
@@ -910,6 +898,18 @@ ImageComponent.startVal.label:Start
 ImageComponent.startVal.readOnly:False
 ImageComponent.startVal.updates:None
 ImageComponent.startVal.valType:code
+ImageComponent.flipHoriz.default:False
+ImageComponent.flipHoriz.staticUpdater:None
+ImageComponent.flipHoriz.categ:Advanced
+ImageComponent.flipHoriz.val:False
+ImageComponent.flipHoriz.allowedTypes:[]
+ImageComponent.flipHoriz.hint:Should the image be flipped horizontally (left to right)?
+ImageComponent.flipHoriz.allowedUpdates:[]
+ImageComponent.flipHoriz.allowedVals:[]
+ImageComponent.flipHoriz.label:Flip horizontally
+ImageComponent.flipHoriz.readOnly:False
+ImageComponent.flipHoriz.updates:constant
+ImageComponent.flipHoriz.valType:bool
 ImageComponent.image.default:''
 ImageComponent.image.staticUpdater:None
 ImageComponent.image.categ:Basic
@@ -1409,7 +1409,7 @@ MovieComponent.units.val:from exp settings
 MovieComponent.units.allowedTypes:[]
 MovieComponent.units.hint:Units of dimensions for this stimulus
 MovieComponent.units.allowedUpdates:None
-MovieComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm']
+MovieComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm', 'height', 'degFlatPos', 'degFlat']
 MovieComponent.units.label:Units
 MovieComponent.units.readOnly:False
 MovieComponent.units.updates:None
@@ -1757,7 +1757,7 @@ PatchComponent.units.val:from exp settings
 PatchComponent.units.allowedTypes:[]
 PatchComponent.units.hint:Units of dimensions for this stimulus
 PatchComponent.units.allowedUpdates:None
-PatchComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm']
+PatchComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm', 'height', 'degFlatPos', 'degFlat']
 PatchComponent.units.label:Units
 PatchComponent.units.readOnly:False
 PatchComponent.units.updates:None
@@ -1985,7 +1985,7 @@ PolygonComponent.units.val:from exp settings
 PolygonComponent.units.allowedTypes:[]
 PolygonComponent.units.hint:Units of dimensions for this stimulus
 PolygonComponent.units.allowedUpdates:None
-PolygonComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm']
+PolygonComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm', 'height', 'degFlatPos', 'degFlat']
 PolygonComponent.units.label:Units
 PolygonComponent.units.readOnly:False
 PolygonComponent.units.updates:None
@@ -2611,7 +2611,7 @@ SettingsComponent.Units.val:use prefs
 SettingsComponent.Units.allowedTypes:[]
 SettingsComponent.Units.hint:Units to use for window/stimulus coordinates (e.g. cm, pix, deg)
 SettingsComponent.Units.allowedUpdates:None
-SettingsComponent.Units.allowedVals:['use prefs', 'deg', 'pix', 'cm', 'norm', 'height']
+SettingsComponent.Units.allowedVals:['use prefs', 'deg', 'pix', 'cm', 'norm', 'height', 'degFlatPos', 'degFlat']
 SettingsComponent.Units.label:Units
 SettingsComponent.Units.readOnly:False
 SettingsComponent.Units.updates:None
@@ -2985,7 +2985,7 @@ TextComponent.units.val:from exp settings
 TextComponent.units.allowedTypes:[]
 TextComponent.units.hint:Units of dimensions for this stimulus
 TextComponent.units.allowedUpdates:None
-TextComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm']
+TextComponent.units.allowedVals:['from exp settings', 'deg', 'cm', 'pix', 'norm', 'height', 'degFlatPos', 'degFlat']
 TextComponent.units.label:Units
 TextComponent.units.readOnly:False
 TextComponent.units.updates:None
