@@ -561,7 +561,7 @@ class ConfigWizard(object):
         f.close()
 
 class BenchmarkWizard(ConfigWizard):
-    """Class to get system info, run benchmarks, optional upload to psychopy.org"""
+    """Class to get system info, run benchmarks""" #, optional upload to psychopy.org"""
     def __init__(self, fullscr=True, interactive=True, log=True):
         self.firstrun = False
         self.prefs = prefs
@@ -617,6 +617,9 @@ class BenchmarkWizard(ConfigWizard):
         dlg = gui.Dlg(title=self.name)
         dlg.addText('')
         dlg.addText(_translate('Benchmark complete! (See the Coder output window.)'))
+
+        # disable upload for now at least:
+        '''
         dlg.addText(_translate('Are you willing to share your data at psychopy.org?'))
         dlg.addText(_translate('Only configuration and performance data are shared;'))
         dlg.addText(_translate('No personally identifying information is sent.'))
@@ -637,6 +640,7 @@ class BenchmarkWizard(ConfigWizard):
                     else:
                         dlg.addText('Upload error status: %s' % status[:20])
                 dlg.show()
+        '''
 
         self.htmlReport(itemsList)
         self.reportPath = os.path.join(self.prefs.paths['userPrefsDir'], 'benchmarkReport.html')

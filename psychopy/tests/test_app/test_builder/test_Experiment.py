@@ -12,6 +12,8 @@ import locale
 import wx
 from lxml import etree
 import threading
+import numpy
+
 #from psychopy.info import _getSha1hexDigest as sha1hex
 
 # Jeremy Gray March 2011
@@ -277,7 +279,8 @@ class TestExpt():
         self.exp.loadFromXML(expfile) # reload the edited file
         #alter the settings so the data goes to our tmp dir
         datafileBase = os.path.join(self.tmp_dir, 'testLoopsBlocks')
-        self.exp.settings.params['Data filename'].val = repr(datafileBase)
+        datafileBaseRel = os.path.relpath(datafileBase,expfile)
+        self.exp.settings.params['Data filename'].val = repr(datafileBaseRel)
         #write the script from the experiment
         script = self.exp.writeScript(expPath=expfile)
         py_file = os.path.join(self.tmp_dir, 'testLoopBlocks.py')
@@ -291,7 +294,11 @@ class TestExpt():
         execfile(py_file)
         os.chdir(wd)
         #load the data
-        dat = data.importConditions(datafileBase+".csv")
+        print "searching..." +datafileBase
+        print glob.glob(datafileBase+'*')
+        f = open(datafileBase+".csv", 'rU')
+        dat = numpy.recfromcsv(f, case_sensitive=True)
+        f.close()
         assert len(dat)==8 # because 4 'blocks' with 2 trials each (3 stims per trial)
     def test_Run_FastStroopPsyExp(self):
         # start from a psyexp file, loadXML, execute, get keypresses from a emulator thread

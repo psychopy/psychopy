@@ -17,13 +17,32 @@ Changelog
 :blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
 
-PsychoPy 1.81
+
+PsychoPy 1.82
 ------------------------------
 
-PsychoPy 1.81.04
+PsychoPy 1.82.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* FIXED: builder: microphone recordings are explicitly stopped at the end of every trial
+Released Jan 2015
+
+* ENHANCED: slightly faster rendering of movies for high-rate HD stimuli
+* CHANGED: `pandas` is now a strict requirement for the `psychopy.data` module
+* FIXED: Builder sounds from file no longer loop indefinitely
+* FIXED: Builder: microphone recordings are explicitly stopped at the end of every trial
+* FIXED: Static Components could become hidden by having unknown durations and then couldn't be changed. Now they are always shown even when times are unknown (Jeremy)
+* ADDED: improved support for Cambridge Research Systems Display++ and Bits# devices:
+    * Color++ and Mono++ modes now supported using shaders
+    * fixed some bugs with search for identityLUT in Display++
+* ADDED: Psi adaptive staircase method (thanks Joseph Glavan for writing this)
+* ADDED: `bidi` and `xlwt` packages to the Standalone distribution
+* ADDED: support for Mouse.setPos() under pyglet back end (Jeremy)
+* ADDED: support for PST response box (Richard Höchenberger)
+* FIXED: extraInfo was not being saved in wide-text format
+* ADDED: Builder now supports 'degFlat and 'degFlatPos' units and documentation has been added for these
+
+PsychoPy 1.81
+------------------------------
 
 PsychoPy 1.81.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
