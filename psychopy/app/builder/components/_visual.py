@@ -27,7 +27,8 @@ class VisualComponent(BaseComponent):
                 startEstim=startEstim, durationEstim=durationEstim)
         self.psychopyLibs=['visual']#needs this psychopy lib to operate
 
-        self.params['units']=Param(units, valType='str', allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm'],
+        self.params['units']=Param(units, valType='str',
+            allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm','height','degFlatPos','degFlat'],
             hint=_translate("Units of dimensions for this stimulus"),
             label=_localized['units'])
         self.params['color']=Param(color, valType='str', allowedTypes=[],
