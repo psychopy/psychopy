@@ -34,7 +34,7 @@ def haveInternetAccess(forceCheck=False):
     If forceCheck is False, will rely on a cached value if possible.
     """
     global haveInternet
-    if forceCheck or haveInternet not in [True, False]:
+    if forceCheck or haveInternet is None:
         # try to connect to a high-availability site
         sites = ["http://www.google.com/", "http://www.opendns.com/"]
         for wait in [0.3, 0.7]:  # try to be quick first
@@ -43,7 +43,7 @@ def haveInternetAccess(forceCheck=False):
                     urllib2.urlopen(site, timeout=wait)
                     haveInternet = True  # cache
                     return True  # one success is good enough
-                except urllib2.URLError:
+                except:  # urllib2.URLError:  # socket.timeout() was happening to some people some of the time
                     pass
         else:
             haveInternet = False
