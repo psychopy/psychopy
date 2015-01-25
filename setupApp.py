@@ -30,7 +30,7 @@ frameworks = ["libavbin.dylib","/usr/lib/libxml2.2.dylib", #"libyaml.dylib",
             ]
 opencvLibs = glob.glob(os.path.join(sys.exec_prefix, 'lib', 'libopencv*.2.4.dylib'))
 frameworks.extend(opencvLibs)
-                  
+
 setup(app=['psychopy/app/psychopyApp.py'],
     options=dict(py2app=dict( includes=['Tkinter','FileDialog','tkFileDialog', 'imp', 'subprocess', 'shlex',
                                   'shelve',#for scipy.io
@@ -42,6 +42,7 @@ setup(app=['psychopy/app/psychopyApp.py'],
                                   'psutil',#for iohub
                                   'pysoundcard','pysoundfile',
                                   'cv2',
+                                  'xlwt', #writes different formats of excel files (pandas)
                                   ],
                               packages=['wx','pyglet','pygame','OpenGL','psychopy','pytz',
                                 'scipy','matplotlib','lxml','xml','openpyxl',
@@ -56,6 +57,7 @@ setup(app=['psychopy/app/psychopyApp.py'],
                                 'msgpack','yaml','gevent',#ioHub
                                 #these aren't needed, but liked
                                 'psychopy_ext','pyfilesec','rusocsci',
+                                'bidi', #for right-left language conversions
                                 ],
                               excludes=[],#anything we need to forcibly exclude?
                               resources=resources,

@@ -12,10 +12,10 @@ python setup.py bdist_egg
 rm psychopy/demos/*.pyc
 rm psychopy/prefSite.cfg
 
-rm -r dist/PsychoPy2.app
-rm -r ../dist/PsychoPy2.app
+sudo rm -r dist/PsychoPy2.app
+sudo rm -r ../dist/PsychoPy2.app
 python setupApp.py py2app
-chmod -R g+w dist/PsychoPy2.app
+sudo chmod -R g+w dist/PsychoPy2.app
 #strip all other architectures from binaries and move both to ../dist
 ditto --rsrc --arch i386 dist/PsychoPy2.app ../dist/PsychoPy2.app
 mv dist/PsychoPy2.app ../dist/PsychoPy2_fat.app
