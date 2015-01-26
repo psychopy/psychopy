@@ -19,13 +19,13 @@ other configuration settings:
 # #   Test Config.
 
 # Relative path (from this scripts folder) for the video clip to be played .
-video_name = r'./calibration.mov'
+video_name = r'./jwpIntro.mov'
 
 # If False, no audio tracks will be played.
 INCLUDE_AUDIO_TRACK = True
 
 # Size of the PsychoPy Window to create (in pixels).
-WINDOW_SIZE = [1366, 768]
+WINDOW_SIZE = [1280, 720]
 
 # If True,WINDOW_SIZE is ignored and a full screen PsychoPy Window is created.
 USE_FULLSCREEN_WINDOW = False
