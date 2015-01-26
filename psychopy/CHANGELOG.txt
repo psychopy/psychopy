@@ -28,6 +28,7 @@ Released Jan 2015
 * ADDED: support for Mouse.setPos() under pyglet back end (Jeremy)
 * ADDED: support for PST response box (Richard Höchenberger)
 * FIXED: extraInfo was not being saved in wide-text format
+* FIXED: Builder was not respecting order for drawing polygon - it was always drawn first
 * ADDED: Builder now supports 'degFlat and 'degFlatPos' units and documentation has been added for these
 
 PsychoPy 1.81

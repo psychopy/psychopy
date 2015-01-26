@@ -1,4 +1,4 @@
-.. _cedureButtonBox:
+.. _cedrusButtonBox:
 
 Cedrus Button Box Component
 ---------------------------------
