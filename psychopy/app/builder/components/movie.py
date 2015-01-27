@@ -11,7 +11,8 @@ iconFile = path.join(thisFolder,'movie.png')
 tooltip = _translate('Movie: play movie files')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'movie': _translate('Movie file'), 'forceEndRoutine': _translate('Force end of Routine')}
+_localized = {'movie': _translate('Movie file'), 'forceEndRoutine': _translate('Force end of Routine'), 
+              'backend':_translate('backend')}
 
 class MovieComponent(VisualComponent):
     """An event class for presenting movie-based stimuli"""
@@ -39,7 +40,8 @@ class MovieComponent(VisualComponent):
             hint=_translate("A filename for the movie (including path)"),
             label=_localized['movie'])
         self.params['backend']=Param(backend, valType='str', allowedVals=['avbin','opencv'],
-            hint=_translate("What underlying lib to use for loading movies"),)
+            hint=_translate("What underlying lib to use for loading movies"),
+            label=_localized['backend'])
         self.params['forceEndRoutine']=Param(forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=_translate("Should the end of the movie cause the end of the routine (e.g. trial)?"),
