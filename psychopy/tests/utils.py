@@ -67,8 +67,10 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None):
         assert foundComparisonFile #deliberately raise an error to see the warning message
         return
     if delim is None:
-        if pathToCorrect.endswith('.csv'): delim=','
-        elif pathToCorrect.endswith('.dlm'): delim='\t'
+        if pathToCorrect.endswith('.csv'):
+            delim=','
+        elif pathToCorrect.endswith(('.dlm', '.tsv')):
+            delim='\t'
 
     try:
         #we have the necessary file
