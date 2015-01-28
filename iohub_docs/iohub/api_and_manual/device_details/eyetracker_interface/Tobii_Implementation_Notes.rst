@@ -11,7 +11,7 @@ Tobii EyeTracker Class
 
 * Tobii X120
 * Tobii X60 
-* Tobii T120 (tested on this model to date)
+* Tobii T120
 * Tobii T60
 * Tobii T60 XL
 * Tobii TX300
@@ -123,12 +123,9 @@ None at this time.
 Limitations:
 ==============
 
-    #. There is no way to present the 'tracking status' graphics display that shows each eye location in the head box and status indications for distance validity and eye tracking stability.
-    #. The current calibration procedure is not visually similar to the standard Tobii calibration graphics set. This should be added when time permits.
+N/A
 
 To Do / Wish List:
 ===================
 
-    #. Add 'tracking status' graphics display.
-    #. Show calibration results graphics after calibration.    
-    #. Offer calibratio graphics mode that is more  "Tobii like".
+N/A
