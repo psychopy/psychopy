@@ -198,7 +198,8 @@ class SoundPygame(_SoundBase):
 
         bits(=16):  Pygame uses the same bit depth for all sounds once initialised
     """
-    def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16, name='', autoLog=True):
+    def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16,
+                 name='', autoLog=True, loops=0):
         """
         """
         self.name=name#only needed for autoLogging
