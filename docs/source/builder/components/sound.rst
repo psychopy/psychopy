@@ -28,4 +28,4 @@ volume : float or integer
 
 .. seealso::
 	
-	API reference for :class:`~psychopy.sound.Sound`
+	API reference for :class:`~psychopy.sound.SoundPyo`
