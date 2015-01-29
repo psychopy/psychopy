@@ -37,4 +37,4 @@ Parameters
 
 .. seealso::
 	
-	API reference for :class:`~psychopy.microphone.AudioCapture`
+	API reference for :class:`~psychopy.microphone.AdvAudioCapture`
