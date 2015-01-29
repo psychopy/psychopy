@@ -114,21 +114,21 @@ supported:
             #. left_eye_cam_x:          maps to LeftEyePosition3DRelative.x
             #. left_eye_cam_y:          maps to LeftEyePosition3DRelative.y
             #. left_eye_cam_z:          maps to LeftEyePosition3DRelative.z
-            #. left_pupil_measure_1:    maps to LeftPupil
-            #. left_pupil_measure1_type: PUPIL_DIAMETER_MM
+            #. left_pupil_measure_1:    maps to LeftPupil (not available on EyeX)
+            #. left_pupil_measure1_type: PUPIL_DIAMETER_MM (not available on EyeX)
             #. right_gaze_x:            maps to Tobii eye sample field RightGazePoint2D.x
             #. right_gaze_y:            maps to RightGazePoint2D.y
             #. right_eye_cam_x:         maps to RightEyePosition3DRelative.x
             #. right_eye_cam_y:         maps to RightEyePosition3DRelative.y
             #. right_eye_cam_z:         maps to RightEyePosition3DRelative.z
-            #. right_pupil_measure_1:   maps to RightPupil
-            #. right_pupil_measure1_type: PUPIL_DIAMETER_MM
-            #. status:                  both left and right eye validity codes are encoded as LeftValidity*10+RightValidity
+            #. right_pupil_measure_1:   maps to RightPupil (not available on EyeX)
+            #. right_pupil_measure1_type: PUPIL_DIAMETER_MM (not available on EyeX)
+            #. status:                  both left and right eye validity codes are encoded as LeftValidity*10+RightValidity (not available on EyeX)
 
 General Considerations
 #######################
 
-**Last Updated:** May 5th, 2013
+**Last Updated:** January 29th, 2015
 
 Known Issues:              
 ==============
@@ -145,4 +145,4 @@ To Do / Wish List:
 
     #. Add 'tracking status' graphics display.
     #. Show calibration results graphics after calibration.    
-    #. Offer calibration graphics mode that is more  "Tobii like".
+    #. Offer calibration graphics mode that is more "Tobii like".
