@@ -775,6 +775,7 @@ class RatingScale(MinimalStim):
                     self.labels.append(TextStim(win=self.win, text=unicode(label), font=textFont,
                         pos=[self.tickPositions[i//self.autoRescaleFactor], vertPosTmp],
                         height=self.textSizeSmall, color=self.textColor, autoLog=False))
+        self.origScaleDescription = scale
         self.setDescription(scale) # do after having set the relevant things
 
     def setDescription(self, scale=None, log=True):
