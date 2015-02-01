@@ -1412,8 +1412,8 @@ class NameSpace():
             'PLAYING', 'FOREVER', 'PSYCHOPY_USERAGENT']
         self.builder = ['KeyResponse', 'key_resp', 'buttons', 'continueRoutine',
             'expInfo', 'expName', 'thisExp', 'filename', 'logFile', 'paramName',
-            't', 'frameN', 'currentLoop', 'dlg',
-            'globalClock', 'routineTimer',
+            't', 'frameN', 'currentLoop', 'dlg', '_thisDir', 'endExpNow',
+            'globalClock', 'routineTimer', 'frameDur',
             'theseKeys', 'win', 'x', 'y', 'level', 'component', 'thisComponent']
         # user-entered, from Builder dialog or conditions file:
         self.user = []
