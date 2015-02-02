@@ -141,11 +141,11 @@ changed: sidebar, rootrellink, header, footer,
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     {{ metatags }}
     {%- if not embedded %}
-      {%- set titlesuffix = docstitle|e + " &mdash; "|safe%}
+      {%- set titlesuffix = " &mdash; "|safe + docstitle|e%}
     {%- else %}
       {%- set titlesuffix = "" %}
     {%- endif %}
-    <title>{{ titlesuffix }}{{ title|striptags }}</title>
+    <title>{{ title|striptags }}{{ titlesuffix }}</title>
     <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
     <link rel="stylesheet" href="{{ pathto('_static/pygments.css', 1) }}" type="text/css" />
     {%- if not embedded %}
