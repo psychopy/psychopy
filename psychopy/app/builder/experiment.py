@@ -1225,7 +1225,6 @@ class Routine(list):
         #are we done yet?
         buff.writeIndentedLines('\n# check if all components have finished\n')
         buff.writeIndentedLines('if not continueRoutine:  # a component has requested a forced-end of Routine\n')
-        buff.writeIndentedLines('    routineTimer.reset()  # if we abort early the non-slip timer needs reset\n')
         buff.writeIndentedLines('    break\n')
         buff.writeIndentedLines('continueRoutine = False  # will revert to True if at least one component still running\n')
         buff.writeIndentedLines('for thisComponent in %sComponents:\n' %self.name)
@@ -1242,9 +1241,6 @@ class Routine(list):
         buff.writeIndentedLines('\n# refresh the screen\n')
         buff.writeIndented("if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen\n")
         buff.writeIndented('    win.flip()\n')
-        if not useNonSlip:
-            buff.writeIndented("else:  # this Routine was not non-slip safe so reset non-slip timer\n")
-            buff.writeIndented('    routineTimer.reset()\n')
 
         #that's done decrement indent to end loop
         buff.setIndentLevel(-1,True)
@@ -1256,6 +1252,11 @@ class Routine(list):
         buff.writeIndentedLines('    if hasattr(thisComponent, "setAutoDraw"):\n        thisComponent.setAutoDraw(False)\n')
         for event in self:
             event.writeRoutineEndCode(buff)
+
+        # reset routineTimer at the *very end* of all non-nonSlip routines
+        if not useNonSlip:
+            buff.writeIndented('# the Routine "%s" was not non-slip safe, so reset the non-slip timer\n' % self.name)
+            buff.writeIndented('routineTimer.reset()\n')
 
     def writeExperimentEndCode(self,buff):
         """This defines the code for the frames of a single routine
