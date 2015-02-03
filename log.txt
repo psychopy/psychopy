@@ -1,0 +1,1629 @@
+
+C:\PsychoPy2_GitHub>rem build simple distributions 
+
+C:\PsychoPy2_GitHub>rem python setup.py bdist_egg 
+
+C:\PsychoPy2_GitHub>rem python setup.py sdist --formats=zip 
+
+C:\PsychoPy2_GitHub>rem python setup.py bdist_wininst --install-script=psychopy_post_inst.py 
+
+C:\PsychoPy2_GitHub>rem install the current version to site-packages 
+
+C:\PsychoPy2_GitHub>python setup.py install 
+wrote init for 1.81.03 n/a
+running install
+running bdist_egg
+running egg_info
+writing PsychoPy.egg-info\PKG-INFO
+writing top-level names to PsychoPy.egg-info\top_level.txt
+writing dependency_links to PsychoPy.egg-info\dependency_links.txt
+reading manifest file 'PsychoPy.egg-info\SOURCES.txt'
+reading manifest template 'MANIFEST.in'
+writing manifest file 'PsychoPy.egg-info\SOURCES.txt'
+installing library code to build\bdist.win32\egg
+running install_lib
+running build_py
+copying psychopy\__init__.py -> build\lib\psychopy
+creating build\bdist.win32\egg
+creating build\bdist.win32\egg\psychopy
+creating build\bdist.win32\egg\psychopy\app
+copying build\lib\psychopy\app\appData.spec -> build\bdist.win32\egg\psychopy\app
+creating build\bdist.win32\egg\psychopy\app\builder
+copying build\lib\psychopy\app\builder\builder.py -> build\bdist.win32\egg\psychopy\app\builder
+creating build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\add.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\aperture.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\aperture.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\base.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\cedrusBox.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\cedrusBox.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\code.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\code.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\dots.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\dots.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\edit_add.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\eyetracker.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\eyetracker.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\geometric.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\grating.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\grating.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\image.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\image.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\ioLabs.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\ioLabs.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\keyboard.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\keyboard.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\microphone.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\microphone.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\mouse.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\mouse.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\movie.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\movie.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\parallelOut.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\parallelOut.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\patch.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\patch.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\polygon.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\polygon.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\ratingscale.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\ratingscale.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\settings.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\sound.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\sound.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\static.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\static.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\text.png -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\text.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\_base.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\_visual.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\components\__init__.py -> build\bdist.win32\egg\psychopy\app\builder\components
+copying build\lib\psychopy\app\builder\experiment.py -> build\bdist.win32\egg\psychopy\app\builder
+copying build\lib\psychopy\app\builder\experiment.xsd -> build\bdist.win32\egg\psychopy\app\builder
+copying build\lib\psychopy\app\builder\ratingscale.png -> build\bdist.win32\egg\psychopy\app\builder
+copying build\lib\psychopy\app\builder\validators.py -> build\bdist.win32\egg\psychopy\app\builder
+copying build\lib\psychopy\app\builder\__init__.py -> build\bdist.win32\egg\psychopy\app\builder
+creating build\bdist.win32\egg\psychopy\app\coder
+copying build\lib\psychopy\app\coder\coder.py -> build\bdist.win32\egg\psychopy\app\coder
+copying build\lib\psychopy\app\coder\debugger.py -> build\bdist.win32\egg\psychopy\app\coder
+copying build\lib\psychopy\app\coder\introspect.py -> build\bdist.win32\egg\psychopy\app\coder
+copying build\lib\psychopy\app\coder\psychoParser.py -> build\bdist.win32\egg\psychopy\app\coder
+copying build\lib\psychopy\app\coder\__init__.py -> build\bdist.win32\egg\psychopy\app\coder
+copying build\lib\psychopy\app\connections.py -> build\bdist.win32\egg\psychopy\app
+copying build\lib\psychopy\app\dialogs.py -> build\bdist.win32\egg\psychopy\app
+copying build\lib\psychopy\app\ipythonShell.py -> build\bdist.win32\egg\psychopy\app
+creating build\bdist.win32\egg\psychopy\app\locale
+creating build\bdist.win32\egg\psychopy\app\locale\ar_EG
+creating build\bdist.win32\egg\psychopy\app\locale\ar_EG\LC_MESSAGE
+copying build\lib\psychopy\app\locale\ar_EG\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\ar_EG\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\cs_CZ
+creating build\bdist.win32\egg\psychopy\app\locale\cs_CZ\LC_MESSAGE
+copying build\lib\psychopy\app\locale\cs_CZ\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\cs_CZ\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\da_DK
+creating build\bdist.win32\egg\psychopy\app\locale\da_DK\LC_MESSAGE
+copying build\lib\psychopy\app\locale\da_DK\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\da_DK\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\de_DE
+creating build\bdist.win32\egg\psychopy\app\locale\de_DE\LC_MESSAGE
+copying build\lib\psychopy\app\locale\de_DE\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\de_DE\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\el_GR
+creating build\bdist.win32\egg\psychopy\app\locale\el_GR\LC_MESSAGE
+copying build\lib\psychopy\app\locale\el_GR\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\el_GR\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\en_NZ
+creating build\bdist.win32\egg\psychopy\app\locale\en_NZ\LC_MESSAGE
+copying build\lib\psychopy\app\locale\en_NZ\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\en_NZ\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\en_US
+creating build\bdist.win32\egg\psychopy\app\locale\en_US\LC_MESSAGE
+copying build\lib\psychopy\app\locale\en_US\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\en_US\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\es_ES
+creating build\bdist.win32\egg\psychopy\app\locale\es_ES\LC_MESSAGE
+copying build\lib\psychopy\app\locale\es_ES\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\es_ES\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\fi_FI
+creating build\bdist.win32\egg\psychopy\app\locale\fi_FI\LC_MESSAGE
+copying build\lib\psychopy\app\locale\fi_FI\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\fi_FI\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\fr_FR
+creating build\bdist.win32\egg\psychopy\app\locale\fr_FR\LC_MESSAGE
+copying build\lib\psychopy\app\locale\fr_FR\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\fr_FR\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\he_IL
+creating build\bdist.win32\egg\psychopy\app\locale\he_IL\LC_MESSAGE
+copying build\lib\psychopy\app\locale\he_IL\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\he_IL\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\hi_IN
+creating build\bdist.win32\egg\psychopy\app\locale\hi_IN\LC_MESSAGE
+copying build\lib\psychopy\app\locale\hi_IN\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\hi_IN\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\hu_HU
+creating build\bdist.win32\egg\psychopy\app\locale\hu_HU\LC_MESSAGE
+copying build\lib\psychopy\app\locale\hu_HU\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\hu_HU\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\it_IT
+creating build\bdist.win32\egg\psychopy\app\locale\it_IT\LC_MESSAGE
+copying build\lib\psychopy\app\locale\it_IT\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\it_IT\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\ja_JP
+creating build\bdist.win32\egg\psychopy\app\locale\ja_JP\LC_MESSAGE
+copying build\lib\psychopy\app\locale\ja_JP\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\ja_JP\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\ko_KR
+creating build\bdist.win32\egg\psychopy\app\locale\ko_KR\LC_MESSAGE
+copying build\lib\psychopy\app\locale\ko_KR\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\ko_KR\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\ms_MY
+creating build\bdist.win32\egg\psychopy\app\locale\ms_MY\LC_MESSAGE
+copying build\lib\psychopy\app\locale\ms_MY\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\ms_MY\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\nl_NL
+creating build\bdist.win32\egg\psychopy\app\locale\nl_NL\LC_MESSAGE
+copying build\lib\psychopy\app\locale\nl_NL\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\nl_NL\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\nn_NO
+creating build\bdist.win32\egg\psychopy\app\locale\nn_NO\LC_MESSAGE
+copying build\lib\psychopy\app\locale\nn_NO\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\nn_NO\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\pl_PL
+creating build\bdist.win32\egg\psychopy\app\locale\pl_PL\LC_MESSAGE
+copying build\lib\psychopy\app\locale\pl_PL\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\pl_PL\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\pt_PT
+creating build\bdist.win32\egg\psychopy\app\locale\pt_PT\LC_MESSAGE
+copying build\lib\psychopy\app\locale\pt_PT\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\pt_PT\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\ro_RO
+creating build\bdist.win32\egg\psychopy\app\locale\ro_RO\LC_MESSAGE
+copying build\lib\psychopy\app\locale\ro_RO\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\ro_RO\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\ru_RU
+creating build\bdist.win32\egg\psychopy\app\locale\ru_RU\LC_MESSAGE
+copying build\lib\psychopy\app\locale\ru_RU\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\ru_RU\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\sv_SE
+creating build\bdist.win32\egg\psychopy\app\locale\sv_SE\LC_MESSAGE
+copying build\lib\psychopy\app\locale\sv_SE\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\sv_SE\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\tr_TR
+creating build\bdist.win32\egg\psychopy\app\locale\tr_TR\LC_MESSAGE
+copying build\lib\psychopy\app\locale\tr_TR\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\tr_TR\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\zh_CN
+creating build\bdist.win32\egg\psychopy\app\locale\zh_CN\LC_MESSAGE
+copying build\lib\psychopy\app\locale\zh_CN\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\zh_CN\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\locale\zh_TW
+creating build\bdist.win32\egg\psychopy\app\locale\zh_TW\LC_MESSAGE
+copying build\lib\psychopy\app\locale\zh_TW\LC_MESSAGE\messages.mo -> build\bdist.win32\egg\psychopy\app\locale\zh_TW\LC_MESSAGE
+creating build\bdist.win32\egg\psychopy\app\localization
+copying build\lib\psychopy\app\localization\mappings.txt -> build\bdist.win32\egg\psychopy\app\localization
+copying build\lib\psychopy\app\localization\readme.txt -> build\bdist.win32\egg\psychopy\app\localization
+copying build\lib\psychopy\app\localization\__init__.py -> build\bdist.win32\egg\psychopy\app\localization
+copying build\lib\psychopy\app\preferencesDlg.py -> build\bdist.win32\egg\psychopy\app
+copying build\lib\psychopy\app\psychopyApp.py -> build\bdist.win32\egg\psychopy\app
+creating build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\color16.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\color32.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\compile16.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\compile32.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\DejaVuSerif.ttf -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\filenew16.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\filenew32.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\fileopen16.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\fileopen32.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\filesave16.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\filesave32.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\filesaveas16.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\filesaveas32.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\monitors16.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\monitors32.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\preferences16.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\preferences32.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\psychopy.desktop -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\psychopy.icns -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\psychopy.ico -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\psychopy.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\psychopySplash.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\redo16.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\redo32.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\run16.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\run32.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\settingsExp16.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\settingsExp32.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\stop16.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\stop32.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\tips.txt -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\tips_ja_JP.txt -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\undo16.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\undo32.png -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\Resources\__init__.py -> build\bdist.win32\egg\psychopy\app\Resources
+copying build\lib\psychopy\app\stdOutRich.py -> build\bdist.win32\egg\psychopy\app
+copying build\lib\psychopy\app\urls.py -> build\bdist.win32\egg\psychopy\app
+creating build\bdist.win32\egg\psychopy\app\viewer
+copying build\lib\psychopy\app\viewer\__init__.py -> build\bdist.win32\egg\psychopy\app\viewer
+copying build\lib\psychopy\app\wxIDs.py -> build\bdist.win32\egg\psychopy\app
+copying build\lib\psychopy\app\_psychopyApp.py -> build\bdist.win32\egg\psychopy\app
+copying build\lib\psychopy\app\__init__.py -> build\bdist.win32\egg\psychopy\app
+copying build\lib\psychopy\bits.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\calib.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\CHANGELOG.txt -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\clock.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\colors.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\compatibility.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\constants.py -> build\bdist.win32\egg\psychopy
+creating build\bdist.win32\egg\psychopy\contrib
+creating build\bdist.win32\egg\psychopy\contrib\http
+copying build\lib\psychopy\contrib\http\benchmark_report.py -> build\bdist.win32\egg\psychopy\contrib\http
+copying build\lib\psychopy\contrib\http\__init__.py -> build\bdist.win32\egg\psychopy\contrib\http
+copying build\lib\psychopy\contrib\mseq.py -> build\bdist.win32\egg\psychopy\contrib
+copying build\lib\psychopy\contrib\mseqSearch.py -> build\bdist.win32\egg\psychopy\contrib
+copying build\lib\psychopy\contrib\parallel.py -> build\bdist.win32\egg\psychopy\contrib
+copying build\lib\psychopy\contrib\quest.py -> build\bdist.win32\egg\psychopy\contrib
+copying build\lib\psychopy\contrib\__init__.py -> build\bdist.win32\egg\psychopy\contrib
+copying build\lib\psychopy\core.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\data.py -> build\bdist.win32\egg\psychopy
+creating build\bdist.win32\egg\psychopy\demos
+creating build\bdist.win32\egg\psychopy\demos\builder
+creating build\bdist.win32\egg\psychopy\demos\builder\BART
+copying build\lib\psychopy\demos\builder\BART\balloons.xlsx -> build\bdist.win32\egg\psychopy\demos\builder\BART
+copying build\lib\psychopy\demos\builder\BART\bang.wav -> build\bdist.win32\egg\psychopy\demos\builder\BART
+copying build\lib\psychopy\demos\builder\BART\bart.psyexp -> build\bdist.win32\egg\psychopy\demos\builder\BART
+copying build\lib\psychopy\demos\builder\BART\blueBalloon.png -> build\bdist.win32\egg\psychopy\demos\builder\BART
+copying build\lib\psychopy\demos\builder\BART\greenBalloon.png -> build\bdist.win32\egg\psychopy\demos\builder\BART
+copying build\lib\psychopy\demos\builder\BART\README.txt -> build\bdist.win32\egg\psychopy\demos\builder\BART
+copying build\lib\psychopy\demos\builder\BART\redBalloon.png -> build\bdist.win32\egg\psychopy\demos\builder\BART
+copying build\lib\psychopy\demos\builder\BART\trialTypes.xlsx -> build\bdist.win32\egg\psychopy\demos\builder\BART
+creating build\bdist.win32\egg\psychopy\demos\builder\branchedExp
+copying build\lib\psychopy\demos\builder\branchedExp\branching.psyexp -> build\bdist.win32\egg\psychopy\demos\builder\branchedExp
+copying build\lib\psychopy\demos\builder\branchedExp\README.txt -> build\bdist.win32\egg\psychopy\demos\builder\branchedExp
+copying build\lib\psychopy\demos\builder\branchedExp\trialTypes.xlsx -> build\bdist.win32\egg\psychopy\demos\builder\branchedExp
+creating build\bdist.win32\egg\psychopy\demos\builder\iohub
+creating build\bdist.win32\egg\psychopy\demos\builder\iohub\stroop_eyetracking
+copying build\lib\psychopy\demos\builder\iohub\stroop_eyetracking\LC_eyegaze_std.yaml -> build\bdist.win32\egg\psychopy\demos\builder\iohub\stroop_eyetracking
+copying build\lib\psychopy\demos\builder\iohub\stroop_eyetracking\README.txt -> build\bdist.win32\egg\psychopy\demos\builder\iohub\stroop_eyetracking
+copying build\lib\psychopy\demos\builder\iohub\stroop_eyetracking\SMI_iview_std.yaml -> build\bdist.win32\egg\psychopy\demos\builder\iohub\stroop_eyetracking
+copying build\lib\psychopy\demos\builder\iohub\stroop_eyetracking\SRR_eyelink_std.yaml -> build\bdist.win32\egg\psychopy\demos\builder\iohub\stroop_eyetracking
+copying build\lib\psychopy\demos\builder\iohub\stroop_eyetracking\stroop.psyexp -> build\bdist.win32\egg\psychopy\demos\builder\iohub\stroop_eyetracking
+copying build\lib\psychopy\demos\builder\iohub\stroop_eyetracking\tobii_std.yaml -> build\bdist.win32\egg\psychopy\demos\builder\iohub\stroop_eyetracking
+copying build\lib\psychopy\demos\builder\iohub\stroop_eyetracking\trialTypes.xlsx -> build\bdist.win32\egg\psychopy\demos\builder\iohub\stroop_eyetracking
+creating build\bdist.win32\egg\psychopy\demos\builder\iohub\stroop_keyboard
+copying build\lib\psychopy\demos\builder\iohub\stroop_keyboard\iohub_config.yaml -> build\bdist.win32\egg\psychopy\demos\builder\iohub\stroop_keyboard
+copying build\lib\psychopy\demos\builder\iohub\stroop_keyboard\README.txt -> build\bdist.win32\egg\psychopy\demos\builder\iohub\stroop_keyboard
+copying build\lib\psychopy\demos\builder\iohub\stroop_keyboard\stroop.psyexp -> build\bdist.win32\egg\psychopy\demos\builder\iohub\stroop_keyboard
+copying build\lib\psychopy\demos\builder\iohub\stroop_keyboard\trialTypes.xlsx -> build\bdist.win32\egg\psychopy\demos\builder\iohub\stroop_keyboard
+creating build\bdist.win32\egg\psychopy\demos\builder\mental_rotation
+copying build\lib\psychopy\demos\builder\mental_rotation\F.png -> build\bdist.win32\egg\psychopy\demos\builder\mental_rotation
+copying build\lib\psychopy\demos\builder\mental_rotation\FR.png -> build\bdist.win32\egg\psychopy\demos\builder\mental_rotation
+copying build\lib\psychopy\demos\builder\mental_rotation\MentalRot.csv -> build\bdist.win32\egg\psychopy\demos\builder\mental_rotation
+copying build\lib\psychopy\demos\builder\mental_rotation\MentalRot.psyexp -> build\bdist.win32\egg\psychopy\demos\builder\mental_rotation
+copying build\lib\psychopy\demos\builder\mental_rotation\README.txt -> build\bdist.win32\egg\psychopy\demos\builder\mental_rotation
+creating build\bdist.win32\egg\psychopy\demos\builder\navon
+copying build\lib\psychopy\demos\builder\navon\bigHsmallH.png -> build\bdist.win32\egg\psychopy\demos\builder\navon
+copying build\lib\psychopy\demos\builder\navon\bigHsmallS.png -> build\bdist.win32\egg\psychopy\demos\builder\navon
+copying build\lib\psychopy\demos\builder\navon\bigSsmallH.png -> build\bdist.win32\egg\psychopy\demos\builder\navon
+copying build\lib\psychopy\demos\builder\navon\bigSsmallS.png -> build\bdist.win32\egg\psychopy\demos\builder\navon
+copying build\lib\psychopy\demos\builder\navon\mask.png -> build\bdist.win32\egg\psychopy\demos\builder\navon
+copying build\lib\psychopy\demos\builder\navon\NavonTask.psyexp -> build\bdist.win32\egg\psychopy\demos\builder\navon
+copying build\lib\psychopy\demos\builder\navon\README.txt -> build\bdist.win32\egg\psychopy\demos\builder\navon
+copying build\lib\psychopy\demos\builder\navon\trialTypes.xlsx -> build\bdist.win32\egg\psychopy\demos\builder\navon
+creating build\bdist.win32\egg\psychopy\demos\builder\practical IAT
+copying build\lib\psychopy\demos\builder\practical IAT\All.csv -> build\bdist.win32\egg\psychopy\demos\builder\practical IAT
+copying build\lib\psychopy\demos\builder\practical IAT\All_rev.csv -> build\bdist.win32\egg\psychopy\demos\builder\practical IAT
+copying build\lib\psychopy\demos\builder\practical IAT\Creat_Prac.csv -> build\bdist.win32\egg\psychopy\demos\builder\practical IAT
+copying build\lib\psychopy\demos\builder\practical IAT\Creat_Prac_rev.csv -> build\bdist.win32\egg\psychopy\demos\builder\practical IAT
+copying build\lib\psychopy\demos\builder\practical IAT\Good_Bad.csv -> build\bdist.win32\egg\psychopy\demos\builder\practical IAT
+copying build\lib\psychopy\demos\builder\practical IAT\IAT.psyexp -> build\bdist.win32\egg\psychopy\demos\builder\practical IAT
+creating build\bdist.win32\egg\psychopy\demos\builder\psychophysicsStaircase
+copying build\lib\psychopy\demos\builder\psychophysicsStaircase\psychophysicsStaircase.psyexp -> build\bdist.win32\egg\psychopy\demos\builder\psychophysicsStaircase
+copying build\lib\psychopy\demos\builder\psychophysicsStaircase\README.txt -> build\bdist.win32\egg\psychopy\demos\builder\psychophysicsStaircase
+creating build\bdist.win32\egg\psychopy\demos\builder\psychophysicsStairsInterleaved
+copying build\lib\psychopy\demos\builder\psychophysicsStairsInterleaved\interleaved_SF_contrast.psyexp -> build\bdist.win32\egg\psychopy\demos\builder\psychophysicsStairsInterleaved
+copying build\lib\psychopy\demos\builder\psychophysicsStairsInterleaved\README.txt -> build\bdist.win32\egg\psychopy\demos\builder\psychophysicsStairsInterleaved
+copying build\lib\psychopy\demos\builder\psychophysicsStairsInterleaved\stairDefinitions.xlsx -> build\bdist.win32\egg\psychopy\demos\builder\psychophysicsStairsInterleaved
+creating build\bdist.win32\egg\psychopy\demos\builder\ratingScales
+copying build\lib\psychopy\demos\builder\ratingScales\ratingScaleBuilder.psyexp -> build\bdist.win32\egg\psychopy\demos\builder\ratingScales
+copying build\lib\psychopy\demos\builder\README.txt -> build\bdist.win32\egg\psychopy\demos\builder
+creating build\bdist.win32\egg\psychopy\demos\builder\sternberg
+copying build\lib\psychopy\demos\builder\sternberg\mainTrials.xlsx -> build\bdist.win32\egg\psychopy\demos\builder\sternberg
+copying build\lib\psychopy\demos\builder\sternberg\pracTrials.xlsx -> build\bdist.win32\egg\psychopy\demos\builder\sternberg
+copying build\lib\psychopy\demos\builder\sternberg\README.txt -> build\bdist.win32\egg\psychopy\demos\builder\sternberg
+copying build\lib\psychopy\demos\builder\sternberg\sternberg.psyexp -> build\bdist.win32\egg\psychopy\demos\builder\sternberg
+creating build\bdist.win32\egg\psychopy\demos\builder\stroop
+copying build\lib\psychopy\demos\builder\stroop\README.txt -> build\bdist.win32\egg\psychopy\demos\builder\stroop
+copying build\lib\psychopy\demos\builder\stroop\stroop.psyexp -> build\bdist.win32\egg\psychopy\demos\builder\stroop
+copying build\lib\psychopy\demos\builder\stroop\trialTypes.xlsx -> build\bdist.win32\egg\psychopy\demos\builder\stroop
+creating build\bdist.win32\egg\psychopy\demos\builder\stroopExtended
+copying build\lib\psychopy\demos\builder\stroopExtended\README.txt -> build\bdist.win32\egg\psychopy\demos\builder\stroopExtended
+copying build\lib\psychopy\demos\builder\stroopExtended\stroop.psyexp -> build\bdist.win32\egg\psychopy\demos\builder\stroopExtended
+copying build\lib\psychopy\demos\builder\stroopExtended\stroopReverse.psyexp -> build\bdist.win32\egg\psychopy\demos\builder\stroopExtended
+copying build\lib\psychopy\demos\builder\stroopExtended\trialTypes.xlsx -> build\bdist.win32\egg\psychopy\demos\builder\stroopExtended
+copying build\lib\psychopy\demos\builder\stroopExtended\trialTypesReverse.xlsx -> build\bdist.win32\egg\psychopy\demos\builder\stroopExtended
+creating build\bdist.win32\egg\psychopy\demos\builder\voiceCapture
+copying build\lib\psychopy\demos\builder\voiceCapture\voiceCapture.psyexp -> build\bdist.win32\egg\psychopy\demos\builder\voiceCapture
+copying build\lib\psychopy\demos\builder\__init__.py -> build\bdist.win32\egg\psychopy\demos\builder
+creating build\bdist.win32\egg\psychopy\demos\coder
+creating build\bdist.win32\egg\psychopy\demos\coder\basic
+copying build\lib\psychopy\demos\coder\basic\hello_world.py -> build\bdist.win32\egg\psychopy\demos\coder\basic
+creating build\bdist.win32\egg\psychopy\demos\coder\experiment control
+copying build\lib\psychopy\demos\coder\experiment control\autoDraw_autoLog.py -> build\bdist.win32\egg\psychopy\demos\coder\experiment control
+copying build\lib\psychopy\demos\coder\experiment control\experimentHandler.py -> build\bdist.win32\egg\psychopy\demos\coder\experiment control
+copying build\lib\psychopy\demos\coder\experiment control\fMRI_launchScan.py -> build\bdist.win32\egg\psychopy\demos\coder\experiment control
+copying build\lib\psychopy\demos\coder\experiment control\gammaMotionAnalysis.py -> build\bdist.win32\egg\psychopy\demos\coder\experiment control
+copying build\lib\psychopy\demos\coder\experiment control\gammaMotionNull.py -> build\bdist.win32\egg\psychopy\demos\coder\experiment control
+copying build\lib\psychopy\demos\coder\experiment control\JND_staircase_analysis.py -> build\bdist.win32\egg\psychopy\demos\coder\experiment control
+copying build\lib\psychopy\demos\coder\experiment control\JND_staircase_exp.py -> build\bdist.win32\egg\psychopy\demos\coder\experiment control
+copying build\lib\psychopy\demos\coder\experiment control\logFiles.py -> build\bdist.win32\egg\psychopy\demos\coder\experiment control
+copying build\lib\psychopy\demos\coder\experiment control\runtimeInfo.py -> build\bdist.win32\egg\psychopy\demos\coder\experiment control
+copying build\lib\psychopy\demos\coder\experiment control\TrialHandler.py -> build\bdist.win32\egg\psychopy\demos\coder\experiment control
+copying build\lib\psychopy\demos\coder\experiment control\__init__.py -> build\bdist.win32\egg\psychopy\demos\coder\experiment control
+creating build\bdist.win32\egg\psychopy\demos\coder\hardware
+copying build\lib\psychopy\demos\coder\hardware\cedrusRB730.py -> build\bdist.win32\egg\psychopy\demos\coder\hardware
+copying build\lib\psychopy\demos\coder\hardware\CRS_BitsBox.py -> build\bdist.win32\egg\psychopy\demos\coder\hardware
+copying build\lib\psychopy\demos\coder\hardware\CRS_BitsPlusPlus.py -> build\bdist.win32\egg\psychopy\demos\coder\hardware
+copying build\lib\psychopy\demos\coder\hardware\egi_netstation.py -> build\bdist.win32\egg\psychopy\demos\coder\hardware
+copying build\lib\psychopy\demos\coder\hardware\ioLab_bbox.py -> build\bdist.win32\egg\psychopy\demos\coder\hardware
+copying build\lib\psychopy\demos\coder\hardware\labjack_u3.py -> build\bdist.win32\egg\psychopy\demos\coder\hardware
+copying build\lib\psychopy\demos\coder\hardware\parallelPortOutput.py -> build\bdist.win32\egg\psychopy\demos\coder\hardware
+copying build\lib\psychopy\demos\coder\hardware\testSoundLatency.py -> build\bdist.win32\egg\psychopy\demos\coder\hardware
+copying build\lib\psychopy\demos\coder\hardware\__init__.py -> build\bdist.win32\egg\psychopy\demos\coder\hardware
+creating build\bdist.win32\egg\psychopy\demos\coder\input
+copying build\lib\psychopy\demos\coder\input\customMouse.py -> build\bdist.win32\egg\psychopy\demos\coder\input
+copying build\lib\psychopy\demos\coder\input\GUI.py -> build\bdist.win32\egg\psychopy\demos\coder\input
+copying build\lib\psychopy\demos\coder\input\joystick_universal.py -> build\bdist.win32\egg\psychopy\demos\coder\input
+copying build\lib\psychopy\demos\coder\input\latencyFromTone.py -> build\bdist.win32\egg\psychopy\demos\coder\input
+copying build\lib\psychopy\demos\coder\input\mic.png -> build\bdist.win32\egg\psychopy\demos\coder\input
+copying build\lib\psychopy\demos\coder\input\mouse.py -> build\bdist.win32\egg\psychopy\demos\coder\input
+copying build\lib\psychopy\demos\coder\input\speech_recognition.py -> build\bdist.win32\egg\psychopy\demos\coder\input
+copying build\lib\psychopy\demos\coder\input\what_key.py -> build\bdist.win32\egg\psychopy\demos\coder\input
+copying build\lib\psychopy\demos\coder\input\__init__.py -> build\bdist.win32\egg\psychopy\demos\coder\input
+creating build\bdist.win32\egg\psychopy\demos\coder\iohub
+creating build\bdist.win32\egg\psychopy\demos\coder\iohub\analoginput
+copying build\lib\psychopy\demos\coder\iohub\analoginput\experiment_config.yaml -> build\bdist.win32\egg\psychopy\demos\coder\iohub\analoginput
+copying build\lib\psychopy\demos\coder\iohub\analoginput\iohub_config.yaml -> build\bdist.win32\egg\psychopy\demos\coder\iohub\analoginput
+copying build\lib\psychopy\demos\coder\iohub\analoginput\run.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\analoginput
+creating build\bdist.win32\egg\psychopy\demos\coder\iohub\elotouchscreen
+copying build\lib\psychopy\demos\coder\iohub\elotouchscreen\experiment_config.yaml -> build\bdist.win32\egg\psychopy\demos\coder\iohub\elotouchscreen
+copying build\lib\psychopy\demos\coder\iohub\elotouchscreen\iohub_config.yaml -> build\bdist.win32\egg\psychopy\demos\coder\iohub\elotouchscreen
+copying build\lib\psychopy\demos\coder\iohub\elotouchscreen\run.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\elotouchscreen
+creating build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking
+creating build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\gcCursor
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\gcCursor\experiment_config.yaml -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\gcCursor
+creating build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\gcCursor\images
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\gcCursor\images\canal.jpg -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\gcCursor\images
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\gcCursor\images\fall.jpg -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\gcCursor\images
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\gcCursor\images\lake.jpg -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\gcCursor\images
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\gcCursor\images\party.jpg -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\gcCursor\images
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\gcCursor\images\swimming.jpg -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\gcCursor\images
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\gcCursor\iohub_config.yaml -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\gcCursor
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\gcCursor\run.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\gcCursor
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\gcCursor\trial_conditions.xlsx -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\gcCursor
+creating build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\selectTracker\experiment_config.yaml -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker
+creating build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker\eyetracker_configs
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\selectTracker\eyetracker_configs\eyegaze_config.yaml -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker\eyetracker_configs
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\selectTracker\eyetracker_configs\eyelink_config.yaml -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker\eyetracker_configs
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\selectTracker\eyetracker_configs\iviewx_config.yaml -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker\eyetracker_configs
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\selectTracker\eyetracker_configs\tobii_config.yaml -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker\eyetracker_configs
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\selectTracker\eyetracker_configs\tobii_eyex_config.yaml -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker\eyetracker_configs
+creating build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker\images
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\selectTracker\images\canal.jpg -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker\images
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\selectTracker\images\fall.jpg -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker\images
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\selectTracker\images\lake.jpg -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker\images
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\selectTracker\images\party.jpg -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker\images
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\selectTracker\images\swimming.jpg -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker\images
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\selectTracker\iohub_config.yaml.part -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\selectTracker\run.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\selectTracker\trial_conditions.xlsx -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker
+copying build\lib\psychopy\demos\coder\iohub\eyetracking\validation.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking
+creating build\bdist.win32\egg\psychopy\demos\coder\iohub\iodatastore
+copying build\lib\psychopy\demos\coder\iohub\iodatastore\event2txt.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\iodatastore
+creating build\bdist.win32\egg\psychopy\demos\coder\iohub\ioHubDelayTest
+copying build\lib\psychopy\demos\coder\iohub\ioHubDelayTest\experiment_config.yaml -> build\bdist.win32\egg\psychopy\demos\coder\iohub\ioHubDelayTest
+copying build\lib\psychopy\demos\coder\iohub\ioHubDelayTest\iohub_config.yaml -> build\bdist.win32\egg\psychopy\demos\coder\iohub\ioHubDelayTest
+copying build\lib\psychopy\demos\coder\iohub\ioHubDelayTest\run.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\ioHubDelayTest
+creating build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync
+copying build\lib\psychopy\demos\coder\iohub\iosync\AnalogInputDeviceDelayTest.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync
+copying build\lib\psychopy\demos\coder\iohub\iosync\analogInputTest.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync
+copying build\lib\psychopy\demos\coder\iohub\iosync\digitalInTest.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync
+copying build\lib\psychopy\demos\coder\iohub\iosync\digitalOutTest.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync
+copying build\lib\psychopy\demos\coder\iohub\iosync\eightbuttonbox.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync
+copying build\lib\psychopy\demos\coder\iohub\iosync\iosyncTime.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync
+copying build\lib\psychopy\demos\coder\iohub\iosync\msg_txrx_timing.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync
+copying build\lib\psychopy\demos\coder\iohub\iosync\msg_txrx_timing_exp_e2e.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync
+copying build\lib\psychopy\demos\coder\iohub\iosync\off.png -> build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync
+copying build\lib\psychopy\demos\coder\iohub\iosync\on.png -> build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync
+copying build\lib\psychopy\demos\coder\iohub\iosync\retracesynctiming.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync
+copying build\lib\psychopy\demos\coder\iohub\iosync\statusPanel.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync
+copying build\lib\psychopy\demos\coder\iohub\iosync\_statusPanelStim.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync
+copying build\lib\psychopy\demos\coder\iohub\keyboard.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub
+copying build\lib\psychopy\demos\coder\iohub\keyboardreactiontime.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub
+copying build\lib\psychopy\demos\coder\iohub\launchHub.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub
+copying build\lib\psychopy\demos\coder\iohub\mouse.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub
+creating build\bdist.win32\egg\psychopy\demos\coder\iohub\remoteevents
+copying build\lib\psychopy\demos\coder\iohub\remoteevents\experiment_config.yaml -> build\bdist.win32\egg\psychopy\demos\coder\iohub\remoteevents
+copying build\lib\psychopy\demos\coder\iohub\remoteevents\iohub_config.yaml -> build\bdist.win32\egg\psychopy\demos\coder\iohub\remoteevents
+copying build\lib\psychopy\demos\coder\iohub\remoteevents\run.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\remoteevents
+creating build\bdist.win32\egg\psychopy\demos\coder\iohub\serial
+copying build\lib\psychopy\demos\coder\iohub\serial\customparser.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\serial
+copying build\lib\psychopy\demos\coder\iohub\serial\minimu9dof.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\serial
+copying build\lib\psychopy\demos\coder\iohub\serial\parseserial.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\serial
+copying build\lib\psychopy\demos\coder\iohub\serial\pstbox.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub\serial
+copying build\lib\psychopy\demos\coder\iohub\xinputgamepad.py -> build\bdist.win32\egg\psychopy\demos\coder\iohub
+creating build\bdist.win32\egg\psychopy\demos\coder\misc
+copying build\lib\psychopy\demos\coder\misc\captureFrames.py -> build\bdist.win32\egg\psychopy\demos\coder\misc
+copying build\lib\psychopy\demos\coder\misc\encrypt_data.py -> build\bdist.win32\egg\psychopy\demos\coder\misc
+copying build\lib\psychopy\demos\coder\misc\http_upload.py -> build\bdist.win32\egg\psychopy\demos\coder\misc
+creating build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\aperture.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\beach.jpg -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\bufferImageStim.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\Campaign.ttf -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\clockface.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\colors.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\counterphase.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\customTextures.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\dots.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\dot_gabors.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\elementArrays.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\embeddedOpenGL.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\face.jpg -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\face_jpg.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\gabor.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\imagesAndPatches.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\jwpIntro.mov -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\maskReveal.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\MoviePause.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\MovieStim.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\MovieStim2.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\MovieStim2TimingTest.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\plaid.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\ratingScale.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\rotatingFlashingWedge.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\screensAndWindows.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\shapeContains.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\shapes.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\soundStimuli.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\starField.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+creating build\bdist.win32\egg\psychopy\demos\coder\stimuli\textBoxStim
+copying build\lib\psychopy\demos\coder\stimuli\textBoxStim\textbox_glyph_placement.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli\textBoxStim
+copying build\lib\psychopy\demos\coder\stimuli\textBoxStim\textbox_simple.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli\textBoxStim
+copying build\lib\psychopy\demos\coder\stimuli\textBoxStim\textstim_vs_textbox.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli\textBoxStim
+copying build\lib\psychopy\demos\coder\stimuli\textStimuli.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\textStimuli_pygame.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\variousVisualStims.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\visual_noise.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\stimuli\__init__.py -> build\bdist.win32\egg\psychopy\demos\coder\stimuli
+copying build\lib\psychopy\demos\coder\sysInfo.py -> build\bdist.win32\egg\psychopy\demos\coder
+creating build\bdist.win32\egg\psychopy\demos\coder\timing
+copying build\lib\psychopy\demos\coder\timing\callOnFlip.py -> build\bdist.win32\egg\psychopy\demos\coder\timing
+copying build\lib\psychopy\demos\coder\timing\clocksAndTimers.py -> build\bdist.win32\egg\psychopy\demos\coder\timing
+copying build\lib\psychopy\demos\coder\timing\timeByFrames.py -> build\bdist.win32\egg\psychopy\demos\coder\timing
+copying build\lib\psychopy\demos\coder\timing\timeByFramesEx.py -> build\bdist.win32\egg\psychopy\demos\coder\timing
+copying build\lib\psychopy\demos\coder\timing\__init__.py -> build\bdist.win32\egg\psychopy\demos\coder\timing
+copying build\lib\psychopy\demos\coder\__init__.py -> build\bdist.win32\egg\psychopy\demos\coder
+copying build\lib\psychopy\demos\__init__.py -> build\bdist.win32\egg\psychopy\demos
+copying build\lib\psychopy\errors.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\event.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\filters.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\gamma.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\gui.py -> build\bdist.win32\egg\psychopy
+creating build\bdist.win32\egg\psychopy\hardware
+creating build\bdist.win32\egg\psychopy\hardware\bbtk
+copying build\lib\psychopy\hardware\bbtk\__init__.py -> build\bdist.win32\egg\psychopy\hardware\bbtk
+copying build\lib\psychopy\hardware\cedrus.py -> build\bdist.win32\egg\psychopy\hardware
+creating build\bdist.win32\egg\psychopy\hardware\crs
+copying build\lib\psychopy\hardware\crs\bits.py -> build\bdist.win32\egg\psychopy\hardware\crs
+copying build\lib\psychopy\hardware\crs\colorcal.py -> build\bdist.win32\egg\psychopy\hardware\crs
+copying build\lib\psychopy\hardware\crs\optical.py -> build\bdist.win32\egg\psychopy\hardware\crs
+copying build\lib\psychopy\hardware\crs\shaders.py -> build\bdist.win32\egg\psychopy\hardware\crs
+copying build\lib\psychopy\hardware\crs\__init__.py -> build\bdist.win32\egg\psychopy\hardware\crs
+copying build\lib\psychopy\hardware\egi.py -> build\bdist.win32\egg\psychopy\hardware
+copying build\lib\psychopy\hardware\emulator.py -> build\bdist.win32\egg\psychopy\hardware
+copying build\lib\psychopy\hardware\forp.py -> build\bdist.win32\egg\psychopy\hardware
+copying build\lib\psychopy\hardware\iolab.py -> build\bdist.win32\egg\psychopy\hardware
+creating build\bdist.win32\egg\psychopy\hardware\joystick
+creating build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input
+creating build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\app
+copying build\lib\psychopy\hardware\joystick\pyglet_input\app\base.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\app
+copying build\lib\psychopy\hardware\joystick\pyglet_input\app\carbon.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\app
+copying build\lib\psychopy\hardware\joystick\pyglet_input\app\cocoa.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\app
+copying build\lib\psychopy\hardware\joystick\pyglet_input\app\win32.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\app
+copying build\lib\psychopy\hardware\joystick\pyglet_input\app\xlib.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\app
+copying build\lib\psychopy\hardware\joystick\pyglet_input\app\__init__.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\app
+copying build\lib\psychopy\hardware\joystick\pyglet_input\base.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input
+copying build\lib\psychopy\hardware\joystick\pyglet_input\carbon_hid.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input
+copying build\lib\psychopy\hardware\joystick\pyglet_input\carbon_tablet.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input
+copying build\lib\psychopy\hardware\joystick\pyglet_input\darwin_hid.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input
+copying build\lib\psychopy\hardware\joystick\pyglet_input\dinput.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input
+copying build\lib\psychopy\hardware\joystick\pyglet_input\directinput.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input
+copying build\lib\psychopy\hardware\joystick\pyglet_input\evdev.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input
+copying build\lib\psychopy\hardware\joystick\pyglet_input\evdev_constants.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input
+copying build\lib\psychopy\hardware\joystick\pyglet_input\wintab.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input
+copying build\lib\psychopy\hardware\joystick\pyglet_input\x11_xinput.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input
+copying build\lib\psychopy\hardware\joystick\pyglet_input\x11_xinput_tablet.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input
+copying build\lib\psychopy\hardware\joystick\pyglet_input\__init__.py -> build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input
+copying build\lib\psychopy\hardware\joystick\__init__.py -> build\bdist.win32\egg\psychopy\hardware\joystick
+copying build\lib\psychopy\hardware\labjacks.py -> build\bdist.win32\egg\psychopy\hardware
+copying build\lib\psychopy\hardware\minolta.py -> build\bdist.win32\egg\psychopy\hardware
+copying build\lib\psychopy\hardware\pr.py -> build\bdist.win32\egg\psychopy\hardware
+copying build\lib\psychopy\hardware\serialdevice.py -> build\bdist.win32\egg\psychopy\hardware
+copying build\lib\psychopy\hardware\__init__.py -> build\bdist.win32\egg\psychopy\hardware
+copying build\lib\psychopy\info.py -> build\bdist.win32\egg\psychopy
+creating build\bdist.win32\egg\psychopy\iohub
+creating build\bdist.win32\egg\psychopy\iohub\client
+copying build\lib\psychopy\iohub\client\keyboard.py -> build\bdist.win32\egg\psychopy\iohub\client
+copying build\lib\psychopy\iohub\client\__init__.py -> build\bdist.win32\egg\psychopy\iohub\client
+copying build\lib\psychopy\iohub\constants.py -> build\bdist.win32\egg\psychopy\iohub
+creating build\bdist.win32\egg\psychopy\iohub\datastore
+copying build\lib\psychopy\iohub\datastore\default_datastore.yaml -> build\bdist.win32\egg\psychopy\iohub\datastore
+creating build\bdist.win32\egg\psychopy\iohub\datastore\pandas
+copying build\lib\psychopy\iohub\datastore\pandas\interestarea.py -> build\bdist.win32\egg\psychopy\iohub\datastore\pandas
+copying build\lib\psychopy\iohub\datastore\pandas\interestperiod.py -> build\bdist.win32\egg\psychopy\iohub\datastore\pandas
+copying build\lib\psychopy\iohub\datastore\pandas\__init__.py -> build\bdist.win32\egg\psychopy\iohub\datastore\pandas
+copying build\lib\psychopy\iohub\datastore\util.py -> build\bdist.win32\egg\psychopy\iohub\datastore
+copying build\lib\psychopy\iohub\datastore\__init__.py -> build\bdist.win32\egg\psychopy\iohub\datastore
+copying build\lib\psychopy\iohub\default_config.yaml -> build\bdist.win32\egg\psychopy\iohub
+creating build\bdist.win32\egg\psychopy\iohub\devices
+creating build\bdist.win32\egg\psychopy\iohub\devices\daq
+creating build\bdist.win32\egg\psychopy\iohub\devices\daq\hw
+creating build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\default_analoginput.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack
+creating build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32
+creating build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26
+creating build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack\LabJackPython.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack\Modbus.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack\skymote.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack\u12.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack\u3.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack\u6.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack\ue9.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python26\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26
+creating build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27
+creating build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack\LabJackPython.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack\Modbus.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack\skymote.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack\u12.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack\u3.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack\u6.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack\ue9.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\python27\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\win32\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32
+copying build\lib\psychopy\iohub\devices\daq\hw\labjack\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack
+creating build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\mc
+copying build\lib\psychopy\iohub\devices\daq\hw\mc\constants.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\mc
+copying build\lib\psychopy\iohub\devices\daq\hw\mc\default_analoginput.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\mc
+copying build\lib\psychopy\iohub\devices\daq\hw\mc\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\mc
+copying build\lib\psychopy\iohub\devices\daq\hw\mc\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\mc
+copying build\lib\psychopy\iohub\devices\daq\hw\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq\hw
+copying build\lib\psychopy\iohub\devices\daq\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\daq
+copying build\lib\psychopy\iohub\devices\default_device.yaml -> build\bdist.win32\egg\psychopy\iohub\devices
+copying build\lib\psychopy\iohub\devices\deviceConfigValidation.py -> build\bdist.win32\egg\psychopy\iohub\devices
+creating build\bdist.win32\egg\psychopy\iohub\devices\display
+copying build\lib\psychopy\iohub\devices\display\default_display.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\display
+copying build\lib\psychopy\iohub\devices\display\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\display
+copying build\lib\psychopy\iohub\devices\display\unit_conversions.py -> build\bdist.win32\egg\psychopy\iohub\devices\display
+copying build\lib\psychopy\iohub\devices\display\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\display
+copying build\lib\psychopy\iohub\devices\eventfilters.py -> build\bdist.win32\egg\psychopy\iohub\devices
+creating build\bdist.win32\egg\psychopy\iohub\devices\experiment
+copying build\lib\psychopy\iohub\devices\experiment\default_experiment.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\experiment
+copying build\lib\psychopy\iohub\devices\experiment\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\experiment
+copying build\lib\psychopy\iohub\devices\experiment\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\experiment
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker
+copying build\lib\psychopy\iohub\devices\eyetracker\checkConsistancy.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker
+copying build\lib\psychopy\iohub\devices\eyetracker\default_eyetracker.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker
+copying build\lib\psychopy\iohub\devices\eyetracker\eye_events.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\filters
+copying build\lib\psychopy\iohub\devices\eyetracker\filters\parser.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\filters
+copying build\lib\psychopy\iohub\devices\eyetracker\filters\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\filters
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\gazepoint
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\gazepoint\gp3
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\gazepoint\gp3\default_eyetracker.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\gazepoint\gp3
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\gazepoint\gp3\eyetracker.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\gazepoint\gp3
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\gazepoint\gp3\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\gazepoint\gp3
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\gazepoint\gp3\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\gazepoint\gp3
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\gazepoint\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\gazepoint
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\lc_technologies
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze\default_eyetracker.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze\eyetracker.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze\pegTest.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze\pEyeGaze.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\lc_technologies\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\lc_technologies
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\smi
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\smi\iviewx
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\smi\iviewx\default_eyetracker.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\smi\iviewx
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\smi\iviewx\eyetracker.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\smi\iviewx
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\smi\iviewx\pyViewX.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\smi\iviewx
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\smi\iviewx\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\smi\iviewx
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\smi\iviewx\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\smi\iviewx
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\smi\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\smi
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\default_eyetracker.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\eyeLinkCoreGraphicsIOHubPsychopy.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\eyetracker.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink\eyelink_core.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink\eyelink_core_graphics.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink\libogg-0.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink\libvorbis-0.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink\libvorbisfile-3.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink\msvcr71.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink\pylink.pyd -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink\SDL.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink\sdl_gfx.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink\SDL_mixer.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink\SDL_ttf.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink\smpeg.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink\eyelink_core.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink\eyelink_core_graphics.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink\libogg-0.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink\libvorbis-0.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink\libvorbisfile-3.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink\msvcr71.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink\pylink.pyd -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink\SDL.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink\sdl_gfx.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink\SDL_mixer.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink\SDL_ttf.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink\smpeg.dll -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\pylink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\sr_research\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\theeyetribe
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\theeyetribe\default_eyetracker.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\theeyetribe
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\theeyetribe\eyetracker.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\theeyetribe
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\theeyetribe\pyTribe.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\theeyetribe
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\theeyetribe\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\theeyetribe
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\theeyetribe\TODO.txt -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\theeyetribe
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\theeyetribe\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\theeyetribe
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\tobii\default_eyetracker.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\tobii\eyetracker.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\tobii\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\tobii\tobiiCalibrationGraphics.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\tobii\tobiiclasses.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\tobii\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii
+creating build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii_eyex
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\tobii_eyex\default_eyetracker.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii_eyex
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\tobii_eyex\eyetracker.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii_eyex
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\tobii_eyex\interface.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii_eyex
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\tobii_eyex\struct.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii_eyex
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\tobii_eyex\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii_eyex
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\tobii_eyex\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii_eyex
+copying build\lib\psychopy\iohub\devices\eyetracker\hw\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw
+copying build\lib\psychopy\iohub\devices\eyetracker\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker
+copying build\lib\psychopy\iohub\devices\eyetracker\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\eyetracker
+creating build\bdist.win32\egg\psychopy\iohub\devices\keyboard
+copying build\lib\psychopy\iohub\devices\keyboard\darwin.py -> build\bdist.win32\egg\psychopy\iohub\devices\keyboard
+copying build\lib\psychopy\iohub\devices\keyboard\darwinkey.py -> build\bdist.win32\egg\psychopy\iohub\devices\keyboard
+copying build\lib\psychopy\iohub\devices\keyboard\default_keyboard.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\keyboard
+copying build\lib\psychopy\iohub\devices\keyboard\linux2.py -> build\bdist.win32\egg\psychopy\iohub\devices\keyboard
+copying build\lib\psychopy\iohub\devices\keyboard\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\keyboard
+copying build\lib\psychopy\iohub\devices\keyboard\win32.py -> build\bdist.win32\egg\psychopy\iohub\devices\keyboard
+copying build\lib\psychopy\iohub\devices\keyboard\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\keyboard
+creating build\bdist.win32\egg\psychopy\iohub\devices\mcu
+creating build\bdist.win32\egg\psychopy\iohub\devices\mcu\iosync
+copying build\lib\psychopy\iohub\devices\mcu\iosync\default_mcu.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\mcu\iosync
+copying build\lib\psychopy\iohub\devices\mcu\iosync\pysync.py -> build\bdist.win32\egg\psychopy\iohub\devices\mcu\iosync
+copying build\lib\psychopy\iohub\devices\mcu\iosync\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\mcu\iosync
+copying build\lib\psychopy\iohub\devices\mcu\iosync\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\mcu\iosync
+copying build\lib\psychopy\iohub\devices\mcu\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\mcu
+creating build\bdist.win32\egg\psychopy\iohub\devices\mouse
+copying build\lib\psychopy\iohub\devices\mouse\darwin.py -> build\bdist.win32\egg\psychopy\iohub\devices\mouse
+copying build\lib\psychopy\iohub\devices\mouse\default_mouse.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\mouse
+copying build\lib\psychopy\iohub\devices\mouse\linux2.py -> build\bdist.win32\egg\psychopy\iohub\devices\mouse
+copying build\lib\psychopy\iohub\devices\mouse\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\mouse
+copying build\lib\psychopy\iohub\devices\mouse\win32.py -> build\bdist.win32\egg\psychopy\iohub\devices\mouse
+copying build\lib\psychopy\iohub\devices\mouse\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\mouse
+creating build\bdist.win32\egg\psychopy\iohub\devices\network
+copying build\lib\psychopy\iohub\devices\network\default_eventpublisher.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\network
+copying build\lib\psychopy\iohub\devices\network\default_remoteeventsubscriber.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\network
+copying build\lib\psychopy\iohub\devices\network\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\network
+copying build\lib\psychopy\iohub\devices\network\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\network
+copying build\lib\psychopy\iohub\devices\pyXHook.py -> build\bdist.win32\egg\psychopy\iohub\devices
+creating build\bdist.win32\egg\psychopy\iohub\devices\serial
+copying build\lib\psychopy\iohub\devices\serial\default_pstbox.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\serial
+copying build\lib\psychopy\iohub\devices\serial\default_serial.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\serial
+copying build\lib\psychopy\iohub\devices\serial\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\serial
+copying build\lib\psychopy\iohub\devices\serial\supported_config_settings_pstbox.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\serial
+copying build\lib\psychopy\iohub\devices\serial\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\serial
+copying build\lib\psychopy\iohub\devices\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices
+creating build\bdist.win32\egg\psychopy\iohub\devices\touch
+creating build\bdist.win32\egg\psychopy\iohub\devices\touch\hw
+creating build\bdist.win32\egg\psychopy\iohub\devices\touch\hw\elo
+copying build\lib\psychopy\iohub\devices\touch\hw\elo\default_touch.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\touch\hw\elo
+copying build\lib\psychopy\iohub\devices\touch\hw\elo\elo_serial.py -> build\bdist.win32\egg\psychopy\iohub\devices\touch\hw\elo
+copying build\lib\psychopy\iohub\devices\touch\hw\elo\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\touch\hw\elo
+copying build\lib\psychopy\iohub\devices\touch\hw\elo\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\touch\hw\elo
+copying build\lib\psychopy\iohub\devices\touch\hw\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\touch\hw
+copying build\lib\psychopy\iohub\devices\touch\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\touch
+creating build\bdist.win32\egg\psychopy\iohub\devices\xinput
+copying build\lib\psychopy\iohub\devices\xinput\default_gamepad.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\xinput
+copying build\lib\psychopy\iohub\devices\xinput\supported_config_settings.yaml -> build\bdist.win32\egg\psychopy\iohub\devices\xinput
+copying build\lib\psychopy\iohub\devices\xinput\xinput.py -> build\bdist.win32\egg\psychopy\iohub\devices\xinput
+copying build\lib\psychopy\iohub\devices\xinput\xinput_h.py -> build\bdist.win32\egg\psychopy\iohub\devices\xinput
+copying build\lib\psychopy\iohub\devices\xinput\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices\xinput
+copying build\lib\psychopy\iohub\devices\xlib.py -> build\bdist.win32\egg\psychopy\iohub\devices
+copying build\lib\psychopy\iohub\devices\__init__.py -> build\bdist.win32\egg\psychopy\iohub\devices
+copying build\lib\psychopy\iohub\launchHubProcess.py -> build\bdist.win32\egg\psychopy\iohub
+copying build\lib\psychopy\iohub\LICENSE.txt -> build\bdist.win32\egg\psychopy\iohub
+copying build\lib\psychopy\iohub\net.py -> build\bdist.win32\egg\psychopy\iohub
+copying build\lib\psychopy\iohub\ordereddict.py -> build\bdist.win32\egg\psychopy\iohub
+copying build\lib\psychopy\iohub\ordereddict_LICENSE.txt -> build\bdist.win32\egg\psychopy\iohub
+copying build\lib\psychopy\iohub\server.py -> build\bdist.win32\egg\psychopy\iohub
+creating build\bdist.win32\egg\psychopy\iohub\util
+copying build\lib\psychopy\iohub\util\dialogs.py -> build\bdist.win32\egg\psychopy\iohub\util
+copying build\lib\psychopy\iohub\util\exception_tools.py -> build\bdist.win32\egg\psychopy\iohub\util
+copying build\lib\psychopy\iohub\util\fix_encoding.py -> build\bdist.win32\egg\psychopy\iohub\util
+copying build\lib\psychopy\iohub\util\images.py -> build\bdist.win32\egg\psychopy\iohub\util
+copying build\lib\psychopy\iohub\util\targetpositionsequence.py -> build\bdist.win32\egg\psychopy\iohub\util
+copying build\lib\psychopy\iohub\util\variableProvider.py -> build\bdist.win32\egg\psychopy\iohub\util
+copying build\lib\psychopy\iohub\util\visualangle.py -> build\bdist.win32\egg\psychopy\iohub\util
+copying build\lib\psychopy\iohub\util\visualUtil.py -> build\bdist.win32\egg\psychopy\iohub\util
+copying build\lib\psychopy\iohub\util\__init__.py -> build\bdist.win32\egg\psychopy\iohub\util
+copying build\lib\psychopy\iohub\__init__.py -> build\bdist.win32\egg\psychopy\iohub
+copying build\lib\psychopy\LICENSE.txt -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\LICENSES.txt -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\log.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\logging.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\makeMovies.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\microphone.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\misc.py -> build\bdist.win32\egg\psychopy
+creating build\bdist.win32\egg\psychopy\monitors
+copying build\lib\psychopy\monitors\calibData.py -> build\bdist.win32\egg\psychopy\monitors
+copying build\lib\psychopy\monitors\calibTools.py -> build\bdist.win32\egg\psychopy\monitors
+copying build\lib\psychopy\monitors\getLumSeries.py -> build\bdist.win32\egg\psychopy\monitors
+copying build\lib\psychopy\monitors\MonitorCenter.py -> build\bdist.win32\egg\psychopy\monitors
+copying build\lib\psychopy\monitors\psychopy.ico -> build\bdist.win32\egg\psychopy\monitors
+copying build\lib\psychopy\monitors\__init__.py -> build\bdist.win32\egg\psychopy\monitors
+creating build\bdist.win32\egg\psychopy\parallel
+copying build\lib\psychopy\parallel\_dlportio.py -> build\bdist.win32\egg\psychopy\parallel
+copying build\lib\psychopy\parallel\_inpout32.py -> build\bdist.win32\egg\psychopy\parallel
+copying build\lib\psychopy\parallel\_linux.py -> build\bdist.win32\egg\psychopy\parallel
+copying build\lib\psychopy\parallel\__init__.py -> build\bdist.win32\egg\psychopy\parallel
+creating build\bdist.win32\egg\psychopy\platform_specific
+copying build\lib\psychopy\platform_specific\darwin.py -> build\bdist.win32\egg\psychopy\platform_specific
+copying build\lib\psychopy\platform_specific\linux.py -> build\bdist.win32\egg\psychopy\platform_specific
+copying build\lib\psychopy\platform_specific\posix.py -> build\bdist.win32\egg\psychopy\platform_specific
+copying build\lib\psychopy\platform_specific\win32.py -> build\bdist.win32\egg\psychopy\platform_specific
+copying build\lib\psychopy\platform_specific\__init__.py -> build\bdist.win32\egg\psychopy\platform_specific
+creating build\bdist.win32\egg\psychopy\preferences
+copying build\lib\psychopy\preferences\baseNoArch.spec -> build\bdist.win32\egg\psychopy\preferences
+copying build\lib\psychopy\preferences\configobj.py -> build\bdist.win32\egg\psychopy\preferences
+copying build\lib\psychopy\preferences\Darwin.spec -> build\bdist.win32\egg\psychopy\preferences
+copying build\lib\psychopy\preferences\FreeBSD.spec -> build\bdist.win32\egg\psychopy\preferences
+copying build\lib\psychopy\preferences\generateHints.py -> build\bdist.win32\egg\psychopy\preferences
+copying build\lib\psychopy\preferences\generateSpec.py -> build\bdist.win32\egg\psychopy\preferences
+copying build\lib\psychopy\preferences\hints.py -> build\bdist.win32\egg\psychopy\preferences
+copying build\lib\psychopy\preferences\Linux.spec -> build\bdist.win32\egg\psychopy\preferences
+copying build\lib\psychopy\preferences\preferences.py -> build\bdist.win32\egg\psychopy\preferences
+copying build\lib\psychopy\preferences\validate.py -> build\bdist.win32\egg\psychopy\preferences
+copying build\lib\psychopy\preferences\Windows.spec -> build\bdist.win32\egg\psychopy\preferences
+copying build\lib\psychopy\preferences\__init__.py -> build\bdist.win32\egg\psychopy\preferences
+copying build\lib\psychopy\qtgui.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\README.txt -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\sound.py -> build\bdist.win32\egg\psychopy
+creating build\bdist.win32\egg\psychopy\tests
+creating build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\aperture1_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\aperture1_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\aperture1_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\aperture1_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\aperture1_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\aperture1_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\aperture1_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\bufferimg_gabor_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\bufferimg_gabor_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\bufferimg_gabor_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\bufferimg_gabor_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\bufferimg_gabor_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\bufferimg_gabor_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\bufferimg_gabor_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\bufferimg_gabor_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\bufferimg_gabor_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\dots_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\dots_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\dots_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\dots_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\dots_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\dots_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\dots_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\dots_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\dots_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\elarray1_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\elarray1_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\elarray1_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\elarray1_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\elarray1_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\elarray1_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\elarray1_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\elarray1_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\futureParams.psyexp -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor1_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor1_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor1_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor1_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor1_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor1_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor1_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor1_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor1_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor2_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor2_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor2_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor2_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor2_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor2_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor2_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor2_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\gabor2_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\ghost_stroop.psyexp -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale.jpg -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale2.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale2_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale2_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale2_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale2_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale2_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale2_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale2_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale2_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale2_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscaleLowContr_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscaleLowContr_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscaleLowContr_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscaleLowContr_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscaleLowContr_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscaleLowContr_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscaleLowContr_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscaleLowContr_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscaleLowContr_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\greyscale_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\imageAndGauss_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\imageAndGauss_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\imageAndGauss_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\imageAndGauss_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\imageAndGauss_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\imageAndGauss_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\imageAndGauss_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\imageAndGauss_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\imageAndGauss_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\movFrame1_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\movFrame1_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\movFrame1_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\movFrame1_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\movFrame1_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\movFrame1_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\movFrame1_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\movFrame1_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\movFrame1_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyImage_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyImage_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyImage_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyImage_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyImage_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyImage_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyImage_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyImage_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyImage_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyLowContr_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyLowContr_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyLowContr_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyLowContr_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyLowContr_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyLowContr_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyLowContr_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyLowContr_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\numpyLowContr_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\ratingscale1_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\ratingscale1_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\ratingscale1_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\ratingscale1_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\ratingscale1_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\ratingscale1_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\ratingscale1_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\ratingscale1_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\ratingscale1_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape1_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape1_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape1_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape1_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape1_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape1_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape1_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape1_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape1_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape2_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape2_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape2_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape2_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape2_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape2_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape2_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape2_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\shape2_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\simpleimage1_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\simpleimage1_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\simpleimage1_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\simpleimage1_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\simpleimage1_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\simpleimage1_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\simpleimage1_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\simpleimage1_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\simpleimage1_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\testimage.jpg -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\testLoopsBlocks.psyexp -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\testMovie.mp4 -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text1_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text1_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text1_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text1_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text1_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text1_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text1_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text1_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text1_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text2_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text2_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text2_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text2_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text2_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text2_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text2_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text2_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\text2_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge1_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge1_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge1_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge1_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge1_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge1_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge1_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge1_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge1_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge2_cm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge2_deg.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge2_degFlat.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge2_degFlatPos.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge2_height.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge2_norm.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge2_normNoShade.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge2_pix.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\data\wedge2_stencil.png -> build\bdist.win32\egg\psychopy\tests\data
+copying build\lib\psychopy\tests\run.py -> build\bdist.win32\egg\psychopy\tests
+copying build\lib\psychopy\tests\runPytest.py -> build\bdist.win32\egg\psychopy\tests
+creating build\bdist.win32\egg\psychopy\tests\test_all_visual
+copying build\lib\psychopy\tests\test_all_visual\test_all_stimuli.py -> build\bdist.win32\egg\psychopy\tests\test_all_visual
+copying build\lib\psychopy\tests\test_all_visual\test_contains_overlaps.py -> build\bdist.win32\egg\psychopy\tests\test_all_visual
+copying build\lib\psychopy\tests\test_all_visual\test_custommouse.py -> build\bdist.win32\egg\psychopy\tests\test_all_visual
+copying build\lib\psychopy\tests\test_all_visual\test_framepacking.py -> build\bdist.win32\egg\psychopy\tests\test_all_visual
+copying build\lib\psychopy\tests\test_all_visual\test_gamma.py -> build\bdist.win32\egg\psychopy\tests\test_all_visual
+copying build\lib\psychopy\tests\test_all_visual\test_projections.py -> build\bdist.win32\egg\psychopy\tests\test_all_visual
+copying build\lib\psychopy\tests\test_all_visual\test_projections_interactive.py -> build\bdist.win32\egg\psychopy\tests\test_all_visual
+copying build\lib\psychopy\tests\test_all_visual\test_ratingScale.py -> build\bdist.win32\egg\psychopy\tests\test_all_visual
+copying build\lib\psychopy\tests\test_all_visual\test_textbox.py -> build\bdist.win32\egg\psychopy\tests\test_all_visual
+copying build\lib\psychopy\tests\test_all_visual\__init__.py -> build\bdist.win32\egg\psychopy\tests\test_all_visual
+creating build\bdist.win32\egg\psychopy\tests\test_app
+copying build\lib\psychopy\tests\test_app\conftest.py -> build\bdist.win32\egg\psychopy\tests\test_app
+creating build\bdist.win32\egg\psychopy\tests\test_app\test_builder
+copying build\lib\psychopy\tests\test_app\test_builder\componsTemplate.txt -> build\bdist.win32\egg\psychopy\tests\test_app\test_builder
+copying build\lib\psychopy\tests\test_app\test_builder\genComponsTemplate.py -> build\bdist.win32\egg\psychopy\tests\test_app\test_builder
+copying build\lib\psychopy\tests\test_app\test_builder\known_py_diffs.txt -> build\bdist.win32\egg\psychopy\tests\test_app\test_builder
+copying build\lib\psychopy\tests\test_app\test_builder\test_components.py -> build\bdist.win32\egg\psychopy\tests\test_app\test_builder
+copying build\lib\psychopy\tests\test_app\test_builder\test_Experiment.py -> build\bdist.win32\egg\psychopy\tests\test_app\test_builder
+copying build\lib\psychopy\tests\test_app\test_builder\__init__.py -> build\bdist.win32\egg\psychopy\tests\test_app\test_builder
+copying build\lib\psychopy\tests\test_app\test_Wizard.py -> build\bdist.win32\egg\psychopy\tests\test_app
+copying build\lib\psychopy\tests\test_app\__init__.py -> build\bdist.win32\egg\psychopy\tests\test_app
+copying build\lib\psychopy\tests\test_Installation.py -> build\bdist.win32\egg\psychopy\tests
+creating build\bdist.win32\egg\psychopy\tests\test_iohub
+copying build\lib\psychopy\tests\test_iohub\testutil.py -> build\bdist.win32\egg\psychopy\tests\test_iohub
+copying build\lib\psychopy\tests\test_iohub\test_computer.py -> build\bdist.win32\egg\psychopy\tests\test_iohub
+copying build\lib\psychopy\tests\test_iohub\test_event_get_and_clear.py -> build\bdist.win32\egg\psychopy\tests\test_iohub
+copying build\lib\psychopy\tests\test_iohub\test_keyboard.py -> build\bdist.win32\egg\psychopy\tests\test_iohub
+copying build\lib\psychopy\tests\test_iohub\test_launch.py -> build\bdist.win32\egg\psychopy\tests\test_iohub
+copying build\lib\psychopy\tests\test_iohub\__init__.py -> build\bdist.win32\egg\psychopy\tests\test_iohub
+copying build\lib\psychopy\tests\todo.txt -> build\bdist.win32\egg\psychopy\tests
+copying build\lib\psychopy\tests\utils.py -> build\bdist.win32\egg\psychopy\tests
+copying build\lib\psychopy\tests\__init__.py -> build\bdist.win32\egg\psychopy\tests
+creating build\bdist.win32\egg\psychopy\tools
+copying build\lib\psychopy\tools\arraytools.py -> build\bdist.win32\egg\psychopy\tools
+copying build\lib\psychopy\tools\attributetools.py -> build\bdist.win32\egg\psychopy\tools
+copying build\lib\psychopy\tools\colorspacetools.py -> build\bdist.win32\egg\psychopy\tools
+copying build\lib\psychopy\tools\coordinatetools.py -> build\bdist.win32\egg\psychopy\tools
+copying build\lib\psychopy\tools\fileerrortools.py -> build\bdist.win32\egg\psychopy\tools
+copying build\lib\psychopy\tools\filetools.py -> build\bdist.win32\egg\psychopy\tools
+copying build\lib\psychopy\tools\imagetools.py -> build\bdist.win32\egg\psychopy\tools
+copying build\lib\psychopy\tools\monitorunittools.py -> build\bdist.win32\egg\psychopy\tools
+copying build\lib\psychopy\tools\plottools.py -> build\bdist.win32\egg\psychopy\tools
+copying build\lib\psychopy\tools\typetools.py -> build\bdist.win32\egg\psychopy\tools
+copying build\lib\psychopy\tools\unittools.py -> build\bdist.win32\egg\psychopy\tools
+copying build\lib\psychopy\tools\versionchooser.py -> build\bdist.win32\egg\psychopy\tools
+copying build\lib\psychopy\tools\__init__.py -> build\bdist.win32\egg\psychopy\tools
+creating build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\aperture.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\basevisual.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\bufferimage.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\circle.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\custommouse.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\dot.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\elementarray.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\glob_vars.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\grating.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\helpers.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\image.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\line.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\movie.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\movie2.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\patch.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\pointer.png -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\polygon.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\radial.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\ratingscale.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\rect.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\shape.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\simpleimage.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\text.py -> build\bdist.win32\egg\psychopy\visual
+creating build\bdist.win32\egg\psychopy\visual\textbox
+copying build\lib\psychopy\visual\textbox\fontmanager.py -> build\bdist.win32\egg\psychopy\visual\textbox
+creating build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf
+creating build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_encodings.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_face_flags.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_fstypes.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_glyph_bbox_modes.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_glyph_formats.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_kerning_modes.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_lcd_filters.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_load_flags.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_load_targets.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_open_modes.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_outline_flags.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_pixel_modes.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_render_modes.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_stroker_borders.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_stroker_linecaps.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_stroker_linejoins.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\ft_style_flags.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\tt_adobe_ids.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\tt_apple_ids.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\tt_mac_ids.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\tt_mac_langids.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\tt_ms_ids.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\tt_ms_langids.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\tt_name_ids.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\tt_platforms.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_enums\__init__.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_errors.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_structs.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf
+copying build\lib\psychopy\visual\textbox\freetype_bf\ft_types.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf
+copying build\lib\psychopy\visual\textbox\freetype_bf\LICENSE.txt -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf
+copying build\lib\psychopy\visual\textbox\freetype_bf\__init__.py -> build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf
+copying build\lib\psychopy\visual\textbox\parsedtext.py -> build\bdist.win32\egg\psychopy\visual\textbox
+copying build\lib\psychopy\visual\textbox\textgrid.py -> build\bdist.win32\egg\psychopy\visual\textbox
+copying build\lib\psychopy\visual\textbox\textureatlas.py -> build\bdist.win32\egg\psychopy\visual\textbox
+copying build\lib\psychopy\visual\textbox\TODO.txt -> build\bdist.win32\egg\psychopy\visual\textbox
+copying build\lib\psychopy\visual\textbox\__init__.py -> build\bdist.win32\egg\psychopy\visual\textbox
+copying build\lib\psychopy\visual\vlc.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\window.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\windowframepack.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\windowwarp.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\_pygletLibOverload.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\visual\__init__.py -> build\bdist.win32\egg\psychopy\visual
+copying build\lib\psychopy\web.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\wizard.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\_shadersPygame.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\_shadersPyglet.py -> build\bdist.win32\egg\psychopy
+copying build\lib\psychopy\__init__.py -> build\bdist.win32\egg\psychopy
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\builder.py to builder.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\aperture.py to aperture.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\cedrusBox.py to cedrusBox.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\code.py to code.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\dots.py to dots.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\eyetracker.py to eyetracker.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\grating.py to grating.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\image.py to image.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\ioLabs.py to ioLabs.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\keyboard.py to keyboard.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\microphone.py to microphone.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\mouse.py to mouse.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\movie.py to movie.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\parallelOut.py to parallelOut.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\patch.py to patch.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\polygon.py to polygon.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\ratingscale.py to ratingscale.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\settings.py to settings.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\sound.py to sound.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\static.py to static.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\text.py to text.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\_base.py to _base.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\_visual.py to _visual.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\components\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\experiment.py to experiment.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\validators.py to validators.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\builder\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\coder\coder.py to coder.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\coder\debugger.py to debugger.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\coder\introspect.py to introspect.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\coder\psychoParser.py to psychoParser.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\coder\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\connections.py to connections.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\dialogs.py to dialogs.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\ipythonShell.py to ipythonShell.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\localization\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\preferencesDlg.py to preferencesDlg.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\psychopyApp.py to psychopyApp.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\Resources\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\stdOutRich.py to stdOutRich.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\urls.py to urls.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\viewer\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\wxIDs.py to wxIDs.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\_psychopyApp.py to _psychopyApp.pyc
+byte-compiling build\bdist.win32\egg\psychopy\app\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\bits.py to bits.pyc
+byte-compiling build\bdist.win32\egg\psychopy\calib.py to calib.pyc
+byte-compiling build\bdist.win32\egg\psychopy\clock.py to clock.pyc
+byte-compiling build\bdist.win32\egg\psychopy\colors.py to colors.pyc
+byte-compiling build\bdist.win32\egg\psychopy\compatibility.py to compatibility.pyc
+byte-compiling build\bdist.win32\egg\psychopy\constants.py to constants.pyc
+byte-compiling build\bdist.win32\egg\psychopy\contrib\http\benchmark_report.py to benchmark_report.pyc
+byte-compiling build\bdist.win32\egg\psychopy\contrib\http\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\contrib\mseq.py to mseq.pyc
+byte-compiling build\bdist.win32\egg\psychopy\contrib\mseqSearch.py to mseqSearch.pyc
+byte-compiling build\bdist.win32\egg\psychopy\contrib\parallel.py to parallel.pyc
+byte-compiling build\bdist.win32\egg\psychopy\contrib\quest.py to quest.pyc
+byte-compiling build\bdist.win32\egg\psychopy\contrib\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\core.py to core.pyc
+byte-compiling build\bdist.win32\egg\psychopy\data.py to data.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\builder\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\basic\hello_world.py to hello_world.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\experiment control\autoDraw_autoLog.py to autoDraw_autoLog.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\experiment control\experimentHandler.py to experimentHandler.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\experiment control\fMRI_launchScan.py to fMRI_launchScan.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\experiment control\gammaMotionAnalysis.py to gammaMotionAnalysis.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\experiment control\gammaMotionNull.py to gammaMotionNull.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\experiment control\JND_staircase_analysis.py to JND_staircase_analysis.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\experiment control\JND_staircase_exp.py to JND_staircase_exp.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\experiment control\logFiles.py to logFiles.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\experiment control\runtimeInfo.py to runtimeInfo.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\experiment control\TrialHandler.py to TrialHandler.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\experiment control\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\hardware\cedrusRB730.py to cedrusRB730.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\hardware\CRS_BitsBox.py to CRS_BitsBox.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\hardware\CRS_BitsPlusPlus.py to CRS_BitsPlusPlus.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\hardware\egi_netstation.py to egi_netstation.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\hardware\ioLab_bbox.py to ioLab_bbox.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\hardware\labjack_u3.py to labjack_u3.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\hardware\parallelPortOutput.py to parallelPortOutput.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\hardware\testSoundLatency.py to testSoundLatency.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\hardware\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\input\customMouse.py to customMouse.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\input\GUI.py to GUI.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\input\joystick_universal.py to joystick_universal.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\input\latencyFromTone.py to latencyFromTone.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\input\mouse.py to mouse.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\input\speech_recognition.py to speech_recognition.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\input\what_key.py to what_key.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\input\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\analoginput\run.py to run.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\elotouchscreen\run.py to run.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\gcCursor\run.py to run.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\selectTracker\run.py to run.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\eyetracking\validation.py to validation.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\iodatastore\event2txt.py to event2txt.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\ioHubDelayTest\run.py to run.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync\AnalogInputDeviceDelayTest.py to AnalogInputDeviceDelayTest.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync\analogInputTest.py to analogInputTest.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync\digitalInTest.py to digitalInTest.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync\digitalOutTest.py to digitalOutTest.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync\eightbuttonbox.py to eightbuttonbox.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync\iosyncTime.py to iosyncTime.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync\msg_txrx_timing.py to msg_txrx_timing.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync\msg_txrx_timing_exp_e2e.py to msg_txrx_timing_exp_e2e.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync\retracesynctiming.py to retracesynctiming.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync\statusPanel.py to statusPanel.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\iosync\_statusPanelStim.py to _statusPanelStim.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\keyboard.py to keyboard.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\keyboardreactiontime.py to keyboardreactiontime.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\launchHub.py to launchHub.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\mouse.py to mouse.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\remoteevents\run.py to run.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\serial\customparser.py to customparser.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\serial\minimu9dof.py to minimu9dof.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\serial\parseserial.py to parseserial.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\serial\pstbox.py to pstbox.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\iohub\xinputgamepad.py to xinputgamepad.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\misc\captureFrames.py to captureFrames.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\misc\encrypt_data.py to encrypt_data.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\misc\http_upload.py to http_upload.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\aperture.py to aperture.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\bufferImageStim.py to bufferImageStim.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\clockface.py to clockface.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\colors.py to colors.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\counterphase.py to counterphase.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\customTextures.py to customTextures.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\dots.py to dots.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\dot_gabors.py to dot_gabors.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\elementArrays.py to elementArrays.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\embeddedOpenGL.py to embeddedOpenGL.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\face_jpg.py to face_jpg.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\gabor.py to gabor.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\imagesAndPatches.py to imagesAndPatches.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\maskReveal.py to maskReveal.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\MoviePause.py to MoviePause.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\MovieStim.py to MovieStim.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\MovieStim2.py to MovieStim2.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\MovieStim2TimingTest.py to MovieStim2TimingTest.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\plaid.py to plaid.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\ratingScale.py to ratingScale.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\rotatingFlashingWedge.py to rotatingFlashingWedge.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\screensAndWindows.py to screensAndWindows.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\shapeContains.py to shapeContains.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\shapes.py to shapes.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\soundStimuli.py to soundStimuli.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\starField.py to starField.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\textBoxStim\textbox_glyph_placement.py to textbox_glyph_placement.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\textBoxStim\textbox_simple.py to textbox_simple.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\textBoxStim\textstim_vs_textbox.py to textstim_vs_textbox.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\textStimuli.py to textStimuli.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\textStimuli_pygame.py to textStimuli_pygame.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\variousVisualStims.py to variousVisualStims.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\visual_noise.py to visual_noise.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\stimuli\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\sysInfo.py to sysInfo.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\timing\callOnFlip.py to callOnFlip.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\timing\clocksAndTimers.py to clocksAndTimers.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\timing\timeByFrames.py to timeByFrames.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\timing\timeByFramesEx.py to timeByFramesEx.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\timing\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\coder\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\demos\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\errors.py to errors.pyc
+byte-compiling build\bdist.win32\egg\psychopy\event.py to event.pyc
+byte-compiling build\bdist.win32\egg\psychopy\filters.py to filters.pyc
+byte-compiling build\bdist.win32\egg\psychopy\gamma.py to gamma.pyc
+byte-compiling build\bdist.win32\egg\psychopy\gui.py to gui.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\bbtk\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\cedrus.py to cedrus.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\crs\bits.py to bits.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\crs\colorcal.py to colorcal.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\crs\optical.py to optical.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\crs\shaders.py to shaders.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\crs\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\egi.py to egi.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\emulator.py to emulator.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\forp.py to forp.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\iolab.py to iolab.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\app\base.py to base.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\app\carbon.py to carbon.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\app\cocoa.py to cocoa.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\app\win32.py to win32.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\app\xlib.py to xlib.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\app\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\base.py to base.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\carbon_hid.py to carbon_hid.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\carbon_tablet.py to carbon_tablet.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\darwin_hid.py to darwin_hid.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\dinput.py to dinput.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\directinput.py to directinput.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\evdev.py to evdev.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\evdev_constants.py to evdev_constants.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\wintab.py to wintab.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\x11_xinput.py to x11_xinput.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\x11_xinput_tablet.py to x11_xinput_tablet.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\pyglet_input\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\joystick\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\labjacks.py to labjacks.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\minolta.py to minolta.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\pr.py to pr.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\serialdevice.py to serialdevice.pyc
+byte-compiling build\bdist.win32\egg\psychopy\hardware\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\info.py to info.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\client\keyboard.py to keyboard.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\client\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\constants.py to constants.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\datastore\pandas\interestarea.py to interestarea.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\datastore\pandas\interestperiod.py to interestperiod.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\datastore\pandas\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\datastore\util.py to util.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\datastore\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack\LabJackPython.py to LabJackPython.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack\Modbus.py to Modbus.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack\skymote.py to skymote.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack\u12.py to u12.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack\u3.py to u3.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack\u6.py to u6.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack\ue9.py to ue9.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\pylabjack\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python26\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack\LabJackPython.py to LabJackPython.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack\Modbus.py to Modbus.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack\skymote.py to skymote.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack\u12.py to u12.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack\u3.py to u3.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack\u6.py to u6.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack\ue9.py to ue9.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\pylabjack\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\python27\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\win32\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\labjack\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\mc\constants.py to constants.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\mc\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\hw\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\daq\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\deviceConfigValidation.py to deviceConfigValidation.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\display\unit_conversions.py to unit_conversions.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\display\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eventfilters.py to eventfilters.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\experiment\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\checkConsistancy.py to checkConsistancy.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\eye_events.py to eye_events.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\filters\parser.py to parser.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\filters\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\gazepoint\gp3\eyetracker.py to eyetracker.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\gazepoint\gp3\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\gazepoint\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze\eyetracker.py to eyetracker.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze\pegTest.py to pegTest.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze\pEyeGaze.py to pEyeGaze.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\lc_technologies\eyegaze\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\lc_technologies\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\smi\iviewx\eyetracker.py to eyetracker.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\smi\iviewx\pyViewX.py to pyViewX.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\smi\iviewx\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\smi\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\eyeLinkCoreGraphicsIOHubPsychopy.py to eyeLinkCoreGraphicsIOHubPsychopy.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\eyetracker.py to eyetracker.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python26\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\python27\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\win32\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\eyelink\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\sr_research\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\theeyetribe\eyetracker.py to eyetracker.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\theeyetribe\pyTribe.py to pyTribe.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\theeyetribe\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii\eyetracker.py to eyetracker.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii\tobiiCalibrationGraphics.py to tobiiCalibrationGraphics.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii\tobiiclasses.py to tobiiclasses.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii_eyex\eyetracker.py to eyetracker.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii_eyex\interface.py to interface.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii_eyex\struct.py to struct.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\tobii_eyex\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\hw\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\eyetracker\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\keyboard\darwin.py to darwin.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\keyboard\darwinkey.py to darwinkey.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\keyboard\linux2.py to linux2.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\keyboard\win32.py to win32.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\keyboard\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\mcu\iosync\pysync.py to pysync.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\mcu\iosync\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\mcu\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\mouse\darwin.py to darwin.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\mouse\linux2.py to linux2.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\mouse\win32.py to win32.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\mouse\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\network\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\pyXHook.py to pyXHook.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\serial\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\touch\hw\elo\elo_serial.py to elo_serial.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\touch\hw\elo\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\touch\hw\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\touch\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\xinput\xinput.py to xinput.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\xinput\xinput_h.py to xinput_h.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\xinput\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\xlib.py to xlib.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\devices\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\launchHubProcess.py to launchHubProcess.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\net.py to net.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\ordereddict.py to ordereddict.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\server.py to server.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\util\dialogs.py to dialogs.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\util\exception_tools.py to exception_tools.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\util\fix_encoding.py to fix_encoding.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\util\images.py to images.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\util\targetpositionsequence.py to targetpositionsequence.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\util\variableProvider.py to variableProvider.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\util\visualangle.py to visualangle.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\util\visualUtil.py to visualUtil.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\util\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\iohub\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\log.py to log.pyc
+byte-compiling build\bdist.win32\egg\psychopy\logging.py to logging.pyc
+byte-compiling build\bdist.win32\egg\psychopy\makeMovies.py to makeMovies.pyc
+byte-compiling build\bdist.win32\egg\psychopy\microphone.py to microphone.pyc
+byte-compiling build\bdist.win32\egg\psychopy\misc.py to misc.pyc
+byte-compiling build\bdist.win32\egg\psychopy\monitors\calibData.py to calibData.pyc
+byte-compiling build\bdist.win32\egg\psychopy\monitors\calibTools.py to calibTools.pyc
+byte-compiling build\bdist.win32\egg\psychopy\monitors\getLumSeries.py to getLumSeries.pyc
+byte-compiling build\bdist.win32\egg\psychopy\monitors\MonitorCenter.py to MonitorCenter.pyc
+byte-compiling build\bdist.win32\egg\psychopy\monitors\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\parallel\_dlportio.py to _dlportio.pyc
+byte-compiling build\bdist.win32\egg\psychopy\parallel\_inpout32.py to _inpout32.pyc
+byte-compiling build\bdist.win32\egg\psychopy\parallel\_linux.py to _linux.pyc
+byte-compiling build\bdist.win32\egg\psychopy\parallel\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\platform_specific\darwin.py to darwin.pyc
+byte-compiling build\bdist.win32\egg\psychopy\platform_specific\linux.py to linux.pyc
+byte-compiling build\bdist.win32\egg\psychopy\platform_specific\posix.py to posix.pyc
+byte-compiling build\bdist.win32\egg\psychopy\platform_specific\win32.py to win32.pyc
+byte-compiling build\bdist.win32\egg\psychopy\platform_specific\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\preferences\configobj.py to configobj.pyc
+byte-compiling build\bdist.win32\egg\psychopy\preferences\generateHints.py to generateHints.pyc
+byte-compiling build\bdist.win32\egg\psychopy\preferences\generateSpec.py to generateSpec.pyc
+byte-compiling build\bdist.win32\egg\psychopy\preferences\hints.py to hints.pyc
+byte-compiling build\bdist.win32\egg\psychopy\preferences\preferences.py to preferences.pyc
+byte-compiling build\bdist.win32\egg\psychopy\preferences\validate.py to validate.pyc
+byte-compiling build\bdist.win32\egg\psychopy\preferences\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\qtgui.py to qtgui.pyc
+byte-compiling build\bdist.win32\egg\psychopy\sound.py to sound.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\run.py to run.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\runPytest.py to runPytest.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_all_visual\test_all_stimuli.py to test_all_stimuli.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_all_visual\test_contains_overlaps.py to test_contains_overlaps.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_all_visual\test_custommouse.py to test_custommouse.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_all_visual\test_framepacking.py to test_framepacking.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_all_visual\test_gamma.py to test_gamma.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_all_visual\test_projections.py to test_projections.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_all_visual\test_projections_interactive.py to test_projections_interactive.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_all_visual\test_ratingScale.py to test_ratingScale.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_all_visual\test_textbox.py to test_textbox.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_all_visual\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_app\conftest.py to conftest.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_app\test_builder\genComponsTemplate.py to genComponsTemplate.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_app\test_builder\test_components.py to test_components.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_app\test_builder\test_Experiment.py to test_Experiment.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_app\test_builder\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_app\test_Wizard.py to test_Wizard.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_app\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_Installation.py to test_Installation.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_iohub\testutil.py to testutil.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_iohub\test_computer.py to test_computer.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_iohub\test_event_get_and_clear.py to test_event_get_and_clear.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_iohub\test_keyboard.py to test_keyboard.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_iohub\test_launch.py to test_launch.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\test_iohub\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\utils.py to utils.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tests\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tools\arraytools.py to arraytools.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tools\attributetools.py to attributetools.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tools\colorspacetools.py to colorspacetools.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tools\coordinatetools.py to coordinatetools.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tools\fileerrortools.py to fileerrortools.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tools\filetools.py to filetools.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tools\imagetools.py to imagetools.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tools\monitorunittools.py to monitorunittools.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tools\plottools.py to plottools.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tools\typetools.py to typetools.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tools\unittools.py to unittools.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tools\versionchooser.py to versionchooser.pyc
+byte-compiling build\bdist.win32\egg\psychopy\tools\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\aperture.py to aperture.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\basevisual.py to basevisual.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\bufferimage.py to bufferimage.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\circle.py to circle.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\custommouse.py to custommouse.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\dot.py to dot.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\elementarray.py to elementarray.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\glob_vars.py to glob_vars.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\grating.py to grating.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\helpers.py to helpers.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\image.py to image.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\line.py to line.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\movie.py to movie.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\movie2.py to movie2.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\patch.py to patch.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\polygon.py to polygon.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\radial.py to radial.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\ratingscale.py to ratingscale.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\rect.py to rect.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\shape.py to shape.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\simpleimage.py to simpleimage.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\text.py to text.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\fontmanager.py to fontmanager.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_encodings.py to ft_encodings.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_face_flags.py to ft_face_flags.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_fstypes.py to ft_fstypes.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_glyph_bbox_modes.py to ft_glyph_bbox_modes.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_glyph_formats.py to ft_glyph_formats.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_kerning_modes.py to ft_kerning_modes.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_lcd_filters.py to ft_lcd_filters.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_load_flags.py to ft_load_flags.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_load_targets.py to ft_load_targets.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_open_modes.py to ft_open_modes.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_outline_flags.py to ft_outline_flags.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_pixel_modes.py to ft_pixel_modes.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_render_modes.py to ft_render_modes.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_stroker_borders.py to ft_stroker_borders.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_stroker_linecaps.py to ft_stroker_linecaps.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_stroker_linejoins.py to ft_stroker_linejoins.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\ft_style_flags.py to ft_style_flags.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\tt_adobe_ids.py to tt_adobe_ids.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\tt_apple_ids.py to tt_apple_ids.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\tt_mac_ids.py to tt_mac_ids.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\tt_mac_langids.py to tt_mac_langids.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\tt_ms_ids.py to tt_ms_ids.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\tt_ms_langids.py to tt_ms_langids.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\tt_name_ids.py to tt_name_ids.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\tt_platforms.py to tt_platforms.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_enums\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_errors.py to ft_errors.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_structs.py to ft_structs.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\ft_types.py to ft_types.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\freetype_bf\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\parsedtext.py to parsedtext.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\textgrid.py to textgrid.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\textureatlas.py to textureatlas.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\textbox\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\vlc.py to vlc.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\window.py to window.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\windowframepack.py to windowframepack.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\windowwarp.py to windowwarp.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\_pygletLibOverload.py to _pygletLibOverload.pyc
+byte-compiling build\bdist.win32\egg\psychopy\visual\__init__.py to __init__.pyc
+byte-compiling build\bdist.win32\egg\psychopy\web.py to web.pyc
+byte-compiling build\bdist.win32\egg\psychopy\wizard.py to wizard.pyc
+byte-compiling build\bdist.win32\egg\psychopy\_shadersPygame.py to _shadersPygame.pyc
+byte-compiling build\bdist.win32\egg\psychopy\_shadersPyglet.py to _shadersPyglet.pyc
+byte-compiling build\bdist.win32\egg\psychopy\__init__.py to __init__.pyc
+creating build\bdist.win32\egg\EGG-INFO
+installing scripts to build\bdist.win32\egg\EGG-INFO\scripts
+running install_scripts
+running build_scripts
+creating build\bdist.win32\egg\EGG-INFO\scripts
+copying build\scripts-2.7\psychopyApp.py -> build\bdist.win32\egg\EGG-INFO\scripts
+copying build\scripts-2.7\psychopy_post_inst.py -> build\bdist.win32\egg\EGG-INFO\scripts
+copying PsychoPy.egg-info\PKG-INFO -> build\bdist.win32\egg\EGG-INFO
+copying PsychoPy.egg-info\SOURCES.txt -> build\bdist.win32\egg\EGG-INFO
+copying PsychoPy.egg-info\dependency_links.txt -> build\bdist.win32\egg\EGG-INFO
+copying PsychoPy.egg-info\top_level.txt -> build\bdist.win32\egg\EGG-INFO
+writing build\bdist.win32\egg\EGG-INFO\native_libs.txt
+creating 'dist\PsychoPy-1.81.03-py2.7.egg' and adding 'build\bdist.win32\egg' to it
+removing 'build\bdist.win32\egg' (and everything under it)
+Processing PsychoPy-1.81.03-py2.7.egg
+removing 'c:\psychopy2\lib\site-packages\PsychoPy-1.81.03-py2.7.egg' (and everything under it)
+creating c:\psychopy2\lib\site-packages\PsychoPy-1.81.03-py2.7.egg
+Extracting PsychoPy-1.81.03-py2.7.egg to c:\psychopy2\lib\site-packages
+PsychoPy 1.81.03 is already the active version in easy-install.pth
+Installing psychopyApp.py script to C:\PsychoPy2\Scripts
+Installing psychopy_post_inst.py script to C:\PsychoPy2\Scripts
+
+Installed c:\psychopy2\lib\site-packages\psychopy-1.81.03-py2.7.egg
+Processing dependencies for PsychoPy==1.81.03
+Finished processing dependencies for PsychoPy==1.81.03
+wrote init for 1.81.03 n/a
+
+C:\PsychoPy2_GitHub>del C:\Python27\Lib\site-packages\psychopy.pth 
+
+C:\PsychoPy2_GitHub>xcopy /I /Y psychopy\*.txt C:\Python27 
+psychopy\CHANGELOG.txt
+psychopy\LICENSE.txt
+psychopy\LICENSES.txt
+psychopy\README.txt
+4 Datei(en) kopiert
+
+C:\PsychoPy2_GitHub>copy /Y C:\Windows\System32\avbin.dll avbin.dll 
+        1 Datei(en) kopiert.
+
+C:\PsychoPy2_GitHub>rem build the installer 
+
+C:\PsychoPy2_GitHub>makensis.exe /v3 buildCompleteInstaller.nsi 
+
+C:\PsychoPy2_GitHub>rem moving files to ..\dist 
+
+C:\PsychoPy2_GitHub>move /Y "StandalonePsychoPy*.exe" ..\dist\ 
+
+C:\PsychoPy2_GitHub>move /Y dist\* ..\dist\ 
+C:\PsychoPy2_GitHub\dist\PsychoPy-1.81.03-py2.7.egg
+        0 Datei(en) verschoben.
+
+C:\PsychoPy2_GitHub>rem reinsert my dev .pth file 
+
+C:\PsychoPy2_GitHub>ECHO F  | xcopy /I /Y ..\psychopy.pth C:\Python27\Lib\site-packages\psychopy.pth 
+0 Datei(en) kopiert
+
+C:\PsychoPy2_GitHub>rem uninstall psychopy from site-packages 
+
+C:\PsychoPy2_GitHub>pip uninstall psychopy -y 
