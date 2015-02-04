@@ -558,7 +558,15 @@ class Mouse:
         elif self.win.units=='cm': return cm2pix(pos, self.win.monitor)
         elif self.win.units=='deg': return deg2pix(pos, self.win.monitor)
         elif self.win.units=='height': return pos*float(self.win.size[1])
-
+    def setMouseExclusivity(self, exclusivity):
+        if type(exclusivity) is not bool:
+            raise ValueError('Exclusivity must be a boolean!')
+        if not usePygame:
+            psychopy.logging.warning("Setting mouse exclusivity in Pyglet will cause the cursor to disappear, " +
+            "and getPos() will be rendered meaningless")
+            self.win.winHandle.set_exclusive_mouse(exclusivity)
+        else:
+            print 'Mouse exclusivity can only be set for Pyglet!'
 
 class BuilderKeyResponse():
     """Used in scripts created by the builder to keep track of a clock and
