@@ -10,6 +10,8 @@
 #    CRS Ltd provided support as needed.
 #    Shader code for mono++ and color++ modes was based on code in Psythtoolbox
 #    (Kleiner) but does not actually use that code directly
+"""Cambridge Research Systems make devices to support particularly vision research.
+"""
 
 from psychopy import logging
 from bits import BitsSharp, BitsPlusPlus
