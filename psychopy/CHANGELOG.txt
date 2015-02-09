@@ -10,6 +10,21 @@ Changelog
 PsychoPy 1.82
 ------------------------------
 
+PsychoPy 1.82.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Feb 2015
+
+
+* FIXED: problem with MovieStim2 showing black box instead of movie on certain systems
+* FIXED: problem with Tobii eye tracker not closing calibration window (Sol)
+* FIXED: better timing for non-slip routines that follow dynamic routines (Jeremy) #822
+* FIXED: problem with stimuli (e.g. shapes) not appearing if a texture had just been created and not yet drawn
+* FIXED: pygame sound engine complained about "global variable loops not defined"
+* ENHANCED: Filename collision handling for ExperimentHandler (Richard Höchenberger)
+* CHANGED: for text data outputs that give delim='\t' the file extension '.tsv' is added instead of '.dlm' (Richard Höchenberger)
+
+
 PsychoPy 1.82.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
