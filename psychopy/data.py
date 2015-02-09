@@ -1282,7 +1282,7 @@ class TrialHandlerExt(TrialHandler):
     Calls to .next() will fetch the next trial object given to this handler, according to the method specified (random,
     sequential, fullRandom). Calls will raise a StopIteration error when all trials are exhausted.
 
-    *Authored at BPN, Uni Hamburg - heavily borrowing from the TrialHandler class*
+    *Authored by Suddha Sourav at BPN, Uni Hamburg - heavily borrowing from the TrialHandler class*
     """
     def __init__(self,
                  trialList,
