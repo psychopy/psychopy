@@ -556,7 +556,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
 
     def _updateFrameTexture(self):
         # decode frame into np array and move to opengl tex
-        ret, _ = self._video_stream.retrieve(self._numpy_frame)
+        ret, self._numpy_frame[:] = self._video_stream.retrieve()
         if ret:
             #if callable(self._vframe_callback):
             #    try:
@@ -655,7 +655,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self.win.setScale('pix')
         #move to centre of stimulus and rotate
         vertsPix = self.verticesPix
-        
+
         array = (GL.GLfloat * 32)(
              1,  1, #texture coords
              vertsPix[0,0], vertsPix[0,1],    0.,  #vertex
