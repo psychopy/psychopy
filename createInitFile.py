@@ -54,7 +54,7 @@ __author_email__='jon@peirce.org.uk'
 __maintainer_email__='psychopy-dev@googlegroups.com'
 __users_email__='psychopy-users@googlegroups.com'
 __url__='http://www.psychopy.org'
-__downloadUrl__='http://code.google.com/p/psychopy/downloads'
+__downloadUrl__='https://github.com/psychopy/psychopy/releases/'
 __git_sha__='{shaStr}'
 __build_platform__='{platform}'
 
