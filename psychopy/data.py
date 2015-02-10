@@ -1557,6 +1557,12 @@ class TrialHandlerExt(TrialHandler):
             #for a number of times. If we had a sequential array, then the rows in DataHandler for that trialIndex would
             #be from sum(trialWeights[begin:trialIndex]) to sum(trialWeights[begin:trialIndex+1]).
 
+            #if we haven't begun the experiment yet, then the last row of the first column is used as the current
+            #position, emulating what TrialHandler does. The following two lines also prevents calculating garbage
+            #position values in case the first row has a null weight
+            if self.thisN < 0:
+                return [0, -1]
+
             firstRowIndex=sum(self.trialWeights[:self.thisIndex])
             lastRowIndex= sum(self.trialWeights[:self.thisIndex+1])
 
