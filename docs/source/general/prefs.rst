@@ -16,8 +16,22 @@ fullscr:
     Should windows be created full screen by default? Can be overridden by individual experiments.
 
 allowGUI:
-    When the window is created, should the frame of the window and the mouse pointer be visible.
-    If set to False then both will be hidden.
+	    When the window is created, should the frame of the window and the mouse pointer be visible. If set to False then both will be hidden.
+
+paths:
+    Paths for additional Python packages can be specified. See more information :ref:`here<addModules>`.
+
+audioLib:
+    As explained in the :doc:`Sound</api/sound>` documentation, currently two sound libraries are available, pygame and pyo.
+
+audioDriver:
+    Also, different audio drivers are available.
+
+audioFlac:
+    Set flac audio compression.
+
+parallelPorts:
+    This list determines the addresses available in the drop-down menu for the :doc:`/builder/components/parallelout`.
 
 .. _applicationSettings:
 
