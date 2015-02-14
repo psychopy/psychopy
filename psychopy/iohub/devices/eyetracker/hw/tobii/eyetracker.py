@@ -191,6 +191,12 @@ class EyeTracker(EyeTrackerDevice):
             genv=TobiiPsychopyCalibrationGraphics(self,screenColor=screenColor)
 
             calibrationOK=genv.runCalibration()
+
+            # On some graphics cards, we have to minimize before closing or the calibration window will stay visible
+            # after close is called.
+            genv.window.winHandle.set_visible(False)
+            genv.window.winHandle.minimize()
+
             genv.window.close()
             
             genv._unregisterEventMonitors() 
