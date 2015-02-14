@@ -3,8 +3,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2014 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
-
-from psychopy import gui, logging, data_import
+from psychopy import gui, logging, data_import, trial_sequence
 from psychopy.tools.arraytools import extendArr, shuffleArray
 from psychopy.tools.fileerrortools import handleFileCollision
 import psychopy
