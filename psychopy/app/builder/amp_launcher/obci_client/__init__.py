@@ -147,9 +147,11 @@ class ExperimentSettings(object):
 
         local_log_params = {                    
             "console_log_level": "info",
+            "sentry_log_level": "info",
             "file_log_level": "debug",
             "mx_log_level": "info",
-            "log_dir": "~/.obci/logs"
+            "log_dir": "~/.obci/logs",
+            "experiment_uuid": ""
         }
         peers = {
             'amplifier': amplifier_peer,
@@ -160,7 +162,7 @@ class ExperimentSettings(object):
         if self.amp_config["save_signal"]:
             tag_saver = {
                 'config': {
-                    "local_params": local_log_params,
+                    "local_params": {},
                     'external_params': {},
                     'config_sources': {'signal_saver': ''},
                     'launch_dependencies': {'signal_saver': ''}
@@ -171,7 +173,7 @@ class ExperimentSettings(object):
             }
             info_saver = {
                 'config': {
-                    "local_params": local_log_params,
+                    "local_params": {},
                     'external_params': {},
                     'config_sources': {'amplifier': '', 'signal_saver': ''},
                     'launch_dependencies': {'amplifier': '', 'signal_saver': ''}
@@ -188,16 +190,15 @@ class ExperimentSettings(object):
                     'local_params': {
                         'save_file_name': self.amp_config["data_file_name"],
                         'save_file_path': self.amp_config["obci_data_dir"], 
-                        "console_log_level": "info",
-                        "file_log_level": "debug",
-                        "mx_log_level": "info",
-                        "log_dir": "~/.obci/logs"
                     }
                 },
                 'config_sources': {'amplifier': 'amplifier'},
                 'launch_dependencies': {'amplifier': 'amplifier'},
                 'path': 'acquisition/signal_saver_peer.py'
             }
+            for p in [tag_saver, info_saver, signal_saver]:
+                p['config']['local_params'].update(local_log_params)
+
             peers['tag_saver'] = tag_saver
             peers['info_saver'] = info_saver
             peers['signal_saver'] = signal_saver
