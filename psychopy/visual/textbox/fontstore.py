@@ -13,15 +13,17 @@ try:
     
     def my_close_open_files(verbose):
         open_files = tb.file._open_files
-        are_open_files = len(open_files) > 0
+        #are_open_files = len(open_files) > 0
+        are_open_files = len(open_files.filenames) > 0
         if verbose and are_open_files:
             print >> sys.stderr, "Closing remaining open files:",
-        for fileh in open_files.keys():
-            if verbose:
-                print >> sys.stderr, "%s..." % (open_files[fileh].filename,),
-            open_files[fileh].close()
-            if verbose:
-                print >> sys.stderr, "done",
+            open_files.close_all()
+        #for fileh in open_files.keys():
+        #    if verbose:
+        #        print >> sys.stderr, "%s..." % (open_files[fileh].filename,),
+        #    open_files[fileh].close()
+        #    if verbose:
+        #        print >> sys.stderr, "done",
         if verbose and are_open_files:
             print >> sys.stderr
     
