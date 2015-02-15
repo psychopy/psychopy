@@ -305,17 +305,22 @@ class ExperimentHandler(object):
 
             fileCollisionMethod: Collision method passed to :func:`~psychopy.tools.fileerrortools.handleFileCollision`
         """
-        # Store the current state of self.savePickle for later use:
-        # We are going to set self.savePickle to False before saving,
-        # so PsychoPy won't try to save it again after loading from
-        # disk.
+        # Store the current state of self.savePickle and self.saveWideText
+        # for later use:
+        # We are going to set both to False before saving,
+        # so PsychoPy won't try to save again after loading the pickled
+        # .psydat file from disk.
         #
-        # After saving, the initial state of self.savePickle is restored.
+        # After saving, the initial state of self.savePickle and
+        # self.saveWideText is restored.
         #
         # See https://groups.google.com/d/msg/psychopy-dev/Z4m_UX88q8U/UGuh1eeyjMEJ
         # for details.
         savePickle = self.savePickle
+        saveWideText = self.saveWideText
+
         self.savePickle = False
+        self.saveWideText = False
 
         #otherwise use default location
         if not fileName.endswith('.psydat'):
@@ -327,6 +332,7 @@ class ExperimentHandler(object):
         f.close()
         logging.info('saved data to %s' % f.name)
         self.savePickle = savePickle
+        self.saveWideText = saveWideText
 
     def abort(self):
         """Inform the ExperimentHandler that the run was aborted.
