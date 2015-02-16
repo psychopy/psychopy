@@ -1,3 +1,9 @@
+psychopy-openbci (1.80.7-2) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Alex Khrabrov <alex@mroja.net>  Mon, 16 Feb 2015 11:25:48 +0100
+
 psychopy-openbci (1.80.6-2) unstable; urgency=medium
 
   * Update maintainer.
