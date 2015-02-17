@@ -3,11 +3,11 @@ Preferences
 
 .. _applicationSettings:
 
-Application settings
+Application settings (app)
 ---------------------------
 These settings are common to all components of the application (Coder and Builder etc)
 
-showTips:
+showStartupTips:
     Display tips when starting PsychoPy.
 
 largeIcons:
@@ -19,7 +19,7 @@ defaultView:
 resetPrefs:
     Reset preferences to defaults on next restart of PsychoPy.
 
-autosavePrefs:
+autoSavePrefs:
     Save any unsaved preferences before closing the window.
 
 debugMode:
@@ -31,7 +31,7 @@ locale:
 
 .. _builderSettings:
 
-Builder settings
+Builder settings (builder)
 ---------------------------
 reloadPrevExp (default=False):
     Select whether to automatically reload a previously opened experiment at start-up.
@@ -51,10 +51,10 @@ unpackedDemosDir:
 savedDataFolder:
     Name of the folder where subject data should be saved (relative to the script location).
 
-flowAtTop:
+topFlow:
     If selected, the “Flow” section will be shown topmost and the “Components” section will be on the left. Restart PsychoPy to activate this option.
 
-showReadme:
+alwaysShowReadme:
     If selected, PsychoPy always shows the Readme file if you open an experiment. The Readme file needs to be located in the same folder as the experiment file.
 
 maxFavorites:
@@ -63,7 +63,7 @@ maxFavorites:
 
 .. _coderSettings:
 
-Coder settings
+Coder settings (coder)
 ---------------------------
 codeFont:
     A list of font names to be used for code display. The first found on the system will be used.
@@ -73,9 +73,6 @@ commentFont:
 
 outputFont:
     A list of font names to be used in the output panel. The first found on the system will be used.
-
-fontSize (in pts):
-    an integer between 6 and 24 that specifies the size of fonts
 
 codeFontSize (in pts, default=12):
     An integer between 6 and 24 that specifies the font size for code display.
@@ -101,11 +98,10 @@ newlineConvention:
 
 .. _generalSettings:
 
-General settings
+General settings (general)
 -------------------
 winType:
-    PsychoPy can use one of two 'backends' for creating windows and drawing; pygame and pyglet. Here 
-    you can set the default backend to be used.
+    PsychoPy can use one of two 'backends' for creating windows and drawing; pygame and pyglet. Here you can set the default backend to be used.
     
 units:
     Default units for windows and visual stimuli ('deg', 'norm', 'cm', 'pix'). See :ref:`units`.  Can be overridden by individual experiments.
@@ -125,7 +121,7 @@ audioLib:
 audioDriver:
     Also, different audio drivers are available.
 
-audioFlac:
+flac:
     Set flac audio compression.
 
 parallelPorts:
@@ -134,11 +130,11 @@ parallelPorts:
 
 .. _connectionSettings:
 
-Connection settings
+Connection settings (connections)
 ---------------------------
 
 proxy:
-    The proxy server used to connect to the internet if needed. Must be of the form ``http://111.222.333.444:5555``
+    The proxy server used to connect to the internet if needed. Must be of the form \http://111.222.333.444:5555
 
 autoProxy:
     PsychoPy should try to deduce the proxy automatically. If this is True and autoProxy is successful, then the above field should contain a valid proxy address.
@@ -155,6 +151,6 @@ timeout:
 
 .. _keyBindings:
 
-Key bindings
+Key bindings (keyBindings)
 ------------------
 There are many shortcut keys that you can use in PsychoPy. For instance did you realise that you can indent or outdent a block of code with Ctrl-[ and Ctrl-] ?
