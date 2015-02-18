@@ -153,6 +153,6 @@ class MouseComponent(BaseComponent):
                     buff.writeIndented("%s.addData('%s.%s', %s.%s)\n" %(currLoop.params['name'], name,property,name,property))
                 else:
                     #we only had one click so don't return a list
-                    buff.writeIndented("%s.addData('%s.%s', %s.%s[0])\n" %(currLoop.params['name'], name,property,name,property))
+                    buff.writeIndented("if len(%s.%s): %s.addData('%s.%s', %s.%s[0])\n" %(name,property,currLoop.params['name'], name,property,name,property))
         if currLoop.params['name'].val == self.exp._expHandler.name:
             buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
