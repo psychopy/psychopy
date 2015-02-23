@@ -481,6 +481,27 @@ class SoundPyo(_SoundBase):
         # a DataTable has no .getDur() method, so just store the duration:
         self.duration = float(len(thisArray)) / self.sampleRate
 
+class _SilentSoundLoop(threading.Thread):
+    """function to wake up the sound card and keep it awake (Mac only)
+
+    Needed on mac (laptops only?) to avoid 0.5s latency to play first sound if
+    no sound has been played for ~45sec or so.
+
+    Sound volume == 0.0, but there still might be some slight distortion
+    introduced (not guaranteed to be completely silent).
+    """
+    def __init__(self):
+        super(_SilentSoundLoop, self).__init__(None, '_SilentSoundLoop', None)
+        self.daemon = True
+        self.microsound = Sound('A', 0.001, volume=0.000)
+        self.microsound.play()
+        core.wait(0.501)  # block to allow mac laptop sound card wake-up time
+        self.start()  # start the thread, call run()
+    def run(self):
+        while True:
+            core.wait(30)
+            self.microsound.play()
+
 def initPygame(rate=22050, bits=16, stereo=True, buffer=1024):
     """If you need a specific format for sounds you need to run this init
     function. Run this *before creating your visual.Window*.
@@ -635,6 +656,8 @@ def initPyo(rate=44100, stereo=True, buffer=128):
             msg += "; maybe try prefs.general.audioDriver 'portaudio'?"
         logging.error(msg)
         core.quit()
+    if sys.platform == 'darwin':
+        _SilentSoundLoop()  # takes 0.5s
     logging.debug('pyo sound server started')
     logging.flush()
 
