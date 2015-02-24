@@ -82,7 +82,9 @@ def openOutputFile(fileName, append=False, delim=None,
         is set to ``True``.
         Defaults to `rename`.
     encoding : string, optional
-        The encoding to use when writing the file.
+        The encoding to use when writing the file. This parameter will be
+        ignored if `append` is `False` and `fileName` ends with `.psydat`
+        or `.npy` (i.e. if a binary file is to be written).
         Defaults to ``'utf-8'``.
 
     :Returns:
@@ -128,6 +130,10 @@ def openOutputFile(fileName, append=False, delim=None,
                 fileName,
                 fileCollisionMethod=fileCollisionMethod
             )
+
+    # Do not use encoding when writing a binary file.
+    if 'b' in writeFormat:
+        encoding = None
 
     if os.path.exists(fileName) and writeFormat in ['w', 'wb']:
         logging.warning('Data file, %s will be overwritten!' % fileName)
