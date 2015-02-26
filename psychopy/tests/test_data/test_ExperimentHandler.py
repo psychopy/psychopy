@@ -86,8 +86,8 @@ class TestExperimentHandler():
         )
 
         conds = [
-            {'id': '01', u'näme': u'umlauts-öäü'},
-            {'id': '02', u'näme': u'accents-àáâă'}
+            {'id': '01', 'name': u'umlauts-öäü'},
+            {'id': '02', 'name': u'accents-àáâă'}
         ]
 
         trials = data.TrialHandler(
