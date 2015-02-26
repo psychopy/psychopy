@@ -16,8 +16,9 @@ port.
 There is also a legacy API which consists of the routines which are directly in this
 module.  That API assumes you only ever want to use a single parallel port at once.
 """
-from psychopy import logging
+
 import sys
+import warnings
 
 # To make life easier, only try drivers which have a hope in heck of working
 if sys.platform.startswith('linux'):
@@ -32,11 +33,11 @@ elif sys.platform == 'win32':
         from _dlportio import PParallelDLPortIO
         ParallelPort = PParallelDLPortIO
     else:
-        logging.warning("psychopy.parallel has been imported but no "
+        warnings.warn("psychopy.parallel has been imported but no "
                         "parallel port driver found. Install either "
                         "input32 or dlportio")
 else:
-    logging.warning("psychopy.parallel has been imported on a Mac "
+    warnings.warn("psychopy.parallel has been imported on a Mac "
                     "(which doesn't have a parallel port?)")
 
     #OS X doesn't have a parallel port but write the class for doc purps
@@ -52,6 +53,16 @@ else:
             port.readPin(2)
             port.setPin(2, 1)
         """
+
+        def __init__(self, address):
+            """This is just a dummy constructor to avoid errors 
+            when the parallel port cannot be initiated
+            """
+
+            warnings.warn("psychopy.parallel has been imported but "
+                        "(1) no parallel port driver could be found or accessed on Windows or"
+                        "(2) PsychoPy is run on a Mac (without parallel-port support for now)")
+
         def setData(self, data):
             """
             Set the data to be presented on the parallel port (one ubyte).
@@ -123,7 +134,7 @@ def setPortAddress(address=0x0378):
     try:
         PORT = ParallelPort(address=address)
     except Exception as exp:
-        logging.warning('Could not initiate port: %s' % str(exp))
+        warnings.warn('Could not initiate port: %s' % str(exp))
         PORT = None
 
 
