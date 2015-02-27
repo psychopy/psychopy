@@ -360,7 +360,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         pass
     
-    def _handleNativeEvent(self,eye_data_event):
+    def _handleNativeEvent(self,*args,**kwargs):
         """
         This method is called every time there is new eye data available from
         the Tobii system, which will be roughly equal to the sampling rate eye 
@@ -372,6 +372,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         if self.isReportingEvents():
             try:
+                eye_data_event=args[1]
                 if self._isEyeX:
                     return self._handleNativeEyeXEvent(eye_data_event)
                 else:
