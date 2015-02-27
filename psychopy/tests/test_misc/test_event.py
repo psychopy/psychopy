@@ -3,7 +3,13 @@
 from psychopy.visual import Window, ShapeStim
 from psychopy import event, core
 from psychopy.constants import NOT_STARTED
-import pyglet, pygame
+import pyglet
+from pyglet.window.mouse import LEFT, MIDDLE, RIGHT
+try:
+    import pygame
+    havePygame = True
+except:
+    havePygame = False
 import pytest
 import copy
 import threading
@@ -49,6 +55,22 @@ class _baseTest:
                 assert m.units == 'norm'
                 m.setPos((0,0))
                 m.getPos()
+
+    def test_emulated_mouse(self):
+        mouse = event.Mouse()  # real mouse
+        event.mouseButtons = [0,0,0]
+        [c.reset() for c in event.mouseClick]  # mouse click RT clocks
+        assert not any(event.mouseButtons)
+        assert not any(event.mouseTimes)
+
+        # fake clicks on all buttons:
+        event._onPygletMousePress(0, 0, LEFT | MIDDLE | RIGHT, None, emulated=True)
+        assert all(mouse.getPressed())
+        assert all([RT < 0.01 for RT in event.mouseTimes])  # should be < .0001
+
+        # fake release all buttons:
+        event._onPygletMouseRelease(0, 0, LEFT | MIDDLE | RIGHT, None, emulated=True)
+        assert not any(event.mouseButtons)
 
     def test_mouse_clock(self):
         x, y = 0, 0
@@ -198,7 +220,8 @@ class TestPygletNorm(_baseTest):
     @classmethod
     def setup_class(self):
         self.win = Window([128,128], winType='pyglet', pos=[50,50], autoLog=False)
-        assert pygame.display.get_init() == 0
+        if havePygame:
+            assert pygame.display.get_init() == 0
 
 class xxxTestPygameNorm(_baseTest):
     @classmethod

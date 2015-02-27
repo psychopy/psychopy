@@ -33,6 +33,7 @@ if havePygame: usePygame=True#will become false later if win not initialised
 else: usePygame=False
 
 if havePyglet:
+    from pyglet.window.mouse import LEFT, MIDDLE, RIGHT  # takes ~250ms, so do it now
     global _keyBuffer
     _keyBuffer = []
     global mouseButtons
@@ -110,34 +111,44 @@ def _onPygletKey(symbol, modifiers, emulated=False):
     _keyBuffer.append( (thisKey,keyTime) ) # tuple
     logging.data("%s: %s" % (keySource, thisKey))
 
-def _onPygletMousePress(x,y, button, modifiers):
+
+def _onPygletMousePress(x,y, button, modifiers, emulated=False):
+    """button left=1, middle=2, right=4;
+    """
     global mouseButtons, mouseClick, mouseTimes
-    if button == pyglet.window.mouse.LEFT:
+    if emulated:
+        label = 'Emulated'
+    else:
+        label = ''
+    if button & LEFT:
         mouseButtons[0]=1
         mouseTimes[0]= psychopy.clock.getTime()-mouseClick[0].getLastResetTime()
-        label='Left'
-    if button == pyglet.window.mouse.MIDDLE:
+        label += ' Left'
+    if button & MIDDLE:
         mouseButtons[1]=1
         mouseTimes[1]= psychopy.clock.getTime()-mouseClick[1].getLastResetTime()
-        label='Middle'
-    if button == pyglet.window.mouse.RIGHT:
+        label += ' Middle'
+    if button & RIGHT:
         mouseButtons[2]=1
         mouseTimes[2]= psychopy.clock.getTime()-mouseClick[2].getLastResetTime()
-        label='Right'
-    logging.data("Mouse: %s button down, pos=(%i,%i)" %(label, x,y))
+        label += ' Right'
+    logging.data("Mouse: %s button down, pos=(%i,%i)" %(label.strip(), x,y))
 
-def _onPygletMouseRelease(x,y, button, modifiers):
+def _onPygletMouseRelease(x,y, button, modifiers, emulated=False):
     global mouseButtons
-    label = 'unknownButton'
-    if button == pyglet.window.mouse.LEFT:
+    if emulated:
+        label = 'Emulated'
+    else:
+        label = ''
+    if button & LEFT:
         mouseButtons[0]=0
-        label='Left'
-    if button == pyglet.window.mouse.MIDDLE:
+        label += ' Left'
+    if button & MIDDLE:
         mouseButtons[1]=0
-        label='Middle'
-    if button == pyglet.window.mouse.RIGHT:
+        label += ' Middle'
+    if button & RIGHT:
         mouseButtons[2]=0
-        label='Right'
+        label += ' Right'
     logging.data("Mouse: %s button up, pos=(%i,%i)" %(label, x,y))
 
 def _onPygletMouseWheel(x,y,scroll_x, scroll_y):
