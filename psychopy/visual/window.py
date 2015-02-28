@@ -974,7 +974,7 @@ class Window(object):
             pass
         if (not self.useNativeGamma) and self.origGammaRamp is not None:
             setGammaRamp(self.winHandle, self.origGammaRamp)
-        self.mouseVisible = True  # call attributeSetter
+        self.mouseVisible = True
         if self.winType == 'pyglet':
             _hw_handle = None
             try:
@@ -1524,7 +1524,8 @@ class Window(object):
         GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
         GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
         return True
-    def setMouseVisible(self, visibility):
+    @attributeSetter
+    def mouseVisible(self, visibility):
         """Sets the visibility of the mouse cursor.
 
         If Window was initilised with noGUI=True then the mouse is initially
