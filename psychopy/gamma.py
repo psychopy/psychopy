@@ -58,7 +58,11 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
     if sys.platform=='darwin':
         newRamp= (newRamp).astype(numpy.float32)
         LUTlength=newRamp.shape[1]
-        error =carbon.CGSetDisplayTransferByTable(pygletWindow._screen.id, LUTlength,
+        try:
+            _screen_ID = pygletWindow._screen.id  # pyglet1.2alpha1
+        except AttributeError:
+            _screen_ID = pygletWindow._screen._cg_display_id  # pyglet1.2
+        error = carbon.CGSetDisplayTransferByTable(_screen_ID, LUTlength,
                    newRamp[0,:].ctypes, newRamp[1,:].ctypes, newRamp[2,:].ctypes)
         assert not error, 'CGSetDisplayTransferByTable failed'
 
@@ -165,5 +169,3 @@ def createLinearRamp(win, rampType=None):
         ramp[512:] = ramp[512:]-1/256.0
     logging.info('Using gamma ramp type: %i' %rampType)
     return ramp
-
-
