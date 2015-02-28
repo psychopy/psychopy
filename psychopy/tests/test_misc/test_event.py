@@ -194,7 +194,9 @@ class _baseTest:
         m.getPressed(getTime=True)
 
     def test_isPressedIn(self):
-        #pytest.skip()
+        if travis:
+            pytest.skip()
+        # travis error: ValueError: Monitor __blank__ has no known size in pixels (SEE MONITOR CENTER)
 
         m = event.Mouse(self.win, newPos=(0,0))
         s = ShapeStim(self.win, vertices=[[10,10],[10,-10],[-10,-10],[-10,10]], autoLog=False)
