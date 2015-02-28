@@ -194,11 +194,12 @@ class _baseTest:
         m.getPressed(getTime=True)
 
     def test_isPressedIn(self):
-        pytest.skip()
+        #pytest.skip()
 
         m = event.Mouse(self.win, newPos=(0,0))
         s = ShapeStim(self.win, vertices=[[10,10],[10,-10],[-10,-10],[-10,10]], autoLog=False)
-        assert s.contains(m.getPos())  # or cant test
+        if not s.contains(m.getPos()):
+            pytest.skip()  # or cant test
 
         event.mouseButtons = [1, 1, 1]
         assert m.isPressedIn(s)
