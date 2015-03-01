@@ -11,6 +11,7 @@ def test_essential_imports():
     import OpenGL
     import openpyxl
     import lxml
+    import pandas
 
 def test_extra_imports():
     # only Jon needs to run this, so test first if you are him!
