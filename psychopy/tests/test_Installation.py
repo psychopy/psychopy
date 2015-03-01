@@ -6,7 +6,7 @@ def test_essential_imports():
     import numpy
     import scipy
     import matplotlib
-    import pygame
+    #import pygame  # soft dependency only
     import pyglet
     import OpenGL
     import openpyxl

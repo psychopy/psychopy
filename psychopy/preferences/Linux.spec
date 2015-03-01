@@ -38,7 +38,7 @@
     # Add paths here to your custom Python modules
     paths=list(default=list())
     # choice of audio library
-    audioLib = list(default=list('pygame', 'pyo'))
+    audioLib = list(default=list('pyo', 'pygame'))
     # audio driver to use
     audioDriver = list(default=list('portaudio'))
     # path to flac (lossless audio compression) on this operating system
