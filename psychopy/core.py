@@ -96,7 +96,7 @@ class StaticPeriod(object):
     def __init__(self, screenHz=None, win=None, name='StaticPeriod'):
         """
         :param screenHz: the frame rate of the monitor (leave as None if you don't want this accounted for)
-        :param name: if a visual.Window is given then StaticPeriod will also pause/restart frame interval recording
+        :param win: if a visual.Window is given then StaticPeriod will also pause/restart frame interval recording
         :param name: give this StaticPeriod a name for more informative logging messages
         """
         self.status=NOT_STARTED
