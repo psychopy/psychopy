@@ -88,7 +88,11 @@ def getGammaRamp(pygletWindow):
     if sys.platform=='darwin':
         origramps = numpy.empty((3, 256), dtype=numpy.float32) # init R, G, and B ramps
         n = numpy.empty([1],dtype=numpy.int)
-        error =carbon.CGGetDisplayTransferByTable(pygletWindow._screen.id, 256,
+        try:
+            _screen_ID = pygletWindow._screen.id  # pyglet1.2alpha1
+        except AttributeError:
+            _screen_ID = pygletWindow._screen._cg_display_id  # pyglet1.2
+        error = carbon.CGGetDisplayTransferByTable(_screen_ID, 256,
                    origramps[0,:].ctypes, origramps[1,:].ctypes, origramps[2,:].ctypes, n.ctypes);
         if error:
             raise AssertionError, 'CGSetDisplayTransferByTable failed'
