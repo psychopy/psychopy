@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-01-27 18:35+0900\n"
-"PO-Revision-Date: 2015-01-27 18:35+0900\n"
+"POT-Creation-Date: 2015-03-03 15:37+0900\n"
+"PO-Revision-Date: 2015-03-03 15:38+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -1014,6 +1014,7 @@ msgid "&Close readme\t%s"
 msgstr "Readmeを閉じる(&C)\t%s"
 
 #: psychopy/app/builder/components/_base.py:11
+#: psychopy/app/builder/components/unknown.py:10
 #: psychopy/app/builder/experiment.py:30
 msgid "Name"
 msgstr "名前"
@@ -1027,8 +1028,8 @@ msgid "stop type"
 msgstr "終了時刻の指定法"
 
 #: psychopy/app/builder/components/_base.py:31
-#: psychopy/app/builder/components/_base.py:257
 #: psychopy/app/builder/components/eyetracker.py:32
+#: psychopy/app/builder/components/unknown.py:24
 msgid "Name of this component (alpha-numeric or _, no spaces)"
 msgstr ""
 "このコンポーネントの名前を指定します (英数字と_のみ;スペースを含まない)"
@@ -2273,6 +2274,15 @@ msgstr "テキストを折り返す幅を指定します (Unitsの設定に従�
 msgid "horiz = left-right reversed; vert = up-down reversed; $var = variable"
 msgstr "左右反転するにはhoriz、上下反転するにはvertと入力します"
 
+#: psychopy/app/builder/components/unknown.py:7
+msgid ""
+"Unknown: A component that is known by the current installed version of "
+"PsychoPy\n"
+"(most likely from the future)"
+msgstr ""
+"Unknown: 現在インストールされているPsychoPyで認識できないコンポーネント\n"
+"(将来のバージョンで作成された実験を読みこんだ時などに使用されます)"
+
 #: psychopy/app/builder/experiment.py:30
 msgid "nReps"
 msgstr "繰り返し回数"
@@ -2493,27 +2503,27 @@ msgstr "個々のステアケースの差を定義する辞書オブジェクト
 msgid "An xlsx or csv file specifying the parameters for each condition"
 msgstr "各条件のパラメータを定義したxlsxファイルまたはcsvファイルを指定します"
 
-#: psychopy/app/builder/experiment.py:1425
+#: psychopy/app/builder/experiment.py:1426
 msgid "one of your Components, Routines, or condition parameters"
 msgstr "ユーザーが使用済み"
 
-#: psychopy/app/builder/experiment.py:1426
+#: psychopy/app/builder/experiment.py:1427
 msgid "Builder variable"
 msgstr "Builderの変数名"
 
-#: psychopy/app/builder/experiment.py:1427
+#: psychopy/app/builder/experiment.py:1428
 msgid "Psychopy module"
 msgstr "PsychoPyのモジュール名"
 
-#: psychopy/app/builder/experiment.py:1428
+#: psychopy/app/builder/experiment.py:1429
 msgid "numpy function"
 msgstr "numpyの関数名"
 
-#: psychopy/app/builder/experiment.py:1429
+#: psychopy/app/builder/experiment.py:1430
 msgid "python keyword"
 msgstr "Pythonのキーワード"
 
-#: psychopy/app/builder/experiment.py:1431
+#: psychopy/app/builder/experiment.py:1432
 msgid " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"
 msgstr ""
 "this、these、continue、Clock、componentを名前に含まないようにしてください"
