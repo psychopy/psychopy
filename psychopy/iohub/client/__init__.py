@@ -356,7 +356,7 @@ class ioHubConnection(object):
 
         r=None
         if device_label is None:
-            events=self._getEvents()
+            events = self._sendToHubServer(('GET_EVENTS',))[1]
             if events is None:
                 r=self.allEvents
             else:
@@ -364,8 +364,7 @@ class ioHubConnection(object):
                 r=self.allEvents
             self.allEvents=[]
         else:
-            d=self.deviceByLabel[device_label]
-            r=d.getEvents()
+            r=self.deviceByLabel[device_label].getEvents()
 
         if r:
             if as_type == 'list':
@@ -391,7 +390,10 @@ class ioHubConnection(object):
         so that unneeded events are not sent to the PsychoPy Process the
         next time getEvents() is called.
 
-        If device_label is None ( the default ), then all events in the ioHub
+        If device_label is 'all', ( the default ), then events from both the ioHub
+        *Global Event Buffer* and all *Device Event Buffer's* are cleared.
+
+        If device_label is None then all events in the ioHub
         *Global Event Buffer* are cleared, but the *Device Event Buffers*
         are unaffected.
 
@@ -399,8 +401,6 @@ class ioHubConnection(object):
         *Device Event Buffers* is cleared, but the *Global Event Buffer* is not
         affected.
 
-        If device_label is 'all', then events from both the ioHub
-        *Global Event Buffer* and all *Device Event Buffer's* are cleared.
         Args:
             device_label (str): device name, 'all', or None
 
@@ -521,6 +521,9 @@ class ioHubConnection(object):
 
         Returns:
             float/double: The actual duration of the delay in sec.msec format.
+
+
+
         """
         stime=Computer.currentTime()
         targetEndTime=stime+delay
@@ -1248,20 +1251,6 @@ class ioHubConnection(object):
         sessionInfoDict['session_id']=r[2]
         self._sessionMetaData=sessionInfoDict
         return sessionInfoDict['session_id']
-
-    def _getEvents(self):
-        """
-        Sends a request to the ioHub Server for any new device events from the global server event buffer.
-        The events are returned and the global ioHub server event buffer is cleared.
-
-        Args: None
-        Return(tuple): list of events, or empty list if no events have occurred since last call
-              to getEvents() or clearEvents(). Each event in the list is a tuple containing the ordered
-              attributes of the event constructor.
-        """
-        r = self._sendToHubServer(('GET_EVENTS',))
-        return r[1]
-
 
     @staticmethod
     def _eventListToObject(eventValueList):
