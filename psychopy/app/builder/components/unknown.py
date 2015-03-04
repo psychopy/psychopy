@@ -4,7 +4,7 @@ from os import path
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'base.png')
-tooltip = _translate('Unknown: A component that is known by the current installed version of PsychoPy\n(most likely from the future)')
+tooltip = _translate('Unknown: A component that is not known by the current installed version of PsychoPy\n(most likely from the future)')
 
 # only use _localized values for label values, nothing functional:
 _localized = {'name': _translate('Name')}
