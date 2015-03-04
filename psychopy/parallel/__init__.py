@@ -52,6 +52,16 @@ else:
             port.readPin(2)
             port.setPin(2, 1)
         """
+
+        def __init__(self, address):
+            """This is just a dummy constructor to avoid errors 
+            when the parallel port cannot be initiated
+            """
+
+            logging.warning("psychopy.parallel has been imported but "
+                        "(1) no parallel port driver could be found or accessed on Windows or"
+                        "(2) PsychoPy is run on a Mac (without parallel-port support for now)")
+
         def setData(self, data):
             """
             Set the data to be presented on the parallel port (one ubyte).
