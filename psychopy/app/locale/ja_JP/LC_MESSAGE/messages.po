@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-03-03 15:37+0900\n"
-"PO-Revision-Date: 2015-03-03 15:38+0900\n"
+"POT-Creation-Date: 2015-03-03 21:41+0900\n"
+"PO-Revision-Date: 2015-03-03 21:41+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -2276,7 +2276,7 @@ msgstr "左右反転するにはhoriz、上下反転するにはvertと入力し
 
 #: psychopy/app/builder/components/unknown.py:7
 msgid ""
-"Unknown: A component that is known by the current installed version of "
+"Unknown: A component that is not known by the current installed version of "
 "PsychoPy\n"
 "(most likely from the future)"
 msgstr ""
@@ -4821,6 +4821,14 @@ msgstr "ベンチマークテストの全結果を確認するにはOKをクリ�
 #: psychopy/tools/wizard.py:651
 msgid "Click Cancel to stay in PsychoPy."
 msgstr "PsychoPyに戻るにはキャンセルをクリックします"
+
+#~ msgid ""
+#~ "Unknown: A component that is known by the current installed version of "
+#~ "PsychoPy\n"
+#~ "(most likely from the future)"
+#~ msgstr ""
+#~ "Unknown: 現在インストールされているPsychoPyで認識できないコンポーネント\n"
+#~ "(将来のバージョンで作成された実験を読みこんだ時などに使用されます)"
 
 #~ msgid ""
 #~ "allow PsychoPy to send anonymous usage stats; please allow if possible, "
