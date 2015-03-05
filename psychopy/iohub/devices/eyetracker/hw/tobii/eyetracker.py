@@ -372,10 +372,11 @@ class EyeTracker(EyeTrackerDevice):
         """
         if self.isReportingEvents():
             try:
-                eye_data_event=args[1]
                 if self._isEyeX:
+                    eye_data_event=args[0]
                     return self._handleNativeEyeXEvent(eye_data_event)
                 else:
+                    eye_data_event=args[1]
                     return self._handleNativeTobiiEvent(eye_data_event)
             except:
                 print2err("ERROR IN _handleNativeEvent")
