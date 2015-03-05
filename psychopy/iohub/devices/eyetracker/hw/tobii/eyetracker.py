@@ -213,7 +213,6 @@ class EyeTracker(EyeTrackerDevice):
             genv.window.winHandle.set_visible(False)
             genv.window.winHandle.minimize()
 
-            print2err("Attempting to close calibration window")
             genv.window.close()
             
             genv._unregisterEventMonitors() 

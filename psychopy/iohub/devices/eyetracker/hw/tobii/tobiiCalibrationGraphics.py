@@ -46,15 +46,8 @@ class TobiiPsychopyCalibrationGraphics(object):
             self._tobii = eyetrackerInterface._tobii._eyetracker
         self.screenSize = eyetrackerInterface._display_device.getPixelResolution()
 
-        """
-        Yes, sizing it like this is weird.
-        But on some versions of Windows 7 with certain video drivers (???) 
-        making the calibration screen open fullscreen causes it to hang
-        and never correctly close, thus obscuring the experiment and making
-        everyone very sad. This hack at least lets calibration finish.
-        """
-        self.width=self.screenSize[0]-1
-        self.height=self.screenSize[1]-1
+        self.width=self.screenSize[0]
+        self.height=self.screenSize[1]
         self._ioKeyboard=None
 
         self._msg_queue=Queue.Queue()
@@ -95,9 +88,9 @@ class TobiiPsychopyCalibrationGraphics(object):
                                                                          (0.1, 0.9),
                                                                          (0.5, 0.5)]
         display=self._eyetrackerinterface._display_device
-        self.window=visual.Window((self.width,self.height),monitor=display.getPsychopyMonitorName(),
+        self.window=visual.Window(self.screenSize,monitor=display.getPsychopyMonitorName(),
                             units=display.getCoordinateType(),
-                            fullscr=False,
+                            fullscr=True,
                             allowGUI=False,
                             screen=display.getIndex(),
                             color=self.WINDOW_BACKGROUND_COLOR[0:3],
