@@ -454,7 +454,9 @@ class TobiiPsychopyCalibrationGraphics(object):
                    
                     cal_stats[(targ_x,targ_y)]=dict(left=left_stats,right=right_stats)
             else:
-                print2err("WARNING: Calibration results are NULL.")
+                # EyeX doesn't return calibration stats
+                if not self._eyetrackerinterface._isEyeX:
+                    print2err("WARNING: Calibration results are NULL.")
             
             instuction_text="Calibration Passed. PRESS 'SPACE' KEY TO CONTINUE."     
             continue_method=self.showSystemSetupMessageScreen(instuction_text,True,msg_types=['SPACE_KEY_ACTION'])
