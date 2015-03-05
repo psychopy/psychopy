@@ -97,7 +97,11 @@ class Dlg(wx.Dialog):
             initial=initial.tolist() #convert numpy arrays to lists
         container=wx.GridSizer(cols=2, hgap=10)
         #create label
-        labelLength = wx.Size(9*len(label)+16,25)#was 8*until v0.91.4
+        font = self.GetFont()
+        dc = wx.WindowDC(self)
+        dc.SetFont(font)
+        labelWidth, labelHeight = dc.GetTextExtent(label)
+        labelLength = wx.Size(labelWidth + 16, labelHeight)
         inputLabel = wx.StaticText(self,-1,label,
                                         size=labelLength,
                                         style=wx.ALIGN_RIGHT)
@@ -108,7 +112,8 @@ class Dlg(wx.Dialog):
             inputBox = wx.CheckBox(self, -1)
             inputBox.SetValue(initial)
         elif not choices:
-            inputLength = wx.Size(max(50, 5*len(unicode(initial))+16), 25)
+            inputWidth, inputHeight = dc.GetTextExtent(initial)
+            inputLength = wx.Size(max(50, inputWidth+16), max(25,inputHeight+8))
             inputBox = wx.TextCtrl(self,-1,unicode(initial),size=inputLength)
         else:
             inputBox = wx.Choice(self, -1, choices=[unicode(option) for option in list(choices)])
