@@ -16,6 +16,7 @@ Tobii EyeTracker Class
 * Tobii T60 XL
 * Tobii TX300
 * Tobii IS-1
+* Tobii EyeX (Windows only)
     
 .. note::    
     The Common Eye Tracker Interface for Tobii can be used with Python 2.6 if the Tobii Analytics SDK 3.0 RC 1 32 bit package. To use Python 2.7, the 
@@ -25,15 +26,29 @@ Tobii EyeTracker Class
     :exclude-members: ALL_EVENT_CLASSES, CLASS_ATTRIBUTE_NAMES, DEVICE_BUFFER_LENGTH_INDEX, DEVICE_CLASS_NAME_INDEX, DEVICE_MAX_ATTRIBUTE_INDEX, DEVICE_TIMEBASE_TO_SEC, DEVICE_TYPE_ID, DEVICE_TYPE_ID_INDEX, DEVICE_TYPE_STRING, DEVICE_USER_LABEL_INDEX, NUMPY_DTYPE, e, DEVICE_FIRMWARE_VERSION_INDEX, DEVICE_HARDWARE_VERSION_INDEX,DEVICE_MANUFACTURER_NAME_INDEX,DEVICE_MODEL_NAME_INDEX, DEVICE_MODEL_NUMBER_INDEX, DEVICE_NUMBER_INDEX, DEVICE_SERIAL_NUMBER_INDEX, DEVICE_SOFTWARE_VERSION_INDEX, EVENT_CLASS_NAMES
     :member-order: bysource
 
-Installing other Necessary Tobii Software
+Installing Other Necessary Tobii Software
 ##################################################
+
+**EyeX:**
+
+The Tobii EyeX interface only requires that the Tobii EyeX Windows
+drivers are installed, including the Gaze API driver: TobiiGazeCore32.dll.
+The iohub class will look in the standard Windows program files locations
+for these files. If you have installed the Tobii drivers to a standard 
+location, this should work normally.
+
+The EyeX drivers are still in early development. If you experience crashes,
+you likely have a newer or older API version than this class was designed to
+support. It is tested against TobiiGazeCore32 version 4.0.3.634 currently.
+
+**Other Models:**
 
 The ioHub Common Eye Tracker Interface implementation for Tobii uses the Python 2.6
 package that is provided by Tobii as part of their 32-bit Tobii Analytics SDK 3.0 RC 1 package; 
 or the  Python 2.7 package that is provided by Tobii as part of their 32-bit Tobii Analytics SDK 3.0
 (released May, 2013).
 
-Please ensure that the Following files and folder are in your Python Path and system PATH.
+Please ensure that the following files and folder are in your Python Path and system PATH.
 This is often most easily done by copying these file and folder to your Python 2.6
 site-packages folder, located at something like C:\Python26\Lib\site-packages.
 
@@ -128,4 +143,6 @@ N/A
 To Do / Wish List:
 ===================
 
-N/A
+    #. Add 'tracking status' graphics display.
+    #. Show calibration results graphics after calibration.    
+    #. Offer calibration graphics mode that is more  "Tobii like".
