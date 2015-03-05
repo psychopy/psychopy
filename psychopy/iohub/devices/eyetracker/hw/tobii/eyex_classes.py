@@ -250,6 +250,8 @@ class TobiiEyeXTracker():
         
     def stopTracking(self):
         self.dll.tobiigaze_stop_tracking(self.eye_tracker, byref(self.error_code))
+        if self.error_code > 0:
+            print("Stop tracking failure: ", self.error_code)
 
         self._isRecording = False
 

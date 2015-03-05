@@ -213,6 +213,7 @@ class EyeTracker(EyeTrackerDevice):
             genv.window.winHandle.set_visible(False)
             genv.window.winHandle.minimize()
 
+            print2err("Attempting to close calibration window")
             genv.window.close()
             
             genv._unregisterEventMonitors() 
@@ -266,15 +267,12 @@ class EyeTracker(EyeTrackerDevice):
             #ioHub.print2err("Starting Tracking... ")
             self._tobii.startTracking(self._handleNativeEvent)
             return EyeTrackerDevice.enableEventReporting(self,True)
-            
-
         
         elif self._tobii and recording is False and self.isRecordingEnabled():
             self._tobii.stopTracking()            
             #ioHub.print2err("Stopping Tracking... ")
             self._latest_sample=None
             self._latest_gaze_position=None
-
             return  EyeTrackerDevice.enableEventReporting(self,False)
 
 
@@ -579,16 +577,31 @@ class EyeTracker(EyeTrackerDevice):
         logged_time,device_event_time,iohub_event_time,data_delay,eye_data_event=native_event_data
         
 
+        # TODO: Could use the eye_data_event.tracking_status and the TOBIIGAZE_TRACKING_STATUS enums to relay more information about what kind of event this gaze data contains
+
         event_type=EventConstants.BINOCULAR_EYE_SAMPLE
 
         left_eye = eye_data_event.left.gaze_point_on_display_normalized
         right_eye = eye_data_event.right.gaze_point_on_display_normalized
         left_gaze_x=left_eye.x
         left_gaze_y=left_eye.y
-        left_gaze_z=left_eye.z
         right_gaze_x=right_eye.x
         right_gaze_y=right_eye.y
-        right_gaze_z=right_eye.z
+
+        """
+        def dumpPoint(eye):
+            return (eye.x, eye.y, eye.z)
+
+        def dumpGazeEye(name,eye):
+            print2err(name)
+            print2err("pos_mm:    ", dumpPoint(eye.eye_position_from_eye_tracker_mm))
+            print2err("pos_box:   ", dumpPoint(eye.eye_position_in_track_box_normalized))
+            print2err("gaze_mm:   ", dumpPoint(eye.gaze_point_from_eye_tracker_mm))
+            print2err("gaze_norm: ", dumpPoint(eye.gaze_point_on_display_normalized))
+
+        dumpGazeEye("left",eye_data_event.left)
+        dumpGazeEye("right",eye_data_event.right)
+        """
 
         if left_gaze_x != -1 and left_gaze_y != -1:
             left_gaze_x,left_gaze_y=self._eyeTrackerToDisplayCoords((left_gaze_x,left_gaze_y))
@@ -619,7 +632,8 @@ class EyeTracker(EyeTrackerDevice):
                         0, # filtered id (always 0 right now)
                         left_gaze_x,
                         left_gaze_y,
-                        left_gaze_z,
+                        EyeTrackerConstants.UNDEFINED, # Left Eye Angle z
+
                         eye_data_event.left.eye_position_from_eye_tracker_mm.x,
                         eye_data_event.left.eye_position_from_eye_tracker_mm.y,
                         eye_data_event.left.eye_position_from_eye_tracker_mm.z,
@@ -638,7 +652,7 @@ class EyeTracker(EyeTrackerDevice):
                         EyeTrackerConstants.UNDEFINED, # Left velocity xy
                         right_gaze_x,
                         right_gaze_y,
-                        right_gaze_z,
+                        EyeTrackerConstants.UNDEFINED, # Right Eye Angle z 
                         eye_data_event.right.eye_position_from_eye_tracker_mm.x,
                         eye_data_event.right.eye_position_from_eye_tracker_mm.y,
                         eye_data_event.right.eye_position_from_eye_tracker_mm.z,
