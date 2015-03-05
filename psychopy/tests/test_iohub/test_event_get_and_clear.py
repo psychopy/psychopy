@@ -45,9 +45,9 @@ def testGlobalBufferOnlyClear():
 
     exp = io.devices.experiment
     assert exp != None
-
     io.sendMessageEvent("Message Should Be Cleared Global Only")
-    io.clearEvents()
+    # clear only the global event buffer
+    io.clearEvents(device_label=None)
     events = io.getEvents()
     assert len(events) == 0
     exp_events = exp.getEvents()
