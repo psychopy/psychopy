@@ -130,25 +130,24 @@ def createLinearRamp(win, rampType=None):
         Known to be used by:
             OSX 10.6.0 with NVidia Geforce-9200M
     """
-    from disutils import LooseVersion #for comparing version numbers
+    def _versionTuple(v):
+        # for proper sorting: _versionTuple('10.8') < _versionTuple('10.10')
+        return tuple(map(int, v.split('.')))
     if rampType is None:
-        #try to determine rampType from heuristics
-        #get sys info
+        #try to determine rampType from heuristics including sys info
         driver = pyglet.gl.gl_info.get_renderer()
-        if sys.platform=='darwin':
-            isOSX = True
-            osxVer = LooseVersion(platform.mac_ver()[0])
-        else:
-            isOSX = False
-            osxVer = None
+        osxVer = platform.mac_ver()[0]  # '' on non-Mac
 
         #try to deduce ramp type
-        if isOSX:
+        if osxVer:
+            osxVerTuple = _versionTuple(osxVer)
             if 'NVIDIA' in driver:
-                if (LooseVersion("10.5") < osxVer < LooseVersion("10.6"):#leopard nVidia cards don't finish at 1.0!
+                if _versionTuple("10.5") < osxVerTuple < _versionTuple("10.6"):  #leopard nVidia cards don't finish at 1.0!
                     rampType=2
-                if (LooseVersion("10.6") < osxVer):#snow leopard cards are plain crazy!
+                elif _versionTuple("10.6") < osxVerTuple:  #snow leopard cards are plain crazy!
                     rampType=3
+                else:
+                    rampType = 1
             else: #is ATI or unkown manufacturer, default to (1:256)/256
                 #this is certainly correct for radeon2600 on 10.5.8 and radeonX1600 on 10.4.9
                 rampType=1
