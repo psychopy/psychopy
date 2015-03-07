@@ -2,15 +2,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 1.81.00\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-03-03 21:41+0900\n"
-"PO-Revision-Date: 2015-03-03 21:41+0900\n"
+"POT-Creation-Date: 2015-03-07 19:10+0900\n"
+"PO-Revision-Date: 2015-03-07 19:11+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.7.3\n"
+"X-Generator: Poedit 1.6.7\n"
 "X-Poedit-KeywordsList: _;gettext;gettext_noop;_translate\n"
 "X-Poedit-Basepath: ../../../../../\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -2297,7 +2297,7 @@ msgstr "Loopの起点と終点"
 
 #: psychopy/app/builder/experiment.py:31
 msgid "Selected rows"
-msgstr "使用する列"
+msgstr "使用する行"
 
 #: psychopy/app/builder/experiment.py:32
 msgid "loopType"
@@ -3630,11 +3630,11 @@ msgstr "アプリケーションを終了します"
 msgid "PsychoPy dialogue"
 msgstr "PsychoPyダイアログ"
 
-#: psychopy/gui.py:237 psychopy/qtgui.py:365
+#: psychopy/gui.py:242 psychopy/qtgui.py:365
 msgid "Select file to save"
 msgstr "保存するファイル名を指定してください"
 
-#: psychopy/gui.py:280 psychopy/qtgui.py:410
+#: psychopy/gui.py:285 psychopy/qtgui.py:410
 msgid "Select file to open"
 msgstr "開くファイルを選択してください"
 
