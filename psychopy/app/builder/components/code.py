@@ -24,7 +24,6 @@ class CodeComponent(BaseComponent):
         self.type='Code'
         self.url="http://www.psychopy.org/builder/components/code.html"
         #params
-        self.categories=['misc']
         self.order = ['name', 'Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment'] # want a copy, else codeParamNames list gets mutated
         self.params['Begin Experiment']=Param(beginExp, valType='extendedCode', allowedTypes=[],
             updates='constant', allowedUpdates=[],
