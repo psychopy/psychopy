@@ -1654,7 +1654,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             panelWidth = 3*24+50
         scrolledpanel.ScrolledPanel.__init__(self,frame,id,size=(panelWidth,10*self.dpi))
         self.sizer=wx.BoxSizer(wx.VERTICAL)
-        self.components=components.getAllComponents()
         self.components=experiment.getAllComponents(self.app.prefs.builder['componentsFolders'])
         categories = ['Favorites']
         categories.extend(components.getAllCategories(self.app.prefs.builder['componentsFolders']))
