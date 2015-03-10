@@ -1657,7 +1657,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.components=components.getAllComponents()
         self.components=experiment.getAllComponents(self.app.prefs.builder['componentsFolders'])
         categories = ['Favorites']
-        categories.extend(components.getAllCategories())
+        categories.extend(components.getAllCategories(self.app.prefs.builder['componentsFolders']))
         #get rid of hidden components
         for hiddenComp in self.frame.prefs['hiddenComponents']:
             if hiddenComp in self.components:
@@ -1674,7 +1674,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             if sys.platform.startswith('linux'): # Localized labels on PlateButton may be corrupted in Ubuntu.
                 label = categ
             else:
-                label = _localized[categ]
+                if categ in _localized.keys():
+                    label = _localized[categ]
+                else:
+                    label = categ
             sectionBtn = platebtn.PlateButton(self,-1,label,
                 style=platebtn.PB_STYLE_DROPARROW, name=categ)
             sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn) #mouse event must be bound like this
