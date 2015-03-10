@@ -414,8 +414,8 @@ class Experiment(object):
                         name=componentNode.get('name'),
                         parentName=routineNode.get('name'), exp=self)
                 else:
-                    from components._base import UnknownComponent
-                    component = UnknownComponent(
+                    #create UnknownComponent instead
+                    component=getAllComponents(self.prefsBuilder['componentsFolders'])['UnknownComponent'](\
                         name=componentNode.get('name'),
                         parentName=routineNode.get('name'), exp=self)
                 # check for components that were absent in older versions of the builder and change the default behavior
