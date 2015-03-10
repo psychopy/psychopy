@@ -16,6 +16,7 @@ Tobii EyeTracker Class
 * Tobii T60 XL
 * Tobii TX300
 * Tobii IS-1
+* Tobii EyeX (Windows only)
     
 .. note::    
     The Common Eye Tracker Interface for Tobii can be used with Python 2.6 if the Tobii Analytics SDK 3.0 RC 1 32 bit package. To use Python 2.7, the 
@@ -25,15 +26,29 @@ Tobii EyeTracker Class
     :exclude-members: ALL_EVENT_CLASSES, CLASS_ATTRIBUTE_NAMES, DEVICE_BUFFER_LENGTH_INDEX, DEVICE_CLASS_NAME_INDEX, DEVICE_MAX_ATTRIBUTE_INDEX, DEVICE_TIMEBASE_TO_SEC, DEVICE_TYPE_ID, DEVICE_TYPE_ID_INDEX, DEVICE_TYPE_STRING, DEVICE_USER_LABEL_INDEX, NUMPY_DTYPE, e, DEVICE_FIRMWARE_VERSION_INDEX, DEVICE_HARDWARE_VERSION_INDEX,DEVICE_MANUFACTURER_NAME_INDEX,DEVICE_MODEL_NAME_INDEX, DEVICE_MODEL_NUMBER_INDEX, DEVICE_NUMBER_INDEX, DEVICE_SERIAL_NUMBER_INDEX, DEVICE_SOFTWARE_VERSION_INDEX, EVENT_CLASS_NAMES
     :member-order: bysource
 
-Installing other Necessary Tobii Software
+Installing Other Necessary Tobii Software
 ##################################################
+
+**EyeX:**
+
+The Tobii EyeX interface only requires that the Tobii EyeX Windows
+drivers are installed, including the Gaze API driver: TobiiGazeCore32.dll.
+The iohub class will look in the standard Windows program files locations
+for these files. If you have installed the Tobii drivers to a standard 
+location, this should work normally.
+
+The EyeX drivers are still in early development. If you experience crashes,
+you likely have a newer or older API version than this class was designed to
+support. It is tested against TobiiGazeCore32 version 4.0.3.634 currently.
+
+**Other Models:**
 
 The ioHub Common Eye Tracker Interface implementation for Tobii uses the Python 2.6
 package that is provided by Tobii as part of their 32-bit Tobii Analytics SDK 3.0 RC 1 package; 
 or the  Python 2.7 package that is provided by Tobii as part of their 32-bit Tobii Analytics SDK 3.0
 (released May, 2013).
 
-Please ensure that the Following files and folder are in your Python Path and system PATH.
+Please ensure that the following files and folder are in your Python Path and system PATH.
 This is often most easily done by copying these file and folder to your Python 2.6
 site-packages folder, located at something like C:\Python26\Lib\site-packages.
 
@@ -99,21 +114,21 @@ supported:
             #. left_eye_cam_x:          maps to LeftEyePosition3DRelative.x
             #. left_eye_cam_y:          maps to LeftEyePosition3DRelative.y
             #. left_eye_cam_z:          maps to LeftEyePosition3DRelative.z
-            #. left_pupil_measure_1:    maps to LeftPupil
-            #. left_pupil_measure1_type: PUPIL_DIAMETER_MM
+            #. left_pupil_measure_1:    maps to LeftPupil (not available on EyeX)
+            #. left_pupil_measure1_type: PUPIL_DIAMETER_MM (not available on EyeX)
             #. right_gaze_x:            maps to Tobii eye sample field RightGazePoint2D.x
             #. right_gaze_y:            maps to RightGazePoint2D.y
             #. right_eye_cam_x:         maps to RightEyePosition3DRelative.x
             #. right_eye_cam_y:         maps to RightEyePosition3DRelative.y
             #. right_eye_cam_z:         maps to RightEyePosition3DRelative.z
-            #. right_pupil_measure_1:   maps to RightPupil
-            #. right_pupil_measure1_type: PUPIL_DIAMETER_MM
-            #. status:                  both left and right eye validity codes are encoded as LeftValidity*10+RightValidity
+            #. right_pupil_measure_1:   maps to RightPupil (not available on EyeX)
+            #. right_pupil_measure1_type: PUPIL_DIAMETER_MM (not available on EyeX)
+            #. status:                  both left and right eye validity codes are encoded as LeftValidity*10+RightValidity (not available on EyeX)
 
 General Considerations
 #######################
 
-**Last Updated:** May 5th, 2013
+**Last Updated:** January 29th, 2015
 
 Known Issues:              
 ==============
@@ -128,4 +143,6 @@ N/A
 To Do / Wish List:
 ===================
 
-N/A
+    #. Add 'tracking status' graphics display.
+    #. Show calibration results graphics after calibration.    
+    #. Offer calibration graphics mode that is more "Tobii like".
