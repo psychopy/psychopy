@@ -6,6 +6,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+import copy
 import sys
 import numpy
 
@@ -737,6 +738,7 @@ class RatingScale(MinimalStim):
             self.markerBaseSize = self.baseSize
         self.markerColor = markerColor
         self.markerYpos = self.offsetVert + self.markerOffsetVert
+        self.markerOrig = copy.copy(self.marker)  # save initial state, restore on reset
 
     def _initTextElements(self, win, scale, textColor,
                           textFont, textSize, showValue, tickMarks):
@@ -1126,6 +1128,8 @@ class RatingScale(MinimalStim):
         """
         # only resets things that are likely to have changed when the ratingScale instance is used by a subject
         self.noResponse = True
+        self.marker = copy.copy(self.markerOrig)  # restore in case it turned gray, etc
+        self.markerPosFixed = False
         self.markerPlaced = False  # placed by subject or markerStart: show on screen
         self.markerPlacedBySubject = False  # placed by subject is actionable: show value, singleClick
         self.markerPlacedAt = False
