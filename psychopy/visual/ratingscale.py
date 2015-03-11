@@ -6,6 +6,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+import copy
 import sys
 import numpy
 
@@ -347,9 +348,6 @@ class RatingScale(MinimalStim):
                 self.mouseOnly = False
                 logging.warning("RatingScale %s: ignoring mouseOnly (because showAccept and singleClick are False)" % self.name)
 
-        self.scale = scale
-        self.showScale = (scale is not None)
-
         # 'choices' is a list of non-numeric (unordered) alternatives:
         if choices and len(list(choices)) < 2:
             logging.error("RatingScale %s: choices requires 2 or more items" % self.name)
@@ -391,6 +389,7 @@ class RatingScale(MinimalStim):
             else:
                 self.labelTexts = [unicode(self.low)] + [''] * (self.high-self.low - 1) + [unicode(self.high)]
 
+        self.scale = scale
         if tickMarks and not(labels is False):
             if labels is None:
                 self.labelTexts = tickMarks
@@ -401,6 +400,7 @@ class RatingScale(MinimalStim):
                 self.labelTexts = tickMarks
             if self.scale == "<default>":
                 self.scale = False
+        self.showScale = (self.scale not in [None, False])
 
         # Marker pre-positioned? [do after anchors]
         try:
@@ -738,6 +738,7 @@ class RatingScale(MinimalStim):
             self.markerBaseSize = self.baseSize
         self.markerColor = markerColor
         self.markerYpos = self.offsetVert + self.markerOffsetVert
+        self.markerOrig = copy.copy(self.marker)  # save initial state, restore on reset
 
     def _initTextElements(self, win, scale, textColor,
                           textFont, textSize, showValue, tickMarks):
@@ -1127,6 +1128,7 @@ class RatingScale(MinimalStim):
         """
         # only resets things that are likely to have changed when the ratingScale instance is used by a subject
         self.noResponse = True
+        self.marker = copy.copy(self.markerOrig)  # restore in case it turned gray, etc
         self.markerPlaced = False  # placed by subject or markerStart: show on screen
         self.markerPlacedBySubject = False  # placed by subject is actionable: show value, singleClick
         self.markerPlacedAt = False
