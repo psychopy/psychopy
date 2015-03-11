@@ -59,7 +59,7 @@ expectedVals = {
         'lowR': array([ 36,  63,   8, 211,   3, 112,  56,  34,   0,   0]),
         'highG': array([119, 118, 120, 119, 121, 120])}}}
 
-win = visual.Window([1024,768], fullscr=0, screen=1, useFBO=True)
+win = visual.Window([1024,768], fullscr=0, screen=1, useFBO=True, autoLog=True)
 bits = crs.bits.BitsSharp(win, mode='bits++', noComms=True)
 
 #draw a ramp across the screenexpectedVals = range(256)
@@ -97,8 +97,9 @@ def test_bitsShaders():
                 assert np.alltrue(thisExpected['highR'] == fr[250:256,-1,0])
                 assert np.alltrue(thisExpected['highG'] == fr[250:256,-1,1])
 
-            print 'R', repr(fr[0:10,-1,0]), repr(fr[250:256,-1,0])
-            print 'G', repr(fr[0:10,-1,1]), repr(fr[250:256,-1,0])
+            if not _travisTesting:
+                print 'R', repr(fr[0:10,-1,0]), repr(fr[250:256,-1,0])
+                print 'G', repr(fr[0:10,-1,1]), repr(fr[250:256,-1,0])
             #event.waitKeys()
     #print repr(expectedVals)
 

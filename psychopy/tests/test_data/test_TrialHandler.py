@@ -64,7 +64,7 @@ class TestTrialHandler:
             matches = len(glob.glob(os.path.join(self.temp_dir, self.rootName + "*.psydat")))
             assert matches==count, "Found %d matching files, should be %d" % (matches, count)
     def test_psydat_filename_collision_overwriting(self):
-        for count in range(1,20):
+        for count in [1, 10, 20]:
             trials = data.TrialHandler([], 1, autoLog=False)
             trials.data.addDataType('trialType')
             for trial in trials:#need to run trials or file won't be saved

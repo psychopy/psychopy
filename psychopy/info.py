@@ -109,7 +109,7 @@ class RunTimeInfo(dict):
             win.autoLog = False
         else: # don't want any window
             usingTempWin = False
-            
+
         if win:
             self._setWindowInfo(win, verbose, refreshTest, usingTempWin)
 
@@ -273,6 +273,9 @@ class RunTimeInfo(dict):
 
         # pyo for sound:
         try:
+            travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
+            assert not travis  # skip sound-related stuff on travis-ci.org
+
             import pyo
             self['systemPyoVersion'] = '%i.%i.%i' % pyo.getVersion()
             try:
@@ -286,7 +289,7 @@ class RunTimeInfo(dict):
                 self['systemPyo.OutputDevices'] = out
             except AttributeError:
                 pass
-        except ImportError:
+        except AssertionError, ImportError:
             pass
 
         # flac (free lossless audio codec) for google-speech:
