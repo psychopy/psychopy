@@ -260,7 +260,7 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     timeoutClock = core.Clock() # zeroed now
     allKeys = []
     receivedTRs = 0
-    while not settings['sync'] in allKeys and receivedTRs > settings['skip']:
+    while not (settings['sync'] in allKeys and receivedTRs > settings['skip']):
         allKeys = event.getKeys()
         if esc_key and esc_key in allKeys:  # pragma: no cover
             core.quit()
