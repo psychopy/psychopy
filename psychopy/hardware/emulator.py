@@ -259,10 +259,13 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
     # wait for first sync pulse:
     timeoutClock = core.Clock() # zeroed now
     allKeys = []
-    while not settings['sync'] in allKeys:
+    receivedTRs = 0
+    while not settings['sync'] in allKeys and receivedTRs > settings['skip']:
         allKeys = event.getKeys()
         if esc_key and esc_key in allKeys:  # pragma: no cover
             core.quit()
+        if settings['sync'] in allKeys:
+            receivedTRs += 1
         if timeoutClock.getTime() > wait_timeout:
             raise TimeoutError('Waiting for scanner has timed out in %.3f seconds.' % wait_timeout)
     if globalClock:
