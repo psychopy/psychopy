@@ -185,7 +185,9 @@ class AudioCapture(object):
             onsettime = '-%d' % self.fileOnset + ms[1:]
             self.savedFile = onsettime.join(os.path.splitext(self.wavOutFilename))
         else:
-            self.savedFile = os.path.abspath(filename).strip('.wav') + '.wav'
+            self.savedFile = os.path.abspath(filename)
+            if not self.savedFile.endswith('.wav'):
+                self.savedFile += '.wav'
 
         t0 = core.getTime()
         self.recorder.run(self.savedFile, self.duration, **self.options)
