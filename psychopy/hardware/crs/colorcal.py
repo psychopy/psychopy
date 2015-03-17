@@ -244,8 +244,7 @@ class ColorCAL:
         """Get the calibration matrix from the device, needed for transforming
         measurements into real-world values.
 
-        This is normally retrieved during __init__ and stored as
-            ColorCal.calibMatrix
+        This is normally retrieved during __init__ and stored as `ColorCal.calibMatrix`
         so most users don't need to call this function
         """
         matrix=numpy.zeros((3,3),dtype=float)

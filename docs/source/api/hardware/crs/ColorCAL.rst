@@ -15,7 +15,7 @@ Attributes
 Details
 =============
 
-.. autoclass:: ImageStim
+.. autoclass:: ColorCAL
     :members:
     :undoc-members:
     :inherited-members:
