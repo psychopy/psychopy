@@ -14,10 +14,10 @@ Multiple `targets` can also be created to receive log messages. Each target has 
 
     from psychopy import logging
     logging.console.setLevel(logging.WARNING)
-    #overwrite (mode='w') a detailed log of the last run in this dir
-    lastLog=logging.LogFile("lastRun.log", level=logging.INFO, mode='w')
+    #overwrite (filemode='w') a detailed log of the last run in this dir
+    lastLog=logging.LogFile("lastRun.log", level=logging.INFO, filemode='w')
     #also append warnings to a central log file
-    centralLog=logging.LogFile("c:/psychopyExps.log", level=logging.WARNING, mode='a')
+    centralLog=logging.LogFile("c:/psychopyExps.log", level=logging.WARNING, filemode='a')
 
 Updating the logs
 ~~~~~~~~~~~~~~~~~~~~~
