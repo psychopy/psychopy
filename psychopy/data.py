@@ -1271,6 +1271,600 @@ class TrialHandler(_BaseTrialHandler):
         if self.getExp()!=None:#update the experiment handler too
             self.getExp().addData(thisType, value)
 
+class TrialHandlerExt(TrialHandler):
+    """ A class for handling trial sequences in a *non-counterbalanced design* (i.e. *oddball paradigms*). Its functions
+    are a superset of the class TrialHandler, and as such, can also be used for normal trial handling.
+
+    TrialHandlerExt has the same function names for data storage facilities.
+
+    To use non-counterbalanced designs, all TrialType dict entries in the trial list must have a key called "weight".
+    For example, if you want trial types A, B, C, and D to have 10, 5, 3, and 2 repetitions per block, then the
+    trialList can look like:
+
+    [{Name:'A', ..., weight:10}, {Name:'B', ..., weight:5}, {Name:'C', ..., weight:3}, {Name:'D', ..., weight:2}]
+
+    For experimenters using an excel or csv file for trial list, a column called weight is appropriate for this purpose.
+
+    Calls to .next() will fetch the next trial object given to this handler, according to the method specified (random,
+    sequential, fullRandom). Calls will raise a StopIteration error when all trials are exhausted.
+
+    *Authored by Suddha Sourav at BPN, Uni Hamburg - heavily borrowing from the TrialHandler class*
+    """
+    def __init__(self,
+                 trialList,
+                 nReps,
+                 method='random',
+                 dataTypes=None,
+                 extraInfo=None,
+                 seed=None,
+                 originPath=None,
+                 name='',
+                 autoLog=True):
+        """
+
+        :Parameters:
+
+            trialList: a simple list (or flat array) of dictionaries specifying conditions
+                This can be imported from an excel/csv file using :func:`~psychopy.data.importConditions`
+                For non-counterbalanced designs, each dict entry in trialList must have a key called weight!
+
+            nReps: number of repeats for all conditions. When using a non-counterbalanced design, nReps is analogous
+                to the number of blocks.
+
+            method: *'random',* 'sequential', or 'fullRandom'
+                When the weights are not specified:
+                'sequential' presents the conditions in the order they appear in the list.
+                'random' will result in a shuffle of the conditions on each repeat, but all conditions
+                occur once before the second repeat etc. 'fullRandom' fully randomises the
+                trials across repeats as well, which means you could potentially run all trials of
+                one condition before any trial of another.
+                In the presence of weights:
+                'sequential' presents each trial type the number of times specified by its weight, before
+                moving on to the next type.
+                'random' randomizes the presentation order within block.
+                'fulLRandom' shuffles trial order across weights an nRep, that is, a full shuffling.
+
+
+            dataTypes: (optional) list of names for data storage. e.g. ['corr','rt','resp']
+                If not provided then these will be created as needed during calls to
+                :func:`~psychopy.data.TrialHandler.addData`
+
+            extraInfo: A dictionary
+                This will be stored alongside the data and usually describes the experiment and
+                subject ID, date etc.
+
+            seed: an integer
+                If provided then this fixes the random number generator to use the same pattern
+                of trials, by seeding its startpoint
+
+            originPath: a string describing the location of the script/experiment file path
+                The psydat file format will store a copy of the experiment if possible. If no file path
+                is provided here then the TrialHandler will still store a copy of the script where it was
+                created
+
+        :Attributes (after creation):
+
+            .data - a dictionary of numpy arrays, one for each data type stored
+
+            .trialList - the original list of dicts, specifying the conditions
+
+            .thisIndex - the index of the current trial in the original conditions list
+
+            .nTotal - the total number of trials that will be run
+
+            .nRemaining - the total number of trials remaining
+
+            .thisN - total trials completed so far
+
+            .thisRepN - which repeat you are currently on
+
+            .thisTrialN - which trial number *within* that repeat
+
+            .thisTrial - a dictionary giving the parameters of the current trial
+
+            .finished - True/False for have we finished yet
+
+            .extraInfo - the dictionary of extra info as given at beginning
+
+            .origin - the contents of the script or builder experiment that created the handler
+
+            .trialWeights - None if all weights are not specified. If all weights are specified, then a list containing
+            the weights of the trial types.
+
+        """
+        self.name=name
+        self.autoLog = autoLog
+
+        if trialList in [None, []]:#user wants an empty trialList
+            self.trialList = [None]#which corresponds to a list with a single empty entry
+        elif isinstance(trialList, basestring) and os.path.isfile(trialList): #user has hopefully specified a filename
+            self.trialList = importConditions(trialList) #import conditions from that file
+        else:
+            self.trialList =trialList
+        #convert any entry in the TrialList into a TrialType object (with obj.key or obj[key] access)
+        for n, entry in enumerate(self.trialList):
+            if type(entry)==dict:
+                self.trialList[n]=TrialType(entry)
+        self.nReps = nReps
+        #Add Su
+        self.trialWeights = None if not all('weight' in d for d in trialList) else [d['weight'] for d in trialList]
+        self.nTotal = self.nReps*len(self.trialList) if self.trialWeights is None else self.nReps*sum(self.trialWeights)
+        self.nRemaining =self.nTotal #subtract 1 each trial
+        self.method = method
+        self.thisRepN = 0        #records which repetition or pass we are on
+        self.thisTrialN = -1    #records which trial number within this repetition
+        self.thisN = -1
+        self.thisIndex = 0        #the index of the current trial in the conditions list
+        self.thisTrial = []
+        self.finished=False
+        self.extraInfo=extraInfo
+        self._warnUseOfNext=True
+        self.seed=seed
+        #create dataHandler
+        if self.trialWeights is None:
+            self.data = DataHandler(trials=self)
+        else:
+            self.data = DataHandler(trials=self,dataShape=[sum(self.trialWeights),nReps])
+        if dataTypes!=None:
+            self.data.addDataType(dataTypes)
+        self.data.addDataType('ran')
+        self.data['ran'].mask=False#this is a bool - all entries are valid
+        self.data.addDataType('order')
+        #generate stimulus sequence
+        if self.method in ['random','sequential', 'fullRandom']:
+             self.sequenceIndices = self._createSequence()
+        else: self.sequenceIndices=[]
+
+        self.originPath, self.origin = self.getOriginPathAndFile(originPath)
+        self._exp = None#the experiment handler that owns me!
+
+    def _createSequence(self):
+        """
+        Pre-generates the sequence of trial presentations (for non-adaptive methods).
+        This is called automatically when the TrialHandler is initialised so doesn't
+        need an explicit call from the user.
+
+        The returned sequence has form indices[stimN][repN]
+        Example: sequential with 6 trialtypes (rows), 5 reps (cols), returns:
+            [[0 0 0 0 0]
+             [1 1 1 1 1]
+             [2 2 2 2 2]
+             [3 3 3 3 3]
+             [4 4 4 4 4]
+             [5 5 5 5 5]]
+        These 30 trials will be returned by .next() in the order:
+            0, 1, 2, 3, 4, 5,   0, 1, 2, ...  ... 3, 4, 5
+
+        Example: random, with 3 trialtypes, where the weights of conditions 0,1, and 2 are 3,2, and 1 respectively,
+        and a rep value of 5, might return:
+            [[0 1 2 0 1]
+             [1 0 1 1 1]
+             [0 2 0 0 0]
+             [0 0 0 1 0]
+             [2 0 1 0 2]
+             [1 1 0 2 0]]
+
+        These 30 trials will be returned by .next() in the order:
+            0, 1, 0, 0, 2, 1,   1, 0, 2, 0, 0, 1, ...   ... 0, 2, 0 *stopIteration*
+
+        To add a new type of sequence (as of v1.65.02):
+        - add the sequence generation code here
+        - adjust "if self.method in [ ...]:" in both __init__ and .next()
+        - adjust allowedVals in experiment.py -> shows up in DlgLoopProperties
+        Note that users can make any sequence whatsoever outside of PsychoPy, and
+        specify sequential order; any order is possible this way.
+        """
+        # create indices for a single rep
+        indices = numpy.asarray(self._makeIndices(self.trialList), dtype=int)
+
+        if self.method == 'random':
+            sequenceIndices = []
+            seed=self.seed
+            for thisRep in range(self.nReps):
+                if self.trialWeights is None:
+                    thisRepSeq = shuffleArray(indices.flat, seed=seed).tolist()
+                else:
+                    thisRepSeq = shuffleArray(numpy.repeat(indices, self.trialWeights), seed=seed).tolist()
+                seed=None#so that we only seed the first pass through!
+                sequenceIndices.append(thisRepSeq)
+            sequenceIndices = numpy.transpose(sequenceIndices)
+        elif self.method == 'sequential':
+            if self.trialWeights is None:
+                sequenceIndices = numpy.repeat(indices,self.nReps,1)
+            else:
+                sequenceIndices = numpy.repeat(numpy.repeat(indices, self.trialWeights,0), self.nReps,1)
+        elif self.method == 'fullRandom':
+            if self.trialWeights is None:
+                # indices*nReps, flatten, shuffle, unflatten; only use seed once
+                sequential = numpy.repeat(indices, self.nReps,1) # = sequential
+                randomFlat = shuffleArray(sequential.flat, seed=self.seed)
+                sequenceIndices = numpy.reshape(randomFlat, (len(indices), self.nReps))
+            else:
+                sequential = numpy.repeat(numpy.repeat(indices, self.trialWeights,0), self.nReps,1)
+                randomFlat = shuffleArray(sequential.flat, seed = self.seed)
+                sequenceIndices = numpy.reshape(randomFlat, (sum(self.trialWeights), self.nReps))
+
+        if self.autoLog:
+            #Change
+            logging.exp('Created sequence: %s, trialTypes=%d, nReps=%d, seed=%s' %
+                (self.method, len(indices), self.nReps, str(self.seed) )  )
+        return sequenceIndices
+
+    def next(self):
+        """Advances to next trial and returns it.
+        Updates attributes; thisTrial, thisTrialN and thisIndex
+        If the trials have ended this method will raise a StopIteration error.
+        This can be handled with code such as::
+
+            trials = data.TrialHandler(.......)
+            for eachTrial in trials:#automatically stops when done
+                #do stuff
+
+        or::
+
+            trials = data.TrialHandler(.......)
+            while True: #ie forever
+                try:
+                    thisTrial = trials.next()
+                except StopIteration:#we got a StopIteration error
+                    break #break out of the forever loop
+                #do stuff here for the trial
+        """
+        #update pointer for next trials
+        self.thisTrialN+=1#number of trial this pass
+        self.thisN+=1 #number of trial in total
+        self.nRemaining-=1
+
+        if self.trialWeights is None:
+            if self.thisTrialN==len(self.trialList):
+                #start a new repetition
+                self.thisTrialN=0
+                self.thisRepN+=1
+        else:
+            if self.thisTrialN==sum(self.trialWeights):
+                #start a new repetition
+                self.thisTrialN=0
+                self.thisRepN+=1
+
+        if self.thisRepN>=self.nReps:
+            #all reps complete
+            self.thisTrial=[]
+            self.finished=True
+
+        if self.finished==True:
+            self._terminate()
+
+        #fetch the trial info
+        if self.method in ['random','sequential','fullRandom']:
+            if self.trialWeights is None:
+                self.thisIndex = self.sequenceIndices[self.thisTrialN][self.thisRepN]
+                self.thisTrial = self.trialList[self.thisIndex]
+                self.data.add('ran',1)
+                self.data.add('order',self.thisN)
+            else:
+                self.thisIndex = self.sequenceIndices[self.thisTrialN][self.thisRepN]
+                self.thisTrial = self.trialList[self.thisIndex]
+
+                self.data.add('ran',1,position=self.getNextTrialPosInDataHandler())
+                #The last call already adds a ran to this trial, so get the current pos now
+                self.data.add('order',self.thisN,position=self.getCurrentTrialPosInDataHandler())
+
+        if self.autoLog:
+            logging.exp('New trial (rep=%i, index=%i): %s' %(self.thisRepN, self.thisTrialN, self.thisTrial), obj=self.thisTrial)
+        return self.thisTrial
+
+    def getCurrentTrialPosInDataHandler(self):
+        #if there's no trial weights, then the current position is simply [trialIndex, nRepetition]
+        if self.trialWeights is None:
+            repN = sum(self['ran'][self.trials.thisIndex])-1
+            position= [self.trials.thisIndex, repN]
+        else:
+            #if there are trial weights, the situation is slightly more involved, because the same index can be repeated
+            #for a number of times. If we had a sequential array, then the rows in DataHandler for that trialIndex would
+            #be from sum(trialWeights[begin:trialIndex]) to sum(trialWeights[begin:trialIndex+1]).
+
+            #if we haven't begun the experiment yet, then the last row of the first column is used as the current
+            #position, emulating what TrialHandler does. The following two lines also prevents calculating garbage
+            #position values in case the first row has a null weight
+            if self.thisN < 0:
+                return [0, -1]
+
+            firstRowIndex=sum(self.trialWeights[:self.thisIndex])
+            lastRowIndex= sum(self.trialWeights[:self.thisIndex+1])
+
+            #get the number of the trial presented by summing in ran for the rows above and all columns
+            nThisTrialPresented = numpy.sum(self.data['ran'][firstRowIndex:lastRowIndex,:])
+
+            dataRowThisTrial = firstRowIndex + (nThisTrialPresented-1)%self.trialWeights[self.thisIndex]
+            dataColThisTrial = int((nThisTrialPresented-1)/self.trialWeights[self.thisIndex])
+
+            position = [dataRowThisTrial, dataColThisTrial]
+
+        return position
+
+    def getNextTrialPosInDataHandler(self):
+        #if there's no trial weights, then the current position is simply [trialIndex, nRepetition]
+        if self.trialWeights is None:
+            repN = sum(self['ran'][self.trials.thisIndex])
+            position= [self.trials.thisIndex, repN]
+        else:
+            #if there are trial weights, the situation is slightly more involved, because the same index can be repeated
+            #for a number of times. If we had a sequential array, then the rows in DataHandler for that trialIndex would
+            #be from sum(trialWeights[begin:trialIndex]) to sum(trialWeights[begin:trialIndex+1]).
+
+            firstRowIndex=sum(self.trialWeights[:self.thisIndex])
+            lastRowIndex= sum(self.trialWeights[:self.thisIndex+1])
+
+            #get the number of the trial presented by summing in ran for the rows above and all columns
+            nThisTrialPresented = numpy.sum(self.data['ran'][firstRowIndex:lastRowIndex,:])
+
+            dataRowThisTrial = firstRowIndex + nThisTrialPresented%self.trialWeights[self.thisIndex]
+            dataColThisTrial = int(nThisTrialPresented/self.trialWeights[self.thisIndex])
+
+            position = [dataRowThisTrial, dataColThisTrial]
+
+        return position
+
+    def addData(self, thisType, value, position=None):
+        """Add data for the current trial
+        """
+
+        if self.trialWeights is None:
+            self.data.add(thisType, value, position=None)
+        else:
+            self.data.add(thisType, value, position=self.getCurrentTrialPosInDataHandler())
+
+        #change this!
+        if self.getExp()!=None:#update the experiment handler too
+            self.getExp().addData(thisType, value)
+
+    def _createOutputArrayData(self, dataOut):
+
+        if self.trialWeights is not None:
+            #remember to use other array instead of self.data
+            idx_data = numpy.repeat(numpy.arange(len(self.trialList)),self.trialWeights)
+
+        """This just creates the dataOut part of the output matrix.
+        It is called by _createOutputArray() which creates the header line and adds the stimOut columns
+        """
+        dataHead=[]#will store list of data headers
+        dataAnal=dict([])    #will store data that has been analyzed
+        if type(dataOut)==str:
+            dataOut=[dataOut]#don't do list convert or we get a list of letters
+        elif type(dataOut)!=list:
+            dataOut = list(dataOut)
+
+        #expand any 'all' dataTypes to be the full list of available dataTypes
+        allDataTypes=self.data.keys()
+        #treat these separately later
+        allDataTypes.remove('ran')
+        #ready to go through standard data types
+        dataOutNew=[]
+        for thisDataOut in dataOut:
+            if thisDataOut == 'n':
+                #n is really just the sum of the ran trials
+                dataOutNew.append('ran_sum')
+                continue#no need to do more with this one
+            #then break into dataType and analysis
+            dataType, analType = string.rsplit(thisDataOut, '_', 1)
+            if dataType == 'all':
+                dataOutNew.extend([key+"_"+analType for key in allDataTypes])
+                if 'order_mean' in dataOutNew:
+                    dataOutNew.remove('order_mean')
+                if 'order_std' in dataOutNew:
+                    dataOutNew.remove('order_std')
+            else:
+                dataOutNew.append(thisDataOut)
+        dataOut=dataOutNew
+        dataOut.sort()#so that all datatypes come together, rather than all analtypes
+
+        #do the various analyses, keeping track of fails (e.g. mean of a string)
+        dataOutInvalid=[]
+        #add back special data types (n and order)
+        if 'ran_sum' in dataOut:#move n to the first column
+            dataOut.remove('ran_sum')
+            dataOut.insert(0,'ran_sum')
+        if 'order_raw' in dataOut:#move order_raw to the second column
+            dataOut.remove('order_raw')
+            dataOut.append('order_raw')
+        #do the necessary analysis on the data
+        for thisDataOutN,thisDataOut in enumerate(dataOut):
+            dataType, analType = string.rsplit(thisDataOut, '_', 1)
+            if not dataType in self.data:
+                dataOutInvalid.append(thisDataOut)#that analysis can't be done
+                continue
+
+            if self.trialWeights is None:
+                thisData = self.data[dataType]
+            else:
+                resizedData = numpy.ma.masked_array(numpy.zeros((len(self.trialList),max(self.trialWeights)*self.nReps)),
+                                        numpy.ones((len(self.trialList),max(self.trialWeights)*self.nReps), dtype=bool))
+                for curTrialIndex in range(len(self.trialList)):
+                    thisDataChunk = self.data[dataType][idx_data==curTrialIndex,:]
+                    padWidth = max(self.trialWeights)*self.nReps - numpy.prod(thisDataChunk.shape)
+                    thisDataChunkRowPadded = numpy.pad(thisDataChunk.transpose().flatten().data, (0, padWidth), mode='constant', constant_values=(0,0))
+                    thisDataChunkRowPaddedMask = numpy.pad(thisDataChunk.flatten().mask, (0, padWidth), mode='constant', constant_values=(0,True))
+
+                    thisDataChunkRow = numpy.ma.masked_array(thisDataChunkRowPadded, mask=thisDataChunkRowPaddedMask)
+                    resizedData[curTrialIndex,:] = thisDataChunkRow
+
+                thisData = resizedData
+
+            #set the header
+            dataHead.append(dataType+'_'+analType)
+            #analyse thisData using numpy module
+            if analType in dir(numpy):
+                try:#this will fail if we try to take mean of a string for example
+                    if analType=='std':
+                        thisAnal = numpy.std(thisData,axis=1,ddof=0)
+                        #normalise by N-1 instead. This should work by setting ddof=1
+                        #but doesn't as of 08/2010 (because of using a masked array?)
+                        N=thisData.shape[1]
+                        if N == 1:
+                            thisAnal*=0 #prevent a divide-by-zero error
+                        else:
+                            thisAnal = thisAnal*numpy.sqrt(N)/numpy.sqrt(N-1)
+                    else:
+                        exec("thisAnal = numpy.%s(thisData,1)" %analType)
+                except:
+                    dataHead.remove(dataType+'_'+analType)#that analysis doesn't work
+                    dataOutInvalid.append(thisDataOut)
+                    continue#to next analysis
+            elif analType=='raw':
+                thisAnal=thisData
+            else:
+                raise AttributeError('You can only use analyses from numpy')
+            #add extra cols to header if necess
+            if len(thisAnal.shape)>1:
+                for n in range(thisAnal.shape[1]-1):
+                    dataHead.append("")
+            dataAnal[thisDataOut]=thisAnal
+
+        #remove invalid analyses (e.g. average of a string)
+        for invalidAnal in dataOutInvalid:
+            dataOut.remove(invalidAnal)
+        return dataOut, dataAnal, dataHead
+
+    def saveAsWideText(self,fileName,
+                   delim='\t',
+                   matrixOnly=False,
+                   appendFile=True,
+                  ):
+        """
+        Write a text file with the session, stimulus, and data values from each trial in chronological order.
+
+        That is, unlike 'saveAsText' and 'saveAsExcel':
+         - each row comprises information from only a single trial.
+         - no summarising is done (such as collapsing to produce mean and standard deviation values across trials).
+
+        This 'wide' format, as expected by R for creating dataframes, and various other analysis programs, means that some
+        information must be repeated on every row.
+
+        In particular, if the trialHandler's 'extraInfo' exists, then each entry in there occurs in every row.
+        In builder, this will include any entries in the 'Experiment info' field of the 'Experiment settings' dialog.
+        In Coder, this information can be set using something like::
+
+            myTrialHandler.extraInfo = {'SubjID':'Joan Smith', 'DOB':1970 Nov 16, 'Group':'Control'}
+
+        :Parameters:
+
+            fileName:
+                if extension is not specified, '.csv' will be appended if the delimiter is ',', else '.txt' will be appended.
+                Can include path info.
+
+            delim:
+                allows the user to use a delimiter other than the default tab ("," is popular with file extension ".csv")
+
+            matrixOnly:
+                outputs the data with no header row.
+
+            appendFile:
+                will add this output to the end of the specified file if it already exists.
+
+        """
+        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+            logging.info('TrialHandler.saveAsWideText called but no trials completed. Nothing saved')
+            return -1
+
+        #create the file or print to stdout
+        if appendFile:
+            writeFormat = 'a'
+        else:
+            writeFormat = 'w' #will overwrite a file
+        if fileName == 'stdout':
+            f = sys.stdout
+        elif fileName[-4:] in ['.dlm','.DLM', '.tsv', '.TSV', '.txt', '.TXT', '.csv', '.CSV']:
+            f = codecs.open(fileName, writeFormat, encoding="utf-8")
+        else:
+            if delim==',':
+                f = codecs.open(fileName+'.csv', writeFormat, encoding="utf-8")
+            else:
+                f = codecs.open(fileName+'.txt', writeFormat, encoding="utf-8")
+
+        # collect parameter names related to the stimuli:
+        if self.trialList[0]:
+            header = self.trialList[0].keys()
+        else:
+            header = []
+        # and then add parameter names related to data (e.g. RT)
+        header.extend(self.data.dataTypes)
+
+        # loop through each trial, gathering the actual values:
+        dataOut = []
+        trialCount = 0
+        # total number of trials = number of trialtypes * number of repetitions:
+
+        repsPerType={}
+        for rep in range(self.nReps):
+            if self.trialWeights is None:
+                nRows = len(self.trialList)
+            else:
+                nRows = sum(self.trialWeights)
+
+            for trialN in range(nRows):
+                #find out what trial type was on this trial
+                trialTypeIndex = self.sequenceIndices[trialN, rep]
+                #determine which repeat it is for this trial
+                if trialTypeIndex not in repsPerType.keys():
+                    repsPerType[trialTypeIndex]=0
+                else:
+                    repsPerType[trialTypeIndex]+=1
+                repThisType=repsPerType[trialTypeIndex]#what repeat are we on for this trial type?
+
+                # create a dictionary representing each trial:
+                # this is wide format, so we want fixed information (e.g. subject ID, date, etc) repeated every line if it exists:
+                if (self.extraInfo != None):
+                    nextEntry = self.extraInfo.copy()
+                else:
+                    nextEntry = {}
+
+                # add a trial number so the original order of the data can always be recovered if sorted during analysis:
+                trialCount += 1
+                nextEntry["TrialNumber"] = trialCount
+
+                # now collect the value from each trial of the variables named in the header:
+                for parameterName in header:
+                    # the header includes both trial and data variables, so need to check before accessing:
+                    if self.trialList[trialTypeIndex] and parameterName in self.trialList[trialTypeIndex]:
+                        nextEntry[parameterName] = self.trialList[trialTypeIndex][parameterName]
+                    elif parameterName in self.data:
+                        if self.trialWeights is None:
+                            nextEntry[parameterName] = self.data[parameterName][trialTypeIndex][repThisType]
+                        else:
+                            firstRowIndex=sum(self.trialWeights[:trialTypeIndex])
+                            dataRow = firstRowIndex + repThisType%self.trialWeights[trialTypeIndex]
+                            dataCol = int(repThisType/self.trialWeights[trialTypeIndex])
+                            nextEntry[parameterName] = self.data[parameterName][dataRow][dataCol]
+                    else: # allow a null value if this parameter wasn't explicitly stored on this trial:
+                        nextEntry[parameterName] = ''
+
+                #store this trial's data
+                dataOut.append(nextEntry)
+
+        # get the extra 'wide' parameter names into the header line:
+        header.insert(0,"TrialNumber")
+        if (self.extraInfo != None):
+            for key in self.extraInfo:
+                header.insert(0, key)
+
+        if not matrixOnly:
+        # write the header row:
+            nextLine = ''
+            for parameterName in header:
+                nextLine = nextLine + parameterName + delim
+            f.write(nextLine[:-1] + '\n') # remove the final orphaned tab character
+
+        # write the data matrix:
+        for trial in dataOut:
+            nextLine = ''
+            for parameterName in header:
+                nextLine = nextLine + unicode(trial[parameterName]) + delim
+            nextLine = nextLine[:-1] # remove the final orphaned tab character
+            f.write(nextLine + '\n')
+
+        if f != sys.stdout:
+            f.close()
+            logging.info('saved wide-format data to %s' %f.name)
 
 def importTrialTypes(fileName, returnFieldNames=False):
     """importTrialTypes is DEPRECATED (as of v1.70.00)
