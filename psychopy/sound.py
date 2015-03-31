@@ -468,8 +468,13 @@ class SoundPyo(_SoundBase):
         self._sndTable = pyo.SndTable(initchnls=self.channels)
         self.loops = self.requestedLoops #in case a tone with inf loops had been used before
         # mono file loaded to all chnls:
-        self._sndTable.setSound(self.fileName,
+        try:
+            self._sndTable.setSound(self.fileName,
                                 start=self.startTime, stop=self.stopTime)
+        except:
+            msg = 'Could not open sound file; not found or format not supported (%s)' % fileName
+            logging.error(msg)
+            raise TypeError(msg)
         self._updateSnd()
         self.duration = self._sndTable.getDur()
 
