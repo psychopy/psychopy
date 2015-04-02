@@ -222,6 +222,12 @@ class ExperimentHandler(object):
         """
         if name not in self.dataNames:
             self.dataNames.append(name)
+        # could just copy() every value, but not always needed, so check:
+        try:
+            hash(value)
+        except TypeError:
+            # unhashable type (list, dict, ...) == mutable, so need a copy()
+            value = copy.deepcopy(value)
         self.thisEntry[name]=value
 
     def nextEntry(self):

@@ -76,6 +76,28 @@ class TestExperimentHandler():
         #    print e
         #print 'done'
 
+    def test_addData_with_mutable_values(self):
+        # add mutable objects to data, check that the value *at that time* is saved
+        exp = data.ExperimentHandler(
+            name='testExp',
+            savePickle=False,
+            saveWideText=True,
+            dataFileName=self.tmpDir + 'mutables'
+            )
+
+        mutant = [1]
+        exp.addData('mutable', mutant)
+        exp.nextEntry()
+        mutant[0] = 9999
+        exp.addData('mutable', mutant)
+        exp.nextEntry()
+
+        exp.saveAsWideText(exp.dataFileName+'.csv', delim=',')
+
+        #get data file contents:
+        contents = open(exp.dataFileName+'.csv', 'rU').read()
+        assert contents == "mutable,\n[1],\n[9999],\n"
+
     def test_unicode_conditions(self):
         fileName = self.tmpDir + 'unicode_conds'
 
