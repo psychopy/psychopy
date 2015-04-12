@@ -55,7 +55,7 @@ class ResponseEmulator(threading.Thread):
         self.stopflag = True
 
 class SyncGenerator(threading.Thread):
-    def __init__(self, TR=1.0, volumes=10, sync='5', skip=0, sound=False):
+    def __init__(self, TR=1.0, TA=1.0, volumes=10, sync='5', skip=0, sound=False, **kwargs):
         """Class for a character-emitting metronome thread (emulate MR sync pulse).
 
             Aim: Allow testing of temporal robustness of fMRI scripts by emulating
@@ -65,7 +65,8 @@ class SyncGenerator(threading.Thread):
             --> higher CPU load.
 
             Parameters:
-                TR:      seconds per whole-brain volume
+                TR:      seconds between volume acquisitions
+                TA:      seconds to acquire one volume 
                 volumes: number of 3D volumes to obtain in a given scanning run
                 sync:    character used as flag for sync timing, default='5'
                 skip:    how many frames to silently omit initially during T1
@@ -77,6 +78,7 @@ class SyncGenerator(threading.Thread):
         if TR < 0.1:
             raise ValueError, 'SyncGenerator:  whole-brain TR < 0.1 not supported'
         self.TR = TR
+        self.TA = TA
         self.hogCPU = 0.035
         self.timesleep = self.TR
         self.volumes = int(volumes)
@@ -84,8 +86,8 @@ class SyncGenerator(threading.Thread):
         self.skip = skip
         self.playSound = sound
         if self.playSound:  # pragma: no cover
-            self.sound1 = Sound(800, secs=self.TR-.08, volume=0.15, autoLog=False)
-            self.sound2 = Sound(813, secs=self.TR-.08, volume=0.15, autoLog=False)
+            self.sound1 = Sound(800, secs=self.TA, volume=0.15, autoLog=False)
+            self.sound2 = Sound(813, secs=self.TA, volume=0.15, autoLog=False)
 
         self.clock = core.Clock()
         self.stopflag = False
