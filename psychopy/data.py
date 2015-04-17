@@ -1972,7 +1972,8 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         raise ImportError('Conditions file not found: %s' %os.path.abspath(fileName))
 
     if fileName.endswith('.csv'):
-        trialsArr = read_csv(fileName) # use pandas reader, which can handle commas in fields, etc
+        with open(fileName, 'rU') as fileUniv:
+            trialsArr = read_csv(fileUniv)  # use pandas reader, which can handle commas in fields, etc
         trialsArr = trialsArr.to_records(index=False) # convert the resulting dataframe to a numpy recarry
         if trialsArr.shape == ():  # convert 0-D to 1-D with one element:
             trialsArr = trialsArr[numpy.newaxis]
