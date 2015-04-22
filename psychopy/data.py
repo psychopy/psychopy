@@ -112,9 +112,11 @@ class ExperimentHandler(object):
         else:
             checkValidFilePath(dataFileName, makeValid=True) #fail now if we fail at all!
     def __del__(self):
-        self.saveData()
-    def saveData(self):
-        if self.dataFileName and self.unsavedData:
+        self.saveData(force=True)
+    def saveData(self, force=False):
+        """Saves .pkl or .csv (wide text) data,
+        """
+        if self.dataFileName and (self.unsavedData or force):
             if self.autoLog:
                 logging.debug('Saving data for %s ExperimentHandler' %self.name)
             if self.savePickle==True:

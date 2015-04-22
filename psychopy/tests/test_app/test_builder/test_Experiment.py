@@ -285,10 +285,9 @@ class TestExpt():
         script = self.exp.writeScript(expPath=expfile)
         py_file = os.path.join(self.tmp_dir, 'testLoopBlocks.py')
         # save it
-        f = codecs.open(py_file, 'w', 'utf-8')
-        f.write(script.getvalue().replace("core.quit()", "pass"))
-        f.write("del thisExp\n") #garbage collect the experiment so files are auto-saved
-        f.close()
+        with codecs.open(py_file, 'w', 'utf-8') as f:
+            f.write(script.getvalue().replace("core.quit()", "pass"))
+            f.write("thisExp.saveData(force=True)\n")
         #run the file (and make sure we return to this location afterwards)
         wd = os.getcwd()
         execfile(py_file)

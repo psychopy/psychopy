@@ -1237,7 +1237,7 @@ class Routine(list):
         if self.exp.settings.params['Enable Escape'].val:
             buff.writeIndentedLines('\n# check for quit (the Esc key)')
             buff.writeIndentedLines('if endExpNow or event.getKeys(keyList=["escape"]):\n')
-            buff.writeIndentedLines('    thisExp.saveData()\n')
+            buff.writeIndentedLines('    thisExp.saveData(force=True)\n')
             buff.writeIndentedLines('    core.quit()\n')
         #update screen
         buff.writeIndentedLines('\n# refresh the screen\n')
