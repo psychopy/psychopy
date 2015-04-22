@@ -106,18 +106,22 @@ class ExperimentHandler(object):
         self._paramNamesSoFar=[]
         self.dataNames=[]#names of all the data (eg. resp.keys)
         self.autoLog = autoLog
+        self.unsavedData = True
         if dataFileName in ['', None]:
             logging.warning('ExperimentHandler created with no dataFileName parameter. No data will be saved in the event of a crash')
         else:
             checkValidFilePath(dataFileName, makeValid=True) #fail now if we fail at all!
     def __del__(self):
-        if self.dataFileName not in ['', None]:
+        self.saveData()
+    def saveData(self):
+        if self.dataFileName and self.unsavedData:
             if self.autoLog:
                 logging.debug('Saving data for %s ExperimentHandler' %self.name)
             if self.savePickle==True:
-                self.saveAsPickle(self.dataFileName)
+                self.saveAsPickle(self.dataFileName, fileCollisionMethod='overwrite')
             if self.saveWideText==True:
-                self.saveAsWideText(self.dataFileName+'.csv', delim=',')
+                self.saveAsWideText(self.dataFileName+'.csv', delim=',', fileCollisionMethod='overwrite')
+            self.unsavedData = False
     def addLoop(self, loopHandler):
         """Add a loop such as a :class:`~psychopy.data.TrialHandler` or :class:`~psychopy.data.StairHandler`
         Data from this loop will be included in the resulting data files.
@@ -220,6 +224,7 @@ class ExperimentHandler(object):
             #end of trial - move to next line in data output
             exp.nextEntry()
         """
+        self.unsavedData = True
         if name not in self.dataNames:
             self.dataNames.append(name)
         # could just copy() every value, but not always needed, so check:
@@ -1897,7 +1902,7 @@ def sliceFromString(sliceString):
         else:
             sliceArgs.append(int(round(float(val))))
             #nb int(round(float(x))) is needed for x='4.3'
-    return apply(slice, sliceArgs)
+    return slice(*sliceArgs)
 
 def indicesFromString(indsString):
     """Convert a text string into a valid list of indices

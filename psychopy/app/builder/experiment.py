@@ -35,7 +35,9 @@ _localized = {
         'N up': _translate('N up'), 'max value': _translate('max value'), 'N down': _translate('N down'),
         'step type': _translate('step type'), 'step sizes': _translate('step sizes'),
     # strings for interleaved Staircases
-        'stairType': _translate('stairType'), 'switchMethod': _translate('switchMethod')
+        'stairType': _translate('stairType'), 'switchMethod': _translate('switchMethod'),
+    # other
+        'Auto-save': _translate('Auto-save')
     }
 
 """
@@ -623,7 +625,7 @@ class TrialHandler(object):
             """
     def __init__(self, exp, name, loopType='random', nReps=5,
         conditions=[], conditionsFile='',endPoints=[0,1],randomSeed='', selectedRows='',
-        isTrials = True):
+        isTrials=True, autosave=True):
         """
         @param name: name of the loop e.g. trials
         @type name: string
@@ -662,6 +664,9 @@ class TrialHandler(object):
         self.params['isTrials']=Param(isTrials, valType='bool', updates=None, allowedUpdates=None,
             hint=_translate("Indicates that this loop generates TRIALS, rather than BLOCKS of trials or stimuli within a trial. It alters how data files are output"),
             label=_localized["Is trials"])
+        self.params['autosave']=Param(autosave, valType='bool', updates=None, allowedUpdates=None,
+            hint=_translate("Auto-save all data to the data file(s) when the loop finishes"),
+            label=_localized["Auto-save"])
     def writeInitCode(self,buff):
         #no longer needed - initialise the trial handler just before it runs
         pass
@@ -718,6 +723,8 @@ class TrialHandler(object):
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented("# completed %s repeats of '%s'\n" \
             %(self.params['nReps'], self.params['name']))
+        if self.params['autosave'].val:
+            buff.writeIndented("thisExp.saveData()  # auto-save\n")
         buff.writeIndented("\n")
         #save data
         if self.params['isTrials'].val == True:
@@ -1230,6 +1237,7 @@ class Routine(list):
         if self.exp.settings.params['Enable Escape'].val:
             buff.writeIndentedLines('\n# check for quit (the Esc key)')
             buff.writeIndentedLines('if endExpNow or event.getKeys(keyList=["escape"]):\n')
+            buff.writeIndentedLines('    thisExp.saveData()\n')
             buff.writeIndentedLines('    core.quit()\n')
         #update screen
         buff.writeIndentedLines('\n# refresh the screen\n')
