@@ -10,6 +10,11 @@ Changelog
 PsychoPy 1.82
 ------------------------------
 
+PsychoPy 1.82.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ADDED: RatingScale precision=60 allows display of time-based values (min:sec or hours:min). Values from .getRating() are decimal proportions (1 min: 59 seconds -> 1.9833 minutes).
+
 PsychoPy 1.82.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
