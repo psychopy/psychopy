@@ -1018,7 +1018,7 @@ class RatingScale(MinimalStim):
                         valTmp = self.markerPlacedAt + self.low
                         minutes = int(valTmp)  # also works for hours:minutes
                         seconds = int(60. * (valTmp - minutes))
-                        val = "%d:%s" % (minutes, str(seconds).zfill(2))
+                        val = self.fmtStr % (minutes, str(seconds).zfill(2))
                     else:
                         valTmp = self.markerPlacedAt + self.low
                         val = self.fmtStr % (valTmp * self.autoRescaleFactor)
