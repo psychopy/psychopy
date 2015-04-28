@@ -143,9 +143,14 @@ class RatingScale(MinimalStim):
         high :
             Highest numeric rating (integer), default = 7.
         precision :
-            Portions of a tick to accept as input [1, 10, 100]; default = 1 (a whole tick).
+            Portions of a tick to accept as input [1, 10, 60, 100]; default = 1 (a whole tick).
             Pressing a key in `leftKeys` or `rightKeys` will move the marker by
-            one portion of a tick.
+            one portion of a tick. precision=60 is intended to support ratings
+            of time-based quantities, with seconds being fractional minutes (or
+            minutes being fractional hours). The display uses a colon (min:sec, or hours:min)
+            to signal this to participants. The value returned by getRating()
+            will be a proportion of a minute (e.g., 1:30 -> 1.5, or 59 seconds
+            -> 59/60 = 0.98333). hours:min:sec is not supported.
         scale :
             Optional reminder message about how to respond or rate an item,
             displayed above the line; default = '<low>=not at all, <high>=extremely'.
@@ -426,6 +431,8 @@ class RatingScale(MinimalStim):
         if type(self.precision) != int or self.precision < 10:
             self.precision = 1
             self.fmtStr = "%.0f" # decimal places, purely for display
+        elif self.precision == 60:
+            self.fmtStr = "%d:%s"  # minutes:seconds.zfill(2)
         elif self.precision < 100:
             self.precision = 10
             self.fmtStr = "%.1f"
@@ -1007,6 +1014,11 @@ class RatingScale(MinimalStim):
                 if self.showValue and self.markerPlacedAt is not False:
                     if self.choices:
                         val = unicode(self.choices[int(self.markerPlacedAt)])
+                    elif self.precision == 60:
+                        valTmp = self.markerPlacedAt + self.low
+                        minutes = int(valTmp)  # also works for hours:minutes
+                        seconds = int(60. * (valTmp - minutes))
+                        val = self.fmtStr % (minutes, str(seconds).zfill(2))
                     else:
                         valTmp = self.markerPlacedAt + self.low
                         val = self.fmtStr % (valTmp * self.autoRescaleFactor)
