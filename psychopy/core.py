@@ -93,16 +93,18 @@ class StaticPeriod(object):
     #NB - this might seem to be more sensible in the clock.py module, but that creates a circular reference
     # with the logging module.
 
-    def __init__(self, screenHz=None, win=None, name='StaticPeriod'):
+    def __init__(self, screenHz=None, win=None, name='StaticPeriod', fullHog=False):
         """
         :param screenHz: the frame rate of the monitor (leave as None if you don't want this accounted for)
         :param win: if a visual.Window is given then StaticPeriod will also pause/restart frame interval recording
         :param name: give this StaticPeriod a name for more informative logging messages
+        :param fullHog: hog cpu for the full duration of the (required for accurate rt collection during the StaticPeriod)
         """
         self.status=NOT_STARTED
         self.countdown = CountdownTimer()
         self.name = name
         self.win = win
+        self.fullHog = fullHog
         if screenHz is None:
             self.frameTime = 0
         else:
@@ -130,5 +132,8 @@ class StaticPeriod(object):
             logging.warn('We overshot the intended duration of %s by %.4fs. The intervening code took too long to execute.' %(self.name, abs(timeRemaining)))
             return 0
         else:
-            wait(timeRemaining)
+            if self.fullHog:
+                wait(timeRemaining, hogCPUperiod=timeRemaining)
+            else:
+                wait(timeRemaining)
             return 1
