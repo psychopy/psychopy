@@ -12,12 +12,7 @@ from psychopy.app.builder.components import getAllComponents
 
 # motivation: catch deviations introduced during refactoring
 
-# use --out to generate a new target file (sent to sys.stdout, so redirect to a file)
-# or compare against a prior run (x.out.master.de55d49.txt)
-
-# current target file is x.out.master.de55d49.txt, which is the output of this script --out
-# as run on upstream/master branch @ de55d49, with edits to fix known-good changes
-# introduced by refactoring: nVertices 4, Patch interpolation 'linear'
+# use --out to re-generate componsTemplate.txt
 
 # should not need a wx.App with fetchIcons=False
 try:
@@ -28,14 +23,16 @@ except:
         tmpApp = wx.PySimpleApp()
     else:
         tmpApp = wx.App(False)
-    try: from psychopy.app import localization
-    except: pass  # not needed if can't import it
+    try:
+        from psychopy.app import localization
+    except:
+        pass  # not needed if can't import it
     allComp = getAllComponents(fetchIcons=False)
 
 exp = builder.experiment.Experiment()
-
+relPath = os.path.join(os.path.split(__file__)[0], 'componsTemplate.txt')
 if not '--out' in sys.argv:
-    target = open('componsTemplate.txt', 'rU').read()
+    target = open(relPath, 'rU').read()
     targetLines = target.splitlines()
     targetTag = {}
     for line in targetLines:
@@ -46,6 +43,8 @@ if not '--out' in sys.argv:
             # need more than one value to unpack; this is a weak way to
             # handle multi-line default values, eg TextComponent.text.default
             targetTag[t] += '\n' + line  # previous t value
+else:
+    outfile = open(relPath,'w')
 
 param = builder.experiment.Param('', '')  # want its namespace
 ignore = ['__doc__', '__init__', '__module__', '__str__']
@@ -64,7 +63,7 @@ for compName in sorted(allComp):
     order = '%s.order:%s' % (compName, eval("comp.order"))
     out = [order]
     if '--out' in sys.argv:
-        print order.encode('utf8')
+        outfile.write(order.encode('utf8')+'\n')
     elif not order+'\n' in target:
         tag = order.split(':',1)[0]
         try:
@@ -88,7 +87,7 @@ for compName in sorted(allComp):
 
         for line in [default] + lineFields:
             if '--out' in sys.argv:
-                print line.encode('utf8')
+                outfile.write(line.encode('utf8')+'\n')
             elif not line+'\n' in target:
                 # mismatch, so report on the tag from orig file
                 # match checks tag + multi-line, because line is multi-line and target is whole file

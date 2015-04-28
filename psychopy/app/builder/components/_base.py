@@ -209,22 +209,20 @@ class BaseComponent(object):
             return None, None, True#this component does not have any start/stop
         startType=self.params['startType'].val
         stopType=self.params['stopType'].val
+        numericStart = canBeNumeric(self.params['startVal'].val)
+        numericStop = canBeNumeric(self.params['stopVal'].val)
         #deduce a start time (s) if possible
         #user has given a time estimate
         if canBeNumeric(self.params['startEstim'].val):
             startTime=float(self.params['startEstim'].val)
-        elif startType=='time (s)' and canBeNumeric(self.params['startVal'].val):
+        elif startType=='time (s)' and numericStart:
             startTime=float(self.params['startVal'].val)
         else: startTime=None
-        #if we have an exact
-        if stopType=='time (s)' and canBeNumeric(self.params['stopVal'].val):
+        if stopType=='time (s)' and numericStop and startTime is not None:
             duration=float(self.params['stopVal'].val)-startTime
-            nonSlipSafe=True
-        elif stopType=='duration (s)' and canBeNumeric(self.params['stopVal'].val):
+        elif stopType=='duration (s)' and numericStop:
             duration=float(self.params['stopVal'].val)
-            nonSlipSafe=True
         else:
-            nonSlipSafe=False
             #deduce duration (s) if possible. Duration used because component time icon needs width
             if canBeNumeric(self.params['durationEstim'].val):
                 duration=float(self.params['durationEstim'].val)
@@ -232,6 +230,7 @@ class BaseComponent(object):
                 duration=FOREVER#infinite duration
             else:
                 duration=None
+        nonSlipSafe = numericStop and (numericStart or stopType == 'time (s)')
         return startTime, duration, nonSlipSafe
     def getPosInRoutine(self):
         """Find the index (position) in the parent Routine (0 for top)
@@ -242,47 +241,6 @@ class BaseComponent(object):
         return self.__class__.__name__
     def getShortType(self):
         return self.getType().replace('Component','')
-
-class UnknownComponent(BaseComponent):
-    """This is used by Builder to represent a component that was not known by the
-    current installed version of PsychoPy (most likely from the future). We want
-    this to be loaded, represented and saved but not used in any script-outputs.
-    It should have nothing but a name - other params will be added by the loader
-    """
-    def __init__(self, exp, parentName, name=''):
-        self.type='Unknown'
-        self.exp=exp#so we can access the experiment if necess
-        self.parentName=parentName#to access the routine too if needed
-        self.params={}
-        self.params['name']=Param(name, valType='code',
-            hint=_translate("Name of this component (alpha-numeric or _, no spaces)"),
-            label=_localized['name'])
-        self.order=['name']  # name first, then timing, then others
-    #make sure nothing gets written into experiment for an unknown object class!
-    def writeRoutineStartCode(self,buff):
-        pass
-    def writeStartCode(self,buff):
-        pass
-    def writeInitCode(self,buff):
-        pass
-    def writeFrameCode(self,buff):
-        pass
-    def writeRoutineStartCode(self,buff):
-        pass
-    def writeRoutineEndCode(self,buff):
-        pass
-    def writeExperimentEndCode(self,buff):
-        pass
-    def writeTimeTestCode(self,buff):
-        pass
-    def writeStartTestCode(self,buff):
-        pass
-    def writeStopTestCode(self,buff):
-        pass
-    def writeParamUpdates(self, buff, updateType, paramNames=None):
-        pass
-    def writeParamUpdate(self, buff, compName, paramName, val, updateType, params=None):
-        pass
 
 def canBeNumeric(inStr):
     """Determines whether the input can be converted to a float

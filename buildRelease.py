@@ -23,7 +23,7 @@ def getSHA(cwd='.'):
     #get the SHA of the git HEAD
     SHA_string = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], cwd=cwd).split()[0]
     #convert to hex from a string and return it
-    print 'got here', SHA_string, cwd
+    print 'SHA:', SHA_string, 'for repo:',cwd
     return SHA_string
 
 def buildRelease(versionStr, noCommit=False, interactive=True):
@@ -63,10 +63,16 @@ def buildRelease(versionStr, noCommit=False, interactive=True):
     print "tagging: git tag -m 'release %s'" %versionStr
     ok = subprocess.call(["git", "tag", versionStr, "-m", "'release %s'" %versionStr], cwd=VERSIONS)
 
-    print "tags are now:", subprocess.check_output(["git","tag"], cwd=VERSIONS).split()
+    print "'versions' tags are now:", subprocess.check_output(["git","tag"], cwd=VERSIONS).split()
+    ok = subprocess.call(["git", "push", "%s" %versionStr], cwd=VERSIONS)
+    if ok:
+        print "Successfully pushed tag %s upstream" %versionStr
+    else:
+        print "Failed to push tag %s upstream" %versionStr
+
     #revert thte __init__ file to non-ditribution state
-    print 'reverting master branch...'
-    print subprocess.check_output(["git","checkout", "--", "."], cwd=MAIN)
+    print 'reverting the main master branch: git reset --hard HEAD'
+    print subprocess.check_output(["git","reset", "--hard", "HEAD"], cwd=MAIN)
     return True #success
 
 if __name__=="__main__":

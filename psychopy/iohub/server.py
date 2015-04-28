@@ -457,6 +457,7 @@ class DeviceMonitor(Greenlet):
     def __del__(self):
         self.device = None
 
+
 class ioServer(object):
     eventBuffer=None
     deviceDict={}
@@ -568,6 +569,15 @@ class ioServer(object):
                     device_errors[error_type]=error_list                
                     self._all_device_config_errors[device_module_path]=device_errors
 
+    def pumpMsgTasklet(self, sleep_interval):
+        import pythoncom
+        while self._running:
+            stime=Computer.getTime()
+            if pythoncom.PumpWaitingMessages() == 1:
+                break
+            dur = sleep_interval - (Computer.getTime()-stime)
+            gevent.sleep(max(0.0, dur))
+
     def createNewMonitoredDevice(self,device_class_name,deviceConfig):
         #print2err("#### createNewMonitoredDevice: ",device_class_name)
         self._all_device_config_errors=dict()
@@ -623,64 +633,24 @@ class ioServer(object):
         deviceDict=ioServer.deviceDict
         iohub=self
         if device_class_name in ('Mouse','Keyboard'):
-            if Computer.system == 'win32':  
-                if self._hookDevice is None:
-                    iohub.log("Creating pyHook Monitors....")
-                    #print2err("Creating pyHook Monitor....")
-    
-                    class pyHookDevice(object):
-                        def __init__(self):
-                            import pyHook
-                            self._hookManager=pyHook.HookManager()
-                            
-                            self._mouseHooked=False
-                            self._keyboardHooked=False
-                            
-                            if device_class_name == 'Mouse':
-                                #print2err("Hooking Mouse.....")
-                                self._hookManager.MouseAll = deviceDict['Mouse']._nativeEventCallback
-                                self._hookManager.HookMouse()
-                                self._mouseHooked=True
-                            elif device_class_name == 'Keyboard':
-                                #print2err("Hooking Keyboard.....")
-                                self._hookManager.KeyAll = deviceDict['Keyboard']._nativeEventCallback
-                                self._hookManager.HookKeyboard()
-                                self._keyboardHooked=True
-    
-                            #iohub.log("WindowsHook PumpEvents Periodic Timer Created.")
-                
-                        def _poll(self):
-                            import pythoncom
-                            # PumpWaitingMessages returns 1 if a WM_QUIT message was received, else 0
-                            if pythoncom.PumpWaitingMessages() == 1:
-                                raise KeyboardInterrupt()               
-        
-                        def __del__(self):
-                            #if self._mouseHooked and self._hookManager:
-                            #    self._hookManager.UnhookMouse()
-                            #elif self._keyboardHooked and self._hookManager:
-                            #    self._hookManager.UnhookKeyboard()
-                            self._hookManager=None
-                    #print2err("Creating pyHook Monitor......")
-                    self._hookDevice=pyHookDevice()
-                    hookMonitor=DeviceMonitor(self._hookDevice, self.config.get('windows_msgpump_interval', 0.00375))
-                    self.deviceMonitors.append(hookMonitor)
-                
-                    #print2err("Created pyHook Monitor.")
-                else:
-                    #print2err("UPDATING pyHook Monitor....")
-                    if device_class_name == 'Mouse' and self._hookDevice._mouseHooked is False:
-                        #print2err("Hooking Mouse.....")
-                        self._hookDevice._hookManager.MouseAll = deviceDict['Mouse']._nativeEventCallback
-                        self._hookDevice._hookManager.HookMouse()
-                        self._hookDevice._mouseHooked=True
-                    elif device_class_name == 'Keyboard' and self._hookDevice._keyboardHooked is False:
-                        #print2err("Hooking Keyboard.....")
-                        self._hookDevice._hookManager.KeyAll = deviceDict['Keyboard']._nativeEventCallback
-                        self._hookDevice._hookManager.HookKeyboard()
-                        self._hookDevice._keyboardHooked=True
-                
-                    #print2err("Finished Updating pyHook Monitor.")
+            if Computer.system == 'win32':
+                import pyHook
+                if self._hookManager is None:
+                    iohub.log("Creating pyHook HookManager....")
+                    #print2err("Creating pyHook HookManager....")
+                    self._hookManager = pyHook.HookManager()
+                    self._hookManager.keyboard_hook = False
+
+                if device_class_name == 'Mouse' and self._hookManager.mouse_hook is False:
+                    #print2err("Hooking Mouse.....")
+                    self._hookManager.MouseAll = ioServer.deviceDict['Mouse']._nativeEventCallback
+                    self._hookManager.HookMouse()
+
+                if device_class_name == 'Keyboard' and self._hookManager.keyboard_hook is False:
+                    #print2err("Hooking Keyboard.....")
+                    self._hookManager.KeyAll = ioServer.deviceDict['Keyboard']._nativeEventCallback
+                    self._hookManager.HookKeyboard()
+
                 
             elif Computer.system == 'linux2':
                 # TODO: consider switching to xlib-ctypes implementation of xlib
@@ -939,12 +909,13 @@ class ioServer(object):
             if Computer.system=='linux2':
                 if self._hookManager:
                     self._hookManager.cancel()
+
             elif Computer.system=='win32':
-                if self._hookDevice and self._hookDevice._hookManager:
-                    #self._hookDevice._hookManager = None #.UnhookMouse()
-                    #self._hookDevice._hookManager.UnhookKeyboard()
-                    self._hookDevice._hookManager = None
-                    self._hookDevice = None
+                del self._hookManager
+                #if self._hookManager:
+                #    self._hookManager.UnhookMouse()
+                #    self._hookManager.UnhookKeyboard()
+
                     
             while len(self.deviceMonitors) > 0:
                 m=self.deviceMonitors.pop(0)

@@ -1068,7 +1068,7 @@ class FlowPanel(wx.ScrolledWindow):
             fontSizeDelta = (8,4,0)[self.appData['flowSize']]
             font.SetPointSize(1000/self.dpi-fontSizeDelta)
 
-        maxTime, nonSlip, onlyStaticComps = routine.getMaxTime()
+        maxTime, nonSlip = routine.getMaxTime()
         if nonSlip:
             rgbFill=nonSlipFill
             rgbEdge=nonSlipEdge
@@ -1379,9 +1379,9 @@ class RoutineCanvas(wx.ScrolledWindow):
     def getMaxTime(self):
         """Return the max time to be drawn in the window
         """
-        maxTime, nonSlip, onlyStaticComps = self.routine.getMaxTime()
-        if onlyStaticComps:
-            maxTime= maxTime+0.5
+        maxTime, nonSlip = self.routine.getMaxTime()
+        if self.routine.hasOnlyStaticComp():
+            maxTime = int(maxTime) + 1.0
         return maxTime
     def drawTimeGrid(self, dc, yPosTop, yPosBottom, labelAbove=True):
         """Draws the grid of lines and labels the time axes
@@ -1421,7 +1421,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         font.SetPointSize(size)
         dc.SetFont(font)
     def drawStatic(self, dc, component, yPosTop, yPosBottom):
-        """draw a static component box"""
+        """draw a static (ISI) component box"""
         #set an id for the region of this component (so it can act as a button)
         ##see if we created this already
         id=None
@@ -1434,31 +1434,37 @@ class RoutineCanvas(wx.ScrolledWindow):
         dc.SetId(id)
         #deduce start and stop times if possible
         startTime, duration, nonSlipSafe = component.getStartAndDuration()
-        #draw entries on timeline (if they have some time definition)
-        if startTime!=None and duration!=None:#then we can draw a sensible time bar!
-            #calculate rectangle for component
-            xScale = self.getSecsPerPixel()
-            dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0), style=wx.TRANSPARENT))
-            dc.SetBrush(wx.Brush(staticTimeColor))
-            xSt = self.timeXposStart + startTime / xScale
-            w = duration / xScale + 1  # +1 to compensate for border alpha=0 in dc.SetPen
-            if w > 10000:
-                w = 10000  #limit width to 10000 pixels!
-            if w < 2:
-                w = 2  #make sure at least one pixel shows
-            h = yPosBottom-yPosTop
-            # name label, position:
-            name = component.params['name'].val  # "ISI"
-            nameW, nameH = self.GetFullTextExtent(name)[0:2]
-            x = xSt+w/2
-            staticLabelTop = (0, 50, 60)[self.drawSize]
-            y = staticLabelTop - nameH * 3
-            fullRect = wx.Rect(x-20,y,nameW, nameH)
-            #draw the rectangle, draw text on top:
-            dc.DrawRectangle(xSt, yPosTop-nameH*4, w, h+nameH*5)
-            dc.DrawText(name, x-nameW/2, y)
-            fullRect.Union(wx.Rect(xSt, yPosTop, w, h))#update bounds to include time bar
-            dc.SetIdBounds(id,fullRect)
+        # ensure static comps are clickable (even if $code start or duration)
+        unknownTiming = False
+        if startTime is None:
+            startTime = 0
+            unknownTiming = True
+        if duration is None:
+            duration = 0  # minimal extent ensured below
+            unknownTiming = True
+        #calculate rectangle for component
+        xScale = self.getSecsPerPixel()
+        dc.SetPen(wx.Pen(wx.Colour(200, 100, 100, 0), style=wx.TRANSPARENT))
+        dc.SetBrush(wx.Brush(staticTimeColor))
+        xSt = self.timeXposStart + startTime / xScale
+        w = duration / xScale + 1  # +1 to compensate for border alpha=0 in dc.SetPen
+        w = max(min(w, 10000), 2)  # ensure 2..10000 pixels
+        h = yPosBottom-yPosTop
+        # name label, position:
+        name = component.params['name'].val  # "ISI"
+        if unknownTiming:
+            # flag it as not literally represented in time, e.g., $code duration
+            name += ' ???'
+        nameW, nameH = self.GetFullTextExtent(name)[0:2]
+        x = xSt+w/2
+        staticLabelTop = (0, 50, 60)[self.drawSize]
+        y = staticLabelTop - nameH * 3
+        fullRect = wx.Rect(x-20,y,nameW, nameH)
+        #draw the rectangle, draw text on top:
+        dc.DrawRectangle(xSt, yPosTop-nameH*4, w, h+nameH*5)
+        dc.DrawText(name, x-nameW/2, y)
+        fullRect.Union(wx.Rect(xSt, yPosTop, w, h))#update bounds to include time bar
+        dc.SetIdBounds(id,fullRect)
     def drawComponent(self, dc, component, yPos):
         """Draw the timing of one component on the timeline"""
         #set an id for the region of this component (so it can act as a button)
@@ -1648,10 +1654,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             panelWidth = 3*24+50
         scrolledpanel.ScrolledPanel.__init__(self,frame,id,size=(panelWidth,10*self.dpi))
         self.sizer=wx.BoxSizer(wx.VERTICAL)
-        self.components=components.getAllComponents()
         self.components=experiment.getAllComponents(self.app.prefs.builder['componentsFolders'])
         categories = ['Favorites']
-        categories.extend(components.getAllCategories())
+        categories.extend(components.getAllCategories(self.app.prefs.builder['componentsFolders']))
         #get rid of hidden components
         for hiddenComp in self.frame.prefs['hiddenComponents']:
             if hiddenComp in self.components:
@@ -1668,7 +1673,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             if sys.platform.startswith('linux'): # Localized labels on PlateButton may be corrupted in Ubuntu.
                 label = categ
             else:
-                label = _localized[categ]
+                if categ in _localized.keys():
+                    label = _localized[categ]
+                else:
+                    label = categ
             sectionBtn = platebtn.PlateButton(self,-1,label,
                 style=platebtn.PB_STYLE_DROPARROW, name=categ)
             sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn) #mouse event must be bound like this
@@ -2078,8 +2086,8 @@ class ParamCtrls:
         This function checks them all and returns the value or None.
 
         .. note::
-            Don't use GetStringSelection() here to avoid that translated value 
-            is returned. Instead, use GetSelection() to get index of selection 
+            Don't use GetStringSelection() here to avoid that translated value
+            is returned. Instead, use GetSelection() to get index of selection
             and get untranslated value from _choices attribute.
         """
         if ctrl is None:
@@ -2107,7 +2115,7 @@ class ParamCtrls:
         This function checks them all and returns the value or None.
 
         .. note::
-            Don't use SetStringSelection() here to avoid using tranlated 
+            Don't use SetStringSelection() here to avoid using tranlated
             value.  Instead, get index of the value using _choices attribute
             and use SetSelection() to set the value.
         """

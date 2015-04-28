@@ -64,7 +64,7 @@ class TestTrialHandler:
             matches = len(glob.glob(os.path.join(self.temp_dir, self.rootName + "*.psydat")))
             assert matches==count, "Found %d matching files, should be %d" % (matches, count)
     def test_psydat_filename_collision_overwriting(self):
-        for count in range(1,20):
+        for count in [1, 10, 20]:
             trials = data.TrialHandler([], 1, autoLog=False)
             trials.data.addDataType('trialType')
             for trial in trials:#need to run trials or file won't be saved
@@ -118,8 +118,8 @@ class TestTrialHandler:
             trials.addData('resp', resp)
             trials.addData('rand',randResp)
         #test summarised data outputs
-        trials.saveAsText(pjoin(self.temp_dir, 'testFullRandom.dlm'), stimOut=['trialType'],appendFile=False)#this omits values
-        utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.dlm'), pjoin(fixturesPath,'corrFullRandom.dlm'))
+        trials.saveAsText(pjoin(self.temp_dir, 'testFullRandom.tsv'), stimOut=['trialType'],appendFile=False)#this omits values
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.tsv'), pjoin(fixturesPath,'corrFullRandom.tsv'))
         #test wide data outputs
         trials.saveAsWideText(pjoin(self.temp_dir, 'testFullRandom.csv'), delim=',', appendFile=False)#this omits values
         utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.csv'), pjoin(fixturesPath,'corrFullRandom.csv'))
@@ -138,8 +138,8 @@ class TestTrialHandler:
             trials.addData('resp', resp)
             trials.addData('rand',random())
         #test summarised data outputs
-        trials.saveAsText(pjoin(self.temp_dir, 'testRandom.dlm'), stimOut=['trialType'],appendFile=False)#this omits values
-        utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.dlm'), pjoin(fixturesPath,'corrRandom.dlm'))
+        trials.saveAsText(pjoin(self.temp_dir, 'testRandom.tsv'), stimOut=['trialType'],appendFile=False)#this omits values
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.tsv'), pjoin(fixturesPath,'corrRandom.tsv'))
         #test wide data outputs
         trials.saveAsWideText(pjoin(self.temp_dir, 'testRandom.csv'), delim=',', appendFile=False)#this omits values
         utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.csv'), pjoin(fixturesPath,'corrRandom.csv'))

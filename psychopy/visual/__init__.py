@@ -33,8 +33,13 @@ from psychopy.visual.movie import MovieStim
 
 try:
     from psychopy.visual.movie2 import MovieStim2
+except ImportError, msg:
+    if "cv2" in msg.message:
+        print("WARNING: MovieStim2 is not available. Python opencv library (cv2) is not installed?")
+except OSError, msg:
+    print("WARNING: MovieStim2 is not available. Is the VLC application installed?")
 except:
-    logging.warn("Movie2 stim could not be imported and won't be available")
+    print("WARNING: MovieStim2 is not available. Failed to import vlc module. Maybe you have 64bit VLC installed instead of 32bit?")
 
 from psychopy.visual.shape import ShapeStim
 from psychopy.visual.text import TextStim

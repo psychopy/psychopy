@@ -122,7 +122,7 @@ class SerialDevice(object):
         raise NotImplemented
 
     def pause(self):
-        """Pause for
+        """Pause for a default period for this device
         """
         time.sleep(self.pauseDuration)
 

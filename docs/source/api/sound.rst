@@ -6,9 +6,9 @@
 :class:`Sound`
 -------------------
 PsychoPy currently supports a choice of two sound libraries: pyo, or pygame. Select which will be
-used via the `audioLib` preference. `sound.Sound()` will then refer to either
+used via the :ref:`audioLib<generalSettings>` preference. `sound.Sound()` will then refer to either
 `SoundPyo` or `SoundPygame`. This can be set on a per-experiment basis by importing
-preferences, and setting the audioLib preference to use.
+preferences, and :doc:`setting the audioLib option</api/preferences>` to use.
 
 It is important to use `sound.Sound()` in order for proper initialization of the
 relevant sound library. Do not use `sound.SoundPyo` or `sound.SoundPygame` directly.

@@ -968,27 +968,41 @@ class Window(object):
     def close(self):
         """Close the window (and reset the Bits++ if necess)."""
         self._closed=True
+        try:
+            openWindows.remove(self)
+        except:
+            pass
         if (not self.useNativeGamma) and self.origGammaRamp is not None:
             setGammaRamp(self.winHandle, self.origGammaRamp)
-        self.mouseVisible = True  # call attributeSetter
+        self.mouseVisible = True
         if self.winType == 'pyglet':
+            _hw_handle = None
+            try:
+                _hw_handle = self._hw_handle
+                self.winHandle.close()
+            except:
+                pass
             # If iohub is running, inform it to stop looking for this win id
             # when filtering kb and mouse events (if the filter is enabled of course)
-            #
-            if IOHUB_ACTIVE:
-                from psychopy.iohub.client import ioHubConnection
-                ioHubConnection.ACTIVE_CONNECTION.unregisterPygletWindowHandles(self._hw_handle)
             try:
-                self.winHandle.close()
+                if IOHUB_ACTIVE and _hw_handle:
+                    from psychopy.iohub.client import ioHubConnection
+                    ioHubConnection.ACTIVE_CONNECTION.unregisterPygletWindowHandles(_hw_handle)
             except:
                 pass
         else:
             #pygame.quit()
             pygame.display.quit()
-        if self.bits is not None:
-            self.bits.reset()
-        openWindows.remove(self)
-        logging.flush()
+
+        try:
+            if self.bits is not None:
+                self.bits.reset()
+        except:
+            pass
+        try:
+            logging.flush()
+        except:
+            pass
 
     def fps(self):
         """Report the frames per second since the last call to this function
@@ -1510,7 +1524,8 @@ class Window(object):
         GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
         GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
         return True
-    def setMouseVisible(self, visibility):
+    @attributeSetter
+    def mouseVisible(self, visibility):
         """Sets the visibility of the mouse cursor.
 
         If Window was initilised with noGUI=True then the mouse is initially

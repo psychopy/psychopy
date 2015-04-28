@@ -198,12 +198,12 @@ class SoundPygame(_SoundBase):
 
         bits(=16):  Pygame uses the same bit depth for all sounds once initialised
     """
-    def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16, name='', autoLog=True):
+    def __init__(self,value="C",secs=0.5,octave=4, sampleRate=44100, bits=16,
+                 name='', autoLog=True, loops=0):
         """
         """
         self.name=name#only needed for autoLogging
         self.autoLog=autoLog
-        self.loops = 0 #-1 for infinite, or a number of loops
         #check initialisation
         if not mixer.get_init():
             pygame.mixer.init(sampleRate, -16, 2, 3072)
@@ -216,6 +216,9 @@ class SoundPygame(_SoundBase):
 
         #try to create sound
         self._snd=None
+        #distinguish the loops requested from loops actual because of infinite tones
+        # (which have many loops but none requested)
+        self.requestedLoops = self.loops = int(loops) #-1 for infinite or a number of loops
         self.setSound(value=value, secs=secs, octave=octave)
 
     def play(self, fromStart=True, log=True, loops=None):
@@ -278,6 +281,7 @@ class SoundPygame(_SoundBase):
     def _setSndFromFile(self, fileName):
         #load the file
         self.fileName = fileName
+        self.loops = self.requestedLoops #in case a tone with inf loops had been used before
         self._snd = mixer.Sound(self.fileName)
 
     def _setSndFromArray(self, thisArray):
@@ -369,7 +373,9 @@ class SoundPyo(_SoundBase):
         #try to create sound; set volume and loop before setSound (else needsUpdate=True)
         self._snd=None
         self.volume = min(1.0, max(0.0, volume))
-        self.loops = int(loops) #-1 for infinite or a number of loops
+        #distinguish the loops requested from loops actual because of infinite tones
+        # (which have many loops but none requested)
+        self.requestedLoops = self.loops = int(loops) #-1 for infinite or a number of loops
 
         self.setSound(value=value, secs=secs, octave=octave, hamming=hamming)
         self.needsUpdate = False
@@ -460,9 +466,15 @@ class SoundPyo(_SoundBase):
         # want mono sound file played to both speakers, not just left / 0
         self.fileName = fileName
         self._sndTable = pyo.SndTable(initchnls=self.channels)
+        self.loops = self.requestedLoops #in case a tone with inf loops had been used before
         # mono file loaded to all chnls:
-        self._sndTable.setSound(self.fileName,
+        try:
+            self._sndTable.setSound(self.fileName,
                                 start=self.startTime, stop=self.stopTime)
+        except:
+            msg = 'Could not open sound file; not found or format not supported (%s)' % fileName
+            logging.error(msg)
+            raise TypeError(msg)
         self._updateSnd()
         self.duration = self._sndTable.getDur()
 

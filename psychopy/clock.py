@@ -192,7 +192,8 @@ def wait(secs, hogCPUperiod=0.2):
         #let's see if pyglet collected any event in meantime
         try:
             # this takes focus away from command line terminal window:
-            pyglet.media.dispatch_events()#events for sounds/video should run independently of wait()
+            if pyglet.version < '1.2':
+                pyglet.media.dispatch_events()#events for sounds/video should run independently of wait()
         except AttributeError:
             # see http://www.pyglet.org/doc/api/pyglet.media-module.html#dispatch_events
             # Deprecated: Since pyglet 1.1, Player objects schedule themselves

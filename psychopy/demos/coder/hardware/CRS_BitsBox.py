@@ -24,7 +24,7 @@ bits = crs.BitsSharp(win=win, mode='bits++')
 print bits.info
 if not bits.OK:
     print 'failed to connect to Bits box'
-core.quit()
+    core.quit()
 
 core.wait(0.1)
 # now, you can change modes using

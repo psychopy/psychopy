@@ -16,10 +16,10 @@ other configuration settings:
 """
 
 #
-##   Test Config.
+# #   Test Config.
 
 # Relative path (from this scripts folder) for the video clip to be played .
-video_name=r'./jwpIntro.mov'
+video_name = r'./jwpIntro.mov'
 
 # If False, no audio tracks will be played.
 INCLUDE_AUDIO_TRACK = True
@@ -41,8 +41,8 @@ SLEEP_IF_NO_FLIP = True
 
 # If True, data about each process running on the computer when this script
 # is executed is saved to the results file. Set to False if you do not want
-# this information saved.
-SAVE_PER_PROCESS_DATA = True
+# this information saved. If a string, processes with that name are saved
+SAVE_PER_PROCESS_DATA = 'python.exe'
 
 # If you do not want any results file saved at all, set this to None, otherwise
 # keep it as an empty list.
@@ -174,8 +174,9 @@ frame_num	frame_flip_time	playback_duration	frame_num_dx	dropped_count
 """
 
 from psychopy import visual, core, event
+
 getTime = core.getTime
-import time, os
+import time, os, numpy as np
 
 #
 ## Globals
@@ -186,17 +187,20 @@ last_frame_time = 0
 first_flip_time = 0
 flip_dur = 0
 draw_dur = 0
+video_results_data=[]
 
 def getVideoFilePath():
-    videopath = os.path.normpath(os.path.join(os.getcwd(),video_name))
+    videopath = os.path.normpath(os.path.join(os.getcwd(), video_name))
     if not os.path.exists(videopath):
-        raise RuntimeError("Video File could not be found:"+videopath)
+        raise RuntimeError("Video File could not be found:" + videopath)
     return videopath
+
 
 def getResultsFilePath():
     _vdir, _vfile = os.path.split(getVideoFilePath())
-    _results_file = u'%s_frame_timing.txt'%(_vfile.replace('.','_'))
-    return os.path.join(_vdir,_results_file)
+    _results_file = u'%s_frame_timing.txt' % (_vfile.replace('.', '_'))
+    return os.path.join(_vdir, _results_file)
+
 
 def removeExistingResultsFile():
     # delete existing results file of same name (if exists)
@@ -207,13 +211,16 @@ def removeExistingResultsFile():
         except:
             pass
 
+
 def initProcessStats():
     try:
         import psutil
+
         for proc in psutil.process_iter():
             proc.cpu_percent()
     except:
         pass
+
 
 def getSysInfo(win):
     try:
@@ -223,107 +230,121 @@ def getSysInfo(win):
     # based on sysInfo.py
     from pyglet.gl import gl_info, GLint, glGetIntegerv, GL_MAX_ELEMENTS_VERTICES
     import sys, platform
+
     sys_info = OrderedDict()
-    sys_info['OS']=OrderedDict()
-    sys_info['OS']['Name']=platform.platform()
-    if sys.platform=='darwin':
+    sys_info['OS'] = OrderedDict()
+    sys_info['OS']['Name'] = platform.platform()
+    if sys.platform == 'darwin':
         OSXver, _, architecture = platform.mac_ver()
         sys_info['OS']['OSX Version'] = OSXver
         sys_info['OS']['OSX Architecture'] = architecture
 
-    sys_info['Computer Hardware']=OrderedDict()
+    sys_info['Computer Hardware'] = OrderedDict()
     try:
         import psutil
+
         def getMemoryInfo():
-            rdict=dict()
+            rdict = dict()
             nt = psutil.virtual_memory()
             for name in nt._fields:
                 value = getattr(nt, name)
                 if name != 'percent':
                     value = bytes2human(value)
-                rdict[name.capitalize()]=value #'%s%s%-10s : %7s\n'%(rstr,'\t'*indent,name.capitalize(), value)
+                rdict[name.capitalize()] = value  #'%s%s%-10s : %7s\n'%(rstr,'\t'*indent,name.capitalize(), value)
             return rdict
 
-        sys_info['Computer Hardware']['CPUs (cores / logical)']= (psutil.cpu_count(logical=False),psutil.cpu_count())
-        sys_info['Computer Hardware']['System Memory']= getMemoryInfo()
+
+        core_count = psutil.cpu_count(logical=False)
+        logical_psu_count = psutil.cpu_count()
+        memory_info = getMemoryInfo()
+        sys_info['Computer Hardware']['CPUs (cores / logical)'] = (core_count, logical_psu_count)
+        sys_info['Computer Hardware']['System Memory'] = memory_info
+
     except:
-        sys_info['Computer Hardware']['Failed']='psutil 2.x + is required.'
+        sys_info['Computer Hardware']['Failed'] = 'psutil 2.x + is required.'
 
-    sys_info['Python']=OrderedDict()
-    sys_info['Python']['exe']=sys.executable
-    sys_info['Python']['version']=sys.version
+    sys_info['Python'] = OrderedDict()
+    sys_info['Python']['exe'] = sys.executable
+    sys_info['Python']['version'] = sys.version
 
-    sys_info['Packages']=OrderedDict()
+    sys_info['Packages'] = OrderedDict()
     try:
         import numpy
+
         sys_info['Packages']['numpy'] = numpy.__version__
     except:
         sys_info['Packages']['numpy'] = "Not Installed"
     try:
         import pyglet
+
         sys_info['Packages']['pyglet'] = pyglet.version
     except:
         sys_info['Packages']['pyglet'] = "Not Installed"
     try:
         import cv2
+
         sys_info['Packages']['cv2'] = cv2.__version__
     except:
         sys_info['Packages']['cv2'] = "Not Installed"
     try:
         import psychopy
+
         sys_info['Packages']['PsychoPy'] = psychopy.__version__
     except:
         sys_info['Packages']['PsychoPy'] = "Not Installed"
 
-    sys_info['Graphics']=OrderedDict()
-    sys_info['Graphics']['shaders']=win._haveShaders
-    sys_info['Graphics']['opengl']=OrderedDict()
-    sys_info['Graphics']['opengl']['version']= gl_info.get_version()
+    sys_info['Graphics'] = OrderedDict()
+    sys_info['Graphics']['shaders'] = win._haveShaders
+    sys_info['Graphics']['opengl'] = OrderedDict()
+    sys_info['Graphics']['opengl']['version'] = gl_info.get_version()
     sys_info['Graphics']['opengl']['vendor'] = gl_info.get_vendor()
     sys_info['Graphics']['opengl']['engine'] = gl_info.get_renderer()
-    maxVerts=GLint()
-    glGetIntegerv(GL_MAX_ELEMENTS_VERTICES,maxVerts)
-    sys_info['Graphics']['opengl']['Max vert in VA']=maxVerts.value
-    sys_info['Graphics']['opengl']['extensions']=OrderedDict()
-    extensionsOfInterest=['GL_ARB_multitexture',
-        'GL_EXT_framebuffer_object','GL_ARB_fragment_program',
-        'GL_ARB_shader_objects','GL_ARB_vertex_shader',
-        'GL_ARB_texture_non_power_of_two','GL_ARB_texture_float', 'GL_STEREO']
+    maxVerts = GLint()
+    glGetIntegerv(GL_MAX_ELEMENTS_VERTICES, maxVerts)
+    sys_info['Graphics']['opengl']['Max vert in VA'] = maxVerts.value
+    sys_info['Graphics']['opengl']['extensions'] = OrderedDict()
+    extensionsOfInterest = ['GL_ARB_multitexture',
+                            'GL_EXT_framebuffer_object', 'GL_ARB_fragment_program',
+                            'GL_ARB_shader_objects', 'GL_ARB_vertex_shader',
+                            'GL_ARB_texture_non_power_of_two', 'GL_ARB_texture_float', 'GL_STEREO']
     for ext in extensionsOfInterest:
-        sys_info['Graphics']['opengl']['extensions'][ext]=bool(gl_info.have_extension(ext))
+        sys_info['Graphics']['opengl']['extensions'][ext] = bool(gl_info.have_extension(ext))
 
-
-    sys_info['Processes']=OrderedDict()
-    if SAVE_PER_PROCESS_DATA is True:
+    sys_info['Processes'] = OrderedDict()
+    if sys.platform == 'darwin':
+        sys_info['Processes']['Failed'] = 'Not Supported on OSX.'
+    elif SAVE_PER_PROCESS_DATA:
         try:
             import psutil
+
             for proc in psutil.process_iter():
                 pkey = proc.pid
-                vattrs=['name','exe','ppid','num_threads','memory_percent','cpu_percent','cpu_affinity','nice','num_ctx_switches']
+                vattrs = ['name', 'exe', 'ppid', 'num_threads', 'memory_percent', 'cpu_percent', 'cpu_affinity', 'nice',
+                          'num_ctx_switches']
                 procinfo = proc.as_dict(attrs=vattrs, ad_value=u"Access Denied")
-                if procinfo['exe'] is not u"Access Denied":
+                if procinfo['exe'] is not u"Access Denied" and (SAVE_PER_PROCESS_DATA is True or SAVE_PER_PROCESS_DATA == procinfo['name']):
                     sys_info['Processes'][pkey] = procinfo
         except:
-            sys_info['Processes']['Failed']='psutil 2.x + is required.'
+            sys_info['Processes']['Failed'] = 'psutil 2.x + is required.'
     else:
-        sys_info['Processes']['Disabled']='Per Process details disabled by user.'
-
-
+        sys_info['Processes']['Disabled'] = 'Per Process details disabled by user.'
 
     return sys_info
 
-def formattedDictStr(d,indent=1,rstr=''):
+
+def formattedDictStr(d, indent=1, rstr=''):
     try:
         from collections import OrderedDict
     except:
         from psychopy.iohub import OrderedDict
     for key, value in d.items():
-        if isinstance(value,(dict,OrderedDict)):
-            rstr="{rstr}{numtabs}{key}:\n".format(numtabs='\t'*indent, key=key, rstr=rstr)
-            rstr=formattedDictStr(value,indent+1,rstr)
+        if isinstance(value, (dict, OrderedDict)):
+            rstr = "{rstr}{numtabs}{key}:\n".format(numtabs='\t' * indent, key=key, rstr=rstr)
+            rstr = formattedDictStr(value, indent + 1, rstr)
         else:
-            rstr="{rstr}{numtabs}{key}: {value}\n".format(numtabs='\t'*indent, value=value, key=key, rstr=rstr)
+            rstr = "{rstr}{numtabs}{key}: {value}\n".format(numtabs='\t' * indent, value=value, key=key, rstr=rstr)
     return rstr
+
 
 def bytes2human(n):
     # http://code.activestate.com/recipes/578019
@@ -341,63 +362,94 @@ def bytes2human(n):
             return '%.1f%s' % (value, s)
     return "%sB" % n
 
+
 def storeVideoFrameInfo(flip_time, frame_num):
     global first_flip_time, last_frame_time, last_frame_ix, drop_count, flip_dur, draw_dur
     if video_results is not None:
-        ifi=0
-        ixdx=0
-        movie_playback_dur=0
-        fps=0
-        per_frame_interval=0
+        ifi = 0
+        ixdx = 0
+        movie_playback_dur = 0
+        fps = 0
+        per_frame_interval = 0
 
         if first_flip_time == 0:
-            video_results.append("frame_num\tframe_flip_time\tplayback_duration\tframe_num_dx\tdropped_count\tdraw_duration\tflip_duration\tflip_interval\tper_frame_interval\tfps\n")
+            video_results.append(
+                "frame_num\tframe_flip_time\tplayback_duration\tframe_num_dx\tdropped_count\tdraw_duration\tflip_duration\tflip_interval\tper_frame_interval\tfps\n")
             first_flip_time = flip_time
 
         # manually check for dropped movie frames
-        if last_frame_ix >=0:
-            ixdx=frame_num-last_frame_ix
+        if last_frame_ix >= 0:
+            ixdx = frame_num - last_frame_ix
             if ixdx >= 2:
-                drop_count  = drop_count+(ixdx-1)
-            elif ixdx != 1:
-                print "ERROR: frame index change <= 0. This should not happen in this demo. frame=%d, last_frame=%d, ixdx=%d"%(frame_num,last_frame_ix, ixdx)
+                drop_count = drop_count + (ixdx - 1)
+            elif ixdx < 0:
+                print "ERROR: frame index change <= 0. This should not happen in this demo. frame=%d, last_frame=%d, ixdx=%d" % (
+                frame_num, last_frame_ix, ixdx)
         last_frame_ix = frame_num
 
         # calculate inter movie frame interval etc.
         if last_frame_time > 0:
-            ifi = flip_time-last_frame_time
-            per_frame_interval=ifi/ixdx
-            movie_playback_dur=flip_time-first_flip_time
-            fps = last_frame_ix/movie_playback_dur
+            ifi = flip_time - last_frame_time
+            per_frame_interval = ifi / ixdx
+            movie_playback_dur = flip_time - first_flip_time
+            fps = last_frame_ix / movie_playback_dur
 
         last_frame_time = flip_time
-
-        video_results.append("%d\t%.6f\t%.6f\t%d\t%d\t%.6f\t%.6f\t%.6f\t%.6f\t%.3f\n"%(frame_num, flip_time, movie_playback_dur,ixdx, drop_count, draw_dur, flip_dur, ifi,per_frame_interval,fps))
+        #video_results.append("%d\t%.6f\t%.6f\t%d\t%d\t%.6f\t%.6f\t%.6f\t%.6f\t%.3f\n" % (
+        video_results_data.append((frame_num, flip_time, movie_playback_dur, ixdx, drop_count, draw_dur, flip_dur, ifi, per_frame_interval, fps))
         # <<<<< Playback stats calculations
+
 
 def createResultsFile():
     if video_results is not None:
         with open(getResultsFilePath(), 'a') as f:
-            print "Saving Frame Timing Results to: %s"%(getResultsFilePath())
+            print "Saving Frame Timing Results to: %s" % (getResultsFilePath())
 
             import cv2
+
             f.write("** Video Info **\n")
             f.write("Video File:\n")
             f.write("\tName:\t{0}\n".format(video_name))
             f.write("\tFrame Count:\t{0}\n".format(mov._total_frame_count))
+            mov_duration = mov._total_frame_count/mov._video_stream.get(cv2.cv.CV_CAP_PROP_FPS)
+            f.write("\tVideo Duration:\t{0}\n".format(mov_duration))
             f.write("\tWidth:\t{0}\n".format(mov._video_width))
             f.write("\tHeight:\t{0}\n".format(mov._video_height))
-            f.write("\tFPS (Format,Requested):\t{0}\n".format((mov._video_stream.get(cv2.cv.CV_CAP_PROP_FPS),mov._requested_fps)))
+            f.write("\tFPS (Format,Requested):\t{0}\n".format(
+                (mov._video_stream.get(cv2.cv.CV_CAP_PROP_FPS), mov._requested_fps)))
             f.write("\tPlay Audio Track:\t{0}\n".format(not mov._no_audio))
 
             f.write("Video Display:\n")
             f.write("\tWindow Resolution:\t{0}\n".format(win.size))
             f.write("\tWindow Fullscreen:\t{0}\n".format(win._isFullScr))
             f.write("\tDrawn Size:\t{0}\n".format(mov.size))
-            f.write("\tRefresh Rate (reported / calculated):\t{0} / {1}\n".format(win.winHandle._screen.get_mode().rate, win.getActualFrameRate()))
+            f.write("\tRefresh Rate (reported / calculated):\t{0} / {1}\n".format(win.winHandle._screen.get_mode().rate,
+                                                                                  win.getActualFrameRate()))
 
             f.write("\n** System Info **\n")
             f.write(formattedDictStr(getSysInfo(win)))
+
+
+def saveVideoFrameResults():
+    if video_results is not None:
+        with open(getResultsFilePath(), 'a') as f:
+            video_results_array = np.asarray(video_results_data,dtype=np.float32)
+            playack_duration = video_results_array[-1][2]
+            dropped_count = video_results_array[-1][4]
+            draw_tarray = video_results_array[:,5]
+            flip_tarray = video_results_array[:,6]
+            vframedur_tarray = draw_tarray + flip_tarray
+            iflipi_tarray = video_results_array[:,7]
+            iframei_tarray = video_results_array[:,8]
+
+            f.write("\n** Video Playback Stats **\n")
+            f.write("Playback Time: %.3f\n"%(playack_duration))
+            f.write("Total Frames Dropped: %d\n"%(int(dropped_count)))
+            f.write("Draw duration (min, max, mean): (%.6f, %.6f, %.6f)\n"%(draw_tarray.min(),draw_tarray.max(),draw_tarray.mean()))
+            f.write("Flip duration (min, max, mean): (%.6f, %.6f, %.6f)\n"%(flip_tarray.min(),flip_tarray.max(),flip_tarray.mean()))
+            f.write("Draw+Flip duration (min, max, mean): (%.6f, %.6f, %.6f)\n"%(vframedur_tarray.min(),vframedur_tarray.max(),vframedur_tarray.mean()))
+            f.write("Frame Display Interval (min, max, mean): (%.6f, %.6f, %.6f)\n"%(iflipi_tarray.min(),iflipi_tarray.max(),iflipi_tarray.mean()))
+            f.write("Effective Frame Interval (min, max, mean): (%.6f, %.6f, %.6f)\n"%(iframei_tarray.min(),iframei_tarray.max(),iframei_tarray.mean()))
 
 
             f.write("\n** Column Definitions **\n")
@@ -411,29 +463,29 @@ def createResultsFile():
             f.write("flip_interval:\tcurrent frame_num frame_flip_time - last frame_flip_time.\n")
             f.write("per_frame_interval:\tEquals flip_interval / frame_num_dx.\n")
             f.write("fps:\tEquals playback_duration / current frame_num.\n")
-
-def saveVideoFrameResults():
-    if video_results is not None:
-        with open(getResultsFilePath(), 'a') as f:
             f.write("\n** Per Frame Video Playback Data **\n")
             f.writelines(video_results)
+            for vfd in video_results_data:
+                f.write("%.0f\t%.6f\t%.6f\t%.0f\t%.0f\t%.6f\t%.6f\t%.6f\t%.6f\t%.3f\n"%vfd)
         del video_results[:]
+
 
 if __name__ == '__main__':
     removeExistingResultsFile()
 
-    win = visual.Window(WINDOW_SIZE,fullscr=USE_FULLSCREEN_WINDOW, allowGUI=not USE_FULLSCREEN_WINDOW, screen=SCREEN_NUMBER)
+    win = visual.Window(WINDOW_SIZE, fullscr=USE_FULLSCREEN_WINDOW, allowGUI=not USE_FULLSCREEN_WINDOW,
+                        screen=SCREEN_NUMBER)
 
     # Create your movie stim.
     mov = visual.MovieStim2(win, getVideoFilePath(),
-                           size=None,#(1280,720),
-                           # pos specifies the /center/ of the movie stim location
-                           pos=[0, 0],
-                           flipVert=False,
-                           flipHoriz=False,
-                           noAudio=not INCLUDE_AUDIO_TRACK,
-                           #fps=90,
-                           loop=False)
+                            size=None,  #(1280,720),
+                            # pos specifies the /center/ of the movie stim location
+                            pos=[0, 0],
+                            flipVert=False,
+                            flipHoriz=False,
+                            noAudio=not INCLUDE_AUDIO_TRACK,
+                            #fps=90,
+                            loop=False)
 
     mov.useTexSubImage2D = True
 
@@ -481,44 +533,44 @@ if __name__ == '__main__':
 ## Movie2 logic not currently used / tested by this script
 #
 
-    #        elif key in ['s',]:
-    #            if mov.status in [visual.PLAYING, visual.PAUSED]:
-    #                # To stop the movie being played.....,
-    #                mov.stop()
-    #                # Clear screen of last displayed frame.
-    #                win.flip()
-    #                # When movie stops, clear screen of last displayed frame,
-    #                # and display text stim only....
-    #                #text.draw()
-    #                #win.flip()
-    #            else:
-    #                # To replay a movie that was stopped.....
-    #                mov.loadMovie(videopath)
-    #                display_frame_num = mov.play()
-    #        elif key in ['p',]:
-    #            # To pause the movie while it is playing....
-    #            if mov.status == visual.PLAYING:
-    #                mov.pause()
-    #            elif mov.status == visual.PAUSED:
-    #                # To /unpause/ the movie if pause has been called....
-    #                display_frame_num = mov.play()
-    #        elif key == 'period':
-    #            # To skip ahead 1 second in movie.
-    #            ntime = min(mov.getCurrentFrameTime()+1.0, mov.duration)
-    #            mov.seek(ntime)
-    #        elif key == 'comma':
-    #            # To skip back 1 second in movie ....
-    #            ntime = max(mov.getCurrentFrameTime()-1.0,0.0)
-    #            mov.seek(ntime)
-    #        elif key == 'minus':
-    #            # To decrease movie sound a bit ....
-    #            cv = max(mov.getVolume()-5, 0)
-    #            mov.setVolume(cv)
-    #        elif key == 'equal':
-    #            # To increase movie sound a bit ....
-    #            cv = mov.getVolume()
-    #            cv = min(mov.getVolume()+5, 100)
-    #            mov.setVolume(cv)
+#        elif key in ['s',]:
+#            if mov.status in [visual.PLAYING, visual.PAUSED]:
+#                # To stop the movie being played.....,
+#                mov.stop()
+#                # Clear screen of last displayed frame.
+#                win.flip()
+#                # When movie stops, clear screen of last displayed frame,
+#                # and display text stim only....
+#                #text.draw()
+#                #win.flip()
+#            else:
+#                # To replay a movie that was stopped.....
+#                mov.loadMovie(videopath)
+#                display_frame_num = mov.play()
+#        elif key in ['p',]:
+#            # To pause the movie while it is playing....
+#            if mov.status == visual.PLAYING:
+#                mov.pause()
+#            elif mov.status == visual.PAUSED:
+#                # To /unpause/ the movie if pause has been called....
+#                display_frame_num = mov.play()
+#        elif key == 'period':
+#            # To skip ahead 1 second in movie.
+#            ntime = min(mov.getCurrentFrameTime()+1.0, mov.duration)
+#            mov.seek(ntime)
+#        elif key == 'comma':
+#            # To skip back 1 second in movie ....
+#            ntime = max(mov.getCurrentFrameTime()-1.0,0.0)
+#            mov.seek(ntime)
+#        elif key == 'minus':
+#            # To decrease movie sound a bit ....
+#            cv = max(mov.getVolume()-5, 0)
+#            mov.setVolume(cv)
+#        elif key == 'equal':
+#            # To increase movie sound a bit ....
+#            cv = mov.getVolume()
+#            cv = min(mov.getVolume()+5, 100)
+#            mov.setVolume(cv)
 
 
 

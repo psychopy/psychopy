@@ -6,11 +6,12 @@ def test_essential_imports():
     import numpy
     import scipy
     import matplotlib
-    import pygame
+    #import pygame  # soft dependency only
     import pyglet
     import OpenGL
     import openpyxl
     import lxml
+    import pandas
 
 def test_extra_imports():
     # only Jon needs to run this, so test first if you are him!

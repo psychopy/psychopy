@@ -39,8 +39,13 @@ class TobiiPsychopyCalibrationGraphics(object):
     def __init__(self, eyetrackerInterface,screenColor=None,
                  calibrationPointList=None):
         self._eyetrackerinterface=eyetrackerInterface
-        self._tobii = eyetrackerInterface._tobii._eyetracker
+        # The EyeX interface has to fake the other API's calibration stuff
+        if eyetrackerInterface._isEyeX:
+            self._tobii = eyetrackerInterface._tobii
+        else:
+            self._tobii = eyetrackerInterface._tobii._eyetracker
         self.screenSize = eyetrackerInterface._display_device.getPixelResolution()
+
         self.width=self.screenSize[0]
         self.height=self.screenSize[1]
         self._ioKeyboard=None
@@ -83,7 +88,7 @@ class TobiiPsychopyCalibrationGraphics(object):
                                                                          (0.1, 0.9),
                                                                          (0.5, 0.5)]
         display=self._eyetrackerinterface._display_device
-        self.window=visual.Window(display.getPixelResolution(),monitor=display.getPsychopyMonitorName(),
+        self.window=visual.Window(self.screenSize,monitor=display.getPsychopyMonitorName(),
                             units=display.getCoordinateType(),
                             fullscr=True,
                             allowGUI=False,
@@ -313,7 +318,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             self.drawCalibrationTarget(i,(x,y))
             self.clearAllEventBuffers()
             stime=currentTime()
-            
+
             def waitingForNextTargetTime():
                 return True
             
@@ -341,6 +346,11 @@ class TobiiPsychopyCalibrationGraphics(object):
                 calibration_sequence_completed=True
         
         if calibration_sequence_completed:
+            # The EyeX interface is slower to add calibration points,
+            # have to give it a moment before computing
+            if self._eyetrackerinterface._isEyeX:
+                gevent.sleep(3.0)
+
             self._tobii.ComputeCalibration(self.on_compute_calibration)
  
             msg=1
@@ -444,7 +454,9 @@ class TobiiPsychopyCalibrationGraphics(object):
                    
                     cal_stats[(targ_x,targ_y)]=dict(left=left_stats,right=right_stats)
             else:
-                print2err("WARNING: Calibration results are NULL.")
+                # EyeX doesn't return calibration stats
+                if not self._eyetrackerinterface._isEyeX:
+                    print2err("WARNING: Calibration results are NULL.")
             
             instuction_text="Calibration Passed. PRESS 'SPACE' KEY TO CONTINUE."     
             continue_method=self.showSystemSetupMessageScreen(instuction_text,True,msg_types=['SPACE_KEY_ACTION'])
@@ -522,16 +534,14 @@ class TobiiPsychopyCalibrationGraphics(object):
         if len(events)==0:
             return (left_eye_cam_x,left_eye_cam_y,left_eye_cam_z),(right_eye_cam_x,right_eye_cam_y,right_eye_cam_z)
         
-        event=events[-1]                
-        if event.left_eye_cam_x != -1.0:
+        event=events[-1]
+        if abs(event.left_eye_cam_x) != 1.0 and abs(event.left_eye_cam_y) != 1.0:
             left_eye_cam_x=1.0-event.left_eye_cam_x
-        if event.left_eye_cam_y != -1.0:
             left_eye_cam_y=event.left_eye_cam_y
         if event.left_eye_cam_z != 0.0:
             left_eye_cam_z=event.left_eye_cam_z
-        if event.right_eye_cam_x != -1.0:
+        if abs(event.right_eye_cam_x) != 1.0 and abs(event.right_eye_cam_y) != 1.0:
             right_eye_cam_x=1.0-event.right_eye_cam_x
-        if event.right_eye_cam_y != -1.0:
             right_eye_cam_y=event.right_eye_cam_y
         if event.right_eye_cam_z != 0.0:
             right_eye_cam_z=event.right_eye_cam_z
@@ -637,7 +647,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             self.calibrationPointOUTER.radius = current_size
             self.calibrationPointOUTER.draw()          
             self.calibrationPointINNER.draw()            
-            ftime=self.window.flip(clearBuffer=True)  
+            ftime=self.window.flip(clearBuffer=True)
        
     def drawCalibrationTarget(self,target_number,tp): 
         """

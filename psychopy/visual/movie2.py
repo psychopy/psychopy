@@ -161,13 +161,14 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self.volume = volume
         self._av_stream_time_offset = 0.145
         self._no_audio = noAudio
-        self._requested_fps = fps
         self._vframe_callback = vframe_callback
         self.interpolate = interpolate
 
         self.useTexSubImage2D = True
 
         self._texID = None
+        self._video_stream = cv2.VideoCapture()
+
         self._reset()
         self.loadMovie(self.filename)
         self.setVolume(volume)
@@ -198,7 +199,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         if self._texID is not None:
             GL.glDeleteTextures(1, self._texID)
             self._texID = None
-        self._video_stream = None
+        #self._video_stream = None
         self._total_frame_count = None
         self._video_width = None
         self._video_height = None
@@ -246,7 +247,6 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             self._createAudioStream()
 
         # Create Video Stream stuff
-        self._video_stream = cv2.VideoCapture()
         self._video_stream.open(filename)
         vfstime = core.getTime()
         while not self._video_stream.isOpened() and core.getTime()-vfstime < 1.0:
@@ -263,16 +263,8 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._video_frame_depth = 3
 
         cv_fps = self._video_stream.get(cv2.cv.CV_CAP_PROP_FPS)
-        if self._requested_fps:
-            if self._no_audio is False and cv_fps != self._requested_fps:
-                self._no_audio = True
-                logging.error("MovieStim2 video fps != requested fps. Disabling Audio Stream.")
-                logging.flush()
 
-        if self._no_audio and self._requested_fps:
-            self._video_frame_rate = self._requested_fps
-        else:
-            self._video_frame_rate = cv_fps
+        self._video_frame_rate = cv_fps
 
         self._inter_frame_interval = 1.0/self._video_frame_rate
 
@@ -460,33 +452,15 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         """
         return self._video_frame_rate
 
-    def setFPS(self, fps):
-        """
-        If the movie was created with noAudio = True kwarg, then the movie
-        playback speed can be changed from the original frame rate. For example,
-        if the movie being played has 30 fps and you would like to play it at 2x
-        normal speed, setFPS(60) will do that.
-        """
-        if self._no_audio:
-            self._requested_fps = fps
-            self._video_frame_rate = fps
-            self._inter_frame_interval = 1.0/self._video_frame_rate
-            return
-        raise ValueError("Error calling movie.setFPS(): MovieStim must be created with kwarg noAudio=True.")
-
     def getTimeToNextFrameDraw(self):
         """
         Get the number of sec.msec remaining until the next movie video frame
         should be drawn.
         """
-#        rt = (self._next_frame_sec - 1.0/self._retracerate) - self._video_track_clock.getTime()
         try:
             rt = (self._next_frame_sec - 1.0/self._retracerate) - self._video_track_clock.getTime()
-            #print "getTimeToNextFrameDraw: ",self.getCurrentFrameNumber(), rt
             return rt
         except:
-            #import traceback
-            #traceback.print_exc()
             logging.warning("MovieStim2.getTimeToNextFrameDraw failed.")
             return 0.0
 
@@ -534,10 +508,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                 self._prev_frame_index = self._next_frame_index
                 self._prev_frame_sec = self._next_frame_sec
                 self._next_frame_index = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
-                if self._requested_fps and self._no_audio:
-                    self._next_frame_sec = self._next_frame_index/self._requested_fps#*self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_MSEC)/1000.0
-                else:
-                    self._next_frame_sec = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_MSEC)/1000.0
+                self._next_frame_sec = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_MSEC)/1000.0
                 self._video_perc_done = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_AVI_RATIO)
                 self._next_frame_displayed = False
                 if self.getTimeToNextFrameDraw() > -self._inter_frame_interval/2.0:
@@ -556,16 +527,8 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
 
     def _updateFrameTexture(self):
         # decode frame into np array and move to opengl tex
-        ret, _ = self._video_stream.retrieve(self._numpy_frame)
+        ret, self._numpy_frame = self._video_stream.retrieve()
         if ret:
-            #if callable(self._vframe_callback):
-            #    try:
-            #        self._vframe_callback(self._next_frame_index, self._numpy_frame)
-            #    except:
-            #        print "MovieStim2 Error: vframe_callback raised an exception. Using original frame data."
-            #        import traceback
-            #        traceback.print_exc()
-
             useSubTex=self.useTexSubImage2D
             if self._texID is None:
                 self._texID = GL.GLuint()
@@ -655,7 +618,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self.win.setScale('pix')
         #move to centre of stimulus and rotate
         vertsPix = self.verticesPix
-        
+
         array = (GL.GLfloat * 32)(
              1,  1, #texture coords
              vertsPix[0,0], vertsPix[0,1],    0.,  #vertex
@@ -715,9 +678,9 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._onEos()
 
     def _unload(self):
-        if self._video_stream:
-            self._video_stream.release()
-        self._video_stream = None
+        #if self._video_stream:
+        self._video_stream.release()
+        #self._video_stream = None
         self._numpy_frame = None
 
         self._releaseeAudioStream()

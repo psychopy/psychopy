@@ -29,6 +29,8 @@ class TestWeb(object):
         web.setupProxy()
 
     def test_upload(self):
+        pytest.skip()
+
         selector = SELECTOR_FOR_TEST_UPLOAD
         selectorS = SELECTOR_FOR_TEST_UPLOAD.replace('http', 'https')
         selectorBad = selector = 'http://upload.psychopy.org/../../up.php'
@@ -49,6 +51,8 @@ class TestWeb(object):
         web.upload(selector, filename, basicAuth + 'JUNK', log=False)
 
     def test_upload_integrity(self):
+        pytest.skip()
+
         def _upload(stuff):
             """assumes that SELECTOR_FOR_TEST_UPLOAD is a configured http server
             """

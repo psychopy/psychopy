@@ -99,6 +99,8 @@ class PolygonComponent(VisualComponent):
         buff.writeIndented("    lineWidth=%(lineWidth)s, lineColor=%(lineColor)s, lineColorSpace=%(lineColorSpace)s,\n" %(inits) )
         buff.writeIndented("    fillColor=%(fillColor)s, fillColorSpace=%(fillColorSpace)s,\n" %(inits) )
         buff.writeIndented("    opacity=%(opacity)s," %(inits) )
+        depth = -self.getPosInRoutine()
+        buff.write("depth=%.1f, \n" %depth)#finish with newline
         if self.params['interpolate'].val=='linear':
             buff.write("interpolate=True)\n")
         else: buff.write("interpolate=False)\n")

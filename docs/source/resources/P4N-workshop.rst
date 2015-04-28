@@ -3,7 +3,7 @@
 P4N 2015: Python for Neuroscience (and Psychology)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can place bookings NOW at `Python for Neuroscience workshop bookings <http://store.nottingham.ac.uk/browse/extra_info.asp?compid=1&modid=2&deptid=9&catid=49&prodid=466&searchresults=1>`_
+**Sorry, this workshop is now fully booked**
 
 Do you want to get started using Python_ (and PsychoPy_) for your studies in behavioural sciences? Maybe you keep meaning to switch from another package and haven't gotten around to it. This workshop will get you off the ground with building and analysing your experiments using Python.
 

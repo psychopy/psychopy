@@ -36,5 +36,5 @@ Discard previous
         
 .. seealso::
 
-    API reference for :mod:`~psychopy.event`
+    API reference for :doc:`psychopy.event</api/event>`
      

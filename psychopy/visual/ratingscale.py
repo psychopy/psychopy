@@ -6,6 +6,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+import copy
 import sys
 import numpy
 
@@ -142,9 +143,14 @@ class RatingScale(MinimalStim):
         high :
             Highest numeric rating (integer), default = 7.
         precision :
-            Portions of a tick to accept as input [1, 10, 100]; default = 1 (a whole tick).
+            Portions of a tick to accept as input [1, 10, 60, 100]; default = 1 (a whole tick).
             Pressing a key in `leftKeys` or `rightKeys` will move the marker by
-            one portion of a tick.
+            one portion of a tick. precision=60 is intended to support ratings
+            of time-based quantities, with seconds being fractional minutes (or
+            minutes being fractional hours). The display uses a colon (min:sec, or hours:min)
+            to signal this to participants. The value returned by getRating()
+            will be a proportion of a minute (e.g., 1:30 -> 1.5, or 59 seconds
+            -> 59/60 = 0.98333). hours:min:sec is not supported.
         scale :
             Optional reminder message about how to respond or rate an item,
             displayed above the line; default = '<low>=not at all, <high>=extremely'.
@@ -347,9 +353,6 @@ class RatingScale(MinimalStim):
                 self.mouseOnly = False
                 logging.warning("RatingScale %s: ignoring mouseOnly (because showAccept and singleClick are False)" % self.name)
 
-        self.scale = scale
-        self.showScale = (scale is not None)
-
         # 'choices' is a list of non-numeric (unordered) alternatives:
         if choices and len(list(choices)) < 2:
             logging.error("RatingScale %s: choices requires 2 or more items" % self.name)
@@ -391,6 +394,7 @@ class RatingScale(MinimalStim):
             else:
                 self.labelTexts = [unicode(self.low)] + [''] * (self.high-self.low - 1) + [unicode(self.high)]
 
+        self.scale = scale
         if tickMarks and not(labels is False):
             if labels is None:
                 self.labelTexts = tickMarks
@@ -401,6 +405,7 @@ class RatingScale(MinimalStim):
                 self.labelTexts = tickMarks
             if self.scale == "<default>":
                 self.scale = False
+        self.showScale = (self.scale not in [None, False])
 
         # Marker pre-positioned? [do after anchors]
         try:
@@ -426,6 +431,8 @@ class RatingScale(MinimalStim):
         if type(self.precision) != int or self.precision < 10:
             self.precision = 1
             self.fmtStr = "%.0f" # decimal places, purely for display
+        elif self.precision == 60:
+            self.fmtStr = "%d:%s"  # minutes:seconds.zfill(2)
         elif self.precision < 100:
             self.precision = 10
             self.fmtStr = "%.1f"
@@ -738,6 +745,7 @@ class RatingScale(MinimalStim):
             self.markerBaseSize = self.baseSize
         self.markerColor = markerColor
         self.markerYpos = self.offsetVert + self.markerOffsetVert
+        self.markerOrig = copy.copy(self.marker)  # save initial state, restore on reset
 
     def _initTextElements(self, win, scale, textColor,
                           textFont, textSize, showValue, tickMarks):
@@ -775,6 +783,7 @@ class RatingScale(MinimalStim):
                     self.labels.append(TextStim(win=self.win, text=unicode(label), font=textFont,
                         pos=[self.tickPositions[i//self.autoRescaleFactor], vertPosTmp],
                         height=self.textSizeSmall, color=self.textColor, autoLog=False))
+        self.origScaleDescription = scale
         self.setDescription(scale) # do after having set the relevant things
 
     def setDescription(self, scale=None, log=True):
@@ -1005,6 +1014,11 @@ class RatingScale(MinimalStim):
                 if self.showValue and self.markerPlacedAt is not False:
                     if self.choices:
                         val = unicode(self.choices[int(self.markerPlacedAt)])
+                    elif self.precision == 60:
+                        valTmp = self.markerPlacedAt + self.low
+                        minutes = int(valTmp)  # also works for hours:minutes
+                        seconds = int(60. * (valTmp - minutes))
+                        val = self.fmtStr % (minutes, str(seconds).zfill(2))
                     else:
                         valTmp = self.markerPlacedAt + self.low
                         val = self.fmtStr % (valTmp * self.autoRescaleFactor)
@@ -1126,6 +1140,7 @@ class RatingScale(MinimalStim):
         """
         # only resets things that are likely to have changed when the ratingScale instance is used by a subject
         self.noResponse = True
+        self.marker = copy.copy(self.markerOrig)  # restore in case it turned gray, etc
         self.markerPlaced = False  # placed by subject or markerStart: show on screen
         self.markerPlacedBySubject = False  # placed by subject is actionable: show value, singleClick
         self.markerPlacedAt = False

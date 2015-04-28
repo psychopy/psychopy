@@ -17,13 +17,51 @@ Changelog
 :blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
 
-PsychoPy 1.81
+
+PsychoPy 1.82
 ------------------------------
 
-PsychoPy 1.81.04
+PsychoPy 1.82.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* FIXED: builder: microphone recordings are explicitly stopped at the end of every trial
+* ADDED: RatingScale precision=60 allows display of time-based values (min:sec or hours:min). Values from .getRating() are decimal proportions (1 min: 59 seconds -> 1.9833 minutes).
+
+PsychoPy 1.82.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Feb 2015
+
+* FIXED: problem with MovieStim2 showing black box instead of movie on certain systems
+* FIXED: problem with Tobii eye tracker not closing calibration window (Sol)
+* FIXED: better timing for non-slip routines that follow dynamic routines (Jeremy) #822
+* FIXED: problem with stimuli (e.g. shapes) not appearing if a texture had just been created and not yet drawn
+* FIXED: pygame sound engine complained about "global variable loops not defined"
+* ENHANCED: Filename collision handling for ExperimentHandler (Richard Höchenberger)
+* :blue:`CHANGED: for text data outputs that give delim='\t' the file extension '.tsv' is added instead of '.dlm' (Richard Höchenberger)`
+
+PsychoPy 1.82.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Jan 2015
+
+* ENHANCED: slightly faster rendering of movies for high-rate HD stimuli
+* CHANGED: `pandas` is now a strict requirement for the `psychopy.data` module
+* FIXED: Builder sounds from file no longer loop indefinitely
+* FIXED: Builder: microphone recordings are explicitly stopped at the end of every trial
+* FIXED: Static Components could become hidden by having unknown durations and then couldn't be changed. Now they are always shown even when times are unknown (Jeremy)
+* ADDED: improved support for Cambridge Research Systems Display++ and Bits# devices:
+    * Color++ and Mono++ modes now supported using shaders
+    * fixed some bugs with search for identityLUT in Display++
+* ADDED: Psi adaptive staircase method (thanks Joseph Glavan for writing this)
+* ADDED: `bidi` and `xlwt` packages to the Standalone distribution
+* ADDED: support for Mouse.setPos() under pyglet back end (Jeremy)
+* ADDED: support for PST response box (Richard Höchenberger)
+* FIXED: extraInfo was not being saved in wide-text format
+* FIXED: Builder was not respecting order for drawing polygon - it was always drawn first
+* ADDED: Builder now supports 'degFlat and 'degFlatPos' units and documentation has been added for these
+
+PsychoPy 1.81
+------------------------------
 
 PsychoPy 1.81.03
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

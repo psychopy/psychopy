@@ -103,10 +103,13 @@ class RunTimeInfo(dict):
             win = visual.Window(fullscr=True, monitor="testMonitor", autoLog=False)
             refreshTest = 'grating'
             usingTempWin = True
-        else: # either False, or we were passed a window instance, use it for timing and profile it:
+        elif win != False: # we were passed a window instance, use it for timing and profile it:
             usingTempWin = False
             self.winautoLog = win.autoLog
             win.autoLog = False
+        else: # don't want any window
+            usingTempWin = False
+
         if win:
             self._setWindowInfo(win, verbose, refreshTest, usingTempWin)
 
@@ -116,7 +119,7 @@ class RunTimeInfo(dict):
             if win: self._setOpenGLInfo()
         if usingTempWin:
             win.close() # close after doing openGL
-        else:
+        elif win != False:
             win.autoLog = self.winautoLog  # restore
 
     def _setExperimentInfo(self, author, version, verbose):
@@ -270,6 +273,9 @@ class RunTimeInfo(dict):
 
         # pyo for sound:
         try:
+            travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
+            assert not travis  # skip sound-related stuff on travis-ci.org
+
             import pyo
             self['systemPyoVersion'] = '%i.%i.%i' % pyo.getVersion()
             try:
@@ -283,7 +289,7 @@ class RunTimeInfo(dict):
                 self['systemPyo.OutputDevices'] = out
             except AttributeError:
                 pass
-        except ImportError:
+        except AssertionError, ImportError:
             pass
 
         # flac (free lossless audio codec) for google-speech:

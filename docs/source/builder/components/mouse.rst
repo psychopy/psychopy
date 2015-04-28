@@ -46,5 +46,5 @@ Time Relative To
         
 .. seealso::
     
-    API reference for :mod:`~psychopy.event.mouse`
+    API reference for :mod:`~psychopy.event.Mouse`
      

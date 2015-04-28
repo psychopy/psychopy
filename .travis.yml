@@ -15,11 +15,17 @@ before_install:
   - travis_retry sudo apt-get update -qq
   - sudo apt-cache policy           # What is actually available?
   - travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
-  - travis_retry sudo apt-get install -qq python-pyglet python-pygame python-opengl
-  - travis_retry sudo pip install -qq gevent # Don't use apt-get (too old version of gevent)
+  - travis_retry sudo apt-get install -qq python-pygame python-opengl
+  - travis_retry sudo -H pip install --upgrade -qq pip
+# pyglet 1.1.4:
+#  - travis_retry sudo apt-get install -qq python-pyglet
+# pyglet 1.2.2
+  - travis_retry sudo -H pip install -qq pyglet
+  - python -c 'import pyglet; print pyglet.version'
+  - travis_retry sudo -H pip install -qq gevent # Don't use apt-get (too old version of gevent)
   - travis_retry sudo apt-get install -qq python-yaml python-xlib
-  - travis_retry sudo pip install -qq psutil # Don't use apt-get (too old version of psutil)
-  - travis_retry sudo pip install -qq msgpack-python #not apt-get (no permissions for universe)
+  - travis_retry sudo -H pip install -qq psutil # Don't use apt-get (too old version of psutil)
+  - travis_retry sudo -H pip install -qq msgpack-python #not apt-get (no permissions for universe)
   - travis_retry sudo apt-get install -qq python-numpy python-scipy python-matplotlib python-lxml
   - travis_retry sudo apt-get install -qq python-configobj python-imaging python-openpyxl python-mock python-wxgtk2.8 libavbin0 python-pyo
   - travis_retry sudo apt-get install -qq python-pandas

@@ -6,7 +6,7 @@ PsychoPy can access a wide range of external hardware. For some devices the inte
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :glob:
 
    hardware/*

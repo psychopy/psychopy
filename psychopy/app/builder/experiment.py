@@ -164,13 +164,7 @@ class Experiment(object):
                     '  Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.\n' +
                     '  Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
         script.write("\nfrom __future__ import division  # so that 1/3=0.333 instead of 1/3=0\n")
-        # This functionality is not ready to be exposed to end-users in a script
-        #if self.prefsApp['locale']:
-        #    # if locale is set explicitly as a pref, add it to the script:
-        #    localeValue = '.'.join(locale.getlocale())
-        #    script.write("from psychopy import localization\n" +
-        #             "localization.init(%s)\n\n" % repr(localeValue))
-        script.write("from psychopy import %s\n" % ', '.join(self.psychopyLibs) +
+        script.write("from psychopy import locale_setup, %s\n" % ', '.join(self.psychopyLibs) +
                     "from psychopy.constants import *  # things like STARTED, FINISHED\n" +
                     "import numpy as np  # whole numpy lib is available, prepend 'np.'\n" +
                     "from numpy import %s\n" % ', '.join(_numpyImports) +
@@ -414,8 +408,8 @@ class Experiment(object):
                         name=componentNode.get('name'),
                         parentName=routineNode.get('name'), exp=self)
                 else:
-                    from components._base import UnknownComponent
-                    component = UnknownComponent(
+                    #create UnknownComponent instead
+                    component=getAllComponents(self.prefsBuilder['componentsFolders'])['UnknownComponent'](\
                         name=componentNode.get('name'),
                         parentName=routineNode.get('name'), exp=self)
                 # check for components that were absent in older versions of the builder and change the default behavior
@@ -1180,7 +1174,7 @@ class Routine(list):
         buff.writeIndented('%s.reset()  # clock \n' %(self._clockName))
         buff.writeIndented('frameN = -1\n')
         #can we use non-slip timing?
-        maxTime, useNonSlip, onlyStaticComps = self.getMaxTime()
+        maxTime, useNonSlip = self.getMaxTime()
         if useNonSlip:
             buff.writeIndented('routineTimer.add(%f)\n' %(maxTime))
 
@@ -1225,7 +1219,6 @@ class Routine(list):
         #are we done yet?
         buff.writeIndentedLines('\n# check if all components have finished\n')
         buff.writeIndentedLines('if not continueRoutine:  # a component has requested a forced-end of Routine\n')
-        buff.writeIndentedLines('    routineTimer.reset()  # if we abort early the non-slip timer needs reset\n')
         buff.writeIndentedLines('    break\n')
         buff.writeIndentedLines('continueRoutine = False  # will revert to True if at least one component still running\n')
         buff.writeIndentedLines('for thisComponent in %sComponents:\n' %self.name)
@@ -1242,9 +1235,6 @@ class Routine(list):
         buff.writeIndentedLines('\n# refresh the screen\n')
         buff.writeIndented("if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen\n")
         buff.writeIndented('    win.flip()\n')
-        if not useNonSlip:
-            buff.writeIndented("else:  # this Routine was not non-slip safe so reset non-slip timer\n")
-            buff.writeIndented('    routineTimer.reset()\n')
 
         #that's done decrement indent to end loop
         buff.setIndentLevel(-1,True)
@@ -1256,6 +1246,11 @@ class Routine(list):
         buff.writeIndentedLines('    if hasattr(thisComponent, "setAutoDraw"):\n        thisComponent.setAutoDraw(False)\n')
         for event in self:
             event.writeRoutineEndCode(buff)
+
+        # reset routineTimer at the *very end* of all non-nonSlip routines
+        if not useNonSlip:
+            buff.writeIndented('# the Routine "%s" was not non-slip safe, so reset the non-slip timer\n' % self.name)
+            buff.writeIndented('routineTimer.reset()\n')
 
     def writeExperimentEndCode(self,buff):
         """This defines the code for the frames of a single routine
@@ -1270,6 +1265,8 @@ class Routine(list):
             if comp.params['name'].val==name:
                 return comp
         return None
+    def hasOnlyStaticComp(self):
+        return all([comp.type == 'Static' for comp in self])
     def getMaxTime(self):
         """What the last (predetermined) stimulus time to be presented. If
         there are no components or they have code-based times then will default
@@ -1277,8 +1274,7 @@ class Routine(list):
         """
         maxTime=0
         nonSlipSafe = True # if possible
-        onlyStaticComps = True
-        for n, component in enumerate(self):
+        for component in self:
             if 'startType' in component.params:
                 start, duration, nonSlip = component.getStartAndDuration()
                 if not nonSlip:
@@ -1292,13 +1288,10 @@ class Routine(list):
                 except:
                     thisT=0
                 maxTime=max(maxTime,thisT)
-                #update onlyStaticComps if needed
-                if component.type != 'Static':
-                    onlyStaticComps = False
         if maxTime==0:#if there are no components
             maxTime=10
             nonSlipSafe=False
-        return maxTime, nonSlipSafe, onlyStaticComps
+        return maxTime, nonSlipSafe
 
 class ExpFile(list):
     """An ExpFile is similar to a Routine except that it generates its code
@@ -1414,8 +1407,8 @@ class NameSpace():
             'PLAYING', 'FOREVER', 'PSYCHOPY_USERAGENT']
         self.builder = ['KeyResponse', 'key_resp', 'buttons', 'continueRoutine',
             'expInfo', 'expName', 'thisExp', 'filename', 'logFile', 'paramName',
-            't', 'frameN', 'currentLoop', 'dlg',
-            'globalClock', 'routineTimer',
+            't', 'frameN', 'currentLoop', 'dlg', '_thisDir', 'endExpNow',
+            'globalClock', 'routineTimer', 'frameDur',
             'theseKeys', 'win', 'x', 'y', 'level', 'component', 'thisComponent']
         # user-entered, from Builder dialog or conditions file:
         self.user = []

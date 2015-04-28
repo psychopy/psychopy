@@ -58,7 +58,11 @@ def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
     if sys.platform=='darwin':
         newRamp= (newRamp).astype(numpy.float32)
         LUTlength=newRamp.shape[1]
-        error =carbon.CGSetDisplayTransferByTable(pygletWindow._screen.id, LUTlength,
+        try:
+            _screen_ID = pygletWindow._screen.id  # pyglet1.2alpha1
+        except AttributeError:
+            _screen_ID = pygletWindow._screen._cg_display_id  # pyglet1.2
+        error = carbon.CGSetDisplayTransferByTable(_screen_ID, LUTlength,
                    newRamp[0,:].ctypes, newRamp[1,:].ctypes, newRamp[2,:].ctypes)
         assert not error, 'CGSetDisplayTransferByTable failed'
 
@@ -84,7 +88,11 @@ def getGammaRamp(pygletWindow):
     if sys.platform=='darwin':
         origramps = numpy.empty((3, 256), dtype=numpy.float32) # init R, G, and B ramps
         n = numpy.empty([1],dtype=numpy.int)
-        error =carbon.CGGetDisplayTransferByTable(pygletWindow._screen.id, 256,
+        try:
+            _screen_ID = pygletWindow._screen.id  # pyglet1.2alpha1
+        except AttributeError:
+            _screen_ID = pygletWindow._screen._cg_display_id  # pyglet1.2
+        error = carbon.CGGetDisplayTransferByTable(_screen_ID, 256,
                    origramps[0,:].ctypes, origramps[1,:].ctypes, origramps[2,:].ctypes, n.ctypes);
         if error:
             raise AssertionError, 'CGSetDisplayTransferByTable failed'
@@ -130,24 +138,24 @@ def createLinearRamp(win, rampType=None):
         Known to be used by:
             OSX 10.6.0 with NVidia Geforce-9200M
     """
+    def _versionTuple(v):
+        # for proper sorting: _versionTuple('10.8') < _versionTuple('10.10')
+        return tuple(map(int, v.split('.')))
     if rampType is None:
-        #try to determine rampType from heuristics
-        #get sys info
+        #try to determine rampType from heuristics including sys info
         driver = pyglet.gl.gl_info.get_renderer()
-        if sys.platform=='darwin':
-            isOSX=True
-            osxVer=platform.mac_ver()[0]
-        else:
-            isOSX=False
-            osxVer=None
+        osxVer = platform.mac_ver()[0]  # '' on non-Mac
 
         #try to deduce ramp type
-        if isOSX:
+        if osxVer:
+            osxVerTuple = _versionTuple(osxVer)
             if 'NVIDIA' in driver:
-                if ("10.5"<osxVer<"10.6"):#leopard nVidia cards don't finish at 1.0!
+                if _versionTuple("10.5") < osxVerTuple < _versionTuple("10.6"):  #leopard nVidia cards don't finish at 1.0!
                     rampType=2
-                if ("10.6"<osxVer):#snow leopard cards are plain crazy!
+                elif _versionTuple("10.6") < osxVerTuple:  #snow leopard cards are plain crazy!
                     rampType=3
+                else:
+                    rampType = 1
             else: #is ATI or unkown manufacturer, default to (1:256)/256
                 #this is certainly correct for radeon2600 on 10.5.8 and radeonX1600 on 10.4.9
                 rampType=1
@@ -165,5 +173,3 @@ def createLinearRamp(win, rampType=None):
         ramp[512:] = ramp[512:]-1/256.0
     logging.info('Using gamma ramp type: %i' %rampType)
     return ramp
-
-

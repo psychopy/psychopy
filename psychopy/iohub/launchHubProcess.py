@@ -48,6 +48,10 @@ def run(rootScriptPathDir,configFilePath):
         s.log('Receiving datagrams on :9000')
         s.udpService.start()
 
+
+        if Computer.system == 'win32':
+            gevent.spawn(s.pumpMsgTasklet, s.config.get('windows_msgpump_interval', 0.00375))
+
         if hasattr(gevent,'run'):
             for m in s.deviceMonitors:
                 m.start()
@@ -65,6 +69,9 @@ def run(rootScriptPathDir,configFilePath):
             gevent.run()
         else:
             glets=[]
+            if Computer.system == 'win32':
+                glets.append(gevent.spawn(s.pumpMsgTasklet, s.config.get('windows_msgpump_interval', 0.00375)))
+
             for m in s.deviceMonitors:
                 m.start()
                 glets.append(m)
