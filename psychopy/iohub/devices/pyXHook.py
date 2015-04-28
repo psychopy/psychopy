@@ -299,18 +299,20 @@ class HookManager(threading.Thread):
                 self.KeyUp(hookevent)
             elif event.type == X.ButtonPress:
                 hookevent = self.buttonpressevent(event)
+                self.MouseAllButtonsDown(hookevent)
             elif event.type == X.ButtonRelease and event.detail not in (4, 5):
                 # 1 mouse wheel scroll event was generating a button press
                 # and a button release event for each single scroll, so allow
                 # wheel scroll events through for buttonpressevent, but not for
                 # buttonreleaseevent so 1 scroll action causes 1 scroll event.
                 hookevent = self.buttonreleaseevent(event)
+                self.MouseAllButtonsUp(hookevent)
             elif event.type == X.MotionNotify:
                 # use mouse moves to record mouse position, since press and release events
                 # do not give mouse position info (event.root_x and event.root_y have
                 # bogus info).
                 hookevent = self.mousemoveevent(event)
-
+                self.MouseAllMotion(hookevent)
     def buttonpressevent(self, event):
         r = self.makemousehookevent(event)
         return r
