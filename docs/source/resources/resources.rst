@@ -5,10 +5,10 @@ There are a number of further resources to help learn/teach about PsychoPy.
 
 If you also have PsychoPy materials/course then please let us know so that we can link to them from here too!
 
-:ref:`P4N`
+Workshops
 ---------------------------------------------------------------
 
-There will be a 3-day workshop in April 2014 at Nottingham University. It won't be *only* about PsychoPy, but about Python for science more generally and focussing on coding rather than using the Builder interface. We hope this year to run intermediate and novice sessions in parallel (rather than novice only).
+- **P4N: Python for Neuroscience** There is usually a 3-day Python bootcamp at Nottingham University in April. It won't be *only* about PsychoPy, but about Python for science more generally and focussing on coding rather than using the Builder interface. For further info see :ref:`P4N`
 
 .. _youtube:
 

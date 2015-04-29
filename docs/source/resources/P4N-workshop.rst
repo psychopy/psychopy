@@ -1,10 +1,13 @@
 .. _P4N:
 
-P4N 2015: Python for Neuroscience (and Psychology)
+P4N 2016: Python for Neuroscience (and Psychology)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Sorry, this workshop is now fully booked**
+The workshop isn't finalised yet and you can't book places, but you can `register your interest <https://docs.google.com/forms/d/1gEKIc-eBsPYxCgVzMaqBh4CMQNMyyfO-s-p_y2WuxHE/viewform>`_ to be kept informed when we know the details.
 
+.. image:: jumpAnimate.gif
+   :width: 100 %
+	
 Do you want to get started using Python_ (and PsychoPy_) for your studies in behavioural sciences? Maybe you keep meaning to switch from another package and haven't gotten around to it. This workshop will get you off the ground with building and analysing your experiments using Python.
 
 `Python`_ is a powerful well-designed programming language that's totally free and runs on all operating systems. It's a little like a free replacement for Matlab, but with more flexibility and better syntax!
@@ -13,14 +16,15 @@ Do you want to get started using Python_ (and PsychoPy_) for your studies in beh
 
 The workshop is led by Jon Peirce, who created the core of PsychoPy and has over 10 years experience of Python programming and teaching students.
 
+
 Details
 ------------
 
-    :Spaces: 30 beginner
-    :When: 21-23 April 2015 (inclusive)
+    :Spaces: 30 beginner (and 30 intermediate?)
+    :When: TBA
     :Where: School of Psychology, University of Nottingham
     :Cost: £350
-    :Includes: Refreshments and lunch. There is an accommodation package too, costing around £44 per night including bed and breakfast
+    :Includes: Refreshments and lunch. There is an accommodation package too, costing around £45 per night including bed and breakfast
     :Content:
         Material will cover *Python* programming basics as well as PsychoPy-specific coding. Note that this is not a workshop about PsychoPy Builder; we'll really be focussing on programming.
         
