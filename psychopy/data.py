@@ -1689,7 +1689,7 @@ class TrialHandlerExt(TrialHandler):
                     thisDataChunk = self.data[dataType][idx_data==curTrialIndex,:]
                     padWidth = max(self.trialWeights)*self.nReps - numpy.prod(thisDataChunk.shape)
                     thisDataChunkRowPadded = numpy.pad(thisDataChunk.transpose().flatten().data, (0, padWidth), mode='constant', constant_values=(0,0))
-                    thisDataChunkRowPaddedMask = numpy.pad(thisDataChunk.flatten().mask, (0, padWidth), mode='constant', constant_values=(0,True))
+                    thisDataChunkRowPaddedMask = numpy.pad(thisDataChunk.transpose().flatten().mask, (0, padWidth), mode='constant', constant_values=(0,True))
 
                     thisDataChunkRow = numpy.ma.masked_array(thisDataChunkRowPadded, mask=thisDataChunkRowPaddedMask)
                     resizedData[curTrialIndex,:] = thisDataChunkRow
