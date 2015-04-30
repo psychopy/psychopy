@@ -5,7 +5,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, threading
-from clock import MonotonicClock, Clock, CountdownTimer, EllapsedTimeClock, wait, monotonicClock, getAbsTime
+from clock import MonotonicClock, Clock, CountdownTimer, wait, monotonicClock, getAbsTime
 # always safe to call rush, even if its not going to do anything for a particular OS
 from psychopy.platform_specific import rush
 from . import logging
