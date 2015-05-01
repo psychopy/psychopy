@@ -49,6 +49,7 @@ def quit():
             thisThread.stop()
             while thisThread.running==0:
                 pass#wait until it has properly finished polling
+
     sys.exit(0)#quits the python session entirely
 
 def shellCall(shellCmd, stdin='', stderr=False):

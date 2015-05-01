@@ -83,13 +83,13 @@ class Mouse(MouseDevice):
                      
     def _nativeEventCallback(self,event):
         try:
-           if self.isReportingEvents():
+            if self.isReportingEvents():
                 logged_time=currentSec()                
                 event_array=event[0]
 
                 psychowins=self._iohub_server._pyglet_window_hnds
                 report_all=self.getConfiguration().get('report_system_wide_events',True)
-                if psychowins and event_array[-1] not in psychowins and report_all is False:
+                if report_all is False and psychowins and event_array[-1] not in psychowins:
                     return True
 
                 event_array[3]=Computer._getNextEventID()
@@ -105,37 +105,20 @@ class Mouse(MouseDevice):
                 self._last_display_index=self._display_index
                 self._display_index=display_index
 
-             	bstate=event_array[-11]
-             	bnum=event_array[-10]
+                bstate=event_array[-11]
+                bnum=event_array[-10]
 
-            	if bnum is not MouseConstants.MOUSE_BUTTON_NONE:
-                	self.activeButtons[bnum]= int(bstate==True)    
+                if bnum is not MouseConstants.MOUSE_BUTTON_NONE:
+                    self.activeButtons[bnum]= int(bstate==True)
            
-           		self._scrollPositionY= event_array[-3]
+                self._scrollPositionY= event_array[-3]
 
-                report_system_wide_events=self.getConfiguration().get('report_system_wide_events',True)
-            	if report_system_wide_events is False:
-			pyglet_window_hnds=self._iohub_server._pyglet_window_hnds
-			event_win=event_array[-1]
-			found=False
-			for pwin in pyglet_window_hnds:
-			    if pwin == event_win:
-				self._addNativeEventToBuffer(event_array)
-				found=True
-				break
-			#if found is False:		    	
-			#	print2err('Mouse_Event Filtered:',bnum,' ',logged_time)
-		else:
-			self._addNativeEventToBuffer(event_array)
-                # For the Mouse, always pass along events, but do not log
-                # events that occurred targeted for a non Psychopy win.
-                #
-                return True
+                self._addNativeEventToBuffer(event_array)
 
                 self._last_callback_time=logged_time
         except:
-            printExceptionDetailsToStdErr()
-        return 1
+                printExceptionDetailsToStdErr()
+        return True
             
     def _getIOHubEventObject(self,native_event_data):
         return native_event_data
