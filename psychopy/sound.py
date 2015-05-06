@@ -280,9 +280,18 @@ class SoundPygame(_SoundBase):
 
     def _setSndFromFile(self, fileName):
         #load the file
+        if not os.path.ispath(filename):
+            msg = "Sound file %s could not be found." % fileName
+            logging.error(msg)
+            raise ValueError(msg)
         self.fileName = fileName
         self.loops = self.requestedLoops #in case a tone with inf loops had been used before
-        self._snd = mixer.Sound(self.fileName)
+        try:
+            self._snd = mixer.Sound(self.fileName)
+        except:
+            msg = "Sound file %s could not be opened using pygame for sound." % fileName
+            logging.error(msg)
+            raise ValueError(msg)
 
     def _setSndFromArray(self, thisArray):
         #get a mixer.Sound object from an array of floats (-1:1)
@@ -472,7 +481,7 @@ class SoundPyo(_SoundBase):
             self._sndTable.setSound(self.fileName,
                                 start=self.startTime, stop=self.stopTime)
         except:
-            msg = 'Could not open sound file; not found or format not supported (%s)' % fileName
+            msg = 'Could not open sound file `%s` using pyo; not found or format not supported.' % fileName
             logging.error(msg)
             raise TypeError(msg)
         self._updateSnd()
