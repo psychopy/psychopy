@@ -570,7 +570,23 @@ class Mouse:
         elif self.win.units=='cm': return cm2pix(pos, self.win.monitor)
         elif self.win.units=='deg': return deg2pix(pos, self.win.monitor)
         elif self.win.units=='height': return pos*float(self.win.size[1])
+    def setExclusive(self, exclusivity):
+        """Binds the mouse to the experiment window. Only works in Pyglet.
+        In multi-monitor settings, or with a window that is not fullscreen, the mouse pointer can drift, and thereby
+        psychopy might not get the events from that window. setExclusive(True) works with Pyglet to bind the
+        mouse to the experiment window.
 
+        Note that binding the mouse pointer to a window will cause the pointer to vanish, and absolute positions will
+        no longer be meaningful getPos() returns [0, 0] in this case.
+        """
+        if type(exclusivity) is not bool:
+            raise ValueError('Exclusivity must be a boolean!')
+        if not usePygame:
+            psychopy.logging.warning('Setting mouse exclusivity in Pyglet will cause the cursor to disappear, ' +
+                                     'and getPos() will be rendered meaningless, returning [0, 0]')
+            self.win.winHandle.set_exclusive_mouse(exclusivity)
+        else:
+            print 'Mouse exclusivity can only be set for Pyglet!'
 
 class BuilderKeyResponse():
     """Used in scripts created by the builder to keep track of a clock and
