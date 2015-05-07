@@ -35,7 +35,7 @@ Materials for Coder
 
 - `Gary Lupyan <http://sapir.psych.wisc.edu/>`_ runs a class on programming experiments using Python/PsychoPy and makes his lecture materials available `on this wiki <http://sapir.psych.wisc.edu/wiki/index.php/Psych711>`_
 
-- The `GestaltReVision group (University of Leuven) wiki <http://gestaltrevision.be/wiki/python>`_ offers a `one-day crash course to Python and PsychoPy on a IPython Notebook <http://nbviewer.ipython.org/7036997>`_, and has lots of great information taking you from basic programming to advanced techniques.
+- The `GestaltReVision group (University of Leuven) <http://gestaltrevision.be>`_ offers a `three-day crash course to Python and PsychoPy on a IPython Notebook <http://nbviewer.ipython.org/github/gestaltrevision/python_for_visres/blob/master/index.ipynb>`_, and has lots of great information taking you from basic programming to advanced techniques.
 
 - Radboud University, Nijmegen also has a `PsychoPy programming course <https://www.socsci.ru.nl/~wilberth/nocms/psychopy/print.php>`_
 
