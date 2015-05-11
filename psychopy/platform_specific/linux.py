@@ -46,7 +46,7 @@ def rush(value=True, realtime=False):
         err = c.sched_setscheduler(0,SCHED_RR, ctypes.byref(schedParams))
         if err==-1:#returns 0 if OK
             logging.warning("""Could not raise thread priority with sched_setscheduler.
-To enable rush(), if you are using a debian-based linux, try this in a terminal window:
+To enable rush(), if you are using a debian-based Linux, try this in a terminal window:
   'sudo setcap cap_sys_nice=eip %s'  [NB: You may need to install 'setcap' first.]
 If you are using the system's python (eg /usr/bin/python2.x), its highly recommended
 to change cap_sys_nice back to normal afterwards:
