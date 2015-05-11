@@ -41,7 +41,7 @@ class RadialStim(GratingStim):
 
     Many of the capabilities are built on top of the GratingStim.
 
-    This stimulus is still relatively new and I'm finding occasional gliches. it also takes longer to draw
+    This stimulus is still relatively new and I'm finding occasional glitches. It also takes longer to draw
     than a typical GratingStim, so not recommended for tasks where high frame rates are needed.
     """
     def __init__(self,

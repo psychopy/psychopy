@@ -38,14 +38,14 @@ class CustomMouse(MinimalStim):
         """Class for customizing the appearance and behavior of the mouse.
 
         Use a custom mouse for extra control over the pointer appearance and function.
-        Its probably slower to render than the regular system mouse.
+        It's probably slower to render than the regular system mouse.
         Create your `visual.Window` before creating a CustomMouse.
 
         :Parameters:
             win : required, `visual.Window`
                 the window to which this mouse is attached
             visible : **True** or False
-                makes the mouse invisbile if necessary
+                makes the mouse invisible if necessary
             newPos : **None** or [x,y]
                 gives the mouse a particular starting position (pygame or pyglet)
             leftLimit :
@@ -62,7 +62,7 @@ class CustomMouse(MinimalStim):
                 The visual display item to use as the pointer; must have .draw()
                 and setPos() methods. If your item has .setOpacity(), you can
                 alter the mouse's opacity.
-            clickOnUp : when to count a mouse click as having occured
+            clickOnUp : when to count a mouse click as having occurred
                 default is False, record a click when the mouse is first pressed
                 down. True means record a click when the mouse button is released.
         :Note:
@@ -148,7 +148,7 @@ class CustomMouse(MinimalStim):
         self.lastPos = numpy.array([x,y])
         return self.lastPos
     def draw(self):
-        """Draw mouse (if its visible), show the limit box, update the click count.
+        """Draw mouse (if it's visible), show the limit box, update the click count.
         """
         self._setPos()
         if self.showLimitBox:

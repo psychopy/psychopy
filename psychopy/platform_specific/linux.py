@@ -2,7 +2,7 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 """
-placeholder for adding c (or ctypes) extensions to the linux PsychoPy
+placeholder for adding c (or ctypes) extensions to the Linux PsychoPy
 """
 from psychopy import logging
 import sys
@@ -28,11 +28,11 @@ def rush(value=True, realtime=False):
     """Raise the priority of the current thread/process using
         - sched_setscheduler
 
-    realtime arg is not used in linux implementation.
+    realtime arg is not used in Linux implementation.
 
-    NB for rush() to work on (debian-based?) linux requires that the script is run using a copy of python that
+    NB for rush() to work on (debian-based?) Linux requires that the script is run using a copy of python that
     is allowed to change priority, eg: sudo setcap cap_sys_nice=eip <sys.executable>, and maybe restart PsychoPy.
-    If <sys.executable> is the system python, its important to restore it back to normal to avoid possible
+    If <sys.executable> is the system python, it's important to restore it back to normal to avoid possible
     side-effects. Alternatively, use a different python executable, and change its cap_sys_nice.
 
     For RedHat-based systems, 'sudo chrt ...' at run-time might be needed instead, not sure.

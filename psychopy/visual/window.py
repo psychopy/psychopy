@@ -173,7 +173,7 @@ class Window(object):
                 Location of the window on the screen
             rgb : [0,0,0]
                 Color of background as [r,g,b] list or single value.
-                Each gun can take values betweeen -1 and 1
+                Each gun can take values between -1 and 1
             fullscr : *None*, True or False
                 Better timing can be achieved in full-screen mode
             allowGUI :  *None*, True or False (if None prefs are used)
@@ -212,8 +212,8 @@ class Window(object):
                 (notably, allowing the class:`~psychopy.visual.Aperture`
                 to be used).
             stereo : True or *False*
-                If True and your graphics card supports quad buffers then t
-                his will be enabled.
+                If True and your graphics card supports quad buffers then
+                this will be enabled.
                 You can switch between left and right-eye scenes for drawing
                 operations using :func:`~psychopy.visual.Window.setBuffer`
 
@@ -471,7 +471,7 @@ class Window(object):
         '''A default resize event handler.
 
         This default handler updates the GL viewport to cover the entire
-        window and sets the ``GL_PROJECTION`` matrix to be orthagonal in
+        window and sets the ``GL_PROJECTION`` matrix to be orthogonal in
         window space.  The bottom-left corner is (0, 0) and the top-right
         corner is the width and height of the :class:`~psychopy.visual.Window`
         in pixels.
@@ -918,8 +918,8 @@ class Window(object):
 
         power2 can be useful with older OpenGL versions to avoid interpolation
         in PatchStim. If power2 or squarePower2, it will expand rect dimensions
-        up to next power of two. squarePower2 uses the max dimenions. You need
-        to check what your hardware & opengl supports, and call
+        up to next power of two. squarePower2 uses the max dimensions. You need
+        to check what your hardware & OpenGL supports, and call
         _getRegionOfFrame as appropriate.
         """
         # Ideally: rewrite using GL frame buffer object; glReadPixels == slow
@@ -1528,7 +1528,7 @@ class Window(object):
     def mouseVisible(self, visibility):
         """Sets the visibility of the mouse cursor.
 
-        If Window was initilised with noGUI=True then the mouse is initially
+        If Window was initialized with noGUI=True then the mouse is initially
         set to invisible, otherwise it will initially be visible.
 
         Usage::
@@ -1563,7 +1563,7 @@ class Window(object):
                 Higher --> greater precision. Lower --> faster.
 
             nMaxFrames:
-                the maxmimum number of frames to wait for a matching set of
+                the maximum number of frames to wait for a matching set of
                 nIdentical
 
             nWarmUpFrames:
@@ -1770,7 +1770,7 @@ def _onResize(width, height):
         '''A default resize event handler.
 
         This default handler updates the GL viewport to cover the entire
-        window and sets the ``GL_PROJECTION`` matrix to be orthagonal in
+        window and sets the ``GL_PROJECTION`` matrix to be orthogonal in
         window space.  The bottom-left corner is (0, 0) and the top-right
         corner is the width and height of the :class:`~psychopy.visual.Window`
         in pixels.
