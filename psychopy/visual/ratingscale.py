@@ -233,7 +233,7 @@ class RatingScale(MinimalStim):
             Require the subject to use keys to respond; disable and hide the mouse.
             `markerStart` will default to the left end.
         minTime :
-            Seconds that must elapse before a reponse can be accepted,
+            Seconds that must elapse before a response can be accepted,
             default = `0.4`.
         maxTime :
             Seconds after which a response cannot be accepted.
@@ -551,7 +551,7 @@ class RatingScale(MinimalStim):
         ### Notes (JRG Aug 2010)
         Conceptually, the response line is always -0.5 to +0.5 ("internal" units). This line, of unit length,
         is scaled and translated for display. The line is effectively "center justified", expanding both left
-        and right with scaling, with pos[] specifiying the screen coordinate (in window units, norm or pix)
+        and right with scaling, with pos[] specifying the screen coordinate (in window units, norm or pix)
         of the mid-point of the response line. Tick marks are in integer units, internally 0 to (high-low),
         with 0 being the left end and (high-low) being the right end. (Subjects see low to high on the screen.)
         Non-numeric (categorical) choices are selected using tick-marks interpreted as an index, choice[tick].
@@ -574,7 +574,7 @@ class RatingScale(MinimalStim):
         To elaborate: tick-0 is the left-most tick, or "low anchor"; here 0 is internal, the subject sees <low>.
         tick-n is the right-most tick, or "high anchor", or internal-tick-(high-low), and the subject sees <high>.
         Intermediate ticks, i, are located proportionally between -0.5 to + 0.5, based on their proportion
-        of the total number of ticks, float(i)/n. The "proportion of total" is used because its a line of unit length,
+        of the total number of ticks, float(i)/n. The "proportion of total" is used because it's a line of unit length,
         i.e., the same length as used to internally represent the scale (-0.5 to +0.5).
         If precision > 1, the user / experimenter is asking for fractional ticks. These map correctly
         onto [0, 1] as well without requiring special handling (just do ensure float() ).

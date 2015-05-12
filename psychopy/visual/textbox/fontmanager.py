@@ -117,7 +117,7 @@ class FontManager(object):
         monospace font (as only monospace fonts are currently supported by
         TextBox).
 
-        Adding a Font to the FontManager is not persistant across runs of
+        Adding a Font to the FontManager is not persistent across runs of
         the script, so any extra font paths need to be added each time the
         script starts.
         """
@@ -134,7 +134,7 @@ class FontManager(object):
         monospace font (as only monospace fonts are currently supported by
         TextBox).
 
-        Adding fonts to the FontManager is not persistant across runs of
+        Adding fonts to the FontManager is not persistent across runs of
         the script, so any extra font paths need to be added each time the
         script starts.
         """

@@ -5,7 +5,7 @@ Parallel Port Out Component
 
 This component allows you to send triggers to a parallel port or to a LabJack device.
 
-An example usage would be in EEG experiments to set the port to 0 when no stimuli are present and then set it to an identifier value for each stimulus synchronised to the start/stop of that stimulus. In that case you mgiht set the `Start data` to be `$ID` (with ID being a column in your conditions file) and set the `Stop Data` to be 0.
+An example usage would be in EEG experiments to set the port to 0 when no stimuli are present and then set it to an identifier value for each stimulus synchronised to the start/stop of that stimulus. In that case you might set the `Start data` to be `$ID` (with ID being a column in your conditions file) and set the `Stop Data` to be 0.
 
 Properties
 ~~~~~~~~~~~

@@ -38,7 +38,7 @@ def setGamma(pygletWindow=None, newGamma=1.0, rampType=None):
 
 def setGammaRamp(pygletWindow, newRamp, nAttempts=3):
     """Sets the hardware look-up table, using platform-specific ctypes functions.
-    For use with pyglet windows only (pygame has its ow routines for this).
+    For use with pyglet windows only (pygame has its own routines for this).
     Ramp should be provided as 3x256 or 3x1024 array in range 0:1.0
 
     On windows the first attempt to set the ramp doesn't always work. The parameter nAttemps
@@ -110,7 +110,7 @@ def getGammaRamp(pygletWindow):
 def createLinearRamp(win, rampType=None):
     """Generate the Nx3 values for a linear gamma ramp on the current platform.
     This uses heuristics about known graphics cards to guess the 'rampType' if
-    none is exlicitly given.
+    none is explicitly given.
 
     Much of this work is ported from LoadIdentityClut.m, written by Mario Kleiner
     for the psychtoolbox

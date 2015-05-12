@@ -68,4 +68,4 @@ Builder experiments use the participant name as the file name and then create a 
 
 Delimited text files (.csv, .tsv, .txt)
 -------------------------------------------------
-For maximum compatibility, especially for legacy analysis software, you can choose to output your data as a delimited text file. Typically this would be comma-separated values (.csv file) or tab-delimited (.txt file). The format of those files is exactly the same as the Excel file, but is limited by the file format to a single sheet.
+For maximum compatibility, especially for legacy analysis software, you can choose to output your data as a delimited text file. Typically this would be comma-separated values (.csv file) or tab-delimited (.tsv file). The format of those files is exactly the same as the Excel file, but is limited by the file format to a single sheet.

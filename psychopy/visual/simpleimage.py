@@ -188,7 +188,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
 
     @attributeSetter
     def pos(self, value):
-        """:ref:`x,y-pair <attrib-xy>` specifying the he centre of the image
+        """:ref:`x,y-pair <attrib-xy>` specifying the centre of the image
         relative to the window center. Stimuli can be positioned off-screen,
         beyond the window!
 
@@ -215,7 +215,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
     @attributeSetter
     def image(self, filename):
         """String. Filename, including relative or absolute path. The image
-        can be any format that the Python Imagin Library can import
+        can be any format that the Python Imaging Library can import
         (almost any). Can also be an image already loaded by PIL.
         """
         self.__dict__['image'] = filename

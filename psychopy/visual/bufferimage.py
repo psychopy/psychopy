@@ -42,7 +42,7 @@ class BufferImageStim(ImageStim):
     the visible screen (front buffer) or hidden (back buffer).
 
     BufferImageStim aims to provide fast rendering, while still allowing dynamic
-    orientation, position, and opacity. Its fast to draw but slower to init (same
+    orientation, position, and opacity. It's fast to draw but slower to init (same
     as an ImageStim).
 
     You specify the part of the screen to capture (in norm units), and optionally
@@ -162,7 +162,7 @@ class BufferImageStim(ImageStim):
 
     @attributeSetter
     def flipHoriz(self, flipHoriz):
-        """If set to True then the image will be flipped horiztonally (left-to-right).
+        """If set to True then the image will be flipped horizontally (left-to-right).
         Note that this is relative to the original image, not relative to the current state.
         """
         self.__dict__['flipHoriz'] = flipHoriz

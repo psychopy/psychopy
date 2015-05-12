@@ -475,7 +475,7 @@ class Mouse:
     def getWheelRel(self):
         """Returns the travel of the mouse scroll wheel since last call.
         Returns a numpy.array(x,y) but for most wheels y is the only
-        value that will change (except mac mighty mice?)
+        value that will change (except Mac mighty mice?)
         """
         global mouseWheelRel
         rel = mouseWheelRel
@@ -573,7 +573,7 @@ class Mouse:
     def setExclusive(self, exclusivity):
         """Binds the mouse to the experiment window. Only works in Pyglet.
         In multi-monitor settings, or with a window that is not fullscreen, the mouse pointer can drift, and thereby
-        psychopy might not get the events from that window. setExclusive(True) works with Pyglet to bind the
+        PsychoPy might not get the events from that window. setExclusive(True) works with Pyglet to bind the
         mouse to the experiment window.
 
         Note that binding the mouse pointer to a window will cause the pointer to vanish, and absolute positions will

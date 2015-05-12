@@ -1352,7 +1352,7 @@ class NameSpace():
 
     The aim is to help detect and avoid name-space collisions from user-entered variable names.
     Track four groups of variables:
-        numpy =    part of numpy or numpy.random (maybe its ok for a user to redefine these?)
+        numpy =    part of numpy or numpy.random (maybe it's ok for a user to redefine these?)
         psychopy = part of psychopy, such as event or data; include os here
         builder =  used internally by the builder when constructing an experiment
         user =     used 'externally' by a user when programming an experiment

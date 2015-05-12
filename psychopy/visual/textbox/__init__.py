@@ -84,7 +84,7 @@ class TextBox(object):
       
     * The text string that is displayed can be changed ( setText() ) and
       drawn ( win.draw() ) **very** quickly. See the TextBox vs. TextStim
-      comparision table for details.
+      comparison table for details.
     
     * Built-in font manager; providing easy access to the font family names
       and styles that are available on the computer being used.
@@ -123,19 +123,19 @@ class TextBox(object):
             ( textbox.setFontColor([1.0,1.0,1.0]) ) and does not support
             specifying operators.
             
-    * Some key word arguements supported by other stimulus types in general,
+    * Some key word arguments supported by other stimulus types in general,
       or by TextStim itself, are not supported by TextBox. See the TextBox 
-      class definition for the agruements that are supported.
+      class definition for the arguments that are supported.
 
     * When a new font, style, and size are used it takes about 1 second to
       load and process the font. This is a one time delay for a given 
       font name, style, and size. After first being loaded, 
-      the same font sytle can be used or re-applied to multiple TextBox 
+      the same font style can be used or re-applied to multiple TextBox 
       components with no significant delay. 
       
     * Auto logging or auto drawing is not currently supported.
        
-    TextStim and TextBox Comparision
+    TextStim and TextBox Comparison
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     ============================ ============= =========== 
@@ -155,7 +155,7 @@ class TextBox(object):
 
     ^ Times are in msec.usec format. Tested using the textstim_vs_textbox.py 
       demo script provided with the PsychoPy distribution. Results are 
-      dependant on text length, video card, and OS. Displayed results are 
+      dependent on text length, video card, and OS. Displayed results are 
       based on 120 character string with an average of 24 words. Test computer
       used Windows 7 64 bit, PsychoPy 1.79, with a i7 3.4 Ghz CPU, 8 GB RAM, 
       and NVIDIA 480 GTX 2GB graphics card.
@@ -536,7 +536,7 @@ class TextBox(object):
         be given using the unit coord type used by the stim.
         
         The TextBox position is interpreted differently depending on the 
-        Horzontal and Vertical Alignment settings of the stim. See 
+        Horizontal and Vertical Alignment settings of the stim. See 
         getHorzAlignment() and getVertAlignment() for more information.        
         
         
@@ -630,7 +630,7 @@ class TextBox(object):
    
     def getBorderColor(self):
         """
-        A border can be drawn around the perimiter of the TextBox. This method
+        A border can be drawn around the perimeter of the TextBox. This method
         sets the color of that border.
         """
         return self._border_color
@@ -649,7 +649,7 @@ class TextBox(object):
 
     def getBackgroundColor(self):
         """
-        Get lhe color used to fill the rectangular area of the TextBox stim. 
+        Get the color used to fill the rectangular area of the TextBox stim. 
         All other graphical elements of the TextBox are drawn on top of the 
         background.        
         """
@@ -705,7 +705,7 @@ class TextBox(object):
 
     def getHorzJust(self):
         """
-        Return how text should layed out horizontally when the 
+        Return how text should laid out horizontally when the 
         number of columns of each text grid row is greater than the number 
         needed to display the text for that text row.
         """        
@@ -838,7 +838,7 @@ class TextBox(object):
     def getOpacity(self):
         """
         Get the default TextBox transparency level used for color related
-        attributes. 0.0 equals fully transparent, 1.0 equals fully opace.
+        attributes. 0.0 equals fully transparent, 1.0 equals fully opaque.
         """
         return self._opacity
 
@@ -846,11 +846,11 @@ class TextBox(object):
         """
         Sets the TextBox transparency level to use for color related
         attributes of the Textbox. 0.0 equals fully transparent, 1.0 equals 
-        fully opace.
+        fully opaque.
         
         If opacity is set to None, it is assumed to have a default value of 1.0.
         
-        When a color is defined with a 4th element in the colors elemnt list,
+        When a color is defined with a 4th element in the colors element list,
         then this opacity value is ignored and the alpha value provided in the 
         color itself is used for that TextGrid element instead.
         """

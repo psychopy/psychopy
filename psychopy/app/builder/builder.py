@@ -2115,7 +2115,7 @@ class ParamCtrls:
         This function checks them all and returns the value or None.
 
         .. note::
-            Don't use SetStringSelection() here to avoid using tranlated
+            Don't use SetStringSelection() here to avoid using translated
             value.  Instead, get index of the value using _choices attribute
             and use SetSelection() to set the value.
         """
@@ -3174,7 +3174,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         return self.currentHandler.params
     def refreshConditions(self):
         """user might have manually edited the conditionsFile name, which in turn
-        affects self.conditions and namespace. its harder to handle changes to
+        affects self.conditions and namespace. It's harder to handle changes to
         long names that have been abbrev()'d, so skip them (names containing '...').
         """
         val = self.currentCtrls['conditionsFile'].valueCtrl.GetValue()
