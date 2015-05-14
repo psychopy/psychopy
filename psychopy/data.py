@@ -301,7 +301,7 @@ class ExperimentHandler(object):
             f.write('\n')
         if f != sys.stdout:
             f.close()
-        print "saved data to %r" %f.name
+        logging.info('saved data to %r' %f.name)
 
     def saveAsPickle(self,fileName, fileCollisionMethod='rename'):
         """Basically just saves a copy of self (with data) to a pickle file.
