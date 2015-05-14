@@ -299,7 +299,8 @@ class ExperimentHandler(object):
                 else:
                     f.write(delim)
             f.write('\n')
-        f.close()
+        if f != sys.stdout:
+            f.close()
         print "saved data to %r" %f.name
 
     def saveAsPickle(self,fileName, fileCollisionMethod='rename'):
