@@ -299,8 +299,9 @@ class ExperimentHandler(object):
                 else:
                     f.write(delim)
             f.write('\n')
-        f.close()
-        print "saved data to %r" %f.name
+        if f != sys.stdout:
+            f.close()
+        logging.info('saved data to %r' %f.name)
 
     def saveAsPickle(self,fileName, fileCollisionMethod='rename'):
         """Basically just saves a copy of self (with data) to a pickle file.
