@@ -120,8 +120,8 @@ class Monitor:
         - ``notes`` is a text field to store any useful info
         - ``useBits`` True, False, None
         - ``verbose`` True, False, None
-        - ``currentCalib`` is a dict object containing various fields for a calibration. Use with caution
-            since the dict may not contain all the necessary fields that a monitor object expects to find.
+        - ``currentCalib`` is a dictionary object containing various fields for a calibration. Use with caution
+            since the dictionary may not contain all the necessary fields that a monitor object expects to find.
 
     **eg**:
 
@@ -129,13 +129,8 @@ class Monitor:
     Fetches the info on the sony500 and overrides its usual distance
     to be 114cm for this experiment.
 
-    ``myMon = Monitor('sony500')``
-        followed by...
-    ``myMon['distance']=114``
-        ...does the same!
-
-    For both methods, if you then save  any modifications
-    will be saved as well.
+    These can be saved to the monitor file using :func:`~psychopy.monitors.Monitor.saveMon`
+    or not (in which case the changes will be lost)
     """
 
     def __init__(self, name,
@@ -189,6 +184,7 @@ class Monitor:
 
 #functions to set params of current calibration
     def setSizePix(self, pixels):
+        """Set the size of the screen in pixels x,y"""
         self.currentCalib['sizePix']=pixels
     def setWidth(self, width):
         """Of the viewable screen (cm)"""
@@ -197,7 +193,7 @@ class Monitor:
         """To the screen (cm)"""
         self.currentCalib['distance']=distance
     def setCalibDate(self, date=None):
-        """Sets the calibration to a given date/time or to the current
+        """Sets the current calibration to have a date/time or to the current
         date/time if none given. (Also returns the date as set)"""
         if date is None:
             date=time.localtime()
@@ -234,24 +230,26 @@ class Monitor:
         """Sets the last set of luminance values measured AFTER calibration"""
         self.currentCalib['levelsPost']=levels
     def setDKL_RGB(self, dkl_rgb):
-        """sets the DKL->RGB conversion matrix for a chromatically
+        """Sets the DKL->RGB conversion matrix for a chromatically
         calibrated monitor (matrix is a 3x3 num array)."""
         self.currentCalib['dkl_rgb']=dkl_rgb
     def setSpectra(self,nm,rgb):
-        """sets the phosphor spectra measured by the spectrometer"""
+        """Sets the phosphor spectra measured by the spectrometer"""
         self.currentCalib['spectraNM']=nm
         self.currentCalib['spectraRGB']=rgb
     def setLMS_RGB(self, lms_rgb):
-        """sets the LMS->RGB conversion matrix for a chromatically
+        """Sets the LMS->RGB conversion matrix for a chromatically
         calibrated monitor (matrix is a 3x3 num array)."""
         self.currentCalib['lms_rgb']=lms_rgb
         self.setPsychopyVersion(__version__)
     def setPsychopyVersion(self, version):
+        """To store the version of PsychoPy that this calibration used"""
         self.currentCalib['psychopyVersion'] = version
     def setNotes(self, notes):
         """For you to store notes about the calibration"""
         self.currentCalib['notes']=notes
     def setUseBits(self, usebits):
+        """DEPRECATED: Use the new hardware classes to control these devices"""
         self.currentCalib['usebits']=usebits
 
     #equivalent get functions
@@ -272,6 +270,7 @@ class Monitor:
         calibTools.strFromDate"""
         return self.currentCalib['calibDate']
     def getGamma(self):
+        """Returns just the gamma value (not the whole grid)"""
         if 'gammaGrid' in self.currentCalib and not numpy.alltrue(self.getGammaGrid()[1:, 2]==1):
             return self.getGammaGrid()[1:, 2]
         elif 'gamma' in self.currentCalib:
@@ -291,7 +290,7 @@ class Monitor:
         else:
             return None
     def getLinearizeMethod(self):
-        """Gets the min,max,gamma values for the each gun"""
+        """Gets the method that this monitor is using to linearize the guns"""
         if 'linearizeMethod' in self.currentCalib:
             return self.currentCalib['linearizeMethod']
         elif 'lineariseMethod' in self.currentCalib:
@@ -299,6 +298,7 @@ class Monitor:
         else:
             return None
     def getMeanLum(self):
+        """Returns the mean luminance of the screen if explicitly stored"""
         if 'meanLum' in self.currentCalib:
             return self.currentCalib['meanLum']
         else:
@@ -368,6 +368,7 @@ class Monitor:
             return self.currentCalib['lms_rgb']
 
     def getPsychopyVersion(self):
+        """Returns the version of PsychoPy that was used to create this calibration"""
         return self.currentCalib['psychopyVersion']
     def getNotes(self):
         """Notes about the calibration"""
@@ -378,7 +379,7 @@ class Monitor:
 
     #other (admin functions)
     def _loadAll(self):
-        """Fetches the calibs for this monitor from disk, storing them
+        """Fetches the calibrations for this monitor from disk, storing them
         as self.calibs"""
 
         thisFileName = os.path.join(\
@@ -432,13 +433,17 @@ class Monitor:
         The argument is either a string (naming the calib) or an integer
         **eg**:
 
-            ``myMon.setCurrent'mainCalib')``
-            fetches the calibration named mainCalib
+            ``myMon.setCurrent('mainCalib')``
+            fetches the calibration named mainCalib. You can name calibrations what you want
+            but PsychoPy will give them names of date/time by default. In Monitor Center
+            you can 'copy...' a calibration and give it a new name to keep a second version.
+            
             ``calibName = myMon.setCurrent(0)``
             fetches the first calibration (alphabetically) for this monitor
+            
             ``calibName = myMon.setCurrent(-1)``
-            fetches the last alphabetical calib for this monitor (this is default)
-            If default names are used for calibs (ie date/time stamp) then
+            fetches the last **alphabetical** calibration for this monitor (this is default).
+            If default names are used for calibrations (ie date/time stamp) then
             this will import the most recent.
         """
         #find the appropriate file
@@ -465,7 +470,7 @@ class Monitor:
         return 1
 
     def saveMon(self):
-        """saves the current dict of calibs to disk"""
+        """Saves the current dictionary of calibrations to disk"""
         thisFileName = os.path.join(monitorFolder,self.name+".calib")
         thisFile = open(thisFileName,'wb')
         cPickle.dump(self.calibs, thisFile)

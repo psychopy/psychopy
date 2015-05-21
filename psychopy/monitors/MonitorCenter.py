@@ -654,10 +654,14 @@ class MainFrame(wx.Frame):
         self.unSavedMonitor=True
     def onChangeScrDist(self, event):
         newVal = unicodeToFloat(self.ctrlScrDist.GetValue())
+        if newVal == 0:
+            newVal = None # zero means "not set" but can't be used in calculations
         self.currentMon.setDistance( newVal )
         self.unSavedMonitor=True
     def onChangeScrWidth(self, event):
         newVal = unicodeToFloat(self.ctrlScrWidth.GetValue())
+        if newVal == 0:
+            newVal = None # zero means "not set" but can't be used in calculations
         self.currentMon.setWidth( newVal )
         self.unSavedMonitor=True
     def onChangeScrPixHoriz(self, event):
