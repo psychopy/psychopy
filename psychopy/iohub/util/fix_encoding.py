@@ -38,11 +38,20 @@ def fix_default_encoding():
   if sys.getdefaultencoding() == 'utf-8':
     return False
 
-  # Regenerate setdefaultencoding.
-  reload(sys)
-  # Module 'sys' has no 'setdefaultencoding' member
-  # pylint: disable=E1101
-  sys.setdefaultencoding('utf-8')
+  # setdefaultencoding is removed by site.py to prevent change of the
+  # default encoding.  Let's import "vanilla" sys and invoke it
+  # we need to remove current sys from known, so __import__ is in effect
+  sys_modules = sys.modules
+  our_sys = sys_modules.pop('sys')
+  try:
+    vanilla_sys = __import__('sys')
+    # Module 'sys' has no 'setdefaultencoding' member
+    # pylint: disable=E1101
+    vanilla_sys.setdefaultencoding('utf-8')
+    assert(sys.getdefaultencoding() == 'utf-8')
+  finally:
+    sys_modules['sys'] = our_sys
+
   for attr in dir(locale):
     if attr[0:3] != 'LC_':
       continue
