@@ -2031,8 +2031,6 @@ class ParamCtrls:
         else:
             #create the full set of ctrls
             val = unicode(param.val)
-            if fieldName == 'conditionsFile':
-                val = getAbbrev(val)
             self.valueCtrl = wx.TextCtrl(parent,-1,val,size=wx.Size(self.valueWidth,-1))
             # focus seems to get reset elsewhere, try "git grep -n SetFocus"
             if fieldName in ['allowedKeys', 'image', 'movie', 'scaleDescription', 'sound', 'Begin Routine']:
@@ -3059,7 +3057,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         if 'conditionsFile' in self.currentCtrls.keys(): # as set via DlgConditions
             valCtrl = self.currentCtrls['conditionsFile'].valueCtrl
             valCtrl.Clear()
-            valCtrl.WriteText(getAbbrev(self.conditionsFile))
+            valCtrl.WriteText(self.conditionsFile)
         # still need to do namespace and internal updates (see end of onBrowseTrialsFile)
 
     def setCtrls(self, ctrlType):
@@ -3141,7 +3139,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 if isSameFilePathAndName:
                     logging.info('Assuming reloading file: same filename and duplicate condition names in file: %s' % self.conditionsFile)
                 else:
-                    self.currentCtrls['conditionsFile'].setValue(getAbbrev(newPath))
+                    self.currentCtrls['conditionsFile'].setValue(newPath)
                     self.currentCtrls['conditions'].setValue(
                         'Warning: Condition names conflict with existing:\n['+duplCondNamesStr+
                         ']\nProceed anyway? (= safe if these are in old file)')
@@ -3150,7 +3148,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.duplCondNames = duplCondNames # add after self.show() in __init__
 
             if needUpdate or 'conditionsFile' in self.currentCtrls.keys() and not duplCondNames:
-                self.currentCtrls['conditionsFile'].setValue(getAbbrev(newPath))
+                self.currentCtrls['conditionsFile'].setValue(newPath)
                 self.currentCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
 
     def getParams(self):
@@ -4846,8 +4844,11 @@ class ReadmeFrame(wx.Frame):
         else:
             self.Show()
 def getAbbrev(longStr, n=30):
-    """for a filename (or any string actually), give the first
-    10 characters, an ellipsis and then n-10 of the final characters"""
+    """For a filename (or any string actually), give the first
+    10 characters, an ellipsis and then n-10 of the final characters.
+    This was previously used to abbreviate the path to a conditions file
+    in the loop dialog but this caused more problems than it solved, so
+    this is no longer used there."""
     if len(longStr)>35:
         return longStr[0:10]+'...'+longStr[(-n+10):]
     else:
