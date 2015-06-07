@@ -24,7 +24,7 @@ try:
 except:
     importWindllFailed = True
     from .. import logging
-    logging.log.debug("rush() not available because import windll failed in ext/win32.py")
+    logging.debug("rush() not available because import windll failed in ext/win32.py")
 
 FALSE = 0
 
