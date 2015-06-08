@@ -57,6 +57,8 @@ from psychopy.visual.rect import Rect
 # stimuli derived from Polygon
 from psychopy.visual.circle import Circle
 
+from psychopy.visual.secondorder import EnvelopeGrating
+
 # TextBox alternative to TextStim
 try:    
     # Ensure monospace Fonts are available ....
