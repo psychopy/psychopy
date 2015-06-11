@@ -63,7 +63,8 @@ Testing has only been done on Windows and Linux so far.
 # giving the frame index, flip time, and time since last movie frame flip.
 reportNDroppedFrames = 10
 
-import os
+import os, sys
+import weakref #don't create circular references with vlc classes
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -87,7 +88,21 @@ import vlc
 from psychopy.clock import Clock
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 
-
+#these are used internally by the MovieStim2 class but need to be kept separate
+#to prevent circular references with vlc's event handler
+def _audioEndCallback(event, movieInstanceRef):
+    print 'end of audio'
+    movieInstanceRef()._onEos()
+    print 'status', movieInstanceRef().status
+def _audioTimeCallback(event, movieInstanceRef, streamPlayer):
+    """
+    Called by VLC every few hundred msec providing the current audio track
+    time. This info is used to pace the display of video frames read using
+    cv2.
+    """
+    if movieInstanceRef():
+        movieInstanceRef()._audio_stream_clock.reset(-event.u.new_time/1000.0)
+    
 class MovieStim2(BaseVisualStim, ContainerMixin):
     """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy
     that does not require avbin. Instead it requires the cv2 python package
@@ -294,8 +309,8 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._audio_stream_player = self._vlc_instance.media_player_new()
         self._audio_stream_player.set_media(self._audio_stream)
         self._audio_stream_event_manager = self._audio_stream_player.event_manager()
-        self._audio_stream_event_manager.event_attach(vlc.EventType.MediaPlayerTimeChanged, self._audio_time_callback, self._audio_stream_player)
-        self._audio_stream_event_manager.event_attach(vlc.EventType.MediaPlayerEndReached, self._audio_end_callback)
+        self._audio_stream_event_manager.event_attach(vlc.EventType.MediaPlayerTimeChanged, _audioTimeCallback, weakref.ref(self), self._audio_stream_player)
+        self._audio_stream_event_manager.event_attach(vlc.EventType.MediaPlayerEndReached, _audioEndCallback, weakref.ref(self))
 
     def _releaseeAudioStream(self):
         if self._audio_stream_player:
@@ -316,7 +331,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._audio_stream_event_manager = None
         self._audio_stream_player = None
         self._vlc_instance = None
-
+        
     def _flipCallback(self):
         self._next_frame_displayed = True
 
@@ -435,7 +450,8 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             else:
                 v = int(v)
             self.volume = v
-            self._audio_stream_player.audio_set_volume(v)
+            if self._audio_stream_player:
+                self._audio_stream_player.audio_set_volume(v)
 
     def getVolume(self):
         """
@@ -661,21 +677,6 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
 
     def _getAudioStreamTime(self):
         return self._audio_stream_clock.getTime()
-
-    def _audio_time_callback(self, event, player):
-        """
-        Called by VLC every few hundred msec providing the current audio track
-        time. This info is used to pace the display of video frames read using
-        cv2.
-        """
-        self._audio_stream_clock.reset(-event.u.new_time/1000.0)
-
-    def _audio_end_callback(self, event):
-        """
-        Called by VLC when the audio track ends. Right now, when this is called
-        the video is stopped.
-        """
-        self._onEos()
 
     def _unload(self):
         #if self._video_stream:
