@@ -91,7 +91,7 @@ class TextStim(BaseVisualStim, ColorMixin):
         the attributes that affect the shapes of the letters:
         ``text``, ``height``, ``font``, ``bold`` etc. These make the next .draw()
         slower because that sets the text again. You can make the draw()
-        quick by calling re-setting the text (```myTextStim.text = myTextStim.text)
+        quick by calling re-setting the text (``myTextStim.text = myTextStim.text``)
         when you've changed the parameters.
 
         In general, other attributes which merely affect the presentation of
@@ -226,7 +226,8 @@ class TextStim(BaseVisualStim, ColorMixin):
     @attributeSetter
     def text(self, text):
         """String
-        The text to be rendered. Use \n to make new lines. OBS: may be slow."""
+        The text to be rendered. Use \\\\n to make new lines. OBS: may be slow.
+        """
         if text != None:  #make sure we have unicode object to render
             self.__dict__['text'] = unicode(text)
         if self.useShaders:

@@ -78,6 +78,7 @@ class BitsPlusPlus(object):
                     rampType = 'configFile'):
         """
         :Parameters:
+
             contrast=1.0,
                 The contrast to be applied to the LUT. See :func:`BitsPlusPlus.setLUT`
                 and :func:`BitsPlusPlus.setContrast` for flexibility on setting

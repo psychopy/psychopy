@@ -95,7 +95,7 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0),
             matrixSize: integer
                 the size of the resulting matrix on both dimensions (e.g 256)
             shape:  'circle','gauss','ramp' (linear gradient from center),
-                    'raisedCosine' (the edges are blurred by a raised cosine)
+                'raisedCosine' (the edges are blurred by a raised cosine)
                 shape of the mask
             radius:  float
                 scale factor to be applied to the mask (circle with radius of

@@ -899,7 +899,8 @@ def getRGBspectra(stimSize=0.3, winSize=(800,600), photometer='COM1'):
     :params:
 
         - 'photometer' could be a photometer object or a serial port name on which
-        a photometer might be found (not recommended)
+          a photometer might be found (not recommended)
+
     """
     import psychopy.event, psychopy.visual
 
