@@ -452,7 +452,7 @@ class Window(object):
         :Parameters:
 
         fileName : *None* or the filename (including path if necessary) in
-        which to store the data.
+            which to store the data.
             If None then 'lastFrameIntervals.log' will be used.
 
         """
@@ -854,8 +854,8 @@ class Window(object):
             mpgCodec: the code to be used **by pymedia** if the filename ends
                 in .mpg
 
-            fps: the frame rate to be used throughout the movie **only for
-                quicktime (.mov) movies**
+            fps: the frame rate to be used throughout the movie
+                **only for quicktime (.mov) movies**
 
             clearFrames: set this to False if you want the frames to be kept
                 for additional calls to `saveMovieFrames`
@@ -1626,6 +1626,7 @@ class Window(object):
         wait for that long in ms.
 
         Returns timing stats (in ms) of:
+
         - average time per frame, for all frames
         - standard deviation of all frames
         - median, as the average of 12 frame times around the median
@@ -1633,6 +1634,7 @@ class Window(object):
 
         :Author:
             - 2010 written by Jeremy Gray
+
         """
 
         # lower bound of 60 samples--need enough to estimate the SD

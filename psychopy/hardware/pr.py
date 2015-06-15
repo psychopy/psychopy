@@ -426,7 +426,7 @@ class PR655(PR650):
         This automatically populates:
 
             - ``.lastLum``
-            - ``.lastSpectrum`
+            - ``.lastSpectrum``
             - `.lastCIExy`
             - `.lastCIEuv`
         """

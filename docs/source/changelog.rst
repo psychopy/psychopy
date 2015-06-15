@@ -107,7 +107,7 @@ Released Sept 2014
 
 * IMPROVED: cross-version compatibility:
     * In Builder experiments from 'future' versions can be opened and unknown objects will be ignored (but kept)
-    * In Code you can now do `import psychopy; psychopy.useVersion('X.XX.XX') to switch to any version greater than 1.76.00 (including versions not installed and future versions). This only affects the lib, not the application. (Thanks Erik Kastman for most of the work on this)
+    * In Code you can now do `import psychopy; psychopy.useVersion('X.XX.XX')` to switch to any version greater than 1.76.00 (including versions not installed and future versions). This only affects the lib, not the application. (Thanks Erik Kastman for most of the work on this)
 * IMPROVED: better unit tests for visual stimuli to prevent future bugs
 * :blue:`FIXED: MovieStim was right-left flipping movies and this has been corrected. If you had been working around that by setting flipVertical=True then you'll need to undo that correction`
 * IMPROVED: Can now select a subset of conditions in Builder loops and in `data.importConditions()` function (thanks Mike MacAskill for help)

@@ -67,6 +67,7 @@ def openOutputFile(fileName, append=False, delim=None,
     Open an output file (or standard output) for writing.
 
     :Parameters:
+
     fileName : string
         The desired output file name.
     append : bool, optional
@@ -88,10 +89,12 @@ def openOutputFile(fileName, append=False, delim=None,
         Defaults to ``'utf-8'``.
 
     :Returns:
+
     f : file
         A writable file handle.
 
     :Notes:
+
     If no known filename extension is given, and the delimiter is a comma,
     the extension ``.csv`` will be chosen automatically. If the extension
     is unknown and the delimiter is a tab, the extension will be
@@ -147,10 +150,12 @@ def genDelimiter(fileName):
     Return a delimiter based on a filename.
 
     :Parameters:
+
     fileName : string
         The output file name.
 
     :Returns:
+
     delim : string
         A delimiter picked based on the supplied filename. This will be
         ``,`` if the filename extension is ``.csv``, and a tabulator

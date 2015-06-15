@@ -5,7 +5,8 @@ The :class:`~psychopy.parallel.Parallel` class described below will attempt to
 load whichever parallel port driver is first found on your system and should
 suffice in most instances. If you need to use a specific driver then, instead of
 using :class:`~psychopy.parallel.ParallelPort` shown below you can use one of the following as
-drop-in replacemnts, forcing the use of a specific driver:
+drop-in replacements, forcing the use of a specific driver:
+
     - `psychopy.parallel.PParallelInpOut32`
     - `psychopy.parallel.PParallelDLPortIO`
     - `psychopy.parallel.PParallelLinux`
