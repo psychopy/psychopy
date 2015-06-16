@@ -102,7 +102,25 @@ def _audioTimeCallback(event, movieInstanceRef, streamPlayer):
     """
     if movieInstanceRef():
         movieInstanceRef()._audio_stream_clock.reset(-event.u.new_time/1000.0)
-    
+
+def _setPluginPathEnviron():
+    """Plugins aren't in the same path as the libvlc.dylib
+    """
+    if 'VLC_PLUGIN_PATH' in os.environ.keys():
+        return
+    dllPath = vlc.dll._name
+    from os.path import split, join
+    #try stepping back from dll path and adding 'plugins' (2 steps on OSX, 1 on win32?)
+    nSteps = 0
+    last = dllPath
+    while nSteps<4:
+        last = split(last)[0]
+        pluginPath = join(last, 'plugins')
+        if os.path.isdir(pluginPath):
+            os.environ['VLC_PLUGIN_PATH'] = pluginPath
+            break
+_setPluginPathEnviron()
+
 class MovieStim2(BaseVisualStim, ContainerMixin):
     """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy
     that does not require avbin. Instead it requires the cv2 python package
@@ -331,7 +349,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._audio_stream_event_manager = None
         self._audio_stream_player = None
         self._vlc_instance = None
-        
+
     def _flipCallback(self):
         self._next_frame_displayed = True
 
