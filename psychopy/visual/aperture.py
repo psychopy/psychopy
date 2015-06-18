@@ -142,6 +142,7 @@ class Aperture(MinimalStim, ContainerMixin):
                 GL.glEnable(GL.GL_ALPHA_TEST)
                 GL.glAlphaFunc(GL.GL_GREATER,0)
                 self._shape.draw()
+                GL.glDisable(GL.GL_ALPHA_TEST)
             else:
                 self._shape.draw(keepMatrix=True) #draw without push/pop matrix
             GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
