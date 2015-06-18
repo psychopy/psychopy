@@ -136,8 +136,16 @@ def find_lib():
                 dll = ctypes.CDLL('libvlc.dll')
                  # restore cwd after dll has been loaded
                 os.chdir(p)
-            else:  # may fail
-                dll = ctypes.CDLL('libvlc.dll')
+            else:
+                try: # try PortableVLC
+                    drive, path = os.path.splitdrive(os.path.abspath(os.path.dirname(__file__)))
+                    plugin_path = drive+'\\VLCPortable\\App\\vlc'
+                    # libvlccore.dll must be loaded before loading libvlc.dll
+                    coredll = ctypes.CDLL(drive+'\\VLCPortable\\App\\vlc\\libvlccore.dll')
+                    # loading libvlc.dll
+                    dll = ctypes.CDLL(drive+'\\VLCPortable\\App\\vlc\\libvlc.dll')
+                except: # may fail
+                    dll = ctypes.CDLL('libvlc.dll')
         else:
             plugin_path = os.path.dirname(p)
             dll = ctypes.CDLL(p)
