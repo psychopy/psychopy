@@ -453,7 +453,7 @@ class _baseVisualTest:
             assert aperture.contains(pos)
     def test_aperture_image(self):
         win = self.win
-        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testwedges.jpg')
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testwedges.png')
         if not win.allowStencil:
             pytest.skip("Don't run aperture test when no stencil is available")
         grating = visual.GratingStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm')
