@@ -129,8 +129,9 @@ class Aperture(MinimalStim, ContainerMixin):
             GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
     
             GL.glPushMatrix()
-            self.win.setScale('pix')
-    
+            if self.__dict__['filename']==False:
+                self.win.setScale('pix')
+
             GL.glDisable(GL.GL_LIGHTING)
             GL.glDisable(GL.GL_DEPTH_TEST)
             GL.glDepthMask(GL.GL_FALSE)
@@ -141,6 +142,7 @@ class Aperture(MinimalStim, ContainerMixin):
                 GL.glEnable(GL.GL_ALPHA_TEST)
                 GL.glAlphaFunc(GL.GL_GREATER,0)
                 self._shape.draw()
+                GL.glDisable(GL.GL_ALPHA_TEST)
             else:
                 self._shape.draw(keepMatrix=True) #draw without push/pop matrix
             GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
