@@ -55,7 +55,7 @@ class Aperture(MinimalStim, ContainerMixin):
         2014, Jeremy Gray added .contains() option
         2015, Thomas Emmerling added ImageStim option
     """
-    def __init__(self, win, size=1, pos=(0,0), ori=0, nVert=120, shape='circle', units=None,
+    def __init__(self, win, size=1, pos=(0,0), ori=0, nVert=120, shape='circle', inverted=False, units=None,
             name=None, autoLog=None):
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
@@ -71,6 +71,7 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['size'] = size
         self.__dict__['pos'] = pos
         self.__dict__['ori'] = ori
+        self.__dict__['inverted'] = inverted
         self.__dict__['filename'] = False
 
         #unit conversions
@@ -129,8 +130,9 @@ class Aperture(MinimalStim, ContainerMixin):
             GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
     
             GL.glPushMatrix()
-            self.win.setScale('pix')
-    
+            if self.__dict__['filename']==False:
+                self.win.setScale('pix')
+
             GL.glDisable(GL.GL_LIGHTING)
             GL.glDisable(GL.GL_DEPTH_TEST)
             GL.glDepthMask(GL.GL_FALSE)
@@ -141,9 +143,14 @@ class Aperture(MinimalStim, ContainerMixin):
                 GL.glEnable(GL.GL_ALPHA_TEST)
                 GL.glAlphaFunc(GL.GL_GREATER,0)
                 self._shape.draw()
+                GL.glDisable(GL.GL_ALPHA_TEST)
             else:
                 self._shape.draw(keepMatrix=True) #draw without push/pop matrix
-            GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
+
+            if self.inverted:
+                GL.glStencilFunc(GL.GL_EQUAL, 0, 1)
+            else:
+                GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
             GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
     
             GL.glPopMatrix()
@@ -203,6 +210,19 @@ class Aperture(MinimalStim, ContainerMixin):
         """
         self._needReset = needReset
         setAttribute(self, 'pos', pos, log)
+    @attributeSetter
+    def inverted(self, value):
+        """True / False. Set to true to invert the aperture.
+        A non-inverted aperture masks everything BUT the selected shape.
+        An inverted aperture masks the selected shape.
+
+        NB. The Aperture is not inverted by default, when created.
+        """
+        self.__dict__['inverted'] = value
+        self._reset()
+    def invert(self):
+        """Use Aperture.inverted = True instead."""
+        self.inverted = True
     @property
     def posPix(self):
         """The position of the aperture in pixels
