@@ -277,20 +277,7 @@ class PrefCtrls:
             self.valueCtrl._choices = copy.copy(options)  # internal values
             self.valueCtrl.SetSelection(options.index(value))
         elif spec.startswith('list'): # list
-            # Unicode characters come to be converted hexadicimal values 
-            # if str() or unicode() is used to convert list to string.
-            if len(value)>0:
-                valuestring = ''
-                for v in value:
-                    v = v.replace('\\','\\\\').replace("'", "\\'")
-                    try:
-                        valuestring += "'"+str(v)+"',"
-                    except:
-                        # Unicode characters are included. 'u' must be appended.
-                        valuestring += "u'"+v+"',"
-                valuestring = '['+valuestring[:-1]+']'
-            else:
-                valuestring = '[]'
+            valuestring = self.listToString(value)
             self.valueCtrl = wx.TextCtrl(self.parent,-1,valuestring,
                             size=(valueWidth,-1))
         else: # just use a string
@@ -318,6 +305,37 @@ class PrefCtrls:
         """Get the current value of the value ctrl
         """
         return self._getCtrlValue(self.valueCtrl)
+
+    def listToString(self, seq, depth=8, errmsg='\'too_deep\''):
+        """
+        Convert list to string.
+        
+        This function is necessary because Unicode characters come to be converted to
+        hexadicimal values if unicode() is used to convert a list to string.
+        This function applies str() or unicode() to each element of the list.
+        """
+        if depth>0:
+            l = '['
+            for e in seq:
+                # if element is a sequence, call listToString recursively.
+                if hasattr(e, '__iter__'):
+                    en = listToString(e, depth-1) + ','
+                else:
+                    e = e.replace('\\','\\\\').replace("'", "\\'")
+                    # try str() first because we don't want to append "u" if unnecessary.
+                    try:
+                       en = "'" + str(e) + "',"
+                    except: # unicode
+                       # "u" is necessary if string is unicode.
+                       en = "u'" + unicode(e) + "',"
+                l += en
+            # remove unnecessary comma
+            if l[-1] == ',':
+                l = l[:-1]
+            l += ']'
+        else:
+            l = errmsg
+        return l
 
 if __name__=='__main__':
     import preferences
