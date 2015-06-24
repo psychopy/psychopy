@@ -6,8 +6,6 @@ import platform, re
 import copy
 import localization
 
-from psychopy.app import dialogs
-
 dlgSize = (520,600)#this will be overridden by the size of the scrolled panel making the prefs
 
 # labels mappings for display:
@@ -222,25 +220,7 @@ class PreferencesDlg(wx.Dialog):
                 self.prefsCfg[sectionName][prefName]=thisPref
                 #make sure list values are converted back to being lists (from strings)
                 if self.prefsSpec[sectionName][prefName].startswith('list'):
-                    try:
-                        # if thisPref is not a null string, do eval() to get a list.
-                        if thisPref == '':
-                            newVal = thisPref
-                        else:
-                            newVal = eval(thisPref)
-                    except:
-                        # if eval() failed, show warning dialog and return
-                        try:
-                            pLabel = _localized[prefName]
-                            sLabel = _localized[sectionName]
-                        except:
-                            pLabel = prefName
-                            sLabel = sectionName
-                        warnDlg = dialogs.MessageDialog(parent=self,
-                            message=_translate('Invalid value in %(pref)s (%(section)s Tab)') %{'pref':pLabel, 'section':sLabel},
-                            type='Info', title=_translate('Error'))
-                        resp=warnDlg.ShowModal()
-                        return
+                    newVal = eval(thisPref)
                     if type(newVal)!=list:
                         self.prefsCfg[sectionName][prefName]=[newVal]
                     else:
@@ -276,25 +256,8 @@ class PrefCtrls:
             self.valueCtrl = wx.Choice(self.parent, choices=labels)
             self.valueCtrl._choices = copy.copy(options)  # internal values
             self.valueCtrl.SetSelection(options.index(value))
-        elif spec.startswith('list'): # list
-            # Unicode characters come to be converted hexadicimal values 
-            # if str() or unicode() is used to convert list to string.
-            if len(value)>0:
-                valuestring = ''
-                for v in value:
-                    v = v.replace('\\','\\\\').replace("'", "\\'")
-                    try:
-                        valuestring += "'"+str(v)+"',"
-                    except:
-                        # Unicode characters are included. 'u' must be appended.
-                        valuestring += "u'"+v+"',"
-                valuestring = '['+valuestring[:-1]+']'
-            else:
-                valuestring = '[]'
-            self.valueCtrl = wx.TextCtrl(self.parent,-1,valuestring,
-                            size=(valueWidth,-1))
-        else: # just use a string
-            self.valueCtrl = wx.TextCtrl(self.parent,-1,unicode(value),
+        else:#just use a string
+            self.valueCtrl = wx.TextCtrl(self.parent,-1,str(value),
                             size=(valueWidth,-1))
 
     def _getCtrlValue(self, ctrl):

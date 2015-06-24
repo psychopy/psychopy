@@ -33,7 +33,7 @@ class SettingsComponent(object):
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
                  logging='exp', color='$[0,0,0]', colorSpace='rgb', enableEscape=True, blendMode='avg',
                  saveXLSXFile=False, saveCSVFile=False, saveWideCSVFile=True, savePsydatFile=True,
-                 savedDataFolder='', filename="u'xxxx/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])"):
+                 savedDataFolder='', filename="'xxxx/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])"):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -41,10 +41,10 @@ class SettingsComponent(object):
         self.url="http://www.psychopy.org/builder/settings.html"
 
         #if filename is the default value fetch the builder pref for the folder instead
-        if filename.startswith("u'xxxx"):
+        if filename.startswith("'xxxx"):
             filename = filename.replace("xxxx", self.exp.prefsBuilder['savedDataFolder'].strip())
         else:
-            print filename[0:6]
+            print filename[0:5]
         #params
         self.params={}
         self.order=['expName','Show info dlg','Experiment info',
