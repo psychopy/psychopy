@@ -237,7 +237,7 @@ class PreferencesDlg(wx.Dialog):
                             pLabel = prefName
                             sLabel = sectionName
                         warnDlg = dialogs.MessageDialog(parent=self,
-                            message=_translate('Invalid value in %(pref)s (%(section)s Tab)') %{'pref':pLabel, 'section':sLabel},
+                            message=_translate('Invalid value in "%(pref)s" ("%(section)s" Tab)') %{'pref':pLabel, 'section':sLabel},
                             type='Info', title=_translate('Error'))
                         resp=warnDlg.ShowModal()
                         return
