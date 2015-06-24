@@ -3885,7 +3885,8 @@ class BuilderFrame(wx.Frame):
                  pos=wx.DefaultPosition, fileName=None,frameData=None,
                  style=wx.DEFAULT_FRAME_STYLE, app=None):
 
-        fileName = fileName.decode(sys.getfilesystemencoding())
+        if fileName is not None:
+            fileName = fileName.decode(sys.getfilesystemencoding())
 
         self.app=app
         self.dpi=self.app.dpi
