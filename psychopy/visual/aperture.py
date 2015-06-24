@@ -6,6 +6,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+import os
+
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
@@ -23,6 +25,7 @@ import psychopy.event
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.shape import ShapeStim
+from psychopy.visual.image import ImageStim
 from psychopy.visual.basevisual import MinimalStim, ContainerMixin
 
 import numpy
@@ -41,6 +44,8 @@ class Aperture(MinimalStim, ContainerMixin):
     If shape is 'square' or 'triangle' then that is what will be used (obviously)
     If shape is 'circle' or `None` then a polygon with nVerts will be used (120 for a rough circle)
     If shape is a list or numpy array (Nx2) then it will be used directly as the vertices to a :class:`~psychopy.visual.ShapeStim`
+    If shape is a filename then it will be used to load and image as a :class:`~psychopy.visual.ImageStim`.
+        Note that transparent parts in the image (e.g. in a PNG file) will not be included in the mask shape. The color of the image will be ignored.
 
     See demos/stimuli/aperture.py for example usage
 
@@ -48,8 +53,9 @@ class Aperture(MinimalStim, ContainerMixin):
         2011, Yuri Spitsyn
         2011, Jon Peirce added units options, Jeremy Gray added shape & orientation
         2014, Jeremy Gray added .contains() option
+        2015, Thomas Emmerling added ImageStim option
     """
-    def __init__(self, win, size=1, pos=(0,0), ori=0, nVert=120, shape='circle', units=None,
+    def __init__(self, win, size=1, pos=(0,0), ori=0, nVert=120, shape='circle', inverted=False, units=None,
             name=None, autoLog=None):
         #what local vars are defined (these are the init params) for use by __repr__
         self._initParams = dir()
@@ -65,7 +71,9 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['size'] = size
         self.__dict__['pos'] = pos
         self.__dict__['ori'] = ori
-        
+        self.__dict__['inverted'] = inverted
+        self.__dict__['filename'] = False
+
         #unit conversions
         if units!=None and len(units):
             self.units = units
@@ -85,15 +93,25 @@ class Aperture(MinimalStim, ContainerMixin):
             vertices = [[0.5,-0.5],[0,0.5],[-0.5,-0.5]]
         elif type(shape) in [tuple, list, numpy.ndarray] and len(shape) > 2:
             vertices = shape
+        elif type(shape) in [str, unicode]:
+            #is a string - see if it points to a file
+            if os.path.isfile(shape):
+                self.__dict__['filename'] = shape
+            else:
+                logging.error("Unrecognized shape for aperture. Expected 'circle', 'square', 'triangle', vertices, filename, or None; got %s" %(repr(shape)))
+
+        if self.__dict__['filename']:
+            self._shape = ImageStim(win=self.win, image=self.__dict__['filename'],
+                                pos=pos, size=size,
+                                autoLog=False)
         else:
-            logging.error("Unrecognized shape for aperture. Expected 'circle', 'square', 'triangle', vertices, or None; got %s" %(repr(shape)))
-        self._shape = ShapeStim(win=self.win, vertices=vertices,
+            self._shape = ShapeStim(win=self.win, vertices=vertices,
                                 fillColor=1, lineColor=None,
                                 interpolate=False, pos=pos, size=size,
                                 autoLog=False)
+            self.vertices = self._shape.vertices
+            self._needVertexUpdate = True
 
-        self.vertices = self._shape.vertices
-        self._needVertexUpdate = True
         self._needReset = True  # Default when setting attributes
         self._reset()  #implicitly runs a self.enabled = True. Also sets self._needReset = True on every call
         
@@ -112,15 +130,27 @@ class Aperture(MinimalStim, ContainerMixin):
             GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
     
             GL.glPushMatrix()
-            self.win.setScale('pix')
-    
+            if self.__dict__['filename']==False:
+                self.win.setScale('pix')
+
             GL.glDisable(GL.GL_LIGHTING)
             GL.glDisable(GL.GL_DEPTH_TEST)
             GL.glDepthMask(GL.GL_FALSE)
             GL.glStencilFunc(GL.GL_NEVER, 0, 0)
             GL.glStencilOp(GL.GL_INCR, GL.GL_INCR, GL.GL_INCR)
-            self._shape.draw(keepMatrix=True) #draw without push/pop matrix
-            GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
+
+            if self.__dict__['filename']:
+                GL.glEnable(GL.GL_ALPHA_TEST)
+                GL.glAlphaFunc(GL.GL_GREATER,0)
+                self._shape.draw()
+                GL.glDisable(GL.GL_ALPHA_TEST)
+            else:
+                self._shape.draw(keepMatrix=True) #draw without push/pop matrix
+
+            if self.inverted:
+                GL.glStencilFunc(GL.GL_EQUAL, 0, 1)
+            else:
+                GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
             GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
     
             GL.glPopMatrix()
@@ -180,6 +210,19 @@ class Aperture(MinimalStim, ContainerMixin):
         """
         self._needReset = needReset
         setAttribute(self, 'pos', pos, log)
+    @attributeSetter
+    def inverted(self, value):
+        """True / False. Set to true to invert the aperture.
+        A non-inverted aperture masks everything BUT the selected shape.
+        An inverted aperture masks the selected shape.
+
+        NB. The Aperture is not inverted by default, when created.
+        """
+        self.__dict__['inverted'] = value
+        self._reset()
+    def invert(self):
+        """Use Aperture.inverted = True instead."""
+        self.inverted = True
     @property
     def posPix(self):
         """The position of the aperture in pixels

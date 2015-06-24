@@ -119,7 +119,9 @@ def _setPluginPathEnviron():
         if os.path.isdir(pluginPath):
             os.environ['VLC_PLUGIN_PATH'] = pluginPath
             break
+        nSteps+=1
 _setPluginPathEnviron()
+
 
 class MovieStim2(BaseVisualStim, ContainerMixin):
     """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy
