@@ -150,7 +150,7 @@ class SettingsComponent(object):
         return saveToDir or u'data'
     def writeStartCode(self,buff):
         buff.writeIndentedLines("# Ensure that relative paths start from the same directory as this script\n"
-            "_thisDir = os.path.dirname(os.path.abspath(__file__))\n"
+            "_thisDir = os.path.dirname(os.path.abspath(__file__)).decode(sys.getfilesystemencoding())\n"
             "os.chdir(_thisDir)\n\n")
 
         buff.writeIndented("# Store info about the experiment session\n")
