@@ -731,6 +731,18 @@ ImageComponent.colorSpace.label:Color space
 ImageComponent.colorSpace.readOnly:False
 ImageComponent.colorSpace.updates:constant
 ImageComponent.colorSpace.valType:str
+ImageComponent.flipHoriz.default:False
+ImageComponent.flipHoriz.staticUpdater:None
+ImageComponent.flipHoriz.categ:Advanced
+ImageComponent.flipHoriz.val:False
+ImageComponent.flipHoriz.allowedTypes:[]
+ImageComponent.flipHoriz.hint:Should the image be flipped horizontally (left to right)?
+ImageComponent.flipHoriz.allowedUpdates:[]
+ImageComponent.flipHoriz.allowedVals:[]
+ImageComponent.flipHoriz.label:Flip horizontally
+ImageComponent.flipHoriz.readOnly:False
+ImageComponent.flipHoriz.updates:constant
+ImageComponent.flipHoriz.valType:bool
 ImageComponent.name.default:image
 ImageComponent.name.staticUpdater:None
 ImageComponent.name.categ:Basic
@@ -898,18 +910,6 @@ ImageComponent.startVal.label:Start
 ImageComponent.startVal.readOnly:False
 ImageComponent.startVal.updates:None
 ImageComponent.startVal.valType:code
-ImageComponent.flipHoriz.default:False
-ImageComponent.flipHoriz.staticUpdater:None
-ImageComponent.flipHoriz.categ:Advanced
-ImageComponent.flipHoriz.val:False
-ImageComponent.flipHoriz.allowedTypes:[]
-ImageComponent.flipHoriz.hint:Should the image be flipped horizontally (left to right)?
-ImageComponent.flipHoriz.allowedUpdates:[]
-ImageComponent.flipHoriz.allowedVals:[]
-ImageComponent.flipHoriz.label:Flip horizontally
-ImageComponent.flipHoriz.readOnly:False
-ImageComponent.flipHoriz.updates:constant
-ImageComponent.flipHoriz.valType:bool
 ImageComponent.image.default:''
 ImageComponent.image.staticUpdater:None
 ImageComponent.image.categ:Basic
@@ -1470,7 +1470,7 @@ MovieComponent.backend.allowedTypes:[]
 MovieComponent.backend.hint:What underlying lib to use for loading movies
 MovieComponent.backend.allowedUpdates:None
 MovieComponent.backend.allowedVals:['avbin', 'opencv']
-MovieComponent.backend.label:
+MovieComponent.backend.label:backend
 MovieComponent.backend.readOnly:False
 MovieComponent.backend.updates:None
 MovieComponent.backend.valType:str
@@ -2412,10 +2412,10 @@ SettingsComponent.Show mouse.label:Show mouse
 SettingsComponent.Show mouse.readOnly:False
 SettingsComponent.Show mouse.updates:None
 SettingsComponent.Show mouse.valType:bool
-SettingsComponent.Data filename.default:'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])
+SettingsComponent.Data filename.default:u'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])
 SettingsComponent.Data filename.staticUpdater:None
 SettingsComponent.Data filename.categ:Data
-SettingsComponent.Data filename.val:'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])
+SettingsComponent.Data filename.val:u'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])
 SettingsComponent.Data filename.allowedTypes:[]
 SettingsComponent.Data filename.hint:Code to create your custom file name base. Don't give a file extension - this will be added.
 SettingsComponent.Data filename.allowedUpdates:None
