@@ -236,10 +236,7 @@ class _Logger:
                     if not thisEntry in formatted:
                         #convert the entry into a formatted string
                         formatted[thisEntry]= self.format %thisEntry.__dict__
-                    if type(formatted[thisEntry])==unicode:
-                        target.write((formatted[thisEntry]+'\n').encode('utf-8'))
-                    else:
-                        target.write(formatted[thisEntry]+'\n')
+                    target.write(formatted[thisEntry]+'\n')
             if hasattr(target.stream, 'flush'):
                 target.stream.flush()
         #finished processing entries - move them to self.flushed
