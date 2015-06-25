@@ -2062,7 +2062,11 @@ class CoderFrame(wx.Frame):
 
         #check syntax by compiling - errors printed (not raised as error)
         try:
-            py_compile.compile(fullPath, doraise=False)
+            if type(fullPath)==unicode:
+                # py_compile.compile doesn't accept Unicode filename.
+                py_compile.compile(fullPath.encode(sys.getfilesystemencoding()), doraise=False)
+            else:
+                py_compile.compile(fullPath, doraise=False)
         except Exception, e:
             print "Problem compiling: %s" %e
 
