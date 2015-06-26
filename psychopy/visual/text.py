@@ -522,7 +522,18 @@ class TextStim(BaseVisualStim, ColorMixin):
         self.__dict__['wrapWidth'] = wrapWidth
         self._wrapWidthPix = convertToPix(pos = numpy.array([0, 0]), vertices=numpy.array([self.wrapWidth, 0]), units=self.units, win=self.win)[0]
         self._needSetText = True
-
+        
+    @property
+    def boundingBox(self):
+        """(read only) attribute representing the bounding box of the text (w,h). 
+        This differs from `width` in that the width represents the width of the
+        margins, which might differ from the width of the text within them
+        
+        NOTE: currently always returns the size in pixels 
+        (this will change to return in stimulus units)
+        """
+        return (self._pygletTextObj._layout.content_width, self._pygletTextObj._layout.content_height)
+        
     @property
     def posPix(self):
         """This determines the coordinates in pixels of the position for the
