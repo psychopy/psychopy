@@ -6,6 +6,8 @@ import platform, re
 import copy
 import localization
 
+from psychopy.app import dialogs
+
 dlgSize = (520,600)#this will be overridden by the size of the scrolled panel making the prefs
 
 # labels mappings for display:
@@ -220,7 +222,25 @@ class PreferencesDlg(wx.Dialog):
                 self.prefsCfg[sectionName][prefName]=thisPref
                 #make sure list values are converted back to being lists (from strings)
                 if self.prefsSpec[sectionName][prefName].startswith('list'):
-                    newVal = eval(thisPref)
+                    try:
+                        # if thisPref is not a null string, do eval() to get a list.
+                        if thisPref == '':
+                            newVal = thisPref
+                        else:
+                            newVal = eval(thisPref)
+                    except:
+                        # if eval() failed, show warning dialog and return
+                        try:
+                            pLabel = _localized[prefName]
+                            sLabel = _localized[sectionName]
+                        except:
+                            pLabel = prefName
+                            sLabel = sectionName
+                        warnDlg = dialogs.MessageDialog(parent=self,
+                            message=_translate('Invalid value in "%(pref)s" ("%(section)s" Tab)') %{'pref':pLabel, 'section':sLabel},
+                            type='Info', title=_translate('Error'))
+                        resp=warnDlg.ShowModal()
+                        return
                     if type(newVal)!=list:
                         self.prefsCfg[sectionName][prefName]=[newVal]
                     else:
@@ -256,8 +276,12 @@ class PrefCtrls:
             self.valueCtrl = wx.Choice(self.parent, choices=labels)
             self.valueCtrl._choices = copy.copy(options)  # internal values
             self.valueCtrl.SetSelection(options.index(value))
-        else:#just use a string
-            self.valueCtrl = wx.TextCtrl(self.parent,-1,str(value),
+        elif spec.startswith('list'): # list
+            valuestring = self.listToString(value)
+            self.valueCtrl = wx.TextCtrl(self.parent,-1,valuestring,
+                            size=(valueWidth,-1))
+        else: # just use a string
+            self.valueCtrl = wx.TextCtrl(self.parent,-1,unicode(value),
                             size=(valueWidth,-1))
 
     def _getCtrlValue(self, ctrl):
@@ -281,6 +305,37 @@ class PrefCtrls:
         """Get the current value of the value ctrl
         """
         return self._getCtrlValue(self.valueCtrl)
+
+    def listToString(self, seq, depth=8, errmsg='\'too_deep\''):
+        """
+        Convert list to string.
+        
+        This function is necessary because Unicode characters come to be converted to
+        hexadicimal values if unicode() is used to convert a list to string.
+        This function applies str() or unicode() to each element of the list.
+        """
+        if depth>0:
+            l = '['
+            for e in seq:
+                # if element is a sequence, call listToString recursively.
+                if hasattr(e, '__iter__'):
+                    en = listToString(e, depth-1) + ','
+                else:
+                    e = e.replace('\\','\\\\').replace("'", "\\'")
+                    # try str() first because we don't want to append "u" if unnecessary.
+                    try:
+                       en = "'" + str(e) + "',"
+                    except: # unicode
+                       # "u" is necessary if string is unicode.
+                       en = "u'" + unicode(e) + "',"
+                l += en
+            # remove unnecessary comma
+            if l[-1] == ',':
+                l = l[:-1]
+            l += ']'
+        else:
+            l = errmsg
+        return l
 
 if __name__=='__main__':
     import preferences

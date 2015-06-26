@@ -53,6 +53,6 @@ class NameValidator(wx.PyValidator):
             elif not namespace.isValid(newName): # valid as a var name
                 return _translate("Name must be alpha-numeric or _, no spaces"), False
             elif namespace.isPossiblyDerivable(newName): # warn but allow, chances are good that its actually ok
-                return namespace.isPossiblyDerivable(newName), True
+                return _translate(namespace.isPossiblyDerivable(newName)), True
             else:
                 return "", True

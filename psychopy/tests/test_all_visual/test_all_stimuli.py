@@ -451,6 +451,22 @@ class _baseVisualTest:
             aperture = visual.Aperture(win, pos=pos, shape=shape, nVert=nVert)
             assert len(aperture.vertices) == nVert
             assert aperture.contains(pos)
+    def test_aperture_image(self):
+        win = self.win
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testwedges.png')
+        if not win.allowStencil:
+            pytest.skip("Don't run aperture test when no stencil is available")
+        grating = visual.GratingStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm')
+        aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0], shape=fileName)
+        aperture.enabled = False
+        grating.draw()
+        aperture.enabled = True
+        str(aperture) #check that str(xxx) is working
+        grating.ori = 90
+        grating.color = 'black'
+        grating.draw()
+        utils.compareScreenshot('aperture2_%s.png' %(self.contextName), win)
+        #aperture should automatically disable on exit
     def test_rating_scale(self):
         if self.win.winType=='pygame':
             pytest.skip("RatingScale not available on pygame")

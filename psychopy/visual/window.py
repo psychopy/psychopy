@@ -122,15 +122,14 @@ psychopy.event.visualOpenWindows = openWindows
 
 class Window(object):
     """Used to set up a context in which to draw objects,
-    using either PyGame (python's SDL binding) or pyglet.
+    using either `pyglet <www.pyglet.org>`_ or `pygame <www.pygame.org>`_ 
 
     The pyglet backend allows multiple windows to be created, allows the user
     to specify which screen to use (if more than one is available, duh!) and
     allows movies to be rendered.
 
-    Pygame has fewer bells and whistles, but does seem a little faster in text
-    rendering. Pygame is used for all sound production and for monitoring the
-    joystick.
+    Pygame may still work for you but it's officially deprecated in this project
+    (we won't be fixing pygame-specific bugs).
 
     """
     def __init__(self,
