@@ -2715,12 +2715,12 @@ class _BaseParamsDlg(wx.Dialog):
             used = namespace.exists(newName)
             same_as_old_name = bool(newName == self.params['name'].val)
             if used and not same_as_old_name:
-                return _translate("That name is in use (it's a %s). Try another name.") % namespace._localized(used), False
+                return _translate("That name is in use (it's a %s). Try another name.") % namespace._localized[used], False
             elif not namespace.isValid(newName): # valid as a var name
                 return _translate("Name must be alpha-numeric or _, no spaces"), False
             elif namespace.isPossiblyDerivable(newName): # warn but allow, chances are good that its actually ok
                 msg = namespace.isPossiblyDerivable(newName)
-                return namespace._localized(msg), True
+                return namespace._localized[msg], True
             else:
                 return "", True
     def checkName(self, event=None):
@@ -3111,7 +3111,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                                                         returnFieldNames=True)
                 needUpdate = True
             except ImportError, msg:
-                msg = str(msg)
+                msg = unicode(msg)
                 if msg.startswith('Could not open'):
                     self.currentCtrls['conditions'].setValue(_translate('Could not read conditions from:\n') + newFullPath.split(os.path.sep)[-1])
                     logging.error('Could not open as a conditions file: %s' % newFullPath)
