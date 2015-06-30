@@ -1172,7 +1172,10 @@ class TrialHandler(_BaseTrialHandler):
                 # Add a trial number so the original order of the data can always be recovered if sorted during analysis:
                 trialCount += 1
 
-                entry = self.extraInfo.copy()
+                if self.extraInfo is None:
+                    entry = {}
+                else:
+                    entry = self.extraInfo.copy()
                 for dataType in self.data.dataTypes:
                     entry[dataType] = self.data[dataType][trialTypeIndex][repThisType]
                 entry.update(self.trialList[trialTypeIndex])
