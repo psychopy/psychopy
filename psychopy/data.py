@@ -1231,7 +1231,7 @@ class TrialHandler(_BaseTrialHandler):
         """
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
             logging.info('TrialHandler.saveAsWideText called but no trials completed. Nothing saved')
-            return -1
+            raise ValueError("No trials completed, no data to save")
 
         #set default delimiter if none given
         if delim is None:
