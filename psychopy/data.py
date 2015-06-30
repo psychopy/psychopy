@@ -1132,6 +1132,9 @@ class TrialHandler(_BaseTrialHandler):
         return dataOut, dataAnal, dataHead
 
     def dataToDataFrame(self):
+        """
+        Return the trial data as a pandas DataFrame object for writing/analysis.
+        """
         # If both are < 1 we haven't started
         if self.thisTrialN < 1 and self.thisRepN < 1:
             logging.info('TrialHandler.dataToDataFrame called but no trials completed. Nothing saved')
