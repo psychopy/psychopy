@@ -95,7 +95,7 @@ class FileDropTarget(wx.FileDropTarget):
             if filename.endswith('.psyexp') or filename.lower().endswith('.py'):
                 self.builder.fileOpen(filename=filename)
             else:
-                logging.warning('dropped file ignored: did not end in .psyexp')
+                logging.warning('dropped file ignored: did not end in .psyexp or .py')
 
 class WindowFrozen(object):
     """
