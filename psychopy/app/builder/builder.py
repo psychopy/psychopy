@@ -90,7 +90,7 @@ class FileDropTarget(wx.FileDropTarget):
         wx.FileDropTarget.__init__(self)
         self.builder = builder
     def OnDropFiles(self, x, y, filenames):
-        logging.debug('PsychoPyBuilder: received dropped files: filenames')
+        logging.debug('PsychoPyBuilder: received dropped files: %s' % filenames)
         for filename in filenames:
             if filename.endswith('.psyexp'):
                 self.builder.fileOpen(filename=filename)
