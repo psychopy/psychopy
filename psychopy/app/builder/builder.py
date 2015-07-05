@@ -90,14 +90,12 @@ class FileDropTarget(wx.FileDropTarget):
         wx.FileDropTarget.__init__(self)
         self.builder = builder
     def OnDropFiles(self, x, y, filenames):
-        logging.debug('PsychoPyBuilder: received dropped files: filenames')
+        logging.debug('PsychoPyBuilder: received dropped files: %s' % filenames)
         for filename in filenames:
-            if filename.endswith('.psyexp'):
+            if filename.endswith('.psyexp') or filename.lower().endswith('.py'):
                 self.builder.fileOpen(filename=filename)
-            elif filename.lower().endswith('.py'):
-                self.app.fileOpen(filename=filename)
             else:
-                logging.warning('dropped file ignored: did not end in .psyexp')
+                logging.warning('dropped file ignored: did not end in .psyexp or .py')
 
 class WindowFrozen(object):
     """
