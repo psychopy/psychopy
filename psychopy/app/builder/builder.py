@@ -3266,11 +3266,15 @@ class DlgExperimentProperties(_BaseParamsDlg):
         if self.paramCtrls['Full-screen window'].valueCtrl.GetValue():
             #get screen size for requested display
             num_displays = wx.Display.GetCount()
-            if int(self.paramCtrls['Screen'].valueCtrl.GetValue())>num_displays:
+            try:
+                screen_value=int(self.paramCtrls['Screen'].valueCtrl.GetValue())
+            except ValueError:
+                screen_value=1#param control currently contains no integer value
+            if screen_value<1 or screen_value>num_displays:
                 logging.error("User requested non-existent screen")
                 screenN=0
             else:
-                screenN=int(self.paramCtrls['Screen'].valueCtrl.GetValue())-1
+                screenN=screen_value-1
             size=list(wx.Display(screenN).GetGeometry()[2:])
             #set vals and disable changes
             self.paramCtrls['Window size (pixels)'].valueCtrl.SetValue(unicode(size))
