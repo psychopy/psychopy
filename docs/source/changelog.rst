@@ -16,11 +16,32 @@ Changelog
 
 :blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
-
-
 PsychoPy 1.82
 ------------------------------
 
+PsychoPy 1.82.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+released Aug 2015
+
+    - FIXED: TrialHandler wasn't saving extraInfo (was overwritten during trials) #815
+    - FIXED: don't have pickle file re-saving itself when it comes back from pickling #833
+    - FIXED: Mouse Component could crash data saving if no response was made #839
+    - FIXED: memory leaks in MovieStim2 (opencv backend) #838 and #919
+    - FIXED: checked that window positions are integers #854
+    - FIXED: OSX "10.10" incorrectly looked older than "10.9" #866
+    - FIXED: RatingScale would show "False" for scale description in some cases #870
+    - FIXED: problem with microphone saving files that end with w, a or v #875
+    - FIXED: MonitorCenter failing to create new monitor #887
+    - FIXED: universal line endings in csv outputs files #889
+    - FIXED: unicode in conditions files #892
+    - FIXED: `iohub` not detecting Linux mouse events #894
+    - FIXED: if output file is set to be `stdout` this should then be closed #902
+    - FIXED: don't abbreviate the path name of conditions files #913
+    - FIXED: minor error in logging for `rush()` under win32 #914
+    - FIXED: unicode issues in user preferences panel #930 #932
+    - FIXED: MonitorCenter won't lock you out if given an invalid screen number #937
+    
 PsychoPy 1.82.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -102,7 +123,7 @@ Released Sept 2014
 
 * IMPROVED: cross-version compatibility:
     * In Builder experiments from 'future' versions can be opened and unknown objects will be ignored (but kept)
-    * In Code you can now do `import psychopy; psychopy.useVersion('X.XX.XX') to switch to any version greater than 1.76.00 (including versions not installed and future versions). This only affects the lib, not the application. (Thanks Erik Kastman for most of the work on this)
+    * In Code you can now do `import psychopy; psychopy.useVersion('X.XX.XX')` to switch to any version greater than 1.76.00 (including versions not installed and future versions). This only affects the lib, not the application. (Thanks Erik Kastman for most of the work on this)
 * IMPROVED: better unit tests for visual stimuli to prevent future bugs
 * :blue:`FIXED: MovieStim was right-left flipping movies and this has been corrected. If you had been working around that by setting flipVertical=True then you'll need to undo that correction`
 * IMPROVED: Can now select a subset of conditions in Builder loops and in `data.importConditions()` function (thanks Mike MacAskill for help)

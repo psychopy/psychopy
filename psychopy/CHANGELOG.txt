@@ -10,11 +10,33 @@ Changelog
 PsychoPy 1.82
 ------------------------------
 
+PsychoPy 1.82.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+released Aug 2015
+
+    - FIXED: TrialHandler wasn't saving extraInfo (was overwritten during trials) #815
+    - FIXED: don't have pickle file re-saving itself when it comes back from pickling #833
+    - FIXED: Mouse Component could crash data saving if no response was made #839
+    - FIXED: memory leaks in MovieStim2 (opencv backend) #838 and #919
+    - FIXED: checked that window positions are integers #854
+    - FIXED: OSX "10.10" incorrectly looked older than "10.9" #866
+    - FIXED: RatingScale would show "False" for scale description in some cases #870
+    - FIXED: problem with microphone saving files that end with w, a or v #875
+    - FIXED: MonitorCenter failing to create new monitor #887
+    - FIXED: universal line endings in csv outputs files #889
+    - FIXED: unicode in conditions files #892
+    - FIXED: `iohub` not detecting Linux mouse events #894
+    - FIXED: if output file is set to be `stdout` this should then be closed #902
+    - FIXED: don't abbreviate the path name of conditions files #913
+    - FIXED: minor error in logging for `rush()` under win32 #914
+    - FIXED: unicode issues in user preferences panel #930 #932
+    - FIXED: MonitorCenter won't lock you out if given an invalid screen number #937
+    
 PsychoPy 1.82.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Released Feb 2015
-
 
 * FIXED: problem with MovieStim2 showing black box instead of movie on certain systems
 * FIXED: problem with Tobii eye tracker not closing calibration window (Sol)
