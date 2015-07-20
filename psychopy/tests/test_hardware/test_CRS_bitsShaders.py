@@ -59,7 +59,7 @@ expectedVals = {
         'lowR': array([ 36,  63,   8, 211,   3, 112,  56,  34,   0,   0]),
         'highG': array([119, 118, 120, 119, 121, 120])}}}
 
-win = visual.Window([1024,768], fullscr=0, screen=1, useFBO=True)
+win = visual.Window([1024,768], fullscr=0, useFBO=True)
 bits = crs.bits.BitsSharp(win, mode='bits++', noComms=True)
 
 #draw a ramp across the screenexpectedVals = range(256)

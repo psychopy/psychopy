@@ -1,7 +1,7 @@
 
 
 from psychopy.visual import Window, ShapeStim
-from psychopy import event, core
+from psychopy import event, core, monitors
 from psychopy.constants import NOT_STARTED
 import pyglet, pygame
 import pytest
@@ -198,7 +198,11 @@ class _baseTest:
 class TestPygletNorm(_baseTest):
     @classmethod
     def setup_class(self):
-        self.win = Window([128,128], winType='pyglet', pos=[50,50], autoLog=False)
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(10.0) #exagerate the effect of flatness by setting the monitor close
+        mon.setWidth(40.0)
+        mon.setSizePix([1024,768])
+        self.win = Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], autoLog=False)
         assert pygame.display.get_init() == 0
 
 class xxxTestPygameNorm(_baseTest):
