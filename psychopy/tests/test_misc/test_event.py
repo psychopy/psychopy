@@ -1,7 +1,7 @@
 
 
 from psychopy.visual import Window, ShapeStim
-from psychopy import event, core
+from psychopy import event, core, monitors
 from psychopy.constants import NOT_STARTED
 import pyglet
 from pyglet.window.mouse import LEFT, MIDDLE, RIGHT
@@ -153,7 +153,6 @@ class _baseTest:
         assert event.xydist([0,0], [1,1]) == sqrt(2)
 
     def test_mouseMoved(self):
-        pytest.skip()  # mouse.moved() failures some of the time, blah
 
         if travis:
             pytest.skip()  # failing on travis-ci
@@ -194,10 +193,6 @@ class _baseTest:
         m.getPressed(getTime=True)
 
     def test_isPressedIn(self):
-        if travis:
-            pytest.skip()
-        # travis error: ValueError: Monitor __blank__ has no known size in pixels (SEE MONITOR CENTER)
-
         m = event.Mouse(self.win, newPos=(0,0))
         s = ShapeStim(self.win, vertices=[[10,10],[10,-10],[-10,-10],[-10,10]], autoLog=False)
         if not s.contains(m.getPos()):
@@ -224,9 +219,12 @@ class _baseTest:
 class TestPygletNorm(_baseTest):
     @classmethod
     def setup_class(self):
-        self.win = Window([128,128], winType='pyglet', pos=[50,50], autoLog=False)
-        if havePygame:
-            assert pygame.display.get_init() == 0
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(10.0) #exagerate the effect of flatness by setting the monitor close
+        mon.setWidth(40.0)
+        mon.setSizePix([1024,768])
+        self.win = Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], autoLog=False)
+        assert pygame.display.get_init() == 0
 
 class xxxTestPygameNorm(_baseTest):
     @classmethod
