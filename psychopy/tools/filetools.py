@@ -139,7 +139,7 @@ def openOutputFile(fileName, append=False, delim=None,
         encoding = None
 
     if os.path.exists(fileName) and writeFormat in ['w', 'wb']:
-        logging.warning('Data file, %s will be overwritten!' % fileName)
+        logging.data('Data file, %s will be overwritten!' % fileName)
 
     f = codecs.open(fileName, writeFormat, encoding=encoding)
     return f

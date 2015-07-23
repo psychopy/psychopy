@@ -2837,7 +2837,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         panelSizer = wx.GridBagSizer(5,5)
         panel.SetSizer(panelSizer)
         row=0
-        for fieldName in ['name','loopType','isTrials']:
+        for fieldName in ['name','loopType','isTrials','autosave']:
             try:
                 label = self.currentHandler.params[fieldName].label
             except:

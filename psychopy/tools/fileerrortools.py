@@ -21,7 +21,7 @@ def handleFileCollision(fileName, fileCollisionMethod):
             If a file with the requested name already exists, specify how to deal with it. 'overwrite' will overwite existing files in place, 'rename' will append an integer to create a new file ('trials1.psydat', 'trials2.pysdat' etc) and 'error' will raise an IOError.
     """
     if fileCollisionMethod == 'overwrite':
-        logging.warning('Data file, %s, will be overwritten' % fileName)
+        logging.data('Data file, %s, will be overwritten' % fileName)
     elif fileCollisionMethod == 'fail':
         raise IOError("Data file %s already exists. Set argument fileCollisionMethod to overwrite." % fileName)
     elif fileCollisionMethod == 'rename':
