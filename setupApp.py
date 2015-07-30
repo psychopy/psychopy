@@ -40,7 +40,7 @@ setup(app=['psychopy/app/psychopyApp.py'],
                                   'pyo','greenlet','vlc',
                                   'PyQt4','zmq','tornado',
                                   'psutil',#for iohub
-                                  'pysoundcard','pysoundfile',
+                                  'pysoundcard','soundfile',
                                   'cv2',
                                   'xlwt', #writes different formats of excel files (pandas)
                                   ],
