@@ -112,7 +112,7 @@ class Dlg(wx.Dialog):
             inputBox = wx.CheckBox(self, -1)
             inputBox.SetValue(initial)
         elif not choices:
-            inputWidth, inputHeight = dc.GetTextExtent(initial)
+            inputWidth, inputHeight = dc.GetTextExtent(unicode(initial))
             inputLength = wx.Size(max(50, inputWidth+16), max(25,inputHeight+8))
             inputBox = wx.TextCtrl(self,-1,unicode(initial),size=inputLength)
         else:
