@@ -404,7 +404,7 @@ class RunTimeInfo(dict):
         if verbose: winAttrList += winAttrListVerbose
 
         monAttrList = ['name', 'getDistance', 'getWidth', 'currentCalibName']
-        monAttrListVerbose = ['_gammaInterpolator', '_gammaInterpolator2']
+        monAttrListVerbose = ['getGammaGrid','getLinearizeMethod','_gammaInterpolator', '_gammaInterpolator2']
         if verbose:
             monAttrList += monAttrListVerbose
         if 'monitor' in winAttrList:  # replace 'monitor' with all desired monitor.<attribute>
