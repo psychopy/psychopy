@@ -238,6 +238,7 @@ class ColorCAL:
             logging.error('There seems to be some light getting to the detector. It should be well-covered for zero calibration')
             return False
         self._zeroCalibrated=True
+        self.calibMatrix = self.getCalibMatrix()
         return True
 
     def getCalibMatrix(self):

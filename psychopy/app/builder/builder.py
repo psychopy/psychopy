@@ -90,14 +90,12 @@ class FileDropTarget(wx.FileDropTarget):
         wx.FileDropTarget.__init__(self)
         self.builder = builder
     def OnDropFiles(self, x, y, filenames):
-        logging.debug('PsychoPyBuilder: received dropped files: filenames')
+        logging.debug('PsychoPyBuilder: received dropped files: %s' % filenames)
         for filename in filenames:
-            if filename.endswith('.psyexp'):
+            if filename.endswith('.psyexp') or filename.lower().endswith('.py'):
                 self.builder.fileOpen(filename=filename)
-            elif filename.lower().endswith('.py'):
-                self.app.fileOpen(filename=filename)
             else:
-                logging.warning('dropped file ignored: did not end in .psyexp')
+                logging.warning('dropped file ignored: did not end in .psyexp or .py')
 
 class WindowFrozen(object):
     """
@@ -3268,11 +3266,15 @@ class DlgExperimentProperties(_BaseParamsDlg):
         if self.paramCtrls['Full-screen window'].valueCtrl.GetValue():
             #get screen size for requested display
             num_displays = wx.Display.GetCount()
-            if int(self.paramCtrls['Screen'].valueCtrl.GetValue())>num_displays:
+            try:
+                screen_value=int(self.paramCtrls['Screen'].valueCtrl.GetValue())
+            except ValueError:
+                screen_value=1#param control currently contains no integer value
+            if screen_value<1 or screen_value>num_displays:
                 logging.error("User requested non-existent screen")
                 screenN=0
             else:
-                screenN=int(self.paramCtrls['Screen'].valueCtrl.GetValue())-1
+                screenN=screen_value-1
             size=list(wx.Display(screenN).GetGeometry()[2:])
             #set vals and disable changes
             self.paramCtrls['Window size (pixels)'].valueCtrl.SetValue(unicode(size))
