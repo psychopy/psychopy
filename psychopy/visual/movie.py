@@ -30,7 +30,7 @@ if sys.platform == 'win32':
         # either avbin isn't installed or scipy.stats has been imported
         # (prevents avbin loading)
         haveAvbin = False
-    except Exception, e:
+    except Exception:
         # WindowsError on some systems
         # AttributeError if using avbin5 from pyglet 1.2?
         haveAvbin = False
@@ -70,8 +70,8 @@ class MovieStim(BaseVisualStim, ContainerMixin):
     **Example**::
 
         mov = visual.MovieStim(myWin, 'testMovie.mp4', flipVert=False)
-        print mov.duration
-        print mov.format.width, mov.format.height #give the original size of the movie in pixels
+        print(mov.duration)
+        print(mov.format.width, mov.format.height) #give the original size of the movie in pixels
 
         mov.draw() #draw the current frame (automagically determined)
 
@@ -118,12 +118,12 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         self._verticesBase *= numpy.array([[-1,1]])#or the movie is flipped
 
         if not havePygletMedia:
-            raise ImportError, """pyglet.media is needed for MovieStim and could not be imported.
+            raise ImportError("""pyglet.media is needed for MovieStim and could not be imported.
                 This can occur for various reasons;
                     - psychopy.visual was imported too late (after a lib that uses scipy)
                     - no audio output is enabled (no audio card or no speakers attached)
                     - avbin is not installed
-            """
+            """)
         self._movie=None # the actual pyglet media object
         self._player=pyglet.media.ManagedSoundPlayer()
         self._player.volume=volume
@@ -186,7 +186,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         """
         try:
             self._movie = pyglet.media.load(filename, streaming=True)
-        except Exception, e:
+        except Exception as e:
             # pyglet.media.riff is N/A if avbin is available, and then
             # actual exception would get masked with a new one for unknown
             # (sub)module riff, thus catching any exception and tuning msg

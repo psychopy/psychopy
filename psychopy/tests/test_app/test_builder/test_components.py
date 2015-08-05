@@ -85,7 +85,7 @@ class TestComponents():
                     mismatch = order + ' <== ' + targetTag[tag]
                 except IndexError: # missing
                     mismatch = order + ' <==> NEW (no matching param in the reference profile)'
-                print mismatch.encode('utf8')
+                print(mismatch.encode('utf8'))
                 if not ignoreOrder:
                     err.append(mismatch)
             for parName in comp.params.keys():
@@ -111,6 +111,6 @@ class TestComponents():
                             mismatch = line + ' <== ' + targetTag[tag]
                         except KeyError: # missing
                             mismatch = line + ' <==> NEW (no matching param in the reference profile)'
-                        print mismatch.encode('utf8')
+                        print(mismatch.encode('utf8'))
                         err.append(mismatch)
         assert not err

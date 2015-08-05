@@ -793,7 +793,7 @@ class FlowPanel(wx.ScrolledWindow):
             self.removeComponent(component, compID)
             self.frame.addToUndoStack("REMOVE `%s` from Flow" %component.params['name'])
         if op=='rename':
-            print 'rename is not implemented yet'
+            print('rename is not implemented yet')
             #if component is a loop: DlgLoopProperties
             #elif component is a routine: DlgRoutineProperties
         self.draw()
@@ -2102,7 +2102,7 @@ class ParamCtrls:
         elif hasattr(ctrl, 'GetLabel'): #for wx.StaticText
             return ctrl.GetLabel()
         else:
-            print "failed to retrieve the value for %s" %(ctrl)
+            print("failed to retrieve the value for %s" %(ctrl))
             return None
     def _setCtrlValue(self, ctrl, newVal):
         """Set the current value of the control (whatever type of ctrl it
@@ -2128,7 +2128,7 @@ class ParamCtrls:
         elif hasattr(ctrl, 'SetLabel'): #for wx.StaticText
             ctrl.SetLabel(newVal)
         else:
-            print "failed to retrieve the value for %s" %(ctrl)
+            print("failed to retrieve the value for %s" %(ctrl))
     def getValue(self):
         """Get the current value of the value ctrl
         """
@@ -2577,7 +2577,7 @@ class _BaseParamsDlg(wx.Dialog):
         elif hasattr(ctrl, 'GetValue'):  #e.g. TextCtrl
             val = ctrl.GetValue()
         else:
-            raise ValueError, 'Unknown type of ctrl in _testCompile: %s' %(type(ctrl))
+            raise ValueError('Unknown type of ctrl in _testCompile: %s' %(type(ctrl)))
         try:
             compile(val, '', mode)
             syntaxOk = True
@@ -3108,7 +3108,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.conditions, self.condNamesInFile = data.importConditions(dlg.GetPath(),
                                                         returnFieldNames=True)
                 needUpdate = True
-            except ImportError, msg:
+            except ImportError as msg:
                 msg = unicode(msg)
                 if msg.startswith('Could not open'):
                     self.currentCtrls['conditions'].setValue(_translate('Could not read conditions from:\n') + newFullPath.split(os.path.sep)[-1])
@@ -3182,7 +3182,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 try:
                     self.conditions = data.importConditions(self.conditionsFile)
                     self.currentCtrls['conditions'].setValue(self.getTrialsSummary(self.conditions))
-                except ImportError, msg:
+                except ImportError as msg:
                     self.currentCtrls['conditions'].setValue(
                         _translate('Badly formed condition name(s) in file:\n')+str(msg).replace(':','\n')+
                         _translate('.\nNeed to be legal as var name; edit file, try again.'))
@@ -3680,11 +3680,11 @@ class DlgConditions(wx.Dialog):
                     else: #if thisType in ['NoneType']:
                         #assert False, 'programer error, unknown type: '+thisType
                         exec("lastRow.append("+unicode(thisVal)+')')
-                except ValueError, msg:
-                    print 'ValueError:', msg, '; using unicode'
+                except ValueError as msg:
+                    print('ValueError:', msg, '; using unicode')
                     exec("lastRow.append("+unicode(thisVal)+')')
-                except NameError, msg:
-                    print 'NameError:', msg, '; using unicode'
+                except NameError as msg:
+                    print('NameError:', msg, '; using unicode')
                     exec("lastRow.append("+repr(thisVal)+')')
             self.data.append(lastRow)
         if self.trim:
@@ -3859,9 +3859,9 @@ class DlgConditions(wx.Dialog):
                 self.parent.conditionsFile = fileName
             return contents
         elif not os.path.isfile(fileName):
-            print 'file %s not found' % fileName
+            print('file %s not found' % fileName)
         else:
-            print 'only .pkl supported at the moment'
+            print('only .pkl supported at the moment')
     def asConditions(self):
         """converts self.data into self.conditions for TrialHandler, returns conditions
         """
@@ -4264,8 +4264,8 @@ class BuilderFrame(wx.Frame):
             self.exp = experiment.Experiment(prefs=self.app.prefs)
             try:
                 self.exp.loadFromXML(filename)
-            except Exception, err:
-                print "Failed to load %s. Please send the following to the PsychoPy user list" %filename
+            except Exception:
+                print("Failed to load %s. Please send the following to the PsychoPy user list" %filename)
                 traceback.print_exc()
                 logging.flush()
             self.resetUndoStack()
@@ -4339,7 +4339,7 @@ class BuilderFrame(wx.Frame):
                 self.filename = newPath
                 returnVal = 1
             else:
-                print "'Save-as' canceled; existing file NOT overwritten.\n"
+                print("'Save-as' canceled; existing file NOT overwritten.\n")
         try: #this seems correct on PC, but not on mac
             dlg.destroy()
         except:
@@ -4596,7 +4596,7 @@ class BuilderFrame(wx.Frame):
         fileDir = self.demos[event.GetId()]
         files = glob.glob(os.path.join(fileDir,'*.psyexp'))
         if len(files)==0:
-            print "Found no psyexp files in %s" %fileDir
+            print("Found no psyexp files in %s" %fileDir)
         else:
             self.fileOpen(event=None, filename=files[0], closeCurrent=True)
     def demosMenuUpdate(self):
@@ -4644,7 +4644,7 @@ class BuilderFrame(wx.Frame):
         sys.stderr = self.stdoutFrame
 
         #provide a running... message
-        print "\n"+(" Running: %s " %(fullPath)).center(80,"#")
+        print("\n"+(" Running: %s " %(fullPath)).center(80,"#"))
         self.stdoutFrame.lenLastRun = len(self.stdoutFrame.getText())
 
         self.scriptProcess=wx.Process(self) #self is the parent (which will receive an event when the process ends)
@@ -4822,7 +4822,7 @@ class ReadmeFrame(wx.Frame):
         #attempt to open
         try:
             f=codecs.open(filename, 'r', 'utf-8')
-        except IOError, err:
+        except IOError as err:
             logging.warning("Found readme file for %s and appear to have permissions, but can't open" %self.expName)
             logging.warning(err)
             return False

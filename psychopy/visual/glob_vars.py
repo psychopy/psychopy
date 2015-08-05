@@ -5,7 +5,7 @@
 It needs to be imported by anything that uses those variables as:
 
     from psychopy.visual import glob_vars
-    print glob_vars.currWindow  #read it
+    print(glob_vars.currWindow) #read it
     glob_vars.currentWindow = newWin #change it
 
 Note that if you import using::

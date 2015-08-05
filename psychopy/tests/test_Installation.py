@@ -8,7 +8,7 @@ def test_essential_imports():
     import matplotlib
     #import pygame  # soft dependency only
     import pyglet
-    #import OpenGL
+    import OpenGL
     import openpyxl
     import lxml
     import pandas
@@ -27,6 +27,10 @@ def test_extra_imports():
     #OK, it's Jon , so run it
     import bidi #for right-left languages
     import yaml, msgpack, gevent
+    import IPython, tornado
+    import psychopy_ext
+    import IPython, tornado
+    import psychopy_ext
     import IPython, tornado, zmq, jinja2, jsonschema
     import psychopy_ext, pandas, seaborn
     #avbin

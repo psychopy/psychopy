@@ -98,14 +98,10 @@ class TextureAtlas:
         glBindTexture( GL_TEXTURE_2D, 0 )
 
     def resize(self,new_height):
-#        print 'PRE RESIZE:',self.data.shape
-#        print 'atlas w / h:',self.width,self.height
         self.data = self.data[:new_height]# np.zeros((self.height, self.width, self.depth),
  #                              dtype=np.ubyte)
         self.height=new_height
-#        print 'atlas w / h post:',self.width,self.height
-#        print 'POST RESIZE:',self.data.shape
-                
+
     def set_region(self, region, data):
         '''
         Set a given region width provided data.
@@ -180,7 +176,7 @@ class TextureAtlas:
             else:
                 break
             i += 1
-        
+
         self.max_y=region[1]+region[3]
         self.merge()
         self.used += width*height
@@ -206,8 +202,8 @@ class TextureAtlas:
         '''
         node = self.nodes[index]
         x,y = node[0], node[1]
-        width_left = width        
-        
+        width_left = width
+
         if x+width > self.width:
             return -1
 
@@ -235,16 +231,16 @@ class TextureAtlas:
                 del self.nodes[i+1]
             else:
                 i += 1
-        
+
     def totalArea(self):
         return self.width*self.height
 
     def usedArea(self):
-        return self.used 
-        
+        return self.used
+
     def freeArea(self):
         return self.totalArea()-self.usedArea()
-       
+
     def __del__(self):
         self.texid=None
         self.data=None

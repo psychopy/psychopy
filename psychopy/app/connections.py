@@ -1,19 +1,22 @@
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
-
-import urllib2, re, glob
-import time, platform, sys, zipfile, os, cStringIO
+import sys
+import re, glob
+import time, platform, zipfile, os
 import wx
 import wx.lib.filebrowsebutton
 try:
-    from agw import hyperlink as wxhl
-except ImportError: # if it's not there locally, try the wxPython lib.
+    import wx.lib.agw.hyperlink as wxhl
+except ImportError: # if it's not there locally, try the wxPython lib
     import wx.lib.hyperlink as wxhl
 import psychopy
-from psychopy import web
 from psychopy.app import dialogs
 from psychopy import logging
+from psychopy import web
+py3 = web.py3
+io = web.io #fixed for py2 or py3
+urllib = web.urllib
 
 versionURL = "http://www.psychopy.org/version.txt"
 
@@ -41,8 +44,8 @@ def getLatestVersionInfo():
     Returns -1 if fails to make a connection
     """
     try:
-        page = urllib2.urlopen(versionURL)
-    except urllib2.URLError:
+        page = urllib.request.urlopen(versionURL)
+    except urllib.error.URLError:
         return -1
     #parse update file as a dictionary
     latest={}
@@ -310,11 +313,11 @@ class InstallUpdateDialog(wx.Dialog):
 
         #open page
         URL = "https://sourceforge.net/projects/psychpy/files/PsychoPy-%s.zip" %(v)
-        page = urllib2.urlopen(URL)
+        page = urllib.request.urlopen(URL)
         #download in chunks so that we can monitor progress and abort mid-way through
         chunk=4096; read = 0
         fileSize = int(page.info()['Content-Length'])
-        buffer=cStringIO.StringIO()
+        buffer=io.StringIO()
         self.progressBar.SetRange(fileSize)
         while read<fileSize:
             ch=page.read(chunk)
@@ -335,8 +338,8 @@ class InstallUpdateDialog(wx.Dialog):
         a version number from zip file name
         """
         info=""#return this at the end
-
-        if type(zfile) in [str, unicode] and os.path.isfile(zfile):#zfile is filename not an actual file
+        if (py3 and type(zfile)==str) or (not py3 and type(zfile) in [str, unicode]) \
+            and os.path.isfile(zfile):#zfile is filename not an actual file
             if v is None: #try and deduce it
                 zFilename = os.path.split(zfile)[-1]
                 searchName = re.search('[0-9]*\.[0-9]*\.[0-9]*.', zFilename)
@@ -491,8 +494,8 @@ def sendUsageStats():
     URL = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s" \
         %(dateNow, systemInfo, v, miscInfo)
     try:
-        req = urllib2.Request(URL)
-        page = urllib2.urlopen(req)#proxies
+        req = urllib.request.Request(URL)
+        page = urllib.request.urlopen(req)#proxies
     except:
         logging.warning("Couldn't connect to psychopy.org\n"+\
             "Check internet settings (and proxy setting in PsychoPy Preferences.")

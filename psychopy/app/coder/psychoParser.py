@@ -9,7 +9,7 @@ import pyclbr, tokenize
 
 #~ xx = pyclbr.readmodule_ex('psychopy.visual')
 #~ #xx = pyclbr.tokenize('psychopy')
-#~ print xx['makeRadialMatrix'].__doc__
+#~ print(xx['makeRadialMatrix'].__doc__)
 
 class tokenBuffer:
     #simple buffer to provide mechanism to step backwards through previous tokens

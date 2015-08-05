@@ -21,9 +21,9 @@ win = visual.Window([1024,768],screen=0, useFBO=True,
 #you need to give this the psychopy Window so that it can override various
 #window functions (e.g. to override gamma settings etc)
 bits = crs.BitsSharp(win=win, mode='bits++')
-print bits.info
+print(bits.info)
 if not bits.OK:
-    print 'failed to connect to Bits box'
+    print('failed to connect to Bits box')
     core.quit()
 
 core.wait(0.1)
@@ -44,7 +44,7 @@ while globalClock.getTime()<3:
 bits.mode = 'status'
 core.wait(3)
 pixels = bits.getVideoLine(lineN=1, nPixels=5)
-print pixels
+print(pixels)
 
 #check that the set up is working
 #level=0 just checks that system is the same from previous config
@@ -65,4 +65,4 @@ for frameN in range(300):
 
 #you probably don't need to but you can send BitsSharp your own messages using
 bits.sendMessage('$FirmwareDate\r')
-print bits.read(timeout=0.1)
+print(bits.read(timeout=0.1))

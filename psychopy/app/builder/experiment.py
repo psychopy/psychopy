@@ -1,7 +1,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
-
+from __future__ import print_function
 import StringIO, sys, codecs
 from components import getInitVals, getComponents, getAllComponents
 import psychopy
@@ -356,7 +356,7 @@ class Experiment(object):
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
         """
-        #open the file using a parser that ignores prettyprint blank text
+        #open the file using a parser that ignores prettyprinted blank text
         parser = etree.XMLParser(remove_blank_text=True)
         f=open(filename)
         self._doc=etree.XML(f.read(),parser)
@@ -500,53 +500,53 @@ class Param:
     """Defines parameters for Experiment Components
     A string representation of the parameter will depend on the valType:
 
-    >>> print Param(val=[3,4], valType='num')
+    >>> print(Param(val=[3,4], valType='num'))
     asarray([3, 4])
-    >>> print Param(val=3, valType='num') # num converts int to float
+    >>> print(Param(val=3, valType='num')) # num converts int to float
     3.0
-    >>> print Param(val=3, valType='str') # str keeps as int, converts to code
+    >>> print(Param(val=3, valType='str') # str keeps as int, converts to code
     3
-    >>> print Param(val='3', valType='str') # ... and keeps str as str
+    >>> print(Param(val='3', valType='str')) # ... and keeps str as str
     '3'
-    >>> print Param(val=[3,4], valType='str') # val is <type 'list'> -> code
+    >>> print(Param(val=[3,4], valType='str')) # val is <type 'list'> -> code
     [3, 4]
-    >>> print Param(val='[3,4]', valType='str')
+    >>> print(Param(val='[3,4]', valType='str'))
     '[3,4]'
-    >>> print Param(val=[3,4], valType='code')
+    >>> print(Param(val=[3,4], valType='code'))
     [3, 4]
 
     >>> #### auto str -> code:  at least one non-escaped '$' triggers str -> code: ####
-    >>> print Param('[x,y]','str') # str normally returns string
+    >>> print(Param('[x,y]','str')) # str normally returns string
     '[x,y]'
-    >>> print Param('$[x,y]','str') # code, as triggered by $
+    >>> print(Param('$[x,y]','str')) # code, as triggered by $
     [x,y]
-    >>> print Param('[$x,$y]','str') # code, redundant $ ok, cleaned up
+    >>> print(Param('[$x,$y]','str')) # code, redundant $ ok, cleaned up
     [x,y]
-    >>> print Param('[$x,y]','str') # code, a $ anywhere means code
+    >>> print(Param('[$x,y]','str')) # code, a $ anywhere means code
     [x,y]
-    >>> print Param('[x,y]$','str') # ... even at the end
+    >>> print(Param('[x,y]$','str')) # ... even at the end
     [x,y]
-    >>> print Param('[x,\$y]','str') # string, because the only $ is escaped
+    >>> print(Param('[x,\$y]','str')) # string, because the only $ is escaped
     '[x,$y]'
-    >>> print Param('[x,\ $y]','str') # improper escape -> code (note that \ is not adjacent to $)
+    >>> print(Param('[x,\ $y]','str')) # improper escape -> code (note that \ is not adjacent to $)
     [x,\ y]
-    >>> print Param('/$[x,y]','str') # improper escape -> code (/ is not the same as \)
+    >>> print(Param('/$[x,y]','str')) # improper escape -> code (/ is not the same as \)
     /[x,y]
-    >>> print Param('[\$x,$y]','str') # code, python syntax error
+    >>> print(Param('[\$x,$y]','str')) # code, python syntax error
     [$x,y]
-    >>> print Param('["\$x",$y]','str') # ... python syntax ok
+    >>> print(Param('["\$x",$y]','str') # ... python syntax ok
     ["$x",y]
-    >>> print Param("'$a'",'str') # code, with the code being a string, $ removed
+    >>> print(Param("'$a'",'str')) # code, with the code being a string, $ removed
     'a'
-    >>> print Param("'\$a'",'str') # string, with the string containing a string, $ escaped (\ removed)
+    >>> print(Param("'\$a'",'str')) # string, with the string containing a string, $ escaped (\ removed)
     "'$a'"
-    >>> print Param('$$$$$myPathologicalVa$$$$$rName','str')
+    >>> print(Param('$$$$$myPathologicalVa$$$$$rName','str'))
     myPathologicalVarName
-    >>> print Param('\$$$$$myPathologicalVa$$$$$rName','str')
+    >>> print(Param('\$$$$$myPathologicalVa$$$$$rName','str'))
     $myPathologicalVarName
-    >>> print Param('$$$$\$myPathologicalVa$$$$$rName','str')
+    >>> print(Param('$$$$\$myPathologicalVa$$$$$rName','str'))
     $myPathologicalVarName
-    >>> print Param('$$$$\$$$myPathologicalVa$$$\$$$rName','str')
+    >>> print(Param('$$$$\$$$myPathologicalVa$$$\$$$rName','str'))
     $myPathologicalVa$rName
     """
 
@@ -616,7 +616,7 @@ class Param:
         elif self.valType == 'bool':
             return "%s" %(self.val)
         else:
-            raise TypeError, "Can't represent a Param of type %s" %self.valType
+            raise TypeError("Can't represent a Param of type %s" %self.valType)
 
 class TrialHandler(object):
     """A looping experimental control object
@@ -1072,16 +1072,16 @@ class Flow(list):
             for field, key, component, routine in trailingWhitespace:
                 warnings.append( msg % (field, routine.params['name'],
                                 component.params['name'], key.capitalize()) )
-            print 'Note: Trailing white-space removed:\n ',
-            print '\n  '.join(list(set(warnings)))  # non-redundant, order unknown
+            print('Note: Trailing white-space removed:\n ',end='')
+            print('\n  '.join(list(set(warnings))))  # non-redundant, order unknown
         if constWarnings:
             warnings = []
             msg = '"%s", in Routine %s (%s: %s)'
             for field, key, component, routine in constWarnings:
                 warnings.append( msg % (field, routine.params['name'],
                                 component.params['name'], key.capitalize()) )
-            print 'Note: Dynamic code seems intended but updating is "constant":\n ',
-            print '\n  '.join(list(set(warnings)))  # non-redundant, order unknown
+            print('Note: Dynamic code seems intended but updating is "constant":\n ',end='')
+            print('\n  '.join(list(set(warnings))))  # non-redundant, order unknown
     def writeStartCode(self, script):
         """Write the code that comes before the Window is created
         """

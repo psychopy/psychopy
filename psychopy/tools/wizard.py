@@ -610,8 +610,6 @@ class BenchmarkWizard(ConfigWizard):
             if 'proxy setting' in itm[0] or not itm[1]:
                 continue
             itemsDict[itm[0]] = itm[1].replace('<strong>', '').replace('</strong>', '').replace('&nbsp;', '').replace('&nbsp', '')
-            #if log:
-            #    print itm[0]+': ' + itemsDict[itm[0]]
 
         # present dialog, upload only if opt-in:
         dlg = gui.Dlg(title=self.name)
@@ -786,4 +784,4 @@ if __name__ == '__main__':
     elif '--benchmark' in sys.argv:
         BenchmarkWizard()
     else:
-        print "need to specify a wizard in sys.argv, e.g., --benchmark"
+        print("need to specify a wizard in sys.argv, e.g., --benchmark")

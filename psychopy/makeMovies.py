@@ -42,7 +42,7 @@ def makeAnimatedGIF(filename, images):
         optimPalette=makePalette(images, verbose=True)
 
     for n, im in enumerate(images):
-        print 'converting frame %i of %i to GIF' %(n+1,len(images))
+        print('converting frame %i of %i to GIF' %(n+1,len(images)))
         if im.mode=='RGB':
             im = rgb2palette(im, palette=optimPalette, verbose=False)
         if not previous:
@@ -81,7 +81,8 @@ def RgbHistogram (images, verbose=False):
         images= [images]
 
     # Form a histogram dictionary whose keys are the repr(color)
-    if verbose:    print 'optimising palette ...'
+    if verbose:
+        print('optimising palette ...')
     datalist=[]
     for imgRgb in images:
         datalist.extend(imgRgb.getdata())
@@ -100,9 +101,11 @@ def RgbHistogram (images, verbose=False):
             numcolors += 1
 
             if numcolors > 256:
-                if verbose:    print '               ... too many colors'
+                if verbose:
+                    print('               ... too many colors')
                 return None         # Error flag:  use PIL default color palette/dithering
-    if verbose:    print '               ... OK'
+    if verbose:
+        print('               ... OK')
 
     # reform the dictionary into a sorted histogram of the form: (count, (r, g, b))
     hist = []
@@ -187,7 +190,8 @@ def rgb2palette (imgRgb, palette=None, verbose=False):     # image could be a "R
     hasalpha = False
     if imgRgb.mode == 'RGBA':
         hasalpha = True                            # for post=processing to create transparency
-        if verbose:    print 'Rgb2p:  Input image is RGBA'
+        if verbose:
+            print('Rgb2p:  Input image is RGBA')
 
         # Create a mask and its inverse
         source = imgRgb.split()
@@ -207,7 +211,8 @@ def rgb2palette (imgRgb, palette=None, verbose=False):     # image could be a "R
     imgP.putpalette (palette)               # Install the palette
 
     # Rewrite the entire image using new palette's indices.
-    if verbose:    print 'Defining the new image using the newly created palette ...'
+    if verbose:
+        print('Defining the new image using the newly created palette ...')
 
     # Each pixel gets a palette color index
     if datalist is None:
@@ -230,8 +235,8 @@ def rgb2palette (imgRgb, palette=None, verbose=False):     # image could be a "R
     if hasalpha:
         indexleastused, leastcount = Getalphaindex (imgP, maskinv)
         if verbose:
-            print
-            print 'Low color-count image:   least used color index, leastcount =', indexleastused, leastcount
+            print()
+            print('Low color-count image:   least used color index, leastcount = %i, %i' %(indexleastused, leastcount))
         #end if
 
         return (imgP, indexleastused, mask)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 #this is win32 only - I have no idea how to use parallel ports on a Mac! jwp
-from psychopy import visual, core, logging
+from psychopy import visual, core
 from psychopy import parallel 
 
 nFramesOn = 5
@@ -29,8 +29,8 @@ for cycleN in range(nCycles):
         parallel.setPin(2,1)#sets just this pin to be high        
         
 #report the mean time afterwards
-print 'total time=', myClock.getTime()
-print 'avg frame rate=', myWin.fps()
+print('total time=%0.6f' %(myClock.getTime()))
+print('avg frame rate=%0.3f' %(myWin.fps()))
 #set pins back to low
 myWin.flip()
 parallel.setData(0)#sets all pins low again

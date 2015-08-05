@@ -146,7 +146,7 @@ class PreferencesDlg(wx.Dialog):
         self.app.prefs.pageCurrent = self.nb.GetSelection()
         # don't set locale here; need to restart app anyway
     def onEvt(self, evt, id=None):
-        print evt
+        print(evt)
     def onCancel(self, event=None):
         self.Destroy()
     def onOK(self, event=None):

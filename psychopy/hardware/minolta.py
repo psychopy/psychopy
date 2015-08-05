@@ -25,7 +25,7 @@ class LS100:
         from psychopy.hardware import minolta
         phot = minolta.LS100(port)
         if phot.OK:#then we successfully made a connection and can send/receive
-            print phot.getLum()
+            print(phot.getLum())
 
     :parameters:
 
@@ -170,7 +170,7 @@ class LS100:
         return ok
     def checkOK(self,msg):
         """Check that the message from the photometer is OK.
-        If there's an error print it.
+        If there's an error show it (printed).
 
         Then return True (OK) or False.
         """

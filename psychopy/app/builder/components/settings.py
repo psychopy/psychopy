@@ -44,7 +44,7 @@ class SettingsComponent(object):
         if filename.startswith("u'xxxx"):
             filename = filename.replace("xxxx", self.exp.prefsBuilder['savedDataFolder'].strip())
         else:
-            print filename[0:6]
+            print(filename[0:6])
         #params
         self.params={}
         self.order=['expName','Show info dlg','Experiment info',
@@ -163,9 +163,9 @@ class SettingsComponent(object):
             expInfo = '{}'
         try:
             expInfoDict = eval('dict(' + expInfo + ')')
-        except SyntaxError, err:
+        except SyntaxError:
             logging.error('Builder Expt: syntax error in "Experiment info" settings (expected a dict)')
-            raise SyntaxError, 'Builder: error in "Experiment info" settings (expected a dict)'
+            raise AttributeError('Builder: error in "Experiment info" settings (expected a dict)')
         buff.writeIndented("expInfo = %s\n" % expInfo)
         if self.params['Show info dlg'].val:
             buff.writeIndented("dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)\n")

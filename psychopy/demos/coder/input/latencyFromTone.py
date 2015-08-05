@@ -46,7 +46,7 @@ win.flip()
 
 onsets = []
 rec_duration = 0.5
-print 'marker start, offset (within the saved recording):'
+print('marker start, offset (within the saved recording):')
 for i in xrange(10):
     core.wait(0.5, 0)
 
@@ -68,7 +68,7 @@ for i in xrange(10):
     # display options:
     text.draw()
     win.flip()
-    print "%.3f %.3f" % (onset, offset)
+    print("%.3f %.3f" % (onset, offset))
     if len(event.getKeys(['escape'])):
         core.quit()
     if len(event.getKeys()):
@@ -82,7 +82,7 @@ for i in xrange(10):
     # no need to keep the recorded file:
     os.unlink(filename)
 
-print "\nmarker onset = %.3fs %.3f (mean SD), relative to start of file" % (np.mean(onsets), np.std(onsets))
+print("\nmarker onset = %.3fs %.3f (mean SD), relative to start of file" % (np.mean(onsets), np.std(onsets)))
 
 win.close()
 core.quit()

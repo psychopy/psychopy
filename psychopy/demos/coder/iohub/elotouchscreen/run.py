@@ -44,8 +44,8 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
         #   query_reply=touch.queryDevice('ID') 
         #   
         id_dict=touch.queryDevice('ID')
-        print "queryDevice('ID'):",id_dict
-        print
+        print("queryDevice('ID'):" + str(,id_dict))
+        print()
         
         # getHardwareConfiguration returns the results from the following 
         # queries, issued when the elo device interface was created by iohub:
@@ -58,9 +58,9 @@ class EloTouchScreenDemo(ioHubExperimentRuntime):
         #
         hw_conf_dict=touch.getHardwareConfiguration()    
         import pprint
-        print "hw_conf_dict:"
+        print("hw_conf_dict:")
         pprint.pprint(hw_conf_dict)
-        print
+        print()
 
         display_resolution=display.getPixelResolution()
         psychopy_monitor=display.getPsychopyMonitorName()

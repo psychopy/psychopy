@@ -53,7 +53,6 @@ class TestExpt():
 
     @classmethod
     def setup_class(cls):
-        # print "D: CREATING THE EXP"
         cls.exp = psychopy.app.builder.experiment.Experiment() # create once, not every test
         cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
@@ -111,8 +110,6 @@ class TestExpt():
                      line[1].find("if self.params[") > -1 # this pattern could miss some things
                      and not (line[1].find('].val') > -1 or line[1].find('].updates') > -1) )
                      ]
-            #for num, line in lines:
-            #    print file, '#'+str(num+1), line.strip()
             missing_dotval_count += len(lines)
 
         assert missing_dotval_count == 0  # some suspicious lines were found: "if self.param[]" without .val or .updates
@@ -294,8 +291,8 @@ class TestExpt():
         execfile(py_file)
         os.chdir(wd)
         #load the data
-        print "searching..." +datafileBase
-        print glob.glob(datafileBase+'*')
+        print("searching..." +datafileBase)
+        print(glob.glob(datafileBase+'*'))
         f = open(datafileBase+".csv", 'rU')
         dat = numpy.recfromcsv(f, case_sensitive=True)
         f.close()
@@ -338,13 +335,10 @@ class TestExpt():
 
         # run:
         stdout, stderr = core.shellCall('python '+lastrun, stderr=True)
-        assert not len(stderr), stderr # print stderr if it's greater than zero
+        assert not len(stderr), stderr # printing stderr if it's greater than zero
 
     def test_Exp_AddRoutine(self):
-        exp = self.exp
         self.exp.addRoutine('instructions')
-        #self.exp.routines['instructions'].AddComponent(
-        #self.exp.Add
 
     def test_Exp_NameSpace(self):
         namespace = self.exp.namespace
@@ -378,7 +372,6 @@ class Test_ExptComponents():
         for compName, compClass in allComponents.items():
             if compName in ['SettingsComponent']:
                 continue
-            #print "testing with:", compName
             thisComp = compClass(exp=self.exp, parentName='testRoutine', name=compName)
             self._checkCompileWith(thisComp)
     @classmethod
@@ -405,7 +398,6 @@ class Test_ExptComponents():
 #        def clickOK():
 #            clickEvent = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
 #            self.builder.ProcessEvent(clickEvent)
-#            print "D: tried click"
 #        wx.CallAfter(clickOK)
 
     def _checkCompileWith(self, thisComp):

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from psychopy import data, logging
 from psychopy.tests import utils
 import numpy as np
@@ -19,7 +20,7 @@ class TestMultiStair(object):
                         saveWideText=True,
                         dataFileName=self.tmpFile+'x')
         if DEBUG:
-            print self.tmpFile
+            print(self.tmpFile)
 
     def teardown(self):
         #    remove the tmp files
@@ -35,19 +36,19 @@ class TestMultiStair(object):
             stairs.addOtherData('rt', thisLevel*0.1)
             if DEBUG:
                 if levels:
-                    print trialN, thisLevel, responses[trialN], stairs.stepSizeCurrent, levels[trialN]#the latter is the expected level
+                    print(trialN, thisLevel, responses[trialN], stairs.stepSizeCurrent, levels[trialN])#the latter is the expected level
                 else:
-                    print trialN, thisLevel, responses[trialN]# there was no expected level given
+                    print(trialN, thisLevel, responses[trialN])# there was no expected level given
             self.exp.nextEntry()
             trialN += 1
         exp = stairs.getExp()
         #test how that went
         recordedResps = [entry['.response'] for entry in exp.entries]
         recordedLevels = [entry['.intensity'] for entry in exp.entries]
-        print 'n',trialN
+        print('n', trialN)
         for n in range(trialN):
-            print n,recordedResps[n], responses[n],recordedLevels[n], levels[n]
-        print recordedResps
+            print(n,recordedResps[n], responses[n],recordedLevels[n], levels[n])
+        print(recordedResps)
         assert np.allclose(recordedResps, responses[:trialN]), "staircase levels not as expected"
         if hasattr(stairs, 'minVal'):
             assert min(recordedLevels)>=stairs.minVal

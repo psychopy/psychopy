@@ -10,10 +10,27 @@
 import os, sys, time
 import hashlib, base64
 import httplib, mimetypes
-import urllib2, socket, re
+import socket, re
 from psychopy import logging
 from psychopy.constants import PSYCHOPY_USERAGENT
 from psychopy import prefs
+
+if sys.version_info >= (3, 0):
+    py3 = True
+else:
+    py3 = False
+if py3:
+    import urllib.request, urllib.error, urllib.parse
+    import io
+else:
+    import urllib2
+    class FakeURLlib(object):
+        def __init__(self, lib):
+            self.request = lib
+            self.error = lib
+            self.parse = lib
+    urllib = FakeURLlib(urllib2)
+    import cStringIO as io
 
 TIMEOUT = max(prefs.connections['timeout'], 2.0) # default 20s from prefs, min 2s
 socket.setdefaulttimeout(TIMEOUT)
@@ -22,7 +39,7 @@ global proxies
 proxies = None #if this is populated then it has been set up already
 
 
-class NoInternetAccessError(StandardError):
+class NoInternetAccessError(Exception):
     """An internet connection is required but not available
     """
 global haveInternet
@@ -40,10 +57,10 @@ def haveInternetAccess(forceCheck=False):
         for wait in [0.3, 0.7]:  # try to be quick first
             for site in sites:
                 try:
-                    urllib2.urlopen(site, timeout=wait)
+                    urllib.request.urlopen(site, timeout=wait)
                     haveInternet = True  # cache
                     return True  # one success is good enough
-                except:  # urllib2.URLError:  # socket.timeout() was happening to some people some of the time
+                except:  # urllib.error.URLError:  # socket.timeout() was happening to some people some of the time
                     pass
         else:
             haveInternet = False
@@ -67,20 +84,20 @@ def tryProxy(handler, URL=None):
     :Returns:
 
         - True (success)
-        - a `urllib2.URLError` (which can be interrogated with `.reason`)
-        - a `urllib2.HTTPError` (which can be interrogated with `.code`)
+        - a `urllib.error.URLError` (which can be interrogated with `.reason`)
+        - a `urllib.error.HTTPError` (which can be interrogated with `.code`)
 
     """
     if URL is None:
         URL='http://www.google.com'#hopefully google isn't down!
-    req = urllib2.Request(URL)
-    opener = urllib2.build_opener(handler)
+    req = urllib.request.Request(URL)
+    opener = urllib.request.build_opener(handler)
     try:
         opener.open(req, timeout=2).read(5)#open and read a few characters
         return True
-    except urllib2.URLError, err:
+    except urllib.error.URLError as err:
         return err
-    except urllib2.HTTPError, err:
+    except urllib.error.HTTPError as err:
         return err
 
 def getPacFiles():
@@ -151,8 +168,8 @@ def proxyFromPacFiles(pacURLs=[], URL=None, log=True):
 
     :Returns:
 
-        - A urllib2.ProxyHandler if successful (and this will have been added as
-        an opener to the urllib2.
+        - A urllib.request.ProxyHandler if successful (and this will have been added as
+        an opener to the urllib)
         - False if no proxy was found in the files that allowed successful connection
     """
 
@@ -165,8 +182,8 @@ def proxyFromPacFiles(pacURLs=[], URL=None, log=True):
         if log:
             logging.debug('proxyFromPacFiles is searching file:\n  %s' %thisPacURL)
         try:
-            response = urllib2.urlopen(thisPacURL, timeout=2)
-        except urllib2.URLError:
+            response = urllib.request.urlopen(thisPacURL, timeout=2)
+        except urllib.error.URLError:
             if log:
                 logging.debug("Failed to find PAC URL '%s' " %thisPacURL)
             continue
@@ -175,11 +192,11 @@ def proxyFromPacFiles(pacURLs=[], URL=None, log=True):
         possProxies = re.findall(r"PROXY\s([^\s;,:]+:[0-9]{1,5})[^0-9]", pacStr+'\n')
         for thisPoss in possProxies:
             proxUrl = 'http://' + thisPoss
-            handler=urllib2.ProxyHandler({'http':proxUrl})
+            handler=urllib.request.ProxyHandler({'http':proxUrl})
             if tryProxy(handler)==True:
                 if log:
                     logging.debug('successfully loaded: %s' %proxUrl)
-                urllib2.install_opener(urllib2.build_opener(handler))
+                urllib.request.install_opener(urllib.request.build_opener(handler))
                 return handler
     return False
 
@@ -187,7 +204,7 @@ def setupProxy(log=True):
     """Set up the urllib proxy if possible.
 
      The function will use the following methods in order to try and determine proxies:
-        #. standard urllib2.urlopen (which will use any statically-defined http-proxy settings)
+        #. standard urllib.request.urlopen (which will use any statically-defined http-proxy settings)
         #. previous stored proxy address (in prefs)
         #. proxy.pac files if these have been added to system settings
         #. auto-detect proxy settings (WPAD technology)
@@ -202,20 +219,20 @@ def setupProxy(log=True):
     """
     global proxies
     #try doing nothing
-    proxies=urllib2.ProxyHandler(urllib2.getproxies())
+    proxies=urllib.request.ProxyHandler(urllib.request.getproxies())
     if tryProxy(proxies) is True:
         if log:
-            logging.debug("Using standard urllib2 (static proxy or no proxy required)")
-        urllib2.install_opener(urllib2.build_opener(proxies))#this will now be used globally for ALL urllib2 opening
+            logging.debug("Using standard urllib (static proxy or no proxy required)")
+        urllib.request.install_opener(urllib.request.build_opener(proxies))#this will now be used globally for ALL urllib opening
         return 1
 
     #try doing what we did last time
     if len(prefs.connections['proxy'])>0:
-        proxies=urllib2.ProxyHandler({'http': prefs.connections['proxy']})
+        proxies=urllib.request.ProxyHandler({'http': prefs.connections['proxy']})
         if tryProxy(proxies) is True:
             if log:
                 logging.debug('Using %s (from prefs)' %(prefs.connections['proxy']))
-            urllib2.install_opener(urllib2.build_opener(proxies))#this will now be used globally for ALL urllib2 opening
+            urllib.request.install_opener(urllib.request.build_opener(proxies))#this will now be used globally for ALL urllib opening
             return 1
         else:
             if log:
@@ -432,7 +449,7 @@ def upload(selector, filename, basicAuth=None, host=None, https=False, log=True)
         status = 'no return value from _post_multipart(). '
         reason = 'config error?'
         result = status + reason
-    except urllib2.URLError as ex:
+    except urllib.error.URLError as ex:
         logging.error('upload: URL Error. (no internet connection?)')
         raise ex
 

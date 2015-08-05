@@ -188,7 +188,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
             buff.writeIndented("%(name)s.keys.extend(theseKeys)  # storing all keys\n" %(self.params))
             buff.writeIndented("%(name)s.rt.extend(theseRTs)\n" %(self.params))
         else:
-            print store, type(store), str(store)
+            print(store, type(store), str(store))
         if storeCorr:
             buff.writeIndented("# was this 'correct'?\n" %self.params)
             buff.writeIndented("if (%(name)s.keys == str(%(correctAns)s)) or (%(name)s.keys == %(correctAns)s):\n" %(self.params))

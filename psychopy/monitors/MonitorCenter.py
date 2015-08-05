@@ -969,9 +969,6 @@ class MainFrame(wx.Frame):
         figureCanvas.draw()#update the canvas
         plotWindow.addCanvas(figureCanvas)
 
-    def onClosePlotWindow(self, event):
-        print event
-
 class GammaLumValsDlg(wx.Dialog):
     '''a dialogue to manually get the luminance values recorded for each level'''
     def __init__(self, parent, levels):
