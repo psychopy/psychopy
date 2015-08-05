@@ -344,4 +344,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         setAttribute(self, 'autoDraw', val, log)
 
     def __del__(self):
-        self._player.next()
+        try:
+            self._player.next()
+        except:
+            pass
