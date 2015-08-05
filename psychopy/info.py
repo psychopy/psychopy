@@ -289,7 +289,7 @@ class RunTimeInfo(dict):
                 self['systemPyo.OutputDevices'] = out
             except AttributeError:
                 pass
-        except AssertionError, ImportError:
+        except (AssertionError, ImportError):
             pass
 
         # flac (free lossless audio codec) for google-speech:
