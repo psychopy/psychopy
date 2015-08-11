@@ -1740,6 +1740,7 @@ class CoderFrame(wx.Frame):
     def setCurrentDoc(self, filename, keepHidden=False):
         #check if this file is already open
         docID=self.findDocID(filename)
+        readonly = 'readonly' in self.app.prefs.coder and self.app.prefs.coder['readonly']
         if docID>=0:
             self.currentDoc = self.notebook.GetPage(docID)
             self.notebook.SetSelection(docID)
@@ -1750,7 +1751,6 @@ class CoderFrame(wx.Frame):
                 self.fileClose(self.currentDoc.filename)
 
             #create an editor window to put the text in
-            readonly = 'readonly' in self.app.prefs.coder and self.app.prefs.coder['readonly']
             p = self.currentDoc = CodeEditor(self.notebook,-1, frame=self,
                                              readonly=readonly)
 
