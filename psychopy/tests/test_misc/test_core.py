@@ -37,8 +37,8 @@ PRINT_TEST_RESULTS=False
 def printf(*args):
     if PRINT_TEST_RESULTS:
         for a in args:
-            print a,
-        print ''
+            sys.stdout(a)
+        print('')
 
 py_time=None
 py_timer_name=None

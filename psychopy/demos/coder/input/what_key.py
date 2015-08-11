@@ -10,5 +10,5 @@ k = ['']
 count = 0
 while k[0] not in ['escape', 'esc'] and count < 5:
     k = event.waitKeys()
-    print k
+    print(k)
     count += 1

@@ -27,45 +27,45 @@ runInfo = psychopy.info.RunTimeInfo(
         )
 myWin.close()
 
-print """
+print("""
 System and other run-time details are now saved in "runInfo", a dict-like object. You have to decide
 what to do with it.
 
-"print runInfo" will give you the same as "print str(runInfo)". This format is intended to be useful 
-for writing to a data file in a human readable form:"""
-print runInfo
-#print repr(runInfo)
+"print(runInfo)" will give you the same as "print(str(runInfo))". This format is intended to be useful 
+for writing to a data file in a human readable form:""")
+print(runInfo)
+
 infoCopy = eval(repr(runInfo)) # this works, but the type() of all values is now string
 
-print """If that's more detail than you want, try: runInfo = info.RunTimeInfo(...,verbose=False,...)."""
+print("If that's more detail than you want, try: runInfo = info.RunTimeInfo(...,verbose=False,...).")
 
-# To get the same info in python syntax, use "print repr(info)". You could write this format into 
+# To get the same info in python syntax, use "print(repr(info))". You could write this format into 
 # a data file, and it's fairly readable. And because its python syntax you could later simply
 # import your data file into python to reconstruct the dict.
 
-print "\nYou can extract single items from info, using keys, e.g.:"
-print "  psychopyVersion = %s" % runInfo['psychopyVersion']
+print("\nYou can extract single items from info, using keys, e.g.:")
+print("  psychopyVersion = %s" % runInfo['psychopyVersion'])
 try:
     runInfo["windowRefreshTimeAvg_ms"]  # just to raise exception here if no keys
-    print "or from the test of the screen refresh rate:"
-    print "  %.2f ms = average refresh time" % runInfo["windowRefreshTimeAvg_ms"]
-    print "  %.3f ms = standard deviation" % runInfo["windowRefreshTimeSD_ms"]
+    print("or from the test of the screen refresh rate:")
+    print("  %.2f ms = average refresh time" % runInfo["windowRefreshTimeAvg_ms"])
+    print("  %.3f ms = standard deviation" % runInfo["windowRefreshTimeSD_ms"])
 
     ## Once you have run-time info, you can fine-tune things with the values, prior to running your experiment.
     refreshSDwarningLevel_ms = 0.20 ##ms
     if runInfo["windowRefreshTimeSD_ms"] > refreshSDwarningLevel_ms:
-        print "\nThe variability of the refresh rate is sort of high (SD > %.2f ms)." % (refreshSDwarningLevel_ms)
+        print("\nThe variability of the refresh rate is sort of high (SD > %.2f ms)." % (refreshSDwarningLevel_ms))
         ## and here you could prompt the user with suggestions, possibly based on other info:
         if runInfo["windowIsFullScr"]: 
-            print "Your window is full-screen, which is good for timing."
-            print 'Possible issues: internet / wireless? bluetooth? recent startup (not finished)?'
+            print("Your window is full-screen, which is good for timing.")
+            print('Possible issues: internet / wireless? bluetooth? recent startup (not finished)?')
             if len(runInfo['systemUserProcFlagged']):
-                print 'other programs running? (command, process-ID):',info['systemUserProcFlagged']
+                print('other programs running? (command, process-ID):'+str(runInfo['systemUserProcFlagged']))
         else: 
-            print """Try defining the window as full-screen (it's not currently), i.e. at the top of the demo change to:
+            print("""Try defining the window as full-screen (it's not currently), i.e. at the top of the demo change to:
     myWin = visual.Window((800,600), fullscr=True, ...
-and re-run the demo."""
+and re-run the demo.""")
 except:
     pass
-print """
-(NB: The visual is not the demo! Scroll up to see the text output.)"""
+print("""
+(NB: The visual is not the demo! Scroll up to see the text output.)""")

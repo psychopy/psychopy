@@ -37,7 +37,7 @@ class Preferences:
         if self.userPrefsCfg['app']['resetPrefs']:
             self.resetPrefs()
     def __str__(self):
-        """pretty print the current preferences"""
+        """pretty printing the current preferences"""
         strOut = "psychopy.prefs <%s>:\n" %(join(self.paths['userPrefsDir'], 'userPrefs.cfg'))
         for sectionName in ['general','coder','builder','connections']:
             section = getattr(self,sectionName)
@@ -51,7 +51,7 @@ class Preferences:
         try:
             os.unlink(userCfg)
         except:
-            print "Could not remove prefs file '%s'; (try doing it manually?)" % userCfg
+            print("Could not remove prefs file '%s'; (try doing it manually?)" % userCfg)
         self.loadAll() # reloads, now getting all from .spec
 
     def getPaths(self):
@@ -122,7 +122,7 @@ class Preferences:
         if not os.path.isdir(self.paths['userPrefsDir']):
             try: os.makedirs(self.paths['userPrefsDir'])
             except:
-                print "Preferences.py failed to create folder %s. Settings will be read-only" % self.paths['userPrefsDir']
+                print("Preferences.py failed to create folder %s. Settings will be read-only" % self.paths['userPrefsDir'])
         #then get the configuration file
         cfg = configobj.ConfigObj(self.paths['userPrefsFile'], encoding='UTF8', configspec=self.prefsSpec)
         #cfg.validate(self._validator, copy=False)  # merge first then validate
@@ -167,6 +167,6 @@ class Preferences:
             if key is not None:
                 cfg[', '.join(section_list)][key] = vtor.get_default_value(cfg.configspec[', '.join(section_list)][key])
             else:
-                print "Section [%s] was missing in file '%s'" % (', '.join(section_list), cfg.filename)
+                print("Section [%s] was missing in file '%s'" % (', '.join(section_list), cfg.filename))
 
 prefs=Preferences()

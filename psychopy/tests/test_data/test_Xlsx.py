@@ -1,4 +1,5 @@
 """Tests for psychopy.data.DataHandler"""
+from __future__ import print_function
 import os, shutil
 import numpy
 
@@ -49,7 +50,7 @@ def test_TrialTypeImport():
             if trialXLSX[header] is None and numpy.isnan(trialCSV[header]):
                 trialCSV[header]=None#this is ok
             if trialXLSX[header] != trialCSV[header]:
-                print header, trialCSV[header], trialXLSX[header]
+                print(header, trialCSV[header], trialXLSX[header])
             assert trialXLSX[header] == trialCSV[header]
 
 if __name__=='__main__':

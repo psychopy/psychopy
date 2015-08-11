@@ -30,7 +30,7 @@ class PR650:
 
         from psychopy import hardware
         phot = hardware.findPhotometer()
-        print phot.getLum()
+        print(phot.getLum())
 
     :troubleshooting:
 
@@ -253,7 +253,7 @@ class PR655(PR650):
 
         from psychopy import hardware
         phot = hardware.findPhotometer()
-        print phot.getLum()
+        print(phot.getLum())
 
     :troubleshooting:
 

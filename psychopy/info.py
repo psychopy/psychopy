@@ -424,7 +424,7 @@ class RunTimeInfo(dict):
                     a = attrValue()
                     attrValue = a
                 except:
-                    print 'Warning: could not get a value from win.' + winAttr + '()  (expects arguments?)'
+                    print('Warning: could not get a value from win.' + winAttr + '()  (expects arguments?)')
                     continue
             while winAttr[0] == '_':
                 winAttr = winAttr[1:]

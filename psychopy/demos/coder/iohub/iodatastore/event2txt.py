@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # Select the hdf5 file to process.
     data_file_path= displayDataFileSelectionDialog(psychopy.iohub.module_directory(writeOutputFileHeader))
     if data_file_path is None:
-        print "File Selection Cancelled, exiting..."
+        print("File Selection Cancelled, exiting...")
         sys.exit(0)
     dpath,dfile=os.path.split(data_file_path)
 
@@ -75,7 +75,7 @@ if __name__ == '__main__':
     event_class_selection=displayEventTableSelectionDialog("Select Event Type to Save", "Event Type:",
                 [eventTableMappings[event_id].class_name for event_id in events_with_data.keys()])
     if event_class_selection is None:
-        print "Event table Selection Cancelled, exiting..."
+        print("Event table Selection Cancelled, exiting...")
         dataAccessUtil.close()
         sys.exit(0)
 
@@ -116,7 +116,7 @@ if __name__ == '__main__':
         writeOutputFileHeader(output_file,session_metadata_columns,
                               dataAccessUtil.getEventTable(event_class_selection).cols._v_colnames[3:])
 
-        print 'Writing Data to %s:\n'%(log_file_name),
+        print('Writing Data to %s:\n'%(log_file_name))
         for i,event in enumerate(event_iterator_for_output):
             # write out each row of the event data with session
             # data as prepended columns.....
@@ -124,9 +124,10 @@ if __name__ == '__main__':
             writeDataRow(output_file,sesion_meta_data_dict[event['session_id']],
                          session_uservar_columns,event[:][3:])
 
-            if i%100==0: print '.',
+            if i%100==0:
+                sys.stdout.write('.')
 
     duration=duration+(getTime()-start_time)
-    print
-    print '\nOutput Complete. %d Events Saved to %s in %.3f seconds (%.2f events/seconds).\n'%(i,log_file_name,duration,i/duration)
-    print '%s will be in the same directory as the selected .hdf5 file'%(log_file_name)
+    print()
+    print('\nOutput Complete. %d Events Saved to %s in %.3f seconds (%.2f events/seconds).\n'%(i,log_file_name,duration,i/duration))
+    print('%s will be in the same directory as the selected .hdf5 file'%(log_file_name))

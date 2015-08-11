@@ -22,4 +22,4 @@ from psychopy import monitors
 names = monitors.getAllMonitors()
 for thisName in names:
     thisMon = monitors.Monitor(thisName)
-    print thisMon.getDistance()
+    print(thisMon.getDistance())

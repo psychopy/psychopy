@@ -71,11 +71,6 @@ class TestExperimentHandler():
                 exp.addData('id', id)
                 exp.nextEntry()
 
-        #exp should then automatically save the pickle and csv data files
-        #for e in exp.entries:
-        #    print e
-        #print 'done'
-
     def test_addData_with_mutable_values(self):
         # add mutable objects to data, check that the value *at that time* is saved
         exp = data.ExperimentHandler(

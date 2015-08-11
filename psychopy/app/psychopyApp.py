@@ -12,10 +12,10 @@ from psychopy.app._psychopyApp import *
 
 if __name__=='__main__':
     if '-v' in sys.argv or '--version' in sys.argv:
-        print 'PsychoPy2, version %s (c)Jonathan Peirce, 2015, GNU GPL license' %psychopy.__version__
+        print('PsychoPy2, version %s (c)Jonathan Peirce, 2015, GNU GPL license' %psychopy.__version__)
         sys.exit()
     if '-h' in sys.argv or '--help' in sys.argv:
-        print """Starts the PsychoPy2 application.
+        print("""Starts the PsychoPy2 application.
 
 Usage:  python PsychoPy.py [options] [file]
 
@@ -37,7 +37,7 @@ Options:
     --firstrun       launches configuration wizard
     --no-splash      suppresses splash screen
 
-"""
+""")
         sys.exit()
 
     else:

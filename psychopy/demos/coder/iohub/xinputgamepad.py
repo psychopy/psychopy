@@ -47,14 +47,13 @@ if __name__ == '__main__':
     
     gamepad.updateBatteryInformation()
     bat=gamepad.getLastReadBatteryInfo()
-    print "Battery Info: "
-    print bat
-    print 
+    print("Battery Info: ")
+    print(bat)
+    print()
     
     gamepad.updateCapabilitiesInformation()
     caps=gamepad.getLastReadCapabilitiesInfo()
-    print "Capabilities: ",
-    print caps
+    print("Capabilities: " + str(caps))
     
     unit_type = display.getCoordinateType()
     

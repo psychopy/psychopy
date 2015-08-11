@@ -8,8 +8,13 @@ import sys, psychopy
 import copy
 
 if not hasattr(sys, 'frozen'):
-    import wxversion
-    wxversion.ensureMinimal('2.8') # because this version has agw
+    try:
+        import wxversion
+        haveWxVersion = True
+    except ImportError:
+        haveWxVersion = False #if wxversion doesn't exist either then just cross fingers!!
+    if haveWxVersion:
+        wxversion.ensureMinimal('2.8') # because this version has agw
 import wx
 try:
     from agw import advancedsplash as AS
@@ -251,7 +256,7 @@ class PsychoPyApp(wx.App):
         wizard = os.path.join(self.prefs.paths['psychopy'], 'tools', 'wizard.py')
         so, se = core.shellCall([sys.executable, wizard, selector, arg], stderr=True)
         if se and self.prefs.app['debugMode']:
-            print se  # stderr contents; sometimes meaningless
+            print(se)  # stderr contents; sometimes meaningless
     def firstrunWizard(self):
         self._wizard('--config', '--firstrun')
         # wizard typically creates html report file, but user can manually skip
@@ -433,15 +438,15 @@ class PsychoPyApp(wx.App):
             import msgpack
             tx_data=msgpack.Packer().pack(('STOP_IOHUB_SERVER',))
             return sock.sendto(tx_data,iohub_address)
-        except socket.error,e:
+        except socket.error as e:
             logging.debug('PsychoPyApp: terminateHubProcess socket.error: %s'%(str(e)))
-        except socket.herror,e:
+        except socket.herror as e:
             logging.debug('PsychoPyApp: terminateHubProcess socket.herror: %s'%(str(e)))
-        except socket.gaierror,e:
+        except socket.gaierror as e:
             logging.debug('PsychoPyApp: terminateHubProcess socket.gaierror: %s'%(str(e)))
-        except socket.timeout,e:
+        except socket.timeout as e:
             logging.debug('PsychoPyApp: terminateHubProcess socket.timeout: %s'%(str(e)))
-        except Exception, e:
+        except Exception as e:
             logging.debug('PsychoPyApp: terminateHubProcess exception: %s'%(str(e)))
         finally:
             if sock:

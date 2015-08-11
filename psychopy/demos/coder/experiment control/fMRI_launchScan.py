@@ -63,5 +63,5 @@ t = globalClock.getTime()
 win.flip()
 
 output += u"End of scan (vol 0..%d = %d of %s). Total duration = %7.3f sec" % (vol - 1, vol, MR_settings['volumes'], t)
-print output
+print(output)
 core.quit()

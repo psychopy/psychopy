@@ -6,6 +6,7 @@ configured in the iohub.config.yaml file in this directory.
 @author: Sol
 """
 
+from __future__ import print_function #for compatibility with python3
 from psychopy import visual
 from psychopy.iohub import OrderedDict,ioHubExperimentRuntime,EventConstants,module_directory
 
@@ -47,7 +48,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         # Get the number of trials selected in the session dialog.
         #
         user_params=self.getUserDefinedParameters()
-        print 'user_params: ', user_params
+        print('user_params: ', user_params)
         trial_count=int(user_params.get('trial_count',5))
 
         
@@ -152,7 +153,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         #   Wait 250 msec before ending the experiment
         actualDelay=self.hub.wait(0.250)
         
-        print "Delay requested %.6f, actual delay %.6f, Diff: %.6f"%(0.250,actualDelay,actualDelay-0.250)
+        print("Delay requested %.6f, actual delay %.6f, Diff: %.6f"%(0.250,actualDelay,actualDelay-0.250))
 
         ### End of experiment logic
 

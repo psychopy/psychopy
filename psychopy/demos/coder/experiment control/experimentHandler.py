@@ -42,6 +42,6 @@ for thisRep in outerLoop:#the outer loop doesn't save any data
         exp.addData('id',id)
         exp.nextEntry()
 for e in exp.entries:
-    print e
-print "Done. 'exp' experimentHandler will now (end of script) save data to testExp.csv"
-print " and also to testExp.psydat, which is 'exp' pickled"
+    print(e)
+print("Done. 'exp' experimentHandler will now (end of script) save data to testExp.csv")
+print(" and also to testExp.psydat, which is 'exp' pickled")

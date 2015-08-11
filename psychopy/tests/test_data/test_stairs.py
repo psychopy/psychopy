@@ -1,3 +1,5 @@
+"""Test StairHandler"""
+from __future__ import print_function
 from psychopy import data, logging
 from psychopy.tests import utils
 import numpy as np
@@ -19,7 +21,7 @@ class TestStairHandlers(object):
                         saveWideText=True,
                         dataFileName=self.tmpFile+'x')
         if DEBUG:
-            print self.tmpFile
+            print(self.tmpFile)
 
     def teardown(self):
         #    remove the tmp files
@@ -34,9 +36,9 @@ class TestStairHandlers(object):
             stairs.addOtherData('rt', thisLevel*0.1)
             if DEBUG:
                 if levels:
-                    print trialN, thisLevel, responses[trialN], stairs.stepSizeCurrent, levels[trialN]#the latter is the expected level
+                    print(trialN, thisLevel, responses[trialN], stairs.stepSizeCurrent, levels[trialN])#the latter is the expected level)
                 else:
-                    print trialN, thisLevel, responses[trialN]# there was no expected level given
+                    print(trialN, thisLevel, responses[trialN])# there was no expected level given
             self.exp.nextEntry()
         assert stairs.data == responses
         if hasattr(stairs, 'minVal'):

@@ -94,5 +94,5 @@ class PParallelInpOut32(object):
         elif pinNumber >= 2 and pinNumber <= 9:
             return (self.port.Inp32( self.base ) >> (pinNumber - 2)) & 1
         else:
-            print 'Pin %i cannot be read (by the PParallelInpOut32.readPin() yet)' % (pinNumber)
+            print('Pin %i cannot be read (by the PParallelInpOut32.readPin() yet)' % (pinNumber))
 

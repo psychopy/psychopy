@@ -437,10 +437,10 @@ class Monitor:
             fetches the calibration named mainCalib. You can name calibrations what you want
             but PsychoPy will give them names of date/time by default. In Monitor Center
             you can 'copy...' a calibration and give it a new name to keep a second version.
-            
+
             ``calibName = myMon.setCurrent(0)``
             fetches the first calibration (alphabetically) for this monitor
-            
+
             ``calibName = myMon.setCurrent(-1)``
             fetches the last **alphabetical** calibration for this monitor (this is default).
             If default names are used for calibrations (ie date/time stamp) then
@@ -453,7 +453,7 @@ class Monitor:
         elif type(calibration)==int and calibration<=len(self.calibNames):
             self.currentCalibName = self.calibNames[calibration]
         else:
-            print "No record of that calibration"
+            print("No record of that calibration")
             return False
 
         self.currentCalib = self.calibs[self.currentCalibName]      #do the import
@@ -561,7 +561,6 @@ class Monitor:
             logging.error("Don't know how to linearise with method %i" %linMethod)
             output = desiredLums
 
-        #if DEBUG: print 'LUT:', output[0:10,1], '...'
         return output
 
 class GammaCalculator:
@@ -841,7 +840,7 @@ def getLumSeries(lumLevels=8,
             #take measurement
             if havePhotom and autoMode=='auto':
                 actualLum = photometer.getLum()
-                print "At DAC value %i\t: %.2fcd/m^2" % (DACval, actualLum)
+                print("At DAC value %i\t: %.2fcd/m^2" % (DACval, actualLum))
                 if lum==-1 or not allGuns:
                     #if the screen is black set all guns to this lum value!
                     lumsList[:,valN] = actualLum
@@ -856,7 +855,7 @@ def getLumSeries(lumLevels=8,
                         return numpy.array([])
 
             elif autoMode=='semi':
-                print "At DAC value %i" % DACval
+                print("At DAC value %i" % DACval)
 
                 done = False
                 while not done:

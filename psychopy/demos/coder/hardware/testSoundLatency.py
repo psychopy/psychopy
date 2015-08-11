@@ -7,7 +7,7 @@ connect the earphones jack to the AIN0 (and GND) pins of the labjack.
 (The PsychoPy team would be interested to hear how your measurements go)
 
 """
-
+from __future__ import print_function
 import psychopy
 from psychopy import visual, core, event, sound
 from labjack import u3
@@ -19,7 +19,7 @@ win.recordFrameIntervals = False
 stim = visual.PatchStim(win, color=-1, sf=0)
 
 sound.init(rate=48000, buffer=48)
-print 'Using %s(with %s) for sounds' %(sound.audioLib, sound.audioDriver)
+print('Using %s(with %s) for sounds' %(sound.audioLib, sound.audioDriver))
 timeWithLabjack=True
 maxReps=100
 
@@ -29,10 +29,10 @@ ports.__del__=ports.close#try to autoclose the ports if script crashes (not work
 
 #get zero value of FIO6
 startVal = ports.getFIOState(6) #is FIO6 high or low?
-print 'FIO6 is at', startVal, 
-print 'AIN0 is at', ports.getAIN(0)
+print('FIO6 is at', startVal, end='')
+print('AIN0 is at', ports.getAIN(0))
 if timeWithLabjack:
-    print 'OS\tOSver\taudioAPI\tPsychoPy\trate\tbuffer\tmean\tsd\tmin\tmax'
+    print('OS\tOSver\taudioAPI\tPsychoPy\trate\tbuffer\tmean\tsd\tmin\tmax')
 
 snd = sound.Sound(1000,secs=0.1)
 core.wait(2)#give the system time to settle?
@@ -51,7 +51,8 @@ while True:#run the repeats for this sound server
     
     if not timeWithLabjack:
         #wait for a key press
-        if 'q' in event.waitKeys(): break
+        if 'q' in event.waitKeys():
+            break
 
     #set to white, flip window and raise level port FIO4
     stim.setColor(1)
@@ -59,7 +60,7 @@ while True:#run the repeats for this sound server
     win.flip()
     
     startVal=ports.getAIN(0)
-#    print 'AIN0 is at', startVal
+#    print('AIN0 is at', startVal)
     ports.setFIOState(4,1)
     
     timer=core.Clock()
@@ -70,10 +71,10 @@ while True:#run the repeats for this sound server
             pass
         t1 = timer.getTime()*1000
         if timer.getTime()>1.0:
-            print 'failed to detect sound on FIO6 (either inconsistent sound or needs to be louder)'
+            print('failed to detect sound on FIO6 (either inconsistent sound or needs to be louder)')
 #        for n in range(5):
 #            core.wait(0.001)
-#            print 'AIN0 now', ports.getAIN(0)
+#            print('AIN0 now', ports.getAIN(0))
         sys.stdout.flush()
         delays.append(t1)
         core.wait(0.5)#ensure sound has finished
@@ -107,12 +108,12 @@ else:
     rate=sound.pygame.mixer.get_init()[0]
     buffer=0
     
-#print 'OS\tOSver\tPsychoPy\trate\tbuffer\tmean\tsd\tmin\tmax'
+#print('OS\tOSver\tPsychoPy\trate\tbuffer\tmean\tsd\tmin\tmax')
 if timeWithLabjack:
-    print "%s\t%s\t%s\t%s"%(sysName, sysVer, audioLib, psychopy.__version__),
-    print "\t%i\t%i" %(rate,buffer),
-    print "\t%.3f\t%.3f" %(numpy.mean(delays), numpy.std(delays)),
-    print "\t%.3f\t%.3f" %(numpy.min(delays), numpy.max(delays)),
+    print("%s\t%s\t%s\t%s"%(sysName, sysVer, audioLib, psychopy.__version__), end='')
+    print("\t%i\t%i" %(rate,buffer),end='')
+    print("\t%.3f\t%.3f" %(numpy.mean(delays), numpy.std(delays)),end='')
+    print("\t%.3f\t%.3f" %(numpy.min(delays), numpy.max(delays)),end='')
      
 import pylab
 pylab.plot(delays,'o')

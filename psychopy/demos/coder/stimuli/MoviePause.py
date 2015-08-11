@@ -1,9 +1,9 @@
-from psychopy import visual, core, event
+from psychopy import visual, core
 
 win = visual.Window([800,600])
 mov = visual.MovieStim(win, 'jwpIntro.mov', size=[320,240],flipVert=False, flipHoriz=False)
-print 'orig movie size=[%i,%i]' %(mov.format.width, mov.format.height)
-print 'duration=%.2fs' %(mov.duration)
+print('orig movie size=[%i,%i]' %(mov.format.width, mov.format.height))
+print('duration=%.2fs' %(mov.duration))
 globalClock = core.Clock()
 
 #play 100 frames normally

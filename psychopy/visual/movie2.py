@@ -59,8 +59,8 @@ Testing has only been done on Windows and Linux so far.
 # Contributed by Sol Simpson, April 2014.
 # The MovieStim class was taken and rewritten to use cv2 and vlc instead of avbin
 
-# If True, a print will be done on each flip a new movie frame is displayed
-# giving the frame index, flip time, and time since last movie frame flip.
+# If True then, on each flip a new movie frame is displayed, the frame index, 
+# flip time, and time since last movie frame flip will be printed
 reportNDroppedFrames = 10
 
 import os, sys
@@ -91,9 +91,8 @@ from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 #these are used internally by the MovieStim2 class but need to be kept separate
 #to prevent circular references with vlc's event handler
 def _audioEndCallback(event, movieInstanceRef):
-    print 'end of audio'
     movieInstanceRef()._onEos()
-    print 'status', movieInstanceRef().status
+    
 def _audioTimeCallback(event, movieInstanceRef, streamPlayer):
     """
     Called by VLC every few hundred msec providing the current audio track

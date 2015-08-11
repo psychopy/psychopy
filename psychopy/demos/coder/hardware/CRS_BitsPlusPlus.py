@@ -32,9 +32,9 @@ bitsBox = crs.BitsPlusPlus(win, mode='bits++',
 #BitsSharp can check identity LUT automatically:
 #bitsBox = crs.BitsSharp(win, mode='bits++', checkConfigLevel=1) 
 #if not bitsBox.OK:
-#    print 'failed to connect to Bits box'
+#    print('failed to connect to Bits box')
 #else:
-#    print 'found %s on %s' %(bitsBox.type, bitsBox.com.port)
+#    print('found %s on %s' %(bitsBox.type, bitsBox.com.port))
 
 grating = visual.PatchStim(win,mask = 'gauss', ori=45, sf=2)
 

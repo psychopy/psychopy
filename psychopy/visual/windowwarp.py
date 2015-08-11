@@ -300,13 +300,13 @@ class Warper():
         except:
             error = 'Unable to read warpfile: ' + self.warpfile
             logging.warning(error)
-            print error
+            print(error)
             return
 
         if (cols * rows != warpdata.shape[0] or warpdata.shape[1] != 5 or filetype != 2 ):
             error = 'warpfile data incorrect: ' + self.warpfile
             logging.warning(error)
-            print error
+            print(error)
             return
 
         self.xgrid = cols

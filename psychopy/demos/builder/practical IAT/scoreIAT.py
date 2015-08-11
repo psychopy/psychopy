@@ -162,4 +162,4 @@ def batchScoreIAT(path='.', write_file=False):
 
 if __name__ == '__main__':
     for f in sys.argv[1:]:
-        print f, scoreIAT(f)
+        print(f, scoreIAT(f))

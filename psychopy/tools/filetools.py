@@ -57,8 +57,8 @@ def mergeFolder(src, dst, pattern=None):
         else:
             try:
                 shutil.copyfile(srcfname, dstfname)#copy without metadata
-            except IOError, why:
-                print why
+            except IOError as why:
+                print(why)
 
 
 def openOutputFile(fileName, append=False, delim=None,
