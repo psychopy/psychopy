@@ -65,6 +65,8 @@
 
 # Settings for the Coder window
 [coder]
+    # open Coder files as read-only (allows running without accidental changes)
+    readonly = boolean(default=False)
     # a list of font names; the first one found on the system will be used
     codeFont = string(default='Lucida Console')
     # a list of font names; the first one found on the system will be used

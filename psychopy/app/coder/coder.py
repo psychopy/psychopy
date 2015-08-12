@@ -396,7 +396,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
     # this comes mostly from the wxPython demo styledTextCtrl 2
     def __init__(self, parent, ID, frame,
                  pos=wx.DefaultPosition, size=wx.Size(100,100),#set the viewer to be small, then it will increase with wx.aui control
-                 style=0):
+                 style=0, readonly=False):
         wx.stc.StyledTextCtrl.__init__(self, parent, ID, pos, size, style)
         #JWP additions
         self.notebook=parent
@@ -460,7 +460,9 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
 
-        self.setFonts()
+        # black-and-white text signals read-only file open in Coder window
+        if not readonly:
+            self.setFonts()
         self.SetDropTarget(FileDropTarget(coder = self.coder))
 
     def setFonts(self):
@@ -1728,6 +1730,7 @@ class CoderFrame(wx.Frame):
     def setCurrentDoc(self, filename, keepHidden=False):
         #check if this file is already open
         docID=self.findDocID(filename)
+        readonly = 'readonly' in self.app.prefs.coder and self.app.prefs.coder['readonly']
         if docID>=0:
             self.currentDoc = self.notebook.GetPage(docID)
             self.notebook.SetSelection(docID)
@@ -1738,7 +1741,8 @@ class CoderFrame(wx.Frame):
                 self.fileClose(self.currentDoc.filename)
 
             #create an editor window to put the text in
-            p = self.currentDoc = CodeEditor(self.notebook,-1, frame=self)
+            p = self.currentDoc = CodeEditor(self.notebook,-1, frame=self,
+                                             readonly=readonly)
 
             #load text from document
             if os.path.isfile(filename):
@@ -1780,6 +1784,8 @@ class CoderFrame(wx.Frame):
             self.SetStatusText('')
         if not keepHidden:
             self.Show()#if the user had closed the frame it might be hidden
+        if readonly:
+            self.currentDoc.SetReadOnly(True)
     def fileOpen(self, event):
         #get path of current file (empty if current file is '')
         if hasattr(self.currentDoc, 'filename'):
