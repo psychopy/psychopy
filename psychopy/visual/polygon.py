@@ -47,13 +47,14 @@ class Polygon(ShapeStim):
             ) * self.radius
             for e in xrange(int(round(self.edges)))
         ])
-    
+
     @attributeSetter
     def edges(self, edges):
         """Int or float. Number of edges of the polygon. Floats are rounded to int.
         :ref:`Operations <attrib-operations>` supported."""
         self.__dict__['edges'] = edges
         self._calcVertices()
+        self.setVertices(self.vertices, log=False)
     def setEdges(self, edges, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
@@ -66,7 +67,7 @@ class Polygon(ShapeStim):
         May be a -2tuple or list to stretch the polygon asymmetrically.
 
         :ref:`Operations <attrib-operations>` supported.
-        
+
         Usually there's a setAttribute(value, log=False) method for each attribute. Use this if you want to disable logging."""
         self.__dict__['radius'] = numpy.array(radius)
         self._calcVertices()
