@@ -171,7 +171,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 
     def initStats(self):
         if self.hub is None:
-            print "Error: ioHub must be enabled to run the testEventRetrievalTiming test."
+            print("Error: ioHub must be enabled to run the testEventRetrievalTiming test.")
             return
 
         # Init Results numpy array

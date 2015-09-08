@@ -25,9 +25,14 @@ def test_extra_imports():
     if user not in ['jwp','lpzjwp']:
         pytest.skip('Testing extra imports is only needed for building Standalone distributions')
     #OK, it's Jon , so run it
+    import bidi #for right-left languages
     import yaml, msgpack, gevent
     import IPython, tornado
     import psychopy_ext
+    import IPython, tornado
+    import psychopy_ext
+    import IPython, tornado, zmq, jinja2, jsonschema
+    import psychopy_ext, pandas, seaborn
     #avbin
     import pyglet
     assert pyglet.media.have_avbin

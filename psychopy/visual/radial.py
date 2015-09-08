@@ -189,12 +189,11 @@ class RadialStim(GratingStim):
             intensity = 255.0*numpy.ones(res,float)
             fromFile=0
         else:#might be a filename of a tiff
-            print value
             try:
                 im = Image.open(self.mask)
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)
                 im = im.resize([max(im.size), max(im.size)],Image.BILINEAR)#make it square
-            except IOError, (details):
+            except IOError as details:
                 logging.error("couldn't load mask...%s: %s" %(value,details))
                 return
             res = im.size[0]

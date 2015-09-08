@@ -122,7 +122,6 @@ class PsychoDebugger(bdb.Bdb):
         self.starting = True
     def user_call(self, frame, args):
         name = frame.f_code.co_name or "<unknown>"
-        #print "call", name, args
         self.set_continue() # continue
 
     def user_line(self, frame):
@@ -133,19 +132,15 @@ class PsychoDebugger(bdb.Bdb):
             # arrived at breakpoint
             name = frame.f_code.co_name or "<unknown>"
             filename = self.canonic(frame.f_code.co_filename)
-            print "break at", filename, frame.f_lineno, "in", name
+            print("break at %s %i in %s" %(filename, frame.f_lineno, name))
         self.set_continue() # continue to next breakpoint
 
     def user_return(self, frame, value):
         name = frame.f_code.co_name or "<unknown>"
-        print "return from", name, value
-        print "returnCont..."
         self.set_continue() # continue
 
     def user_exception(self, frame, exception):
         name = frame.f_code.co_name or "<unknown>"
-        print "exception in", name, exception
-        print "excCont..."
         self.set_continue() # continue
     def quit(self):
         self._user_requested_quit = 1
@@ -318,7 +313,7 @@ class UnitTestFrame(wx.Frame):
         #include coverage report?
         if self.chkCoverage.GetValue(): coverage=' cover'
         else: coverage=''
-        #print ALL output?
+        #printing ALL output?
         if self.chkAllStdOut.GetValue(): allStdout=' -s'
         else: allStdout=''
         #what subset of tests? (all tests == '')
@@ -334,7 +329,7 @@ class UnitTestFrame(wx.Frame):
             testSubset = ' '+testSubset
             command = '"%s" -u "%s" %s%s%s' %(sys.executable, self.runpyPath,
                 coverage, allStdout, testSubset)# the quotes allow file paths with spaces
-            print command
+            print(command)
             self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC, self.scriptProcess)
             #self.scriptProcessID = wx.Execute(command, wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:
@@ -401,7 +396,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
     # this comes mostly from the wxPython demo styledTextCtrl 2
     def __init__(self, parent, ID, frame,
                  pos=wx.DefaultPosition, size=wx.Size(100,100),#set the viewer to be small, then it will increase with wx.aui control
-                 style=0):
+                 style=0, readonly=False):
         wx.stc.StyledTextCtrl.__init__(self, parent, ID, pos, size, style)
         #JWP additions
         self.notebook=parent
@@ -465,7 +460,9 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
 
-        self.setFonts()
+        # black-and-white text signals read-only file open in Coder window
+        if not readonly:
+            self.setFonts()
         self.SetDropTarget(FileDropTarget(coder = self.coder))
 
     def setFonts(self):
@@ -712,11 +709,6 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             self.BraceBadLight(braceAtCaret)
         else:
             self.BraceHighlight(braceAtCaret, braceOpposite)
-            #pt = self.PointFromPosition(braceOpposite)
-            #self.Refresh(True, wxRect(pt.x, pt.y, 5,5))
-            #print pt
-            #self.Refresh(False)
-
 
         if self.coder.prefs['showSourceAsst']:
             #check current word including .
@@ -1568,7 +1560,7 @@ class CoderFrame(wx.Frame):
                 if filename.lower().endswith('.psyexp'):
                     self.app.newBuilderFrame(filename)
                 else:
-                    print filename
+                    print(filename)
                     self.setCurrentDoc(filename)
     def OnFindOpen(self, event):
         #open the find dialog if not already open
@@ -1738,6 +1730,7 @@ class CoderFrame(wx.Frame):
     def setCurrentDoc(self, filename, keepHidden=False):
         #check if this file is already open
         docID=self.findDocID(filename)
+        readonly = 'readonly' in self.app.prefs.coder and self.app.prefs.coder['readonly']
         if docID>=0:
             self.currentDoc = self.notebook.GetPage(docID)
             self.notebook.SetSelection(docID)
@@ -1748,7 +1741,8 @@ class CoderFrame(wx.Frame):
                 self.fileClose(self.currentDoc.filename)
 
             #create an editor window to put the text in
-            p = self.currentDoc = CodeEditor(self.notebook,-1, frame=self)
+            p = self.currentDoc = CodeEditor(self.notebook,-1, frame=self,
+                                             readonly=readonly)
 
             #load text from document
             if os.path.isfile(filename):
@@ -1790,6 +1784,8 @@ class CoderFrame(wx.Frame):
             self.SetStatusText('')
         if not keepHidden:
             self.Show()#if the user had closed the frame it might be hidden
+        if readonly:
+            self.currentDoc.SetReadOnly(True)
     def fileOpen(self, event):
         #get path of current file (empty if current file is '')
         if hasattr(self.currentDoc, 'filename'):
@@ -1822,7 +1818,7 @@ class CoderFrame(wx.Frame):
         actualModTime = os.path.getmtime(doc.filename)
         expectedModTime = doc.fileModTime
         if actualModTime != expectedModTime:
-            print 'File %s modified outside of the Coder (IDE).' % doc.filename
+            print('File %s modified outside of the Coder (IDE).' % doc.filename)
             return False
         return True
 
@@ -1850,7 +1846,7 @@ class CoderFrame(wx.Frame):
                         message=_translate("File appears to have been modified outside of PsychoPy:\n   %s\nOK to overwrite?") % (os.path.basename(doc.filename)),
                         type='Warning')
                 if dlg.ShowModal() != wx.ID_YES:
-                    print "'Save' was canceled.",
+                    print("'Save' was canceled.")
                     failToSave = True
                 try: dlg.destroy()
                 except: pass
@@ -1890,7 +1886,7 @@ class CoderFrame(wx.Frame):
                 self.setFileModified(False)
                 doc.fileModTime = os.path.getmtime(filename) # JRG
             except:
-                print "Unable to save %s... trying save-as instead." % os.path.basename(doc.filename)
+                print("Unable to save %s... trying save-as instead." % os.path.basename(doc.filename))
                 self.fileSaveAs(filename)
 
         if analyseAuto and len(self.getOpenFilenames())>0:
@@ -1946,7 +1942,7 @@ class CoderFrame(wx.Frame):
                 try: dlg2.destroy()
                 except: pass
             else:
-                print "'Save-as' canceled; existing file NOT overwritten.\n"
+                print("'Save-as' canceled; existing file NOT overwritten.\n")
         try: #this seems correct on PC, but can raise errors on mac
             dlg.destroy()
         except:
@@ -2014,8 +2010,6 @@ class CoderFrame(wx.Frame):
         os.chdir(path)  # try to rewrite to avoid doing chdir in the coder
 
         self.db = PsychoDebugger()
-        #self.db.set_break(fullPath, 8)
-        #print self.db.get_file_breaks(fullPath)
         self.db.runcall(self._runFileAsImport)
 
     def _runFileAsProcess(self):
@@ -2056,9 +2050,9 @@ class CoderFrame(wx.Frame):
             elif resp == wx.ID_NO:   pass #just run
 
         if sys.platform in ['darwin']:
-            print "\033" #restore normal text color for coder output window (stdout); doesn't fix the issue
+            print("\033") #restore normal text color for coder output window (stdout); doesn't fix the issue
         else:
-            print
+            print()
 
         #check syntax by compiling - errors printed (not raised as error)
         try:
@@ -2067,11 +2061,11 @@ class CoderFrame(wx.Frame):
                 py_compile.compile(fullPath.encode(sys.getfilesystemencoding()), doraise=False)
             else:
                 py_compile.compile(fullPath, doraise=False)
-        except Exception, e:
-            print "Problem compiling: %s" %e
+        except Exception as e:
+            print("Problem compiling: %s" %e)
 
         #provide a running... message; long fullPath --> no # are displayed unless you add some manually
-        print ("##### Running: %s #####" %(fullPath)).center(80,"#")
+        print("##### Running: %s #####" %(fullPath)).center(80,"#")
 
         self.ignoreErrors = False
         self.SetEvtHandlerEnabled(False)
@@ -2108,8 +2102,8 @@ class CoderFrame(wx.Frame):
                 #traceback.print_exc()
                 #tb = traceback.extract_tb(sys.last_traceback)
                 #for err in tb:
-                #    print '%s, line:%i,function:%s\n%s' %tuple(err)
-                print ''#print a new line
+                #    print('%s, line:%i,function:%s\n%s' %tuple(err))
+                print('')#just a new line
 
         self.SetEvtHandlerEnabled(True)
         wx.EVT_IDLE(self, self.onIdle)
@@ -2210,7 +2204,7 @@ class CoderFrame(wx.Frame):
         if self.currentDoc is not None:
             self.currentDoc.analyseScript()
         else:
-            print 'Open a file from the File menu, or drag one onto this app, or open a demo from the Help menu'
+            print('Open a file from the File menu, or drag one onto this app, or open a demo from the Help menu')
 
         self.SetStatusText(_translate('ready'))
     #def setAnalyseAuto(self, event):

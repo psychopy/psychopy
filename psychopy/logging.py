@@ -30,7 +30,7 @@ messages, (which PsychoPy doesn't use) using the commands::
 
 from os import path
 import sys, codecs, weakref
-import clock
+from . import clock
 
 _packagePath = path.split(__file__)[0]
 

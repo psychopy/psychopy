@@ -17,7 +17,7 @@ from labjack import u3
 win = visual.Window([800,800])
 stim = visual.PatchStim(win, color=-1, sf=0)
 snd = sound.Sound(880)
-print snd, sound.havePyaudio
+print(snd)
 #setup labjack U3
 ports = u3.U3()
 FIO4 = 6004 #the address of line FIO4

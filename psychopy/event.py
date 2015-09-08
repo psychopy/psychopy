@@ -485,8 +485,10 @@ class Mouse:
     def getVisible(self):
         """Gets the visibility of the mouse (1 or 0)
         """
-        if usePygame: return mouse.get_visible()
-        else: print "Getting the mouse visibility is not supported under pyglet, but you can set it anyway"
+        if usePygame: 
+            return mouse.get_visible()
+        else: 
+            print("Getting the mouse visibility is not supported under pyglet, but you can set it anyway")
 
     def setVisible(self,visible):
         """Sets the visibility of the mouse to 1 or 0
@@ -586,7 +588,7 @@ class Mouse:
                                      'and getPos() will be rendered meaningless, returning [0, 0]')
             self.win.winHandle.set_exclusive_mouse(exclusivity)
         else:
-            print 'Mouse exclusivity can only be set for Pyglet!'
+            print('Mouse exclusivity can only be set for Pyglet!')
 
 class BuilderKeyResponse():
     """Used in scripts created by the builder to keep track of a clock and

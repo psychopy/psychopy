@@ -289,7 +289,7 @@ class RunTimeInfo(dict):
                 self['systemPyo.OutputDevices'] = out
             except AttributeError:
                 pass
-        except AssertionError, ImportError:
+        except (AssertionError, ImportError):
             pass
 
         # flac (free lossless audio codec) for google-speech:
@@ -404,7 +404,7 @@ class RunTimeInfo(dict):
         if verbose: winAttrList += winAttrListVerbose
 
         monAttrList = ['name', 'getDistance', 'getWidth', 'currentCalibName']
-        monAttrListVerbose = ['_gammaInterpolator', '_gammaInterpolator2']
+        monAttrListVerbose = ['getGammaGrid','getLinearizeMethod','_gammaInterpolator', '_gammaInterpolator2']
         if verbose:
             monAttrList += monAttrListVerbose
         if 'monitor' in winAttrList:  # replace 'monitor' with all desired monitor.<attribute>
@@ -424,7 +424,7 @@ class RunTimeInfo(dict):
                     a = attrValue()
                     attrValue = a
                 except:
-                    print 'Warning: could not get a value from win.' + winAttr + '()  (expects arguments?)'
+                    print('Warning: could not get a value from win.' + winAttr + '()  (expects arguments?)')
                     continue
             while winAttr[0] == '_':
                 winAttr = winAttr[1:]

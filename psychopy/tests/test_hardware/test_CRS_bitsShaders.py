@@ -4,7 +4,7 @@ Created on Mon Dec 15 15:22:48 2014
 
 @author: lpzjwp
 """
-
+from __future__ import print_function #for compatibility with python3
 from psychopy import visual,core, event
 from psychopy.hardware import crs
 import numpy as np
@@ -81,14 +81,11 @@ def test_bitsShaders():
         for finalVal in [255.0, 1024, 65535]:
             thisExpected = expectedVals[mode][finalVal]
 
-            #print bits.mode, finalVal
             intended = np.linspace(0.0,1,256)*255.0/finalVal
             stim.image = np.resize(intended,[256,256])*2-1 #NB psychopy uses -1:1
 
             stim.draw()
             #fr = np.array(win._getFrame('back').transpose(Image.ROTATE_270))
-            #print 'pre r', fr[0:10,-1,0], fr[250:256,-1,0]
-            #print 'pre g', fr[0:10,-1,1], fr[250:256,-1,0]
             win.flip()
             fr = np.array(win._getFrame('front').transpose(Image.ROTATE_270))
             if not _travisTesting:
@@ -98,10 +95,9 @@ def test_bitsShaders():
                 assert np.alltrue(thisExpected['highG'] == fr[250:256,-1,1])
 
             if not _travisTesting:
-                print 'R', repr(fr[0:10,-1,0]), repr(fr[250:256,-1,0])
-                print 'G', repr(fr[0:10,-1,1]), repr(fr[250:256,-1,0])
+                print('R', repr(fr[0:10,-1,0]), repr(fr[250:256,-1,0]))
+                print('G', repr(fr[0:10,-1,1]), repr(fr[250:256,-1,0]))
             #event.waitKeys()
-    #print repr(expectedVals)
 
 if __name__=='__main__':
     test_bitsShaders()

@@ -166,7 +166,7 @@ def getInitVals(params):
             inits[name].val="A"
             inits[name].valType='str'
         else:
-            print "I don't know the appropriate default value for a '%s' parameter. Please email the mailing list about this error" %name
+            print("I don't know the appropriate default value for a '%s' parameter. Please email the mailing list about this error" %name)
     return inits
 
 tooltips = {}

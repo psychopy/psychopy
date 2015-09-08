@@ -18,7 +18,7 @@ import time
 try:
     #try to load previous info
     info = fromFile('info_gamma.pickle')
-    print info
+    print(info)
 except:
     #if no file use some defaults
     info={}
@@ -35,7 +35,7 @@ if dlg.OK:
     toFile('info_gamma.pickle',info)
 else:
     core.quit() #user cancelled. quit
-print info
+print(info)
 
 info['timeStr']=time.strftime("%b_%d_%H%M", time.localtime())
 nFrames=3
@@ -108,7 +108,7 @@ def getResponse(direction):
                     else: 
                             return 1
             else: 
-                    print "hit DOWN or UP (or Esc) (You hit %s)" %key
+                    print("hit DOWN or UP (or Esc) (You hit %s)" %key)
 
 def presentStimulus(direction):
     """Present stimulus drifting in a given direction (for low gamma)
@@ -144,7 +144,6 @@ for trialN in range(info['nTrials']):
         
         direction=num.random.randint(0,2)*2-1 # a random number -1 or 1 
         presentStimulus(direction)
-        #print direction, thisGamma
         
         ans=getResponse(direction)
         stairCase.addData(ans)
@@ -161,4 +160,4 @@ stairCases[1].saveAsText(fileName+'hi')
 stairCases[0].saveAsPickle(fileName+'lo')
 stairCases[0].saveAsText(fileName+'lo')
 
-print 'That took %.1fmins' %(globalClock.getTime()/60.0)
+print('That took %.1fmins' %(globalClock.getTime()/60.0))

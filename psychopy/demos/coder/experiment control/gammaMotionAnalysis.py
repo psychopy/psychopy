@@ -44,7 +44,7 @@ fit = data.FitWeibull(combinedInten, combinedResp, guess=guess, expectedMin=0.0)
 smoothInt = num.arange(min(combinedInten), max(combinedInten), 0.001)
 smoothResp = fit.eval(smoothInt)
 thresh = fit.inverse(0.5)
-print thresh
+print(thresh)
 
 #plot curve
 pylab.subplot(122)

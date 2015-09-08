@@ -71,7 +71,7 @@ def syncSwapBuffers(n):
         #this is the parameter index?!
         cocoa.CGLSetParameter(cocoa.CGLGetCurrentContext(), kCGLCPSwapInterval, ctypes.pointer(v))
     except:
-        print "Unable to set vsync mode. Using driver defaults"
+        logging.warning("Unable to set vsync mode. Using driver defaults")
 
 def getBusFreq():
     """Get the frequency of the system bus (HZ)"""
@@ -227,7 +227,6 @@ refresh rate to your primary monitor. This is not recommended (likely to reduce 
         beamPos =  cocoa.CGDisplayBeamPosition(scrID)#get current pos
         #choose how long to wait
         while framePeriod*(top-beamPos)/top > 0.005:#we have at least 5ms to go so can wait for 1ms
-#            print 'plenty', beamPos, framePeriod*(top-beamPos)/top, time.time()
 #            time.sleep(0.0001)#actually it seems that time.sleep() waits too long on os x
             beamPos =  cocoa.CGDisplayBeamPosition(scrID)#get current pos
         #now near top so poll continuously
@@ -253,13 +252,13 @@ def sendStayAwake():
 #beamPos =  cocoa.CGDisplayBeamPosition(1)
 #while beamPos<=1000:
 #        beamPos =  cocoa.CGDisplayBeamPosition(1)
-#        print beamPos
+#        print(beamPos)
 #first=last=time.time()
-#print getRefreshRate(1)
+#print(getRefreshRate(1))
 #for nFrames in range(20):
 #    waitForVBL(1, nFrames=1)
 #    time.sleep(0.005)
 #    this=time.time()
-#    print this-first, this-last, 1/(this-last)
+#    print(this-first, this-last, 1/(this-last))
 #    last=this
 #rush()

@@ -127,7 +127,7 @@ def getLumSeries(lumLevels=8,
             #take measurement
             if havePhotom and autoMode=='auto':
                 actualLum = photometer.getLum()
-                print "At DAC value %i\t: %.2fcd/m^2" % (DACval, actualLum)
+                print("At DAC value %i\t: %.2fcd/m^2" % (DACval, actualLum))
                 if lum==-1 or not allGuns:
                     #if the screen is black set all guns to this lum value!
                     lumsList[:,valN] = actualLum
@@ -142,7 +142,7 @@ def getLumSeries(lumLevels=8,
                         return numpy.array([])
 
             elif autoMode=='semi':
-                print "At DAC value %i" % DACval
+                print("At DAC value %i" % DACval)
 
                 done = False
                 while not done:
