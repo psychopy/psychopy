@@ -25,6 +25,7 @@ _localized = {
             'largeIcons': _translate("large icons"), 'defaultView': _translate("default view"),
             'resetPrefs': _translate('reset preferences'), 'autoSavePrefs': _translate('auto-save prefs'),
             'debugMode': _translate('debug mode'), 'locale': _translate('locale'),
+            'readonly': _translate('read-only'),
             'codeFont': _translate('code font'), 'commentFont': _translate('comment font'),
             'outputFont': _translate('output font'), 'outputFontSize': _translate('output font size'),
             'codeFontSize': _translate('code font size'),
@@ -146,7 +147,7 @@ class PreferencesDlg(wx.Dialog):
         self.app.prefs.pageCurrent = self.nb.GetSelection()
         # don't set locale here; need to restart app anyway
     def onEvt(self, evt, id=None):
-        print evt
+        print(evt)
     def onCancel(self, event=None):
         self.Destroy()
     def onOK(self, event=None):

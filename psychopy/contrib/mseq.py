@@ -15,7 +15,7 @@ Python translation from matlab & tests:
 Usage:
 in a script:
   from psychopy.contrib import mseq
-  print mseq.mseq(2,3,1,1) # base, power, shift, which-sequence
+  print(mseq.mseq(2,3,1,1)) # base, power, shift, which-sequence
 
 from command line:
   ./mseq.py 2 3 1 1
@@ -49,6 +49,7 @@ run tests with:
 
 '''
 
+from __future__ import print_function
 import sys
 import numpy
 
@@ -194,7 +195,7 @@ def mseq(baseVal, powerVal, shift=1, whichSeq=None):
         whichSeq -= 1 # matlab -> python indexing
         if whichSeq >= len(tap) or whichSeq < 0:
             whichSeq = whichSeq % len(tap)
-            print 'whichSeq wrapped around to %d' % whichSeq
+            print('whichSeq wrapped around to %d' % whichSeq)
             
     # convert tap -> python numpy array; adjust for python 0-indexing
     tap_py = numpy.array(tap[whichSeq])
@@ -233,9 +234,9 @@ def _center(ms, baseVal):
 def _test():
     """generate the mseq for most combinations of bases, powers, and sequences, two shift values
     (only base 9 and 2^9 and higher are skipped). assert that the autocorrelation is acceptably small.
-    print first 10 items of the sequence, to allow checking against other implementations.
+    prints the first 10 items of the sequence, to allow checking against other implementations.
     """
-    print 'testing 2,3,5:'
+    print('testing 2,3,5:')
     powers = {2:range(2,9), 3:range(2,8), 5:range(2,5), 9:[2]}
     for base in [2,3,5]:
         for power in powers[base]:
@@ -245,19 +246,20 @@ def _test():
                 for shift in [1,4]:
                     ms = mseq(base, power, shift, whichSeq)
                     seq_len = base ** power - 1
-                    print 'mseq(%d,%d,%d,%d)' % (base, power, shift, whichSeq), ms[:10], 'len=%d' % seq_len,
+                    print('mseq(%d,%d,%d,%d)' % (base, power, shift, whichSeq), ms[:10], 'len=%d' % seq_len, end='')
                     assert len(ms) == seq_len
                     if seq_len > 10:
                         autocorr_first10 = [numpy.corrcoef(ms, numpy.append(ms[i:], ms[:i]))[1][0] for i in range(1,10)]
                         # for base 3, autocorrelation at offset seq_len / 2 is perfectly correlated
                         max_abs_auto = max(map(abs, autocorr_first10))
-                        print "max_abs_autocorr_first10=%.4f < 1/(len-2)" % max_abs_auto
+                        print("max_abs_autocorr_first10=%.4f < 1/(len-2)" % max_abs_auto)
                         if base == 5 and power == 2:
-                            print ' *** skipping assert 5 ^ 2 (fails) ***'
+                            print(' *** skipping assert 5 ^ 2 (fails) ***')
                         else:
                             assert max_abs_auto < 1./(seq_len-2) or max_abs_auto < .10 
-                    else: print
-    print '2,3,5 ok; skipped auto-corr for 5^2 (fails on 0.4545); completely skipped 2^%d and higher' % (powers[2][-1] +1)
+                    else: 
+                        print()
+    print('2,3,5 ok; skipped auto-corr for 5^2 (fails on 0.4545); completely skipped 2^%d and higher' % (powers[2][-1] +1))
     
 if __name__ == '__main__':
     if 'test' in sys.argv:
@@ -267,5 +269,4 @@ if __name__ == '__main__':
             args = map(int, sys.argv[1:])
         except:
             raise ValueError, "expected integer arguments: base power [shift [which-sequence]]"
-        print mseq(*args)
-        #print _center(mseq(*args), args[0])
+        print(mseq(*args))

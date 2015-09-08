@@ -44,5 +44,5 @@ if havePytest:
 else:
     command = '%s -u runPytest.py ' %(sys.executable)
     command = command + ' ' + ' '.join(extraArgs)
-print command
+print(command)
 subprocess.Popen(command, shell=True)

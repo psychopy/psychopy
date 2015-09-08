@@ -67,6 +67,8 @@ from command line:
 %POSSIBILITY OF SUCH DAMAGE.
 """
 
+from __future__ import print_function
+
 import numpy
 import sys
 import time
@@ -155,7 +157,7 @@ def _abs_auto(ms):
         return map(abs, auto_corrs)
     
 def test():
-    print 'no tests; auto-correlations are computed for each sequence generated'
+    print('no tests; auto-correlations are computed for each sequence generated')
 
 if __name__=='__main__':
     if 'test' in sys.argv:
@@ -171,11 +173,11 @@ if __name__=='__main__':
         t0 = time.time()
         ms = mseqSearch(*args)
         t1 = time.time() - t0
-        print ms, '\ntime: %.3f' % t1, 'sec'
+        print(ms, '\ntime: %.3f' % t1, 'sec')
         if len(ms) > 1:
             ac_10 = _abs_auto(ms) # list of auto-correlations
-            print 'seq length:', len(ms), '\nauto-corr, first %d: ' % len(ac_10),
+            print('seq length:', len(ms), '\nauto-corr, first %d: ' % len(ac_10), end='')
             for a in ac_10:
-                print "%.3f" % a,
-            print
+                print("%.3f" % a, end='')
+            print()
             assert max(ac_10) < 1./(len(ms) - 3) or max(ac_10) < .10

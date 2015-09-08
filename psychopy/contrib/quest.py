@@ -163,7 +163,7 @@ class QuestObject:
             iBetaMean=num.sum(p2/beta2)/p
             iBetaSd=math.sqrt(num.sum(p2/beta2**2)/p-(num.sum(p2/beta2)/p)**2)
             stream.write('%5.2f	%5.2f	%4.1f	%4.1f	%6.3f\n'%(t,sd,1/iBetaMean,betaSd,self.gamma))
-        print 'Now re-analyzing with beta as a free parameter. . . .'
+        print('Now re-analyzing with beta as a free parameter. . . .')
         if stream is None:
             stream=sys.stdout
         stream.write('logC 	 sd 	 beta	 sd	 gamma\n');
@@ -412,7 +412,7 @@ def demo():
     psychometric method. Percept Psychophys, 33 (2), 113-20.
     """
     
-    print 'The intensity scale is abstract, but usually we think of it as representing log contrast.'
+    print('The intensity scale is abstract, but usually we think of it as representing log contrast.')
 
     tActual = None
     while tActual is None:
@@ -454,27 +454,26 @@ def demo():
         # Simulate a trial
         timeSplit=time.time(); # omit simulation and printing from reported time/trial.
         response=q.simulate(tTest,tActual)
-        print 'Trial %3d at %4.1f is %s'%(k+1,tTest,wrongRight[int(response)])
+        print('Trial %3d at %4.1f is %s'%(k+1,tTest,wrongRight[int(response)]))
         timeZero=timeZero+time.time()-timeSplit;
         
         # Update the pdf
         q.update(tTest,response);
 
     # Print results of timing.
-    print '%.0f ms/trial'%(1000*(time.time()-timeZero)/trialsDesired)
+    print('%.0f ms/trial'%(1000*(time.time()-timeZero)/trialsDesired))
 
     # Get final estimate.
     t=q.mean()
     sd=q.sd()
-    print 'Mean threshold estimate is %4.2f +/- %.2f'%(t,sd)
+    print('Mean threshold estimate is %4.2f +/- %.2f'%(t,sd))
     #t=QuestMode(q);
-    #print 'Mode threshold estimate is %4.2f'%t
-
-    print '\nQuest beta analysis. Beta controls the steepness of the Weibull function.\n'
+    #print('Mode threshold estimate is %4.2f'%t)
+    print('\nQuest beta analysis. Beta controls the steepness of the Weibull function.\n')
     q.beta_analysis()
-    print 'Actual parameters of simulated observer:'
-    print 'logC	beta	gamma'
-    print '%5.2f	%4.1f	%5.2f'%(tActual,q.beta,q.gamma)
+    print('Actual parameters of simulated observer:')
+    print('logC	beta	gamma')
+    print('%5.2f	%4.1f	%5.2f'%(tActual,q.beta,q.gamma))
     
 if __name__ == '__main__':
     demo() # run the demo

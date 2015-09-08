@@ -272,7 +272,7 @@ class ExperimentHandler(object):
         if delim is None:
             delim = genDelimiter(fileName)
 
-        #create the file or print to stdout
+        #create the file or send to stdout
         f = openOutputFile(
             fileName, append=appendFile, delim=delim,
             fileCollisionMethod=fileCollisionMethod, encoding=encoding
@@ -481,7 +481,7 @@ class _BaseTrialHandler(object):
         if delim is None:
             delim = genDelimiter(fileName)
 
-        #create the file or print to stdout
+        #create the file or send to stdout
         f = openOutputFile(
             fileName, append=appendFile, delim=delim,
             fileCollisionMethod=fileCollisionMethod, encoding=encoding
@@ -797,7 +797,7 @@ class TrialHandler(_BaseTrialHandler):
         strRepres = 'psychopy.data.TrialHandler(\n'
         attribs = dir(self)
 
-        #print data first, then all others
+        #data first, then all others
         try:
             data = self.data
         except:
@@ -1185,7 +1185,7 @@ class TrialHandler(_BaseTrialHandler):
         if delim is None:
             delim = genDelimiter(fileName)
 
-        #create the file or print to stdout
+        #create the file or send to stdout
         f = openOutputFile(
             fileName, append=appendFile, delim=delim,
             fileCollisionMethod=fileCollisionMethod, encoding=encoding
@@ -1773,7 +1773,7 @@ class TrialHandlerExt(TrialHandler):
             logging.info('TrialHandler.saveAsWideText called but no trials completed. Nothing saved')
             return -1
 
-        #create the file or print to stdout
+        #create the file or send to stdout
         if appendFile:
             writeFormat = 'a'
         else:
@@ -2463,7 +2463,7 @@ class StairHandler(_BaseTrialHandler):
         if delim is None:
             delim = genDelimiter(fileName)
 
-        #create the file or print to stdout
+        #create the file or send to stdout
         f = openOutputFile(
             fileName, append=False, delim=delim,
             fileCollisionMethod=fileCollisionMethod, encoding=encoding
@@ -3519,12 +3519,12 @@ class MultiStairHandler(_BaseTrialHandler):
         nStairs = len(self.staircases)
         for stairN, thisStair in enumerate(self.staircases):
             if stairN < nStairs - 1:
-                thisMatrixOnly = True #never print info for first files
+                thisMatrixOnly = True #no header info for first files
             else:
                 thisMatrixOnly = matrixOnly
             #make a filename
             label = thisStair.condition['label']
-            print "\n%s:" % label
+            print("\n%s:" % label)
             thisStair.saveAsText(fileName='stdout', delim=delim,
                 matrixOnly=thisMatrixOnly)
 

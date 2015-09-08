@@ -26,7 +26,7 @@ class NameValidator(wx.PyValidator):
             try:
                 parent = parent.GetParent()
             except:
-                print "Couldn't find the root dialog for this event"
+                print("Couldn't find the root dialog for this event")
         message, valid = self.checkName(parent)
         parent.nameOKlabel.SetLabel(message)
         return valid

@@ -23,7 +23,7 @@ while True:#forever
     #handle key presses each frame
     for key in event.getKeys():
         if key in ['escape','q']:
-            print myWin.fps()
+            print(myWin.fps())
             myWin.close()
             core.quit()
     event.clearEvents('mouse')#only really needed for pygame windows

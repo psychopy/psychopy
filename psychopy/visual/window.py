@@ -21,12 +21,6 @@ import ctypes
 
 #try to find avbin (we'll overload pyglet's load_library tool and then add some paths)
 haveAvbin = False
-if pyglet.version < "1.2":
-    # This piece of code does no longer work with pyglet 1.2alpha and results in the pyglet.gl
-    # library to no longer be found when the window is created
-    import pyglet.lib
-    import _pygletLibOverload
-    pyglet.lib.load_library = _pygletLibOverload.load_library
 
 #on windows try to load avbin now (other libs can interfere)
 if sys.platform == 'win32':
@@ -122,7 +116,7 @@ psychopy.event.visualOpenWindows = openWindows
 
 class Window(object):
     """Used to set up a context in which to draw objects,
-    using either `pyglet <www.pyglet.org>`_ or `pygame <www.pygame.org>`_ 
+    using either `pyglet <www.pyglet.org>`_ or `pygame <www.pygame.org>`_
 
     The pyglet backend allows multiple windows to be created, allows the user
     to specify which screen to use (if more than one is available, duh!) and
@@ -386,11 +380,8 @@ class Window(object):
             logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def __del__(self):
-        try:
-            if self._closed==False:
-                self.close()
-        except:
-            pass
+        if self._closed!=False:
+            self.close()
 
     def __str__(self):
         className = 'Window'

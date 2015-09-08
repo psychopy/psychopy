@@ -101,19 +101,19 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None):
                             %(lineN, wordN, wordActual, wordCorrect)
                     else:
                         if wordActual!=wordCorrect:
-                            print 'actual:'
-                            print repr(txtActual[lineN])
-                            print lineActual
-                            print 'expected:'
-                            print repr(txtCorrect[lineN])
-                            print lineCorrect
+                            print('actual:')
+                            print(repr(txtActual[lineN]))
+                            print(lineActual)
+                            print('expected:')
+                            print(repr(txtCorrect[lineN]))
+                            print(lineCorrect)
                         assert wordActual==wordCorrect, "Values at (%i,%i) differ: %s != %s " \
                             %(lineN, wordN, repr(wordActual), repr(wordCorrect))
     except AssertionError, err:
         pathToLocal, ext = os.path.splitext(pathToCorrect)
         pathToLocal = pathToLocal+'_local'+ext
         shutil.copyfile(pathToActual,pathToLocal)
-        print "txtActual!=txtCorr: Saving local copy to %s" %pathToLocal
+        print("txtActual!=txtCorr: Saving local copy to %s" %pathToLocal)
         raise AssertionError, err
 
 def compareXlsxFiles(pathToActual, pathToCorrect):

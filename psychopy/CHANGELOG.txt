@@ -7,19 +7,50 @@ Changelog
   In general, when a new feature is added the second number is incremented (e.g. 1.00.05 -> 1.01.00). Those releases might break previous code you've written because new features often need slight changes to other things.
   Changes to the final digit (1.00.05 -> 1.00.06) indicate a bug-fixing release or very minor new features that shouldn't require code changes from the user.
 
+:blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
+
+PsychoPy 1.83
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ADDED: RatingScale precision=60 allows display of time-based values (min:sec or hours:min). Values from .getRating() are decimal proportions (1 min: 59 seconds -> 1.9833 minutes).
+
 PsychoPy 1.82
 ------------------------------
 
 PsychoPy 1.82.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* ADDED: RatingScale precision=60 allows display of time-based values (min:sec or hours:min). Values from .getRating() are decimal proportions (1 min: 59 seconds -> 1.9833 minutes).
+released Aug 2015
 
+    - FIXED: TrialHandler wasn't saving extraInfo (was overwritten during trials) `#815 <https://github.com/psychopy/psychopy/issues/815>`_
+    - FIXED: don't have pickle file re-saving itself when it comes back from pickling `#833 <https://github.com/psychopy/psychopy/issues/833>`_
+    - FIXED: Mouse Component could crash data saving if no response was made `#839 <https://github.com/psychopy/psychopy/issues/839>`_
+    - FIXED: memory leaks in MovieStim2 (opencv backend) `#838 <https://github.com/psychopy/psychopy/issues/838>`_ and `#919 <https://github.com/psychopy/psychopy/issues/919>`_
+    - FIXED: checked that window positions are integers `#854 <https://github.com/psychopy/psychopy/issues/854>`_
+    - FIXED: OSX "10.10" incorrectly looked older than "10.9" `#866 <https://github.com/psychopy/psychopy/issues/866>`_
+    - FIXED: RatingScale would show "False" for scale description in some cases `#870 <https://github.com/psychopy/psychopy/issues/870>`_
+    - FIXED: problem with microphone saving files that end with w, a or v `#875 <https://github.com/psychopy/psychopy/issues/875>`_
+    - FIXED: MonitorCenter failing to create new monitor `#887 <https://github.com/psychopy/psychopy/issues/887>`_
+    - FIXED: universal line endings in csv outputs files `#889 <https://github.com/psychopy/psychopy/issues/889>`_
+    - FIXED: unicode in conditions files `#892 <https://github.com/psychopy/psychopy/issues/892>`_
+    - FIXED: `iohub` not detecting Linux mouse events `#894 <https://github.com/psychopy/psychopy/issues/894>`_
+    - FIXED: if output file is set to be `stdout` this should then be closed `#902 <https://github.com/psychopy/psychopy/issues/902>`_
+    - FIXED: don't abbreviate the path name of conditions files `#913 <https://github.com/psychopy/psychopy/issues/913>`_
+    - FIXED: minor error in logging for `rush()` under win32 `#914 <https://github.com/psychopy/psychopy/issues/914>`_
+    - FIXED: unicode issues in user preferences panel `#930 <https://github.com/psychopy/psychopy/issues/930>`_ `#932 <https://github.com/psychopy/psychopy/issues/932>`_
+    - FIXED: MonitorCenter won't lock you out if given an invalid screen number `#937 <https://github.com/psychopy/psychopy/issues/937>`_
+    - FIXED: mono++ mode in CRS Bits++/#/Display++ is now using full dynamic range (previously 8bit blue gun overlay was overriding the 16bit screen buffer)
+    
 PsychoPy 1.82.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Released Feb 2015
 
+
+PsychoPy 1.82.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Feb 2015
 
 * FIXED: problem with MovieStim2 showing black box instead of movie on certain systems
 * FIXED: problem with Tobii eye tracker not closing calibration window (Sol)
@@ -27,7 +58,7 @@ Released Feb 2015
 * FIXED: problem with stimuli (e.g. shapes) not appearing if a texture had just been created and not yet drawn
 * FIXED: pygame sound engine complained about "global variable loops not defined"
 * ENHANCED: Filename collision handling for ExperimentHandler (Richard Höchenberger)
-* CHANGED: for text data outputs that give delim='\t' the file extension '.tsv' is added instead of '.dlm' (Richard Höchenberger)
+* :blue:`CHANGED: for text data outputs that give delim='\t' the file extension '.tsv' is added instead of '.dlm' (Richard Höchenberger)`
 
 
 PsychoPy 1.82.00
@@ -67,7 +98,7 @@ Released Dec 2014
 * FIXED: choice selection boxes stopped working in monitor centre (caused by hardware.crs.bits importing pyglet.gl)
 * FIXED: Bits# can be set to do gamma correction in the PsychoPy LUT ('software') rather than using the on-board gamma table file ('hardware')
 * FIXED: bug with monitor calib files not returning their linearization method correctly
-* ADDED: psychopy.qtgui as alternative to gui which doesn't duffer from problem with choice boxes and piglet clashing (thanks Sol)
+* ADDED: psychopy.qtgui as alternative to gui which doesn't duffer from problem with choice boxes and pyglet clashing (thanks Sol)
 * FIXED: data files now correctly include the originPath (the path to the script that created them). Thanks Alex Holcombe for the fix
 
 PsychoPy 1.81.02
@@ -100,7 +131,7 @@ Released Sept 2014
     * In Builder experiments from 'future' versions can be opened and unknown objects will be ignored (but kept)
     * In Code you can now do `import psychopy; psychopy.useVersion('X.XX.XX')` to switch to any version greater than 1.76.00 (including versions not installed and future versions). This only affects the lib, not the application. (Thanks Erik Kastman for most of the work on this)
 * IMPROVED: better unit tests for visual stimuli to prevent future bugs
-* FIXED: MovieStim was right-left flipping movies and this has been corrected. If you had been working around that by setting flipVertical=True then you'll need to undo that correction
+* :blue:`FIXED: MovieStim was right-left flipping movies and this has been corrected. If you had been working around that by setting flipVertical=True then you'll need to undo that correction`
 * IMPROVED: Can now select a subset of conditions in Builder loops and in `data.importConditions()` function (thanks Mike MacAskill for help)
 * IMPROVED: In Builder, loops that don't reflect trials (e.g. stimuli within a trial or blocks of trials) can be flagged as such, resulting in neater data files
 * ADDED: support for additional hardware:
@@ -128,7 +159,7 @@ Released Sept 2014
 * ADDED: MovieStim2 stimulus type. Compared to MovieStim, improved performance and wider range of media encoding support has been reported from testing feedback on all OS's.
 * IMPROVED: stimulus attributes:
     * Nearly all stimulus attributes now support new syntax, e.g. `stim.pos = [0,0]` as well as the previous `stim.setPos([0,0])`. All docs are update to reflect this change.
-    * All numeric stimulus attributes now support operations. Use e.g. `stim.pos += [0,0.5]`.
+    * All numeric stimulus attributes now support operations. Use e.g. `stim.pos += [0,0.5]`. Read more in :ref:`Operations <attrib-operations>`.
     * Many more stimulus attributes can now be set after initialization. They have the same name as the init parameters. E.g. `stim.win = mySecondWindow` changes which Window the stimulus is drawn to
 * IMPROVED: logging
     * CHANGED: `log=None` and `autoLog=None` inherits from parents, with `visual.Window` at the top of the hierarchy. None is now default for all stimuli and setter methods.
@@ -181,6 +212,8 @@ PsychoPy 1.80.05
 
 Released June 2014
 
+* IMPROVED: better unit tests for visual stimuli to prevent further regressions of the issues below
+* FIXED: machines that didn't support shaders or framebuffer objects were raising an error on win.flip() if the useFBO argument was not manually set to False. Machines that don't support the new rendering methods are now handled more gracefully.
 * FIXED: further fixes to greyscale coloring (some images were not correctly detected as greyscale by PIL so tests weren't working)
 * FIXED: machines that didn't support shaders or framebuffer objects were raising an error on win.flip() if the useFBO argument was not manually set to False. Machines that don't support the new rendering methods are now handled more gracefully
 * FIXED: named colors were not interpreted correctly by the visual.Window (but worked fine for stimuli)
@@ -222,6 +255,7 @@ PsychoPy 1.80.01
 
 Released Mar 2014
 
+* FIXED: buglet with movie glPopAttrib() on Intel gfx cards (thanks Bryan Cort)
 * FIXED: problem trying to use FrameBufferObject (FBO) on Intel GMA graphics cards
 * FIXED: problem with ImageStim not respecting setColor() and setContrast()
 * FIXED: some stimuli were failing to switch to a second window when requested
@@ -240,12 +274,12 @@ Released Mar 2014
     * the glitch that prevented scrolling the Routine view is gone (win32)
     * dialog boxes in the Builder now have tabs for categories of controls
     * Code Components have much more space for each piece of code (again due to tabs)
-* ADDED: In Builder you can now customise the data filename/path in the Experiment Settings. Any variables in the `expInfo` dialog box can be used to create this path
+* ADDED: In Builder you can now customise the data filename/path in the Experiment Settings. Any variables in the `expInfo` dialog box can be used to create this path. See :ref:`dataFileName` for further info
 * ADDED: support for advanced rendering modes. Can now 'add' rather than average when using transparency. This is better for visual compound stimuli like plaids, and essential for colored anaglyph stimuli where the resulting image needs to be the sum of the left and right eye images.
 * ADDED: new visual unit options: 'degFlatPos' and 'degFlat' provide more accurate conversions from degrees to pixels for drawing stimuli (although they're more accurate, accounting for the flat screen, they may look strange because 1 degree gets larger with greater eccentricity on a flat screen). The previous unit 'deg' still exists and remains default as, for many studies, these are expected
 * ADDED: wider support for the functions `contains` and `overlaps`. Most stimuli now have these methods. Also they can now be used irrespective of whether the stimulus and other object have the same units (they used only to work for units of pix)
 * ADDED: support for other shapes in the Aperture stimulus (and its Builder Component). You can either specify the number of vertices `nVert` and a `size` to get a regular polygon aperture, or you can provide a set of arbitrary vertices as your `shape` argument
-* CHANGED: Size of 'square' or 'triangle' apertures used to represent the radius of the circle on which their vertices lay. It is now a height/width as you would more likely expect. This means aperture code in scripts may need rewriting to be smaller.
+* :blue:`CHANGED: Size of 'square' or 'triangle' apertures used to represent the radius of the circle on which their vertices lay. It is now a height/width as you would more likely expect. This means aperture code in scripts may need rewriting to be smaller.`
 * IMPROVED: stimulus duration is now more precise when using `duration (s)` or `time (s)` although using `nFrames` option is still advised for brief stimuli
 * IMPROVED: there are now fewer irrelevant lines in the log file as stimuli are initially created
 * IMPROVED: Staircase loops in Builder now initialise just before the staircase is run, rather than at the start of the experiment. This means they can be controlled by an outer loop and, effectively, restarted
@@ -254,27 +288,22 @@ Released Mar 2014
 * FIXED: incorrect equation for the Cumulative Normal fitting function
 * FIXED: If your variable had a new line character in it this was causing a new line to be started in the csv data file. These are now handled correctly
 
-*psychopy.visual.RatingScale Changes* :
-
 * ADDED: RatingScale markerStart position can be arbitrary, e.g., can start between items or beyond the end of scale
 * ADDED: RatingScale tickHeight can be used to control the height of tickMarks, including no tick marks (tickHeight=0)
 * ADDED: RatingScale marker='hover' is similar to HTML-style hovering over clickable elements
-* CHANGED: Builder: remove option: choiceLabelsAboveLine; change lowAnchorText, highAnchorText -> labels
-* CHANGED: skipping a rating now adds None as the final element in the history
-* CHANGED: the default minTime is shorter, now 0.4s
-* CHANGED: more info in the log when creating a rating scale object
-* CHANGED: removed showAnchors: now use labels=None (instead of showAnchors=False)
-* CHANGED: removed lowAnchorText & highAnchorText: now use labels=['leftAnchor', 'rightAnchor'] or with optional 3rd midpoint label
-* CHANGED: renamed several parameters:
-    stretchHoriz -> stretch,
-    textSizeFactor -> textSize
-    ticksAboveLine -> tickHeight
-    displaySizeFactor -> size
-    markerStyle -> marker
-    customMarker -> marker
-* CHANGED: removed showScale: now use scale=None (instead of showScale=False)
-* CHANGED: removed allowSkip: now use skipKeys=None (instead of allowSkip=False)
-* CHANGED: removed escapeKeys; no longer supported but it's easy to implement (as done in the coder demos)
+
+*psychopy.visual.RatingScale Changes* :
+
+* :blue:`CHANGED: Builder: remove option: choiceLabelsAboveLine; change lowAnchorText, highAnchorText -> labels`
+* :blue:`CHANGED: skipping a rating now adds None as the final element in the history`
+* :blue:`CHANGED: the default minTime is shorter, now 0.4s`
+* :blue:`CHANGED: more info in the log when creating a rating scale object`
+* :blue:`CHANGED: removed showAnchors: now use labels=None (instead of showAnchors=False)`
+* :blue:`CHANGED: removed lowAnchorText & highAnchorText: now use labels=['leftAnchor', 'rightAnchor'] or with optional 3rd midpoint label`
+* :blue:`CHANGED: renamed several parameters: stretchHoriz -> stretch, textSizeFactor -> textSize, ticksAboveLine -> tickHeight, displaySizeFactor -> size, markerStyle -> marker, customMarker -> marker`
+* :blue:`CHANGED: removed showScale: now use scale=None (instead of showScale=False)`
+* :blue:`CHANGED: removed allowSkip: now use skipKeys=None (instead of allowSkip=False)`
+* :blue:`CHANGED: removed escapeKeys; no longer supported but it's easy to implement (as now done in the coder demo)`
 
 PsychoPy 1.79
 ------------------------------
@@ -300,20 +329,19 @@ Released Dec 2013
 * FIXED: bug importing conditions if the first row of numbers was the only float. (importFromConditions now uses numpy instead of matplotlib)
 * FIXED: further fix to the extra "file close" queries during shut-down
 
-
 PsychoPy 1.79.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(Dec 2013)
+Released Dec 2013
 
-* NEW: attributes for stimuli can now be updated using e.g. `stim.pos = newPos` rather than using `stim.setPos(newPos)` to make things more like standard Python (thanks Jonas Lindeløv). This version also involved some major restructuring behind the scenes that should not be visible to users (thanks Todd Jennings)
+* ADDED: attributes for some stimuli can now be updated using e.g. `stim.pos = newPos` rather than using `stim.setPos(newPos)` to make things more like standard Python (thanks Jonas Lindeløv). This version also involved some major restructuring behind the scenes that should not be visible to users (thanks Todd Jennings)
 * ADDED: Builder Components for
     * ioLab Systems button-box; refactor PsychoPy's ioLabs code (Jeremy)
     * Cedrus button-box (tested on RB730)
     * parallel port output component
 * ADDED: option for sounds to `loop`
-* ADDED: window now prevents system from sleep/screensaver on windows and OS X
 * ADDED: volume argument for MovieStim so that sound can be muted (Frank Papenmeier)
+* ADDED: window now prevents system from sleep/screensaver on windows and OS X
 * ADDED: builder demo for mental rotation task
 * ADDED: Alternative Text stimulus, psychopy.visual.TextBox (Sol Simpson)
         * Two demos in psychopy.coder.visual.textbox
@@ -394,7 +422,7 @@ PsychoPy 1.78.00
 
 Released Aug 2013
 
-* ADDED: option to preload during Builder scripts using Static Component, which uses StaticPeriod class
+* ADDED: option to preload during Builder scripts using :ref:`static`, which uses :class:`~psychopy.core.StaticPeriod` class
 * ADDED: Polygon Component to Builder for drawing regular polygons (including simple lines)
 * ADDED: TrialHander can now fetch previous trials as well as future ones (thanks Mike MacAskill)
 * ADDED: BufferImageStim accepts mask and pos params (thanks Jeremy)
@@ -404,9 +432,8 @@ Released Aug 2013
 * ADDED: microphone compress() audio recordings; requires flac download (not packaged with PsychoPy)
 * ADDED: new preference `flac` = system path for flac, e.g. c:/Program Files (x86)/FLAC/flac.exe (not always needed)
 * FIXED: greyscale images were being distorted during display since 1.77.00
-* FIXED: movieStim.contains() and .overlaps() can work, requires that the visual.Window has units of pix
 * FIXED: reduced number of queries when closing down and provides filenames of changed files in msg (thanks Piot Iwaniuk)
-
+* FIXED: movieStim.contains() and .overlaps() can work, requires that the visual.Window has units of pix
 
 PsychoPy 1.77
 ------------------------------

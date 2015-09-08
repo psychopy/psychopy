@@ -703,16 +703,16 @@ class Speech2Text(object):
         b) Then, either: Initiate a query and wait for response from google (or until the time-out limit is reached). This is "blocking" mode, and is the easiest to do::
 
             resp = gs.getResponse() # execution blocks here
-            print resp.word, resp.confidence
+            print(resp.word, resp.confidence)
 
         c) Or instead (advanced usage): Initiate a query, but do not wait for a response ("thread" mode: no blocking, no timeout, more control). `running` will change to False when a response is received (or hang indefinitely if something goes wrong--so you might want to implement a time-out as well)::
 
             resp = gs.getThread() # returns immediately
             while resp.running:
-                print '.', # displays dots while waiting
+                print('.',) # displays dots while waiting
                 sys.stdout.flush()
                 core.wait(0.1)
-            print resp.words
+            print(resp.words)
 
         d) Options: Set-up with a different language for the same speech clip; you'll get a different response (possibly having UTF-8 characters)::
 

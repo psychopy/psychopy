@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+from __future__ import print_function
 from psychopy import visual, core, event
 from psychopy.hardware import joystick
 
@@ -12,7 +13,6 @@ to find out which physical axis maps to which number for your device.
 Known issue: Pygame 1.91 unfortunately spits out a debug message every time the 
 joystick is accessed and there doesn't seem to be a way to get rid of those messages.
 """
-
 joystick.backend='pyglet'
 #create a window to draw in
 myWin = visual.Window((800.0,800.0), allowGUI=False, 
@@ -22,12 +22,12 @@ nJoysticks=joystick.getNumJoysticks()
 
 if nJoysticks>0:
     joy = joystick.Joystick(0)
-    print 'found ', joy.getName(), ' with:'
-    print '...', joy.getNumButtons(), ' buttons'
-    print '...', joy.getNumHats(), ' hats'
-    print '...', joy.getNumAxes(), ' analogue axes'
+    print('found ', joy.getName(), ' with:')
+    print('...', joy.getNumButtons(), ' buttons')
+    print('...', joy.getNumHats(), ' hats')
+    print('...', joy.getNumAxes(), ' analogue axes')
 else:
-    print "You don't have a joystick connected!?"
+    print("You don't have a joystick connected!?")
     myWin.close()
     core.quit()
 nAxes=joy.getNumAxes()
@@ -67,7 +67,7 @@ while 1:#quits after 20 secs
     
     fixSpot.draw()
     message.draw()
-    print joy.getAllAxes()#to see what your axes are doing!
+    print(joy.getAllAxes())#to see what your axes are doing!
     
     if 'q' in event.getKeys():
         core.quit()

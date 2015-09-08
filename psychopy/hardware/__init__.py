@@ -106,9 +106,9 @@ def findPhotometer(ports=None, device=None):
     e.g.::
 
         photom = findPhotometer(device='PR655') #sweeps ports 0 to 10 searching for a PR655
-        print photom.getLum()
+        print(photom.getLum())
         if hasattr(photom, 'getSpectrum'):#can retrieve spectrum (e.g. a PR650)
-            print photom.getSpectrum()
+            print(photom.getSpectrum())
 
     """
     if isinstance(device,basestring):
@@ -118,7 +118,6 @@ def findPhotometer(ports=None, device=None):
         photometers = [getPhotometerByName(d) if isinstance(d,basestring) else d for d in device]
     else:
         photometers = getAllPhotometers()
-
 
     #determine candidate ports
     if ports is None:

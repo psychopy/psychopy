@@ -4,6 +4,7 @@ Created on Sun Nov 10 12:18:45 2013
 
 @author: Sol
 """
+from __future__ import print_function
 import os,math
 import numpy as np
 import unicodedata as ud
@@ -12,8 +13,8 @@ from psychopy.core import getTime
 
 try:
     from textureatlas import TextureAtlas
-except Exception, e:
-        print 'error importing TextureAtlas:',e
+except Exception as e:
+        print('error importing TextureAtlas:',e)
 from pyglet.gl import (glGenLists,glNewList,GL_COMPILE,GL_QUADS,
                       glBegin,glTexCoord2f,glVertex2f,glEnd,glDeleteLists,
                       glEndList,glTranslatef,glDeleteTextures
@@ -158,9 +159,9 @@ class FontManager(object):
 
     def addFontDirectory(self,font_dir,monospace_only=True,recursive=False):
         """
-        Add any font files found in font_dir to the FontManger font search 
-        space. Each element of the font_paths list must be a valid path 
-        including the font file name. Relative paths can be used, with the 
+        Add any font files found in font_dir to the FontManger font search
+        space. Each element of the font_paths list must be a valid path
+        including the font file name. Relative paths can be used, with the
         current working directory being the origin.
 
         If monospace_only is True, each font file will only be added if it is a
@@ -180,7 +181,7 @@ class FontManager(object):
             font_paths.extend(ttf_files)
             if not recursive:
                 break
-            
+
         return self.addFontFiles(font_paths)
 
         return fi
@@ -215,7 +216,7 @@ class FontManager(object):
                 t1=getTime()
                 fm.font_store.addFontAtlas(font_atlas)
                 t2=getTime()
-                print 'font store add atlas:',t2-t1
+                print('font store add atlas:',t2-t1)
         return font_atlas
 
     def getFontInfo(self,refresh=False,monospace=True):
@@ -414,8 +415,6 @@ class MonospaceFontAtlas(object):
         self.atlas.upload()
         self.createDisplayLists()
         self._face=None
-        #print 'w_max_glyth info:',w_max_glyph
-        #print 'h_max_glyth info:',h_max_glyph
 
     def createDisplayLists(self):
         glyph_count=len(self.charcode2unichr)
@@ -458,7 +457,6 @@ class MonospaceFontAtlas(object):
     def saveGlyphBitmap(self,file_name=None):
         if file_name is None:
             import os
-            #print 'CWD:',os.getcwd()
             file_name=os.path.join(os.getcwd(),self.getID().lower().replace(u' ',u'_')+'.png')
         from scipy import misc
         if self.atlas is None:
@@ -490,8 +488,8 @@ class MonospaceFontAtlas(object):
 
 try:
     from psychopy.visual.textbox.freetype_bf import Face,FT_LOAD_RENDER,FT_LOAD_FORCE_AUTOHINT,FT_Exception
-except Exception, e:
-    print "FreeType import Failed:", e
+except Exception as e:
+    print("FreeType import Failed:", e)
     import traceback
     traceback.format_exc()
     FontManager.freetype_import_error=e

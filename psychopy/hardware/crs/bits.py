@@ -221,7 +221,7 @@ class BitsPlusPlus(object):
             #use LUT as is
             #check range is 0:1
             if max(max(newLUT))>1.0:
-                raise AttributeError, 'newLUT should be float in range 0.0:1.0'
+                raise AttributeError('newLUT should be float in range 0.0:1.0')
             self.LUT[startII:endII,:]= newLUT
 
         else:
@@ -362,9 +362,9 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         # You can continue using your window as normal and OpenGL shaders will
         # convert the output as needed
 
-        print bits.info
+        print(bits.info)
         if not bits.OK:
-            print 'failed to connect to Bits box'
+            print('failed to connect to Bits box')
             core.quit()
 
         core.wait(0.1)
@@ -538,24 +538,24 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             logging.info('Switched %s to %s mode' %(self.info['ProductType'], self.__dict__['mode']))
         elif value.startswith('mono'):
             if not self.win.useFBO:
-                raise Exception, "Mono++ mode requires a PsychoPy Window with useFBO=True"
+                raise Exception("Mono++ mode requires a PsychoPy Window with useFBO=True")
             self.sendMessage('$monoPlusPlus\r')
             self.__dict__['mode'] = 'mono++'
             logging.info('Switched %s to %s mode' %(self.info['ProductType'], self.__dict__['mode']))
         elif value.startswith('colo'):
             if not self.win.useFBO:
-                raise Exception, "Color++ mode requires a PsychoPy Window with useFBO=True"
+                raise Exception("Color++ mode requires a PsychoPy Window with useFBO=True")
             self.sendMessage('$colorPlusPlus\r')
             self.__dict__['mode'] = 'color++'
             logging.info('Switched %s to %s mode' %(self.info['ProductType'], self.__dict__['mode']))
         elif value.startswith('auto'):
             if not self.win.useFBO:
-                raise Exception, "Auto++ mode requires a PsychoPy Window with useFBO=True"
+                raise Exception("Auto++ mode requires a PsychoPy Window with useFBO=True")
             self.sendMessage('$autoPlusPlus\r')
             self.__dict__['mode'] = 'auto++'
             logging.info('Switched %s to %s mode' %(self.info['ProductType'], self.__dict__['mode']))
         else:
-            raise AttributeError, "Bits# doesn't know how to use mode %r. Should be 'mono++', 'color++' etc" %value
+            raise AttributeError("Bits# doesn't know how to use mode %r. Should be 'mono++', 'color++' etc" %value)
 
     def setLUT(self,newLUT=None, gammaCorrect=False, LUTrange=1.0, contrast=None):
         """SetLUT is only really needed for bits++ mode of bits# to set the
@@ -913,22 +913,22 @@ class Config(object):
         bestLUTname = None
         logging.flush()
         for LUTname, currentLUT in LUTs.items():
-            print 'Checking %r LUT:' %(LUTname),
+            sys.stdout.write('Checking %r LUT:' %(LUTname))
             errs = self.testLUT(currentLUT, demoMode)
             if plotResults:
                 errPlot.set_ydata(range(256)+errs[:,0])
                 pyplot.draw()
-            print 'mean err = %.3f per LUT entry' %(abs(errs).mean())
+            print('mean err = %.3f per LUT entry' %(abs(errs).mean()))
             if abs(errs).mean()< abs(lowestErr):
                 lowestErr = abs(errs).mean()
                 bestLUTname = LUTname
         if lowestErr==0:
-            print "The %r identity LUT produced zero error. We'll use that!" %(LUTname)
+            print("The %r identity LUT produced zero error. We'll use that!" %(LUTname))
             self.identityLUT = LUTs[bestLUTname]
             self.save() #it worked so save this configuration for future
             return
 
-        print "Best was %r LUT (mean err = %.3f). Optimising that..." %(bestLUTname, lowestErr)
+        print("Best was %r LUT (mean err = %.3f). Optimising that..." %(bestLUTname, lowestErr))
         currentLUT = LUTs[bestLUTname]
         errProgression=[]
         corrInARow=0
@@ -950,23 +950,23 @@ class Config(object):
                 pyplot.plot(n,meanErr,'.k')
                 pyplot.draw()
             if meanErr>0:
-                print "%.3f" %meanErr,
+                sys.stdout.write("%.3f " %meanErr)
                 corrInARow=0
             else:
-                print ".",
+                sys.stdout.write(". ")
                 corrInARow+=1
             if corrInARow>=nVerifications:
-                print 'success in a total of %.1fs' %(time.time()-t0)
+                print('success in a total of %.1fs' %(time.time()-t0))
                 self.identityLUT = currentLUT
                 self.save() #it worked so save this configuration for future
                 break
             elif len(errProgression)>10 and max(errProgression)-min(errProgression)<0.001:
-                print "Trying to correct the gamma table was having no effect. Make sure the window was fullscreen and on the Bits# screen"
+                print("Trying to correct the gamma table was having no effect. Make sure the window was fullscreen and on the Bits# screen")
                 break
 
         #did we get here by failure?!
         if n==(maxIterations-1):
-            print "failed to converge on a successful identity LUT. This is BAD!"
+            print("failed to converge on a successful identity LUT. This is BAD!")
 
         if plotResults:
             pyplot.figure(figsize=[18,12])

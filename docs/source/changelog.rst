@@ -16,7 +16,10 @@ Changelog
 
 :blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
+PsychoPy 1.83
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* ADDED: RatingScale precision=60 allows display of time-based values (min:sec or hours:min). Values from .getRating() are decimal proportions (1 min: 59 seconds -> 1.9833 minutes).
 
 PsychoPy 1.82
 ------------------------------
@@ -24,7 +27,35 @@ PsychoPy 1.82
 PsychoPy 1.82.02
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* ADDED: RatingScale precision=60 allows display of time-based values (min:sec or hours:min). Values from .getRating() are decimal proportions (1 min: 59 seconds -> 1.9833 minutes).
+released Aug 2015
+
+    - FIXED: TrialHandler wasn't saving extraInfo (was overwritten during trials) `#815 <https://github.com/psychopy/psychopy/issues/815>`_
+    - FIXED: don't have pickle file re-saving itself when it comes back from pickling `#833 <https://github.com/psychopy/psychopy/issues/833>`_
+    - FIXED: Mouse Component could crash data saving if no response was made `#839 <https://github.com/psychopy/psychopy/issues/839>`_
+    - FIXED: memory leaks in MovieStim2 (opencv backend) `#838 <https://github.com/psychopy/psychopy/issues/838>`_ and `#919 <https://github.com/psychopy/psychopy/issues/919>`_
+    - FIXED: checked that window positions are integers `#854 <https://github.com/psychopy/psychopy/issues/854>`_
+    - FIXED: OSX "10.10" incorrectly looked older than "10.9" `#866 <https://github.com/psychopy/psychopy/issues/866>`_
+    - FIXED: RatingScale would show "False" for scale description in some cases `#870 <https://github.com/psychopy/psychopy/issues/870>`_
+    - FIXED: problem with microphone saving files that end with w, a or v `#875 <https://github.com/psychopy/psychopy/issues/875>`_
+    - FIXED: MonitorCenter failing to create new monitor `#887 <https://github.com/psychopy/psychopy/issues/887>`_
+    - FIXED: universal line endings in csv outputs files `#889 <https://github.com/psychopy/psychopy/issues/889>`_
+    - FIXED: unicode in conditions files `#892 <https://github.com/psychopy/psychopy/issues/892>`_
+    - FIXED: `iohub` not detecting Linux mouse events `#894 <https://github.com/psychopy/psychopy/issues/894>`_
+    - FIXED: if output file is set to be `stdout` this should then be closed `#902 <https://github.com/psychopy/psychopy/issues/902>`_
+    - FIXED: don't abbreviate the path name of conditions files `#913 <https://github.com/psychopy/psychopy/issues/913>`_
+    - FIXED: minor error in logging for `rush()` under win32 `#914 <https://github.com/psychopy/psychopy/issues/914>`_
+    - FIXED: unicode issues in user preferences panel `#930 <https://github.com/psychopy/psychopy/issues/930>`_ `#932 <https://github.com/psychopy/psychopy/issues/932>`_
+    - FIXED: MonitorCenter won't lock you out if given an invalid screen number `#937 <https://github.com/psychopy/psychopy/issues/937>`_
+    - FIXED: mono++ mode in CRS Bits++/#/Display++ is now using full dynamic range (previously 8bit blue gun overlay was overriding the 16bit screen buffer)
+    
+PsychoPy 1.82.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Released Feb 2015
+
+* FIXED: problem with MovieStim2 showing black box instead of movie on certain systems
+* FIXED: problem with Tobii eye tracker not closing calibration window (Sol)
+* FIXED: better timing for non-slip routines that follow dynamic routines (Jeremy) `#822 <https://github.com/psychopy/psychopy/issues/822>`_
 
 PsychoPy 1.82.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,6 +69,7 @@ Released Feb 2015
 * FIXED: pygame sound engine complained about "global variable loops not defined"
 * ENHANCED: Filename collision handling for ExperimentHandler (Richard Höchenberger)
 * :blue:`CHANGED: for text data outputs that give delim='\t' the file extension '.tsv' is added instead of '.dlm' (Richard Höchenberger)`
+
 
 PsychoPy 1.82.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

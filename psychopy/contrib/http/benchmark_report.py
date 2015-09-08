@@ -13,7 +13,7 @@ Future enhancements:
 
 Author Jeremy Gray
 """
-
+from __future__ import print_function
 import sys, os, time, glob
 import cPickle as pickle
 import numpy as np
@@ -43,7 +43,7 @@ def parse(file):
     # add IP and upload time, extract from filename
     IP = file[1].split('-')[1]
     if sys.platform == 'darwin':
-        print IP, file[1]
+        print(IP, file[1])
     file.append(IP)
     f = open(file[1], 'r')
     data = pickle.load(f)
@@ -85,7 +85,7 @@ def writeHtml(f, table_lines):
     
     for tag, val, note in table_lines:
         if sys.platform == 'darwin':
-            print tag, val, note
+            print(tag, val, note)
         f.write('<tr>')
         f.write('<td><center>' + tag.replace(hash_sep, '</td><td><center>') + '</td>')
         f.write("<td><center><strong><datum title='%s'>" % note + val + "</datum></strong></center></td>")
@@ -220,4 +220,4 @@ def main():
 if __name__ == '__main__':
     script_time = main()
     if sys.platform == 'darwin':
-        print "%.3fs " % script_time
+        print("%.3fs " % script_time)

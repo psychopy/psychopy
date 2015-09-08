@@ -91,8 +91,8 @@ dataFile.close()
 staircase.saveAsPickle(fileName)#special python binary file to save all the info
 
 #give some output to user
-print 'reversals:'
-print staircase.reversalIntensities
-print 'mean of final 6 reversals = %.3f' %(numpy.average(staircase.reversalIntensities[-6:]))
+print('reversals:')
+print(staircase.reversalIntensities)
+print('mean of final 6 reversals = %.3f' %(numpy.average(staircase.reversalIntensities[-6:])))
 
 core.quit()

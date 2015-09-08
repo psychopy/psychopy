@@ -89,9 +89,8 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.nDots = nDots
         #pos and size are ambiguous for dots so DotStim explicitly has
         #fieldPos = pos, fieldSize=size and then dotSize as additional param
-        self.fieldPos = fieldPos  # using the attributeSetter
-        self.pos = self.fieldPos
-        self.fieldSize = self.size = val2array(fieldSize, False)
+        self.fieldPos = fieldPos  # self.pos is also set here
+        self.fieldSize = val2array(fieldSize, False) #self.size is also set
         if type(dotSize) in [tuple,list]:
             self.dotSize = numpy.array(dotSize)
         else:
@@ -217,7 +216,22 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Obsolete - users should use setFieldPos instead of setPos
         """
         logging.error("User called DotStim.setPos(pos). Use DotStim.SetFieldPos(pos) instead.")
+    def setFieldSize(self, val, op='', log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
+        setAttribute(self, 'fieldSize', val, log, op)  # calls attributeSetter
+    @attributeSetter
+    def fieldSize(self, size):
+        """Specifying the size of the field of dots using a :ref:`x,y-pair <attrib-xy>`.
+        See e.g. :class:`.ShapeStim` for more documentation/examples on how to set position.
 
+        :ref:`operations <attrib-operations>` are supported.
+        """
+        # Isn't there a way to use BaseVisualStim.pos.__doc__ as docstring here?
+        self.size = size  # using BaseVisualStim. we'll store this as both
+        self.__dict__['fieldSize'] = self.size
+        
     @attributeSetter
     def coherence(self, coherence):
         """Scalar between 0 and 1. Change the coherence (%) of the DotStim. This will be rounded according

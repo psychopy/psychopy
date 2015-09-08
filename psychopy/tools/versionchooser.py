@@ -57,7 +57,7 @@ def useVersion(requestedVersion):
     reload(logging)
     if requestedVersion>="1.80":
         reload(tools) #this is just because this file is withint tools!
-    print "Now using PsychoPy library version: ", psychopy.__version__
+    print("Now using PsychoPy library version: ", psychopy.__version__)
     # TODO Best way to check for other submodules that have already been imported?
 
     return True  # Success!
@@ -119,9 +119,9 @@ def _checkoutRequested(requestedVersion):
 def _cloneRequested(requestedVersion):
     """Check out a new copy of the requested version"""
 
-    print 'Cloning Psychopy Library from Github - this may take a while'
+    print('Cloning Psychopy Library from Github - this may take a while')
     cmd = ['git', 'clone', '-o', 'github', 'https://github.com/psychopy/versions', 'versions']
-    print ' '.join(cmd)
+    print(' '.join(cmd))
     out = subprocess.check_output(cmd, cwd=USERDIR)
 
     cmd = ['git', 'checkout', requestedVersion]

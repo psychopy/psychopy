@@ -383,8 +383,8 @@ def storeVideoFrameInfo(flip_time, frame_num):
             if ixdx >= 2:
                 drop_count = drop_count + (ixdx - 1)
             elif ixdx < 0:
-                print "ERROR: frame index change <= 0. This should not happen in this demo. frame=%d, last_frame=%d, ixdx=%d" % (
-                frame_num, last_frame_ix, ixdx)
+                print("ERROR: frame index change <= 0. This should not happen in this demo. frame=%d, last_frame=%d, ixdx=%d" % (
+                frame_num, last_frame_ix, ixdx))
         last_frame_ix = frame_num
 
         # calculate inter movie frame interval etc.
@@ -403,7 +403,7 @@ def storeVideoFrameInfo(flip_time, frame_num):
 def createResultsFile():
     if video_results is not None:
         with open(getResultsFilePath(), 'a') as f:
-            print "Saving Frame Timing Results to: %s" % (getResultsFilePath())
+            print("Saving Frame Timing Results to: %s" % (getResultsFilePath()))
 
             import cv2
 

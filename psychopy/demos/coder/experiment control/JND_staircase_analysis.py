@@ -53,7 +53,7 @@ fit = data.FitWeibull(combinedInten, combinedResp, expectedMin=expectedMin,
 smoothInt = pylab.arange(min(combinedInten), max(combinedInten), 0.001)
 smoothResp = fit.eval(smoothInt)
 thresh = fit.inverse(threshVal)
-print thresh
+print(thresh)
 
 #plot curve
 pylab.subplot(122)
@@ -74,5 +74,5 @@ pylab.xlim([0,None])
 #save a vector-graphics format for future
 outputFile = os.path.join(dataFolder, 'last.pdf')
 pylab.savefig(outputFile)
-print 'saved figure to:', outputFile
+print('saved figure to: ' + outputFile)
 pylab.show()

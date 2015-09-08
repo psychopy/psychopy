@@ -3,6 +3,7 @@
 """Demo to illustrate using ioLabs button box.
 """
 
+from __future__ import print_function
 __author__ = 'Jonathan Roberts (orig demo); Jeremy Gray (rewrite 2013)'
 
 from psychopy.hardware import iolab
@@ -46,8 +47,8 @@ for stim in stims:
     if not evt:
         break
     if  labeledResponse[evt.btn] == stim:  # evt.btn is int, evt.key is str
-        print 'correct', evt.btn, evt.rt   # evt.rt  is sec, evt.rtc is ms
+        print('correct', evt.btn, evt.rt)   # evt.rt  is sec, evt.rtc is ms
     else:
-        print 'wrong', evt.btn, evt.rt
+        print('wrong', evt.btn, evt.rt)
 
 bbox.standby()  # lights off

@@ -2526,7 +2526,7 @@ class MediaPlayer(_Ctype):
         @version: LibVLC 1.1.1 or later.
         '''
         r= libvlc_video_set_callbacks(self, lock, unlock, display, opaque)
-        print 'video_set_callbacks called'
+        print('video_set_callbacks called')
         sys.stdout.flush()
         return r
 
@@ -2542,7 +2542,7 @@ class MediaPlayer(_Ctype):
         @bug: All pixel planes are expected to have the same pitch. To use the YCbCr color space with chrominance subsampling, consider using L{video_set_format_callbacks}() instead.
         '''
         r= libvlc_video_set_format(self, str_to_bytes(chroma), width, height, pitch)
-        print 'video_set_format called'
+        print('video_set_format called')
         sys.stdout.flush()
         return r
 
@@ -4394,17 +4394,17 @@ def libvlc_video_set_callbacks(mp, lock, unlock, display, opaque):
     @param opaque: private pointer for the three callbacks (as first parameter).
     @version: LibVLC 1.1.1 or later.
     '''
-    print 'libvlc_video_set_callbacks 1'
+    print('libvlc_video_set_callbacks 1')
     sys.stdout.flush()
 
     f = _Cfunctions.get('libvlc_video_set_callbacks', None) or \
         _Cfunction('libvlc_video_set_callbacks', ((1,), (1,), (1,), (1,), (1,),), None,
                     None, MediaPlayer, VideoLockCb, VideoUnlockCb, VideoDisplayCb, ctypes.c_void_p)
-    print 'libvlc_video_set_callbacks 2'
+    print('libvlc_video_set_callbacks 2')
     sys.stdout.flush()
 
     r= f(mp, lock, unlock, display, opaque)
-    print 'libvlc_video_set_callbacks 3'
+    print('libvlc_video_set_callbacks 3')
     sys.stdout.flush()
     return r
 
@@ -4420,17 +4420,17 @@ def libvlc_video_set_format(mp, chroma, width, height, pitch):
     @version: LibVLC 1.1.1 or later.
     @bug: All pixel planes are expected to have the same pitch. To use the YCbCr color space with chrominance subsampling, consider using L{libvlc_video_set_format_callbacks}() instead.
     '''
-    print 'libvlc_video_set_format 1'
+    print('libvlc_video_set_format 1')
     sys.stdout.flush()
 
     f = _Cfunctions.get('libvlc_video_set_format', None) or \
         _Cfunction('libvlc_video_set_format', ((1,), (1,), (1,), (1,), (1,),), None,
                     None, MediaPlayer, ctypes.c_char_p, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint)
-    print 'libvlc_video_set_format 2'
+    print('libvlc_video_set_format 2')
     sys.stdout.flush()
 
     r= f(mp, chroma, width, height, pitch)
-    print 'libvlc_video_set_format 3'
+    print('libvlc_video_set_format 3')
     sys.stdout.flush()
     return r
 

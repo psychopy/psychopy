@@ -1013,7 +1013,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         Example::
 
             stim.size = 0.8  # Set size to (xsize, ysize) = (0.8, 0.8), quadratic.
-            print stim.size  # Outputs array([0.8, 0.8])
+            print(stim.size)  # Outputs array([0.8, 0.8])
             stim.size += (0.5, -0.5)  # make wider and flatter. Is now (1.3, 0.3)
 
         Tip: if you can see the actual pixel range this corresponds to by

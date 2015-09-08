@@ -108,7 +108,7 @@ class ColorCAL:
         prevOut = self.com.read(self.com.inWaiting())#read as many chars as are in the buffer
         if len(prevOut) and prevOut not in ['>'+eol, eol]:
             #do not use log messages here
-            print 'Resp found to prev cmd (%s):%s' %(self.lastCmd, prevOut)
+            print('Resp found to prev cmd (%s):%s' %(self.lastCmd, prevOut))
         self.lastCmd=message
 
         if message[-2:] not in ['\n', '\n\r']:
@@ -260,7 +260,7 @@ class ColorCAL:
                 floats = _minolta2float(rawVals)
                 matrix[rowN,:]=floats
             else:
-                print 'ColorCAL got this from command %s: %s' %(rowName, repr(val))
+                print('ColorCAL got this from command %s: %s' %(rowName, repr(val)))
         return matrix
     def _error(self, msg):
         self.OK=False
