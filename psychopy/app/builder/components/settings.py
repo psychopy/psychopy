@@ -230,7 +230,11 @@ class SettingsComponent(object):
                if thisComp.type=='RatingScale': allowGUI = True # to have a mouse; BUT might not want it shown in other routines
 
         requestedScreenNumber = int(self.params['Screen'].val)
-        if requestedScreenNumber > wx.Display.GetCount():
+        try:
+            nScreens = wx.Display.GetCount()
+        except:
+		    nScreens = 10 #will fail if application hasn't been created (e.g. in test environments)
+        if requestedScreenNumber > nScreens:
             logging.warn("Requested screen can't be found. Writing script using first available screen.")
             screenNumber = 0
         else:
