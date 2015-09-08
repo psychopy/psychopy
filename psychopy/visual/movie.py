@@ -23,17 +23,17 @@ if sys.platform == 'win32':
     if 'C:\\Windows\\SysWOW64' not in os.environ['PATH']:
         os.environ['PATH'] += ';C:\\Windows\\SysWOW64'
 
-    try:
-        from pyglet.media import avbin
-        haveAvbin = True
-    except ImportError:
-        # either avbin isn't installed or scipy.stats has been imported
-        # (prevents avbin loading)
-        haveAvbin = False
-    except Exception, e:
-        # WindowsError on some systems
-        # AttributeError if using avbin5 from pyglet 1.2?
-        haveAvbin = False
+try:
+    from pyglet.media import avbin
+    haveAvbin = True
+except ImportError:
+    # either avbin isn't installed or scipy.stats has been imported
+    # (prevents avbin loading)
+    haveAvbin = False
+except Exception, e:
+    # WindowsError on some systems
+    # AttributeError if using avbin5 from pyglet 1.2?
+    haveAvbin = False
 
 
 import psychopy  # so we can get the __path__
@@ -184,6 +184,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         After the file is loaded MovieStim.duration is updated with the movie
         duration (in seconds).
         """
+        self._movie = pyglet.media.load(filename, streaming=True)
         try:
             self._movie = pyglet.media.load(filename, streaming=True)
         except Exception, e:
