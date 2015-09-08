@@ -380,7 +380,7 @@ class Window(object):
             logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def __del__(self):
-        if self._closed==False:
+        if self._closed!=False:
             self.close()
 
     def __str__(self):
