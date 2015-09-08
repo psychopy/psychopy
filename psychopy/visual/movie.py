@@ -30,7 +30,7 @@ if sys.platform == 'win32':
         # either avbin isn't installed or scipy.stats has been imported
         # (prevents avbin loading)
         haveAvbin = False
-except Exception as e:
+	except Exception as e:
         # WindowsError on some systems
         # AttributeError if using avbin5 from pyglet 1.2?
         haveAvbin = False
