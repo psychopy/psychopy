@@ -28,6 +28,7 @@ from psychopy.visual.simpleimage import SimpleImageStim
 # stimuli derived from BaseVisualStim
 from psychopy.visual.dot import DotStim
 from psychopy.visual.grating import GratingStim
+from psychopy.visual.secondorder import CMGrating
 from psychopy.visual.image import ImageStim
 from psychopy.visual.movie import MovieStim
 
@@ -60,7 +61,7 @@ from psychopy.visual.circle import Circle
 from psychopy.visual.secondorder import EnvelopeGrating
 
 # TextBox alternative to TextStim
-try:    
+try:
     # Ensure monospace Fonts are available ....
     font_names = []
     import textbox
