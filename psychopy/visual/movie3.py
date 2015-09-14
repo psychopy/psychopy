@@ -1,55 +1,436 @@
-import pysoundfile as sndfile
-import pysoundcard as sndcard
-import time
-import sys
+#!/usr/bin/env python2
+'''
+A stimulus class for playing movies (mp4, divx, avi etc...) in PsychoPy.
+Demo using the experimental movie3 stim to play a video file. Path of video
+needs to updated to point to a video you have. movie2 does /not/ require
+avbin to be installed.
 
-#print 'sndcard:', dir(sndcard)
-#print 'sndfile:', dir(sndfile)
-for dev in sndcard.devices():
-    print dev['name']
-print 'default device:', sndcard.default_output_device
-print 'apis', list(sndcard.apis())
+Movie2 does require:
+~~~~~~~~~~~~~~~~~~~~~
 
-snd = sndfile.SoundFile('audiocheck.net_sweep20-20klin.wav')
-#print 'snd:', dir(snd)
-sndArr = snd[:100000] #this is a numpy array
-print sndArr.shape
-block_length = 512
-print snd.channels
-print snd.format
-global timeList
-timeList = []
+moviepy (which requires imageio, Decorator). These can be installed
+(including dependencies) on a standard Python install using `pip install moviepy`
+imageio will download further compiled libs (ffmpeg) as needed
 
-soundPos = 0
-def callback(out_data, block_length, time_info, status):
-    global soundPos
-    out_data[:] = sndArr[soundPos:soundPos+block_length]
-    soundPos += block_length
-    return (out_data, 0)
+Current known issues:
+~~~~~~~~~~~~~~~~~~~~~~
 
-try:#changed at some point in pysoundcard (older version on ubuntu?)
-    rate = snd.sample_rate
-except:
-    rate = snd.samplerate
+volume control not implemented
+movie is long then audio will be huge and currently the whole thing gets
+    loaded in one go. We should provide streaming audio from disk.
 
-if False: #callback method
-    s = sndcard.Stream(sample_rate=44100, block_length=block_length, callback=callback)
-    s.start()
-    time.sleep(2)
-    t0=time.time()
-    while time.time()-t0 < 0.1:
-        pass
-    time.sleep(1)
-    s.stop()
-else: #read/write method
-    s = sndcard.Stream(sample_rate=44100, block_length=block_length)
-    s.start()
-    s.write(sndArr)
-    print 'here'
-    sys.stdout.flush()
-    time.sleep(2)
-    t0=time.time()
-    while time.time()-t0 < 0.1:
-        pass
-    s.stop()
+'''
 
+# Part of the PsychoPy library
+# Copyright (C) 2015 Jonathan Peirce
+# Distributed under the terms of the GNU General Public License (GPL).
+#
+reportNDroppedFrames = 10
+
+import os
+
+from psychopy import logging
+from psychopy import sound
+from psychopy.tools.arraytools import val2array
+from psychopy.tools.attributetools import logAttrib, setAttribute
+from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
+
+from moviepy.video.io.VideoFileClip import VideoFileClip
+
+import ctypes
+import numpy
+from psychopy.clock import Clock
+from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
+
+import pyglet.gl as GL
+
+class MovieStim3(BaseVisualStim, ContainerMixin):
+    """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy
+    that does not require avbin. Instead it requires the cv2 python package
+    for OpenCV. The VLC media player also needs to be installed on the
+    psychopy computer.
+
+    **Example**::
+
+        See Movie2Stim.py for demo.
+    """
+    def __init__(self, win,
+                 filename="",
+                 units='pix',
+                 size=None,
+                 pos=(0.0,0.0),
+                 ori=0.0,
+                 flipVert=False,
+                 flipHoriz=False,
+                 color=(1.0,1.0,1.0),
+                 colorSpace='rgb',
+                 opacity=1.0,
+                 volume=1.0,
+                 name='',
+                 loop=False,
+                 autoLog=True,
+                 depth=0.0,
+                 noAudio=False,
+                 vframe_callback=None,
+                 fps=None,
+                 interpolate = True,
+        ):
+        """
+        :Parameters:
+
+            filename :
+                a string giving the relative or absolute path to the movie.
+            flipVert : True or *False*
+                If True then the movie will be top-bottom flipped
+            flipHoriz : True or *False*
+                If True then the movie will be right-left flipped
+            volume :
+                The nominal level is 100, and 0 is silence.
+            loop : bool, optional
+                Whether to start the movie over from the beginning if draw is
+                called and the movie is done.
+
+        """
+        # what local vars are defined (these are the init params) for use
+        # by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
+        super(MovieStim3, self).__init__(win, units=units, name=name,
+                                         autoLog=False)
+
+        retraceRate = win._monitorFrameRate
+        if retraceRate is None:
+            retraceRate = win.getActualFrameRate()
+        if retraceRate is None:
+            logging.warning("FrameRate could not be supplied by psychopy; defaulting to 60.0")
+            retraceRate = 60.0
+        self._retraceInterval = 1.0/retraceRate
+        self.filename = filename
+        self.loop = loop
+        self.flipVert = flipVert
+        self.flipHoriz = flipHoriz
+        self.pos = numpy.asarray(pos, float)
+        self.depth = depth
+        self.opacity = float(opacity)
+        self.interpolate = interpolate
+        self.noAudio = noAudio
+        self._audioStream = None
+        self.useTexSubImage2D = True
+
+        self._videoClock = Clock()
+        self.loadMovie(self.filename)
+        self.setVolume(volume)
+        self.nDroppedFrames = 0
+
+        #size
+        if size is None:
+            self.size = numpy.array([self._mov.w, self._mov.h],
+                                   float)
+        else:
+            self.size = val2array(size)
+        self.ori = ori
+        self._updateVertices()
+        #set autoLog (now that params have been initialised)
+        self.autoLog = autoLog
+        if autoLog:
+            logging.exp("Created %s = %s" %(self.name, str(self)))
+
+    def reset(self):
+        self._numpyFrame = None
+        self._nextFrameT = None
+        self._texID = None
+        self.status = NOT_STARTED
+
+    def setMovie(self, filename, log=True):
+        """See `~MovieStim.loadMovie` (the functions are identical).
+        This form is provided for syntactic consistency with other visual stimuli.
+        """
+        self.loadMovie(filename, log=log)
+
+    def loadMovie(self, filename, log=True):
+        """Load a movie from file
+
+        :Parameters:
+
+            filename: string
+                The name of the file, including path if necessary
+
+
+        After the file is loaded MovieStim.duration is updated with the movie
+        duration (in seconds).
+        """
+        self.reset() #set status and timestamps etc
+
+        # Create Video Stream stuff
+        if os.path.isfile(filename):
+            self._mov = VideoFileClip(filename, audio= (1-self.noAudio))
+            if not self.noAudio:
+                self._audioStream = sound.Sound(self._mov.audio.to_soundarray(),
+                                            sampleRate = self._mov.audio.fps)
+        else:
+            raise IOError("Movie file '%s' was not found" %filename)
+        #mov has attributes:
+            # size, duration, fps
+        #mov.audio has attributes
+            #duration, fps (aka sampleRate), to_soundarray()
+        self._frameInterval = 1.0/self._mov.fps
+        self.duration = self._mov.duration
+        self.filename = filename
+        self._updateFrameTexture()
+        logAttrib(self, log, 'movie', filename)
+
+    def play(self, log=True):
+        """Continue a paused movie from current position.
+        """
+        status = self.status
+        if not self.noAudio:
+            self._audioStream.play()
+        if status != PLAYING:
+            self.status = PLAYING
+
+            if status == PAUSED:
+                self._videoClock.reset(-self.getCurrentFrameTime())
+                if not self.noAudio and self.audioStream:
+                   self._audioSeek(self.getCurrentFrameTime())
+
+            if log and self.autoLog:
+                    self.win.logOnFlip("Set %s playing" %(self.name),
+                                       level=logging.EXP, obj=self)
+            self._updateFrameTexture()
+
+    def pause(self, log=True):
+        """
+        Pause the current point in the movie (sound will stop, current frame
+        will not advance).  If play() is called again both will restart.
+        """
+        if self.status == PLAYING:
+            self.status = PAUSED
+            if self._audioStream:
+                self._audioStream.stop()
+            if log and self.autoLog:
+                self.win.logOnFlip("Set %s paused" %(self.name), level=logging.EXP, obj=self)
+            return True
+        if log and self.autoLog:
+            self.win.logOnFlip("Failed Set %s paused" %(self.name), level=logging.EXP, obj=self)
+        return False
+
+    def stop(self, log=True):
+        """
+        Stop the current point in the movie (sound will stop, current frame
+        will not advance). Once stopped the movie cannot be restarted - it must
+        be loaded again. Use pause() if you may need to restart the movie.
+        """
+        if self.status != STOPPED:
+            self.status = STOPPED
+            self._unload()
+            self._reset()
+            if log and self.autoLog:
+                self.win.logOnFlip("Set %s stopped" %(self.name),
+                    level=logging.EXP,obj=self)
+
+    def setVolume(self, volume):
+        pass #to do
+
+    def setFlipHoriz(self, newVal=True, log=True):
+        """If set to True then the movie will be flipped horizontally (left-to-right).
+        Note that this is relative to the original, not relative to the current state.
+        """
+        self.flipHoriz = newVal
+        logAttrib(self, log, 'flipHoriz')
+
+    def setFlipVert(self, newVal=True, log=True):
+        """If set to True then the movie will be flipped vertically (top-to-bottom).
+        Note that this is relative to the original, not relative to the current state.
+        """
+        self.flipVert = not newVal
+        logAttrib(self, log, 'flipVert')
+
+    def getFPS(self):
+        """
+        Returns the movie frames per second playback speed.
+        """
+        return self._mov.fps
+
+    def getCurrentFrameTime(self):
+        """
+        Get the time that the movie file specified the current video frame as
+        having.
+        """
+        return self._nextFrameT - self._frameInterval
+
+    def _updateFrameTexture(self):
+        if self._nextFrameT is None:
+            # movie has no current position, need to reset the clock
+            # to zero in order to have the timing logic work
+            # otherwise the video stream would skip frames until the
+            # time since creating the movie object has passed
+            self._videoClock.reset()
+            self._nextFrameT = 0
+
+        #only advance if next frame (half of next retrace rate)
+        if self._nextFrameT > self.duration:
+            self._onEos()
+        elif (self._numpyFrame is not None) and \
+            (self._nextFrameT > (self._videoClock.getTime()-self._retraceInterval/2.0)):
+            return None
+        self._numpyFrame = self._mov.get_frame(self._nextFrameT)
+        useSubTex=self.useTexSubImage2D
+        if self._texID is None:
+            self._texID = GL.GLuint()
+            GL.glGenTextures(1, ctypes.byref(self._texID))
+            useSubTex=False
+
+        #bind the texture in openGL
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)#bind that name to the target
+        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)  # data from PIL/numpy is packed, but default for GL is 4 bytes
+        #important if using bits++ because GL_LINEAR
+        #sometimes extrapolates to pixel vals outside range
+        if self.interpolate:
+            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_LINEAR)
+            if self.useShaders:#GL_GENERATE_MIPMAP was only available from OpenGL 1.4
+                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
+                if useSubTex is False:
+                    GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB8,
+                        self._numpyFrame.shape[1],self._numpyFrame.shape[0], 0,
+                        GL.GL_RGB, GL.GL_UNSIGNED_BYTE, self._numpyFrame.ctypes)
+                else:
+                    GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
+                        self._numpyFrame.shape[1], self._numpyFrame.shape[0],
+                        GL.GL_RGB, GL.GL_UNSIGNED_BYTE, self._numpyFrame.ctypes)
+
+            else:#use glu
+                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)
+                GL.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, GL.GL_RGB8,
+                    self._numpyFrame.shape[1],self._numpyFrame.shape[0], GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpyFrame.ctypes)
+        else:
+            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_NEAREST)
+            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,GL.GL_NEAREST)
+            if useSubTex is False:
+                GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB8,
+                                self._numpyFrame.shape[1],self._numpyFrame.shape[0], 0,
+                                GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpyFrame.ctypes)
+            else:
+                GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
+                    self._numpyFrame.shape[1], self._numpyFrame.shape[0],
+                    GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpyFrame.ctypes)
+        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
+
+        if not self.status==PAUSED:
+            self._nextFrameT += self._frameInterval
+
+    def draw(self, win=None):
+        """
+        Draw the current frame to a particular visual.Window (or to the
+        default win for this object if not specified). The current position in
+        the movie will be determined automatically.
+
+        This method should be called on every frame that the movie is meant to
+        appear"""
+
+        if self.status==NOT_STARTED or (self.status==FINISHED and self.loop):
+            self.play()
+        elif self.status == FINISHED and not self.loop:
+            return
+        if win is None:
+            win = self.win
+        self._selectWindow(win)
+        self._updateFrameTexture() #will check if it's needed yet in the function
+        #make sure that textures are on and GL_TEXTURE0 is active
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glColor4f(1, 1, 1, self.opacity)  # sets opacity (1,1,1 = RGB placeholder)
+        GL.glPushMatrix()
+        self.win.setScale('pix')
+        #move to centre of stimulus and rotate
+        vertsPix = self.verticesPix
+
+        array = (GL.GLfloat * 32)(
+             1,  1, #texture coords
+             vertsPix[0,0], vertsPix[0,1],    0.,  #vertex
+             0,  1,
+             vertsPix[1,0], vertsPix[1,1],    0.,
+             0, 0,
+             vertsPix[2,0], vertsPix[2,1],    0.,
+             1, 0,
+             vertsPix[3,0], vertsPix[3,1],    0.,
+             )
+        GL.glPushAttrib(GL.GL_ENABLE_BIT)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+        GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
+        #2D texture array, 3D vertex array
+        GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array)
+        GL.glDrawArrays(GL.GL_QUADS, 0, 4)
+        GL.glPopClientAttrib()
+        GL.glPopAttrib()
+        GL.glPopMatrix()
+        #unbind the textures
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)#implicitly disables 1D
+
+    def seek(self, t):
+        """Go to a specific point in time for both the audio and video streams
+        """
+        #video is easy: set both times to zero and update the frame texture
+        self._nextFrameT = t
+        self._videoClock.reset(t)
+        if not self.noAudio:
+            self._audioSeek(t)
+
+    def _audioSeek(self, t):
+        #for sound we need to extract the array again and just begin at new loc
+        if self._audioStream is not None:
+            #i.e. we should have it and we do have it!
+            self._audioStream.stop()
+        sndArray = self._mov.audio.to_soundarray()
+        startIndex = int(t*self._mov.audio.fps)
+        if not self.noAudio:
+            self._audioStream = sound.Sound(sndArray[startIndex:,:],
+                                        sampleRate = self._mov.audio.fps)
+            self._audioStream.play()
+
+    def _getAudioStreamTime(self):
+        return self._audio_stream_clock.getTime()
+
+    def _unload(self):
+        try:
+            self.clearTextures()#remove textures from graphics card to prevent crash
+        except:
+            pass
+        self._mov = None
+        self._numpyFrame = None
+        self._audioStream = None
+        self.status = FINISHED
+
+    def _onEos(self):
+        if self.loop:
+            self.seek(0.0)
+        else:
+            self.status = FINISHED
+            self.stop()
+
+        if self.autoLog:
+            self.win.logOnFlip("Set %s finished" %(self.name),
+                level=logging.EXP,obj=self)
+
+    def __del__(self):
+        self._unload()
+
+    def setAutoDraw(self, val, log=None):
+        """Add or remove a stimulus from the list of stimuli that will be
+        automatically drawn on each flip
+
+        :parameters:
+            - val: True/False
+                True to add the stimulus to the draw list, False to remove it
+        """
+        if val:
+            self.play(log=False)  # set to play in case stopped
+        else:
+            self.pause(log=False)
+        #add to drawing list and update status
+        setAttribute(self, 'autoDraw', val, log)
