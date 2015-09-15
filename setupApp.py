@@ -49,8 +49,8 @@ setup(app=['psychopy/app/psychopyApp.py'],
                                 'coverage',#for unit testing
                                 'serial','IPython',
                                 'egi','labjack','pylink',#handy external science interfaces
-                                'pyxid','pycrsltd',
-                                #'PIL','Image',
+                                'pyxid',
+                                'PIL',#'Image',
                                 'objc','Quartz','AppKit','QTKit','Cocoa','Foundation','CoreFoundation',
                                 'pyolib',
                                 'pandas','tables',#'cython',
