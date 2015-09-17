@@ -17,8 +17,13 @@ from psychopy.visual.window import Window, getMsPerFrame, openWindows
 # non-private helpers
 from psychopy.visual.helpers import pointInPolygon, polygonsOverlap
 
-# stimuli derived from object or MinimalStim
+# absolute essentials (nearly all experiments will need these)
 from psychopy.visual.basevisual import BaseVisualStim
+from psychopy.visual.image import ImageStim
+from psychopy.visual.text import TextStim
+
+lazyImports = """
+# stimuli derived from object or MinimalStim
 from psychopy.visual.aperture import Aperture
 from psychopy.visual.custommouse import CustomMouse
 from psychopy.visual.elementarray import ElementArrayStim
@@ -29,21 +34,10 @@ from psychopy.visual.simpleimage import SimpleImageStim
 from psychopy.visual.dot import DotStim
 from psychopy.visual.grating import GratingStim
 from psychopy.visual.secondorder import EnvelopeGrating
-from psychopy.visual.image import ImageStim
 from psychopy.visual.movie import MovieStim
-
-try:
-    from psychopy.visual.movie2 import MovieStim2
-except ImportError, msg:
-    if "cv2" in msg.message:
-        print("WARNING: MovieStim2 is not available. Python opencv library (cv2) is not installed?")
-except OSError, msg:
-    print("WARNING: MovieStim2 is not available. Is the VLC application installed?")
-except:
-    print("WARNING: MovieStim2 is not available. Failed to import vlc module. Maybe you have 64bit VLC installed instead of 32bit?")
-
+from psychopy.visual.movie2 import MovieStim2
+from psychopy.visual.movie3 import MovieStim3
 from psychopy.visual.shape import ShapeStim
-from psychopy.visual.text import TextStim
 
 # stimuli derived from GratingStim
 from psychopy.visual.bufferimage import BufferImageStim
@@ -58,19 +52,10 @@ from psychopy.visual.rect import Rect
 # stimuli derived from Polygon
 from psychopy.visual.circle import Circle
 
-from psychopy.visual.secondorder import EnvelopeGrating
-
-# TextBox alternative to TextStim
+from textbox import TextBox
+"""
 try:
-    # Ensure monospace Fonts are available ....
-    font_names = []
-    import textbox
-    from textbox import getFontManager
-    fm=getFontManager()
-    font_names = fm.getFontFamilyNames()
-    assert len(font_names) > 0
-    from textbox import TextBox
-except Exception, e:
-    logging.warn("TextBox stim could not be imported and won't be available.")
-    if len(font_names) == 0:
-        logging.warn("TextBox Font Manager Found No Fonts.")
+    from psychopy.contrib.lazy_import import lazy_import
+    lazy_import(globals(), lazyImports)
+except:
+    exec(lazyImports)
