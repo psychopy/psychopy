@@ -46,6 +46,7 @@ setup(app=['psychopy/app/psychopyApp.py'],
                                   ],
                               packages=['wx','pyglet','pygame','OpenGL','psychopy','pytz',
                                 'scipy','matplotlib','lxml','xml','openpyxl',
+                                'moviepy', 'imageio',
                                 'coverage',#for unit testing
                                 'serial','IPython',
                                 'egi','labjack','pylink',#handy external science interfaces
