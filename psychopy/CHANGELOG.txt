@@ -12,7 +12,17 @@ Changelog
 PsychoPy 1.83
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* ADDED: MovieStim3 using an alternative backend that doesn’t require avbin, vlc or streamer. It just uses a couple of python libs and FFMPEG, which are relatively easy to package. Seems to have good performance too but this needs more testing
+* IMPROVED: speed to load psychopy.visual (“lazy loading” only the stimuli you use are loaded)
 * ADDED: RatingScale precision=60 allows display of time-based values (min:sec or hours:min). Values from .getRating() are decimal proportions (1 min: 59 seconds -> 1.9833 minutes).
+* ADDED: Coder view can now be set to read-only mode to prevent subjects accidentally altering study #945
+* ADDED: TextStim now has property `boundingBox` telling you the maximum area of the letters (defined by the font, not by the actual rendered letters) #35c168f1
+* ADDED: Aperture can now be created using images (anything that worked with ImageStim) #923 and can also be inverted so that opaque becomes transparent and vice versa #922 Thanks Thomas Emerling for both
+* ADDED: New visual stimulus EnvelopeGrating for contrast-modulated gratings. Thanks Andrew Schofield
+* ADDED: option to set mouse_exclusive mode (mouse locked to the window boundary and invisible) Thanks Suddha Sourav #898
+* FIXED: DotStim can now change field size on the fly
+* FIXED: several (but probably not all) annoying error messages that were unimportant
+* FIXED: Condition file in Builder no longer abbreviated. Thanks Mike #913
 
 PsychoPy 1.82
 ------------------------------
@@ -22,23 +32,23 @@ PsychoPy 1.82.02
 
 released Aug 2015
 
-    - FIXED: TrialHandler wasn't saving extraInfo (was overwritten during trials) `#815 <https://github.com/psychopy/psychopy/issues/815>`_
-    - FIXED: don't have pickle file re-saving itself when it comes back from pickling `#833 <https://github.com/psychopy/psychopy/issues/833>`_
-    - FIXED: Mouse Component could crash data saving if no response was made `#839 <https://github.com/psychopy/psychopy/issues/839>`_
-    - FIXED: memory leaks in MovieStim2 (opencv backend) `#838 <https://github.com/psychopy/psychopy/issues/838>`_ and `#919 <https://github.com/psychopy/psychopy/issues/919>`_
-    - FIXED: checked that window positions are integers `#854 <https://github.com/psychopy/psychopy/issues/854>`_
-    - FIXED: OSX "10.10" incorrectly looked older than "10.9" `#866 <https://github.com/psychopy/psychopy/issues/866>`_
-    - FIXED: RatingScale would show "False" for scale description in some cases `#870 <https://github.com/psychopy/psychopy/issues/870>`_
-    - FIXED: problem with microphone saving files that end with w, a or v `#875 <https://github.com/psychopy/psychopy/issues/875>`_
-    - FIXED: MonitorCenter failing to create new monitor `#887 <https://github.com/psychopy/psychopy/issues/887>`_
-    - FIXED: universal line endings in csv outputs files `#889 <https://github.com/psychopy/psychopy/issues/889>`_
-    - FIXED: unicode in conditions files `#892 <https://github.com/psychopy/psychopy/issues/892>`_
-    - FIXED: `iohub` not detecting Linux mouse events `#894 <https://github.com/psychopy/psychopy/issues/894>`_
-    - FIXED: if output file is set to be `stdout` this should then be closed `#902 <https://github.com/psychopy/psychopy/issues/902>`_
-    - FIXED: don't abbreviate the path name of conditions files `#913 <https://github.com/psychopy/psychopy/issues/913>`_
-    - FIXED: minor error in logging for `rush()` under win32 `#914 <https://github.com/psychopy/psychopy/issues/914>`_
-    - FIXED: unicode issues in user preferences panel `#930 <https://github.com/psychopy/psychopy/issues/930>`_ `#932 <https://github.com/psychopy/psychopy/issues/932>`_
-    - FIXED: MonitorCenter won't lock you out if given an invalid screen number `#937 <https://github.com/psychopy/psychopy/issues/937>`_
+    - FIXED: TrialHandler wasn't saving extraInfo (was overwritten during trials) #815
+    - FIXED: don't have pickle file re-saving itself when it comes back from pickling #833
+    - FIXED: Mouse Component could crash data saving if no response was made #839
+    - FIXED: memory leaks in MovieStim2 (opencv backend) #838 and #919
+    - FIXED: checked that window positions are integers #854
+    - FIXED: OSX "10.10" incorrectly looked older than "10.9" #866
+    - FIXED: RatingScale would show "False" for scale description in some cases #870
+    - FIXED: problem with microphone saving files that end with w, a or v #875
+    - FIXED: MonitorCenter failing to create new monitor #887
+    - FIXED: universal line endings in csv outputs files #889
+    - FIXED: unicode in conditions files #892
+    - FIXED: `iohub` not detecting Linux mouse events #894
+    - FIXED: if output file is set to be `stdout` this should then be closed #902
+    - FIXED: don't abbreviate the path name of conditions files #913
+    - FIXED: minor error in logging for `rush()` under win32 #914
+    - FIXED: unicode issues in user preferences panel #930 #932
+    - FIXED: MonitorCenter won't lock you out if given an invalid screen number #937
     - FIXED: mono++ mode in CRS Bits++/#/Display++ is now using full dynamic range (previously 8bit blue gun overlay was overriding the 16bit screen buffer)
     
 PsychoPy 1.82.01
