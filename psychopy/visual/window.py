@@ -380,7 +380,7 @@ class Window(object):
             logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def __del__(self):
-        if self._closed!=False:
+        if self._closed==False:
             self.close()
 
     def __str__(self):
@@ -961,13 +961,17 @@ class Window(object):
     def close(self):
         """Close the window (and reset the Bits++ if necess)."""
         self._closed=True
+
         try:
             openWindows.remove(self)
         except:
             pass
         if (not self.useNativeGamma) and self.origGammaRamp is not None:
             setGammaRamp(self.winHandle, self.origGammaRamp)
-        self.mouseVisible = True
+        try:
+            self.mouseVisible = True
+        except: #can cause unimportant "'NoneType' object is not callable"
+            pass
         if self.winType == 'pyglet':
             _hw_handle = None
             try:
