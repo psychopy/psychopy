@@ -383,6 +383,13 @@ class Window(object):
         if self._closed==False:
             self.close()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if not self._closed:
+            self.close()
+
     def __str__(self):
         className = 'Window'
         paramStrings = []
