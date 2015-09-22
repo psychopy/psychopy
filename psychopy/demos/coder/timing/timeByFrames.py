@@ -36,6 +36,7 @@ for frameN in range(nIntervals+1):
         break
     win.logOnFlip(msg='frame=%i' %frameN, level=logging.EXP)
     win.flip()
+win.fullscr=False
 win.close()
 
 #calculate some values

@@ -30,7 +30,7 @@ if sys.platform == 'win32':
         # either avbin isn't installed or scipy.stats has been imported
         # (prevents avbin loading)
         haveAvbin = False
-    except Exception:
+    except Exception as e:
         # WindowsError on some systems
         # AttributeError if using avbin5 from pyglet 1.2?
         haveAvbin = False
@@ -344,4 +344,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         setAttribute(self, 'autoDraw', val, log)
 
     def __del__(self):
-        self._player.next()
+        try:
+            self._player.next()
+        except:
+            pass

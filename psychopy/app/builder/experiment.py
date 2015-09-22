@@ -392,6 +392,7 @@ class Experiment(object):
             self.setExpName(shortName)
         #fetch routines
         routinesNode=root.find('Routines')
+        allCompons = getAllComponents(self.prefsBuilder['componentsFolders'], fetchIcons=False)
         for routineNode in routinesNode:#get each routine node from the list of routines
             routine_good_name = self.namespace.makeValid(routineNode.get('name'))
             if routine_good_name != routineNode.get('name'):
@@ -401,16 +402,16 @@ class Experiment(object):
             #self._getXMLparam(params=routine.params, paramNode=routineNode)
             self.routines[routineNode.get('name')]=routine
             for componentNode in routineNode:
-                allCompons = getAllComponents(self.prefsBuilder['componentsFolders'])
+                
                 componentType=componentNode.tag
                 if componentType in allCompons:
                     #create an actual component of that type
-                    component=getAllComponents(self.prefsBuilder['componentsFolders'])[componentType](\
+                    component=allCompons[componentType](\
                         name=componentNode.get('name'),
                         parentName=routineNode.get('name'), exp=self)
                 else:
                     #create UnknownComponent instead
-                    component=getAllComponents(self.prefsBuilder['componentsFolders'])['UnknownComponent'](\
+                    component=allCompons['UnknownComponent'](\
                         name=componentNode.get('name'),
                         parentName=routineNode.get('name'), exp=self)
                 # check for components that were absent in older versions of the builder and change the default behavior
