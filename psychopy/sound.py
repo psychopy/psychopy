@@ -280,7 +280,7 @@ class SoundPygame(_SoundBase):
 
     def _setSndFromFile(self, fileName):
         #load the file
-        if not os.path.ispath(filename):
+        if not path.isfile(filename):
             msg = "Sound file %s could not be found." % fileName
             logging.error(msg)
             raise ValueError(msg)
