@@ -1,9 +1,9 @@
 from psychopy import visual, core, event
 
 win = visual.Window([800,600])
-mov = visual.MovieStim(win, 'jwpIntro.mov', size=[320,240],
-                       flipVert=False, flipHoriz=False, loop=True)
-print('orig movie size=[%i,%i]' %(mov.format.width, mov.format.height))
+mov = visual.MovieStim3(win, 'jwpIntro.mov', size=[320,240],
+                       flipVert=False, flipHoriz=False, loop=False)
+print('orig movie size=%s' %(mov.size))
 print('duration=%.2fs' %(mov.duration))
 globalClock = core.Clock()
 

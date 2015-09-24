@@ -59,7 +59,7 @@ Testing has only been done on Windows and Linux so far.
 # Contributed by Sol Simpson, April 2014.
 # The MovieStim class was taken and rewritten to use cv2 and vlc instead of avbin
 
-# If True then, on each flip a new movie frame is displayed, the frame index, 
+# If True then, on each flip a new movie frame is displayed, the frame index,
 # flip time, and time since last movie frame flip will be printed
 reportNDroppedFrames = 10
 
@@ -83,8 +83,21 @@ from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 
 import ctypes
 import numpy
-import cv2
-import vlc
+try:
+    import cv2
+except:
+    print("WARNING: MovieStim2 is not available. Python opencv library (cv2) is not installed?")
+try:
+    import vlc
+except OSError, msg:
+    print("WARNING: MovieStim2 is not available. Is the VLC application installed?")
+except:
+    if sys.maxint==9223372036854775807:
+        bits=64
+    else:
+        bits=32
+    print("WARNING: MovieStim2 is not available. Failed to import vlc module. \n" + \
+        "You're using %ibit python. Is your VLC install the same?" %(bits))
 from psychopy.clock import Clock
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 
@@ -92,7 +105,7 @@ from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 #to prevent circular references with vlc's event handler
 def _audioEndCallback(event, movieInstanceRef):
     movieInstanceRef()._onEos()
-    
+
 def _audioTimeCallback(event, movieInstanceRef, streamPlayer):
     """
     Called by VLC every few hundred msec providing the current audio track

@@ -45,6 +45,11 @@ def getFontManager(mono_only=True):
     if _system_font_manager is None:
         _system_font_manager = FontManager(mono_only)
     return _system_font_manager
+#check that font manager is working
+fm=getFontManager()
+font_names = fm.getFontFamilyNames()
+if len(font_names) == 0:
+    logging.warn("TextBox Font Manager Found No Fonts.")
 
 def getGLInfo():
     gl_info=dict()

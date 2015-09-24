@@ -9,7 +9,7 @@
 import os, sys
 
 #version info for PsychoPy
-__version__='1.82.01'
+__version__='1.83.00'
 __license__='GNU GPLv3 (or more recent equivalent)'
 __author__='Jonathan Peirce'
 __author_email__='jon@peirce.org.uk'
@@ -29,7 +29,7 @@ if __git_sha__=='n/a':
     try:
         thisFileLoc = os.path.split(__file__)[0]
         output = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'],
-                                         cwd=thisFileLoc)
+                                         cwd=thisFileLoc, stderr=subprocess.PIPE)
     except:
         output=False
     if output:
