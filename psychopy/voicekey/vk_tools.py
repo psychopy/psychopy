@@ -87,7 +87,7 @@ def bandpass(data, low=80, high=1200, rate=44100, order=6):
 def rms(data):
     """Basic audio-power measure: root-mean-square of data.
 
-    Identical to std when the mean is zero; faster to compute just rms.
+    Identical to `std` when the mean is zero; faster to compute just rms.
     """
     if data.dtype == np.int16:
         md2 = data.astype(np.float) ** 2  # int16 wrap around --> negative
@@ -117,9 +117,9 @@ def smooth(data, win=16, tile=True):
     return data_pre_c_post[:len(data)]
 
 def zero_crossings(data):
-    """Return a vector length n-1 of zero-crossings within `data`.
+    """Return a vector of length n-1 of zero-crossings within vector `data`.
 
-    1 if the adjacent values switched sign
+    1 if the adjacent values switched sign, or
     0 if they stayed the same sign.
     """
     zx = np.zeros(len(data))
@@ -135,9 +135,7 @@ def tone(freq=440, sec=2, rate=44100, vol=.99):
     return np.sin(time_steps * scaling) * vol
 
 def apodize(data, ms=5, rate=44100):
-    """Apply a Hamming window (5ms) to reduce a sound's 'click' onset / offset
-
-    Default `rate` = 44100.
+    """Apply a Hamming window (5ms) to reduce a sound's 'click' onset / offset.
     """
     hw_size = int(min(rate // (1000 / ms), len(data) // 15))
     hamming_window = np.hamming(2 * hw_size + 1)
