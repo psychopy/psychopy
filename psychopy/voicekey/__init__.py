@@ -53,31 +53,49 @@ class _BaseVoiceKey(object):
 
     Accepts data as real-time input (from a microphone by default) or off-line
     (if `file_in` is a valid file).
-    Over-ride detect(), process(), and other methods as needed. See examples.
+    Over-ride detect() and other methods as needed. See examples.
     """
     def __init__(self, sec=0, file_out='', file_in='', **config):
         """
-        :Parameters:
-        sec:  duration to record in seconds
-        file_out:  name for output filename (for microphone input)
-        file_in:  name of input file for sound source (not microphone)
+    :Parameters:
+
+        sec:
+            duration to record in seconds
+        file_out:
+            name for output filename (for microphone input)
+        file_in:
+            name of input file for sound source (not microphone)
         config:  kwargs dict of parameters for configuration. defaults are:
+
             'msPerChunk': 2; duration of each real-time analysis chunk, in ms
-            'signaler': None; place-holder signaler (sends no signal)
+
+            'signaler': default None
+
             'autosave': True; False means manual saving to a file is still
                 possible (by calling .save() but not called automatically upon
                 stopping
+
             'chnl_in' : microphone channel; see pyo.pa_get_input_devices()
+
             'chnl_out': not implemented; output device to use
+
             'start': 0, select section from a file based on (start, stop) time
+
             'stop': -1, end of file (default)
+
             'vol': 0.99, volume 0..1
+
             'low': 100, Hz, low end of bandpass; can vary for M/F speakers
+
             'high': 3000, Hz, high end of bandpass
-            'threshold': 10,
+
+            'threshold': 10
+
             'baseline': 0; 0 = auto-detect; give a non-zero value to use that
+
             'more_processing': True; compute more stats per chunk including
                 bandpass; try False if 32-bit python can't keep up
+
             'zero_crossings': True
         """
         if not (pyo_server and pyo_server.getIsBooted() and
@@ -176,7 +194,7 @@ class _BaseVoiceKey(object):
         self.elapsed = 0
         self.t_enter = []  # time at chunk entry
         self.t_exit = []  # time at chunk exit
-        self.t_proc = []  # proportion of chunk-time spent doing do_chunk
+        self.t_proc = []  # proportion of chunk-time spent doing _do_chunk
 
         # data cache:
         self.data = []  # raw unprocessed data, in chunks
@@ -213,7 +231,7 @@ class _BaseVoiceKey(object):
         if self.baseline < TOO_QUIET:
             self._baselinetable = pyo.NewTable(length=T_BASELINE_OFF)
 
-    def set_baseline(self):
+    def _set_baseline(self):
         """Set self.baseline = rms(silent period) using data in _baselinetable.
 
         Called automatically (via pyo trigger) when the baseline table is full.
@@ -237,7 +255,7 @@ class _BaseVoiceKey(object):
 
         self.baseline = max(segment_power, 1)
 
-    def process(self, chunk):
+    def _process(self, chunk):
         """Calculate and store basic stats about the current chunk.
 
         This gets called every chunk -- keep it efficient, esp with 32-bit python
@@ -286,25 +304,25 @@ class _BaseVoiceKey(object):
         raise NotImplementedError('override; see SimpleThresholdVoiceKey')
 
     def trip(self):
-        """Calls the .start() method on the event-signaler thread.
-
-        Only `detect()` should call `trip()`. Customize `.detect()` and when
-        it calls trip, rather than the logic here (inside trip).
+        """Trip the voice-key; does not stop recording.
         """
+        # calls .start() on the event-signaler thread. Only `detect()` should
+        # call `trip()`. Customize `.detect()` rather than the logic here.
+
         self.event_detected = True
         self.event_time = self.elapsed
         if hasattr(self, 'event_signaler') and self.event_signaler:
             self.event_signaler.start()
 
-    def do_chunk(self):
+    def _do_chunk(self):
         """Core function to handle a chunk (= a few ms) of input.
 
         There can be small temporal gaps between or within chunks, i.e.,
         `slippage`. Adjust several parameters until this is small: msPerChunk,
-        and what processing is done within .process.
+        and what processing is done within ._process().
 
         A trigger (`_chunktrig`) signals that `_chunktable` has been filled
-        and has set `do_chunk` as the function to call upon triggering.
+        and has set `_do_chunk` as the function to call upon triggering.
         `.play()` the trigger again to start recording the next chunk.
         """
         if self.stopped:
@@ -320,7 +338,7 @@ class _BaseVoiceKey(object):
         self.data.append(chunk)
 
         # Calc basic stats, then use to detect features
-        self.process(chunk)
+        self._process(chunk)
         self.detect()  # conditionally call trip()
 
         # Trigger a new chunk recording, or stop if stopped or time is up:
@@ -334,17 +352,17 @@ class _BaseVoiceKey(object):
         self.t_exit.append(t_end)
 
     def start(self, silent=False):
-        """Start processing: start triggers that in turn fill the pyo tables.
+        """Start reading and processing audio data from a file or microphone.
         """
         if self.stopped:
             raise VoiceKeyException('cannot start a stopped recording')
         self.t_start = get_time()
 
-        # triggers: fill tables, call do_chunk & set_baseline:
+        # triggers: fill tables, call _do_chunk & _set_baseline:
         self._chunktrig = pyo.Trig()
         self._chunkrec = pyo.TrigTableRec(self._source,
                                           self._chunktrig, self._chunktable)
-        self._chunklooper = pyo.TrigFunc(self._chunkrec["trig"], self.do_chunk)
+        self._chunklooper = pyo.TrigFunc(self._chunkrec["trig"], self._do_chunk)
         self._wholetrig = pyo.Trig()
         self._wholerec = pyo.TrigTableRec(self._source,
                                           self._wholetrig, self._wholetable)
@@ -357,13 +375,13 @@ class _BaseVoiceKey(object):
                                                  self._baselinetrig,
                                                  self._baselinetable)
             self._calc_baseline = pyo.TrigFunc(self._baselinerec["trig"],
-                                               self.set_baseline)
+                                               self._set_baseline)
 
         # send _source to sound-output (speakers etc) as well:
         if self.file_in and not silent:
             self._source.out()
 
-        # start calling self.do_chunk by flipping its trigger; do_chunk then
+        # start calling self._do_chunk by flipping its trigger; _do_chunk then
         # triggers itself via _chunktrigger until done:
         self._chunktrig.play()
         self._wholetrig.play()
@@ -373,12 +391,11 @@ class _BaseVoiceKey(object):
 
     @property
     def slippage(self):
-        """Ratio of the actual (elapsed) time to the ideal time.
+        """Diagnostic: Ratio of the actual (elapsed) time to the ideal time.
 
         Ideal ratio = 1 = sample-perfect acquisition of msPerChunk, without any
-        gaps between or within chunks.
-
-        1. / slippage == proportion of samples contributing to chunk stats.
+        gaps between or within chunks. 1. / slippage is the proportion of
+        samples contributing to chunk stats.
         """
         if len(self.t_enter) > 1:
             diffs = np.array(self.t_enter[1:]) - np.array(self.t_enter[:-1])
@@ -389,17 +406,16 @@ class _BaseVoiceKey(object):
 
     @property
     def started(self):
-        """Boolean property, whether .start() has been called; mostly for debug
+        """Boolean property, whether `.start()` has been called.
         """
-        #return bool(len(self.t_enter))  # do_chunk() has been called
         return bool(hasattr(self, '_chunklooper'))  # .start() has been called
 
     def stop(self):
-        """Stop a recording in progress; self.stopped is used in do_chunk().
-
-        Will be stopped at self.count (= the chunk index), but that is less
-        reliable than self.elapsed due to any slippage.
+        """Stop a voice-key in progress. Ends and saves the recording if using microphone input.
         """
+        # Will be stopped at self.count (= the chunk index), but that is less
+        # reliable than self.elapsed due to any slippage.
+
         if self.stopped:
             return
         self.stopped = True
@@ -411,13 +427,13 @@ class _BaseVoiceKey(object):
         if self.config['autosave']:
             self.save()
 
-        # Calc the proportion of the available time spent doing do_chunk:
+        # Calc the proportion of the available time spent doing _do_chunk:
         for ch in range(len(self.t_exit)):
             t_diff = self.t_exit[ch] - self.t_enter[ch]
             self.t_proc.append(t_diff * 1000 / self.msPerChunk)
 
     def join(self, sec=None):
-        """Sleep for `sec` or until the recording should be done, call stop().
+        """Sleep for `sec` or until end-of-input, and then call stop().
         """
         sleep(sec or self.sec - self.elapsed)
         self.stop()
@@ -491,16 +507,11 @@ class SimpleThresholdVoiceKey(_BaseVoiceKey):
 class OnsetVoiceKey(_BaseVoiceKey):
     """Class for speech onset detection.
 
-    Features:
-      - bandpass-filtered signal; default band is 100-3000Hz
-      - threshold is 10x baseline audio power
-      - 10 sequential 2ms chunks must be all above threshold
-
-    When the voice key trips, the best voice onset estimate is saved as
-    `self.event_onset`, in seconds.
+    Uses bandpass-filtered signal (100-3000Hz). When the voice key trips,
+    the best voice-onset RT estimate is saved as `self.event_onset`, in seconds.
     """
     def detect(self):
-        """Trip if all chunks within (hold_duration) are > 2.5 * baseline.
+        """Trip if recent audio power is greater than the baseline for long enough.
         """
         if self.event_detected or not self.baseline:
             return
@@ -511,15 +522,24 @@ class OnsetVoiceKey(_BaseVoiceKey):
             self.event_lag = window * self.msPerChunk / 1000.
             self.event_onset = self.elapsed - self.event_lag
             self.trip()
+            self.event_time = self.event_onset
 
 
 class OffsetVoiceKey(_BaseVoiceKey):
     """Class to detect the offset of a single-word utterance.
-
-    Ends the recording after a delay; default = 300ms later.
     """
     def __init__(self, sec=10, file_out='', file_in='', delay=0.3, **kwargs):
-        """Adjust parameters `duration` and `proportion` as needed.
+        """Record and ends the recording after speech offset.  When the voice
+        key trips, the best voice-offset RT estimate is saved as
+        `self.event_offset`, in seconds.
+
+        :Parameters:
+
+            `sec`: duration of recording in the absence of speech or other sounds.
+
+            `delay`: extra time to record after speech offset, default 0.3s.
+
+        The same methods are available as for class OnsetVoiceKey.
         """
         config = {'sec': sec,
                   'file_out': file_out,
@@ -530,7 +550,7 @@ class OffsetVoiceKey(_BaseVoiceKey):
         super(OffsetVoiceKey, self).__init__(**kwargs)
 
     def detect(self):
-        """Wait for onset, offset, delay, then end the recording.
+        """Listen for onset, offset, delay, then end the recording.
         """
         if self.event_detected or not self.baseline:
             return
@@ -545,7 +565,9 @@ class OffsetVoiceKey(_BaseVoiceKey):
         elif not self.event_offset:
             window = 25
             threshold = 10 * self.baseline
+            #segment = np.array(self.power_bp[-window:])
             conditions = all([x < threshold for x in self.power_bp[-window:]])
+            #conditions = np.all(segment < threshold)
             if conditions:
                 self.event_lag = window * self.msPerChunk / 1000.
                 self.event_offset = self.elapsed - self.event_lag
@@ -572,11 +594,11 @@ class Recorder(_BaseVoiceKey):
     def __del__(self):
         if hasattr(self, 'filename') and not os.path.isfile(self.filename):
             self.save()
-    def set_baseline(self):
+    def _set_baseline(self):
         pass
     def detect(self):
         pass
-    def process(self, *args, **kwargs):
+    def _process(self, *args, **kwargs):
         pass
     def record(self, sec=None):
         try:
@@ -600,11 +622,11 @@ class Player(_BaseVoiceKey):
         super(Player, self).__init__(sec, file_in=source, **config)
     #def _set_defaults(self):  # ideally override but need more refactoring
     #    pass
-    def set_baseline(self):
+    def _set_baseline(self):
         pass
     def detect(self):
         pass
-    def process(self, *args, **kwargs):
+    def _process(self, *args, **kwargs):
         pass
     def play(self, sec=None):
         self.start().join(sec)
