@@ -205,7 +205,7 @@ class ConfigWizard(object):
         report.append(('PsychoPy', '', '', False))  # not localized
         report.append(('psychopy', __version__, _translate('avoid upgrading during an experiment'), False))
         report.append(('locale', items['systemLocale'],
-                       _translate('can be set in <a href="http://www.psychopy.org/general/prefs.html#application-settings">Preferences -> App</a>'),
+                       _translate('can be set in <a href="http://www.psychopy.org/general/prefs.html#application-settings-app">Preferences -> App</a>'),
                        False))
         msg = ''
         if items['pythonVersion'] < '2.5' or items['pythonVersion'] >= '3':
@@ -384,12 +384,12 @@ class ConfigWizard(object):
             # TO-DO: dlg to query whether to try to auto-detect (can take a while), or allow manual entry of proxy str, save into prefs
         val = str(items['systemHaveInternetAccess'])
         report.append(('internet access', val, msg, warn))
-        report.append(('auto proxy', str(self.prefs.connections['autoProxy']), _translate('try to auto-detect a proxy if needed; see <a href="http://www.psychopy.org/general/prefs.html#connection-settings">Preferences -> Connections</a>'), False))
+        report.append(('auto proxy', str(self.prefs.connections['autoProxy']), _translate('try to auto-detect a proxy if needed; see <a href="http://www.psychopy.org/general/prefs.html#connection-settings-connections">Preferences -> Connections</a>'), False))
         if not self.prefs.connections['proxy'].strip():
             prx = '&nbsp;&nbsp--'
         else:
             prx = unicode(self.prefs.connections['proxy'])
-        report.append(('proxy setting', prx, _translate('current manual proxy setting from <a href="http://www.psychopy.org/general/prefs.html#connection-settings">Preferences -> Connections</a>'), False))
+        report.append(('proxy setting', prx, _translate('current manual proxy setting from <a href="http://www.psychopy.org/general/prefs.html#connection-settings-connections">Preferences -> Connections</a>'), False))
 
         msg = ''
         warn = False
