@@ -145,14 +145,9 @@ class TestMicrophoneNoSound(object):
         newFile = wav2flac(testFile, keep=True)
         flac2wav(newFile, keep=True)
 
-        c = core.Clock()
         newFile0 = wav2flac(testFile, keep=True, level=0)
-        t0 = c.getTime()
-        c.reset()
         newFile8 = wav2flac(testFile, keep=True, level=8)
-        t8 = c.getTime()
         assert os.path.getsize(newFile0) >= os.path.getsize(newFile8)
-        assert t0 < t8
 
         wav2flac('.', keep=True)
         flac2wav('.', keep=True)
