@@ -35,8 +35,6 @@ what to do with it.
 for writing to a data file in a human readable form:""")
 print(runInfo)
 
-infoCopy = eval(repr(runInfo)) # this works, but the type() of all values is now string
-
 print("If that's more detail than you want, try: runInfo = info.RunTimeInfo(...,verbose=False,...).")
 
 # To get the same info in python syntax, use "print(repr(info))". You could write this format into 
