@@ -205,7 +205,7 @@ class ConfigWizard(object):
         report.append(('PsychoPy', '', '', False))  # not localized
         report.append(('psychopy', __version__, _translate('avoid upgrading during an experiment'), False))
         report.append(('locale', items['systemLocale'],
-                       _translate('can be set in <a href="http://www.psychopy.org/general/prefs.html#application-settings">Preferences -> App</a>'),
+                       _translate('can be set in <a href="http://www.psychopy.org/general/prefs.html#application-settings-app">Preferences -> App</a>'),
                        False))
         msg = ''
         if items['pythonVersion'] < '2.5' or items['pythonVersion'] >= '3':
@@ -255,10 +255,10 @@ class ConfigWizard(object):
             msg = _translate("""Warning: too fast? visual sync'ing with the monitor seems unlikely at 300+ Hz""")
             warn = True
         report.append(('visual sync (refresh)', "%.2f ms/frame" % items['windowRefreshTimeMedian_ms'], msg, warn))
-        msg = _translate('SD < 0.5 ms is ideal (want low variability)')
+        msg = _translate('SD &lt; 0.5 ms is ideal (want low variability)')
         warn = False
         if items['windowRefreshTimeSD_ms'] > .5:
-            msg = _translate('Warning: the refresh rate has high frame-to-frame variability (SD > 0.5 ms)')
+            msg = _translate('Warning: the refresh rate has high frame-to-frame variability (SD &gt; 0.5 ms)')
             warn = True
         report.append(('refresh stability (SD)', "%.2f ms" % items['windowRefreshTimeSD_ms'], msg, warn))
 
@@ -334,7 +334,7 @@ class ConfigWizard(object):
                     mic['name'] += 'one'  # portaudio (?) seems to clip to 16 chars
                 msg = '"%s"' % mic['name']
                 if mic['latency'] > 0.01:
-                    msg = _translate('Warning: "%s" latency > 10ms') % mic['name']
+                    msg = _translate('Warning: "%s" latency &gt; 10ms') % mic['name']
                     warn = True
                 report.append(('microphone latency', "%.4f s" % mic['latency'], msg, warn))
             else:
@@ -346,7 +346,7 @@ class ConfigWizard(object):
                 spkr = sndOutputDevices[key]
                 msg = '"%s"' % spkr['name']
                 if spkr['latency'] > 0.01:
-                    msg = _translate('Warning: "%s" latency > 10ms') % spkr['name']
+                    msg = _translate('Warning: "%s" latency &gt; 10ms') % spkr['name']
                     warn = True
                 report.append(('speakers latency', "%.4f s" % spkr['latency'], msg, warn))
             else:
@@ -384,12 +384,12 @@ class ConfigWizard(object):
             # TO-DO: dlg to query whether to try to auto-detect (can take a while), or allow manual entry of proxy str, save into prefs
         val = str(items['systemHaveInternetAccess'])
         report.append(('internet access', val, msg, warn))
-        report.append(('auto proxy', str(self.prefs.connections['autoProxy']), _translate('try to auto-detect a proxy if needed; see <a href="http://www.psychopy.org/general/prefs.html#connection-settings">Preferences -> Connections</a>'), False))
+        report.append(('auto proxy', str(self.prefs.connections['autoProxy']), _translate('try to auto-detect a proxy if needed; see <a href="http://www.psychopy.org/general/prefs.html#connection-settings-connections">Preferences -> Connections</a>'), False))
         if not self.prefs.connections['proxy'].strip():
-            prx = '&nbsp;&nbsp--'
+            prx = '&nbsp;&nbsp;--'
         else:
             prx = unicode(self.prefs.connections['proxy'])
-        report.append(('proxy setting', prx, _translate('current manual proxy setting from <a href="http://www.psychopy.org/general/prefs.html#connection-settings">Preferences -> Connections</a>'), False))
+        report.append(('proxy setting', prx, _translate('current manual proxy setting from <a href="http://www.psychopy.org/general/prefs.html#connection-settings-connections">Preferences -> Connections</a>'), False))
 
         msg = ''
         warn = False
@@ -446,7 +446,7 @@ class ConfigWizard(object):
                         except: ver = 'import ok'
                     report.append((pkg, ver, '', False))
                 except (ImportError, AttributeError):
-                    report.append((pkg, '&nbsp;&nbsp--', _translate('could not import package %s') % pkg, False))
+                    report.append((pkg, '&nbsp;&nbsp;--', _translate('could not import package %s') % pkg, False))
 
         # rewrite to avoid assumption of locale en_US:
         self.warnings = list(set([key for key, val, msg, warn in report if warn]))
@@ -485,12 +485,12 @@ class ConfigWizard(object):
         """
 
         imgfile = os.path.join(self.prefs.paths['resources'], 'psychopySplash.png')
-        self.header = u'<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>' + \
-            '<a href="http://www.psychopy.org"><image src="%s" width=396 height=156></a>' % imgfile
-        #self.iconhtml = '<a href="http://www.psychopy.org"><image src="%s" width=48 height=48></a>' % self.iconfile
-        self.footer = '<font size=-1><center>' + \
-                      _translate('This page auto-generated by the PsychoPy configuration wizard on %s') % data.getDateStr(format="%Y-%m-%d, %H:%M") +\
-                      '</center></font>'
+        self.header = u'<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body>' + \
+            '<a href="http://www.psychopy.org"><img src="%s" width=396 height=156></a>' % imgfile
+        #self.iconhtml = '<a href="http://www.psychopy.org"><img src="%s" width=48 height=48></a>' % self.iconfile
+        self.footer = '<center><font size=-1>' + \
+                      _translate('This page was auto-generated by the PsychoPy configuration wizard on %s') % data.getDateStr(format="%Y-%m-%d, %H:%M") +\
+                      '</font></center>'
 
         htmlDoc = self.header
         if fatal:
@@ -514,7 +514,8 @@ class ConfigWizard(object):
                 // toggle('ok', '') will display all rows
                 // toggle('ok', 'none') hides ok rows, leaving Warning rows shown
                 function toggle(ID, display_value) {
-                    tr=document.getElementsByTagName('tr');
+                    var tr=document.getElementsByTagName('tr'),
+                        i;
                     for (i=0;i<tr.length;i++) {
                         if (tr[i].id == ID) tr[i].style.display = display_value;
                     }
@@ -550,7 +551,7 @@ class ConfigWizard(object):
         htmlDoc += self.footer
         if not fatal and numWarn:
             htmlDoc += """<script type="text/javascript">toggle('ok', 'none'); </script>"""
-        htmlDoc += '</html>'
+        htmlDoc += '</body></html>'
 
         self.reportText = htmlDoc
 
@@ -591,7 +592,7 @@ class BenchmarkWizard(ConfigWizard):
         fps = 1000./float(info['visual sync (refresh)'].split()[0])
 
         itemsList = [('Benchmark', '', '', False)]
-        itemsList.append(('benchmark version', '0.1', _translate('dots & configuration'), False))
+        itemsList.append(('benchmark version', '0.1', _translate('dots &amp; configuration'), False))
         itemsList.append(('full-screen', str(fullscr), _translate('visual window for drawing'), False))
 
         if int(info['no dropped frames'].split('/')[0]) != 0:  # eg, "0 / 180"
