@@ -796,6 +796,7 @@ class RatingScale(MinimalStim):
         if scale is None:
             scale = self.origScaleDescription
         self.scaleDescription.setText(scale)
+        self.showScale = True
         if log and self.autoLog:
             logging.exp('RatingScale %s: setDescription="%s"' % (self.name, self.scaleDescription.text))
 
