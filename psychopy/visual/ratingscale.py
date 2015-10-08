@@ -986,8 +986,11 @@ class RatingScale(MinimalStim):
 
         # draw a dynamic marker:
         if self.markerPlaced or self.singleClick:
-            # expansion for 'glow', based on proportion of total line
+            # update position:
+            if self.singleClick and mouseNearLine:
+                self.setMarkerPos(self._getMarkerFromPos(mouseX))
             proportion = self.markerPlacedAt / self.tickMarks
+            # expansion for 'glow', based on proportion of total line
             if self.markerStyle == 'glow' and self.markerExpansion != 0:
                 if self.markerExpansion > 0:
                     newSize = 0.1 * self.markerExpansion * proportion
@@ -997,11 +1000,6 @@ class RatingScale(MinimalStim):
                     newOpacity = 1.2 - proportion
                 self.marker.setSize(self.markerBaseSize + newSize, log=False)
                 self.marker.setOpacity(min(1, max(0, newOpacity)), log=False)
-            # update position:
-            if self.singleClick and mouseNearLine:
-                self.setMarkerPos(self._getMarkerFromPos(mouseX))
-            elif not hasattr(self, 'markerPlacedAt'):
-                self.markerPlacedAt = False
             # set the marker's screen position based on tick (== markerPlacedAt)
             if self.markerPlacedAt is not False:
                 x = self.offsetHoriz + self.hStretchTotal * (-0.5 + proportion)
