@@ -951,13 +951,7 @@ class RatingScale(MinimalStim):
         if self.allowTimeOut and not self.timedOut and self.maxTime < self.clock.getTime():
             # only do this stuff once
             self.timedOut = True
-            self.noResponse = False
-            # getRT() returns a value because noResponse==False
-            self.history.append((self.getRating(), self.getRT()))
-            if log and self.autoLog:
-                logging.data('RatingScale %s: rating=%s (no response, timed out after %.3fs)' %
-                         (self.name, unicode(self.getRating()), self.maxTime) )
-                logging.data('RatingScale %s: rating RT=%.3fs' % (self.name, self.getRT()) )
+            self.acceptResponse('timed out: %.3fs' % self.maxTime, log=log)
 
         # 'disappear' == draw nothing if subj is done:
         if self.noResponse == False and self.disappear:
