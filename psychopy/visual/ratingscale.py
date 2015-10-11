@@ -1092,14 +1092,14 @@ class RatingScale(MinimalStim):
             if mouseNearLine or self.markerPlacedAt != self.markerPlacedAtLast:
                 if hasattr(self, 'targetWord'):
                     self.targetWord.setColor(self.textColor, log=False)
-                    self.targetWord.setHeight(self.textSizeSmall, log=False)
+                    #self.targetWord.setHeight(self.textSizeSmall, log=False)  # avoid TextStim memory leak
                 self.targetWord = self.labels[int(self.markerPlacedAt)]
                 self.targetWord.setColor(self.markerColor, log=False)
-                self.targetWord.setHeight(1.05 * self.textSizeSmall, log=False)
+                #self.targetWord.setHeight(1.05 * self.textSizeSmall, log=False)
                 self.markerPlacedAtLast = self.markerPlacedAt
             elif not mouseNearLine and self.wasNearLine:
                 self.targetWord.setColor(self.textColor, log=False)
-                self.targetWord.setHeight(self.textSizeSmall, log=False)
+                #self.targetWord.setHeight(self.textSizeSmall, log=False)
             self.wasNearLine = mouseNearLine
 
         # decision time = secs from first .draw() to when first 'accept' value:
