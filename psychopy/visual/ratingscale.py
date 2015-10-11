@@ -913,6 +913,15 @@ class RatingScale(MinimalStim):
 
     # autoDraw and setAutoDraw are inherited from basevisual.MinimalStim
 
+    def acceptResponse(self, triggeringAction, log=True):
+        """Commit and optionally log a response and the action.
+        """
+        self.noResponse = False
+        self.history.append((self.getRating(), self.getRT()))
+        if log and self.autoLog:
+            logging.data('RatingScale %s: (%s) rating=%s' %
+                (self.name, triggeringAction, unicode(self.getRating())) )
+
     def draw(self, log=True):
         """Update the visual display, check for response (key, mouse, skip).
 
@@ -1059,21 +1068,15 @@ class RatingScale(MinimalStim):
                         self.markerPlacedAt = self.markerPlacedAt + rightIncrement
                         self.markerPlacedBySubject = True
                     elif key in self.acceptKeys:
-                        self.noResponse = False
-                        self.history.append((self.getRating(), self.getRT()))  # RT when accept pressed
-                        logging.data('RatingScale %s: (key response) rating=%s' %
-                                         (self.name, unicode(self.getRating())) )
+                        self.acceptResponse('key response', log=log)
                     # off the end?
                     self.markerPlacedAt = max(0, self.markerPlacedAt)
                     self.markerPlacedAt = min(self.tickMarks, self.markerPlacedAt)
 
                 if (self.markerPlacedBySubject and self.singleClick
                         and self.beyondMinTime):
-                    self.noResponse = False
                     self.marker.setPos((0, self.offsetVert), '+', log=False)
-                    if log and self.autoLog:
-                        logging.data('RatingScale %s: (key single-click) rating=%s' %
-                                 (self.name, unicode(self.getRating())) )
+                    self.acceptResponse('key single-click', log=log)
 
         # handle mouse left-click:
         if not self.noMouse and self.myMouse.getPressed()[0]:
@@ -1084,18 +1087,11 @@ class RatingScale(MinimalStim):
                 self.markerPlacedBySubject = True
                 self.markerPlacedAt = self._getMarkerFromPos(mouseX)
                 if self.singleClick and self.beyondMinTime:
-                    self.noResponse = False
-                    if log and self.autoLog:
-                        logging.data('RatingScale %s: (mouse single-click) rating=%s' %
-                                 (self.name, unicode(self.getRating())) )
+                    self.acceptResponse('mouse single-click', log=log)
             # if click in accept box and conditions are met, accept the response:
             elif (self.showAccept and self.markerPlaced and self.beyondMinTime and
                     self.acceptBox.contains(mouseX, mouseY)):
-                self.noResponse = False  # accept the currently marked value
-                self.history.append((self.getRating(), self.getRT()))
-                if log and self.autoLog:
-                    logging.data('RatingScale %s: (mouse response) rating=%s' %
-                            (self.name, unicode(self.getRating())) )
+                self.acceptResponse('mouse response', log=log)
 
         if self.markerStyle == 'hover' and self.markerPlaced:
             # 'hover' --> noMouse = False during init
