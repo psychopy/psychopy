@@ -9,6 +9,7 @@ from ctypes import cdll
 from . import MouseDevice
 from ... import print2err,MouseConstants,printExceptionDetailsToStdErr
 from .. import Computer,Keyboard
+from .. import xlib
 
 currentSec=Computer.getTime
 
@@ -32,9 +33,7 @@ class Mouse(MouseDevice):
         
         if Mouse._xdll is None:
             try:
-                Mouse._xdll = cdll.LoadLibrary('libX11.so') 
-                Mouse._xdisplay = self._xdll.XOpenDisplay(None) 
-                Mouse._xscreen_count = self._xdll.XScreenCount(self._xdisplay)  
+                Mouse._xdll = cdll.LoadLibrary('libX11.so')
                 try:
                     # should use linux cmd:
                     # find /usr/lib -name libXfixes.so\*
@@ -49,6 +48,10 @@ class Mouse(MouseDevice):
             except:
                 print2err('ERROR: Mouse._xdll is None. libX11.so cound not be found')
                
+
+        Mouse._xdisplay = xlib.XOpenDisplay(None)
+        Mouse._xscreen_count = xlib.XScreenCount(Mouse._xdisplay)
+
         if Mouse._xfixsdll and self._xdll and self._display_device and self._display_device._xwindow is None:
             self._display_device._xwindow= self._xdll.XRootWindow(Mouse._xdisplay, self._display_device.getIndex())
 
