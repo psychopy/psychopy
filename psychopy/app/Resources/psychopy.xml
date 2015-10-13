@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+    <mime-type type="text/x-psyexp">
+        <comment>psychopy file</comment>
+        <icon name="psychopy"/>
+        <glob-deleteall/>
+        <glob pattern="*.psyexp"/>
+    </mime-type>
+</mime-info>
