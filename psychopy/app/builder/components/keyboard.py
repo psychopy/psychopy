@@ -18,7 +18,8 @@ _localized = {'allowedKeys': _translate('Allowed keys'),
               'store': _translate('Store'),
               'forceEndRoutine': _translate('Force end of Routine'),
               'storeCorrect': _translate('Store correct'),
-              'correctAns': _translate('Correct answer')
+              'correctAns': _translate('Correct answer'),
+              'syncScreenRefresh':_translate('sync RT with screen')
               }
 
 class KeyboardComponent(BaseComponent):
@@ -69,8 +70,8 @@ class KeyboardComponent(BaseComponent):
             hint=_translate("What is the 'correct' key? Might be helpful to add a correctAns column and use $thisTrial.correctAns"),
             label=_localized['correctAns'])
         self.params['syncScreenRefresh'] = Param(syncScreenRefresh, valType='bool',
-            label="sync RT with screen",
-            hint="A reaction time to a visual stimulus should be based on when the screen flipped",
+            label=_localized['syncScreenRefresh'],
+            hint=_translate("A reaction time to a visual stimulus should be based on when the screen flipped"),
             updates='constant', allowedUpdates=[],)
     def writeRoutineStartCode(self,buff):
         buff.writeIndented("%(name)s = event.BuilderKeyResponse()  # create an object of type KeyResponse\n" %self.params)

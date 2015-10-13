@@ -9,7 +9,7 @@
 
 import os, sys, time
 import hashlib, base64
-import httplib, mimetypes
+import httplib, mimetypes  # deprecated; use requests package instead
 import socket, re
 from psychopy import logging
 from psychopy.constants import PSYCHOPY_USERAGENT
@@ -345,7 +345,8 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIM
     ## end of http://code.activestate.com/recipes/146306/ }}}
 
 def upload(selector, filename, basicAuth=None, host=None, https=False, log=True):
-    """Upload a local file over the internet to a configured http server.
+    """DEPRECATED: Upload a local file over the internet to a configured http server.
+    Use the requests package instead. See http://www.python-requests.org/
 
     This method handshakes with a php script on a remote server to transfer a local
     file to another machine via http (using POST).
@@ -361,9 +362,6 @@ def upload(selector, filename, basicAuth=None, host=None, https=False, log=True)
         In particular, the php script `up.php` needs to be copied to the server's
         web-space, with appropriate permissions and directories, including apache
         basic auth and https (if desired). The maximum size for an upload can be configured within up.php
-
-        A configured test-server is available; see the Coder demo for details
-        (upload size is limited to ~1500 characters for the demo).
 
     **Parameters:**
 
@@ -406,12 +404,10 @@ def upload(selector, filename, basicAuth=None, host=None, https=False, log=True)
             to explicitly indicate that they want to proceed anyway, in effect saying
             "I know what I am doing and accept the risks (of using un-verified certificates)".
 
-    **Example:**
-
-        See Coder demo / misc / http_upload.py
-
     Author: Jeremy R. Gray, 2012
     """
+
+    logging.warning("Deprecated: psychopy.web.upload is superceded by requests (python package)")
 
     requireInternetAccess()  # needed to upload over http
 
