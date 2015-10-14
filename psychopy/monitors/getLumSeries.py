@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 """This function can be run as a script or imported and run as a function. The advantage of running
 as a script is that this won't interact with your existing namespace (e.g. avbin can load because scipy
