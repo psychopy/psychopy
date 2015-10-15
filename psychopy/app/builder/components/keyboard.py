@@ -18,7 +18,8 @@ _localized = {'allowedKeys': _translate('Allowed keys'),
               'store': _translate('Store'),
               'forceEndRoutine': _translate('Force end of Routine'),
               'storeCorrect': _translate('Store correct'),
-              'correctAns': _translate('Correct answer')
+              'correctAns': _translate('Correct answer'),
+              'syncScreenRefresh':_translate('sync RT with screen')
               }
 
 class KeyboardComponent(BaseComponent):
@@ -28,7 +29,8 @@ class KeyboardComponent(BaseComponent):
                 forceEndRoutine=True,storeCorrect=False,correctAns="", discardPrev=True,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal='',
-                startEstim='', durationEstim=''):
+                startEstim='', durationEstim='',
+                syncScreenRefresh=True):
         super(KeyboardComponent, self).__init__(exp, parentName, name,
                 startType=startType,startVal=startVal,
                 stopType=stopType, stopVal=stopVal,
@@ -67,6 +69,10 @@ class KeyboardComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint=_translate("What is the 'correct' key? Might be helpful to add a correctAns column and use $thisTrial.correctAns"),
             label=_localized['correctAns'])
+        self.params['syncScreenRefresh'] = Param(syncScreenRefresh, valType='bool',
+            label=_localized['syncScreenRefresh'],
+            hint=_translate("A reaction time to a visual stimulus should be based on when the screen flipped"),
+            updates='constant', allowedUpdates=[],)
     def writeRoutineStartCode(self,buff):
         buff.writeIndented("%(name)s = event.BuilderKeyResponse()  # create an object of type KeyResponse\n" %self.params)
         buff.writeIndented("%(name)s.status = NOT_STARTED\n" %self.params)
@@ -104,7 +110,10 @@ class KeyboardComponent(BaseComponent):
             keyListStr = "keyList=list(%s)" % allowedKeys  # eval() at run time
         buff.writeIndented("# keyboard checking is just starting\n")
         if store != 'nothing':
-            buff.writeIndented("%(name)s.clock.reset()  # now t=0\n" % self.params)
+            if self.params['syncScreenRefresh'].val:
+                buff.writeIndented("win.callOnFlip(%(name)s.clock.reset)  # t=0 on next screen flip\n" % self.params)
+            else:
+                buff.writeIndented("%(name)s.clock.reset()  # now t=0\n" % self.params)
         if self.params['discard previous'].val:
             buff.writeIndented("event.clearEvents(eventType='keyboard')\n")
         buff.setIndentLevel(-1, relative=True)#to get out of the if statement

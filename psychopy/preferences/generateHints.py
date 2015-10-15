@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python2
 
 # generate hints.py file from .spec files for localization of popup hints on the Preference Dialog.
 # run this script in psychopy/preferences directory to generate hints.py. If you don't have write-
