@@ -187,9 +187,9 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             self._audioStream.play()
         if status != PLAYING:
             self.status = PLAYING
+            self._videoClock.reset(-self.getCurrentFrameTime())
 
             if status == PAUSED:
-                self._videoClock.reset(-self.getCurrentFrameTime())
                 if not self.noAudio and self._audioStream:
                    self._audioSeek(self.getCurrentFrameTime())
 
