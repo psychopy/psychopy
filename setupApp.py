@@ -59,6 +59,7 @@ setup(app=['psychopy/app/psychopyApp.py'],
                                 #these aren't needed, but liked
                                 'psychopy_ext','pyfilesec','rusocsci',
                                 'bidi', #for right-left language conversions
+                                'requests', #for efficient uploading to servers
                                 ],
                               excludes=[],#anything we need to forcibly exclude?
                               resources=resources,
