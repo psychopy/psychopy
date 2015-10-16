@@ -39,11 +39,11 @@ import collections
 
 if __name__ == '__main__':
 
-    from ioHub.util import describeModule
+    from iohub.util import describeModule
 
     eyetracker_module=__import__('ioHub.devices.eyetracker.hw.sr_research.eyelink',fromlist=['EyeTracker'])
     EyeLinkEyeTracker=getattr(eyetracker_module, 'EyeTracker')
-    
+
     attributes,methods,builtins,klasses=describeModule.describe(EyeTrackerDevice,True)
 
     interfaceAttributes= collections.Counter(attributes.keys())
@@ -109,7 +109,7 @@ if __name__ == '__main__':
         print  "- Classes missing from Implementation:"
         for x in missingInImplementationK:
             print '\t',x
-            
+
         print "========================================================================================="
         #c = a - b
         #print list(c.elements())
