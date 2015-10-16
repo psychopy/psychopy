@@ -128,10 +128,10 @@ class RunTimeInfo(dict):
     def _setExperimentInfo(self, author, version, verbose):
         # try to auto-detect __author__ and __version__ in sys.argv[0] (= the users's script)
         if not author or not version:
+            lines = ''
             if os.path.isfile(sys.argv[0]):
-                f = open(sys.argv[0], 'r')
-                lines = f.read()
-                f.close()
+                with open(sys.argv[0], 'rU') as f:
+                    lines = f.read()
             if not author and '__author__' in lines:
                 linespl = lines.splitlines()
                 while linespl[0].find('__author__') == -1:

@@ -796,6 +796,7 @@ class RatingScale(MinimalStim):
         if scale is None:
             scale = self.origScaleDescription
         self.scaleDescription.setText(scale)
+        self.showScale = True
         if log and self.autoLog:
             logging.exp('RatingScale %s: setDescription="%s"' % (self.name, self.scaleDescription.text))
 
@@ -912,6 +913,15 @@ class RatingScale(MinimalStim):
 
     # autoDraw and setAutoDraw are inherited from basevisual.MinimalStim
 
+    def acceptResponse(self, triggeringAction, log=True):
+        """Commit and optionally log a response and the action.
+        """
+        self.noResponse = False
+        self.history.append((self.getRating(), self.getRT()))
+        if log and self.autoLog:
+            logging.data('RatingScale %s: (%s) rating=%s' %
+                (self.name, triggeringAction, unicode(self.getRating())) )
+
     def draw(self, log=True):
         """Update the visual display, check for response (key, mouse, skip).
 
@@ -941,13 +951,7 @@ class RatingScale(MinimalStim):
         if self.allowTimeOut and not self.timedOut and self.maxTime < self.clock.getTime():
             # only do this stuff once
             self.timedOut = True
-            self.noResponse = False
-            # getRT() returns a value because noResponse==False
-            self.history.append((self.getRating(), self.getRT()))
-            if log and self.autoLog:
-                logging.data('RatingScale %s: rating=%s (no response, timed out after %.3fs)' %
-                         (self.name, unicode(self.getRating()), self.maxTime) )
-                logging.data('RatingScale %s: rating RT=%.3fs' % (self.name, self.getRT()) )
+            self.acceptResponse('timed out: %.3fs' % self.maxTime, log=log)
 
         # 'disappear' == draw nothing if subj is done:
         if self.noResponse == False and self.disappear:
@@ -985,8 +989,11 @@ class RatingScale(MinimalStim):
 
         # draw a dynamic marker:
         if self.markerPlaced or self.singleClick:
-            # expansion for 'glow', based on proportion of total line
+            # update position:
+            if self.singleClick and mouseNearLine:
+                self.setMarkerPos(self._getMarkerFromPos(mouseX))
             proportion = self.markerPlacedAt / self.tickMarks
+            # expansion for 'glow', based on proportion of total line
             if self.markerStyle == 'glow' and self.markerExpansion != 0:
                 if self.markerExpansion > 0:
                     newSize = 0.1 * self.markerExpansion * proportion
@@ -996,11 +1003,6 @@ class RatingScale(MinimalStim):
                     newOpacity = 1.2 - proportion
                 self.marker.setSize(self.markerBaseSize + newSize, log=False)
                 self.marker.setOpacity(min(1, max(0, newOpacity)), log=False)
-            # update position:
-            if self.singleClick and mouseNearLine:
-                self.setMarkerPos(self._getMarkerFromPos(mouseX))
-            elif not hasattr(self, 'markerPlacedAt'):
-                self.markerPlacedAt = False
             # set the marker's screen position based on tick (== markerPlacedAt)
             if self.markerPlacedAt is not False:
                 x = self.offsetHoriz + self.hStretchTotal * (-0.5 + proportion)
@@ -1022,9 +1024,11 @@ class RatingScale(MinimalStim):
                     else:
                         valTmp = self.markerPlacedAt + self.low
                         val = self.fmtStr % (valTmp * self.autoRescaleFactor)
-                    self.accept.setText(val)
+                    if self.accept.text != val:  # not just for speed: reduce impact of mem leaks in TextStim
+                        self.accept.setText(val)
                 elif self.markerPlacedAt is not False:
-                    self.accept.setText(self.acceptText)
+                    if self.accept.text != self.acceptText:
+                        self.accept.setText(self.acceptText)
 
         # handle key responses:
         if not self.mouseOnly:
@@ -1058,21 +1062,15 @@ class RatingScale(MinimalStim):
                         self.markerPlacedAt = self.markerPlacedAt + rightIncrement
                         self.markerPlacedBySubject = True
                     elif key in self.acceptKeys:
-                        self.noResponse = False
-                        self.history.append((self.getRating(), self.getRT()))  # RT when accept pressed
-                        logging.data('RatingScale %s: (key response) rating=%s' %
-                                         (self.name, unicode(self.getRating())) )
+                        self.acceptResponse('key response', log=log)
                     # off the end?
                     self.markerPlacedAt = max(0, self.markerPlacedAt)
                     self.markerPlacedAt = min(self.tickMarks, self.markerPlacedAt)
 
                 if (self.markerPlacedBySubject and self.singleClick
                         and self.beyondMinTime):
-                    self.noResponse = False
                     self.marker.setPos((0, self.offsetVert), '+', log=False)
-                    if log and self.autoLog:
-                        logging.data('RatingScale %s: (key single-click) rating=%s' %
-                                 (self.name, unicode(self.getRating())) )
+                    self.acceptResponse('key single-click', log=log)
 
         # handle mouse left-click:
         if not self.noMouse and self.myMouse.getPressed()[0]:
@@ -1083,32 +1081,25 @@ class RatingScale(MinimalStim):
                 self.markerPlacedBySubject = True
                 self.markerPlacedAt = self._getMarkerFromPos(mouseX)
                 if self.singleClick and self.beyondMinTime:
-                    self.noResponse = False
-                    if log and self.autoLog:
-                        logging.data('RatingScale %s: (mouse single-click) rating=%s' %
-                                 (self.name, unicode(self.getRating())) )
+                    self.acceptResponse('mouse single-click', log=log)
             # if click in accept box and conditions are met, accept the response:
             elif (self.showAccept and self.markerPlaced and self.beyondMinTime and
                     self.acceptBox.contains(mouseX, mouseY)):
-                self.noResponse = False  # accept the currently marked value
-                self.history.append((self.getRating(), self.getRT()))
-                if log and self.autoLog:
-                    logging.data('RatingScale %s: (mouse response) rating=%s' %
-                            (self.name, unicode(self.getRating())) )
+                self.acceptResponse('mouse response', log=log)
 
         if self.markerStyle == 'hover' and self.markerPlaced:
             # 'hover' --> noMouse = False during init
             if mouseNearLine or self.markerPlacedAt != self.markerPlacedAtLast:
                 if hasattr(self, 'targetWord'):
                     self.targetWord.setColor(self.textColor, log=False)
-                    self.targetWord.setHeight(self.textSizeSmall, log=False)
+                    #self.targetWord.setHeight(self.textSizeSmall, log=False)  # avoid TextStim memory leak
                 self.targetWord = self.labels[int(self.markerPlacedAt)]
                 self.targetWord.setColor(self.markerColor, log=False)
-                self.targetWord.setHeight(1.05 * self.textSizeSmall, log=False)
+                #self.targetWord.setHeight(1.05 * self.textSizeSmall, log=False)
                 self.markerPlacedAtLast = self.markerPlacedAt
             elif not mouseNearLine and self.wasNearLine:
                 self.targetWord.setColor(self.textColor, log=False)
-                self.targetWord.setHeight(self.textSizeSmall, log=False)
+                #self.targetWord.setHeight(self.textSizeSmall, log=False)
             self.wasNearLine = mouseNearLine
 
         # decision time = secs from first .draw() to when first 'accept' value:

@@ -29,7 +29,7 @@
         <Param name="name" val="text" valType="code" updates="None"/>
         <Param name="wrapWidth" val="1.5" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
-        <Param name="text" val="$&quot;&quot;&quot;vocal RT at %.3f while recording\vocal RT at %.3f during play-back\n\nany key to continue&quot;&quot;&quot;&#10;  % (vpvk.event_onset, vpvk2.event_onset)&#10;" valType="str" updates="set every repeat"/>
+        <Param name="text" val="$&quot;&quot;&quot;vocal RT at %.3f while recording\nvocal RT at %.3f during play-back\n\nany key to continue&quot;&quot;&quot;&#10;  % (vpvk.event_onset, vpvk2.event_onset)&#10;" valType="str" updates="set every repeat"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
@@ -75,7 +75,7 @@
         <Param name="name" val="text_2" valType="code" updates="None"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
-        <Param name="text" val="Task: Read each word out loud.&#10;There will be 3 trials.&#10;&#10;Press any key to start." valType="str" updates="constant"/>
+        <Param name="text" val="Task: Read each word out loud within&#10;2 seconds. There will be 3 trials.&#10;&#10;Press any key to start." valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
@@ -130,8 +130,8 @@
       <CodeComponent name="record">
         <Param name="Begin Experiment" val="" valType="extendedCode" updates="constant"/>
         <Param name="name" val="record" valType="code" updates="None"/>
-        <Param name="Begin Routine" val="# Create a voice-key to be used:&#10;vpvk = vk.OnsetVoiceKey(&#10;    sec=2, &#10;    # msPerChunk=2,  # default&#10;    # proportion=0.7,&#10;    #signaler=Signaler(),&#10;    file_out='data/trial_'+str(trials.thisN).zfill(3)+'_'+word+'.wav')&#10;&#10;# Start it recording (and detecting):&#10;vpvk.start()  # non-blocking; don't block when using Builder" valType="extendedCode" updates="constant"/>
-        <Param name="End Routine" val="# The recorded sound is saved upon .stop() by default. But&#10;# its a good idea to call .stop() explicitly, eg, if there's much slippage:&#10;&#10;vpvk.stop()&#10;&#10;# Add the detected time into the PsychoPy data file:&#10;thisExp.addData('vk_event_onset', round(vpvk.event_onset, 3))&#10;thisExp.addData('vk_file_onset', vpvk.filename)&#10;thisExp.nextEntry()" valType="extendedCode" updates="constant"/>
+        <Param name="Begin Routine" val="# Create a voice-key to be used:&#10;vpvk = vk.OnsetVoiceKey(&#10;    sec=2, &#10;    file_out='data/trial_'+str(trials.thisN).zfill(3)+'_'+word+'.wav')&#10;&#10;# Start it recording (and detecting):&#10;vpvk.start()  # non-blocking; don't block when using Builder" valType="extendedCode" updates="constant"/>
+        <Param name="End Routine" val="# The recorded sound is saved upon .stop() by default. But&#10;# its a good idea to call .stop() explicitly, eg, if there's much slippage:&#10;&#10;vpvk.stop()&#10;&#10;# Add the detected time into the PsychoPy data file:&#10;thisExp.addData('vocal_RT', round(vpvk.event_onset, 3))&#10;thisExp.addData('bad_baseline', vpvk.bad_baseline)&#10;thisExp.addData('filename', vpvk.filename)&#10;thisExp.nextEntry()" valType="extendedCode" updates="constant"/>
         <Param name="End Experiment" val="" valType="extendedCode" updates="constant"/>
         <Param name="Each Frame" val="# Nothing needed every frame for this demo" valType="extendedCode" updates="constant"/>
       </CodeComponent>
@@ -162,8 +162,8 @@
       <CodeComponent name="playback">
         <Param name="Begin Experiment" val="" valType="extendedCode" updates="constant"/>
         <Param name="name" val="playback" valType="code" updates="None"/>
-        <Param name="Begin Routine" val="# Create another instance to use for play-back:&#10;vpvk2 = vk.OnsetVoiceKey(&#10;    proportion=0.7,&#10;    #signaler=Signaler(),&#10;    file_in=vpvk.filename)  # the input file here is output of the prior trial&#10;&#10;vpvk2.start()  # non-blocking" valType="extendedCode" updates="constant"/>
-        <Param name="End Routine" val="thisExp.addData('vk_event_onset', round(vpvk2.event_onset, 3))&#10;thisExp.addData('vk_file_name', vpvk.filename)&#10;&#10;# only needed if no other event will make this happen:&#10;thisExp.nextEntry()  # otherwise data is not saved" valType="extendedCode" updates="constant"/>
+        <Param name="Begin Routine" val="# Create another instance to use for play-back:&#10;vpvk2 = vk.OnsetVoiceKey(&#10;    file_in=vpvk.filename)  # the input file; here is output of the prior trial&#10;&#10;vpvk2.start()  # non-blocking" valType="extendedCode" updates="constant"/>
+        <Param name="End Routine" val="thisExp.addData('vocal_RT', round(vpvk2.event_onset, 3))&#10;thisExp.addData('filename', vpvk.filename)&#10;&#10;# only needed if no other event will make this happen:&#10;thisExp.nextEntry()  # otherwise data is not saved" valType="extendedCode" updates="constant"/>
         <Param name="End Experiment" val="" valType="extendedCode" updates="constant"/>
         <Param name="Each Frame" val="# nothing needed here" valType="extendedCode" updates="constant"/>
       </CodeComponent>
