@@ -19,7 +19,7 @@ sudo chmod -R g+w dist/PsychoPy2.app
 #remove matplotlib tests (45mb)
 rm -r dist/PsychoPy2.app/Contents/Resources/lib/python2.7/matplotlib/tests
 #strip all other architectures from binaries and move both to ../dist
+echo stripping i386 using ditto
 ditto --rsrc --arch x86_64 dist/PsychoPy2.app ../dist/PsychoPy2.app
 mv dist/PsychoPy2.app ../dist/PsychoPy2_fat.app
 
-mv dist/* ../dist/
