@@ -18,6 +18,10 @@ PsychoPy 1.83.01
 released Oct 2015
 
 * FIXED: new bug with pygame sounds giving fileName not defined
+* FIXED: several RatingScale bugs; reduce the memory leak (due to pyglet as used in TextStim)
+* ADDED: voice-key capability, e.g., for word-naming studies; includes a demo, auxillary functions (smoothing, zero-crossing, etc), and file-format options (all those supported by pyo)
+* CHANGED: remove support for google's speech to text (the new google API is for chrome / chromium developers only)
+* CHANGED: deprecate psychopy.web.upload(); use the requests package instead: requests.post()
 
 PsychoPy 1.83.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -62,7 +66,7 @@ released Aug 2015
     - FIXED: unicode issues in user preferences panel #930 #932
     - FIXED: MonitorCenter won't lock you out if given an invalid screen number #937
     - FIXED: mono++ mode in CRS Bits++/#/Display++ is now using full dynamic range (previously 8bit blue gun overlay was overriding the 16bit screen buffer)
-    
+
 PsychoPy 1.82.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
