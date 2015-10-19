@@ -338,14 +338,24 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             win = self.win
         self._selectWindow(win)
         self._updateFrameTexture() #will check if it's needed yet in the function
-        #make sure that textures are on and GL_TEXTURE0 is active
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glColor4f(1, 1, 1, self.opacity)  # sets opacity (1,1,1 = RGB placeholder)
-        GL.glPushMatrix()
+
+        #scale the drawing frame and get to centre of field
+        GL.glPushMatrix()#push before drawing, pop after
+        GL.glPushClientAttrib(GL.GL_CLIENT_ALL_ATTRIB_BITS)#push the data for client attributes
+
         self.win.setScale('pix')
         #move to centre of stimulus and rotate
         vertsPix = self.verticesPix
+
+        #bind textures
+        GL.glActiveTexture (GL.GL_TEXTURE1)
+        GL.glBindTexture (GL.GL_TEXTURE_2D,0)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture (GL.GL_TEXTURE0)
+        GL.glBindTexture (GL.GL_TEXTURE_2D, self._texID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+
+        GL.glColor4f(1, 1, 1, self.opacity)  # sets opacity (1,1,1 = RGB placeholder)
 
         array = (GL.GLfloat * 32)(
              1,  1, #texture coords
@@ -357,20 +367,17 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
              1, 0,
              vertsPix[3,0], vertsPix[3,1],    0.,
              )
-        GL.glPushAttrib(GL.GL_ENABLE_BIT)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-        GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
+
         #2D texture array, 3D vertex array
         GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array)
         GL.glDrawArrays(GL.GL_QUADS, 0, 4)
-        GL.glPopClientAttrib()
-        GL.glPopAttrib()
+        GL.glPopClientAttrib(GL.GL_CLIENT_ALL_ATTRIB_BITS)
+        GL.glPopAttrib(GL.GL_ENABLE_BIT)
         GL.glPopMatrix()
         #unbind the textures
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glDisable(GL.GL_TEXTURE_2D)#implicitly disables 1D
+        GL.glEnable(GL.GL_TEXTURE_2D)#implicitly disables 1D
 
     def seek(self, t):
         """Go to a specific point in time for both the audio and video streams
