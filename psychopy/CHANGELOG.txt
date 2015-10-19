@@ -10,7 +10,19 @@ Changelog
 :blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
 PsychoPy 1.83
+------------------------------
+
+PsychoPy 1.83.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+released Oct 2015
+
+* FIXED: new bug with pygame sounds giving fileName not defined
+
+PsychoPy 1.83.00
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+released Oct 2015
 
 * ADDED: MovieStim3 using an alternative backend that doesn’t require avbin, vlc or streamer. It just uses a couple of python libs and FFMPEG, which are relatively easy to package. Seems to have good performance too but this needs more testing
 * IMPROVED: speed to load psychopy.visual (“lazy loading” only the stimuli you use are loaded)
