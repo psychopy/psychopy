@@ -167,6 +167,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             if not self.noAudio:
                 self._audioStream = sound.Sound(self._mov.audio.to_soundarray(),
                                             sampleRate = self._mov.audio.fps)
+            else: #make sure we set to None (in case prev clip did have auido)
+                self._audioStream = None
         else:
             raise IOError("Movie file '%s' was not found" %filename)
         #mov has attributes:
@@ -183,15 +185,14 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         """Continue a paused movie from current position.
         """
         status = self.status
-        if not self.noAudio:
+        if self._audioStream is not None:
             self._audioStream.play()
         if status != PLAYING:
             self.status = PLAYING
             self._videoClock.reset(-self.getCurrentFrameTime())
 
             if status == PAUSED:
-                if not self.noAudio and self._audioStream:
-                   self._audioSeek(self.getCurrentFrameTime())
+                self._audioSeek(self.getCurrentFrameTime())
 
             if log and self.autoLog:
                     self.win.logOnFlip("Set %s playing" %(self.name),
@@ -385,20 +386,17 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         #video is easy: set both times to zero and update the frame texture
         self._nextFrameT = t
         self._videoClock.reset(t)
-        if not self.noAudio:
-            self._audioSeek(t)
+        self._audioSeek(t)
 
     def _audioSeek(self, t):
         #for sound we need to extract the array again and just begin at new loc
-        if self._audioStream is not None:
-            #i.e. we should have it and we do have it!
-            self._audioStream.stop()
+        if self._audioStream is None:
+            return #do nothing
+        self._audioStream.stop()
         sndArray = self._mov.audio.to_soundarray()
         startIndex = int(t*self._mov.audio.fps)
-        if not self.noAudio:
-            self._audioStream = sound.Sound(sndArray[startIndex:,:],
-                                        sampleRate = self._mov.audio.fps)
-            self._audioStream.play()
+        self._audioStream = sound.Sound(sndArray[startIndex:,:], sampleRate = self._mov.audio.fps)
+        self._audioStream.play()
 
     def _getAudioStreamTime(self):
         return self._audio_stream_clock.getTime()
