@@ -16,10 +16,17 @@ excludeComponents = ['VisualComponent', 'BaseComponent', #these are templates, n
                      'EyetrackerComponent', #this one isn't ready yet
                      ]
 
-def pilToBitmap(pil,scaleFactor=1.0):
-    image = wx.EmptyImage(pil.size[0], pil.size[1] )
-    image.SetData( pil.convert( "RGB").tostring() )
-    image.SetAlphaData(pil.convert("RGBA").tostring()[3::4])
+
+def pilToBitmap(pil, scaleFactor=1.0):
+    image = wx.EmptyImage(pil.size[0], pil.size[1])
+
+    try:  # For PIL.
+        image.SetData(pil.convert("RGB").tostring())
+        image.SetAlphaData(pil.convert("RGBA").tostring()[3::4])
+    except Exception:  # For Pillow.
+        image.SetData(pil.convert("RGB").tobytes())
+        image.SetAlphaData(pil.convert("RGBA").tobytes()[3::4])
+
     image.Rescale(image.Width*scaleFactor, image.Height*scaleFactor)
     return image.ConvertToBitmap()#wx.Image and wx.Bitmap are different
 
