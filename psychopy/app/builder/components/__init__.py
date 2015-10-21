@@ -6,10 +6,7 @@
 
 import os, glob, copy
 import wx
-try:
-    from PIL import Image
-except ImportError:
-    import Image
+from PIL import Image
 from os.path import join, dirname, abspath
 
 excludeComponents = ['VisualComponent', 'BaseComponent', #these are templates, not for use
