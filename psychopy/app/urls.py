@@ -10,7 +10,7 @@ urls['builder']="http://www.psychopy.org/builder/builder.html"
 urls['builder.loops']="http://www.psychopy.org/builder/flow.html#loops"
 #NB. builder components get their urls defined by the component code (so a custom component can have a url)
 
-urls['downloads']="https://sourceforge.net/projects/psychpy/files"
+urls['downloads']="https://github.com/psychopy/psychopy/releases"
 urls['changelog']="http://www.psychopy.org/changelog.html"
 urls['prefs']="http://www.psychopy.org/general/prefs.html"
 urls['prefs.general']="http://www.psychopy.org/general/prefs.html#general-settings"

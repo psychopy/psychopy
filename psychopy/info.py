@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Fetching data about the system"""
+
+"""This module has tools for fetching data about the system or the current Python process.
+Such info can be useful for understanding the context in which an experiment
+was run."""
+
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -15,14 +19,13 @@ import numpy, scipy, matplotlib, pyglet
 try:
     import ctypes
     haveCtypes = True
-    DWORD = ctypes.c_ulong  # for getRAM() on win
-    DWORDLONG = ctypes.c_ulonglong
 except ImportError:
     haveCtypes = False
 import hashlib
 import wx
 import locale
 import subprocess
+import psutil
 
 
 class RunTimeInfo(dict):
@@ -125,10 +128,10 @@ class RunTimeInfo(dict):
     def _setExperimentInfo(self, author, version, verbose):
         # try to auto-detect __author__ and __version__ in sys.argv[0] (= the users's script)
         if not author or not version:
+            lines = ''
             if os.path.isfile(sys.argv[0]):
-                f = open(sys.argv[0], 'r')
-                lines = f.read()
-                f.close()
+                with open(sys.argv[0], 'rU') as f:
+                    lines = f.read()
             if not author and '__author__' in lines:
                 linespl = lines.splitlines()
                 while linespl[0].find('__author__') == -1:
@@ -645,64 +648,14 @@ def _getSha1hexDigest(thing, isfile=False):
 
 def getRAM():
     """Return system's physical RAM & available RAM, in M.
-
-    Slow on Mac and Linux; fast on Windows. psutils is good but another dep.
     """
-    freeRAM = 'unknown'
-    totalRAM = 'unknown'
+    totalRAM, available = psutil.virtual_memory()[0:2]
+    return totalRAM / 1048576., available / 1048576.
 
-    if sys.platform == 'darwin':
-        lines = core.shellCall('vm_stat').splitlines()
-        pageIndex = lines[0].find('page size of ')
-        if  pageIndex > -1:
-            pagesize = int(lines[0][pageIndex + len('page size of '):].split()[0])
-            lineFree = [ln for ln in lines if ln.startswith('Pages free')][0]
-            lineSpec = [ln for ln in lines if ln.startswith('Pages speculative')][0]
-            free = float(lineFree.split()[-1])
-            spec = float(lineSpec.split()[-1])
-            freeRAM = int((free + spec) * pagesize / 1048576.)  # M
-            total = core.shellCall(['sysctl', 'hw.memsize']).split(':')
-            totalRAM = int(int(total[-1]) / 1048576.)  # M
-    elif sys.platform == 'win32':
-        if not haveCtypes:
-            return 'unknown', 'unknown'
-        try:
-            # http://code.activestate.com/recipes/511491/
-            # modified by Sol Simpson for 64-bit systems (also ok for 32-bit)
-            kernel32 = ctypes.windll.kernel32
-            class MEMORYSTATUS(ctypes.Structure):
-                _fields_ = [
-                ('dwLength', DWORD),
-                ('dwMemoryLoad', DWORD),
-                ('dwTotalPhys', DWORDLONG), # ctypes.c_ulonglong for 64-bit
-                ('dwAvailPhys', DWORDLONG),
-                ('dwTotalPageFile', DWORDLONG),
-                ('dwAvailPageFile', DWORDLONG),
-                ('dwTotalVirtual', DWORDLONG),
-                ('dwAvailVirtual', DWORDLONG),
-                ('ullAvailExtendedVirtual', DWORDLONG),
-                ]
-            memoryStatus = MEMORYSTATUS()
-            memoryStatus.dwLength = ctypes.sizeof(MEMORYSTATUS)
-            kernel32.GlobalMemoryStatusEx(ctypes.byref(memoryStatus))
+# faster to get the current process only once:
+_thisProcess = psutil.Process()
 
-            totalRAM = int(memoryStatus.dwTotalPhys / 1048576.) # M
-            freeRAM = int(memoryStatus.dwAvailPhys / 1048576.) # M
-        except:
-            pass
-    elif sys.platform.startswith('linux'):
-        try:
-            so = core.shellCall('free')
-            lines = so.splitlines()
-            freeRAM = int(int(lines[1].split()[3]) / 1024.)  # M
-            totalRAM = int(int(lines[1].split()[1]) / 1024.)
-        except:
-            pass
-    else: # bsd, works on mac too
-        try:
-            total = core.shellCall('sysctl -n hw.memsize')
-            totalRAM = int(int(total) / 1048576.)
-            # not sure how to get available phys mem
-        except:
-            pass
-    return totalRAM, freeRAM
+def getMemoryUsage():
+    """Get the memory (RAM) currently used by this Python process, in M.
+    """
+    return _thisProcess.memory_info()[0] / 1048576.

@@ -378,6 +378,7 @@ class _BaseTrialHandler(object):
         expId=id(exp)
         _experiments[expId] = exp
         self._exp = expId
+        self.origin = None #this will have been stored by the exp so don't store again
     def getExp(self):
         """Return the ExperimentHandler that this handler is attached to, if any.
         Returns None if not attached
@@ -643,7 +644,9 @@ class _BaseTrialHandler(object):
         the calling script is the originPath (fine from a standard python script).
         """
         #self.originPath and self.origin (the contents of the origin file)
-        if originPath is None or not os.path.isfile(originPath):
+        if originPath == -1:
+            return -1, None #the user wants to avoid storing this
+        elif originPath is None or not os.path.isfile(originPath):
             try:
                 originPath = inspect.getouterframes(inspect.currentframe())[2][1]
                 if self.autoLog:
@@ -714,9 +717,9 @@ class TrialHandler(_BaseTrialHandler):
                 of trials, by seeding its startpoint
 
             originPath: a string describing the location of the script/experiment file path
-                The psydat file format will store a copy of the experiment if possible. If no file path
+                The psydat file format will store a copy of the experiment if possible. If `originPath==None`
                 is provided here then the TrialHandler will still store a copy of the script where it was
-                created
+                created. If `OriginPath==-1` then nothing will be stored.
 
         :Attributes (after creation):
 
@@ -1345,9 +1348,9 @@ class TrialHandlerExt(TrialHandler):
                 of trials, by seeding its startpoint
 
             originPath: a string describing the location of the script/experiment file path
-                The psydat file format will store a copy of the experiment if possible. If no file path
+                The psydat file format will store a copy of the experiment if possible. If `originPath==None`
                 is provided here then the TrialHandler will still store a copy of the script where it was
-                created
+                created. If `OriginPath==-1` then nothing will be stored.
 
         :Attributes (after creation):
 
