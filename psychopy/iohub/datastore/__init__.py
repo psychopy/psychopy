@@ -39,9 +39,9 @@ perhaps one less than this.  < S. Simpson Note: These are 'not' GIL bound
 threads and therefore actually improve performance > """
 
 DATA_FILE_TITLE = "ioHub DataStore - Experiment Data File."
-FILE_VERSION = '0.8.1.1'
+FILE_VERSION = '1.0.0.1'
 SCHEMA_AUTHORS = 'Sol Simpson'
-SCHEMA_MODIFIED_DATE = 'Dec 19th, 2014'
+SCHEMA_MODIFIED_DATE = 'October 18th, 2015'
 
         
 class ioHubpyTablesFile():
@@ -163,6 +163,12 @@ class ioHubpyTablesFile():
 
         try:
             self.TABLES['TOUCH']=self.emrtFile.root.data_collection.events.touch.TouchEvent
+        except:
+            # Just means the table for this event type has not been created as the event type is not being recorded
+            pass
+
+        try:
+            self.TABLES['WINTAB_TABLET_SAMPLE']=self.emrtFile.root.data_collection.events.wintab.WintabTabletSampleEvent
         except:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
@@ -305,6 +311,7 @@ class ioHubpyTablesFile():
         self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'keyboard', title='Keyboard Device Events.')
         self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'mouse', title='Mouse Device Events.')
         self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'touch', title='Touch Device Events.')
+        self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'wintab', title='Wintab Tablet Device Events.')
         self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'gamepad', title='GamePad Device Events.')
         self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'analog_input', title='AnalogInput Device Events.')
         self.emrtFile.createGroup(self.emrtFile.root.data_collection.events, 'eyetracker', title='EyeTracker Device Events.')
@@ -320,6 +327,7 @@ class ioHubpyTablesFile():
         self._eventGroupMappings['KEYBOARD_CHAR']=self.emrtFile.root.data_collection.events.keyboard
         self._eventGroupMappings['MOUSE_INPUT']=self.emrtFile.root.data_collection.events.mouse
         self._eventGroupMappings['TOUCH']=self.emrtFile.root.data_collection.events.touch
+        self._eventGroupMappings['WINTAB_TABLET_SAMPLE']=self.emrtFile.root.data_collection.events.wintab
         self._eventGroupMappings['GAMEPAD_STATE_CHANGE']=self.emrtFile.root.data_collection.events.gamepad
         self._eventGroupMappings['MULTI_CHANNEL_ANALOG_INPUT']=self.emrtFile.root.data_collection.events.analog_input
         self._eventGroupMappings['ANALOG_INPUT']=self.emrtFile.root.data_collection.events.mcu

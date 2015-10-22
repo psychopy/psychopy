@@ -130,7 +130,10 @@ try:
     
         GAMEPAD_STATE_CHANGE=81
         GAMEPAD_DISCONNECT=82
-        
+
+        WINTAB_TABLET_INPUT=90
+        WINTAB_TABLET_SAMPLE=91
+
         DIGITAL_INPUT=101
         ANALOG_INPUT=102
         THRESHOLD = 103
@@ -213,6 +216,9 @@ try:
         
             #: Constant for a Gamepad Event.
             GAMEPAD_STATE_CHANGE=81
+
+            #: Constant for a WinTab Tablet Sample Event.
+            WINTAB_TABLET_SAMPLE=91
 
             #: Constant for MCU digital input Event.
             DIGITAL_INPUT=101
@@ -301,6 +307,7 @@ try:
         
         XINPUT = 70
         GAMEPAD = 80
+        WINTABTABLET = 90
         MCU = 100
         SERIAL = 110
         PSTBOX = 111
@@ -337,6 +344,9 @@ try:
 
             #: Constant for Gamepad Device.
             GAMEPAD=80
+
+            #: Constant for Tablet Device that uses WinTab DLL.
+            WINTABTABLET = 90
 
             #: Constant for a MCU Device.
             MCU = 100
