@@ -323,6 +323,8 @@ class ConfigWizard(object):
         #elif items['systemPyoVersion'] < '0.6.2':
         #    msg = 'pyo 0.6.2 compiled with --no-messages will suppress start-up messages'
         report.append(('pyo', items['systemPyoVersion'], msg, warn))
+        '''
+        ### Latency as reported by PortAudio are not reliable
         # sound latencies from portaudio; requires pyo svn r1024
         try:
             sndInputDevices = items['systemPyo.InputDevices']
@@ -354,16 +356,7 @@ class ConfigWizard(object):
         except KeyError:
             pass
         s2t = '<a href="http://www.psychopy.org/api/microphone.html?highlight=Speech2Text">speech-to-text</a>'
-        msg = _translate('audio codec for %s and sound file compression') % s2t
-        warn = False
-        if not 'systemFlacVersion' in items:
-            msg = _translate('Warning: flac is needed for using %s and sound compression.') % s2t +\
-                  ' <a href="http://flac.sourceforge.net/download.html">' +\
-                  _translate('Download</a> [sourceforge.net].')
-            warn = True
-            items['systemFlacVersion'] = _translate('(missing)')
-        if verbose:
-            report.append(('flac', items['systemFlacVersion'].lstrip('flac '), msg, warn))
+        '''
         # TO-DO: add microphone + playback as sound test
 
         # ----- NUMERIC: -----
@@ -391,6 +384,8 @@ class ConfigWizard(object):
             prx = unicode(self.prefs.connections['proxy'])
         report.append(('proxy setting', prx, _translate('current manual proxy setting from <a href="http://www.psychopy.org/general/prefs.html#connection-settings-connections">Preferences -> Connections</a>'), False))
 
+        '''
+        ### system processes during initial set-up seem to confuse people more than help
         msg = ''
         warn = False
         # assure that we have a list
@@ -405,8 +400,10 @@ class ConfigWizard(object):
         else:
             val = _translate('No bad background processes active.')
         report.append(('background processes', val, msg, warn))
+        ## no one asks about OpenSSL
         if verbose and 'systemSec.OpenSSLVersion' in items:
             report.append(('OpenSSL', items['systemSec.OpenSSLVersion'].lstrip('OpenSSL '), 'for <a href="http://www.psychopy.org/api/encryption.html">encryption</a>', False))
+        '''
         report.append(('CPU speed test', "%.3f s" % items['systemTimeNumpySD1000000_sec'], _translate('numpy.std() of 1,000,000 data points'), False))
             # TO-DO: more speed benchmarks
             # - load large image file from disk
