@@ -813,7 +813,16 @@ class Device(ioObject):
     DEVICE_TYPE_ID=None
     DEVICE_TYPE_STRING=None
 
-    __slots__=[e[0] for e in _newDataTypes]+['_native_event_buffer',
+    # _hw_interface_status constants
+    HW_STAT_UNDEFINED = u"HW_STAT_UNDEFINED"
+    HW_STAT_NOT_INITIALIZED = u"HW_NOT_INITIALIZED"
+    HW_STAT_ERROR = u"HW_ERROR"
+    HW_STAT_OK = u"HW_OK"
+
+
+    __slots__=[e[0] for e in _newDataTypes]+['_hw_interface_status',
+                                             '_hw_error_str',
+                                             '_native_event_buffer',
                                             '_event_listeners',
                                             '_iohub_event_buffer',
                                             '_last_poll_time',
@@ -886,6 +895,8 @@ class Device(ioObject):
         self._last_callback_time = 0
         self._native_event_buffer = deque(maxlen=self.event_buffer_length)
         self._filters = dict()
+        self._hw_interface_status = self.HW_STAT_UNDEFINED
+        self._hw_error_str=u''
 
     def getConfiguration(self):
         """
@@ -1026,6 +1037,23 @@ class Device(ioObject):
             (bool): Current reporting state.
         """
         return self._is_reporting_events
+
+    def _setHardwareInterfaceStatus(self, status, error_msg=u''):
+        if status is True:
+            self._hw_interface_status =  self.HW_STAT_OK
+            self._hw_error_str = u""
+        elif status is False:
+            self._hw_interface_status =  self.HW_STAT_ERROR
+            self._hw_error_str = error_msg
+        else:
+            self._hw_interface_status = status
+            self._hw_error_str = error_msg
+
+    def getLastInterfaceErrorString(self):
+        return self._hw_error_str
+
+    def getInterfaceStatus(self):
+        return self._hw_interface_status
 
     def addFilter(self, filter_file_path, filter_class_name, kwargs):
         """
