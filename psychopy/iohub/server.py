@@ -17,7 +17,7 @@ import os,sys
 from operator import itemgetter
 from collections import deque
 import psychopy.iohub
-from psychopy.iohub import OrderedDict, convertCamelToSnake, IO_HUB_DIRECTORY
+from psychopy.iohub import OrderedDict, convertCamelToSnake, IO_HUB_DIRECTORY,EXP_SCRIPT_DIRECTORY
 from psychopy.iohub import load, dump, Loader, Dumper
 from psychopy.iohub import print2err, printExceptionDetailsToStdErr, ioHubError
 from psychopy.iohub import DeviceConstants, EventConstants
@@ -80,6 +80,8 @@ class udpServer(DatagramServer):
             return self.handleGetEvents(replyTo)
         elif request_type == 'EXP_DEVICE':
             return self.handleExperimentDeviceRequest(request,replyTo)
+        elif request_type == 'CUSTOM_TASK':
+            return self.handleCustomTaskRequest(request,replyTo)
         elif request_type == 'RPC':
             callable_name=request.pop(0)
             args=None
@@ -126,13 +128,56 @@ class udpServer(DatagramServer):
             try:
                 self.shutDown()
             except:
-                printExceptionDetailsToStdErr
+                printExceptionDetailsToStdErr()
         else:
             print2err("RPC_NOT_CALLABLE_ERROR")
             printExceptionDetailsToStdErr()
             self.sendResponse('RPC_NOT_CALLABLE_ERROR', replyTo)
             return False
-            
+
+    def handleCustomTaskRequest(self, request, replyTo):
+        custom_tasks = self.iohub.custom_tasks
+        subtype = request.pop(0)
+        tasklet_label = request.pop(0)
+        print2err("REQUEST: {}".format(request))
+        if subtype == "START":
+            import importlib, sys
+            try:
+                print2err("EXP_SCRIPT_DIRECTORY: ",EXP_SCRIPT_DIRECTORY)
+                task_class_path  = request.pop(0)
+                if EXP_SCRIPT_DIRECTORY not in sys.path:
+                    sys.path.append(EXP_SCRIPT_DIRECTORY)
+                mod_name, class_name = task_class_path.rsplit('.', 1)
+                mod = importlib.import_module(mod_name)
+                task_cls = getattr(mod, class_name)
+                if custom_tasks.get(tasklet_label):
+                    custom_tasks.get(tasklet_label).stop()
+                    del custom_tasks[tasklet_label]
+
+                class_kwargs = {}
+                if len(request):
+                    class_kwargs = request.pop(0)
+                custom_tasks[tasklet_label] = task_cls(**class_kwargs)
+                custom_tasks[tasklet_label].start()
+            except:
+                print2err(
+                    "ioHub Serial Device Error: could not load "
+                    "custom_parser function: ", task_class_path)
+                printExceptionDetailsToStdErr()
+            print2err("Received CUSTOM TASK START: {}".format(request))
+        elif subtype == "STOP":
+            tcls = custom_tasks.get(tasklet_label)
+            if tcls:
+                tcls.stop()
+                del custom_tasks[tasklet_label]
+            print2err("Received CUSTOM TASK STOP: {}".format(request))
+        else:
+            print2err("Received UNKNOWN CUSTOM TASK SUBTYPE: {}".format(subtype))
+
+        edata=('CUSTOM_TASK_REPLY', request)
+        self.sendResponse(edata, replyTo)
+
+
     def handleGetEvents(self,replyTo):
         try:
             self.iohub.processDeviceEvents()
@@ -474,6 +519,7 @@ class ioServer(object):
         self.config=config
         self.devices=[]
         self.deviceMonitors=[]
+        self.custom_tasks=OrderedDict()
         self.sessionInfoDict=None
         self.experimentInfoList=None
         self.filterLookupByInput={}

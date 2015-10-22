@@ -813,7 +813,21 @@ class ioHubConnection(object):
         """
         r=self._sendToHubServer(('RPC','flushIODataStoreFile'))
         print "flushIODataStoreFile: ",r[2]
-        return r[2]
+        return r
+
+    def startCustomTasklet(self, task_name, task_class_path, **class_kwargs):
+        """
+
+        """
+        class_kwargs.setdefault('name',task_name)
+        r=self._sendToHubServer(('CUSTOM_TASK','START',task_name, task_class_path, class_kwargs))
+        return r
+    def stopCustomTasklet(self, task_name):
+        """
+
+        """
+        r=self._sendToHubServer(('CUSTOM_TASK','STOP',task_name))
+        return r
 
     def shutdown(self):
         """
