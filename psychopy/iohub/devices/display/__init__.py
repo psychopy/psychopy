@@ -65,7 +65,7 @@ class Display(Device):
     def getDeviceNumber(self):
         """
         Same as Display.getIndex(). All ioHub devices have a device_number,
-        so for the Display Device it makes sence to map device_number to the
+        so for the Display Device it makes sense to map device_number to the
         Display index.
         
         See Display.getIndex().
@@ -102,13 +102,11 @@ class Display(Device):
         """
         return len(cls._computer_display_runtime_info_list)
 
-
-
     def getRuntimeInfo(self):
         """
         Returns a dictionary containing run-time determined settings for the 
         current Display Device,  based on querying system settings regarding the 
-        Monitor. Some of these values may not repesent the *actual* state the Display
+        Monitor. Some of these values may not represent the *actual* state the Display
         is running in if there is an issue with the Display driver or OS interface to it.
         The main property that should always be questioned is the Display's reported 
         retrace rate. An independent test should be done to determine if the reported
