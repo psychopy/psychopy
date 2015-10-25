@@ -405,7 +405,6 @@ class RatingScale(MinimalStim):
                 self.labelTexts = tickMarks
             if self.scale == "<default>":
                 self.scale = False
-        self.showScale = (self.scale not in [None, False])
 
         # Marker pre-positioned? [do after anchors]
         try:
@@ -796,7 +795,7 @@ class RatingScale(MinimalStim):
         if scale is None:
             scale = self.origScaleDescription
         self.scaleDescription.setText(scale)
-        self.showScale = True
+        self.showScale = bool(scale)  # not in [None, False, '']
         if log and self.autoLog:
             logging.exp('RatingScale %s: setDescription="%s"' % (self.name, self.scaleDescription.text))
 
