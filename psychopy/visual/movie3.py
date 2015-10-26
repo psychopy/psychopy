@@ -30,12 +30,13 @@ reportNDroppedFrames = 10
 import os
 
 from psychopy import logging
-from psychopy import sound
+from psychopy import sound, prefs
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 
 from moviepy.video.io.VideoFileClip import VideoFileClip
+from scipy.io import wavfile
 
 import ctypes
 import numpy
@@ -165,8 +166,16 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         if os.path.isfile(filename):
             self._mov = VideoFileClip(filename, audio= (1-self.noAudio))
             if not self.noAudio:
-                self._audioStream = sound.Sound(self._mov.audio.to_soundarray(),
-                                            sampleRate = self._mov.audio.fps)
+                # hack to greatly reduce memory leak
+                # severe leak if pass `data` directly to sound.Sound()
+                data = self._mov.audio.to_soundarray()
+                rate = self._mov.audio.fps
+                tmpfile = os.path.join(prefs.paths['userPrefsDir'], '__tmp_movie3.wav')
+                try:
+                    wavfile.write(tmpfile, rate, data)
+                    self._audioStream = sound.Sound(tmpfile, sampleRate=rate)
+                finally:
+                    os.remove(tmpfile)
             else: #make sure we set to None (in case prev clip did have auido)
                 self._audioStream = None
         else:
