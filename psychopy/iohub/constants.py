@@ -133,7 +133,9 @@ try:
 
         WINTAB_TABLET_INPUT=90
         WINTAB_TABLET_SAMPLE=91
-
+        WINTAB_TABLET_ENTER_REGION=92
+        WINTAB_TABLET_LEAVE_REGION=93
+        
         DIGITAL_INPUT=101
         ANALOG_INPUT=102
         THRESHOLD = 103
@@ -219,6 +221,12 @@ try:
 
             #: Constant for a WinTab Tablet Sample Event.
             WINTAB_TABLET_SAMPLE=91
+
+            #: Constant for a WinTab Tablet Region Entered Event.
+            WINTAB_TABLET_ENTER_REGION=92
+
+            #: Constant for a WinTab Tablet Region Leave Event.
+            WINTAB_TABLET_LEAVE_REGION=93
 
             #: Constant for MCU digital input Event.
             DIGITAL_INPUT=101

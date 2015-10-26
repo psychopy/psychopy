@@ -112,8 +112,6 @@ PK_TANGENT_PRESSURE = 0x0800	# tangential or barrel pressure
 PK_ORIENTATION = 0x1000	# orientation info: tilts
 PK_ROTATION = 0x2000	# rotation info; 1.1
 
-from wintab_context_docstr import CONTEXT_FIELD_DOCSTR
-
 DEFAULT_PACKET_DATA_FIELDS = (
             PK_STATUS | PK_TIME | PK_CHANGED |
             PK_SERIAL_NUMBER | PK_CURSOR | PK_BUTTONS |
@@ -358,9 +356,9 @@ WTX_EXPKEYS = 5	# ExpressKeys; 1.3
 import ctypes
 
 import pyglet
-from pyglet.input.base import DeviceOpenException
 from pyglet.event import EventDispatcher
-from psychopy.iohub import print2err, Computer
+from psychopy.iohub import print2err
+from ...constants import EventConstants
 
 def wtinfo(category, index, buffer):
     size = lib.WTInfoW(category, index, None)
@@ -551,8 +549,6 @@ class PygletWintabTabletCanvas(EventDispatcher):
         self._pressure_scale = device.tip_pressure_axis.get_scale()
         self._pressure_bias = device.tip_pressure_axis.get_bias()
 
-        #self.push_handlers(self)
-
     def getContextInfo(self):
         return struct2dict(self.context_info)
 
@@ -567,16 +563,69 @@ class PygletWintabTabletCanvas(EventDispatcher):
         del self.window._event_handlers[self.msg_base + WT_PROXIMITY]
 
     def _set_current_cursor(self, cursor_type):
-        if self._current_cursor:
-            print2err('HANDLE _set_current_cursor->on_leave: ', self._current_cursor)
-            #self.dispatch_event('on_leave', self._current_cursor)
-
         self._current_cursor = self.device._cursor_map.get(cursor_type, None)
 
         if self._current_cursor:
-            #self.dispatch_event('on_enter', self._current_cursor)
-            print2err('HANDLE _set_current_cursor->on_enter: ', self._current_cursor)
+            self.addHubEvent(None, EventConstants.WINTAB_TABLET_ENTER_REGION)
 
+    def addHubEvent(self,packet,evt_type=EventConstants.WINTAB_TABLET_SAMPLE):
+        # TODO: Display (screen) index
+        display_id = 0
+        window_id = self.window._hwnd
+
+        ccursor = self._current_cursor
+        if ccursor is None:
+            ccursor = 0
+        else:
+            ccursor = ccursor._cursor
+            
+        cevt=None
+        if packet == None or evt_type != EventConstants.WINTAB_TABLET_SAMPLE:
+            cevt = [evt_type,
+                    0,
+                    0,
+                    display_id,         #
+                    window_id,          #
+                    0,
+                    ccursor,           #('cursor',N.uint32),
+                    0,
+                    0,                 #('x',N.int32),
+                    0,                 #('y',N.int32),
+                    0,                 #('z',N.int32),
+                    0,          #('pressure_normal',N.uint32),
+                    0, #('pressure_tangent',N.uint32),
+                    0,         #('orient_azimuth',N.int32),
+                    0,        #('orient_altitude;',N.int32),
+                    0,           #('orient_twist',N.int32),
+                    0,           #('rotation_pitch',N.int32),
+                    0,            #('rotation_roll',N.int32),
+                    0,             #('rotation_yaw',N.int32),
+                    ]
+        else:
+            cevt = [evt_type,
+                    packet.pkTime,
+                    packet.pkStatus,
+                    display_id,         #
+                    window_id,          #
+                    packet.pkSerialNumber,
+                    ccursor,           #('cursor',N.uint32),
+                    packet.pkButtons,
+                    packet.pkX,                 #('x',N.int32),
+                    packet.pkY,                 #('y',N.int32),
+                    packet.pkZ,                 #('z',N.int32),
+                    #(packet.pkNormalPressure + self._pressure_bias) * \
+                    #            self._pressure_scale,
+                    packet.pkNormalPressure,          #('pressure_normal',N.uint32),
+                    packet.pkTangentPressure, #('pressure_tangent',N.uint32),
+                    packet.pkOrientation.orAzimuth,         #('orient_azimuth',N.int32),
+                    packet.pkOrientation.orAltitude,        #('orient_altitude;',N.int32),
+                    packet.pkOrientation.orTwist,           #('orient_twist',N.int32),
+                    packet.pkRotation.roPitch,           #('rotation_pitch',N.int32),
+                    packet.pkRotation.roRoll,            #('rotation_roll',N.int32),
+                    packet.pkRotation.roYaw,             #('rotation_yaw',N.int32),
+                    ]            
+        self._iohub_events.append(cevt)
+        
     @pyglet.window.win32.Win32EventHandler(0)
     def _event_wt_packet(self, msg, wParam, lParam):
         if lParam != self._context:
@@ -587,61 +636,30 @@ class PygletWintabTabletCanvas(EventDispatcher):
             return
 
         if not packet.pkChanged:
-            print2err("No Change to wintab pkt: {}".format(packet.pkSerialNumber))
             return
-
-        # TODO: Display (screen) index
-        display_id = 0
-        window_id = self.window._hwnd
 
         if self._current_cursor is None:
             self._set_current_cursor(packet.pkCursor)
-
-        ccursor = self._current_cursor
-        if ccursor is None:
-            ccursor = 0
-
-        cevt = [packet.pkTime,
-                packet.pkStatus,
-                display_id,         #
-                window_id,          #
-                packet.pkSerialNumber,
-                ccursor._cursor,           #('cursor',N.uint32),
-                packet.pkButtons,
-                packet.pkX,                 #('x',N.int32),
-                packet.pkY,                 #('y',N.int32),
-                packet.pkZ,                 #('z',N.int32),
-                #(packet.pkNormalPressure + self._pressure_bias) * \
-                #            self._pressure_scale,
-                packet.pkNormalPressure,          #('pressure_normal',N.uint32),
-                packet.pkTangentPressure, #('pressure_tangent',N.uint32),
-                packet.pkOrientation.orAzimuth,         #('orient_azimuth',N.int32),
-                packet.pkOrientation.orAltitude,        #('orient_altitude;',N.int32),
-                packet.pkOrientation.orTwist,           #('orient_twist',N.int32),
-                packet.pkRotation.roPitch,           #('rotation_pitch',N.int32),
-                packet.pkRotation.roRoll,            #('rotation_roll',N.int32),
-                packet.pkRotation.roYaw,             #('rotation_yaw',N.int32),
-                ]
-
-        self._iohub_events.append(cevt)
+        
+        self.addHubEvent(packet)
 
     @pyglet.window.win32.Win32EventHandler(0)
     def _event_wt_proximity(self, msg, wParam, lParam):
         if wParam != self._context:
             return
-        print2err("TODO: Handle _event_wt_proximity event: {}, {}, {}".format(msg,wParam,lParam))
-        if not lParam & 0xffff0000:
-            # Not a hardware proximity event
-            return
 
-        if not lParam & 0xffff:
-            # Going out
-            #self.dispatch_event('on_leave', self._current_cursor)
+        if lParam & 0xffff:
+            # Proximity Enter Event
+            # If going in, proximity event will be generated by next event, which
+            # can actually grab a cursor id, so evt is generated when
+            # _set_current_cursor() is called with a non None cursor.
             pass
+        else:
+            # Proximity Leave Event
+            self.addHubEvent(None, EventConstants.WINTAB_TABLET_LEAVE_REGION)
+            self._current_cursor = None
 
-        # If going in, proximity event will be generated by next event, which
-        # can actually grab a cursor id.
-        self._current_cursor = None
+
 
 class WintabTabletCursor(object):
     def __init__(self, device, index):

@@ -21,16 +21,12 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 #
 #   3) Refactor code so that wintab.__init__.py and win32.py are separated
 #      in a more sensible way
-#
-#   4) Allow experiment to check if tablet device was successfully found
-#      and started, instead of creating print2err msg's.
-#
+##
 #   4) Check for missing serial numbers in PACKET evt stream.
 #
 _is_epydoc=False
 
 # Pen digitizers /tablets that support Wintab API
-import gevent
 from psychopy.iohub import Computer, Device,print2err
 from ...constants import EventConstants, DeviceConstants
 import numpy as N
@@ -40,7 +36,9 @@ class WintabTablet(Device):
     The Wintab class docstr TBC
 
     """
-    EVENT_CLASS_NAMES=['WintabTabletSampleEvent',]
+    EVENT_CLASS_NAMES=['WintabTabletSampleEvent',
+                       'WintabTabletEnterRegionEvent',
+                       'WintabTabletLeaveRegionEvent']
 
     DEVICE_TYPE_ID=DeviceConstants.WINTABTABLET
     DEVICE_TYPE_STRING='WINTABTABLET'
@@ -57,8 +55,6 @@ class WintabTablet(Device):
         self._init_wintab()
 
     def _init_wintab(self):
-
-        from .win32 import get_tablets
         self._wtablets = get_tablets()
         index = self.getConfiguration().get('device_number',0)
 
@@ -74,8 +70,6 @@ class WintabTablet(Device):
                                              u"WinTab devices detected.".
                                              format(index, len(self._wtablets)))
             return False
-
-        name = self._wtablets[index].name
 
         exp_screen_info = self._display_device.getRuntimeInfo()
         swidth, sheight = exp_screen_info.get('pixel_resolution',[None, None])
@@ -133,7 +127,7 @@ class WintabTablet(Device):
                     del wtc._iohub_events[:]
                 return False
 
-            confidence_interval = self._last_poll_time - logged_time
+            confidence_interval = logged_time - self._last_poll_time
             #TODO: Determine if delay can be calculated.
             #      Using 0 for now as it is unknown.
             delay = 0.0
@@ -158,6 +152,7 @@ class WintabTablet(Device):
         :return:
         '''
         logged_time, delay, confidence_interval, wt_event = native_event_data
+        evt_type = wt_event.pop(0)
         device_time = wt_event.pop(0)
         evt_status = wt_event.pop(0)
 
@@ -165,7 +160,7 @@ class WintabTablet(Device):
         iohub_time = logged_time
 
         ioevt=[0, 0, 0, Computer._getNextEventID(),
-               EventConstants.WINTAB_TABLET_SAMPLE,
+               evt_type,
                device_time,
                logged_time,
                iohub_time,
@@ -191,15 +186,9 @@ from .. import DeviceEvent
 
 class WintabTabletInputEvent(DeviceEvent):
     """
-    The MouseInputEvent is an abstract class that is the parent of all MouseInputEvent types
-    that are supported in the ioHub. Mouse position is mapped to the coordinate space
-    defined in the ioHub configuration file for the Display.
+    The WintabTabletInputEvent is an abstract class that .......
     """
     PARENT_DEVICE=WintabTablet
-#    EVENT_TYPE_STRING='WINTAB_TABLET_INPUT'
-#    EVENT_TYPE_ID=EventConstants.WINTAB_TABLET_INPUT
-#    IOHUB_DATA_TABLE=EVENT_TYPE_STRING
-
     _newDataTypes = [
                      ('display_id',N.uint8),     # gives the display index for the event.
                      ('window_id',N.uint64)      # window ID for the event
@@ -219,31 +208,9 @@ class WintabTabletInputEvent(DeviceEvent):
 
         DeviceEvent.__init__(self, *args, **kwargs)
 
-#    @classmethod
-#    def _convertFields(cls,event_value_list):
-#        modifier_value_index=cls.CLASS_ATTRIBUTE_NAMES.index('modifiers')
-#        event_value_list[modifier_value_index]=KeyboardConstants._modifierCodes2Labels(event_value_list[modifier_value_index])
-
-#    @classmethod
-#    def createEventAsDict(cls,values):
-#        cls._convertFields(values)
-#        return dict(zip(cls.CLASS_ATTRIBUTE_NAMES,values))
-
-#    #noinspection PyUnresolvedReferences
-#    @classmethod
-#    def createEventAsNamedTuple(cls,valueList):
-#        cls._convertFields(valueList)
-#        return cls.namedTupleClass(*valueList)
-
 class WintabTabletSampleEvent(WintabTabletInputEvent):
     """
-    MouseMoveEvent's occur when the mouse position changes. Mouse position is
-    mapped to the coordinate space defined in the ioHub configuration file
-    for the Display.
-
-    Event Type ID: EventConstants.MOUSE_MOVE
-
-    Event Type String: 'MOUSE_MOVE'
+    WintabTabletSampleEvent's occur when.....
     """
     EVENT_TYPE_STRING='WINTAB_TABLET_SAMPLE'
     EVENT_TYPE_ID=EventConstants.WINTAB_TABLET_SAMPLE
@@ -316,3 +283,24 @@ class WintabTabletSampleEvent(WintabTabletInputEvent):
         self.rotation_yaw=None
 
         WintabTabletInputEvent.__init__(self, *args, **kwargs)
+
+class WintabTabletEnterRegionEvent(WintabTabletSampleEvent):
+    """
+    TODO: WintabTabletEnterRegionEvent doc str
+    """
+    EVENT_TYPE_STRING='WINTAB_TABLET_ENTER_REGION'
+    EVENT_TYPE_ID=EventConstants.WINTAB_TABLET_ENTER_REGION
+    IOHUB_DATA_TABLE=WintabTabletSampleEvent.EVENT_TYPE_STRING
+    def __init__(self, *args, **kwargs):
+        WintabTabletSampleEvent.__init__(self, *args, **kwargs)    
+        
+class WintabTabletLeaveRegionEvent(WintabTabletSampleEvent):
+    """
+    TODO: WintabTabletLeaveRegionEvent doc str
+    """
+    EVENT_TYPE_STRING='WINTAB_TABLET_LEAVE_REGION'
+    EVENT_TYPE_ID=EventConstants.WINTAB_TABLET_LEAVE_REGION
+    IOHUB_DATA_TABLE=WintabTabletSampleEvent.EVENT_TYPE_STRING
+    def __init__(self, *args, **kwargs):
+        WintabTabletSampleEvent.__init__(self, *args, **kwargs)    
+    

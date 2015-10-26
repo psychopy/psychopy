@@ -172,6 +172,16 @@ class ioHubpyTablesFile():
         except:
             # Just means the table for this event type has not been created as the event type is not being recorded
             pass
+        try:
+            self.TABLES['WINTAB_TABLET_LEAVE_REGION']=self.emrtFile.root.data_collection.events.wintab.WintabTabletLeaveRegionEvent
+        except:
+            # Just means the table for this event type has not been created as the event type is not being recorded
+            pass
+        try:
+            self.TABLES['WINTAB_TABLET_ENTER_REGION']=self.emrtFile.root.data_collection.events.wintab.WintabTabletEnterRegionEvent
+        except:
+            # Just means the table for this event type has not been created as the event type is not being recorded
+            pass
 
         try:
             self.TABLES['GAMEPAD_STATE_CHANGE']=self.emrtFile.root.data_collection.events.gamepad.GamepadStateChangeEvent
@@ -328,6 +338,8 @@ class ioHubpyTablesFile():
         self._eventGroupMappings['MOUSE_INPUT']=self.emrtFile.root.data_collection.events.mouse
         self._eventGroupMappings['TOUCH']=self.emrtFile.root.data_collection.events.touch
         self._eventGroupMappings['WINTAB_TABLET_SAMPLE']=self.emrtFile.root.data_collection.events.wintab
+        self._eventGroupMappings['WINTAB_TABLET_ENTER_REGION']=self.emrtFile.root.data_collection.events.wintab
+        self._eventGroupMappings['WINTAB_TABLET_LEAVE_REGION']=self.emrtFile.root.data_collection.events.wintab
         self._eventGroupMappings['GAMEPAD_STATE_CHANGE']=self.emrtFile.root.data_collection.events.gamepad
         self._eventGroupMappings['MULTI_CHANNEL_ANALOG_INPUT']=self.emrtFile.root.data_collection.events.analog_input
         self._eventGroupMappings['ANALOG_INPUT']=self.emrtFile.root.data_collection.events.mcu

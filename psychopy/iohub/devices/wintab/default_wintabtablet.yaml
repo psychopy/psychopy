@@ -13,7 +13,7 @@ wintab.WintabTablet:
     #   script via the devices.[device_name] property of the ioHubConnection or
     #   ioHubExperimentRuntime classes.
     #
-    name: wtablet
+    name: tablet
 
     # enable: Specifies if the device should be enabled by ioHub and monitored
     #   for events.
@@ -39,7 +39,7 @@ wintab.WintabTablet:
     #   monitor_event_types: Specified which Touch Event types should be monitored
     #   for and therefore saved to the DataStore or sent to the Experiment Process.
     #
-    monitor_event_types:  [WintabTabletSampleEvent,]
+    monitor_event_types:  [WintabTabletSampleEvent,WintabTabletEnterRegionEvent, WintabTabletLeaveRegionEvent]
 
     #   save_events: Save Touch events to the data_collection/Touch event 
     #   group in the hdf5 event file.

@@ -1118,13 +1118,15 @@ class ioHubConnection(object):
             if name_start>0:
                 name=name[name_start+1:]
 
-            #ioHub.print2err("Creating ioHubDeviceView for device name {0}, path {1}, class {1}".format(name,device_module_path,device_class_name))
             import psychopy.iohub.client
             local_class = None
-            local_module = getattr(psychopy.iohub.client, name, False)
+            local_module = getattr(psychopy.iohub.client, device_class_name.lower(), False)
             if local_module:
                 local_class = getattr(local_module, device_class_name, False)
             d=None
+
+            #print 'local_class:', name, local_module, device_class_name,local_class
+
             if local_class:
                 d = local_class(self, device_class_name, device_config)
             else:
@@ -2053,10 +2055,22 @@ class ioEvent(object):
     _attrib_index['id'] = DeviceEvent.EVENT_ID_INDEX
     _attrib_index['time'] = DeviceEvent.EVENT_HUB_TIME_INDEX
     _attrib_index['type'] = DeviceEvent.EVENT_TYPE_ID_INDEX
-    def __init__(self, ioe_array):
+    def __init__(self, ioe_array, device=None):
         self._time = ioe_array[ioEvent._attrib_index['time']]
         self._id = ioe_array[ioEvent._attrib_index['id']]
         self._type = ioe_array[ioEvent._attrib_index['type']]
+        self._device = device
+
+
+    @property
+    def device(self):
+        """
+        The ioHubDeviceView that is associated with the event, i.e. the iohub
+        device that generated the event
+
+        :return: ioHubDeviceView
+        """
+        return self._device
 
     @property
     def time(self):
@@ -2086,9 +2100,17 @@ class ioEvent(object):
         """
         return EventConstants.getName(self._type)
 
+    @property
+    def dict(self):
+        d={}
+        for k in self._attrib_index.keys():
+            d[k]=getattr(self,k)
+        return d
+
     def __str__(self):
         return "time: %.3f, type: %s, id: %d"%(self.time,
                                                self.type,
                                                self.id)
 
 import keyboard
+import wintabtablet
