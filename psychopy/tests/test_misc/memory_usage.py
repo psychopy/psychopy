@@ -14,7 +14,7 @@ from psychopy.tests import utils
 # command-line usage:
 # py.testw -k memory tests/test_misc/memory_usage.py
 
-THRESHOLD = 0.5  # "acceptable" leakage in M; might be gc vagaries, etc
+THRESHOLD = 0.5  # "acceptable" leakage severity; some gc vagaries are possible
 
 win = visual.Window(size=(100,100))  # generic instance, to avoid creating lots
 
@@ -22,7 +22,7 @@ win = visual.Window(size=(100,100))  # generic instance, to avoid creating lots
 def leak_severity(Cls, *args, **kwargs):
     """make up to 100 instances of Cls(*args, **kwargs),
     return the difference in memory used by this python process (in M) as a
-    severity measure, approx = 100 * mem leak in M;
+    severity measure, approx = 100 * mem leak per instance in M;
     bail out if leakage > THRESHOLD (for stability of tests)
     """
     mem = []
@@ -93,7 +93,8 @@ class TestMemory(object):
             shutil.rmtree(self.tmp, ignore_errors=True)
 
     def test_Window(self):
-        assert leak_severity(visual.Window, size=(100, 100)) < THRESHOLD
+        msg = 'leakage not a problem for typical users with 1 Window() instance'
+        assert leak_severity(visual.Window, size=(100, 100)) < THRESHOLD, msg
 
     def test_Mouse(self):
         assert leak_severity(event.Mouse) < THRESHOLD
@@ -102,7 +103,8 @@ class TestMemory(object):
         assert leak_severity(visual.TextStim, win, 'a'*200) < THRESHOLD
 
     def test_BufferImageStim(self):
-        assert leak_severity(visual.BufferImageStim, win) < THRESHOLD, "window.size has a big effect on severity"
+        msg = "window.size has a big effect on BufferImageStim leak severity"
+        assert leak_severity(visual.BufferImageStim, win) < THRESHOLD, msg
 
     def test_VisualStim(self):
         """Simple visual stim that should not leak can all be tested here
