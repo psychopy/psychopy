@@ -1,24 +1,40 @@
 
-from psychopy import visual, info
+from psychopy import visual, event, info
 import pytest
 import numpy as np
 import shutil, os
 from tempfile import mkdtemp
-
-# This illustrates how to test for memory leaks -- work in progress!
-
-# Quite a few things appear to leak
-# This set of tests is also too unstable to include in travis-ci at this point, can seg-fault
-
-# for soundPyo to pass, need to use pyo compiled with Oct 26 2015 patch for DataTable
-
-# py.testw -k memory tests/test_misc/memory_usage.py
-
-
 from psychopy.tests import utils
 
-LEAK_THRESHOLD = 0.5  # "acceptable" leakage in M; might be gc vagaries, etc
+# Start of testing for memory leaks; not comprehensive
 
+# This set of tests is too unstable to include in travis-ci at this point.
+# Quite a few things leak; more leakage -> more likely to seg-fault
+
+# command-line usage:
+# py.testw -k memory tests/test_misc/memory_usage.py
+
+THRESHOLD = 0.5  # "acceptable" leakage in M; might be gc vagaries, etc
+
+win = visual.Window(size=(100,100))  # generic instance, to avoid creating lots
+
+
+def leak_severity(Cls, *args, **kwargs):
+    """make up to 100 instances of Cls(*args, **kwargs),
+    return the difference in memory used by this python process (in M) as a
+    severity measure, approx = 100 * mem leak in M;
+    bail out if leakage > THRESHOLD (for stability of tests)
+    """
+    mem = []
+    scale = 1
+    for i in range(100):
+        Cls(*args, **kwargs)  # anonymous instance gets gc'd each iteration
+        mem.append(info.getMemoryUsage())
+        # reduce unnecessary leakage during the testing when things look bad:
+        if mem[-1] - mem[0] > THRESHOLD:
+            scale = 99. / i
+            break
+    return round(scale * (mem[-1] - mem[0]), 1)
 
 @pytest.mark.needs_sound
 @pytest.mark.memory
@@ -33,24 +49,20 @@ class TestMemorySound(object):
         if hasattr(self, 'tmp'):
             shutil.rmtree(self.tmp, ignore_errors=True)
 
-    def test_soundpyo_leakage_tones(self):
+    def test_soundpyo_leakage_array(self):
+        """anything using a numpy array uses a pyo.DataTable
+        """
         for stim in ['A', 440, np.zeros(88200)]:
-            mem = []
-            for i in range(100):
-                sound.SoundPyo(stim, secs=2)  # gets garbage collected
-                mem.append(info.getMemoryUsage())
-            assert mem[-1] - mem[0] < LEAK_THRESHOLD, 'stim = ' + str(stim)
+            assert leak_severity(sound.SoundPyo, stim, secs=2) < THRESHOLD, 'stim = ' + str(stim)
 
     def test_soundpyo_leakage_file(self):
+        """files are handled by pyo.SndFile
+        """
         tmp = os.path.join(self.tmp, 'zeros.wav')
         from scipy.io import wavfile
         wavfile.write(tmp, 44100, np.zeros(88200))
 
-        mem = []
-        for i in range(100):
-            sound.SoundPyo(tmp)  # gets garbage collected
-            mem.append(info.getMemoryUsage())
-        assert mem[-1] - mem[0] < LEAK_THRESHOLD
+        assert leak_severity(sound.SoundPyo, tmp) < THRESHOLD
 
 @pytest.mark.needs_sound
 @pytest.mark.memory
@@ -66,18 +78,12 @@ class TestMemoryMovie(object):
     def test_movie3_leakage(self):
         """known to leak, so skip
         """
-        pytest.skip()
         mov = os.path.join(utils.TESTS_DATA_PATH, 'testMovie.mp4')
-        w = visual.Window()
-        mem = []
-        for i in range(5):
-            visual.MovieStim3(w, mov)  # gets garbage collected
-            mem.append(info.getMemoryUsage())
-        assert mem[-1] - mem[0] < LEAK_THRESHOLD
+        assert leak_severity(visual.MovieStim3, win, mov) < THRESHOLD
 
 
 @pytest.mark.memory
-class TestMemoryVisual(object):
+class TestMemory(object):
     @classmethod
     def setup_class(self):
         pass
@@ -87,38 +93,26 @@ class TestMemoryVisual(object):
             shutil.rmtree(self.tmp, ignore_errors=True)
 
     def test_Window(self):
-        """known to leak, so skip
-        """
-        pytest.skip()
-        mem = []
-        for i in range(5):
-            w = visual.Window()  # gets garbage collected
-            w.close()
-            mem.append(info.getMemoryUsage())
-        assert mem[-1] - mem[0] < LEAK_THRESHOLD
+        assert leak_severity(visual.Window, size=(100, 100)) < THRESHOLD
+
+    def test_Mouse(self):
+        assert leak_severity(event.Mouse) < THRESHOLD
 
     def test_TextStim(self):
-        """known to leak, so skip
-        """
-        pytest.skip()
-        w = visual.Window()
-        t = 'a' * 1000
-        mem = []
-        for i in range(5):
-            visual.TextStim(w, t)  # gets garbage collected
-            mem.append(info.getMemoryUsage())
-        assert mem[-1] - mem[0] < LEAK_THRESHOLD
+        assert leak_severity(visual.TextStim, win, 'a'*200) < THRESHOLD
 
-    def test_ShapeStim(self):
-        """Should not leak -- test normally
+    def test_BufferImageStim(self):
+        assert leak_severity(visual.BufferImageStim, win) < THRESHOLD, "window.size has a big effect on severity"
+
+    def test_VisualStim(self):
+        """Simple visual stim that should not leak can all be tested here
         """
-        w = visual.Window()
-        for StimName in ['ShapeStim', 'Rect', 'Circle']:
-            # use StimName instead of Stim directly = for easier reporting if assert failure:
-            # want 'ShapeStim' and not <psychopy.contrib.lazy_import.ImportReplacer object>
-            mem = []
+        #w = visual.Window()
+        cleanStim = ['ShapeStim', 'Rect', 'Circle']
+        # use names as str instead of the class directly:
+        # this allows more informative reporting upon assert failure. i.e.,
+        # get 'ShapeStim', not <psychopy.contrib.lazy_import.ImportReplacer object>
+
+        for StimName in cleanStim:
             Stim = eval('visual.' + StimName)
-            for i in range(100):
-                Stim(w)  # gets garbage collected
-                mem.append(info.getMemoryUsage())
-            assert mem[-1] - mem[0] < LEAK_THRESHOLD, StimName
+            assert leak_severity(Stim, win) < THRESHOLD, StimName
