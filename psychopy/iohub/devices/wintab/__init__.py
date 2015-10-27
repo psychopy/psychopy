@@ -105,7 +105,7 @@ class WintabTablet(Device):
         self._setHardwareInterfaceStatus(True)
         return True
 
-    def getHarwareConfig(self, index=0):
+    def getHardwareConfig(self, index=0):
         return {"WinTabContext":self._wtab_canvases[index].getContextInfo(),
                  "WintabHardwareInfo":self._wtablets[index].hw_axis_info
                 }

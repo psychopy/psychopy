@@ -558,7 +558,6 @@ class PygletWintabTabletCanvas(EventDispatcher):
     def close(self):
         lib.WTClose(self._context)
         self._context = None
-
         del self.window._event_handlers[self.msg_base + WT_PACKET]
         del self.window._event_handlers[self.msg_base + WT_PROXIMITY]
 

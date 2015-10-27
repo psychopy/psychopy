@@ -2,10 +2,8 @@ from __future__ import division
 #!/usr/bin/env python2
 from psychopy import core, visual
 from psychopy.iohub import launchHubServer, EventConstants
-from win32api import LOWORD, HIWORD
 import math
-FRAC = LOWORD
-INT = HIWORD
+
 
 # if no keyboard or tablet data is received for test_timeout_sec,
 # the test program will exit.
@@ -77,26 +75,24 @@ def getPenPos(tablet_event):
     return (-1.0+(tablet_event.x/xrange)*2.0,-1.0+(tablet_event.y/yrange)*2.0)
 
 def getPenSize(tablet_event):
-    prange = float(tablet.axis['tip_pressure_axis']['axMax']-tablet.axis['tip_pressure_axis']['axMin'])
+    prange = tablet.axis['tip_pressure_axis']['axMax']-\
+             tablet.axis['tip_pressure_axis']['axMin']
     pevt = tablet_event.pressure
     return pen_size_min + (pevt/prange)*pen_size_range
 
 def getPenOpacity(tablet_event):
-
-    zrange=float(tablet.axis['z_axis']['axMax']- tablet.axis['z_axis']['axMin'])
-    z=zrange-tablet_event.z
+    zrange = tablet.axis['z_axis']['axMax']- tablet.axis['z_axis']['axMin']
+    z = zrange-tablet_event.z
     sopacity = pen_opacity_min + (z/zrange)*(1.0-pen_opacity_min)
     return sopacity
-
-# TODO: Move tilt calc into client.wintab class
 
 def getPenTilt(tablet_event):
     '''
     Get the dx,dy screen position in norm units that should be used
     when drawing the pen titl line graphic end point.
     '''
-    palt, pangle = tablet_event.tilt
-    return palt*math.sin(pangle), palt*math.cos(pangle)
+    t1, t2 = tablet_event.tilt
+    return t1*math.sin(t2), t1*math.cos(t2)
 
 if __name__ == '__main__':
     # Start iohub process and create shortcut variables to the iohub devices

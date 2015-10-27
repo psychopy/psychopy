@@ -1,6 +1,7 @@
+from __future__ import division
 # -*- coding: utf-8 -*-
 # ioHub Python Module
-# .. file: psychopy/iohub/client/tabletpen.py
+# .. file: psychopy/iohub/client/wintabtablet.py
 #
 # fileauthor: Sol Simpson <sol@isolver-software.com>
 #
@@ -38,6 +39,7 @@ class PenSampleEvent(ioEvent):
     _attrib_index['x'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index('x')
     _attrib_index['y'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index('y')
     _attrib_index['z'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index('z')
+    _attrib_index['buttons'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index('buttons')
     _attrib_index['pressure'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index(
         'pressure_normal')
     _attrib_index['altitude'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index(
@@ -46,13 +48,9 @@ class PenSampleEvent(ioEvent):
         'orient_azimuth')
     def __init__(self, ioe_array, device):
         super(PenSampleEvent, self).__init__(ioe_array, device)
-        self._x = ioe_array[PenSampleEvent._attrib_index['x']]
-        self._y = ioe_array[PenSampleEvent._attrib_index['y']]
-        self._z = ioe_array[PenSampleEvent._attrib_index['z']]
-        self._pressure = ioe_array[PenSampleEvent._attrib_index['pressure']]
-        self._altitude = ioe_array[PenSampleEvent._attrib_index['altitude']]
-        self._azimuth = ioe_array[PenSampleEvent._attrib_index['azimuth']]
-
+        for efname, efvalue in PenSampleEvent._attrib_index.items():
+            if efvalue>=0:
+                setattr(self,'_'+efname,ioe_array[efvalue])
 
     @property
     def x(self):
@@ -80,47 +78,39 @@ class PenSampleEvent(ioEvent):
         return self._azimuth
 
     @property
+    def buttons(self):
+        return self._buttons
+
+    @property
     def tilt(self):
         '''
-        Get the dx,dy screen position in norm units that should be used
-        when drawing the pen titl line graphic end point.
+        Get the pen horizontal & vertical tilt for the sample.
 
-        Note: wintab.h defines .orAltitude as a UINT but documents .orAltitude as
-        positive for upward angles and negative for downward angles.
+        horizontal tilt (azimuth) is in radians,
+        vertical tilt (altitude) is in ????.
+
+        Note: wintab.h defines .orAltitude as a UINT but documents .orAltitude
+        as positive for upward angles and negative for downward angles.
         WACOM uses negative altitude values to show that the pen is inverted;
-        therefore we cast .orAltitude as an (int) and then use the absolute value.
+        therefore we cast .orAltitude as an (int) and then use the absolute
+        value.
         '''
-        # TODO: move constants to device or event class, do not recompute
-        # for each sample.
-        tablet = self.device
-        azimuth_res = tablet.axis['orient_azimuth_axis']['axResolution']
-        tpvar = FIX_DOUBLE(azimuth_res)
-        # convert from resolution to radians
-        aziFactor = tpvar/(2*math.pi)
+        axis = self.device.axis
 
-        # convert altitude resolution to double
-        tpvar = FIX_DOUBLE(tablet.axis['orient_altitude_axis']['axResolution'])
-        # scale to arbitrary value to get decent line length
-        altFactor = tpvar #/1000.0
-        # adjust for maximum value at vertical */
-        altAdjust = tablet.axis['orient_altitude_axis']['axMax']/altFactor
-
-        ZAngle  = self.altitude
-        ZAngle2 = altAdjust - float(abs(ZAngle)/altFactor)
-
+        tilt1 = axis['orient_altitude_axis']['axAdjust'] - \
+                abs(self.altitude)/axis['orient_altitude_axis']['axFactor']
         # below line would normalize the altitude to approx. between 0 and 1.0
         #
-        #ZAngle2 = (1.0 -(tablet_event.altitude/tablet_event.device._axis['orient_altitude_axis']['axMax']))
+        #tilt1 = (1.0 -(self.altitude/axis['orient_altitude_axis']['axMax']))
 
         #/* adjust azimuth */
-        Thata  = self.azimuth
-        Thata2 = float(Thata/aziFactor)
+        tilt2 = float(self.azimuth/axis['orient_azimuth_axis']['axFactor'])
 
-        return ZAngle2, Thata2
+        return tilt1, tilt2
 
     def __str__(self):
-        return "{}, x,y,z: {}, {}, {} pressure: {}".format(
-            ioEvent.__str__(self), self.x, self.y, self.z, self.pressure)
+        return "{}, x,y,z: {}, {}, {} pressure: {}, tilt: {}".format(
+            ioEvent.__str__(self), self.x, self.y, self.z, self.tilt)
 
 
 class PenEnterRegionEvent(ioEvent):
@@ -158,9 +148,23 @@ class WintabTablet(ioHubDeviceView):
 
         self._clearEventsRPC = DeviceRPC(self.hubClient._sendToHubServer, self.device_class, 'clearEvents')
 
-        wthw = self.getHarwareConfig()
+        wthw = self.getHardwareConfig()
         self._context = wthw['WinTabContext']
         self._axis = wthw['WintabHardwareInfo']
+
+        # Add tilt related calc constants to orient_azimuth
+        # and orient_altitude axis
+        #
+        azimuth_axis = self._axis['orient_azimuth_axis']
+        azimuth_axis['axFactor'] = FIX_DOUBLE(azimuth_axis['axResolution'])/(2*math.pi)
+
+        altitude_axis = self._axis['orient_altitude_axis']
+        # convert altitude resolution to double
+        altitude_axis['axFactor'] = FIX_DOUBLE(altitude_axis['axResolution'])
+        # adjust for maximum value at vertical */
+        altitude_axis['axAdjust'] = altitude_axis['axMax']/altitude_axis['axFactor']
+
+
 
     def _syncDeviceState(self):
         """
