@@ -49,7 +49,8 @@ if __name__ == '__main__':
         print("File Selection Cancelled, exiting...")
         sys.exit(0)
     dpath,dfile=os.path.split(data_file_path)
-
+    print "data_file_path:",data_file_path, type(data_file_path)
+    print "dpath,dfile",dpath,dfile
     # Lets time how long processing takes
     #
     start_time=getTime()
@@ -83,7 +84,7 @@ if __name__ == '__main__':
     #
     start_time=getTime()
 
-    # Lookup the correct event iterator fiven the event class name selected.
+    # Lookup the correct event iterator given the event class name selected.
     #
     event_iterator_for_output=None
     for event_id, mapping_info in eventTableMappings.iteritems():
