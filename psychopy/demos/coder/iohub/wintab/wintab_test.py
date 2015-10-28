@@ -1,6 +1,7 @@
 from __future__ import division
 #!/usr/bin/env python2
 from psychopy import core, visual
+from psychopy.gui import fileSaveDlg
 from psychopy.iohub import launchHubServer, EventConstants
 import math
 
@@ -21,15 +22,33 @@ last_evt=None
 last_evt_count=0
 tablet_pos_range=None
 
-def start_iohub():
-    import time
+def start_iohub(sess_code=None):
+    import time, os
 
+    # Create initial default session code
+    if sess_code is None:
+        sess_code='S_{0}'.format(long(time.mktime(time.localtime())))
+
+    # Ask for session name / hdf5 file name
+    save_to = fileSaveDlg(initFilePath=os.path.dirname(__file__),initFileName=sess_code,
+                          prompt="Set Session Output File",
+                          allowed="ioHub Datastore Files (*.hdf5)|*.hdf5")
+    if save_to:
+        # session code should equal results file name
+        fdir, sess_code = os.path.split(save_to)
+        sess_code=sess_code[0:min(len(sess_code),24)]
+        if sess_code.endswith('.hdf5'):
+            sess_code = sess_code[:-5]
+        if save_to.endswith('.hdf5'):
+            save_to = save_to[:-5]
+    else:
+        save_to = sess_code
+        
     exp_code='wintab_evts_test'
-    sess_code='S_{0}'.format(long(time.mktime(time.localtime())))
-    print('Current Session Code will be: ', sess_code)
 
     kwargs={'experiment_code':exp_code,
             'session_code':sess_code,
+            'datastore_name':save_to,
             'wintab.WintabTablet':{'name':'tablet'}}
 
     return launchHubServer(**kwargs)
