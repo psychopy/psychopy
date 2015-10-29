@@ -83,7 +83,7 @@ class WintabTablet(Device):
 
         from pyglet.window import Window
         self._wtab_shadow_windows.append(
-            Window(width=1920, height=1080, visible=False, fullscreen=True,
+            Window(width=swidth, height=sheight, visible=False, fullscreen=True,
                    vsync=False, screen=screen_index))
         self._wtab_shadow_windows[0].set_mouse_visible(False)
         self._wtab_shadow_windows[0].switch_to()
@@ -189,23 +189,10 @@ class WintabTabletInputEvent(DeviceEvent):
     The WintabTabletInputEvent is an abstract class that .......
     """
     PARENT_DEVICE=WintabTablet
-    _newDataTypes = [
-                     ('display_id',N.uint8),     # gives the display index for the event.
-                     ('window_id',N.uint64)      # window ID for the event
-                                                 # must be an invisible window created by device
-                    ]
+    _newDataTypes = []
 
     __slots__=[e[0] for e in _newDataTypes]
     def __init__(self,*args,**kwargs):
-
-        #: The id of the display that the mouse was over when the event occurred.
-        #: Only supported on Windows at this time. Always 0 on other OS's.
-        self.display_id=None
-
-        #: Window handle reference that the mouse was over when the event occurred
-        #: (window does not need to have focus)
-        self.window_id=None
-
         DeviceEvent.__init__(self, *args, **kwargs)
 
 class WintabTabletSampleEvent(WintabTabletInputEvent):
@@ -217,29 +204,21 @@ class WintabTabletSampleEvent(WintabTabletInputEvent):
     IOHUB_DATA_TABLE=EVENT_TYPE_STRING
 
     _newDataTypes = [
-                     ('serial_number', N.uint),
-                     ('cursor',N.uint32),
+                     ('serial_number', N.uint32),
                      ('buttons',N.int32),
                      ('x',N.int32),
                      ('y',N.int32),
                      ('z',N.int32),
-                     ('pressure_normal',N.uint32),
-                     ('pressure_tangent',N.uint32),
+                     ('pressure',N.uint32),
                      ('orient_azimuth',N.int32),
                      ('orient_altitude',N.int32),
-                     ('orient_twist',N.int32),
-                     ('rotation_pitch',N.int32),
-                     ('rotation_roll',N.int32),
-                     ('rotation_yaw',N.int32)
+                     ('orient_twist',N.int32)
                      ]
 
     __slots__=[e[0] for e in _newDataTypes]
     def __init__(self, *args, **kwargs):
         #: serial_number Hardware assigned PACKET serial number
         self.serial_number=None
-
-        #: TODO: cursor
-        self.cursor=None
 
         #: TODO: buttons
         self.buttons=None
@@ -257,12 +236,8 @@ class WintabTabletSampleEvent(WintabTabletInputEvent):
         #: max_val = tip height above surface before events stop being reported.
         self.z=None
 
-        #: pressure_normal Normalize pressure of stylus tip on tablet surface.
-        #: Value will range from 0 - 1.0, where 1.0 is maximum pressure
-        self.pressure_normal=None
-
-        #: pressure_tangent
-        self.pressure_tangent=None
+        #: pressure: Pressure of stylus tip on tablet surface.
+        self.pressure=None
 
         #: orient_azimuth
         self.orient_azimuth=None
@@ -272,16 +247,6 @@ class WintabTabletSampleEvent(WintabTabletInputEvent):
 
         #: orient_twist
         self.orient_twist=None
-
-        #: rotation_pitch
-        self.rotation_pitch=None
-
-        #: rotation_roll
-        self.rotation_roll=None
-
-        #: rotation_yaw
-        self.rotation_yaw=None
-
         WintabTabletInputEvent.__init__(self, *args, **kwargs)
 
 class WintabTabletEnterRegionEvent(WintabTabletSampleEvent):

@@ -43,7 +43,7 @@ def start_iohub(sess_code=None):
             save_to = save_to[:-5]
     else:
         save_to = sess_code
-        
+
     exp_code='wintab_evts_test'
 
     kwargs={'experiment_code':exp_code,

@@ -583,46 +583,32 @@ class PygletWintabTabletCanvas(EventDispatcher):
             cevt = [evt_type,
                     0,
                     0,
-                    display_id,         #
-                    window_id,          #
                     0,
-                    ccursor,           #('cursor',N.uint32),
                     0,
                     0,                 #('x',N.int32),
                     0,                 #('y',N.int32),
                     0,                 #('z',N.int32),
-                    0,          #('pressure_normal',N.uint32),
-                    0, #('pressure_tangent',N.uint32),
+                    0,          #('pressure',N.uint32),
                     0,         #('orient_azimuth',N.int32),
                     0,        #('orient_altitude;',N.int32),
                     0,           #('orient_twist',N.int32),
-                    0,           #('rotation_pitch',N.int32),
-                    0,            #('rotation_roll',N.int32),
-                    0,             #('rotation_yaw',N.int32),
                     ]
         else:
             cevt = [evt_type,
                     packet.pkTime,
                     packet.pkStatus,
-                    display_id,         #
-                    window_id,          #
                     packet.pkSerialNumber,
-                    ccursor,           #('cursor',N.uint32),
                     packet.pkButtons,
                     packet.pkX,                 #('x',N.int32),
                     packet.pkY,                 #('y',N.int32),
                     packet.pkZ,                 #('z',N.int32),
                     #(packet.pkNormalPressure + self._pressure_bias) * \
                     #            self._pressure_scale,
-                    packet.pkNormalPressure,          #('pressure_normal',N.uint32),
-                    packet.pkTangentPressure, #('pressure_tangent',N.uint32),
+                    packet.pkNormalPressure,          #('pressure',N.uint32),
                     packet.pkOrientation.orAzimuth,         #('orient_azimuth',N.int32),
                     packet.pkOrientation.orAltitude,        #('orient_altitude;',N.int32),
                     packet.pkOrientation.orTwist,           #('orient_twist',N.int32),
-                    packet.pkRotation.roPitch,           #('rotation_pitch',N.int32),
-                    packet.pkRotation.roRoll,            #('rotation_roll',N.int32),
-                    packet.pkRotation.roYaw,             #('rotation_yaw',N.int32),
-                    ]            
+                    ]
         self._iohub_events.append(cevt)
         
     @pyglet.window.win32.Win32EventHandler(0)
