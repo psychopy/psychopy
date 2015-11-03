@@ -158,8 +158,9 @@ class WintabTablet(ioHubDeviceView):
         self._clearEventsRPC = DeviceRPC(self.hubClient._sendToHubServer, self.device_class, 'clearEvents')
 
         wthw = self.getHardwareConfig()
-        self._context = wthw['WinTabContext']
-        self._axis = wthw['WintabHardwareInfo']
+        self._context = wthw['Context']
+        self._axis = wthw['Axis']
+        self._hw_model = wthw['ModelInfo']
 
         # Add extra axis info
         for axis in self._axis.values():
@@ -234,6 +235,10 @@ class WintabTablet(ioHubDeviceView):
     @property
     def context(self):
         return self._context
+
+    @property
+    def model(self):
+        return self._hw_model
 
     def clearEvents(self, event_type=None, filter_id=None):
         result = self._clearEventsRPC(event_type=event_type,filter_id=filter_id)

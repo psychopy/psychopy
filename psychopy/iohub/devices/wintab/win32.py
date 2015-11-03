@@ -399,7 +399,7 @@ def wtinfo_bool(category, index):
     return bool(buffer.value)
 
 
-class PygletWintabTablet(object):
+class Win32WintabTablet(object):
     '''High-level interface to tablet devices.
 
     Unlike other devices, tablets must be opened for a specific window,
@@ -415,6 +415,12 @@ class PygletWintabTablet(object):
         self.name = wtinfo_string(self._device, DVC_NAME).strip()
         self.id = wtinfo_string(self._device, DVC_PNPID)
         self.hardware_type = wtinfo_uint(self._device, DVC_HARDWARE)
+
+        self.hw_model_info=dict()
+        self.hw_model_info['name'] = self.name
+        self.hw_model_info['id'] = self.id
+        self.hw_model_info['type'] = self.hardware_type
+        self.hw_model_info['handle'] = self._device
 
         #phys_cursors = hardware & HWC_PHYSID_CURSORS
 
@@ -459,7 +465,7 @@ class PygletWintabTablet(object):
         self._cursor_map = {}
 
         for i in range(n_cursors):
-            cursor = WintabTabletCursor(self, i + first_cursor)
+            cursor = Win32WintabTabletCursor(self, i + first_cursor)
             if not cursor.bogus:
                 self.cursors.append(cursor)
                 self._cursor_map[i + first_cursor] = cursor
@@ -471,13 +477,13 @@ class PygletWintabTablet(object):
             `window` : `Window`
                 The window on which the tablet will be used.
 
-        :rtype: `PygletWintabTabletCanvas`
+        :rtype: `Win32WintabTabletCanvas`
         '''
-        PygletWintabTabletCanvas.iohub_wt_device = iohub_wt_device
-        pc = PygletWintabTabletCanvas(self, window)
+        Win32WintabTabletCanvas.iohub_wt_device = iohub_wt_device
+        pc = Win32WintabTabletCanvas(self, window)
         return pc
 
-class PygletWintabTabletCanvas(EventDispatcher):
+class Win32WintabTabletCanvas(EventDispatcher):
     '''Event dispatcher for tablets.
 
     Use `Tablet.open` to obtain this object for a particular tablet device and
@@ -648,7 +654,7 @@ class PygletWintabTabletCanvas(EventDispatcher):
 
 
 
-class WintabTabletCursor(object):
+class Win32WintabTabletCursor(object):
     def __init__(self, device, index):
         self.device = device
         self._cursor = WTI_CURSORS + index
@@ -688,5 +694,5 @@ def get_tablets(display=None):
         return []
 
     n_devices = wtinfo_uint(WTI_INTERFACE, IFC_NDEVICES)
-    devices = [PygletWintabTablet(i) for i in range(n_devices)]
+    devices = [Win32WintabTablet(i) for i in range(n_devices)]
     return devices

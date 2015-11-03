@@ -106,8 +106,9 @@ class WintabTablet(Device):
         return True
 
     def getHardwareConfig(self, index=0):
-        return {"WinTabContext":self._wtab_canvases[index].getContextInfo(),
-                 "WintabHardwareInfo":self._wtablets[index].hw_axis_info
+        return {"Context":self._wtab_canvases[index].getContextInfo(),
+                 "Axis":self._wtablets[index].hw_axis_info,
+                 "ModelInfo":self._wtablets[index].hw_model_info
                 }
 
     def enableEventReporting(self,enabled=True):

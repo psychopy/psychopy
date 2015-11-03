@@ -5,9 +5,6 @@ from psychopy.gui import fileSaveDlg
 from psychopy.iohub import launchHubServer, EventConstants
 import math
 
-print "TODO:"
-print "1) Save device details to HDF5 file, hw and axis info."
-
 draw_pen_traces = True
 
 # if no keyboard or tablet data is received for test_timeout_sec,
