@@ -5,6 +5,9 @@ from psychopy.gui import fileSaveDlg
 from psychopy.iohub import launchHubServer, EventConstants
 import math
 
+print "TODO:"
+print "1) Save device details to HDF5 file, hw and axis info."
+
 draw_pen_traces = True
 
 # if no keyboard or tablet data is received for test_timeout_sec,
@@ -142,16 +145,17 @@ def getPenPos(tablet_event):
             -1.0+(tablet_event.y/tablet_pos_range[1])*2.0)
 
 def getPenSize(tablet_event):
-    prange = tablet.axis['tip_pressure_axis']['axMax']-\
-             tablet.axis['tip_pressure_axis']['axMin']
-    pevt = tablet_event.pressure
-    return pen_size_min + (pevt/prange)*pen_size_range
+    if tablet.axis['pressure']['supported']:
+        return pen_size_min + \
+               (tablet_event.pressure/tablet.axis['pressure']['range'])\
+               *pen_size_range
 
 def getPenOpacity(tablet_event):
-    zrange = tablet.axis['z_axis']['axMax']- tablet.axis['z_axis']['axMin']
-    z = zrange-tablet_event.z
-    sopacity = pen_opacity_min + (z/zrange)*(1.0-pen_opacity_min)
-    return sopacity
+    if tablet.axis['z']['supported']:
+        z = tablet.axis['z']['range']-tablet_event.z
+        sopacity = pen_opacity_min + (z/tablet.axis['z']['range'])*(1.0-pen_opacity_min)
+        return sopacity
+    return 1.0
 
 def getPenTilt(tablet_event):
     '''
@@ -159,6 +163,9 @@ def getPenTilt(tablet_event):
     when drawing the pen titl line graphic end point.
     '''
     t1, t2 = tablet_event.tilt
+    if t1 == t2 == 0:
+        # tilt not supported
+        return 0, 0
     return t1*math.sin(t2), t1*math.cos(t2)
 
 if __name__ == '__main__':
@@ -188,10 +195,8 @@ if __name__ == '__main__':
         is_reporting = tablet.reporting
 
         # Get x,y tablet evt pos ranges for future use
-        tablet_pos_range = (float(tablet.axis['x_axis']['axMax'] -
-                                  tablet.axis['x_axis']['axMin']),
-                            float(tablet.axis['y_axis']['axMax'] -
-                                  tablet.axis['y_axis']['axMin']))
+        tablet_pos_range = (tablet.axis['x']['range'],
+                            tablet.axis['y']['range'])
 
         # remove any events iohub has already captured.
         io.clearEvents()
@@ -278,5 +283,6 @@ if __name__ == '__main__':
 
             myWin.flip()#redraw the buffer
 
+        io.quit()
         if testTimeOutClock.getTime() >= test_timeout_sec:
             print "Test Time Out Occurred."
