@@ -194,6 +194,10 @@ class Computer(object):
     #: The name of the current operating system Python is running on.
     system=sys.platform
 
+    #: Python Env. bits: 32 or 64. Note that when a
+    #: Python 32 bit runtime is used a 64 bit OS sysbits will equal 32.
+    sysbits = 32+int(sys.maxsize > 2**32)*32
+
     #: Attribute representing the number of *processing units* available on the current computer.
     #: This includes cpu's, cpu cores, and hyperthreads. Notes:
     #:      * processing_unit_count = num_cpus*num_cores_per_cpu*num_hyperthreads.
@@ -747,7 +751,6 @@ class Computer(object):
            object: Process object for the current system process.
         """
         return Computer.current_process
-
 
     @staticmethod
     def getIoHubProcess():
