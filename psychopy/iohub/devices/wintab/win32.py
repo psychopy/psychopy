@@ -27,7 +27,10 @@ def print_struct(s,pretxt=''):
 def struct2dict(s):
     csdict = {}
     for field_name, field_type in s._fields_:
-        csdict[field_name]=getattr(s, field_name)
+        ufield_name =  field_name
+        if field_name.startswith('ax'):
+            ufield_name=field_name[2:].lower()
+        csdict[ufield_name]=getattr(s, field_name)
     return csdict
 
 class AXIS(ctypes.Structure):
@@ -116,8 +119,8 @@ DEFAULT_PACKET_DATA_FIELDS = (
             PK_STATUS | PK_TIME | PK_CHANGED |
             PK_SERIAL_NUMBER | PK_CURSOR | PK_BUTTONS |
             PK_X | PK_Y | PK_Z |
-            PK_NORMAL_PRESSURE | PK_TANGENT_PRESSURE |
-            PK_ORIENTATION | PK_ROTATION)
+            PK_NORMAL_PRESSURE |
+            PK_ORIENTATION)
 
 class PACKET(ctypes.Structure):
     _fields_ = (
@@ -131,9 +134,7 @@ class PACKET(ctypes.Structure):
         ('pkY', LONG),
         ('pkZ', LONG),
         ('pkNormalPressure', UINT),
-        ('pkTangentPressure', UINT),
-        ('pkOrientation', ORIENTATION),
-        ('pkRotation', ROTATION),
+        ('pkOrientation', ORIENTATION)
     )
 
 TU_NONE = 0
@@ -428,30 +429,31 @@ class PygletWintabTablet(object):
 
         self.tip_pressure_axis = wtinfo(self._device, DVC_NPRESSURE,
                                     AXIS())
-        self.barrel_pressure_axis = wtinfo(self._device, DVC_TPRESSURE,
-                                    AXIS())
+        #self.barrel_pressure_axis = wtinfo(self._device, DVC_TPRESSURE,
+        #                            AXIS())
 
         self.orient_axis = wtinfo(self._device, DVC_ORIENTATION,
                                   (AXIS*3)())
 
-        self.rotation_axis = wtinfo(self._device, DVC_ROTATION,
-                                  (AXIS*3)())
+        #self.rotation_axis = wtinfo(self._device, DVC_ROTATION,
+        #                          (AXIS*3)())
 
-        self.hw_axis_info['x_axis'] = struct2dict(self._x_axis)
-        self.hw_axis_info['y_axis'] = struct2dict(self._y_axis)
-        self.hw_axis_info['z_axis'] = struct2dict(self._z_axis)
+        self.hw_axis_info['x'] = struct2dict(self._x_axis)
+        self.hw_axis_info['y'] = struct2dict(self._y_axis)
+        self.hw_axis_info['z'] = struct2dict(self._z_axis)
         # seems that z axis min value is being reported as -1023,
         # but it is never < 0 in PACKET field, so setting z min to 0
-        self.hw_axis_info['z_axis']['axMin']=0
+        #print2err("z axis: ", self.hw_axis_info['z'])
+        self.hw_axis_info['z']['min']=0
 
-        self.hw_axis_info['tip_pressure_axis'] = struct2dict(self.tip_pressure_axis)
-        self.hw_axis_info['barrel_pressure_axis'] = struct2dict(self.barrel_pressure_axis)
-        self.hw_axis_info['orient_azimuth_axis'] = struct2dict(self.orient_axis[0])
-        self.hw_axis_info['orient_altitude_axis'] = struct2dict(self.orient_axis[1])
-        self.hw_axis_info['orient_twist_axis'] = struct2dict(self.orient_axis[2])
-        self.hw_axis_info['rotation_pitch_axis'] = struct2dict(self.rotation_axis[0])
-        self.hw_axis_info['rotation_roll_axis'] = struct2dict(self.rotation_axis[1])
-        self.hw_axis_info['rotation_yaw_axis'] = struct2dict(self.rotation_axis[2])
+        self.hw_axis_info['pressure'] = struct2dict(self.tip_pressure_axis)
+        #self.hw_axis_info['barrel_pressure_axis'] = struct2dict(self.barrel_pressure_axis)
+        self.hw_axis_info['orient_azimuth'] = struct2dict(self.orient_axis[0])
+        self.hw_axis_info['orient_altitude'] = struct2dict(self.orient_axis[1])
+        self.hw_axis_info['orient_twist'] = struct2dict(self.orient_axis[2])
+        #self.hw_axis_info['rotation_pitch_axis'] = struct2dict(self.rotation_axis[0])
+        #self.hw_axis_info['rotation_roll_axis'] = struct2dict(self.rotation_axis[1])
+        #self.hw_axis_info['rotation_yaw_axis'] = struct2dict(self.rotation_axis[2])
 
         self.cursors = []
         self._cursor_map = {}
@@ -546,8 +548,8 @@ class PygletWintabTabletCanvas(EventDispatcher):
             self._event_wt_proximity
 
         self._current_cursor = None
-        self._pressure_scale = device.tip_pressure_axis.get_scale()
-        self._pressure_bias = device.tip_pressure_axis.get_bias()
+        #self._pressure_scale = device.tip_pressure_axis.get_scale()
+        #self._pressure_bias = device.tip_pressure_axis.get_bias()
 
     def getContextInfo(self):
         return struct2dict(self.context_info)

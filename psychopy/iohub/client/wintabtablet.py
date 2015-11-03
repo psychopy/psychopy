@@ -56,10 +56,18 @@ class PenSampleEvent(ioEvent):
     def x(self):
         return self._x
 
-
     @property
     def y(self):
         return self._y
+
+    def getPixPos(self, win):
+        sw, sh = win.screen.width, win.screen.height
+        nx, ny = self._x/self.device.axis['x']['range'], self._y/self.device.axis['y']['range']
+        return nx*sw-sw/2, ny*sh-sh/2
+
+    def getNormPos(self):
+        return (-1.0+(self._x/ self.device.axis['x']['range'])*2.0,
+                -1.0+(self._y/ self.device.axis['y']['range'])*2.0)
 
     @property
     def z(self):
@@ -96,17 +104,18 @@ class PenSampleEvent(ioEvent):
         value.
         '''
         axis = self.device.axis
+        if axis['orient_altitude']['supported'] and axis['orient_azimuth']['supported']:
+            tilt1 = axis['orient_altitude']['adjust'] - \
+                    abs(self.altitude)/axis['orient_altitude']['factor']
+            # below line would normalize the altitude to approx. between 0 and 1.0
+            #
+            #tilt1 = (1.0 -(self.altitude/axis['orient_altitude']['axMax']))
 
-        tilt1 = axis['orient_altitude_axis']['axAdjust'] - \
-                abs(self.altitude)/axis['orient_altitude_axis']['axFactor']
-        # below line would normalize the altitude to approx. between 0 and 1.0
-        #
-        #tilt1 = (1.0 -(self.altitude/axis['orient_altitude_axis']['axMax']))
+            #/* adjust azimuth */
+            tilt2 = float(self.azimuth/axis['orient_azimuth']['factor'])
 
-        #/* adjust azimuth */
-        tilt2 = float(self.azimuth/axis['orient_azimuth_axis']['axFactor'])
-
-        return tilt1, tilt2
+            return tilt1, tilt2
+        return 0,0
 
     def __str__(self):
         return "{}, x,y,z: {}, {}, {} pressure: {}, tilt: {}".format(
@@ -152,18 +161,24 @@ class WintabTablet(ioHubDeviceView):
         self._context = wthw['WinTabContext']
         self._axis = wthw['WintabHardwareInfo']
 
+        # Add extra axis info
+        for axis in self._axis.values():
+            axis['range'] = axis['max']-axis['min']
+            axis['supported'] = axis['range'] != 0
+
+
         # Add tilt related calc constants to orient_azimuth
         # and orient_altitude axis
         #
-        azimuth_axis = self._axis['orient_azimuth_axis']
-        azimuth_axis['axFactor'] = FIX_DOUBLE(azimuth_axis['axResolution'])/(2*math.pi)
+        if self._axis['orient_azimuth']['supported'] and self._axis['orient_altitude']['supported']:
+            azimuth_axis = self._axis['orient_azimuth']
+            azimuth_axis['factor'] = FIX_DOUBLE(azimuth_axis['resolution'])/(2*math.pi)
 
-        altitude_axis = self._axis['orient_altitude_axis']
-        # convert altitude resolution to double
-        altitude_axis['axFactor'] = FIX_DOUBLE(altitude_axis['axResolution'])
-        # adjust for maximum value at vertical */
-        altitude_axis['axAdjust'] = altitude_axis['axMax']/altitude_axis['axFactor']
-
+            altitude_axis = self._axis['orient_altitude']
+            # convert altitude resolution to double
+            altitude_axis['factor'] = FIX_DOUBLE(altitude_axis['resolution'])
+            # adjust for maximum value at vertical */
+            altitude_axis['adjust'] = altitude_axis['max']/altitude_axis['factor']
 
 
     def _syncDeviceState(self):
