@@ -10,17 +10,20 @@ from __future__ import division
 # (GPL version 3 or any later version).
 
 from collections import deque
-import time, math
-from win32api import LOWORD, HIWORD
+import math
+
 from psychopy.iohub.client import ioHubDeviceView, ioEvent, DeviceRPC
-from psychopy.iohub.devices import DeviceEvent
+from psychopy.iohub.devices import Computer
 from psychopy.iohub.devices.wintab import WintabTabletSampleEvent, WintabTabletEnterRegionEvent, WintabTabletLeaveRegionEvent
 from psychopy.iohub.constants import EventConstants
-from psychopy.core import getTime
-from psychopy.visual.window import Window
 
-FRAC = LOWORD
-INT = HIWORD
+if Computer.system == 'win32':
+    from win32api import LOWORD, HIWORD
+    FRAC = LOWORD
+    INT = HIWORD
+else:
+    FRAC = lambda x: x & 0x0000ffff
+    INT = lambda x: x >> 16
 
 def FIX_DOUBLE(x):
     return INT(x) + FRAC(x)/65536.0
@@ -149,37 +152,41 @@ class WintabTablet(ioHubDeviceView):
     def __init__(self, ioclient, device_class_name, device_config):
         super(WintabTablet, self).__init__(ioclient, device_class_name,
                                        device_config)
+
         self._events = dict()
         self._reporting = False
         self._device_config = device_config
         self._event_buffer_length = self._device_config.get(
             'event_buffer_length')
-
         self._clearEventsRPC = DeviceRPC(self.hubClient._sendToHubServer, self.device_class, 'clearEvents')
+        self._context = {'Context': {'status': 'Device not Initialized'}}
+        self._axis = {'Axis': {'status': 'Device not Initialized'}}
+        self._hw_model = {'ModelInfo': {'status': 'Device not Initialized'}}
 
-        wthw = self.getHardwareConfig()
-        self._context = wthw['Context']
-        self._axis = wthw['Axis']
-        self._hw_model = wthw['ModelInfo']
+        if self.getInterfaceStatus() == "HW_OK":
+            wthw = self.getHardwareConfig()
+            self._context = wthw['Context']
+            self._axis = wthw['Axis']
+            self._hw_model = wthw['ModelInfo']
 
-        # Add extra axis info
-        for axis in self._axis.values():
-            axis['range'] = axis['max']-axis['min']
-            axis['supported'] = axis['range'] != 0
+            # Add extra axis info
+            for axis in self._axis.values():
+                axis['range'] = axis['max']-axis['min']
+                axis['supported'] = axis['range'] != 0
 
 
-        # Add tilt related calc constants to orient_azimuth
-        # and orient_altitude axis
-        #
-        if self._axis['orient_azimuth']['supported'] and self._axis['orient_altitude']['supported']:
-            azimuth_axis = self._axis['orient_azimuth']
-            azimuth_axis['factor'] = FIX_DOUBLE(azimuth_axis['resolution'])/(2*math.pi)
+            # Add tilt related calc constants to orient_azimuth
+            # and orient_altitude axis
+            #
+            if self._axis['orient_azimuth']['supported'] and self._axis['orient_altitude']['supported']:
+                azimuth_axis = self._axis['orient_azimuth']
+                azimuth_axis['factor'] = FIX_DOUBLE(azimuth_axis['resolution'])/(2*math.pi)
 
-            altitude_axis = self._axis['orient_altitude']
-            # convert altitude resolution to double
-            altitude_axis['factor'] = FIX_DOUBLE(altitude_axis['resolution'])
-            # adjust for maximum value at vertical */
-            altitude_axis['adjust'] = altitude_axis['max']/altitude_axis['factor']
+                altitude_axis = self._axis['orient_altitude']
+                # convert altitude resolution to double
+                altitude_axis['factor'] = FIX_DOUBLE(altitude_axis['resolution'])
+                # adjust for maximum value at vertical */
+                altitude_axis['adjust'] = altitude_axis['max']/altitude_axis['factor']
 
 
     def _syncDeviceState(self):

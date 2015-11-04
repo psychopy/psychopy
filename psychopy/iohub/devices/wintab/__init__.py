@@ -47,6 +47,7 @@ class WintabTablet(Device):
                '_wtab_shadow_windows',
                '_wtab_canvases'
     ]
+    
     def __init__(self,*args,**kwargs):
         Device.__init__(self,*args,**kwargs['dconfig'])
         self._wtablets=[]
@@ -56,6 +57,13 @@ class WintabTablet(Device):
 
     def _init_wintab(self):
         self._wtablets = get_tablets()
+        if Computer.system != 'win32':
+            self._setHardwareInterfaceStatus(False,
+                                             u"Error:ioHub Wintab Device only"
+                                             u" supports Windows OS "
+                                             u"at this time.")
+            return False
+
         index = self.getConfiguration().get('device_number',0)
 
         if len(self._wtablets) == 0:
@@ -63,7 +71,7 @@ class WintabTablet(Device):
                                              u"Error: No WinTab Devices"
                                              u" Detected.")
             return False
-        elif index >= len(self._wtablets):
+        if index >= len(self._wtablets):
             self._setHardwareInterfaceStatus(False,
                                              u"Error: device_number {} "
                                              u"is out of range. Only {} "
@@ -179,8 +187,12 @@ class WintabTablet(Device):
             swin.close()
         Device._close()
 
-from .win32 import get_tablets
-
+if Computer.system == 'win32':
+    from .win32 import get_tablets
+else:
+    def get_tablets(display=None):
+        print2err("Error: iohub.devices.wintab only supports Windows OS at this time.")
+        return []
 ############# Wintab Event Classes ####################
 
 from .. import DeviceEvent
