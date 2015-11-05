@@ -54,35 +54,67 @@ def start_iohub(sess_code=None):
     return launchHubServer(**kwargs)
 
 
-class PenTraces(object):
-    def __init__(self):
+class PenTracesStim(object):
+    def __init__(self, win, maxlen = 256):
+        self.max_trace_len = maxlen
         self.pentracestim = []
         self.current_pentrace = None
         self.current_points=[]
+        self.last_pos = [0,0]
+        self.window = win
 
     @property
     def segments(self):
         return [pts.vertices for pts in self.pentracestim]
 
+    def updateFromEvents(self, enter_events, sample_events):
+        if enter_events:
+            self.end()
+
+        for pevt in sample_events:
+            if pevt.pressure>0:
+                lpx, lpy = self.last_pos
+                px,py = pevt.getPixPos(self.window)
+                if lpx != px or lpy != py:
+                    if len(self.current_points) >= self.max_trace_len:
+                        self.end()
+                        self.append((lpx, lpy))
+                    self.last_pos = (px,py)
+                    self.append(self.last_pos)
+                #else:
+                #    print("no pos dx:",self.last_pos)
+
+            else:
+                self.end()
+
     def draw(self):
+        #stime = core.getTime()
         for pts in self.pentracestim:
             pts.draw()
-
+        #etime = core.getTime()
+        #print("Pen traces draw dur:",(etime-stime)*1000,len(self.pentracestim))
     def start(self, first_point):
         self.end()
         self.current_points.append(first_point)
-        self.current_pentrace = visual.ShapeStim(myWin, units='norm', lineWidth=2,
-                                 lineColor=(-1, -1, -1),
-                                 lineColorSpace='rgb',
-                                 vertices=self.current_points,
-                                 closeShape=False, pos=(0, 0),
-                                 size=1, ori=0.0, opacity=1.0,
-                                 interpolate=True)
+        self.current_pentrace = visual.ShapeStim(
+                                        self.window,
+                                        units='pix',
+                                        lineWidth=2,
+                                        lineColor=(-1, -1, -1),
+                                        lineColorSpace='rgb',
+                                        vertices=self.current_points,
+                                        closeShape=False,
+                                        pos=(0, 0),
+                                        size=1,
+                                        ori=0.0,
+                                        opacity=1.0,
+                                        interpolate=True)
         self.pentracestim.append(self.current_pentrace)
 
     def end(self):
         self.current_pentrace = None
         self.current_points=[]
+        self.last_pos = [0,0]
 
     def append(self, pos):
         if self.current_pentrace is None:
@@ -97,6 +129,9 @@ class PenTraces(object):
         self.end()
         for pts in self.pentracestim:
             pts.vertices=[(0,0)]
+
+    def __del__(self):
+        self.window = None
 
 def createPsychopyGraphics():
     #
@@ -124,7 +159,7 @@ def createPsychopyGraphics():
                                    "Press 'q' to exit."
     instruct_text.text = instruct_text._start_rec_txt
 
-    pen_trace = PenTraces()
+    pen_trace = PenTracesStim(myWin)
 
     pen_guass = visual.PatchStim(myWin, units='norm', tex="none",
                                    mask="gauss", pos=(0,0),
@@ -220,27 +255,16 @@ if __name__ == '__main__':
                 else:
                     instruct_text.text = instruct_text._start_rec_txt
 
-            # check for any tablet enter region events,
-            # ending current pen trace if any have occurred....
-            wtab_enter_evts = tablet.getEnters()
-            if draw_pen_traces and wtab_enter_evts:
-                pen_trace.end()
 
             # check for any tablet sample events, processing as necessary
             wtab_evts = tablet.getSamples()
             last_evt_count=len(wtab_evts)
             if is_reporting:
+                if draw_pen_traces:
+                    pen_trace.updateFromEvents(tablet.getEnters(),wtab_evts)
+
                 if last_evt_count:
-
-                    if draw_pen_traces:
-                        for pevt in wtab_evts:
-                            if pevt.pressure>0:
-                                pen_trace.append(getPenPos(pevt))
-                            else:
-                                pen_trace.end()
-
                     last_evt = wtab_evts[-1]
-
                     testTimeOutClock.reset()
 
                     # update the text that displays the event pos, pressure, etc...

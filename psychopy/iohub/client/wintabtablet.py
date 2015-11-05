@@ -64,9 +64,9 @@ class PenSampleEvent(ioEvent):
         return self._y
 
     def getPixPos(self, win):
-        sw, sh = win.screen.width, win.screen.height
+        sw, sh = win.winHandle.width, win.winHandle.height
         nx, ny = self._x/self.device.axis['x']['range'], self._y/self.device.axis['y']['range']
-        return nx*sw-sw/2, ny*sh-sh/2
+        return int(nx*sw-sw/2), int(ny*sh-sh/2)
 
     def getNormPos(self):
         return (-1.0+(self._x/ self.device.axis['x']['range'])*2.0,

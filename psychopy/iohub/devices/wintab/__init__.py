@@ -47,7 +47,7 @@ class WintabTablet(Device):
                '_wtab_shadow_windows',
                '_wtab_canvases'
     ]
-    
+
     def __init__(self,*args,**kwargs):
         Device.__init__(self,*args,**kwargs['dconfig'])
         self._wtablets=[]
