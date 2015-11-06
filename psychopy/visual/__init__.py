@@ -38,6 +38,7 @@ from psychopy.visual.movie import MovieStim
 from psychopy.visual.movie2 import MovieStim2
 from psychopy.visual.movie3 import MovieStim3
 from psychopy.visual.shape import ShapeStim
+from psychopy.visual.tess import TessStim
 
 # stimuli derived from GratingStim
 from psychopy.visual.bufferimage import BufferImageStim

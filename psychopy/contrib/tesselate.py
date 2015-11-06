@@ -1,4 +1,6 @@
 # JRG: add contrib/tesselate.py, copied from svgbatch / svgload project
+# bug not fixed: `pointer` not defined in `combineCallback()`
+# seem to avoid by not including a redundant last point
 
 # downloaded Nov 2015 https://github.com/tartley/svgload/blob/master
 # svgload LICENSE.txt contains:
