@@ -1,5 +1,5 @@
 # JRG: add contrib/tesselate.py, copied from svgbatch / svgload project
-# bug not fixed: `pointer` not defined in `combineCallback()`
+# bug FIXED: `pointer` not defined in `combineCallback()`, removed
 # seem to avoid by not including a redundant last point
 
 # downloaded Nov 2015 https://github.com/tartley/svgload/blob/master
@@ -156,7 +156,8 @@ class Tesselate(object):
         def combineCallback(coords, vertex_data, weights, dataOut):
             x, y, z = coords[0:3]
             data = (GLdouble * 3)(x, y, z)
-            dataOut[0] = cast(pointer(data), POINTER(GLvoid))
+            #dataOut[0] = cast(pointer(data), POINTER(GLvoid))  # original
+            dataOut[0] = cast(data, POINTER(GLvoid))
             spareverts.append(data)
 
         data_lists = self.create_data_lists(looplist)
