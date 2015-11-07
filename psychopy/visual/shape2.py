@@ -13,16 +13,17 @@ pyglet.options['debug_gl'] = False
 GL = pyglet.gl
 import numpy
 
+from psychopy import logging
 from psychopy.visual.shape import ShapeStim
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.contrib import tesselate
 
 
 class ShapeStim2(ShapeStim):
-    """A class for arbitrary, fillable ShapeStim.
+    """A class for fillable polygons, whether concave or convex.
 
-    Concave and convex shapes are fillable.
-    Bugs: Borders are not handled properly. Self-crossings & holes not tested.
+    Bugs: Borders are not dynamic. Self-crossings and holes do not work.
+    self.contains(mouse) does not work reliably.
     """
     def __init__(self,
                  win,
@@ -32,7 +33,7 @@ class ShapeStim2(ShapeStim):
                  lineColorSpace='rgb',
                  fillColor=None,
                  fillColorSpace='rgb',
-                 vertices=((-0.5,0),(0,+0.5),(+0.5,0),(0,-0.5)),
+                 vertices=((-0.5,0),(0,+0.5),(+0.5,0)),
                  closeShape=True,
                  pos=(0,0),
                  size=1,
@@ -44,15 +45,19 @@ class ShapeStim2(ShapeStim):
                  name=None,
                  autoLog=None,
                  autoDraw=False):
+        """
+        """
+        #what local vars are defined (these are the init params) for use by __repr__
+        self._initParams = dir()
+        self._initParams.remove('self')
 
-        # TO-DO: namespace -- what happens in ShapeStim.__init__() ?
-
-        # various gl calls are made in tesselate; we only use the return val:
+        # convert original vertices to triangles (= tesselation)
+        # some gl calls are made in tesselate; we only need the return val
         GL.glPushMatrix()  # seemed to help at one point, might be superfluous
-        tesselatedVerts = tesselate.tesselate([vertices])
+        tessVertices = tesselate.tesselate([vertices])
         GL.glPopMatrix()
-        if not len(tesselatedVerts) % 3 == 0:
-            raise tesselate.TesselateError("")
+        if not len(tessVertices) % 3 == 0:
+            raise tesselate.TesselateError("Could not properly tesselate: %s" % self)
 
         super(ShapeStim2, self).__init__(win,
                  units=units,
@@ -61,7 +66,7 @@ class ShapeStim2(ShapeStim):
                  lineColorSpace=lineColorSpace,
                  fillColor=fillColor,
                  fillColorSpace=fillColorSpace,
-                 vertices=tesselatedVerts,
+                 vertices=tessVertices,
                  closeShape=closeShape,
                  pos=pos,
                  size=size,
@@ -71,33 +76,41 @@ class ShapeStim2(ShapeStim):
                  depth=depth,
                  interpolate=interpolate,
                  name=name,
-                 autoLog=autoLog,
+                 autoLog=False,
                  autoDraw=autoDraw)
+        # remove deprecated params (from ShapeStim.__init__):
+        if 'fillRGB' in self._initParams:
+            self._initParams.remove('fillRGB')
+        if 'lineRGB' in self._initParams:
+            self._initParams.remove('lineRGB')
 
-        # TO-DO: have the border dynamically follow the stimulus, currently static:
-        _b = numpy.array(vertices)
-        self._borderPix = convertToPix(vertices=_b, pos=self.pos, win=self.win, units=self.units)
+        # TO-DO: a border should dynamically follow the stimulus, currently static:
+        # likely want to use the border for .contains()
+        _bv = numpy.array(vertices)
+        self._borderPix = convertToPix(vertices=_bv, pos=self.pos, win=self.win, units=self.units)
 
-        # ? what logging happens in ShapeStim.__init__
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
+            logging.exp("Created %s = %s" %(self.name, str(self)))
 
-
-    def draw(self, win=None, keepMatrix=False):
-        """mostly copied from ShapeStim, except
-        - use GL_TRIANLGES
-        - two arrays of vertices: tesselated (fill) & original (border)
-
-        keepMatrix is needed by Aperture
+    def draw(self, win=None):
+        """Draw the stimulus in its relevant window. You must call this method
+        after every win.flip() if you want the stimulus to appear on that frame
+        and then update the screen again.
         """
+        # mostly copied from ShapeStim. Uses GL_TRIANGLES and depends on
+        # two arrays of vertices: tesselated (for fill) & original (for border)
+        # keepMatrix is needed by Aperture, not retained here
+
         if win is None:
             win=self.win
         self._selectWindow(win)
 
-        vertsPix = self.verticesPix  # tesselated vertices
-        nVerts = vertsPix.shape[0]
+        tessVertsPix = self.verticesPix  # the tesselated vertices
         #scale the drawing frame etc...
-        if not keepMatrix:
-            GL.glPushMatrix()#push before drawing, pop after
-            win.setScale('pix')
+        GL.glPushMatrix()  # push before drawing, pop after
+        win.setScale('pix')
         #load Null textures into multitexteureARB - or they modulate glColor
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -112,25 +125,27 @@ class ShapeStim2(ShapeStim):
         else:
             GL.glDisable(GL.GL_LINE_SMOOTH)
             GL.glDisable(GL.GL_MULTISAMPLE)
-        GL.glVertexPointer(2, GL.GL_DOUBLE, 0, vertsPix.ctypes)
-
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
-        if nVerts>2 and self.fillRGB is not None:
-            #convert according to colorSpace
+
+        # fill tesselated vertices
+        if tessVertsPix.shape[0] > 2 and self.fillRGB is not None:
+            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, tessVertsPix.ctypes)
             fillRGB = self._getDesiredRGB(self.fillRGB, self.fillColorSpace, self.contrast)
-            #then draw
             GL.glColor4f(fillRGB[0], fillRGB[1], fillRGB[2], self.opacity)
             GL.glDrawArrays(GL.GL_TRIANGLES, 0, self.verticesPix.shape[0])
 
+        # draw border line using original vertices
         if self.lineRGB is not None and self.lineWidth:
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._borderPix.ctypes)
             lineRGB = self._getDesiredRGB(self.lineRGB, self.lineColorSpace, self.contrast)
             GL.glLineWidth(self.lineWidth)
             GL.glColor4f(lineRGB[0], lineRGB[1], lineRGB[2], self.opacity)
-            # always close the border (LOOP):
-            GL.glDrawArrays(GL.GL_LINE_LOOP, 0, nVerts)  # unclosed: GL.GL_LINE_STRIP
+            if self.closeShape:
+                draw = GL.GL_LINE_LOOP
+            else:
+                draw = GL.GL_LINE_STRIP
+            GL.glDrawArrays(draw, 0, self._borderPix.shape[0])
 
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-        if not keepMatrix:
-            GL.glPopMatrix()
+        GL.glPopMatrix()
 
