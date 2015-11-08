@@ -332,6 +332,26 @@ class _baseVisualTest:
         shape.draw()
         str(shape) #check that str(xxx) is working
         utils.compareScreenshot('shape2_%s.png' %(self.contextName), win, crit=12.5)
+    @pytest.mark.shape2
+    def test_shape2(self):
+        win = self.win
+
+        arrow = [(-0.4,0.05), (-0.4,-0.05), (-.2,-0.05), (-.2,-0.1), (0,0), (-.2,0.1), (-.2,0.05)]
+        shape2 = visual.ShapeStim2(win, lineColor='white', lineWidth=1.0,
+            fillColor='red', vertices=arrow, closeShape=True, pos=[0, 0],
+            ori=0.0, opacity=1.0, depth=0, interpolate=True)
+        shape2.draw()
+        #NB shape rendering can differ a little, depending on aliasing
+        utils.compareScreenshot('shape2_1_%s.png' %(self.contextName), win, crit=12.5)
+        win.flip()
+
+        # Using .set()
+        shape2.contrast = 0.8
+        shape2.opacity = 0.8
+        shape2.ori = 90
+        shape2.draw()
+        assert 'Shape' in str(shape2)  # check that str(xxx) is working
+        utils.compareScreenshot('shape2_2_%s.png' %(self.contextName), win, crit=12.5)
     def test_radial(self):
         if self.win.winType=='pygame':
             pytest.skip("RadialStim dodgy on pygame")
