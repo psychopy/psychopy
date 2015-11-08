@@ -11,11 +11,10 @@
 import pyglet
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
-import numpy, copy
+import copy
 
 from psychopy import logging
 from psychopy.visual.shape import ShapeStim
-from psychopy.tools.monitorunittools import convertToPix
 from psychopy.contrib.tesselate import tesselate, TesselateError
 
 
