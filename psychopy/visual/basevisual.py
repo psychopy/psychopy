@@ -386,6 +386,7 @@ class ContainerMixin(object):
     def __init__(self):
         super(ContainerMixin, self).__init__()
         self._verticesBase = numpy.array([[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]]) #sqr
+        self._borderBase = numpy.array([[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]]) #sqr
         self._rotationMatrix = [[1.,0.],[0.,1.]] #no rotation as a default
 
     @property
@@ -397,29 +398,46 @@ class ContainerMixin(object):
         if self._needVertexUpdate:
             self._updateVertices()
         return self.__dict__['verticesPix']
-    def _updateVertices(self):
-        """Sets Stim.verticesPix from pos and size
+    @property
+    def borderPix(self):
+        """Allows for a dynamic border that differs from self.vertices.
         """
+        #because this is a property getter we can check /on-access/ if it needs updating :-)
+        if self._needVertexUpdate:
+            self._updateVertices()
+        return self.__dict__['borderPix']
+    def _updateVertices(self):
+        """Sets Stim.verticesPix and .borderPix from pos, size, ori, flipVert, flipHoriz
+        """
+        #check whether stimulus needs flipping in either direction
+        flip = numpy.array([1,1])
+        if hasattr(self, 'flipHoriz'):
+            flip[0] = self.flipHoriz*(-2)+1  # True=(-1), False->(+1)
+        if hasattr(self, 'flipVert'):
+            flip[1] = self.flipVert*(-2)+1  # True=(-1), False->(+1)
+
         if hasattr(self, 'vertices'):
             verts = self.vertices
         else:
             verts = self._verticesBase
-        #check whether stimulus needs flipping in either direction
-        flip = numpy.array([1,1])
-        if hasattr(self, 'flipHoriz'):
-            flip[0] = self.flipHoriz*(-2)+1#True=(-1), False->(+1)
-        if hasattr(self, 'flipVert'):
-            flip[1] = self.flipVert*(-2)+1#True=(-1), False->(+1)
-        # set size and orientation
+        # set size and orientation, combine with position and convert to pix:
         verts = numpy.dot(self.size*verts*flip, self._rotationMatrix)
-        #then combine with position and convert to pix
         verts = convertToPix(vertices=verts, pos=self.pos, win=self.win, units=self.units)
-        #assign to self attribute
         self.__dict__['verticesPix'] = verts
+
+        if hasattr(self, 'border'):
+            border = self.border
+        else:
+            border = self._borderBase
+        border = numpy.dot(self.size*border*flip, self._rotationMatrix)
+        border = convertToPix(vertices=border, pos=self.pos, win=self.win, units=self.units)
+        self.__dict__['borderPix'] = border
+
         self._needVertexUpdate = False
         self._needUpdate = True #but we presumably need to update the list
+
     def contains(self, x, y=None, units=None):
-        """Returns True if a point x,y is inside the extent of the stimulus.
+        """Returns True if a point x,y is inside the stimulus' border.
 
         Can accept variety of input options:
             + two separate args, x and y
@@ -427,18 +445,22 @@ class ContainerMixin(object):
             + an object with a getPos() method that returns x,y, such
                 as a :class:`~psychopy.event.Mouse`.
 
-        Returns `True` if the point is within the area defined by `vertices`.
-        This method handles complex shapes, including concavities and self-crossings.
+        Returns `True` if the point is within the area defined either by its
+        `border` attribute (if present), or its `vertices`. This method handles
+        complex shapes, including concavities and self-crossings.
 
         Note that, if your stimulus uses a mask (such as a Gaussian) then
         this is not accounted for by the `contains` method; the extent of the
         stimulus is determined purely by the size, position (pos), and orientation (ori) settings
         (and by the vertices for shape stimuli).
 
-        See coder demo, shapeContains.py
+        See Coder demos: shapeContains.py, filled_shapes.py
         """
         #get the object in pixels
-        if hasattr(x, 'verticesPix'):
+        if hasattr(x, 'borderPix'):
+            xy = x.borderPix #access only once - this is a property
+            units = 'pix' #we can forget about the units
+        elif hasattr(x, 'verticesPix'):
             xy = x.verticesPix #access only once - this is a property (slower to access)
             units = 'pix' #we can forget about the units
         elif hasattr(x, 'getPos'):
@@ -457,8 +479,12 @@ class ContainerMixin(object):
         if units != 'pix':
             xy = convertToPix(xy, pos=(0,0), units=units, win=self.win)
         # ourself in pixels
-        selfVerts = self.verticesPix
-        return pointInPolygon(xy[0], xy[1], poly = selfVerts)
+        if hasattr(self, 'border'):
+            poly = self.borderPix  # e.g., outline vertices
+        else:
+            poly = self.verticesPix  # e.g., tesselated vertices
+
+        return pointInPolygon(xy[0], xy[1], poly=poly)
 
     def overlaps(self, polygon):
         """Returns `True` if this stimulus intersects another one.

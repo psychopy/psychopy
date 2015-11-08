@@ -11,12 +11,12 @@
 import pyglet
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
-import numpy
+import numpy, copy
 
 from psychopy import logging
 from psychopy.visual.shape import ShapeStim
 from psychopy.tools.monitorunittools import convertToPix
-from psychopy.contrib import tesselate
+from psychopy.contrib.tesselate import tesselate, TesselateError
 
 
 class ShapeStim2(ShapeStim):
@@ -54,10 +54,10 @@ class ShapeStim2(ShapeStim):
         # convert original vertices to triangles (= tesselation)
         # some gl calls are made in tesselate; we only need the return val
         GL.glPushMatrix()  # seemed to help at one point, might be superfluous
-        tessVertices = tesselate.tesselate([vertices])
+        tessVertices = tesselate([vertices])
         GL.glPopMatrix()
         if not len(tessVertices) % 3 == 0:
-            raise tesselate.TesselateError("Could not properly tesselate: %s" % self)
+            raise TesselateError("Could not properly tesselate: %s" % self)
 
         super(ShapeStim2, self).__init__(win,
                  units=units,
@@ -84,10 +84,8 @@ class ShapeStim2(ShapeStim):
         if 'lineRGB' in self._initParams:
             self._initParams.remove('lineRGB')
 
-        # TO-DO: a border should dynamically follow the stimulus, currently static:
-        # likely want to use the border for .contains()
-        _bv = numpy.array(vertices)
-        self._borderPix = convertToPix(vertices=_bv, pos=self.pos, win=self.win, units=self.units)
+        # dynamic border (pos, size, ori):
+        self.border = copy.copy(vertices)
 
         # set autoLog now that params have been initialised
         self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
@@ -95,19 +93,18 @@ class ShapeStim2(ShapeStim):
             logging.exp("Created %s = %s" %(self.name, str(self)))
 
     def draw(self, win=None):
-        """Draw the stimulus in its relevant window. You must call this method
+        """Draw the stimulus in the relevant window. You must call this method
         after every win.flip() if you want the stimulus to appear on that frame
         and then update the screen again.
         """
         # mostly copied from ShapeStim. Uses GL_TRIANGLES and depends on
         # two arrays of vertices: tesselated (for fill) & original (for border)
-        # keepMatrix is needed by Aperture, not retained here
+        # keepMatrix is needed by Aperture, NOT retained here
 
         if win is None:
             win=self.win
         self._selectWindow(win)
 
-        tessVertsPix = self.verticesPix  # the tesselated vertices
         #scale the drawing frame etc...
         GL.glPushMatrix()  # push before drawing, pop after
         win.setScale('pix')
@@ -127,24 +124,25 @@ class ShapeStim2(ShapeStim):
             GL.glDisable(GL.GL_MULTISAMPLE)
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
 
-        # fill tesselated vertices
+        # fill the interior triangles
+        tessVertsPix = self.verticesPix  # these are tesselated
         if tessVertsPix.shape[0] > 2 and self.fillRGB is not None:
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, tessVertsPix.ctypes)
             fillRGB = self._getDesiredRGB(self.fillRGB, self.fillColorSpace, self.contrast)
             GL.glColor4f(fillRGB[0], fillRGB[1], fillRGB[2], self.opacity)
             GL.glDrawArrays(GL.GL_TRIANGLES, 0, self.verticesPix.shape[0])
 
-        # draw border line using original vertices
+        # draw the border (= a line connecting the non-tesselated vertices)
         if self.lineRGB is not None and self.lineWidth:
-            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._borderPix.ctypes)
+            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.borderPix.ctypes)
             lineRGB = self._getDesiredRGB(self.lineRGB, self.lineColorSpace, self.contrast)
             GL.glLineWidth(self.lineWidth)
             GL.glColor4f(lineRGB[0], lineRGB[1], lineRGB[2], self.opacity)
             if self.closeShape:
-                draw = GL.GL_LINE_LOOP
+                gl_line = GL.GL_LINE_LOOP
             else:
-                draw = GL.GL_LINE_STRIP
-            GL.glDrawArrays(draw, 0, self._borderPix.shape[0])
+                gl_line = GL.GL_LINE_STRIP
+            GL.glDrawArrays(gl_line, 0, self.borderPix.shape[0])
 
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         GL.glPopMatrix()
