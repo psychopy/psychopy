@@ -19,9 +19,9 @@ from psychopy.contrib.tesselate import tesselate, TesselateError
 
 
 class ShapeStim2(ShapeStim):
-    """A class for fillable polygons, whether concave or convex.
+    """A class for fillable polygons: concave, convex, or self-crossing.
 
-    Self-crossings and true holes are not supported.
+    True holes are not supported.
     """
     def __init__(self,
                  win,
@@ -141,4 +141,3 @@ class ShapeStim2(ShapeStim):
 
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         GL.glPopMatrix()
-
