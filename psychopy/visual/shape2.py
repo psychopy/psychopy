@@ -15,7 +15,7 @@ import copy
 
 from psychopy import logging
 from psychopy.visual.shape import ShapeStim
-from psychopy.contrib.tesselate import tesselate, TesselateError
+from psychopy.contrib import tesselate
 
 
 class ShapeStim2(ShapeStim):
@@ -35,6 +35,7 @@ class ShapeStim2(ShapeStim):
                  fillColor=None,
                  fillColorSpace='rgb',
                  vertices=((-0.5,0),(0,+0.5),(+0.5,0)),
+                 windingRule=None,  # default GL.GLU_TESS_WINDING_ODD
                  closeShape=True,
                  pos=(0,0),
                  size=1,
@@ -55,13 +56,18 @@ class ShapeStim2(ShapeStim):
         # convert original vertices to triangles (= tesselation)
         # some gl calls are made in tesselate; we only need the return val
         GL.glPushMatrix()  # seemed to help at one point, might be superfluous
+        if windingRule:
+            GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE, windingRule)
         if hasattr(vertices[0][0], '__iter__'):
-            tessVertices = tesselate(vertices)
+            tessVertices = tesselate.tesselate(vertices)
         else:
-            tessVertices = tesselate([vertices])
+            tessVertices = tesselate.tesselate([vertices])
+        if windingRule:
+            GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE, GL.GLU_TESS_WINDING_ODD)
         GL.glPopMatrix()
+
         if not len(tessVertices) % 3 == 0:
-            raise TesselateError("Could not properly tesselate: %s" % self)
+            raise tesselate.TesselateError("Could not properly tesselate: %s" % self)
 
         super(ShapeStim2, self).__init__(win,
                  units=units,
