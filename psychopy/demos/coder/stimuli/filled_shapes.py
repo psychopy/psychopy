@@ -17,13 +17,16 @@ selfxVert = [(0,0),(0,.2),(.2,0),(.2,.2)]
 thingVert = [(0,0),(0,.4),(.4,.4),(.4,0),(.1,0),(.1,.1),(.3,.1),(.3,.3),(.1,.3),(.1,0),
     (0,0),(.1,-.1),(.3,-.1),(.3,-.3),(.1,-.3),(.1,-.1)]
 
-arrow = ShapeStim2(win, vertices=arrowVert, fillColor='darkred',size=.5)#  , lineWidth=2, lineColor='red')
+# a true hole, using two loops of vertices:
+donutVert = [[(-.2,-.2),(-.2,.2),(.2,.2),(.2,-.2)], [(-.15,-.15),(-.15,.15),(.15,.15),(.15,-.15)]]
+
+arrow = ShapeStim2(win, vertices=arrowVert, fillColor='darkred', size=.5)#  , lineWidth=2, lineColor='red')
 star7 = ShapeStim2(win, vertices=star7Vert, fillColor='green', lineWidth=2, lineColor='white')
 selfx = ShapeStim2(win, vertices=selfxVert, fillColor='yellow', opacity=.6)
-thing = ShapeStim2(win, vertices=thingVert, fillColor='blue', opacity=.3)  #,lineWidth=0.5,lineColor='white')
-thing.flipVert = True
+thing = ShapeStim2(win, vertices=thingVert, fillColor='blue', opacity=.3) #,lineWidth=0.5,lineColor='white')
+donut = ShapeStim2(win, vertices=donutVert, fillColor='orange', size=.75, pos=(-.2,-.2))
 
-m = event.Mouse()
+#m = event.Mouse()
 while not event.getKeys():
     star7.setOri(1,'-')  # rotate
     star7.setSize(-star7.ori%360 / 360)  # expand
@@ -32,5 +35,6 @@ while not event.getKeys():
     thing.draw()
     arrow.draw()
     selfx.draw()
+    donut.draw()
     win.flip()
-    if thing.contains(m): break
+    #if thing.contains(m): break

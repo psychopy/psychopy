@@ -19,9 +19,12 @@ from psychopy.contrib.tesselate import tesselate, TesselateError
 
 
 class ShapeStim2(ShapeStim):
-    """A class for fillable polygons: concave, convex, or self-crossing.
+    """A class for fillable polygons: concave, convex, self-crossing, or with holes.
 
-    True holes are not supported.
+    True holes are supported using the OpenGL tesselation winding rule ODD.
+    Borders do not work well for shapes with holes. For a hole, `vertices` should be a list
+    of loops, where each loop is a list of points (x,y). For other polygons, `vertices`
+    should be a list of points (x,y).
     """
     def __init__(self,
                  win,
@@ -52,7 +55,10 @@ class ShapeStim2(ShapeStim):
         # convert original vertices to triangles (= tesselation)
         # some gl calls are made in tesselate; we only need the return val
         GL.glPushMatrix()  # seemed to help at one point, might be superfluous
-        tessVertices = tesselate([vertices])
+        if hasattr(vertices[0][0], '__iter__'):
+            tessVertices = tesselate(vertices)
+        else:
+            tessVertices = tesselate([vertices])
         GL.glPopMatrix()
         if not len(tessVertices) % 3 == 0:
             raise TesselateError("Could not properly tesselate: %s" % self)
@@ -80,6 +86,7 @@ class ShapeStim2(ShapeStim):
         self._initParams = self._initParamsOrig
 
         # dynamic border (pos, size, ori):
+        # TO-DO: handle borders properly for multiloop stim like holes
         self.border = copy.copy(vertices)
 
         # set autoLog now that params have been initialised
