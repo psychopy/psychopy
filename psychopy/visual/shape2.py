@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-'''Create basic tesselated ShapeStim from a list of vertex locations.'''
+'''Create fillable ShapeStim from a list of vertices.'''
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -21,8 +21,7 @@ from psychopy.contrib.tesselate import tesselate, TesselateError
 class ShapeStim2(ShapeStim):
     """A class for fillable polygons, whether concave or convex.
 
-    Bugs: Borders are not dynamic. Self-crossings and holes do not work.
-    self.contains(mouse) does not work reliably.
+    Self-crossings and true holes are not supported.
     """
     def __init__(self,
                  win,
@@ -47,8 +46,8 @@ class ShapeStim2(ShapeStim):
         """
         """
         #what local vars are defined (these are the init params) for use by __repr__
-        self._initParams = dir()
-        self._initParams.remove('self')
+        self._initParamsOrig = dir()
+        self._initParamsOrig.remove('self')
 
         # convert original vertices to triangles (= tesselation)
         # some gl calls are made in tesselate; we only need the return val
@@ -78,10 +77,7 @@ class ShapeStim2(ShapeStim):
                  autoLog=False,
                  autoDraw=autoDraw)
         # remove deprecated params (from ShapeStim.__init__):
-        if 'fillRGB' in self._initParams:
-            self._initParams.remove('fillRGB')
-        if 'lineRGB' in self._initParams:
-            self._initParams.remove('lineRGB')
+        self._initParams = self._initParamsOrig
 
         # dynamic border (pos, size, ori):
         self.border = copy.copy(vertices)
