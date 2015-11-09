@@ -11,7 +11,6 @@
 import pyglet
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
-import numpy
 import copy
 
 from psychopy import logging
@@ -20,12 +19,23 @@ from psychopy.contrib import tesselate
 
 
 class ShapeStim2(ShapeStim):
-    """A class for fillable polygons: concave, convex, self-crossing, or with holes.
+    """A class for arbitrary shapes defined as lists of vertices (x,y).
 
-    Line shapes are not handled well; use a ShapeStim instead.
+    Shapes can be lines, polygons (concave, convex, self-crossing), or have
+    holes or multiple regions (discontinuous).
 
-    `vertices` can be a list of loops, where each loop is a list of points (x,y),
-    e.g., to define a shape with a hole. `vertices` can also be a list of points (x,y).
+    `vertices` is typically a list of points (x,y). By default, these are
+    assumed to define a closed figure (polygon); set `closeShape=False` for a line.
+    Individual vertices cannot be changed dynamically, but the stimulus as a whole
+    can be rotated, translated, or scaled dynamically (using .ori, .pos, .size).
+
+    `vertices` can also be a list of loops, where each loop is a list of points
+    (x,y), e.g., to define a shape with a hole. Borders and contains() are not
+    supported for multi-loop stimuli.
+
+    `windingRule` is an advanced feature to allow control over the GLU
+    tesselator winding rule (default: GLU_TESS_WINDING_ODD).
+
     See Coder demo > stimuli > filled_shapes.py
     """
     def __init__(self,
@@ -33,12 +43,12 @@ class ShapeStim2(ShapeStim):
                  units='',
                  lineWidth=0,
                  lineColor='white',
-                 lineColorSpace='named',
+                 lineColorSpace='rgb',
                  fillColor=None,
-                 fillColorSpace='named',
+                 fillColorSpace='rgb',
                  vertices=((-0.5,0),(0,+0.5),(+0.5,0)),
                  windingRule=None,  # default GL.GLU_TESS_WINDING_ODD
-                 # closeShape=True,  # always True
+                 closeShape=True,  # False for a line
                  pos=(0,0),
                  size=1,
                  ori=0.0,
@@ -55,21 +65,36 @@ class ShapeStim2(ShapeStim):
         self._initParamsOrig = dir()
         self._initParamsOrig.remove('self')
 
-        # convert original vertices to triangles (= tesselation)
-        # some gl calls are made in tesselate; we only need the return val
-        GL.glPushMatrix()  # seemed to help at one point, might be superfluous
-        if windingRule:
-            GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE, windingRule)
-        if hasattr(vertices[0][0], '__iter__'):
-            tessVertices = tesselate.tesselate(vertices)
-        else:
-            tessVertices = tesselate.tesselate([vertices])
-        if windingRule:
-            GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE, GL.GLU_TESS_WINDING_ODD)
-        GL.glPopMatrix()
+        # dynamic border (pos, size, ori):
+        # TO-DO: handle borders properly for multiloop stim like holes
+        # likely requires changes in ContainerMixin to iterate over each border loop
+        self.border = copy.deepcopy(vertices)
 
-        if numpy.array(tessVertices).shape == (0,) or len(tessVertices) % 3:
+        self.closeShape = closeShape
+        if self.closeShape:
+            # convert original vertices to triangles (= tesselation) if possible
+            # (not possible if closeShape is False, so don't even try)
+            GL.glPushMatrix()  # seemed to help at one point, might be superfluous
+            if windingRule:
+                GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE, windingRule)
+            if hasattr(vertices[0][0], '__iter__'):
+                loops = vertices
+            else:
+                loops = [vertices]
+            tessVertices = tesselate.tesselate(loops)
+            GL.glPopMatrix()
+            if windingRule:
+                GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE,
+                                   tesselate.default_winding_rule)
+
+        if not self.closeShape or tessVertices == []:
+            # probably got a line if tesselate returned []
+            initVertices = vertices
+            self.closeShape = False
+        elif len(tessVertices) % 3:
             raise tesselate.TesselateError("Could not properly tesselate")
+        else:
+            initVertices = tessVertices
 
         super(ShapeStim2, self).__init__(win,
                  units=units,
@@ -78,8 +103,8 @@ class ShapeStim2(ShapeStim):
                  lineColorSpace=lineColorSpace,
                  fillColor=fillColor,
                  fillColorSpace=fillColorSpace,
-                 vertices=tessVertices,
-                 closeShape=True,
+                 vertices=initVertices,  # either tess'd or orig for line / unclosed
+                 closeShape=self.closeShape,
                  pos=pos,
                  size=size,
                  ori=ori,
@@ -92,10 +117,6 @@ class ShapeStim2(ShapeStim):
                  autoDraw=autoDraw)
         # remove deprecated params (from ShapeStim.__init__):
         self._initParams = self._initParamsOrig
-
-        # dynamic border (pos, size, ori):
-        # TO-DO: handle borders properly for multiloop stim like holes
-        self.border = copy.copy(vertices)
 
         # set autoLog now that params have been initialised
         self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
@@ -135,10 +156,9 @@ class ShapeStim2(ShapeStim):
             GL.glDisable(GL.GL_MULTISAMPLE)
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
 
-        # fill the interior triangles
-        tessVertsPix = self.verticesPix  # these are tesselated
-        if tessVertsPix.shape[0] > 2 and self.fillRGB is not None:
-            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, tessVertsPix.ctypes)
+        # fill interior triangles if there are any
+        if self.closeShape and self.verticesPix.shape[0] > 2 and self.fillRGB is not None:
+            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)
             fillRGB = self._getDesiredRGB(self.fillRGB, self.fillColorSpace, self.contrast)
             GL.glColor4f(fillRGB[0], fillRGB[1], fillRGB[2], self.opacity)
             GL.glDrawArrays(GL.GL_TRIANGLES, 0, self.verticesPix.shape[0])

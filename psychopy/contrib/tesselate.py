@@ -62,7 +62,8 @@ class TesselateError(Exception):
 
 tess = gluNewTess()
 gluTessNormal(tess, 0, 0, 1)
-gluTessProperty(tess, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_ODD)
+default_winding_rule = GLU_TESS_WINDING_ODD
+gluTessProperty(tess, GLU_TESS_WINDING_RULE, default_winding_rule)
 
 
 if sys.platform == 'win32':
