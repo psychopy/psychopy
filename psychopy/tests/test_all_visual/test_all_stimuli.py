@@ -338,7 +338,7 @@ class _baseVisualTest:
 
         arrow = [(-0.4,0.05), (-0.4,-0.05), (-.2,-0.05), (-.2,-0.1), (0,0), (-.2,0.1), (-.2,0.05)]
         shape2 = visual.ShapeStim2(win, lineColor='white', lineWidth=1.0,
-            fillColor='red', vertices=arrow, closeShape=True, pos=[0, 0],
+            fillColor='red', vertices=arrow, pos=[0, 0],
             ori=0.0, opacity=1.0, depth=0, interpolate=True)
         shape2.draw()
         #NB shape rendering can differ a little, depending on aliasing
