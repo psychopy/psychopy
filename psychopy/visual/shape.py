@@ -30,15 +30,12 @@ import numpy
 class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     """Create geometric (vector) shapes by defining vertex locations.
 
-    Shapes can be outlines or filled, by setting lineRGB and fillRGB to
-    rgb triplets, or None. They can also be rotated (stim.setOri(__)) and
-    translated (stim.setPos(__)) like any other stimulus.
+    Shapes can be outlines or filled, set lineColor and fillColor to a color name, or None.
+    They can also be rotated (stim.setOri(__)), translated (stim.setPos(__)),
+    and scaled (stim.setSize(__)) like any other stimulus.
 
-    NB for now the fill of objects is performed using glBegin(GL_POLYGON)
-    and that is limited to convex shapes. With concavities you get unpredictable
-    results (e.g. add a fill color to the arrow stim below). To create concavities,
-    you can combine multiple shapes, or stick to just outlines. (If anyone wants
-    to rewrite ShapeStim to use glu tesselators that would be great!)
+    Filling ShapeStim objects works well for convex polygons (square, circle, etc).
+    To fill arbitrary shapes (e.g., arrow, star, torus), use ShapeStim2.
     """
     def __init__(self,
                  win,

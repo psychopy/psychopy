@@ -26,18 +26,19 @@ class ShapeStim2(ShapeStim):
 
     `vertices` can be a list of loops, where each loop is a list of points (x,y),
     e.g., to define a shape with a hole. `vertices` can also be a list of points (x,y).
+    See Coder demo > stimuli > filled_shapes.py
     """
     def __init__(self,
                  win,
                  units='',
                  lineWidth=0,
                  lineColor='white',
-                 lineColorSpace='rgb',
+                 lineColorSpace='named',
                  fillColor=None,
-                 fillColorSpace='rgb',
+                 fillColorSpace='named',
                  vertices=((-0.5,0),(0,+0.5),(+0.5,0)),
                  windingRule=None,  # default GL.GLU_TESS_WINDING_ODD
-                 closeShape=True,
+                 # closeShape=True,  # always True
                  pos=(0,0),
                  size=1,
                  ori=0.0,
@@ -50,7 +51,7 @@ class ShapeStim2(ShapeStim):
                  autoDraw=False):
         """
         """
-        #what local vars are defined (these are the init params) for use by __repr__
+        #what local vars are defined (init params, for use by __repr__)
         self._initParamsOrig = dir()
         self._initParamsOrig.remove('self')
 
@@ -68,7 +69,7 @@ class ShapeStim2(ShapeStim):
         GL.glPopMatrix()
 
         if numpy.array(tessVertices).shape == (0,) or len(tessVertices) % 3:
-            raise tesselate.TesselateError("Could not properly tesselate %s" % repr(vertices))
+            raise tesselate.TesselateError("Could not properly tesselate")
 
         super(ShapeStim2, self).__init__(win,
                  units=units,
@@ -78,7 +79,7 @@ class ShapeStim2(ShapeStim):
                  fillColor=fillColor,
                  fillColorSpace=fillColorSpace,
                  vertices=tessVertices,
-                 closeShape=closeShape,
+                 closeShape=True,
                  pos=pos,
                  size=size,
                  ori=ori,
@@ -101,22 +102,23 @@ class ShapeStim2(ShapeStim):
         if self.autoLog:
             logging.exp("Created %s = %s" %(self.name, str(self)))
 
-    def draw(self, win=None):
+    def draw(self, win=None, keepMatrix=False):
         """Draw the stimulus in the relevant window. You must call this method
         after every win.flip() if you want the stimulus to appear on that frame
         and then update the screen again.
         """
         # mostly copied from ShapeStim. Uses GL_TRIANGLES and depends on
         # two arrays of vertices: tesselated (for fill) & original (for border)
-        # keepMatrix is needed by Aperture, NOT retained here
+        # keepMatrix is needed by Aperture; retained here
 
         if win is None:
             win=self.win
         self._selectWindow(win)
 
         #scale the drawing frame etc...
-        GL.glPushMatrix()  # push before drawing, pop after
-        win.setScale('pix')
+        if not keepMatrix:
+            GL.glPushMatrix()
+            win.setScale('pix')
         #load Null textures into multitexteureARB - or they modulate glColor
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -154,4 +156,5 @@ class ShapeStim2(ShapeStim):
             GL.glDrawArrays(gl_line, 0, self.borderPix.shape[0])
 
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-        GL.glPopMatrix()
+        if not keepMatrix:
+            GL.glPopMatrix()
