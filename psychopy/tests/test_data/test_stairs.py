@@ -74,13 +74,32 @@ class TestStairHandlers(object):
         self.doTrials(stairs, responsesToMake[:nTrials], levels=levels)
 
 
-def makeBasicResponseCycles():
-    """helper function to make basic set of responses
+def makeBasicResponseCycles(cycles=10, nCorrect=4, nIncorrect=4):
     """
-    responsesToMake=[]
-    for cycle in range(10):
-        for nRight in range(4):
-            responsesToMake.append(1)
-        for nWrong in range(4):
-            responsesToMake.append(0)
+    Helper function to create a basic set of responses.
+
+    :Parameters:
+
+    cycles : int, optional
+        The number of response cycles to generate. One cycle consists of a
+        number of correct and incorrect responses.
+        Defaults to 10.
+    nCorrect, nIncorrect : int, optional
+        The number of correct and incorrect responses per cycle.
+        Defaults to 4.
+
+    :Returns:
+
+    responsesToMake : list
+        A list of responses with length `cycles * (nCorrect + nIncorrect)`.
+
+    """
+    responsesCorrectPerCycle = np.ones(nCorrect, dtype=np.int)
+    responsesIncorrectPerCycle = np.zeros(nIncorrect, dtype=np.int)
+
+    responsesToMake = np.tile(
+        np.r_[responsesCorrectPerCycle, responsesIncorrectPerCycle],
+        cycles
+    ).tolist()
+
     return responsesToMake
