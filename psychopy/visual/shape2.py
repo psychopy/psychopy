@@ -11,6 +11,7 @@
 import pyglet
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
+import numpy
 import copy
 
 from psychopy import logging
@@ -21,10 +22,10 @@ from psychopy.contrib import tesselate
 class ShapeStim2(ShapeStim):
     """A class for fillable polygons: concave, convex, self-crossing, or with holes.
 
-    True holes are supported using the OpenGL tesselation winding rule ODD.
-    Borders do not work well for shapes with holes. For a hole, `vertices` should be a list
-    of loops, where each loop is a list of points (x,y). For other polygons, `vertices`
-    should be a list of points (x,y).
+    Line shapes are not handled well; use a ShapeStim instead.
+
+    `vertices` can be a list of loops, where each loop is a list of points (x,y),
+    e.g., to define a shape with a hole. `vertices` can also be a list of points (x,y).
     """
     def __init__(self,
                  win,
@@ -66,8 +67,8 @@ class ShapeStim2(ShapeStim):
             GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE, GL.GLU_TESS_WINDING_ODD)
         GL.glPopMatrix()
 
-        if not len(tessVertices) % 3 == 0:
-            raise tesselate.TesselateError("Could not properly tesselate: %s" % self)
+        if numpy.array(tessVertices).shape == (0,) or len(tessVertices) % 3:
+            raise tesselate.TesselateError("Could not properly tesselate %s" % repr(vertices))
 
         super(ShapeStim2, self).__init__(win,
                  units=units,
