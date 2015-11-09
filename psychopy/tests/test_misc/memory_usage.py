@@ -113,9 +113,10 @@ class TestMemory(object):
             Stim = eval('visual.' + StimName)
             assert leakage(Stim, win) < THRESHOLD, StimName
 
-    def test_TessStim(self):
-        v = [(-.2,-.05), (-.2,.05), (.2,.05), (.2,.15), (.35,0), (.2,-.15), (.2,-.05)]  # v * 100 passes, just slow
-        assert leakage(visual.TessStim, win, vertices=v) < THRESHOLD
+    def test_ShapeStim2(self):
+        v = [(-.2,-.05), (-.2,.05), (.2,.05), (.2,.15), (.35,0), (.2,-.15), (.2,-.05)]
+        assert leakage(visual.ShapeStim2, win, vertices=v) < THRESHOLD
+        assert leakage(visual.ShapeStim2, win, vertices=v * 100) < THRESHOLD
 
     @pytest.mark.xfail
     def test_Window(self):

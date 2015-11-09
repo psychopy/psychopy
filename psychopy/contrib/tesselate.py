@@ -1,6 +1,6 @@
 # JRG: add contrib/tesselate.py, copied from svgbatch / svgload project
-# bug not fixed: `pointer` not defined in `combineCallback()`
-# seem to avoid by not including a redundant last point
+# bug ??FIXED: `pointer` not defined in `combineCallback()`, removed
+# changed: explicitly use the default winding rule GLU_TESS_WINDING_ODD
 
 # downloaded Nov 2015 https://github.com/tartley/svgload/blob/master
 # svgload LICENSE.txt contains:
@@ -52,7 +52,7 @@ from pyglet.gl import (
     gluTessCallback, gluTessEndContour, gluTessEndPolygon, gluTessNormal,
     gluTessProperty, gluTessVertex,
     GLU_TESS_BEGIN, GLU_TESS_COMBINE, GLU_TESS_END, GLU_TESS_ERROR,
-    GLU_TESS_VERTEX, GLU_TESS_WINDING_NONZERO, GLU_TESS_WINDING_RULE,
+    GLU_TESS_VERTEX, GLU_TESS_WINDING_ODD, GLU_TESS_WINDING_RULE,
 )
 
 
@@ -62,7 +62,7 @@ class TesselateError(Exception):
 
 tess = gluNewTess()
 gluTessNormal(tess, 0, 0, 1)
-gluTessProperty(tess, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_NONZERO)
+gluTessProperty(tess, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_ODD)
 
 
 if sys.platform == 'win32':
@@ -156,7 +156,8 @@ class Tesselate(object):
         def combineCallback(coords, vertex_data, weights, dataOut):
             x, y, z = coords[0:3]
             data = (GLdouble * 3)(x, y, z)
-            dataOut[0] = cast(pointer(data), POINTER(GLvoid))
+            #dataOut[0] = cast(pointer(data), POINTER(GLvoid))  # original
+            dataOut[0] = cast(data, POINTER(GLvoid))
             spareverts.append(data)
 
         data_lists = self.create_data_lists(looplist)
