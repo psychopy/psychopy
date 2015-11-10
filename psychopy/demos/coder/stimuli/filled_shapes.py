@@ -20,11 +20,15 @@ thingVert = [(0,0),(0,.4),(.4,.4),(.4,0),(.1,0),(.1,.1),(.3,.1),(.3,.3),(.1,.3),
 # a true hole, using two loops of vertices:
 donutVert = [[(-.2,-.2),(-.2,.2),(.2,.2),(.2,-.2)], [(-.15,-.15),(-.15,.15),(.15,.15),(.15,-.15)]]
 
+# lines are ok; use closeShape=False
+line1Vert = [(0,0),(.1,.1),(.1,.2),(.1,.1),(.1,-.1),(0,.1)]
+
 arrow = ShapeStim2(win, vertices=arrowVert, fillColor='darkred', size=.5)#  , lineWidth=2, lineColor='red')
 star7 = ShapeStim2(win, vertices=star7Vert, fillColor='green', lineWidth=2, lineColor='white')
 selfx = ShapeStim2(win, vertices=selfxVert, fillColor='yellow', opacity=.6)
 thing = ShapeStim2(win, vertices=thingVert, fillColor='blue', opacity=.3) #,lineWidth=0.5,lineColor='white')
 donut = ShapeStim2(win, vertices=donutVert, fillColor='orange', size=.75, pos=(-.2,-.2))
+line1 = ShapeStim2(win, vertices=line1Vert, fillColor='white', closeShape=False, lineWidth=2, pos=(-.5,0), ori=180)
 
 #m = event.Mouse()
 while not event.getKeys():
@@ -36,5 +40,6 @@ while not event.getKeys():
     arrow.draw()
     selfx.draw()
     donut.draw()
+    line1.draw()
     win.flip()
     #if thing.contains(m): break
