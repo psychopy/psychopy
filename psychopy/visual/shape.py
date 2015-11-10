@@ -24,18 +24,22 @@ from psychopy.tools.attributetools import attributeSetter, logAttrib, setAttribu
 from psychopy.visual.basevisual import BaseVisualStim, ColorMixin, ContainerMixin
 from psychopy.visual.helpers import setColor
 
+from psychopy.contrib import tesselate
+import copy
 import numpy
 
 
-class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
+class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     """Create geometric (vector) shapes by defining vertex locations.
 
     Shapes can be outlines or filled, set lineColor and fillColor to a color name, or None.
     They can also be rotated (stim.setOri(__)), translated (stim.setPos(__)),
     and scaled (stim.setSize(__)) like any other stimulus.
 
-    Filling ShapeStim objects works well for convex polygons (square, circle, etc).
-    To fill arbitrary shapes (e.g., arrow, star, torus), use ShapeStim2.
+    BaseShapeStim is currently used by ShapeStim and Aperture (for basic shapes).
+    It is also retained in case backwards compatibility is needed.
+
+    v1.84.00: ShapeStim became BaseShapeStim.
     """
     def __init__(self,
                  win,
@@ -65,7 +69,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._initParams.remove('self')
 
         # Initialize inheritance and remove unwanted methods
-        super(ShapeStim, self).__init__(win, units=units, name=name, autoLog=False) #autoLog is set later
+        super(BaseShapeStim, self).__init__(win, units=units, name=name, autoLog=False) #autoLog is set later
         self.__dict__['setColor'] = None
         self.__dict__['color'] = None
         self.__dict__['colorSpace'] = None
@@ -98,7 +102,8 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.depth=depth
         self.ori = numpy.array(ori,float)
         self.size = numpy.array([0.0, 0.0]) + size  # make sure that it's 2D
-        self.vertices = vertices  # call attributeSetter
+        if vertices is not ():  # flag for when super-init'ing a ShapeStim
+            self.vertices = vertices  # call attributeSetter
         self.autoDraw = autoDraw  # call attributeSetter
 
         # set autoLog now that params have been initialised
@@ -222,7 +227,7 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     @attributeSetter
     def vertices(self, value):
         """a list of lists or a numpy array (Nx2) specifying xy positions of
-        each vertex, relative to the centre of the field.
+        each vertex, relative to the center of the field.
 
         If you're using `Polygon`, `Circle` or `Rect`, this shouldn't be used.
 
@@ -288,6 +293,210 @@ class ShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
             GL.glColor4f(lineRGB[0], lineRGB[1], lineRGB[2], self.opacity)
             if self.closeShape: GL.glDrawArrays(GL.GL_LINE_LOOP, 0, nVerts)
             else: GL.glDrawArrays(GL.GL_LINE_STRIP, 0, nVerts)
+        GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
+        if not keepMatrix:
+            GL.glPopMatrix()
+
+
+class ShapeStim(BaseShapeStim):
+    """A class for arbitrary shapes defined as lists of vertices (x,y).
+
+    Shapes can be lines, polygons (concave, convex, self-crossing), or have
+    holes or multiple regions.
+
+    `vertices` is typically a list of points (x,y). By default, these are
+    assumed to define a closed figure (polygon); set `closeShape=False` for
+    a line. `closeShape` cannot be changed dynamically, but individual vertices
+    can be changed on a frame-by-frame basis. The stimulus as a whole can
+    be rotated, translated, or scaled dynamically (using .ori, .pos, .size).
+
+    Advanced shapes: `vertices` can also be a list of loops, where each loop
+    is a list of points (x,y), e.g., to define a shape with a hole. Borders
+    and contains() are not supported for multi-loop stimuli.
+
+    `windingRule` is an advanced feature to allow control over the GLU
+    tesselator winding rule (default: GLU_TESS_WINDING_ODD). This is relevant
+    only for self-crossing or multi-loop shapes. Cannot be set dynamically.
+
+    See Coder demo > stimuli > shapes.py
+
+    Changed Nov 2015: v1.84.00. Now allows filling of complex shapes. This
+    should be backwards compatible. The
+    old version is accessible as `psychopy.visual.BaseShapeStim`.
+    """
+    # Author: Jeremy Gray, November 2015, using psychopy.contrib.tesselate
+    def __init__(self,
+                 win,
+                 units='',
+                 lineWidth=1.5,
+                 lineColor='white',
+                 lineColorSpace='rgb',
+                 fillColor=None,
+                 fillColorSpace='rgb',
+                 vertices=((-0.5,0),(0,+0.5),(+0.5,0)),
+                 windingRule=None,  # default GL.GLU_TESS_WINDING_ODD
+                 closeShape=True,  # False for a line
+                 pos=(0,0),
+                 size=1,
+                 ori=0.0,
+                 opacity=1.0,
+                 contrast=1.0,
+                 depth=0,
+                 interpolate=True,
+                 name=None,
+                 autoLog=None,
+                 autoDraw=False):
+        """
+        """
+        #what local vars are defined (init params, for use by __repr__)
+        self._initParamsOrig = dir()
+        self._initParamsOrig.remove('self')
+
+        super(ShapeStim, self).__init__(win,
+                 units=units,
+                 lineWidth=lineWidth,
+                 lineColor=lineColor,
+                 lineColorSpace=lineColorSpace,
+                 fillColor=fillColor,
+                 fillColorSpace=fillColorSpace,
+                 vertices=(),  # dummy verts; avoids calling attribSetter
+                 closeShape=self.closeShape,
+                 pos=pos,
+                 size=size,
+                 ori=ori,
+                 opacity=opacity,
+                 contrast=contrast,
+                 depth=depth,
+                 interpolate=interpolate,
+                 name=name,
+                 autoLog=False,
+                 autoDraw=autoDraw)
+
+        self.closeShape = closeShape
+        self.windingRule = windingRule
+        self._initVertices(vertices)
+
+        # remove deprecated params (from ShapeStim.__init__):
+        self._initParams = self._initParamsOrig
+
+        # set autoLog now that params have been initialised
+        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        if self.autoLog:
+            logging.exp("Created %s = %s" %(self.name, str(self)))
+
+    def _initVertices(self, newVertices):
+        """Set the .vertices and .border to new values, invoking tesselation.
+        """
+        # TO-DO: handle borders properly for multiloop stim like holes
+        # likely requires changes in ContainerMixin to iterate over each border loop
+        self.border = copy.deepcopy(newVertices)
+
+        if self.closeShape:
+            # convert original vertices to triangles (= tesselation) if possible
+            # (not possible if closeShape is False, so don't even try)
+            GL.glPushMatrix()  # seemed to help at one point, might be superfluous
+            if self.windingRule:
+                GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE, self.windingRule)
+            if hasattr(newVertices[0][0], '__iter__'):
+                loops = newVertices
+            else:
+                loops = [newVertices]
+            tessVertices = tesselate.tesselate(loops)
+            GL.glPopMatrix()
+            if self.windingRule:
+                GL.gluTessProperty(tesselate.tess, GL.GLU_TESS_WINDING_RULE,
+                                   tesselate.default_winding_rule)
+
+        if not self.closeShape or tessVertices == []:
+            # probably got a line if tesselate returned []
+            initVertices = newVertices
+            self.closeShape = False
+        elif len(tessVertices) % 3:
+            raise tesselate.TesselateError("Could not properly tesselate")
+        else:
+            initVertices = tessVertices
+        self.__dict__['vertices'] = numpy.array(initVertices, float)
+
+    @attributeSetter
+    def vertices(self, newVerts):
+        """A list of lists or a numpy array (Nx2) specifying xy positions of
+        each vertex, relative to the center of the field.
+
+        Assigning to vertices can be slow if there are 100's of vertices.
+
+        :ref:`Operations <attrib-operations>` supported.
+        """
+        self._initVertices(newVerts)
+
+        # Check shape
+        if not (self.vertices.shape==(2,) or (len(self.vertices.shape) == 2 and self.vertices.shape[1] == 2)):
+            raise ValueError("New value for setXYs should be 2x1 or Nx2")
+        self._updateVertices()
+        #self._needVertexUpdate=True
+
+    @property
+    def verticesPix(self):
+        """This determines the coordinates of the vertices for the
+        current stimulus in pixels, accounting for size, ori, pos and units
+        """
+        #because this is a property getter we can check /on-access/ if it needs updating :-)
+        if self._needVertexUpdate:
+            self._updateVertices()
+        return self.__dict__['verticesPix']
+
+    def draw(self, win=None, keepMatrix=False):
+        """Draw the stimulus in the relevant window. You must call this method
+        after every win.flip() if you want the stimulus to appear on that frame
+        and then update the screen again.
+        """
+        # mostly copied from BaseShapeStim. Uses GL_TRIANGLES and depends on
+        # two arrays of vertices: tesselated (for fill) & original (for border)
+        # keepMatrix is needed by Aperture, although Aperture currently
+        # relies on BaseShapeStim instead
+
+        if win is None:
+            win = self.win
+        self._selectWindow(win)
+
+        #scale the drawing frame etc...
+        if not keepMatrix:
+            GL.glPushMatrix()
+            win.setScale('pix')
+        #load Null textures into multitexteureARB - or they modulate glColor
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+        if self.interpolate:
+            GL.glEnable(GL.GL_LINE_SMOOTH)
+            GL.glEnable(GL.GL_MULTISAMPLE)
+        else:
+            GL.glDisable(GL.GL_LINE_SMOOTH)
+            GL.glDisable(GL.GL_MULTISAMPLE)
+        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+
+        # fill interior triangles if there are any
+        if self.closeShape and self.verticesPix.shape[0] > 2 and self.fillRGB is not None:
+            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)
+            fillRGB = self._getDesiredRGB(self.fillRGB, self.fillColorSpace, self.contrast)
+            GL.glColor4f(fillRGB[0], fillRGB[1], fillRGB[2], self.opacity)
+            GL.glDrawArrays(GL.GL_TRIANGLES, 0, self.verticesPix.shape[0])
+
+        # draw the border (= a line connecting the non-tesselated vertices)
+        if self.lineRGB is not None and self.lineWidth:
+            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._borderPix.ctypes)
+            lineRGB = self._getDesiredRGB(self.lineRGB, self.lineColorSpace, self.contrast)
+            GL.glLineWidth(self.lineWidth)
+            GL.glColor4f(lineRGB[0], lineRGB[1], lineRGB[2], self.opacity)
+            if self.closeShape:
+                gl_line = GL.GL_LINE_LOOP
+            else:
+                gl_line = GL.GL_LINE_STRIP
+            GL.glDrawArrays(gl_line, 0, self._borderPix.shape[0])
+
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
         if not keepMatrix:
             GL.glPopMatrix()

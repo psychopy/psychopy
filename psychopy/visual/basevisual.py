@@ -399,15 +399,15 @@ class ContainerMixin(object):
             self._updateVertices()
         return self.__dict__['verticesPix']
     @property
-    def borderPix(self):
-        """Allows for a dynamic border that differs from self.vertices.
+    def _borderPix(self):
+        """Allows for a dynamic border that differs from self.vertices, but gets
+        updated dynamically with identical transformations.
         """
-        #because this is a property getter we can check /on-access/ if it needs updating :-)
         if self._needVertexUpdate:
             self._updateVertices()
-        return self.__dict__['borderPix']
+        return self.__dict__['_borderPix']
     def _updateVertices(self):
-        """Sets Stim.verticesPix and .borderPix from pos, size, ori, flipVert, flipHoriz
+        """Sets Stim.verticesPix and ._borderPix from pos, size, ori, flipVert, flipHoriz
         """
         #check whether stimulus needs flipping in either direction
         flip = numpy.array([1,1])
@@ -431,7 +431,7 @@ class ContainerMixin(object):
             border = self._borderBase
         border = numpy.dot(self.size*border*flip, self._rotationMatrix)
         border = convertToPix(vertices=border, pos=self.pos, win=self.win, units=self.units)
-        self.__dict__['borderPix'] = border
+        self.__dict__['_borderPix'] = border
 
         self._needVertexUpdate = False
         self._needUpdate = True #but we presumably need to update the list
@@ -446,7 +446,8 @@ class ContainerMixin(object):
                 as a :class:`~psychopy.event.Mouse`.
 
         Returns `True` if the point is within the area defined either by its
-        `border` attribute (if present), or its `vertices`. This method handles
+        `border` attribute (if one defined), or its `vertices` attribute if there
+        is no .border. This method handles
         complex shapes, including concavities and self-crossings.
 
         Note that, if your stimulus uses a mask (such as a Gaussian) then
@@ -454,11 +455,11 @@ class ContainerMixin(object):
         stimulus is determined purely by the size, position (pos), and orientation (ori) settings
         (and by the vertices for shape stimuli).
 
-        See Coder demos: shapeContains.py, filled_shapes.py
+        See Coder demos: shapeContains.py
         """
         #get the object in pixels
-        if hasattr(x, 'borderPix'):
-            xy = x.borderPix #access only once - this is a property
+        if hasattr(x, '_borderPix'):
+            xy = x._borderPix #access only once - this is a property
             units = 'pix' #we can forget about the units
         elif hasattr(x, 'verticesPix'):
             xy = x.verticesPix #access only once - this is a property (slower to access)
@@ -480,7 +481,7 @@ class ContainerMixin(object):
             xy = convertToPix(xy, pos=(0,0), units=units, win=self.win)
         # ourself in pixels
         if hasattr(self, 'border'):
-            poly = self.borderPix  # e.g., outline vertices
+            poly = self._borderPix  # e.g., outline vertices
         else:
             poly = self.verticesPix  # e.g., tesselated vertices
 

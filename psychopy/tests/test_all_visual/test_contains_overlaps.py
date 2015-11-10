@@ -151,7 +151,7 @@ def test_overlaps():
 
 @pytest.mark.polygon
 def test_border_contains():
-    # tests that the .border of ShapeStim2 is detected and used by .contains()
+    # tests that the .border of ShapeStim is detected and used by .contains()
     win.units = 'height'
     # `thing` has a fake hole and discontinuity (as the border will reveal):
     thingVert = [(0,0),(0,.4),(.4,.4),(.4,0),(.1,0),(.1,.1),(.3,.1),(.3,.3),(.1,.3),(.1,0),
@@ -161,7 +161,7 @@ def test_border_contains():
     outside_pts = [(-.2,0)]
     hole_pts = [(.2,.2)]
 
-    s = visual.ShapeStim2(win, vertices=thingVert, fillColor='blue',
+    s = visual.ShapeStim(win, vertices=thingVert, fillColor='blue',
                           lineWidth=1, lineColor='white')
     s.draw()
     win.flip()
