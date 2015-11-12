@@ -426,12 +426,10 @@ class ContainerMixin(object):
         self.__dict__['verticesPix'] = verts
 
         if hasattr(self, 'border'):
-            border = self.border
-        else:
-            border = self._borderBase
-        border = numpy.dot(self.size*border*flip, self._rotationMatrix)
-        border = convertToPix(vertices=border, pos=self.pos, win=self.win, units=self.units)
-        self.__dict__['_borderPix'] = border
+            #border = self.border
+            border = numpy.dot(self.size*self.border*flip, self._rotationMatrix)
+            border = convertToPix(vertices=border, pos=self.pos, win=self.win, units=self.units)
+            self.__dict__['_borderPix'] = border
 
         self._needVertexUpdate = False
         self._needUpdate = True #but we presumably need to update the list
@@ -458,7 +456,7 @@ class ContainerMixin(object):
         See Coder demos: shapeContains.py
         """
         #get the object in pixels
-        if hasattr(x, '_borderPix'):
+        if hasattr(x, 'border'):
             xy = x._borderPix #access only once - this is a property
             units = 'pix' #we can forget about the units
         elif hasattr(x, 'verticesPix'):

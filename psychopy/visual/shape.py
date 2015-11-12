@@ -422,17 +422,17 @@ class ShapeStim(BaseShapeStim):
         """A list of lists or a numpy array (Nx2) specifying xy positions of
         each vertex, relative to the center of the field.
 
-        Assigning to vertices can be slow if there are 100's of vertices.
+        Assigning to vertices can be slow if there are many vertices.
 
-        :ref:`Operations <attrib-operations>` supported.
+        :ref:`Operations <attrib-operations>` supported with `.setVertices()`.
         """
         self._initVertices(newVerts)
 
         # Check shape
-        if not (self.vertices.shape==(2,) or (len(self.vertices.shape) == 2 and self.vertices.shape[1] == 2)):
+        vsh = self.vertices.shape
+        if not (vsh == (2,) or (len(vsh) == 2 and vsh[1] == 2)):
             raise ValueError("New value for setXYs should be 2x1 or Nx2")
-        self._updateVertices()
-        #self._needVertexUpdate=True
+        self._needVertexUpdate=True
 
     @property
     def verticesPix(self):
