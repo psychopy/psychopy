@@ -24,7 +24,7 @@ import psychopy.event
 # (JWP has no idea why!)
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
-from psychopy.visual.shape import ShapeStim
+from psychopy.visual.shape import BaseShapeStim
 from psychopy.visual.image import ImageStim
 from psychopy.visual.basevisual import MinimalStim, ContainerMixin
 
@@ -105,7 +105,7 @@ class Aperture(MinimalStim, ContainerMixin):
                                 pos=pos, size=size,
                                 autoLog=False)
         else:
-            self._shape = ShapeStim(win=self.win, vertices=vertices,
+            self._shape = BaseShapeStim(win=self.win, vertices=vertices,
                                 fillColor=1, lineColor=None,
                                 interpolate=False, pos=pos, size=size,
                                 autoLog=False)
@@ -114,7 +114,7 @@ class Aperture(MinimalStim, ContainerMixin):
 
         self._needReset = True  # Default when setting attributes
         self._reset()  #implicitly runs a self.enabled = True. Also sets self._needReset = True on every call
-        
+
         # set autoLog now that params have been initialised
         self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
         if self.autoLog:
@@ -128,7 +128,7 @@ class Aperture(MinimalStim, ContainerMixin):
             self.enabled = True  # attributeSetter, turns on.
             GL.glClearStencil(0)
             GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
-    
+
             GL.glPushMatrix()
             if self.__dict__['filename']==False:
                 self.win.setScale('pix')
@@ -152,17 +152,17 @@ class Aperture(MinimalStim, ContainerMixin):
             else:
                 GL.glStencilFunc(GL.GL_EQUAL, 1, 1)
             GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP)
-    
+
             GL.glPopMatrix()
-    
+
     @attributeSetter
     def size(self, size):
-        """Set the size (diameter) of the Aperture. 
-        
+        """Set the size (diameter) of the Aperture.
+
         This essentially controls a :class:`.ShapeStim` so see documentation for ShapeStim.size.
-        
+
         :ref:`Operations <attrib-operations>` supported here as well as ShapeStim.
-        
+
         Use setSize() if you want to control 0logging and resetting."""
         self.__dict__['size'] = size
         self._shape.size = size  # a ShapeStim
@@ -176,11 +176,11 @@ class Aperture(MinimalStim, ContainerMixin):
     @attributeSetter
     def ori(self, ori):
         """Set the orientation of the Aperture.
-        
+
         This essentially controls a :class:`.ShapeStim` so see documentation for ShapeStim.ori.
-        
+
         :ref:`Operations <attrib-operations>` supported here as well as ShapeStim.
-        
+
         Use setOri() if you want to control logging and resetting."""
         self.__dict__['ori'] = ori
         self._shape.ori = ori  # a ShapeStim
@@ -194,9 +194,9 @@ class Aperture(MinimalStim, ContainerMixin):
     @attributeSetter
     def pos(self, pos):
         """Set the pos (centre) of the Aperture. :ref:`Operations <attrib-operations>` supported.
-                
+
         This essentially controls a :class:`.ShapeStim` so see documentation for ShapeStim.pos.
-        
+
         :ref:`Operations <attrib-operations>` supported here as well as ShapeStim.
 
         Use setPos() if you want to control logging and resetting.
@@ -235,7 +235,7 @@ class Aperture(MinimalStim, ContainerMixin):
         return self._shape.sizePix
     @attributeSetter
     def enabled(self, value):
-        """True / False. Enable or disable the aperture. 
+        """True / False. Enable or disable the aperture.
         Determines whether it is used in future drawing operations.
 
         NB. The Aperture is enabled by default, when created.
@@ -248,7 +248,7 @@ class Aperture(MinimalStim, ContainerMixin):
         else:
             GL.glDisable(GL.GL_STENCIL_TEST)
             self.status = STOPPED
-        
+
         self.__dict__['enabled'] = value
     def enable(self):
         """Use Aperture.enabled = True instead."""

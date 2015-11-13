@@ -10,13 +10,13 @@ as a special case of a :class:`~psychopy.visual.ShapeStim`'''
 import psychopy  # so we can get the __path__
 from psychopy import logging
 
-from psychopy.visual.shape import ShapeStim
+from psychopy.visual.shape import BaseShapeStim
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 
 import numpy
 
 
-class Rect(ShapeStim):
+class Rect(BaseShapeStim):
     """Creates a rectangle of given width and height as a special case of a :class:`~psychopy.visual.ShapeStim`
 
     (New in version 1.72.00)
@@ -52,7 +52,7 @@ class Rect(ShapeStim):
     def width(self, value):
         """int or float.
         Width of the Rectangle (in its respective units, if specified).
-                
+
         :ref:`Operations <attrib-operations>` supported."""
         self.__dict__['width'] = value
         self._calcVertices()
@@ -67,12 +67,12 @@ class Rect(ShapeStim):
     def height(self, value):
         """int or float.
         Height of the Rectangle (in its respective units, if specified).
-        
+
         :ref:`Operations <attrib-operations>` supported."""
         self.__dict__['height'] = value
         self._calcVertices()
         self.setVertices(self.vertices, log=False)
-    
+
     def setHeight(self, height, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message

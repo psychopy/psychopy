@@ -10,13 +10,13 @@ as a special case of a :class:`~psychopy.visual.ShapeStim`'''
 
 import psychopy  # so we can get the __path__
 
-from psychopy.visual.shape import ShapeStim
+from psychopy.visual.shape import BaseShapeStim
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 
 import numpy
 
 
-class Polygon(ShapeStim):
+class Polygon(BaseShapeStim):
     """Creates a regular polygon (triangles, pentagrams, ...) as a special case of a :class:`~psychopy.visual.ShapeStim`
 
     (New in version 1.72.00)
