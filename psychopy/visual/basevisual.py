@@ -403,6 +403,10 @@ class ContainerMixin(object):
         """Allows for a dynamic border that differs from self.vertices, but gets
         updated dynamically with identical transformations.
         """
+        if not hasattr(self, 'border'):
+            msg = "%s._borderPix requested without .border" % self.name
+            logging.error(msg)
+            raise AttributeError(msg)
         if self._needVertexUpdate:
             self._updateVertices()
         return self.__dict__['_borderPix']
