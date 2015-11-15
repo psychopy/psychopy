@@ -554,7 +554,7 @@ class ioHubConnection(object):
 
         return Computer.currentTime()-stime
 
-    def createTrialHandlerRecordTable(self, trials):
+    def createTrialHandlerRecordTable(self, trials, cv_order=None):
         """
         Create a condition variable table in the ioHub data file based on
         the a psychopy TrialHandler. By doing so, the iohub data file
@@ -595,7 +595,14 @@ class ioHubConnection(object):
         """
         trial=trials.trialList[0]
         numpy_trial_condition_types=[]
-        for cond_name,cond_val in trial.iteritems():
+        if cv_order is None:
+            cv_order = trial.keys()
+            self._cv_order = None
+        else:
+            self._cv_order = cv_order
+
+        for cond_name in cv_order:
+            cond_val = trial[cond_name]
             if isinstance(cond_val,basestring):
                 numpy_dtype=(cond_name,'S',256)
             elif isinstance(cond_val,int):
@@ -612,16 +619,6 @@ class ioHubConnection(object):
                 _numpyConditionVariableDescriptor=numpy_trial_condition_types
 
         self.initializeConditionVariableTable(ConditionVariableDescription)
-
-    def addTrialHandlerRecord(self,cv_row):
-        """
-        Adds the values from a TriaHandler row / record to the iohub data file
-        for future data analysis use.
-
-        :param cv_row:
-        :return: None
-        """
-        self.addRowToConditionVariableTable(cv_row)
 
     def initializeConditionVariableTable(self, condition_variable_provider):
         """
@@ -641,6 +638,22 @@ class ioHubConnection(object):
         """
         r=self._sendToHubServer(('RPC','initializeConditionVariableTable',(self.experimentID,self.experimentSessionID,condition_variable_provider._numpyConditionVariableDescriptor)))
         return r[2]
+
+    def addTrialHandlerRecord(self, cv_row):
+        """
+        Adds the values from a TriaHandler row / record to the iohub data file
+        for future data analysis use.
+
+        :param cv_row:
+        :return: None
+        """
+        val_list = []
+        if self._cv_order:
+            for cv_name in self._cv_order:
+                val_list.append(cv_row[cv_name])
+        else:
+            val_list = cv_row
+        self.addRowToConditionVariableTable(val_list)
 
     def addRowToConditionVariableTable(self,data):
         """
