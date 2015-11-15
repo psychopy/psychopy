@@ -600,10 +600,11 @@ class Win32WintabTabletCanvas(EventDispatcher):
                     0,         #('orient_azimuth',N.int32),
                     0,        #('orient_altitude;',N.int32),
                     0,           #('orient_twist',N.int32),
+                    0          #('status', N.uint8)
                     ]
         else:
             cevt = [evt_type,
-                    packet.pkTime,
+                    packet.pkTime/1000.0,
                     packet.pkStatus,
                     packet.pkSerialNumber,
                     packet.pkButtons,
@@ -616,6 +617,7 @@ class Win32WintabTabletCanvas(EventDispatcher):
                     packet.pkOrientation.orAzimuth,         #('orient_azimuth',N.int32),
                     packet.pkOrientation.orAltitude,        #('orient_altitude;',N.int32),
                     packet.pkOrientation.orTwist,           #('orient_twist',N.int32),
+                    0          #('status', N.uint8)
                     ]
         self._iohub_events.append(cevt)
         
