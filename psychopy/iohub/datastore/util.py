@@ -282,6 +282,17 @@ class ExperimentDataAccessUtility(object):
             return events_by_type
         return None
 
+
+    def getConditionVariablesTable(self):
+        """
+        **Docstr TBC.**
+        """
+        cv_group=self.hdfFile.root.data_collection.condition_variables
+        ecv="EXP_CV_%d"%(self._experimentID,)
+        if ecv in cv_group._v_leaves:
+            return cv_group._v_leaves[ecv]
+        return None
+
     def getConditionVariableNames(self):
         """
         **Docstr TBC.**
