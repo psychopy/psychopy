@@ -2215,13 +2215,13 @@ class StairHandler(_BaseTrialHandler):
         self.stepType=stepType
 
         self.stepSizes=stepSizes
-        if type(stepSizes) in [int, float]:
-            self.stepSizeCurrent=stepSizes
-            self._variableStep=False
-        else:#list, tuple or array
-            self.stepSizeCurrent=stepSizes[0]
-            self.nReversals= max(len(stepSizes),self.nReversals)
-            self._variableStep=True
+        try:
+            self.stepSizeCurrent = stepSizes[0]
+            self.nReversals = max(len(stepSizes), self.nReversals)
+            self._variableStep = True
+        except (IndexError, TypeError):  # stepSizes is not array-like.
+            self.stepSizeCurrent = stepSizes
+            self._variableStep = False
 
         self.nTrials = nTrials#to terminate the nTrials must be exceeded and either
         self.finished=False

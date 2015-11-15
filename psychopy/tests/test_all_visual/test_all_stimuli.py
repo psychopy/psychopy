@@ -97,7 +97,7 @@ class _baseVisualTest:
         utils.compareScreenshot('imageAndGauss_%s.png' %(self.contextName), win)
         win.flip()
     def test_numpyFilterMask(self):
-        """if the mask is passed in as a numpy array it goes through a different 
+        """if the mask is passed in as a numpy array it goes through a different
         set of rules when turned into a texture. But the outcome should be as above
         """
         win = self.win
@@ -314,24 +314,25 @@ class _baseVisualTest:
         str(poly) #check that str(xxx) is working
         poly.edges = 3
         poly.radius = 1
+    @pytest.mark.shape2
     def test_shape(self):
         win = self.win
-
-        shape = visual.ShapeStim(win, lineColor=[1, 1, 1], lineWidth=1.0,
-            fillColor=[0.80000000000000004, 0.80000000000000004, 0.80000000000000004],
-            vertices=[[-0.5*self.scaleFactor, 0],[0, 0.5*self.scaleFactor],[0.5*self.scaleFactor, 0]],
-            closeShape=True, pos=[0, 0], ori=0.0, opacity=1.0, depth=0, interpolate=True)
+        arrow = [(-0.4,0.05), (-0.4,-0.05), (-.2,-0.05), (-.2,-0.1), (0,0), (-.2,0.1), (-.2,0.05)]
+        shape = visual.ShapeStim(win, lineColor='white', lineWidth=1.0,
+            fillColor='red', vertices=arrow, pos=[0, 0],
+            ori=0.0, opacity=1.0, depth=0, interpolate=True)
         shape.draw()
         #NB shape rendering can differ a little, depending on aliasing
-        utils.compareScreenshot('shape1_%s.png' %(self.contextName), win, crit=12.5)
+        utils.compareScreenshot('shape2_1_%s.png' %(self.contextName), win, crit=12.5)
         win.flip()
 
         # Using .set()
         shape.contrast = 0.8
         shape.opacity = 0.8
+        shape.ori = 90
         shape.draw()
-        str(shape) #check that str(xxx) is working
-        utils.compareScreenshot('shape2_%s.png' %(self.contextName), win, crit=12.5)
+        assert 'Shape' in str(shape)  # check that str(xxx) is working
+        utils.compareScreenshot('shape2_2_%s.png' %(self.contextName), win, crit=12.5)
     def test_radial(self):
         if self.win.winType=='pygame':
             pytest.skip("RadialStim dodgy on pygame")
@@ -449,7 +450,7 @@ class _baseVisualTest:
         for shape, nVert, pos in [(None, 120, (0,0)), ('circle', 17, (.2, -.7)),
                                   ('square', 4, (-.5,-.5)), ('triangle', 3, (1,1))]:
             aperture = visual.Aperture(win, pos=pos, shape=shape, nVert=nVert)
-            assert len(aperture.vertices) == nVert
+            assert len(aperture.vertices) == nVert  # true for BaseShapeStim; expect (nVert-2)*3 if tesselated
             assert aperture.contains(pos)
     def test_aperture_image(self):
         win = self.win

@@ -24,7 +24,7 @@ from psychopy.visual.text import TextStim
 
 lazyImports = """
 # stimuli derived from object or MinimalStim
-from psychopy.visual.aperture import Aperture
+from psychopy.visual.aperture import Aperture  # uses BaseShapeStim or ImageStim
 from psychopy.visual.custommouse import CustomMouse
 from psychopy.visual.elementarray import ElementArrayStim
 from psychopy.visual.ratingscale import RatingScale
@@ -37,12 +37,15 @@ from psychopy.visual.secondorder import EnvelopeGrating
 from psychopy.visual.movie import MovieStim
 from psychopy.visual.movie2 import MovieStim2
 from psychopy.visual.movie3 import MovieStim3
-from psychopy.visual.shape import ShapeStim
+from psychopy.visual.shape import BaseShapeStim
 
 # stimuli derived from GratingStim
 from psychopy.visual.bufferimage import BufferImageStim
 from psychopy.visual.patch import PatchStim
 from psychopy.visual.radial import RadialStim
+
+# stimuli derived from BaseShapeStim
+from psychopy.visual.shape import ShapeStim
 
 # stimuli derived from ShapeStim
 from psychopy.visual.line import Line
