@@ -38,6 +38,21 @@ class PenSampleEvent(ioEvent):
     """
     Represents a tablet pen position / pressure event.
     """
+    STATES=dict()
+    # A sample that is the first sample following a time gap in the sample stream
+    STATES[1] = 'FIRST_ENTER'
+    # A sample that is the first sample with pressure == 0
+    # following a sample with pressure > 0
+    STATES[2] = 'FIRST_HOVER'
+    # A sample that has pressure == 0, and previous sample also had pressure  == 0
+    STATES[4] = 'HOVERING'
+    # A sample that is the first sample with pressure > 0
+    # following a sample with pressure == 0
+    STATES[8] = 'FIRST_PRESS'
+    #  A sample that has pressure > 0
+    # following a sample with pressure > 0
+    STATES[16] = 'PRESSED'
+
     _attrib_index = dict()
     _attrib_index['x'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index('x')
     _attrib_index['y'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index('y')
@@ -49,6 +64,8 @@ class PenSampleEvent(ioEvent):
         'orient_altitude')
     _attrib_index['azimuth'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index(
         'orient_azimuth')
+    _attrib_index['status'] = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES.index(
+        'status')
     def __init__(self, ioe_array, device):
         super(PenSampleEvent, self).__init__(ioe_array, device)
         for efname, efvalue in PenSampleEvent._attrib_index.items():
@@ -93,6 +110,10 @@ class PenSampleEvent(ioEvent):
         return self._buttons
 
     @property
+    def status(self):
+        return [v for k, v in self.STATES.items() if self._status&k==k]
+
+    @property
     def tilt(self):
         '''
         Get the pen horizontal & vertical tilt for the sample.
@@ -119,6 +140,23 @@ class PenSampleEvent(ioEvent):
 
             return tilt1, tilt2
         return 0,0
+
+    @property
+    def velocity(self):
+        '''
+        Returns the calculated x, y, and xy velocity for the current sample.
+        :return: (float, float, float)
+        '''
+        return (0.0, 0.0, 0.0)
+
+    @property
+    def accelleration(self):
+        '''
+        Returns the calculated x, y, and xy accelleration
+        for the current sample.
+        :return: (float, float, float)
+        '''
+        return (0.0, 0.0, 0.0)
 
     def __str__(self):
         return "{}, x,y,z: {}, {}, {} pressure: {}, tilt: {}".format(

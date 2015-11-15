@@ -13,23 +13,18 @@ Distributed under the terms of the GNU General Public License (GPL version 3 or 
 #
 ### TODO List
 #
-#   1) Use full screen psychopy experiment window info when creating
-#      wintab shadow window
-#
-#   2) Add settings to device that allow user to specify hardware config values
-#      for tablet and tablet context.
-#
-#   3) Refactor code so that wintab.__init__.py and win32.py are separated
+#   1) Refactor code so that wintab.__init__.py and win32.py are separated
 #      in a more sensible way
-##
-#   4) Check for missing serial numbers in PACKET evt stream.
+#
+#   2) Check for missing serial numbers in PACKET evt stream.
 #
 _is_epydoc=False
 
 # Pen digitizers /tablets that support Wintab API
-from psychopy.iohub import Computer, Device,print2err
+from psychopy.iohub import Computer, Device,print2err,printExceptionDetailsToStdErr
 from ...constants import EventConstants, DeviceConstants
 import numpy as N
+from ...util import NumPyRingBuffer
 
 class WintabTablet(Device):
     """
@@ -45,7 +40,10 @@ class WintabTablet(Device):
 
     __slots__=['_wtablets',
                '_wtab_shadow_windows',
-               '_wtab_canvases'
+               '_wtab_canvases',
+               '_last_sample',
+               '_calculated_isi',
+               '_first_hw_and_hub_times'
     ]
 
     def __init__(self,*args,**kwargs):
@@ -54,6 +52,11 @@ class WintabTablet(Device):
         self._wtab_shadow_windows=[]
         self._wtab_canvases=[]
         self._init_wintab()
+
+        # Following are used for sample status tracking
+        self._last_sample=None
+        self._calculated_isi=0
+        self._first_hw_and_hub_times = None
 
     def _init_wintab(self):
         self._wtablets = get_tablets()
@@ -122,6 +125,12 @@ class WintabTablet(Device):
     def enableEventReporting(self,enabled=True):
         for wtc in self._wtab_canvases:
             wtc.enable(enabled)
+
+        if self.isReportingEvents() != enabled:
+            self._last_sample = None
+            self._first_hw_and_hub_times = None
+            self._calculated_isi = 0
+
         return Device.enableEventReporting(self, enabled)
 
     def _poll(self):
@@ -137,22 +146,55 @@ class WintabTablet(Device):
                 return False
 
             confidence_interval = logged_time - self._last_poll_time
-            #TODO: Determine if delay can be calculated.
-            #      Using 0 for now as it is unknown.
+            # Using 0 delay for now as it is unknown.
             delay = 0.0
 
             for wtc in self._wtab_canvases:
                 for wte in wtc._iohub_events:
-                    self._addNativeEventToBuffer((logged_time,
-                                                  delay,
-                                                  confidence_interval,
-                                                  wte))
+                    if wte and wte[0] == EventConstants.WINTAB_TABLET_SAMPLE:
+                        status = WintabTabletSampleEvent.STATES['FIRST_ENTER']
+                        if self._last_sample:
+                            if self._calculated_isi == 0:
+                                self._calculated_isi = wte[1]-self._last_sample[1]
+                                self._first_hw_and_hub_times = wte[1], logged_time
+
+                            if wte[1]-self._last_sample[1] >= self._calculated_isi*1.75:
+                                self._last_sample = None
+                            elif wte[8] > 0:
+                                if self._last_sample[8] > 0:
+                                    status = WintabTabletSampleEvent.STATES['PRESSED']
+                                else:
+                                    status = WintabTabletSampleEvent.STATES['FIRST_PRESS']
+                            else:
+                                if self._last_sample[8] == 0:
+                                    status = WintabTabletSampleEvent.STATES['HOVERING']
+                                else:
+                                    status = WintabTabletSampleEvent.STATES['FIRST_HOVER']
+                        if status == WintabTabletSampleEvent.STATES['FIRST_ENTER']:
+                            if wte[8] > 0:
+                                # first enter + first press, ie first enter pressed
+                                status = status + WintabTabletSampleEvent.STATES['FIRST_PRESS']
+                            else:
+                                # first enter + first hover, ie first enter hover
+                                status = status + WintabTabletSampleEvent.STATES['FIRST_HOVER']
+                        #Fill in status field based on previous sample.......
+                        wte[-1] = status
+                        self._last_sample = wte
+
+                    evt_data = (logged_time,
+                              delay,
+                              confidence_interval,
+                              wte)
+
+                    self._addNativeEventToBuffer(evt_data)
+
 
                 del wtc._iohub_events[:]
             self._last_poll_time = logged_time
             return True
         except Exception, e:
             print2err("ERROR in WintabTabletDevice._poll: ",e)
+            printExceptionDetailsToStdErr()
 
     def _getIOHubEventObject(self,native_event_data):
         '''
@@ -161,12 +203,16 @@ class WintabTablet(Device):
         :return:
         '''
         logged_time, delay, confidence_interval, wt_event = native_event_data
-        evt_type = wt_event.pop(0)
-        device_time = wt_event.pop(0)
-        evt_status = wt_event.pop(0)
+        evt_type = wt_event[0]
+        device_time = wt_event[1]
+        evt_status = wt_event[2]
 
         #TODO: Correct for polling interval / CI when calculating iohub_time
         iohub_time = logged_time
+        if self._first_hw_and_hub_times:
+            hwtime, iotime = self._first_hw_and_hub_times
+            iohub_time = iotime+(wt_event[1] - hwtime)
+            #print2err('STIME: ',[iohub_time, logged_time, logged_time-iohub_time])
 
         ioevt=[0, 0, 0, Computer._getNextEventID(),
                evt_type,
@@ -177,7 +223,7 @@ class WintabTablet(Device):
                delay,
                0
             ]
-        ioevt.extend(wt_event)
+        ioevt.extend(wt_event[3:])
         return ioevt
 
     def _close(self):
@@ -216,6 +262,23 @@ class WintabTabletSampleEvent(WintabTabletInputEvent):
     EVENT_TYPE_ID=EventConstants.WINTAB_TABLET_SAMPLE
     IOHUB_DATA_TABLE=EVENT_TYPE_STRING
 
+    STATES=dict()
+    # A sample that is the first sample following a time gap in the sample stream
+    STATES['FIRST_ENTER'] = 1
+    # A sample that is the first sample with pressure == 0
+    # following a sample with pressure > 0
+    STATES['FIRST_HOVER'] = 2
+    # A sample that has pressure == 0, and previous sample also had pressure  == 0
+    STATES['HOVERING'] = 4
+    # A sample that is the first sample with pressure > 0
+    # following a sample with pressure == 0
+    STATES['FIRST_PRESS'] = 8
+    #  A sample that has pressure > 0
+    # following a sample with pressure > 0
+    STATES['PRESSED'] = 16
+    for k,v in STATES.items():
+        STATES[v]=k
+
     _newDataTypes = [
                      ('serial_number', N.uint32),
                      ('buttons',N.int32),
@@ -225,7 +288,8 @@ class WintabTabletSampleEvent(WintabTabletInputEvent):
                      ('pressure',N.uint32),
                      ('orient_azimuth',N.int32),
                      ('orient_altitude',N.int32),
-                     ('orient_twist',N.int32)
+                     ('orient_twist',N.int32),
+                     ('status', N.uint8)
                      ]
 
     __slots__=[e[0] for e in _newDataTypes]
