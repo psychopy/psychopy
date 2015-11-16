@@ -76,6 +76,11 @@ def getComponents(folder=None, fetchIcons=True):
                     attrib not in excludeComponents:#must be a component
                     name=attrib
                     components[attrib]=getattr(module, attrib)
+                    
+                    #skip if this class was imported, not defined here
+                    if module.__name__!=components[attrib].__module__:
+                        continue #class was defined in different module
+                    
                     #also try to get an iconfile
                     if fetchIcons:
                         if hasattr(module,'iconFile'):
