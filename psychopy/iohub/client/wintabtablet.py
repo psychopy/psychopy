@@ -17,6 +17,7 @@ from psychopy.iohub.client import ioHubDeviceView, ioEvent, DeviceRPC
 from psychopy.iohub.devices import Computer
 from psychopy.iohub.devices.wintab import WintabTabletSampleEvent, WintabTabletEnterRegionEvent, WintabTabletLeaveRegionEvent
 from psychopy.iohub.constants import EventConstants
+from psychopy import visual
 
 if Computer.system == 'win32':
     from win32api import LOWORD, HIWORD
@@ -256,7 +257,7 @@ class WintabTablet(ioHubDeviceView):
         if prev_samp:
             dx=curr_samp.x-prev_samp.x
             dy=curr_samp.y-prev_samp.y
-            dt=(curr_samp.time-prev_samp.time)#*1000.0
+            dt=(curr_samp.time-prev_samp.time)
             cvx, cvy, cvxy = curr_samp.velocity = dx/dt, dy/dt, np.sqrt(dx*dx+dy*dy)/dt
 
             pvx, pvy, pvxy = prev_samp.velocity
@@ -378,3 +379,262 @@ class WintabTablet(ioHubDeviceView):
             self._events[e._type]=[]
 
         return sorted(return_events, key=lambda x: x.time)
+
+#
+## iohub wintab util objects / functions for stylus,
+## position traces, and validation process psychopy graphics.
+#
+
+class PenPositionStim(object):
+    """
+    Draws the current pen x,y position with graphics that represent
+    the pressure, z axis, and tilt data for the wintab sample used.
+    """
+    def __init__(self, win):
+        self.window = win
+
+        ### Pen Hovering Related
+
+        # opaticy is changed based on pen's z axis value, if z axis data
+        # is available.
+        # Opacity of min_opacity is used when pen is at the furthest hover
+        # distance (z value) supported by the device.
+        # Opacity of 1.0 is used when z value == 0, meaning pen is
+        # touching digitizer surface.
+        self.min_opacity = 0.0
+        # If z axis is supported, hover_color specifies the color of the pen
+        # position dot when z val > 0.
+        self.hover_color = 'red'
+
+        ### Pen Pressure Related
+
+        # Smallest radius (in norm units) that the pen position gaussian blob
+        # will have, which occurs when pen pressure value is 0
+        self.min_size = 0.033
+        # As pen pressure value increases, so does position gaussian blob
+        # radius (in norm units). Max radius is reached when pressure is
+        # at max device pressure value, and is equal to min_size+size_range
+        self.size_range = 0.1666
+        # Color of pen position blob when pressure > 0.
+        self.touching_color = 'green'
+
+        ### Pen tilt Related
+
+        # Color of line graphic used to represent the pens tilt relative to the
+        # digitizer surface.
+        self.tiltline_color = (1,1,0)
+
+        # Create a Gausian blob stim to use for pen position graphic
+        self.pen_guass = visual.PatchStim(win, units='norm', tex="none",
+                                   mask="gauss", pos=(0,0),
+                                   size=(self.min_size, self.min_size),
+                                   color=self.hover_color,
+                                   autoLog=False, opacity = 0.0)
+
+        # Create a line stim to use for pen position graphic
+        self.pen_tilt_line = visual.Line(win, units='norm', start=[0,0],
+                                end=[0.5,0.5],
+                                lineColor=self.tiltline_color,
+                                opacity = 0.0)
+
+    def updateFromEvent(self, evt):
+        """
+        Update the pen position and tilt graphics based on the data from a
+        wintab sample event.
+
+        :param evt: iohub wintab sample event
+        :return:
+        """
+        # update the pen position stim based on
+        # the last tablet event's data
+        if evt.pressure > 0:
+            # pen is touching tablet surface
+            self.pen_guass.color=self.touching_color
+        else:
+            # pen is hovering just above tablet surface
+            self.pen_guass.color=self.hover_color
+
+        if evt.device.axis['pressure']['supported']:
+            # change size of pen position blob based on samples pressure value
+            self.pen_guass.size = self.min_size + \
+                   (evt.pressure/evt.device.axis['pressure']['range']) * \
+                   self.size_range
+
+        # set the position of the gauss blob to be the pen x,y value converted
+        # to norm screen coords.
+        self.pen_guass.pos = evt.getNormPos()
+
+        # if supported, update all graphics opacity based on the samples z value
+        # otherwise opacity is always 1.0
+        if evt.device.axis['z']['supported']:
+            z = evt.device.axis['z']['range']-evt.z
+            sopacity = self.min_opacity + (z/evt.device.axis['z']['range'])*(1.0-self.min_opacity)
+            self.pen_guass.opacity = self.pen_tilt_line.opacity = sopacity
+        else:
+            self.pen_guass.opacity = self.pen_tilt_line.opacity = 1.0
+
+        # Change the tilt line start position to == pen position
+        self.pen_tilt_line.start = self.pen_guass.pos
+
+        # Change the tilt line end position based on samples tilt value
+        # If tilt is not supported, it will always return 0,0
+        # so no line is drawn.
+        t1, t2 = evt.tilt
+        pen_tilt_xy = 0, 0
+        if t1 != t2 != 0:
+            pen_tilt_xy = t1*math.sin(t2), t1*math.cos(t2)
+
+        self.pen_tilt_line.end = self.pen_guass.pos[0]+pen_tilt_xy[0],\
+                        self.pen_guass.pos[1]+pen_tilt_xy[1]
+
+
+    def draw(self):
+        """
+        Draw the PenPositionStim to the opengl back buffer. This needs to be
+        called prior to calling win.flip() for the stim is to be displayed.
+        :return: None
+        """
+        self.pen_guass.draw()
+        self.pen_tilt_line.draw()
+
+    def clear(self):
+        """
+        Hide the graphics on the screen, even if they are drawn,
+        by setting opacity to 0
+        :return: None
+        """
+        self.pen_guass.opacity = 0.0
+        self.pen_tilt_line.opacity = 0.0
+
+    def __del__(self):
+        self.window = None
+
+
+class PenTracesStim(object):
+    """
+    Graphics representing where the pen has been moved on the digitizer
+    surface. Positions where sample pressure > 0 are included.
+
+    Implemented as a list of visual.ShapeStim, each representing a single
+    pen trace/segment (series on pen samples with pressure > 0). For improved
+    performance, a single pen trace can have max_trace_len points before
+    a new ShapeStim is created and made the 'current' pen trace'.
+    """
+    def __init__(self, win, maxlen = 256):
+        # A single pen trace can have at most max_trace_len points.
+        self.max_trace_len = maxlen
+        # The list of ShapeStim representing pen traces
+        self.pentracestim = []
+        # The ShapeStim state new / upcoming position points will be added to.
+        self.current_pentrace = None
+        # A list representation of the current_pentrace.vertices
+        self.current_points=[]
+        # The last pen position added to a pen trace.
+        self.last_pos = [0,0]
+        self.window = win
+
+    @property
+    def traces(self):
+        """
+        List of np arrays, each np array is the set of vertices for one pen
+        trace.
+        :return: list
+        """
+        return [pts.vertices for pts in self.pentracestim]
+
+    def updateFromEvents(self, sample_events):
+        """
+        Update the stim graphics based on 0 - n pen sample events.
+        :param sample_events:
+        :return: None
+        """
+        for pevt in sample_events:
+            if 'FIRST_ENTER' in pevt.status:
+                self.end()
+            if pevt.pressure>0:
+                lpx, lpy = self.last_pos
+                px,py = pevt.getPixPos(self.window)
+                if lpx != px or lpy != py:
+                    if len(self.current_points) >= self.max_trace_len:
+                        self.end()
+                        self.append((lpx, lpy))
+                    self.last_pos = (px,py)
+                    self.append(self.last_pos)
+            else:
+                self.end()
+
+    def draw(self):
+        """
+        Draws each pen trace ShapeStim to the opengl back buffer. This method
+        must be called prior to calling win.flip() if it is to appear on the
+        screen.
+        :return: None
+        """
+        for pts in self.pentracestim:
+            pts.draw()
+
+    def start(self, first_point):
+        """
+        Start a new pen trace, by creating a new ShapeStim, adding it to the
+        pentracestim list, and making it the current_pentrace.
+        :param first_point: the first point in the ShapStim being craeted.
+        :return: None
+        """
+        self.end()
+        self.current_points.append(first_point)
+        self.current_pentrace = visual.ShapeStim(
+                                        self.window,
+                                        units='pix',
+                                        lineWidth=2,
+                                        lineColor=(-1, -1, -1),
+                                        lineColorSpace='rgb',
+                                        vertices=self.current_points,
+                                        closeShape=False,
+                                        pos=(0, 0),
+                                        size=1,
+                                        ori=0.0,
+                                        opacity=1.0,
+                                        interpolate=True)
+        self.pentracestim.append(self.current_pentrace)
+
+    def end(self):
+        """
+        Stop using the current_pentrace ShapeStim. Next time a pen sample
+        position is added to the PenTracesStim instance, a new ShapeStim will
+        created and added to the pentracestim list.
+        :return: None
+        """
+        self.current_pentrace = None
+        self.current_points=[]
+        self.last_pos = [0,0]
+
+    def append(self, pos):
+        """
+        Add a pen position (in pix coords) to the current_pentrace ShapeStim
+        vertices.
+
+        :param pos: (x,y) tuple
+        :return: None
+        """
+        if self.current_pentrace is None:
+            self.start(pos)
+        else:
+            # TODO: This is inefficient, look into a better way to add
+            # points to a psychopy shape stim
+            self.current_points.append(pos)
+            self.current_pentrace.vertices = self.current_points
+
+    def clear(self):
+        """
+        Remove all ShapStim being used. Next time this stim is drawn, no pen
+        traces will exist.
+        :return:
+        """
+        self.end()
+        #for pts in self.pentracestim:
+        #    pts.vertices = [(0,0)]
+        del self.pentracestim[:]
+
+    def __del__(self):
+        self.clear()
+        self.window = None

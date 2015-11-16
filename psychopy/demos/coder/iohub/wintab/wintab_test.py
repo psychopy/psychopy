@@ -1,5 +1,6 @@
 from __future__ import division
 #!/usr/bin/env python2
+import psychopy
 from psychopy import core, visual
 from psychopy.gui import fileSaveDlg
 from psychopy.iohub import launchHubServer, EventConstants
@@ -10,11 +11,6 @@ draw_pen_traces = True
 # if no keyboard or tablet data is received for test_timeout_sec,
 # the test program will exit.
 test_timeout_sec = 300 # 5 minutes
-
-# Pen graphics related settings
-pen_size_min = 0.033
-pen_size_range = 0.1666
-pen_opacity_min = 0.0
 
 # Runtime global variables
 tablet=None
@@ -53,86 +49,6 @@ def start_iohub(sess_code=None):
 
     return launchHubServer(**kwargs)
 
-
-class PenTracesStim(object):
-    def __init__(self, win, maxlen = 256):
-        self.max_trace_len = maxlen
-        self.pentracestim = []
-        self.current_pentrace = None
-        self.current_points=[]
-        self.last_pos = [0,0]
-        self.window = win
-
-    @property
-    def segments(self):
-        return [pts.vertices for pts in self.pentracestim]
-
-    def updateFromEvents(self, enter_events, sample_events):
-        if enter_events:
-            self.end()
-
-        for pevt in sample_events:
-            if pevt.pressure>0:
-                lpx, lpy = self.last_pos
-                px,py = pevt.getPixPos(self.window)
-                if lpx != px or lpy != py:
-                    if len(self.current_points) >= self.max_trace_len:
-                        self.end()
-                        self.append((lpx, lpy))
-                    self.last_pos = (px,py)
-                    self.append(self.last_pos)
-                #else:
-                #    print("no pos dx:",self.last_pos)
-
-            else:
-                self.end()
-
-    def draw(self):
-        #stime = core.getTime()
-        for pts in self.pentracestim:
-            pts.draw()
-        #etime = core.getTime()
-        #print("Pen traces draw dur:",(etime-stime)*1000,len(self.pentracestim))
-    def start(self, first_point):
-        self.end()
-        self.current_points.append(first_point)
-        self.current_pentrace = visual.ShapeStim(
-                                        self.window,
-                                        units='pix',
-                                        lineWidth=2,
-                                        lineColor=(-1, -1, -1),
-                                        lineColorSpace='rgb',
-                                        vertices=self.current_points,
-                                        closeShape=False,
-                                        pos=(0, 0),
-                                        size=1,
-                                        ori=0.0,
-                                        opacity=1.0,
-                                        interpolate=True)
-        self.pentracestim.append(self.current_pentrace)
-
-    def end(self):
-        self.current_pentrace = None
-        self.current_points=[]
-        self.last_pos = [0,0]
-
-    def append(self, pos):
-        if self.current_pentrace is None:
-            self.start(pos)
-        else:
-            # TODO: This is VERY inefficient, look into a better way to add
-            # points to a psychopy shape stim
-            self.current_points.append(pos)
-            self.current_pentrace.vertices = self.current_points
-
-    def clear(self):
-        self.end()
-        for pts in self.pentracestim:
-            pts.vertices=[(0,0)]
-
-    def __del__(self):
-        self.window = None
-
 def createPsychopyGraphics():
     #
     # Initialize Graphics
@@ -159,46 +75,10 @@ def createPsychopyGraphics():
                                    "Press 'q' to exit."
     instruct_text.text = instruct_text._start_rec_txt
 
-    pen_trace = PenTracesStim(myWin)
+    pen_trace = psychopy.iohub.client.wintabtablet.PenTracesStim(myWin)
+    pen_pos = psychopy.iohub.client.wintabtablet.PenPositionStim(myWin)
+    return myWin, (evt_text, instruct_text, pen_trace, pen_pos)
 
-    pen_guass = visual.PatchStim(myWin, units='norm', tex="none",
-                                   mask="gauss", pos=(0,0),
-                                   size=(pen_size_min,pen_size_min),
-                                   color='red', autoLog=False, opacity = 0.0)
-
-    pen_tilt_line = visual.Line(myWin, units='norm', start=[0,0],
-                                end=[0.5,0.5], lineColor=(1,1,0), opacity = 0.0)
-
-    return myWin, (evt_text, instruct_text, pen_trace, pen_guass, pen_tilt_line)
-
-
-def getPenPos(tablet_event):
-    return (-1.0+(tablet_event.x/tablet_pos_range[0])*2.0,
-            -1.0+(tablet_event.y/tablet_pos_range[1])*2.0)
-
-def getPenSize(tablet_event):
-    if tablet.axis['pressure']['supported']:
-        return pen_size_min + \
-               (tablet_event.pressure/tablet.axis['pressure']['range'])\
-               *pen_size_range
-
-def getPenOpacity(tablet_event):
-    if tablet.axis['z']['supported']:
-        z = tablet.axis['z']['range']-tablet_event.z
-        sopacity = pen_opacity_min + (z/tablet.axis['z']['range'])*(1.0-pen_opacity_min)
-        return sopacity
-    return 1.0
-
-def getPenTilt(tablet_event):
-    '''
-    Get the dx,dy screen position in norm units that should be used
-    when drawing the pen titl line graphic end point.
-    '''
-    t1, t2 = tablet_event.tilt
-    if t1 == t2 == 0:
-        # tilt not supported
-        return 0, 0
-    return t1*math.sin(t2), t1*math.cos(t2)
 
 if __name__ == '__main__':
     # Start iohub process and create shortcut variables to the iohub devices
@@ -221,7 +101,7 @@ if __name__ == '__main__':
         # Create the PsychoPy Window and Graphics stim used during the test....
         myWin, vis_stim = createPsychopyGraphics()
         # break out graphics stim list into individual variables for later use
-        evt_text, instruct_text, pen_trace, pen_guass, pen_tilt_line = vis_stim
+        evt_text, instruct_text, pen_trace, pen_pos_gauss = vis_stim
 
         # Get the current reporting / recording state of the tablet
         is_reporting = tablet.reporting
@@ -261,41 +141,22 @@ if __name__ == '__main__':
             last_evt_count=len(wtab_evts)
             if is_reporting:
                 if draw_pen_traces:
-                    pen_trace.updateFromEvents(tablet.getEnters(),wtab_evts)
+                    pen_trace.updateFromEvents(wtab_evts)
 
                 if last_evt_count:
                     last_evt = wtab_evts[-1]
                     testTimeOutClock.reset()
 
+                    pen_pos_gauss.updateFromEvent(last_evt)
+
                     # update the text that displays the event pos, pressure, etc...
                     evt_text.text=evt_text._txt_proto.format(**last_evt.dict)
-
-                    # update the pen position stim based on
-                    # the last tablet event's data
-                    if last_evt.z == 0:
-                        # pen is touching tablet surface
-                        pen_guass.color='green'
-                    else:
-                        # pen is hovering just above tablet surface
-                        pen_guass.color='red'
-
-                    pen_guass.pos = getPenPos(last_evt)
-                    pen_guass.size = getPenSize(last_evt)
-                    pen_guass.opacity = pen_tilt_line.opacity = \
-                        getPenOpacity(last_evt)
-
-                    pen_tilt_line.start = pen_guass.pos
-
-                    pen_tilt_xy = getPenTilt(last_evt)
-                    pen_tilt_line.end = pen_guass.pos[0]+pen_tilt_xy[0],\
-                                    pen_guass.pos[1]+pen_tilt_xy[1]
 
             else:
                 last_evt = None
                 
             if last_evt is None:
                     last_evt_count = 0
-                    pen_guass.opacity = pen_tilt_line.opacity = 0
                     pen_trace.clear()
                     evt_text.text=''
 
