@@ -115,34 +115,3 @@ results = validation_proc.display()
 # results = validation_proc.getValidationResults()
 
 io.quit()
-
-#################### Not used below
-#
-## The following are several example trigger values for the triggers kwarg.
-## Use only one of them when setting the triggers argument of
-## TargetPosSequenceStim.
-#
-## Ex: Using DeviceEventTrigger to create a keyboard char event trigger
-##     which will fire when the space key is pressed.
-#kb_trigger = DeviceEventTrigger(io.getDevice('keyboard'),
-#                                event_type=EventConstants.KEYBOARD_RELEASE,
-#                                event_attribute_conditions={'key': ' '},
-#                                repeat_count=0)
-## Ex: Using TimeTrigger which will fire 0.5 sec after the last update
-##     ( flip() ) was made to draw the target as the correct target
-##     position.
-#time_trigger = TimeTrigger(start_time=None, delay=0.5)
-## Ex: Using a string to create a keyboard char event trigger
-##     which will fire when a key matching the string value is pressed.
-#kb_trigger_str = ' '
-## Ex: Using a float which will result in a TimeTrigger being created
-## with a 0.5 sec duration.
-#time_trigger_float = 0.5
-## Ex: Creating a list of Trigger instances. The first one that
-##     fires will cause the start of the next target position
-##     presentation.
-#multi_trigger = (TimeTrigger(start_time=None, delay=1.0), kb_trigger)
-## Ex: Using a list of strings to create a list of keyboard char
-##     based event triggers. First matching key press will cause the
-##     start of the next target position presentation.
-#multi_kb_str_triggers = [' ', 'ESCAPE', 'ENTER']
