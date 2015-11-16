@@ -11,6 +11,7 @@ from __future__ import division
 
 from collections import deque
 import math
+import numpy as np
 
 from psychopy.iohub.client import ioHubDeviceView, ioEvent, DeviceRPC
 from psychopy.iohub.devices import Computer
@@ -71,6 +72,8 @@ class PenSampleEvent(ioEvent):
         for efname, efvalue in PenSampleEvent._attrib_index.items():
             if efvalue>=0:
                 setattr(self,'_'+efname,ioe_array[efvalue])
+        self._velocity=0.0
+        self._accelleration=0.0
 
     @property
     def x(self):
@@ -147,7 +150,7 @@ class PenSampleEvent(ioEvent):
         Returns the calculated x, y, and xy velocity for the current sample.
         :return: (float, float, float)
         '''
-        return (0.0, 0.0, 0.0)
+        return self._velocity
 
     @property
     def accelleration(self):
@@ -156,7 +159,24 @@ class PenSampleEvent(ioEvent):
         for the current sample.
         :return: (float, float, float)
         '''
-        return (0.0, 0.0, 0.0)
+        return self._accelleration
+
+    @velocity.setter
+    def velocity(self, v):
+        '''
+        Returns the calculated x, y, and xy velocity for the current sample.
+        :return: (float, float, float)
+        '''
+        self._velocity = v
+
+    @accelleration.setter
+    def accelleration(self, a):
+        '''
+        Returns the calculated x, y, and xy accelleration
+        for the current sample.
+        :return: (float, float, float)
+        '''
+        self._accelleration = a
 
     def __str__(self):
         return "{}, x,y,z: {}, {}, {} pressure: {}, tilt: {}".format(
@@ -190,6 +210,8 @@ class WintabTablet(ioHubDeviceView):
     def __init__(self, ioclient, device_class_name, device_config):
         super(WintabTablet, self).__init__(ioclient, device_class_name,
                                        device_config)
+
+        self._prev_sample=None
 
         self._events = dict()
         self._reporting = False
@@ -226,6 +248,27 @@ class WintabTablet(ioHubDeviceView):
                 # adjust for maximum value at vertical */
                 altitude_axis['adjust'] = altitude_axis['max']/altitude_axis['factor']
 
+    def _calculateVelAccel(self,s):
+        curr_samp = self._type2class[self.SAMPLE](s, self)
+        if 'FIRST_ENTER' in curr_samp.status:
+            self._prev_sample=None
+        prev_samp = self._prev_sample
+        if prev_samp:
+            dx=curr_samp.x-prev_samp.x
+            dy=curr_samp.y-prev_samp.y
+            dt=(curr_samp.time-prev_samp.time)#*1000.0
+            cvx, cvy, cvxy = curr_samp.velocity = dx/dt, dy/dt, np.sqrt(dx*dx+dy*dy)/dt
+
+            pvx, pvy, pvxy = prev_samp.velocity
+            if prev_samp.velocity != (0, 0, 0):
+                curr_samp.accelleration = (cvx-pvx)/dt, (cvy-pvy)/dt, np.sqrt((cvx-pvx)*(cvx-pvx)+(cvy-pvy)*(cvy-pvy))/dt
+            else:
+                curr_samp.accelleration = (0, 0, 0)
+        else:
+            curr_samp.velocity = (0, 0, 0)
+            curr_samp.accelleration = (0, 0, 0)
+        self._prev_sample = curr_samp
+        return curr_samp
 
     def _syncDeviceState(self):
         """
@@ -238,9 +281,13 @@ class WintabTablet(ioHubDeviceView):
         self._reporting = kb_state.get('reporting_events')
 
         for etype, event_arrays in kb_state.get('events').items():
-            self._events.setdefault(etype, deque(
-                maxlen=self._event_buffer_length)).extend(
-                [self._type2class[etype](e, self) for e in event_arrays])
+            et_queue = self._events.setdefault(etype, deque(maxlen=self._event_buffer_length))
+
+            if etype == self.SAMPLE:
+                for s in event_arrays:
+                    et_queue.append(self._calculateVelAccel(s))
+            else:
+                et_queue.extend([self._type2class[etype](e, self) for e in event_arrays])
 
     @property
     def reporting(self):
@@ -270,6 +317,8 @@ class WintabTablet(ioHubDeviceView):
         """
         Sets the state of keyboard event reporting / recording.
         """
+        if r is True:
+            self._prev_sample=None
         self._reporting = self.enableEventReporting(r)
         return self._reporting
 
