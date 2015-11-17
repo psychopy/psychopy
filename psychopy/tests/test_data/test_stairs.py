@@ -1,5 +1,5 @@
 """Test StairHandler"""
-from __future__ import print_function
+from __future__ import division, print_function
 from psychopy import data, logging
 import numpy as np
 import shutil
@@ -46,21 +46,28 @@ class _BaseTestStairHandler(object):
             The intensity levels at which reversals occurred.
 
         """
+        # Simulate an experimental run.
         self.exp.addLoop(stairs)
         for trialN, intensityN in enumerate(stairs):
             stairs.addResponse(responses[trialN])
-            stairs.addOtherData('rt', 0.1 + 2*np.random.random_sample(1))
+            stairs.addOtherData('RT', 0.1 + 2*np.random.random_sample(1))
             self.exp.nextEntry()
 
-        assert stairs.finished
-        assert stairs.data == responses
+        assert stairs.finished  # Staircase terminated normally.
+        assert stairs.data == responses  # Responses were stored correctly.
         # Trial count starts at zero.
         assert stairs.thisTrialN == len(stairs.data) - 1
+
+        # Intensity values are sane.
         assert np.min(stairs.intensities) >= stairs.minVal
         assert np.max(stairs.intensities) <= stairs.maxVal
         assert np.allclose(stairs.intensities, intensities)
 
+        # Reversal values are sane.
         if stairs.nReversals is not None:
+            # The first trial can never be a reversal.
+            assert stairs.nReversals <= len(stairs.data) - 1
+
             assert stairs.nReversals == len(stairs.reversalPoints)
             assert stairs.nReversals == len(stairs.reversalIntensities)
 
@@ -78,10 +85,15 @@ class TestStairHandler(_BaseTestStairHandler):
     """
     def test_StairHandlerLinear(self):
         nTrials = 20
+        startVal, minVal, maxVal = 0.8, 0, 1
+        stepSizes = [0.1, 0.01, 0.001]
+        nUp, nDown = 1, 3
+        nReversals = 4
+
         stairs = data.StairHandler(
-            startVal=0.8, nUp=1, nDown=3, minVal=0, maxVal=1,
-            nReversals=4, stepSizes=[0.1,0.01,0.001], nTrials=nTrials,
-            stepType='lin'
+            startVal=startVal, nUp=nUp, nDown=nDown, minVal=minVal,
+            maxVal=maxVal, nReversals=nReversals, stepSizes=stepSizes,
+            nTrials=nTrials, stepType='lin'
         )
 
         responses = makeBasicResponseCycles(
@@ -94,15 +106,54 @@ class TestStairHandler(_BaseTestStairHandler):
         ]
 
         reversalIntensities = [0.4, 0.44, 0.439, 0.443]
+
+        self.simulate(stairs, responses, intensities,
+                      reversalIntensities=reversalIntensities)
+
+    def test_StairHandlerLog(self):
+        nTrials = 20
+        startVal, minVal, maxVal = 0.8, 0, 1
+        # We try to reproduce the values from test_StairHandlerDb().
+        stepSizes = [0.4/20, 0.2/20, 0.2/20, 0.1/20]
+        nUp, nDown = 1, 3
+        nReversals = 4
+
+        stairs = data.StairHandler(
+            startVal=startVal, nUp=nUp, nDown=nDown, minVal=minVal,
+            maxVal=maxVal, nReversals=nReversals, stepSizes=stepSizes,
+            nTrials=nTrials, stepType='log'
+        )
+
+        responses = makeBasicResponseCycles(
+            cycles=3, nCorrect=4, nIncorrect=4, length=20
+        )
+
+        intensities = [
+            0.8, 0.763994069, 0.729608671, 0.696770872, 0.665411017,
+            0.680910431, 0.696770872, 0.713000751, 0.729608671,
+            0.729608671, 0.729608671, 0.713000751, 0.713000751,
+            0.72125691, 0.729608671, 0.738057142, 0.746603441,
+            0.746603441, 0.746603441, 0.738057142
+        ]
+
+        reversalIntensities = [
+            0.665411017, 0.729608671, 0.713000751, 0.746603441
+        ]
+
         self.simulate(stairs, responses, intensities,
                       reversalIntensities=reversalIntensities)
 
     def test_StairHandlerDb(self):
         nTrials = 20
+        startVal, minVal, maxVal = 0.8, 0, 1
+        stepSizes = [0.4, 0.2, 0.2, 0.1]
+        nUp, nDown = 1, 3
+        nReversals = 4
+
         stairs = data.StairHandler(
-            startVal=0.8, nUp=1, nDown=3, minVal=0, maxVal=1,
-            nReversals=4, stepSizes=[0.4,0.2,0.2,0.1], nTrials=nTrials,
-            stepType='db'
+            startVal=startVal, nUp=nUp, nDown=nDown, minVal=minVal,
+            maxVal=maxVal, nReversals=nReversals, stepSizes=stepSizes,
+            nTrials=nTrials, stepType='db'
         )
 
         responses = makeBasicResponseCycles(
