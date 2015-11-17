@@ -83,8 +83,10 @@ class TestStairHandler(_BaseTestStairHandler):
             nReversals=4, stepSizes=[0.1,0.01,0.001], nTrials=nTrials,
             stepType='lin'
         )
-        responses = makeBasicResponseCycles(cycles=3, nCorrect=4,
-                                            nIncorrect=4)[:20]
+
+        responses = makeBasicResponseCycles(
+            cycles=3, nCorrect=4, nIncorrect=4, length=20
+        )
 
         intensities = [
             0.8, 0.7, 0.6, 0.5, 0.4, 0.41, 0.42, 0.43, 0.44, 0.44, 0.44,
@@ -97,11 +99,15 @@ class TestStairHandler(_BaseTestStairHandler):
 
     def test_StairHandlerDb(self):
         nTrials = 20
-        stairs = data.StairHandler(startVal=0.8, nUp=1, nDown=3, minVal=0, maxVal=1,
+        stairs = data.StairHandler(
+            startVal=0.8, nUp=1, nDown=3, minVal=0, maxVal=1,
             nReversals=4, stepSizes=[0.4,0.2,0.2,0.1], nTrials=nTrials,
-            stepType='db')
-        responses = makeBasicResponseCycles(cycles=3, nCorrect=4,
-                                            nIncorrect=4)[:20]
+            stepType='db'
+        )
+
+        responses = makeBasicResponseCycles(
+            cycles=3, nCorrect=4, nIncorrect=4, length=20
+        )
 
         intensities = [
             0.8, 0.763994069, 0.729608671, 0.696770872, 0.665411017,
@@ -119,7 +125,8 @@ class TestStairHandler(_BaseTestStairHandler):
                       reversalIntensities=reversalIntensities)
 
 
-def makeBasicResponseCycles(cycles=10, nCorrect=4, nIncorrect=4):
+def makeBasicResponseCycles(cycles=10, nCorrect=4, nIncorrect=4,
+                            length=None):
     """
     Helper function to create a basic set of responses.
 
@@ -132,6 +139,7 @@ def makeBasicResponseCycles(cycles=10, nCorrect=4, nIncorrect=4):
     nCorrect, nIncorrect : int, optional
         The number of correct and incorrect responses per cycle.
         Defaults to 4.
+    length : int or None, optional
 
     :Returns:
 
@@ -148,4 +156,7 @@ def makeBasicResponseCycles(cycles=10, nCorrect=4, nIncorrect=4):
         cycles
     ).tolist()
 
-    return responses
+    if length is not None:
+        return responses[:length]
+    else:
+        return responses
