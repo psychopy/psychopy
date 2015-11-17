@@ -1,20 +1,18 @@
 """Test StairHandler"""
 from __future__ import print_function
 from psychopy import data, logging
-from psychopy.tests import utils
 import numpy as np
-import os, glob, shutil
-logging.console.setLevel(logging.DEBUG)
-
+import shutil
 from tempfile import mkdtemp
 
+logging.console.setLevel(logging.DEBUG)
 DEBUG=False
 
+np.random.seed(1000)
 
-class TestStairHandlers(object):
-    """test staircase but using the experiment handler attached as well
-    """
-    def setup(self):#setup is run for each test within the class
+
+class _BaseTestStairHandler(object):
+    def setup(self):
         self.tmpFile = mkdtemp(prefix='psychopy-tests-testStaircase')
         self.exp = data.ExperimentHandler(name='testExp',
                         savePickle=True,
@@ -24,57 +22,111 @@ class TestStairHandlers(object):
             print(self.tmpFile)
 
     def teardown(self):
-        #    remove the tmp files
         shutil.rmtree(self.tmpFile)
 
-    def doTrials(self, stairs, responses, levels=None, reversals=None):
-        """run the trials and check that the levels were correct given the responses
+    def simulate(self, stairs, responses, intensities,
+                 reversalsPoints=None, reversalIntensities=None):
+        """
+        Simulate a staircase run.
+
+        :Paramters:
+
+        stairs : StairHandler
+            A StairHandler instance.
+        responses : array-like
+            Responses of the simulated observer.
+            For example `[0, 1`] for a correct, followed by an incorrect
+            response.
+        intensities : array-like
+            Intensity levels as calculated by the staircase procedure,
+            based on the simulated observer's `responses`.
+        reversalPoints : array-like, optional
+            The trial numbers at which reversals occurred.
+        reversalPoints : array-like, optional
+            The intensity levels at which reversals occurred.
+
         """
         self.exp.addLoop(stairs)
-        for trialN, thisLevel in enumerate(stairs):
+        for trialN, intensityN in enumerate(stairs):
             stairs.addResponse(responses[trialN])
-            stairs.addOtherData('rt', thisLevel*0.1)
-            if DEBUG:
-                if levels:
-                    print(trialN, thisLevel, responses[trialN], stairs.stepSizeCurrent, levels[trialN])#the latter is the expected level)
-                else:
-                    print(trialN, thisLevel, responses[trialN])# there was no expected level given
+            stairs.addOtherData('rt', 0.1 + 2*np.random.random_sample(1))
             self.exp.nextEntry()
+
+        assert stairs.finished
         assert stairs.data == responses
-        if hasattr(stairs, 'minVal'):
-            assert min(responses)>=stairs.minVal
-            assert max(responses)>=stairs.maxVal#assume it also has a maxVal
-        if levels:
-            assert np.allclose(stairs.intensities, levels), "staircase levels not as expected"
-        if reversals:
-            assert np.allclose(stairs.reversalIntensities, reversals)
+        # Trial count starts at zero.
+        assert stairs.thisTrialN == len(stairs.data) - 1
+        assert np.min(stairs.intensities) >= stairs.minVal
+        assert np.max(stairs.intensities) <= stairs.maxVal
+        assert np.allclose(stairs.intensities, intensities)
 
-    def test_staircaseLinear(self):
+        if stairs.nReversals is not None:
+            assert stairs.nReversals == len(stairs.reversalPoints)
+            assert stairs.nReversals == len(stairs.reversalIntensities)
+
+        if stairs.reversalPoints:
+            assert len(stairs.reversalPoints) == \
+                   len(stairs.reversalIntensities)
+
+        if reversalIntensities:
+            assert np.allclose(stairs.reversalIntensities,
+                               reversalIntensities)
+
+
+class TestStairHandler(_BaseTestStairHandler):
+    """Test StairHandler, but using the ExperimentHandler attached as well.
+    """
+    def test_StairHandlerLinear(self):
         nTrials = 20
-        stairs = data.StairHandler(startVal=0.8, nUp=1, nDown=3, minVal=0, maxVal=1,
+        stairs = data.StairHandler(
+            startVal=0.8, nUp=1, nDown=3, minVal=0, maxVal=1,
             nReversals=4, stepSizes=[0.1,0.01,0.001], nTrials=nTrials,
-            stepType='lin')
-        responsesToMake=makeBasicResponseCycles()
-        levels = [0.8, 0.7, 0.6, 0.5, 0.4, 0.41, 0.42, 0.43, 0.44, 0.44, 0.44,
-                  0.439, 0.439, 0.44, 0.441, 0.442, 0.443, 0.443, 0.443, 0.442]
-        reversals = [0.4, 0.44, 0.439, 0.443]
-        self.doTrials(stairs, responsesToMake[:nTrials], levels=levels, reversals=reversals)
+            stepType='lin'
+        )
 
-    def test_staircaseDB(self):
+        responses = makeBasicResponseCycles(
+            cycles=3, nCorrect=4, nIncorrect=4, length=20
+        )
+
+        intensities = [
+            0.8, 0.7, 0.6, 0.5, 0.4, 0.41, 0.42, 0.43, 0.44, 0.44, 0.44,
+            0.439, 0.439, 0.44, 0.441, 0.442, 0.443, 0.443, 0.443, 0.442
+        ]
+
+        reversalIntensities = [0.4, 0.44, 0.439, 0.443]
+        self.simulate(stairs, responses, intensities,
+                      reversalIntensities=reversalIntensities)
+
+    def test_StairHandlerDb(self):
         nTrials = 20
-        stairs = data.StairHandler(startVal=0.8, nUp=1, nDown=3, minVal=0, maxVal=1,
+        stairs = data.StairHandler(
+            startVal=0.8, nUp=1, nDown=3, minVal=0, maxVal=1,
             nReversals=4, stepSizes=[0.4,0.2,0.2,0.1], nTrials=nTrials,
-            stepType='db')
-        responsesToMake=makeBasicResponseCycles()
-        levels=[0.8, 0.763994069, 0.729608671, 0.696770872, 0.665411017, 0.680910431,
-                0.696770872, 0.713000751, 0.729608671, 0.729608671, 0.729608671, 0.713000751,
-                0.713000751, 0.72125691, 0.729608671, 0.738057142, 0.746603441, 0.746603441,
-                0.746603441, 0.738057142]
-        reversals = [0.665411017, 0.729608671, 0.713000751, 0.746603441]
-        self.doTrials(stairs, responsesToMake[:nTrials], levels=levels)
+            stepType='db'
+        )
+
+        responses = makeBasicResponseCycles(
+            cycles=3, nCorrect=4, nIncorrect=4, length=20
+        )
+
+        intensities = [
+            0.8, 0.763994069, 0.729608671, 0.696770872, 0.665411017,
+            0.680910431, 0.696770872, 0.713000751, 0.729608671,
+            0.729608671, 0.729608671, 0.713000751, 0.713000751,
+            0.72125691, 0.729608671, 0.738057142, 0.746603441,
+            0.746603441, 0.746603441, 0.738057142
+        ]
+
+        reversalIntensities = [
+            0.665411017, 0.729608671, 0.713000751, 0.746603441
+        ]
+
+        self.simulate(stairs, responses, intensities,
+                      reversalIntensities=reversalIntensities)
 
 
-def makeBasicResponseCycles(cycles=10, nCorrect=4, nIncorrect=4):
+def makeBasicResponseCycles(cycles=10, nCorrect=4, nIncorrect=4,
+                            length=None):
     """
     Helper function to create a basic set of responses.
 
@@ -87,19 +139,24 @@ def makeBasicResponseCycles(cycles=10, nCorrect=4, nIncorrect=4):
     nCorrect, nIncorrect : int, optional
         The number of correct and incorrect responses per cycle.
         Defaults to 4.
+    length : int or None, optional
 
     :Returns:
 
-    responsesToMake : list
-        A list of responses with length `cycles * (nCorrect + nIncorrect)`.
+    responses : list
+        A list of simulated responses with length
+        `cycles * (nCorrect + nIncorrect)`.
 
     """
     responsesCorrectPerCycle = np.ones(nCorrect, dtype=np.int)
     responsesIncorrectPerCycle = np.zeros(nIncorrect, dtype=np.int)
 
-    responsesToMake = np.tile(
+    responses = np.tile(
         np.r_[responsesCorrectPerCycle, responsesIncorrectPerCycle],
         cycles
     ).tolist()
 
-    return responsesToMake
+    if length is not None:
+        return responses[:length]
+    else:
+        return responses
