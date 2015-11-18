@@ -699,15 +699,23 @@ class Window(object):
 
     def multiFlip(self, flips=1, clearBuffer=True):
         """
-        Flips multiple times while maintaining display constant.
+        Flip multiple times while maintaining the display constant.
         Use this method for precise timing.
+
+        WARNING: This function should not be used. See the `Notes` section
+        for details.
 
         :Parameters:
 
-            flips: number of monitor frames to flip image.
-                Window.multiFlip(flips=1) is equivalent to Window.flip().
+        flips: int, optional
+            The number of monitor frames to flip. Floats will be
+            rounded to integers, and a warning will be emitted.
+            ``Window.multiFlip(flips=1)`` is equivalent to ``Window.flip()``.
+            Defaults to `1`.
 
-            clearBuffer: as in Window.flip(). This is applied to the last flip.
+        clearBuffer: bool, optional
+            Whether to clear the screen after the last flip.
+            Defaults to `True`.
 
         Example::
 
@@ -722,18 +730,30 @@ class Window(object):
             myWin.multiFlip(flips=2)
             # Show blank screen for 3 frames (because buffer was cleared above)
             myWin.multiFlip(flips=3)
-        """
 
-        #Sanity checking
-        if flips < 1 and int(flips) == flips:
+        :Notes:
+        This function can behave unpredictably, and the PsychoPy authors
+        recommend against using it.
+        See https://github.com/psychopy/psychopy/issues/867 for more
+        information.
+
+        """
+        if flips < 1:
             logging.error("flips argument for multiFlip should be "
                           "a positive integer")
+
+        if flips != int(flips):
+            flips = int(round(flips))
+            logging.warning("Number of flips was not an integer; "
+                            "rounding to the next integer. Will flip "
+                            "%i times." % flips)
+
         if flips > 1 and not self.waitBlanking:
             logging.warning("Call to Window.multiFlip() with flips > 1 is "
                             "unnecessary because Window.waitBlanking=False")
 
         #Do the flipping with last flip as special case
-        for _junk in range(flips-1):
+        for _ in range(flips-1):
             self.flip(clearBuffer=False)
         self.flip(clearBuffer=clearBuffer)
 
