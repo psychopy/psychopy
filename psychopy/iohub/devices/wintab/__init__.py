@@ -117,9 +117,12 @@ class WintabTablet(Device):
         return True
 
     def getHardwareConfig(self, index=0):
+        hw_model_info = self._wtablets[index].hw_model_info
+        hw_model_info['calc_sample_interval'] = self._calculated_isi
+        
         return {"Context":self._wtab_canvases[index].getContextInfo(),
                  "Axis":self._wtablets[index].hw_axis_info,
-                 "ModelInfo":self._wtablets[index].hw_model_info
+                 "ModelInfo":hw_model_info
                 }
 
     def enableEventReporting(self,enabled=True):
