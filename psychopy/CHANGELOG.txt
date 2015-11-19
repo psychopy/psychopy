@@ -12,6 +12,7 @@ Changelog
 forthcoming
 ------------------------------
 
+* ADDED: utility script to create a .csv data file from a .psydata file; see Coder > Demo menu, csvFromPsydat.py
 * IMPROVED: ShapeStim can properly fill arbitrary shapes (using tesselation); see new shapes.py Coder demo for examples.
 * CHANGED: setting ShapeStim vertices dynamically now requires an explicit assignment of the new vertex list to shape.vertices; this can be slow for filled shapes with many vertices. See shapes.py, selfx example.
 * CHANGED: minor: Aperture, Polygon, and Rect now depend on BaseShapeStim (just a new name, no change in function)
