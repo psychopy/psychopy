@@ -1336,6 +1336,8 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.openUpdater,  self.app.openUpdater)
         self.toolsMenu.Append(self.IDs.benchmarkWizard, _translate("Benchmark wizard"), _translate("Check software & hardware, generate report"))
         wx.EVT_MENU(self, self.IDs.benchmarkWizard,  self.app.benchmarkWizard)
+        self.toolsMenu.Append(self.IDs.csvFromPsydat, _translate("csv from psydat"), _translate("Create a .csv file from an existing .psydat file"))
+        wx.EVT_MENU(self, self.IDs.csvFromPsydat,  self.app.csvFromPsydat)
 
         if self.appPrefs['debugMode']:
             self.toolsMenu.Append(self.IDs.unitTests, _translate("Unit &testing...\tCtrl-T"),

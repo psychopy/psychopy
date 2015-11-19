@@ -48,6 +48,7 @@ openUpdater=wx.NewId()
 unitTests=wx.NewId()
 benchmarkWizard=wx.NewId()
 filePrint=wx.NewId()
+csvFromPsydat=wx.NewId()
 
 #help menu
 #these should be assigned to the relevant buttons/menu items in the app

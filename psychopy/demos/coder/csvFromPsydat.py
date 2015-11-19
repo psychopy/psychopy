@@ -6,14 +6,13 @@ edit the file name, then run the script
 """
 
 import os
-from psychopy import data
 from psychopy.tools.filetools import fromFile
 
 # EDIT THE NEXT LINE to be your .psydat file, with the correct path:
 name = 'fileName.psydat'
 
 file_psydat = os.path.abspath(name)
-print("input psydat: {0}".format(file_psydat))
+print("psydat: {0}".format(file_psydat))
 
 # read in the experiment session from the psydat file:
 exp = fromFile(file_psydat)
@@ -26,4 +25,4 @@ else:
 file_csv += '.csv'
 exp.saveAsWideText(file_csv)
 
-print('saved to csv: {0}'.format(os.path.abspath(file_csv)))
+print('-> csv: {0}'.format(os.path.abspath(file_csv)))

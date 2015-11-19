@@ -1147,7 +1147,7 @@ class TrialHandler(_BaseTrialHandler):
 
         That is, unlike 'saveAsText' and 'saveAsExcel':
          - each row comprises information from only a single trial.
-         - no summarising is done (such as collapsing to produce mean and standard deviation values across trials).
+         - no summarizing is done (such as collapsing to produce mean and standard deviation values across trials).
 
         This 'wide' format, as expected by R for creating dataframes, and various other analysis programs, means that some
         information must be repeated on every row.
@@ -1745,7 +1745,7 @@ class TrialHandlerExt(TrialHandler):
 
         That is, unlike 'saveAsText' and 'saveAsExcel':
          - each row comprises information from only a single trial.
-         - no summarising is done (such as collapsing to produce mean and standard deviation values across trials).
+         - no summarizing is done (such as collapsing to produce mean and standard deviation values across trials).
 
         This 'wide' format, as expected by R for creating dataframes, and various other analysis programs, means that some
         information must be repeated on every row.
