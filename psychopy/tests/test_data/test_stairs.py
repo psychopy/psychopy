@@ -72,8 +72,8 @@ class _BaseTestStairHandler(object):
             assert stairs.nReversals == len(stairs.reversalIntensities)
 
         if stairs.reversalPoints:
-            assert len(stairs.reversalPoints) == \
-                   len(stairs.reversalIntensities)
+            assert (len(stairs.reversalPoints) ==
+                    len(stairs.reversalIntensities))
 
         if reversalIntensities:
             assert np.allclose(stairs.reversalIntensities,
@@ -89,11 +89,12 @@ class TestStairHandler(_BaseTestStairHandler):
         stepSizes = [0.1, 0.01, 0.001]
         nUp, nDown = 1, 3
         nReversals = 4
+        stepType='lin'
 
         stairs = data.StairHandler(
             startVal=startVal, nUp=nUp, nDown=nDown, minVal=minVal,
             maxVal=maxVal, nReversals=nReversals, stepSizes=stepSizes,
-            nTrials=nTrials, stepType='lin'
+            nTrials=nTrials, stepType=stepType
         )
 
         responses = makeBasicResponseCycles(
@@ -117,11 +118,12 @@ class TestStairHandler(_BaseTestStairHandler):
         stepSizes = [0.4/20, 0.2/20, 0.2/20, 0.1/20]
         nUp, nDown = 1, 3
         nReversals = 4
+        stepType='log'
 
         stairs = data.StairHandler(
             startVal=startVal, nUp=nUp, nDown=nDown, minVal=minVal,
             maxVal=maxVal, nReversals=nReversals, stepSizes=stepSizes,
-            nTrials=nTrials, stepType='log'
+            nTrials=nTrials, stepType=stepType
         )
 
         responses = makeBasicResponseCycles(
@@ -149,11 +151,12 @@ class TestStairHandler(_BaseTestStairHandler):
         stepSizes = [0.4, 0.2, 0.2, 0.1]
         nUp, nDown = 1, 3
         nReversals = 4
+        stepType = 'db'
 
         stairs = data.StairHandler(
             startVal=startVal, nUp=nUp, nDown=nDown, minVal=minVal,
             maxVal=maxVal, nReversals=nReversals, stepSizes=stepSizes,
-            nTrials=nTrials, stepType='db'
+            nTrials=nTrials, stepType=stepType
         )
 
         responses = makeBasicResponseCycles(
@@ -174,6 +177,57 @@ class TestStairHandler(_BaseTestStairHandler):
 
         self.simulate(stairs, responses, intensities,
                       reversalIntensities=reversalIntensities)
+
+
+class TestQuestHandler(_BaseTestStairHandler):
+    """Test QuestHandler, but using the ExperimentHandler attached as well.
+    """
+    def test_QuestHandler(self):
+        nTrials = 10
+        startVal, minVal, maxVal = 50, 0, 100
+        range = maxVal - minVal
+        startValSd = 50
+        grain = 0.01
+        pThreshold = 0.82
+        beta, gamma, delta = 3.5, 0.5, 0.01
+        stepType = 'lin'
+        stopInterval = None
+        method = 'quantile'
+
+        stairs = data.QuestHandler(
+            startVal, startValSd, pThreshold=pThreshold, nTrials=nTrials,
+            stopInterval=stopInterval, method=method, stepType=stepType,
+            beta=beta, gamma=gamma, delta=delta, grain=grain, range=range,
+            minVal=minVal, maxVal=maxVal
+        )
+
+        responses = makeBasicResponseCycles(
+            cycles=3, nCorrect=2, nIncorrect=2, length=10
+        )
+
+        intensities = [
+            50, 45.139710407074872, 37.291086503930742,
+            58.297413127139947, 80.182967131096547, 75.295251409003527,
+            71.57627192423783, 79.881680484036906, 90.712313302815517,
+            88.265808957695796
+        ]
+
+        mean = 86.0772169427
+        mode = 80.11
+        quantile = 86.3849031085
+
+        self.simulate(stairs, responses, intensities)
+
+        assert np.allclose(stairs.mean(), mean)
+        assert np.allclose(stairs.mode(), mode)
+        assert np.allclose(stairs.quantile(), quantile)
+
+        # Check if the internal grid has the expected dimensions.
+        assert len(stairs._quest.x) == (maxVal - minVal) / grain + 1
+        assert np.allclose(stairs._quest.x[1] - stairs._quest.x[0],
+                           grain)
+        assert stairs._quest.x[0] == -range/2
+        assert stairs._quest.x[-1] == range/2
 
 
 def makeBasicResponseCycles(cycles=10, nCorrect=4, nIncorrect=4,
