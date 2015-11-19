@@ -270,6 +270,25 @@ class PsychoPyApp(wx.App):
                 self.prefs.saveAppData()
     def benchmarkWizard(self, evt=None):
         self._wizard('--benchmark')
+    def csvFromPsydat(self, evt=None):
+        from psychopy import gui
+        from psychopy.tools.filetools import fromFile
+
+        names = gui.fileOpenDlg(allowed='*.psydat',
+                    prompt=_translate("Select .psydat file(s) to extract"))
+        for name in names or []:
+            filePsydat = os.path.abspath(name)
+            print("psydat: {0}".format(filePsydat))
+
+            exp = fromFile(filePsydat)
+            if filePsydat.endswith('.psydat'):
+                fileCsv = filePsydat[:-7]
+            else:
+                fileCsv = filePsydat
+            fileCsv += '.csv'
+            exp.saveAsWideText(fileCsv)
+            print('   -->: {0}'.format(os.path.abspath(fileCsv)))
+
     def checkUpdates(self, evt):
         #if we have internet and haven't yet checked for updates then do so
         if self._latestAvailableVersion not in [-1, None]:#we have a network connection but not yet tried an update

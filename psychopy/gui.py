@@ -200,7 +200,7 @@ class DlgFromDict(Dlg):
         infoDlg = gui.DlgFromDict(dictionary=info, title='TestExperiment', fixed=['ExpVersion'])
         if infoDlg.OK:
             print(info)
-        else: 
+        else:
             print('User Cancelled')
 
     In the code above, the contents of *info* will be updated to the values
@@ -282,7 +282,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
 
 def fileOpenDlg(tryFilePath="",
                 tryFileName="",
-                prompt=_translate("Select file to open"),
+                prompt=_translate("Select file(s) to open"),
                 allowed=None):
     """A simple dialogue allowing read access to the file system.
 
