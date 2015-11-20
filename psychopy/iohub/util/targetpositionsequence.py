@@ -115,6 +115,9 @@ class TargetStim(object):
         for s in self.stim:
             s.draw()
 
+    def contains(self,p):
+        return self.stim[0].contains(p)
+
 class PositionGrid(object):
     """
     PositionGrid provides a flexible way to generate a set of x,y position

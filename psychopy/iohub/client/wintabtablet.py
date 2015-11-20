@@ -9,7 +9,7 @@ from __future__ import division
 # Distributed under the terms of the GNU General Public License
 # (GPL version 3 or any later version).
 
-from collections import deque
+from collections import deque, OrderedDict
 import math
 import numpy as np
 
@@ -17,7 +17,7 @@ from psychopy.iohub.client import ioHubDeviceView, ioEvent, DeviceRPC
 from psychopy.iohub.devices import Computer
 from psychopy.iohub.devices.wintab import WintabTabletSampleEvent, WintabTabletEnterRegionEvent, WintabTabletLeaveRegionEvent
 from psychopy.iohub.constants import EventConstants
-from psychopy import visual
+from psychopy import visual, core
 
 if Computer.system == 'win32':
     from win32api import LOWORD, HIWORD
@@ -255,15 +255,29 @@ class WintabTablet(ioHubDeviceView):
             self._prev_sample=None
         prev_samp = self._prev_sample
         if prev_samp:
-            dx=curr_samp.x-prev_samp.x
-            dy=curr_samp.y-prev_samp.y
-            dt=(curr_samp.time-prev_samp.time)
-            cvx, cvy, cvxy = curr_samp.velocity = dx/dt, dy/dt, np.sqrt(dx*dx+dy*dy)/dt
+            try:
+                dx=curr_samp.x-prev_samp.x
+                dy=curr_samp.y-prev_samp.y
+                dt=(curr_samp.time-prev_samp.time)
+                if dt <= 0:
+                    print("Warning: dt == 0: {}, {}, {}".format(dt,curr_samp.time, prev_samp.time ))
+                    curr_samp.velocity = (0, 0, 0)
+                    curr_samp.accelleration = (0, 0, 0)
+                else:
+                    cvx, cvy, cvxy = curr_samp.velocity = dx/dt, dy/dt, np.sqrt(dx*dx+dy*dy)/dt
 
-            pvx, pvy, pvxy = prev_samp.velocity
-            if prev_samp.velocity != (0, 0, 0):
-                curr_samp.accelleration = (cvx-pvx)/dt, (cvy-pvy)/dt, np.sqrt((cvx-pvx)*(cvx-pvx)+(cvy-pvy)*(cvy-pvy))/dt
-            else:
+                    pvx, pvy, pvxy = prev_samp.velocity
+                    if prev_samp.velocity != (0, 0, 0):
+                        curr_samp.accelleration = (cvx-pvx)/dt, (cvy-pvy)/dt, np.sqrt((cvx-pvx)*(cvx-pvx)+(cvy-pvy)*(cvy-pvy))/dt
+                    else:
+                        curr_samp.accelleration = (0, 0, 0)
+            except ZeroDivisionError, e:
+                print("ERROR: wintab._calculateVelAccel ZeroDivisionError occurred. prevId: %d, currentId: %d"%(curr_samp.id, prev_samp.id))
+                curr_samp.velocity = (0, 0, 0)
+                curr_samp.accelleration = (0, 0, 0)
+            except Exception, e:
+                print("ERROR: wintab._calculateVelAccel error [%s] occurred. prevId: %d, currentId: %d"%(str(e), curr_samp.id, prev_samp.id))
+                curr_samp.velocity = (0, 0, 0)
                 curr_samp.accelleration = (0, 0, 0)
         else:
             curr_samp.velocity = (0, 0, 0)
@@ -354,7 +368,7 @@ class WintabTablet(ioHubDeviceView):
         return_events = [e for e in self._events.get(self.SAMPLE, [])]
 
         if return_events and clear is True:
-            self._events[e._type]=[]
+            self._events.get(self.SAMPLE).clear()
 
         return sorted(return_events, key=lambda x: x.time)
 
@@ -365,7 +379,7 @@ class WintabTablet(ioHubDeviceView):
         return_events = [e for e in self._events.get(self.ENTER, [])]
 
         if return_events and clear is True:
-            self._events[e._type]=[]
+            self._events.get(self.ENTER).clear()
 
         return sorted(return_events, key=lambda x: x.time)
 
@@ -376,7 +390,7 @@ class WintabTablet(ioHubDeviceView):
         return_events = [e for e in self._events.get(self.LEAVE, [])]
 
         if return_events and clear is True:
-            self._events[e._type]=[]
+            self._events.get(self.LEAVE).clear()
 
         return sorted(return_events, key=lambda x: x.time)
 
@@ -384,14 +398,16 @@ class WintabTablet(ioHubDeviceView):
 ## iohub wintab util objects / functions for stylus,
 ## position traces, and validation process psychopy graphics.
 #
-
-class PenPositionStim(object):
+from psychopy.visual.basevisual import MinimalStim 
+class PenPositionStim(MinimalStim):
     """
     Draws the current pen x,y position with graphics that represent
     the pressure, z axis, and tilt data for the wintab sample used.
     """
-    def __init__(self, win):
-        self.window = win
+    def __init__(self, win, name=None, autoLog=None, depth=-10000):
+        self.win = win
+        self.depth = depth
+        super(PenPositionStim, self).__init__(name,autoLog)
 
         ### Pen Hovering Related
 
@@ -507,10 +523,10 @@ class PenPositionStim(object):
         self.pen_tilt_line.opacity = 0.0
 
     def __del__(self):
-        self.window = None
+        self.win = None
 
 
-class PenTracesStim(object):
+class PenTracesStim(MinimalStim):
     """
     Graphics representing where the pen has been moved on the digitizer
     surface. Positions where sample pressure > 0 are included.
@@ -520,7 +536,10 @@ class PenTracesStim(object):
     performance, a single pen trace can have max_trace_len points before
     a new ShapeStim is created and made the 'current' pen trace'.
     """
-    def __init__(self, win, maxlen = 256):
+    def __init__(self, win,  maxlen = 256, name=None, autoLog=None, depth=-1000):
+        self.depth=depth
+        self.win = win
+        super(PenTracesStim, self).__init__(name,autoLog)    
         # A single pen trace can have at most max_trace_len points.
         self.max_trace_len = maxlen
         # The list of ShapeStim representing pen traces
@@ -531,7 +550,7 @@ class PenTracesStim(object):
         self.current_points=[]
         # The last pen position added to a pen trace.
         self.last_pos = [0,0]
-        self.window = win
+
 
     @property
     def traces(self):
@@ -553,7 +572,7 @@ class PenTracesStim(object):
                 self.end()
             if pevt.pressure>0:
                 lpx, lpy = self.last_pos
-                px,py = pevt.getPixPos(self.window)
+                px,py = pevt.getPixPos(self.win)
                 if lpx != px or lpy != py:
                     if len(self.current_points) >= self.max_trace_len:
                         self.end()
@@ -583,7 +602,7 @@ class PenTracesStim(object):
         self.end()
         self.current_points.append(first_point)
         self.current_pentrace = visual.ShapeStim(
-                                        self.window,
+                                        self.win,
                                         units='pix',
                                         lineWidth=2,
                                         lineColor=(-1, -1, -1),
@@ -637,4 +656,322 @@ class PenTracesStim(object):
 
     def __del__(self):
         self.clear()
-        self.window = None
+        self.win = None
+
+#
+## Pen position validation process code
+#
+
+class ScreenPositionValidation(object):
+    NUM_VALID_SAMPLES_PER_TARG = 100
+    TARGET_TIMEOUT=10.0
+    def __init__(self, win, io, target_stim = None, pos_grid = None,
+                 force_quit=True):
+
+        from psychopy.iohub.util.targetpositionsequence import TargetStim, PositionGrid
+
+        self.win = win
+        self.io = io
+        self._targetStim = target_stim
+        self._positionGrid = pos_grid
+        self._forceQuit = force_quit
+
+
+        # IntroScreen Graphics
+        intro_graphics = self._introScreenGraphics = OrderedDict()
+
+        intro_graphics['title'] = visual.TextStim(self.win, units='norm',
+                                                    pos=(0, .9),
+                                                    height = 0.1,
+                                            text="Pen Position Validation")
+        intro_graphics['text1'] = visual.TextStim(self.win, units='norm',
+                                                    pos=(0, .70),
+                                                    height = 0.05,
+                                            text="On the following screen, "
+                                                 "press the pen on the target "
+                                                 "graphic when it appears, "
+                                                 "as accurately as "
+                                                 "possible, until the target "
+                                                 "moves to a different "
+                                                 "location. Then press at the "
+                                                 "next target location.",
+                                            wrapWidth=1.25
+                                            )
+        intro_graphics['text2'] = visual.TextStim(self.win, units='norm',
+                                                    pos=(0, -0.15),
+                                                    height = 0.066,
+                                                    color = 'green',
+                                            text="Press the pen on the above "
+                                                 "target to start the "
+                                                 "validation...")
+
+
+        # Validation Screen Graphics
+        self._penStim = visual.Circle(self.win,
+                            radius=4,
+                            fillColor=[255,0,0],
+                            lineColor=[255,0,0],
+                            lineWidth=0,
+                            edges=8,#int(np.pi*radius),
+                            units='pix',
+                            lineColorSpace='rgb255',
+                            fillColorSpace='rgb255',
+                            opacity=0.9,
+                            contrast=1,
+                            interpolate=True,
+                            autoLog=False)
+
+        if self._targetStim is None:
+            self._targetStim = TargetStim(win,
+                                          radius=16,
+                                          fillcolor=[64,64,64],
+                                          edgecolor=[192,192,192],
+                                          edgewidth=1,
+                                          dotcolor=[255,255,255],
+                                          dotradius=3,
+                                          units='pix',
+                                          colorspace='rgb255',
+                                          opacity=1.0,
+                                          contrast=1.0
+                                          )
+
+        intro_graphics['target'] = self._targetStim
+
+        if self._positionGrid is None:
+            self._positionGrid = PositionGrid(winSize=win.monitor.getSizePix(),
+                                              shape=[3,3],
+                                              scale=0.9,
+                                              posList=None,
+                                              noiseStd=None,
+                                              firstposindex=0,
+                                              repeatfirstpos=True)
+
+        # IntroScreen Graphics
+        finished_graphics = self._finsihedScreenGraphics = OrderedDict()
+
+        finished_graphics['title'] = visual.TextStim(self.win, units='norm',
+                                                    pos=(0, .9),
+                                                    height = 0.1,
+                                            text="Validation Complete")
+        finished_graphics['result_status'] = visual.TextStim(self.win, units='norm',
+                                                    pos=(0, .7),
+                                                    height = 0.07,
+                                                    color = 'blue',
+                                            text="Result: {}")
+        finished_graphics['result_stats'] = visual.TextStim(self.win, units='norm',
+                                                    pos=(0, .6),
+                                                    height = 0.05,
+                                            text="{}/{} Points Validated. Min, Max, Mean Errors: {}, {}, {}")
+        finished_graphics['exit_text'] = visual.TextStim(self.win, units='norm',
+                                                    pos=(0, .5),
+                                                    height = 0.05,
+                                            text="Press any key to continue...")
+
+
+    @property
+    def targetStim(self):
+        return self._targetStim
+
+    @targetStim.setter
+    def targetStim(self, ts):
+        self._targetStim = ts
+
+    @property
+    def positionGrid(self):
+        return self._positionGrid
+
+    @positionGrid.setter
+    def positionGrid(self, ts):
+        self._positionGrid = ts
+
+    def _enterIntroScreen(self):
+        kb = self.io.devices.keyboard
+        pen = self.io.devices.tablet
+
+        self._introScreenGraphics['target'].setPos((0,0))
+
+        exit_screen = False
+        hitcount = 0
+        pen.reporting = True
+
+        while exit_screen is False:
+            for ig in self._introScreenGraphics.values():
+                ig.draw()
+            samples = pen.getSamples()
+            if samples:
+                self._drawPenStim(samples[-1])
+                spos = samples[-1].getPixPos(self.win)
+                if samples[-1].pressure>0 and \
+                        self._introScreenGraphics['target'].contains(spos):
+                    if hitcount>10:
+                        exit_screen=True
+                    hitcount=hitcount+1
+                else:
+                    hitcount=0
+            self.win.flip()
+        pen.reporting = False
+
+    def _enterValidationSequence(self):
+        val_results=dict(target_data=dict(), avg_err=0, min_err=1000,
+                         max_err=-1000, status='PASSED', point_count=0,
+                         ok_point_count=0)
+
+        kb = self.io.devices.keyboard
+        pen = self.io.devices.tablet
+
+        self._positionGrid.randomize()
+
+        pen.reporting = True
+        for tp in self._positionGrid:
+            self._targetStim.setPos(tp)
+            self._targetStim.draw()
+            targ_onset_time = self.win.flip()
+
+            pen.clearEvents()
+
+            val_sample_list = []
+
+            while len(val_sample_list)<self.NUM_VALID_SAMPLES_PER_TARG:
+                if core.getTime()-targ_onset_time>self.TARGET_TIMEOUT:
+                    break
+                self._targetStim.draw()
+
+                samples = pen.getSamples()
+                for s in samples:
+                    spos = s.getPixPos(self.win)
+                    if s.pressure>0 and self.targetStim.contains(spos):
+                        dx=math.fabs(tp[0]-spos[0])
+                        dy=math.fabs(tp[1]-spos[1])
+                        perr=math.sqrt(dx*dx+dy*dy)
+                        val_sample_list.append((spos[0],spos[1],perr))
+                    else:
+                        val_sample_list=[]
+
+
+                if samples:
+                    self._drawPenStim(samples[-1])
+                    self.win.flip()
+
+            tp = int(tp[0]), int(tp[1])
+            val_results['target_data'][tp]=None
+            val_results['point_count']=val_results['point_count']+1
+
+            if val_sample_list:
+                pos_acc_array = np.asarray(val_sample_list)
+                serr_array = pos_acc_array[:,2]
+
+                targ_err_stats = val_results['target_data'][tp] = dict()
+                targ_err_stats['samples']=pos_acc_array
+                targ_err_stats['count']=len(val_sample_list)
+                targ_err_stats['min']=serr_array.min()
+                targ_err_stats['max']=serr_array.max()
+                targ_err_stats['mean']=serr_array.mean()
+                targ_err_stats['median']=np.median(serr_array)
+                targ_err_stats['stdev']=serr_array.std()
+
+                val_results['min_err']=min(val_results['min_err'], targ_err_stats['min'])
+                val_results['max_err']=max(val_results['max_err'], targ_err_stats['max'])
+
+                val_results['avg_err']=val_results['avg_err']+targ_err_stats['mean']
+                val_results['ok_point_count']=val_results['ok_point_count']+1
+            else:
+                val_results['status']='FAILED'
+
+        if val_results['ok_point_count']>0:
+            val_results['avg_err']=val_results['avg_err']/val_results['ok_point_count']
+
+        pen.reporting = False
+
+        return val_results
+
+    def _enterFinishedScreen(self, results):
+        kb = self.io.devices.keyboard
+
+        status = results['status']
+        ok_point_count = results['ok_point_count']
+        min_err = results['min_err']
+        max_err = results['max_err']
+        avg_err = results['avg_err']
+        point_count = results["point_count"]
+        self._finsihedScreenGraphics['result_status'].setText("Result: {}".format(status))
+
+        self._finsihedScreenGraphics['result_stats'].setText("%d/%d "
+                                                             "Points Validated."
+                                                             "Min, Max, Mean "
+                                                             "Errors: "
+                                                             "%.3f, %.3f, %.3f"
+                                                             ""%(
+                                                                ok_point_count,
+                                                                point_count,
+                                                                min_err,
+                                                                max_err,
+                                                                avg_err))
+        for ig in self._finsihedScreenGraphics.values():
+            ig.draw()
+        self.win.flip()
+        kb.clearEvents()
+
+        while not kb.getPresses():
+            for ig in self._finsihedScreenGraphics.values():
+                ig.draw()
+            self.win.flip()
+
+
+    def _drawPenStim(self, s):
+                spos = s.getPixPos(self.win)
+                if spos:
+                    self._penStim.setPos(spos)
+                    if s.pressure == 0:
+                        self._penStim.setFillColor([255,0,0])
+                        self._penStim.setLineColor([255,0,0])
+                    else:
+                        self._penStim.setFillColor([0,0,255])
+                        self._penStim.setLineColor([0,0,255])
+
+                    self._penStim.draw()
+
+    def run(self):
+        """
+        Starts the validation process. This function will not return until
+        the validation is complete. The validation results are returned
+        in dict format.
+
+        :return: dist containing validation results.
+        """
+
+        self._enterIntroScreen()
+
+        # delay about 0.5 sec before staring validation
+        ftime = self.win.flip()
+        while core.getTime()-ftime < 0.5:
+            self.win.flip()
+            self.io.clearEvents()
+
+        val_results = self._enterValidationSequence()
+
+        # delay about 0.5 sec before showing validation end screen
+        ftime = self.win.flip()
+        while core.getTime()-ftime < 0.5:
+            self.win.flip()
+            self.io.clearEvents()
+
+        self._enterFinishedScreen(val_results)
+        self.io.clearEvents()
+        self.win.flip()
+
+        return val_results
+
+        # returning None indicates to experiment that the vaidation process
+        # was terminated by the user
+        #return None
+
+    def free(self):
+        self.win = None
+        self.io = None
+        self._finsihedScreenGraphics.clear()
+        self._introScreenGraphics.clear()
+        self._targetStim = None
+        self._penStim = None
+
+    def __del__(self):
+        self.free()

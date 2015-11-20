@@ -156,10 +156,12 @@ class WintabTablet(Device):
                 for wte in wtc._iohub_events:
                     if wte and wte[0] == EventConstants.WINTAB_TABLET_SAMPLE:
                         status = WintabTabletSampleEvent.STATES['FIRST_ENTER']
+                        if self._first_hw_and_hub_times is None:
+                            self._first_hw_and_hub_times = wte[1], logged_time
+
                         if self._last_sample:
                             if self._calculated_isi == 0:
                                 self._calculated_isi = wte[1]-self._last_sample[1]
-                                self._first_hw_and_hub_times = wte[1], logged_time
 
                             if wte[1]-self._last_sample[1] >= self._calculated_isi*1.75:
                                 self._last_sample = None
