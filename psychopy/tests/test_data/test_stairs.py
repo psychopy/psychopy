@@ -190,14 +190,13 @@ class TestQuestHandler(_BaseTestStairHandler):
         grain = 0.01
         pThreshold = 0.82
         beta, gamma, delta = 3.5, 0.5, 0.01
-        stepType = 'lin'
         stopInterval = None
         method = 'quantile'
 
         stairs = data.QuestHandler(
             startVal, startValSd, pThreshold=pThreshold, nTrials=nTrials,
-            stopInterval=stopInterval, method=method, stepType=stepType,
-            beta=beta, gamma=gamma, delta=delta, grain=grain, range=range,
+            stopInterval=stopInterval, method=method, beta=beta,
+            gamma=gamma, delta=delta, grain=grain, range=range,
             minVal=minVal, maxVal=maxVal
         )
 
