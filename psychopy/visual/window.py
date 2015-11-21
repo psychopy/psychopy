@@ -278,8 +278,10 @@ class Window(object):
 
         # parameters for transforming the overall view
         self.viewScale = val2array(viewScale)
-        self.viewPos = val2array(viewPos, True, False)
+        self.viewPos = val2array(viewPos, withScalar=False)
         self.viewOri = float(viewOri)
+        if self.viewOri is not 0. and self.viewPos is not None:
+            raise NotImplementedError("Window: viewPos & viewOri are currently incompatible")
         self.stereo = stereo  # use quad buffer if requested (and if possible)
 
         #load color conversion matrices
@@ -608,27 +610,29 @@ class Window(object):
                 GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
                 if stencilOn:
                     GL.glEnable(GL.GL_STENCIL_TEST)
-        #rescale/reposition view of the window
+
+        # rescale, reposition, & rotate
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glLoadIdentity()
         if self.viewScale is not None:
-            GL.glMatrixMode(GL.GL_PROJECTION)
-            GL.glLoadIdentity()
-            GL.glOrtho(-1, 1, -1, 1, -1, 1)
             GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
+            abs_scale_x, abs_scale_y = abs(self.viewScale[0]), abs(self.viewScale[1])
         else:
-            GL.glLoadIdentity()  # still worth loading identity
+            abs_scale_x, abs_scale_y = 1, 1
 
         if self.viewPos is not None:
-            GL.glMatrixMode(GL.GL_MODELVIEW)
-            if not self.viewScale:
-                scale = [1, 1]
-            else:
-                scale = self.viewScale
-            norm_rf_pos_x = self.viewPos[0]/scale[0]
-            norm_rf_pos_y = self.viewPos[1]/scale[1]
+            norm_rf_pos_x = self.viewPos[0]/abs_scale_x
+            norm_rf_pos_y = self.viewPos[1]/abs_scale_y
             GL.glTranslatef(norm_rf_pos_x, norm_rf_pos_y, 0.0)
 
-        if self.viewOri is not None:
-            GL.glRotatef(self.viewOri, 0.0, 0.0, -1.0)
+        if self.viewOri:  # float
+            # the logic below for flip is partially correct, but does not handle a nonzero viewPos
+            flip = 1
+            if self.viewScale is not None:
+                _f = self.viewScale[0] * self.viewScale[1]
+                if _f < 0:
+                    flip = -1
+            GL.glRotatef(flip * self.viewOri, 0.0, 0.0, -1.0)
 
         #reset returned buffer for next frame
         self._endOfFlip(clearBuffer)

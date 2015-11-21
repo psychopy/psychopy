@@ -9,6 +9,15 @@ Changelog
 
 :blue:`Changes in blue typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!`
 
+forthcoming
+------------------------------
+
+* ADDED: utility to create a .csv (data) file from a .psydat file; see Coder > Tools menu (also: Coder > Demo menu)
+* IMPROVED: ShapeStim can properly fill arbitrary shapes (using tesselation); see new shapes.py Coder demo for examples.
+* CHANGED: setting ShapeStim vertices dynamically now requires an explicit assignment of the new vertex list to shape.vertices; this can be slow for filled shapes with many vertices. See shapes.py, selfx example.
+* CHANGED: minor: Aperture, Polygon, and Rect now depend on BaseShapeStim (i.e., their base class has a new name, no change in function)
+* FIXED: window viewScale and viewPos combine correctly; viewScale handles negative values, mirror-image flips the window correctly (except for Text)
+
 PsychoPy 1.83
 ------------------------------
 
@@ -18,6 +27,10 @@ PsychoPy 1.83.01
 released Oct 2015
 
 * FIXED: new bug with pygame sounds giving fileName not defined
+* FIXED: several RatingScale bugs; reduce the memory leak (due to pyglet as used in TextStim)
+* ADDED: voice-key capability, e.g., for word-naming studies; includes a demo, auxillary functions (smoothing, zero-crossing, etc), and file-format options (all those supported by pyo)
+* CHANGED: remove support for google's speech to text (the new google API is for chrome / chromium developers only)
+* CHANGED: deprecate psychopy.web.upload(); use the requests package instead: requests.post()
 
 PsychoPy 1.83.00
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
