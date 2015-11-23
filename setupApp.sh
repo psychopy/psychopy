@@ -15,7 +15,7 @@ rm psychopy/prefSite.cfg
 sudo rm -r dist/PsychoPy2.app #the previous version
 sudo rm -r ../dist/PsychoPy2.app #the previous version in 'main' location
 python setupApp.py py2app
-sudo chmod -R g+w dist/PsychoPy2.app
+#sudo chmod -R g+w dist/PsychoPy2.app #Jon: not sure this is needed
 #remove matplotlib tests (45mb)
 rm -r dist/PsychoPy2.app/Contents/Resources/lib/python2.7/matplotlib/tests
 #strip all other architectures from binaries and move both to ../dist
