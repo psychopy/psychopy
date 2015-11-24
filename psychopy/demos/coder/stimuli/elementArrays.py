@@ -20,7 +20,6 @@ from __future__ import division
 
 from psychopy import visual, core, event
 from psychopy.tools.coordinatetools import cart2pol
-import numpy  # for maths on arrays
 
 # We only need these two commands from numpy.random:
 from numpy.random import random, shuffle

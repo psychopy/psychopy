@@ -21,16 +21,16 @@ noise = np.random.random([128, 128]) * 2.0 - 1  # might want higher res for big 
 #   drifitng at same speed as env1
 
 env1 = EnvelopeGrating(win, ori=0, units='norm', carrier='sin', envelope='sin',
-    mask = 'gauss', sf=4, envsf=8, size=1, contrast=1.0, moddepth=0.0, envori=0,
+    mask='gauss', sf=4, envsf=8, size=1, contrast=1.0, moddepth=0.0, envori=0,
     pos=[-.5, -.5], interpolate=0)
 env2 = EnvelopeGrating(win, ori=0, units='norm', carrier=noise, envelope='sin',
-    mask = 'gauss', sf=1, envsf=8, size=1, contrast=0.5, moddepth=1.0, envori=0,
+    mask='gauss', sf=1, envsf=8, size=1, contrast=0.5, moddepth=1.0, envori=0,
     pos=[.5, -.5], interpolate=0)
 env3 = EnvelopeGrating(win, ori=0, units='norm', carrier='sin', envelope='sin',
-    mask = 'gauss', sf=24, envsf=4, size=1, contrast=0.5, moddepth=1.0, envori=0,
+    mask='gauss', sf=24, envsf=4, size=1, contrast=0.5, moddepth=1.0, envori=0,
     pos=[-.5, .5], interpolate=0)
 env4 = EnvelopeGrating(win, ori=90, units='norm', carrier='sin', envelope='sin',
-    mask = 'gauss', sf=24, envsf=4, size=1, contrast=0.5, moddepth=1.0, envori=0,
+    mask='gauss', sf=24, envsf=4, size=1, contrast=0.5, moddepth=1.0, envori=0,
     pos=[0.5, 0.5], beat=True, interpolate=0)
 
 while not event.getKeys():

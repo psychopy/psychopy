@@ -12,7 +12,6 @@ Demo of class psychopy.visual.BufferImageStim()
 from __future__ import division
 
 from psychopy import visual, event, core
-import os
 
 # need a window and clock:
 win = visual.Window(fullscr=False, monitor='testMonitor')
@@ -33,8 +32,9 @@ stimlist = [imageStim, imageStim2, wordStim]
 rect = (-1, 1, 1, -1)
 t0 = clock.getTime()
 screenshot = visual.BufferImageStim(win, stim=stimlist, rect=rect)
-    # rect is the screen rectangle to grab, (-1, 1, 1, -1) is whole-screen
-    # as a list of the edges: Left Top Right Bottom, in norm units.
+# rect is the screen rectangle to grab, (-1, 1, 1, -1) is whole-screen
+# as a list of the edges: Left Top Right Bottom, in norm units.
+
 captureTime = clock.getTime() - t0
 
 instr_buffer = visual.TextStim(win, text='BufferImageStim', pos=(0, .8))

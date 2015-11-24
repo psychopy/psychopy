@@ -1,6 +1,5 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-from __future__ import print_function
 
 """
 There are two ways to retrieve info from the first 3 joystick axes. You can use:
@@ -16,6 +15,7 @@ messages.
 """
 
 from __future__ import division
+from __future__ import print_function
 
 from psychopy import visual, core, event
 from psychopy.hardware import joystick

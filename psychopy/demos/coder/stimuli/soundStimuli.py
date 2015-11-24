@@ -18,7 +18,7 @@ import sys
 from psychopy import logging, prefs
 logging.console.setLevel(logging.DEBUG)  # get messages about the sound lib as it loads
 
-from psychopy import sound, core, visual
+from psychopy import sound, core
 
 if prefs.general['audioLib'][0] == 'pyo':
     # if pyo is the first lib in the list of preferred libs then we could use small buffer

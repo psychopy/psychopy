@@ -15,7 +15,7 @@ from __future__ import division
 
 from psychopy import data, gui, core
 from psychopy.tools.filetools import fromFile
-import pylab, scipy
+import pylab
 import os
 
 # set to 0.5 for Yes/No (or PSE). Set to 0.8 for a 2AFC threshold

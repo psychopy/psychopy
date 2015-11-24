@@ -266,27 +266,23 @@ def getSysInfo(win):
     sys_info['Packages'] = OrderedDict()
     try: 
         import numpy
-
         sys_info['Packages']['numpy'] = numpy.__version__
-    except: 
+    except ImportError: 
         sys_info['Packages']['numpy'] = "Not Installed"
     try: 
         import pyglet
-
         sys_info['Packages']['pyglet'] = pyglet.version
-    except: 
+    except ImportError: 
         sys_info['Packages']['pyglet'] = "Not Installed"
     try: 
         import cv2
-
         sys_info['Packages']['cv2'] = cv2.__version__
-    except: 
+    except ImportError: 
         sys_info['Packages']['cv2'] = "Not Installed"
     try: 
         import psychopy
-
         sys_info['Packages']['PsychoPy'] = psychopy.__version__
-    except: 
+    except ImportError: 
         sys_info['Packages']['PsychoPy'] = "Not Installed"
 
     sys_info['Graphics'] = OrderedDict()
@@ -320,7 +316,7 @@ def getSysInfo(win):
                 procinfo = proc.as_dict(attrs=vattrs, ad_value=u"Access Denied")
                 if procinfo['exe'] is not u"Access Denied" and (SAVE_PER_PROCESS_DATA is True or SAVE_PER_PROCESS_DATA == procinfo['name']):
                     sys_info['Processes'][pkey] = procinfo
-        except: 
+        except ImportError: 
             sys_info['Processes']['Failed'] = 'psutil 2.x + is required.'
     else: 
         sys_info['Processes']['Disabled'] = 'Per Process details disabled by user.'
@@ -330,7 +326,7 @@ def getSysInfo(win):
 def formattedDictStr(d, indent=1, rstr=''):
     try: 
         from collections import OrderedDict
-    except: 
+    except ImportError: 
         from psychopy.iohub import OrderedDict
     for key, value in d.items(): 
         if isinstance(value, (dict, OrderedDict)): 

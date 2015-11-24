@@ -39,7 +39,7 @@ for frameN in range(100):
 mov.play()
 while globalClock.getTime() < (mov.duration + 1.0):
     mov.draw()
-    win.flip
+    win.flip()
 
 win.close()
 core.quit()

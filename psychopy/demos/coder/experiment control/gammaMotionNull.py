@@ -95,7 +95,6 @@ def getResponse(direction):
     """if subject said up when direction was up ( + 1) then increase gamma
     Otherwise, decrease gamma"""
     event.clearEvents()  # clear the event buffer to start with
-    resp = None  # initially
 
     while 1:  # forever until we return
         for key in event.getKeys():
@@ -104,11 +103,10 @@ def getResponse(direction):
                 win.close()
                 # win.bits.reset()
                 core.quit()
-                return None
             # valid response - check to see if correct
             elif key in ['down', 'up']:
                 if ((key in ['down'] and direction == -1) or
-                    (key in ['up'] and direction == + 1)):
+                        (key in ['up'] and direction == +1)):
                     return 0
                 else:
                     return 1
@@ -120,7 +118,7 @@ def presentStimulus(direction):
     where:
         direction = + 1(up) or -1(down)
     """
-    junk = win.fps()
+    win.fps()
 
     startPhase = num.random.random()
     if direction == 1:
@@ -136,10 +134,10 @@ def presentStimulus(direction):
             for n in range(nFrames):
                 # present for several constant frames (TF)
                 thisStim.draw()
-                win.flip
+                win.flip()
 
     # then blank the screen
-    win.flip
+    win.flip()
 
 # run the staircase
 for trialN in range(info['nTrials']):
@@ -154,7 +152,7 @@ for trialN in range(info['nTrials']):
         ans = getResponse(direction)
         stairCase.addData(ans)
 
-win.flip
+win.flip()
 core.wait(0.5)
 
 win.close()
@@ -166,7 +164,7 @@ stairCases[1].saveAsText(fileName + 'hi')
 stairCases[0].saveAsPickle(fileName + 'lo')
 stairCases[0].saveAsText(fileName + 'lo')
 
-print('That took %.1fmins' % (globalClock.getTime()/60.0))
+print('That took %.1fmins' % (globalClock.getTime() / 60.0))
 
 core.quit()
 

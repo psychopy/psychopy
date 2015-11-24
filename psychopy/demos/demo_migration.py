@@ -7,7 +7,7 @@ import sys, glob, os, re
 
 _valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")
 coding = '# -*- coding: utf-8 -*-\n'
-license = '\n# The contents of this file are in the public domain.\n'
+demo_license = '\n# The contents of this file are in the public domain.\n'
 division = 'from __future__ import division'
 
 def get_contents(f1):
@@ -34,7 +34,7 @@ def add_shbang_encoding_future(f1):
     if not f1.startswith('#!'):
         f1 = '#!/usr/bin/env python2\n' + f1
     
-    if not '# -*- coding:' in f1:
+    if '# -*- coding:' not in f1:
         f = f1.split('\n', 1)
         f1 = f[0] + '\n' + coding + f[1]
     
@@ -43,7 +43,7 @@ def add_shbang_encoding_future(f1):
     return f1
 
 def remove_doublesharp_trailing_whitespace(f1):
-    fl = f1.replace('##', '#')
+    f1 = f1.replace('##', '#')
     f1 = f1.replace('\n#\n', '\n\n')
     return '\n'.join([line.rstrip() for line in f1.splitlines()]) + '\n'
     
@@ -59,7 +59,7 @@ def replace_myWin_win(f1):
         f1 = f1.replace('window', 'win')
     return f1.replace('win.update()', 'win.flip')
 
-def add_win_close_quit_license(f1):
+def add_win_close_quit_demo_license(f1):
     # remove first, then add back consistently
     lines = f1.strip().splitlines()
     # need to avoid removing if they are indented:
@@ -75,8 +75,8 @@ def add_win_close_quit_license(f1):
     if [line for line in lines if 'psychopy' in line and 'core' in line and 'import' in line]:
         f1 += 'core.quit()\n'
 
-    if not license in f1:
-        f1 = f1 + license
+    if not demo_license in f1:
+        f1 = f1 + demo_license
     
     return f1
 
@@ -163,7 +163,7 @@ def demo_update_one(filename):
         return ''  # eg __init__.py
     f = remove_doublesharp_trailing_whitespace(f)
     f = add_shbang_encoding_future(f)
-    f = add_win_close_quit_license(f)
+    f = add_win_close_quit_demo_license(f)
     f = convert_inline_comments(f)
     f = replace_xrange(f)
     f = replace_commas_etc(f)  # do after shbang, encoding
@@ -180,7 +180,8 @@ def demo_update_two(filename):
     f = get_contents(filename)
     if not len(f.strip()):
         return ''  # eg __init__.py
-    f = reposition_division(f)
+    #f = reposition_division(f)
+    f = f + '\n'
     return f
     
 if __name__ == '__main__':
@@ -198,7 +199,6 @@ if __name__ == '__main__':
             if '__init__.py' in f1:
                 continue
             new = demo_update_two(f1)
-            print new
             
             #"""
             out = f1.replace('coder', 'coder_updated')

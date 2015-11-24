@@ -52,8 +52,7 @@ print("If that's more detail than you want, try: runInfo = info.RunTimeInfo(...,
 
 print("\nYou can extract single items from info, using keys, e.g.:")
 print("  psychopyVersion = %s" % runInfo['psychopyVersion'])
-try:
-    runInfo["windowRefreshTimeAvg_ms"]  # just to raise exception here if no keys
+if "windowRefreshTimeAvg_ms" in runInfo.keys():
     print("or from the test of the screen refresh rate:")
     print("  %.2f ms = average refresh time" % runInfo["windowRefreshTimeAvg_ms"])
     print("  %.3f ms = standard deviation" % runInfo["windowRefreshTimeSD_ms"])
@@ -72,8 +71,7 @@ try:
             print("""Try defining the window as full-screen (it's not currently), i.e. at the top of the demo change to:
     win = visual.Window((800, 600), fullscr=True, ...
 and re-run the demo.""")
-except Exception:
-    pass
+
 print("""
 (NB: The visual is not the demo! Scroll up to see the text output.)""")
 
