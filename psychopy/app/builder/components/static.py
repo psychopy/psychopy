@@ -78,10 +78,10 @@ class StaticComponent(_base.BaseComponent):
     def writeStopTestCode(self,buff):
         """Test whether we need to stop
         """
-        buff.writeIndented("elif %(name)s.status == STARTED: #one frame should pass before updating params and completing\n" %(self.params))
+        buff.writeIndented("elif %(name)s.status == STARTED:  # one frame should pass before updating params and completing\n" %(self.params))
         buff.setIndentLevel(+1, relative=True)#entered an if statement
         self.writeParamUpdates(buff)
-        buff.writeIndented("%(name)s.complete() #finish the static period\n" %(self.params))
+        buff.writeIndented("%(name)s.complete()  # finish the static period\n" %(self.params))
         buff.setIndentLevel(-1, relative=True)#to get out of the if statement
 
         pass #the clock.StaticPeriod class handles its own stopping

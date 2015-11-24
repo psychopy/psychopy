@@ -158,19 +158,20 @@ class Experiment(object):
 
         script.write('#!/usr/bin/env python2\n' +
                     '# -*- coding: utf-8 -*-\n' +
-                    '"""\nThis experiment was created using PsychoPy2 Experiment Builder (v%s), %s\n' % (
-                        self.psychopyVersion, localDateTime ) +
-                    'If you publish work using this script please cite the relevant PsychoPy publications\n' +
-                    '  Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.\n' +
-                    '  Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
+                    '"""\nThis experiment was created using PsychoPy2 Experiment Builder (v%s),\n'
+                    '    on %s\n' % (self.psychopyVersion, localDateTime ) +
+                    'If you publish work using this script please cite the PsychoPy publications:\n'
+                    '    Peirce, JW (2007) PsychoPy - Psychophysics software in Python.\n'
+                    '        Journal of Neuroscience Methods, 162(1-2), 8-13.\n'
+                    '    Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy.\n'
+                    '        Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
         script.write("\nfrom __future__ import division  # so that 1/3=0.333 instead of 1/3=0\n")
         script.write("from psychopy import locale_setup, %s\n" % ', '.join(self.psychopyLibs) +
-                    "from psychopy.constants import *  # things like STARTED, FINISHED\n" +
-                    "import numpy as np  # whole numpy lib is available, prepend 'np.'\n" +
+                    "from psychopy.constants import *  # things like STARTED, FINISHED\n"
+                    "import numpy as np  # whole numpy lib is available, prepend 'np.'\n"
                     "from numpy import %s\n" % ', '.join(_numpyImports) +
                     "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
-                    "import os  # handy system and path functions\n" + 
-                    "import sys # to get file system encoding\n")
+                    "import os, sys  # handy system and path functions\n")
         script.write("\n")
         self.settings.writeStartCode(script) #present info dlg, make logfile
         self.flow.writeStartCode(script) #writes any components with a writeStartCode()
