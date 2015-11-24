@@ -144,7 +144,7 @@ class TestExpt():
     def _checkPyDiff(self, file_py, file2_py):
         """return '' for no meaningful diff, or a diff patch"""
 
-        diff_py_lines = _diff_file(file_py, file2_py)[2:] # ignore first two lines --- +++
+        diff_py_lines = _diff_file(file_py, file2_py)[5:] # ignore first five lines --- +++
         if not len(diff_py_lines):
             return ''
 

@@ -2424,10 +2424,10 @@ SettingsComponent.Show mouse.label:Show mouse
 SettingsComponent.Show mouse.readOnly:False
 SettingsComponent.Show mouse.updates:None
 SettingsComponent.Show mouse.valType:bool
-SettingsComponent.Data filename.default:u'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])
+SettingsComponent.Data filename.default:u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])
 SettingsComponent.Data filename.staticUpdater:None
 SettingsComponent.Data filename.categ:Data
-SettingsComponent.Data filename.val:u'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])
+SettingsComponent.Data filename.val:u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])
 SettingsComponent.Data filename.allowedTypes:[]
 SettingsComponent.Data filename.hint:Code to create your custom file name base. Don't give a file extension - this will be added.
 SettingsComponent.Data filename.allowedUpdates:None
