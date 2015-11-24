@@ -4848,16 +4848,7 @@ class ReadmeFrame(wx.Frame):
             self.Hide()
         else:
             self.Show()
-def getAbbrev(longStr, n=30):
-    """For a filename (or any string actually), give the first
-    10 characters, an ellipsis and then n-10 of the final characters.
-    This was previously used to abbreviate the path to a conditions file
-    in the loop dialog but this caused more problems than it solved, so
-    this is no longer used there."""
-    if len(longStr)>35:
-        return longStr[0:10]+'...'+longStr[(-n+10):]
-    else:
-        return longStr
+
 def appDataToFrames(prefs):
     """Takes the standard PsychoPy prefs and returns a list of appData dictionaries, for the Builder frames.
     (Needed because prefs stores a dict of lists, but we need a list of dicts)

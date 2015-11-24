@@ -1147,7 +1147,7 @@ class TrialHandler(_BaseTrialHandler):
 
         That is, unlike 'saveAsText' and 'saveAsExcel':
          - each row comprises information from only a single trial.
-         - no summarising is done (such as collapsing to produce mean and standard deviation values across trials).
+         - no summarizing is done (such as collapsing to produce mean and standard deviation values across trials).
 
         This 'wide' format, as expected by R for creating dataframes, and various other analysis programs, means that some
         information must be repeated on every row.
@@ -1278,6 +1278,345 @@ class TrialHandler(_BaseTrialHandler):
         """Add data for the current trial
         """
         self.data.add(thisType, value, position=None)
+        if self.getExp()!=None:#update the experiment handler too
+            self.getExp().addData(thisType, value)
+
+class TrialHandler2(_BaseTrialHandler):
+    """Class to handle trial sequencing and data storage.
+
+    Calls to .next() will fetch the next trial object given to this handler,
+    according to the method specified (random, sequential, fullRandom). Calls
+    will raise a StopIteration error if trials have finished.
+
+    See demo_trialHandler.py
+
+    The psydat file format is literally just a pickled copy of the TrialHandler object that
+    saved it. You can open it with::
+
+            from psychopy.tools.filetools import fromFile
+            dat = fromFile(path)
+
+    Then you'll find that `dat` has the following attributes that
+    """
+    def __init__(self,
+                 trialList,
+                 nReps,
+                 method='random',
+                 dataTypes=None,
+                 extraInfo=None,
+                 seed=None,
+                 originPath=None,
+                 name='',
+                 autoLog=True):
+        """
+
+        :Parameters:
+
+            trialList: a simple list (or flat array) of dictionaries specifying conditions
+                This can be imported from an excel/csv file using :func:`~psychopy.data.importConditions`
+
+            nReps: number of repeats for all conditions
+
+            method: *'random',* 'sequential', or 'fullRandom'
+                'sequential' obviously presents the conditions in the order they appear in the list.
+                'random' will result in a shuffle of the conditions on each repeat, but all conditions
+                occur once before the second repeat etc. 'fullRandom' fully randomises the
+                trials across repeats as well, which means you could potentially run all trials of
+                one condition before any trial of another.
+
+            dataTypes: (optional) list of names for data storage. e.g. ['corr','rt','resp']
+                If not provided then these will be created as needed during calls to
+                :func:`~psychopy.data.TrialHandler.addData`
+
+            extraInfo: A dictionary
+                This will be stored alongside the data and usually describes the experiment and
+                subject ID, date etc.
+
+            seed: an integer
+                If provided then this fixes the random number generator to use the same pattern
+                of trials, by seeding its startpoint
+
+            originPath: a string describing the location of the script/experiment file path
+                The psydat file format will store a copy of the experiment if possible. If `originPath==None`
+                is provided here then the TrialHandler will still store a copy of the script where it was
+                created. If `OriginPath==-1` then nothing will be stored.
+
+        :Attributes (after creation):
+
+            .data - a dictionary of numpy arrays, one for each data type stored
+
+            .trialList - the original list of dicts, specifying the conditions
+
+            .thisIndex - the index of the current trial in the original conditions list
+
+            .nTotal - the total number of trials that will be run
+
+            .nRemaining - the total number of trials remaining
+
+            .thisN - total trials completed so far
+
+            .thisRepN - which repeat you are currently on
+
+            .thisTrialN - which trial number *within* that repeat
+
+            .thisTrial - a dictionary giving the parameters of the current trial
+
+            .finished - True/False for have we finished yet
+
+            .extraInfo - the dictionary of extra info as given at beginning
+
+            .origin - the contents of the script or builder experiment that created the handler
+
+        """
+        self.name=name
+        self.autoLog = autoLog
+
+        if trialList in [None, []]:#user wants an empty trialList
+            self.trialList = [None]#which corresponds to a list with a single empty entry
+        elif isinstance(trialList, basestring) and os.path.isfile(trialList): #user has hopefully specified a filename
+            self.trialList = importConditions(trialList) #import conditions from that file
+        else:
+            self.trialList =trialList
+        #convert any entry in the TrialList into a TrialType object (with obj.key or obj[key] access)
+        for n, entry in enumerate(self.trialList):
+            if type(entry)==dict:
+                self.trialList[n]=TrialType(entry)
+        self.nReps = int(nReps)
+        self.nTotal = self.nReps*len(self.trialList)
+        self.nRemaining =self.nTotal #subtract 1 each trial
+        self.remainingIndices = []
+        self.prevIndices = []
+        self.method = method
+        self.thisRepN = 0        #records which repetition or pass we are on
+        self.thisTrialN = -1    #records which trial number within this repetition
+        self.thisN = -1
+        self.thisIndex = None        #the index of the current trial in the conditions list
+        self.thisTrial = {}
+        self.finished=False
+        self.extraInfo=extraInfo
+        self._warnUseOfNext=True
+        self.seed=seed
+        self._rng = numpy.random.RandomState(seed=seed)
+
+        self._data = []#store a list of dicts, conver to pandas.DataFrame on access
+
+        self.originPath, self.origin = self.getOriginPathAndFile(originPath)
+        self._exp = None#the experiment handler that owns me!
+
+    def __iter__(self):
+        return self
+    def __repr__(self):
+        """prints a more verbose version of self as string"""
+        return self.__str__(verbose=True)
+    def __str__(self, verbose=False):
+        """string representation of the object"""
+        strRepres = 'psychopy.data.TrialHandler(\n'
+        attribs = dir(self)
+        #data first, then all others
+        try:
+            data = self.data
+        except:
+            data = None
+        if data:
+            strRepres += str('\tdata=')
+            strRepres +=str(data)+'\n'
+        for thisAttrib in attribs:
+            #can handle each attribute differently
+            if 'instancemethod' in str(type(getattr(self,thisAttrib))):
+                #this is a method
+                continue
+            elif thisAttrib[0]=='_':
+                #the attrib is private
+                continue
+            elif thisAttrib=='data':
+                #we handled this first
+                continue
+            elif len(str(getattr(self,thisAttrib)))>20 and \
+                 not verbose:
+                #just give type of LONG public attribute
+                strRepres += str('\t'+thisAttrib+'=')
+                strRepres += str(type(getattr(self,thisAttrib)))+'\n'
+            else:
+                #give the complete contents of attribute
+                strRepres += str('\t'+thisAttrib+'=')
+                strRepres += str(getattr(self,thisAttrib))+'\n'
+        strRepres+=')'
+        return strRepres
+
+    @property
+    def data(self):
+        """Returns a pandas.DataFrame of the trial data so far
+        Read only attribute - you can't directly modify TrialHandler.data
+
+        Note that data are stored internally as a list of dictionaries, one per
+        trial. These are converted to a DataFrame on access.
+        """
+        return DataFrame(self._data)
+
+    def next(self):
+        """Advances to next trial and returns it.
+        Updates attributes; thisTrial, thisTrialN and thisIndex
+        If the trials have ended this method will raise a StopIteration error.
+        This can be handled with code such as::
+
+            trials = data.TrialHandler(.......)
+            for eachTrial in trials:#automatically stops when done
+                #do stuff
+
+        or::
+
+            trials = data.TrialHandler(.......)
+            while True: #ie forever
+                try:
+                    thisTrial = trials.next()
+                except StopIteration:#we got a StopIteration error
+                    break #break out of the forever loop
+                #do stuff here for the trial
+        """
+        #update pointer for next trials
+        self.thisTrialN+=1#number of trial this pass
+        self.thisN+=1 #number of trial in total
+        self.nRemaining-=1
+        if self.thisIndex is not None:
+            self.prevIndices.append(self.thisIndex)
+
+        #thisRepN has exceeded nReps
+        if self.remainingIndices == []:
+            #we've just started, or just starting a new repeat
+            sequence = range(len(self.trialList))
+            if self.method == 'fullRandom' and self.thisN<(self.nReps*len(self.trialList)):
+                #we've only just started on a fullRandom sequence
+                sequence *= self.nReps
+                self._rng.shuffle(sequence)
+                self.remainingIndices = sequence
+            elif self.method in ['sequential','random'] and self.thisRepN < self.nReps:
+                #start a new repetition
+                self.thisTrialN=0
+                self.thisRepN+=1
+                if self.method == 'random':
+                    self._rng.shuffle(sequence)#shuffles in-place
+                self.remainingIndices = sequence
+            else:
+                #we've finished
+                self.finished=True
+                self._terminate() #raises Stop (code won't go beyond here)
+
+        #fetch the trial info
+        if len(self.trialList)==0:
+            self.thisIndex = 0
+            self.thisTrial = {}
+        else:
+            self.thisIndex = self.remainingIndices.pop()
+            thisTrial = self.trialList[self.thisIndex] or {} #if None then use empty dict
+            self.thisTrial = copy.copy(thisTrial)
+        #for fullRandom check how many times this has come up before
+        if self.method == 'fullRandom':
+            self.thisRepN = self.prevIndices.count(self.thisIndex)
+
+        #update data structure with new info
+        self._data.append(self.thisTrial)#update the data list of dicts
+        self.addData('thisN',self.thisN)
+        self.addData('thisTrialN',self.thisTrialN)
+        self.addData('thisRepN',self.thisRepN)
+        if self.autoLog:
+            logging.exp('New trial (rep=%i, index=%i): %s' %(self.thisRepN, self.thisTrialN, self.thisTrial), obj=self.thisTrial)
+        return self.thisTrial
+
+    def getFutureTrial(self, n=1):
+        """Returns the condition for n trials into the future, without advancing
+        the trials. Returns 'None' if attempting to go beyond the last trial.
+        """
+        # check that we don't go out of bounds for either positive or negative offsets:
+        if n>self.nRemaining or self.thisN+n < 0:
+            return None
+        seqs = numpy.array(self.sequenceIndices).transpose().flat
+        condIndex=seqs[self.thisN+n]
+        return self.trialList[condIndex]
+
+    def getEarlierTrial(self, n=-1):
+        """Returns the condition information from n trials previously. Useful
+        for comparisons in n-back tasks. Returns 'None' if trying to access a trial
+        prior to the first.
+        """
+        # treat positive offset values as equivalent to negative ones:
+        if n > 0:
+            n = n * -1
+        return self.getFutureTrial(n)
+
+    def saveAsWideText(self,fileName,
+                   delim=None,
+                   matrixOnly=False,
+                   appendFile=True,
+                   encoding='utf-8',
+                   fileCollisionMethod='rename'
+                  ):
+        """
+        Write a text file with the session, stimulus, and data values from each trial in chronological order.
+        Also, return a pandas DataFrame containing same information as the file.
+
+        That is, unlike 'saveAsText' and 'saveAsExcel':
+         - each row comprises information from only a single trial.
+         - no summarising is done (such as collapsing to produce mean and standard deviation values across trials).
+
+        This 'wide' format, as expected by R for creating dataframes, and various other analysis programs, means that some
+        information must be repeated on every row.
+
+        In particular, if the trialHandler's 'extraInfo' exists, then each entry in there occurs in every row.
+        In builder, this will include any entries in the 'Experiment info' field of the 'Experiment settings' dialog.
+        In Coder, this information can be set using something like::
+
+            myTrialHandler.extraInfo = {'SubjID':'Joan Smith', 'DOB':1970 Nov 16, 'Group':'Control'}
+
+        :Parameters:
+
+            fileName:
+                if extension is not specified, '.csv' will be appended if the delimiter is ',', else '.tsv' will be appended.
+                Can include path info.
+
+            delim:
+                allows the user to use a delimiter other than the default tab ("," is popular with file extension ".csv")
+
+            matrixOnly:
+                outputs the data with no header row.
+
+            appendFile:
+                will add this output to the end of the specified file if it already exists.
+
+            fileCollisionMethod:
+                Collision method passed to :func:`~psychopy.tools.fileerrortools.handleFileCollision`
+
+             encoding:
+                The encoding to use when saving a the file. Defaults to `utf-8`.
+
+        """
+        if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
+            logging.info('TrialHandler.saveAsWideText called but no trials completed. Nothing saved')
+            return -1
+
+        #set default delimiter if none given
+        if delim is None:
+            delim = genDelimiter(fileName)
+
+        #create the file or send to stdout
+        f = openOutputFile(
+            fileName, append=appendFile, delim=delim,
+            fileCollisionMethod=fileCollisionMethod, encoding=encoding
+        )
+
+        #defer to pandas for actual data output. We're fetching a string repr and then writeing to file ourselves
+        #Includer header line if not matrixOnly
+        datStr = self.data.to_csv(sep=delim, header=(not matrixOnly), index=False)
+        f.write(datStr)
+
+        if f != sys.stdout:
+            f.close()
+            logging.info('saved wide-format data to %s' %f.name)
+
+
+    def addData(self, thisType, value):
+        """Add a piece of data to the current trial
+        """
+        self.thisTrial[thisType] = value
         if self.getExp()!=None:#update the experiment handler too
             self.getExp().addData(thisType, value)
 
@@ -1745,7 +2084,7 @@ class TrialHandlerExt(TrialHandler):
 
         That is, unlike 'saveAsText' and 'saveAsExcel':
          - each row comprises information from only a single trial.
-         - no summarising is done (such as collapsing to produce mean and standard deviation values across trials).
+         - no summarizing is done (such as collapsing to produce mean and standard deviation values across trials).
 
         This 'wide' format, as expected by R for creating dataframes, and various other analysis programs, means that some
         information must be repeated on every row.

@@ -321,7 +321,7 @@ class ShapeStim(BaseShapeStim):
     See Coder demo > stimuli > shapes.py
 
     Changed Nov 2015: v1.84.00. Now allows filling of complex shapes. This
-    should be backwards compatible. The
+    is almost completely backwards compatible (see changelog). The
     old version is accessible as `psychopy.visual.BaseShapeStim`.
     """
     # Author: Jeremy Gray, November 2015, using psychopy.contrib.tesselate
