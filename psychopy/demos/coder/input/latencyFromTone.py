@@ -1,19 +1,23 @@
 #!/usr/bin/env python2
-"""demo to illustrate and test microphone.AdvAudioCapture, and also permit
+# -*- coding: utf-8 -*-
+
+"""
+demo to illustrate and test microphone.AdvAudioCapture, and also permit
 external latency testing (e.g., BlackBox Toolkit) by providing visual-tone synchrony
 
 key lines: 29, 50, 61: mic = microphone.AdvAudioCapture(), mic.record(), mic.getOnset()
 """
 
 from __future__ import division
+
 from psychopy import microphone, sound, core, visual, event
 from matplotlib import pyplot
 import numpy as np
 import os
 
-buffer = 128  # smaller = short play latency, but higher chance of choppy sound playback
+buffer_size = 128  # smaller = short play latency, but higher chance of choppy sound playback
 rate = 48000  # needs to be 40000 or higher
-sound.init(buffer=buffer, rate=rate)
+sound.init(buffer=buffer_size, rate=rate)
 
 def plotYX(yaxis, xaxis, description=''):
     pyplot.plot(xaxis, yaxis)
@@ -47,7 +51,7 @@ win.flip()
 onsets = []
 rec_duration = 0.5
 print('marker start, offset (within the saved recording):')
-for i in xrange(10):
+for i in range(10):
     core.wait(0.5, 0)
 
     filename = mic.record(rec_duration)  # start recording and return immediately
@@ -60,7 +64,7 @@ for i in xrange(10):
     win.flip()
     while mic.recorder.running:
         core.wait(.01, 0)
-    
+
     # When in the file did the onset tone start and stop?
     onset, offset = mic.getMarkerOnset(chunk=64, secs=0.2)  # increase secs if miss the markers
     onsets.append(onset)
@@ -86,3 +90,5 @@ print("\nmarker onset = %.3fs %.3f (mean SD), relative to start of file" % (np.m
 
 win.close()
 core.quit()
+
+# The contents of this file are in the public domain.

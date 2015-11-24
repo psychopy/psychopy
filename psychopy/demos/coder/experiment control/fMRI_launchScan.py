@@ -1,9 +1,13 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
-"""This demo illustrates using hardware.emulator.launchScan() to either start a
+"""
+This demo illustrates using hardware.emulator.launchScan() to either start a
 real scan, or emulate sync pulses. Emulation is to allow debugging script timing
 offline, without requiring a scanner (or a hardware sync pulse generator).
 """
+
+from __future__ import division
 
 # Author: Jeremy R. Gray
 
@@ -11,15 +15,16 @@ from psychopy import visual, event, core, gui
 from psychopy.hardware.emulator import launchScan
 
 # settings for launchScan:
-MR_settings = { 
+MR_settings = {
     'TR': 2.000,     # duration (sec) per whole-brain volume
     'volumes': 5,    # number of whole-brain 3D volumes per scanning run
     'sync': 'slash', # character to use as the sync timing event; assumed to come at start of a volume
     'skip': 0,       # number of volumes lacking a sync pulse at start of scan (for T1 stabilization)
     'sound': True    # in test mode: play a tone as a reminder of scanner noise
     }
-infoDlg = gui.DlgFromDict(MR_settings, title='fMRI parameters', order=['TR','volumes'])
-if not infoDlg.OK: core.quit()
+infoDlg = gui.DlgFromDict(MR_settings, title='fMRI parameters', order=['TR', 'volumes'])
+if not infoDlg.OK:
+    core.quit()
 
 win = visual.Window(fullscr=False)
 globalClock = core.Clock()
@@ -29,7 +34,7 @@ output = u'vol    onset key\n'
 for i in range(-1 * MR_settings['skip'], 0):
     output += u'%d prescan skip (no sync)\n' % i
 
-counter = visual.TextStim(win, height=.05, pos=(0,0), color=win.rgb+0.5)
+counter = visual.TextStim(win, height=.05, pos=(0, 0), color=win.rgb + 0.5)
 output += u"  0    0.000 sync  [Start of scanning run, vol 0]\n"
 
 # launch: operator selects Scan or Test (emulate); see API docuwmentation
@@ -64,4 +69,8 @@ win.flip()
 
 output += u"End of scan (vol 0..%d = %d of %s). Total duration = %7.3f sec" % (vol - 1, vol, MR_settings['volumes'], t)
 print(output)
+
+win.close()
 core.quit()
+
+# The contents of this file are in the public domain.
