@@ -3338,6 +3338,14 @@ class PsiHandler(StairHandler):
 
     Because Psi is a Bayesian method, it can be initialized with a prior from existing research. A function
     to save the posterior over Lambda as a Numpy binary file is included.
+    
+    Kontsevich & Tyler (1999) specify their psychometric function in terms of d'. PsiHandler avoids this 
+    and treats all parameters with respect to stimulus intensity. Specifically, the forms of the psychometric 
+    function assumed for Yes/No and Two Alternative Forced Choice (2AFC) are, respectively:
+    
+    Y(x) = .5 * delta + (1 - delta) * norm.cdf(x, mean=alpha, sd=beta)
+    
+    Y(x) = .5 * delta + (1 - delta) * (.5 + .5 * norm.cdf(x, mean=alpha, sd=beta))
     """
 
     def __init__(self,
@@ -3391,7 +3399,7 @@ class PsiHandler(StairHandler):
                 Defaults to 'lin'.
 
             TwoAFC  (bool)
-                If True then the d' based psychometric function from Kontsevich & Tyler (1999) will be used. If False then a Yes/No task is assumed.
+                If True then the 2AFC psychometric function described above is used. If False then a Yes/No task is assumed.
 
             prior   (numpy.ndarray or str)
                 Optional prior distribution with which to initialize the Psi Object. This can either be a numpy.ndarray object or the path to a numpy binary file (.npy) containing the ndarray.
