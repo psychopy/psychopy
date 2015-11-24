@@ -51,7 +51,7 @@ pixels = 128
 win = visual.Window((1024, 768), units='pix', allowGUI=True, bitsMode=None)
 visual.TextStim(win, text='building stimuli').draw()
 
-win.flip
+win.flip()
 
 globalClock = core.Clock()
 
