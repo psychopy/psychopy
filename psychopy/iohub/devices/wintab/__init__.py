@@ -59,16 +59,36 @@ class WintabTablet(Device):
         self._first_hw_and_hub_times = None
 
     def _init_wintab(self):
-        self._wtablets = get_tablets()
-        if Computer.system != 'win32':
+
+        if Computer.system == 'win32' and Computer.is_iohub_process:
+            try:
+                from .win32 import get_tablets
+            except:
+                self._setHardwareInterfaceStatus(False,
+                                             u"Error: ioHub Wintab Device "
+                                             u"requires wintab32.dll to be "
+                                             u"installed.")
+                def get_tablets(display=None):
+                    return []
+
+        else:
+            def get_tablets(display=None):
+                print2err("Error: iohub.devices.wintab only supports "
+                          "Windows OS at this time.")
+                return []
+
             self._setHardwareInterfaceStatus(False,
-                                             u"Error:ioHub Wintab Device only"
-                                             u" supports Windows OS "
+                                             u"Error:ioHub Wintab Device "
+                                             u"only supports Windows OS "
                                              u"at this time.")
-            return False
+
+
+        self._wtablets = get_tablets()
 
         index = self.getConfiguration().get('device_number',0)
 
+        if self._wtablets is None:
+            return False
         if len(self._wtablets) == 0:
             self._setHardwareInterfaceStatus(False,
                                              u"Error: No WinTab Devices"
@@ -238,12 +258,6 @@ class WintabTablet(Device):
             swin.close()
         Device._close()
 
-if Computer.system == 'win32':
-    from .win32 import get_tablets
-else:
-    def get_tablets(display=None):
-        print2err("Error: iohub.devices.wintab only supports Windows OS at this time.")
-        return []
 ############# Wintab Event Classes ####################
 
 from .. import DeviceEvent

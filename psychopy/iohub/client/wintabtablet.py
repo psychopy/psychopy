@@ -666,16 +666,17 @@ class ScreenPositionValidation(object):
     NUM_VALID_SAMPLES_PER_TARG = 100
     TARGET_TIMEOUT=10.0
     def __init__(self, win, io, target_stim = None, pos_grid = None,
-                 force_quit=True):
+                 display_pen_pos = True, force_quit=True):
 
         from psychopy.iohub.util.targetpositionsequence import TargetStim, PositionGrid
 
         self.win = win
         self.io = io
+        self._lastPenSample=None
         self._targetStim = target_stim
         self._positionGrid = pos_grid
         self._forceQuit = force_quit
-
+        self._displayPenPosition = display_pen_pos
 
         # IntroScreen Graphics
         intro_graphics = self._introScreenGraphics = OrderedDict()
@@ -685,7 +686,7 @@ class ScreenPositionValidation(object):
                                                     height = 0.1,
                                             text="Pen Position Validation")
         intro_graphics['text1'] = visual.TextStim(self.win, units='norm',
-                                                    pos=(0, .70),
+                                                    pos=(0, .65),
                                                     height = 0.05,
                                             text="On the following screen, "
                                                  "press the pen on the target "
@@ -694,32 +695,37 @@ class ScreenPositionValidation(object):
                                                  "possible, until the target "
                                                  "moves to a different "
                                                  "location. Then press at the "
-                                                 "next target location.",
+                                                 "next target location. "
+                                                 "Please hold the pen as you "
+                                                 "would when writing "
+                                                 "(i.e. not fully upright).",
                                             wrapWidth=1.25
                                             )
         intro_graphics['text2'] = visual.TextStim(self.win, units='norm',
-                                                    pos=(0, -0.15),
+                                                    pos=(0, -0.2),
                                                     height = 0.066,
                                                     color = 'green',
                                             text="Press the pen on the above "
                                                  "target to start the "
-                                                 "validation...")
+                                                 "validation, or the ESC key "
+                                                 "to skip the procedure.")
 
-
-        # Validation Screen Graphics
-        self._penStim = visual.Circle(self.win,
-                            radius=4,
-                            fillColor=[255,0,0],
-                            lineColor=[255,0,0],
-                            lineWidth=0,
-                            edges=8,#int(np.pi*radius),
-                            units='pix',
-                            lineColorSpace='rgb255',
-                            fillColorSpace='rgb255',
-                            opacity=0.9,
-                            contrast=1,
-                            interpolate=True,
-                            autoLog=False)
+        self._penStim = None
+        if self._displayPenPosition:
+            # Validation Screen Graphics
+            self._penStim = visual.Circle(self.win,
+                                radius=4,
+                                fillColor=[255,0,0],
+                                lineColor=[255,0,0],
+                                lineWidth=0,
+                                edges=8,#int(np.pi*radius),
+                                units='pix',
+                                lineColorSpace='rgb255',
+                                fillColorSpace='rgb255',
+                                opacity=0.9,
+                                contrast=1,
+                                interpolate=True,
+                                autoLog=False)
 
         if self._targetStim is None:
             self._targetStim = TargetStim(win,
@@ -793,6 +799,7 @@ class ScreenPositionValidation(object):
         exit_screen = False
         hitcount = 0
         pen.reporting = True
+        kb.getPresses()
 
         while exit_screen is False:
             for ig in self._introScreenGraphics.values():
@@ -809,12 +816,20 @@ class ScreenPositionValidation(object):
                 else:
                     hitcount=0
             self.win.flip()
+            if 'escape' in kb.getPresses():
+                exit_screen=True
+                pen.reporting = False
+                return False
+
         pen.reporting = False
+        return True
 
     def _enterValidationSequence(self):
         val_results=dict(target_data=dict(), avg_err=0, min_err=1000,
                          max_err=-1000, status='PASSED', point_count=0,
                          ok_point_count=0)
+
+        self._lastPenSample = None
 
         kb = self.io.devices.keyboard
         pen = self.io.devices.tablet
@@ -850,7 +865,11 @@ class ScreenPositionValidation(object):
 
                 if samples:
                     self._drawPenStim(samples[-1])
-                    self.win.flip()
+                    self._lastPenSample = samples[-1]
+                elif self._lastPenSample:
+                    self._drawPenStim(self._lastPenSample)
+                self.win.flip()
+
 
             tp = int(tp[0]), int(tp[1])
             val_results['target_data'][tp]=None
@@ -876,6 +895,8 @@ class ScreenPositionValidation(object):
                 val_results['ok_point_count']=val_results['ok_point_count']+1
             else:
                 val_results['status']='FAILED'
+
+            self._lastPenSample = None
 
         if val_results['ok_point_count']>0:
             val_results['avg_err']=val_results['avg_err']/val_results['ok_point_count']
@@ -918,17 +939,18 @@ class ScreenPositionValidation(object):
 
 
     def _drawPenStim(self, s):
-                spos = s.getPixPos(self.win)
-                if spos:
-                    self._penStim.setPos(spos)
-                    if s.pressure == 0:
-                        self._penStim.setFillColor([255,0,0])
-                        self._penStim.setLineColor([255,0,0])
-                    else:
-                        self._penStim.setFillColor([0,0,255])
-                        self._penStim.setLineColor([0,0,255])
+        if self._displayPenPosition:
+            spos = s.getPixPos(self.win)
+            if spos:
+                self._penStim.setPos(spos)
+                if s.pressure == 0:
+                    self._penStim.setFillColor([255,0,0])
+                    self._penStim.setLineColor([255,0,0])
+                else:
+                    self._penStim.setFillColor([0,0,255])
+                    self._penStim.setLineColor([0,0,255])
 
-                    self._penStim.draw()
+                self._penStim.draw()
 
     def run(self):
         """
@@ -939,7 +961,10 @@ class ScreenPositionValidation(object):
         :return: dist containing validation results.
         """
 
-        self._enterIntroScreen()
+        continue_val = self._enterIntroScreen()
+
+        if continue_val is False:
+            return None
 
         # delay about 0.5 sec before staring validation
         ftime = self.win.flip()

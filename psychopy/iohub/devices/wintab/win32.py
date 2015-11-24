@@ -1,11 +1,13 @@
 #!/usr/bin/python
 # $Id:$
 
-#Initial file copied from pyglet.libs.win32
+#Initial file based on pyglet.libs.win32
 
 import ctypes
+from psychopy.iohub import print2err
 
 lib = ctypes.windll.wintab32
+
 
 LONG = ctypes.c_long
 BOOL = ctypes.c_int
@@ -358,7 +360,7 @@ import ctypes
 
 import pyglet
 from pyglet.event import EventDispatcher
-from psychopy.iohub import print2err
+from psychopy.iohub import print2err, Computer
 from ...constants import EventConstants
 
 def wtinfo(category, index, buffer):
