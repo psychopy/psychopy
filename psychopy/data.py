@@ -1134,6 +1134,64 @@ class TrialHandler(_BaseTrialHandler):
             dataOut.remove(invalidAnal)
         return dataOut, dataAnal, dataHead
 
+    def dataToDataFrame(self):
+        """
+        Return the trial data as a pandas DataFrame object for writing/analysis.
+        """
+        # If both are < 1 we haven't started
+        if self.thisTrialN < 1 and self.thisRepN < 1:
+            logging.info('TrialHandler.dataToDataFrame called but no trials completed. Nothing saved')
+            raise ValueError("No trials completed, no data to save")
+
+        # Find column names
+        header = []
+        if self.extraInfo is not None:
+            for key in self.extraInfo:
+                header.append(key)
+        header.append('TrialNumber')
+        # Collect parameter names related to the stimuli:
+        header.extend(self.trialList[0].keys())
+        # And then add parameter names related to data (e.g. RT)
+        header.extend(self.data.dataTypes)
+
+        # Loop through each trial, gathering the actual values:
+        dataOut = []
+        trialCount = 0
+        # Total number of trials = number of trialtypes * number of repetitions:
+
+        repsPerType = {}
+        for rep in range(self.nReps):
+            for trialN in range(len(self.trialList)):
+                # Find out what trial type was on this trial
+                trialTypeIndex = self.sequenceIndices[trialN, rep]
+                # Determine which repeat it is for this trial
+                if trialTypeIndex not in repsPerType.keys():
+                    repsPerType[trialTypeIndex] = 0
+                else:
+                    repsPerType[trialTypeIndex] += 1
+                # What repeat are we on for this trial type?
+                repThisType = repsPerType[trialTypeIndex]
+
+                # Add a trial number so the original order of the data can always be recovered if sorted during analysis:
+                trialCount += 1
+
+                if self.extraInfo is None:
+                    entry = {}
+                else:
+                    entry = self.extraInfo.copy()
+                for dataType in self.data.dataTypes:
+                    entry[dataType] = self.data[dataType][trialTypeIndex][repThisType]
+                entry.update(self.trialList[trialTypeIndex])
+                entry['TrialNumber'] = trialCount
+
+                dataOut.append(entry)
+
+        df = DataFrame(dataOut, columns=header)
+        # Converts numbers to numeric, such as float64, boolean to bool. Otherwise
+        #   they all are "object" type, i.e. strings
+        df = df.convert_objects()
+        return df
+
     def saveAsWideText(self,fileName,
                    delim=None,
                    matrixOnly=False,
@@ -1182,7 +1240,7 @@ class TrialHandler(_BaseTrialHandler):
         """
         if self.thisTrialN<1 and self.thisRepN<1:#if both are <1 we haven't started
             logging.info('TrialHandler.saveAsWideText called but no trials completed. Nothing saved')
-            return -1
+            raise ValueError("No trials completed, no data to save")
 
         #set default delimiter if none given
         if delim is None:
@@ -1194,84 +1252,27 @@ class TrialHandler(_BaseTrialHandler):
             fileCollisionMethod=fileCollisionMethod, encoding=encoding
         )
 
-        # collect parameter names related to the stimuli:
-        if self.trialList[0]:
-            header = self.trialList[0].keys()
+        df = self.dataToDataFrame()
+
+        includeHeader = not matrixOnly
+        # Not sure if this will conflict with what occurs in openOutputFile?
+        if appendFile:
+            fileMode = 'a'
         else:
-            header = []
-        # and then add parameter names related to data (e.g. RT)
-        header.extend(self.data.dataTypes)
-        # get the extra 'wide' parameter names into the header line:
-        header.insert(0,"TrialNumber")
-        # this is wide format, so we want fixed information
-        # (e.g. subject ID, date, etc) repeated every line if it exists:
-        if self.extraInfo is not None:
-            for key in self.extraInfo:
-                header.insert(0, key)
-        df = DataFrame(columns = header)
-
-        # loop through each trial, gathering the actual values:
-        dataOut = []
-        trialCount = 0
-        # total number of trials = number of trialtypes * number of repetitions:
-
-        repsPerType={}
-        for rep in range(self.nReps):
-            for trialN in range(len(self.trialList)):
-                #find out what trial type was on this trial
-                trialTypeIndex = self.sequenceIndices[trialN, rep]
-                #determine which repeat it is for this trial
-                if trialTypeIndex not in repsPerType.keys():
-                    repsPerType[trialTypeIndex]=0
-                else:
-                    repsPerType[trialTypeIndex]+=1
-                repThisType=repsPerType[trialTypeIndex]#what repeat are we on for this trial type?
-
-                # create a dictionary representing each trial:
-                nextEntry = {}
-
-                # add a trial number so the original order of the data can always be recovered if sorted during analysis:
-                trialCount += 1
-
-                # now collect the value from each trial of the variables named in the header:
-                for parameterName in header:
-                    # the header includes both trial and data variables, so need to check before accessing:
-                    if self.trialList[trialTypeIndex] and parameterName in self.trialList[trialTypeIndex]:
-                        nextEntry[parameterName] = self.trialList[trialTypeIndex][parameterName]
-                    elif parameterName in self.data:
-                        nextEntry[parameterName] = self.data[parameterName][trialTypeIndex][repThisType]
-                    elif self.extraInfo is not None and parameterName in self.extraInfo:
-                        nextEntry[parameterName] = self.extraInfo[parameterName]
-                    else: # allow a null value if this parameter wasn't explicitly stored on this trial:
-                        if parameterName == "TrialNumber":
-                            nextEntry[parameterName] = trialCount
-                        else:
-                            nextEntry[parameterName] = ''
-
-                #store this trial's data
-                dataOut.append(nextEntry)
-                df = df.append(nextEntry, ignore_index=True)
-
-        if not matrixOnly:
-        # write the header row:
-            nextLine = ''
-            for parameterName in header:
-                nextLine = nextLine + parameterName + delim
-            f.write(nextLine[:-1] + '\n') # remove the final orphaned tab character
-
-        # write the data matrix:
-        for trial in dataOut:
-            nextLine = ''
-            for parameterName in header:
-                nextLine = nextLine + unicode(trial[parameterName]) + delim
-            nextLine = nextLine[:-1] # remove the final orphaned tab character
-            f.write(nextLine + '\n')
+            fileMode = 'w'
+        df.to_csv(
+            f,
+            sep=delim,
+            header=includeHeader,
+            index=False,
+            mode=fileMode,
+            encoding=encoding
+        )
 
         if f != sys.stdout:
             f.close()
             logging.info('saved wide-format data to %s' %f.name)
 
-        df= df.convert_objects() # Converts numbers to numeric, such as float64, boolean to bool. Otherwise they all are "object" type, i.e. strings
         return df
 
     def addData(self, thisType, value, position=None):
