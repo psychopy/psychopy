@@ -2480,7 +2480,8 @@ class StairHandler(_BaseTrialHandler):
                  maxVal=None,
                  originPath=None,
                  name='',
-                 autoLog=True):
+                 autoLog=True,
+                 **kwargs):
         """
         :Parameters:
 
@@ -2531,12 +2532,16 @@ class StairHandler(_BaseTrialHandler):
                 The largest legal value for the staircase, which can be used to prevent it
                 reaching impossible contrast values, for instance.
 
-        """
+            Additional keyword arguments will be ignored.
+
+        :Notes:
+
+        The additional keyword arguments `**kwargs` might for example be
+        passed by the `MultiStairHandler`, which expects a `label` keyword
+        for each staircase. These parameters are to be ignored by the
+        StairHandler.
 
         """
-        trialList: a simple list (or flat array) of trials.
-
-            """
         self.name=name
         self.startVal=startVal
         self.nReversals=nReversals
@@ -3052,7 +3057,8 @@ class QuestHandler(StairHandler):
                  staircase=None,
                  originPath=None,
                  name='',
-                 autoLog=True):
+                 autoLog=True,
+                 **kwargs):
         """
         Typical values for pThreshold are:
             * 0.82 which is equivalent to a 3 up 1 down standard staircase
@@ -3125,16 +3131,22 @@ class QuestHandler(StairHandler):
                 give the quest algorithm more information if you have it. You can also call the
                 importData function directly.
 
-        """
+            Additional keyword arguments will be ignored.
 
-        # Initialize using parent class first
+        :Notes:
+
+        The additional keyword arguments `**kwargs` might for example be
+        passed by the `MultiStairHandler`, which expects a `label` keyword
+        for each staircase. These parameters are to be ignored by the
+        StairHandler.
+
+        """
         StairHandler.__init__(
                 self, startVal, nTrials=nTrials, extraInfo=extraInfo,
                 method=method, stepType='lin', minVal=minVal,
                 maxVal=maxVal, name=name, autoLog=autoLog
         )
 
-        # Setup additional values
         self.stopInterval = stopInterval
 
         startVal = startVal
@@ -3592,10 +3604,6 @@ class MultiStairHandler(_BaseTrialHandler):
             # the MultiStairHandler on instantiation.
             if 'nTrials' not in args:
                 args['nTrials'] = self.nTrials
-
-            # The ordinary staircase handlers don't expect a `label`
-            # keyword.
-            args.pop('label')
 
             if self.type == 'simple':
                 startVal = args.pop('startVal')
