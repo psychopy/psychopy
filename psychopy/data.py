@@ -3041,7 +3041,6 @@ class QuestHandler(StairHandler):
                  nTrials=None,
                  stopInterval=None,
                  method='quantile',
-                 stepType='log',
                  beta=3.5,
                  delta=0.01,
                  gamma=0.5,
@@ -3090,10 +3089,6 @@ class QuestHandler(StairHandler):
                 The method used to determine the next threshold to test. If you want to get a specific threshold
                 level at the end of your staircasing, please use the quantile, mean, and mode methods directly.
 
-            stepType: *'log'*, 'db', 'lin'
-                The type of steps that should be taken each time. 'db' and 'log' will transform your intensity levels
-                into decibels or log units and will move along the psychometric function with these values.
-
             beta: *3.5* or a number
                 Controls the steepness of the psychometric function.
 
@@ -3133,15 +3128,17 @@ class QuestHandler(StairHandler):
         """
 
         # Initialize using parent class first
-        StairHandler.__init__(self, startVal, nTrials=nTrials, extraInfo=extraInfo, method=method,
-                                stepType=stepType, minVal=minVal, maxVal=maxVal, name=name, autoLog=autoLog)
+        StairHandler.__init__(
+                self, startVal, nTrials=nTrials, extraInfo=extraInfo,
+                method=method, stepType='lin', minVal=minVal,
+                maxVal=maxVal, name=name, autoLog=autoLog
+        )
 
         # Setup additional values
         self.stopInterval = stopInterval
 
-        # Transform startVal and startValSd based on stepType
-        startVal = self._intensity2scale(startVal)
-        startValSd = self._intensity2scale(startValSd)
+        startVal = startVal
+        startValSd = startValSd
         self._questNextIntensity = startVal
 
         # Create Quest object
@@ -3166,7 +3163,7 @@ class QuestHandler(StairHandler):
         if intensity is None:
             intensity = self._questNextIntensity
         else:
-            intensity = self._intensity2scale(intensity)
+            intensity = intensity
             # Update the intensity.
             #
             # During the first trial, self.intensities will be of length 0,
@@ -3202,7 +3199,7 @@ class QuestHandler(StairHandler):
             self._nextIntensity = self.maxVal
         elif (self._nextIntensity < self.minVal) and self.minVal is not None:
             self._nextIntensity = self.minVal
-        self._questNextIntensity = self._intensity2scale(self._nextIntensity)
+        self._questNextIntensity = self._nextIntensity
     def _intensity(self):
         """assigns the next intensity level"""
         if self.method == 'mean':
@@ -3212,43 +3209,23 @@ class QuestHandler(StairHandler):
         elif self.method == 'quantile':
             self._questNextIntensity = self._quest.quantile()
         # else: maybe raise an error
-        self._nextIntensity = self._scale2intensity(self._questNextIntensity)
-
-    def _intensity2scale(self, intensity):
-        """returns the scaled intensity level based on value of self.stepType"""
-        if self.stepType=='db':
-            scaled_intensity = numpy.log10(intensity) * 20.0
-        elif self.stepType=='log':
-            scaled_intensity = numpy.log10(intensity)
-        else:
-            scaled_intensity = intensity
-        return scaled_intensity
-
-    def _scale2intensity(self, scaled_intensity):
-        """returns the unscaled intensity level based on value of self.stepType"""
-        if self.stepType=='db':
-            intensity = 10.0**(scaled_intensity/20.0)
-        elif self.stepType=='log':
-            intensity = 10.0**scaled_intensity
-        else:
-            intensity = scaled_intensity
-        return intensity
+        self._nextIntensity = self._questNextIntensity
 
     def mean(self):
         """mean of Quest posterior pdf"""
-        return self._scale2intensity(self._quest.mean())
+        return self._quest.mean()
 
     def sd(self):
         """standard deviation of Quest posterior pdf"""
-        return self._scale2intensity(self._quest.sd())
+        return self._quest.sd()
 
     def mode(self):
         """mode of Quest posterior pdf"""
-        return self._scale2intensity(self._quest.mode()[0])
+        return self._quest.mode()[0]
 
     def quantile(self, p=None):
         """quantile of Quest posterior pdf"""
-        return self._scale2intensity(self._quest.quantile(p))
+        return self._quest.quantile(p)
 
     def confInterval(self, getDifference=False):
         """give the range of the 5-95% confidence interval"""
@@ -3633,11 +3610,14 @@ class MultiStairHandler(_BaseTrialHandler):
                     stepType=stepType, minVal=minVal, maxVal=maxVal)
             elif self.type in ['QUEST','quest']:
                 # see above
-                thisStair = QuestHandler(startVal, startValSd=condition['startValSd'],
-                    pThreshold=pThreshold, nTrials=nTrials, stopInterval=stopInterval,
-                    method=method, stepType=stepType, beta=beta, delta=delta,
-                    gamma=gamma, grain=grain, range=range, extraInfo=extraInfo,
-                    minVal=minVal, maxVal=maxVal, staircase=staircase)
+                thisStair = QuestHandler(
+                        startVal, startValSd=condition['startValSd'],
+                        pThreshold=pThreshold, nTrials=nTrials,
+                        stopInterval=stopInterval, method=method,
+                        beta=beta, delta=delta, gamma=gamma, grain=grain,
+                        range=range, extraInfo=extraInfo, minVal=minVal,
+                        maxVal=maxVal, staircase=staircase
+                )
             thisStair.condition = condition#this isn't normally part of handler
             #and finally, add it to the list
             self.staircases.append(thisStair)
