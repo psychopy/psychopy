@@ -72,27 +72,17 @@ class _baseTest:
         event._onPygletMouseRelease(0, 0, LEFT | MIDDLE | RIGHT, None, emulated=True)
         assert not any(event.mouseButtons)
 
-    def test_mouse_buttons_clocks(self):
+    def test_mouse_clocks(self):
         x, y = 0, 0
         scroll_x, scroll_y = 1, 1
         dx, dy = 1, 1
         zeros = [0, 0, 0]
         m = event.Mouse()
-        expected = {LEFT: [1, 0, 0], MIDDLE: [0, 1, 0], RIGHT: [0, 0, 1]}
         for button in [LEFT, MIDDLE, RIGHT]:
-            event.mouseButtons = copy.copy(zeros)
             event.mouseTimes = copy.copy(zeros)
             event._onPygletMousePress(x, y, button, None)
-            assert event.mouseButtons == expected[button]
             assert event.mouseTimes != zeros
-            event._onPygletMouseRelease(x, y, button, None)
-            assert event.mouseButtons == zeros
 
-            # test clickReset()
-            event._onPygletMousePress(x, y, button, None)
-            #assert sum(event.mouseButtons) == 1  # assured just above
-            m.clickReset()
-            assert sum(event.mouseButtons) == 0
         event._onPygletMouseWheel(x,y,scroll_x, scroll_y)
         event._onPygletMouseMotion(x, y, dx, dy)
         event.startMoveClock()
@@ -104,6 +94,37 @@ class _baseTest:
         t = 0.05
         core.wait(t)
         assert t - 0.01 < m.mouseMoveTime() < t + 0.01
+
+    def test_mouse_buttons(self):
+        m = event.Mouse()
+        expected = {LEFT: [1, 0, 0], MIDDLE: [0, 1, 0], RIGHT: [0, 0, 1]}
+        zeros = [0, 0, 0]
+
+        # test individual buttons
+        for button in [LEFT, MIDDLE, RIGHT]:
+            event.mouseButtons = [0, 0, 0]
+            event._onPygletMousePress(0, 0, button, None)
+            assert event.mouseButtons == expected[button]
+            event._onPygletMouseRelease(0, 0, button, None)
+            assert event.mouseButtons == zeros
+
+            # test clickReset()
+            event._onPygletMousePress(0, 0, button, None)
+            #assert sum(event.mouseButtons) == 1  # assured just above
+            m.clickReset()
+            assert event.mouseButtons == zeros
+
+        # test more than one press
+        event.mouseButtons = [0, 0, 0]
+        event._onPygletMousePress(0, 0, LEFT, None)
+        event._onPygletMousePress(0, 0, MIDDLE, None)
+        assert event.mouseButtons == [1, 1, 0]
+        event._onPygletMousePress(0, 0, RIGHT, None)
+        assert event.mouseButtons == [1, 1, 1]
+        event._onPygletMouseRelease(0, 0, LEFT, None)
+        assert event.mouseButtons == [0, 1, 1]
+        event._onPygletMouseRelease(0, 0, RIGHT, None)
+        assert event.mouseButtons == [0, 1, 0]
 
     def test_clearEvents(self):
         for t in ['mouse', 'joystick', 'keyboard', None]:
