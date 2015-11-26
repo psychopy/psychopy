@@ -3154,7 +3154,9 @@ class QuestHandler(StairHandler):
         self._questNextIntensity = startVal
 
         # Create Quest object
-        self._quest = QuestObject(startVal, startValSd, pThreshold, beta, delta, gamma, grain, range)
+        self._quest = QuestObject(
+                startVal, startValSd, pThreshold, beta, delta, gamma,
+                grain=grain, range=range)
 
         # Import any old staircase data
         if staircase is not None:
