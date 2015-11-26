@@ -377,55 +377,17 @@ class AdvAudioCapture(AudioCapture):
         If given a filename, it will first set that file as the one to work with,
         and then try to detect the onset marker.
         """
-        def thresh2SD(data, mult=2, thr=None):
-            """Return index of first value in abs(data) exceeding 2 * std(data),
-            or length of the data + 1 if nothing > threshold
-
-            Return threshold so can re-use the same threshold later
-            """
-            # this algorithm could use improvement
-            data = abs(data)
-            if not thr:
-                thr = mult * np.std(data)
-            val = data[(data > thr)]
-            if not len(val):
-                return len(data)+1, thr
-            first = val[0]
-            for i, v in enumerate(data):
-                if v == first:
-                    return i, thr
-
         while self.recorder.running:
             core.wait(0.10, 0)
-        # read from self.filename:
         if filename:
             self.setFile(filename)
-        data, sampleRate = readWavFile(self.filename)
-        if self.marker_hz == 0:
-            raise ValueError("Custom marker sounds cannot be auto-detected.")
-        if sampleRate < 2 * self.marker_hz:
-            # NyquistError
-            raise ValueError("Recording rate (%i Hz) too slow for %i Hz-based marker detection." % (int(sampleRate), self.marker_hz))
+        else:
+            filename = self.filename
 
-        # extract onset:
-        chunk = max(16, chunk)  # trades-off against size of bandpass filter
-          # precision in time-domain (= smaller chunks) requires wider freq
-        bandSize = 150 * 2 ** (8 - int(np.log2(chunk)))  # {16: 2400, 32: 1200, 64: 600, 128: 300}
-        dataToUse = data[:int(sampleRate * secs)]  # only look at first secs
-        lo = max(0, self.marker_hz - bandSize)  # for bandpass filter
-        hi = self.marker_hz + bandSize
-        dftProfile = getDftBins(dataToUse, sampleRate, lo, hi, chunk)
-        onsetChunks, thr = thresh2SD(dftProfile)  # leading edge of startMarker in chunks
-        onsetSecs = onsetChunks * chunk / sampleRate  # in secs
-
-        # extract offset:
-        start = onsetChunks - 4
-        stop = int(onsetChunks+self.marker.getDuration()*sampleRate/chunk) + 4
-        backwards = dftProfile[max(start,0):min(stop, len(dftProfile))]
-        offChunks, _ = thresh2SD(backwards[::-1], thr=thr)
-        offSecs = (start + len(backwards) - offChunks) * chunk / sampleRate  # in secs
-
-        return onsetSecs, offSecs
+        return getMarkerOnset(chunk=chunk, secs=secs,
+                              filename=filename,
+                              marker_hz=self.marker_hz,
+                              marker_duration=self.marker.getDuration())
 
     def getLoudness(self):
         """Return the RMS loudness of the saved recording.
@@ -456,8 +418,57 @@ class AdvAudioCapture(AudioCapture):
         if os.path.isfile(self.savedFile) and self.savedFile.endswith('.flac'):
             self.savedFile = flac2wav(self.savedFile, keep=keep)
 
+def getMarkerOnset(filename, chunk=128, secs=0.5, marker_hz=19000, marker_duration=0.015):
+    """Returns marker sound (onset, offset) in sec, as read from filename.
+    """
+    def thresh2SD(data, mult=2, thr=None):
+        """Return index of first value in abs(data) exceeding 2 * std(data),
+        or length of the data + 1 if nothing > threshold
+
+        Return threshold so can re-use the same threshold later
+        """
+        # this algorithm could use improvement
+        data = abs(data)
+        if not thr:
+            thr = mult * np.std(data)
+        val = data[(data > thr)]
+        if not len(val):
+            return len(data)+1, thr
+        first = val[0]
+        for i, v in enumerate(data):
+            if v == first:
+                return i, thr
+
+    # read data from file:
+    data, sampleRate = readWavFile(filename)
+    if marker_hz == 0:
+        raise ValueError("Custom marker sounds cannot be auto-detected.")
+    if sampleRate < 2 * marker_hz:
+        # NyquistError
+        raise ValueError("Recording rate (%i Hz) too slow for %i Hz-based marker detection." % (int(sampleRate), marker_hz))
+
+    # extract onset:
+    chunk = max(16, chunk)  # trades-off against size of bandpass filter
+      # precision in time-domain (= smaller chunks) requires wider freq
+    bandSize = 150 * 2 ** (8 - int(np.log2(chunk)))  # {16: 2400, 32: 1200, 64: 600, 128: 300}
+    dataToUse = data[:int(sampleRate * secs)]  # only look at first secs
+    lo = max(0, marker_hz - bandSize)  # for bandpass filter
+    hi = marker_hz + bandSize
+    dftProfile = getDftBins(dataToUse, sampleRate, lo, hi, chunk)
+    onsetChunks, thr = thresh2SD(dftProfile)  # leading edge of startMarker in chunks
+    onsetSecs = onsetChunks * chunk / sampleRate  # in secs
+
+    # extract offset:
+    start = onsetChunks - 4
+    stop = int(onsetChunks + marker_duration*sampleRate/chunk) + 4
+    backwards = dftProfile[max(start,0):min(stop, len(dftProfile))]
+    offChunks, _ = thresh2SD(backwards[::-1], thr=thr)
+    offSecs = (start + len(backwards) - offChunks) * chunk / sampleRate  # in secs
+
+    return onsetSecs, offSecs
+
 def readWavFile(filename):
-    """Return (data, sampleRate) as read from a wav file
+    """Return (data, sampleRate) as read from a wav file, expects int16 data.
     """
     try:
         sampleRate, data = wavfile.read(filename)
@@ -468,6 +479,8 @@ def readWavFile(filename):
             sampleRate, data = wavfile.read(filename)
         except:
             raise SoundFileError('Failed to open wav sound file "%s"' % filename)
+    if data.dtype != 'int16':
+        raise AttributeError('expected `int16` data in .wav file %s' % filename)
     if len(data.shape) == 2 and data.shape[1] == 2:
         data = data.transpose()
         data = data[0]  # left channel only? depends on how the file was made
@@ -608,7 +621,13 @@ class _GSQueryThread(threading.Thread):
             return self.duration
     def _unpackRaw(self):
         # parse raw string response from google, expose via data fields (see _reset):
-        self.json = json.load(self.raw)
+        try:
+            self.json = json.load(self.raw)
+        except ValueError:
+            self._reset()
+            self.status = 'FAILED'
+            self.stop()
+            return
         self.status = self.json['status']
         report = []
         for utter_list in self.json["hypotheses"]:
@@ -719,7 +738,8 @@ class Speech2Text(object):
                  timeout=10,
                  samplingrate=16000,
                  pro_filter=2,
-                 quiet=True):
+                 quiet=True,
+                 level=0):
         """
             :Parameters:
 
@@ -740,6 +760,8 @@ class Speech2Text(object):
                     profanity filter level; default 2 (e.g., f***)
                 `quiet` :
                     no reporting intermediate details; default `True` (non-verbose)
+                `level` :
+                    flac compression level (0 less compression but fastest)
         """
         # set up some key parameters:
         results = 5 # how many words wanted
@@ -765,7 +787,7 @@ class Speech2Text(object):
             filetype = "x-speex-with-header-byte"
         elif ext == ".wav": # convert to .flac
             filetype = "x-flac"
-            filename = wav2flac(filename)
+            filename = wav2flac(filename, level=level)  # opt for speed
         logging.info("Loading: %s as %s, audio/%s" % (self.filename, lang, filetype))
         c = 0 # occasional error; core.wait(.1) is not always enough; better slow than fail
         while not os.path.isfile(filename) and c < 10:
@@ -869,7 +891,7 @@ class BatchSpeech2Text(list):
             fileList = list(files)
         web.requireInternetAccess()  # needed to access google's speech API
         for i, filename in enumerate(fileList):
-            gs = Speech2Text(filename)
+            gs = Speech2Text(filename, level=5)
             self.append( (filename, gs.getThread()) ) # tuple
             if verbose:
                 logging.info("%i %s" % (i, filename))
@@ -936,12 +958,14 @@ def flac2wav(path, keep=True):
     else:
         return wav_files
 
-def wav2flac(path, keep=True):
+def wav2flac(path, keep=True, level=5):
     """Lossless compression: convert .wav file (on disk) to .flac format.
 
     If `path` is a directory name, convert all .wav files in the directory.
 
     `keep` to retain the original .wav file(s), default `True`.
+
+    `level` is compression level: 0 is fastest but larger, 8 is slightly smaller but much slower.
     """
     flac_path = _getFlacPath()
     wav_files = []
@@ -954,8 +978,8 @@ def wav2flac(path, keep=True):
         return None
     flac_files = []
     for wavfile in wav_files:
-        flacfile = wavfile.strip('.wav') + '.flac'
-        flac_cmd = [flac_path, "-8", "-f", "--totally-silent", "-o", flacfile, wavfile]
+        flacfile = wavfile.replace('.wav', '.flac')
+        flac_cmd = [flac_path, "-%d" % level, "-f", "--totally-silent", "-o", flacfile, wavfile]
         __, se = core.shellCall(flac_cmd, stderr=True)
         if se or not os.path.isfile(flacfile): # just try again
             # ~2% incidence when recording for 1s, 650+ trials

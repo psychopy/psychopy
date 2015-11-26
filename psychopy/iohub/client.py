@@ -1616,10 +1616,9 @@ def launchHubServer(**kwargs):
 
 
     monitor_devices_config=None
-    if kwargs.get('iohub_config_name'):        
-        from psychopy.iohub import load, Loader    
+    if kwargs.get('iohub_config_name'):    
         # Load the specified iohub configuration file, converting it to a python dict.
-        io_config=load(kwargs.get('iohub_config_name'),'r', Loader=Loader)
+        io_config=load(file(kwargs.get('iohub_config_name'),'r'), Loader=Loader)
         monitor_devices_config=io_config.get('monitor_devices')
 
     ioConfig=None
@@ -1680,6 +1679,7 @@ def launchHubServer(**kwargs):
         ioConfig['data_store']=dict(enable=True,filename=datastore_name,experiment_info=dict(code=experiment_code),
                                             session_info=dict(code=session_code))
     
+    #print "IOHUB CONFIG: ",ioConfig
     # Start the ioHub Server
     return ioHubConnection(ioConfig)
         
@@ -2144,13 +2144,13 @@ class ioHubExperimentRuntime(object):
         Return: None
         """
         try:
-            self.run(*sys_argv)
+            result=self.run(*sys_argv)
+            self._close()
+            return result
         except:
             printExceptionDetailsToStdErr()
-        finally:
             self._close()
-        
-        
+
     def _displayExperimentSettingsDialog(self):
         """
         Display a read-only dialog showing the experiment setting retrieved from the configuration file. This gives the
@@ -2190,7 +2190,7 @@ class ioHubExperimentRuntime(object):
         if self.hub:
             self.hub._shutDownServer()
         # terminate psychopy
-        core.quit()
+        #core.quit()
 
     def __del__(self):
         try:

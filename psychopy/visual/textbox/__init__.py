@@ -1017,7 +1017,7 @@ class TextBox(object):
             rgb=self._window.rgb
             rgb=TextBox._toRGBA2(rgb,1,self._window.colorSpace,self._window)
             glClearColor(rgb[0],rgb[1],rgb[2], 1.0) 
-            glViewport(0, 0, int(self._window.winHandle.screen.width), int(self._window.winHandle.screen.height))
+            glViewport(0, 0, int(self._window.size[0]), int(self._window.size[1]))
             glMatrixMode(GL_PROJECTION) # Reset The Projection Matrix
             glLoadIdentity()
             gluOrtho2D(-1,1,-1,1)
@@ -1226,7 +1226,8 @@ class TextBox(object):
         return te_x,te_y   
 
     def __del__(self):
-        del self._textbox_instances[self.getName()]
+        if hasattr(self,'_textbox_instance') and self.getName() in self._textbox_instance.keys():
+            del self._textbox_instances[self.getName()]
         del self._current_glfont
         del self._text_grid
         

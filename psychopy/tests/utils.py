@@ -45,12 +45,12 @@ def compareScreenshot(fileName, win, crit=5.0):
         expDat = np.array(expected.getdata())
         imgDat = np.array(frame.getdata())
         rms = (((imgDat-expDat)**2).sum()/len(imgDat))**0.5
+        filenameLocal = fileName.replace('.png','_local.png')
         if rms >= crit/2:
             #there was SOME discrepency
             logging.warning('PsychoPyTests: RMS=%.3g at threshold=%3.g'
                   % (rms, crit))
-        if rms>=crit:
-            filenameLocal = fileName.replace('.png','_local.png')
+        if not rms<crit: #don't do `if rms>=crit because that doesn't catch rms=nan
             frame.save(filenameLocal, optimize=1)
             logging.warning('PsychoPyTests: Saving local copy into %s' % filenameLocal)
         assert rms<crit, \
@@ -161,17 +161,17 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
         logging.warning("xlsxActual!=xlsxCorr: Saving local copy to %s" %pathToLocal)
         raise IOError, error
 
-_under_xvfb = 'xvfb-run' in os.environ.get('XAUTHORITY', '')
+_travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')  # in Travis-CI testing
 
-def skip_under_xvfb(fn=None):
-    """Skip if a test is executed under Xvfb (via xvfb-run only atm)
+def skip_under_travis(fn=None):
+    """Skip if a test is executed under Travis testing environment
 
     Could also be used as a decorator (if argument provided) or
     unparametrized in the code
     """
     # TODO: ad-hoc check ATM -- there might be better ways
-    if _under_xvfb:
-        skip, msg = pytest.skip, "Cannot be tested under Xvfb"
+    if _travisTesting:
+        skip, msg = pytest.skip, "Cannot be tested under Travis-CI"
         if fn is not None:
             def _inner():
                 skip(msg)

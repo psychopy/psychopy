@@ -1,4 +1,4 @@
-#! /usr/local/bin/python2.5
+#!/usr/bin/env python2
 from psychopy import core, visual, event
 
 #create a window to draw in
@@ -10,12 +10,12 @@ faceRGB = visual.PatchStim(myWin,tex='face.jpg',
     pos=(0.0,0.0),
     size=(1.0,1.0),
     sf=(1.0, 1.0))
-    
+
 faceALPHA = visual.PatchStim(myWin,pos=(-0.5,0),
     tex="sin",mask="face.jpg",
     rgb=[1.0,1.0,-1.0],
     size=(0.5,0.5), sf=1.0, units="norm")
-    
+
 message = visual.TextStim(myWin,pos=(-0.95,-0.95),
     text='[Esc] to quit', rgb=1, alignHoriz='left', alignVert='bottom')
 
@@ -28,7 +28,7 @@ while True:
 
     faceALPHA.setPhase(0.01,"+")#advance phase by 1/100th of a cycle
     faceALPHA.draw()
-    
+
     #update fps every second
     if t-lastFPSupdate>1.0:
         lastFPS = myWin.fps()

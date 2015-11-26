@@ -1,11 +1,12 @@
 #!/bin/sh
 
 echo DID YOU UPDATE THE CHANGELOG?
-sudo python setup.py sdist --format=zip
-sudo python setup.py egg_info
-sudo python setup.py bdist_egg
+python setup.py sdist --format=zip
+python setup.py egg_info
+python setup.py bdist_egg
 
-echo register with;
-echo sudo python setup.py register
+echo upload to pypi with;
+echo python setup.py sdist --format==zip upload
+echo python setup.py bdist_egg upload
 
 mv dist/* ../dist

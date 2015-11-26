@@ -235,14 +235,15 @@ class RatingScaleComponent(BaseComponent):
         if len(self.exp.flow._loopList):
             currLoop = self.exp.flow._loopList[-1] # last (outer-most) loop
         else:
-            currLoop = None
+            currLoop = self.exp._expHandler
 
         #write the actual code
-        if currLoop and (self.params['storeRating'].val or self.params['storeRatingTime'].val):
+        if self.params['storeRating'].val or self.params['storeRatingTime'].val:
             if currLoop.type in ['StairHandler', 'QuestHandler']:
                 buff.writeIndented("# NB PsychoPy doesn't handle a 'correct answer' for ratingscale " +
-                               "events so doesn't know what to tell a StairHandler (or QuestHandler)")
-            elif currLoop.type == 'TrialHandler':
+                               "events so doesn't know what to tell a StairHandler (or QuestHandler)\n")
+            elif currLoop.type in ['TrialHandler', 'ExperimentHandler']:
+                buff.writeIndented("# store data for %s (%s)\n" %(currLoop.params['name'], currLoop.type))
                 if self.params['storeRating'].val == True:
                     buff.writeIndented("%s.addData('%s.response', %s.getRating())\n" \
                                        % (currLoop.params['name'], name, name))
@@ -252,5 +253,7 @@ class RatingScaleComponent(BaseComponent):
                 if self.params['storeHistory'].val == True:
                     buff.writeIndented("%s.addData('%s.history', %s.getHistory())\n" \
                                        % (currLoop.params['name'], name, name))
+                if currLoop.params['name'].val == self.exp._expHandler.name:
+                    buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
             else:
-                buff.writeIndented("# RatingScaleComponent: unknown loop type, not saving any data.")
+                buff.writeIndented("# RatingScaleComponent: unknown loop type, not saving any data.\n")

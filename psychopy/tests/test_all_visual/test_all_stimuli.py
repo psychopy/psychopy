@@ -73,6 +73,29 @@ class _baseVisualTest:
             assert stim.status==visual.FINISHED
             assert stim.status==visual.STOPPED
             str(stim) #check that str(xxx) is working
+    def test_imageAndGauss(self):
+        win = self.win
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
+        #use image stim
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        image = visual.ImageStim(win, image=fileName, mask='gauss', 
+                                 size=size, flipHoriz=True, flipVert=True, autoLog=False)
+        image.draw()
+        utils.compareScreenshot('imageAndGauss%s.png' %(self.contextName), win)
+        win.flip()
+    def test_gratingImageAndGauss(self):
+        win = self.win
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        #generate identical image as test_imageAndGauss but using GratingStim
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')
+        if win.units in ['norm','height']:
+            sf = -1.0
+        else:
+            sf = -1.0/size #this will do the flipping and get exactly one cycle
+        image = visual.GratingStim(win, tex=fileName, size=size, sf=sf, mask='gauss', autoLog=False)
+        image.draw()
+        utils.compareScreenshot('imageAndGauss_%s.png' %(self.contextName), win)
+        win.flip()
     def test_greyscaleImage(self):
         win = self.win
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'greyscale.jpg')
@@ -80,6 +103,48 @@ class _baseVisualTest:
         imageStim.draw()
         utils.compareScreenshot('greyscale_%s.png' %(self.contextName), win)
         str(imageStim) #check that str(xxx) is working
+        win.flip()
+        imageStim.setColor([0.1,0.1,0.1])
+        imageStim.draw()
+        utils.compareScreenshot('greyscaleLowContr_%s.png' %(self.contextName), win)
+        win.flip()
+        imageStim.color = 1
+        imageStim.contrast = 0.1#should have identical effect to color=0.1
+        imageStim.draw()
+        utils.compareScreenshot('greyscaleLowContr_%s.png' %(self.contextName), win)
+        win.flip()
+        imageStim.contrast = 1.0
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'greyscale2.png')
+        imageStim.setImage(fileName)
+        imageStim.size *= 3
+        imageStim.draw()
+        utils.compareScreenshot('greyscale2_%s.png' %(self.contextName), win)
+        win.flip()
+    def test_numpyTexture(self):
+        win = self.win
+        grating = filters.makeGrating(res=64, ori=20.0,
+                                     cycles=3.0, phase=0.5,
+                                     gratType='sqr', contr=1.0)
+        imageStim = visual.ImageStim(win, image=grating, autoLog=False,
+                                     size = 3*self.scaleFactor,
+                                     interpolate=True)
+        imageStim.draw()
+
+        utils.compareScreenshot('numpyImage_%s.png' %(self.contextName), win)
+        str(imageStim) #check that str(xxx) is working
+        win.flip()
+        #set lowcontrast using color
+        imageStim.setColor([0.1,0.1,0.1])
+        imageStim.draw()
+        utils.compareScreenshot('numpyLowContr_%s.png' %(self.contextName), win)
+        win.flip()
+        #now try low contrast using contr
+        imageStim.color = 1
+        imageStim.contrast = 0.1#should have identical effect to color=0.1
+        imageStim.draw()
+        utils.compareScreenshot('numpyLowContr_%s.png' %(self.contextName), win)
+        win.flip()
+
     def test_gabor(self):
         win = self.win
         #using init
@@ -90,12 +155,6 @@ class _baseVisualTest:
         gabor.draw()
         utils.compareScreenshot('gabor1_%s.png' %(self.contextName), win)
         win.flip()#AFTER compare screenshot
-
-        #did buffer image also work?
-        #bufferImgStim = visual.BufferImageStim(self.win, stim=[gabor])
-        #bufferImgStim.draw()
-        #utils.compareScreenshot('gabor1_%s.png' %(self.contextName), win)
-        #win.flip()
 
         #using .set()
         gabor.setOri(45, log=False)
@@ -109,6 +168,22 @@ class _baseVisualTest:
         utils.compareScreenshot('gabor2_%s.png' %(self.contextName), win)
         win.flip()
         str(gabor) #check that str(xxx) is working
+
+    @pytest.mark.bufferimage
+    def test_bufferImage(self):
+        """BufferImage inherits from ImageStim, so test .ori. .pos etc there not here
+        """
+        win = self.win
+        gabor = visual.PatchStim(win, mask='gauss', ori=-45,
+            pos=[0.6*self.scaleFactor, -0.6*self.scaleFactor],
+            sf=2.0/self.scaleFactor, size=2*self.scaleFactor,
+            interpolate=True)
+
+        bufferImgStim = visual.BufferImageStim(self.win, stim=[gabor],
+            interpolate=True)
+        bufferImgStim.draw()
+        utils.compareScreenshot('bufferimg_gabor_%s.png' %(self.contextName), win)
+        win.flip()
 
     #def testMaskMatrix(self):
     #    #aims to draw the exact same stimulus as in testGabor, but using filters
@@ -306,7 +381,7 @@ class _baseVisualTest:
             "dots.verticesPix failed to change after dots.setPos()"
     def test_element_array(self):
         win = self.win
-        if not win._haveShaders or utils._under_xvfb:
+        if not win._haveShaders:
             pytest.skip("ElementArray requires shaders, which aren't available")
         #using init
         thetas = numpy.arange(0,360,10)
@@ -335,10 +410,13 @@ class _baseVisualTest:
         grating.setOri(90, log=False)
         grating.setColor('black', log=False)
         grating.draw()
-        if utils._under_xvfb:
-            pytest.xfail("not clear why fails under Xvfb") # skip late so we smoke test t
         utils.compareScreenshot('aperture1_%s.png' %(self.contextName), win)
         #aperture should automatically disable on exit
+        for shape, nVert, pos in [(None, 120, (0,0)), ('circle', 17, (.2, -.7)),
+                                  ('square', 4, (-.5,-.5)), ('triangle', 3, (1,1))]:
+            aperture = visual.Aperture(win, pos=pos, shape=shape, nVert=nVert, autoLog=False)
+            assert len(aperture.vertices) == nVert
+            assert aperture.contains(pos)
     def test_rating_scale(self):
         if self.win.winType=='pygame':
             pytest.skip("RatingScale not available on pygame")
@@ -350,8 +428,6 @@ class _baseVisualTest:
                         marker='glow', markerStart=0.7, markerColor='darkBlue', autoLog=False)
         str(rs) #check that str(xxx) is working
         rs.draw()
-        if self.win.winType=='pyglet' and utils._under_xvfb:
-            pytest.xfail("not clear why fails under Xvfb") # skip late so we smoke test the code
         utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=30.0)
         win.flip()#AFTER compare screenshot
     def test_refresh_rate(self):
@@ -359,7 +435,7 @@ class _baseVisualTest:
             pytest.skip("getMsPerFrame seems to crash the testing of pygame")
         #make sure that we're successfully syncing to the frame rate
         msPFavg, msPFstd, msPFmed = visual.getMsPerFrame(self.win,nFrames=60, showVisual=True)
-        utils.skip_under_xvfb()             # skip late so we smoke test the code
+        utils.skip_under_travis()             # skip late so we smoke test the code
         assert (1000/150.0 < msPFavg < 1000/40.0), \
             "Your frame period is %.1fms which suggests you aren't syncing to the frame" %msPFavg
 
@@ -368,6 +444,12 @@ class TestPygletNorm(_baseVisualTest):
     @classmethod
     def setup_class(self):
         self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
+        self.contextName='norm'
+        self.scaleFactor=1#applied to size/pos values
+class TestPygletNormFBO(_baseVisualTest):
+    @classmethod
+    def setup_class(self):
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False, useFBO=True)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
 class TestPygletHeight(_baseVisualTest):
@@ -422,6 +504,28 @@ class TestPygletDeg(_baseVisualTest):
             units='deg', autoLog=False)
         self.contextName='deg'
         self.scaleFactor=2#applied to size/pos values
+class TestPygletDegFlat(_baseVisualTest):
+    @classmethod
+    def setup_class(self):
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(10.0) #exagerate the effect of flatness by setting the monitor close
+        mon.setWidth(40.0)
+        mon.setSizePix([1024,768])
+        self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=True,
+            units='degFlat', autoLog=False)
+        self.contextName='degFlat'
+        self.scaleFactor=4#applied to size/pos values
+class TestPygletDegFlatPos(_baseVisualTest):
+    @classmethod
+    def setup_class(self):
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(10.0) #exagerate the effect of flatness by setting the monitor close
+        mon.setWidth(40.0)
+        mon.setSizePix([1024,768])
+        self.win = visual.Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], allowStencil=True,
+            units='degFlatPos', autoLog=False)
+        self.contextName='degFlatPos'
+        self.scaleFactor=4#applied to size/pos values
 class TestPygameNorm(_baseVisualTest):
     @classmethod
     def setup_class(self):

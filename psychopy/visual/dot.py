@@ -21,16 +21,17 @@ from psychopy import logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
-from psychopy.tools.attributetools import setWithOperation
+from psychopy.tools.attributetools import setWithOperation, logAttrib
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import cm2pix, deg2pix
 from psychopy.visual.basevisual import BaseVisualStim
+from psychopy.visual.basevisual import ColorMixin, ContainerMixin
 
 import numpy
 from numpy import pi
 
 
-class DotStim(BaseVisualStim):
+class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
     """
     This stimulus class defines a field of dots with an update rule that determines how they change
     on every call to the .draw() method.
@@ -112,7 +113,7 @@ class DotStim(BaseVisualStim):
         self._initParams = __builtins__['dir']()
         self._initParams.remove('self')
 
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)#set autoLog at end of init
+        super(DotStim, self).__init__(win, units=units, name=name, autoLog=False)#set autoLog at end of init
 
         self.nDots = nDots
         #pos and size are ambiguous for dots so DotStim explicitly has
@@ -191,9 +192,7 @@ class DotStim(BaseVisualStim):
         if attrib in ['nDots','coherence']:
             self.coherence=round(self.coherence*self.nDots)/self.nDots
 
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s %s=%s" %(self.name, attrib, getattr(self,attrib)),
-                level=logging.EXP)
+        logAttrib(self, log, attrib)
 
     def set(self, attrib, val, op='', log=True):
         """DotStim.set() is obsolete and may not be supported in future

@@ -30,6 +30,11 @@ if sys.platform == 'win32':
         # either avbin isn't installed or scipy.stats has been imported
         # (prevents avbin loading)
         haveAvbin = False
+    except WindowsError, e:
+        # Windows memory access error
+        # (prevents avbin loading)
+        haveAvbin = False
+
 
 import psychopy  # so we can get the __path__
 from psychopy import core, logging, event
@@ -38,7 +43,9 @@ import psychopy.event
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
 from psychopy.tools.arraytools import val2array
+from psychopy.tools.attributetools import logAttrib
 from psychopy import makeMovies
+from psychopy.visual.basevisual import ContainerMixin
 from psychopy.visual.basevisual import BaseVisualStim
 
 if sys.platform == 'win32' and not haveAvbin:
@@ -58,7 +65,7 @@ except:
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 
 
-class MovieStim(BaseVisualStim):
+class MovieStim(BaseVisualStim, ContainerMixin):
     """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy.
 
     **Example**::
@@ -108,7 +115,7 @@ class MovieStim(BaseVisualStim):
         self._initParams = dir()
         self._initParams.remove('self')
 
-        BaseVisualStim.__init__(self, win, units=units, name=name, autoLog=False)
+        super(MovieStim, self).__init__(win, units=units, name=name, autoLog=False)
 
         if not havePygletMedia:
             raise ImportError, """pyglet.media is needed for MovieStim and could not be imported.
@@ -132,8 +139,6 @@ class MovieStim(BaseVisualStim):
         self.depth=depth
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
-        self.colorSpace=colorSpace
-        self.setColor(color, colorSpace=colorSpace, log=False)
         self.opacity = float(opacity)
         self.status=NOT_STARTED
 
@@ -195,9 +200,7 @@ class MovieStim(BaseVisualStim):
         self.status=NOT_STARTED
         self._player.pause()#start 'playing' on the next draw command
         self.filename=filename
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s movie=%s" %(self.name, filename),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, 'movie', filename)
 
     def pause(self, log=True):
         """Pause the current point in the movie (sound will stop, current frame
@@ -234,25 +237,19 @@ class MovieStim(BaseVisualStim):
         NB this does not seem very robust as at version 1.62 and may cause crashes!
         """
         self._player.seek(float(timestamp))
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s seek=%f" %(self.name,timestamp),
-                level=logging.EXP,obj=self)
+        logAttrib(self, log, 'seek', timestamp)
     def setFlipHoriz(self, newVal=True, log=True):
         """If set to True then the movie will be flipped horizontally (left-to-right).
         Note that this is relative to the original, not relative to the current state.
         """
         self.flipHoriz = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipHoriz=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
+        logAttrib(self, log, 'flipHoriz')
     def setFlipVert(self, newVal=True, log=True):
         """If set to True then the movie will be flipped vertically (top-to-bottom).
         Note that this is relative to the original, not relative to the current state.
         """
         self.flipVert = newVal
-        if log and self.autoLog:
-            self.win.logOnFlip("Set %s flipVert=%s" % (self.name, newVal),
-                level=logging.EXP, obj=self)
+        logAttrib(self, log, 'flipVert')
 
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
@@ -281,8 +278,7 @@ class MovieStim(BaseVisualStim):
         if frameTexture==None:
             return
 
-        desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, 1)  #Contrast=1
-        GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2],self.opacity)
+        GL.glColor4f(1,1,1, self.opacity)  # sets opacity (1,1,1 = RGB placeholder)
         GL.glPushMatrix()
         self.win.setScale('pix')
         #move to centre of stimulus and rotate
@@ -306,7 +302,7 @@ class MovieStim(BaseVisualStim):
         GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array) #2D texture array, 3D vertex array
         GL.glDrawArrays(GL.GL_QUADS, 0, 4)
         GL.glPopClientAttrib()
-        GL.glPopAttrib(GL.GL_ENABLE_BIT)
+        GL.glPopAttrib()
         GL.glPopMatrix()
 
     def setContrast(self):
