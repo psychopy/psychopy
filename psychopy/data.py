@@ -3346,16 +3346,16 @@ class PsiHandler(StairHandler):
                  intensRange, alphaRange, betaRange,
                  intensPrecision, alphaPrecision, betaPrecision,
                  delta,
-                 extraInfo=None,
                  stepType='lin',
-                 twoAFC=False,
+                 expectedMin=0.5,
                  prior=None,
                  fromFile=False,
+                 extraInfo=None,
                  name=''):
         """
         Initializes the handler and creates an internal Psi Object for grid approximation.
 
-        Parameters:
+        :Parameters:
 
             nTrials (int)
                 The number of trials to run.
@@ -3382,15 +3382,25 @@ class PsiHandler(StairHandler):
             delta   (float)
                 The guess rate.
 
-            extraInfo   (dict)
-                Optional dictionary object used in PsychoPy's built-in logging system.
-
             stepType    (str)
                 The type of steps to be used when constructing the stimuli intensity range. If 'lin' then evenly spaced steps are used. If 'log' then logarithmically spaced steps are used.
                 Defaults to 'lin'.
 
-            twoAFC  (bool)
-                If True then the 2AFC psychometric function described above is used. If False then a Yes/No task is assumed.
+            expectedMin  (float)
+                The expected lower asymptote of the psychometric function
+                (PMF).
+
+                For a Yes/No task, the PMF usually extends across the
+                interval [0, 1]; here, `expectedMin` should be set to `0`.
+
+                For a 2-AFC task, the PMF spreads out across [0.5, 1.0].
+                Therefore, `expectedMin` should be set to `0.5` in this
+                case, and the 2-AFC psychometric function described above
+                going to be is used.
+
+                Currently, only Yes/No and 2-AFC designs are supported.
+
+                Defaults to 0.5, or a 2-AFC task.
 
             prior   (numpy.ndarray or str)
                 Optional prior distribution with which to initialize the Psi Object. This can either be a numpy.ndarray object or the path to a numpy binary file (.npy) containing the ndarray.
@@ -3398,11 +3408,32 @@ class PsiHandler(StairHandler):
             fromFile    (str)
                 Flag specifying whether prior is a file pathname or not.
 
+            extraInfo   (dict)
+                Optional dictionary object used in PsychoPy's built-in logging system.
+
             name    (str)
                 Optional name for the PsiHandler used in PsychoPy's built-in logging system.
+
+        :Raises:
+
+            NotImplementedError
+                If the supplied `minVal` parameter implies an experimental
+                design other than Yes/No or 2-AFC.
+
         """
-        # Initialize parent class first
-        StairHandler.__init__(self, startVal=None, nTrials=nTrials, extraInfo=extraInfo, method=None, stepType=stepType, minVal=intensRange[0], maxVal=intensRange[1], name=name)
+        if expectedMin not in [0, 0.5]:
+            raise NotImplementedError(
+                    'Currently, only Yes/No and 2-AFC designs are '
+                    'supported. Please specify either `expectedMin=0` '
+                    '(Yes/No) or `expectedMin=0.5` (2-AFC).'
+            )
+
+
+        StairHandler.__init__(
+                self, startVal=None, nTrials=nTrials, extraInfo=extraInfo,
+                stepType=stepType, minVal=intensRange[0],
+                maxVal=intensRange[1], name=name
+        )
 
         # Create Psi object
         if prior is not None and fromFile:
@@ -3412,6 +3443,7 @@ class PsiHandler(StairHandler):
                 logging.warning("The specified pickle file could not be read. Using a uniform prior instead.")
                 prior = None
 
+        twoAFC = True if expectedMin == 0.5 else False
         self._psi = PsiObject(
                 intensRange, alphaRange, betaRange, intensPrecision,
                 alphaPrecision, betaPrecision, delta=delta,
