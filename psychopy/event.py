@@ -508,14 +508,17 @@ class Mouse:
 
     def clickReset(self,buttons=[0,1,2]):
         """Reset a 3-item list of core.Clocks use in timing button clicks.
-           The pyglet mouse-button-pressed handler uses their clock.getLastResetTime() when a button is pressed
-           so the user can reset them at stimulus onset or offset to measure RT.
-           The default is to reset all, but they can be reset individually as specified in buttons list
+        The pyglet mouse-button-pressed handler uses their
+        clock.getLastResetTime() when a button is pressed so the user can
+        reset them at stimulus onset or offset to measure RT. The default
+        is to reset all, but they can be reset individually as specified
+        in buttons list
         """
-        global mouseClick
+        global mouseClick, mouseButtons
         for c in buttons:
             mouseClick[c].reset()
             mouseTimes[c]=0.0
+            mouseButtons[c] = 0
 
     def getPressed(self, getTime=False):
         """Returns a 3-item list indicating whether or not buttons 0,1,2 are currently pressed
