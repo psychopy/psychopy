@@ -173,7 +173,7 @@ class Experiment(object):
                     "import numpy as np  # whole numpy lib is available, prepend 'np.'\n"
                     "from numpy import %s\n" % ', '.join(_numpyImports) +
                     "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
-                    "import os  # handy system and path functions\n" + 
+                    "import os  # handy system and path functions\n" +
                     "import sys # to get file system encoding\n")
         script.write("\n")
         self.settings.writeStartCode(script) #present info dlg, make logfile
@@ -352,11 +352,7 @@ class Experiment(object):
         if 'valType' in paramNode.keys():
             params[name].valType = paramNode.get('valType')
             # compatibility checks:
-            if name=='text' and paramNode.get('valType')=='code':
-                params[name].valType='str'# these components were changed in v1.60.01
-            elif name=='correctAns' and paramNode.get('valType')=='code' and paramNode.getparent().tag=="TextComponent":
-                params[name].valType='str'# these components were changed in v1.60.01
-            elif name in ['allowedKeys'] and paramNode.get('valType')=='str':
+            if name in ['allowedKeys'] and paramNode.get('valType')=='str':
                 params[name].valType='code'# these components were changed in v1.70.00
             elif name == 'Selected rows': #changed in 1.81.00 from 'code' to 'str' to allow string or variable
                 params[name].valType = 'str'
