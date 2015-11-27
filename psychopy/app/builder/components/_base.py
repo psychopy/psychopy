@@ -113,10 +113,14 @@ class BaseComponent(object):
         """Test whether we need to stop
         """
         if self.params['stopType'].val=='time (s)':
-            buff.writeIndented("if %(name)s.status == STARTED and t >= (%(stopVal)s-win.monitorFramePeriod*0.75): #most of one frame period left\n" %(self.params))
+            frameVal = "frameRemains = %(stopVal)s - win.monitorFramePeriod * 0.75  # most of one frame period left\n" % self.params
+            buff.writeIndented(frameVal)
+            buff.writeIndented("if %(name)s.status == STARTED and t >= frameRemains:\n" % self.params)
         #duration in time (s)
         elif self.params['stopType'].val=='duration (s)' and self.params['startType'].val=='time (s)':
-            buff.writeIndented("if %(name)s.status == STARTED and t >= (%(startVal)s + (%(stopVal)s-win.monitorFramePeriod*0.75)): #most of one frame period left\n" %(self.params))
+            frameVal = "frameRemains = %(startVal)s + %(stopVal)s - win.monitorFramePeriod * 0.75  # most of one frame period left\n" % self.params
+            buff.writeIndented(frameVal)
+            buff.writeIndented("if %(name)s.status == STARTED and t >= frameRemains:\n" % self.params)
         elif self.params['stopType'].val=='duration (s)':#start at frame and end with duratio (need to use approximate)
             buff.writeIndented("if %(name)s.status == STARTED and t >= (%(name)s.tStart + %(stopVal)s):\n" %(self.params))
         #duration in frames
@@ -127,7 +131,7 @@ class BaseComponent(object):
             buff.writeIndented("if %(name)s.status == STARTED and frameN >= %(stopVal)s:\n" %(self.params))
         #end according to a condition
         elif self.params['stopType'].val=='condition':
-            buff.writeIndented("if %(name)s.status == STARTED and (%(stopVal)s):\n" %(self.params))
+            buff.writeIndented("if %(name)s.status == STARTED and bool(%(stopVal)s):\n" %(self.params))
         else:
             raise "Didn't write any stop line for startType=%(startType)s, stopType=%(stopType)s" %(self.params)
         buff.setIndentLevel(+1,relative=True)
