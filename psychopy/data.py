@@ -3411,11 +3411,13 @@ class PsiHandler(StairHandler):
             except IOError:
                 logging.warning("The specified pickle file could not be read. Using a uniform prior instead.")
                 prior = None
+
         self._psi = PsiObject(
                 intensRange, alphaRange, betaRange, intensPrecision,
-                alphaPrecision, betaPrecision, delta, stepType,
-                twoAFC, prior
+                alphaPrecision, betaPrecision, delta=delta,
+                stepType=stepType, TwoAFC=twoAFC, prior=prior
         )
+
         self._psi.update(None)
 
     def addResponse(self, result, intensity=None):
