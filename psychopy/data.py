@@ -3348,12 +3348,10 @@ class PsiHandler(StairHandler):
                  delta,
                  extraInfo=None,
                  stepType='lin',
-                 TwoAFC=False,
+                 twoAFC=False,
                  prior=None,
                  fromFile=False,
                  name=''):
-
-
         """
         Initializes the handler and creates an internal Psi Object for grid approximation.
 
@@ -3391,7 +3389,7 @@ class PsiHandler(StairHandler):
                 The type of steps to be used when constructing the stimuli intensity range. If 'lin' then evenly spaced steps are used. If 'log' then logarithmically spaced steps are used.
                 Defaults to 'lin'.
 
-            TwoAFC  (bool)
+            twoAFC  (bool)
                 If True then the 2AFC psychometric function described above is used. If False then a Yes/No task is assumed.
 
             prior   (numpy.ndarray or str)
@@ -3413,9 +3411,12 @@ class PsiHandler(StairHandler):
             except IOError:
                 logging.warning("The specified pickle file could not be read. Using a uniform prior instead.")
                 prior = None
-        self._psi = PsiObject(intensRange, alphaRange, betaRange, intensPrecision, alphaPrecision, betaPrecision, delta, stepType, TwoAFC, prior)
+        self._psi = PsiObject(
+                intensRange, alphaRange, betaRange, intensPrecision,
+                alphaPrecision, betaPrecision, delta, stepType,
+                twoAFC, prior
+        )
         self._psi.update(None)
-
 
     def addResponse(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
