@@ -7,7 +7,9 @@ from components import getInitVals, getComponents, getAllComponents
 import psychopy
 from psychopy import data, __version__, logging
 from psychopy.constants import FOREVER
-from lxml import etree
+import xml.etree.ElementTree as xml
+from xml.dom import minidom
+
 import re, os
 try:
     _translate  # is the app-global text translation function defined?
@@ -112,7 +114,7 @@ class Experiment(object):
         self.psychopyVersion=__version__ #imported from components
         self.psychopyLibs=['visual','core','data','event','logging','sound']
         self.settings=getComponents(fetchIcons=False)['SettingsComponent'](parentName='', exp=self)
-        self._doc=None#this will be the xml.dom.minidom.doc object for saving
+        self._doc=xml.ElementTree() #this will be the xml.dom.minidom.doc object for saving
         self.namespace = NameSpace(self) # manage variable names
 
         #  _expHandler is a hack to allow saving data from components not inside
@@ -169,7 +171,7 @@ class Experiment(object):
                     "import numpy as np  # whole numpy lib is available, prepend 'np.'\n" +
                     "from numpy import %s\n" % ', '.join(_numpyImports) +
                     "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
-                    "import os  # handy system and path functions\n" + 
+                    "import os  # handy system and path functions\n" +
                     "import sys # to get file system encoding\n")
         script.write("\n")
         self.settings.writeStartCode(script) #present info dlg, make logfile
@@ -182,15 +184,15 @@ class Experiment(object):
 
     def saveToXML(self, filename):
         #create the dom object
-        self.xmlRoot = etree.Element("PsychoPy2experiment")
+        self.xmlRoot = xml.Element("PsychoPy2experiment")
         self.xmlRoot.set('version', __version__)
         self.xmlRoot.set('encoding', 'utf-8')
         #store settings
-        settingsNode=etree.SubElement(self.xmlRoot, 'Settings')
+        settingsNode=xml.SubElement(self.xmlRoot, 'Settings')
         for name, setting in self.settings.params.iteritems():
             settingNode=self._setXMLparam(parent=settingsNode,param=setting,name=name)
         #store routines
-        routinesNode=etree.SubElement(self.xmlRoot, 'Routines')
+        routinesNode=xml.SubElement(self.xmlRoot, 'Routines')
         for routineName, routine in self.routines.iteritems():#routines is a dict of routines
             routineNode = self._setXMLparam(parent=routinesNode,param=routine,name=routineName)
             for component in routine: #a routine is based on a list of components
@@ -198,9 +200,9 @@ class Experiment(object):
                 for name, param in component.params.iteritems():
                     paramNode=self._setXMLparam(parent=componentNode,param=param,name=name)
         #implement flow
-        flowNode=etree.SubElement(self.xmlRoot, 'Flow')
+        flowNode=xml.SubElement(self.xmlRoot, 'Flow')
         for element in self.flow:#a list of elements(routines and loopInit/Terms)
-            elementNode=etree.SubElement(flowNode, element.getType())
+            elementNode=xml.SubElement(flowNode, element.getType())
             if element.getType() == 'LoopInitiator':
                 loop=element.loop
                 name = loop.params['name'].val
@@ -214,9 +216,13 @@ class Experiment(object):
                 elementNode.set('name', element.loop.params['name'].val)
             elif element.getType() == 'Routine':
                 elementNode.set('name', '%s' %element.params['name'])
-        #write to disk
+        #convert to a pretty string
+        self._doc._setroot(self.xmlRoot)#update our document to use the new root
+        simpleString = xml.tostring(self.xmlRoot, 'utf-8')
+        pretty = minidom.parseString(simpleString).toprettyxml(indent="  ")
+        #then write to file
         f=codecs.open(filename, 'wb', 'utf-8')
-        f.write(etree.tostring(self.xmlRoot, encoding=unicode, pretty_print=True))
+        f.write(pretty)
         f.close()
     def _getShortName(self, longName):
         return longName.replace('(','').replace(')','').replace(' ','')
@@ -227,11 +233,14 @@ class Experiment(object):
         if hasattr(param,'getType'):
             thisType = param.getType()
         else: thisType='Param'
-        thisChild = etree.SubElement(parent,thisType)#creates and appends to parent
+        thisChild = xml.SubElement(parent,thisType)#creates and appends to parent
         thisChild.set('name',name)
-        if hasattr(param,'val'): thisChild.set('val',unicode(param.val))
-        if hasattr(param,'valType'): thisChild.set('valType',param.valType)
-        if hasattr(param,'updates'): thisChild.set('updates',unicode(param.updates))
+        if hasattr(param,'val'):
+            thisChild.set('val',unicode(param.val).replace("\n","&#10;"))
+        if hasattr(param,'valType'):
+            thisChild.set('valType',param.valType)
+        if hasattr(param,'updates'):
+            thisChild.set('updates',unicode(param.updates))
         return thisChild
     def _getXMLparam(self,params,paramNode):
         """params is the dict of params of the builder component (e.g. stimulus) into which
@@ -240,31 +249,31 @@ class Experiment(object):
         """
         name=paramNode.get('name')
         valType = paramNode.get('valType')
+        val = paramNode.get('val').replace("&#10;", "\n")
         if name=='storeResponseTime':
             return#deprecated in v1.70.00 because it was redundant
         elif name=='startTime':#deprecated in v1.70.00
             params['startType'].val =unicode('time (s)')
-            params['startVal'].val = unicode(paramNode.get('val'))
+            params['startVal'].val = unicode(val)
             return #times doesn't need to update its type or 'updates' rule
         elif name=='forceEndTrial':#deprecated in v1.70.00
-            params['forceEndRoutine'].val = bool(paramNode.get('val'))
+            params['forceEndRoutine'].val = bool(val)
             return #forceEndTrial doesn't need to update its type or 'updates' rule
         elif name=='forceEndTrialOnPress':#deprecated in v1.70.00
-            params['forceEndRoutineOnPress'].val = bool(paramNode.get('val'))
+            params['forceEndRoutineOnPress'].val = bool(val)
             return #forceEndTrial doesn't need to update its type or 'updates' rule
         elif name=='trialList':#deprecated in v1.70.00
-            params['conditions'].val = eval(paramNode.get('val'))
+            params['conditions'].val = eval(val)
             return #forceEndTrial doesn't need to update its type or 'updates' rule
         elif name=='trialListFile':#deprecated in v1.70.00
-            params['conditionsFile'].val = unicode(paramNode.get('val'))
+            params['conditionsFile'].val = unicode(val)
             return #forceEndTrial doesn't need to update its type or 'updates' rule
         elif name=='duration':#deprecated in v1.70.00
             params['stopType'].val =u'duration (s)'
-            params['stopVal'].val = unicode(paramNode.get('val'))
+            params['stopVal'].val = unicode(val)
             return #times doesn't need to update its type or 'updates' rule
         elif name=='allowedKeys' and valType=='str':#changed in v1.70.00
             #ynq used to be allowed, now should be 'y','n','q' or ['y','n','q']
-            val=paramNode.get('val')
             if len(val)==0:
                 newVal=val
             elif val[0]=='$':
@@ -278,31 +287,31 @@ class Experiment(object):
             params['allowedKeys'].val = newVal
             params['allowedKeys'].valType='code'
         elif name=='correctIf':#deprecated in v1.60.00
-            corrIf=paramNode.get('val')
+            corrIf=val
             corrAns=corrIf.replace('resp.keys==unicode(','').replace(')','')
             params['correctAns'].val=corrAns
             name='correctAns'#then we can fetch thte other aspects correctly below
         elif 'olour' in name:#colour parameter was Americanised in v1.61.00
             name=name.replace('olour','olor')
-            params[name].val = paramNode.get('val')
+            params[name].val = val
         elif name=='times':#deprecated in v1.60.00
-            exec('times=%s' %paramNode.get('val'))
+            exec('times=%s' %val)
             params['startType'].val =unicode('time (s)')
             params['startVal'].val = unicode(times[0])
             params['stopType'].val =unicode('time (s)')
             params['stopVal'].val = unicode(times[1])
             return #times doesn't need to update its type or 'updates' rule
         elif name in ['Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment']:
-            params[name].val = paramNode.get('val')
+            params[name].val = val
             params[name].valType = 'extendedCode' #changed in 1.78.00
             return #so that we don't update valTyp again below
         elif name == 'Saved data folder':
             #deprecated in 1.80 for more complete data filename control
-            params[name] = Param(paramNode.get('val'), valType='code', allowedTypes=[],
+            params[name] = Param(val, valType='code', allowedTypes=[],
                 hint=_translate("Name of the folder in which to save data and log files (blank defaults to the builder pref)"),
                 categ='Data')
         elif 'val' in paramNode.keys():
-            if paramNode.get('val')=='window units':#changed this value in 1.70.00
+            if val=='window units':#changed this value in 1.70.00
                 params[name].val = 'from exp settings'
             # in v1.80.00, several RatingScale API and Param fields were changed
             # Try to avoid a KeyError in these cases so can load the experiment,
@@ -311,7 +320,7 @@ class Experiment(object):
                 return
             elif name == 'customize_everything':
                 # Try to auto-update the code:
-                v = paramNode.get('val')  # python code, not XML
+                v = val  # python code, not XML
                 v = v.replace('markerStyle', 'marker').replace('customMarker', 'marker')
                 v = v.replace('stretchHoriz', 'stretch').replace('displaySizeFactor', 'size')
                 v = v.replace('textSizeFactor', 'textSize')
@@ -322,11 +331,11 @@ class Experiment(object):
                 params[name].val = v
             else:
                 if name in params:
-                    params[name].val = paramNode.get('val')
+                    params[name].val = val
                 else:
                     #we found an unknown parameter (probably from the future)
-                    params[name] = Param(paramNode.get('val'),
-                                    valType=paramNode.get('val'), allowedTypes=[],
+                    params[name] = Param(val,
+                                    valType=paramNode.get('valType'), allowedTypes=[],
                                     hint=_translate("This parameter is not known by this version of PsychoPy. It might be worth upgrading"))
                     params[name].allowedTypes = paramNode.get('allowedTypes')
                     if params[name].allowedTypes is None:
@@ -356,12 +365,8 @@ class Experiment(object):
     def loadFromXML(self, filename):
         """Loads an xml file and parses the builder Experiment from it
         """
-        #open the file using a parser that ignores prettyprinted blank text
-        parser = etree.XMLParser(remove_blank_text=True)
-        f=open(filename)
-        self._doc=etree.XML(f.read(),parser)
-        f.close()
-        root=self._doc#.getroot()
+        self._doc.parse(filename)
+        root=self._doc.getroot()
 
         #some error checking on the version (and report that this isn't valid .psyexp)?
         filename_base = os.path.basename(filename)
@@ -402,7 +407,7 @@ class Experiment(object):
             #self._getXMLparam(params=routine.params, paramNode=routineNode)
             self.routines[routineNode.get('name')]=routine
             for componentNode in routineNode:
-                
+
                 componentType=componentNode.tag
                 if componentType in allCompons:
                     #create an actual component of that type
