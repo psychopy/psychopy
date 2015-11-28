@@ -269,8 +269,9 @@ class TestStairHandler(_BaseTestStairHandler):
             0.439, 0.439, 0.44, 0.441, 0.442, 0.443, 0.443, 0.443, 0.442
         ]
 
+        self.reversalPoints = [4, 10, 12, 18]
         self.reversalIntensities = list(
-                itemgetter(4, 8, 12, 16)(self.intensities)
+                itemgetter(*self.reversalPoints)(self.intensities)
         )
 
         self.simulate()
