@@ -237,6 +237,65 @@ class TestStairHandler(_BaseTestStairHandler):
         self.simulate()
         self.checkSimulationResults()
 
+    def test_StairHandlerLinearReveralsNone(self):
+        nTrials = 20
+        startVal, minVal, maxVal = 0.8, 0, 1
+        stepSizes = [0.1, 0.01, 0.001]
+        nUp, nDown = 1, 3
+        nReversals = None
+        stepType = 'lin'
+
+        self.stairs = data.StairHandler(
+            startVal=startVal, nUp=nUp, nDown=nDown, minVal=minVal,
+            maxVal=maxVal, nReversals=nReversals, stepSizes=stepSizes,
+            nTrials=nTrials, stepType=stepType
+        )
+
+        self.responses = makeBasicResponseCycles(
+            cycles=3, nCorrect=4, nIncorrect=4, length=20
+        )
+
+        self.intensities = [
+            0.8, 0.7, 0.6, 0.5, 0.4, 0.41, 0.42, 0.43, 0.44, 0.44, 0.44,
+            0.439, 0.439, 0.44, 0.441, 0.442, 0.443, 0.443, 0.443, 0.442
+        ]
+
+        self.reversalIntensities = list(
+                itemgetter(4, 8, 12, 16)(self.intensities)
+        )
+
+        self.simulate()
+        self.checkSimulationResults()
+
+    def test_StairHandlerLinearScalarStepSizeReveralsNone(self):
+        nTrials = 10
+        startVal, minVal, maxVal = 0.8, 0, 1
+        stepSizes = 0.1
+        nUp, nDown = 1, 1
+        nReversals = None
+        stepType = 'lin'
+
+        self.stairs = data.StairHandler(
+            startVal=startVal, nUp=nUp, nDown=nDown, minVal=minVal,
+            maxVal=maxVal, nReversals=nReversals, stepSizes=stepSizes,
+            nTrials=nTrials, stepType=stepType
+        )
+
+        self.responses = makeBasicResponseCycles(
+            cycles=4, nCorrect=2, nIncorrect=1, length=10
+        )
+
+        self.intensities = [
+            0.8, 0.7, 0.6, 0.7, 0.6, 0.5, 0.6, 0.5, 0.4, 0.5
+        ]
+
+        self.reversalIntensities = list(
+                itemgetter(2, 3, 5, 6, 8, 9)(self.intensities)
+        )
+
+        self.simulate()
+        self.checkSimulationResults()
+
 
 class TestQuestHandler(_BaseTestStairHandler):
     """
