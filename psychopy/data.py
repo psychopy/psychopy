@@ -3977,8 +3977,18 @@ class _baseFunctionFit:
         self.ssq=0
         self.rms=0
         self.chi=0
-        #do the calculations:
+        # do the calculations:
         self._doFit()
+
+    def _eval(self, *args, **kwargs):
+        raise NotImplementedError(
+                "_eval() method must be defined in child class."
+        )
+
+    def _inverse(self, *args, **kwargs):
+        raise NotImplementedError(
+                "_inverse() method must be defined in child class."
+        )
 
     def _doFit(self):
         """The Fit class that derives this needs to specify its _evalFunction
