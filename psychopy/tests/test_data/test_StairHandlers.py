@@ -18,8 +18,10 @@ class _BaseTestStairHandler(object):
                                type(self).__name__)
 
         self.stairs = None
-        self.responses = None
-        self.intensities = None
+        self.responses = []
+        self.intensities = []
+        self.reversalIntensities = []
+        self.reversalPoints = []
 
         self.exp = data.ExperimentHandler(
                 name='testExp',
@@ -53,14 +55,8 @@ class _BaseTestStairHandler(object):
         stairs = self.stairs
         responses = self.responses
         intensities = self.intensities
-        if hasattr(self, 'reversalPoints'):
-            reversalPoints = self.reversalPoints
-        else:
-            reversalPoints = None
-        if hasattr(self, 'reversalIntensities'):
-            reversalIntensities = self.reversalIntensities
-        else:
-            reversalIntensities = None
+        reversalPoints = self.reversalPoints
+        reversalIntensities = self.reversalIntensities
 
         assert stairs.finished  # Staircase terminated normally.
         assert stairs.data == responses  # Responses were stored correctly.
@@ -81,12 +77,21 @@ class _BaseTestStairHandler(object):
             assert stairs.nReversals == len(stairs.reversalIntensities)
 
         if stairs.reversalPoints:
+            assert stairs.reversalIntensities
+
+        if stairs.reversalIntensities:
+            assert stairs.reversalPoints
+
+        if stairs.reversalPoints:
             assert (len(stairs.reversalPoints) ==
                     len(stairs.reversalIntensities))
 
         if reversalIntensities:
             assert np.allclose(stairs.reversalIntensities,
                                reversalIntensities)
+
+        if reversalPoints:
+            assert stairs.reversalPoints == reversalPoints
 
 
 class _BaseTestMultiStairHandler(_BaseTestStairHandler):
@@ -134,8 +139,9 @@ class TestStairHandler(_BaseTestStairHandler):
             0.439, 0.439, 0.44, 0.441, 0.442, 0.443, 0.443, 0.443, 0.442
         ]
 
+        self.reversalPoints = [4, 10, 12, 18]
         self.reversalIntensities = list(
-                itemgetter(4, 8, 12, 16)(self.intensities)
+                itemgetter(*self.reversalPoints)(self.intensities)
         )
 
         self.simulate()
@@ -168,8 +174,9 @@ class TestStairHandler(_BaseTestStairHandler):
             0.746603441, 0.746603441, 0.738057142
         ]
 
+        self.reversalPoints = [4, 10, 12, 18]
         self.reversalIntensities = list(
-                itemgetter(4, 8, 12, 16)(self.intensities)
+                itemgetter(*self.reversalPoints)(self.intensities)
         )
 
         self.simulate()
@@ -201,8 +208,9 @@ class TestStairHandler(_BaseTestStairHandler):
             0.746603441, 0.746603441, 0.738057142
         ]
 
+        self.reversalPoints = [4, 10, 12, 18]
         self.reversalIntensities = list(
-                itemgetter(4, 8, 12, 16)(self.intensities)
+                itemgetter(*self.reversalPoints)(self.intensities)
         )
 
         self.simulate()
@@ -230,8 +238,9 @@ class TestStairHandler(_BaseTestStairHandler):
             0.8, 0.7, 0.6, 0.7, 0.6, 0.5, 0.6, 0.5, 0.4, 0.5
         ]
 
+        self.reversalPoints = [2, 3, 5, 6, 8, 9]
         self.reversalIntensities = list(
-                itemgetter(2, 3, 5, 6, 8, 9)(self.intensities)
+                itemgetter(*self.reversalPoints)(self.intensities)
         )
 
         self.simulate()
@@ -289,8 +298,9 @@ class TestStairHandler(_BaseTestStairHandler):
             0.8, 0.7, 0.6, 0.7, 0.6, 0.5, 0.6, 0.5, 0.4, 0.5
         ]
 
+        self.reversalPoints = [2, 3, 5, 6, 8, 9]
         self.reversalIntensities = list(
-                itemgetter(2, 3, 5, 6, 8, 9)(self.intensities)
+                itemgetter(*self.reversalPoints)(self.intensities)
         )
 
         self.simulate()
