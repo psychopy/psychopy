@@ -20,6 +20,7 @@ import codecs
 import weakref
 import re
 import warnings
+import collections
 
 try:
     #import openpyxl
@@ -3574,26 +3575,46 @@ class MultiStairHandler(_BaseTrialHandler):
         #store the origin file and its path
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp = None#the experiment handler that owns me!
+
     def _checkArguments(self):
-        #did we get a conditions parameter, correctly formatted
-        if type(self.conditions) not in [list]:
-            logging.error('conditions parameter to MultiStairHandler should be a list, not a %s' %type(self.conditions))
-            return
-        c0=self.conditions[0]
-        if type(c0)!=dict:
-            logging.error('conditions to MultiStairHandler should be a list of python dictionaries' + \
-                ', not a list of %ss' %type(c0))
-        #did conditions contain the things we need?
+        # Did we get a `conditions` parameter, correctly formatted?
+        if not isinstance(self.conditions, collections.Iterable):
+            raise TypeError(
+                    '`conditions` parameter passed to MultiStairHandler '
+                    'should be a list, not a %s.' %type(self.conditions)
+            )
+
+        c0 = self.conditions[0]
+        if type(c0) != dict:
+            raise TypeError(
+                    '`conditions` passed to MultiStairHandler should be a '
+                    'list of python dictionaries, not a list of %ss.' %
+                    type(c0)
+            )
+
+        # Did `conditions` contain the things we need?
         params = c0.keys()
-        if self.type in ['simple','quest','QUEST']:
-            if 'startVal' not in params:
-                logging.error('MultiStairHandler needs a param called `startVal` in conditions')
-            if 'label' not in params:
-                logging.error('MultiStairHandler needs a param called `label` in conditions')
-            if 'startValSd' not in params and self.type in ['QUEST','quest']:
-                logging.error("MultiStairHandler('quest') needs a param called `startValSd` in conditions")
-        else:
-            logging.error("MultiStairHandler `stairType` should be 'simple', 'QUEST' or 'quest', not '%s'" %self.type)
+        if self.type not in ['simple','quest','QUEST']:
+            raise ValueError(
+                    'MultiStairHandler `stairType` should be \'simple\', '
+                    '\'QUEST\' or \'quest\', not \'%s\'' % self.type
+            )
+
+        if 'startVal' not in params:
+            raise AttributeError(
+                    'MultiStairHandler needs a parameter called '
+                    '`startVal` in conditions')
+        if 'label' not in params:
+            raise AttributeError(
+                    'MultiStairHandler needs a parameter called `label` '
+                    'in conditions'
+            )
+        if self.type in ['QUEST','quest'] and 'startValSd' not in params:
+            raise AttributeError(
+                    'MultiStairHandler needs a parameter called '
+                    '`startValSd` in conditions for QUEST staircases.'
+            )
+
     def _createStairs(self):
         for condition in self.conditions:
             # We create a copy, because we are going to remove items from
