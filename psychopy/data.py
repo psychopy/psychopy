@@ -2490,8 +2490,11 @@ class StairHandler(_BaseTrialHandler):
                 The initial value for the staircase.
 
             nReversals:
-                The minimum number of reversals permitted. If stepSizes is a list then there must
-                also be enough reversals to satisfy this list.
+                The minimum number of reversals permitted.
+                If `stepSizes` is a list, but the minimum number of
+                reversals to perform, `nReversals`, is less than the
+                length of this list, PsychoPy will automatically increase
+                the minimum number of reversals and emit a warning.
 
             stepSizes:
                 The size of steps as a single value or a list (or array). For a single value the step
@@ -2545,21 +2548,28 @@ class StairHandler(_BaseTrialHandler):
         """
         self.name=name
         self.startVal=startVal
-        self.nReversals=nReversals
         self.nUp=nUp
         self.nDown=nDown
         self.extraInfo=extraInfo
         self.method=method
         self.stepType=stepType
 
-        self.stepSizes=stepSizes
         try:
-            self.stepSizeCurrent = stepSizes[0]
-            self.nReversals = max(len(stepSizes), self.nReversals)
-            self._variableStep = True
-        except (IndexError, TypeError):  # stepSizes is not array-like.
-            self.stepSizeCurrent = stepSizes
-            self._variableStep = False
+            self.stepSizes = list(stepSizes)
+        except TypeError:  # stepSizes is not array-like, i.e., a scalar.
+            self.stepSizes = [stepSizes]
+
+        self._variableStep = True if len(self.stepSizes) > 1 else False
+        self.stepSizeCurrent = self.stepSizes[0]
+
+        if nReversals is not None and len(self.stepSizes) > nReversals:
+            logging.warn(
+                    "Increasing number of minimum required reversals to "
+                    "the number of step sizes (%i)." % len(self.stepSizes)
+            )
+            self.nReversals = len(self.stepSizes)
+        else:
+            self.nReversals = nReversals
 
         self.nTrials = nTrials#to terminate the nTrials must be exceeded and either
         self.finished=False

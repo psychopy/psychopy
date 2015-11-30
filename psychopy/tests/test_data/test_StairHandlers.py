@@ -4,9 +4,10 @@ from psychopy import data, logging
 import numpy as np
 import shutil
 from tempfile import mkdtemp
+from operator import itemgetter
 
 logging.console.setLevel(logging.DEBUG)
-DEBUG=False
+DEBUG = False
 
 np.random.seed(1000)
 
@@ -15,6 +16,13 @@ class _BaseTestStairHandler(object):
     def setup(self):
         self.tmpFile = mkdtemp(prefix='psychopy-tests-%s' %
                                type(self).__name__)
+
+        self.stairs = None
+        self.responses = []
+        self.intensities = []
+        self.reversalIntensities = []
+        self.reversalPoints = []
+
         self.exp = data.ExperimentHandler(
                 name='testExp',
                 savePickle=True,
@@ -47,14 +55,8 @@ class _BaseTestStairHandler(object):
         stairs = self.stairs
         responses = self.responses
         intensities = self.intensities
-        if hasattr(self, 'reversalPoints'):
-            reversalPoints = self.reversalPoints
-        else:
-            reversalPoints = None
-        if hasattr(self, 'reversalIntensities'):
-            reversalIntensities = self.reversalIntensities
-        else:
-            reversalIntensities = None
+        reversalPoints = self.reversalPoints
+        reversalIntensities = self.reversalIntensities
 
         assert stairs.finished  # Staircase terminated normally.
         assert stairs.data == responses  # Responses were stored correctly.
@@ -75,12 +77,21 @@ class _BaseTestStairHandler(object):
             assert stairs.nReversals == len(stairs.reversalIntensities)
 
         if stairs.reversalPoints:
+            assert stairs.reversalIntensities
+
+        if stairs.reversalIntensities:
+            assert stairs.reversalPoints
+
+        if stairs.reversalPoints:
             assert (len(stairs.reversalPoints) ==
                     len(stairs.reversalIntensities))
 
         if reversalIntensities:
             assert np.allclose(stairs.reversalIntensities,
                                reversalIntensities)
+
+        if reversalPoints:
+            assert stairs.reversalPoints == reversalPoints
 
 
 class _BaseTestMultiStairHandler(_BaseTestStairHandler):
@@ -128,7 +139,10 @@ class TestStairHandler(_BaseTestStairHandler):
             0.439, 0.439, 0.44, 0.441, 0.442, 0.443, 0.443, 0.443, 0.442
         ]
 
-        self.reversalIntensities = [0.4, 0.44, 0.439, 0.443]
+        self.reversalPoints = [4, 10, 12, 18]
+        self.reversalIntensities = list(
+                itemgetter(*self.reversalPoints)(self.intensities)
+        )
 
         self.simulate()
         self.checkSimulationResults()
@@ -160,9 +174,10 @@ class TestStairHandler(_BaseTestStairHandler):
             0.746603441, 0.746603441, 0.738057142
         ]
 
-        self.reversalIntensities = [
-            0.665411017, 0.729608671, 0.713000751, 0.746603441
-        ]
+        self.reversalPoints = [4, 10, 12, 18]
+        self.reversalIntensities = list(
+                itemgetter(*self.reversalPoints)(self.intensities)
+        )
 
         self.simulate()
         self.checkSimulationResults()
@@ -193,9 +208,101 @@ class TestStairHandler(_BaseTestStairHandler):
             0.746603441, 0.746603441, 0.738057142
         ]
 
-        self.reversalIntensities = [
-            0.665411017, 0.729608671, 0.713000751, 0.746603441
+        self.reversalPoints = [4, 10, 12, 18]
+        self.reversalIntensities = list(
+                itemgetter(*self.reversalPoints)(self.intensities)
+        )
+
+        self.simulate()
+        self.checkSimulationResults()
+
+    def test_StairHandlerScalarStepSize(self):
+        nTrials = 10
+        startVal, minVal, maxVal = 0.8, 0, 1
+        stepSizes = 0.1
+        nUp, nDown = 1, 1
+        nReversals = 6
+        stepType = 'lin'
+
+        self.stairs = data.StairHandler(
+            startVal=startVal, nUp=nUp, nDown=nDown, minVal=minVal,
+            maxVal=maxVal, nReversals=nReversals, stepSizes=stepSizes,
+            nTrials=nTrials, stepType=stepType
+        )
+
+        self.responses = makeBasicResponseCycles(
+            cycles=4, nCorrect=2, nIncorrect=1, length=10
+        )
+
+        self.intensities = [
+            0.8, 0.7, 0.6, 0.7, 0.6, 0.5, 0.6, 0.5, 0.4, 0.5
         ]
+
+        self.reversalPoints = [2, 3, 5, 6, 8, 9]
+        self.reversalIntensities = list(
+                itemgetter(*self.reversalPoints)(self.intensities)
+        )
+
+        self.simulate()
+        self.checkSimulationResults()
+
+    def test_StairHandlerLinearReveralsNone(self):
+        nTrials = 20
+        startVal, minVal, maxVal = 0.8, 0, 1
+        stepSizes = [0.1, 0.01, 0.001]
+        nUp, nDown = 1, 3
+        nReversals = None
+        stepType = 'lin'
+
+        self.stairs = data.StairHandler(
+            startVal=startVal, nUp=nUp, nDown=nDown, minVal=minVal,
+            maxVal=maxVal, nReversals=nReversals, stepSizes=stepSizes,
+            nTrials=nTrials, stepType=stepType
+        )
+
+        self.responses = makeBasicResponseCycles(
+            cycles=3, nCorrect=4, nIncorrect=4, length=20
+        )
+
+        self.intensities = [
+            0.8, 0.7, 0.6, 0.5, 0.4, 0.41, 0.42, 0.43, 0.44, 0.44, 0.44,
+            0.439, 0.439, 0.44, 0.441, 0.442, 0.443, 0.443, 0.443, 0.442
+        ]
+
+        self.reversalPoints = [4, 10, 12, 18]
+        self.reversalIntensities = list(
+                itemgetter(*self.reversalPoints)(self.intensities)
+        )
+
+        self.simulate()
+        self.checkSimulationResults()
+
+    def test_StairHandlerLinearScalarStepSizeReveralsNone(self):
+        nTrials = 10
+        startVal, minVal, maxVal = 0.8, 0, 1
+        stepSizes = 0.1
+        nUp, nDown = 1, 1
+        nReversals = None
+        stepType = 'lin'
+
+        self.stairs = data.StairHandler(
+            startVal=startVal, nUp=nUp, nDown=nDown, minVal=minVal,
+            maxVal=maxVal, nReversals=nReversals, stepSizes=stepSizes,
+            nTrials=nTrials, stepType=stepType
+        )
+
+        self.responses = makeBasicResponseCycles(
+            cycles=4, nCorrect=2, nIncorrect=1, length=10
+        )
+
+        self.intensities = [
+            0.8, 0.7, 0.6, 0.7, 0.6, 0.5, 0.6, 0.5, 0.4, 0.5
+        ]
+
+        self.reversalPoints = [2, 3, 5, 6, 8, 9]
+        self.reversalIntensities = list(
+                itemgetter(*self.reversalPoints)(self.intensities)
+        )
 
         self.simulate()
         self.checkSimulationResults()
