@@ -666,9 +666,27 @@ class ScreenPositionValidation(object):
     NUM_VALID_SAMPLES_PER_TARG = 100
     TARGET_TIMEOUT=10.0
     def __init__(self, win, io, target_stim = None, pos_grid = None,
-                 display_pen_pos = True, force_quit=True):
+                 display_pen_pos = True, force_quit=True, intro_title=None,
+                 intro_text1=None, intro_text2=None, intro_target_pos=None):
+        """
+        ScreenPositionValidation is used to perform a pen position accuracy
+        test for an iohub wintab device.
 
-        from psychopy.iohub.util.targetpositionsequence import TargetStim, PositionGrid
+        :param win: psychopy Window instance to ude for the validation graphics
+        :param io: iohub connection instance
+        :param target_stim: None to use default, or  psychopy.iohub.util.targetpositionsequence.TargetStim instance
+        :param pos_grid: None to use default, or  psychopy.iohub.util.targetpositionsequence.PositionGrid instance
+        :param display_pen_pos: True to add calculated pen position graphic
+        :param force_quit: Not Used
+        :param intro_title: None to use default, str or unicode to set the text used for the introduction screen title, or an instance of psychopy.visual.TextStim
+        :param intro_text1: None to use default, str or unicode to set the text used for the introduction text part 1, or an instance of psychopy.visual.TextStim
+        :param intro_text2: None to use default, str or unicode to set the text used for the introduction text part 2, or an instance of psychopy.visual.TextStim
+        :param intro_target_pos: None to use default, or (x,y) position to place the target graphic on the introduction screen. (x,y) position must be specified in 'norm' coordinate space.
+        :return:
+        """
+
+        from psychopy.iohub.util.targetpositionsequence import TargetStim, \
+                                                                PositionGrid
 
         self.win = win
         self.io = io
@@ -681,11 +699,19 @@ class ScreenPositionValidation(object):
         # IntroScreen Graphics
         intro_graphics = self._introScreenGraphics = OrderedDict()
 
-        intro_graphics['title'] = visual.TextStim(self.win, units='norm',
+        # Title Text
+        title_stim = visual.TextStim(self.win, units='norm',
                                                     pos=(0, .9),
                                                     height = 0.1,
                                             text="Pen Position Validation")
-        intro_graphics['text1'] = visual.TextStim(self.win, units='norm',
+        if isinstance(intro_title, basestring):
+            title_stim.setText(intro_title)
+        elif isinstance(intro_title, visual.TextStim):
+            title_stim = intro_title
+        intro_graphics['title'] = title_stim
+
+        # Intro Text part 1
+        text1_stim = visual.TextStim(self.win, units='norm',
                                                     pos=(0, .65),
                                                     height = 0.05,
                                             text="On the following screen, "
@@ -696,12 +722,21 @@ class ScreenPositionValidation(object):
                                                  "moves to a different "
                                                  "location. Then press at the "
                                                  "next target location. "
-                                                 "Please hold the pen as you "
-                                                 "would when writing "
-                                                 "(i.e. not fully upright).",
+                                                 "Hold the stylus in exactly "
+                                                 "the same way as you would "
+                                                 "hold a pen for normal "
+                                                 "handwriting.",
                                             wrapWidth=1.25
                                             )
-        intro_graphics['text2'] = visual.TextStim(self.win, units='norm',
+
+        if isinstance(intro_text1, basestring):
+            text1_stim.setText(intro_text1)
+        elif isinstance(intro_text1, visual.TextStim):
+            text1_stim = intro_text1
+        intro_graphics['text1'] = text1_stim
+
+        # Intro Text part 2
+        text2_stim = visual.TextStim(self.win, units='norm',
                                                     pos=(0, -0.2),
                                                     height = 0.066,
                                                     color = 'green',
@@ -709,6 +744,11 @@ class ScreenPositionValidation(object):
                                                  "target to start the "
                                                  "validation, or the ESC key "
                                                  "to skip the procedure.")
+        if isinstance(intro_text2, basestring):
+            text2_stim.setText(intro_text2)
+        elif isinstance(intro_text2, visual.TextStim):
+            text2_stim = intro_text2
+        intro_graphics['text2'] = text2_stim
 
         self._penStim = None
         if self._displayPenPosition:
@@ -740,6 +780,8 @@ class ScreenPositionValidation(object):
                                           opacity=1.0,
                                           contrast=1.0
                                           )
+        if intro_target_pos:
+            self._targetStim.setPos(intro_target_pos)
 
         intro_graphics['target'] = self._targetStim
 
@@ -793,8 +835,6 @@ class ScreenPositionValidation(object):
     def _enterIntroScreen(self):
         kb = self.io.devices.keyboard
         pen = self.io.devices.tablet
-
-        self._introScreenGraphics['target'].setPos((0,0))
 
         exit_screen = False
         hitcount = 0
