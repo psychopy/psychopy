@@ -10,6 +10,8 @@ PsychoPy is an open-source application to allow the presentation of stimuli and 
 News
 ====================
 
+**P4N workshop 2016**: Get your place on :ref:`Python workshop/bootcamp 6-8 April 2016 <P4N>`. Book now to avoid disappointment!`
+
 **Latest version**: 1.83.01 was released Oct 2015. See the full :doc:`changelog`
 
 We've got a new Movie engine!! Rejoice! MovieStim3 (built on the `moviepy <zulko.github.io/moviepy/>`_

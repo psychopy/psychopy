@@ -3,13 +3,13 @@
 P4N 2016: Python for Neuroscience (and Psychology)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The workshop isn't finalised yet and you can't book places, but you can `register your interest <https://docs.google.com/forms/d/1gEKIc-eBsPYxCgVzMaqBh4CMQNMyyfO-s-p_y2WuxHE/viewform>`_ to be kept informed when we know the details.
+You `can book on the workshop NOW <http://store.nottingham.ac.uk/browse/extra_info.asp?compid=1&modid=2&deptid=9&catid=49&prodid=610&searchresults=1>`_  while spaces are available.
+
+Do you want to get started using Python_ (and PsychoPy_) for your studies in behavioural sciences? Maybe you keep meaning to switch from another package and haven't gotten around to it. This workshop will get you off the ground with building and analysing your experiments using Python.
 
 .. image:: jumpAnimate.gif
    :width: 100 %
 	
-Do you want to get started using Python_ (and PsychoPy_) for your studies in behavioural sciences? Maybe you keep meaning to switch from another package and haven't gotten around to it. This workshop will get you off the ground with building and analysing your experiments using Python.
-
 `Python`_ is a powerful well-designed programming language that's totally free and runs on all operating systems. It's a little like a free replacement for Matlab, but with more flexibility and better syntax!
 
 `PsychoPy`_ is a modern, powerful, easy-to-use software package for conducting studies in psychophysics, neuroimaging and experimental psychology. It's become the package of choice in very many labs worldwide (see `PsychoPy usage stats <http://www.psychopy.org/usage.php>`_). It comes with a graphical interface (Builder) as well as a `Python` scripting interface (Coder), which will be the primary focus at this workshop.
@@ -20,8 +20,8 @@ The workshop is led by Jon Peirce, who created the core of PsychoPy and has over
 Details
 ------------
 
-    :Spaces: 30 beginner (and 30 intermediate?)
-    :When: TBA
+    :Spaces: 60 beginner
+    :When: 6-8 April 2016 (inclusive)
     :Where: School of Psychology, University of Nottingham
     :Cost: £350
     :Includes: Refreshments and lunch. There is an accommodation package too, costing around £45 per night including bed and breakfast
