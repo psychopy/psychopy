@@ -23,5 +23,5 @@ http://labjack.com/support/labjackpython
 	To use labjack devices you do need also to install the driver software 
 	described on the page above
 	
-.. autoclass:: labjack.u3
+.. autoclass:: labjack.u3.U3
     :members:

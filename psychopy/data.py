@@ -2272,6 +2272,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
     :class:`MultiStairHandler` as a `conditions` list.
 
     If `fileName` ends with:
+
         - .csv:  import as a comma-separated-value file (header + row x col)
         - .xlsx: import as Excel 2007 (xlsx) files. Sorry no support for older (.xls) is planned.
         - .pkl:  import from a pickle file as list of lists (header + row x col)
@@ -2289,11 +2290,12 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
     It can be a list/array of indices, a python `slice` object or a string to
     be parsed as either option.
     e.g.:
-        "1,2,4" or [1,2,4] or (1,2,4) are the same
-        "2:5"       # 2,3,4 (doesn't include last whole value)
-        "-10:2:"    #tenth from last to the last in steps of 2
-        slice(-10,2,None) #the same as above
-        random(5)*8 #5 random vals 0-8
+
+        - "1,2,4" or [1,2,4] or (1,2,4) are the same
+        - "2:5"       # 2,3,4 (doesn't include last whole value)
+        - "-10:2:"    #tenth from last to the last in steps of 2
+        - slice(-10,2,None) #the same as above
+        - random(5)*8 #5 random vals 0-8
 
     """
     def _assertValidVarNames(fieldNames, fileName):
@@ -2647,8 +2649,10 @@ class StairHandler(_BaseTrialHandler):
     def addData(self, result, intensity=None):
         """Deprecated since 1.79.00: This function name was ambiguous. Please use one of
         these instead:
+
             .addResponse(result, intensity)
             .addOtherData('dataName', value')
+
         """
         self.addResponse(result, intensity)
 
@@ -3342,13 +3346,13 @@ class PsiHandler(StairHandler):
 
     Because Psi is a Bayesian method, it can be initialized with a prior from existing research. A function
     to save the posterior over Lambda as a Numpy binary file is included.
-    
-    Kontsevich & Tyler (1999) specify their psychometric function in terms of d'. PsiHandler avoids this 
-    and treats all parameters with respect to stimulus intensity. Specifically, the forms of the psychometric 
+
+    Kontsevich & Tyler (1999) specify their psychometric function in terms of d'. PsiHandler avoids this
+    and treats all parameters with respect to stimulus intensity. Specifically, the forms of the psychometric
     function assumed for Yes/No and Two Alternative Forced Choice (2AFC) are, respectively:
-    
+
     Y(x) = .5 * delta + (1 - delta) * norm.cdf(x, mean=alpha, sd=beta)
-    
+
     Y(x) = .5 * delta + (1 - delta) * (.5 + .5 * norm.cdf(x, mean=alpha, sd=beta))
     """
 
@@ -3773,8 +3777,10 @@ class MultiStairHandler(_BaseTrialHandler):
         """Deprecated 1.79.00: It was ambiguous whether you were adding the response
         (0 or 1) or some other data concerning the trial so there is now a pair
         of explicit methods:
+
             addResponse(corr,intensity) #some data that alters the next trial value
             addOtherData('RT', reactionTime) #some other data that won't control staircase
+
         """
         self.addResponse(result, intensity)
         if type(result) in [str, unicode]:

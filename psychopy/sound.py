@@ -224,24 +224,25 @@ class SoundPygame(_SoundBase):
     def play(self, fromStart=True, log=True, loops=None):
         """Starts playing the sound on an available channel.
 
-        Parameters
-        ----------
-        fromStart : bool
-            Not yet implemented.
-        log : bool
-            Whether or not to log the playback event.
-        loops : int
-            How many times to repeat the sound after it plays once. If
-            `loops` == -1, the sound will repeat indefinitely until stopped.
+        :Parameters:
 
-        Notes
-        -----
-        If no sound channels are available, it will not play and return None.
-        This runs off a separate thread i.e. your code won't wait for the
-        sound to finish before continuing. You need to use a
-        psychopy.core.wait() command if you want things to pause.
-        If you call play() whiles something is already playing the sounds will
-        be played over each other.
+            fromStart : bool
+                Not yet implemented.
+            log : bool
+                Whether or not to log the playback event.
+            loops : int
+                How many times to repeat the sound after it plays once. If
+                `loops` == -1, the sound will repeat indefinitely until stopped.
+
+        :Notes:
+
+            If no sound channels are available, it will not play and return None.
+            This runs off a separate thread i.e. your code won't wait for the
+            sound to finish before continuing. You need to use a
+            psychopy.core.wait() command if you want things to pause.
+            If you call play() whiles something is already playing the sounds will
+            be played over each other.
+
         """
         if loops is None:
             loops = self.loops

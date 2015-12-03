@@ -853,8 +853,10 @@ class TextureMixin(object):
         self.__dict__['texRes'] = value
 
         # ... now rebuild textures (call attributeSetters without logging).
-        if hasattr(self, 'tex'): setAttribute(self, 'tex', self.tex, log=False)
-        if hasattr(self, 'mask'): setAttribute(self, 'mask', self.mask, log=False)
+        if hasattr(self, 'tex'):
+            setAttribute(self, 'tex', self.tex, log=False)
+        if hasattr(self, 'mask'):
+            setAttribute(self, 'mask', self.mask, log=False)
 
     @attributeSetter
     def maskParams(self, value):
@@ -868,6 +870,15 @@ class TextureMixin(object):
                 cosine edge."""
         self.__dict__['maskParams'] = value
         setAttribute(self, 'mask', self.mask, log=False)  # call attributeSetter without log
+
+    @attributeSetter
+    def interpolate(self, value):
+        """Whether to interpolate (linearly) the texture in the stimulus
+
+        If set to False then nearest neighbour will be used when needed,
+        otherwise some form of interpolation will be used.
+        """
+        self.__dict__['interpolate'] = value
 
 class WindowMixin(object):
     """Window-related attributes and methods.
