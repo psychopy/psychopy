@@ -57,46 +57,49 @@ class _BaseVoiceKey(object):
     """
     def __init__(self, sec=0, file_out='', file_in='', **config):
         """
-    :Parameters:
+        :Parameters:
 
-        sec:
-            duration to record in seconds
-        file_out:
-            name for output filename (for microphone input)
-        file_in:
-            name of input file for sound source (not microphone)
-        config:  kwargs dict of parameters for configuration. defaults are:
+            sec:
+                duration to record in seconds
 
-            'msPerChunk': 2; duration of each real-time analysis chunk, in ms
+            file_out:
+                name for output filename (for microphone input)
 
-            'signaler': default None
+            file_in:
+                name of input file for sound source (not microphone)
 
-            'autosave': True; False means manual saving to a file is still
-                possible (by calling .save() but not called automatically upon
-                stopping
+            config:  kwargs dict of parameters for configuration. defaults are:
 
-            'chnl_in' : microphone channel; see pyo.pa_get_input_devices()
+                'msPerChunk': 2; duration of each real-time analysis chunk, in ms
 
-            'chnl_out': not implemented; output device to use
+                'signaler': default None
 
-            'start': 0, select section from a file based on (start, stop) time
+                'autosave': True; False means manual saving to a file is still
+                    possible (by calling .save() but not called automatically upon
+                    stopping
 
-            'stop': -1, end of file (default)
+                'chnl_in' : microphone channel; see pyo.pa_get_input_devices()
 
-            'vol': 0.99, volume 0..1
+                'chnl_out': not implemented; output device to use
 
-            'low': 100, Hz, low end of bandpass; can vary for M/F speakers
+                'start': 0, select section from a file based on (start, stop) time
 
-            'high': 3000, Hz, high end of bandpass
+                'stop': -1, end of file (default)
 
-            'threshold': 10
+                'vol': 0.99, volume 0..1
 
-            'baseline': 0; 0 = auto-detect; give a non-zero value to use that
+                'low': 100, Hz, low end of bandpass; can vary for M/F speakers
 
-            'more_processing': True; compute more stats per chunk including
-                bandpass; try False if 32-bit python can't keep up
+                'high': 3000, Hz, high end of bandpass
 
-            'zero_crossings': True
+                'threshold': 10
+
+                'baseline': 0; 0 = auto-detect; give a non-zero value to use that
+
+                'more_processing': True; compute more stats per chunk including
+                    bandpass; try False if 32-bit python can't keep up
+
+                'zero_crossings': True
         """
         if not (pyo_server and pyo_server.getIsBooted() and
                 pyo_server.getIsStarted()):
@@ -509,6 +512,7 @@ class OnsetVoiceKey(_BaseVoiceKey):
 
     Uses bandpass-filtered signal (100-3000Hz). When the voice key trips,
     the best voice-onset RT estimate is saved as `self.event_onset`, in seconds.
+
     """
     def detect(self):
         """Trip if recent audio power is greater than the baseline for long enough.

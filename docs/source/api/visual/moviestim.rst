@@ -11,7 +11,6 @@ Attributes
 
     MovieStim
     MovieStim.win
-    MovieStim.mask
     MovieStim.units
     MovieStim.pos
     MovieStim.ori
