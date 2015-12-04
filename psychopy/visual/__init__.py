@@ -12,15 +12,17 @@ from psychopy import logging
 from psychopy.constants import *
 
 # window, should always be loaded first
-from psychopy.visual.window import Window, getMsPerFrame, openWindows
+from .window import Window, getMsPerFrame, openWindows
 
 # non-private helpers
-from psychopy.visual.helpers import pointInPolygon, polygonsOverlap
+from .helpers import pointInPolygon, polygonsOverlap
 
 # absolute essentials (nearly all experiments will need these)
-from psychopy.visual.basevisual import BaseVisualStim
-from psychopy.visual.image import ImageStim
-from psychopy.visual.text import TextStim
+from .basevisual import BaseVisualStim
+from .image import ImageStim
+from .text import TextStim
+
+# need absolute imports within lazyImports
 
 lazyImports = """
 # stimuli derived from object or MinimalStim
