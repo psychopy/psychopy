@@ -28,19 +28,19 @@ from psychopy.tools.attributetools import attributeSetter
 from .grating import GratingStim
 import numpy
 
-from . import _shaders
+from . import shaders as _shaders
 
 #we need a different shader program for this (3 textures)
 carrierEnvelopeMaskFrag = '''
     uniform sampler2D carrier, envelope, mask;
     uniform float moddepth, offset, ori, add;
-     
+
     void main() {
     float mid=0.5;
         vec4 carrierFrag = texture2D(carrier,gl_TexCoord[0].st);
         vec4 maskFrag = texture2D(mask,gl_TexCoord[2].st);
         vec2 tex = gl_TexCoord[1].st;
-       
+
         vec2 rotated = vec2(cos(ori) * (tex.x - mid ) + sin(ori) * (tex.y - mid) + mid , cos(ori) * (tex.y - mid) - sin(ori) * (tex.x - mid) + mid );
         vec4 envFrag = texture2D( envelope,  rotated);
         gl_FragColor.a = gl_Color.a*maskFrag.a;
@@ -57,12 +57,12 @@ class EnvelopeGrating(GratingStim):
     env1 = EnvelopeGrating(win,ori=0, carrier='sin', envelope='sin', mask = 'gauss', sf=24, envsf=4, size=1, contrast=0.5, moddepth=1.0, envori=0, pos=[-.5,.5],interpolate=0) #gives a circular patch of high frequency carrier with a low frequency envelope
     env2 = EnvelopeGrating(win,ori=0, carrier=noise, envelope='sin', mask = None, sf=1, envsf=4, size=1, contrast=0.5, moddepth=0.8, envori=0, pos=[-.5,-.5],interpolate=0) #If noise is some numpy array contaning random values gives a circular patch of noise with a low freqeuncy sinewave envelope
     env4 = EnvelopeGrating(win,ori=90, carrier='sin', envelope='sin', mask = 'gauss', sf=24, envsf=4, size=1, contrast=0.5, moddepth=1.0, envori=0, pos=[.5,.5], beat=True, interpolate=0) #Setting beat will create a second order beat stimulus whic  critically contains no net energy at the carrier frequency even though it appears to be present in this case carrier and envelope are at 90 degree to each other
-    
-    With an EnvelopeStim the carrier and envelope can have different spatial frequency phase and orienetation 
+
+    With an EnvelopeStim the carrier and envelope can have different spatial frequency phase and orienetation
     Its postion can be shifted as a whole.
     contrast controls the contrast of the carrier and moddepth the modulation depth of the envelope.
     oppacity controls the transparency of the whole stimulus.
-    
+
     Because orientation is implemented very differently for the carrier and envelope using this function
     without a msk will produce unexpected results
 
@@ -147,7 +147,7 @@ class EnvelopeGrating(GratingStim):
         self.beat=bool(beat)
         #print(self.CMphase)
         self._shaderProg = _shaders.compileProgram(_shaders.vertSimple, carrierEnvelopeMaskFrag)
-        
+
         self.local=numpy.ones((texRes,texRes),dtype=numpy.ubyte)
         self.local_p=self.local.ctypes
         #self.local=GL.GL_UNSIGNED_BYTE(self.local)
@@ -182,7 +182,7 @@ class EnvelopeGrating(GratingStim):
         self.__dict__['envsf'] = value
         self._calcEnvCyclesPerStim()
         self._needUpdate = True
-        
+
     @attributeSetter
     def envphase(self, value):
         """Phase of the modulation in each dimension of the texture.
@@ -197,21 +197,21 @@ class EnvelopeGrating(GratingStim):
         value = val2array(value)
         self.__dict__['envphase'] = value
         self._needUpdate = True
-        
+
     @attributeSetter
     def moddepth(self, value):
         """modulation depth for envelope
         """
         self.__dict__['moddepth'] = value
         self._needUpdate = True
-        
+
     @attributeSetter
     def envori(self, value):
         """Orientation for envelope
         """
         self.__dict__['envori'] = value
         self._needUpdate = True
-        
+
     @attributeSetter
     def beat(self, value):
         """Orientation for envelope
@@ -257,10 +257,10 @@ class EnvelopeGrating(GratingStim):
         if self.useShaders==True:
             self._createTexture(value, id=self._envelopeID, pixFormat=GL.GL_RGB, stim=self,
                 res=self.texRes)
-        else:            
+        else:
             self._createTexture(value, id=self._envelopeID, pixFormat=GL.GL_ALPHA, stim=self,
                 res=self.texRes)
-            
+
         #if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
             self.size = None  # Reset size do default
@@ -275,17 +275,17 @@ class EnvelopeGrating(GratingStim):
         stimulus changes. Call it if you change a property manually
         rather than using the .set() command
         """
-        
+
         #make some corrections for the envelope:: The could be done whenever the envelope variables are set using some internal variables, putting it here is safer but sometimes slower
         envrad=(self.ori-self.envori)*numpy.pi/180.0 # correct envelope oritation to adjust for link with carrier orientation, to make it clockwise handed and convert to radians
         rph1=numpy.cos(envrad)*self.envphase[0]+numpy.sin(envrad)*self.envphase[1] # adjust envolope phases so that any envelope drift points in the same direction as the envelope.
         rph2=-numpy.cos(envrad)*self.envphase[1]+numpy.sin(envrad)*self.envphase[0]
-        
-        if 'avg' in self.win.blendMode: 
+
+        if 'avg' in self.win.blendMode:
             addvalue=1.0
         else:
             addvalue=0.0
-        
+
         self._needUpdate = False
         GL.glNewList(self._listID,GL.GL_COMPILE)
         #setup the shaderprogram
@@ -294,33 +294,33 @@ class EnvelopeGrating(GratingStim):
         GL.glUniform1i(GL.glGetUniformLocation(self._shaderProg, "envelope"), 1) #set the envelope to be texture unit 1
         GL.glUniform1i(GL.glGetUniformLocation(self._shaderProg, "mask"), 2)  # mask is texture unit 2
         GL.glUniform1f(GL.glGetUniformLocation(self._shaderProg, "moddepth"),self.moddepth)
-        GL.glUniform1f(GL.glGetUniformLocation(self._shaderProg, "ori"),envrad)   
+        GL.glUniform1f(GL.glGetUniformLocation(self._shaderProg, "ori"),envrad)
         GL.glUniform1f(GL.glGetUniformLocation(self._shaderProg, "offset"),1.0-self.beat)   # CM envelopes use (modedepth*envelope+1.0)*carrier. If beat is True this becomes (moddepth*envelope)*carrier thus maing a second order 'beat' pattern.
         GL.glUniform1f(GL.glGetUniformLocation(self._shaderProg, "add"),addvalue)   # CM envelopes use (modedepth*envelope+1.0)*carrier. If beat is True this becomes (moddepth*envelope)*carrier thus maing a second order 'beat' pattern.
- 
+
         #mask
         GL.glActiveTexture(GL.GL_TEXTURE2)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
         GL.glEnable(GL.GL_TEXTURE_2D)#implicitly disables 1D
-        #envelope 
+        #envelope
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._envelopeID)
         GL.glEnable(GL.GL_TEXTURE_2D)
 
-        #carrier 
+        #carrier
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._carrierID)
         GL.glEnable(GL.GL_TEXTURE_2D)
-        
+
         Lcar = -self._cycles[0]/2 - self.phase[0]+0.5
         Rcar = +self._cycles[0]/2 - self.phase[0]+0.5
         Tcar = +self._cycles[1]/2 - self.phase[1]+0.5
         Bcar = -self._cycles[1]/2 - self.phase[1]+0.5
-        
-        Lenv = -self._envcycles[0]/2-rph1+0.5 
-        Renv = +self._envcycles[0]/2-rph1+0.5 
-        Tenv = +self._envcycles[1]/2-rph2+0.5 
-        Benv = -self._envcycles[1]/2-rph2+0.5 
+
+        Lenv = -self._envcycles[0]/2-rph1+0.5
+        Renv = +self._envcycles[0]/2-rph1+0.5
+        Tenv = +self._envcycles[1]/2-rph2+0.5
+        Benv = -self._envcycles[1]/2-rph2+0.5
         Lmask=Bmask= 0.0; Tmask=Rmask=1.0#mask
 
         vertsPix = self.verticesPix #access just once because it's slower than basic property
@@ -371,11 +371,11 @@ class EnvelopeGrating(GratingStim):
     #for the sake of older graphics cards------------------------------------
     def _updateListNoShaders(self):
         """
-        This currently combines the carrier and evelope as if they 
+        This currently combines the carrier and evelope as if they
         add so is plain wrong. Therefore there is a assertion in the init function which will
         throw an error if the window object does not have shaders. Thus this function should never be
         reached. If someone without shaders wishes to do second-order gratings they need a new solution.
-        
+
         The user shouldn't need this method since it gets called
         after every call to .set() Basically it updates the OpenGL
         representation of your stimulus if some parameter of the
@@ -384,10 +384,10 @@ class EnvelopeGrating(GratingStim):
         """
         self._needUpdate = False
 
-        
- 
-        
-        
+
+
+
+
         GL.glColor4f(1.0,1.0,1.0,1.0)#glColor can interfere with multitextures
         #mask
         GL.glActiveTextureARB(GL.GL_TEXTURE2_ARB)
@@ -408,12 +408,12 @@ class EnvelopeGrating(GratingStim):
         Rcar = +self._cycles[0]/2 - self.phase[0]+0.5
         Tcar = +self._cycles[1]/2 - self.phase[1]+0.5
         Bcar = -self._cycles[1]/2 - self.phase[1]+0.5
-        
+
         Lenv = -self._envcycles[0]/2 - self.envphase[0]+0.5
         Renv = +self._envcycles[0]/2 - self.envphase[0]+0.5
         Tenv = +self._envcycles[1]/2 - self.envphase[1]+0.5
         Benv = -self._envcycles[1]/2 - self.envphase[1]+0.5
-        
+
         Lmask=Bmask= 0.0; Tmask=Rmask=1.0#mask
 
         vertsPix = self.verticesPix #access just once because it's slower than basic property

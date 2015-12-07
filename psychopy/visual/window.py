@@ -82,7 +82,7 @@ reportNDroppedFrames = 5  # stop raising warning after this
 
 from psychopy.gamma import getGammaRamp, setGammaRamp, setGamma
 #import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
-from . import _shaders
+from . import shaders as _shaders
 try:
     from pyglet import media
     havePygletMedia = True

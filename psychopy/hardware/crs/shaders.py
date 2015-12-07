@@ -13,7 +13,7 @@
 #    It is, for example, Mario's idea to add the 0.01 to avoid rounding issues
 
 from __future__ import absolute_import
-from psychopy.visual._shaders import compileProgram, vertSimple
+from psychopy.visual.shaders import compileProgram, vertSimple
 
 bitsMonoModeFrag="""
 /* Mono++ output formatter
