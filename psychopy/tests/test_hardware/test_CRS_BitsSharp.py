@@ -12,7 +12,11 @@ from psychopy.hardware import crs
 win = visual.Window(screen=1, fullscr=True, useFBO=True, autoLog=True)
 win.setGamma(1.0) #make sure gfx card LUT is identity
 #initialise BitsSharp
-bits = crs.BitsSharp(win=win, mode='color++')
+try:
+    bits = crs.BitsSharp(win=win, mode='color++')
+except ImportError:
+    pytest.skip("crs.BitsSharp: could not initialize. possible:\nfrom serial.tools import list_ports\n"
+       "ImportError: No module named tools")
 if not bits.OK:
     win.close()
     pytest.skip("No BitsSharp connected")

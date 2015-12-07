@@ -5,6 +5,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from __future__ import absolute_import
+
 import numpy, sys, platform, ctypes, ctypes.util
 import pyglet
 from psychopy import logging

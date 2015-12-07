@@ -3,11 +3,19 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os, sys
-import calibTools
-from calibTools import *
+from .calibTools import *
+"""# probably only need something like:
+    DACrange, GammaCalculator, Monitor, Photometer,
+    findPR650, gammaFun, gammaInvFun, getAllMonitors,
+    getLumSeries, getLumSeriesPR650, getRGBspectra,
+    makeDKL2RGB, makeLMS2RGB,
+    monitorFolder, pr650code,
+    wavelength_5nm, juddVosXYZ1976_5nm, cones_SmithPokorny
+    )
+"""
 
 #create a test monitor if there isn't one already
-if 'testMonitor' not in calibTools.getAllMonitors():
+if 'testMonitor' not in getAllMonitors():
     defMon = Monitor('testMonitor',
         width=30,
         distance=57,

@@ -22,8 +22,10 @@ except ImportError: # if it's not there locally, try the wxPython lib.
     import wx.lib.agw.advancedsplash as AS
 #NB keep imports to a minimum here because splash screen has not yet shown
 #e.g. coder and builder are imported during app.__init__ because they take a while
-from psychopy import preferences, logging#needed by splash screen for the path to resources/psychopySplash.png
-from psychopy.app import connections
+
+#needed by splash screen for the path to resources/psychopySplash.png
+from psychopy import preferences, logging, __version__
+from . import connections
 import sys, os, threading
 
 # knowing if the user has admin priv is generally a good idea for security.

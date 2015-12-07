@@ -12,6 +12,9 @@
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
+
+from __future__ import absolute_import
+
 import pyglet
 pyglet.options['debug_gl'] = False
 import ctypes
@@ -22,10 +25,10 @@ from psychopy import logging
 
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import attributeSetter
-from psychopy.visual.grating import GratingStim
+from .grating import GratingStim
 import numpy
 
-import psychopy._shadersPyglet as _shaders
+from . import _shaders
 
 #we need a different shader program for this (3 textures)
 carrierEnvelopeMaskFrag = '''
@@ -436,7 +439,7 @@ class EnvelopeGrating(GratingStim):
         GL.glMultiTexCoord2f(GL.GL_TEXTURE2,Rmask,Tmask)
         GL.glVertex2f(vertsPix[3,0], vertsPix[3,1])
         GL.glEnd()
-        
+
         #disable mask
         GL.glActiveTextureARB(GL.GL_TEXTURE2_ARB)
         GL.glDisable(GL.GL_TEXTURE_2D)
@@ -461,7 +464,7 @@ class EnvelopeGrating(GratingStim):
         GL.glDeleteTextures(1, self._carrierID)
         GL.glDeleteTextures(1, self._envelopeID)
         GL.glDeleteTextures(1, self._maskID)
-    
+
     def _calcEnvCyclesPerStim(self):
 
         if self.units in ['norm', 'height']:
@@ -470,4 +473,3 @@ class EnvelopeGrating(GratingStim):
         else:
             #self._cycles = self.sf * self.size
             self._envcycles = self.envsf * self.size
-         

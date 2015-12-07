@@ -4,9 +4,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from calibData import *
+from .calibData import wavelength_5nm, juddVosXYZ1976_5nm, cones_SmithPokorny
 from psychopy import __version__, logging, hardware
-import time
 
 try:
     import serial

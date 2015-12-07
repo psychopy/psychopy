@@ -4,14 +4,17 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from __future__ import absolute_import
+
 import os, glob, copy
 import wx
 from PIL import Image
 from os.path import join, dirname, abspath
+from importlib import import_module  #  helps python 2.7 -> 3.x migration
 
-excludeComponents = ['VisualComponent', 'BaseComponent', #these are templates, not for use
+excludeComponents = ['BaseComponent', 'BaseVisualComponent', #these are templates, not for use
                      'EyetrackerComponent', #this one isn't ready yet
-                     ]
+                    ]
 
 
 def pilToBitmap(pil, scaleFactor=1.0):
@@ -49,13 +52,16 @@ def getIcons(filename=None):
     return icons
 
 def getComponents(folder=None, fetchIcons=True):
-    """Get a dictionary of available component objects for the Builder experiments.
+    """Get a dictionary of available components for the Builder experiments.
 
-    If folder is None then the built-in components will be returned, otherwise
-    the components found in the folder provided will be returned.
+    If folder is None then the built-in components will be imported and
+    returned, otherwise the components found in the folder provided will be.
     """
     if folder is None:
         folder = dirname(__file__)
+        pkg = 'psychopy.app.builder.components'
+    else:
+        pkg = os.path.basename(folder)  # this is not sufficient, broken still
     os.sys.path.append(folder)
     components={}
     #setup a default icon
@@ -65,8 +71,14 @@ def getComponents(folder=None, fetchIcons=True):
     if os.path.isdir(folder):
         for file in glob.glob(os.path.join(folder, '*.py')):#must start with a letter
             file=os.path.split(file)[1]
-#            module = imp.load_source(file[:-3], fullPath)#can't use imp - breaks py2app
-            exec('import %s as module' %(file[:-3]))
+            if file in ['__init__.py', '_base.py']:
+                continue
+            #module = imp.load_source(file[:-3], fullPath)#can't use imp - breaks py2app
+            #v1.83.00 exec(implicit relative):
+            #exec('import %s as module' %(file[:-3]))
+            # import_module eases 2.7 -> 3.x migration
+            explicit_rel_path = '.' + file[:-3]
+            module = import_module(explicit_rel_path, package=pkg)
             if not hasattr(module,'categories'):
                 module.categories=['Custom']
             for attrib in dir(module):
@@ -76,11 +88,11 @@ def getComponents(folder=None, fetchIcons=True):
                     attrib not in excludeComponents:#must be a component
                     name=attrib
                     components[attrib]=getattr(module, attrib)
-                    
+
                     #skip if this class was imported, not defined here
                     if module.__name__!=components[attrib].__module__:
                         continue #class was defined in different module
-                    
+
                     #also try to get an iconfile
                     if fetchIcons:
                         if hasattr(module,'iconFile'):

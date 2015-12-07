@@ -9,7 +9,8 @@
 from psychopy import logging
 
 # needed for backwards-compatibility
-from psychopy.constants import *
+from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED, STOPPED,
+                                FINISHED, PRESSED, RELEASED, FOREVER)
 
 # window, should always be loaded first
 from .window import Window, getMsPerFrame, openWindows

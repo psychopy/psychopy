@@ -2,10 +2,9 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from _base import *
 from os import path
-from psychopy.app.builder.experiment import Param
 import re
+from ._base import BaseComponent, Param
 
 __author__ = 'Jeremy Gray'
 

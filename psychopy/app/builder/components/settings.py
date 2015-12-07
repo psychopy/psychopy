@@ -1,6 +1,6 @@
-from os import path
-from _base import *
 import os
+import wx, copy
+from ._base import BaseComponent, Param
 from psychopy import logging
 
 #this is not a standard component - it will appear on toolbar not in components panel

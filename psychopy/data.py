@@ -4,17 +4,12 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import logging
-from psychopy.tools.arraytools import extendArr, shuffleArray
-from psychopy.tools.fileerrortools import handleFileCollision
-from psychopy.tools.filetools import openOutputFile, genDelimiter
-import psychopy
+from __future__ import absolute_import
+
 from pandas import DataFrame, read_csv
 import cPickle, string, sys, os, time, copy
 import numpy
 from scipy import optimize, special
-from contrib.quest import QuestObject    #used for QuestHandler
-from contrib.psi import PsiObject   #used for PsiHandler
 import inspect #so that Handlers can find the script that called them
 import codecs
 import weakref
@@ -29,6 +24,14 @@ try:
     haveOpenpyxl=True
 except ImportError:
     haveOpenpyxl=False
+
+from psychopy import logging
+from psychopy.tools.arraytools import extendArr, shuffleArray
+from psychopy.tools.fileerrortools import handleFileCollision
+from psychopy.tools.filetools import openOutputFile, genDelimiter
+import psychopy
+from psychopy.contrib.quest import QuestObject    #used for QuestHandler
+from psychopy.contrib.psi import PsiObject   #used for PsiHandler
 
 _experiments=weakref.WeakValueDictionary()
 _nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
@@ -3342,13 +3345,13 @@ class PsiHandler(StairHandler):
 
     Because Psi is a Bayesian method, it can be initialized with a prior from existing research. A function
     to save the posterior over Lambda as a Numpy binary file is included.
-    
-    Kontsevich & Tyler (1999) specify their psychometric function in terms of d'. PsiHandler avoids this 
-    and treats all parameters with respect to stimulus intensity. Specifically, the forms of the psychometric 
+
+    Kontsevich & Tyler (1999) specify their psychometric function in terms of d'. PsiHandler avoids this
+    and treats all parameters with respect to stimulus intensity. Specifically, the forms of the psychometric
     function assumed for Yes/No and Two Alternative Forced Choice (2AFC) are, respectively:
-    
+
     Y(x) = .5 * delta + (1 - delta) * norm.cdf(x, mean=alpha, sd=beta)
-    
+
     Y(x) = .5 * delta + (1 - delta) * (.5 + .5 * norm.cdf(x, mean=alpha, sd=beta))
     """
 

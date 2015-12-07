@@ -1,20 +1,23 @@
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import print_function
-import StringIO, sys, codecs
-from components import getInitVals, getComponents, getAllComponents
-import psychopy
-from psychopy import data, __version__, logging
-from psychopy.constants import FOREVER
+
+from __future__ import absolute_import, print_function
+
+import re, os
 import xml.etree.ElementTree as xml
 from xml.dom import minidom
 
-import re, os
+import StringIO, sys, codecs
+from .components import getInitVals, getComponents, getAllComponents
+import psychopy
+from psychopy import data, __version__, logging
+from psychopy.constants import FOREVER
+
 try:
     _translate  # is the app-global text translation function defined?
 except NameError:
-    from psychopy.app import localization
+    from .. import localization
 import locale
 # predefine some regex's; deepcopy complains if do in NameSpace.__init__()
 _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")  # detect "code wanted"
@@ -111,7 +114,7 @@ class Experiment(object):
         self.prefsBuilder=prefs.builder
         self.prefsPaths=prefs.paths
         #this can be checked by the builder that this is an experiment and a compatible version
-        self.psychopyVersion=__version__ #imported from components
+        self.psychopyVersion=__version__
         self.psychopyLibs=['visual','core','data','event','logging','sound']
         self.settings=getComponents(fetchIcons=False)['SettingsComponent'](parentName='', exp=self)
         self._doc=xml.ElementTree() #this will be the xml.dom.minidom.doc object for saving
@@ -158,8 +161,8 @@ class Experiment(object):
         else:
             localDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
 
-        script.write('#!/usr/bin/env python2\n' +
-                    '# -*- coding: utf-8 -*-\n' +
+        script.write('#!/usr/bin/env python2\n'
+                    '# -*- coding: utf-8 -*-\n'
                     '"""\nThis experiment was created using PsychoPy2 Experiment Builder (v%s),\n'
                     '    on %s\n' % (self.psychopyVersion, localDateTime ) +
                     'If you publish work using this script please cite the PsychoPy publications:\n'
@@ -167,9 +170,10 @@ class Experiment(object):
                     '        Journal of Neuroscience Methods, 162(1-2), 8-13.\n'
                     '    Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy.\n'
                     '        Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
-        script.write("\nfrom __future__ import division  # so that 1/3=0.333 instead of 1/3=0\n")
+        script.write("\nfrom __future__ import absolute_import, division\n")
         script.write("from psychopy import locale_setup, %s\n" % ', '.join(self.psychopyLibs) +
-                    "from psychopy.constants import *  # things like STARTED, FINISHED\n"
+                    "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,\n"
+                    "                                STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)\n"
                     "import numpy as np  # whole numpy lib is available, prepend 'np.'\n"
                     "from numpy import %s\n" % ', '.join(_numpyImports) +
                     "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +

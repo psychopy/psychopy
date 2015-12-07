@@ -2,6 +2,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from __future__ import absolute_import
+
 import wx
 from wx.lib import platebtn, scrolledpanel, flatnotebook
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
@@ -11,19 +13,20 @@ import keyword
 import codecs
 import re
 import numpy
-import experiment, components
+
+from . import experiment, components
 
 try:
     _translate  # is the app-global text translation function defined?
 except NameError:
-    from psychopy.app import localization
+    from .. import localization
 
-from psychopy.app import stdOutRich, dialogs
+from .. import stdOutRich, dialogs
 from psychopy import data, logging, gui
 from psychopy.tools.filetools import mergeFolder
 import cPickle
-from psychopy.app.builder.experiment import _valid_var_re, _nonalphanumeric_re
-from psychopy.app.builder import validators
+from .experiment import _valid_var_re, _nonalphanumeric_re
+from . import validators
 
 canvasColor = [200, 200, 200]  # in prefs? ;-)
 routineTimeColor = wx.Colour(50, 100, 200, 200)

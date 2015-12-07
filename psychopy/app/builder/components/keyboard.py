@@ -2,11 +2,10 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from _base import *
 from os import path
 
-from psychopy.app.builder.experiment import CodeGenerationException, _valid_var_re
-from psychopy.app.builder.experiment import TrialHandler
+from ._base import BaseComponent, Param
+from ..experiment import CodeGenerationException, _valid_var_re
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'keyboard.png')

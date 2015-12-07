@@ -13,6 +13,8 @@ their experiment vary by locale. If they do, it is easy enough for them to
 create multiple versions of an experiment.
 """
 
+from __future__ import absolute_import
+
 import platform
 mac_ver = platform.mac_ver()[0]  # e.g., '10.9.5' or '' for non-Mac
 

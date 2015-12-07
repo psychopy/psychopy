@@ -1,6 +1,9 @@
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+
+from __future__ import absolute_import
+
 import sys
 import re, glob
 import time, platform, zipfile, os
@@ -10,8 +13,9 @@ try:
     import wx.lib.agw.hyperlink as wxhl
 except ImportError: # if it's not there locally, try the wxPython lib
     import wx.lib.hyperlink as wxhl
+
 import psychopy
-from psychopy.app import dialogs
+from . import dialogs
 from psychopy import logging
 from psychopy import web
 py3 = web.py3

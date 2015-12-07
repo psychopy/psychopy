@@ -6,6 +6,8 @@ Various useful functions for creating filters and textures (e.g. for PatchStim)
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from __future__ import absolute_import
+
 import numpy
 from numpy.fft import fft2, ifft2, fftshift, ifftshift
 from psychopy import logging
