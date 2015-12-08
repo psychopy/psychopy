@@ -76,7 +76,8 @@ def getComponents(folder=None, fetchIcons=True):
     (Previously, files were in `/.../.../compts`.) In addition, the directory
     must contain a python init file, ` /.../.../compts/compts/__init__.py`,
     to allow it to be treated as a module in python so that the components
-    can be imported.
+    can be imported. For this reason, the file name for a component
+    cannot begin with a number; it must be a legal python name.
 
     The code within the component.py file itself must use absolute paths for
     importing from psychopy:
@@ -99,7 +100,8 @@ def getComponents(folder=None, fetchIcons=True):
         # ideally hard link them, but permissions fail on windows
         if not os.path.isdir(folder):
             files = [f for f in glob.glob(join(pth, '*'))
-                     if not os.path.isdir(f)]
+                     if not os.path.isdir(f) and
+                     not f[0] in '_0123456789']
             if files:
                 os.mkdir(folder)
                 with open(join(folder, '__init__.py'), 'a') as fileh:
@@ -120,7 +122,7 @@ def getComponents(folder=None, fetchIcons=True):
     filexp = os.path.join(folder, '*.py')
     for cmpfile in glob.glob(filexp):
         cmpfile = os.path.split(cmpfile)[1]
-        if cmpfile.startswith('_'): # __init__.py, _base.py, etc
+        if cmpfile[0] in '_0123456789': # __init__.py, _base.py, leading digit
             continue
         # can't use imp - breaks py2app:
         #module = imp.load_source(file[:-3], fullPath)
