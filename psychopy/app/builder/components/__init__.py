@@ -6,15 +6,16 @@
 
 from __future__ import absolute_import
 
-import os, glob, copy
+import os, glob, copy, shutil
 import wx
 from PIL import Image
 from os.path import join, dirname, abspath
 from importlib import import_module  #  helps python 2.7 -> 3.x migration
 
-excludeComponents = ['BaseComponent', 'BaseVisualComponent', #these are templates, not for use
-                     'EyetrackerComponent', #this one isn't ready yet
-                    ]
+excludeComponents = [
+    'BaseComponent', 'BaseVisualComponent', #these are templates, not for use
+    'EyetrackerComponent', #this one isn't ready yet
+    ]
 
 
 def pilToBitmap(pil, scaleFactor=1.0):
@@ -56,54 +57,105 @@ def getComponents(folder=None, fetchIcons=True):
 
     If folder is None then the built-in components will be imported and
     returned, otherwise the components found in the folder provided will be.
+
+    Changed v1.84.00:
+    The Builder preference "components folders" should be of the form:
+    `/.../.../compts`. This is unchanged from previously, and allows for
+    backwards compatibility.
+
+    New as of v1.84: A slightly different directory structure is needed. An
+    existing directory will be automatically upgraded if the previous one
+    was not empty. However, files starting with '_' will be skipped, as will any
+    directories. You will need to manually move those into the new
+    directory (from the old .../compts/ into the new .../compts/compts/).
+
+    As of v1.84, a components path needs directory structure `/.../.../compts/compts`.
+    That is, the path should end with the name repeated. (It does not need to
+    be 'compts' literally.)
+    The .py and .png files for a component should all go in this directory.
+    (Previously, files were in `/.../.../compts`.) In addition, the directory
+    must contain a python init file, ` /.../.../compts/compts/__init__.py`,
+    to allow it to be treated as a module in python so that the components
+    can be imported.
+
+    The code within the component.py file itself must use absolute paths for
+    importing from psychopy:
+       `from psychopy.app.builder.components._base import BaseComponent, Param`
     """
     if folder is None:
-        folder = dirname(__file__)
+        pth = folder = dirname(__file__)
         pkg = 'psychopy.app.builder.components'
     else:
-        pkg = os.path.basename(folder)  # this is not sufficient, broken still
-    os.sys.path.append(folder)
-    components={}
+        # default shared location is often not actually a folder
+        if not os.path.isdir(folder):
+            return {}
+        pth = folder = folder.rstrip(os.sep)
+        pkg = os.path.basename(folder)
+        if not folder.endswith(join(pkg, pkg)):
+            folder = os.path.join(folder, pkg)
+
+        # update the old style directory (v1.83.03) to the new style
+        # try to retain backwards compatibility: copy files, not move them
+        # ideally hard link them, but permissions fail on windows
+        if not os.path.isdir(folder):
+            files = [f for f in glob.glob(join(pth, '*'))
+                     if not os.path.isdir(f)]
+            if files:
+                os.mkdir(folder)
+                with open(join(folder, '__init__.py'), 'a') as fileh:
+                    fileh.write('')
+                for f in files:
+                    if f.startswith('_'):
+                        continue
+                    shutil.copy(f, folder)
+    if not pth in os.sys.path:
+        os.sys.path.insert(0, pth)
+
+    components = {}
     #setup a default icon
     if fetchIcons and 'default' not in icons.keys():
         icons['default']=getIcons(filename=None)
-    #go through components in directory
-    if os.path.isdir(folder):
-        for file in glob.glob(os.path.join(folder, '*.py')):#must start with a letter
-            file=os.path.split(file)[1]
-            if file in ['__init__.py', '_base.py']:
-                continue
-            #module = imp.load_source(file[:-3], fullPath)#can't use imp - breaks py2app
-            #v1.83.00 exec(implicit relative):
-            #exec('import %s as module' %(file[:-3]))
-            # import_module eases 2.7 -> 3.x migration
-            explicit_rel_path = '.' + file[:-3]
-            module = import_module(explicit_rel_path, package=pkg)
-            if not hasattr(module,'categories'):
-                module.categories=['Custom']
-            for attrib in dir(module):
-                name=None
-                #just fetch the attributes that end with 'Component', not other functions
-                if attrib.endswith('omponent') and \
-                    attrib not in excludeComponents:#must be a component
-                    name=attrib
-                    components[attrib]=getattr(module, attrib)
 
-                    #skip if this class was imported, not defined here
-                    if module.__name__!=components[attrib].__module__:
-                        continue #class was defined in different module
+    # go through components in directory
+    filexp = os.path.join(folder, '*.py')
+    for cmpfile in glob.glob(filexp):
+        cmpfile = os.path.split(cmpfile)[1]
+        if cmpfile.startswith('_'): # __init__.py, _base.py, etc
+            continue
+        # can't use imp - breaks py2app:
+        #module = imp.load_source(file[:-3], fullPath)
+        #v1.83.00 used exec(implicit-relative), no go for python3:
+        #exec('import %s as module' %(file[:-3]))
 
-                    #also try to get an iconfile
-                    if fetchIcons:
-                        if hasattr(module,'iconFile'):
-                            icons[name]=getIcons(module.iconFile)
-                        else:
-                            icons[name]=icons['default']
-                    if hasattr(module, 'tooltip'):
-                        tooltips[name] = module.tooltip
-                    #assign the module categories to the Component
-                    if not hasattr(components[attrib], 'categories'):
-                        components[attrib].categories=['Custom']
+        # importlib.import_module eases 2.7 -> 3.x migration
+        explicit_rel_path = '.' + cmpfile[:-3]
+        module = import_module(explicit_rel_path, package=pkg)
+
+        if not hasattr(module,'categories'):
+            module.categories=['Custom']
+        for attrib in dir(module):
+            name=None
+            # fetch the attribs that end with 'Component'
+            if (attrib.endswith('omponent') and
+                    attrib not in excludeComponents):
+                name=attrib
+                components[attrib]=getattr(module, attrib)
+
+                #skip if this class was imported, not defined here
+                if module.__name__!=components[attrib].__module__:
+                    continue #class was defined in different module
+
+                #also try to get an iconfile
+                if fetchIcons:
+                    if hasattr(module,'iconFile'):
+                        icons[name]=getIcons(module.iconFile)
+                    else:
+                        icons[name]=icons['default']
+                if hasattr(module, 'tooltip'):
+                    tooltips[name] = module.tooltip
+                #assign the module categories to the Component
+                if not hasattr(components[attrib], 'categories'):
+                    components[attrib].categories=['Custom']
     return components
 
 def getAllComponents(folderList=[], fetchIcons=True):
