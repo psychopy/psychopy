@@ -59,6 +59,9 @@ from psychopy.visual.rect import Rect
 from psychopy.visual.circle import Circle
 
 from psychopy.visual.textbox import TextBox
+
+from psychopy.visual import gamma
+from psychopy.visual import filters
 """
 try:
     from psychopy.contrib.lazy_import import lazy_import
