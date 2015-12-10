@@ -9,8 +9,8 @@ from __future__ import absolute_import
 from psychopy import logging
 import wx
 import numpy
-import string, os
-from psychopy.app import localization
+import os
+from psychopy.app import localization  # pylint: disable=W0611
 
 OK = wx.ID_OK
 

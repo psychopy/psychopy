@@ -8,7 +8,7 @@ import re, os
 import xml.etree.ElementTree as xml
 from xml.dom import minidom
 
-import StringIO, sys, codecs
+import StringIO, codecs
 from .components import getInitVals, getComponents, getAllComponents
 import psychopy
 from psychopy import data, __version__, logging

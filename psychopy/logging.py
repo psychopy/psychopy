@@ -31,7 +31,7 @@ messages, (which PsychoPy doesn't use) using the commands::
 from __future__ import absolute_import
 
 from os import path
-import sys, codecs, weakref
+import sys, codecs
 from psychopy import clock
 
 _packagePath = path.split(__file__)[0]

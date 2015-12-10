@@ -8,9 +8,9 @@ pulses and user responses. Limitations: pyglet only; keyboard events only.
 
 __author__ = 'Jeremy Gray'
 
-from psychopy import visual, event, core, logging
 import threading
 
+from psychopy import visual, event, core, logging
 from psychopy.sound import Sound # for SyncGenerator tone
 
 class ResponseEmulator(threading.Thread):

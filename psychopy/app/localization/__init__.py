@@ -15,7 +15,7 @@ Sets the locale value as a wx languageID (int) and initializes gettext translati
 
 
 import gettext
-import os, sys, glob, codecs
+import os, glob, codecs
 from psychopy import logging, prefs
 
 import wx

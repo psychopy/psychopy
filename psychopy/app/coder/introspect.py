@@ -7,7 +7,6 @@ __revision__ = "$Revision: 1.15 $"[11:-2]
 
 import cStringIO
 import inspect
-import sys
 import tokenize
 import types
 import wx

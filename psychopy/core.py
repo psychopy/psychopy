@@ -9,10 +9,11 @@ from __future__ import absolute_import, print_function
 import sys, threading
 import subprocess, shlex
 
+# some things are imported just to be accessible within core's namespace
 from psychopy.clock import (MonotonicClock, Clock, CountdownTimer,
-                            wait, monotonicClock, getAbsTime)
+                            wait, monotonicClock, getAbsTime)  # pylint: disable=W0611
 # always safe to call rush, even if its not going to do anything for a particular OS
-from psychopy.platform_specific import rush
+from psychopy.platform_specific import rush  # pylint: disable=W0611
 from psychopy import logging
 from psychopy.constants import STARTED, NOT_STARTED, FINISHED
 

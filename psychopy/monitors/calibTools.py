@@ -12,7 +12,7 @@ try:
     haveSerial=True
 except:
     haveSerial=False
-import string, os, time, glob, cPickle, sys
+import os, time, glob, cPickle, sys
 from copy import deepcopy, copy
 
 import numpy

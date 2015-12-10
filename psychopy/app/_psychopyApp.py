@@ -7,7 +7,6 @@
 from __future__ import absolute_import
 
 import sys, psychopy
-import copy
 
 if not hasattr(sys, 'frozen'):
     try:

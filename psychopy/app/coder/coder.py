@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import
 
-import sys, time, types, re
+import time, types
 import wx, wx.stc, wx.aui, wx.richtext
 from wx.html import HtmlEasyPrinting
 import keyword, os, sys, string, StringIO, glob, platform, io

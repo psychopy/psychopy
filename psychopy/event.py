@@ -10,8 +10,8 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 
 from __future__ import absolute_import
 
-import sys, time, copy
-import string, numpy
+import copy
+import numpy
 
 #try to import pyglet & pygame and hope the user has at least one of them!
 try:
