@@ -100,7 +100,7 @@ class TestLaunchScan:
 
     def test_wait_timeout(self):
         '''Ensure that the wait_timeout happily rejects bad values.'''
-        with pytest.raises(TimeoutError):
+        with pytest.raises(RuntimeError):
             vol = launchScan(self.win, BASE_MR_SETTINGS, wait_timeout=.1,
                              mode='Scan', log=False)
         with pytest.raises(ValueError):
