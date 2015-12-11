@@ -3,7 +3,11 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys, time, types, re
-import wx, wx.stc, wx.aui, wx.richtext
+import wx, wx.stc, wx.richtext
+try:
+    from wx import aui
+except:
+    import wx.lib.agw.aui as aui # some versions of phoenix
 import keyword, os, sys, string, StringIO, glob, platform, io
 import threading, traceback, bdb, cPickle
 import psychoParser
@@ -395,7 +399,7 @@ class FileDropTarget(wx.FileDropTarget):
 class CodeEditor(wx.stc.StyledTextCtrl):
     # this comes mostly from the wxPython demo styledTextCtrl 2
     def __init__(self, parent, ID, frame,
-                 pos=wx.DefaultPosition, size=wx.Size(100,100),#set the viewer to be small, then it will increase with wx.aui control
+                 pos=wx.DefaultPosition, size=wx.Size(100,100),#set the viewer to be small, then it will increase with aui control
                  style=0, readonly=False):
         wx.stc.StyledTextCtrl.__init__(self, parent, ID, pos, size, style)
         #JWP additions
@@ -1138,17 +1142,17 @@ class CoderFrame(wx.Frame):
         self.SetAcceleratorTable(accelTable)
 
         #make the pane manager
-        self.paneManager = wx.aui.AuiManager()
+        self.paneManager = aui.AuiManager()
 
         #create an editor pane
-        self.paneManager.SetFlags(wx.aui.AUI_MGR_RECTANGLE_HINT)
+        self.paneManager.SetFlags(aui.AUI_MGR_RECTANGLE_HINT)
         self.paneManager.SetManagedWindow(self)
         #make the notebook
-        self.notebook = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600),
-            style= wx.aui.AUI_NB_TOP | wx.aui.AUI_NB_TAB_SPLIT | wx.aui.AUI_NB_SCROLL_BUTTONS | \
-                wx.aui.AUI_NB_TAB_MOVE | wx.aui.AUI_NB_CLOSE_ON_ACTIVE_TAB | wx.aui.AUI_NB_WINDOWLIST_BUTTON)
+        self.notebook = aui.AuiNotebook(self, -1, size=wx.Size(600,600),
+            style= aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT | aui.AUI_NB_SCROLL_BUTTONS | \
+                aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB | aui.AUI_NB_WINDOWLIST_BUTTON)
 
-        self.paneManager.AddPane(self.notebook, wx.aui.AuiPaneInfo().
+        self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
                           Name("Editor").Caption(_translate("Editor")).
                           CenterPane(). #'center panes' expand to fill space
                           CloseButton(False).MaximizeButton(True))
@@ -1156,8 +1160,8 @@ class CoderFrame(wx.Frame):
         self.notebook.SetFocus()
         self.notebook.SetDropTarget(FileDropTarget(coder = self))
 
-        self.notebook.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
-        self.notebook.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
+        self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
+        self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
         #self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pageChanged)
         self.SetDropTarget(FileDropTarget(coder = self))
         self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
@@ -1173,11 +1177,11 @@ class CoderFrame(wx.Frame):
                 self.setCurrentDoc(filename, keepHidden=True)
 
         #create the shelf for shell and output views
-        self.shelf = wx.aui.AuiNotebook(self, -1, size=wx.Size(600,600),
-            style= wx.aui.AUI_NB_TOP | wx.aui.AUI_NB_TAB_SPLIT | wx.aui.AUI_NB_SCROLL_BUTTONS | \
-                wx.aui.AUI_NB_TAB_MOVE)
+        self.shelf = aui.AuiNotebook(self, -1, size=wx.Size(600,600),
+            style= aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT | aui.AUI_NB_SCROLL_BUTTONS | \
+                aui.AUI_NB_TAB_MOVE)
         self.paneManager.AddPane(self.shelf,
-                                 wx.aui.AuiPaneInfo().
+                                 aui.AuiPaneInfo().
                                  Name("Shelf").Caption(_translate("Shelf")).
                                  RightDockable(True).LeftDockable(True).CloseButton(False).
                                  Bottom())
@@ -1213,7 +1217,7 @@ class CoderFrame(wx.Frame):
         self.sourceAsstWindow = wx.richtext.RichTextCtrl(self,-1, size=wx.Size(300,300),
                                           style=wx.TE_MULTILINE|wx.TE_READONLY)
         self.paneManager.AddPane(self.sourceAsstWindow,
-                                 wx.aui.AuiPaneInfo().BestSize((600,600)).
+                                 aui.AuiPaneInfo().BestSize((600,600)).
                                  Name("SourceAsst").Caption(_translate("Source Assistant")).
                                  RightDockable(True).LeftDockable(True).CloseButton(False).
                                  Right())
@@ -1774,7 +1778,7 @@ class CoderFrame(wx.Frame):
             self.notebook.AddPage(p, shortName)
             if isinstance(self.notebook, wx.Notebook):
                 self.notebook.ChangeSelection(len(self.getOpenFilenames())-1)
-            elif isinstance(self.notebook, wx.aui.AuiNotebook):
+            elif isinstance(self.notebook, aui.AuiNotebook):
                 self.notebook.SetSelection(len(self.getOpenFilenames())-1)
             self.currentDoc.filename=filename
             self.setFileModified(False)
@@ -1972,7 +1976,7 @@ class CoderFrame(wx.Frame):
         #remove the document and its record
         currId = self.notebook.GetSelection()
         #if this was called by AuiNotebookEvent, then page has closed already
-        if not isinstance(event, wx.aui.AuiNotebookEvent):
+        if not isinstance(event, aui.AuiNotebookEvent):
             self.notebook.DeletePage(currId)
             newPageID = self.notebook.GetSelection()
         else:

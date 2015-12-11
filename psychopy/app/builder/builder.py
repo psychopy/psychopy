@@ -3,9 +3,16 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
-from wx.lib import platebtn, scrolledpanel, flatnotebook
+from wx.lib import platebtn, scrolledpanel
+try:
+    from wx.lib import flatnotebook
+    from wx import aui
+except:
+    from wx.lib.agw import flatnotebook
+    import wx.lib.agw.aui as aui # some versions of phoenix
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
-import wx.aui, wx.stc
+import wx.stc
+
 import sys, os, glob, copy, traceback
 import keyword
 import codecs
@@ -125,7 +132,7 @@ class WindowFrozen(object):
 class CodeBox(wx.stc.StyledTextCtrl):
     # this comes mostly from the wxPython demo styledTextCtrl 2
     def __init__(self, parent, ID, prefs,
-                 pos=wx.DefaultPosition, size=wx.Size(100,160),#set the viewer to be small, then it will increase with wx.aui control
+                 pos=wx.DefaultPosition, size=wx.Size(100,160),#set the viewer to be small, then it will increase with aui control
                  style=0):
         wx.stc.StyledTextCtrl.__init__(self, parent, ID, pos, size, style)
         #JWP additions
@@ -281,7 +288,7 @@ class CodeComponentDialog(wx.Dialog):
     def __init__(self,frame,title,params,order,
             helpUrl=None, suppressTitles=True,size=wx.DefaultSize,
             style=(wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
-                            | wx.THICK_FRAME | wx.DIALOG_NO_PARENT),
+                            | wx.DIALOG_NO_PARENT),
             editing=False):
 
         # translate title
@@ -1552,7 +1559,7 @@ class RoutineCanvas(wx.ScrolledWindow):
     def getSecsPerPixel(self):
         return float(self.getMaxTime())/(self.timeXposEnd-self.timeXposStart)
 
-class RoutinesNotebook(wx.aui.AuiNotebook):
+class RoutinesNotebook(aui.AuiNotebook):
     """A notebook that stores one or more routines
     """
     def __init__(self, frame, id=-1):
@@ -1560,9 +1567,9 @@ class RoutinesNotebook(wx.aui.AuiNotebook):
         self.app=frame.app
         self.routineMaxSize = 2
         self.appData = self.app.prefs.appData
-        wx.aui.AuiNotebook.__init__(self, frame, id)
+        aui.AuiNotebook.__init__(self, frame, id)
 
-        self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
+        self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
         if not hasattr(self.frame, 'exp'):
             return#we haven't yet added an exp
     def getCurrentRoutine(self):
@@ -1980,7 +1987,7 @@ class ParamCtrls:
             else:
                 sx,sy = 100, 100
             self.valueCtrl = CodeBox(parent,-1,
-                 pos=wx.DefaultPosition, size=wx.Size(sx,sy),#set the viewer to be small, then it will increase with wx.aui control
+                 pos=wx.DefaultPosition, size=wx.Size(sx,sy),#set the viewer to be small, then it will increase with aui control
                  style=0, prefs=appPrefs)
             if len(param.val):
                 self.valueCtrl.AddText(unicode(param.val))
@@ -1992,7 +1999,7 @@ class ParamCtrls:
             self.valueCtrl = dialogs.ListWidget(parent, val, order=['Field','Default'])
         elif param.valType=='extendedCode':
             self.valueCtrl = CodeBox(parent,-1,
-                 pos=wx.DefaultPosition, size=wx.Size(100,100),#set the viewer to be small, then it will increase with wx.aui control
+                 pos=wx.DefaultPosition, size=wx.Size(100,100),#set the viewer to be small, then it will increase with aui control
                  style=0, prefs=appPrefs)
             if len(param.val):
                 self.valueCtrl.AddText(unicode(param.val))
@@ -3965,32 +3972,32 @@ class BuilderFrame(wx.Frame):
         self.updateReadme()
 
         #control the panes using aui manager
-        self._mgr = wx.aui.AuiManager(self)
+        self._mgr = aui.AuiManager(self)
         if self.prefs['topFlow']:
             self._mgr.AddPane(self.flowPanel,
-                              wx.aui.AuiPaneInfo().
+                              aui.AuiPaneInfo().
                               Name("Flow").Caption("Flow").BestSize((8*self.dpi,2*self.dpi)).
                               RightDockable(True).LeftDockable(True).CloseButton(False).
                               Top())
-            self._mgr.AddPane(self.componentButtons, wx.aui.AuiPaneInfo().
+            self._mgr.AddPane(self.componentButtons, aui.AuiPaneInfo().
                               Name("Components").Caption("Components").
                               RightDockable(True).LeftDockable(True).CloseButton(False).
                               Left())
-            self._mgr.AddPane(self.routinePanel, wx.aui.AuiPaneInfo().
+            self._mgr.AddPane(self.routinePanel, aui.AuiPaneInfo().
                               Name("Routines").Caption("Routines").
                               CenterPane(). #'center panes' expand to fill space
                               CloseButton(False).MaximizeButton(True))
         else:
-            self._mgr.AddPane(self.routinePanel, wx.aui.AuiPaneInfo().
+            self._mgr.AddPane(self.routinePanel, aui.AuiPaneInfo().
                               Name("Routines").Caption("Routines").
                               CenterPane(). #'center panes' expand to fill space
                               CloseButton(False).MaximizeButton(True))
-            self._mgr.AddPane(self.componentButtons, wx.aui.AuiPaneInfo().
+            self._mgr.AddPane(self.componentButtons, aui.AuiPaneInfo().
                               Name("Components").Caption("Components").
                               RightDockable(True).LeftDockable(True).CloseButton(False).
                               Right())
             self._mgr.AddPane(self.flowPanel,
-                              wx.aui.AuiPaneInfo().
+                              aui.AuiPaneInfo().
                               Name("Flow").Caption("Flow").BestSize((8*self.dpi,2*self.dpi)).
                               RightDockable(True).LeftDockable(True).CloseButton(False).
                               Bottom())
