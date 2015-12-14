@@ -33,18 +33,7 @@ try:
 except:
     haveMatplotlib = False
 
-        loaded = False
-                loaded = True
-        #try to simply feed it to PIL, whatever it is
-        if not loaded:
-            try:
-                tex.seek(0)
-                im = Image.open(tex)
-                im = im.transpose(Image.FLIP_TOP_BOTTOM) # images are flipped on display
-                loaded = True
-            except Exception:
-                pass
-        if not loaded:
+
 def pointInPolygon(x, y, poly):
     """Determine if a point (`x`, `y`) is inside a polygon, using the ray casting method.
 
