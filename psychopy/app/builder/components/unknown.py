@@ -1,6 +1,6 @@
-from _base import *
+
 from os import path
-#from psychopy.app.builder import components #for getInitVals()
+from ._base import BaseComponent, Param
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'base.png')

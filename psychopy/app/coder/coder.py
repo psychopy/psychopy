@@ -2,15 +2,17 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import sys, time, types, re
+from __future__ import absolute_import
+
+import time, types
 import wx, wx.stc, wx.aui, wx.richtext
-import keyword, os, sys, string, StringIO, glob, platform, io
-import threading, traceback, bdb, cPickle
-import psychoParser
-import introspect, py_compile
-from psychopy.app import stdOutRich, dialogs
-from psychopy import logging
 from wx.html import HtmlEasyPrinting
+import keyword, os, sys, string, StringIO, glob, platform, io
+import threading, traceback, bdb, cPickle, py_compile
+
+from . import psychoParser, introspect
+from .. import stdOutRich, dialogs
+from psychopy import logging
 
 #advanced prefs (not set in prefs files)
 prefTestSubset = ""

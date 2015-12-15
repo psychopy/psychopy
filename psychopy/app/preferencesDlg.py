@@ -1,12 +1,14 @@
-from psychopy import logging
+
+from __future__ import absolute_import, print_function
+
 import wx
 import wx.lib.scrolledpanel as scrolled
 import wx.lib.agw.flatnotebook as fnb
 import platform, re
 import copy
-import localization
 
-from psychopy.app import dialogs
+from . import localization, dialogs
+from psychopy import logging
 
 dlgSize = (520,600)#this will be overridden by the size of the scrolled panel making the prefs
 
@@ -310,7 +312,7 @@ class PrefCtrls:
     def listToString(self, seq, depth=8, errmsg='\'too_deep\''):
         """
         Convert list to string.
-        
+
         This function is necessary because Unicode characters come to be converted to
         hexadicimal values if unicode() is used to convert a list to string.
         This function applies str() or unicode() to each element of the list.
@@ -339,7 +341,7 @@ class PrefCtrls:
         return l
 
 if __name__=='__main__':
-    import preferences
+    from psychopy import preferences
     if wx.version() < '2.9':
         app = wx.PySimpleApp()
     else:

@@ -2,9 +2,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from _visual import * #to get the template visual component
 from os import path
-from psychopy.app.builder.components import getInitVals
+from ._base import BaseVisualComponent, Param, getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'patch.png')
@@ -15,7 +14,7 @@ _localized = {'image': _translate('Image/tex'), 'mask': _translate('Mask'), 'sf'
               'phase': _translate('Phase (in cycles)'), 'texture resolution': _translate('Texture resolution'),
               'interpolate': _translate('Interpolate')
               }
-class PatchComponent(VisualComponent):
+class PatchComponent(BaseVisualComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='patch', image='sin', mask='None', sf='None', interpolate='linear',
                 units='from exp settings', color='$[1,1,1]', colorSpace='rgb',

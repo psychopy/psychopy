@@ -1,7 +1,3 @@
-import wx
-
-import logging
-
 """This is for general purpose dialogs/widgets, not related to particular functionality
 
 MessageDialog:
@@ -13,6 +9,14 @@ ListWidget:
     A ctrl that takes a list of dictionaries (with identical fields) and allows
     the user to add/remove entries. e.g. expInfo control
 """
+
+from __future__ import absolute_import
+
+import wx
+from wx.lib.newevent import NewEvent
+
+from psychopy import logging
+
 
 class MessageDialog(wx.Dialog):
     """For some reason the wx built-in message dialog has some issues on Mac OS X
@@ -62,8 +66,6 @@ class MessageDialog(wx.Dialog):
     def onEscape(self,event):
         self.EndModal(wx.ID_CANCEL)
 
-
-from wx.lib.newevent import NewEvent
 
 # Event for GlobSizer-----------------------------------------------------------------------
 (GBSizerExLayoutEvent, EVT_GBSIZEREX_LAYOUT) = NewEvent()

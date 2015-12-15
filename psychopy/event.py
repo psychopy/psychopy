@@ -8,12 +8,10 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 
 # 01/2011 modified by Dave Britton to get mouse event timing
 
-import sys, time, copy
-import psychopy.core
-from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
-from psychopy import logging
-from psychopy.constants import NOT_STARTED
-import string, numpy
+from __future__ import absolute_import
+
+import copy
+import numpy
 
 #try to import pyglet & pygame and hope the user has at least one of them!
 try:
@@ -23,7 +21,6 @@ try:
     havePygame = True
 except:
     havePygame = False
-
 try:
     import pyglet
     havePyglet = True
@@ -31,6 +28,12 @@ except:
     havePyglet = False
 if havePygame: usePygame=True#will become false later if win not initialised
 else: usePygame=False
+
+import psychopy.core
+from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
+from psychopy import logging
+from psychopy.constants import NOT_STARTED
+
 
 if havePyglet:
     from pyglet.window.mouse import LEFT, MIDDLE, RIGHT  # takes ~250ms, so do it now
@@ -485,9 +488,9 @@ class Mouse:
     def getVisible(self):
         """Gets the visibility of the mouse (1 or 0)
         """
-        if usePygame: 
+        if usePygame:
             return mouse.get_visible()
-        else: 
+        else:
             print("Getting the mouse visibility is not supported under pyglet, but you can set it anyway")
 
     def setVisible(self,visible):

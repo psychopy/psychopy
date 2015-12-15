@@ -1,5 +1,6 @@
 import sys, os, copy
-from psychopy import visual, monitors, filters, prefs
+from psychopy import visual, monitors, prefs
+from psychopy.visual import filters
 from psychopy.tools.coordinatetools import pol2cart
 from psychopy.tests import utils
 import numpy
@@ -101,7 +102,7 @@ class _baseVisualTest:
         set of rules when turned into a texture. But the outcome should be as above
         """
         win = self.win
-        from psychopy import filters
+        from psychopy.visual import filters
         gaussMask = filters.makeMask(128, 'gauss')
         size = numpy.array([2.0,2.0])*self.scaleFactor
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimage.jpg')

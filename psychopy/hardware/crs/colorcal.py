@@ -12,6 +12,8 @@
 #Acknowledgements
 #    This code was written by Jon Peirce
 
+from __future__ import absolute_import
+
 __docformat__ = "restructuredtext en"
 
 import sys

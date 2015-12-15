@@ -2,9 +2,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from _visual import VisualComponent, Param  #to get the template visual component
 from os import path
-from psychopy.app.builder import components #for getInitVals()
+from ._base import BaseVisualComponent, Param, getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'text.png')
@@ -16,7 +15,7 @@ _localized = {'text': _translate('Text'),
               'wrapWidth': _translate('Wrap width'), 'flip': _translate('Flip (mirror)')
               }
 
-class TextComponent(VisualComponent):
+class TextComponent(BaseVisualComponent):
     """An event class for presenting text-based stimuli"""
     categories = ['Stimuli']
     def __init__(self, exp, parentName, name='text',
@@ -71,7 +70,7 @@ class TextComponent(VisualComponent):
         if self.params['units'].val=='from exp settings': unitsStr=""
         else: unitsStr="units=%(units)s, " %self.params
         #do writing of init
-        inits = components.getInitVals(self.params)#replaces variable params with sensible defaults
+        inits = getInitVals(self.params)#replaces variable params with sensible defaults
         if self.params['wrapWidth'].val in ['','None','none']:
             inits['wrapWidth']='None'
         buff.writeIndented("%(name)s = visual.TextStim(win=win, ori=%(ori)s, name='%(name)s',\n" %(inits))

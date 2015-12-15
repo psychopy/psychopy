@@ -13,9 +13,11 @@
 """Cambridge Research Systems make devices to support particularly vision research.
 """
 
+from __future__ import absolute_import
+
 from psychopy import logging
-from bits import BitsSharp, BitsPlusPlus
-from colorcal import ColorCAL
+from .bits import BitsSharp, BitsPlusPlus
+from .colorcal import ColorCAL
 # Monkey-patch our metadata into CRS class.
 setattr(ColorCAL,"longName","CRS ColorCAL")
 setattr(ColorCAL,"driverFor",["colorcal"])
