@@ -16,10 +16,17 @@ excludeComponents = ['VisualComponent', 'BaseComponent', #these are templates, n
                      'EyetrackerComponent', #this one isn't ready yet
                      ]
 
-def pilToBitmap(pil,scaleFactor=1.0):
-    image = wx.EmptyImage(pil.size[0], pil.size[1] )
-    image.SetData( pil.convert( "RGB").tostring() )
-    image.SetAlphaData(pil.convert("RGBA").tostring()[3::4])
+
+def pilToBitmap(pil, scaleFactor=1.0):
+    image = wx.EmptyImage(pil.size[0], pil.size[1])
+
+    try:  # For PIL.
+        image.SetData(pil.convert("RGB").tostring())
+        image.SetAlphaData(pil.convert("RGBA").tostring()[3::4])
+    except Exception:  # For Pillow.
+        image.SetData(pil.convert("RGB").tobytes())
+        image.SetAlphaData(pil.convert("RGBA").tobytes()[3::4])
+
     image.Rescale(image.Width*scaleFactor, image.Height*scaleFactor)
     return image.ConvertToBitmap()#wx.Image and wx.Bitmap are different
 
@@ -72,6 +79,11 @@ def getComponents(folder=None, fetchIcons=True):
                     attrib not in excludeComponents:#must be a component
                     name=attrib
                     components[attrib]=getattr(module, attrib)
+                    
+                    #skip if this class was imported, not defined here
+                    if module.__name__!=components[attrib].__module__:
+                        continue #class was defined in different module
+                    
                     #also try to get an iconfile
                     if fetchIcons:
                         if hasattr(module,'iconFile'):

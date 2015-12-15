@@ -167,6 +167,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             if not self.noAudio:
                 self._audioStream = sound.Sound(self._mov.audio.to_soundarray(),
                                             sampleRate = self._mov.audio.fps)
+            else: #make sure we set to None (in case prev clip did have auido)
+                self._audioStream = None
         else:
             raise IOError("Movie file '%s' was not found" %filename)
         #mov has attributes:
@@ -183,15 +185,14 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         """Continue a paused movie from current position.
         """
         status = self.status
-        if not self.noAudio:
+        if self._audioStream is not None:
             self._audioStream.play()
         if status != PLAYING:
             self.status = PLAYING
             self._videoClock.reset(-self.getCurrentFrameTime())
 
             if status == PAUSED:
-                if not self.noAudio and self._audioStream:
-                   self._audioSeek(self.getCurrentFrameTime())
+                self._audioSeek(self.getCurrentFrameTime())
 
             if log and self.autoLog:
                     self.win.logOnFlip("Set %s playing" %(self.name),
@@ -338,14 +339,24 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             win = self.win
         self._selectWindow(win)
         self._updateFrameTexture() #will check if it's needed yet in the function
-        #make sure that textures are on and GL_TEXTURE0 is active
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glColor4f(1, 1, 1, self.opacity)  # sets opacity (1,1,1 = RGB placeholder)
-        GL.glPushMatrix()
+
+        #scale the drawing frame and get to centre of field
+        GL.glPushMatrix()#push before drawing, pop after
+        GL.glPushClientAttrib(GL.GL_CLIENT_ALL_ATTRIB_BITS)#push the data for client attributes
+
         self.win.setScale('pix')
         #move to centre of stimulus and rotate
         vertsPix = self.verticesPix
+
+        #bind textures
+        GL.glActiveTexture (GL.GL_TEXTURE1)
+        GL.glBindTexture (GL.GL_TEXTURE_2D,0)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glActiveTexture (GL.GL_TEXTURE0)
+        GL.glBindTexture (GL.GL_TEXTURE_2D, self._texID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+
+        GL.glColor4f(1, 1, 1, self.opacity)  # sets opacity (1,1,1 = RGB placeholder)
 
         array = (GL.GLfloat * 32)(
              1,  1, #texture coords
@@ -357,20 +368,17 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
              1, 0,
              vertsPix[3,0], vertsPix[3,1],    0.,
              )
-        GL.glPushAttrib(GL.GL_ENABLE_BIT)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-        GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
+
         #2D texture array, 3D vertex array
         GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array)
         GL.glDrawArrays(GL.GL_QUADS, 0, 4)
-        GL.glPopClientAttrib()
-        GL.glPopAttrib()
+        GL.glPopClientAttrib(GL.GL_CLIENT_ALL_ATTRIB_BITS)
+        GL.glPopAttrib(GL.GL_ENABLE_BIT)
         GL.glPopMatrix()
         #unbind the textures
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glDisable(GL.GL_TEXTURE_2D)#implicitly disables 1D
+        GL.glEnable(GL.GL_TEXTURE_2D)#implicitly disables 1D
 
     def seek(self, t):
         """Go to a specific point in time for both the audio and video streams
@@ -378,20 +386,17 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         #video is easy: set both times to zero and update the frame texture
         self._nextFrameT = t
         self._videoClock.reset(t)
-        if not self.noAudio:
-            self._audioSeek(t)
+        self._audioSeek(t)
 
     def _audioSeek(self, t):
         #for sound we need to extract the array again and just begin at new loc
-        if self._audioStream is not None:
-            #i.e. we should have it and we do have it!
-            self._audioStream.stop()
+        if self._audioStream is None:
+            return #do nothing
+        self._audioStream.stop()
         sndArray = self._mov.audio.to_soundarray()
         startIndex = int(t*self._mov.audio.fps)
-        if not self.noAudio:
-            self._audioStream = sound.Sound(sndArray[startIndex:,:],
-                                        sampleRate = self._mov.audio.fps)
-            self._audioStream.play()
+        self._audioStream = sound.Sound(sndArray[startIndex:,:], sampleRate = self._mov.audio.fps)
+        self._audioStream.play()
 
     def _getAudioStreamTime(self):
         return self._audio_stream_clock.getTime()
