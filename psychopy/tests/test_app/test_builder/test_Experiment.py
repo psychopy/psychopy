@@ -29,10 +29,12 @@ import numpy
 allComponents = psychopy.app.builder.experiment.getComponents(fetchIcons=False)
 
 def _filterout_legal(lines):
-    return [l
-            for l in lines
-            if not "This experiment was created using PsychoPy2 Experiment Builder (" in l
-            and not ("trialList=data.importConditions(" in l and ".xlsx'))" in l) ]
+    """Ignore first 5 lines: header info, version, date can differ no problem
+    """
+    return [line
+            for line in lines[5:]
+            if not "This experiment was created using PsychoPy2 Experiment Builder (" in line and
+            not ("trialList=data.importConditions(" in line and ".xlsx'))" in line)]
         #-This experiment was created using PsychoPy2 Experiment Builder (v1.65.01), August 03, 2011, at 13:14
         #+This experiment was created using PsychoPy2 Experiment Builder (v1.65.02), August 03, 2011, at 13:14
         #-    trialList=data.importConditions(u'trialTypes.xlsx'))
@@ -241,7 +243,9 @@ class TestExpt():
                 #sha1_second = sha1hex(file2_pyc, file=True)
 
                 # check first against second, filtering out uninteresting diffs; catch diff in any of multiple psyexp files
-                diff_in_file_py += self._checkPyDiff(file_py, file2_py)
+                d = self._checkPyDiff(file_py, file2_py)
+                if d:
+                    diff_in_file_py += os.path.basename(file) + '::' + d
                 #diff_psyexp = _diff_file(file_psyexp,file2_psyexp)[2:]
                 #diff_in_file_psyexp += diff_psyexp
                 #diff_pyc = (sha1_first != sha1_second)
