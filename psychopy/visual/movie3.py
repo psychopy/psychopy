@@ -164,7 +164,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         # Create Video Stream stuff
         if os.path.isfile(filename):
             self._mov = VideoFileClip(filename, audio= (1-self.noAudio))
-            if not self.noAudio:
+            if (not self.noAudio) and (self._mov.audio is not None):
                 self._audioStream = sound.Sound(self._mov.audio.to_soundarray(),
                                             sampleRate = self._mov.audio.fps)
             else: #make sure we set to None (in case prev clip did have auido)
