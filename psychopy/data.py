@@ -1377,10 +1377,12 @@ class TrialHandler2(_BaseTrialHandler):
 
         if trialList in [None, []]:#user wants an empty trialList
             self.trialList = [None]#which corresponds to a list with a single empty entry
+            self.columns = []
         elif isinstance(trialList, basestring) and os.path.isfile(trialList): #user has hopefully specified a filename
-            self.trialList = importConditions(trialList) #import conditions from that file
+            self.trialList, self.columns = importConditions(trialList, returnFieldNames=True) #import conditions from that file
         else:
             self.trialList =trialList
+            self.columns = trialList[0].keys()
         #convert any entry in the TrialList into a TrialType object (with obj.key or obj[key] access)
         for n, entry in enumerate(self.trialList):
             if type(entry)==dict:
@@ -1609,7 +1611,10 @@ class TrialHandler2(_BaseTrialHandler):
 
         #defer to pandas for actual data output. We're fetching a string repr and then writeing to file ourselves
         #Includer header line if not matrixOnly
-        datStr = self.data.to_csv(sep=delim, header=(not matrixOnly), index=False)
+        datStr = self.data.to_csv(sep=delim,
+                                  columns=self.columns, #sets the order
+                                  header=(not matrixOnly),
+                                  index=False)
         f.write(datStr)
 
         if f != sys.stdout:
@@ -1620,6 +1625,10 @@ class TrialHandler2(_BaseTrialHandler):
     def addData(self, thisType, value):
         """Add a piece of data to the current trial
         """
+        #store in the columns list to help ordering later
+        if thisType not in self.columns:
+            self.columns.append(thisType)
+        #save the actual value in a data dict
         self.thisTrial[thisType] = value
         if self.getExp()!=None:#update the experiment handler too
             self.getExp().addData(thisType, value)
