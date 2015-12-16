@@ -256,7 +256,9 @@ class Experiment(object):
         """
         name=paramNode.get('name')
         valType = paramNode.get('valType')
-        val = paramNode.get('val').replace("&#10;", "\n")
+        val = paramNode.get('val')
+        if not name == 'advancedParams':
+            val = val.replace("&#10;", "\n")
         if name=='storeResponseTime':
             return#deprecated in v1.70.00 because it was redundant
         elif name=='startTime':#deprecated in v1.70.00
