@@ -20,9 +20,10 @@ before_install:
 # pyglet 1.1.4:
 #  - travis_retry sudo apt-get install -qq python-pyglet
 # pyglet 1.2.2
-  - travis_retry sudo -H pip install -qq pyglet pillow
-  - python -c 'import Image; print Image.PILLOW_VERSION'
+  - travis_retry sudo -H pip install -qq pyglet
   - python -c 'import pyglet; print pyglet.version'
+  - travis_retry sudo -H pip install -qq pillow
+  - python -c 'import Image; print Image.PILLOW_VERSION'
   - travis_retry sudo -H pip install -qq gevent # Don't use apt-get (too old version of gevent)
   - travis_retry sudo apt-get install -qq python-yaml python-xlib
   - travis_retry sudo -H pip install -qq psutil # Don't use apt-get (too old version of psutil)
