@@ -821,8 +821,10 @@ class Window(object):
         bufferDat = (GL.GLubyte * (4 * self.size[0] * self.size[1]))()
         GL.glReadPixels(0, 0, self.size[0], self.size[1],
                         GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
-        im = Image.fromstring(mode='RGBA', size=self.size, data=bufferDat)
-
+        try:
+            im = Image.fromstring(mode='RGBA', size=self.size, data=bufferDat)
+        except Exception:
+            im = Image.frombytes(mode='RGBA', size=self.size, data=bufferDat)
         im = im.transpose(Image.FLIP_TOP_BOTTOM)
         im = im.convert('RGB')
 
@@ -951,7 +953,10 @@ class Window(object):
         # not right
         #GL.glGetTexImage(GL.GL_TEXTURE_1D, 0,
         #                 GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
-        im = Image.fromstring(mode='RGBA', size=(horz, vert), data=bufferDat)
+        try:
+            im = Image.fromstring(mode='RGBA', size=(horz, vert), data=bufferDat)
+        except:
+            im = Image.frombytes(mode='RGBA', size=(horz, vert), data=bufferDat)
         region = im.transpose(Image.FLIP_TOP_BOTTOM)
 
         if power2 or squarePower2:  # use to avoid interpolation in PatchStim
