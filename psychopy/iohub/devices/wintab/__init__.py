@@ -198,10 +198,10 @@ class WintabTablet(Device):
                         if status == WintabTabletSampleEvent.STATES['FIRST_ENTER']:
                             if wte[8] > 0:
                                 # first enter + first press, ie first enter pressed
-                                status = status + WintabTabletSampleEvent.STATES['FIRST_PRESS']
+                                status = status + WintabTabletSampleEvent.STATES['FIRST_PRESS']+WintabTabletSampleEvent.STATES['PRESSED']
                             else:
                                 # first enter + first hover, ie first enter hover
-                                status = status + WintabTabletSampleEvent.STATES['FIRST_HOVER']
+                                status = status + WintabTabletSampleEvent.STATES['FIRST_HOVER']+WintabTabletSampleEvent.STATES['HOVERING']
                         #Fill in status field based on previous sample.......
                         wte[-1] = status
                         self._last_sample = wte
