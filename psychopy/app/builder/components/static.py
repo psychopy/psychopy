@@ -2,10 +2,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import _base
 from os import path
-from psychopy.app.builder.experiment import Param
-from psychopy.constants import *
+from ._base import BaseComponent, Param
 
 __author__ = 'Jon Peirce'
 
@@ -14,7 +12,7 @@ iconFile = path.join(thisFolder,'static.png')
 tooltip = _translate('Static: Static screen period (e.g. an ISI). Useful for pre-loading stimuli.')
 _localized = {'Custom code': _translate('Custom code')}
 
-class StaticComponent(_base.BaseComponent):
+class StaticComponent(BaseComponent):
     """A Static Component, allowing frame rendering to pause while disk is accessed"""
     #override the categories property below
     categories = ['Custom']#an attribute of the class, determines the section in the components panel
@@ -22,7 +20,7 @@ class StaticComponent(_base.BaseComponent):
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=0.5,
                 startEstim='', durationEstim=''):
-        _base.BaseComponent.__init__(self,exp,parentName,name=name)
+        BaseComponent.__init__(self,exp,parentName,name=name)
         self.updatesList=[] # a list of dicts {compParams, fieldName}
         self.type='Static'
         self.url = "http://www.psychopy.org/builder/components/static.html"
@@ -62,7 +60,7 @@ class StaticComponent(_base.BaseComponent):
         """This will be executed as the final component in the routine
         """
         buff.writeIndented("# *%s* period\n" %(self.params['name']))
-        _base.BaseComponent.writeStartTestCode(self, buff)
+        BaseComponent.writeStartTestCode(self, buff)
 
         if self.params['stopType'].val=='time (s)':
             durationSecsStr = "%(stopVal)s-t" %(self.params)

@@ -15,7 +15,8 @@ the original. Both are masked simply by circles.
 
 from __future__ import division
 
-from psychopy import visual, filters, event, core
+from psychopy import visual, event, core
+from psychopy.visual import filters
 import numpy as np
 
 win = visual.Window([800, 600], units='pix')

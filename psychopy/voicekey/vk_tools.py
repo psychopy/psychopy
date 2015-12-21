@@ -230,9 +230,10 @@ def samples_from_file(file_in, start=0, stop=-1):
 def samples_to_file(samples, rate, file_out, fmt='', dtype='int16'):
     """Write data to file, using requested format or infer from file .ext.
 
-    Only integer `rate`s are supported.
+    Only integer `rate` values are supported.
 
     See http://ajaxsoundstudio.com/pyodoc/api/functions/sndfile.html
+
     """
     file_fmt, data_fmt = _get_pyo_codes(fmt, dtype, file_out)
     if type(samples) == np.ndarray:

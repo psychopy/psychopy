@@ -4,16 +4,15 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from calibData import *
+from .calibData import wavelength_5nm, juddVosXYZ1976_5nm, cones_SmithPokorny
 from psychopy import __version__, logging, hardware
-import time
 
 try:
     import serial
     haveSerial=True
 except:
     haveSerial=False
-import string, os, time, glob, cPickle, sys
+import os, time, glob, cPickle, sys
 from copy import deepcopy, copy
 
 import numpy

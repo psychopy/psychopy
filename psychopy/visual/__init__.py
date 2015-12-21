@@ -9,18 +9,24 @@
 from psychopy import logging
 
 # needed for backwards-compatibility
-from psychopy.constants import *
+from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED, STOPPED,
+                                FINISHED, PRESSED, RELEASED, FOREVER)
 
 # window, should always be loaded first
-from psychopy.visual.window import Window, getMsPerFrame, openWindows
+from .window import Window, getMsPerFrame, openWindows
 
 # non-private helpers
-from psychopy.visual.helpers import pointInPolygon, polygonsOverlap
+from .helpers import pointInPolygon, polygonsOverlap
 
 # absolute essentials (nearly all experiments will need these)
-from psychopy.visual.basevisual import BaseVisualStim
-from psychopy.visual.image import ImageStim
-from psychopy.visual.text import TextStim
+from .basevisual import BaseVisualStim
+from .image import ImageStim
+from .text import TextStim
+
+from psychopy.visual import gamma  # done in window anyway
+from psychopy.visual import filters  
+
+# need absolute imports within lazyImports
 
 lazyImports = """
 # stimuli derived from object or MinimalStim
@@ -55,7 +61,7 @@ from psychopy.visual.rect import Rect
 # stimuli derived from Polygon
 from psychopy.visual.circle import Circle
 
-from textbox import TextBox
+from psychopy.visual.textbox import TextBox
 """
 try:
     from psychopy.contrib.lazy_import import lazy_import

@@ -1,20 +1,24 @@
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import print_function
-import StringIO, sys, codecs
-from components import getInitVals, getComponents, getAllComponents
-import psychopy
-from psychopy import data, __version__, logging
-from psychopy.constants import FOREVER
-import xml.etree.ElementTree as xml
-from xml.dom import minidom
+
+from __future__ import absolute_import, print_function
 
 import re, os
+import xml.etree.ElementTree as xml
+from xml.dom import minidom
+import StringIO, codecs
+import keyword
+
+from .components import getInitVals, getComponents, getAllComponents
+import psychopy
+from psychopy import data, __version__, logging, constants
+from psychopy.constants import FOREVER
+
 try:
     _translate  # is the app-global text translation function defined?
 except NameError:
-    from psychopy.app import localization
+    from .. import localization
 import locale
 # predefine some regex's; deepcopy complains if do in NameSpace.__init__()
 _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")  # detect "code wanted"
@@ -111,7 +115,7 @@ class Experiment(object):
         self.prefsBuilder=prefs.builder
         self.prefsPaths=prefs.paths
         #this can be checked by the builder that this is an experiment and a compatible version
-        self.psychopyVersion=__version__ #imported from components
+        self.psychopyVersion=__version__
         self.psychopyLibs=['visual','core','data','event','logging','sound']
         self.settings=getComponents(fetchIcons=False)['SettingsComponent'](parentName='', exp=self)
         self._doc=xml.ElementTree() #this will be the xml.dom.minidom.doc object for saving
@@ -158,8 +162,8 @@ class Experiment(object):
         else:
             localDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
 
-        script.write('#!/usr/bin/env python2\n' +
-                    '# -*- coding: utf-8 -*-\n' +
+        script.write('#!/usr/bin/env python2\n'
+                    '# -*- coding: utf-8 -*-\n'
                     '"""\nThis experiment was created using PsychoPy2 Experiment Builder (v%s),\n'
                     '    on %s\n' % (self.psychopyVersion, localDateTime ) +
                     'If you publish work using this script please cite the PsychoPy publications:\n'
@@ -167,9 +171,10 @@ class Experiment(object):
                     '        Journal of Neuroscience Methods, 162(1-2), 8-13.\n'
                     '    Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy.\n'
                     '        Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
-        script.write("\nfrom __future__ import division  # so that 1/3=0.333 instead of 1/3=0\n")
+        script.write("\nfrom __future__ import absolute_import, division\n")
         script.write("from psychopy import locale_setup, %s\n" % ', '.join(self.psychopyLibs) +
-                    "from psychopy.constants import *  # things like STARTED, FINISHED\n"
+                    "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,\n"
+                    "                                STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)\n"
                     "import numpy as np  # whole numpy lib is available, prepend 'np.'\n"
                     "from numpy import %s\n" % ', '.join(_numpyImports) +
                     "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
@@ -251,7 +256,9 @@ class Experiment(object):
         """
         name=paramNode.get('name')
         valType = paramNode.get('valType')
-        val = paramNode.get('val').replace("&#10;", "\n")
+        val = paramNode.get('val')
+        if not name == 'advancedParams':
+            val = val.replace("&#10;", "\n")
         if name=='storeResponseTime':
             return#deprecated in v1.70.00 because it was redundant
         elif name=='startTime':#deprecated in v1.70.00
@@ -1384,32 +1391,9 @@ class NameSpace():
         #deepcopy fails if you pre-compile regular expressions and stash here
 
         self.numpy = _numpyImports + _numpyRandomImports + ['np']
-        self.keywords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif',
-            'with', 'assert', 'else', 'if', 'pass', 'yield', 'break', 'except',
-            'import', 'print', 'class', 'exec', 'in', 'raise', 'continue', 'or',
-            'finally', 'is', 'return', 'def', 'for', 'lambda', 'try', 'global',
-            'abs', 'all', 'any', 'apply', 'basestring', 'bin', 'bool', 'buffer',
-            'bytearray', 'bytes', 'callable', 'chr', 'classmethod', 'cmp',
-            'compile', 'complex', 'copyright', 'credits', 'delattr', 'dict',
-            'divmod', 'enumerate', 'eval', 'execfile', 'exit', 'file', 'filter',
-            'float', 'format', 'frozenset', 'getattr', 'globals', 'hasattr',
-            'help', 'hex', 'id', 'input', 'int', 'intern', 'isinstance', 'hash',
-            'iter', 'len', 'license', 'list', 'locals', 'long', 'map', 'max',
-            'min', 'next', 'object', 'oct', 'open', 'ord', 'pow', 'print', 'dir',
-            'quit', 'range', 'raw_input', 'reduce', 'reload', 'repr', 'reversed',
-            'set', 'setattr', 'slice', 'sorted', 'staticmethod', 'str', 'sum',
-            'super', 'tuple', 'type', 'unichr', 'unicode', 'vars', 'xrange',
-            'clear', 'copy', 'fromkeys', 'get', 'has_key', 'items', 'iteritems',
-            'iterkeys', 'round', 'memoryview', 'issubclass', 'property', 'zip',
-            'itervalues', 'keys', 'pop', 'popitem', 'setdefault', 'update',
-            'values', 'viewitems', 'viewkeys', 'viewvalues', 'coerce',
-            '__builtins__', '__doc__', '__file__', '__name__', '__package__',
-            'None', 'True', 'False']
+        self.keywords = keyword.kwlist + dir(__builtins__)
         # these are based on a partial test, known to be incomplete:
-        self.psychopy = ['psychopy', 'os', 'core', 'data', 'visual', 'event',
-            'gui', 'sound', 'misc', 'logging', 'microphone',
-            'NOT_STARTED', 'STARTED', 'FINISHED', 'PAUSED', 'STOPPED',
-            'PLAYING', 'FOREVER', 'PSYCHOPY_USERAGENT']
+        self.psychopy = psychopy.__all__ + ['psychopy', 'os'] + dir(constants)
         self.builder = ['KeyResponse', 'key_resp', 'buttons', 'continueRoutine',
             'expInfo', 'expName', 'thisExp', 'filename', 'logFile', 'paramName',
             't', 'frameN', 'currentLoop', 'dlg', '_thisDir', 'endExpNow',

@@ -1,9 +1,7 @@
 
+import pytest
 from psychopy.visual import Window
 from psychopy.visual.windowframepack import ProjectorFramePacker
-
-from psychopy.constants import *
-import pytest
 
 """define ProjectorFramePack configurations, test the logic
 
@@ -43,4 +41,3 @@ if __name__ == '__main__':
     finalFPS = cls.win.fps()
     print('finalFPS = ' + str(finalFPS))
     cls.teardown_class()
-

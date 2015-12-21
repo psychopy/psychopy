@@ -284,6 +284,7 @@ class ConfigWizard(object):
         report.append(('no dropped frames', '%i / %i' % (nDropped, nTotal), msg, warn))
         win.recordFrameIntervals = False
 
+        """
         msg = _translate('for movies')
         warn = False
         try:
@@ -300,6 +301,7 @@ class ConfigWizard(object):
                 msg = _translate('Warning: version 5 recommended (for movies); Visit <a href="http://code.google.com/p/avbin">download page</a> [google.com]')
                 warn = True
             report.append(('pyglet avbin', unicode(ver), msg, warn))
+        """
 
         if verbose:
             report.append(('openGL max vertices', str(items['openGLmaxVerticesInVertexArray']), '', False))
@@ -414,7 +416,7 @@ class ConfigWizard(object):
             report.append((_translate('Python packages'), '', '', False))
             packages = ['PIL', 'openpyxl', 'lxml', 'setuptools', 'pytest', 'sphinx',
                         'psignifit', 'pyserial', 'pp',
-                        'pynetstation', 'ioLabs', 'labjack'
+                        'pynetstation', 'labjack'
                         ]
             if sys.platform == 'win32':
                 packages.append('pywin32')
@@ -461,7 +463,6 @@ class ConfigWizard(object):
         summary = [(check + _translate('video card drivers'), green)]
         ofInterest = ['python version', 'available memory', 'openGL version',
             'visual sync (refresh)', 'refresh stability (SD)', 'no dropped frames',
-            'pyglet avbin', 'microphone latency', 'speakers latency',
             'internet access']
         ofInterest.append('background processes')
         for item in ofInterest:

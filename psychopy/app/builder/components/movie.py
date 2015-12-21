@@ -2,9 +2,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from _visual import * #to get the template visual component
 from os import path
-from psychopy.app.builder import components #for getInitVals()
+from ._base import BaseVisualComponent, Param, getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'movie.png')
@@ -14,7 +13,7 @@ tooltip = _translate('Movie: play movie files')
 _localized = {'movie': _translate('Movie file'), 'forceEndRoutine': _translate('Force end of Routine'),
               'backend':_translate('backend')}
 
-class MovieComponent(VisualComponent):
+class MovieComponent(BaseVisualComponent):
     """An event class for presenting movie-based stimuli"""
     def __init__(self, exp, parentName, name='movie', movie='',
                 units='from exp settings',
@@ -59,7 +58,7 @@ class MovieComponent(VisualComponent):
         #If we're in writeInitCode then we need to convert params to initVals
         #because some (variable) params haven't been created yet.
         if useInits:
-            params = components.getInitVals(self.params)
+            params = getInitVals(self.params)
         else:
             params = self.params
         if self.params['backend'].val=='moviepy':

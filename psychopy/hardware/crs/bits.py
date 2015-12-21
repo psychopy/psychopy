@@ -8,20 +8,23 @@
 #Acknowledgements:
 #    This code was mostly written by Jon Peirce.
 #    CRS Ltd provided support as needed.
-#    Shader code for mono++ and color++ modes was based on code in Psythtoolbox
+#    Shader code for mono++ and color++ modes was based on code in Psychtoolbox
 #    (Kleiner) but does not actually use that code directly
+
+from __future__ import absolute_import
+
+import os, sys, time, glob, weakref
+import serial
+import numpy as np
+from copy import copy
+
+from . import shaders
+from psychopy import logging, core
+from .. import serialdevice
 
 __docformat__ = "restructuredtext en"
 
 DEBUG=True
-import os, sys, time, glob, weakref
-import numpy as np
-import shaders
-from copy import copy
-from psychopy import logging, core
-from psychopy.hardware import serialdevice
-import serial
-
 global GL, visual
 
 plotResults = False
@@ -35,11 +38,11 @@ except:
     haveBitsDLL=False
 
 if DEBUG: #we don't want error skipping in debug mode!
-    import shaders
+    from . import shaders
     haveShaders=True
 else:
     try:
-        import shaders
+        from . import shaders
         haveShaders=True
     except:
         haveShaders=False

@@ -112,7 +112,7 @@ class TestTrialHandler2:
         #test wide data outputs
         trials.saveAsWideText(pjoin(self.temp_dir, 'testFullRandom.csv'), delim=',', appendFile=False)
         # not currently testing this as column order won't match (and we've removed the columns "ran" and "order")
-        # utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.csv'), pjoin(fixturesPath,'corrFullRandom.csv'))
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testFullRandom.csv'), pjoin(fixturesPath,'corrFullRandomTH2.csv'))
 
     def test_random_data_output2(self):
         #create conditions
@@ -130,7 +130,7 @@ class TestTrialHandler2:
         #test wide data outputs
         trials.saveAsWideText(pjoin(self.temp_dir, 'testRandom.csv'), delim=',', appendFile=False)
         # not currently testing this as column order won't match (and we've removed the columns "ran" and "order")
-        # utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.csv'), pjoin(fixturesPath,'corrRandom.csv'))
+        utils.compareTextFiles(pjoin(self.temp_dir, 'testRandom.csv'), pjoin(fixturesPath,'corrRandomTH2.csv'))
 
 if __name__=='__main__':
 

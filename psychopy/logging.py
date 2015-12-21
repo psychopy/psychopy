@@ -28,9 +28,11 @@ messages, (which PsychoPy doesn't use) using the commands::
 #python logging module but it's simpler (no threading) and maintaining a stack
 #of log entries for later writing (don't want files written while drawing)
 
+from __future__ import absolute_import
+
 from os import path
-import sys, codecs, weakref
-from . import clock
+import sys, codecs
+from psychopy import clock
 
 _packagePath = path.split(__file__)[0]
 

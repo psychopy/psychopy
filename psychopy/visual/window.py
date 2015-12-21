@@ -6,6 +6,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from __future__ import absolute_import
+
 import sys
 import os
 import weakref
@@ -56,9 +58,9 @@ import psychopy.event
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy import makeMovies
-from psychopy.visual.text import TextStim
-from psychopy.visual.grating import GratingStim
-from psychopy.visual.helpers import setColor
+from .text import TextStim
+from .grating import GratingStim
+from .helpers import setColor
 from . import glob_vars
 
 try:
@@ -78,9 +80,9 @@ from psychopy.core import rush
 
 reportNDroppedFrames = 5  # stop raising warning after this
 
-from psychopy.gamma import getGammaRamp, setGammaRamp, setGamma
+from psychopy.visual.gamma import getGammaRamp, setGammaRamp, setGamma
 #import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
-import psychopy._shadersPyglet as _shaders
+from . import shaders as _shaders
 try:
     from pyglet import media
     havePygletMedia = True

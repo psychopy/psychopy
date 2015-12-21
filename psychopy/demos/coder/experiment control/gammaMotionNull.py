@@ -16,7 +16,7 @@ from __future__ import division
 
 from psychopy import visual, core, event, gui, data
 from psychopy.tools.filetools import fromFile, toFile
-from psychopy import filters
+from psychopy.visual import filters
 import numpy as num
 import time
 

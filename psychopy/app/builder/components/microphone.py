@@ -4,9 +4,8 @@
 
 # Author: Jeremy R. Gray, 2012
 
-from _base import *
 from os import path
-from psychopy.app.builder import components #for getInitVals()
+from _base import BaseComponent, Param, getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'microphone.png')
@@ -41,7 +40,7 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndented("if not os.path.isdir(wavDirName):\n" +
                            "    os.makedirs(wavDirName)  # to hold .wav files\n")
     def writeRoutineStartCode(self,buff):
-        inits = components.getInitVals(self.params)
+        inits = getInitVals(self.params)
         buff.writeIndented("%s = microphone.AdvAudioCapture(name='%s', saveDir=wavDirName, stereo=%s)\n" %(
             inits['name'], inits['name'], inits['stereo']))
     def writeFrameCode(self,buff):

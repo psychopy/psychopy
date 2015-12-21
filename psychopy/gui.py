@@ -4,11 +4,13 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from __future__ import absolute_import
+
 from psychopy import logging
 import wx
 import numpy
-import string, os
-from psychopy.app import localization
+import os
+from psychopy.app import localization  # pylint: disable=W0611
 
 OK = wx.ID_OK
 
@@ -246,14 +248,18 @@ def fileSaveDlg(initFilePath="", initFileName="",
     save to a non-existent directory!!)
 
     :parameters:
+
         initFilePath: string
             default file path on which to open the dialog
+
         initFileName: string
             default file name, as suggested file
+
         prompt: string (default "Select file to open")
             can be set to custom prompts
+
         allowed: string
-            a string to specify file filters.
+            A string to specify file filters.
             e.g. "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif"
             See http://www.wxpython.org/docs/api/wx.FileDialog-class.html for further details
 

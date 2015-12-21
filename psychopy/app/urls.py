@@ -1,7 +1,7 @@
 """A central location to store information about urls
 """
 
-import wxIDs
+from . import wxIDs
 
 urls={}
 

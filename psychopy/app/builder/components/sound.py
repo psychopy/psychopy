@@ -2,9 +2,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from _base import *
 from os import path
-from psychopy.app.builder import components #for getInitVals()
+from ._base import BaseComponent, Param, getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'sound.png')
@@ -41,7 +40,7 @@ class SoundComponent(BaseComponent):
             label=_localized["volume"])
 
     def writeInitCode(self,buff):
-        inits = components.getInitVals(self.params)#replaces variable params with sensible defaults
+        inits = getInitVals(self.params)#replaces variable params with sensible defaults
         buff.writeIndented("%s = sound.Sound(%s, secs=-1)\n" %(inits['name'], inits['sound']))
         buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" %(inits))
     def writeFrameCode(self,buff):

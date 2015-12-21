@@ -2,9 +2,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from _visual import * # to get the template visual component
 from os import path
-from psychopy.app.builder import components #for getInitVals()
+from ._base import BaseVisualComponent, getInitVals
 
 __author__ = 'Jeremy Gray, Jon Peirce'
 # March 2011; builder-component for Yuri Spitsyn's visual.Aperture class
@@ -14,7 +13,7 @@ thisFolder = path.abspath(path.dirname(__file__)) # the absolute path to the fol
 iconFile = path.join(thisFolder,'aperture.png')
 tooltip = _translate('Aperture: restrict the drawing of stimuli to a given region')
 
-class ApertureComponent(VisualComponent):
+class ApertureComponent(BaseVisualComponent):
     """An event class for using GL stencil to restrict the viewing area to a
     circle or square of a given size and position"""
     def __init__(self, exp, parentName, name='aperture', units='norm',
@@ -47,7 +46,7 @@ class ApertureComponent(VisualComponent):
         if self.params['units'].val=='from exp settings': unitsStr=""
         else: unitsStr="units=%(units)s, " %self.params
         #do writing of init
-        inits = components.getInitVals(self.params)
+        inits = getInitVals(self.params)
         buff.writeIndented("%(name)s = visual.Aperture(win=win, name='%(name)s',\n" % (inits))
         buff.writeIndented("    "+unitsStr+"size=%(size)s, pos=%(pos)s)\n" % (inits))
         buff.writeIndented("%(name)s.disable()  # disable until its actually used\n" %(inits))

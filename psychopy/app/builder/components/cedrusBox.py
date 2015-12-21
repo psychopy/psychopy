@@ -2,9 +2,9 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from keyboard import *
 from os import path
-from psychopy.app.builder.experiment import CodeGenerationException, _valid_var_re
+from .keyboard import KeyboardComponent, Param
+from ..experiment import CodeGenerationException, _valid_var_re
 
 __author__ = 'Jon Peirce'
 

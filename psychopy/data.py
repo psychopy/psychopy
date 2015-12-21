@@ -4,17 +4,12 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy import logging
-from psychopy.tools.arraytools import extendArr, shuffleArray
-from psychopy.tools.fileerrortools import handleFileCollision
-from psychopy.tools.filetools import openOutputFile, genDelimiter
-import psychopy
+from __future__ import absolute_import
+
 from pandas import DataFrame, read_csv
 import cPickle, string, sys, os, time, copy
 import numpy
 from scipy import optimize, special
-from contrib.quest import QuestObject    #used for QuestHandler
-from contrib.psi import PsiObject   #used for PsiHandler
 import inspect #so that Handlers can find the script that called them
 import codecs
 import weakref
@@ -29,6 +24,14 @@ try:
     haveOpenpyxl=True
 except ImportError:
     haveOpenpyxl=False
+
+from psychopy import logging
+from psychopy.tools.arraytools import extendArr, shuffleArray
+from psychopy.tools.fileerrortools import handleFileCollision
+from psychopy.tools.filetools import openOutputFile, genDelimiter
+import psychopy
+from psychopy.contrib.quest import QuestObject    #used for QuestHandler
+from psychopy.contrib.psi import PsiObject   #used for PsiHandler
 
 _experiments=weakref.WeakValueDictionary()
 _nonalphanumeric_re = re.compile(r'\W') # will match all bad var name chars
@@ -1374,10 +1377,12 @@ class TrialHandler2(_BaseTrialHandler):
 
         if trialList in [None, []]:#user wants an empty trialList
             self.trialList = [None]#which corresponds to a list with a single empty entry
+            self.columns = []
         elif isinstance(trialList, basestring) and os.path.isfile(trialList): #user has hopefully specified a filename
-            self.trialList = importConditions(trialList) #import conditions from that file
+            self.trialList, self.columns = importConditions(trialList, returnFieldNames=True) #import conditions from that file
         else:
             self.trialList =trialList
+            self.columns = trialList[0].keys()
         #convert any entry in the TrialList into a TrialType object (with obj.key or obj[key] access)
         for n, entry in enumerate(self.trialList):
             if type(entry)==dict:
@@ -1606,7 +1611,10 @@ class TrialHandler2(_BaseTrialHandler):
 
         #defer to pandas for actual data output. We're fetching a string repr and then writeing to file ourselves
         #Includer header line if not matrixOnly
-        datStr = self.data.to_csv(sep=delim, header=(not matrixOnly), index=False)
+        datStr = self.data.to_csv(sep=delim,
+                                  columns=self.columns, #sets the order
+                                  header=(not matrixOnly),
+                                  index=False)
         f.write(datStr)
 
         if f != sys.stdout:
@@ -1617,6 +1625,10 @@ class TrialHandler2(_BaseTrialHandler):
     def addData(self, thisType, value):
         """Add a piece of data to the current trial
         """
+        #store in the columns list to help ordering later
+        if thisType not in self.columns:
+            self.columns.append(thisType)
+        #save the actual value in a data dict
         self.thisTrial[thisType] = value
         if self.getExp()!=None:#update the experiment handler too
             self.getExp().addData(thisType, value)
@@ -2272,6 +2284,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
     :class:`MultiStairHandler` as a `conditions` list.
 
     If `fileName` ends with:
+
         - .csv:  import as a comma-separated-value file (header + row x col)
         - .xlsx: import as Excel 2007 (xlsx) files. Sorry no support for older (.xls) is planned.
         - .pkl:  import from a pickle file as list of lists (header + row x col)
@@ -2289,11 +2302,12 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
     It can be a list/array of indices, a python `slice` object or a string to
     be parsed as either option.
     e.g.:
-        "1,2,4" or [1,2,4] or (1,2,4) are the same
-        "2:5"       # 2,3,4 (doesn't include last whole value)
-        "-10:2:"    #tenth from last to the last in steps of 2
-        slice(-10,2,None) #the same as above
-        random(5)*8 #5 random vals 0-8
+
+        - "1,2,4" or [1,2,4] or (1,2,4) are the same
+        - "2:5"       # 2,3,4 (doesn't include last whole value)
+        - "-10:2:"    #tenth from last to the last in steps of 2
+        - slice(-10,2,None) #the same as above
+        - random(5)*8 #5 random vals 0-8
 
     """
     def _assertValidVarNames(fieldNames, fileName):
@@ -2654,8 +2668,10 @@ class StairHandler(_BaseTrialHandler):
     def addData(self, result, intensity=None):
         """Deprecated since 1.79.00: This function name was ambiguous. Please use one of
         these instead:
+
             .addResponse(result, intensity)
             .addOtherData('dataName', value')
+
         """
         self.addResponse(result, intensity)
 
@@ -3349,13 +3365,13 @@ class PsiHandler(StairHandler):
 
     Because Psi is a Bayesian method, it can be initialized with a prior from existing research. A function
     to save the posterior over Lambda as a Numpy binary file is included.
-    
-    Kontsevich & Tyler (1999) specify their psychometric function in terms of d'. PsiHandler avoids this 
-    and treats all parameters with respect to stimulus intensity. Specifically, the forms of the psychometric 
+
+    Kontsevich & Tyler (1999) specify their psychometric function in terms of d'. PsiHandler avoids this
+    and treats all parameters with respect to stimulus intensity. Specifically, the forms of the psychometric
     function assumed for Yes/No and Two Alternative Forced Choice (2AFC) are, respectively:
-    
+
     Y(x) = .5 * delta + (1 - delta) * norm.cdf(x, mean=alpha, sd=beta)
-    
+
     Y(x) = .5 * delta + (1 - delta) * (.5 + .5 * norm.cdf(x, mean=alpha, sd=beta))
     """
 
@@ -3780,8 +3796,10 @@ class MultiStairHandler(_BaseTrialHandler):
         """Deprecated 1.79.00: It was ambiguous whether you were adding the response
         (0 or 1) or some other data concerning the trial so there is now a pair
         of explicit methods:
+
             addResponse(corr,intensity) #some data that alters the next trial value
             addOtherData('RT', reactionTime) #some other data that won't control staircase
+
         """
         self.addResponse(result, intensity)
         if type(result) in [str, unicode]:
