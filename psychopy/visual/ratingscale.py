@@ -1023,11 +1023,9 @@ class RatingScale(MinimalStim):
                     else:
                         valTmp = self.markerPlacedAt + self.low
                         val = self.fmtStr % (valTmp * self.autoRescaleFactor)
-                    if self.accept.text != val:  # not just for speed: reduce impact of mem leaks in TextStim
-                        self.accept.setText(val)
+                    self.accept.setText(val)
                 elif self.markerPlacedAt is not False:
-                    if self.accept.text != self.acceptText:
-                        self.accept.setText(self.acceptText)
+                    self.accept.setText(self.acceptText)
 
         # handle key responses:
         if not self.mouseOnly:

@@ -33,7 +33,7 @@ class SettingsComponent(object):
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
                  logging='exp', color='$[0,0,0]', colorSpace='rgb', enableEscape=True, blendMode='avg',
                  saveXLSXFile=False, saveCSVFile=False, saveWideCSVFile=True, savePsydatFile=True,
-                 savedDataFolder='', filename="u'xxxx/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])"):
+                 savedDataFolder='', filename="u'xxxx/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])"):
         self.type='Settings'
         self.exp=exp#so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
@@ -169,7 +169,7 @@ class SettingsComponent(object):
         buff.writeIndented("expInfo = %s\n" % expInfo)
         if self.params['Show info dlg'].val:
             buff.writeIndented("dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)\n")
-            buff.writeIndented("if dlg.OK == False: core.quit()  # user pressed cancel\n")
+            buff.writeIndentedLines("if dlg.OK == False:\n    core.quit()  # user pressed cancel\n")
         buff.writeIndented("expInfo['date'] = data.getDateStr()  # add a simple timestamp\n")
         buff.writeIndented("expInfo['expName'] = expName\n")
         level=self.params['logging level'].val.upper()
@@ -183,7 +183,7 @@ class SettingsComponent(object):
                 if field in expInfoDict:
                     participantField=field
                     self.params['Data filename'].val = repr(saveToDir) + \
-                            " + os.sep + '%s_%s' %(expInfo['" + field + "'], expInfo['date'])"
+                            " + os.sep + '%s_%s' % (expInfo['" + field + "'], expInfo['date'])"
                     break
             if not participantField: #we didn't find a participant-type field so skip that part of filename
                 self.params['Data filename'].val = repr(saveToDir) + " + os.path.sep + expInfo['date']"
@@ -260,11 +260,11 @@ class SettingsComponent(object):
                                 "microphone.switchOn()\n")
 
         buff.writeIndented("# store frame rate of monitor if we can measure it successfully\n")
-        buff.writeIndented("expInfo['frameRate']=win.getActualFrameRate()\n")
-        buff.writeIndented("if expInfo['frameRate']!=None:\n")
-        buff.writeIndented("    frameDur = 1.0/round(expInfo['frameRate'])\n")
+        buff.writeIndented("expInfo['frameRate'] = win.getActualFrameRate()\n")
+        buff.writeIndented("if expInfo['frameRate'] != None:\n")
+        buff.writeIndented("    frameDur = 1.0 / round(expInfo['frameRate'])\n")
         buff.writeIndented("else:\n")
-        buff.writeIndented("    frameDur = 1.0/60.0 # couldn't get a reliable measure so guess\n")
+        buff.writeIndented("    frameDur = 1.0 / 60.0  # couldn't get a reliable measure so guess\n")
 
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)

@@ -20,6 +20,7 @@ import codecs
 import weakref
 import re
 import warnings
+import collections
 
 try:
     #import openpyxl
@@ -2487,7 +2488,8 @@ class StairHandler(_BaseTrialHandler):
                  maxVal=None,
                  originPath=None,
                  name='',
-                 autoLog=True):
+                 autoLog=True,
+                 **kwargs):
         """
         :Parameters:
 
@@ -2495,8 +2497,11 @@ class StairHandler(_BaseTrialHandler):
                 The initial value for the staircase.
 
             nReversals:
-                The minimum number of reversals permitted. If stepSizes is a list then there must
-                also be enough reversals to satisfy this list.
+                The minimum number of reversals permitted.
+                If `stepSizes` is a list, but the minimum number of
+                reversals to perform, `nReversals`, is less than the
+                length of this list, PsychoPy will automatically increase
+                the minimum number of reversals and emit a warning.
 
             stepSizes:
                 The size of steps as a single value or a list (or array). For a single value the step
@@ -2538,29 +2543,40 @@ class StairHandler(_BaseTrialHandler):
                 The largest legal value for the staircase, which can be used to prevent it
                 reaching impossible contrast values, for instance.
 
-        """
+            Additional keyword arguments will be ignored.
+
+        :Notes:
+
+        The additional keyword arguments `**kwargs` might for example be
+        passed by the `MultiStairHandler`, which expects a `label` keyword
+        for each staircase. These parameters are to be ignored by the
+        StairHandler.
 
         """
-        trialList: a simple list (or flat array) of trials.
-
-            """
         self.name=name
         self.startVal=startVal
-        self.nReversals=nReversals
         self.nUp=nUp
         self.nDown=nDown
         self.extraInfo=extraInfo
         self.method=method
         self.stepType=stepType
 
-        self.stepSizes=stepSizes
         try:
-            self.stepSizeCurrent = stepSizes[0]
-            self.nReversals = max(len(stepSizes), self.nReversals)
-            self._variableStep = True
-        except (IndexError, TypeError):  # stepSizes is not array-like.
-            self.stepSizeCurrent = stepSizes
-            self._variableStep = False
+            self.stepSizes = list(stepSizes)
+        except TypeError:  # stepSizes is not array-like, i.e., a scalar.
+            self.stepSizes = [stepSizes]
+
+        self._variableStep = True if len(self.stepSizes) > 1 else False
+        self.stepSizeCurrent = self.stepSizes[0]
+
+        if nReversals is not None and len(self.stepSizes) > nReversals:
+            logging.warn(
+                    "Increasing number of minimum required reversals to "
+                    "the number of step sizes (%i)." % len(self.stepSizes)
+            )
+            self.nReversals = len(self.stepSizes)
+        else:
+            self.nReversals = nReversals
 
         self.nTrials = nTrials#to terminate the nTrials must be exceeded and either
         self.finished=False
@@ -3048,7 +3064,6 @@ class QuestHandler(StairHandler):
                  nTrials=None,
                  stopInterval=None,
                  method='quantile',
-                 stepType='log',
                  beta=3.5,
                  delta=0.01,
                  gamma=0.5,
@@ -3060,7 +3075,8 @@ class QuestHandler(StairHandler):
                  staircase=None,
                  originPath=None,
                  name='',
-                 autoLog=True):
+                 autoLog=True,
+                 **kwargs):
         """
         Typical values for pThreshold are:
             * 0.82 which is equivalent to a 3 up 1 down standard staircase
@@ -3096,10 +3112,6 @@ class QuestHandler(StairHandler):
             method: *'quantile'*, 'mean', 'mode'
                 The method used to determine the next threshold to test. If you want to get a specific threshold
                 level at the end of your staircasing, please use the quantile, mean, and mode methods directly.
-
-            stepType: *'log'*, 'db', 'lin'
-                The type of steps that should be taken each time. 'db' and 'log' will transform your intensity levels
-                into decibels or log units and will move along the psychometric function with these values.
 
             beta: *3.5* or a number
                 Controls the steepness of the psychometric function.
@@ -3137,22 +3149,32 @@ class QuestHandler(StairHandler):
                 give the quest algorithm more information if you have it. You can also call the
                 importData function directly.
 
+            Additional keyword arguments will be ignored.
+
+        :Notes:
+
+        The additional keyword arguments `**kwargs` might for example be
+        passed by the `MultiStairHandler`, which expects a `label` keyword
+        for each staircase. These parameters are to be ignored by the
+        StairHandler.
+
         """
+        StairHandler.__init__(
+                self, startVal, nTrials=nTrials, extraInfo=extraInfo,
+                method=method, stepType='lin', minVal=minVal,
+                maxVal=maxVal, name=name, autoLog=autoLog
+        )
 
-        # Initialize using parent class first
-        StairHandler.__init__(self, startVal, nTrials=nTrials, extraInfo=extraInfo, method=method,
-                                stepType=stepType, minVal=minVal, maxVal=maxVal, name=name, autoLog=autoLog)
-
-        # Setup additional values
         self.stopInterval = stopInterval
 
-        # Transform startVal and startValSd based on stepType
-        startVal = self._intensity2scale(startVal)
-        startValSd = self._intensity2scale(startValSd)
+        startVal = startVal
+        startValSd = startValSd
         self._questNextIntensity = startVal
 
         # Create Quest object
-        self._quest = QuestObject(startVal, startValSd, pThreshold, beta, delta, gamma, grain, range)
+        self._quest = QuestObject(
+                startVal, startValSd, pThreshold, beta, delta, gamma,
+                grain=grain, range=range)
 
         # Import any old staircase data
         if staircase is not None:
@@ -3173,7 +3195,7 @@ class QuestHandler(StairHandler):
         if intensity is None:
             intensity = self._questNextIntensity
         else:
-            intensity = self._intensity2scale(intensity)
+            intensity = intensity
             # Update the intensity.
             #
             # During the first trial, self.intensities will be of length 0,
@@ -3188,7 +3210,11 @@ class QuestHandler(StairHandler):
         #add the current data to experiment if poss
         if self.getExp() != None:#update the experiment handler too
             self.getExp().addData(self.name+".response", result)
-        self.calculateNextIntensity()
+
+        self._checkFinished()
+        if not self.finished:
+            self.calculateNextIntensity()
+
     def importData(self, intensities, results):
         """import some data which wasn't previously given to the quest algorithm"""
         # NOT SURE ABOUT CLASS TO USE FOR RAISING ERROR
@@ -3209,7 +3235,7 @@ class QuestHandler(StairHandler):
             self._nextIntensity = self.maxVal
         elif (self._nextIntensity < self.minVal) and self.minVal is not None:
             self._nextIntensity = self.minVal
-        self._questNextIntensity = self._intensity2scale(self._nextIntensity)
+        self._questNextIntensity = self._nextIntensity
     def _intensity(self):
         """assigns the next intensity level"""
         if self.method == 'mean':
@@ -3219,43 +3245,23 @@ class QuestHandler(StairHandler):
         elif self.method == 'quantile':
             self._questNextIntensity = self._quest.quantile()
         # else: maybe raise an error
-        self._nextIntensity = self._scale2intensity(self._questNextIntensity)
-
-    def _intensity2scale(self, intensity):
-        """returns the scaled intensity level based on value of self.stepType"""
-        if self.stepType=='db':
-            scaled_intensity = numpy.log10(intensity) * 20.0
-        elif self.stepType=='log':
-            scaled_intensity = numpy.log10(intensity)
-        else:
-            scaled_intensity = intensity
-        return scaled_intensity
-
-    def _scale2intensity(self, scaled_intensity):
-        """returns the unscaled intensity level based on value of self.stepType"""
-        if self.stepType=='db':
-            intensity = 10.0**(scaled_intensity/20.0)
-        elif self.stepType=='log':
-            intensity = 10.0**scaled_intensity
-        else:
-            intensity = scaled_intensity
-        return intensity
+        self._nextIntensity = self._questNextIntensity
 
     def mean(self):
         """mean of Quest posterior pdf"""
-        return self._scale2intensity(self._quest.mean())
+        return self._quest.mean()
 
     def sd(self):
         """standard deviation of Quest posterior pdf"""
-        return self._scale2intensity(self._quest.sd())
+        return self._quest.sd()
 
     def mode(self):
         """mode of Quest posterior pdf"""
-        return self._scale2intensity(self._quest.mode()[0])
+        return self._quest.mode()[0]
 
     def quantile(self, p=None):
         """quantile of Quest posterior pdf"""
-        return self._scale2intensity(self._quest.quantile(p))
+        return self._quest.quantile(p)
 
     def confInterval(self, getDifference=False):
         """give the range of the 5-95% confidence interval"""
@@ -3305,8 +3311,6 @@ class QuestHandler(StairHandler):
                     break #break out of the forever loop
                 #do stuff here for the trial
         """
-        self._checkFinished()
-
         if self.finished==False:
             #update pointer for next trial
             self.thisTrialN+=1
@@ -3345,6 +3349,14 @@ class PsiHandler(StairHandler):
 
     Because Psi is a Bayesian method, it can be initialized with a prior from existing research. A function
     to save the posterior over Lambda as a Numpy binary file is included.
+    
+    Kontsevich & Tyler (1999) specify their psychometric function in terms of d'. PsiHandler avoids this 
+    and treats all parameters with respect to stimulus intensity. Specifically, the forms of the psychometric 
+    function assumed for Yes/No and Two Alternative Forced Choice (2AFC) are, respectively:
+    
+    Y(x) = .5 * delta + (1 - delta) * norm.cdf(x, mean=alpha, sd=beta)
+    
+    Y(x) = .5 * delta + (1 - delta) * (.5 + .5 * norm.cdf(x, mean=alpha, sd=beta))
     """
 
     def __init__(self,
@@ -3352,18 +3364,16 @@ class PsiHandler(StairHandler):
                  intensRange, alphaRange, betaRange,
                  intensPrecision, alphaPrecision, betaPrecision,
                  delta,
-                 extraInfo=None,
                  stepType='lin',
-                 TwoAFC=False,
+                 expectedMin=0.5,
                  prior=None,
                  fromFile=False,
+                 extraInfo=None,
                  name=''):
-
-
         """
         Initializes the handler and creates an internal Psi Object for grid approximation.
 
-        Parameters:
+        :Parameters:
 
             nTrials (int)
                 The number of trials to run.
@@ -3390,15 +3400,25 @@ class PsiHandler(StairHandler):
             delta   (float)
                 The guess rate.
 
-            extraInfo   (dict)
-                Optional dictionary object used in PsychoPy's built-in logging system.
-
             stepType    (str)
                 The type of steps to be used when constructing the stimuli intensity range. If 'lin' then evenly spaced steps are used. If 'log' then logarithmically spaced steps are used.
                 Defaults to 'lin'.
 
-            TwoAFC  (bool)
-                If True then the d' based psychometric function from Kontsevich & Tyler (1999) will be used. If False then a Yes/No task is assumed.
+            expectedMin  (float)
+                The expected lower asymptote of the psychometric function
+                (PMF).
+
+                For a Yes/No task, the PMF usually extends across the
+                interval [0, 1]; here, `expectedMin` should be set to `0`.
+
+                For a 2-AFC task, the PMF spreads out across [0.5, 1.0].
+                Therefore, `expectedMin` should be set to `0.5` in this
+                case, and the 2-AFC psychometric function described above
+                going to be is used.
+
+                Currently, only Yes/No and 2-AFC designs are supported.
+
+                Defaults to 0.5, or a 2-AFC task.
 
             prior   (numpy.ndarray or str)
                 Optional prior distribution with which to initialize the Psi Object. This can either be a numpy.ndarray object or the path to a numpy binary file (.npy) containing the ndarray.
@@ -3406,11 +3426,32 @@ class PsiHandler(StairHandler):
             fromFile    (str)
                 Flag specifying whether prior is a file pathname or not.
 
+            extraInfo   (dict)
+                Optional dictionary object used in PsychoPy's built-in logging system.
+
             name    (str)
                 Optional name for the PsiHandler used in PsychoPy's built-in logging system.
+
+        :Raises:
+
+            NotImplementedError
+                If the supplied `minVal` parameter implies an experimental
+                design other than Yes/No or 2-AFC.
+
         """
-        # Initialize parent class first
-        StairHandler.__init__(self, startVal=None, nTrials=nTrials, extraInfo=extraInfo, method=None, stepType=stepType, minVal=intensRange[0], maxVal=intensRange[1], name=name)
+        if expectedMin not in [0, 0.5]:
+            raise NotImplementedError(
+                    'Currently, only Yes/No and 2-AFC designs are '
+                    'supported. Please specify either `expectedMin=0` '
+                    '(Yes/No) or `expectedMin=0.5` (2-AFC).'
+            )
+
+
+        StairHandler.__init__(
+                self, startVal=None, nTrials=nTrials, extraInfo=extraInfo,
+                stepType=stepType, minVal=intensRange[0],
+                maxVal=intensRange[1], name=name
+        )
 
         # Create Psi object
         if prior is not None and fromFile:
@@ -3419,9 +3460,15 @@ class PsiHandler(StairHandler):
             except IOError:
                 logging.warning("The specified pickle file could not be read. Using a uniform prior instead.")
                 prior = None
-        self._psi = PsiObject(intensRange, alphaRange, betaRange, intensPrecision, alphaPrecision, betaPrecision, delta, stepType, TwoAFC, prior)
-        self._psi.update(None)
 
+        twoAFC = True if expectedMin == 0.5 else False
+        self._psi = PsiObject(
+                intensRange, alphaRange, betaRange, intensPrecision,
+                alphaPrecision, betaPrecision, delta=delta,
+                stepType=stepType, TwoAFC=twoAFC, prior=prior
+        )
+
+        self._psi.update(None)
 
     def addResponse(self, result, intensity=None):
         """Add a 1 or 0 to signify a correct/detected or incorrect/missed trial
@@ -3575,70 +3622,76 @@ class MultiStairHandler(_BaseTrialHandler):
 
         #fetch first staircase/value (without altering/advancing it)
         self._startNewPass()
-        self.currentStaircase = self.thisPassRemaining[0]#take the first and remove it
+        self.currentStaircase = self.thisPassRemaining[0]  # take the first
         self._nextIntensity = self.currentStaircase._nextIntensity#gets updated by self.addData()
         #store the origin file and its path
         self.originPath, self.origin = self.getOriginPathAndFile(originPath)
         self._exp = None#the experiment handler that owns me!
-    def _checkArguments(self):
-        #did we get a conditions parameter, correctly formatted
-        if type(self.conditions) not in [list]:
-            logging.error('conditions parameter to MultiStairHandler should be a list, not a %s' %type(self.conditions))
-            return
-        c0=self.conditions[0]
-        if type(c0)!=dict:
-            logging.error('conditions to MultiStairHandler should be a list of python dictionaries' + \
-                ', not a list of %ss' %type(c0))
-        #did conditions contain the things we need?
-        params = c0.keys()
-        if self.type in ['simple','quest','QUEST']:
-            if 'startVal' not in params:
-                logging.error('MultiStairHandler needs a param called `startVal` in conditions')
-            if 'label' not in params:
-                logging.error('MultiStairHandler needs a param called `label` in conditions')
-            if 'startValSd' not in params and self.type in ['QUEST','quest']:
-                logging.error("MultiStairHandler('quest') needs a param called `startValSd` in conditions")
-        else:
-            logging.error("MultiStairHandler `stairType` should be 'simple', 'QUEST' or 'quest', not '%s'" %self.type)
-    def _createStairs(self):
-        if self.type=='simple':
-            defaults = {'nReversals':None, 'stepSizes':4, 'nTrials':self.nTrials,
-                'nUp':1, 'nDown':3, 'extraInfo':None,
-                'stepType':'db', 'minVal':None, 'maxVal':None}
-        elif self.type in ['QUEST','quest']:
-            # fp added alternatives since the builder creates 'QUEST' but
-            # the API spec wants 'quest'?
-            defaults = {'pThreshold':0.82, 'nTrials':self.nTrials, 'stopInterval':None,
-                'method':'quantile', 'stepType':'log', 'beta':3.5, 'delta':0.01,
-                'gamma':0.5, 'grain':0.01, 'range':None, 'extraInfo':None,
-                'minVal':None, 'maxVal':None, 'staircase':None}
 
+    def _checkArguments(self):
+        # Did we get a `conditions` parameter, correctly formatted?
+        if not isinstance(self.conditions, collections.Iterable):
+            raise TypeError(
+                    '`conditions` parameter passed to MultiStairHandler '
+                    'should be a list, not a %s.' %type(self.conditions)
+            )
+
+        c0 = self.conditions[0]
+        if type(c0) != dict:
+            raise TypeError(
+                    '`conditions` passed to MultiStairHandler should be a '
+                    'list of python dictionaries, not a list of %ss.' %
+                    type(c0)
+            )
+
+        # Did `conditions` contain the things we need?
+        params = c0.keys()
+        if self.type not in ['simple','quest','QUEST']:
+            raise ValueError(
+                    'MultiStairHandler `stairType` should be \'simple\', '
+                    '\'QUEST\' or \'quest\', not \'%s\'' % self.type
+            )
+
+        if 'startVal' not in params:
+            raise AttributeError(
+                    'MultiStairHandler needs a parameter called '
+                    '`startVal` in conditions')
+        if 'label' not in params:
+            raise AttributeError(
+                    'MultiStairHandler needs a parameter called `label` '
+                    'in conditions'
+            )
+        if self.type in ['QUEST','quest'] and 'startValSd' not in params:
+            raise AttributeError(
+                    'MultiStairHandler needs a parameter called '
+                    '`startValSd` in conditions for QUEST staircases.'
+            )
+
+    def _createStairs(self):
         for condition in self.conditions:
-            startVal=condition['startVal']
-            #fetch each params from conditions if possible
-            for paramName in defaults:
-                #get value for the parameter
-                if paramName in condition.keys():
-                    val=condition[paramName]
-                else:
-                    val = defaults[paramName]
-                #assign value to variable name
-                exec('%s=%s' %(paramName, repr(val)))
-            #then create actual staircase
-            if self.type=='simple':
-                thisStair = StairHandler(startVal, nReversals=nReversals,
-                    stepSizes=stepSizes, nTrials=nTrials, nUp=nUp, nDown=nDown,
-                    extraInfo=extraInfo,
-                    stepType=stepType, minVal=minVal, maxVal=maxVal)
-            elif self.type in ['QUEST','quest']:
-                # see above
-                thisStair = QuestHandler(startVal, startValSd=condition['startValSd'],
-                    pThreshold=pThreshold, nTrials=nTrials, stopInterval=stopInterval,
-                    method=method, stepType=stepType, beta=beta, delta=delta,
-                    gamma=gamma, grain=grain, range=range, extraInfo=extraInfo,
-                    minVal=minVal, maxVal=maxVal, staircase=staircase)
-            thisStair.condition = condition#this isn't normally part of handler
-            #and finally, add it to the list
+            # We create a copy, because we are going to remove items from
+            # this dictionary in this loop, but don't want these
+            # changes to alter the originals in self.conditions.
+            args = dict(condition)
+
+            # If no individual `nTrials` parameter was supplied for this
+            # staircase, use the `nTrials` that were passed to
+            # the MultiStairHandler on instantiation.
+            if 'nTrials' not in args:
+                args['nTrials'] = self.nTrials
+
+            if self.type == 'simple':
+                startVal = args.pop('startVal')
+                thisStair = StairHandler(startVal, **args)
+            elif self.type in ['QUEST', 'quest']:
+                startVal = args.pop('startVal')
+                startValSd = args.pop('startValSd')
+                thisStair = QuestHandler(startVal, startValSd, **args)
+
+            # This isn't normally part of handler.
+            thisStair.condition = condition
+
+            # And finally, add it to the list.
             self.staircases.append(thisStair)
             self.runningStaircases.append(thisStair)
     def __iter__(self):
@@ -3664,17 +3717,20 @@ class MultiStairHandler(_BaseTrialHandler):
 
         """
         #create a new set for this pass if needed
-        if not hasattr(self, 'thisPassRemaining') or self.thisPassRemaining==[]:
-            if len(self.runningStaircases)>0:
+        if (not hasattr(self, 'thisPassRemaining') or
+                not self.thisPassRemaining):
+            if self.runningStaircases:
                 self._startNewPass()
             else:
                 self.finished=True
                 raise StopIteration
+
         #fetch next staircase/value
         self.currentStaircase = self.thisPassRemaining.pop(0)#take the first and remove it
         #if staircase.next() not called, staircaseHandler would not save the first intensity,
         #Error: miss align intensities and responses
-        self._nextIntensity =self.currentStaircase.next()#gets updated by self.addData()
+        self._nextIntensity = self.currentStaircase.next()  # gets updated by self.addResponse()
+
         #return value
         if not self.finished:
             #inform experiment of the condition (but not intensity, that might be overridden by user)
