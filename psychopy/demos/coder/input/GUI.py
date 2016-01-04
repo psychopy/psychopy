@@ -7,7 +7,7 @@ Demo to illustrate Dialog (Dlg) classes and usage.
 
 from __future__ import division
 
-from psychopy import gui
+from psychopy import qtgui as gui
 
 # create a DlgFromDict
 info = {'Observer':'jwp', 'gender':['male', 'female'],
