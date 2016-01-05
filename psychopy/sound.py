@@ -40,6 +40,7 @@ import threading
 from sys import platform, exit, stdout
 from psychopy import event, core, logging, prefs
 from psychopy.constants import *
+from psychopy.tools import attributetools
 import weakref
 
 if platform=='win32':
@@ -191,47 +192,63 @@ class _PySoundCallbackClass(object):
     original sound instance that created it (or we would create a circular ref again).
 
     """
-    def __init__(self, sndArr, sndInstance):
-        self.sndArr = sndArr
+    def __init__(self, sndInstance):
         self.status = NOT_STARTED
         self._sampleIndex = 0
         self.bufferSize = sndInstance.bufferSize
-        self._nSamples = len(self.sndArr)
         self.sndInstance = weakref.ref(sndInstance)
-    def fillBuffer(self, in_data, out_data, time_info, status):
-        # in_data to record from a buffer(?)
-        # out_data a buffer to write to (length of self.bufferSize)
-        # time_info is a dict
+    def fillBuffer(self, inData, outData, timeInfo, status):
+        # inData to record from a buffer(?)
+        # outData a buffer to write to (length of self.bufferSize)
+        # timeInfo is a dict
         # status = 0 unless
-        if self.status == STOPPED:
-            out_data[:] = 0
-            return soundcard.aborted_flag
-        if (self._sampleIndex+self.bufferSize) > self._nSamples:
-            out_data[:] = 0 # set buffer to zero
-            # then the
-            out_data[0:self._nSamples-self._sampleIndex,0] = self.sndArr[self._sampleIndex:]
-            return soundcard.complete_flag
+
+        #In tests on a macbook air this function takes around 7microsec to run
+        #so shouldn't impact on performance. Tested with this code:
+        #    s1 = sound.SoundPySoundCard(secs=10, bufferSize=bSize)
+        #    s1.play()
+        #
+        #    inDat = numpy.zeros([bSize,2], dtype='f')
+        #    outDat = numpy.zeros([bSize,2], dtype='f')
+        #    t0 = time.time()
+        #    for n in range(nRuns):
+        #        s1._callbacks.fillBuffer(inDat, outDat, time_info=None, status=0)
+        #    print("%fms per repeat" %((time.time()-t0)*1000/nRuns))
+        snd = self.sndInstance()
+        chansIn, chansOut = snd._stream.channels
+        nSamples = len(snd.sndArr)
+        if snd.status == STOPPED:
+            outData[:] = 0
+            return soundcard.abort_flag
+        if (self._sampleIndex+self.bufferSize) > nSamples:
+            outData[:] = 0 # set buffer to zero
+            # then insert the data
+            outData[0:nSamples-self._sampleIndex,:] = snd.sndArr[self._sampleIndex:, :]
+            self._sampleIndex = nSamples
+            snd._onEOS()
+            return soundcard.abort_flag
         else:
-            out_data[:,0] = self.sndArr[self._sampleIndex:(self._sampleIndex + self.bufferSize)]
-        self._sampleIndex += self.bufferSize
-        return soundcard.continue_flag
+            outData[:,:] = snd.sndArr[self._sampleIndex:(self._sampleIndex + self.bufferSize), :] \
+                * snd.volume
+            self._sampleIndex += self.bufferSize
+            return soundcard.continue_flag
 
     def eos(self, log=True):
-        """ A callback given directly to the given portaudio stream
-        that signals the end of the stream being reached
+        """ This is potentially given directly to the paStream but we don't use
+        it. Instead we're calling our own Sound.eos() from within the fillBuffer
+        callback
         """
         self.sndInstance()._onEOS()
-        self.status = FINISHED
 
 class SoundPySoundCard(_SoundBase):
     def __init__(self, value="C", secs=0.5, octave=4, sampleRate=44100, bits=None,
-                 name='', autoLog=True, loops=0, bufferSize=64):
+                 name='', autoLog=True, loops=0, bufferSize=128, volume=1):
         """Create a sound and get ready to play
 
         :parameters:
 
             value: can be a number, string or an array:
-                * If it's a number between 37 and 32767 then a tone will be generated at that frequency in Hz.
+                * If it's a number then a tone will be generated at that frequency in Hz.
                 * It could be a string for a note ('A','Bfl','B','C','Csh'...). Then you may want to specify which octave as well
                 * Or a string could represent a filename in the current location, or mediaLocation, or a full path combo
                 * Or by giving an Nx2 numpy array of floats (-1:1) you can specify the sound yourself as a waveform
@@ -255,19 +272,23 @@ class SoundPySoundCard(_SoundBase):
             loops: int (default = 0)
                 number of times to loop (0 means play once, -1 means loop forever)
 
-            bufferSize: int (default = 64)
+            bufferSize: int (default = 128)
                 How many samples should be loaded at a time to the sound buffer.
                 A larger number will reduce speed to play a sound. If too small
                 then audio artifacts will be heard where the buffer ran empty
 
             bits:
                 currently serves no purpose (exists for backwards compatibility)
+
+            volume: 0-1.0
+
         """
         self.name=name#only needed for autoLogging
         self.autoLog=autoLog
 
         self.sampleRate = sampleRate
         self.bufferSize = bufferSize
+        self.volume = volume
 
         #try to create sound
         self._snd=None
@@ -323,16 +344,15 @@ class SoundPySoundCard(_SoundBase):
         """Get's the duration of the current sound in secs"""
         pass #todo
 
-    def getVolume(self):
+    @attributetools.attributeSetter
+    def volume(self, volume):
         """Returns the current volume of the sound (0.0:1.0)"""
-        pass #todo
+        self.__dict__['volume'] = volume
 
-    def setVolume(self,newVol, log=True):
+    def setVolume(self, value, operation="", log=None):
         """Sets the current volume of the sound (0.0:1.0)"""
-        pass #todo
-        if log and self.autoLog:
-            logging.exp("Set Sound %s volume=%.3f" %(self.name, newVol), obj=self)
-        return self.getVolume()
+        attributetools.setAttribute(self, 'volume', value, log, operation)
+        return value #this is returned for historical reasons
 
     def _setSndFromFile(self, fileName):
         #load the file
@@ -354,22 +374,28 @@ class SoundPySoundCard(_SoundBase):
     def status(self):
         #NB this is stored by the _callbacks class for fast access when data buffer
         #needs filling (_callbacks class does not have a reference back here)
-        return self._callbacks.status
+        return self.__dict__['status']
     @status.setter
     def status(self, status):
-        self._callbacks = status
+        self.__dict__['status'] = status
 
     def _setSndFromArray(self, thisArray):
         """For pysoundcard all sounds are ultimately played as an array so
         other setSound methods are going to call this having created an arr
         """
-        self._callbacks = _PySoundCallbackClass(thisArray, sndInstance=self)
+        self._callbacks = _PySoundCallbackClass(sndInstance=self)
         self._snd = self._stream = soundcard.Stream(samplerate=self.sampleRate,
                                                     blocksize=self.bufferSize,
                                                     callback=self._callbacks.fillBuffer,
+
                                                     )
-        self.sndArr = thisArray
-        self._nSamples = len(thisArray)
+        chansIn, chansOut = self._stream.channels
+        if chansOut>1 and thisArray.ndim==1:
+            #make mono sound stereo
+            self.sndArr = numpy.resize(thisArray, [2,len(thisArray)]).T
+        else:
+            self.sndArr = numpy.asarray(thisArray)
+        self._nSamples = thisArray.shape[0]
         self.seek(0) # set to run from the start
 
     def seek(self, t):
@@ -378,7 +404,7 @@ class SoundPySoundCard(_SoundBase):
     def _onEOS(self, log=True):
         if log and self.autoLog:
             logging.exp("Sound %s finished" %(self.name), obj=self)
-
+        self.status = FINISHED
     def __del__(self):
        self._stream.close()
 
