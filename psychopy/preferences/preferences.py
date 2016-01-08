@@ -1,7 +1,8 @@
 
-import os, sys, urllib, platform, re, logging
+from __future__ import absolute_import, print_function, division
+
+import os, sys, platform
 import configobj, validate
-import locale
 
 join = os.path.join
 
