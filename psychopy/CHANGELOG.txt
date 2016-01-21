@@ -12,14 +12,42 @@ Changelog
 forthcoming
 ------------------------------
 
-* ADDED: utility to create a .csv (data) file from a .psydat file; see Coder > Tools menu (also: Coder > Demo menu)
+* ADDED: menu item to create a .csv (data) file from a .psydat file; see Coder > Tools menu (also: Coder > Demo menu)
 * IMPROVED: ShapeStim can properly fill arbitrary shapes (using tesselation); see new shapes.py Coder demo for examples.
 * CHANGED: setting ShapeStim vertices dynamically now requires an explicit assignment of the new vertex list to shape.vertices; this can be slow for filled shapes with many vertices. See shapes.py, selfx example.
 * CHANGED: minor: Aperture, Polygon, and Rect now depend on BaseShapeStim (i.e., their base class has a new name, no change in function)
 * FIXED: window viewScale and viewPos combine correctly; viewScale handles negative values, mirror-image flips the window correctly (except for Text)
+* CHANGED: Some file names and locations have changed. To update, replace OLD form in your scripts with NEW form:
+    OLD form --> NEW form
+    Deprecated since 2012, must now update:
+    `from psychopy import calib` --> `from psychopy import monitors as calib` (or just use `monitors`)
+    `from psychopy import bits` --> `from psychopy.hardware.crs import bits`
+    `from psychopy import log` --> `from psychopy import logging`
+    Newly deprecated (the old way still works but logs a warning):
+    `from psychopy import _shadersPyglet` --> `from psychopy.visual import shaders`
+    `from psychopy import gamma` --> `from psychopy.visual import gamma`
+    `from psychopy import filters` --> `from psychopy.visual import filters`
+    API change (only affects people who write their own Builder components):
+    `from psychopy.app.builder.components._visual import VisualComponent` --> `from psychopy.app.builder.components._base import BaseVisualComponent`
+
 
 PsychoPy 1.83
 ------------------------------
+
+PsychoPy 1.83.03
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+released Dec 2015 (NB 1.83.02 was never publicly released)
+
+* FIXED: problems with the Mac Standalone failing to launch on some OSX versions
+* FIXED: reduced impact of pyglet text memory leaks (make fewer updates). (NB There is still a leak in Pyglet's code that we can't fix)
+* FIXED: several fixes to RatingScale
+* FIXED: window viewScale and viewPos combine correctly; viewScale handles negative values, mirror-image flips the window correctly (except for Text) #1011
+* FIXED: fixed memory leak in sounds on 64bit Mac installation (error in pyo)
+* FIXED: MovieStim3 was interacting badly with ShapeStim #981
+* FIXED: MovieStim3 was failing if no audio stream was present in the file #984
+* FIXED: PsychoPy app now gives a warning message if it can't start due to permissions error #1055
+* FIXED: Faster rendering of MovieStim2 and Moviestim3 due to removal of mipmapping code
 
 PsychoPy 1.83.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

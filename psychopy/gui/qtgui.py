@@ -6,15 +6,21 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from PyQt4 import QtGui
-from PyQt4.QtCore import Qt
+try:
+    from PyQt4 import QtGui
+    QtWidgets = QtGui #in qt4 these were all in one package
+    from PyQt4.QtCore import Qt
+except:
+    from PyQt5 import QtWidgets
+    from PyQt5 import QtGui
+    from PyQt5.QtCore import Qt
 
 from psychopy import logging
 import numpy as np
 import string, os, sys, json
 from psychopy.app import localization
 
-OK = QtGui.QDialogButtonBox.Ok
+OK = QtWidgets.QDialogButtonBox.Ok
 
 qtapp = None
 
@@ -22,13 +28,13 @@ def ensureQtApp():
     global qtapp
     # make sure there's a wxApp prior to showing a gui, e.g., for expInfo dialog
     if qtapp is None:
-        qtapp = QtGui.QApplication(sys.argv)
+        qtapp = QtWidgets.QApplication(sys.argv)
     return qtapp
 
 
 wasMouseVisible = True
 
-class Dlg(QtGui.QDialog):
+class Dlg(QtWidgets.QDialog):
     """A simple dialogue box. You can add text or input boxes
     (sequentially) and then retrieve the values.
 
@@ -60,7 +66,7 @@ class Dlg(QtGui.QDialog):
 
         global app  # avoid recreating for every gui
         app = ensureQtApp()
-        QtGui.QDialog.__init__(self, None, Qt.WindowTitleHint)
+        QtWidgets.QDialog.__init__(self, None, Qt.WindowTitleHint)
 
         self.inputFields = []
         self.inputFieldTypes = []
@@ -68,16 +74,16 @@ class Dlg(QtGui.QDialog):
         self.data = []
         self.irow = 0
 
-        #QtGui.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
+        #QtWidgets.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
 
         #add buttons for OK and Cancel
-        self.buttonBox = QtGui.QDialogButtonBox(Qt.Horizontal, parent=self)
-        self.okbutton = QtGui.QPushButton(labelButtonOK, parent=self)
-        self.cancelbutton = QtGui.QPushButton(labelButtonCancel, parent=self)
+        self.buttonBox = QtWidgets.QDialogButtonBox(Qt.Horizontal, parent=self)
+        self.okbutton = QtWidgets.QPushButton(labelButtonOK, parent=self)
+        self.cancelbutton = QtWidgets.QPushButton(labelButtonCancel, parent=self)
         self.buttonBox.addButton(self.okbutton,
-                                 QtGui.QDialogButtonBox.ActionRole)
+                                 QtWidgets.QDialogButtonBox.ActionRole)
         self.buttonBox.addButton(self.cancelbutton,
-                                 QtGui.QDialogButtonBox.ActionRole)
+                                 QtWidgets.QDialogButtonBox.ActionRole)
         self.okbutton.clicked.connect(self.accept)
         self.cancelbutton.clicked.connect(self.reject)
 
@@ -91,7 +97,7 @@ class Dlg(QtGui.QDialog):
         #self.labelButtonOK = labelButtonOK
         #self.labelButtonCancel = labelButtonCancel
 
-        self.layout = QtGui.QGridLayout()
+        self.layout = QtWidgets.QGridLayout()
         self.layout.setColumnStretch(1, 1)
         self.layout.setSpacing(10)
         self.layout.setColumnMinimumWidth(1, 250)
@@ -102,7 +108,7 @@ class Dlg(QtGui.QDialog):
 
 
     def addText(self, text, color='', isFieldLabel=False):
-        textLabel = QtGui.QLabel(text, parent=self)
+        textLabel = QtWidgets.QLabel(text, parent=self)
 
         if len(color):
             palette = QtGui.QPalette()
@@ -144,7 +150,7 @@ class Dlg(QtGui.QDialog):
         #create input control
         if type(initial) == bool and not choices:
             self.data.append(initial)
-            inputBox = QtGui.QCheckBox(parent=self)
+            inputBox = QtWidgets.QCheckBox(parent=self)
             inputBox.setChecked(initial)
 
             def handleCheckboxChange(new_state):
@@ -157,7 +163,7 @@ class Dlg(QtGui.QDialog):
             inputBox.stateChanged.connect(handleCheckboxChange)
         elif not choices:
             self.data.append(initial)
-            inputBox = QtGui.QLineEdit(unicode(initial), parent=self)
+            inputBox = QtWidgets.QLineEdit(unicode(initial), parent=self)
 
             def handleLineEditChange(new_text):
                 ix = self.inputFields.index(inputBox)
@@ -203,7 +209,7 @@ class Dlg(QtGui.QDialog):
 
             inputBox.textEdited.connect(handleLineEditChange)
         else:
-            inputBox = QtGui.QComboBox(parent=self)
+            inputBox = QtWidgets.QComboBox(parent=self)
             choices = list(choices)
             for i, option in enumerate(choices):
                 inputBox.addItem(unicode(option))
@@ -293,7 +299,7 @@ class Dlg(QtGui.QDialog):
 
         # Center Dialog on appropriate screen
         frameGm = self.frameGeometry()
-        desktop = QtGui.QApplication.desktop()
+        desktop = QtWidgets.QApplication.desktop()
         qtscreen = self.screen
         if self.screen <= 0:
             qtscreen = desktop.primaryScreen()
@@ -301,12 +307,12 @@ class Dlg(QtGui.QDialog):
         frameGm.moveCenter(centerPoint)
         self.move(frameGm.topLeft())
 
-        QtGui.QDialog.show(self)
+        QtWidgets.QDialog.show(self)
         self.raise_()
         self.activateWindow()
 
         self.OK = False
-        if QtGui.QDialog.exec_(self) == QtGui.QDialog.Accepted:
+        if QtWidgets.QDialog.exec_(self) == QtWidgets.QDialog.Accepted:
             self.OK = True
             return self.data
 
@@ -395,7 +401,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
     global qtapp  # avoid recreating for every gui
     qtapp = ensureQtApp()
 
-    r = QtGui.QFileDialog.getSaveFileName(parent=None,
+    r = QtWidgets.QFileDialog.getSaveFileName(parent=None,
                                           caption=prompt,
                                           directory=os.path.join(initFilePath,
                                                                  initFileName),
@@ -439,7 +445,7 @@ def fileOpenDlg(tryFilePath="",
                   "txt (*.txt *.dlm *.csv);;" \
                   "pickled files (*.pickle *.pkl);;" \
                   "shelved files (*.shelf)"
-    filesToOpen = QtGui.QFileDialog.getOpenFileNames(parent=None,
+    filesToOpen = QtWidgets.QFileDialog.getOpenFileNames(parent=None,
                                                      caption=prompt,
                                                      directory=os.path.join(
                                                          tryFilePath,
@@ -458,7 +464,7 @@ def infoDlg(title=_translate("Information"),
                 "No details provided. ('prompt' value not set).")):
     global qtapp  # avoid recreating for every gui
     qtapp = ensureQtApp()
-    QtGui.QMessageBox.information(None,
+    QtWidgets.QMessageBox.information(None,
                                   title,
                                   prompt)
 
@@ -468,7 +474,7 @@ def warnDlg(title=_translate("Warning"),
                 "No details provided. ('prompt' value not set).")):
     global qtapp  # avoid recreating for every gui
     qtapp = ensureQtApp()
-    QtGui.QMessageBox.warning(None,
+    QtWidgets.QMessageBox.warning(None,
                               title,
                               prompt)
 
@@ -478,7 +484,7 @@ def criticalDlg(title=_translate("Critical"),
                     "No details provided. ('prompt' value not set).")):
     global qtapp  # avoid recreating for every gui
     qtapp = ensureQtApp()
-    QtGui.QMessageBox.critical(None,
+    QtWidgets.QMessageBox.critical(None,
                                title,
                                prompt)
 
@@ -488,7 +494,7 @@ def aboutDlg(title=_translate("About Experiment"),
                  "No details provided. ('prompt' value not set).")):
     global qtapp  # avoid recreating for every gui
     qtapp = ensureQtApp()
-    QtGui.QMessageBox.about(None,
+    QtWidgets.QMessageBox.about(None,
                             title,
                             prompt)
 
