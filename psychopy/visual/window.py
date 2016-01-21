@@ -844,7 +844,7 @@ class Window(object):
         GL.glReadPixels(0, 0, self.size[0], self.size[1],
                         GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
         try:
-            im = Image.fromstring(mode='RGBA', size=self.size, data=bufferDat)
+            im = Image.frombytes(mode='RGBA', size=self.size, data=bufferDat)
         except Exception:
             im = Image.frombytes(mode='RGBA', size=self.size, data=bufferDat)
         im = im.transpose(Image.FLIP_TOP_BOTTOM)
@@ -976,7 +976,7 @@ class Window(object):
         #GL.glGetTexImage(GL.GL_TEXTURE_1D, 0,
         #                 GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
         try:
-            im = Image.fromstring(mode='RGBA', size=(horz, vert), data=bufferDat)
+            im = Image.frombytes(mode='RGBA', size=(horz, vert), data=bufferDat)
         except:
             im = Image.frombytes(mode='RGBA', size=(horz, vert), data=bufferDat)
         region = im.transpose(Image.FLIP_TOP_BOTTOM)
