@@ -66,7 +66,7 @@ class KeyboardComponent(BaseComponent):
             label=_localized['storeCorrect'])
         self.params['correctAns']=Param(correctAns, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint=_translate("What is the 'correct' key? Might be helpful to add a correctAns column and use $thisTrial.correctAns"),
+            hint=_translate("What is the 'correct' key? Might be helpful to add a correctAns column and use $correctAns to compare to the key press."),
             label=_localized['correctAns'])
         self.params['syncScreenRefresh'] = Param(syncScreenRefresh, valType='bool',
             label=_localized['syncScreenRefresh'],
