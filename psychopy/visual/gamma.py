@@ -21,7 +21,7 @@ elif sys.platform=='darwin':
     except OSError:
         try:
             carbon = ctypes.CDLL('/System/Library/Frameworks/Carbon.framework/Carbon')
-        except Exception, e:
+        except OSError:
             carbon = ctypes.CDLL('/System/Library/Carbon.framework/Carbon')
 elif sys.platform.startswith('linux'):
     #we need XF86VidMode
