@@ -940,7 +940,7 @@ KeyboardComponent.correctAns.staticUpdater:None
 KeyboardComponent.correctAns.categ:Basic
 KeyboardComponent.correctAns.val:
 KeyboardComponent.correctAns.allowedTypes:[]
-KeyboardComponent.correctAns.hint:What is the 'correct' key? Might be helpful to add a correctAns column and use $thisTrial.correctAns
+KeyboardComponent.correctAns.hint:What is the 'correct' key? Might be helpful to add a correctAns column and use $correctAns to compare to the key press.
 KeyboardComponent.correctAns.allowedUpdates:[]
 KeyboardComponent.correctAns.allowedVals:[]
 KeyboardComponent.correctAns.label:Correct answer
@@ -3092,7 +3092,7 @@ cedrusButtonBoxComponent.correctAns.staticUpdater:None
 cedrusButtonBoxComponent.correctAns.categ:Basic
 cedrusButtonBoxComponent.correctAns.val:
 cedrusButtonBoxComponent.correctAns.allowedTypes:[]
-cedrusButtonBoxComponent.correctAns.hint:What is the 'correct' response? NB, buttons are labelled 0 to 6 on a 7-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns
+cedrusButtonBoxComponent.correctAns.hint:What is the 'correct' response? NB, buttons are labelled 0 to 6 on a 7-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $correctAns to compare to the key press.
 cedrusButtonBoxComponent.correctAns.allowedUpdates:[]
 cedrusButtonBoxComponent.correctAns.allowedVals:[]
 cedrusButtonBoxComponent.correctAns.label:Correct answer
@@ -3284,7 +3284,7 @@ ioLabsButtonBoxComponent.correctAns.staticUpdater:None
 ioLabsButtonBoxComponent.correctAns.categ:Basic
 ioLabsButtonBoxComponent.correctAns.val:0
 ioLabsButtonBoxComponent.correctAns.allowedTypes:[]
-ioLabsButtonBoxComponent.correctAns.hint:What is the 'correct' response? NB, buttons are labelled 0 to 7 on a 8-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns
+ioLabsButtonBoxComponent.correctAns.hint:What is the 'correct' response? NB, buttons are labelled 0 to 7 on a 8-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $correctAns to compare to the key press.
 ioLabsButtonBoxComponent.correctAns.allowedUpdates:[]
 ioLabsButtonBoxComponent.correctAns.allowedVals:[]
 ioLabsButtonBoxComponent.correctAns.label:Correct answer

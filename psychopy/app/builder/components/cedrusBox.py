@@ -46,7 +46,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         self.url = "http://www.psychopy.org/builder/components/cedrusButtonBox.html"
         self.exp.requirePsychopyLibs(['hardware'])
 
-        self.params['correctAns'].hint = _translate("What is the 'correct' response? NB, buttons are labelled 0 to 6 on a 7-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns")
+        self.params['correctAns'].hint = _translate("What is the 'correct' response? NB, buttons are labelled 0 to 6 on a 7-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $correctAns to compare to the key press.")
         self.params['correctAns'].valType = 'code'
         self.params['allowedKeys'].hint = _translate('Keys to be read (blank for any) or key numbers separated by commas')
         self.params['deviceNumber'] = Param(deviceNumber, valType='code', allowedTypes=[],

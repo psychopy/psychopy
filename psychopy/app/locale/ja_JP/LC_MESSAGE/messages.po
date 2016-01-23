@@ -1181,7 +1181,7 @@ msgstr "キーボックスのタイマーを使用"
 msgid ""
 "What is the 'correct' response? NB, buttons are labelled 0 to 6 on a 7-"
 "button box. Enter 'None' (no quotes) if withholding a response is correct. "
-"Might be helpful to add a correctAns column and use $thisTrial.correctAns"
+"Might be helpful to add a correctAns column and use $correctAns to compare to the key press."
 msgstr "正答のボタンを指定します 押さないのが正答であればNoneを指定します"
 
 #: psychopy/app/builder/components/cedrusBox.py:51
@@ -1533,7 +1533,7 @@ msgstr "ライトOFF"
 msgid ""
 "What is the 'correct' response? NB, buttons are labelled 0 to 7 on a 8-"
 "button box. Enter 'None' (no quotes) if withholding a response is correct. "
-"Might be helpful to add a correctAns column and use $thisTrial.correctAns"
+"Might be helpful to add a correctAns column and use $correctAns to compare to the key press."
 msgstr "正答のボタンを指定します 押さないのが正答であればNoneを指定します"
 
 #: psychopy/app/builder/components/ioLabs.py:55
@@ -1614,7 +1614,7 @@ msgstr "反応の正誤を記録します"
 #: psychopy/app/builder/components/keyboard.py:70
 msgid ""
 "What is the 'correct' key? Might be helpful to add a correctAns column and "
-"use $thisTrial.correctAns"
+"use $correctAns to compare to the key press."
 msgstr ""
 "正答とするキーを指定します 条件ファイルにcorrectAnsという列を追加して"
 "$thisTrial.correctAnsとすると条件ファイルで正答を指定できます"
