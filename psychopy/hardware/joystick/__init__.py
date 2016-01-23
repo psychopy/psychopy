@@ -28,14 +28,17 @@ Typical usage::
         #...
         win.flip()#flipping implicitly updates the joystick info
 """
+
+from __future__ import absolute_import
+
 try:
     import pygame.joystick
     havePygame=True
 except:
     havePygame=False
-import pyglet_input
+
 try:
-    import pyglet_input
+    from psychopy.contrib import pyglet_input
     havePyglet=True
 except:
     havePyglet=False

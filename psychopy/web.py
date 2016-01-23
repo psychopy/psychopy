@@ -7,8 +7,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import os, sys, time
-import hashlib, base64
+import os, sys
+import base64
 import httplib, mimetypes  # deprecated; use requests package instead
 import socket, re
 from psychopy import logging
@@ -21,7 +21,7 @@ else:
     py3 = False
 if py3:
     import urllib.request, urllib.error, urllib.parse
-    import io
+    import io  # pylint: disable=W0611
 else:
     import urllib2
     class FakeURLlib(object):
@@ -30,7 +30,7 @@ else:
             self.error = lib
             self.parse = lib
     urllib = FakeURLlib(urllib2)
-    import cStringIO as io
+    import cStringIO as io  # pylint: disable=W0611
 
 TIMEOUT = max(prefs.connections['timeout'], 2.0) # default 20s from prefs, min 2s
 socket.setdefaulttimeout(TIMEOUT)
@@ -407,7 +407,7 @@ def upload(selector, filename, basicAuth=None, host=None, https=False, log=True)
     Author: Jeremy R. Gray, 2012
     """
 
-    logging.warning("Deprecated: psychopy.web.upload is superceded by requests (python package)")
+    logging.warning("Deprecated: psychopy.web.upload is superceded by requests (python package)")  # ~Nov 2015
 
     requireInternetAccess()  # needed to upload over http
 

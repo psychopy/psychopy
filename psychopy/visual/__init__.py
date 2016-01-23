@@ -9,7 +9,8 @@
 from psychopy import logging
 
 # needed for backwards-compatibility
-from psychopy.constants import *
+from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED, STOPPED,
+                                FINISHED, PRESSED, RELEASED, FOREVER)
 
 # window, should always be loaded first
 from .window import Window, getMsPerFrame, openWindows
@@ -21,6 +22,9 @@ from .helpers import pointInPolygon, polygonsOverlap
 from .basevisual import BaseVisualStim
 from .image import ImageStim
 from .text import TextStim
+
+from psychopy.visual import gamma  # done in window anyway
+from psychopy.visual import filters  
 
 # need absolute imports within lazyImports
 

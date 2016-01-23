@@ -4,7 +4,10 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from psychopy.app._psychopyApp import *
+from __future__ import absolute_import, print_function
+
+import sys
+from psychopy.app._psychopyApp import PsychoPyApp, __version__
 
 #NB the PsychoPyApp classes moved to _psychopyApp.py as of version 1.78.00
 #to allow for better upgrading possibilities from the mac app bundle. this file
@@ -12,14 +15,15 @@ from psychopy.app._psychopyApp import *
 
 if __name__=='__main__':
     if '-x' in sys.argv:
-        # enable execution of .py script from command line using StandAlone python
+        # run a .py script from the command line using StandAlone python
         targetScript = sys.argv[sys.argv.index('-x') + 1]
         from psychopy import core
         import os
         core.shellCall([sys.executable, os.path.abspath(targetScript)])
         sys.exit()
     if '-v' in sys.argv or '--version' in sys.argv:
-        print('PsychoPy2, version %s (c)Jonathan Peirce, 2015, GNU GPL license' %psychopy.__version__)
+        info = 'PsychoPy2, version %s (c)Jonathan Peirce 2015, GNU GPL license'
+        print(info % __version__)
         sys.exit()
     if '-h' in sys.argv or '--help' in sys.argv:
         print("""Starts the PsychoPy2 application.

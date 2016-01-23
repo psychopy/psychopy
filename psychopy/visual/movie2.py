@@ -591,23 +591,16 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             #important if using bits++ because GL_LINEAR
             #sometimes extrapolates to pixel vals outside range
             if self.interpolate:
-                GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_LINEAR)
-                if self.useShaders:#GL_GENERATE_MIPMAP was only available from OpenGL 1.4
-                    GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
-                    GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
-                    if useSubTex is False:
-                        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, pyglet.gl.GL_RGB8,
-                            self._numpy_frame.shape[1],self._numpy_frame.shape[0], 0,
-                            GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
-                    else:
-                        GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
-                            self._numpy_frame.shape[1], self._numpy_frame.shape[0],
-                            GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
-
-                else:#use glu
-                    GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)
-                    GL.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, GL.GL_RGB8,
-                        self._numpy_frame.shape[1],self._numpy_frame.shape[0], GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
+                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
+                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+                if useSubTex is False:
+                    GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, pyglet.gl.GL_RGB8,
+                        self._numpy_frame.shape[1],self._numpy_frame.shape[0], 0,
+                        GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
+                else:
+                    GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
+                        self._numpy_frame.shape[1], self._numpy_frame.shape[0],
+                        GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
             else:
                 GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_NEAREST)
                 GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,GL.GL_NEAREST)

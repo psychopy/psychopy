@@ -416,7 +416,7 @@ class ConfigWizard(object):
             report.append((_translate('Python packages'), '', '', False))
             packages = ['PIL', 'openpyxl', 'lxml', 'setuptools', 'pytest', 'sphinx',
                         'psignifit', 'pyserial', 'pp',
-                        'pynetstation', 'ioLabs', 'labjack'
+                        'pynetstation', 'labjack'
                         ]
             if sys.platform == 'win32':
                 packages.append('pywin32')

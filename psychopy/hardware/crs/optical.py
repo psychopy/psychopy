@@ -1,6 +1,8 @@
 #!/usr/bin/env python2
 #coding=utf-8
 
+from __future__ import absolute_import
+
 # Copyright (c) 2009-2012 Valentin Haenel <valentin.haenel@gmx.de>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy

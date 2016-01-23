@@ -8,10 +8,9 @@ pulses and user responses. Limitations: pyglet only; keyboard events only.
 
 __author__ = 'Jeremy Gray'
 
-from psychopy import visual, event, core, logging
-from psychopy.errors import TimeoutError
 import threading
 
+from psychopy import visual, event, core, logging
 from psychopy.sound import Sound # for SyncGenerator tone
 
 class ResponseEmulator(threading.Thread):
@@ -66,7 +65,7 @@ class SyncGenerator(threading.Thread):
 
             Parameters:
                 TR:      seconds between volume acquisitions
-                TA:      seconds to acquire one volume 
+                TA:      seconds to acquire one volume
                 volumes: number of 3D volumes to obtain in a given scanning run
                 sync:    character used as flag for sync timing, default='5'
                 skip:    how many frames to silently omit initially during T1
@@ -203,7 +202,7 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
 
         wait_timeout :
             time in seconds that launchScan will wait before assuming something went
-            wrong and exiting. Defaults to 300sec (5 minutes). Raises a TimeoutError
+            wrong and exiting. Defaults to 300sec (5 minutes). Raises a RuntimeError
             if no sync pulse is received in the allowable time.
     """
 
@@ -266,7 +265,7 @@ def launchScan(win, settings, globalClock=None, simResponses=None,
         if esc_key and esc_key in allKeys:  # pragma: no cover
             core.quit()
         if timeoutClock.getTime() > wait_timeout:
-            raise TimeoutError('Waiting for scanner has timed out in %.3f seconds.' % wait_timeout)
+            raise RuntimeError('Waiting for scanner has timed out in %.3f seconds.' % wait_timeout)
     if globalClock:
         globalClock.reset()
     if log:  # pragma: no cover

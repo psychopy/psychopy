@@ -4,15 +4,17 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import wx
-from wx import grid
 
-from wx.lib import intctrl
-from psychopy.app import localization
-from psychopy import monitors, hardware, logging
-from psychopy.app import dialogs
 import time, os
 import locale
+
+import wx
+from wx import grid
+from wx.lib import intctrl
+
+from psychopy.app import localization  # pylint: disable=W0611
+from psychopy import monitors, hardware, logging
+from psychopy.app import dialogs
 
 DEBUG=False
 NOTEBOOKSTYLE = False

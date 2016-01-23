@@ -2,19 +2,22 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import sys, time, types, re
+from __future__ import absolute_import
+
+import time, types
 import wx, wx.stc, wx.richtext
+from wx.html import HtmlEasyPrinting
 try:
     from wx import aui
 except:
     import wx.lib.agw.aui as aui # some versions of phoenix
+
 import keyword, os, sys, string, StringIO, glob, platform, io
-import threading, traceback, bdb, cPickle
-import psychoParser
-import introspect, py_compile
-from psychopy.app import stdOutRich, dialogs
+import threading, traceback, bdb, cPickle, py_compile
+
+from . import psychoParser, introspect
+from .. import stdOutRich, dialogs
 from psychopy import logging
-from wx.html import HtmlEasyPrinting
 
 #advanced prefs (not set in prefs files)
 prefTestSubset = ""

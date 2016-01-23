@@ -9,23 +9,24 @@ Many thanks to Ray Pascor (pascor at hotpop.com) for the public domain code on
 building an optimised gif palette (makeRGBhistogram, makePalette, rgb2palette are
 very heavily based on his code).
 """
-from psychopy import logging
+
+from __future__ import absolute_import
+
 import string, time, tempfile, os, glob, random
 try:
     from PIL import Image, ImageChops
-    from PIL.GifImagePlugin import getheader, getdata #part of PIL
+    from PIL.GifImagePlugin import getheader, getdata
 except ImportError:
     import Image, ImageChops
-    from GifImagePlugin import getheader, getdata #part of PIL
-
+    from GifImagePlugin import getheader, getdata
 try:
     import pymedia.video.vcodec as vcodec
     havePyMedia=True
 except:
     havePyMedia=False
-
 import numpy
 
+from psychopy import logging
 
 # --------------------------------------------------------------------
 # straightforward delta encoding

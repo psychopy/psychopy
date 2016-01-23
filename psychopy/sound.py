@@ -39,8 +39,8 @@ from os import path
 import threading
 from sys import platform, exit, stdout
 from psychopy import event, core, logging, prefs
-from psychopy.constants import *
-from psychopy.tools import attributetools
+from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
+                                NOT_STARTED, FOREVER)
 import weakref
 
 if platform=='win32':

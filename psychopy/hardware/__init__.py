@@ -1,3 +1,6 @@
+
+from __future__ import absolute_import
+
 import sys, glob, collections
 from itertools import imap,chain
 from psychopy import logging
@@ -53,7 +56,9 @@ def getAllPhotometers():
     :returns:
     A list of all photometer classes
     """
-    import minolta,pr,crs
+    from . import minolta, pr
+    from . import crs
+    #import minolta, pr, crs
     photometers = [pr.PR650,pr.PR655,minolta.LS100]
     if hasattr(crs,"ColorCAL"):
         photometers.append(crs.ColorCAL)

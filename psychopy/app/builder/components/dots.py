@@ -2,9 +2,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from _visual import *
-from psychopy.app.builder import components #for getInitVals()
 from os import path
+from ._base import BaseVisualComponent, Param, getInitVals
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'dots.png')
@@ -18,7 +17,7 @@ _localized = {'nDots': _translate('Number of dots'), 'dir': _translate('Directio
               'fieldPos': _translate('Field position')
               }
 
-class DotsComponent(VisualComponent):
+class DotsComponent(BaseVisualComponent):
     """An event class for presenting Random Dot stimuli"""
     def __init__(self, exp, parentName, name='dots',
                 nDots=100,
@@ -92,7 +91,7 @@ class DotsComponent(VisualComponent):
         if self.params['units'].val=='from exp settings': unitsStr=""
         else: unitsStr="units=%(units)s, " %self.params
         #do writing of init
-        inits = components.getInitVals(self.params)#replaces variable params with sensible defaults
+        inits = getInitVals(self.params)#replaces variable params with sensible defaults
         depth = -self.getPosInRoutine()
         buff.writeIndented("%s = visual.DotStim(win=win, name='%s',%s\n" %(inits['name'], inits['name'],unitsStr))
         buff.writeIndented("    nDots=%(nDots)s, dotSize=%(dotSize)s,\n" %(inits))
