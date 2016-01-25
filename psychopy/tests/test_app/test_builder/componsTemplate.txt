@@ -1174,7 +1174,7 @@ KeyboardComponent.correctAns.categ:Basic
 KeyboardComponent.correctAns.allowedVals:[]
 KeyboardComponent.correctAns.readOnly:False
 KeyboardComponent.correctAns.updates:constant
-KeyboardComponent.correctAns.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u"What is the 'correct' key? Might be helpful to add a correctAns column and use $thisTrial.correctAns", 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Correct answer', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+KeyboardComponent.correctAns.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u"What is the 'correct' key? Might be helpful to add a correctAns column and use $correctAns to compare to the key press.", 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Correct answer', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
 KeyboardComponent.correctAns.__weakref__:None
 KeyboardComponent.correctAns.valType:str
 KeyboardComponent.correctAns.staticUpdater:None
@@ -3863,7 +3863,7 @@ cedrusButtonBoxComponent.correctAns.categ:Basic
 cedrusButtonBoxComponent.correctAns.allowedVals:[]
 cedrusButtonBoxComponent.correctAns.readOnly:False
 cedrusButtonBoxComponent.correctAns.updates:constant
-cedrusButtonBoxComponent.correctAns.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u"What is the 'correct' response? NB, buttons are labelled 0 to 6 on a 7-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns", 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Correct answer', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
+cedrusButtonBoxComponent.correctAns.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '', 'hint': u"What is the 'correct' response? NB, buttons are labelled 0 to 6 on a 7-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $correctAns to compare to the key press.", 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Correct answer', 'readOnly': False, 'updates': 'constant', 'valType': 'code'}
 cedrusButtonBoxComponent.correctAns.__weakref__:None
 cedrusButtonBoxComponent.correctAns.valType:code
 cedrusButtonBoxComponent.correctAns.staticUpdater:None
@@ -4103,7 +4103,7 @@ ioLabsButtonBoxComponent.correctAns.categ:Basic
 ioLabsButtonBoxComponent.correctAns.allowedVals:[]
 ioLabsButtonBoxComponent.correctAns.readOnly:False
 ioLabsButtonBoxComponent.correctAns.updates:constant
-ioLabsButtonBoxComponent.correctAns.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '0', 'hint': u"What is the 'correct' response? NB, buttons are labelled 0 to 7 on a 8-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns", 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Correct answer', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
+ioLabsButtonBoxComponent.correctAns.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': '0', 'hint': u"What is the 'correct' response? NB, buttons are labelled 0 to 7 on a 8-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $correctAns to compare to the key press.", 'allowedTypes': [], 'allowedUpdates': [], 'allowedVals': [], 'label': u'Correct answer', 'readOnly': False, 'updates': 'constant', 'valType': 'str'}
 ioLabsButtonBoxComponent.correctAns.__weakref__:None
 ioLabsButtonBoxComponent.correctAns.valType:str
 ioLabsButtonBoxComponent.correctAns.staticUpdater:None
