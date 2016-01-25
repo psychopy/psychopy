@@ -152,7 +152,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
             win.winHandle.switch_to()
             glob_vars.currWindow = win
 
-    def _makeNx2(self, value, acceptedInput=['scalar', 'Nx1', 'Nx2']):
+    def _makeNx2(self, value, acceptedInput=('scalar', 'Nx1', 'Nx2')):
         """Helper function to change input to Nx2 arrays
         'scalar': int/float, 1x1 and 2x1.
         'Nx1': vector of values for each element.
@@ -173,7 +173,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
             raise ValueError('New value should be one of these: ' + str(acceptedInput))
 
         return value
-    def _makeNx1(self, value, acceptedInput=['scalar', 'Nx1']):
+    def _makeNx1(self, value, acceptedInput=('scalar', 'Nx1')):
         """Helper function to change input to Nx1 arrays
         'scalar': int, 1x1 and 2x1.
         'Nx1': vector of values for each element."""

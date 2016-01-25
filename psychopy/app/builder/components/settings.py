@@ -29,7 +29,7 @@ _localized =  {'expName': _translate("Experiment name"),
 
 class SettingsComponent(object):
     """This component stores general info about how to run the experiment"""
-    def __init__(self, parentName, exp, expName='', fullScr=True, winSize=[1024,768], screen=1, monitor='testMonitor', showMouse=False,
+    def __init__(self, parentName, exp, expName='', fullScr=True, winSize=(1024,768), screen=1, monitor='testMonitor', showMouse=False,
                  saveLogFile=True, showExpInfo=True, expInfo="{'participant':'', 'session':'001'}",units='use prefs',
                  logging='exp', color='$[0,0,0]', colorSpace='rgb', enableEscape=True, blendMode='avg',
                  saveXLSXFile=False, saveCSVFile=False, saveWideCSVFile=True, savePsydatFile=True,

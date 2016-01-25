@@ -24,7 +24,7 @@ class PolygonComponent(BaseVisualComponent):
                 lineColor='$[1,1,1]', lineColorSpace='rgb', lineWidth=1,
                 fillColor='$[1,1,1]', fillColorSpace='rgb',
                 nVertices=4,
-                pos=[0,0], size=[0.5,0.5], ori=0,
+                pos=(0,0), size=(0.5,0.5), ori=0,
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim=''):

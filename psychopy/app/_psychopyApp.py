@@ -364,7 +364,7 @@ class PsychoPyApp(wx.App):
         self.SetTopWindow(thisFrame)
         self.builderFrames.append(thisFrame)
         self.allFrames.append(thisFrame)
-    def showBuilder(self, event=None, fileList=[]):
+    def showBuilder(self, event=None, fileList=()):
         from psychopy.app import builder#have to reimport because it is ony local to __init__ so far
         for fileName in fileList:
             if os.path.isfile(fileName):

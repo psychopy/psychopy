@@ -139,7 +139,7 @@ class Monitor:
         notes=None,
         useBits=None,
         verbose=True,
-        currentCalib={},
+        currentCalib=None,
         autoLog=True ):
         """
         """
@@ -148,7 +148,7 @@ class Monitor:
         self.__type__ = 'psychoMonitor'
         self.name = name
         self.autoLog = autoLog
-        self.currentCalib = currentCalib
+        self.currentCalib = currentCalib or {}
         self.currentCalibName = strFromDate(time.localtime())
         self.calibs = {}
         self.calibNames = []
@@ -584,13 +584,13 @@ class GammaCalculator:
     """
 
     def __init__(self,
-        inputs=[],
-        lums=[],
+        inputs=(),
+        lums=(),
         gamma=None,
         bitsIN=8,              #how values in the LUT
         bitsOUT=8,
         eq=1 ):   #how many values can the DACs output
-        self.lumsInitial =lums
+        self.lumsInitial = list(lums)
         self.inputs = inputs
         self.bitsIN = bitsIN
         self.bitsOUT = bitsOUT
@@ -599,7 +599,7 @@ class GammaCalculator:
         if len(inputs)==0 and len(lums)>0:
             self.inputs = DACrange(len(lums))
         else:
-            self.inputs = inputs
+            self.inputs = list(inputs)
 
         #set or get gammaVal
         if len(lums)==0 or gamma!=None:#user is specifying their own gamma value

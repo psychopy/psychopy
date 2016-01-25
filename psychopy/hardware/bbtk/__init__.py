@@ -76,7 +76,7 @@ class BlackBoxToolkit(serialdevice.SerialDevice):
         self.pause()
         return self.getResponse(timeout=0.5).replace(";","")
 
-    def setEventThresholds(self, threshList=[]):
+    def setEventThresholds(self, threshList=()):
         """This takes some time (requires switching the BBTK to STM mode)
         """
         time.sleep(1.0)

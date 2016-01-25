@@ -151,11 +151,11 @@ class Warper():
         self.xgrid = self.warpGridsize
         self.ygrid = self.warpGridsize
 
-    def changeProjection (self, warp, warpfile = None, eyepoint = [0.5,0.5], flipHorizontal = False, flipVertical = False):
+    def changeProjection (self, warp, warpfile = None, eyepoint = (0.5,0.5), flipHorizontal = False, flipVertical = False):
         '''Allows changing the warp method on the fly.  Uses the same parameter definitions as constructor.'''
         self.warp = warp
         self.warpfile = warpfile
-        self.eyepoint = eyepoint
+        self.eyepoint = list(eyepoint)
         self.flipHorizontal = flipHorizontal
         self.flipVertical = flipVertical
 

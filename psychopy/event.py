@@ -304,7 +304,7 @@ def waitKeys(maxWait=float('inf'), keyList=None, timeStamped=False):
     logging.data("No keypress (maxWait exceeded)")
     return None
 
-def xydist(p1=[0.0,0.0],p2=[0.0,0.0]):
+def xydist(p1=(0.0,0.0), p2=(0.0,0.0)):
     """Helper function returning the cartesian distance between p1 and p2
     """
     return numpy.sqrt(pow(p1[0]-p2[0],2)+pow(p1[1]-p2[1],2))
@@ -509,7 +509,7 @@ class Mouse:
                 w=pyglet.window.get_platform().get_default_display().get_windows()[0]
             w.set_mouse_visible(visible)
 
-    def clickReset(self,buttons=[0,1,2]):
+    def clickReset(self,buttons=(0,1,2)):
         """Reset a 3-item list of core.Clocks use in timing button clicks.
            The pyglet mouse-button-pressed handler uses their clock.getLastResetTime() when a button is pressed
            so the user can reset them at stimulus onset or offset to measure RT.
@@ -547,7 +547,7 @@ class Mouse:
             if not getTime: return mouseButtons
             else: return mouseButtons, mouseTimes
 
-    def isPressedIn(self, shape, buttons=[0,1,2]):
+    def isPressedIn(self, shape, buttons=(0,1,2)):
         """Returns `True` if the mouse is currently inside the shape and one of the
         mouse buttons is pressed. The default is that any of the 3 buttons can indicate
         a click; for only a left-click, specifiy `buttons=[0]`::

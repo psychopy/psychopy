@@ -77,7 +77,7 @@ class RB730:
         """Empty the input buffer of all characters. Call this to clear any keypresses that haven't yet been handled."""
         self.port.flushInput()
         
-    def getKeyEvents(self, allowedKeys=[1,2,3,4,5,6,7], downOnly=True):    
+    def getKeyEvents(self, allowedKeys=(1,2,3,4,5,6,7), downOnly=True):
         """Return a list of keyEvents
             Each event has the following attributes:
             
@@ -137,7 +137,7 @@ class RB730:
         t = struct.unpack('H',tStr)[0]#2 bytes (an unsigned short)
         return t
         
-    def waitKeyEvents(self, allowedKeys=[1,2,3,4,5,6,7], downOnly=True):
+    def waitKeyEvents(self, allowedKeys=(1,2,3,4,5,6,7), downOnly=True):
         """Like getKeyEvents, but waits until a key is pressed"""
         noKeyYet = True
         while noKeyYet:

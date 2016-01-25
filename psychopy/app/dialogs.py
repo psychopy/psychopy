@@ -446,7 +446,7 @@ class ListWidget(GlobSizer):
     Has one row per entry and a +/- buttons at end to add/insert/remove from
     the list
     """
-    def __init__(self,parent,value=[{}],order=[]):
+    def __init__(self,parent,value=None,order=None):
         """value should be a list of dictionaries with identical field names
 
         order should be used to specify the order in which the fields appear
@@ -454,12 +454,14 @@ class ListWidget(GlobSizer):
         """
         GlobSizer.__init__(self, hgap=2,vgap=2)
         self.parent = parent
-        self.value=value
+        self.value=value or [{}]
         if type(value)!=list or len(value)<1:
             raise AttributeError, 'The initial value for a ListWidget needs to be a list of dicts'
         #sort fieldNames using order information where possible
         allNames = value[0].keys()
         self.fieldNames=[]
+        if order is None:
+            order = []
         for name in order:
             if name not in allNames:
                 logging.error('psychopy.dialogs.ListWidget was given a field name `%s` in order that was not in the dictionary' %name)
