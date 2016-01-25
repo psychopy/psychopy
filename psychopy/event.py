@@ -309,7 +309,7 @@ def xydist(p1=(0.0,0.0), p2=(0.0,0.0)):
     """
     return numpy.sqrt(pow(p1[0]-p2[0],2)+pow(p1[1]-p2[1],2))
 
-class Mouse:
+class Mouse(object):
     """Easy way to track what your mouse is doing.
 
     It needn't be a class, but since Joystick works better
@@ -329,6 +329,7 @@ class Mouse:
                  visible=True,
                  newPos=None,
                  win=None):
+        super(Mouse, self).__init__()
         self.visible=visible
         self.lastPos = None
         self.prevPos = None # used for motion detection and timing
@@ -593,11 +594,12 @@ class Mouse:
         else:
             print('Mouse exclusivity can only be set for Pyglet!')
 
-class BuilderKeyResponse():
+class BuilderKeyResponse(object):
     """Used in scripts created by the builder to keep track of a clock and
     the current status (whether or not we are currently checking the keyboard)
     """
     def __init__(self):
+        super(BuilderKeyResponse, self).__init__()
         self.status=NOT_STARTED
         self.keys=[] #the key(s) pressed
         self.corr=0 #was the resp correct this trial? (0=no, 1=yes)

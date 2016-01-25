@@ -18,12 +18,13 @@ import struct, sys
 try: import serial
 except: serial=False
 
-class RB730:
+class RB730(object):
     """Class to control/read a Cedrus RB-series response box"""
-    class KeyEvent:
+    class KeyEvent(object):
         """Info about a keypress from Cedrus keypad XID string"""
         def __init__(self,XID):
             """XID should contain a "k"<info><rt> where info is a byte and rt is 4 bytes (=int)"""
+            super(KeyEvent, self).__init__()
             if len(XID)!=6:
                 #log.error("The XID string %s is %i bytes long and should be 6 bytes" %(str([XID]),len(XID)))
                 self.key=None
@@ -44,6 +45,7 @@ class RB730:
                     
             
     def __init__(self, port, baudrate=115200, mode='XID'):
+        super(RB730, self).__init__()
         
         if not serial:
             raise ImportError('The module serial is needed to connect to the Cedrus response pad. ' +\

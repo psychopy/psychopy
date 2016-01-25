@@ -23,7 +23,7 @@ BASE_MR_SETTINGS = {
     }
 
 pytest.mark.emulator
-class TestLaunchScan:
+class TestLaunchScan(object):
     '''A base class to test launchScan with different MR_settings'''
     def setup(self):
         self.win = visual.Window(fullscr=False, autoLog=False)

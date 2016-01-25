@@ -50,7 +50,7 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
         self.order = ['forceEndRoutine', 'active', #NB name and timing params always come 1st
             'lights', 'store', 'storeCorrect', 'correctAns']
 
-        self.params['correctAns'].hint = _translate("What is the 'correct' response? NB, buttons are labelled 0 to 7 on a 8-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $thisTrial.correctAns")
+        self.params['correctAns'].hint = _translate("What is the 'correct' response? NB, buttons are labelled 0 to 7 on a 8-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $correctAns to compare to the key press.")
         self.params['store'].allowedVals = ['last button', 'first button', 'all buttons', 'nothing']
         self.params['store'].hint = _translate('Choose which (if any) responses to store at end of a trial')
         self.params['active'] = Param(active, valType='code', allowedTypes=[],
