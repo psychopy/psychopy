@@ -11,7 +11,6 @@ from psychopy.app.builder.components import getAllComponents
 
 # what reference to use?
 profile = 'componsTemplate.txt'
-profile = 'c.txt'
 
 # always ignore hints, labels, and categories. other options:
 # should it be ok or an error if the param[field] order differs from the profile?
