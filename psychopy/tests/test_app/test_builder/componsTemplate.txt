@@ -227,10 +227,10 @@ DotsComponent.startVal.label:Start
 DotsComponent.startVal.readOnly:False
 DotsComponent.startVal.updates:None
 DotsComponent.startVal.valType:code
-DotsComponent.fieldPos.default:[0.0, 0.0]
+DotsComponent.fieldPos.default:(0.0, 0.0)
 DotsComponent.fieldPos.staticUpdater:None
 DotsComponent.fieldPos.categ:Basic
-DotsComponent.fieldPos.val:[0.0, 0.0]
+DotsComponent.fieldPos.val:(0.0, 0.0)
 DotsComponent.fieldPos.allowedTypes:[]
 DotsComponent.fieldPos.hint:Where is the field centred (in the specified units)?
 DotsComponent.fieldPos.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -550,10 +550,10 @@ GratingComponent.mask.label:Mask
 GratingComponent.mask.readOnly:False
 GratingComponent.mask.updates:constant
 GratingComponent.mask.valType:str
-GratingComponent.pos.default:[0, 0]
+GratingComponent.pos.default:(0, 0)
 GratingComponent.pos.staticUpdater:None
 GratingComponent.pos.categ:Basic
-GratingComponent.pos.val:[0, 0]
+GratingComponent.pos.val:(0, 0)
 GratingComponent.pos.allowedTypes:[]
 GratingComponent.pos.hint:Position of this stimulus (e.g. [1,2] )
 GratingComponent.pos.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -682,10 +682,10 @@ GratingComponent.sf.label:Spatial frequency
 GratingComponent.sf.readOnly:False
 GratingComponent.sf.updates:constant
 GratingComponent.sf.valType:code
-GratingComponent.size.default:[0.5, 0.5]
+GratingComponent.size.default:(0.5, 0.5)
 GratingComponent.size.staticUpdater:None
 GratingComponent.size.categ:Basic
-GratingComponent.size.val:[0.5, 0.5]
+GratingComponent.size.val:(0.5, 0.5)
 GratingComponent.size.allowedTypes:[]
 GratingComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
 GratingComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -802,10 +802,10 @@ ImageComponent.mask.label:Mask
 ImageComponent.mask.readOnly:False
 ImageComponent.mask.updates:constant
 ImageComponent.mask.valType:str
-ImageComponent.pos.default:[0, 0]
+ImageComponent.pos.default:(0, 0)
 ImageComponent.pos.staticUpdater:None
 ImageComponent.pos.categ:Basic
-ImageComponent.pos.val:[0, 0]
+ImageComponent.pos.val:(0, 0)
 ImageComponent.pos.allowedTypes:[]
 ImageComponent.pos.hint:Position of this stimulus (e.g. [1,2] )
 ImageComponent.pos.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -922,10 +922,10 @@ ImageComponent.image.label:Image
 ImageComponent.image.readOnly:False
 ImageComponent.image.updates:constant
 ImageComponent.image.valType:str
-ImageComponent.size.default:[0.5, 0.5]
+ImageComponent.size.default:(0.5, 0.5)
 ImageComponent.size.staticUpdater:None
 ImageComponent.size.categ:Basic
-ImageComponent.size.val:[0.5, 0.5]
+ImageComponent.size.val:(0.5, 0.5)
 ImageComponent.size.allowedTypes:[]
 ImageComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
 ImageComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -1378,10 +1378,10 @@ MovieComponent.durationEstim.label:Expected duration (s)
 MovieComponent.durationEstim.readOnly:False
 MovieComponent.durationEstim.updates:None
 MovieComponent.durationEstim.valType:code
-MovieComponent.pos.default:[0, 0]
+MovieComponent.pos.default:(0, 0)
 MovieComponent.pos.staticUpdater:None
 MovieComponent.pos.categ:Basic
-MovieComponent.pos.val:[0, 0]
+MovieComponent.pos.val:(0, 0)
 MovieComponent.pos.allowedTypes:[]
 MovieComponent.pos.hint:Position of this stimulus (e.g. [1,2] )
 MovieComponent.pos.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -1714,10 +1714,10 @@ PatchComponent.mask.label:Mask
 PatchComponent.mask.readOnly:False
 PatchComponent.mask.updates:constant
 PatchComponent.mask.valType:str
-PatchComponent.pos.default:[0, 0]
+PatchComponent.pos.default:(0, 0)
 PatchComponent.pos.staticUpdater:None
 PatchComponent.pos.categ:Basic
-PatchComponent.pos.val:[0, 0]
+PatchComponent.pos.val:(0, 0)
 PatchComponent.pos.allowedTypes:[]
 PatchComponent.pos.hint:Position of this stimulus (e.g. [1,2] )
 PatchComponent.pos.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -1858,10 +1858,10 @@ PatchComponent.image.label:Image/tex
 PatchComponent.image.readOnly:False
 PatchComponent.image.updates:constant
 PatchComponent.image.valType:str
-PatchComponent.size.default:[0.5, 0.5]
+PatchComponent.size.default:(0.5, 0.5)
 PatchComponent.size.staticUpdater:None
 PatchComponent.size.categ:Basic
-PatchComponent.size.val:[0.5, 0.5]
+PatchComponent.size.val:(0.5, 0.5)
 PatchComponent.size.allowedTypes:[]
 PatchComponent.size.hint:Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] 
 PatchComponent.size.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -1942,10 +1942,10 @@ PolygonComponent.durationEstim.label:Expected duration (s)
 PolygonComponent.durationEstim.readOnly:False
 PolygonComponent.durationEstim.updates:None
 PolygonComponent.durationEstim.valType:code
-PolygonComponent.pos.default:[0, 0]
+PolygonComponent.pos.default:(0, 0)
 PolygonComponent.pos.staticUpdater:None
 PolygonComponent.pos.categ:Basic
-PolygonComponent.pos.val:[0, 0]
+PolygonComponent.pos.val:(0, 0)
 PolygonComponent.pos.allowedTypes:[]
 PolygonComponent.pos.hint:Position of this stimulus (e.g. [1,2] )
 PolygonComponent.pos.allowedUpdates:['constant', 'set every repeat', 'set every frame']
@@ -2086,10 +2086,10 @@ PolygonComponent.nVertices.label:Num. vertices
 PolygonComponent.nVertices.readOnly:False
 PolygonComponent.nVertices.updates:constant
 PolygonComponent.nVertices.valType:int
-PolygonComponent.size.default:[0.5, 0.5]
+PolygonComponent.size.default:(0.5, 0.5)
 PolygonComponent.size.staticUpdater:None
 PolygonComponent.size.categ:Basic
-PolygonComponent.size.val:[0.5, 0.5]
+PolygonComponent.size.val:(0.5, 0.5)
 PolygonComponent.size.allowedTypes:[]
 PolygonComponent.size.hint:Size of this stimulus [w,h]. Note that for a line only the first value is used, for triangle and rect the [w,h] is as expected,
  but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!! 
@@ -2472,10 +2472,10 @@ SettingsComponent.color.label:Color
 SettingsComponent.color.readOnly:False
 SettingsComponent.color.updates:None
 SettingsComponent.color.valType:str
-SettingsComponent.Window size (pixels).default:[1024, 768]
+SettingsComponent.Window size (pixels).default:(1024, 768)
 SettingsComponent.Window size (pixels).staticUpdater:None
 SettingsComponent.Window size (pixels).categ:Screen
-SettingsComponent.Window size (pixels).val:[1024, 768]
+SettingsComponent.Window size (pixels).val:(1024, 768)
 SettingsComponent.Window size (pixels).allowedTypes:[]
 SettingsComponent.Window size (pixels).hint:Size of window (if not fullscreen)
 SettingsComponent.Window size (pixels).allowedUpdates:None
@@ -2954,10 +2954,10 @@ TextComponent.durationEstim.label:Expected duration (s)
 TextComponent.durationEstim.readOnly:False
 TextComponent.durationEstim.updates:None
 TextComponent.durationEstim.valType:code
-TextComponent.pos.default:[0, 0]
+TextComponent.pos.default:(0, 0)
 TextComponent.pos.staticUpdater:None
 TextComponent.pos.categ:Basic
-TextComponent.pos.val:[0, 0]
+TextComponent.pos.val:(0, 0)
 TextComponent.pos.allowedTypes:[]
 TextComponent.pos.hint:Position of this stimulus (e.g. [1,2] )
 TextComponent.pos.allowedUpdates:['constant', 'set every repeat', 'set every frame']
