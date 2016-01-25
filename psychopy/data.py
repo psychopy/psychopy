@@ -4038,13 +4038,13 @@ class DataHandler(dict):
         self[thisType] = numpy.where(dat.mask, '--',dat).astype('O')#we have to repeat forcing to 'O' or text gets truncated to 4chars
         self.isNumeric[thisType]=False
 
-class FitFunction:
+class FitFunction(object):
     """Deprecated: - use the specific functions; FitWeibull, FitLogistic...
     """
     def __init__(self, *args, **kwargs):
         raise DeprecationWarning("FitFunction is now fully DEPRECATED: use FitLogistic, FitWeibull etc instead")
 
-class _baseFunctionFit:
+class _baseFunctionFit(object):
     """Not needed by most users except as a superclass for developping your own functions
 
     Derived classes must have _eval and _inverse methods with @staticmethods
@@ -4052,6 +4052,7 @@ class _baseFunctionFit:
 
     def __init__(self, xx, yy, sems=1.0, guess=None, display=1,
                  expectedMin=0.5):
+        super(_baseFunctionFit, self).__init__()
         self.xx = numpy.asarray(xx)
         self.yy = numpy.asarray(yy)
         self.sems = numpy.asarray(sems)

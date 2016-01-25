@@ -11,9 +11,10 @@ import pyclbr, tokenize
 #~ #xx = pyclbr.tokenize('psychopy')
 #~ print(xx['makeRadialMatrix'].__doc__)
 
-class tokenBuffer:
+class tokenBuffer(object):
     #simple buffer to provide mechanism to step backwards through previous tokens
     def __init__(self, token, prev):
+        super(tokenBuffer, self).__init__()
         self.tok = token
         self.prev = prev
     

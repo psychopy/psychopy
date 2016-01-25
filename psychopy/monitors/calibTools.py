@@ -86,7 +86,7 @@ def findPR650(ports=None):
             logging.info('...Nope!\n\t'); logging.console.flush()
     return pr650
 
-class Photometer:
+class Photometer(object):
     """
     Photometer class is deprecated (as of v.1.60.00):
 
@@ -102,10 +102,11 @@ class Photometer:
 
     """
     def __init__(self, port, meterType="PR650", verbose=True):
+        super(Monitor, self).__init__()
         logging.error(self.__doc__)
         sys.exit()
 
-class Monitor:
+class Monitor(object):
     """Creates a monitor object for storing calibration details.
     This will be loaded automatically from disk if the
     monitor name is already defined (see methods).
@@ -145,6 +146,7 @@ class Monitor:
         """
 
         #make sure that all necessary settings have some value
+        super(Monitor, self).__init__()
         self.__type__ = 'psychoMonitor'
         self.name = name
         self.autoLog = autoLog
@@ -562,7 +564,7 @@ class Monitor:
 
         return output
 
-class GammaCalculator:
+class GammaCalculator(object):
     """Class for managing gamma tables
 
     **Parameters:**
@@ -590,6 +592,7 @@ class GammaCalculator:
         bitsIN=8,              #how values in the LUT
         bitsOUT=8,
         eq=1 ):   #how many values can the DACs output
+        super(GammaCalculator, self).__init__()
         self.lumsInitial =lums
         self.inputs = inputs
         self.bitsIN = bitsIN

@@ -7,7 +7,7 @@ logging.console.setLevel(logging.DEBUG)
 from tempfile import mkdtemp
 
 
-class TestExperimentHandler():
+class TestExperimentHandler(object):
     def setup_class(self):
         self.tmpDir = mkdtemp(prefix='psychopy-tests-testExp')
 

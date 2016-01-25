@@ -251,10 +251,11 @@ class PreferencesDlg(wx.Dialog):
         self.app.prefs.saveUserPrefs()#includes a validation
         #maybe then go back and set GUI from prefs again, because validation may have changed vals?
 
-class PrefCtrls:
+class PrefCtrls(object):
     def __init__(self, parent, name, value, spec):
         """Create a set of ctrls for a particular preference entry
         """
+        super(PrefCtrls, self).__init__()
         self.pref=value
         self.parent = parent
         valueWidth = 200

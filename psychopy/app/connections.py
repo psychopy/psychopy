@@ -63,7 +63,7 @@ def getLatestVersionInfo():
         latest[key]=keyInfo.replace('\n', '').replace('\r', '')
     return latest
 
-class Updater:
+class Updater(object):
     def __init__(self,app=None, runningVersion=None):
         """The updater will check for updates and download/install them if necess.
         Several dialogs may be created as needed during the process.
@@ -74,6 +74,7 @@ class Updater:
                 app.updates=Updater(app)
                 app.updater.checkForUpdates()#if updates are found further dialogs will prompt
         """
+        super(Updater, self).__init__()
         self.app=app
         if runningVersion is None:  self.runningVersion=psychopy.__version__
         else:  self.runningVersion=runningVersion

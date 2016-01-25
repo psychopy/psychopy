@@ -49,6 +49,7 @@ Exception thrown by a component when it is unable to generate its code.
 """
 class CodeGenerationException(Exception):
     def __init__(self, source, message = ""):
+        super(CodeGenerationException, self).__init__()
         self.source = source
         self.message = str(message)
 
@@ -101,6 +102,7 @@ class Experiment(object):
     e.g. the nature of repeats and branching of an experiment.
     """
     def __init__(self, prefs=None):
+        super(Experiment, self).__init__()
         self.name=''
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
@@ -507,7 +509,7 @@ class Experiment(object):
     def getExpName(self):
         return self.settings.params['expName'].val
 
-class Param:
+class Param(object):
     """Defines parameters for Experiment Components
     A string representation of the parameter will depend on the valType:
 
@@ -582,6 +584,7 @@ class Param:
         @param categ: category for this parameter, will populate tabs in Component Dlg
         @type allowedUpdates: string
         """
+        super(Param, self).__init__()
         self.label=label
         self.val=val
         self.valType=valType
@@ -648,6 +651,7 @@ class TrialHandler(object):
         @param conditionsFile: filename of the .csv file that contains conditions info
         @type conditions: string (filename)
         """
+        super(TrialHandler, self).__init__()
         self.type='TrialHandler'
         self.exp=exp
         self.order=['name']#make name come first (others don't matter)
@@ -768,6 +772,7 @@ class StairHandler(object):
         @param nReps: number of reps (for all conditions)
         @type nReps:int
         """
+        super(StairHandler, self).__init__()
         self.type='StairHandler'
         self.exp=exp
         self.order=['name']#make name come first (others don't matter)
@@ -859,6 +864,7 @@ class MultiStairHandler(object):
         @param nReps: number of reps (for all conditions)
         @type nReps:int
         """
+        super(MultiStairHandler, self).__init__()
         self.type='MultiStairHandler'
         self.exp=exp
         self.order=['name']#make name come first
@@ -933,6 +939,7 @@ class LoopInitiator(object):
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""
     def __init__(self, loop):
+        super(LoopInitiator, self).__init__()
         self.loop=loop
         self.exp=loop.exp
         loop.initiator=self
@@ -949,6 +956,7 @@ class LoopTerminator(object):
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""
     def __init__(self, loop):
+        super(LoopTerminator, self).__init__()
         self.loop=loop
         self.exp=loop.exp
         loop.terminator=self
@@ -1134,6 +1142,7 @@ class Routine(list):
     each of which knows when it starts and stops.
     """
     def __init__(self, name, exp, components=[]):
+        super(Routine, self).__init__()
         self.params={'name':name}
         self.name=name
         self.exp=exp
@@ -1310,6 +1319,7 @@ class ExpFile(list):
     from the Flow of a separate, complete psyexp file.
     """
     def __init__(self, name, exp, filename=''):
+        super(ExpFile, self).__init__()
         self.params={'name':name}
         self.name=name
         self.exp=exp #the exp we belong to
@@ -1359,7 +1369,7 @@ class ExpFile(list):
         pass
         #todo?: currently only Routines perform this action
 
-class NameSpace():
+class NameSpace(object):
     """class for managing variable names in builder-constructed experiments.
 
     The aim is to help detect and avoid name-space collisions from user-entered variable names.
@@ -1386,7 +1396,9 @@ class NameSpace():
         2011 Jeremy Gray
     """
     def __init__(self, exp):
-        """Set-up an experiment's namespace: reserved words and user space"""
+        """Set-up an experiment's namespace: reserved words and user space
+        """
+        super(NameSpace, self).__init__()
         self.exp = exp
         #deepcopy fails if you pre-compile regular expressions and stash here
 

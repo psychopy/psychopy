@@ -13,7 +13,7 @@ import struct, sys, time, numpy
 try: import serial
 except: serial=False
 
-class PR650:
+class PR650(object):
     """An interface to the PR650 via the serial port.
 
     (Added in version 1.63.02)
@@ -54,6 +54,7 @@ class PR650:
     driverFor = ["pr650"]
 
     def __init__(self, port, verbose=None):
+        super(PR650, self).__init__()
         if type(port) in [int, float]:
             self.portNumber = port #add one so that port 1=COM1
             self.portString = 'COM%i' %self.portNumber#add one so that port 1=COM1

@@ -17,7 +17,7 @@ import pytest, copy
 """
 
 @pytest.mark.ratingscale
-class Test_class_RatingScale:
+class Test_class_RatingScale(object):
     """RatingScale internal logic, no check that its drawn correctly
     """
     def setup_class(self):

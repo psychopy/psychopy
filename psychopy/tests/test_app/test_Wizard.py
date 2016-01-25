@@ -6,7 +6,7 @@ import psychopy.tools.wizard
 # py.test -k wizard --cov-report term-missing --cov wizard.py
 
 @pytest.mark.wizard
-class TestWizard():
+class TestWizard(object):
 
     def setup(self):
         pass

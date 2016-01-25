@@ -13,7 +13,7 @@ import struct, sys, time
 try: import serial
 except: serial=False
 
-class LS100:
+class LS100(object):
     """A class to define a Minolta LS100 (or LS110?) photometer
 
     You need to connect a LS100 to the serial (RS232) port and
@@ -75,6 +75,7 @@ class LS100:
     driverFor = ["ls110","ls100"]
 
     def __init__(self, port, maxAttempts=1):
+        super(LS100, self).__init__()
 
         if not serial:
             raise ImportError('The module serial is needed to connect to photometers. ' +\
