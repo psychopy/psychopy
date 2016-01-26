@@ -105,8 +105,9 @@ def setDefaultClock(clock):
     global defaultClock
     defaultClock = clock
 
-class _LogEntry:
+class _LogEntry(object):
     def __init__(self, level, message, t=None, obj=None):
+        super(_LogEntry, self).__init__()
         self.t=t
         self.t_ms=t*1000
         self.level=level
@@ -114,7 +115,7 @@ class _LogEntry:
         self.message=message
         self.obj=obj
 
-class LogFile:
+class LogFile(object):
     """A text stream to receive inputs from the logging system
     """
     def __init__(self,f=None, level=WARNING, filemode='a', logger=None, encoding='utf8'):
@@ -135,6 +136,7 @@ class LogFile:
                 Append or overwrite existing log file
 
         """
+        super(LogFile, self).__init__()
         #work out if this is a filename or a stream to write to
         if f is None:
             self.stream = 'stdout'
@@ -176,7 +178,7 @@ class LogFile:
             stream.flush()
         except:
             pass
-class _Logger:
+class _Logger(object):
     """Maintains a set of log targets (text streams such as files of stdout)
 
     self.targets is a list of dicts {'stream':stream, 'level':level}
@@ -187,6 +189,7 @@ class _Logger:
         each xxxx is an attribute of the LogEntry.
         e.g. t, t_ms, level, levelname, message
         """
+        super(_Logger, self).__init__()
         self.targets=[]
         self.flushed=[]
         self.toFlush=[]

@@ -86,7 +86,7 @@ def findPR650(ports=None):
             logging.info('...Nope!\n\t'); logging.console.flush()
     return pr650
 
-class Photometer:
+class Photometer(object):
     """
     Photometer class is deprecated (as of v.1.60.00):
 
@@ -102,10 +102,11 @@ class Photometer:
 
     """
     def __init__(self, port, meterType="PR650", verbose=True):
+        super(Monitor, self).__init__()
         logging.error(self.__doc__)
         sys.exit()
 
-class Monitor:
+class Monitor(object):
     """Creates a monitor object for storing calibration details.
     This will be loaded automatically from disk if the
     monitor name is already defined (see methods).
@@ -139,16 +140,17 @@ class Monitor:
         notes=None,
         useBits=None,
         verbose=True,
-        currentCalib={},
+        currentCalib=None,
         autoLog=True ):
         """
         """
 
         #make sure that all necessary settings have some value
+        super(Monitor, self).__init__()
         self.__type__ = 'psychoMonitor'
         self.name = name
         self.autoLog = autoLog
-        self.currentCalib = currentCalib
+        self.currentCalib = currentCalib or {}
         self.currentCalibName = strFromDate(time.localtime())
         self.calibs = {}
         self.calibNames = []
@@ -562,7 +564,7 @@ class Monitor:
 
         return output
 
-class GammaCalculator:
+class GammaCalculator(object):
     """Class for managing gamma tables
 
     **Parameters:**
@@ -584,13 +586,14 @@ class GammaCalculator:
     """
 
     def __init__(self,
-        inputs=[],
-        lums=[],
+        inputs=(),
+        lums=(),
         gamma=None,
         bitsIN=8,              #how values in the LUT
         bitsOUT=8,
         eq=1 ):   #how many values can the DACs output
-        self.lumsInitial =lums
+        super(GammaCalculator, self).__init__()
+        self.lumsInitial = list(lums)
         self.inputs = inputs
         self.bitsIN = bitsIN
         self.bitsOUT = bitsOUT
@@ -599,7 +602,7 @@ class GammaCalculator:
         if len(inputs)==0 and len(lums)>0:
             self.inputs = DACrange(len(lums))
         else:
-            self.inputs = inputs
+            self.inputs = list(inputs)
 
         #set or get gammaVal
         if len(lums)==0 or gamma!=None:#user is specifying their own gamma value

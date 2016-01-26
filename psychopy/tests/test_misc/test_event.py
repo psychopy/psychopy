@@ -31,7 +31,7 @@ class DelayedFakeKey(threading.Thread):
         core.wait(self.delay)
         event._onPygletKey(symbol=self.key, modifiers=None, emulated=True)
 
-class _baseTest:
+class _baseTest(object):
     #this class allows others to be created that inherit all the tests for
     #a different window config
     @classmethod

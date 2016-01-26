@@ -88,6 +88,7 @@ class ParamCtrls(object):
         is only for display and can be translated or tweaked (e.g., add '$').
         Component._localized.keys() are `fieldName`s, and .values() are `label`s.
         """
+        super(ParamCtrls, self).__init__()
         self.param = param
         self.dlg = dlg
         self.dpi=self.dlg.dpi

@@ -268,7 +268,7 @@ class BaseVisualComponent(BaseComponent):
     """
     categories = ['Stimuli']#an attribute of the class, determines the section in the components panel
     def __init__(self, exp, parentName, name='', units='from exp settings', color='$[1,1,1]',
-                 pos=[0,0], size=[0,0], ori=0 , colorSpace='rgb', opacity=1,
+                 pos=(0,0), size=(0,0), ori=0 , colorSpace='rgb', opacity=1,
                  startType='time (s)',startVal='',
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim=''):

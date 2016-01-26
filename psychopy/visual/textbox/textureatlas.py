@@ -15,7 +15,7 @@ import math
 import numpy as np
 import sys
 
-class TextureAtlas:
+class TextureAtlas(object):
     '''
     Group multiple small data regions into a larger texture.
 
@@ -50,6 +50,7 @@ class TextureAtlas:
         depth : 1 or 3
             Depth of the underlying texture
         '''
+        super(TextureAtlas, self).__init__()
         self.width  = int(math.pow(2, int(math.log(width, 2) + 0.5)))
         self.height = int(math.pow(2, int(math.log(height, 2) + 0.5)))
         self.depth  = depth

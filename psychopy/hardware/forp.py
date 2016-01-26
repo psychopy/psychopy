@@ -34,7 +34,7 @@ BUTTON_MAP = [
     (0x10, BUTTON_TRIGGER)]
 
 
-class ButtonBox:
+class ButtonBox(object):
     """Serial line interface to the fORP MRI response box.
 
     To use this object class, select the box use setting `serialPort`, and connect
@@ -55,6 +55,7 @@ class ButtonBox:
             `baud` :
                 the communication rate (baud), eg, 57600
         """
+        super(ButtonBox, self).__init__()
         if not serial:
             raise ImportError('The module serial is needed to connect to fORP. ' +\
                 "On most systems this can be installed with\n\t easy_install pyserial")

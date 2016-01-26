@@ -51,8 +51,7 @@ def _diff_file(a, b):
     diff = _diff(open(a).readlines(), open(b).readlines())
     return list(diff)
 
-class TestExpt():
-
+class TestExpt(object):
     @classmethod
     def setup_class(cls):
         cls.exp = psychopy.app.builder.experiment.Experiment() # create once, not every test
@@ -368,7 +367,7 @@ class TestExpt():
         assert namespace.makeLoopIndex('trials_2') == 'thisTrial_2'
         assert namespace.makeLoopIndex('stimuli') == 'thisStimulus'
 
-class Test_ExptComponents():
+class Test_ExptComponents(object):
     """This test fetches all standard components and checks that, with default
     settings, they can be added to a Routine and result in a script that compiles
     """

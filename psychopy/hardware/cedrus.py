@@ -18,12 +18,13 @@ import struct, sys
 try: import serial
 except: serial=False
 
-class RB730:
+class RB730(object):
     """Class to control/read a Cedrus RB-series response box"""
-    class KeyEvent:
+    class KeyEvent(object):
         """Info about a keypress from Cedrus keypad XID string"""
         def __init__(self,XID):
             """XID should contain a "k"<info><rt> where info is a byte and rt is 4 bytes (=int)"""
+            super(KeyEvent, self).__init__()
             if len(XID)!=6:
                 #log.error("The XID string %s is %i bytes long and should be 6 bytes" %(str([XID]),len(XID)))
                 self.key=None
@@ -44,6 +45,7 @@ class RB730:
                     
             
     def __init__(self, port, baudrate=115200, mode='XID'):
+        super(RB730, self).__init__()
         
         if not serial:
             raise ImportError('The module serial is needed to connect to the Cedrus response pad. ' +\
@@ -77,7 +79,7 @@ class RB730:
         """Empty the input buffer of all characters. Call this to clear any keypresses that haven't yet been handled."""
         self.port.flushInput()
         
-    def getKeyEvents(self, allowedKeys=[1,2,3,4,5,6,7], downOnly=True):    
+    def getKeyEvents(self, allowedKeys=(1,2,3,4,5,6,7), downOnly=True):
         """Return a list of keyEvents
             Each event has the following attributes:
             
@@ -137,7 +139,7 @@ class RB730:
         t = struct.unpack('H',tStr)[0]#2 bytes (an unsigned short)
         return t
         
-    def waitKeyEvents(self, allowedKeys=[1,2,3,4,5,6,7], downOnly=True):
+    def waitKeyEvents(self, allowedKeys=(1,2,3,4,5,6,7), downOnly=True):
         """Like getKeyEvents, but waits until a key is pressed"""
         noKeyYet = True
         while noKeyYet:

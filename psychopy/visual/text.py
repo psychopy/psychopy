@@ -79,7 +79,7 @@ class TextStim(BaseVisualStim, ColorMixin):
                  italic=False,
                  alignHoriz='center',
                  alignVert='center',
-                 fontFiles=[],
+                 fontFiles=(),
                  wrapWidth=None,
                  flipHoriz=False,
                  flipVert=False,
@@ -136,7 +136,7 @@ class TextStim(BaseVisualStim, ColorMixin):
             self.setColor(color, log=False)
 
         self.__dict__['fontFiles'] = []
-        self.fontFiles = fontFiles  # calls attributeSetter
+        self.fontFiles = list(fontFiles)  # calls attributeSetter
         self.setHeight(height, log=False)  # calls setFont() at some point
         setAttribute(self, 'wrapWidth', wrapWidth, log=False)  # calls attributeSetter without log
         self.__dict__['opacity'] = float(opacity)

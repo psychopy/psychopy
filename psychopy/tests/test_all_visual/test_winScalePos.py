@@ -9,7 +9,7 @@ pimg = ( n, n)  # position for the image
 pgrn = (-n,-n)  # position for green square
 img_name = os.path.join(utils.TESTS_DATA_PATH, 'filltext.png')
 
-class Test_Win_Scale_Pos_Ori():
+class Test_Win_Scale_Pos_Ori(object):
     def setup_class(self):
         self.win = visual.Window(size=(200,200), units='pix', allowGUI=False, autoLog=False)
     def teardown_class(self):

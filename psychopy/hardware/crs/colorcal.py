@@ -30,7 +30,7 @@ except ImportError:
     import logging #use the standard python logging
 eol = "\n\r"#unusual for a serial port?!
 
-class ColorCAL:
+class ColorCAL(object):
     """A class to handle the CRS Ltd ColorCAL device
     """
 
@@ -51,6 +51,7 @@ class ColorCAL:
            - COM3 (windows)
 
         """
+        super(ColorCAL, self).__init__()
 
         if not serial:
             raise ImportError('The module serial is needed to connect to photometers. ' +\
