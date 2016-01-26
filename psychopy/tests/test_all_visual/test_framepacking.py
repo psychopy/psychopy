@@ -12,7 +12,7 @@ from psychopy.visual.windowframepack import ProjectorFramePacker
 
 
 @pytest.mark.projectorframepacker
-class Test_class_ProjectorFramePacker:
+class Test_class_ProjectorFramePacker(object):
     """
     """
     def setup_class(self):

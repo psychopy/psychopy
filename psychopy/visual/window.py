@@ -138,7 +138,7 @@ class Window(object):
                  lms=None,
                  fullscr=None,
                  allowGUI=None,
-                 monitor=dict([]),
+                 monitor=None,
                  bitsMode=None,
                  winType=None,
                  units=None,

@@ -59,7 +59,7 @@ def unicodeToFloat(val):
     return val
 
 class SimpleGrid(grid.Grid): ##, wxGridAutoEditMixin):
-    def __init__(self, parent, id=-1, rows=[], cols=[], data=None):
+    def __init__(self, parent, id=-1, rows=(), cols=(), data=None):
         self.parent=parent
         self.moveTo = None
         self.nRows, self.nCols = len(rows), len(cols)

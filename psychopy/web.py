@@ -152,7 +152,7 @@ def getWpadFiles():
         pacURLs.append("http://wpad."+domain+"/wpad.dat")
     return list(set(pacURLs)) # remove redundant ones
 
-def proxyFromPacFiles(pacURLs=[], URL=None, log=True):
+def proxyFromPacFiles(pacURLs=None, URL=None, log=True):
     """Attempts to locate and setup a valid proxy server from pac file URLs
 
     :Parameters:
@@ -173,7 +173,7 @@ def proxyFromPacFiles(pacURLs=[], URL=None, log=True):
         - False if no proxy was found in the files that allowed successful connection
     """
 
-    if pacURLs==[]:#if given none try to find some
+    if pacURLs==None:#if given none try to find some
         pacURLs = getPacFiles()
     if pacURLs==[]:#if still empty search for wpad files
         pacURLs = getWpadFiles()

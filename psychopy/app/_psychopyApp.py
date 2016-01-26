@@ -54,7 +54,7 @@ class MenuFrame(wx.Frame):
         self.SetMenuBar(self.menuBar)
         self.Show()
 
-class _Showgui_Hack():
+class _Showgui_Hack(object):
     """Class with side-effect of restoring wx window switching/launching under wx-3.0
 
     - might only be needed on some platforms (Mac 10.9.4 needs it for me);
@@ -64,6 +64,7 @@ class _Showgui_Hack():
     - called at end of PsychoPyApp.onInit()
     """
     def __init__(self):
+        super(_Showgui_Hack, self).__init__()
         from psychopy import core
         import os
         # should be writable:
@@ -364,7 +365,7 @@ class PsychoPyApp(wx.App):
         self.SetTopWindow(thisFrame)
         self.builderFrames.append(thisFrame)
         self.allFrames.append(thisFrame)
-    def showBuilder(self, event=None, fileList=[]):
+    def showBuilder(self, event=None, fileList=()):
         from psychopy.app import builder#have to reimport because it is ony local to __init__ so far
         for fileName in fileList:
             if os.path.isfile(fileName):

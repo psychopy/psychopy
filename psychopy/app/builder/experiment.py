@@ -49,6 +49,7 @@ Exception thrown by a component when it is unable to generate its code.
 """
 class CodeGenerationException(Exception):
     def __init__(self, source, message = ""):
+        super(CodeGenerationException, self).__init__()
         self.source = source
         self.message = str(message)
 
@@ -101,6 +102,7 @@ class Experiment(object):
     e.g. the nature of repeats and branching of an experiment.
     """
     def __init__(self, prefs=None):
+        super(Experiment, self).__init__()
         self.name=''
         self.flow = Flow(exp=self)#every exp has exactly one flow
         self.routines={}
@@ -130,7 +132,7 @@ class Experiment(object):
         self._expHandler = TrialHandler(exp=self, name='thisExp')
         self._expHandler.type = 'ExperimentHandler'  # true at run-time
         self._expHandler.name = self._expHandler.params['name'].val  # thisExp
-    def requirePsychopyLibs(self, libs=[]):
+    def requirePsychopyLibs(self, libs=()):
         """Add a list of top-level psychopy libs that the experiment will need.
         e.g. [visual, event]
         """
@@ -304,7 +306,7 @@ class Experiment(object):
             name=name.replace('olour','olor')
             params[name].val = val
         elif name=='times':#deprecated in v1.60.00
-            exec('times=%s' %val)
+            times=eval('%s' %val)
             params['startType'].val =unicode('time (s)')
             params['startVal'].val = unicode(times[0])
             params['stopType'].val =unicode('time (s)')
@@ -364,7 +366,8 @@ class Experiment(object):
             elif name == 'Selected rows': #changed in 1.81.00 from 'code' to 'str' to allow string or variable
                 params[name].valType = 'str'
             #conversions based on valType
-            if params[name].valType=='bool': exec("params[name].val=%s" %params[name].val)
+            if params[name].valType=='bool':
+                params[name].val = eval("%s" %params[name].val)
         if 'updates' in paramNode.keys():
             params[name].updates = paramNode.get('updates')
     def loadFromXML(self, filename):
@@ -468,14 +471,14 @@ class Experiment(object):
                 if loopName != elementNode.get('name'):
                     modified_names.append(elementNode.get('name'))
                 self.namespace.add(loopName)
-                exec('loop=%s(exp=self,name="%s")' %(loopType,loopName))
+                loop = eval('%s(exp=self,name="%s")' %(loopType,loopName))
                 loops[loopName]=loop
                 for paramNode in elementNode:
                     self._getXMLparam(paramNode=paramNode,params=loop.params)
                     #for conditions convert string rep to actual list of dicts
                     if paramNode.get('name')=='conditions':
                         param=loop.params['conditions']
-                        exec('param.val=%s' %(param.val))#e.g. param.val=[{'ori':0},{'ori':3}]
+                        param.val = eval('%s' %(param.val))#e.g. param.val=[{'ori':0},{'ori':3}]
                 # get condition names from within conditionsFile, if any:
                 try: conditionsFile = loop.params['conditionsFile'].val #psychophysicsstaircase demo has no such param
                 except Exception: conditionsFile = None
@@ -507,7 +510,7 @@ class Experiment(object):
     def getExpName(self):
         return self.settings.params['expName'].val
 
-class Param:
+class Param(object):
     """Defines parameters for Experiment Components
     A string representation of the parameter will depend on the valType:
 
@@ -561,7 +564,7 @@ class Param:
     $myPathologicalVa$rName
     """
 
-    def __init__(self, val, valType, allowedVals=[],allowedTypes=[], hint="",
+    def __init__(self, val, valType, allowedVals=None,allowedTypes=None, hint="",
                  label="", updates=None, allowedUpdates=None,
                  categ="Basic"):
         """
@@ -582,14 +585,15 @@ class Param:
         @param categ: category for this parameter, will populate tabs in Component Dlg
         @type allowedUpdates: string
         """
+        super(Param, self).__init__()
         self.label=label
         self.val=val
         self.valType=valType
-        self.allowedTypes=allowedTypes
+        self.allowedTypes=allowedTypes or []
         self.hint=hint
         self.updates=updates
         self.allowedUpdates=allowedUpdates
-        self.allowedVals=allowedVals
+        self.allowedVals=allowedVals or []
         self.staticUpdater = None
         self.categ = categ
         self.readOnly = False
@@ -634,7 +638,7 @@ class TrialHandler(object):
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
     def __init__(self, exp, name, loopType='random', nReps=5,
-        conditions=[], conditionsFile='',endPoints=[0,1],randomSeed='', selectedRows='',
+        conditions=(), conditionsFile='',endPoints=(0,1),randomSeed='', selectedRows='',
         isTrials = True):
         """
         @param name: name of the loop e.g. trials
@@ -648,6 +652,7 @@ class TrialHandler(object):
         @param conditionsFile: filename of the .csv file that contains conditions info
         @type conditions: string (filename)
         """
+        super(TrialHandler, self).__init__()
         self.type='TrialHandler'
         self.exp=exp
         self.order=['name']#make name come first (others don't matter)
@@ -656,11 +661,11 @@ class TrialHandler(object):
             label=_localized['Name'], hint=_translate("Name of this loop"))
         self.params['nReps']=Param(nReps, valType='code', updates=None, allowedUpdates=None,
             label=_localized['nReps'], hint=_translate("Number of repeats (for each condition)"))
-        self.params['conditions']=Param(conditions, valType='str', updates=None, allowedUpdates=None,
+        self.params['conditions']=Param(list(conditions), valType='str', updates=None, allowedUpdates=None,
             label=_localized['conditions'], hint=_translate("A list of dictionaries describing the parameters in each condition"))
         self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None, label=_localized['conditions'],
             hint=_translate("Name of a file specifying the parameters for each condition (.csv, .xlsx, or .pkl). Browse to select a file. Right-click to preview file contents, or create a new file."))
-        self.params['endPoints']=Param(endPoints, valType='num', updates=None, allowedUpdates=None,
+        self.params['endPoints']=Param(list(endPoints), valType='num', updates=None, allowedUpdates=None,
             label=_localized['endPoints'], hint=_translate("The start and end of the loop (see flow timeline)"))
         self.params['Selected rows']=Param(selectedRows, valType='code', updates=None, allowedUpdates=None,
             label=_localized['Selected rows'], hint=_translate("Select just a subset of rows from your condition file (the first is 0 not 1!). Examples: 0, 0:5, 5:-1"))
@@ -760,7 +765,7 @@ class StairHandler(object):
     """
     def __init__(self, exp, name, nReps='50', startVal='', nReversals='',
             nUp=1, nDown=3, minVal=0,maxVal=1,
-            stepSizes='[4,4,2,2,1]', stepType='db', endPoints=[0,1],
+            stepSizes='[4,4,2,2,1]', stepType='db', endPoints=(0,1),
             isTrials = True):
         """
         @param name: name of the loop e.g. trials
@@ -768,6 +773,7 @@ class StairHandler(object):
         @param nReps: number of reps (for all conditions)
         @type nReps:int
         """
+        super(StairHandler, self).__init__()
         self.type='StairHandler'
         self.exp=exp
         self.order=['name']#make name come first (others don't matter)
@@ -796,7 +802,7 @@ class StairHandler(object):
             allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
             label=_localized['loopType'],
             hint=_translate("How should the next trial value(s) be chosen?"))#NB this is added for the sake of the loop properties dialog
-        self.params['endPoints']=Param(endPoints,valType='num',
+        self.params['endPoints']=Param(list(endPoints),valType='num',
             label=_localized['endPoints'], hint=_translate('Where to loop from and to (see values currently shown in the flow view)'))
         self.params['isTrials']=Param(isTrials, valType='bool', updates=None, allowedUpdates=None,
             hint=_translate("Indicates that this loop generates TRIALS, rather than BLOCKS of trials or stimuli within a trial. It alters how data files are output"),
@@ -851,7 +857,7 @@ class MultiStairHandler(object):
     """
     def __init__(self, exp, name, nReps='50', stairType='simple',
         switchStairs='random',
-        conditions=[], conditionsFile='', endPoints=[0,1],
+        conditions=(), conditionsFile='', endPoints=(0,1),
         isTrials=True):
         """
         @param name: name of the loop e.g. trials
@@ -859,6 +865,7 @@ class MultiStairHandler(object):
         @param nReps: number of reps (for all conditions)
         @type nReps:int
         """
+        super(MultiStairHandler, self).__init__()
         self.type='MultiStairHandler'
         self.exp=exp
         self.order=['name']#make name come first
@@ -874,9 +881,9 @@ class MultiStairHandler(object):
         self.params['loopType']=Param('staircase', valType='str',
             allowedVals=['random','sequential','fullRandom','staircase','interleaved staircases'],
             label=_localized['loopType'], hint=_translate("How should the next trial value(s) be chosen?"))#NB this is added for the sake of the loop properties dialog
-        self.params['endPoints']=Param(endPoints,valType='num',
+        self.params['endPoints']=Param(list(endPoints),valType='num',
             label=_localized['endPoints'], hint=_translate('Where to loop from and to (see values currently shown in the flow view)'))
-        self.params['conditions']=Param(conditions, valType='str', updates=None, allowedUpdates=None,
+        self.params['conditions']=Param(list(conditions), valType='str', updates=None, allowedUpdates=None,
             label=_localized['conditions'], hint=_translate("A list of dictionaries describing the differences between each staircase"))
         self.params['conditionsFile']=Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
             label=_localized['conditions'], hint=_translate("An xlsx or csv file specifying the parameters for each condition"))
@@ -933,6 +940,7 @@ class LoopInitiator(object):
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""
     def __init__(self, loop):
+        super(LoopInitiator, self).__init__()
         self.loop=loop
         self.exp=loop.exp
         loop.initiator=self
@@ -949,6 +957,7 @@ class LoopTerminator(object):
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""
     def __init__(self, loop):
+        super(LoopTerminator, self).__init__()
         self.loop=loop
         self.exp=loop.exp
         loop.terminator=self
@@ -1133,13 +1142,14 @@ class Routine(list):
     In practice a Routine is simply a python list of Components,
     each of which knows when it starts and stops.
     """
-    def __init__(self, name, exp, components=[]):
+    def __init__(self, name, exp, components=()):
+        super(Routine, self).__init__()
         self.params={'name':name}
         self.name=name
         self.exp=exp
         self._clockName=None#this is used for script-writing e.g. "t=trialClock.GetTime()"
         self.type='Routine'
-        list.__init__(self, components)
+        list.__init__(self, list(components))
     def __repr__(self):
         return "psychopy.experiment.Routine(name='%s',exp=%s,components=%s)" %(self.name,self.exp,str(list(self)))
     def addComponent(self,component):
@@ -1310,6 +1320,7 @@ class ExpFile(list):
     from the Flow of a separate, complete psyexp file.
     """
     def __init__(self, name, exp, filename=''):
+        super(ExpFile, self).__init__()
         self.params={'name':name}
         self.name=name
         self.exp=exp #the exp we belong to
@@ -1359,7 +1370,7 @@ class ExpFile(list):
         pass
         #todo?: currently only Routines perform this action
 
-class NameSpace():
+class NameSpace(object):
     """class for managing variable names in builder-constructed experiments.
 
     The aim is to help detect and avoid name-space collisions from user-entered variable names.
@@ -1386,7 +1397,9 @@ class NameSpace():
         2011 Jeremy Gray
     """
     def __init__(self, exp):
-        """Set-up an experiment's namespace: reserved words and user space"""
+        """Set-up an experiment's namespace: reserved words and user space
+        """
+        super(NameSpace, self).__init__()
         self.exp = exp
         #deepcopy fails if you pre-compile regular expressions and stash here
 

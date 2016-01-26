@@ -6,7 +6,7 @@ import configobj, validate
 
 join = os.path.join
 
-class Preferences:
+class Preferences(object):
     """Users can alter preferences from the dialog box in the application,
     by editing their user preferences file (which is what the dialog box does)
     or, within a script, preferences can be controlled like this::
@@ -19,6 +19,7 @@ class Preferences:
     directly if you want to affect the script that's running.
     """
     def __init__(self):
+        super(Preferences, self).__init__()
         self.userPrefsCfg=None#the config object for the preferences
         self.prefsSpec=None#specifications for the above
         self.appDataCfg=None #the config object for the app data (users don't need to see)

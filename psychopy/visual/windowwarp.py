@@ -19,7 +19,7 @@ import pyglet
 GL = pyglet.gl
 
 
-class Warper():
+class Warper(object):
     '''Class to perform spherical, cylindrical, warpfile, or None (disabled) warps'''
     def __init__(self,
                  win,
@@ -82,6 +82,7 @@ class Warper():
             warper = Warper (win, warp='spherical', warpfile = "", warpGridsize = 128, eyepoint = [0.5, 0.5], flipHorizontal = False, flipVertical = False)
 
         """
+        super(Warper, self).__init__()
         self.win = win
         # monkey patch the warp method
         win._renderFBO = self.drawWarp
@@ -151,11 +152,11 @@ class Warper():
         self.xgrid = self.warpGridsize
         self.ygrid = self.warpGridsize
 
-    def changeProjection (self, warp, warpfile = None, eyepoint = [0.5,0.5], flipHorizontal = False, flipVertical = False):
+    def changeProjection (self, warp, warpfile = None, eyepoint = (0.5,0.5), flipHorizontal = False, flipVertical = False):
         '''Allows changing the warp method on the fly.  Uses the same parameter definitions as constructor.'''
         self.warp = warp
         self.warpfile = warpfile
-        self.eyepoint = eyepoint
+        self.eyepoint = list(eyepoint)
         self.flipHorizontal = flipHorizontal
         self.flipVertical = flipVertical
 

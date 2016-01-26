@@ -160,14 +160,14 @@ def getComponents(folder=None, fetchIcons=True):
                     components[attrib].categories=['Custom']
     return components
 
-def getAllComponents(folderList=[], fetchIcons=True):
+def getAllComponents(folderList=(), fetchIcons=True):
     """Get a dictionary of all available components, from the builtins as well
     as all folders in the folderlist.
 
     User-defined components will override built-ins with the same name.
     """
-    if type(folderList)!=list:
-        raise TypeError, 'folderList should be a list, not a string'
+    if isinstance(folderList, basestring):
+        raise TypeError, 'folderList should be iterable, not a string'
     components=getComponents(fetchIcons=fetchIcons)#get the built-ins
     for folder in folderList:
         userComps=getComponents(folder)
@@ -176,7 +176,7 @@ def getAllComponents(folderList=[], fetchIcons=True):
     return components
 
 
-def getAllCategories(folderList=[]):
+def getAllCategories(folderList=()):
     allComps = getAllComponents(folderList)
     allCats = ['Stimuli','Responses','Custom']
     for name, thisComp in allComps.items():

@@ -89,7 +89,7 @@ def maskMatrix(matrix, shape='circle', radius=1.0, center=(0.0,0.0)):
     return matrix*alphaMask
 
 def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0,0.0),
-             range=[-1,1], fringeWidth=0.2):
+             range=(-1,1), fringeWidth=0.2):
     """
     Returns a matrix to be used as an alpha mask (circle,gauss,ramp)
 

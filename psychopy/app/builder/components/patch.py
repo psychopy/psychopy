@@ -18,7 +18,7 @@ class PatchComponent(BaseVisualComponent):
     """An event class for presenting image-based stimuli"""
     def __init__(self, exp, parentName, name='patch', image='sin', mask='None', sf='None', interpolate='linear',
                 units='from exp settings', color='$[1,1,1]', colorSpace='rgb',
-                pos=[0,0], size=[0.5,0.5], ori=0, phase=0.0, texRes='128',
+                pos=(0,0), size=(0.5,0.5), ori=0, phase=0.0, texRes='128',
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim=''):

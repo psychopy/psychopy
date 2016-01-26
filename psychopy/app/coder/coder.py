@@ -218,7 +218,7 @@ class UnitTestFrame(wx.Frame):
 
             self.MoveEnd()#go to end of stdout so user can see updated text
             self.ShowPosition(self.GetLastPosition() )
-    def __init__(self, parent=None, ID=-1, title=_translate('PsychoPy unit testing'), files=[], app=None):
+    def __init__(self, parent=None, ID=-1, title=_translate('PsychoPy unit testing'), files=(), app=None):
         self.app = app
         self.frameType='unittest'
         self.prefs = self.app.prefs
@@ -986,7 +986,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             symbols.remove('successfulParse')
             for thisSymbol in symbols:
                 #create an actual obj from the name
-                exec('thisObj=%s' %thisSymbol)
+                thisObj = eval('%s' % thisSymbol)
                 #(try to) get the attributes of the object
                 try:
                     newAttrs = dir(thisObj)
@@ -1020,7 +1020,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                 thisObj= thisIs = thisHelp = thisType = thisAttrs = None
                 keyIsStr = tokenDict[thisKey]['is']
                 try:
-                    exec('thisObj=%s' %keyIsStr)
+                    thisObj = eval('%s' % keyIsStr)
                     if type(thisObj)==types.FunctionType:
                         thisIs = 'returned from functon'
                     else:
@@ -1085,7 +1085,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                 findDlg.Close()
 
 class CoderFrame(wx.Frame):
-    def __init__(self, parent, ID, title, files=[], app=None):
+    def __init__(self, parent, ID, title, files=(), app=None):
         self.app = app
         self.frameType='coder'
         self.appData = self.app.prefs.appData['coder']#things the user doesn't set like winsize etc
@@ -1174,7 +1174,7 @@ class CoderFrame(wx.Frame):
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
         #take files from arguments and append the previously opened files
-        if files not in [None, []]:
+        if files not in [None, [], ()]:
             for filename in files:
                 if not os.path.isfile(filename): continue
                 self.setCurrentDoc(filename, keepHidden=True)

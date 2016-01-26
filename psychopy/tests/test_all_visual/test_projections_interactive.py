@@ -142,10 +142,12 @@ class ProjectionsLinesAndCircles(object):
             self.updateInfo()
 
 
-def mainProjectionsLinesAndCircles(params={'testlength':400}):
+def mainProjectionsLinesAndCircles(params=None):
     """
     ProjectionsLinesAndCircles test runner to test projections
     """
+    if not params:
+        params = {'testlength': 400}
     win = Window(monitor='LightCrafter4500', screen=1, fullscr=True, color='gray', useFBO = True, autoLog=False)
     warper = Warper (win, warp='spherical', warpfile = "", warpGridsize = 128, eyepoint = [0.5, 0.5], flipHorizontal = False, flipVertical = False)
 

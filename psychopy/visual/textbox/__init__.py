@@ -227,7 +227,7 @@ class TextBox(object):
              bold=False,                # Bold and italics are used to
              italic=False,             #    determine style of font
              font_size=32,              # Pt size to use for font.
-             font_color=[0,0,0,1],      # Color to draw the text with.
+             font_color=(0,0,0,1),      # Color to draw the text with.
              dpi=72,                    # DPI used to create font bitmaps
              line_spacing=0,            # Amount of extra spacing to add between
              line_spacing_units='pix',  # lines of text.
@@ -366,7 +366,7 @@ class TextBox(object):
         self._current_glfont=gl_font
 
         self._text_grid=TextGrid(self, line_color=grid_color,
-                 line_width=grid_stroke_width, font_color=font_color,
+                 line_width=grid_stroke_width, font_color=list(font_color),
                  shape=textgrid_shape,
                  grid_horz_justification=grid_horz_justification,
                  grid_vert_justification=grid_vert_justification)

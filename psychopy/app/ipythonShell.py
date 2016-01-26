@@ -2,7 +2,7 @@ import wx
 import IPython.gui.wx.ipython_view
 
 class ShellFrame(wx.Frame):
-    def __init__(self, parent, ID, title, files=[], app=None):
+    def __init__(self, parent, ID, title, files=None, app=None):
         self.app = app
         self.frameType='shell'
         self.appData = self.app.prefs.appData['coder']#things the user doesn't set like winsize etc

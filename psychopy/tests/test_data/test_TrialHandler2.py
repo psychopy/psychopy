@@ -15,7 +15,7 @@ import pytest
 thisPath = os.path.split(__file__)[0]
 fixturesPath = os.path.join(thisPath,'..','data')
 
-class TestTrialHandler2:
+class TestTrialHandler2(object):
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
         self.rootName = 'test_data_file'

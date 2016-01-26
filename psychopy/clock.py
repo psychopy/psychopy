@@ -61,7 +61,7 @@ else:
         import timeit
         getTime = timeit.default_timer
 
-class MonotonicClock:
+class MonotonicClock(object):
     """A convenient class to keep track of time in your experiments using a
     sub-millisecond timer.
 
@@ -76,6 +76,7 @@ class MonotonicClock:
     Version Notes: This class was added in PsychoPy 1.77.00
     """
     def __init__(self,start_time=None):
+        super(MonotonicClock, self).__init__()
         if start_time is None:
             self._timeAtLastReset=getTime()#this is sub-millisec timer in python
         else:
@@ -105,7 +106,7 @@ class Clock(MonotonicClock):
 
     """
     def __init__(self):
-        MonotonicClock.__init__(self)
+        super(Clock, self).__init__()
 
     def reset(self, newT=0.0):
         """Reset the time on the clock. With no args time will be
@@ -141,7 +142,7 @@ class CountdownTimer(Clock):
             #do stuff
     """
     def __init__(self, start=0):
-        Clock.__init__(self)
+        super(CountdownTimer, self).__init__()
         self._countdown_duration=start
         if start:
             self.add(start)

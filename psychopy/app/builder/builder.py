@@ -759,6 +759,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 class FavoriteComponents(object):
 
     def __init__(self, componentsPanel, threshold=20, neutral=0):
+        super(FavoriteComponents, self).__init__()
         self.threshold=20
         self.neutral=0
         self.panel = componentsPanel

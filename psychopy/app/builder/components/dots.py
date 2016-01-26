@@ -24,7 +24,7 @@ class DotsComponent(BaseVisualComponent):
                 direction=0.0, speed=0.1, coherence=1.0,
                 dotSize=2,
                 dotLife=3, signalDots='same', noiseDots='direction',
-                fieldShape='circle', fieldSize=1.0, fieldPos=[0.0,0.0],
+                fieldShape='circle', fieldSize=1.0, fieldPos=(0.0,0.0),
                 color='$[1.0,1.0,1.0]',colorSpace='rgb',
                 opacity=1.0,
                 units='from exp settings',
