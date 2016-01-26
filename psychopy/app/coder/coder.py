@@ -986,7 +986,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
             symbols.remove('successfulParse')
             for thisSymbol in symbols:
                 #create an actual obj from the name
-                exec('thisObj=%s' %thisSymbol)
+                thisObj = eval('%s' % thisSymbol)
                 #(try to) get the attributes of the object
                 try:
                     newAttrs = dir(thisObj)
@@ -1020,7 +1020,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                 thisObj= thisIs = thisHelp = thisType = thisAttrs = None
                 keyIsStr = tokenDict[thisKey]['is']
                 try:
-                    exec('thisObj=%s' %keyIsStr)
+                    thisObj = eval('%s' % keyIsStr)
                     if type(thisObj)==types.FunctionType:
                         thisIs = 'returned from functon'
                     else:

@@ -960,7 +960,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         if self.OK:
             self.params = self.getParams()
             #convert endPoints from str to list
-            exec("self.params['endPoints'].val = %s" %self.params['endPoints'].val)
+            self.params['endPoints'].val = eval("%s" % self.params['endPoints'].val)
             #then sort the list so the endpoints are in correct order
             self.params['endPoints'].val.sort()
             if loop: # editing an existing loop
