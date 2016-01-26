@@ -1118,7 +1118,7 @@ class TrialHandler(_BaseTrialHandler):
                         else:
                             thisAnal = thisAnal*numpy.sqrt(N)/numpy.sqrt(N-1)
                     else:
-                        exec("thisAnal = numpy.%s(thisData,1)" %analType)
+                        thisAnal = eval("numpy.%s(thisData,1)" %analType)
                 except:
                     dataHead.remove(dataType+'_'+analType)#that analysis doesn't work
                     dataOutInvalid.append(thisDataOut)
@@ -2067,7 +2067,7 @@ class TrialHandlerExt(TrialHandler):
                         else:
                             thisAnal = thisAnal*numpy.sqrt(N)/numpy.sqrt(N-1)
                     else:
-                        exec("thisAnal = numpy.%s(thisData,1)" %analType)
+                        thisAnal = eval("numpy.%s(thisData,1)" %analType)
                 except:
                     dataHead.remove(dataType+'_'+analType)#that analysis doesn't work
                     dataOutInvalid.append(thisDataOut)
@@ -2347,7 +2347,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                     val = unicode(val.decode('utf-8'))
                     #if it looks like a list, convert it:
                     if val.startswith('[') and val.endswith(']'):
-                        #exec('val=%s' %unicode(val.decode('utf8')))
+                        #val=eval('%s' %unicode(val.decode('utf8')))
                         val = eval(val)
                 thisTrial[fieldName] = val
             trialList.append(thisTrial)

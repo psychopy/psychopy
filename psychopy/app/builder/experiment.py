@@ -304,7 +304,7 @@ class Experiment(object):
             name=name.replace('olour','olor')
             params[name].val = val
         elif name=='times':#deprecated in v1.60.00
-            exec('times=%s' %val)
+            times=eval('%s' %val)
             params['startType'].val =unicode('time (s)')
             params['startVal'].val = unicode(times[0])
             params['stopType'].val =unicode('time (s)')
@@ -364,7 +364,8 @@ class Experiment(object):
             elif name == 'Selected rows': #changed in 1.81.00 from 'code' to 'str' to allow string or variable
                 params[name].valType = 'str'
             #conversions based on valType
-            if params[name].valType=='bool': exec("params[name].val=%s" %params[name].val)
+            if params[name].valType=='bool':
+                params[name].val = eval("%s" %params[name].val)
         if 'updates' in paramNode.keys():
             params[name].updates = paramNode.get('updates')
     def loadFromXML(self, filename):
@@ -468,14 +469,14 @@ class Experiment(object):
                 if loopName != elementNode.get('name'):
                     modified_names.append(elementNode.get('name'))
                 self.namespace.add(loopName)
-                exec('loop=%s(exp=self,name="%s")' %(loopType,loopName))
+                loop = eval('%s(exp=self,name="%s")' %(loopType,loopName))
                 loops[loopName]=loop
                 for paramNode in elementNode:
                     self._getXMLparam(paramNode=paramNode,params=loop.params)
                     #for conditions convert string rep to actual list of dicts
                     if paramNode.get('name')=='conditions':
                         param=loop.params['conditions']
-                        exec('param.val=%s' %(param.val))#e.g. param.val=[{'ori':0},{'ori':3}]
+                        param.val = eval('%s' %(param.val))#e.g. param.val=[{'ori':0},{'ori':3}]
                 # get condition names from within conditionsFile, if any:
                 try: conditionsFile = loop.params['conditionsFile'].val #psychophysicsstaircase demo has no such param
                 except: conditionsFile = None
