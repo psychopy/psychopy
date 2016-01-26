@@ -173,7 +173,7 @@ class PreferencesDlg(wx.Dialog):
                 thisPref = thisPref.replace('Ctrl+', 'Cmd+')
             try:
                 pLabel = _localized[prefName]
-            except:
+            except Exception:
                 pLabel = prefName
             if prefName == 'locale':
                 # fake spec -> option: use available locale info not spec file
@@ -231,12 +231,12 @@ class PreferencesDlg(wx.Dialog):
                             newVal = thisPref
                         else:
                             newVal = eval(thisPref)
-                    except:
+                    except Exception:
                         # if eval() failed, show warning dialog and return
                         try:
                             pLabel = _localized[prefName]
                             sLabel = _localized[sectionName]
-                        except:
+                        except Exception:
                             pLabel = prefName
                             sLabel = sectionName
                         warnDlg = dialogs.MessageDialog(parent=self,
@@ -274,7 +274,7 @@ class PrefCtrls:
             for opt in options:
                 try:
                     labels.append(_localized[opt])
-                except:
+                except Exception:
                     labels.append(opt)
             self.valueCtrl = wx.Choice(self.parent, choices=labels)
             self.valueCtrl._choices = copy.copy(options)  # internal values
@@ -328,7 +328,7 @@ class PrefCtrls:
                     # try str() first because we don't want to append "u" if unnecessary.
                     try:
                        en = "'" + str(e) + "',"
-                    except: # unicode
+                    except Exception: # unicode
                        # "u" is necessary if string is unicode.
                        en = "u'" + unicode(e) + "',"
                 l += en

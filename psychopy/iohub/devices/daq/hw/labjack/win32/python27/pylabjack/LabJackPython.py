@@ -47,7 +47,7 @@ class LabJackException(Exception):
                 pString = ctypes.create_string_buffer(256)
                 staticLib.ErrorToString(ctypes.c_long(self.errorCode), ctypes.byref(pString))
                 self.errorString = pString.value
-            except:
+            except Exception:
                 self.errorString = str(self.errorCode)
     
     def __str__(self):
@@ -136,7 +136,7 @@ except LabJackException, e:
 # Attempt to load the windows Skymote library.
 try:
     skymoteLib = ctypes.windll.LoadLibrary("liblabjackusb")
-except:
+except Exception:
     skymoteLib = None
 
 class Device(object):
@@ -1359,7 +1359,7 @@ def _openLabJackUsingExodriver(deviceType, firstFound, pAddress, devNumber):
                 if handle <= 0:
                     raise NullHandleException()
                 device = _makeDeviceFromHandle(handle, deviceType)
-            except:
+            except Exception:
                 continue
             
             if device.localId == pAddress or device.serialNumber == pAddress or device.ipAddress == pAddress:
@@ -1375,7 +1375,7 @@ def _openUE9OverEthernet(firstFound, pAddress, devNumber):
         try:
             socket.inet_aton(pAddress)
             return UE9TCPHandle(pAddress)
-        except:
+        except Exception:
             pass
 
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -1434,7 +1434,7 @@ def _openUE9OverEthernet(firstFound, pAddress, devNumber):
                 pass
     except LabJackException, e:
         raise LabJackException(LJE_LABJACK_NOT_FOUND, "%s" % e)
-    except:
+    except Exception:
         raise LabJackException("LJE_LABJACK_NOT_FOUND: Couldn't find the specified LabJack.")
 
 def _openWirelessBridgeOnWindows(firstFound, pAddress, devNumber):
@@ -1469,7 +1469,7 @@ def _openWirelessBridgeOnWindows(firstFound, pAddress, devNumber):
                 if handle <= 0:
                     raise NullHandleException()
                 device = _makeDeviceFromHandle(handle, deviceType)
-            except:
+            except Exception:
                 continue
             
             if device.localId == pAddress or device.serialNumber == pAddress or device.ipAddress == pAddress:
@@ -2656,15 +2656,15 @@ def DriverPresent():
     try:
         ctypes.windll.LoadLibrary("labjackud")
         return True
-    except:
+    except Exception:
         try:
             ctypes.cdll.LoadLibrary("liblabjackusb.so")
             return True
-        except:
+        except Exception:
             try:
                 ctypes.cdll.LoadLibrary("liblabjackusb.dylib")
                 return True
-            except:
+            except Exception:
                 return False
             return False
         return False
@@ -2673,7 +2673,7 @@ def U12DriverPresent():
     try:
         ctypes.windll.LoadLibrary("ljackuw")
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -2785,7 +2785,7 @@ def __listAllUE9Unix(connectionType):
                                                     serialNumber = serial, ipAddress = ipAddress)
                 except Exception, e:
                     pass
-        except:
+        except Exception:
             pass
 
     return deviceList

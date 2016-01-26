@@ -63,7 +63,7 @@ def makeGrating(res,
     else:#might be a filename of an image
             try:
                     im = Image.open(gratType)
-            except:
+            except Exception:
                     logging.error( "couldn't find tex...",gratType)
                     return
     return intensity

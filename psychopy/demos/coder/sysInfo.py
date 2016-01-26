@@ -30,7 +30,7 @@ print("pyglet", pyglet.version)
 try:
     import pyo
     print("pyo", '%i.%i.%i' % pyo.getVersion())
-except:
+except Exception:
     print('pyo [not installed]')
 
 from psychopy import __version__

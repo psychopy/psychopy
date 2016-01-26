@@ -91,7 +91,7 @@ class TouchDevice(Device):
             w,h=right-left,top-bottom            
             x,y=left+w*rx,bottom+h*(1.0-ry) 
             return x,y
-        except:
+        except Exception:
             print2err("Error During EloDevice._pixelToDisplayCoords:") 
             printExceptionDetailsToStdErr()
             return px,py

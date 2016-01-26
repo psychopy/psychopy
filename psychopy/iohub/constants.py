@@ -1186,7 +1186,7 @@ try:
     XInputBatteryTypeConstants.initialize() 
     try:
         XInputBatteryTypeConstants._keys.remove(XInputBatteryTypeConstants.getID('UNDEFINED'))
-    except:
+    except Exception:
         pass
     
     class XInputBatteryLevelConstants(Constants):
@@ -1199,7 +1199,7 @@ try:
     XInputBatteryLevelConstants.initialize()
     try:
         XInputBatteryLevelConstants._keys.remove(XInputBatteryLevelConstants.getID('UNDEFINED'))
-    except:
+    except Exception:
         pass
 
     class XInputCapabilitiesConstants(Constants):
@@ -1363,7 +1363,7 @@ try:
     XInputCapabilitiesConstants.initialize()
     try:
         XInputCapabilitiesConstants._keys.remove(XInputCapabilitiesConstants.getID('UNDEFINED'))
-    except:
+    except Exception:
         pass
     
     class XInputGamePadConstants(Constants):
@@ -1389,10 +1389,10 @@ try:
     XInputGamePadConstants.initialize()
     try:
         XInputGamePadConstants._keys.remove(XInputGamePadConstants.getID('UNDEFINED'))
-    except:
+    except Exception:
         pass
             
-except:
+except Exception:
     import traceback
     traceback.print_exc()
     #from . import printExceptionDetailsToStdErr

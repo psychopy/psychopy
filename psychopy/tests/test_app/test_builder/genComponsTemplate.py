@@ -17,7 +17,7 @@ from psychopy.app.builder.components import getAllComponents
 # should not need a wx.App with fetchIcons=False
 try:
     allComp = getAllComponents(fetchIcons=False)
-except:
+except Exception:
     import wx
     if wx.version() < '2.9':
         tmpApp = wx.PySimpleApp()
@@ -25,7 +25,7 @@ except:
         tmpApp = wx.App(False)
     try:
         from psychopy.app import localization
-    except:
+    except Exception:
         pass  # not needed if can't import it
     allComp = getAllComponents(fetchIcons=False)
 

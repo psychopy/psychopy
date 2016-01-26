@@ -30,7 +30,7 @@ try:
     else:
         from matplotlib import nxutils
     haveMatplotlib = True
-except:
+except Exception:
     haveMatplotlib = False
 
 def pointInPolygon(x, y, poly):
@@ -44,7 +44,7 @@ def pointInPolygon(x, y, poly):
     """
     try: #do this using try:...except rather than hasattr() for speed
         poly = poly.verticesPix #we want to access this only once
-    except:
+    except Exception:
         pass
     nVert = len(poly)
     if nVert < 3:
@@ -59,7 +59,7 @@ def pointInPolygon(x, y, poly):
         else:
             try:
                 return bool(nxutils.pnpoly(x, y, poly))
-            except:
+            except Exception:
                 pass
 
     # fall through to pure python:
@@ -89,11 +89,11 @@ def polygonsOverlap(poly1, poly2):
     """
     try: #do this using try:...except rather than hasattr() for speed
         poly1 = poly1.verticesPix #we want to access this only once
-    except:
+    except Exception:
         pass
     try: #do this using try:...except rather than hasattr() for speed
         poly2 = poly2.verticesPix #we want to access this only once
-    except:
+    except Exception:
         pass
     # faster if have matplotlib tools:
     if haveMatplotlib:
@@ -106,7 +106,7 @@ def polygonsOverlap(poly1, poly2):
                 if any(nxutils.points_inside_poly(poly1, poly2)):
                     return True
                 return any(nxutils.points_inside_poly(poly2, poly1))
-            except: pass
+            except Exception: pass
 
     # fall through to pure python:
     for p1 in poly1:
@@ -282,7 +282,7 @@ def groupFlipVert(flipList, yReflect=0):
         elif hasattr(item, 'vertices'):  # and lacks a setFlipVert method
             try:
                 v = item.vertices * [1, -1]  # numpy.array
-            except:
+            except Exception:
                 v = [[item.vertices[i][0], -1 * item.vertices[i][1]]
                      for i in range(len(item.vertices))]
             item.setVertices(v)

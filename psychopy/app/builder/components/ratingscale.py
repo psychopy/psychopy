@@ -162,7 +162,7 @@ class RatingScaleComponent(BaseComponent):
             try:
                 pos = map(float, s.split(',')) * 2
                 init_str += ", pos=%s" % pos[0:2]
-            except:
+            except Exception:
                 pass # pos = None
 
             # type of scale:

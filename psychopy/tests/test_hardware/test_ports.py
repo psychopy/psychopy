@@ -4,7 +4,7 @@ import psychopy.hardware as hw
 import pytest
 try:
     import mock
-except:
+except Exception:
     def require_mock(fn):
         def _inner():
             pytest.skip("Can't test without Mock")

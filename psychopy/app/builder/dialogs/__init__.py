@@ -101,7 +101,7 @@ class ParamCtrls(object):
             else:
                 try:
                     tryForExp=tryForExp.parent#try going up a level
-                except:
+                except Exception:
                     tryForExp.parent
 
         #param has the fields:
@@ -166,7 +166,7 @@ class ParamCtrls(object):
             # set display to the localized version of the currently selected value:
             try:
                 index = param.allowedVals.index(param.val)
-            except:
+            except Exception:
                 logging.warn("%r was given as parameter %r but it isn't in "
                     "the list of allowed values %s. Reverting to use %r for this Component" %(param.val, fieldName, param.allowedVals, param.allowedVals[0]))
                 logging.flush()
@@ -596,7 +596,7 @@ class _BaseParamsDlg(wx.Dialog):
                 ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.checkCodeWanted)
                 try:
                     self.checkCodeWanted(ctrls.valueCtrl)
-                except:
+                except Exception:
                     pass
 
     def openMonitorCenter(self,event):
@@ -771,7 +771,7 @@ class _BaseParamsDlg(wx.Dialog):
         try:
             val = strBox.GetValue()
             stc = False
-        except:
+        except Exception:
             if not hasattr(strBox, 'GetText'):  # eg, wx.Choice control
                 if hasattr(event, 'Skip'):
                     event.Skip()
@@ -988,7 +988,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         for fieldName in ['name','loopType','isTrials']:
             try:
                 label = self.currentHandler.params[fieldName].label
-            except:
+            except Exception:
                 label = fieldName
             self.globalCtrls[fieldName] = ctrls = ParamCtrls(dlg=self, parent=panel,
                 label=label,fieldName=fieldName,
@@ -1027,7 +1027,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 label = self.currentHandler.params[fieldName].label
                 if not label: #it might exist but be empty
                     label = fieldName
-            except:
+            except Exception:
                 label = fieldName
             #handle special cases
             if fieldName=='endPoints':
@@ -1090,7 +1090,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 label = handler.params[fieldName].label
                 if not label: #it might exist but be empty
                     label = fieldName
-            except:
+            except Exception:
                 label = fieldName
             #handle special cases
             if fieldName=='endPoints':
@@ -1141,7 +1141,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 label = handler.params[fieldName].label
                 if not label: #it might exist but be empty
                     label = fieldName
-            except:
+            except Exception:
                 label = fieldName
             #handle special cases
             if fieldName=='endPoints':

@@ -105,7 +105,7 @@ class TestMicrophoneNoSound(object):
     def setup_class(self):
         try:
             assert _getFlacPath()
-        except:
+        except Exception:
             # some of the utils could be designed not to need flac but they
             # currently work on a file that is distributed in flac format
             pytest.skip()

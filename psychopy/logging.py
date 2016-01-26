@@ -174,7 +174,7 @@ class LogFile:
         stream.write(txt)
         try:
             stream.flush()
-        except:
+        except Exception:
             pass
 class _Logger:
     """Maintains a set of log targets (text streams such as files of stdout)

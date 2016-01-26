@@ -258,11 +258,11 @@ def isValidNumber(config_param_name,value,constraints):
     try:
         int_value=isValidInt(config_param_name,value,constraints)
         return int_value
-    except:
+    except Exception:
         try:
             float_value=isValidFloat(config_param_name,value,constraints)
             return float_value
-        except:
+        except Exception:
             raise NumberValueError(config_param_name,value,constraints)
 
 
@@ -270,14 +270,14 @@ def isBool(config_param_name,value,valid_value):
     try:
         value=bool(value)
         return value
-    except:
+    except Exception:
         raise BooleanValueError(config_param_name,value)
 
 def isValidIpAddress(config_param_name,value,valid_value):
     try:
         socket.inet_aton(value)
         return value
-    except:
+    except Exception:
         raise IpValueError(config_param_name,value)
 
 def isValidDateString(config_param_name,value,valid_value):
@@ -292,7 +292,7 @@ def isValidDateString(config_param_name,value,valid_value):
         if int(year) < 1900 or int(year) > 2013:
             raise DateStringValueError(config_param_name,value)
         return value
-    except:
+    except Exception:
         raise DateStringValueError(config_param_name,value)
 
 def isValidList(config_param_name,value,constraints):
@@ -325,7 +325,7 @@ def isValidList(config_param_name,value,constraints):
 
         return value
 
-    except:
+    except Exception:
         raise NonSupportedValueError(config_param_name,value,constraints)
 
 

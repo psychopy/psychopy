@@ -398,7 +398,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
     def _unload(self):
         try:
             self.clearTextures()#remove textures from graphics card to prevent crash
-        except:
+        except Exception:
             pass
         self._mov = None
         self._numpyFrame = None

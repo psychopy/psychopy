@@ -334,5 +334,5 @@ def canBeNumeric(inStr):
     try:
         float(inStr)
         return True
-    except:
+    except Exception:
         return False

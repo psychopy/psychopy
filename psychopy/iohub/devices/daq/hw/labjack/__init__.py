@@ -48,7 +48,7 @@ class AnalogInput(AnalogInputDevice):
                     
                 self._data_streaming_thread=LabJackDataReader(self)
                 self._data_streaming_thread.start()
-            except:
+            except Exception:
                 print2err("ERROR DURING LABJACK INIT")
                 printExceptionDetailsToStdErr()    
         else:
@@ -73,7 +73,7 @@ class AnalogInput(AnalogInputDevice):
                 self._data_streaming_thread.enableDataStreaming(False)
                 self._part_sample=None
                                      
-        except:
+        except Exception:
             print2err("----- LabJack AnalogInput enableEventReporting ERROR ----")
             printExceptionDetailsToStdErr()
             print2err("---------------------------------------------------------")
@@ -214,7 +214,7 @@ class AnalogInput(AnalogInputDevice):
     def __del__(self):
         try:
             self._close()
-        except:
+        except Exception:
             pass
         
 # LabJack Stream Reading Thread. I 'dislike' threads in Python, but as a last 
@@ -302,7 +302,7 @@ class LabJackDataReader(threading.Thread):
                 #print2err("%s samples / %s seconds = %s Hz" % ( total, run_time, float(total)/run_time ))
             self.iohub_device=None
             self.labjack_device=None
-        except:
+        except Exception:
             print2err("ERROR IN THREAD RUN:")
             printExceptionDetailsToStdErr()
             

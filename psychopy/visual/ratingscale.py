@@ -371,11 +371,11 @@ class RatingScale(MinimalStim):
         # Anchors need to be well-behaved [do after choices]:
         try:
             self.low = int(low)
-        except:
+        except Exception:
             self.low = 1
         try:
             self.high = int(high)
-        except:
+        except Exception:
             self.high = self.low + 1
         if self.high <= self.low:
             self.high = self.low + 1
@@ -409,7 +409,7 @@ class RatingScale(MinimalStim):
         # Marker pre-positioned? [do after anchors]
         try:
             self.markerStart = float(markerStart)
-        except:
+        except Exception:
             if isinstance(markerStart, basestring) and type(self.choices) == list and markerStart in self.choices:
                 self.markerStart = self.choices.index(markerStart)
                 self.markerPlacedAt = self.markerStart
@@ -467,14 +467,14 @@ class RatingScale(MinimalStim):
                 logging.warning("RatingScale %s: pos expects a tuple (x,y)" % self.name)
         try:
             self.offsetHoriz = float(offsetHoriz)
-        except:
+        except Exception:
             if self.savedWinUnits == 'pix':
                 self.offsetHoriz = 0
             else: # default x in norm units:
                 self.offsetHoriz = 0.0
         try:
             self.offsetVert = float(offsetVert)
-        except:
+        except Exception:
             if self.savedWinUnits == 'pix':
                 self.offsetVert = int(self.win.size[1] / -5.0)
             else: # default y in norm units:
@@ -970,7 +970,7 @@ class RatingScale(MinimalStim):
                 except AttributeError:
                     try:
                         self.marker.setColor('DarkGray', log=False)
-                    except:
+                    except Exception:
                         pass
                 self.marker.setPos((0, -.012), ('+', '-')[self.flipVert], log=False)  # drop it onto the line
                 self.markerPosFixed = True  # flag to park it there
@@ -1174,7 +1174,7 @@ class RatingScale(MinimalStim):
         if self.choices:
             try:
                 response = self.choices[response]
-            except:
+            except Exception:
                 pass
                 # == we have a numeric fractional choice from markerStart and
                 # want to save the numeric value as first item in the history

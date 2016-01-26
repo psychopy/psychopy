@@ -797,7 +797,7 @@ class ioHubConnection(object):
             r=self._sendToHubServer(('EXP_DEVICE','ADD_DEVICE',device_class,device_config))
             device_class_name, dev_name, device_rpc_interface=r[2]
             return self._addDeviceView(dev_name,device_class_name)
-        except:
+        except Exception:
             printExceptionDetailsToStdErr()
             raise ioHubError("Error in _addDeviceToMonitor: device_class: ",device_class," . device_config: ",device_config)
 
@@ -1073,7 +1073,7 @@ class ioHubConnection(object):
             if device_config.get('enable',True) is True:
                 try:
                     self._addDeviceView(device_class_name,device_config)
-                except:
+                except Exception:
                     print2err("_createDeviceList: Error adding class. ")
                     printExceptionDetailsToStdErr()
 
@@ -1119,7 +1119,7 @@ class ioHubConnection(object):
             setattr(self.devices, name, d)
             self.deviceByLabel[name] = d
             return d
-        except:
+        except Exception:
             print2err("_addDeviceView: Error adding class. ")
             printExceptionDetailsToStdErr()
         return None
@@ -1274,7 +1274,7 @@ class ioHubConnection(object):
                 return eventValueList
             eclass=EventConstants.getClass(eventValueList[DeviceEvent.EVENT_TYPE_ID_INDEX])
             return eclass.createEventAsDict(eventValueList)
-        except:
+        except Exception:
             printExceptionDetailsToStdErr()
             raise ioHubError("Error converting ioHub Server event list response to a dict",event_list_response=eventValueList)
 
@@ -1289,7 +1289,7 @@ class ioHubConnection(object):
                 return eventValueList
             eclass=EventConstants.getClass(eventValueList[DeviceEvent.EVENT_TYPE_ID_INDEX])
             return eclass.createEventAsNamedTuple(eventValueList)
-        except:
+        except Exception:
             printExceptionDetailsToStdErr()
             raise ioHubError("Error converting ioHub Server event list response to a namedtuple",event_list_response=eventValueList)
 
@@ -1352,7 +1352,7 @@ class ioHubConnection(object):
         try:
             self._shutDownServer()
             ioHubConnection.ACTIVE_CONNECTION=None
-        except:
+        except Exception:
             pass
 
 def launchHubServer(**kwargs):
@@ -1968,7 +1968,7 @@ class ioHubExperimentRuntime(object):
             result=self.run(*sys_argv)
             self._close()
             return result
-        except:
+        except Exception:
             printExceptionDetailsToStdErr()
             self._close()
 
@@ -2018,7 +2018,7 @@ class ioHubExperimentRuntime(object):
         try:
             if self.hub:
                 self.hub._shutDownServer()
-        except:
+        except Exception:
             pass
         self.hub=None
         self.devices=None

@@ -57,7 +57,7 @@ class ParsedTextDocument(object):
     def getCharAtIndex(self,text_index):
         try:
             return self._text[text_index]
-        except:
+        except Exception:
             print("WARNING: ParsedTextDocument.getCharAtIndex received out of bounds index: ",text_index,self.getTextLength())
             return None
 

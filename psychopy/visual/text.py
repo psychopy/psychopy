@@ -34,7 +34,7 @@ import numpy
 try:
     import pygame
     havePygame = True
-except:
+except Exception:
     havePygame = False
 
 defaultLetterHeight = {'cm': 1.0,
@@ -210,7 +210,7 @@ class TextStim(BaseVisualStim, ColorMixin):
                     self._font = pygame.font.SysFont(self.font, int(self._heightPix), italic=self.italic, bold=self.bold)
                     self.__dict__['font'] = font
                     logging.info('using sysFont ' + str(font))
-                except:
+                except Exception:
                     self.__dict__['font'] = pygame.font.get_default_font()
                     logging.error("Couldn't find font %s on the system. Using %s instead!\n \
                               Font names should be written as concatenated names all in lower case.\n \

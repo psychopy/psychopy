@@ -45,7 +45,7 @@ try:
         from tobii.eye_tracking_io.time.sync import SyncManager as TobiiPySyncManager
         from tobii.eye_tracking_io.time.sync import State as TobiiPySyncState
         from tobii.eye_tracking_io.types import Point2D, Point3D
-except:
+except Exception:
     # This only happens when it is Sphinx auto-doc loading the file
     printExceptionDetailsToStdErr()
 
@@ -506,7 +506,7 @@ class TobiiTracker(object):
     def getLowBlinkMode(self):
         try:
             return self._eyetracker.GetLowblinkMode()
-        except:
+        except Exception:
             pass
         return None
 
@@ -516,7 +516,7 @@ class TobiiTracker(object):
                 if isinstance(enable,bool) or enable == 0 or enable == 1:
                     self._eyetracker.SetLowblinkMode(enable)
                 return self._eyetracker.GetLowblinkMode()
-            except:
+            except Exception:
                 pass
         return None
         
@@ -535,14 +535,14 @@ class TobiiTracker(object):
     def getIlluminationMode(self):
         try:
             return self._eyetracker.getIlluminationMode()
-        except:
+        except Exception:
             pass
         return None
         
     def getAvailableIlluminationModes(self):
         try:
             return self._eyetracker.EnumerateIlluminationModes()
-        except:
+        except Exception:
             return []
 
     def setIlluminationMode(self,imode):

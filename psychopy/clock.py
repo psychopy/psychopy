@@ -18,7 +18,7 @@ import sys
 
 try:
     import pyglet
-except:
+except ImportError:
     pass # pyglet is not installed
 
 
@@ -203,7 +203,7 @@ def wait(secs, hogCPUperiod=0.2):
         try:
             wins = pyglet.window.get_platform().get_default_display().get_windows()
             for win in wins: win.dispatch_events()#pump events on pyglet windows
-        except:
+        except Exception:
             pass #presumably not pyglet
 
 def getAbsTime():

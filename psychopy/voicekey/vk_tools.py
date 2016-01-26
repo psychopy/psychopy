@@ -11,7 +11,7 @@ import numpy as np
 from scipy.signal import butter, lfilter
 try:
     import pyo64 as pyo
-except:
+except Exception:
     import pyo
 
 
@@ -243,7 +243,7 @@ def samples_to_file(samples, rate, file_out, fmt='', dtype='int16'):
     try:
         pyo.savefile(samples, path=file_out, sr=int(rate), channels=1,
                      fileformat=file_fmt, sampletype=data_fmt)
-    except:
+    except Exception:
         msg = 'could not save `{0}`; permissions or other issue?'
         raise IOError(msg.format(file_out))
 
@@ -254,6 +254,6 @@ def table_to_file(table, file_out, fmt='', dtype='int16'):
     try:
         pyo.savefileFromTable(table=table, path=file_out,
                               fileformat=file_fmt, sampletype=data_fmt)
-    except:
+    except Exception:
         msg = 'could not save `{0}`; permissions or other issue?'
         raise IOError(msg.format(file_out))

@@ -1179,7 +1179,7 @@ def initializeEyeGazeDevice(iohub_display, iohub_device_config):
     try:
         v=_CAMERA_IMAGE_POSITIONS.index(v)
         stEgControl.iEyeImagesScreenPos = v 
-    except:
+    except Exception:
         print2err('EyeGaze ERROR: Camera Image Position value invalid. Given {0}, must be one of {1}'.format(v,_CAMERA_IMAGE_POSITIONS))
         stEgControl.iEyeImagesScreenPos=0
         

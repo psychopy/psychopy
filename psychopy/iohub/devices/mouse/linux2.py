@@ -41,12 +41,12 @@ class Mouse(MouseDevice):
                     # to find full path to the lib (if it exists)
                     #
                     Mouse._xfixsdll=cdll.LoadLibrary('libXfixes.so')
-                except:
+                except Exception:
                     try:
                         Mouse._xfixsdll=cdll.LoadLibrary('libXfixes.so.3.1.0')
-                    except:
+                    except Exception:
                         print2err('ERROR: Mouse._xfixsdll is None. libXfixes.so cound not be found')
-            except:
+            except Exception:
                 print2err('ERROR: Mouse._xdll is None. libX11.so cound not be found')
                
         if Mouse._xfixsdll and self._xdll and self._display_device and self._display_device._xwindow is None:
@@ -116,7 +116,7 @@ class Mouse(MouseDevice):
                 self._addNativeEventToBuffer(event_array)
 
                 self._last_callback_time=logged_time
-        except:
+        except Exception:
                 printExceptionDetailsToStdErr()
         return True
             
@@ -135,5 +135,5 @@ class Mouse(MouseDevice):
             
             try:
                 self._display_device._xwindow=None
-            except:
+            except Exception:
                 pass

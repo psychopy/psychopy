@@ -441,7 +441,7 @@ class FlowPanel(wx.ScrolledWindow):
                     trialList, fieldNames = data.importConditions(conditionsFile, returnFieldNames=True)
                     for fname in fieldNames:
                         self.frame.exp.namespace.remove(fname)
-                except:
+                except Exception:
                     logging.debug("Conditions file %s couldn't be found so names not removed from namespace" % conditionsFile)
             self.frame.exp.namespace.remove(component.params['name'].val)
         #perform the actual removal

@@ -21,7 +21,7 @@ try:
     from ctypes import windll
     windll=windll.kernel32
     importWindllFailed = False
-except:
+except Exception:
     importWindllFailed = True
     from .. import logging
     logging.debug("rush() not available because import windll failed in ext/win32.py")

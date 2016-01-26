@@ -58,7 +58,7 @@ import numpy
 try:
     from pyglet import media
     havePygletMedia = True
-except:
+except Exception:
     havePygletMedia = False
 
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
@@ -129,7 +129,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         self._player.volume=volume
         try:
             self._player_default_on_eos = self._player.on_eos
-        except:
+        except Exception:
             self._player_default_on_eos = self._player._on_eos #from pyglet 1.1.4?
 
         self.filename=filename
@@ -346,5 +346,5 @@ class MovieStim(BaseVisualStim, ContainerMixin):
     def __del__(self):
         try:
             self._player.next()
-        except:
+        except Exception:
             pass

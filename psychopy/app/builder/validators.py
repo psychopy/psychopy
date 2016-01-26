@@ -25,7 +25,7 @@ class NameValidator(wx.PyValidator):
         while not hasattr(parent, 'frame'):
             try:
                 parent = parent.GetParent()
-            except:
+            except Exception:
                 print("Couldn't find the root dialog for this event")
         message, valid = self.checkName(parent)
         parent.nameOKlabel.SetLabel(message)

@@ -335,7 +335,7 @@ class Keyboard(ioHubKeyboardDevice):
                     
                 self._last_callback_time=logged_time
             return event
-        except:
+        except Exception:
             printExceptionDetailsToStdErr()
             Qz.CGEventTapEnable(self._tap, False)
         
@@ -357,7 +357,7 @@ class Keyboard(ioHubKeyboardDevice):
     def _close(self):            
         try:
             Qz.CGEventTapEnable(self._tap, False)
-        except:
+        except Exception:
             pass
         try:
             if Qz.CFRunLoopContainsSource(self._device_loop,self._loop_source,self._loop_mode) is True:    

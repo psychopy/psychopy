@@ -23,7 +23,7 @@ from psychopy.clock import  MonotonicClock, monotonicClock
 
 try:
     import ujson as json
-except:
+except Exception:
     import json
 
 try:

@@ -19,7 +19,7 @@ __docformat__ = "restructuredtext en"
 import sys
 try:
     import serial
-except:
+except Exception:
     serial=False
 import numpy
 
@@ -82,7 +82,7 @@ class ColorCAL:
 
         #try to open the port
         try:self.com = serial.Serial(self.portString)
-        except:
+        except Exception:
             self._error("Couldn't connect to port %s. Is it being used by another program?" %self.portString)
 
         #setup the params for serial port
@@ -92,7 +92,7 @@ class ColorCAL:
             try:
                 if not self.com.isOpen():
                     self.com.open()
-            except:
+            except Exception:
                 self._error("Opened serial port %s, but couldn't connect to ColorCAL" %self.portString)
             else:
                 self.isOpen=1

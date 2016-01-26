@@ -24,7 +24,7 @@ class TestPygame(object):
         self.contextName='pyo'
         try:
             assert sound.Sound == sound.SoundPygame
-        except:
+        except Exception:
             pytest.xfail('need to be using pygame')
         self.tmp = mkdtemp(prefix='psychopy-tests-sound')
 

@@ -367,7 +367,7 @@ class InstallUpdateDialog(wx.Dialog):
             try: #to move existing PsychoPy
                 os.rename(currPath, "%s-%s" %(currPath, psychopy.__version__))
                 undoString += 'os.rename("%s-%s" %(currPath, psychopy.__version__),currPath)\n'
-            except:
+            except Exception:
                 if sys.platform=='win32' and int(sys.getwindowsversion()[1])>5:
                     msg = _translate("To upgrade you need to restart the app as admin (Right-click the app and 'Run as admin')")
                 else:
@@ -390,7 +390,7 @@ class InstallUpdateDialog(wx.Dialog):
         try:
             os.makedirs(unzipTarget)#create the new installation directory AFTER renaming existing dir
             undoString += 'os.remove(%s)\n' %unzipTarget
-        except: #revert path rename and inform user
+        except Exception: #revert path rename and inform user
             exec(undoString)#undo previous changes
             if sys.platform=='win32' and int(sys.getwindowsversion()[1])>5:
                 msg = _translate("Right-click the app and 'Run as admin'):\n%s") %unzipTarget
@@ -413,7 +413,7 @@ class InstallUpdateDialog(wx.Dialog):
                     outfile = open(targetFile, 'wb')
                     outfile.write(zfile.read(name))
                     outfile.close()
-            except:
+            except Exception:
                 exec(undoString)#undo previous changes
                 logging.error('failed to unzip file: '+name)
                 logging.error(sys.exc_info()[0])
@@ -426,7 +426,7 @@ class InstallUpdateDialog(wx.Dialog):
             v=self.latest['version']
         self.statusMessage.SetLabel(_translate("Downloading PsychoPy v%s") %v)
         try: zipFile, info =self.fetchPsychoPy(v)
-        except:
+        except Exception:
             self.statusMessage.SetLabel(_translate('Failed to fetch PsychoPy release.\nCheck proxy setting in preferences'))
             return -1
         self.statusMessage.SetLabel(info)
@@ -459,7 +459,7 @@ class InstallUpdateDialog(wx.Dialog):
                     f.close()
                     nUpdates+=1
                     logging.info('Updated PsychoPy path in %s' %filename)
-                except:
+                except Exception:
                     info+='Failed to update PsychoPy path in ', filename
                     return -1, info
         return nUpdates, info
@@ -501,6 +501,6 @@ def sendUsageStats():
     try:
         req = urllib.request.Request(URL)
         page = urllib.request.urlopen(req)#proxies
-    except:
+    except Exception:
         logging.warning("Couldn't connect to psychopy.org\n"+\
             "Check internet settings (and proxy setting in PsychoPy Preferences.")

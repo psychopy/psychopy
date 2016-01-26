@@ -82,7 +82,7 @@ class ProjectionsLinesAndCircles(object):
                 self.warper.warp,
                 self.warper.eyepoint[0], self.warper.eyepoint[1],
                 self.warper.dist_cm))
-        except:
+        except Exception:
             pass
 
     def check_keys(self):

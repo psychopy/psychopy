@@ -11,7 +11,7 @@ from psychopy import logging
 import struct, sys, time
 
 try: import serial
-except: serial=False
+except ImportError: serial=False
 
 class LS100:
     """A class to define a Minolta LS100 (or LS110?) photometer
@@ -106,7 +106,7 @@ class LS100:
         #try to open the port
         if sys.platform in ['darwin', 'win32']:
             try:self.com = serial.Serial(self.portString)
-            except:
+            except Exception:
                 self._error("Couldn't connect to port %s. Is it being used by another program?" %self.portString)
         else:
             self._error("I don't know how to handle serial ports on %s" %sys.platform)
@@ -120,7 +120,7 @@ class LS100:
             try:
                 if not self.com.isOpen():
                     self.com.open()
-            except:
+            except Exception:
                 self._error("Opened serial port %s, but couldn't connect to LS100" %self.portString)
             else:
                 self.isOpen=1

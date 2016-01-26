@@ -19,12 +19,12 @@ try:
     import pygame.key
     import pygame.event as evt
     havePygame = True
-except:
+except ImportError:
     havePygame = False
 try:
     import pyglet
     havePyglet = True
-except:
+except ImportError:
     havePyglet = False
 if havePygame: usePygame=True#will become false later if win not initialised
 else: usePygame=False

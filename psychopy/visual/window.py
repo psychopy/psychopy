@@ -86,12 +86,12 @@ from . import shaders as _shaders
 try:
     from pyglet import media
     havePygletMedia = True
-except:
+except Exception:
     havePygletMedia = False
 
 try:
     import pygame
-except:
+except Exception:
     pass
 
 global DEBUG
@@ -977,7 +977,7 @@ class Window(object):
         #                 GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
         try:
             im = Image.fromstring(mode='RGBA', size=(horz, vert), data=bufferDat)
-        except:
+        except Exception:
             im = Image.frombytes(mode='RGBA', size=(horz, vert), data=bufferDat)
         region = im.transpose(Image.FLIP_TOP_BOTTOM)
 
@@ -1002,20 +1002,20 @@ class Window(object):
 
         try:
             openWindows.remove(self)
-        except:
+        except Exception:
             pass
         if (not self.useNativeGamma) and self.origGammaRamp is not None:
             setGammaRamp(self.winHandle, self.origGammaRamp)
         try:
             self.mouseVisible = True
-        except: #can cause unimportant "'NoneType' object is not callable"
+        except Exception: #can cause unimportant "'NoneType' object is not callable"
             pass
         if self.winType == 'pyglet':
             _hw_handle = None
             try:
                 _hw_handle = self._hw_handle
                 self.winHandle.close()
-            except:
+            except Exception:
                 pass
             # If iohub is running, inform it to stop looking for this win id
             # when filtering kb and mouse events (if the filter is enabled of course)
@@ -1023,7 +1023,7 @@ class Window(object):
                 if IOHUB_ACTIVE and _hw_handle:
                     from psychopy.iohub.client import ioHubConnection
                     ioHubConnection.ACTIVE_CONNECTION.unregisterPygletWindowHandles(_hw_handle)
-            except:
+            except Exception:
                 pass
         else:
             #pygame.quit()
@@ -1032,11 +1032,11 @@ class Window(object):
         try:
             if self.bits is not None:
                 self.bits.reset()
-        except:
+        except Exception:
             pass
         try:
             logging.flush()
-        except:
+        except Exception:
             pass
 
     def fps(self):
@@ -1167,7 +1167,7 @@ class Window(object):
             #try to retrieve previous so we can reset later
             try:
                 self.origGammaRamp = getGammaRamp(self.winHandle)
-            except:
+            except Exception:
                 self.origGammaRamp = None
 
             if self.autoLog:
@@ -1317,7 +1317,7 @@ class Window(object):
         elif sys.platform =='darwin':
             try:
                 self._hw_handle=self.winHandle._window.value #python 32bit (1.4. or 1.2 pyglet)
-            except:
+            except Exception:
                 self._hw_handle= self.winHandle._nswindow.windowNumber()#pyglet 1.2 with 64bit python?
         elif sys.platform =='linux2':
             self._hw_handle=self.winHandle._window
@@ -1362,7 +1362,7 @@ class Window(object):
                                     'psychopy.ico')
             icon = pyglet.image.load(filename=iconFile)
             self.winHandle.set_icon(icon)
-        except:
+        except Exception:
             pass  # doesn't matter
 
         # Code to allow iohub to know id of any psychopy windows created
@@ -1400,7 +1400,7 @@ class Window(object):
             iconFile = os.path.join(psychopy.__path__[0], 'psychopy.png')
             icon = pygame.image.load(iconFile)
             pygame.display.set_icon(icon)
-        except:
+        except Exception:
             pass  # doesn't matter
 
         # these are ints stored in pygame.locals
@@ -1435,7 +1435,7 @@ class Window(object):
         if self.winType == 'pygame':
             try:
                 pygame
-            except:
+            except Exception:
                 logging.warning('Requested pygame backend but pygame ,'
                                 'is not installed or not fully working')
                 self.winType = 'pyglet'

@@ -232,7 +232,7 @@ class SettingsComponent(object):
         requestedScreenNumber = int(self.params['Screen'].val)
         try:
             nScreens = wx.Display.GetCount()
-        except:
+        except Exception:
 		    nScreens = 10 #will fail if application hasn't been created (e.g. in test environments)
         if requestedScreenNumber > nScreens:
             logging.warn("Requested screen can't be found. Writing script using first available screen.")

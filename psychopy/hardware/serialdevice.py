@@ -11,7 +11,7 @@ import time
 
 try:
     import serial
-except:
+except ImportError:
     serial=False
 
 class SerialDevice(object):
@@ -65,7 +65,7 @@ class SerialDevice(object):
                      rtscts=0,              # enable RTS/CTS flow control
                      )
                 self.portString = portString
-            except:
+            except Exception:
                 if port: #the user asked for this port and we couldn't connect to it
                     logging.warn("Couldn't connect to port %s" %portString)
                 else: #we were trying this port on a guess
@@ -75,7 +75,7 @@ class SerialDevice(object):
             if not self.com.isOpen():
                 try:
                     self.com.open()
-                except:
+                except Exception:
                     logging.info("Couldn't open port %s. Is it being used by another program?" %self.portString)
                     continue
 

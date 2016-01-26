@@ -173,7 +173,7 @@ try:
                 else:
                     thresh_times.append(mcu_evt.time)
         t+=1
-except:
+except Exception:
     import traceback
     traceback.print_exc()
 finally:

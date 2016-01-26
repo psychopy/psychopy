@@ -24,7 +24,7 @@ def getAutoCompleteList(command='', locals=None, includeMagic=1,
             object = eval(root, locals)
         else:
             object = eval(root)
-    except:
+    except Exception:
         pass
     else:
         attributes = getAttributeNames(object, includeMagic, 
@@ -45,7 +45,7 @@ def getAttributeNames(object, includeMagic=1, includeSingle=1,
                        if hasattr(object, attr)]
     if includeMagic:
         try: attributes += object._getAttributeNames()
-        except: pass
+        except Exception: pass
     # Get all attribute names.
     str_type = str(type(object))
     if str_type == "<type 'array'>":
@@ -98,7 +98,7 @@ def getAllAttributeNames(object):
         # This could(?) fail if the type is poorly defined without
         # even a name.
         key = type(object).__name__
-    except:
+    except Exception:
         key = 'anonymous'
     # Wake up sleepy objects - a hack for ZODB objects in "ghost" state.
     wakeupcall = dir(object)
@@ -110,14 +110,14 @@ def getAllAttributeNames(object):
     try:
         attributes = object.__dict__.keys()
         attributes.sort()
-    except:  # Must catch all because object might have __getattr__.
+    except Exception:  # Must catch all because object might have __getattr__.
         pass
     else:
         attrdict[(key, '__dict__', len(attributes))] = attributes
     # For a class instance, get the attributes for the class.
     try:
         klass = object.__class__
-    except:  # Must catch all because object might have __getattr__.
+    except Exception:  # Must catch all because object might have __getattr__.
         pass
     else:
         if klass is object:
@@ -129,7 +129,7 @@ def getAllAttributeNames(object):
     # Also get attributes from any and all parent classes.
     try:
         bases = object.__bases__
-    except:  # Must catch all because object might have __getattr__.
+    except Exception:  # Must catch all because object might have __getattr__.
         pass
     else:
         if isinstance(bases, types.TupleType):
@@ -153,7 +153,7 @@ def getCallTip(command='', locals=None):
             object = eval(root, locals)
         else:
             object = eval(root)
-    except:
+    except Exception:
         return calltip
     name = ''
     object, dropSelf = getBaseObject(object)
@@ -185,7 +185,7 @@ def getCallTip(command='', locals=None):
     if callable(object):
         try:
             doc = inspect.getdoc(object)
-        except:
+        except Exception:
             pass
     if doc:
         # tip2 is the first separated line of the docstring, like:

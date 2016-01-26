@@ -163,7 +163,7 @@ else:
         from directinput import get_devices, get_joysticks
         try:
             from wintab import get_tablets
-        except:
+        except Exception:
             pass
     elif sys.platform == 'darwin':
         from pyglet import options as pyglet_options

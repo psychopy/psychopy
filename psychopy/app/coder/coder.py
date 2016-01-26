@@ -9,7 +9,7 @@ import wx, wx.stc, wx.richtext
 from wx.html import HtmlEasyPrinting
 try:
     from wx import aui
-except:
+except Exception:
     import wx.lib.agw.aui as aui # some versions of phoenix
 
 import keyword, os, sys, string, StringIO, glob, platform, io
@@ -28,7 +28,7 @@ runScripts='process'
 try:#needed for wx.py shell
     import code
     haveCode=True
-except:
+except Exception:
     haveCode = False
 
 _localized = {'basic': _translate('basic'), 'input': _translate('input'), 'stimuli': _translate('stimuli'),
@@ -227,7 +227,7 @@ class UnitTestFrame(wx.Frame):
         try:
             import pytest
             havePytest=True
-        except:
+        except Exception:
             havePytest=False
         if havePytest:
             self.runpyPath = os.path.join(self.prefs.paths['tests'], 'run.py')
@@ -953,7 +953,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
         try:
             importStatements, tokenDict = psychoParser.getTokensAndImports(buffer)
             successfulParse=True
-        except:
+        except Exception:
             successfulParse=False
         buffer.close()
 
@@ -971,7 +971,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                     if tryImport:
                         try:#it might not import
                             exec(thisLine)
-                        except:
+                        except Exception:
                             pass
                     self.locals = locals()#keep a track of our new locals
                 self.autoCompleteDict = {}
@@ -990,7 +990,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                 #(try to) get the attributes of the object
                 try:
                     newAttrs = dir(thisObj)
-                except:
+                except Exception:
                     newAttrs=[]
 
                 #only dig deeper if we haven't exceeded the max level of analysis
@@ -1006,7 +1006,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                         'type':type(thisObj),
                         'attrs':newAttrs,
                         'help':thisObj.__doc__}
-                except:
+                except Exception:
                     pass#not sure what happened - maybe no __doc__?
 
             #add keywords
@@ -1028,7 +1028,7 @@ class CodeEditor(wx.stc.StyledTextCtrl):
                         thisType = 'instance'
                         thisHelp = thisObj.__doc__
                         thisAttrs = dir(thisObj)
-                except:
+                except Exception:
                     pass
                 self.autoCompleteDict[thisKey]={'is':thisIs,
                     'type':thisType,
@@ -1209,7 +1209,7 @@ class CoderFrame(wx.Frame):
                         background_color='WHITE',
                         )
                     useDefaultShell = False
-                except:
+                except Exception:
                     logging.warn(_translate('IPython failed as shell, using pyshell (IPython v0.12 can fail on wx)'))
             if useDefaultShell:
                 from wx import py
@@ -1537,7 +1537,7 @@ class CoderFrame(wx.Frame):
                 self.showingReloadDialog = False
                 self.SetStatusText('')
                 try: dlg.destroy()
-                except: pass
+                except Exception: pass
             self.fileStatusLastChecked = time.time()
 
     def pageChanged(self,event):
@@ -1559,7 +1559,7 @@ class CoderFrame(wx.Frame):
                 self.setFileModified(False)
             self.SetStatusText('')
             try: dlg.destroy()
-            except: pass
+            except Exception: pass
 
         #event.Skip()
     def filesDropped(self, event):
@@ -1858,7 +1858,7 @@ class CoderFrame(wx.Frame):
                     print("'Save' was canceled.")
                     failToSave = True
                 try: dlg.destroy()
-                except: pass
+                except Exception: pass
             if os.path.exists(doc.filename) and not os.access(doc.filename,os.W_OK):
                 dlg = dialogs.MessageDialog(self,
                         message=_translate("File '%s' lacks write-permission:\nWill try save-as instead.") % (os.path.basename(doc.filename)),
@@ -1866,7 +1866,7 @@ class CoderFrame(wx.Frame):
                 dlg.ShowModal()
                 failToSave = True
                 try: dlg.destroy()
-                except: pass
+                except Exception: pass
             try:
                 if failToSave: raise
                 self.SetStatusText(_translate('Saving file'))
@@ -1887,14 +1887,14 @@ class CoderFrame(wx.Frame):
                         newlines = '\r\n'
                     elif self.prefs['newlineConvention'] == 'unix':
                         newlines = '\n'
-                except:
+                except Exception:
                     pass
 
                 with io.open(filename,'w', encoding='utf-8', newline=newlines) as f:
                     f.write(doc.GetText())
                 self.setFileModified(False)
                 doc.fileModTime = os.path.getmtime(filename) # JRG
-            except:
+            except Exception:
                 print("Unable to save %s... trying save-as instead." % os.path.basename(doc.filename))
                 self.fileSaveAs(filename)
 
@@ -1949,12 +1949,12 @@ class CoderFrame(wx.Frame):
                 self.setFileModified(False)
                 doc.fileModTime = os.path.getmtime(doc.filename) # JRG: 'doc.filename' should = newPath = dlg.getPath()
                 try: dlg2.destroy()
-                except: pass
+                except Exception: pass
             else:
                 print("'Save-as' canceled; existing file NOT overwritten.\n")
         try: #this seems correct on PC, but can raise errors on mac
             dlg.destroy()
-        except:
+        except Exception:
             pass
     def fileClose(self, event, filename=None, checkSave=True):
         if self.currentDoc is None:
@@ -2104,7 +2104,7 @@ class CoderFrame(wx.Frame):
                     #execfile(thisFile)
         except SystemExit:#this is used in psychopy.core.quit()
             pass
-        except: #report any errors that came up
+        except Exception: #report any errors that came up
             if self.ignoreErrors:
                 pass
             else:
@@ -2126,7 +2126,7 @@ class CoderFrame(wx.Frame):
             if runScripts == 'dbg':self.db.quit()
             try:
                 pygame.display.quit()#if pygame is running then try to kill it
-            except:
+            except Exception:
                 pass
             self.thread.kill()
             self.ignoreErrors = False#stop listening for errors if the script has ended
