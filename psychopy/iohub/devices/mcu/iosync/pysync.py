@@ -114,7 +114,7 @@ import numpy as np
 try:
     from psychopy.iohub import OrderedDict, print2err,Computer
     getTime=Computer.getTime
-except:
+except Exception:
     from timeit import default_timer as getTime
     from collections import OrderedDict
     
@@ -425,7 +425,7 @@ class T3MC(object):
                 if ord(obs[0]) == test_request_id or ord(obs[1]) == 8:
                     iosync_ports.append(p)
                 p.close()
-            except:
+            except Exception:
                 pass
         return iosync_ports
 
@@ -511,15 +511,15 @@ class T3MC(object):
     def close(self):
         try:
             self.enableInputEvents(False,False)
-        except:
+        except Exception:
             pass        
         try:
             self.flushSerialInput()
-        except:
+        except Exception:
             pass        
         try:
             self.closeSerial()
-        except:
+        except Exception:
             pass
         self._serial_port=None
         

@@ -39,7 +39,7 @@ try:
     import pyglet
     havePyglet = True
     checkPygletDuringWait = True # may not want to check, to preserve terminal window focus
-except:
+except ImportError:
     havePyglet = False
     checkPygletDuringWait = False
 

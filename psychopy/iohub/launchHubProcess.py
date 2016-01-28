@@ -39,7 +39,7 @@ def run(rootScriptPathDir,configFilePath):
         
         try:
             s.shutdown()
-        except:
+        except Exception:
             pass
         
         return -1
@@ -99,7 +99,7 @@ def run(rootScriptPathDir,configFilePath):
         
         try:
             s.shutdown()
-        except:
+        except Exception:
             pass
     
     return -1
@@ -125,7 +125,7 @@ if __name__ == '__main__':
         import psutil
         if psychopy_pid:
             Computer.psychopy_process = psutil.Process(psychopy_pid)
-    except:
+    except Exception:
         pass
 
     Computer.global_clock=MonotonicClock(initial_offset)

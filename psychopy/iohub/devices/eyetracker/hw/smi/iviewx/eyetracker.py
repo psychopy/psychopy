@@ -149,7 +149,7 @@ class EyeTracker(EyeTrackerDevice):
                 self._runtime_settings['sampling_rate']=sampling_rate
             
             self._last_setup_result=EyeTrackerConstants.EYETRACKER_OK
-        except:
+        except Exception:
             print2err(" ---- Error during SMI iView EyeTracker Initialization ---- ")
             printExceptionDetailsToStdErr()
             print2err(" ---- Error during SMI iView EyeTracker Initialization ---- ")
@@ -419,7 +419,7 @@ class EyeTracker(EyeTrackerDevice):
                         ]
             for f in hide_funcs:
                     f()
-        except:
+        except Exception:
             print2err('Exception while trying to call: {0}'.format(f))
                     
     def _showSimpleWin32Dialog(self, message, caption):

@@ -421,7 +421,7 @@ def demo():
         input = raw_input()
         try:
             tActual = float(input)
-        except:
+        except Exception:
             pass
     
     tGuess = None
@@ -430,7 +430,7 @@ def demo():
         input = raw_input()
         try:
             tGuess = float(input)
-        except:
+        except Exception:
             pass
     
     tGuessSd = 2.0 # sd of Gaussian before clipping to specified range

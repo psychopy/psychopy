@@ -17,7 +17,7 @@ def isValidColor(color):
     try:
         color = float(color)
         return True
-    except:
+    except Exception:
         if isinstance(color, basestring) and len(color):
             return (color.lower() in colors255.keys()
                     or color[0] == '#' or color[0:2] == '0x')

@@ -29,7 +29,7 @@ class MessageDialog(wx.Dialog):
         labels = {'Warning': _translate('Warning'), 'Info': _translate('Info')}
         try:
             label = labels[title]
-        except:
+        except Exception:
             label = title
         wx.Dialog.__init__(self,parent,-1,title=label)
         sizer=wx.BoxSizer(wx.VERTICAL)

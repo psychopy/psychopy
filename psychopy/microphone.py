@@ -471,12 +471,12 @@ def readWavFile(filename):
     """
     try:
         sampleRate, data = wavfile.read(filename)
-    except:
+    except Exception:
         if os.path.exists(filename) and os.path.isfile(filename):
             core.wait(0.01, 0)
         try:
             sampleRate, data = wavfile.read(filename)
-        except:
+        except Exception:
             raise SoundFileError('Failed to open wav sound file "%s"' % filename)
     if data.dtype != 'int16':
         raise AttributeError('expected `int16` data in .wav file %s' % filename)
@@ -653,7 +653,7 @@ class _GSQueryThread(threading.Thread):
         self.duration = 0
         try:
             self.raw = urllib2.urlopen(self.request)
-        except: # pragma: no cover
+        except Exception: # pragma: no cover
             # yeah, its the internet, stuff happens
             # maybe temporary HTTPError: HTTP Error 502: Bad Gateway
             try:
@@ -793,7 +793,7 @@ class Speech2Text(object):
         if ext == '.wav' and filename.endswith('.flac'):
             try:
                 os.remove(filename)
-            except:
+            except Exception:
                 pass
 
         # urllib2 makes no attempt to validate the server certificate. here's an idea:
@@ -809,7 +809,7 @@ class Speech2Text(object):
         web.requireInternetAccess()  # needed to access google's speech API
         try:
             self.request = urllib2.Request(url, audio, header)
-        except: # pragma: no cover
+        except Exception: # pragma: no cover
             # try again before accepting defeat
             logging.info("https request failed. %s, %s. trying again..." % (filename, self.filename))
             core.wait(0.2, 0)
@@ -910,7 +910,7 @@ def _getFlacPath(path=None):
             version, se = core.shellCall([FLAC_PATH, '-v'], stderr=True)
             if se:
                 raise MicrophoneError
-        except:
+        except Exception:
             msg = "flac not installed (or wrong path in prefs); download from https://xiph.org/flac/download.html"
             logging.error(msg)
             raise MicrophoneError(msg)

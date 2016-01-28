@@ -622,7 +622,7 @@ class _BaseTrialHandler(object):
                     entry=''
                 try:
                     ws.cell(_getExcelCellName(col=colN,row=lineN)).value = float(entry)#if it can conver to a number (from numpy) then do it
-                except:
+                except Exception:
                     ws.cell(_getExcelCellName(col=colN,row=lineN)).value = unicode(entry)#else treat as unicode
 
         ew.save(filename = fileName)
@@ -655,7 +655,7 @@ class _BaseTrialHandler(object):
                 originPath = inspect.getouterframes(inspect.currentframe())[2][1]
                 if self.autoLog:
                     logging.debug("Using %s as origin file" %originPath)
-            except:
+            except Exception:
                 if self.autoLog:
                     logging.debug("Failed to find origin file using inspect.getouterframes")
                 return '',''
@@ -807,7 +807,7 @@ class TrialHandler(_BaseTrialHandler):
         #data first, then all others
         try:
             data = self.data
-        except:
+        except Exception:
             data = None
         if data:
             strRepres += str('\tdata=')
@@ -1119,7 +1119,7 @@ class TrialHandler(_BaseTrialHandler):
                             thisAnal = thisAnal*numpy.sqrt(N)/numpy.sqrt(N-1)
                     else:
                         thisAnal = eval("numpy.%s(thisData,1)" %analType)
-                except:
+                except Exception:
                     dataHead.remove(dataType+'_'+analType)#that analysis doesn't work
                     dataOutInvalid.append(thisDataOut)
                     continue#to next analysis
@@ -1421,7 +1421,7 @@ class TrialHandler2(_BaseTrialHandler):
         #data first, then all others
         try:
             data = self.data
-        except:
+        except Exception:
             data = None
         if data:
             strRepres += str('\tdata=')
@@ -2068,7 +2068,7 @@ class TrialHandlerExt(TrialHandler):
                             thisAnal = thisAnal*numpy.sqrt(N)/numpy.sqrt(N-1)
                     else:
                         thisAnal = eval("numpy.%s(thisData,1)" %analType)
-                except:
+                except Exception:
                     dataHead.remove(dataType+'_'+analType)#that analysis doesn't work
                     dataOutInvalid.append(thisDataOut)
                     continue#to next analysis
@@ -2262,19 +2262,19 @@ def indicesFromString(indsString):
     try:
         inds = int(round(float(indsString)))
         return [inds]
-    except:
+    except Exception:
         pass
     # "-6::2"
     try:
         inds = sliceFromString(indsString)
         return inds
-    except:
+    except Exception:
         pass
     # "1,4,8"
     try:
         inds = list(eval(indsString))
         return inds
-    except:
+    except Exception:
         pass
 
 def importConditions(fileName, returnFieldNames=False, selection=""):
@@ -2355,7 +2355,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         f = open(fileName, 'rU') # is U needed?
         try:
             trialsArr = cPickle.load(f)
-        except:
+        except Exception:
             raise ImportError('Could not open %s as conditions' % fileName)
         f.close()
         trialList = []
@@ -2371,7 +2371,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             raise ImportError('openpyxl is required for loading excel format files, but it was not found.')
         try:
             wb = load_workbook(filename=fileName)
-        except: # InvalidFileException(unicode(e)): # this fails
+        except Exception: # InvalidFileException(unicode(e)): # this fails
             raise ImportError('Could not open %s as conditions' % fileName)
         ws = wb.worksheets[0]
         nCols = ws.get_highest_column()
@@ -2405,7 +2405,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             for n in selection:
                 try:
                     assert n == int(n)
-                except:
+                except Exception:
                     raise TypeError, "importConditions() was given some `indices` but could not parse them"
     #the selection might now be a slice or a series of indices
     if isinstance(selection,slice):
@@ -4299,7 +4299,7 @@ def functionFromStaircase(intensities, responses, bins = 10):
     try:#concatenate if multidimensional
         intensities = numpy.concatenate(intensities)
         responses = numpy.concatenate(responses)
-    except:
+    except Exception:
         intensities = numpy.array(intensities)
         responses = numpy.array(responses)
 
@@ -4388,7 +4388,7 @@ def isValidVariableName(name):
         return False, "Variables must be string-like"
     try:
         name=str(name)#convert from unicode if possible
-    except:
+    except Exception:
         if type(name) in [unicode, numpy.unicode_]:
             raise AttributeError("name %s (type %s) contains non-ASCII characters (e.g. accents)" % (name, type(name)))
         else:

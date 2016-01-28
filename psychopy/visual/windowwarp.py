@@ -298,7 +298,7 @@ class Warper(object):
             rc = map(int, lines[1].split())
             cols, rows = rc[0], rc[1]
             warpdata = np.loadtxt(self.warpfile, skiprows=2)
-        except:
+        except Exception:
             error = 'Unable to read warpfile: ' + self.warpfile
             logging.warning(error)
             print(error)

@@ -27,14 +27,14 @@ currentSec= Computer.currentSec
 
 try:
     import ujson as json
-except:
+except Exception:
     import json
 
 import msgpack
 try:
     import msgpack_numpy as m
     m.patch()
-except:
+except Exception:
     pass
 
 import psutil
@@ -92,7 +92,7 @@ class udpServer(DatagramServer):
             result=None
             try:
                 result=getattr(self,callable_name)
-            except:
+            except Exception:
                 print2err("RPC_ATTRIBUTE_ERROR")
                 printExceptionDetailsToStdErr()
                 self.sendResponse('RPC_ATTRIBUTE_ERROR',replyTo)
@@ -125,7 +125,7 @@ class udpServer(DatagramServer):
         elif request_type == 'STOP_IOHUB_SERVER':
             try:
                 self.shutDown()
-            except:
+            except Exception:
                 printExceptionDetailsToStdErr
         else:
             print2err("RPC_NOT_CALLABLE_ERROR")
@@ -190,7 +190,7 @@ class udpServer(DatagramServer):
             
             try:
                 method=getattr(dev,dmethod)
-            except:
+            except Exception:
                 print2err("IOHUB_DEVICE_METHOD_ERROR")
                 printExceptionDetailsToStdErr()
                 self.sendResponse('IOHUB_DEVICE_METHOD_ERROR', replyTo)
@@ -289,7 +289,7 @@ class udpServer(DatagramServer):
                 self.socket.sendto(packet_data[(p+1)*max_size:packet_data_length],address)
             else:
                 self.socket.sendto(packet_data,address)
-        except:
+        except Exception:
             print2err('Error trying to send data to experiment process:')
             print2err('max_size: ',max_size)
             print2err('data length: ',packet_data_length)
@@ -304,7 +304,7 @@ class udpServer(DatagramServer):
                 print2err('Data was [{0}]'.format(data))     
                 try:    
                     first_data_element=data[0]
-                except:
+                except Exception:
                     pass
                     
             packet_data_length=0
@@ -331,7 +331,7 @@ class udpServer(DatagramServer):
             if self.iohub.emrt_file:
                 return self.iohub.emrt_file.checkIfSessionCodeExists(sessionCode)
             return False
-        except:
+        except Exception:
             printExceptionDetailsToStdErr()
 
     def registerPygletWindowHandles(self,*win_hwhds):
@@ -388,7 +388,7 @@ class udpServer(DatagramServer):
             for device in self.iohub.devices:
                 try:
                     device.clearEvents(call_proc_events=False)
-                except:
+                except Exception:
                     pass
 
     def getTime(self):
@@ -430,7 +430,7 @@ class udpServer(DatagramServer):
             self.iohub.shutdown()
             self._running=False
             self.stop()
-        except:
+        except Exception:
             print2err("Error in ioSever.shutdown():")
             printExceptionDetailsToStdErr()
             sys.exit(1)
@@ -506,7 +506,7 @@ class ioServer(object):
                     self.createDataStoreFile(experiment_datastore_config.get('filename','events')+'.hdf5',resultsFilePath,'a',experiment_datastore_config)
 
                     #print2err("Created ioDataStore.")
-        except:
+        except Exception:
             print2err("Error during ioDataStore creation....")
             printExceptionDetailsToStdErr()
 
@@ -518,7 +518,7 @@ class ioServer(object):
                     #print2err("======================================================")
                     #print2err("Started load process for: {0}".format(device_class_name))
                     self.createNewMonitoredDevice(device_class_name,deviceConfig)
-        except:
+        except Exception:
             print2err("Error during device creation ....")
             printExceptionDetailsToStdErr()
             raise ioHubError("Error during device creation ....")
@@ -597,7 +597,7 @@ class ioServer(object):
                 print2err('## Device was not started by the ioHub Server: ',device_class_name)
                 raise ioHubError("Device config validation failed")
                 
-        except:
+        except Exception:
             print2err("Error during device creation ....")
             printExceptionDetailsToStdErr()
             raise ioHubError("Error during device creation ....")
@@ -608,7 +608,7 @@ class ioServer(object):
             try:            
                 if self.emrt_file is not None:
                     self.emrt_file.updateDataStoreStructure(device_instance,event_classes)
-            except:
+            except Exception:
                 print2err("Error while updating datastore for device addition:",device_instance,device_event_ids)
                 printExceptionDetailsToStdErr()
 
@@ -827,7 +827,7 @@ class ioServer(object):
                 exp.log(text,level,log_time)
             else:
                 self._logMessageBuffer.append((text,level,log_time))
-        except:
+        except Exception:
             printExceptionDetailsToStdErr()
             
     def createDataStoreFile(self,fileName,folderPath,fmode,ioHubsettings):
@@ -873,7 +873,7 @@ class ioServer(object):
                         l._handleEvent(e)
 
 
-            except:
+            except Exception:
                 printExceptionDetailsToStdErr()
                 print2err("Error in processDeviceEvents: ", device, " : ", len(events), " : ", e)
                 print2err("Event type ID: ",e[DeviceEvent.EVENT_TYPE_ID_INDEX], " : " , EventConstants.getName(e[DeviceEvent.EVENT_TYPE_ID_INDEX]))
@@ -898,7 +898,7 @@ class ioServer(object):
                         psychopy.iohub.MessageDialog("PsychoPy Process dead. Should shut down.")
                         self.shutdown()
                         sys.exit(1)
-                except:
+                except Exception:
                         sys.exit(2)
             gevent.sleep(sleep_interval)
 
@@ -926,7 +926,7 @@ class ioServer(object):
 
             try:
                 self.closeDataStoreFile()
-            except:
+            except Exception:
                 pass
 
             while len(self.devices) > 0:
@@ -934,9 +934,9 @@ class ioServer(object):
                 try:
                     if d is not None:
                         d._close()
-                except:
+                except Exception:
                         pass
-        except:
+        except Exception:
             print2err("Error in ioSever.shutdown():")
             printExceptionDetailsToStdErr()
             

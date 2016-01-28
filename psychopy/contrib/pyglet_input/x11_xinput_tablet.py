@@ -15,7 +15,7 @@ from pyglet.input.x11_xinput import \
 try:
     from pyglet.libs.x11 import xinput as xi
     _have_xinput = True
-except:
+except Exception:
     _have_xinput = False
 
 class XInputTablet(Tablet):

@@ -23,7 +23,7 @@ import numpy as np
 try:
     import pyo64 as pyo
     have_pyo64 = True
-except:
+except Exception:
     import pyo
     have_pyo64 = False
 
@@ -607,7 +607,7 @@ class Recorder(_BaseVoiceKey):
     def record(self, sec=None):
         try:
             self.start().join(sec)
-        except:
+        except Exception:
             self.save()
             raise
 

@@ -131,7 +131,7 @@ class KeyboardComponent(BaseComponent):
         elif not allowedKeysIsVar:
             try:
                 keyList = eval(allowedKeys)
-            except:
+            except Exception:
                 raise CodeGenerationException(self.params["name"], "Allowed keys list is invalid.")
             if type(keyList)==tuple: #this means the user typed "left","right" not ["left","right"]
                 keyList=list(keyList)

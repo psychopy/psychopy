@@ -34,7 +34,7 @@ if plotResults:
 try:
     from psychopy.ext import _bits
     haveBitsDLL=True
-except:
+except Exception:
     haveBitsDLL=False
 
 if DEBUG: #we don't want error skipping in debug mode!
@@ -44,12 +44,12 @@ else:
     try:
         from . import shaders
         haveShaders=True
-    except:
+    except Exception:
         haveShaders=False
 
 try:
     import configparser
-except:
+except Exception:
     import ConfigParser as configparser
 
 #Bits++ modes
@@ -1026,7 +1026,7 @@ def init():
     if haveBitsDLL:
         try:
             retVal = _bits.bitsInit() #returns null if fails?
-        except:
+        except Exception:
             logging.error('bits.init() barfed!')
     return retVal
 

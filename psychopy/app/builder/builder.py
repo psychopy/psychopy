@@ -9,7 +9,7 @@ from wx.lib import platebtn, scrolledpanel
 try:
     from wx.lib import flatnotebook
     from wx import aui
-except:
+except Exception:
     from wx.lib.agw import flatnotebook
     import wx.lib.agw.aui as aui # some versions of phoenix
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
@@ -1252,7 +1252,7 @@ class BuilderFrame(wx.Frame):
                     okToSave = False
                 try:
                     dlg2.destroy()
-                except:
+                except Exception:
                     pass
             if okToSave:
                 #if user has not manually renamed experiment
@@ -1267,7 +1267,7 @@ class BuilderFrame(wx.Frame):
                 print("'Save-as' canceled; existing file NOT overwritten.\n")
         try: #this seems correct on PC, but not on mac
             dlg.destroy()
-        except:
+        except Exception:
             pass
         self.updateWindowTitle()
         return returnVal
@@ -1561,7 +1561,7 @@ class BuilderFrame(wx.Frame):
         f.close()
         try:
             self.stdoutFrame.getText()
-        except:
+        except Exception:
             self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700,300))
 
         # redirect standard streams to log window
@@ -1689,7 +1689,7 @@ class BuilderFrame(wx.Frame):
         except Exception as e:
             try:
                 self.stdoutFrame.getText()
-            except:
+            except Exception:
                 self.stdoutFrame=stdOutRich.StdOutFrame(parent=self, app=self.app, size=(700, 300))
             self.stdoutFrame.write("Error when generating experiment script:\n")
             self.stdoutFrame.write(str(e) + "\n")
@@ -1754,7 +1754,7 @@ class ReadmeFrame(wx.Frame):
             #attempt to read
         try:
             readmeText=f.read().replace("\r\n", "\n")
-        except:
+        except Exception:
             logging.error("Opened readme file for %s it but failed to read it (not text/unicode?)" %self.expName)
             return False
         f.close()

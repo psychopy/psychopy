@@ -22,7 +22,7 @@ global _hubFiles
 
 try:
     len(_hubFiles)
-except:
+except Exception:
     _hubFiles=[]
 
 def openHubFile(filepath,filename,mode):
@@ -494,7 +494,7 @@ class ExperimentDataAccessUtility(object):
     def __del__(self):
         try:
             self.close()
-        except:
+        except Exception:
             pass
 
 class ExperimentDataAccessException(Exception):

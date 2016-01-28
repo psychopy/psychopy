@@ -267,6 +267,6 @@ if __name__ == '__main__':
     else:
         try:
             args = map(int, sys.argv[1:])
-        except:
+        except Exception:
             raise ValueError, "expected integer arguments: base power [shift [which-sequence]]"
         print(mseq(*args))

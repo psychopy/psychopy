@@ -72,7 +72,7 @@ try:
     aout.flush()
     aout.close()
     io.clearEvents('all')
-except:
+except Exception:
     import traceback
     traceback.print_exc()    
 finally:

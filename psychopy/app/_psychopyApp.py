@@ -74,7 +74,7 @@ class _Showgui_Hack(object):
             code = """from psychopy import gui
                 dlg = gui.Dlg().Show()  # non-blocking
                 try: dlg.Destroy()  # might as well
-                except: pass""".replace('    ', '')
+                except Exception: pass""".replace('    ', '')
             with open(noopPath, 'wb') as fd:
                 fd.write(code)
         core.shellCall([sys.executable, noopPath])  # append 'w' for pythonw seems not needed
@@ -482,7 +482,7 @@ class PsychoPyApp(wx.App):
         for frame in self.allFrames:
             try: #will fail if the frame has been shut somehow elsewhere
                 ok = frame.checkSave()
-            except:
+            except Exception:
                 ok = False
                 logging.debug("PsychopyApp: exception when saving")
             if not ok:
@@ -506,7 +506,7 @@ class PsychoPyApp(wx.App):
             try:
                 frame.closeFrame(event=event, checkSave=False)
                 self.prefs.saveAppData()#must do this before destroying the frame?
-            except:
+            except Exception:
                 pass #we don't care if this fails - we're quitting anyway
         self.Exit()
 

@@ -78,7 +78,7 @@ class Touch(TouchDevice):
             sport=serial_config.get('port')
             try:
                 sport=int(sport)-1
-            except:
+            except Exception:
                 sport=sport
             self.serial_port_num=sport
             
@@ -372,7 +372,7 @@ class Touch(TouchDevice):
 #                print2err('Poll end: %.6f %.6f'%(currentSec()-poll_time,poll_time-self._last_poll_time))
             self._last_poll_time=poll_time
             return self._non_touch_events
-        except:
+        except Exception:
             print2err("Exception During Touch._poll: ")
             printExceptionDetailsToStdErr()            
                 
@@ -388,7 +388,7 @@ class Touch(TouchDevice):
             w,h=right-left,top-bottom            
             x,y=left+w*rx,bottom+h*(1.0-ry) 
             return x,y
-        except:
+        except Exception:
             print2err("Error During EloDevice._pixelToDisplayCoords:") 
             printExceptionDetailsToStdErr()
             return px,py
@@ -408,7 +408,7 @@ class Touch(TouchDevice):
         try:
             self._closeSerial()
             Device._close(self)
-        except:
+        except Exception:
             pass
 
 

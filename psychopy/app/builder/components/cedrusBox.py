@@ -76,7 +76,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         buff.writeIndented("        core.wait(0.1)\n")
         buff.writeIndented("        %(name)s = devices[%(deviceNumber)s]\n" %self.params)
         buff.writeIndented("        break #once we found the device we can break the loop\n")
-        buff.writeIndented("    except:\n")
+        buff.writeIndented("    except Exception:\n")
         buff.writeIndented("        pass\n")
         buff.writeIndented("%(name)s.status = NOT_STARTED\n" %self.params)
         buff.writeIndented("%(name)s.clock = core.Clock()\n" %self.params)
@@ -117,7 +117,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         elif not allowedKeysIsVar:
             try:
                 keyList = eval(allowedKeys)
-            except:
+            except Exception:
                 raise CodeGenerationException(self.params["name"], "Allowed keys list is invalid.")
             if type(keyList)==tuple: #this means the user typed "left","right" not ["left","right"]
                 keyList=list(keyList)

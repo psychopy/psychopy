@@ -481,7 +481,7 @@ class Experiment(object):
                         param.val = eval('%s' %(param.val))#e.g. param.val=[{'ori':0},{'ori':3}]
                 # get condition names from within conditionsFile, if any:
                 try: conditionsFile = loop.params['conditionsFile'].val #psychophysicsstaircase demo has no such param
-                except: conditionsFile = None
+                except Exception: conditionsFile = None
                 if conditionsFile in ['None', '']:
                     conditionsFile = None
                 if conditionsFile:
@@ -492,7 +492,7 @@ class Experiment(object):
                                 duplicate_names.append(fname)
                             else:
                                 self.namespace.add(fname)
-                    except:
+                    except Exception:
                         pass#couldn't load the conditions file for now
                 self.flow.append(LoopInitiator(loop=loops[loopName]))
             elif elementNode.tag=="LoopTerminator":
@@ -601,7 +601,7 @@ class Param(object):
         if self.valType == 'num':
             try:
                 return str(float(self.val))#will work if it can be represented as a float
-            except:#might be an array
+            except Exception:#might be an array
                 return "asarray(%s)" %(self.val)
         elif self.valType == 'int':
             try:
@@ -1307,7 +1307,7 @@ class Routine(list):
                 #now see if we have a end t value that beats the previous max
                 try:
                     thisT=start+duration#will fail if either value is not defined
-                except:
+                except Exception:
                     thisT=0
                 maxTime=max(maxTime,thisT)
         if maxTime==0:#if there are no components
@@ -1486,7 +1486,7 @@ class NameSpace(object):
         Builder variable
         """
         try: name = str(name) # convert from unicode if possible
-        except: pass
+        except Exception: pass
 
         # check getDerived:
 
@@ -1534,7 +1534,7 @@ class NameSpace(object):
 
         # make it legal:
         try: name = str(name) # convert from unicode, flag as uni if can't convert
-        except: prefix = 'uni'
+        except Exception: prefix = 'uni'
         if not name: name = prefix+'_1'
         if name[0].isdigit():
             name = prefix+'_' + name
@@ -1547,7 +1547,7 @@ class NameSpace(object):
             try:
                 i = int(count) + 1
                 name = basename
-            except:
+            except Exception:
                 pass
         nameStem = name + '_'
         while self.exists(name): # brute-force a unique name
@@ -1558,7 +1558,7 @@ class NameSpace(object):
     def makeLoopIndex(self, name):
         """return a valid, readable loop-index name: 'this' + (plural->singular).capitalize() [+ (_\d+)]"""
         try: newName = str(name)
-        except: newName = name
+        except Exception: newName = name
         prefix = 'this'
         irregular = {'stimuli': 'stimulus', 'mice': 'mouse', 'people': 'person'}
         for plural, singular in irregular.items():

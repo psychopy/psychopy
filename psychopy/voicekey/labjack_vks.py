@@ -13,12 +13,12 @@ try:
     from labjack.u3 import U3
     labjack_U3 = U3
     have_labjack = 'from labjack'
-except:  # ImportError:  # other errors too, like labjack.u12.U12Exception (??)
+except Exception:  # ImportError:  # other errors too, like labjack.u12.U12Exception (??)
     try:
         from psychopy.hardware import labjacks
         labjack_U3 = labjacks.u3.U3
         have_labjack = 'from psychopy.hardware.labjacks'
-    except:  # ImportError:
+    except Exception:  # ImportError:
         have_labjack = False
 
 class LabJackU3VoiceKeySignal(_BaseVoiceKeySignal):

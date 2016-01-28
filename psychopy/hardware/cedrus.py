@@ -16,7 +16,7 @@ from psychopy import core, logging
 import struct, sys
 
 try: import serial
-except: serial=False
+except ImportError: serial=False
 
 class RB730(object):
     """Class to control/read a Cedrus RB-series response box"""

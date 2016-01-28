@@ -17,7 +17,7 @@ from pyglet.compat import asstr
 try:
     from pyglet.libs.x11 import xinput as xi
     _have_xinput = True
-except:
+except Exception:
     _have_xinput = False
 
 def ptr_add(ptr, offset):

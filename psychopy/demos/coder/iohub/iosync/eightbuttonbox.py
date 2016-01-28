@@ -101,7 +101,7 @@ try:
                 print '<<'
         core.wait(0.002, 0)
     io.clearEvents('all')
-except:
+except Exception:
     import traceback
     traceback.print_exc()
 finally:

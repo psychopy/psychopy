@@ -10,7 +10,7 @@ try:
     import ctypes, ctypes.util
     c = ctypes.cdll.LoadLibrary(ctypes.util.find_library('c'))
     importCtypesFailed = False
-except:
+except Exception:
     importCtypesFailed = True
     logging.debug("rush() not available because import ctypes, ctypes.util failed in ext/linux.py")
 

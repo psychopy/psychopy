@@ -18,7 +18,7 @@ import sys
 from collections import defaultdict
 
 try: import serial
-except: serial=False
+except ImportError: serial=False
 
 BUTTON_BLUE = 1
 BUTTON_YELLOW = 2

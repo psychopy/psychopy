@@ -69,7 +69,7 @@ for thisLibName in prefs.general['audioLib']:
             import soundfile as sndfile
         else:
             raise ValueError("Audio lib options are currently only 'pyo' or 'pygame', not '%s'" %thisLibName)
-    except:
+    except Exception:
         logging.warning('%s audio lib was requested but not loaded: %s' %(thisLibName, sys.exc_info()[1]))
         continue #to try next audio lib
     #if we got this far we were sucessful in loading the lib
@@ -367,7 +367,7 @@ class SoundPySoundCard(_SoundBase):
             self.sndFile = sndfile.SoundFile(fileName)
             self.sndArr = self.sndFile.read()
             self.sndFile.close()
-        except:
+        except Exception:
             msg = "Sound file %s could not be opened using pygame for sound." % fileName
             logging.error(msg)
             raise ValueError(msg)
@@ -521,7 +521,7 @@ class SoundPygame(_SoundBase):
         self.loops = self.requestedLoops #in case a tone with inf loops had been used before
         try:
             self._snd = mixer.Sound(self.fileName)
-        except:
+        except Exception:
             msg = "Sound file %s could not be opened using pygame for sound." % fileName
             logging.error(msg)
             raise ValueError(msg)
@@ -668,7 +668,7 @@ class SoundPyo(_SoundBase):
         self._snd.stop()
         try:
             self.terminator.cancel()
-        except:  # pragma: no cover
+        except Exception:  # pragma: no cover
             pass
         self.status=STOPPED
         if log and self.autoLog:
@@ -712,7 +712,7 @@ class SoundPyo(_SoundBase):
         try:
             self._sndTable.setSound(self.fileName,
                                 start=self.startTime, stop=self.stopTime)
-        except:
+        except Exception:
             msg = 'Could not open sound file `%s` using pyo; not found or format not supported.' % fileName
             logging.error(msg)
             raise TypeError(msg)

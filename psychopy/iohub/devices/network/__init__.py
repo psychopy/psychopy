@@ -19,7 +19,7 @@ import msgpack
 try:
     import msgpack_numpy as m
     m.patch()
-except:
+except Exception:
     pass
 
 from .. import Computer, Device, DeviceEvent

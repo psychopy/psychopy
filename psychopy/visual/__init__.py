@@ -66,5 +66,5 @@ from psychopy.visual.textbox import TextBox
 try:
     from psychopy.contrib.lazy_import import lazy_import
     lazy_import(globals(), lazyImports)
-except:
+except Exception:
     exec(lazyImports)

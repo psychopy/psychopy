@@ -42,7 +42,7 @@ if not FT_Library_filename:
     for p in paths_to_try:
         try:
             __dll__ = ctypes.CDLL(p)
-        except:
+        except Exception:
             __dll__ = None
         if __dll__:
             break
@@ -56,7 +56,7 @@ if __dll__ is None:
         try:
             FT_Library_filename = ctypes.util.find_library(lname)
             __dll__ = ctypes.CDLL(FT_Library_filename)
-        except:
+        except Exception:
             __dll__ = None
         if __dll__:
             break
@@ -78,7 +78,7 @@ def __del_library__(self):
         try:
             FT_Done_FreeType(self)
             __handle__ = None
-        except:
+        except Exception:
             pass
 FT_Library.__del__ = __del_library__
 
@@ -93,7 +93,7 @@ def get_handle():
         if error: raise FT_Exception(error)
         try:
             set_lcd_filter( FT_LCD_FILTER_DEFAULT )
-        except:
+        except Exception:
             pass
         if error: raise FT_Exception(error)
     return __handle__
@@ -113,7 +113,7 @@ def version():
 
 try:
     FT_Library_SetLcdFilter= __dll__.FT_Library_SetLcdFilter
-except:
+except Exception:
     def FT_Library_SetLcdFilter (*args, **kwargs):
         return 0
 if version()>=(2,4,0):

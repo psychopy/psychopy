@@ -11,7 +11,7 @@ from psychopy import logging
 import struct, sys, time, numpy
 
 try: import serial
-except: serial=False
+except ImportError: serial=False
 
 class PR650(object):
     """An interface to the PR650 via the serial port.
@@ -77,7 +77,7 @@ class PR650(object):
         if sys.platform in ['darwin', 'win32'] or sys.platform.startswith('linux'):
             try:
                 self.com = serial.Serial(self.portString)
-            except:
+            except Exception:
                 self._error("Couldn't connect to port %s. Is it being used by another program?" %self.portString)
         else:
             self._error("I don't know how to handle serial ports on %s" %sys.platform)
@@ -91,7 +91,7 @@ class PR650(object):
                 # is already open. Catching that exception is not an option here because
                 # PySerial only defines a single exception type (SerialException)
                 if not self.com.isOpen(): self.com.open()
-            except:
+            except Exception:
                 self._error("Opened serial port %s, but couldn't connect to PR650" %self.portString)
             else:
                 self.isOpen=1
@@ -285,7 +285,7 @@ class PR655(PR650):
         #try to open the port
         try:
             self.com = serial.Serial(self.portString)
-        except:
+        except Exception:
             self._error("Couldn't connect to port %s. Is it being used by another program?" %self.portString)
         #setup the params for PR650 comms
         if self.OK:
@@ -296,7 +296,7 @@ class PR655(PR650):
                 self.com.close()#attempt to close if it's currently open
                 self.com.open()
                 self.isOpen=1
-            except:
+            except Exception:
                 self._error("Found a device on serial port %s, but couldn't open that port" %self.portString)
             self.com.setTimeout(0.1)#this should be large when making measurements
             self.startRemoteMode()
@@ -311,7 +311,7 @@ class PR655(PR650):
             time.sleep(0.1)
             self.com.close()
             logging.debug('Closed PR655 port')
-        except:
+        except Exception:
             pass
     def startRemoteMode( self ):
         '''

@@ -100,7 +100,7 @@ def testDelayDurationAccuracy(sample_size=100):
         assert np.fabs(clockDurVsQpc.mean())<0.00001
         assert clockDurVsQpc.std()<0.000005
         printf("\nDuration Difference Test: PASSED")
-    except:
+    except Exception:
         printf("\nDuration Difference Test: FAILED")
     printf("-------------------------------------\n")
 
@@ -169,7 +169,7 @@ def testTimebaseQuality(sample_size=1000):
         assert (callTimes[0].max()*1000.0)<0.1
         assert timer_clock_jumpbacks==0
         printf("\n%s Call Time / Resolution Test: PASSED"%(py_timer_name))
-    except:
+    except Exception:
         printf("\n%s Call Time / Resolution Test: FAILED"%(py_timer_name))
 
     try:
@@ -177,7 +177,7 @@ def testTimebaseQuality(sample_size=1000):
         assert (callTimes[1].max()*1000.0)<0.1
         assert core_getTime_jumpbacks==0
         printf("\ncore.getTime() Call Time / Resolution Test: PASSED")
-    except:
+    except Exception:
         printf("\ncore.getTime() Call Time / Resolution Test: FAILED")
 
     printf("-------------------------------------\n")
@@ -201,19 +201,19 @@ def testMonotonicClock():
         try:
             x=mc.timeAtLastReset
             assert 1=="MonotonicClock should not have an attribute called 'timeAtLastReset'."
-        except:
+        except Exception:
             pass
 
         try:
             x=mc.reset()
             assert 1=="MonotonicClock should not have a method 'reset()'."
-        except:
+        except Exception:
             pass
 
         try:
             x=mc.add()
             assert 1=="MonotonicClock should not have a method 'add()'."
-        except:
+        except Exception:
             pass
 
         printf(">> MonotonicClock Test: PASSED")

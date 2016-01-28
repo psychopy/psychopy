@@ -177,7 +177,7 @@ class PsychoDebugger(bdb.Bdb):
             #if value is not None:
                 #try:
                     #m1 = "%s: %s" % (m1, str(value))
-                #except:
+                #except Exception:
                     #pass
             #bg = "yellow"
         #else:
@@ -325,7 +325,7 @@ class PsychoDebugger(bdb.Bdb):
             #frame, lineno = stack[i]
             #try:
                 #modname = frame.f_globals["__name__"]
-            #except:
+            #except Exception:
                 #modname = "?"
             #code = frame.f_code
             #filename = code.co_filename

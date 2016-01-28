@@ -60,7 +60,7 @@ def haveInternetAccess(forceCheck=False):
                     urllib.request.urlopen(site, timeout=wait)
                     haveInternet = True  # cache
                     return True  # one success is good enough
-                except:  # urllib.error.URLError:  # socket.timeout() was happening to some people some of the time
+                except Exception:  # urllib.error.URLError:  # socket.timeout() was happening to some people some of the time
                     pass
         else:
             haveInternet = False
@@ -108,7 +108,7 @@ def getPacFiles():
     if sys.platform=='win32':
         try:
             import _winreg as winreg#used from python 2.0-2.6
-        except:
+        except ImportError:
             import winreg#used from python 2.7 onwards
         net = winreg.OpenKey(
             winreg.HKEY_CURRENT_USER,
@@ -333,12 +333,12 @@ def _post_multipart(host, selector, fields, files, encoding='utf-8', timeout=TIM
 
     try:
         conn.request(u'POST', selector, body, headers)
-    except: # ? don't seem to get a proper exception
+    except Exception: # ? don't seem to get a proper exception
         return -1, 'connection error (possible timeout after %ss)' % str(timeout), 'timeout or error'
 
     try:
         result = conn.getresponse()
-    except:
+    except Exception:
         return -1, 'connection error (can be "socket.error: [Errno 54] Connection reset by peer")'
     return result.status, result.reason, result.read()
 

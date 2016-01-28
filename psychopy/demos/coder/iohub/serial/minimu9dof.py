@@ -91,7 +91,7 @@ io.quit()
 #                pitch = float(words[1])*grad2rad
 #                yaw = float(words[2])*grad2rad
 #                print roll, pitch, yaw
-#            except:
+#            except Exception:
 #                print "Invalid line"
 
 #            axis=(cos(pitch)*cos(yaw),-cos(pitch)*sin(yaw),sin(pitch))

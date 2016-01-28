@@ -227,7 +227,7 @@ class ScreenState(object):
                 print 'Msg not sent to eyetracker datafile: '
                 print mtext
                 print '----------------------'
-        except:
+        except Exception:
             pass
         self.experimentRuntime().hub.sendMessageEvent(mtext, sec_time=mtime)
 

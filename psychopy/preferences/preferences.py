@@ -52,7 +52,7 @@ class Preferences(object):
         userCfg = join(self.paths['userPrefsDir'], 'userPrefs.cfg')
         try:
             os.unlink(userCfg)
-        except:
+        except Exception:
             print("Could not remove prefs file '%s'; (try doing it manually?)" % userCfg)
         self.loadAll() # reloads, now getting all from .spec
 
@@ -137,7 +137,7 @@ class Preferences(object):
         #check/create path for user prefs
         if not os.path.isdir(self.paths['userPrefsDir']):
             try: os.makedirs(self.paths['userPrefsDir'])
-            except:
+            except Exception:
                 print("Preferences.py failed to create folder %s. Settings will be read-only" % self.paths['userPrefsDir'])
         #then get the configuration file
         cfg = configobj.ConfigObj(self.paths['userPrefsFile'], encoding='UTF8', configspec=self.prefsSpec)

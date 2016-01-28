@@ -142,7 +142,7 @@ class RunTimeInfo(dict):
                 if len(auth) and '=' in auth:
                     try:
                         author = str(eval(auth[auth.find('=')+1 :]))
-                    except:
+                    except Exception:
                         pass
             if not version and '__version__' in lines:
                 linespl = lines.splitlines()
@@ -152,7 +152,7 @@ class RunTimeInfo(dict):
                 if len(ver) and ver.find('=') > 0:
                     try:
                         version = str(eval(ver[ver.find('=')+1 :]))
-                    except:
+                    except Exception:
                         pass
 
         if author or verbose:
@@ -173,14 +173,14 @@ class RunTimeInfo(dict):
                 self['experimentScript.svnRevision'] = svnrev
                 self['experimentScript.svnRevLast'] = last
                 self['experimentScript.svnRevURL'] = url
-        except:
+        except Exception:
             pass
         # mercurical revision?
         try:
             hgChangeSet = _getHgVersion(os.path.abspath(sys.argv[0]))
             if hgChangeSet: # or verbose:
                 self['experimentScript.hgChangeSet'] = hgChangeSet
-        except:
+        except Exception:
             pass
 
         # when was this run?
@@ -225,14 +225,14 @@ class RunTimeInfo(dict):
         try:
             users = shellCall("who -q").splitlines()[0].split()
             self['systemUsersCount'] = len(set(users))
-        except:
+        except Exception:
             self['systemUsersCount'] = False
 
         # when last rebooted?
         try:
             lastboot = shellCall("who -b").split()
             self['systemRebooted'] = ' '.join(lastboot[2:])
-        except: # windows
+        except Exception: # windows
             sysInfo = shellCall('systeminfo').splitlines()
             lastboot = [line for line in sysInfo if line.startswith("System Up Time") or line.startswith("System Boot Time")]
             lastboot += ['[?]'] # put something in the list just in case
@@ -249,7 +249,7 @@ class RunTimeInfo(dict):
                 self['systemRpy2'] = rpy2.__version__
             except ImportError:
                 pass
-        except:
+        except Exception:
             pass
 
         # encryption / security tools:
@@ -259,7 +259,7 @@ class RunTimeInfo(dict):
                 vers = str(vers) + se.replace('\n', ' ')[:80]
             if vers.strip():
                 self['systemSec.OpenSSLVersion'] = vers
-        except:
+        except Exception:
             pass
         try:
             so = shellCall(['gpg', '--version'])
@@ -268,7 +268,7 @@ class RunTimeInfo(dict):
                 self['systemSec.GPGHome'] = ''.join([line.replace('Home:', '').lstrip()
                                                     for line in so.splitlines()
                                                     if line.startswith('Home:')])
-        except:
+        except Exception:
             pass
         try:
             import ssl
@@ -374,7 +374,7 @@ class RunTimeInfo(dict):
             if verbose and userProcsDetailed:
                 self['systemUserProcCmdPid'] = systemProcPsu
                 self['systemUserProcFlaggedPID'] = systemUserProcFlaggedPID
-        except:
+        except Exception:
             if verbose:
                 self['systemUserProcCmdPid'] = None
                 self['systemUserProcFlagged'] = None
@@ -428,7 +428,7 @@ class RunTimeInfo(dict):
                 try:
                     a = attrValue()
                     attrValue = a
-                except:
+                except Exception:
                     print('Warning: could not get a value from win.' + winAttr + '()  (expects arguments?)')
                     continue
             while winAttr[0] == '_':
@@ -497,7 +497,7 @@ class RunTimeInfo(dict):
                         selfk = "%.4f" % selfk
                     elif '_cm' in k:
                         selfk = "%.1f" % selfk
-                except:
+                except Exception:
                     pass
                 if k in ['systemUserProcFlagged', 'systemUserProcCmdPid'] and selfk is not None and len(selfk): # then strcat unique proc names
                     prSet = []
@@ -554,7 +554,7 @@ def _getSvnVersion(filename):
     if sys.platform in ['darwin', 'freebsd'] or sys.platform.startswith('linux'):
         try:
             svninfo = shellCall(['svn', 'info', filename]) # expects a filename, not dir
-        except:
+        except Exception:
             svninfo = ''
         for line in svninfo.splitlines():
             if line.startswith('URL:'):
@@ -566,7 +566,7 @@ def _getSvnVersion(filename):
     else: # worked for me on Win XP sp2 with TortoiseSVN (SubWCRev.exe)
         try:
             stdout = shellCall(['subwcrev', filename])
-        except:
+        except Exception:
             stdout = ''
         for line in stdout.splitlines():
             if line.startswith('Last committed at revision'):
@@ -588,11 +588,11 @@ def _getHgVersion(filename):
     try:
         hgParentLines, err = shellCall(['hg', 'parents', filename], stderr=True)
         changeset = hgParentLines.splitlines()[0].split()[-1]
-    except:
+    except Exception:
         changeset = ''
     try:
         hgID, err = shellCall(['hg', 'id', '-nibt', os.path.dirname(filename)], stderr=True)
-    except:
+    except Exception:
         if err:
             hgID = ''
 

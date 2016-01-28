@@ -7,7 +7,7 @@ from psychopy import logging
 try:
     import ctypes, ctypes.util
     importCtypesFailed = False
-except:
+except Exception:
     importCtypesFailed = True
     logging.debug("rush() not available because import ctypes failed in contrib/darwin.py")
 
@@ -70,7 +70,7 @@ def syncSwapBuffers(n):
         v = ctypes.c_int(n)
         #this is the parameter index?!
         cocoa.CGLSetParameter(cocoa.CGLGetCurrentContext(), kCGLCPSwapInterval, ctypes.pointer(v))
-    except:
+    except Exception:
         logging.warning("Unable to set vsync mode. Using driver defaults")
 
 def getBusFreq():

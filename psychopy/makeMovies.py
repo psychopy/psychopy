@@ -22,7 +22,7 @@ except ImportError:
 try:
     import pymedia.video.vcodec as vcodec
     havePyMedia=True
-except:
+except ImportError:
     havePyMedia=False
 import numpy
 
@@ -286,7 +286,7 @@ def makeMPEG(filename, images, codec='mpeg1video', codecParams = None, verbose=F
         d = encoder.encode( yuvFrame )
         try:
             fw.write( d.data )#this is what works!
-        except:
+        except Exception:
             fw.write( d )#this is what pymedia demo recommends
     else:
         logging.info('%d frames written in %.2f secs' % ( len(images), time.time()- t))

@@ -935,7 +935,7 @@ class WindowMixin(object):
             self.size * self.pos  # quick and dirty way to check that both are numeric. This avoids the heavier attributeSetter calls.
             self.size = self.size
             self.pos = self.pos
-        except:
+        except Exception:
             pass
 
     @attributeSetter

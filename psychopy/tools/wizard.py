@@ -289,7 +289,7 @@ class ConfigWizard(object):
         warn = False
         try:
             from pyglet.media import avbin
-        except: # not sure what error to catch, WindowsError not found
+        except Exception: # not sure what error to catch, WindowsError not found
             report.append(('pyglet avbin', 'import error', _translate('Warning: could not import avbin; playing movies will not work'), True))
         else:
             ver = avbin.get_version()
@@ -442,7 +442,7 @@ class ConfigWizard(object):
                     else:
                         exec('import ' + pkg)
                         try: ver = eval(pkg+'.__version__')
-                        except: ver = 'import ok'
+                        except Exception: ver = 'import ok'
                     report.append((pkg, ver, '', False))
                 except (ImportError, AttributeError):
                     report.append((pkg, '&nbsp;&nbsp;--', _translate('could not import package %s') % pkg, False))
@@ -754,7 +754,7 @@ class BenchmarkWizard(ConfigWizard):
         status = None
         try:
             status = web.upload(selector, tmp.name, basicAuth)
-        except:
+        except Exception:
             status = "Exception occurred during web.upload"
         finally:
             os.unlink(tmp.name)

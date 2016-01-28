@@ -85,13 +85,13 @@ import ctypes
 import numpy
 try:
     import cv2
-except:
+except Exception:
     print("WARNING: MovieStim2 is not available. Python opencv library (cv2) is not installed?")
 try:
     import vlc
 except OSError, msg:
     print("WARNING: MovieStim2 is not available. Is the VLC application installed?")
-except:
+except Exception:
     if sys.maxint==9223372036854775807:
         bits=64
     else:
@@ -508,7 +508,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         try:
             rt = (self._next_frame_sec - 1.0/self._retracerate) - self._video_track_clock.getTime()
             return rt
-        except:
+        except Exception:
             logging.warning("MovieStim2.getTimeToNextFrameDraw failed.")
             return 0.0
 

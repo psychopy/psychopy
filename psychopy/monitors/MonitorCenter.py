@@ -28,7 +28,7 @@ try:
     matplotlib.use('WXAgg')
     from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
     from matplotlib.figure import Figure
-except:
+except Exception:
     pass
 import numpy
 #wx IDs for menu items
@@ -181,7 +181,7 @@ class MainFrame(wx.Frame):
         if os.path.isfile('psychopy.ico'):
             try:
                 self.SetIcon(wx.Icon('psychopy.ico', wx.BITMAP_TYPE_ICO))
-            except:
+            except Exception:
                 pass
 
         wx.EVT_CLOSE(self, self.onCloseWindow)

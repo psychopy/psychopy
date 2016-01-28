@@ -30,7 +30,7 @@ if __git_sha__=='n/a':
         thisFileLoc = os.path.split(__file__)[0]
         output = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'],
                                          cwd=thisFileLoc, stderr=subprocess.PIPE)
-    except:
+    except Exception:
         output=False
     if output:
         __git_sha__ = output.strip()#remove final linefeed
