@@ -15,7 +15,9 @@ Sets the locale value as a wx languageID (int) and initializes gettext translati
 
 
 import gettext
-import os, glob, codecs
+import os
+import glob
+import codecs
 from psychopy import logging, prefs
 
 import wx
@@ -29,27 +31,35 @@ except wx._core.PyNoAppError:
     else:
         tmpApp = wx.App(False)
 
-# Get a dict of locale aliases from wx.Locale() -- same cross-platform (Win 7, Mac 10.9)
+# Get a dict of locale aliases from wx.Locale() -- same cross-platform
+# (Win 7, Mac 10.9)
 locale = wx.Locale()
 aliases = {u'English (U.S.)': 'en_US'}
-# set defaults because locale.GetLanguageInfo(0) can return None on some systems:
+# set defaults because locale.GetLanguageInfo(0) can return None on some
+# systems:
 wxIdFromCode = {'en_US': wx.LANGUAGE_DEFAULT}  # int: 0 default, 2-229
-codeFromWxId = {wx.LANGUAGE_DEFAULT: 'en_US'}  # used in directory names e.g. ja_JP; never JPN ala Windows
+# used in directory names e.g. ja_JP; never JPN ala Windows
+codeFromWxId = {wx.LANGUAGE_DEFAULT: 'en_US'}
 for i in range(230):
     info = locale.GetLanguageInfo(i)
     if info:
-        aliases[info.Description] = info.CanonicalName  # mix of forms: ja or ja_JP
+        # mix of forms: ja or ja_JP
+        aliases[info.Description] = info.CanonicalName
         wxIdFromCode[info.CanonicalName] = i
         codeFromWxId[i] = info.CanonicalName
 
 # read all known mappings cross-platform from a file:
-winmap = {'en_US': 'ENU'}  # get windows 3-letter code (=val) from canonical form (=key); use only for setting locale (non-wx)
-locname = {'en_US': u'English (U.S.)'}  # descriptive name, if available; 5-letter code if not
+# get windows 3-letter code (=val) from canonical form (=key); use only
+# for setting locale (non-wx)
+winmap = {'en_US': 'ENU'}
+# descriptive name, if available; 5-letter code if not
+locname = {'en_US': u'English (U.S.)'}
 reverseMap = {u'English (U.S.)': 'en_US'}
 mappings = os.path.join(os.path.dirname(__file__), 'mappings.txt')
 for line in codecs.open(mappings, 'rU', 'utf8').readlines():
     try:
-        can, win, name = line.strip().split(' ', 2)  # canonical, windows, name-with-spaces
+        # canonical, windows, name-with-spaces
+        can, win, name = line.strip().split(' ', 2)
     except ValueError:
         can, win = line.strip().split(' ', 1)
         name = can
@@ -62,6 +72,7 @@ expr = os.path.join(os.path.dirname(__file__), '..', 'locale', '*')
 available = sorted(map(os.path.basename, glob.glob(expr)))
 sysAvail = [str(l) for l in codeFromWxId.values()  # installed language packs
             if l and locale.IsAvailable(wxIdFromCode[l])]
+
 
 def getID(lang=None):
     """Get wx ID of language to use for translations: `lang`, pref, or system default.
@@ -88,12 +99,12 @@ def getID(lang=None):
     return language, val
 
 languageID, lang = getID()
-#use lang like this:
-#import locale  -- the non-wx version of locale
+# use lang like this:
+# import locale  -- the non-wx version of locale
 #
-#if sys.platform.startswith('win'):
+# if sys.platform.startswith('win'):
 #        v = winmap[val]
-#else: v=val
+# else: v=val
 #locale.setlocale(locale.LC_ALL, (v, 'UTF-8'))
 
 # set locale before splash screen:
@@ -103,7 +114,8 @@ else:
     wxlocale = wx.Locale(wx.LANGUAGE_DEFAULT)
 
 # ideally rewrite the following using wxlocale only:
-path = os.path.join(os.path.dirname(__file__), '..', 'locale', lang, 'LC_MESSAGE') + os.sep
+path = os.path.join(os.path.dirname(__file__), '..',
+                    'locale', lang, 'LC_MESSAGE') + os.sep
 mofile = os.path.join(path, 'messages.mo')
 try:
     logging.debug("Opening message catalog %s for locale %s" % (mofile, lang))
@@ -114,7 +126,8 @@ except IOError:
 trans.install(unicode=True)
 
 # to avoid a crash, PsychoPy app uses a nonstandard name _translate instead of _
-# seems like a var in a dependency is named _, clobbering _ as global translation:
+# seems like a var in a dependency is named _, clobbering _ as global
+# translation:
 __builtins__['_translate'] = _
 del(__builtins__['_'])  # idea: force psychopy code to use _translate
 
@@ -122,4 +135,4 @@ del(__builtins__['_'])  # idea: force psychopy code to use _translate
 #__builtins__['_'] = wx.GetTranslation
 # this seems to have no effect, needs more investigation:
 #path = os.path.join(os.path.dirname(__file__), '..', 'locale', lang, 'LC_MESSAGE') + os.sep
-#wxlocale.AddCatalogLookupPathPrefix(path)
+# wxlocale.AddCatalogLookupPathPrefix(path)

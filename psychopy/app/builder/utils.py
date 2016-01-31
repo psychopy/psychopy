@@ -19,16 +19,20 @@ class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
     Need this too.
     """
+
     def __init__(self, builder):
         wx.FileDropTarget.__init__(self)
         self.builder = builder
+
     def OnDropFiles(self, x, y, filenames):
-        logging.debug('PsychoPyBuilder: received dropped files: %s' % filenames)
+        logging.debug(
+            'PsychoPyBuilder: received dropped files: %s' % filenames)
         for filename in filenames:
             if filename.endswith('.psyexp') or filename.lower().endswith('.py'):
                 self.builder.fileOpen(filename=filename)
             else:
-                logging.warning('dropped file ignored: did not end in .psyexp or .py')
+                logging.warning(
+                    'dropped file ignored: did not end in .psyexp or .py')
 
 
 class WindowFrozen(object):
@@ -42,16 +46,22 @@ class WindowFrozen(object):
         #will automatically thaw here
 
     """
+
     def __init__(self, ctrl):
         self.ctrl = ctrl
-    def __enter__(self):#started the with... statement
-        if sys.platform == 'win32': #Freeze should not be called if platform is win32.
+
+    def __enter__(self):  # started the with... statement
+        # Freeze should not be called if platform is win32.
+        if sys.platform == 'win32':
             return self.ctrl
-        if self.ctrl is not None and wx.__version__[:3]<='2.8':#check it hasn't been deleted
+        # check it hasn't been deleted
+        if self.ctrl is not None and wx.__version__[:3] <= '2.8':
             self.ctrl.Freeze()
         return self.ctrl
-    def __exit__(self, exc_type, exc_val, exc_tb):#ended the with... statement
-        if sys.platform == 'win32': #Thaw should not be called if platform is win32.
+
+    def __exit__(self, exc_type, exc_val, exc_tb):  # ended the with... statement
+        # Thaw should not be called if platform is win32.
+        if sys.platform == 'win32':
             return
-        if self.ctrl is not None and self.ctrl.IsFrozen():#check it hasn't been deleted
+        if self.ctrl is not None and self.ctrl.IsFrozen():  # check it hasn't been deleted
             self.ctrl.Thaw()

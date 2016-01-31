@@ -7,90 +7,114 @@ from ._base import BaseComponent, Param
 
 __author__ = 'Jon Peirce'
 
-thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
-iconFile = path.join(thisFolder,'static.png')
-tooltip = _translate('Static: Static screen period (e.g. an ISI). Useful for pre-loading stimuli.')
+# the absolute path to the folder containing this path
+thisFolder = path.abspath(path.dirname(__file__))
+iconFile = path.join(thisFolder, 'static.png')
+tooltip = _translate(
+    'Static: Static screen period (e.g. an ISI). Useful for pre-loading stimuli.')
 _localized = {'Custom code': _translate('Custom code')}
+
 
 class StaticComponent(BaseComponent):
     """A Static Component, allowing frame rendering to pause while disk is accessed"""
-    #override the categories property below
-    categories = ['Custom']#an attribute of the class, determines the section in the components panel
+    # override the categories property below
+    # an attribute of the class, determines the section in the components panel
+    categories = ['Custom']
+
     def __init__(self, exp, parentName, name='ISI',
-                startType='time (s)', startVal=0.0,
-                stopType='duration (s)', stopVal=0.5,
-                startEstim='', durationEstim=''):
-        BaseComponent.__init__(self,exp,parentName,name=name)
-        self.updatesList=[] # a list of dicts {compParams, fieldName}
-        self.type='Static'
+                 startType='time (s)', startVal=0.0,
+                 stopType='duration (s)', stopVal=0.5,
+                 startEstim='', durationEstim=''):
+        BaseComponent.__init__(self, exp, parentName, name=name)
+        self.updatesList = []  # a list of dicts {compParams, fieldName}
+        self.type = 'Static'
         self.url = "http://www.psychopy.org/builder/components/static.html"
-        self.params['code']=Param("", valType='code',
-            hint=_translate("Custom code to be run during the static period (after updates)"),
-            label=_localized['Custom code'])
-        self.order=['name']#make name come first (others don't matter)
-        self.params['startType']=Param(startType, valType='str',
-            allowedVals=['time (s)', 'frame N'],
-            hint=_translate("How do you want to define your start point?"))
-        self.params['stopType']=Param(stopType, valType='str',
-            allowedVals=['duration (s)', 'duration (frames)', 'time (s)', 'frame N'],
-            hint=_translate("How do you want to define your end point?"))
-        self.params['startVal']=Param(startVal, valType='code', allowedTypes=[],
-            hint=_translate("When does the component start?"))
-        self.params['stopVal']=Param(stopVal, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=_translate("When does the component end? (blank is endless)"))
-        self.params['startEstim']=Param(startEstim, valType='code', allowedTypes=[],
-            hint=_translate("(Optional) expected start (s), purely for representing in the timeline"))
-        self.params['durationEstim']=Param(durationEstim, valType='code', allowedTypes=[],
-            hint=_translate("(Optional) expected duration (s), purely for representing in the timeline"))
+        self.params['code'] = Param("", valType='code',
+                                    hint=_translate(
+                                        "Custom code to be run during the static period (after updates)"),
+                                    label=_localized['Custom code'])
+        self.order = ['name']  # make name come first (others don't matter)
+        self.params['startType'] = Param(startType, valType='str',
+                                         allowedVals=['time (s)', 'frame N'],
+                                         hint=_translate("How do you want to define your start point?"))
+        self.params['stopType'] = Param(stopType, valType='str',
+                                        allowedVals=[
+                                            'duration (s)', 'duration (frames)', 'time (s)', 'frame N'],
+                                        hint=_translate("How do you want to define your end point?"))
+        self.params['startVal'] = Param(startVal, valType='code', allowedTypes=[],
+                                        hint=_translate("When does the component start?"))
+        self.params['stopVal'] = Param(stopVal, valType='code', allowedTypes=[],
+                                       updates='constant', allowedUpdates=[],
+                                       hint=_translate("When does the component end? (blank is endless)"))
+        self.params['startEstim'] = Param(startEstim, valType='code', allowedTypes=[],
+                                          hint=_translate("(Optional) expected start (s), purely for representing in the timeline"))
+        self.params['durationEstim'] = Param(durationEstim, valType='code', allowedTypes=[],
+                                             hint=_translate("(Optional) expected duration (s), purely for representing in the timeline"))
+
     def addComponentUpdate(self, routine, compName, fieldName):
-        self.updatesList.append({'compName':compName,'fieldName':fieldName, 'routine':routine})
+        self.updatesList.append(
+            {'compName': compName, 'fieldName': fieldName, 'routine': routine})
+
     def remComponentUpdate(self, routine, compName, fieldName):
-        #we have to do this in a loop rather than using the simple remove, because we
+        # we have to do this in a loop rather than using the simple remove,
+        # because we
         for item in self.updatesList:
-            if item=={'compName':compName,'fieldName':fieldName, 'routine':routine}:
+            if item == {'compName': compName, 'fieldName': fieldName, 'routine': routine}:
                 self.updatesList.remove(item)
-    def writeInitCode(self,buff):
-        buff.writeIndented("%(name)s = core.StaticPeriod(win=win, screenHz=expInfo['frameRate'], name='%(name)s')\n" %(self.params))
-    def writeFrameCode(self,buff):
+
+    def writeInitCode(self, buff):
+        buff.writeIndented(
+            "%(name)s = core.StaticPeriod(win=win, screenHz=expInfo['frameRate'], name='%(name)s')\n" % (self.params))
+
+    def writeFrameCode(self, buff):
         self.writeStartTestCode(buff)
-        buff.setIndentLevel(-1, relative=True)#to get out of the if statement
+        # to get out of the if statement
+        buff.setIndentLevel(-1, relative=True)
         self.writeStopTestCode(buff)
-    def writeStartTestCode(self,buff):
+
+    def writeStartTestCode(self, buff):
         """This will be executed as the final component in the routine
         """
-        buff.writeIndented("# *%s* period\n" %(self.params['name']))
+        buff.writeIndented("# *%s* period\n" % (self.params['name']))
         BaseComponent.writeStartTestCode(self, buff)
 
-        if self.params['stopType'].val=='time (s)':
-            durationSecsStr = "%(stopVal)s-t" %(self.params)
-        elif self.params['stopType'].val=='duration (s)':
-            durationSecsStr = "%(stopVal)s" %(self.params)
-        elif self.params['stopType'].val=='duration (frames)':
-            durationSecsStr = "%(stopVal)s*frameDur" %(self.params)
-        elif self.params['stopType'].val=='frame N':
-            durationSecsStr = "(%(stopVal)s-frameN)*frameDur" %(self.params)
+        if self.params['stopType'].val == 'time (s)':
+            durationSecsStr = "%(stopVal)s-t" % (self.params)
+        elif self.params['stopType'].val == 'duration (s)':
+            durationSecsStr = "%(stopVal)s" % (self.params)
+        elif self.params['stopType'].val == 'duration (frames)':
+            durationSecsStr = "%(stopVal)s*frameDur" % (self.params)
+        elif self.params['stopType'].val == 'frame N':
+            durationSecsStr = "(%(stopVal)s-frameN)*frameDur" % (self.params)
         else:
-            raise "Couldn't deduce end point for startType=%(startType)s, stopType=%(stopType)s" %(self.params)
-        buff.writeIndented("%s.start(%s)\n" %(self.params['name'], durationSecsStr))
-    def writeStopTestCode(self,buff):
+            raise "Couldn't deduce end point for startType=%(startType)s, stopType=%(stopType)s" % (
+                self.params)
+        buff.writeIndented("%s.start(%s)\n" %
+                           (self.params['name'], durationSecsStr))
+
+    def writeStopTestCode(self, buff):
         """Test whether we need to stop
         """
-        buff.writeIndented("elif %(name)s.status == STARTED:  # one frame should pass before updating params and completing\n" %(self.params))
-        buff.setIndentLevel(+1, relative=True)#entered an if statement
+        buff.writeIndented(
+            "elif %(name)s.status == STARTED:  # one frame should pass before updating params and completing\n" % (self.params))
+        buff.setIndentLevel(+1, relative=True)  # entered an if statement
         self.writeParamUpdates(buff)
-        buff.writeIndented("%(name)s.complete()  # finish the static period\n" %(self.params))
-        buff.setIndentLevel(-1, relative=True)#to get out of the if statement
+        buff.writeIndented(
+            "%(name)s.complete()  # finish the static period\n" % (self.params))
+        # to get out of the if statement
+        buff.setIndentLevel(-1, relative=True)
 
-        pass #the clock.StaticPeriod class handles its own stopping
-    def writeParamUpdates(self,buff, updateType=None):
+        pass  # the clock.StaticPeriod class handles its own stopping
+
+    def writeParamUpdates(self, buff, updateType=None):
         """Write updates. Unlike most components, which us this method to update
         themselves, the Static Component uses this to update *other* components
         """
-        if updateType=='set every repeat':
-            return #the static component doesn't need to change itself
+        if updateType == 'set every repeat':
+            return  # the static component doesn't need to change itself
         if len(self.updatesList):
-            buff.writeIndented("# updating other components during *%s*\n" %(self.params['name']))
+            buff.writeIndented(
+                "# updating other components during *%s*\n" % (self.params['name']))
             for update in self.updatesList:
                 #update = {'compName':compName,'fieldName':fieldName, 'routine':routine}
                 compName = update['compName']
@@ -98,6 +122,7 @@ class StaticComponent(BaseComponent):
                 routine = self.exp.routines[update['routine']]
                 params = routine.getComponentFromName(unicode(compName)).params
                 self.writeParamUpdate(buff, compName=compName,
-                    paramName=fieldName,
-                    val = params[fieldName], updateType=params[fieldName].updates, params=params)
-            buff.writeIndented("# component updates done\n" %(self.params['name']))
+                                      paramName=fieldName,
+                                      val=params[fieldName], updateType=params[fieldName].updates, params=params)
+            buff.writeIndented("# component updates done\n" %
+                               (self.params['name']))

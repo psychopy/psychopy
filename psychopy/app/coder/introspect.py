@@ -11,10 +11,11 @@ import tokenize
 import types
 import wx
 
-def getAutoCompleteList(command='', locals=None, includeMagic=1, 
+
+def getAutoCompleteList(command='', locals=None, includeMagic=1,
                         includeSingle=1, includeDouble=1):
     """Return list of auto-completion options for command.
-    
+
     The list of options will be based on the locals namespace."""
     attributes = []
     # Get the proper chunk of code from the command.
@@ -27,10 +28,11 @@ def getAutoCompleteList(command='', locals=None, includeMagic=1,
     except Exception:
         pass
     else:
-        attributes = getAttributeNames(object, includeMagic, 
+        attributes = getAttributeNames(object, includeMagic,
                                        includeSingle, includeDouble)
     return attributes
-    
+
+
 def getAttributeNames(object, includeMagic=1, includeSingle=1,
                       includeDouble=1):
     """Return list of unique attributes, including inherited, for object."""
@@ -41,11 +43,13 @@ def getAttributeNames(object, includeMagic=1, includeSingle=1,
         special_attrs = ['__bases__', '__class__', '__dict__', '__name__',
                          'func_closure', 'func_code', 'func_defaults',
                          'func_dict', 'func_doc', 'func_globals', 'func_name']
-        attributes += [attr for attr in special_attrs \
+        attributes += [attr for attr in special_attrs
                        if hasattr(object, attr)]
     if includeMagic:
-        try: attributes += object._getAttributeNames()
-        except Exception: pass
+        try:
+            attributes += object._getAttributeNames()
+        except Exception:
+            pass
     # Get all attribute names.
     str_type = str(type(object))
     if str_type == "<type 'array'>":
@@ -61,31 +65,33 @@ def getAttributeNames(object, includeMagic=1, includeSingle=1,
             if type(object).__name__ == obj_type_name and technique == 'dir':
                 attributes += attrlist
             else:
-                attributes += [attr for attr in attrlist \
+                attributes += [attr for attr in attrlist
                                if attr not in object_dir and hasattr(object, attr)]
-            
+
     # Remove duplicates from the attribute list.
     for item in attributes:
         dict[item] = None
     attributes = dict.keys()
     # new-style swig wrappings can result in non-string attributes
     # e.g. ITK http://www.itk.org/
-    attributes = [attribute for attribute in attributes \
+    attributes = [attribute for attribute in attributes
                   if type(attribute) == str]
     attributes.sort(lambda x, y: cmp(x.upper(), y.upper()))
     if not includeSingle:
-        attributes = filter(lambda item: item[0]!='_' \
-                            or item[1:2]=='_', attributes)
+        attributes = filter(lambda item: item[0] != '_'
+                            or item[1:2] == '_', attributes)
     if not includeDouble:
-        attributes = filter(lambda item: item[:2]!='__', attributes)
+        attributes = filter(lambda item: item[:2] != '__', attributes)
     return attributes
+
 
 def hasattrAlwaysReturnsTrue(object):
     return hasattr(object, 'bogu5_123_aTTri8ute')
 
+
 def getAllAttributeNames(object):
     """Return dict of all attributes, including inherited, for an object.
-    
+
     Recursively walk through a class and all base classes.
     """
     attrdict = {}  # (object, technique, count): [list of attributes]
@@ -141,9 +147,10 @@ def getAllAttributeNames(object):
                     attrdict.update(getAllAttributeNames(base))
     return attrdict
 
+
 def getCallTip(command='', locals=None):
     """For a command, return a tuple of object name, argspec, tip text.
-    
+
     The call tip information will be based on the locals namespace."""
     calltip = ('', '', '')  # object name, argspec, tip text.
     # Get the proper chunk of code from the command.
@@ -176,8 +183,8 @@ def getCallTip(command='', locals=None):
             temp = argspec.split(',')
             if len(temp) == 1:  # No other arguments.
                 argspec = '()'
-            elif temp[0][:2] == '(*': # first param is like *args, not self
-                pass 
+            elif temp[0][:2] == '(*':  # first param is like *args, not self
+                pass
             else:  # Drop the first argument.
                 argspec = '(' + ','.join(temp[1:]).lstrip()
         tip1 = name + argspec
@@ -193,7 +200,7 @@ def getCallTip(command='', locals=None):
         # tip3 is the rest of the docstring, like:
         # "The call tip information will be based on ... <snip>
         firstline = doc.split('\n')[0].lstrip()
-        if tip1 == firstline or firstline[:len(name)+1] == name+'(':
+        if tip1 == firstline or firstline[:len(name) + 1] == name + '(':
             tip1 = ''
         else:
             tip1 += '\n\n'
@@ -207,16 +214,17 @@ def getCallTip(command='', locals=None):
     calltip = (name, argspec, tip.strip())
     return calltip
 
+
 def getRoot(command, terminator=None):
     """Return the rightmost root portion of an arbitrary Python command.
-    
+
     Return only the root portion that can be eval()'d without side
     effects.  The command would normally terminate with a '(' or
     '.'. The terminator and anything after the terminator will be
     dropped."""
     command = command.split('\n')[-1]
-    #if command.startswith(sys.ps2): #remove epsilon (... )  # removed by jwp - only works for interactive window
-        #command = command[len(sys.ps2):]
+    # if command.startswith(sys.ps2): #remove epsilon (... )  # removed by jwp - only works for interactive window
+    #command = command[len(sys.ps2):]
     command = command.lstrip()
     command = rtrimTerminus(command, terminator)
     tokens = getTokens(command)
@@ -228,7 +236,7 @@ def getRoot(command, terminator=None):
     if not tokens:
         return ''
     if terminator == '.' and \
-           (tokens[-1][1] <> '.' or tokens[-1][0] is not tokenize.OP):
+            (tokens[-1][1] <> '.' or tokens[-1][0] is not tokenize.OP):
         # Trap decimals in numbers, versus the dot operator.
         return ''
     else:
@@ -251,14 +259,14 @@ def getRoot(command, terminator=None):
         if tokentype is tokenize.ENDMARKER:
             continue
         if tokentype in (tokenize.NAME, tokenize.STRING, tokenize.NUMBER) \
-        and laststring != '.':
+                and laststring != '.':
             # We've reached something that's not part of the root.
             if prefix and line[token[3][1]] != ' ':
                 # If it doesn't have a space after it, remove the prefix.
                 prefix = ''
             break
         if tokentype in (tokenize.NAME, tokenize.STRING, tokenize.NUMBER) \
-        or (tokentype is tokenize.OP and tokenstring == '.'):
+                or (tokentype is tokenize.OP and tokenstring == '.'):
             if prefix:
                 # The prefix isn't valid because it comes after a dot.
                 prefix = ''
@@ -286,7 +294,8 @@ def getRoot(command, terminator=None):
     if prefix in emptyTypes:
         # Empty types are safe to be eval()'d and introspected.
         root = prefix + root
-    return root    
+    return root
+
 
 def getTokens(command):
     """Return list of token tuples for command."""
@@ -296,20 +305,20 @@ def getTokens(command):
         try:
             command = command.encode(wx.GetDefaultPyEncoding())
         except UnicodeEncodeError:
-            pass # otherwise leave it alone
-                
+            pass  # otherwise leave it alone
+
     f = cStringIO.StringIO(command)
-    # tokens is a list of token tuples, each looking like: 
+    # tokens is a list of token tuples, each looking like:
     # (type, string, (srow, scol), (erow, ecol), line)
     tokens = []
     # Can't use list comprehension:
     #   tokens = [token for token in tokenize.generate_tokens(f.readline)]
     # because of need to append as much as possible before TokenError.
     try:
-##        This code wasn't backward compatible with Python 2.1.3.
-##
-##        for token in tokenize.generate_tokens(f.readline):
-##            tokens.append(token)
+        # This code wasn't backward compatible with Python 2.1.3.
+        ##
+        # for token in tokenize.generate_tokens(f.readline):
+        # tokens.append(token)
 
         # This works with Python 2.1.3 (with nested_scopes).
         def eater(*args):
@@ -319,7 +328,8 @@ def getTokens(command):
         # This is due to a premature EOF, which we expect since we are
         # feeding in fragments of Python code.
         pass
-    return tokens    
+    return tokens
+
 
 def rtrimTerminus(command, terminator=None):
     """Return command minus anything that follows the final terminator."""
@@ -328,6 +338,7 @@ def rtrimTerminus(command, terminator=None):
         if len(pieces) > 1:
             command = terminator.join(pieces[:-1]) + terminator
     return command
+
 
 def getBaseObject(object):
     """Return base object and dropSelf indicator for an object."""
@@ -367,6 +378,7 @@ def getBaseObject(object):
     else:
         dropSelf = 0
     return object, dropSelf
+
 
 def getConstructor(object):
     """Return constructor for class object, or None if there isn't one."""

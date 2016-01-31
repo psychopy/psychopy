@@ -10,7 +10,8 @@
 
 from __future__ import absolute_import, print_function, division
 
-import os, sys
+import os
+import sys
 import cPickle
 import wx
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
@@ -47,12 +48,13 @@ class DlgConditions(wx.Dialog):
     Author: Jeremy Gray, 2011
         adjusted for wx 3.x: Dec 2015
     """
+
     def __init__(self, grid=None, fileName=False, parent=None, title='',
-            trim=True, fixed=False, hasHeader=True, gui=True, extraRows=0, extraCols=0,
-            clean=True, pos=None, preview=True,
-            _restore=None, size=wx.DefaultSize,
-            style=wx.DEFAULT_DIALOG_STYLE|wx.DIALOG_NO_PARENT):
-        self.parent = parent # gets the conditionsFile info
+                 trim=True, fixed=False, hasHeader=True, gui=True, extraRows=0, extraCols=0,
+                 clean=True, pos=None, preview=True,
+                 _restore=None, size=wx.DefaultSize,
+                 style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT):
+        self.parent = parent  # gets the conditionsFile info
         if parent:
             self.helpUrl = self.parent.app.urls['builder.loops']
         # read data from file, if any:
@@ -68,16 +70,16 @@ class DlgConditions(wx.Dialog):
                 self.newFile = False
             if not title:
                 f = os.path.abspath(fileName)
-                f = f.rsplit(os.path.sep,2)[1:]
-                f = os.path.join(*f) # eg, BART/trialTypes.xlsx
+                f = f.rsplit(os.path.sep, 2)[1:]
+                f = os.path.join(*f)  # eg, BART/trialTypes.xlsx
                 title = f
         elif not grid:
             title = _translate('New (no file)')
         elif _restore:
             if not title:
                 f = os.path.abspath(_restore[1])
-                f = f.rsplit(os.path.sep,2)[1:]
-                f = os.path.join(*f) # eg, BART/trialTypes.xlsx
+                f = f.rsplit(os.path.sep, 2)[1:]
+                f = os.path.join(*f)  # eg, BART/trialTypes.xlsx
                 title = f
         elif not title:
             title = _translate('Conditions data (no file)')
@@ -90,35 +92,35 @@ class DlgConditions(wx.Dialog):
             for i in xrange(numCond):
                 row = conditions[i].values()
                 grid.append(row)
-            hasHeader=True # keys of a dict are the header
+            hasHeader = True  # keys of a dict are the header
         # ensure a sensible grid, or provide a basic default:
         if not grid or not len(grid) or not len(grid[0]):
             grid = [[self.colName(0)], [u'']]
             hasHeader = True
             extraRows += 5
             extraCols += 3
-        self.grid = grid # grid is list of lists
+        self.grid = grid  # grid is list of lists
         self.fixed = bool(fixed)
         if self.fixed:
             extraRows = extraCols = 0
             trim = clean = confirm = False
         else:
-            style = style|wx.RESIZE_BORDER
+            style = style | wx.RESIZE_BORDER
         self.pos = pos
         self.title = title
         try:
             self.madeApp = False
-            wx.Dialog.__init__(self, None,-1,title,pos,size,style)
-        except wx._core.PyNoAppError: # only needed during development?
+            wx.Dialog.__init__(self, None, -1, title, pos, size, style)
+        except wx._core.PyNoAppError:  # only needed during development?
             self.madeApp = True
             global app
             if wx.version() < '2.9':
                 app = wx.PySimpleApp()
             else:
                 app = wx.App(False)
-            wx.Dialog.__init__(self, None,-1,title,pos,size,style)
+            wx.Dialog.__init__(self, None, -1, title, pos, size, style)
         self.trim = trim
-        self.warning = '' # updated to warn about eg, trailing whitespace
+        self.warning = ''  # updated to warn about eg, trailing whitespace
         if hasHeader and not len(grid) > 1 and not self.fixed:
             self.grid.append([])
         self.clean = bool(clean)
@@ -127,30 +129,34 @@ class DlgConditions(wx.Dialog):
         # make all rows have same # cols, extending as needed or requested:
         longest = max([len(r) for r in self.grid]) + extraCols
         for row in self.grid:
-            for i in range(len(row),longest):
-                row.append(u'') # None
-        self.hasHeader = bool(hasHeader) # self.header <== row of input param name fields
-        self.rows = min(len(self.grid), 30) # max 30 rows displayed
+            for i in range(len(row), longest):
+                row.append(u'')  # None
+        # self.header <== row of input param name fields
+        self.hasHeader = bool(hasHeader)
+        self.rows = min(len(self.grid), 30)  # max 30 rows displayed
         self.cols = len(self.grid[0])
         if wx.version()[0] == '2':
-            extraRow = int(not self.fixed) # extra row for explicit type drop-down
-            self.sizer = wx.FlexGridSizer(self.rows+extraRow, self.cols+1, # +1 for condition labels
-                                      vgap=0, hgap=0)
+            # extra row for explicit type drop-down
+            extraRow = int(not self.fixed)
+            self.sizer = wx.FlexGridSizer(self.rows + extraRow, self.cols + 1,  # +1 for condition labels
+                                          vgap=0, hgap=0)
         else:
-            self.sizer = wx.FlexGridSizer(cols=self.cols+1, vgap=0, hgap=0)
+            self.sizer = wx.FlexGridSizer(cols=self.cols + 1, vgap=0, hgap=0)
         # set length of input box as the longest in the column (bounded):
         self.colSizes = []
         for x in range(self.cols):
-            self.colSizes.append( max([4] +
-                [len(unicode(self.grid[y][x])) for y in range(self.rows)]) )
-        self.colSizes = map(lambda x: min(20, max(10, x+1)) * 8 + 30, self.colSizes)
-        self.inputTypes = [] # explicit, as selected by user via type-selector
-        self.inputFields = [] # values in fields
+            self.colSizes.append(max([4] +
+                                     [len(unicode(self.grid[y][x])) for y in range(self.rows)]))
+        self.colSizes = map(lambda x: min(
+            20, max(10, x + 1)) * 8 + 30, self.colSizes)
+        self.inputTypes = []  # explicit, as selected by user via type-selector
+        self.inputFields = []  # values in fields
         self.data = []
 
         # make header label, if any:
         if self.hasHeader:
-            rowLabel = wx.StaticText(self,-1,label=_translate('Params:'), size=(6*9, 20))
+            rowLabel = wx.StaticText(
+                self, -1, label=_translate('Params:'), size=(6 * 9, 20))
             rowLabel.SetForegroundColour(darkblue)
             self.addRow(0, rowLabel=rowLabel)
         # make type-selector drop-down:
@@ -158,20 +164,21 @@ class DlgConditions(wx.Dialog):
             if sys.platform == 'darwin':
                 self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
             labelBox = wx.BoxSizer(wx.VERTICAL)
-            tx = wx.StaticText(self,-1,label=_translate('type:'), size=(5*9,20))
+            tx = wx.StaticText(
+                self, -1, label=_translate('type:'), size=(5 * 9, 20))
             tx.SetForegroundColour(darkgrey)
-            labelBox.Add(tx,1,flag=wx.ALIGN_RIGHT)
-            labelBox.AddSpacer(5) # vertical
-            self.sizer.Add(labelBox,1,flag=wx.ALIGN_RIGHT)
-            row = int(self.hasHeader) # row to use for type inference
+            labelBox.Add(tx, 1, flag=wx.ALIGN_RIGHT)
+            labelBox.AddSpacer(5)  # vertical
+            self.sizer.Add(labelBox, 1, flag=wx.ALIGN_RIGHT)
+            row = int(self.hasHeader)  # row to use for type inference
             for col in range(self.cols):
                 # make each selector:
                 typeOpt = wx.Choice(self, choices=self.typeChoices)
                 # set it to best guess about the column's type:
-                firstType = str(type(self.grid[row][col])).split("'",2)[1]
-                if firstType=='numpy.ndarray':
+                firstType = str(type(self.grid[row][col])).split("'", 2)[1]
+                if firstType == 'numpy.ndarray':
                     firstType = 'array'
-                if firstType=='unicode':
+                if firstType == 'unicode':
                     firstType = 'utf-8'
                 typeOpt.SetStringSelection(str(firstType))
                 self.inputTypes.append(typeOpt)
@@ -179,8 +186,8 @@ class DlgConditions(wx.Dialog):
             if sys.platform == 'darwin':
                 self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
         # stash implicit types for setType:
-        self.types = [] # implicit types
-        row = int(self.hasHeader) # which row to use for type inference
+        self.types = []  # implicit types
+        row = int(self.hasHeader)  # which row to use for type inference
         for col in range(self.cols):
             firstType = str(type(self.grid[row][col])).split("'")[1]
             self.types.append(firstType)
@@ -188,9 +195,9 @@ class DlgConditions(wx.Dialog):
         for row in range(int(self.hasHeader), self.rows):
             self.addRow(row)
         for r in range(extraRows):
-            self.grid.append([ u'' for i in range(self.cols)])
+            self.grid.append([u'' for i in range(self.cols)])
             self.rows = len(self.grid)
-            self.addRow(self.rows-1)
+            self.addRow(self.rows - 1)
         # show the GUI:
         if gui:
             self.show()
@@ -200,9 +207,10 @@ class DlgConditions(wx.Dialog):
 
     def colName(self, c, prefix='param_'):
         # generates 702 excel-style column names, A ... ZZ, with prefix
-        abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' # for A, ..., Z
-        aabb = [''] + [ch for ch in abc] # for Ax, ..., Zx
-        return prefix + aabb[c//26] + abc[c%26]
+        abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'  # for A, ..., Z
+        aabb = [''] + [ch for ch in abc]  # for Ax, ..., Zx
+        return prefix + aabb[c // 26] + abc[c % 26]
+
     def addRow(self, row, rowLabel=None):
         """Add one row of info, either header (col names) or normal data
 
@@ -212,25 +220,27 @@ class DlgConditions(wx.Dialog):
         if not rowLabel:
             if sys.platform == 'darwin':
                 self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
-            label = _translate('cond %s:')%str(row+1-int(self.hasHeader)).zfill(2)
+            label = _translate('cond %s:') % str(
+                row + 1 - int(self.hasHeader)).zfill(2)
             rowLabel = wx.StaticText(self, -1, label=label)
             rowLabel.SetForegroundColour(darkgrey)
             if sys.platform == 'darwin':
                 self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
-        labelBox.Add(rowLabel, 1, flag=wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM)
+        labelBox.Add(rowLabel, 1, flag=wx.ALIGN_RIGHT | wx.ALIGN_BOTTOM)
         self.sizer.Add(labelBox, 1, flag=wx.ALIGN_CENTER)
         lastRow = []
         for col in range(self.cols):
             # get the item, as unicode for display purposes:
-            if len(unicode(self.grid[row][col])): # want 0, for example
+            if len(unicode(self.grid[row][col])):  # want 0, for example
                 item = unicode(self.grid[row][col])
             else:
                 item = u''
             # make a textbox:
-            field = ExpandoTextCtrl(self, -1, item, size=(self.colSizes[col],20))
+            field = ExpandoTextCtrl(
+                self, -1, item, size=(self.colSizes[col], 20))
             field.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNeedsResize)
-            field.SetMaxHeight(100) # ~ 5 lines
-            if self.hasHeader and row==0:
+            field.SetMaxHeight(100)  # ~ 5 lines
+            if self.hasHeader and row == 0:
                 # add a default column name (header) if none provided
                 header = self.grid[0]
                 if item.strip() == '':
@@ -238,30 +248,36 @@ class DlgConditions(wx.Dialog):
                     while self.colName(c) in header:
                         c += 1
                     field.SetValue(self.colName(c))
-                field.SetForegroundColour(darkblue) #dark blue
-                if not _valid_var_re.match(field.GetValue()): #or (self.parent and
-                            #self.parent.exp.namespace.exists(field.GetValue()) ):
-                            # was always red when preview .xlsx file -- in namespace already is fine
+                field.SetForegroundColour(darkblue)  # dark blue
+                # or (self.parent and
+                if not _valid_var_re.match(field.GetValue()):
+                            # self.parent.exp.namespace.exists(field.GetValue()) ):
+                            # was always red when preview .xlsx file -- in
+                            # namespace already is fine
                     if self.fixed:
                         field.SetForegroundColour("Red")
-                field.SetToolTip(wx.ToolTip(_translate('Should be legal as a variable name (alphanumeric)')))
+                field.SetToolTip(wx.ToolTip(_translate(
+                    'Should be legal as a variable name (alphanumeric)')))
                 field.Bind(wx.EVT_TEXT, self.checkName)
             elif self.fixed:
                 field.SetForegroundColour(darkgrey)
                 field.SetBackgroundColour(white)
 
-            # warn about whitespace unless will be auto-removed. invisible, probably spurious:
+            # warn about whitespace unless will be auto-removed. invisible,
+            # probably spurious:
             if (self.fixed or not self.clean) and item != item.lstrip().strip():
                 field.SetForegroundColour('Red')
-                self.warning = _translate('extra white-space') # also used in show()
+                self.warning = _translate(
+                    'extra white-space')  # also used in show()
                 field.SetToolTip(wx.ToolTip(self.warning))
             if self.fixed:
                 field.Disable()
             lastRow.append(field)
             self.sizer.Add(field, 1)
         self.inputFields.append(lastRow)
-        if self.hasHeader and row==0:
+        if self.hasHeader and row == 0:
             self.header = lastRow
+
     def checkName(self, event=None, name=None):
         """check param name (missing, namespace conflict, legal var name)
         disable save, save-as if bad name
@@ -273,8 +289,9 @@ class DlgConditions(wx.Dialog):
                 msg, enable = self.parent._checkName(name=name)
         else:
             if (name and not _valid_var_re.match(name)
-                or not _valid_var_re.match(event.GetString()) ):
-                msg, enable = _translate("Name must be alpha-numeric or _, no spaces"), False
+                    or not _valid_var_re.match(event.GetString())):
+                msg, enable = _translate(
+                    "Name must be alpha-numeric or _, no spaces"), False
             else:
                 msg, enable = "", True
         self.tmpMsg.SetLabel(msg)
@@ -284,21 +301,24 @@ class DlgConditions(wx.Dialog):
         else:
             self.OKbtn.Disable()
             self.SAVEAS.Disable()
+
     def userAddRow(self, event=None):
         """handle user request to add another row: just add to the FlexGridSizer
         """
-        self.grid.append([ u''] * self.cols)
+        self.grid.append([u''] * self.cols)
         self.rows = len(self.grid)
-        self.addRow(self.rows-1)
+        self.addRow(self.rows - 1)
         self.tmpMsg.SetLabel('')
         self.onNeedsResize()
+
     def userAddCol(self, event=None):
         """adds a column by recreating the Dlg with a wider size one more column
         relaunch loses the retVal from OK, so use parent.fileName not OK for exit status
         """
-        self.relaunch(kwargs={'extraCols':1, 'title':self.title})
+        self.relaunch(kwargs={'extraCols': 1, 'title': self.title})
+
     def relaunch(self, kwargs={}):
-        self.trim = False # avoid removing blank rows / cols that user has added
+        self.trim = False  # avoid removing blank rows / cols that user has added
         self.getData(True)
         currentData = self.data[:]
         # launch new Dlg, but only after bail out of current one:
@@ -306,29 +326,31 @@ class DlgConditions(wx.Dialog):
             fname = self.fileName
         else:
             fname = None
-        wx.CallAfter(DlgConditions, currentData, _restore=(self.newFile,fname),
+        wx.CallAfter(DlgConditions, currentData, _restore=(self.newFile, fname),
                      parent=self.parent, **kwargs)
         # bail from current Dlg:
-        self.EndModal(wx.ID_OK) # retVal here, first one goes to Builder, ignore
-        #self.Destroy() # -> PyDeadObjectError, so already handled hopefully
+        # retVal here, first one goes to Builder, ignore
+        self.EndModal(wx.ID_OK)
+        # self.Destroy() # -> PyDeadObjectError, so already handled hopefully
+
     def getData(self, typeSelected=False):
         """gets data from inputFields (unicode), converts to desired type
         """
         if self.fixed:
             self.data = self.grid
             return
-        elif typeSelected: # get user-selected explicit types of the columns
+        elif typeSelected:  # get user-selected explicit types of the columns
             self.types = []
             for col in range(self.cols):
                 selected = self.inputTypes[col].GetCurrentSelection()
                 self.types.append(self.typeChoices[selected])
         # mark empty columns for later removal:
         if self.trim:
-            start = int(self.hasHeader) # name is not empty, so ignore
+            start = int(self.hasHeader)  # name is not empty, so ignore
             for col in range(self.cols):
                 if not ''.join([self.inputFields[row][col].GetValue()
                                 for row in range(start, self.rows)]):
-                    self.types[col] = 'None' # col will be removed below
+                    self.types[col] = 'None'  # col will be removed below
         # get the data:
         self.data = []
         for row in range(self.rows):
@@ -345,7 +367,7 @@ class DlgConditions(wx.Dialog):
                 thisVal = self.inputFields[row][col].GetValue()
                 if self.clean:
                     thisVal = thisVal.lstrip().strip()
-                if thisVal:# and thisType in ['list', 'tuple', 'array']:
+                if thisVal:  # and thisType in ['list', 'tuple', 'array']:
                     while len(thisVal) and thisVal[-1] in "]), ":
                         thisVal = thisVal[:-1]
                     while len(thisVal) and thisVal[0] in "[(, ":
@@ -354,42 +376,46 @@ class DlgConditions(wx.Dialog):
                 if thisType not in ['str', 'utf-8']:
                     thisVal = thisVal.replace('\n', '')
                 else:
-                    thisVal = repr(thisVal) # handles quoting ', ", ''' etc
+                    thisVal = repr(thisVal)  # handles quoting ', ", ''' etc
                 # convert to requested type:
                 try:
-                    if self.hasHeader and row==0:
-                        lastRow.append(str(self.inputFields[row][col].GetValue())) # header always str
-                    elif thisType in ['float','int', 'long']:
-                        exec("lastRow.append("+thisType+'('+thisVal+"))")
+                    if self.hasHeader and row == 0:
+                        # header always str
+                        lastRow.append(
+                            str(self.inputFields[row][col].GetValue()))
+                    elif thisType in ['float', 'int', 'long']:
+                        exec("lastRow.append(" + thisType + '(' + thisVal + "))")
                     elif thisType in ['list']:
                         thisVal = thisVal.lstrip('[').strip(']')
-                        exec("lastRow.append("+thisType+'(['+thisVal+"]))")
+                        exec("lastRow.append(" + thisType +
+                             '([' + thisVal + "]))")
                     elif thisType in ['tuple']:
                         thisVal = thisVal.lstrip('(').strip(')')
                         if thisVal:
-                            exec("lastRow.append(("+thisVal.strip(',')+",))")
+                            exec("lastRow.append((" + thisVal.strip(',') + ",))")
                         else:
                             lastRow.append(tuple(()))
                     elif thisType in ['array']:
                         thisVal = thisVal.lstrip('[').strip(']')
-                        exec("lastRow.append(numpy.array"+'("['+thisVal+']"))')
+                        exec("lastRow.append(numpy.array" +
+                             '("[' + thisVal + ']"))')
                     elif thisType in ['utf-8', 'bool']:
-                        if thisType=='utf-8':
-                            thisType='unicode'
-                        exec("lastRow.append("+thisType+'('+thisVal+'))')
+                        if thisType == 'utf-8':
+                            thisType = 'unicode'
+                        exec("lastRow.append(" + thisType + '(' + thisVal + '))')
                     elif thisType in ['str']:
-                        exec("lastRow.append(str("+thisVal+"))")
+                        exec("lastRow.append(str(" + thisVal + "))")
                     elif thisType in ['file']:
-                        exec("lastRow.append(repr("+thisVal+"))")
-                    else: #if thisType in ['NoneType']:
+                        exec("lastRow.append(repr(" + thisVal + "))")
+                    else:  # if thisType in ['NoneType']:
                         #assert False, 'programer error, unknown type: '+thisType
-                        exec("lastRow.append("+unicode(thisVal)+')')
+                        exec("lastRow.append(" + unicode(thisVal) + ')')
                 except ValueError as msg:
                     print('ValueError:', msg, '; using unicode')
-                    exec("lastRow.append("+unicode(thisVal)+')')
+                    exec("lastRow.append(" + unicode(thisVal) + ')')
                 except NameError as msg:
                     print('NameError:', msg, '; using unicode')
-                    exec("lastRow.append("+repr(thisVal)+')')
+                    exec("lastRow.append(" + repr(thisVal) + ')')
             self.data.append(lastRow)
         if self.trim:
             # the corresponding data have already been removed
@@ -397,24 +423,30 @@ class DlgConditions(wx.Dialog):
                 self.types.remove('None')
         return self.data[:]
 
-    def preview(self,event=None):
+    def preview(self, event=None):
         self.getData(typeSelected=True)
-        previewData = self.data[:] # in theory, self.data is also ok, because fixed
-            # is supposed to never change anything, but bugs would be very subtle
-        DlgConditions(previewData, parent=self.parent, title=_translate('PREVIEW'), fixed=True)
+        # in theory, self.data is also ok, because fixed
+        previewData = self.data[:]
+        # is supposed to never change anything, but bugs would be very subtle
+        DlgConditions(previewData, parent=self.parent,
+                      title=_translate('PREVIEW'), fixed=True)
+
     def onNeedsResize(self, event=None):
-        self.SetSizerAndFit(self.border) # do outer-most sizer
+        self.SetSizerAndFit(self.border)  # do outer-most sizer
         if self.pos is None:
             self.Center()
+
     def show(self):
         """called internally; to display, pass gui=True to init
         """
         # put things inside a border:
         if wx.version()[0] == '2':
-            self.border = wx.FlexGridSizer(2,1) # data matrix on top, buttons below
+            # data matrix on top, buttons below
+            self.border = wx.FlexGridSizer(2, 1)
         else:
             self.border = wx.FlexGridSizer(4)
-        self.border.Add(self.sizer, proportion=1, flag=wx.ALL|wx.EXPAND, border=8)
+        self.border.Add(self.sizer, proportion=1,
+                        flag=wx.ALL | wx.EXPAND, border=8)
 
         # add a message area, buttons:
         buttons = wx.BoxSizer(wx.HORIZONTAL)
@@ -422,26 +454,31 @@ class DlgConditions(wx.Dialog):
             self.SetWindowVariant(variant=wx.WINDOW_VARIANT_SMALL)
         if not self.fixed:
             # placeholder for possible messages / warnings:
-            self.tmpMsg = wx.StaticText(self, -1, label='', size=(350,15), style=wx.ALIGN_RIGHT)
+            self.tmpMsg = wx.StaticText(
+                self, -1, label='', size=(350, 15), style=wx.ALIGN_RIGHT)
             self.tmpMsg.SetForegroundColour('Red')
             if self.warning:
                 self.tmpMsg.SetLabel(self.warning)
             buttons.Add(self.tmpMsg, flag=wx.ALIGN_CENTER)
             buttons.AddSpacer(8)
-            self.border.Add(buttons,1,flag=wx.BOTTOM|wx.ALIGN_CENTER, border=8)
+            self.border.Add(buttons, 1, flag=wx.BOTTOM |
+                            wx.ALIGN_CENTER, border=8)
             buttons = wx.BoxSizer(wx.HORIZONTAL)
             ADDROW = wx.Button(self, -1, _translate("+cond."))
-            ADDROW.SetToolTip(wx.ToolTip(_translate('Add a condition (row); to delete a condition, delete all of its values.')))
+            ADDROW.SetToolTip(wx.ToolTip(_translate(
+                'Add a condition (row); to delete a condition, delete all of its values.')))
             ADDROW.Bind(wx.EVT_BUTTON, self.userAddRow)
             buttons.Add(ADDROW)
             buttons.AddSpacer(4)
             ADDCOL = wx.Button(self, -1, _translate("+param"))
-            ADDCOL.SetToolTip(wx.ToolTip(_translate('Add a parameter (column); to delete a param, set its type to None, or delete all of its values.')))
+            ADDCOL.SetToolTip(wx.ToolTip(_translate(
+                'Add a parameter (column); to delete a param, set its type to None, or delete all of its values.')))
             ADDCOL.Bind(wx.EVT_BUTTON, self.userAddCol)
             buttons.Add(ADDCOL)
             buttons.AddSpacer(4)
             PREVIEW = wx.Button(self, -1, _translate("Preview"))
-            PREVIEW.SetToolTip(wx.ToolTip(_translate("Show all values as they would appear after saving to a file, without actually saving anything.")))
+            PREVIEW.SetToolTip(wx.ToolTip(_translate(
+                "Show all values as they would appear after saving to a file, without actually saving anything.")))
             PREVIEW.Bind(wx.EVT_BUTTON, self.preview)
             buttons.Add(PREVIEW)
             buttons.AddSpacer(4)
@@ -449,16 +486,17 @@ class DlgConditions(wx.Dialog):
             self.SAVEAS.Bind(wx.EVT_BUTTON, self.saveAs)
             buttons.Add(self.SAVEAS)
             buttons.AddSpacer(8)
-            self.border.Add(buttons,1,flag=wx.BOTTOM|wx.ALIGN_RIGHT, border=8)
+            self.border.Add(buttons, 1, flag=wx.BOTTOM |
+                            wx.ALIGN_RIGHT, border=8)
         if sys.platform == 'darwin':
             self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
         buttons = wx.StdDialogButtonSizer()
-        #help button if we know the url
+        # help button if we know the url
         if self.helpUrl and not self.fixed:
             helpBtn = wx.Button(self, wx.ID_HELP, _translate(" Help "))
             helpBtn.SetToolTip(wx.ToolTip(_translate("Go to online help")))
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
-            buttons.Add(helpBtn, wx.ALIGN_CENTER|wx.ALL)
+            buttons.Add(helpBtn, wx.ALIGN_CENTER | wx.ALL)
             buttons.AddSpacer(12)
         self.OKbtn = wx.Button(self, wx.ID_OK, _translate(" OK "))
         if not self.fixed:
@@ -469,49 +507,56 @@ class DlgConditions(wx.Dialog):
         if not self.fixed:
             buttons.AddSpacer(4)
             CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
-            CANCEL.SetToolTip(wx.ToolTip(_translate('Exit, discard any edits')))
+            CANCEL.SetToolTip(wx.ToolTip(
+                _translate('Exit, discard any edits')))
             buttons.Add(CANCEL)
         buttons.AddSpacer(8)
         buttons.Realize()
-        self.border.Add(buttons,1,flag=wx.BOTTOM|wx.ALIGN_RIGHT, border=8)
+        self.border.Add(buttons, 1, flag=wx.BOTTOM | wx.ALIGN_RIGHT, border=8)
 
         # finally, its show time:
         self.SetSizerAndFit(self.border)
         if self.pos is None:
             self.Center()
         if self.ShowModal() == wx.ID_OK:
-            self.getData(typeSelected=True) # set self.data and self.types, from fields
+            # set self.data and self.types, from fields
+            self.getData(typeSelected=True)
             self.OK = True
         else:
             self.data = self.types = None
             self.OK = False
         self.Destroy()
+
     def onOK(self, event=None):
         if not self.fixed:
             if not self.save():
-                return # disallow OK if bad param names
-        event.Skip() # handle the OK button event
+                return  # disallow OK if bad param names
+        event.Skip()  # handle the OK button event
+
     def saveAs(self, event=None):
         """save, but allow user to give a new name
         """
-        self.newFile = True # trigger query for fileName
+        self.newFile = True  # trigger query for fileName
         self.save()
-        self.relaunch() # to update fileName in title
+        self.relaunch()  # to update fileName in title
+
     def save(self, event=None):
         """save header + row x col data to a pickle file
         """
-        self.getData(True) # update self.data
+        self.getData(True)  # update self.data
         adjustedNames = False
         for i, paramName in enumerate(self.data[0]):
             newName = paramName
             # ensure its legal as a var name, including namespace check:
             if self.parent:
                 msg, enable = self.parent._checkName(name=paramName)
-                if msg: # msg not empty means a namespace issue
-                    newName = self.parent.exp.namespace.makeValid(paramName, prefix='param')
+                if msg:  # msg not empty means a namespace issue
+                    newName = self.parent.exp.namespace.makeValid(
+                        paramName, prefix='param')
                     adjustedNames = True
             elif not _valid_var_re.match(paramName):
-                msg, enable = _translate("Name must be alpha-numeric or _, no spaces"), False
+                msg, enable = _translate(
+                    "Name must be alpha-numeric or _, no spaces"), False
                 newName = _nonalphanumeric_re.sub('_', newName)
                 adjustedNames = True
             else:
@@ -519,11 +564,12 @@ class DlgConditions(wx.Dialog):
             # try to ensure its unique:
             while newName in self.data[0][:i]:
                 adjustedNames = True
-                newName += 'x' # unlikely to create a namespace conflict, but could happen
+                newName += 'x'  # unlikely to create a namespace conflict, but could happen
             self.data[0][i] = newName
-            self.header[i].SetValue(newName) # displayed value
+            self.header[i].SetValue(newName)  # displayed value
         if adjustedNames:
-            self.tmpMsg.SetLabel(_translate('Param name(s) adjusted to be legal. Look ok?'))
+            self.tmpMsg.SetLabel(_translate(
+                'Param name(s) adjusted to be legal. Look ok?'))
             return False
         if hasattr(self, 'fileName') and self.fileName:
             fname = self.fileName
@@ -532,11 +578,11 @@ class DlgConditions(wx.Dialog):
             fname = self.defaultFileName
         if self.newFile or not os.path.isfile(fname):
             fullPath = gui.fileSaveDlg(initFilePath=os.path.split(fname)[0],
-                initFileName=os.path.basename(fname),
-                        allowed="Pickle files (*.pkl)|*.pkl")
+                                       initFileName=os.path.basename(fname),
+                                       allowed="Pickle files (*.pkl)|*.pkl")
         else:
             fullPath = fname
-        if fullPath: # None if user canceled
+        if fullPath:  # None if user canceled
             if not fullPath.endswith('.pkl'):
                 fullPath += '.pkl'
             f = open(fullPath, 'w')
@@ -548,6 +594,7 @@ class DlgConditions(wx.Dialog):
             if self.parent:
                 self.parent.conditionsFile = fullPath
         return True
+
     def load(self, fileName=''):
         """read and return header + row x col data from a pickle file
         """
@@ -555,9 +602,9 @@ class DlgConditions(wx.Dialog):
             fileName = self.defaultFileName
         if not os.path.isfile(fileName):
             fullPathList = gui.fileOpenDlg(tryFileName=os.path.basename(fileName),
-                            allowed="All files (*.*)|*.*")
+                                           allowed="All files (*.*)|*.*")
             if fullPathList:
-                fileName = fullPathList[0] # wx.MULTIPLE -> list
+                fileName = fullPathList[0]  # wx.MULTIPLE -> list
         if os.path.isfile(fileName) and fileName.endswith('.pkl'):
             f = open(fileName)
             contents = cPickle.load(f)
@@ -569,6 +616,7 @@ class DlgConditions(wx.Dialog):
             print('file %s not found' % fileName)
         else:
             print('only .pkl supported at the moment')
+
     def asConditions(self):
         """converts self.data into self.conditions for TrialHandler, returns conditions
         """
@@ -577,13 +625,14 @@ class DlgConditions(wx.Dialog):
                 return self.conditions
             return
         self.conditions = []
-        keyList = self.data[0] # header = keys of dict
+        keyList = self.data[0]  # header = keys of dict
         for row in self.data[1:]:
             condition = {}
             for col, key in enumerate(keyList):
                 condition[key] = row[col]
             self.conditions.append(condition)
         return self.conditions
+
     def onHelp(self, event=None):
         """similar to self.app.followLink() to self.helpUrl, but only use url
         """
