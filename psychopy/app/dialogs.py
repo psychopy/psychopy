@@ -1,12 +1,12 @@
-"""This is for general purpose dialogs/widgets, not related to particular functionality
+"""This is for general purpose dialogs/widgets, not particular functionality
 
 MessageDialog:
     a drop-in replacement for wx message dialog (which was buggy on mac)
 GlobSizer:
-    A helpful sizer, built on top of GridBagSizer but with ability to add/remove
+    built on top of GridBagSizer but with ability to add/remove
     rows. Needed for the ListWidget
 ListWidget:
-    A ctrl that takes a list of dictionaries (with identical fields) and allows
+    takes a list of dictionaries (with identical fields) and allows
     the user to add/remove entries. e.g. expInfo control
 """
 
@@ -19,7 +19,7 @@ from psychopy import logging
 
 
 class MessageDialog(wx.Dialog):
-    """For some reason the wx built-in message dialog has some issues on Mac OS X
+    """For some reason the wx built-in message dialog has issues on Mac OS X
     (buttons don't always work) so we need to use this instead.
     """
 
@@ -27,7 +27,8 @@ class MessageDialog(wx.Dialog):
         # select and localize a title
         if not title:
             title = type
-        labels = {'Warning': _translate('Warning'), 'Info': _translate('Info')}
+        labels = {'Warning': _translate('Warning'),
+                  'Info': _translate('Info')}
         try:
             label = labels[title]
         except Exception:
@@ -76,17 +77,17 @@ class MessageDialog(wx.Dialog):
 
 
 class GlobSizer(wx.GridBagSizer):
-    """This is a GridBagSizer that supports adding/removing/inserting rows and columns
-    It was found online, with not clear use license (public domain?).
+    """This is a GridBagSizer that supports adding/removing/inserting rows and
+    columns. It was found online, with not clear use license (public domain?).
     Appears to have been written by e.a.tacao <at> estadao.com.br
     """
 
     def __init__(self, *args, **kwargs):
         self.win = kwargs.pop("win", None)
-        # This is here because we need to be able to find out whether a row/col
-        # is growable. We also override the AddGrowableRow/Col and
-        # RemoveGrowableRow/Col methods, as well as create new methods to handle
-        # growable row/cols.
+        # This is here because we need to be able to find out whether a
+        # row/col is growable. We also override the AddGrowableRow/Col and
+        # RemoveGrowableRow/Col methods, as well as create new methods to
+        # handle growable row/cols.
         self.growableRows = {}
         self.growableCols = {}
         wx.GridBagSizer.__init__(self, *args, **kwargs)
@@ -96,7 +97,7 @@ class GlobSizer(wx.GridBagSizer):
         objs = {}
         for item in self.GetChildren():
             span = item.GetSpan().Get()
-            if span <> (1, 1):
+            if span != (1, 1):
                 objs[item.GetWindow()] = span
                 item.SetSpan((1, 1))
         return objs
@@ -236,8 +237,8 @@ class GlobSizer(wx.GridBagSizer):
         # As for the horizontally spanned objects in the given col,
         # we'll need to respan them later with an increased col span
         # (increased by 1 col).
-        # 1. Get a reference of the horizontally spanned objects on this col and
-        #    their span, incrementing their col span by 1.
+        # 1. Get a reference of the horizontally spanned objects on this col
+        #    and their span, incrementing their col span by 1.
         _update_span = {}
         for r in range(0, self.GetRows()):
             item = self.FindItemAtPosition((r, col))
@@ -309,8 +310,8 @@ class GlobSizer(wx.GridBagSizer):
         # we'll need to move them somewhere safe (so that their objects
         # won't be destroyed as we destroy the row itself) and respan
         # them later with a reduced col span (decreased by 1 col).
-        # 1. Get a reference of the horizontally spanned objects on this col and
-        #    their span, decrementing their col span by 1.
+        # 1. Get a reference of the horizontally spanned objects on this col
+        #    and their span, decrementing their col span by 1.
         _update_span = {}
         for r in range(0, self.GetRows()):
             item = self.FindItemAtPosition((r, col))
@@ -461,7 +462,7 @@ class GlobSizer(wx.GridBagSizer):
         # which controls whether rows should be shifted down (shiftDirection =
         # wx.VERTICAL) or left (shiftDirection = wx.HORIZONTAL).
         #
-        # That kwarg is just a hint and won't force shifting; instead, shifting
+        # That kwarg is just a hint and won't force shifting; shifting
         # will only take place if the position passed is already occupied by
         # another control.
         #
@@ -497,7 +498,8 @@ class ListWidget(GlobSizer):
         self.parent = parent
         self.value = value or [{}]
         if type(value) != list or len(value) < 1:
-            raise AttributeError, 'The initial value for a ListWidget needs to be a list of dicts'
+            msg = 'The initial value for a ListWidget must be a list of dicts'
+            raise AttributeError, msg
         # sort fieldNames using order information where possible
         allNames = value[0].keys()
         self.fieldNames = []
@@ -505,8 +507,9 @@ class ListWidget(GlobSizer):
             order = []
         for name in order:
             if name not in allNames:
-                logging.error(
-                    'psychopy.dialogs.ListWidget was given a field name `%s` in order that was not in the dictionary' % name)
+                msg = ('psychopy.dialogs.ListWidget was given a field name '
+                    '`%s` in order that was not in the dictionary')
+                logging.error(msg % name)
                 continue
             allNames.remove(name)
             self.fieldNames.append(name)
@@ -518,8 +521,8 @@ class ListWidget(GlobSizer):
     def createGrid(self):
         row = 0
         for col, field in enumerate(self.fieldNames):
-            self.Add(wx.StaticText(self.parent, -1,
-                                   label=_translate(field)), (row, col), flag=wx.ALL)
+            self.Add(wx.StaticText(self.parent, -1, label=_translate(field)),
+                                   (row, col), flag=wx.ALL)
         for entry in self.value:
             row += 1
             self.addEntryCtrls(row, entry)
@@ -578,9 +581,12 @@ class ListWidget(GlobSizer):
         return self.getListOfDicts()
 
     def SetToolTipString(self, tip):
-        """This isn't implemented yet - set every control to have the same tooltip?
+        """This isn't implemented yet.
+        Set every control to have the same tooltip?
         """
         pass
+
+
 if __name__ == '__main__':
     if wx.version() < '2.9':
         app = wx.PySimpleApp()

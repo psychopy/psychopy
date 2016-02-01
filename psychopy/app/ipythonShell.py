@@ -9,20 +9,19 @@ class ShellFrame(wx.Frame):
         self.frameType = 'shell'
         # things the user doesn't set like winsize etc
         self.appData = self.app.prefs.appData['coder']
-        self.prefs = self.app.prefs.coder  # things about the coder that get set
+        self.prefs = self.app.prefs.coder
         self.appPrefs = self.app.prefs.app
         self.paths = self.app.prefs.paths
         self.IDs = self.app.IDs
 
-        wx.Frame.__init__(self, parent, ID, title,
-                          size=((600, 400)))
+        wx.Frame.__init__(self, parent, ID, title, size=((600, 400)))
         self.sizer = wx.BoxSizer()
 
-        self.ipython = IPython.gui.wx.ipython_view.IPShellWidget(parent=self,
-                                                                 background_color='WHITE',
-                                                                 )
+        IPShell = IPython.gui.wx.ipython_view.IPShellWidget
+        self.ipython = IPShell(parent=self, background_color='WHITE',)
         # turn off threading - interferes with pygame thread
         self.ipython.options['threading']['value'] = 'False'
+        tracker = self.ipython.updateOptionTracker
         self.ipython.IP.set_threading(False)
         self.ipython.threading_option.SetValue(False)
         # allow a write fmethod for the window
@@ -35,15 +34,14 @@ class ShellFrame(wx.Frame):
         self.ipython.text_ctrl.setBackgroundColor(
             self.ipython.options['background_color']['value'])
         self.ipython.background_option.SetValue(True)
-        self.ipython.updateOptionTracker('background_color',
-                                         self.ipython.options['background_color']['value'])
+        tracker('background_color',
+                self.ipython.options['background_color']['value'])
         # scintilla autocompletion method
         self.ipython.completion_option.SetValue(True)
         self.ipython.options['completion']['value'] = 'STC'
         self.ipython.text_ctrl.setCompletionMethod(
             self.ipython.options['completion']['value'])
-        self.ipython.updateOptionTracker('completion',
-                                         self.ipython.options['completion']['value'])
+        tracker('completion', self.ipython.options['completion']['value'])
         self.ipython.text_ctrl.SetFocus()
 
         self.sizer.Add(self.ipython, 0, wx.EXPAND)
