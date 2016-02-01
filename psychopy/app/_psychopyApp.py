@@ -14,7 +14,7 @@ if not hasattr(sys, 'frozen'):
         import wxversion
         haveWxVersion = True
     except ImportError:
-        haveWxVersion = False  # if wxversion doesn't exist either then just cross fingers!!
+        haveWxVersion = False  # if wxversion doesn't exist hope for the best
     if haveWxVersion:
         wxversion.ensureMinimal('2.8')  # because this version has agw
 import wx
@@ -39,7 +39,7 @@ import threading
 
 
 class MenuFrame(wx.Frame):
-    """A simple, empty frame with a menubar that should be the last frame to close on a mac
+    """A simple empty frame with a menubar, should be last frame closed on mac
     """
 
     def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy2"):
@@ -50,14 +50,19 @@ class MenuFrame(wx.Frame):
 
         self.viewMenu = wx.Menu()
         self.menuBar.Append(self.viewMenu, _translate('&View'))
-        self.viewMenu.Append(self.app.IDs.openBuilderView, _translate("&Open Builder view\t%s") % self.app.keys[
-                             'switchToBuilder'], _translate("Open a new Builder view"))
+        mtxt = _translate("&Open Builder view\t%s")
+        self.viewMenu.Append(self.app.IDs.openBuilderView,
+                             mtxt % self.app.keys['switchToBuilder'],
+                             _translate("Open a new Builder view"))
         wx.EVT_MENU(self, self.app.IDs.openBuilderView,  self.app.showBuilder)
-        self.viewMenu.Append(self.app.IDs.openCoderView, _translate(
-            "&Open Coder view\t%s") % self.app.keys['switchToCoder'], _translate("Open a new Coder view"))
+        mtxt = _translate("&Open Coder view\t%s")
+        self.viewMenu.Append(self.app.IDs.openCoderView,
+                             mtxt % self.app.keys['switchToCoder'],
+                             _translate("Open a new Coder view"))
         wx.EVT_MENU(self, self.app.IDs.openCoderView,  self.app.showCoder)
-        item = self.viewMenu.Append(wx.ID_EXIT, _translate("&Quit\t%s") % self.app.keys[
-                                    'quit'], _translate("Terminate the program"))
+        mtxt = _translate("&Quit\t%s")
+        item = self.viewMenu.Append(wx.ID_EXIT, mtxt % self.app.keys['quit'],
+                                    _translate("Terminate the program"))
         self.Bind(wx.EVT_MENU, self.app.quit, item)
 
         self.SetMenuBar(self.menuBar)
@@ -65,11 +70,11 @@ class MenuFrame(wx.Frame):
 
 
 class _Showgui_Hack(object):
-    """Class with side-effect of restoring wx window switching/launching under wx-3.0
+    """Class with side-effect of restoring wx window switching under wx-3.0
 
     - might only be needed on some platforms (Mac 10.9.4 needs it for me);
     - needs to be launched as an external script
-    - needs to be separate code (seg-faults as method of PsychoPyApp, or in-lined code)
+    - needs to be separate: seg-faults as method of PsychoPyApp or in-lined
     - unlear why it works or what the deeper issue is, blah
     - called at end of PsychoPyApp.onInit()
     """
@@ -79,8 +84,8 @@ class _Showgui_Hack(object):
         from psychopy import core
         import os
         # should be writable:
-        noopPath = os.path.join(psychopy.prefs.paths[
-                                'userPrefsDir'], 'showgui_hack.py')
+        noopPath = os.path.join(psychopy.prefs.paths['userPrefsDir'],
+                                'showgui_hack.py')
         # code to open & immediately close a gui (= invisibly):
         if not os.path.isfile(noopPath):
             code = """from psychopy import gui
@@ -120,29 +125,32 @@ class PsychoPyApp(wx.App):
         self.prefs = psychopy.prefs
         if self.prefs.app['debugMode']:
             logging.console.setLevel(logging.DEBUG)
-        self.testMode = testMode  # indicates whether we're running for testing purposes
+        # indicates whether we're running for testing purposes
+        self.testMode = testMode
 
         if showSplash:
             # show splash screen
             splashFile = os.path.join(
                 self.prefs.paths['resources'], 'psychopySplash.png')
             splashBitmap = wx.Image(name=splashFile).ConvertToBitmap()
-            splash = AS.AdvancedSplash(None, bitmap=splashBitmap, timeout=3000, style=AS.AS_TIMEOUT | wx.FRAME_SHAPED,
-                                       shadowcolour=wx.RED)  # could use this in future for transparency
+            splash = AS.AdvancedSplash(None, bitmap=splashBitmap,
+                                       timeout=3000,
+                                       style=AS.AS_TIMEOUT | wx.FRAME_SHAPED,
+                                       shadowcolour=wx.RED)  # transparency?
             splash.SetTextPosition((10, 240))
             splash.SetText(_translate("  Loading libraries..."))
         else:
             splash = None
 
-        # LONG IMPORTS - these need to be imported after splash screen starts (they're slow)
+        # SLOW IMPORTS - these need to be imported after splash screen starts
         # but then that they end up being local so keep track in self
         if splash:
             splash.SetText(_translate("  Loading PsychoPy2..."))
-        from psychopy import compatibility
+        from psychopy.compatibility import checkCompatibility
         # import coder and builder here but only use them later
         from psychopy.app import coder, builder, dialogs, wxIDs, urls
         self.keys = self.prefs.keys
-        self.prefs.pageCurrent = 0  # track last-viewed page of prefs, to return there
+        self.prefs.pageCurrent = 0  # track last-viewed page, can return there
         self.IDs = wxIDs
         self.urls = urls.urls
         self.quitting = False
@@ -163,16 +171,16 @@ class PsychoPyApp(wx.App):
             self.firstrunWizard()
 
         # setup links for URLs
-        # on a mac, don't exit when the last frame is deleted, just show a menu
+        # on a mac, don't exit when the last frame is deleted, just show menu
         if sys.platform == 'darwin':
             self.menuFrame = MenuFrame(parent=None, app=self)
         # get preferred view(s) from prefs and previous view
         if self.prefs.app['defaultView'] == 'last':
             mainFrame = self.prefs.appData['lastFrame']
         else:
-            # configobjValidate should take care of this situation (?), but
-            # doesn't:
-            if self.prefs.app['defaultView'] in ['last', 'coder', 'builder', 'both']:
+            # configobjValidate should take care of this situation
+            allowed = ['last', 'coder', 'builder', 'both']
+            if self.prefs.app['defaultView'] in allowed:
                 mainFrame = self.prefs.app['defaultView']
             else:
                 self.prefs.app['defaultView'] = 'both'
@@ -182,7 +190,8 @@ class PsychoPyApp(wx.App):
             scripts = self.prefs.appData['coder']['prevFiles']
         else:
             scripts = []
-        if self.prefs.builder['reloadPrevExp'] and ('prevFiles' in self.prefs.appData['builder'].keys()):
+        appKeys = self.prefs.appData['builder'].keys()
+        if self.prefs.builder['reloadPrevExp'] and ('prevFiles' in appKeys):
             exps = self.prefs.appData['builder']['prevFiles']
         else:
             exps = []
@@ -216,7 +225,8 @@ class PsychoPyApp(wx.App):
         if not (50 < self.dpi < 120):
             self.dpi = 80  # dpi was unreasonable, make one up
 
-        if sys.platform == 'win32':  # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32
+        if sys.platform == 'win32':
+            # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32
             self._mainFont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
         else:
             self._mainFont = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
@@ -235,26 +245,28 @@ class PsychoPyApp(wx.App):
         self.coder = None
         self.builderFrames = []
         self.copiedRoutine = None
-        self.allFrames = []  # these are ordered and the order is updated with self.onNewTopWindow
+        self.allFrames = []  # ordered; order updated with self.onNewTopWindow
         if mainFrame in ['both', 'coder']:
             self.showCoder(fileList=scripts)
         if mainFrame in ['both', 'builder']:
             self.showBuilder(fileList=exps)
 
         # send anonymous info to www.psychopy.org/usage.php
-        # please don't disable this - it's important for PsychoPy's development
+        # please don't disable this, it's important for PsychoPy's development
         self._latestAvailableVersion = None
         self.updater = None
-        if self.prefs.connections['checkForUpdates'] or self.prefs.connections['allowUsageStats']:
+        prefsConn = self.prefs.connections
+        if prefsConn['checkForUpdates'] or prefsConn['allowUsageStats']:
             connectThread = threading.Thread(
                 target=connections.makeConnections, args=(self,))
             connectThread.start()
 
-        ok, msg = compatibility.checkCompatibility(
-            last, self.version, self.prefs, fix=True)
-        if not ok and not self.firstRun and not self.testMode:  # tell the user what has changed
-            dlg = dialogs.MessageDialog(
-                parent=None, message=msg, type='Info', title=_translate("Compatibility information"))
+        ok, msg = checkCompatibility(last, self.version, self.prefs, fix=True)
+        # tell the user what has changed
+        if not ok and not self.firstRun and not self.testMode:
+            title = _translate("Compatibility information")
+            dlg = dialogs.MessageDialog(parent=None, message=msg, type='Info',
+                                        title=title)
             dlg.ShowModal()
 
         if self.prefs.app['showStartupTips'] and not self.testMode:
@@ -296,15 +308,14 @@ class PsychoPyApp(wx.App):
 
     def firstrunWizard(self):
         self._wizard('--config', '--firstrun')
-        # wizard typically creates html report file, but user can manually skip
+        # wizard typically creates html report file but user can manually skip
         reportPath = os.path.join(
             self.prefs.paths['userPrefsDir'], 'firstrunReport.html')
         if os.path.exists(reportPath):
             report = open(reportPath, 'r').read()
             if 'Configuration problem' in report:
-                # fatal error was encountered (currently only if bad drivers), so
-                # before psychopy shuts down, ensure wizard will be triggered
-                # again:
+                # fatal error was encountered (currently only if bad drivers)
+                # ensure wizard will be triggered again:
                 del self.prefs.appData['lastVersion']
                 self.prefs.saveAppData()
 
@@ -315,8 +326,8 @@ class PsychoPyApp(wx.App):
         from psychopy import gui
         from psychopy.tools.filetools import fromFile
 
-        names = gui.fileOpenDlg(allowed='*.psydat',
-                                prompt=_translate("Select .psydat file(s) to extract"))
+        prompt = _translate("Select .psydat file(s) to extract")
+        names = gui.fileOpenDlg(allowed='*.psydat', prompt=prompt)
         for name in names or []:
             filePsydat = os.path.abspath(name)
             print("psydat: {0}".format(filePsydat))
@@ -389,8 +400,9 @@ class PsychoPyApp(wx.App):
         # have to reimport because it is ony local to __init__ so far
         from psychopy.app import coder
         if self.coder is None:
+            title = "PsychoPy2 Coder (IDE) (v%s)"
             self.coder = coder.CoderFrame(None, -1,
-                                          title="PsychoPy2 Coder (IDE) (v%s)" % self.version,
+                                          title=title % self.version,
                                           files=fileList, app=self)
         self.coder.Show(True)
         self.SetTopWindow(self.coder)
@@ -402,8 +414,9 @@ class PsychoPyApp(wx.App):
     def newBuilderFrame(self, event=None, fileName=None):
         # have to reimport because it is ony local to __init__ so far
         from psychopy.app import builder
+        title = "PsychoPy2 Experiment Builder (v%s)"
         thisFrame = builder.BuilderFrame(None, -1,
-                                         title="PsychoPy2 Experiment Builder (v%s)" % self.version,
+                                         title=title % self.version,
                                          fileName=fileName, app=self)
         thisFrame.Show(True)
         thisFrame.Raise()
@@ -428,7 +441,8 @@ class PsychoPyApp(wx.App):
             thisFrame.Raise()
             self.SetTopWindow(thisFrame)
     # def showShell(self, event=None):
-    #    from psychopy.app import ipythonShell#have to reimport because it is ony local to __init__ so far
+    #    from psychopy.app import ipythonShell  # have to reimport because
+    #        # it is ony local to __init__ so far
     #    if self.shell is None:
     #        self.shell = ipythonShell.ShellFrame(None, -1,
     #            title="IPython in PsychoPy (v%s)" %self.version, app=self)
@@ -439,22 +453,23 @@ class PsychoPyApp(wx.App):
     #    self.shell.SetFocus()
 
     def openIPythonNotebook(self, event=None):
-        """Note that right now this is bad because it ceases all activity in the
-        main wx loop and the app has to be quit. We need it to run from a separate
-        process? The necessary depends (zmq and tornado) were included from v1.78
-        onwards in the standalone
+        """Note that right now this is bad because it ceases all activity in
+        the main wx loop and the app has to be quit. We need it to run from
+        a separate process? The necessary depends (zmq and tornado) were
+        included from v1.78 onwards in the standalone
         """
-        import IPython.frontend.html.notebook.notebookapp
-        instance = IPython.frontend.html.notebook.notebookapp.launch_new_instance()
+        import IPython.frontend.html.notebook.notebookapp as nb
+        instance = nb.launch_new_instance()
 
     def openUpdater(self, event=None):
         from psychopy.app import connections
         dlg = connections.InstallUpdateDialog(parent=None, ID=-1, app=self)
 
     def colorPicker(self, event=None):
-        """Opens system color-picker, sets clip-board and parent.new_rgb = string [r,g,b].
+        """Open color-picker, sets clip-board to string [r,g,b].
 
-        Note: units are psychopy -1..+1 rgb units to three decimal places, preserving 24-bit color
+        Note: units are psychopy -1..+1 rgb units to three decimal places,
+        preserving 24-bit color.
         """
         class ColorPicker(wx.Panel):
 
@@ -469,8 +484,8 @@ class PsychoPyApp(wx.App):
                     rgb = map(lambda x: "%.3f" %
                               ((x - 127.5) / 127.5), list(rgb))
                     rgb = '[' + ','.join(rgb) + ']'
+                    # http://wiki.wxpython.org/AnotherTutorial#wx.TheClipboard
                     if wx.TheClipboard.Open():
-                        # http://wiki.wxpython.org/AnotherTutorial#wx.TheClipboard
                         wx.TheClipboard.Clear()
                         wx.TheClipboard.SetData(wx.TextDataObject(str(rgb)))
                         wx.TheClipboard.Close()
@@ -479,9 +494,9 @@ class PsychoPyApp(wx.App):
         frame = wx.Frame(None, wx.ID_ANY, "Color picker",
                          size=(0, 0))  # not shown
         ColorPicker(frame)
-        new_rgb = frame.new_rgb  # string; also on system clipboard, try wx.TheClipboard
+        new_rgb = frame.new_rgb
         frame.Destroy()
-        return new_rgb
+        return new_rgb  # string
 
     def openMonitorCenter(self, event):
         from psychopy.monitors import MonitorCenter
@@ -519,20 +534,20 @@ class PsychoPyApp(wx.App):
             tx_data = msgpack.Packer().pack(('STOP_IOHUB_SERVER',))
             return sock.sendto(tx_data, iohub_address)
         except socket.error as e:
-            logging.debug(
-                'PsychoPyApp: terminateHubProcess socket.error: %s' % (str(e)))
+            msg = 'PsychoPyApp: terminateHubProcess socket.error: %s'
+            logging.debug(msg % str(e))
         except socket.herror as e:
-            logging.debug(
-                'PsychoPyApp: terminateHubProcess socket.herror: %s' % (str(e)))
+            msg = 'PsychoPyApp: terminateHubProcess socket.herror: %s'
+            logging.debug(msg % str(e))
         except socket.gaierror as e:
-            logging.debug(
-                'PsychoPyApp: terminateHubProcess socket.gaierror: %s' % (str(e)))
+            msg = 'PsychoPyApp: terminateHubProcess socket.gaierror: %s'
+            logging.debug(msg % str(e))
         except socket.timeout as e:
-            logging.debug(
-                'PsychoPyApp: terminateHubProcess socket.timeout: %s' % (str(e)))
+            msg = 'PsychoPyApp: terminateHubProcess socket.timeout: %s'
+            logging.debug(msg % str(e))
         except Exception as e:
-            logging.debug(
-                'PsychoPyApp: terminateHubProcess exception: %s' % (str(e)))
+            msg = 'PsychoPyApp: terminateHubProcess exception: %s'
+            logging.debug(msg % str(e))
         finally:
             if sock:
                 sock.close()
@@ -569,7 +584,8 @@ class PsychoPyApp(wx.App):
         for frame in list(self.allFrames):
             try:
                 frame.closeFrame(event=event, checkSave=False)
-                self.prefs.saveAppData()  # must do this before destroying the frame?
+                # must do this before destroying the frame?
+                self.prefs.saveAppData()
             except Exception:
                 pass  # we don't care if this fails - we're quitting anyway
         self.Exit()
@@ -585,17 +601,17 @@ class PsychoPyApp(wx.App):
 
         license = open(os.path.join(self.prefs.paths[
                        'psychopy'], 'LICENSE.txt'), 'rU').read()
-        msg = _translate("""For stimulus generation and experimental control in python.
+        msg = """For stimulus generation and experimental control in python.
 
             PsychoPy depends on your feedback. If something doesn't work
-            then let us know at psychopy-users@googlegroups.com""").replace('    ', '')
+            then let us know at psychopy-users@googlegroups.com"""
         info = wx.AboutDialogInfo()
         if wx.version() >= '3.':
             icon = os.path.join(self.prefs.paths['resources'], 'psychopy.png')
             info.SetIcon(wx.Icon(icon, wx.BITMAP_TYPE_PNG, 128, 128))
         info.SetName('PsychoPy')
         info.SetVersion('v' + psychopy.__version__)
-        info.SetDescription(msg)
+        info.SetDescription(_translate(msg).replace('    ', ''))
 
         info.SetCopyright('(C) 2002-2015 Jonathan Peirce')
         info.SetWebSite('http://www.psychopy.org')
@@ -616,7 +632,7 @@ class PsychoPyApp(wx.App):
             wx.AboutBox(info)
 
     def followLink(self, event=None, url=None):
-        """Follow either an event id (which should be a key to a url defined in urls.py)
+        """Follow either an event id (= a key to an url defined in urls.py)
         or follow a complete url (a string beginning "http://")
         """
         if event != None:
@@ -626,5 +642,6 @@ class PsychoPyApp(wx.App):
 
 
 if __name__ == '__main__':
-    sys.exit(
-        "Do not launch the app from this script - use python psychopyApp.py instead")
+    # never run; stopped earlier at cannot do relative import in a non-package
+    sys.exit("Do not launch the app from this script -"
+             "use python psychopyApp.py instead")
