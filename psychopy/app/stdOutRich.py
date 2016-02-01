@@ -9,11 +9,10 @@ class StdOutRich(wx.richtext.RichTextCtrl):
     """
 
     def __init__(self, parent, style, size=None, font=None, fontSize=None):
-        if size is None:
-            wx.richtext.RichTextCtrl.__init__(self, parent=parent, style=style)
-        else:
-            wx.richtext.RichTextCtrl.__init__(
-                self, parent=parent, style=style, size=size)
+        kwargs = {'parent': parent, 'style': style}
+        if size is not None:
+            kwargs['size'] = size
+        wx.richtext.RichTextCtrl.__init__(self, **kwargs)
 
         if font and fontSize:
             currFont = self.GetFont()
@@ -64,14 +63,15 @@ class StdOutRich(wx.richtext.RichTextCtrl):
         self.ShowPosition(self.GetLastPosition())
 
     def flush(self):
-        pass  # we need this so that stdout has a flush method, but can't do much with it
+        pass  # needed so stdout has a flush method, but can't do much with it
 
 
 class StdOutFrame(wx.Frame):
     """A frame for holding stdOut/stdErr with ability to save and clear
     """
 
-    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy output", size=wx.DefaultSize):
+    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy output",
+                 size=wx.DefaultSize):
         wx.Frame.__init__(self, parent, ID, title, size=size)
         panel = wx.Panel(self)
 
@@ -83,14 +83,16 @@ class StdOutFrame(wx.Frame):
 
         self.menuBar = wx.MenuBar()
         self.fileMenu = wx.Menu()
-#        item = self.fileMenu.Append(wx.ID_SAVE,   "&Save output window\t%s" %app.keys['save'])
-#        self.Bind(wx.EVT_MENU, self.save, item)
-        item = self.fileMenu.Append(wx.ID_CLOSE,   _translate(
-            "&Close output window\t%s") % app.keys['close'])
+        # item = self.fileMenu.Append(wx.ID_SAVE,
+        # "&Save output window\t%s" %app.keys['save'])
+        # self.Bind(wx.EVT_MENU, self.save, item)
+        mtxt = _translate("&Close output window\t%s") % app.keys['close']
+        item = self.fileMenu.Append(wx.ID_CLOSE, mtxt)
         self.Bind(wx.EVT_MENU, self.closeFrame, item)
         self.fileMenu.AppendSeparator()
-        item = self.fileMenu.Append(wx.ID_EXIT, _translate("&Quit (PsychoPy)\t%s") % app.keys[
-                                    'quit'], _translate("Terminate the application"))
+        mtxt = _translate("&Quit (PsychoPy)\t%s")
+        item = self.fileMenu.Append(wx.ID_EXIT, mtxt % app.keys['quit'],
+                                    _translate("Terminate the application"))
         self.Bind(wx.EVT_MENU, self.quit, item)
 
         self.menuBar.Append(self.fileMenu, _translate("&File"))
@@ -114,9 +116,9 @@ class StdOutFrame(wx.Frame):
         return 1
 
     def closeFrame(self, checkSave=False):
-        # the app (or frame of the app) should control the redirection of stdout,
-        # but just in case the user closes the window while it is receiving input
-        # we should direct it back to orig
+        # the app (or frame of the app) should control redirection of stdout,
+        # but just in case the user closes the window while it is receiving
+        # input we should direct it back to orig
         sys.stdout = self.stdoutOrig
         sys.stderr = self.stderrOrig
         self.Hide()

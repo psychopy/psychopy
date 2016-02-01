@@ -1,4 +1,5 @@
 import wx
+
 # create wx event/object IDs
 exit = wx.NewId()
 # edit menu
