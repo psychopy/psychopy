@@ -1783,6 +1783,21 @@ MovieComponent.units.hint:Units of dimensions for this stimulus
 MovieComponent.units.allowedUpdates:None
 MovieComponent.units.__class__:<class 'psychopy.app.builder.experiment.Param'>
 MovieComponent.units.label:Units
+MovieComponent.No audio.default:False
+MovieComponent.No audio.categ:Basic
+MovieComponent.No audio.allowedVals:[]
+MovieComponent.No audio.readOnly:False
+MovieComponent.No audio.updates:None
+MovieComponent.No audio.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': False, 'hint': 'Prevent the audio stream from being loaded/processed (moviepy and opencv only)', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': [], 'label': 'No audio', 'readOnly': False, 'updates': None, 'valType': 'bool'}
+MovieComponent.No audio.__weakref__:None
+MovieComponent.No audio.valType:bool
+MovieComponent.No audio.staticUpdater:None
+MovieComponent.No audio.val:False
+MovieComponent.No audio.allowedTypes:[]
+MovieComponent.No audio.hint:Prevent the audio stream from being loaded/processed (moviepy and opencv only)
+MovieComponent.No audio.allowedUpdates:None
+MovieComponent.No audio.__class__:<class 'psychopy.app.builder.experiment.Param'>
+MovieComponent.No audio.label:No audio
 MovieComponent.startType.default:'time (s)'
 MovieComponent.startType.categ:Basic
 MovieComponent.startType.allowedVals:['time (s)', 'frame N', 'condition']
@@ -1843,16 +1858,16 @@ MovieComponent.startVal.hint:When does the component start?
 MovieComponent.startVal.allowedUpdates:None
 MovieComponent.startVal.__class__:<class 'psychopy.app.builder.experiment.Param'>
 MovieComponent.startVal.label:Start
-MovieComponent.backend.default:'avbin'
+MovieComponent.backend.default:'moviepy'
 MovieComponent.backend.categ:Basic
 MovieComponent.backend.allowedVals:['moviepy', 'avbin', 'opencv']
 MovieComponent.backend.readOnly:False
 MovieComponent.backend.updates:None
-MovieComponent.backend.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'avbin', 'hint': u'What underlying lib to use for loading movies', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['moviepy', 'avbin', 'opencv'], 'label': u'backend', 'readOnly': False, 'updates': None, 'valType': 'str'}
+MovieComponent.backend.__dict__:{'staticUpdater': None, 'categ': 'Basic', 'val': 'moviepy', 'hint': u'What underlying lib to use for loading movies', 'allowedTypes': [], 'allowedUpdates': None, 'allowedVals': ['moviepy', 'avbin', 'opencv'], 'label': u'backend', 'readOnly': False, 'updates': None, 'valType': 'str'}
 MovieComponent.backend.__weakref__:None
 MovieComponent.backend.valType:str
 MovieComponent.backend.staticUpdater:None
-MovieComponent.backend.val:avbin
+MovieComponent.backend.val:moviepy
 MovieComponent.backend.allowedTypes:[]
 MovieComponent.backend.hint:What underlying lib to use for loading movies
 MovieComponent.backend.allowedUpdates:None
