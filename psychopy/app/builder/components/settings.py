@@ -269,5 +269,14 @@ class SettingsComponent(object):
     def writeEndCode(self,buff):
         """write code for end of experiment (e.g. close log file)
         """
+        buff.writeIndented("# these shouldn't be strictly necessary (should auto-save)\n")
+        if self.params['Save wide csv file'].val:
+            buff.writeIndented("thisExp.saveAsWideText(filename+'.csv')\n")
+        if self.params['Save psydat file'].val:
+            buff.writeIndented("thisExp.saveAsPickle(filename)\n")
+        if self.params['Save log file'].val:
+            buff.writeIndented("logging.flush()\n")
+        buff.writeIndented("# make sure everything is closed down\n")
+        buff.writeIndented("thisExp.abort() # or data files will save again on exit\n")
         buff.writeIndented("win.close()\n")
         buff.writeIndented("core.quit()\n")
