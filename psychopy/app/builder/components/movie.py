@@ -22,7 +22,8 @@ class MovieComponent(VisualComponent):
                 startType='time (s)', startVal=0.0,
                 stopType='duration (s)', stopVal=1.0,
                 startEstim='', durationEstim='',
-                forceEndRoutine=False, backend='avbin'):
+                forceEndRoutine=False, backend='moviepy',
+                noAudio=False):
         #initialise main parameters from base stimulus
         super(MovieComponent, self).__init__(exp,parentName,name=name, units=units,
                     pos=pos, size=size, ori=ori,
@@ -42,6 +43,9 @@ class MovieComponent(VisualComponent):
         self.params['backend']=Param(backend, valType='str', allowedVals=['moviepy','avbin','opencv'],
             hint=_translate("What underlying lib to use for loading movies"),
             label=_localized['backend'])
+        self.params["No audio"]=Param(noAudio, valType='bool', 
+            hint="Prevent the audio stream from being loaded/processed (moviepy and opencv only)",
+            label='No audio')
         self.params['forceEndRoutine']=Param(forceEndRoutine, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=_translate("Should the end of the movie cause the end of the routine (e.g. trial)?"),
@@ -64,10 +68,12 @@ class MovieComponent(VisualComponent):
             params = self.params
         if self.params['backend'].val=='moviepy':
             buff.writeIndented("%s = visual.MovieStim3(win=win, name='%s',%s\n" %(params['name'],params['name'],unitsStr))
+            buff.writeIndented("    noAudio = %(No audio)s,\n" %(params))
         elif self.params['backend'].val=='avbin':
             buff.writeIndented("%s = visual.MovieStim(win=win, name='%s',%s\n" %(params['name'],params['name'],unitsStr))
         else:
             buff.writeIndented("%s = visual.MovieStim2(win=win, name='%s',%s\n" %(params['name'],params['name'],unitsStr))
+            buff.writeIndented("    noAudio = %(No audio)s,\n" %(params))
         buff.writeIndented("    filename=%(movie)s,\n" %(params))
         buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n" %(params))
         if self.params['size'].val != '':
