@@ -5,13 +5,17 @@
 from __future__ import absolute_import
 
 import sys
-import re, glob
-import time, platform, zipfile, os
+import re
+import glob
+import time
+import platform
+import zipfile
+import os
 import wx
 import wx.lib.filebrowsebutton
 try:
     import wx.lib.agw.hyperlink as wxhl
-except ImportError: # if it's not there locally, try the wxPython lib
+except ImportError:  # if it's not there locally, try the wxPython lib
     import wx.lib.hyperlink as wxhl
 
 import psychopy
@@ -19,28 +23,30 @@ from . import dialogs
 from psychopy import logging
 from psychopy import web
 py3 = web.py3
-io = web.io #fixed for py2 or py3
+io = web.io  # fixed for py2 or py3
 urllib = web.urllib
 
 versionURL = "http://www.psychopy.org/version.txt"
 
 """The Updater class checks for updates and suggests that an update is carried
-out if a new version is found. The actual updating is handled by InstallUpdateDialog
-(via Updater.doUpdate() ).
+out if a new version is found. The actual updating is handled by
+InstallUpdateDialog (via Updater.doUpdate() ).
 """
 
+
 def makeConnections(app):
-    """A helper function to be launched from a thread. Will setup proxies and check for updates.
-    Should be run from a thread while the program continues to load.
+    """A helper function to be launched from a thread. Will setup proxies and
+    check for updates. Run from a thread while the program continues to load.
     """
     if web.proxies is None:
         web.setupProxy()
-    if web.proxies==0:
+    if web.proxies == 0:
         return
     if app.prefs.connections['allowUsageStats']:
         sendUsageStats()
     if app.prefs.connections['checkForUpdates']:
         app._latestAvailableVersion = getLatestVersionInfo()
+
 
 def getLatestVersionInfo():
     """
@@ -51,140 +57,178 @@ def getLatestVersionInfo():
         page = urllib.request.urlopen(versionURL)
     except urllib.error.URLError:
         return -1
-    #parse update file as a dictionary
-    latest={}
+    # parse update file as a dictionary
+    latest = {}
     for line in page.readlines():
-        #in some odd circumstances (wifi hotspots) you might successfully fetch a
-        #page that is not the correct URL but a redirect
-        if line.find(':')==-1:
+        # in some odd circumstances (wifi hotspots) you can fetch a
+        # page that is not the correct URL but a redirect
+        if line.find(':') == -1:
             return -1
-            #this will succeed if every line has a key
+            # this will succeed if every line has a key
         key, keyInfo = line.split(':')
-        latest[key]=keyInfo.replace('\n', '').replace('\r', '')
+        latest[key] = keyInfo.replace('\n', '').replace('\r', '')
     return latest
 
+
 class Updater(object):
-    def __init__(self,app=None, runningVersion=None):
-        """The updater will check for updates and download/install them if necess.
+
+    def __init__(self, app=None, runningVersion=None):
+        """The updater will check for updates and download/install as needed.
         Several dialogs may be created as needed during the process.
 
         Usage::
 
             if app.prefs['AutoUpdate']:
-                app.updates=Updater(app)
-                app.updater.checkForUpdates()#if updates are found further dialogs will prompt
+                app.updates = Updater(app)
+                app.updater.checkForUpdates()
+                # if updates are found further dialogs will prompt
         """
         super(Updater, self).__init__()
-        self.app=app
-        if runningVersion is None:  self.runningVersion=psychopy.__version__
-        else:  self.runningVersion=runningVersion
+        self.app = app
+        if runningVersion is None:
+            self.runningVersion = psychopy.__version__
+        else:
+            self.runningVersion = runningVersion
 
         #self.headers = {'User-Agent' : psychopy.constants.PSYCHOPY_USERAGENT}
-        self.latest=None
+        self.latest = None
         if web.proxies is None:
             web.setupProxy()
 
     def getLatestInfo(self, warnMsg=False):
-        #open page
-        latest=getLatestVersionInfo()
-        if latest==-1:
-            msg=_translate("Couldn't connect to psychopy.org to check for updates. \n")+\
-                _translate("Check internet settings (and proxy setting in PsychoPy Preferences).")
-            confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title=_translate('PsychoPy updates'))
+        # open page
+        latest = getLatestVersionInfo()
+        if latest == -1:
+            m1 = "Couldn't connect to psychopy.org to check for updates. \n"
+            m2 = "Check internet settings (and proxy setting in PsychoPy Preferences)."
+            msg = _translate(m1) + _translate(m2)
+            confirmDlg = dialogs.MessageDialog(
+                parent=None, message=msg, type='Info',
+                title=_translate('PsychoPy updates'))
             confirmDlg.ShowModal()
         return latest
-    def suggestUpdate(self, confirmationDlg=False):
-        """Query user about whether to update (if it's possible to do the update)
-        """
-        if self.latest is None:#we haven't checked for updates yet
-            self.latest=self.getLatestInfo()
 
-        if self.latest==-1: return -1#failed to find out about updates
-        #have found 'latest'. Is it newer than running version?
-        if self.latest['version']>self.runningVersion and not (self.app.prefs.appData['skipVersion']==self.latest['version']):
-            if self.latest['lastUpdatable']<=self.runningVersion:
-                #go to the updating window
-                confirmDlg = SuggestUpdateDialog(self.latest, self.runningVersion)
-                resp=confirmDlg.ShowModal()
+    def suggestUpdate(self, confirmationDlg=False):
+        """Query user about whether to update (if it's possible to update)
+        """
+        if self.latest is None:  # we haven't checked for updates yet
+            self.latest = self.getLatestInfo()
+
+        if self.latest == -1:
+            return -1  # failed to find out about updates
+        # have found 'latest'. Is it newer than running version?
+        newer = self.latest['version'] > self.runningVersion
+        skip = self.app.prefs.appData['skipVersion'] == self.latest['version']
+        if newer and not skip:
+            if self.latest['lastUpdatable'] <= self.runningVersion:
+                # go to the updating window
+                confirmDlg = SuggestUpdateDialog(
+                    self.latest, self.runningVersion)
+                resp = confirmDlg.ShowModal()
                 confirmDlg.Destroy()
-                #what did the user ask us to do?
-                if resp==wx.ID_CANCEL:
-                    return 0#do nothing
-                if resp==wx.ID_NO:
-                    self.app.prefs.appData['skipVersion']=self.latest['version']
+                # what did the user ask us to do?
+                if resp == wx.ID_CANCEL:
+                    return 0  # do nothing
+                if resp == wx.ID_NO:
+                    self.app.prefs.appData[
+                        'skipVersion'] = self.latest['version']
                     self.app.prefs.saveAppData()
-                    return 0#do nothing
-                if resp==wx.ID_YES:
+                    return 0  # do nothing
+                if resp == wx.ID_YES:
                     self.doUpdate()
             else:
-                #the latest version needs a full install, rather than an autoupdate
-                msg = _translate("PsychoPy v%(latest)s is available (you are running %(running)s).\n\n") % {'latest':self.latest['version'], 'running':self.runningVersion}
-                msg+= _translate("This version is too big an update to be handled automatically.\n")
-                msg+= _translate("Please fetch the latest version from www.psychopy.org and install manually.")
-                confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Warning', title=_translate('PsychoPy updates'))
+                # the latest version needs a full install, not autoupdate
+                msg = _translate("PsychoPy v%(latest)s is available (you are running %(running)s).\n\n")
+                msg = msg % {'latest': self.latest['version'],
+                             'running': self.runningVersion}
+                msg += _translate("This version is too big an update to be handled automatically.\n")
+                msg += _translate("Please fetch the latest version from www.psychopy.org and install manually.")
+                confirmDlg = dialogs.MessageDialog(
+                    parent=None, message=msg, type='Warning',
+                    title=_translate('PsychoPy updates'))
                 confirmDlg.cancelBtn.SetLabel(_translate('Go to downloads'))
                 confirmDlg.cancelBtn.SetDefault()
                 confirmDlg.noBtn.SetLabel(_translate('Go to changelog'))
                 confirmDlg.yesBtn.SetLabel(_translate('Later'))
-                resp=confirmDlg.ShowModal()
+                resp = confirmDlg.ShowModal()
                 confirmDlg.Destroy()
-                if resp==wx.ID_CANCEL:
+                if resp == wx.ID_CANCEL:
                     self.app.followLink(url=self.app.urls['downloads'])
-                if resp==wx.ID_NO:
+                if resp == wx.ID_NO:
                     self.app.followLink(url=self.app.urls['changelog'])
-        elif not confirmationDlg:#do nothing
+        elif not confirmationDlg:  # do nothing
             return 0
         else:
-            msg= _translate("You are running the latest version of PsychoPy (%s). ") %(self.runningVersion)
-            confirmDlg = dialogs.MessageDialog(parent=None,message=msg,type='Info', title=_translate('PsychoPy updates'))
+            txt = "You are running the latest version of PsychoPy (%s). "
+            msg = _translate(txt) % self.runningVersion
+            confirmDlg = dialogs.MessageDialog(
+                parent=None, message=msg, type='Info',
+                title=_translate('PsychoPy updates'))
             confirmDlg.ShowModal()
             return -1
+
     def doUpdate(self):
-        """Should be called from suggestUpdate (separate dialog to ask user whether they want to)
+        """Should be called from suggestUpdate
+        (separate dialog to ask user whether they want to)
         """
-        dlg=InstallUpdateDialog(None,-1, app=self.app)#app contains a reciprocal pointer to this Updater object
+        # app contains a reciprocal pointer to this Updater object
+        dlg = InstallUpdateDialog(None, -1, app=self.app)
+
 
 class SuggestUpdateDialog(wx.Dialog):
-    """A dialog explaining that a new version is available with a link to the changelog
+    """A dialog explaining that a new version is available
+    with a link to the changelog
     """
-    def __init__(self,latest,runningVersion):
-        wx.Dialog.__init__(self,None,-1,title='PsychoPy2 Updates')
-        sizer=wx.BoxSizer(wx.VERTICAL)
 
-        #info about current version
-        msg1 = wx.StaticText(self,-1,style=wx.ALIGN_CENTRE,
-            label=_translate("PsychoPy v%(latest)s is available (you are running %(running)s).\n\n(To disable this check, see Preferences > connections > checkForUpdates)") % {'latest':latest['version'],'running':runningVersion})
-        if latest['lastCompatible']>runningVersion:
-            msg2 = wx.StaticText(self,-1,style=wx.ALIGN_CENTRE,
-            label=_translate("This version MAY require you to modify your\nscripts/exps slightly. Read the changelog carefully."))
-            msg2.SetForegroundColour([200,0,0])
-        else: msg2 = wx.StaticText(self,-1,style=wx.ALIGN_CENTRE,
-            label=_translate("There are no known compatibility\nissues with your current version."))
-        changelogLink = wxhl.HyperLinkCtrl(self, wx.ID_ANY, _translate("View complete Changelog"),
-                                        URL="http://www.psychopy.org/changelog.html")
+    def __init__(self, latest, runningVersion):
+        wx.Dialog.__init__(self, None, -1, title='PsychoPy2 Updates')
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # info about current version
+        txt = _translate("PsychoPy v%(latest)s is available (you are running %(running)s).\n\n"
+                         "(To disable this check, see Preferences > connections > checkForUpdates)")
+        label = txt % {'latest': latest['version'], 'running': runningVersion}
+        msg1 = wx.StaticText(self, -1, style=wx.ALIGN_CENTRE, label=label)
+        if latest['lastCompatible'] > runningVersion:
+            label = _translate("This version MAY require you to modify your\nscripts/exps slightly. Read the changelog carefully.")
+            msg2 = wx.StaticText(self, -1, style=wx.ALIGN_CENTRE, label=label)
+            msg2.SetForegroundColour([200, 0, 0])
+        else:
+            label = _translate("There are no known compatibility\nissues with your current version.")
+            msg2 = wx.StaticText(self, -1, style=wx.ALIGN_CENTRE, label=label)
+        changelog = wxhl.HyperLinkCtrl(self, wx.ID_ANY,
+                                       _translate("View complete Changelog"),
+                                       URL="http://www.psychopy.org/changelog.html")
 
         if sys.platform.startswith('linux'):
-            msg3 = wx.StaticText(self,-1,_translate("You can update PsychoPy with your package manager"))
+            msg = _translate("You can update PsychoPy with your package manager")
+            msg3 = wx.StaticText(self, -1, msg)
         else:
-            msg3 = wx.StaticText(self,-1,_translate("Should PsychoPy update itself?"))
+            msg = _translate("Should PsychoPy update itself?")
+            msg3 = wx.StaticText(self, -1, msg)
 
-        sizer.Add(msg1,flag=wx.ALL|wx.CENTER,border=15)
-        sizer.Add(msg2,flag=wx.RIGHT|wx.LEFT|wx.CENTER,border=15)
-        sizer.Add(changelogLink,flag=wx.RIGHT|wx.LEFT|wx.CENTER,border=5)
-        sizer.Add(msg3,flag=wx.ALL|wx.CENTER,border=15)
+        sizer.Add(msg1, flag=wx.ALL | wx.CENTER, border=15)
+        sizer.Add(msg2, flag=wx.RIGHT | wx.LEFT | wx.CENTER, border=15)
+        sizer.Add(changelog, flag=wx.RIGHT | wx.LEFT | wx.CENTER, border=5)
+        sizer.Add(msg3, flag=wx.ALL | wx.CENTER, border=15)
 
-        #add buttons
-        btnSizer=wx.BoxSizer(wx.HORIZONTAL)
+        # add buttons
+        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        if sys.platform.startswith('linux'):#for linux there should be no 'update' option
-            self.cancelBtn=wx.Button(self,wx.ID_CANCEL,_translate('Keep warning me'))
+        # for linux there should be no 'update' option
+        if sys.platform.startswith('linux'):
+            self.cancelBtn = wx.Button(
+                self, wx.ID_CANCEL, _translate('Keep warning me'))
             self.cancelBtn.SetDefault()
-            self.noBtn=wx.Button(self,wx.ID_NO,_translate('Stop warning me'))
+            self.noBtn = wx.Button(
+                self, wx.ID_NO, _translate('Stop warning me'))
         else:
-            self.yesBtn=wx.Button(self,wx.ID_YES,_translate('Yes'))
+            self.yesBtn = wx.Button(self, wx.ID_YES, _translate('Yes'))
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_YES)
-            self.cancelBtn=wx.Button(self,wx.ID_CANCEL,_translate('Not now'))
-            self.noBtn=wx.Button(self,wx.ID_NO,_translate('Skip this version'))
+            self.cancelBtn = wx.Button(
+                self, wx.ID_CANCEL, _translate('Not now'))
+            self.noBtn = wx.Button(
+                self, wx.ID_NO, _translate('Skip this version'))
         self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_CANCEL)
         self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_NO)
         btnSizer.Add(self.noBtn, wx.ALIGN_LEFT)
@@ -196,274 +240,333 @@ class SuggestUpdateDialog(wx.Dialog):
             btnSizer.Add((5, 20), 0)
             btnSizer.Add(self.yesBtn, wx.ALIGN_RIGHT)
 
-        #configure sizers and fit
-        sizer.Add(btnSizer,flag=wx.ALIGN_RIGHT|wx.ALL,border=5)
+        # configure sizers and fit
+        sizer.Add(btnSizer, flag=wx.ALIGN_RIGHT | wx.ALL, border=5)
         self.Center()
         self.SetSizerAndFit(sizer)
-    def onButton(self,event):
+
+    def onButton(self, event):
         self.EndModal(event.GetId())
 
+
 class InstallUpdateDialog(wx.Dialog):
+
     def __init__(self, parent, ID, app):
         """Latest is optional extra. If not given it will be fetched.
         """
         self.app = app
-        #get latest version info if poss
-        if app.updater in [False,None]:
-            #user has turned off check for updates in prefs so check now
+        # get latest version info if poss
+        if app.updater in [False, None]:
+            # user has turned off check for updates in prefs so check now
             app.updater = updater = Updater(app=self.app)
-            self.latest=updater.getLatestInfo(warnMsg=False)#don't need a warning - we'll provide one ourselves
+            # don't need a warning - we'll provide one ourselves
+            self.latest = updater.getLatestInfo(warnMsg=False)
         else:
-            self.latest=app.updater.latest
-        self.runningVersion=app.updater.runningVersion
-        wx.Dialog.__init__(self, parent, ID, title=_translate('PsychoPy Updates'), size=(100,200))
+            self.latest = app.updater.latest
+        self.runningVersion = app.updater.runningVersion
+        wx.Dialog.__init__(self, parent, ID, title=_translate(
+            'PsychoPy Updates'), size=(100, 200))
 
-        mainSizer=wx.BoxSizer(wx.VERTICAL)
-        #set the actual content of the status message later in self.updateStatus()
-        msg = "x"
-        self.statusMessage = wx.StaticText(self,-1,msg,style=wx.ALIGN_CENTER)
-        mainSizer.Add(self.statusMessage,flag=wx.EXPAND|wx.ALL,border=5)
-        #ctrls for auto-update from web
-        self.useLatestBtn = wx.RadioButton( self, -1, _translate(" Auto-update (will fetch latest version)"), style = wx.RB_GROUP )
-        self.Bind(wx.EVT_RADIOBUTTON, self.onRadioSelect, self.useLatestBtn )
-        self.progressBar = wx.Gauge(self, -1, 100, size=(250,25))
-        mainSizer.Add(self.useLatestBtn,flag=wx.ALIGN_LEFT|wx.ALL,border=5)
-        mainSizer.Add(self.progressBar,flag=wx.EXPAND|wx.ALL,border=5)
-        #ctrls for updating from specific zip file
-        self.useZipBtn = wx.RadioButton( self, -1, _translate(" Use zip file below (download a PsychoPy release file ending .zip)") )
-        self.Bind(wx.EVT_RADIOBUTTON, self.onRadioSelect, self.useZipBtn )
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        # set the actual content of status msg later in self.updateStatus()
+        self.statusMessage = wx.StaticText(
+            self, -1, "msg", style=wx.ALIGN_CENTER)
+        mainSizer.Add(self.statusMessage, flag=wx.EXPAND | wx.ALL, border=5)
+        # ctrls for auto-update from web
+        self.useLatestBtn = wx.RadioButton(self, -1,
+            _translate(" Auto-update (will fetch latest version)"),
+            style=wx.RB_GROUP)
+        self.Bind(wx.EVT_RADIOBUTTON, self.onRadioSelect, self.useLatestBtn)
+        self.progressBar = wx.Gauge(self, -1, 100, size=(250, 25))
+        mainSizer.Add(self.useLatestBtn, flag=wx.ALIGN_LEFT | wx.ALL, border=5)
+        mainSizer.Add(self.progressBar, flag=wx.EXPAND | wx.ALL, border=5)
+        # ctrls for updating from specific zip file
+        msg = " Use zip file below (download a PsychoPy release file ending .zip)"
+        self.useZipBtn = wx.RadioButton(self, -1, _translate(msg))
+        self.Bind(wx.EVT_RADIOBUTTON, self.onRadioSelect, self.useZipBtn)
         self.fileBrowseCtrl = wx.lib.filebrowsebutton.FileBrowseButton(
-            self, -1, size=(450, -1),changeCallback = self.onFileBrowse, fileMask='*.zip')
-        mainSizer.Add(self.useZipBtn,flag=wx.ALIGN_LEFT|wx.ALL,border=5)
-        mainSizer.Add(self.fileBrowseCtrl,flag=wx.ALIGN_LEFT|wx.ALL,border=5)
-        #ctrls for buttons (install/cancel)
-        self.installBtn = wx.Button(self,-1,_translate('Install'))
-        self.Bind(wx.EVT_BUTTON, self.onInstall, self.installBtn )
+            self, -1, size=(450, -1), changeCallback=self.onFileBrowse,
+            fileMask='*.zip')
+        mainSizer.Add(self.useZipBtn, flag=wx.ALIGN_LEFT | wx.ALL, border=5)
+        mainSizer.Add(self.fileBrowseCtrl,
+                      flag=wx.ALIGN_LEFT | wx.ALL, border=5)
+        # ctrls for buttons (install/cancel)
+        self.installBtn = wx.Button(self, -1, _translate('Install'))
+        self.Bind(wx.EVT_BUTTON, self.onInstall, self.installBtn)
         self.installBtn.SetDefault()
-        self.cancelBtn = wx.Button(self,-1,_translate('Close'))
-        self.Bind(wx.EVT_BUTTON, self.onCancel, self.cancelBtn )
-        btnSizer=wx.BoxSizer(wx.HORIZONTAL)
-        btnSizer.Add(self.installBtn,flag=wx.ALIGN_RIGHT)
-        btnSizer.Add(self.cancelBtn,flag=wx.ALIGN_RIGHT|wx.LEFT,border=5)
-        mainSizer.Add(btnSizer,flag=wx.ALIGN_RIGHT|wx.ALL,border=5)
+        self.cancelBtn = wx.Button(self, -1, _translate('Close'))
+        self.Bind(wx.EVT_BUTTON, self.onCancel, self.cancelBtn)
+        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        btnSizer.Add(self.installBtn, flag=wx.ALIGN_RIGHT)
+        btnSizer.Add(self.cancelBtn, flag=wx.ALIGN_RIGHT | wx.LEFT, border=5)
+        mainSizer.Add(btnSizer, flag=wx.ALIGN_RIGHT | wx.ALL, border=5)
 
         self.SetSizerAndFit(mainSizer)
         self.SetAutoLayout(True)
 
-        #positioning and sizing
+        # positioning and sizing
         self.updateStatus()
         self.Center()
         self.ShowModal()
+
     def updateStatus(self):
-        """Check the current version and most recent version and update ctrls if necess
+        """Check the current version and most recent version and update ctrls
         """
-        if self.latest==-1:
-            msg = _translate("You are running PsychoPy v%s.\n ") %(self.runningVersion) + \
-                _translate("PsychoPy could not connect to the \n internet to check for more recent versions.\n") + \
-                _translate("Check proxy settings in preferences.")
-        elif self.latest==self.runningVersion:
-            msg = _translate("You are running the latest version of PsychoPy (%s)\n ") %(self.runningVersion) + \
-                _translate("You can revert to a previous version by selecting a specific .zip source installation file")
+        if self.latest == -1:
+            txt = "You are running PsychoPy v%s.\n "
+            msg = _translate(txt) % (self.runningVersion)
+            txt = "PsychoPy could not connect to the \n internet to check for more recent versions.\n"
+            msg += _translate(txt)
+            msg += _translate("Check proxy settings in preferences.")
+        elif self.latest == self.runningVersion:
+            txt = "You are running the latest version of PsychoPy (%s)\n "
+            msg = _translate(txt) % self.runningVersion
+            txt = "You can revert to a previous version by selecting a specific .zip source installation file"
+            msg += _translate(txt)
         else:
-            msg = _translate("PsychoPy v%(latest)s is available\nYou are running v%(running)s") % {'latest':self.latest['version'], 'running':self.runningVersion}
-            if self.latest['lastUpdatable']<=self.runningVersion:
-                msg+=_translate("\nYou can update to the latest version automatically")
+            txt = "PsychoPy v%(latest)s is available\nYou are running v%(running)s"
+            msg = _translate(txt) % {'latest': self.latest['version'],
+                                     'running': self.runningVersion}
+            if self.latest['lastUpdatable'] <= self.runningVersion:
+                txt = "\nYou can update to the latest version automatically"
+                msg += _translate(txt)
             else:
-                msg+=_translate("\nYou cannot update to the latest version automatically.\nPlease fetch the latest Standalone package from www.psychopy.org")
+                txt = "\nYou cannot update to the latest version automatically.\nPlease fetch the latest Standalone package from www.psychopy.org"
+                msg += _translate(txt)
         self.statusMessage.SetLabel(msg)
-        if self.latest==-1 \
-            or self.latest['version']==self.runningVersion \
-            or self.latest['lastUpdatable']>self.runningVersion:#can't auto-update
-                self.currentSelection=self.useZipBtn
-                self.useZipBtn.SetValue(True)
-                self.useLatestBtn.Disable()
+        areRunningLatest = self.latest['version'] == self.runningVersion
+        notUpdateable = self.latest['lastUpdatable'] > self.runningVersion
+        if self.latest == -1 or areRunningLatest or notUpdateable:
+            # can't auto-update
+            self.currentSelection = self.useZipBtn
+            self.useZipBtn.SetValue(True)
+            self.useLatestBtn.Disable()
         else:
-            self.currentSelection=self.useLatestBtn
+            self.currentSelection = self.useLatestBtn
             self.useLatestBtn.SetValue(True)
         self.Fit()
-        self.onRadioSelect()#this will enable/disable additional controls for the above
+        # this will enable/disable additional controls for the above:
+        self.onRadioSelect()
+
     def onRadioSelect(self, event=None):
-        """Set the controls of the appropriate selection to be disabled/enabled
+        """Set the controls of the appropriate selection to disabled/enabled
         """
-        #if receive no event then just set everthing to previous state
-        if event!=None:
+        # if receive no event then just set everthing to previous state
+        if event != None:
             self.currentSelection = event.GetEventObject()
         else:
             pass
-        if self.currentSelection==self.useLatestBtn:
+        if self.currentSelection == self.useLatestBtn:
             self.fileBrowseCtrl.Disable()
             self.progressBar.Enable()
-        elif self.currentSelection==self.useZipBtn:
+        elif self.currentSelection == self.useZipBtn:
             self.fileBrowseCtrl.Enable()
             self.progressBar.Disable()
-            self.installBtn.Enable()#if this has been disabled by the fact that we couldn't connect
+            # if this has been disabled by the fact that we couldn't connect
+            self.installBtn.Enable()
+
     def onCancel(self, event):
-        self.app.updater=None
+        self.app.updater = None
         self.Destroy()
+
     def onFileBrowse(self, event):
         self.filename = event.GetString()
+
     def onInstall(self, event):
-        if self.currentSelection==self.useLatestBtn:
+        if self.currentSelection == self.useLatestBtn:
             info = self.doAutoInstall()
         else:
             info = self.installZipFile(self.filename)
         self.statusMessage.SetLabel(info)
         self.Fit()
+
     def fetchPsychoPy(self, v='latest'):
-        msg = _translate("Attempting to fetch PsychoPy %s...") %(self.latest['version'])
-        self.statusMessage.SetLabel(msg)
+        msg = _translate("Attempting to fetch PsychoPy %s...")
+        self.statusMessage.SetLabel(msg % self.latest['version'])
         info = ""
-        if v=='latest':
-            v=self.latest['version']
+        if v == 'latest':
+            v = self.latest['version']
 
-        #open page
-
-        URL = "https://github.com/psychopy/psychopy/releases/download/%s/PsychoPy-%s.zip" %(v)
-        page = urllib.request.urlopen(URL)
-        #download in chunks so that we can monitor progress and abort mid-way through
-        chunk=4096; read = 0
+        # open page
+        URL = "https://github.com/psychopy/psychopy/releases/download/%s/PsychoPy-%s.zip"
+        page = urllib.request.urlopen(URL % v)
+        # download in chunks so that we can monitor progress and abort mid-way
+        chunk = 4096
+        read = 0
         fileSize = int(page.info()['Content-Length'])
-        buffer=io.StringIO()
+        buffer = io.StringIO()
         self.progressBar.SetRange(fileSize)
-        while read<fileSize:
-            ch=page.read(chunk)
+        while read < fileSize:
+            ch = page.read(chunk)
             buffer.write(ch)
-            read+=chunk
+            read += chunk
             self.progressBar.SetValue(read)
-            msg = _translate("Fetched %(done)i of %(total)i kb of PsychoPy-%(version)s.zip") % {'done':read/1000, 'total':fileSize/1000, 'version':v}
+            txt = "Fetched %(done)i of %(total)i kb of PsychoPy-%(version)s.zip"
+            msg = _translate(txt) % {'done': read / 1000,
+                                     'total': fileSize / 1000, 'version': v}
             self.statusMessage.SetLabel(msg)
             self.Update()
-        info+= _translate('Successfully downloaded PsychoPy-%s.zip') %v
+        info += _translate('Successfully downloaded PsychoPy-%s.zip') % v
         page.close()
         zfile = zipfile.ZipFile(buffer)
-        #buffer.close()
+        # buffer.close()
         return zfile, info
 
     def installZipFile(self, zfile, v=None):
-        """If v is provided this will be used as new version number, otherwise try and retrieve
-        a version number from zip file name
+        """If v is provided this will be used as new version number;
+        otherwise try and retrieve a version number from zip file name
         """
-        info=""#return this at the end
-        if (py3 and type(zfile)==str) or (not py3 and type(zfile) in [str, unicode]) \
-            and os.path.isfile(zfile):#zfile is filename not an actual file
-            if v is None: #try and deduce it
+        info = ""  # return this at the end
+        if py3:
+            zfileIsName = type(zfile) == str
+        else:
+            zfileIsName = type(zfile) in (str, unicode)
+        if os.path.isfile(zfile) and zfileIsName:
+            # zfile is filename not an actual file
+            if v is None:  # try and deduce it
                 zFilename = os.path.split(zfile)[-1]
                 searchName = re.search('[0-9]*\.[0-9]*\.[0-9]*.', zFilename)
-                if searchName!=None:
-                    v=searchName.group(0)[:-1]
-                else:logging.warning("Couldn't deduce version from zip file: %s" %zFilename)
-            f=open(zfile, 'rb')
-            zfile=zipfile.ZipFile(f)
-        else:#assume here that zfile is a ZipFile
-            pass#todo: error checking - is it a zipfile?
-
-        currPath=self.app.prefs.paths['psychopy']
-        #any commands that are successfully executed may need to be undone if a later one fails
-        undoString = ""
-        #depending on install method, needs diff handling
-        #if path ends with 'psychopy' then move it to 'psychopy-version' and create a new 'psychopy' folder for new version
-        versionLabelsInPath = re.findall('PsychoPy-.*/',currPath)#does the path contain any version number?
-        if len(versionLabelsInPath)==0:#e.g. the mac standalone app, no need to refer to new versino number
-            unzipTarget=currPath
-            try: #to move existing PsychoPy
-                os.rename(currPath, "%s-%s" %(currPath, psychopy.__version__))
-                undoString += 'os.rename("%s-%s" %(currPath, psychopy.__version__),currPath)\n'
-            except Exception:
-                if sys.platform=='win32' and int(sys.getwindowsversion()[1])>5:
-                    msg = _translate("To upgrade you need to restart the app as admin (Right-click the app and 'Run as admin')")
+                if searchName != None:
+                    v = searchName.group(0)[:-1]
                 else:
-                    msg=_translate("Could not move existing PsychoPy installation (permissions error?)")
-                return msg
-        else:#setuptools-style installation
-            #generate new target path
-            unzipTarget=currPath
+                    msg = "Couldn't deduce version from zip file: %s"
+                    logging.warning(msg % zFilename)
+            f = open(zfile, 'rb')
+            zfile = zipfile.ZipFile(f)
+        else:  # assume here that zfile is a ZipFile
+            pass  # todo: error checking - is it a zipfile?
+
+        currPath = self.app.prefs.paths['psychopy']
+        currVer = psychopy.__version__
+        # any commands that are successfully executed may need to be undone if
+        # a later one fails
+        undoStr = ""
+        # depending on install method, needs diff handling
+        # if path ends with 'psychopy' then move it to 'psychopy-version' and
+        # create a new 'psychopy' folder for new version
+        # does the path contain any version number?
+        versionLabelsInPath = re.findall('PsychoPy-.*/', currPath)
+        # e.g. the mac standalone app, no need to refer to new version number
+        onWin32 = bool(sys.platform == 'win32' and
+                       int(sys.getwindowsversion()[1]) > 5)
+        if len(versionLabelsInPath) == 0:
+            unzipTarget = currPath
+            try:  # to move existing PsychoPy
+                os.rename(currPath, "%s-%s" % (currPath, currVer))
+                undoStr += 'os.rename("%s-%s" %(currPath, currVer),currPath)\n'
+            except Exception:
+                if onWin32:
+                    msg = "To upgrade you need to restart the app as admin (Right-click the app and 'Run as admin')"
+                else:
+                    msg = "Could not move existing PsychoPy installation (permissions error?)"
+                return _translate(msg)
+        else:  # setuptools-style installation
+            # generate new target path
+            unzipTarget = currPath
             for thisVersionLabel in versionLabelsInPath:
-                pathVersion=thisVersionLabel[:-1]#remove final slash from the re.findall
-                unzipTarget=unzipTarget.replace(pathVersion, "PsychoPy-%s" %v)
+                # remove final slash from the re.findall
+                pathVersion = thisVersionLabel[:-1]
+                unzipTarget = unzipTarget.replace(pathVersion,
+                                                  "PsychoPy-%s" % v)
                 # find the .pth file that specifies the python dir
-                #create the new installation directory BEFORE changing pth file
-                nUpdates, newInfo = self.updatePthFile(pathVersion, "PsychoPy-%s" %v)
-                if nUpdates==-1:#there was an error (likely permissions)
-                    undoString += 'self.updatePthFile(unzipTarget, currPath)\n'
-                    exec(undoString)#undo previous changes
+                # create the new installation directory BEFORE changing pth
+                # file
+                nUpdates, newInfo = self.updatePthFile(pathVersion,
+                                                       "PsychoPy-%s" % v)
+                if nUpdates == -1:  # there was an error (likely permissions)
+                    undoStr += 'self.updatePthFile(unzipTarget, currPath)\n'
+                    exec(undoStr)  # undo previous changes
                     return newInfo
 
         try:
-            os.makedirs(unzipTarget)#create the new installation directory AFTER renaming existing dir
-            undoString += 'os.remove(%s)\n' %unzipTarget
-        except Exception: #revert path rename and inform user
-            exec(undoString)#undo previous changes
-            if sys.platform=='win32' and int(sys.getwindowsversion()[1])>5:
-                msg = _translate("Right-click the app and 'Run as admin'):\n%s") %unzipTarget
+            # create the new installation dir AFTER renaming existing dir
+            os.makedirs(unzipTarget)
+            undoStr += 'os.remove(%s)\n' % unzipTarget
+        except Exception:  # revert path rename and inform user
+            exec(undoStr)  # undo previous changes
+            if onWin32:
+                msg = "Right-click the app and 'Run as admin'):\n%s"
             else:
-                msg = _translate("Failed to create directory for new version (permissions error?):\n%s") %unzipTarget
-            return msg
+                msg = "Failed to create directory for new version (permissions error?):\n%s"
+            return _translate(msg) % unzipTarget
 
-        #do the actual extraction
-        for name in zfile.namelist():#for each file within the zip
-            #check that this file is part of the psychopy (not metadata or docs)
-            if name.count('/psychopy/')<1: continue
+        # do the actual extraction
+        for name in zfile.namelist():  # for each file within the zip
+            # check that this file is part of psychopy (not metadata or docs)
+            if name.count('/psychopy/') < 1:
+                continue
             try:
-                targetFile = os.path.join(unzipTarget, name.split('/psychopy/')[1])
-                targetContainer=os.path.split(targetFile)[0]
+                targetFile = os.path.join(unzipTarget,
+                                          name.split('/psychopy/')[1])
+                targetContainer = os.path.split(targetFile)[0]
                 if not os.path.isdir(targetContainer):
-                    os.makedirs(targetContainer)#make the containing folder
+                    os.makedirs(targetContainer)  # make the containing folder
                 if targetFile.endswith('/'):
-                    os.makedirs(targetFile)#it's a folder
+                    os.makedirs(targetFile)  # it's a folder
                 else:
                     outfile = open(targetFile, 'wb')
                     outfile.write(zfile.read(name))
                     outfile.close()
             except Exception:
-                exec(undoString)#undo previous changes
-                logging.error('failed to unzip file: '+name)
+                exec(undoStr)  # undo previous changes
+                logging.error('failed to unzip file: ' + name)
                 logging.error(sys.exc_info()[0])
-        info += _translate('Success. \nChanges to PsychoPy will be completed when the application is next run')
+        info += _translate('Success. \nChanges to PsychoPy will be completed'
+                           ' when the application is next run')
         self.cancelBtn.SetDefault()
         self.installBtn.Disable()
         return info
+
     def doAutoInstall(self, v='latest'):
-        if v=='latest':
-            v=self.latest['version']
-        self.statusMessage.SetLabel(_translate("Downloading PsychoPy v%s") %v)
-        try: zipFile, info =self.fetchPsychoPy(v)
+        if v == 'latest':
+            v = self.latest['version']
+        msg = _translate("Downloading PsychoPy v%s") % v
+        self.statusMessage.SetLabel(msg)
+        try:
+            zipFile, info = self.fetchPsychoPy(v)
         except Exception:
-            self.statusMessage.SetLabel(_translate('Failed to fetch PsychoPy release.\nCheck proxy setting in preferences'))
+            msg = _translate('Failed to fetch PsychoPy release.\n'
+                             'Check proxy setting in preferences')
+            self.statusMessage.SetLabel(msg)
             return -1
         self.statusMessage.SetLabel(info)
         self.Fit()
-        #got a download - try to install it
-        info=self.installZipFile(zipFile, v)
+        # got a download - try to install it
+        info = self.installZipFile(zipFile, v)
         return info
+
     def updatePthFile(self, oldName, newName):
         """Searches site-packages for .pth files and replaces any instance of
-        `oldName` with `newName`, where the names likely have the form PsychoPy-1.60.04
+        `oldName` with `newName`, expect names like PsychoPy-1.60.04
         """
         from distutils.sysconfig import get_python_lib
-        siteDir=get_python_lib()
+        siteDir = get_python_lib()
         pthFiles = glob.glob(os.path.join(siteDir, '*.pth'))
-        enclosingSiteDir = os.path.split(siteDir)[0]#sometimes the site-packages dir isn't where the pth files are kept?
+        # sometimes the site-packages dir isn't where the pth files are kept?
+        enclosingSiteDir = os.path.split(siteDir)[0]
         pthFiles.extend(glob.glob(os.path.join(enclosingSiteDir, '*.pth')))
-        nUpdates = 0#no paths updated
-        info=""
+        nUpdates = 0  # no paths updated
+        info = ""
         for filename in pthFiles:
             lines = open(filename, 'r').readlines()
-            needSave=False
+            needSave = False
             for lineN, line in enumerate(lines):
                 if oldName in line:
                     lines[lineN] = line.replace(oldName, newName)
-                    needSave=True
+                    needSave = True
             if needSave:
                 try:
                     f = open(filename, 'w')
                     f.writelines(lines)
                     f.close()
-                    nUpdates+=1
-                    logging.info('Updated PsychoPy path in %s' %filename)
+                    nUpdates += 1
+                    logging.info('Updated PsychoPy path in %s' % filename)
                 except Exception:
-                    info+='Failed to update PsychoPy path in ', filename
+                    info += 'Failed to update PsychoPy path in ', filename
                     return -1, info
         return nUpdates, info
+
+
 def sendUsageStats():
     """Sends anonymous, very basic usage stats to psychopy server:
       the version of PsychoPy
@@ -471,37 +574,39 @@ def sendUsageStats():
       the date
     """
 
-    v=psychopy.__version__
+    v = psychopy.__version__
     dateNow = time.strftime("%Y-%m-%d_%H:%M")
     miscInfo = ''
 
-    #urllib.install_opener(opener)
-    #check for proxies
+    # urllib.install_opener(opener)
+    # check for proxies
     if web.proxies is None:
         web.setupProxy()
 
-    #get platform-specific info
-    if sys.platform=='darwin':
+    # get platform-specific info
+    if sys.platform == 'darwin':
         OSXver, junk, architecture = platform.mac_ver()
-        systemInfo = "OSX_%s_%s" %(OSXver, architecture)
+        systemInfo = "OSX_%s_%s" % (OSXver, architecture)
     elif sys.platform.startswith('linux'):
         systemInfo = '%s_%s_%s' % (
             'Linux',
             ':'.join([x for x in platform.dist() if x != '']),
             platform.release())
-    elif sys.platform=='win32':
-        ver=sys.getwindowsversion()
-        if len(ver[4])>0:
-            systemInfo=("win32_v%i.%i.%i_%s" %(ver[0],ver[1],ver[2],ver[4])).replace(' ','')
+    elif sys.platform == 'win32':
+        ver = sys.getwindowsversion()
+        if len(ver[4]) > 0:
+            systemInfo = ("win32_v%i.%i.%i_%s" %
+                          (ver[0], ver[1], ver[2], ver[4])).replace(' ', '')
         else:
-            systemInfo="win32_v%i.%i.%i" %(ver[0],ver[1],ver[2])
+            systemInfo = "win32_v%i.%i.%i" % (ver[0], ver[1], ver[2])
     else:
-        systemInfo = platform.system()+platform.release()
-    URL = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s" \
-        %(dateNow, systemInfo, v, miscInfo)
+        systemInfo = platform.system() + platform.release()
+    u = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s"
+    URL = u % (dateNow, systemInfo, v, miscInfo)
     try:
         req = urllib.request.Request(URL)
-        page = urllib.request.urlopen(req)#proxies
+        page = urllib.request.urlopen(req)  # proxies
     except Exception:
-        logging.warning("Couldn't connect to psychopy.org\n"+\
-            "Check internet settings (and proxy setting in PsychoPy Preferences.")
+        logging.warning("Couldn't connect to psychopy.org\n"
+                        "Check internet settings (and proxy "
+                        "setting in PsychoPy Preferences.")
