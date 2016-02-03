@@ -21,6 +21,32 @@ forthcoming
 PsychoPy 1.83
 ------------------------------
 
+PsychoPy 1.83.04
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+released Feb 2016
+
+* FIXED: Mac Standalone (still) not launching on some versions of OSX
+* FIXED: MovieStim3 not working on all graphics cards (glPopAttrib). Thanks Bryan Cort for finding the fix
+* ADDED: Option to turn off audio in Movies from Builder (better performance and fewer shutdown-probs)
+* FIXED: Data saving is forced at the end of Builder Experiments even if script fails to exit properly (red stop button less likely to lose data)
+
+
+PsychoPy 1.83.03
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+released Dec 2015 (NB 1.83.02 was never publicly released)
+
+* FIXED: problems with the Mac Standalone failing to launch on some OSX versions
+* FIXED: reduced impact of pyglet text memory leaks (make fewer updates). (NB There is still a leak in Pyglet's code that we can't fix)
+* FIXED: several fixes to RatingScale
+* FIXED: window viewScale and viewPos combine correctly; viewScale handles negative values, mirror-image flips the window correctly (except for Text) #1011
+* FIXED: fixed memory leak in sounds on 64bit Mac installation (error in pyo)
+* FIXED: MovieStim3 was interacting badly with ShapeStim #981
+* FIXED: MovieStim3 was failing if no audio stream was present in the file #984
+* FIXED: PsychoPy app now gives a warning message if it can't start due to permissions error #1055
+* FIXED: Faster rendering of MovieStim2 and Moviestim3 due to removal of mipmapping code
+
 PsychoPy 1.83.01
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
