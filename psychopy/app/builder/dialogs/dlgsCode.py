@@ -21,17 +21,15 @@ _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 
 
 class DlgCodeComponentProperties(wx.Dialog):
-
+    _style = (wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
+                        | wx.THICK_FRAME | wx.DIALOG_NO_PARENT)
     def __init__(self, frame, title, params, order,
                  helpUrl=None, suppressTitles=True, size=wx.DefaultSize,
-                 style=(wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
-                        | wx.THICK_FRAME | wx.DIALOG_NO_PARENT),
-                 editing=False):
+                 style=_style, editing=False):
 
         # translate title
-        localizedTitle = title.replace(
-            ' Properties', _translate(' Properties'))
-
+        localizedTitle = title.replace(' Properties',
+                                       _translate(' Properties'))
         wx.Dialog.__init__(self, frame, -1, localizedTitle,
                            size=size, style=style)
         self.frame = frame
@@ -44,9 +42,9 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.localizedTitle = localizedTitle
         self.code_gui_elements = {}
         if not editing and 'name' in self.params.keys():
-            # then we're adding a new component, so provide a known-valid name:
-            self.params['name'].val = self.frame.exp.namespace.makeValid(params[
-                                                                         'name'].val)
+            # then we're adding a new component so ensure a valid name:
+            makeValid = self.frame.exp.namespace.makeValid
+            self.params['name'].val = makeValid(params['name'].val)
 
         agwStyle = flatnotebook.FNB_NO_X_BUTTON
         if hasattr(flatnotebook, "FNB_NAV_BUTTONS_WHEN_NEEDED"):
@@ -59,14 +57,14 @@ class DlgCodeComponentProperties(wx.Dialog):
                                                        style=agwStyle)
 
         openToPage = 0
-        for i, pkey in enumerate(self.order):
+        for idx, pkey in enumerate(self.order):
             param = self.params.get(pkey)
             if pkey == 'name':
                 self.name_label = wx.StaticText(self, wx.ID_ANY, param.label)
-                self.component_name = wx.TextCtrl(self,
-                                                  wx.ID_ANY,
+                _style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB
+                self.component_name = wx.TextCtrl(self, wx.ID_ANY,
                                                   unicode(param.val),
-                                                  style=wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB)
+                                                  style=_style)
                 self.component_name.SetToolTipString(param.hint)
                 self.component_name.SetValidator(validators.NameValidator())
                 self.nameOKlabel = wx.StaticText(self, -1, '',
@@ -74,32 +72,30 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.nameOKlabel.SetForegroundColour(wx.RED)
             else:
                 guikey = pkey.replace(' ', '_')
-                param_gui_elements = self.code_gui_elements.setdefault(guikey,
-                                                                       dict())
+                _param = self.code_gui_elements.setdefault(guikey, dict())
 
-                panel_element = param_gui_elements.setdefault(guikey + '_panel',
-                                                              wx.Panel(self.code_sections, wx.ID_ANY))
-                code_box = param_gui_elements.setdefault(guikey + '_codebox',
-                                                         CodeBox(panel_element,
-                                                                 wx.ID_ANY,
-                                                                 pos=wx.DefaultPosition,
-                                                                 style=0,
-                                                                 prefs=self.app.prefs))
+                _section = wx.Panel(self.code_sections, wx.ID_ANY)
+                _panel = _param.setdefault(guikey + '_panel', _section)
+                code_box = _param.setdefault(guikey + '_codebox',
+                                             CodeBox(_panel, wx.ID_ANY,
+                                                     pos=wx.DefaultPosition,
+                                                     style=0,
+                                                     prefs=self.app.prefs))
                 if len(param.val):
                     code_box.AddText(unicode(param.val))
                 if len(param.val.strip()) and not openToPage:
-                    openToPage = i  # first non-blank page
+                    # index of first non-blank page
+                    openToPage = idx
 
-        if self.helpUrl != None:
-            self.help_button = wx.Button(
-                self, wx.ID_HELP, _translate(" Help "))
-            self.help_button.SetToolTip(wx.ToolTip(
-                _translate("Go to online help about this component")))
+        if self.helpUrl is not None:
+            self.help_button = wx.Button(self, wx.ID_HELP,
+                                         _translate(" Help "))
+            tip = _translate("Go to online help about this component")
+            self.help_button.SetToolTip(wx.ToolTip(tip))
         self.ok_button = wx.Button(self, wx.ID_OK, _translate(" OK "))
         self.ok_button.SetDefault()
-        self.cancel_button = wx.Button(
-            self, wx.ID_CANCEL, _translate(" Cancel "))
-
+        self.cancel_button = wx.Button(self, wx.ID_CANCEL,
+                                       _translate(" Cancel "))
         self.__set_properties()
         self.__do_layout()
         self.code_sections.SetSelection(max(0, openToPage - 1))
@@ -114,8 +110,7 @@ class DlgCodeComponentProperties(wx.Dialog):
             self.OK = True
             self.params = self.getParams()  # get new vals from dlg
             self.Validate()
-            # TODO: Should code from each code section tab have syntax
-            # checked??
+            # TODO: check syntax of code from each code section tab??
         else:
             self.OK = False
 
@@ -176,9 +171,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                 guikey = fieldName.replace(' ', '_')
                 cb_gui_el = guikey + '_codebox'
                 if guikey in self.code_gui_elements:
-
-                    param.val = self.code_gui_elements.get(
-                        guikey).get(cb_gui_el).GetText()
+                    param.val = self.code_gui_elements.get(guikey).get(cb_gui_el).GetText()
         return self.params
 
     def helpButtonHandler(self, event):
@@ -201,19 +194,19 @@ class CodeBox(wx.stc.StyledTextCtrl):
         self.prefs = prefs
         self.UNSAVED = False
         self.filename = ""
-        self.fileModTime = None  # for checking if the file was modified outside of CodeEditor
+        self.fileModTime = None  # check if file modified outside CodeEditor
         self.AUTOCOMPLETE = True
         self.autoCompleteDict = {}
-        # self.analyseScript()  #no - analyse after loading so that window
+        # self.analyseScript()  # no - analyse after loading so that window
         # doesn't pause strangely
-        self.locals = None  # this will contain the local environment of the script
+        self.locals = None  # will contain the local environment of the script
         self.prevWord = None
         # remove some annoying stc key commands
-        self.CmdKeyClear(ord('['), wx.stc.STC_SCMOD_CTRL)
-        self.CmdKeyClear(ord(']'), wx.stc.STC_SCMOD_CTRL)
-        self.CmdKeyClear(ord('/'), wx.stc.STC_SCMOD_CTRL)
-        self.CmdKeyClear(ord('/'), wx.stc.STC_SCMOD_CTRL |
-                         wx.stc.STC_SCMOD_SHIFT)
+        CTRL = wx.stc.STC_SCMOD_CTRL
+        self.CmdKeyClear(ord('['), CTRL)
+        self.CmdKeyClear(ord(']'), CTRL)
+        self.CmdKeyClear(ord('/'), CTRL)
+        self.CmdKeyClear(ord('/'), CTRL | wx.stc.STC_SCMOD_SHIFT)
 
         self.SetLexer(wx.stc.STC_LEX_PYTHON)
         self.SetKeyWords(0, " ".join(keyword.kwlist))
@@ -247,28 +240,29 @@ class CodeBox(wx.stc.StyledTextCtrl):
         self.SetIndentationGuides(False)
 
         # Like a flattened tree control using square headers
+        white = "white"
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPEN,
-                          wx.stc.STC_MARK_BOXMINUS,          "white", "#808080")
+                          wx.stc.STC_MARK_BOXMINUS, white, "#808080")
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDER,
-                          wx.stc.STC_MARK_BOXPLUS,           "white", "#808080")
+                          wx.stc.STC_MARK_BOXPLUS, white, "#808080")
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERSUB,
-                          wx.stc.STC_MARK_VLINE,             "white", "#808080")
+                          wx.stc.STC_MARK_VLINE, white, "#808080")
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERTAIL,
-                          wx.stc.STC_MARK_LCORNER,           "white", "#808080")
+                          wx.stc.STC_MARK_LCORNER, white, "#808080")
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEREND,
-                          wx.stc.STC_MARK_BOXPLUSCONNECTED,  "white", "#808080")
+                          wx.stc.STC_MARK_BOXPLUSCONNECTED, white, "#808080")
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPENMID,
-                          wx.stc.STC_MARK_BOXMINUSCONNECTED, "white", "#808080")
+                          wx.stc.STC_MARK_BOXMINUSCONNECTED, white, "#808080")
         self.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL,
-                          wx.stc.STC_MARK_TCORNER,           "white", "#808080")
+                          wx.stc.STC_MARK_TCORNER, white, "#808080")
 
         # self.DragAcceptFiles(True)
-        #self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
-        #self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
-        ##self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
-        #self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
-        #self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
-        #self.SetDropTarget(FileDropTarget(coder = self.coder))
+        # self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
+        # self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
+        # #self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
+        # self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick)
+        # self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
+        # self.SetDropTarget(FileDropTarget(coder = self.coder))
 
         self.setupStyles()
 
@@ -284,9 +278,9 @@ class CodeBox(wx.stc.StyledTextCtrl):
             faces['size'] = int(self.prefs.coder['codeFontSize'])
         faces['small'] = faces['size'] - 2
         # Global default styles for all languages
-        # ,'Arial']#use arial as backup
+        # ,'Arial']  # use arial as backup
         faces['code'] = self.prefs.coder['codeFont']
-        # ,'Arial']#use arial as backup
+        # ,'Arial']  # use arial as backup
         faces['comment'] = self.prefs.coder['commentFont']
         self.StyleSetSpec(wx.stc.STC_STYLE_DEFAULT,
                           "face:%(code)s,size:%(size)d" % faces)
@@ -309,8 +303,8 @@ class CodeBox(wx.stc.StyledTextCtrl):
         self.StyleSetSpec(wx.stc.STC_P_DEFAULT,
                           "fore:#000000,face:%(code)s,size:%(size)d" % faces)
         # Comments
-        self.StyleSetSpec(wx.stc.STC_P_COMMENTLINE,
-                          "fore:#007F00,face:%(comment)s,size:%(size)d" % faces)
+        spec = "fore:#007F00,face:%(comment)s,size:%(size)d"
+        self.StyleSetSpec(wx.stc.STC_P_COMMENTLINE, spec % faces)
         # Number
         self.StyleSetSpec(wx.stc.STC_P_NUMBER,
                           "fore:#007F7F,size:%(size)d" % faces)
@@ -344,8 +338,8 @@ class CodeBox(wx.stc.StyledTextCtrl):
         self.StyleSetSpec(wx.stc.STC_P_COMMENTBLOCK,
                           "fore:#7F7F7F,size:%(size)d" % faces)
         # End of line where string is not closed
-        self.StyleSetSpec(wx.stc.STC_P_STRINGEOL,
-                          "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d" % faces)
+        spec = "fore:#000000,face:%(code)s,back:#E0C0E0,eol,size:%(size)d"
+        self.StyleSetSpec(wx.stc.STC_P_STRINGEOL, spec % faces)
 
         self.SetCaretForeground("BLUE")
 
@@ -364,7 +358,8 @@ class CodeBox(wx.stc.StyledTextCtrl):
         if evt.GetMargin() == 2:
             lineClicked = self.LineFromPosition(evt.GetPosition())
 
-            if self.GetFoldLevel(lineClicked) & wx.stc.STC_FOLDLEVELHEADERFLAG:
+            _flag = wx.stc.STC_FOLDLEVELHEADERFLAG
+            if self.GetFoldLevel(lineClicked) & _flag:
                 if evt.GetShift():
                     self.SetFoldExpanded(lineClicked, True)
                     self.Expand(lineClicked, True, True, 1)
