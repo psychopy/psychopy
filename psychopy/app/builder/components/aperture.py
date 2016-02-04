@@ -12,8 +12,8 @@ __author__ = 'Jeremy Gray, Jon Peirce'
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
 iconFile = path.join(thisFolder, 'aperture.png')
-tooltip = _translate(
-    'Aperture: restrict the drawing of stimuli to a given region')
+tooltip = _translate('Aperture: restrict the drawing of stimuli to a given '
+                     'region')
 
 
 class ApertureComponent(BaseVisualComponent):
@@ -26,21 +26,25 @@ class ApertureComponent(BaseVisualComponent):
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim=''):
         # initialise main parameters
-        super(ApertureComponent, self).__init__(exp, parentName, name=name, units=units,
-                                                pos=pos, size=size,
-                                                startType=startType, startVal=startVal,
-                                                stopType=stopType, stopVal=stopVal,
-                                                startEstim=startEstim, durationEstim=durationEstim)
+        super(ApertureComponent, self).__init__(
+            exp, parentName, name=name, units=units,
+            pos=pos, size=size,
+            startType=startType, startVal=startVal,
+            stopType=stopType, stopVal=stopVal,
+            startEstim=startEstim, durationEstim=durationEstim)
+
         self.type = 'Aperture'
         self.url = "http://www.psychopy.org/builder/components/aperture.html"
         # params:
         # NB make some adjustments on the params defined by _visual component
         self.order = ['name', 'size', 'pos']  # make sure this is at top
-        self.params['size'].hint = _translate(
-            "How big is the aperture? (a single number for diameter)")
-        self.params['size'].label = _translate(
-            "Size")  # only localize hints and labels
+
+        msg = "How big is the aperture? (a single number for diameter)"
+        self.params['size'].hint = _translate(msg)
+        # only localize hints and labels
+        self.params['size'].label = _translate("Size")
         self.params['pos'].hint = _translate("Where is the aperture centred?")
+
         # inherited from _visual component but not needed
         del self.params['ori']
         del self.params['color']
@@ -53,39 +57,45 @@ class ApertureComponent(BaseVisualComponent):
             unitsStr = ""
         else:
             unitsStr = "units=%(units)s, " % self.params
+
         # do writing of init
         inits = getInitVals(self.params)
-        buff.writeIndented(
-            "%(name)s = visual.Aperture(win=win, name='%(name)s',\n" % (inits))
-        buff.writeIndented("    " + unitsStr +
-                           "size=%(size)s, pos=%(pos)s)\n" % (inits))
-        buff.writeIndented(
-            "%(name)s.disable()  # disable until its actually used\n" % (inits))
+
+        msg = "%(name)s = visual.Aperture(win=win, name='%(name)s',\n"
+        buff.writeIndented(msg % inits)
+
+        msg = "    " + unitsStr + "size=%(size)s, pos=%(pos)s)\n"
+        buff.writeIndented(msg % inits)
+
+        msg = "%(name)s.disable()  # disable until its actually used\n"
+        buff.writeIndented(msg % inits)
 
     def writeFrameCode(self, buff):
         """Only activate the aperture for the required frames
         """
+
         buff.writeIndented("\n")
         buff.writeIndented("# *%s* updates\n" % (self.params['name']))
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCode(buff)
-        buff.writeIndented("%(name)s.enabled = True\n" % (self.params))
+        buff.writeIndented("%(name)s.enabled = True\n" % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
         # writes an if statement to determine whether to draw etc
         self.writeStopTestCode(buff)
-        buff.writeIndented("%(name)s.enabled = False\n" % (self.params))
+        buff.writeIndented("%(name)s.enabled = False\n" % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):
-            buff.writeIndented(
-                "if %(name)s.status == STARTED:  # only update if being drawn\n" % (self.params))
+            msg = "if %(name)s.status == STARTED:  # only update if being drawn\n"
+            buff.writeIndented(msg % self.params)
+
             buff.setIndentLevel(+1, relative=True)  # to enter the if block
             self.writeParamUpdates(buff, 'set every frame')
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
 
     def writeRoutineEndCode(self, buff):
-        buff.writeIndented(
-            "%(name)s.enabled = False  # just in case it was left enabled\n" % (self.params))
+        msg = "%(name)s.enabled = False  # just in case it was left enabled\n"
+        buff.writeIndented(msg % self.params)
