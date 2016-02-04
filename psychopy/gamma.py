@@ -14,7 +14,13 @@ import os
 if sys.platform=='win32':
     from ctypes import windll
 elif sys.platform=='darwin':
-    carbon = ctypes.CDLL('/System/Library/Carbon.framework/Carbon')
+    try: #could be in different places depending on OSX version
+        carbon = ctypes.CDLL('/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics')
+    except OSError:
+        try:
+            carbon = ctypes.CDLL('/System/Library/Frameworks/Carbon.framework/Carbon')
+        except Exception, e:
+            carbon = ctypes.CDLL('/System/Library/Carbon.framework/Carbon')
 elif sys.platform.startswith('linux'):
     #we need XF86VidMode
     xf86vm=ctypes.CDLL(ctypes.util.find_library('Xxf86vm'))
