@@ -25,6 +25,7 @@ from psychopy.iohub import Computer, Device,print2err,printExceptionDetailsToStd
 from ...constants import EventConstants, DeviceConstants
 import numpy as N
 from ...util import NumPyRingBuffer
+import copy
 
 class WintabTablet(Device):
     """
@@ -42,7 +43,6 @@ class WintabTablet(Device):
                '_wtab_shadow_windows',
                '_wtab_canvases',
                '_last_sample',
-               '_calculated_isi',
                '_first_hw_and_hub_times'
     ]
 
@@ -55,7 +55,6 @@ class WintabTablet(Device):
 
         # Following are used for sample status tracking
         self._last_sample=None
-        self._calculated_isi=0
         self._first_hw_and_hub_times = None
 
     def _init_wintab(self):
@@ -138,8 +137,6 @@ class WintabTablet(Device):
 
     def getHardwareConfig(self, index=0):
         hw_model_info = self._wtablets[index].hw_model_info
-        hw_model_info['calc_sample_interval'] = self._calculated_isi
-        
         return {"Context":self._wtab_canvases[index].getContextInfo(),
                  "Axis":self._wtablets[index].hw_axis_info,
                  "ModelInfo":hw_model_info
@@ -152,7 +149,6 @@ class WintabTablet(Device):
         if self.isReportingEvents() != enabled:
             self._last_sample = None
             self._first_hw_and_hub_times = None
-            self._calculated_isi = 0
 
         return Device.enableEventReporting(self, enabled)
 
@@ -173,48 +169,47 @@ class WintabTablet(Device):
             delay = 0.0
 
             for wtc in self._wtab_canvases:
-                for wte in wtc._iohub_events:
-                    if wte and wte[0] == EventConstants.WINTAB_TABLET_SAMPLE:
-                        status = WintabTabletSampleEvent.STATES['FIRST_ENTER']
+                wintab_events = copy.deepcopy(wtc._iohub_events)
+                del wtc._iohub_events[:]
+                for wte in wintab_events:               
+                    if wte and wte[0] != EventConstants.WINTAB_TABLET_SAMPLE:
+                        # event is enter or leave region type, so clear
+                        # last sample as a flag that next sample should 
+                        # be FIRST_ENTER 
+                        self._last_sample=None
+                    else:
                         if self._first_hw_and_hub_times is None:
                             self._first_hw_and_hub_times = wte[1], logged_time
 
-                        if self._last_sample:
-                            if self._calculated_isi == 0:
-                                self._calculated_isi = wte[1]-self._last_sample[1]
-
-                            if wte[1]-self._last_sample[1] >= self._calculated_isi*1.75:
-                                self._last_sample = None
-                            elif wte[8] > 0:
-                                if self._last_sample[8] > 0:
-                                    status = WintabTabletSampleEvent.STATES['PRESSED']
-                                else:
-                                    status = WintabTabletSampleEvent.STATES['FIRST_PRESS']
+                        status = 0
+                        cur_press_state = wte[8]
+                        if self._last_sample is None:
+                            status += WintabTabletSampleEvent.STATES['FIRST_ENTER']
+                            if cur_press_state > 0:
+                                status += WintabTabletSampleEvent.STATES['FIRST_PRESS']    
+                                status += WintabTabletSampleEvent.STATES['PRESSED']    
                             else:
-                                if self._last_sample[8] == 0:
-                                    status = WintabTabletSampleEvent.STATES['HOVERING']
-                                else:
-                                    status = WintabTabletSampleEvent.STATES['FIRST_HOVER']
-                        if status == WintabTabletSampleEvent.STATES['FIRST_ENTER']:
-                            if wte[8] > 0:
-                                # first enter + first press, ie first enter pressed
-                                status = status + WintabTabletSampleEvent.STATES['FIRST_PRESS']+WintabTabletSampleEvent.STATES['PRESSED']
-                            else:
-                                # first enter + first hover, ie first enter hover
-                                status = status + WintabTabletSampleEvent.STATES['FIRST_HOVER']+WintabTabletSampleEvent.STATES['HOVERING']
+                                status += WintabTabletSampleEvent.STATES['FIRST_HOVER']    
+                                status += WintabTabletSampleEvent.STATES['HOVERING']    
+                        else:
+                            prev_press_state = self._last_sample[8]                  
+                            if cur_press_state > 0:  
+                                status += WintabTabletSampleEvent.STATES['PRESSED']    
+                            else:    
+                                status += WintabTabletSampleEvent.STATES['HOVERING']    
+                            
+                            if cur_press_state > 0 and prev_press_state==0:
+                                status += WintabTabletSampleEvent.STATES['FIRST_PRESS']
+                            elif cur_press_state == 0 and prev_press_state > 0:
+                                status += WintabTabletSampleEvent.STATES['FIRST_HOVER']
                         #Fill in status field based on previous sample.......
                         wte[-1] = status
                         self._last_sample = wte
-
-                    evt_data = (logged_time,
-                              delay,
-                              confidence_interval,
-                              wte)
-
-                    self._addNativeEventToBuffer(evt_data)
-
-
-                del wtc._iohub_events[:]
+                    
+                    self._addNativeEventToBuffer((logged_time,
+                          delay,
+                          confidence_interval,
+                          wte))
             self._last_poll_time = logged_time
             return True
         except Exception, e:
