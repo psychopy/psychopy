@@ -51,7 +51,7 @@ class KeyboardComponent(BaseComponent):
         self.order = ['forceEndRoutine', 'allowedKeys', 'store',
                       'storeCorrect', 'correctAns']
 
-        msg = "A comma-separated list of keys (with quotes), such as 'q','right','space','left'"
+        msg = "A comma-separated list of keys (with quotes), such as 'q','right','space','left' "
         self.params['allowedKeys'] = Param(
             allowedKeys, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant', 'set every repeat'],
