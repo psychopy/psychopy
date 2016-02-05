@@ -56,11 +56,13 @@ class StaticComponent(BaseComponent):
                                        allowedTypes=[],
                                        updates='constant', allowedUpdates=[],
                                        hint=_translate(hnt))
-        hnt = "(Optional) expected start (s), purely for representing in the timeline"
+        hnt = ("(Optional) expected start (s), purely for representing in "
+               "the timeline")
         self.params['startEstim'] = Param(startEstim, valType='code',
                                           allowedTypes=[],
                                           hint=_translate(hnt))
-        hnt = "(Optional) expected duration (s), purely for representing in the timeline"
+        hnt = ("(Optional) expected duration (s), purely for representing"
+               " in the timeline")
         self.params['durationEstim'] = Param(durationEstim, valType='code',
                                              allowedTypes=[],
                                              hint=_translate(hnt))
