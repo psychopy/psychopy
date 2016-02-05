@@ -2,6 +2,17 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+"""Experiment classes:
+    Experiment, Flow, Routine, Param, Loop*, *Handlers, and NameSpace
+
+The code that writes out a *_lastrun.py experiment file is (in order):
+    experiment.Experiment.writeScript() - starts things off, calls other parts
+    settings.SettingsComponent.writeStartCode()
+    experiment.Flow.writeCode()
+        which will call the .writeCode() methods from each component
+    settings.SettingsComponent.writeEndCode()
+"""
+
 from __future__ import absolute_import, print_function
 
 import re
@@ -22,6 +33,7 @@ try:
 except NameError:
     from .. import localization
 import locale
+
 # predefine some regex's; deepcopy complains if do in NameSpace.__init__()
 _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")  # detect "code wanted"
 _valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
@@ -53,15 +65,6 @@ class CodeGenerationException(Exception):
 
     def __str__(self):
         return str(self.source) + ": " + self.message
-
-
-"""the code that writes out an actual experiment file is (in order):
-    experiment.Experiment.writeScript() - starts things off, calls other parts
-    settings.SettingsComponent.writeStartCode()
-    experiment.Flow.writeCode()
-        which will call .writeCode() bits from each component
-    settings.SettingsComponent.writeEndCode()
-"""
 
 
 class IndentingBuffer(StringIO.StringIO):
