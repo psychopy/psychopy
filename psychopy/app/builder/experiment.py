@@ -28,30 +28,23 @@ _valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
 _nonalphanumeric_re = re.compile(r'\W')  # will match all bad var name chars
 
 # used when writing scripts and in namespace:
-_numpyImports = ['sin', 'cos', 'tan', 'log', 'log10', 'pi', 'average', 'sqrt', 'std',
-                 'deg2rad', 'rad2deg', 'linspace', 'asarray']
+_numpyImports = ['sin', 'cos', 'tan', 'log', 'log10', 'pi', 'average',
+                 'sqrt', 'std', 'deg2rad', 'rad2deg', 'linspace', 'asarray']
 _numpyRandomImports = ['random', 'randint', 'normal', 'shuffle']
 
-# used for separation of internal vs display values:
-_localized = {
-    # strings for random, sequential, fullRandom loops:
-    'Name': _translate('Name'), 'nReps': _translate('nReps'), 'conditions': _translate('Conditions'),
-    'endPoints': _translate('endPoints'), 'Selected rows': _translate('Selected rows'),
-    'loopType': _translate('loopType'), 'random seed': _translate('random seed'), 'Is trials': _translate('Is trials'),
-    # strings for staircases
-    'min value': _translate('min value'), 'N reversals': _translate('N reversals'), 'start value': _translate('start value'),
-    'N up': _translate('N up'), 'max value': _translate('max value'), 'N down': _translate('N down'),
-    'step type': _translate('step type'), 'step sizes': _translate('step sizes'),
-    # strings for interleaved Staircases
-    'stairType': _translate('stairType'), 'switchMethod': _translate('switchMethod')
-}
-
-"""
-Exception thrown by a component when it is unable to generate its code.
-"""
+# _localized separates internal (functional) from displayed strings:
+_loKeys = ('Name', 'nReps', 'conditions', 'endPoints', 'Selected rows',
+           'loopType', 'random seed', 'Is trials',  # for loops
+           'min value', 'N reversals', 'start value', 'N up', 'max value',
+           'N down', 'step type', 'step sizes',  # staircases
+           'stairType', 'switchMethod')  # interleaved staircases
+_localized = {k: _translate(k) for k in _loKeys}
 
 
 class CodeGenerationException(Exception):
+    """
+    Exception thrown by a component when it is unable to generate its code.
+    """
 
     def __init__(self, source, message=""):
         super(CodeGenerationException, self).__init__()
@@ -602,7 +595,7 @@ class Param(object):
     >>> print(Param(val=[3,4], valType='code'))
     [3, 4]
 
-    >>> #### auto str -> code:  at least one non-escaped '$' triggers str -> code: ####
+    >>> #### auto str -> code:  at least one non-escaped '$' triggers
     >>> print(Param('[x,y]','str')) # str normally returns string
     '[x,y]'
     >>> print(Param('$[x,y]','str')) # code, as triggered by $
@@ -615,17 +608,17 @@ class Param(object):
     [x,y]
     >>> print(Param('[x,\$y]','str')) # string, because the only $ is escaped
     '[x,$y]'
-    >>> print(Param('[x,\ $y]','str')) # improper escape -> code (note that \ is not adjacent to $)
+    >>> print(Param('[x,\ $y]','str')) # improper escape -> code
     [x,\ y]
-    >>> print(Param('/$[x,y]','str')) # improper escape -> code (/ is not the same as \)
+    >>> print(Param('/$[x,y]','str')) # improper escape -> code
     /[x,y]
     >>> print(Param('[\$x,$y]','str')) # code, python syntax error
     [$x,y]
     >>> print(Param('["\$x",$y]','str') # ... python syntax ok
     ["$x",y]
-    >>> print(Param("'$a'",'str')) # code, with the code being a string, $ removed
+    >>> print(Param("'$a'",'str')) # code, with the code being a string
     'a'
-    >>> print(Param("'\$a'",'str')) # string, with the string containing a string, $ escaped (\ removed)
+    >>> print(Param("'\$a'",'str')) # str, with the str containing a str
     "'$a'"
     >>> print(Param('$$$$$myPathologicalVa$$$$$rName','str'))
     myPathologicalVarName
@@ -637,25 +630,31 @@ class Param(object):
     $myPathologicalVa$rName
     """
 
-    def __init__(self, val, valType, allowedVals=None, allowedTypes=None, hint="",
-                 label="", updates=None, allowedUpdates=None,
+    def __init__(self, val, valType, allowedVals=None, allowedTypes=None,
+                 hint="", label="", updates=None, allowedUpdates=None,
                  categ="Basic"):
         """
         @param val: the value for this parameter
         @type val: any
         @param valType: the type of this parameter ('num', 'str', 'code')
         @type valType: string
-        @param allowedVals: possible vals for this param (e.g. units param can only be 'norm','pix',...)
+        @param allowedVals: possible vals for this param
+            (e.g. units param can only be 'norm','pix',...)
         @type allowedVals: any
-        @param allowedTypes: if other types are allowed then this is the possible types this parameter can have (e.g. rgb can be 'red' or [1,0,1])
+        @param allowedTypes: if other types are allowed then this is
+            the possible types this parameter can have
+            (e.g. rgb can be 'red' or [1,0,1])
         @type allowedTypes: list
         @param hint: describe this parameter for the user
         @type hint: string
-        @param updates: how often does this parameter update ('experiment', 'routine', 'set every frame')
+        @param updates: how often does this parameter update
+            ('experiment', 'routine', 'set every frame')
         @type updates: string
-        @param allowedUpdates: conceivable updates for this param [None, 'routine', 'set every frame']
+        @param allowedUpdates: conceivable updates for this param
+            [None, 'routine', 'set every frame']
         @type allowedUpdates: list
-        @param categ: category for this parameter, will populate tabs in Component Dlg
+        @param categ: category for this parameter
+            will populate tabs in Component Dlg
         @type allowedUpdates: string
         """
         super(Param, self).__init__()
@@ -684,7 +683,7 @@ class Param(object):
             except TypeError:
                 return unicode(self.val)  # try array of float instead?
         elif self.valType == 'str':
-            # at least 1 non-escaped '$' anywhere --> code wanted; only '\' will escape
+            # at least 1 non-escaped '$' anywhere --> code wanted
             # return str if code wanted
             # return repr if str wanted; this neatly handles "it's" and 'He
             # says "hello"'
@@ -697,18 +696,19 @@ class Param(object):
                     return repr(re.sub(r"[\\]\$", '$', self.val))
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
-            if (type(self.val) in [str, unicode]) and self.val.startswith("$"):
+            isStr = isinstance(self.val, basestring)
+            if isStr and self.val.startswith("$"):
                 # a $ in a code parameter is unecessary so remove it
-                return "%s" % (self.val[1:])
-            elif (type(self.val) in [str, unicode]) and self.val.startswith("\$"):
+                return "%s" % self.val[1:]
+            elif isStr and self.val.startswith("\$"):
                 # the user actually wanted just the $
-                return "%s" % (self.val[1:])
-            elif (type(self.val) in [str, unicode]):
-                return "%s" % (self.val)  # the user actually wanted just the $
-            else:  # if the value was a tuple it needs converting to a string first
-                return "%s" % (repr(self.val))
+                return "%s" % self.val[1:]
+            elif isStr:
+                return "%s" % self.val  # user actually wanted just the $
+            else:  # if val was a tuple it needs converting to a string first
+                return "%s" % repr(self.val)
         elif self.valType == 'bool':
-            return "%s" % (self.val)
+            return "%s" % self.val
         else:
             raise TypeError("Can't represent a Param of type %s" %
                             self.valType)
@@ -720,8 +720,8 @@ class TrialHandler(object):
             """
 
     def __init__(self, exp, name, loopType='random', nReps=5,
-                 conditions=(), conditionsFile='', endPoints=(0, 1), randomSeed='', selectedRows='',
-                 isTrials=True):
+                 conditions=(), conditionsFile='', endPoints=(0, 1),
+                 randomSeed='', selectedRows='', isTrials=True):
         """
         @param name: name of the loop e.g. trials
         @type name: string
@@ -731,7 +731,8 @@ class TrialHandler(object):
         @type nReps:int
         @param conditions: list of different trial conditions to be used
         @type conditions: list (of dicts?)
-        @param conditionsFile: filename of the .csv file that contains conditions info
+        @param conditionsFile: filename of the .csv file that
+            contains conditions info
         @type conditions: string (filename)
         """
         super(TrialHandler, self).__init__()
@@ -739,30 +740,60 @@ class TrialHandler(object):
         self.exp = exp
         self.order = ['name']  # make name come first (others don't matter)
         self.params = {}
-        self.params['name'] = Param(name, valType='code', updates=None, allowedUpdates=None,
-                                    label=_localized['Name'], hint=_translate("Name of this loop"))
-        self.params['nReps'] = Param(nReps, valType='code', updates=None, allowedUpdates=None,
-                                     label=_localized['nReps'], hint=_translate("Number of repeats (for each condition)"))
-        self.params['conditions'] = Param(list(conditions), valType='str', updates=None, allowedUpdates=None,
-                                          label=_localized['conditions'], hint=_translate("A list of dictionaries describing the parameters in each condition"))
-        self.params['conditionsFile'] = Param(conditionsFile, valType='str', updates=None, allowedUpdates=None, label=_localized['conditions'],
-                                              hint=_translate("Name of a file specifying the parameters for each condition (.csv, .xlsx, or .pkl). Browse to select a file. Right-click to preview file contents, or create a new file."))
-        self.params['endPoints'] = Param(list(endPoints), valType='num', updates=None, allowedUpdates=None,
-                                         label=_localized['endPoints'], hint=_translate("The start and end of the loop (see flow timeline)"))
-        self.params['Selected rows'] = Param(selectedRows, valType='code', updates=None, allowedUpdates=None,
-                                             label=_localized['Selected rows'], hint=_translate("Select just a subset of rows from your condition file (the first is 0 not 1!). Examples: 0, 0:5, 5:-1"))
-        self.params['loopType'] = Param(loopType, valType='str',
-                                        allowedVals=[
-                                            'random', 'sequential', 'fullRandom', 'staircase', 'interleaved staircases'],
-                                        label=_localized['loopType'],
-                                        hint=_translate("How should the next condition value(s) be chosen?"))  # NB staircase is added for the sake of the loop properties dialog
-        self.params['random seed'] = Param(randomSeed, valType='code', updates=None, allowedUpdates=None,
-                                           label=_localized['random seed'],
-                                           hint=_translate("To have a fixed random sequence provide an integer of your choosing here. Leave blank to have a new random sequence on each run of the experiment."))
-        self.params['isTrials'] = Param(isTrials, valType='bool', updates=None, allowedUpdates=None,
-                                        hint=_translate(
-                                            "Indicates that this loop generates TRIALS, rather than BLOCKS of trials or stimuli within a trial. It alters how data files are output"),
-                                        label=_localized["Is trials"])
+        self.params['name'] = Param(
+            name, valType='code', updates=None, allowedUpdates=None,
+            label=_localized['Name'],
+            hint=_translate("Name of this loop"))
+        self.params['nReps'] = Param(
+            nReps, valType='code', updates=None, allowedUpdates=None,
+            label=_localized['nReps'],
+            hint=_translate("Number of repeats (for each condition)"))
+        self.params['conditions'] = Param(
+            list(conditions), valType='str',
+            updates=None, allowedUpdates=None,
+            label=_localized['conditions'],
+            hint=_translate("A list of dictionaries describing the"
+                            "parameters in each condition"))
+        self.params['conditionsFile'] = Param(
+            conditionsFile, valType='str', updates=None, allowedUpdates=None,
+            label=_localized['conditions'],
+            hint=_translate("Name of a file specifying the parameters for "
+                            "each condition (.csv, .xlsx, or .pkl). Browse "
+                            "to select a file. Right-click to preview file "
+                            "contents, or create a new file."))
+        self.params['endPoints'] = Param(
+            list(endPoints), valType='num', updates=None, allowedUpdates=None,
+            label=_localized['endPoints'],
+            hint=_translate("The start and end of the loop (see flow "
+                            "timeline)"))
+        self.params['Selected rows'] = Param(
+            selectedRows, valType='code',
+            updates=None, allowedUpdates=None,
+            label=_localized['Selected rows'],
+            hint=_translate("Select just a subset of rows from your condition"
+                            " file (the first is 0 not 1!). Examples: 0, "
+                            "0:5, 5:-1"))
+        # NB staircase is added for the sake of the loop properties dialog:
+        self.params['loopType'] = Param(
+            loopType, valType='str',
+            allowedVals=['random', 'sequential', 'fullRandom',
+                         'staircase', 'interleaved staircases'],
+            label=_localized['loopType'],
+            hint=_translate("How should the next condition value(s) be "
+                            "chosen?"))
+        self.params['random seed'] = Param(
+            randomSeed, valType='code', updates=None, allowedUpdates=None,
+            label=_localized['random seed'],
+            hint=_translate("To have a fixed random sequence provide an "
+                            "integer of your choosing here. Leave blank to "
+                            "have a new random sequence on each run of the "
+                            "experiment."))
+        self.params['isTrials'] = Param(
+            isTrials, valType='bool', updates=None, allowedUpdates=None,
+            label=_localized["Is trials"],
+            hint=_translate("Indicates that this loop generates TRIALS, "
+                            "rather than BLOCKS of trials or stimuli within "
+                            "a trial. It alters how data files are output"))
 
     def writeInitCode(self, buff):
         # no longer needed - initialise the trial handler just before it runs
@@ -771,65 +802,55 @@ class TrialHandler(object):
     def writeLoopStartCode(self, buff):
         """Write the code to create and run a sequence of trials
         """
-        # first create the handler
-        # init values
+        # first create the handler init values
         inits = getInitVals(self.params)
-        # import conditions from file
+        # import conditions from file?
         if self.params['conditionsFile'].val in ['None', None, 'none', '']:
             condsStr = "[None]"
         elif self.params['Selected rows'].val in ['None', None, 'none', '']:
             # just a conditions file with no sub-selection
-            condsStr = "data.importConditions(%s)" % self.params[
-                'conditionsFile']
+            _con = "data.importConditions(%s)"
+            condsStr = _con % self.params['conditionsFile']
         else:
             # a subset of a conditions file
-            condsStr = "data.importConditions(%(conditionsFile)s, selection=%(Selected rows)s)" % (
-                self.params)
+            condsStr = ("data.importConditions(%(conditionsFile)s, selection="
+                        "%(Selected rows)s)") % self.params
         # also a 'thisName' for use in "for thisTrial in trials:"
-        self.thisName = self.exp.namespace.makeLoopIndex(self.params[
-                                                         'name'].val)
+        makeLoopIndex = self.exp.namespace.makeLoopIndex
+        self.thisName = makeLoopIndex(self.params['name'].val)
         # write the code
-        buff.writeIndentedLines(
-            "\n# set up handler to look after randomisation of conditions etc\n")
-        buff.writeIndented(
-            "%(name)s = data.TrialHandler(nReps=%(nReps)s, method=%(loopType)s, \n" % (inits))
-        buff.writeIndented("    extraInfo=expInfo, originPath=-1,\n")
-        buff.writeIndented("    trialList=%s,\n" % (condsStr))
-        buff.writeIndented(
-            "    seed=%(random seed)s, name='%(name)s')\n" % (inits))
-        buff.writeIndented(
-            "thisExp.addLoop(%(name)s)  # add the loop to the experiment\n" % self.params)
-        buff.writeIndented("%s = %s.trialList[0]  # so we can initialise stimuli with some values\n" % (
-            self.thisName, self.params['name']))
-        # create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind
-        # cluttered namespace
-        if not self.exp.prefsBuilder['unclutteredNamespace']:
-            buff.writeIndented(
-                "# abbreviate parameter names if possible (e.g. rgb=%s.rgb)\n" % self.thisName)
-            buff.writeIndented("if %s != None:\n" % self.thisName)
-            buff.writeIndented(
-                buff.oneIndent + "for paramName in %s.keys():\n" % self.thisName)
-            buff.writeIndented(
-                buff.oneIndent * 2 + "exec(paramName + '= %s.' + paramName)\n" % self.thisName)
+        code = ("\n# set up handler to look after randomisation of conditions etc\n"
+                "%(name)s = data.TrialHandler(nReps=%(nReps)s, method=%(loopType)s, \n"
+                "    extraInfo=expInfo, originPath=-1,\n"
+                "    trialList=" + condsStr + ",\n"  # conditions go here
+                "    seed=%(random seed)s, name='%(name)s')\n")
+        buff.writeIndentedLines(code % inits)
 
-        # then run the trials
-        # work out a name for e.g. thisTrial in trials:
-        buff.writeIndented("\n")
-        buff.writeIndented("for %s in %s:\n" %
-                           (self.thisName, self.params['name']))
+        code = ("thisExp.addLoop(%(name)s)  # add the loop to the experiment\n" +
+                self.thisName + " = %(name)s.trialList[0]  " +
+                "# so we can initialise stimuli with some values\n")
+        buff.writeIndentedLines(code % self.params)
+        # unclutter the namespace
+        if not self.exp.prefsBuilder['unclutteredNamespace']:
+            code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
+                    "if %(name)s != None:\n"
+                    "    for paramName in %(name)s.keys():\n"
+                    "        exec(paramName + '= %(name)s.' + paramName)\n")
+            buff.writeIndentedLines(code % {'name': self.thisName})
+
+        # then run the trials loop
+        code = "\nfor %s in %s:\n"
+        buff.writeIndentedLines(code % (self.thisName, self.params['name']))
         # fetch parameter info from conditions
         buff.setIndentLevel(1, relative=True)
-        buff.writeIndented("currentLoop = %s\n" % (self.params['name']))
-        # create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind
-        # cluttered namespace
+        buff.writeIndented("currentLoop = %s\n" % self.params['name'])
+        # unclutter the namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
-            buff.writeIndented(
-                "# abbreviate parameter names if possible (e.g. rgb = %s.rgb)\n" % self.thisName)
-            buff.writeIndented("if %s != None:\n" % self.thisName)
-            buff.writeIndented(
-                buff.oneIndent + "for paramName in %s.keys():\n" % self.thisName)
-            buff.writeIndented(
-                buff.oneIndent * 2 + "exec(paramName + '= %s.' + paramName)\n" % self.thisName)
+            code = ("# abbreviate parameter names if possible (e.g. rgb = %(name)s.rgb)\n"
+                    "if %(name)s != None:\n"
+                    "    for paramName in %(name)s.keys():\n"
+                    "        exec(paramName + '= %(name)s.' + paramName)\n")
+            buff.writeIndentedLines(code % {'name': self.thisName})
 
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
@@ -848,27 +869,26 @@ class TrialHandler(object):
             saveCSV = self.exp.settings.params['Save csv file'].val
             # get parameter names
             if saveExcel or saveCSV:
-                buff.writeIndented(
-                    "# get names of stimulus parameters\n" % self.params)
-                buff.writeIndented(
-                    "if %(name)s.trialList in ([], [None], None):  params = []\n" % self.params)
-                buff.writeIndented(
-                    "else:  params = %(name)s.trialList[0].keys()\n" % self.params)
+                code = ("# get names of stimulus parameters\n"
+                        "if %(name)s.trialList in ([], [None], None):\n"
+                        "    params = []\n"
+                        "else:\n"
+                        "    params = %(name)s.trialList[0].keys()\n")
+                buff.writeIndentedLines(code % self.params)
             # write out each type of file
             if saveExcel or saveCSV:
                 buff.writeIndented("# save data for this loop\n")
             if saveExcel:
-                buff.writeIndented(
-                    "%(name)s.saveAsExcel(filename + '.xlsx', sheetName='%(name)s',\n" % self.params)
-                buff.writeIndented("    stimOut=params,\n")
-                buff.writeIndented(
-                    "    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
+                code = ("%(name)s.saveAsExcel(filename + '.xlsx', sheetName='%(name)s',\n"
+                        "    stimOut=params,\n"
+                        "    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
+                buff.writeIndentedLines(code % self.params)
             if saveCSV:
-                buff.writeIndented(
-                    "%(name)s.saveAsText(filename + '%(name)s.csv', delim=',',\n" % self.params)
-                buff.writeIndented("    stimOut=params,\n")
-                buff.writeIndented(
-                    "    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
+                code = ("%(name)s.saveAsText(filename + '%(name)s.csv', "
+                        "delim=',',\n"
+                        "    stimOut=params,\n"
+                        "    dataOut=['n','all_mean','all_std', 'all_raw'])\n")
+                buff.writeIndentedLines(code % self.params)
 
     def getType(self):
         return 'TrialHandler'
@@ -893,39 +913,72 @@ class StairHandler(object):
         self.exp = exp
         self.order = ['name']  # make name come first (others don't matter)
         self.params = {}
-        self.params['name'] = Param(name, valType='code', hint=_translate(
-            "Name of this loop"), label=_localized['Name'])
-        self.params['nReps'] = Param(nReps, valType='code',
-                                     label=_localized['nReps'], hint=_translate("(Minimum) number of trials in the staircase"))
-        self.params['start value'] = Param(startVal, valType='code',
-                                           label=_localized['start value'], hint=_translate("The initial value of the parameter"))
-        self.params['max value'] = Param(maxVal, valType='code',
-                                         label=_localized['max value'], hint=_translate("The maximum value the parameter can take"))
-        self.params['min value'] = Param(minVal, valType='code',
-                                         label=_localized['min value'], hint=_translate("The minimum value the parameter can take"))
-        self.params['step sizes'] = Param(stepSizes, valType='code',
-                                          label=_localized['step sizes'], hint=_translate("The size of the jump at each step (can change on each 'reversal')"))
-        self.params['step type'] = Param(stepType, valType='str', allowedVals=['lin', 'log', 'db'],
-                                         label=_localized['step type'], hint=_translate("The units of the step size (e.g. 'linear' will add/subtract that value each step, whereas 'log' will ad that many log units)"))
-        self.params['N up'] = Param(nUp, valType='code',
-                                    label=_localized['N up'], hint=_translate("The number of 'incorrect' answers before the value goes up"))
-        self.params['N down'] = Param(nDown, valType='code',
-                                      label=_localized['N down'], hint=_translate("The number of 'correct' answers before the value goes down"))
-        self.params['N reversals'] = Param(nReversals, valType='code',
-                                           label=_localized['N reversals'], hint=_translate("Minimum number of times the staircase must change direction before ending"))
-        # these two are really just for making the dialog easier (they won't be
-        # used to generate code)
-        self.params['loopType'] = Param('staircase', valType='str',
-                                        allowedVals=[
-                                            'random', 'sequential', 'fullRandom', 'staircase', 'interleaved staircases'],
-                                        label=_localized['loopType'],
-                                        hint=_translate("How should the next trial value(s) be chosen?"))  # NB this is added for the sake of the loop properties dialog
-        self.params['endPoints'] = Param(list(endPoints), valType='num',
-                                         label=_localized['endPoints'], hint=_translate('Where to loop from and to (see values currently shown in the flow view)'))
-        self.params['isTrials'] = Param(isTrials, valType='bool', updates=None, allowedUpdates=None,
-                                        hint=_translate(
-                                            "Indicates that this loop generates TRIALS, rather than BLOCKS of trials or stimuli within a trial. It alters how data files are output"),
-                                        label=_localized["Is trials"])
+        self.params['name'] = Param(
+            name, valType='code',
+            hint=_translate("Name of this loop"),
+            label=_localized['Name'])
+        self.params['nReps'] = Param(
+            nReps, valType='code',
+            label=_localized['nReps'],
+            hint=_translate("(Minimum) number of trials in the staircase"))
+        self.params['start value'] = Param(
+            startVal, valType='code',
+            label=_localized['start value'],
+            hint=_translate("The initial value of the parameter"))
+        self.params['max value'] = Param(
+            maxVal, valType='code',
+            label=_localized['max value'],
+            hint=_translate("The maximum value the parameter can take"))
+        self.params['min value'] = Param(
+            minVal, valType='code',
+            label=_localized['min value'],
+            hint=_translate("The minimum value the parameter can take"))
+        self.params['step sizes'] = Param(
+            stepSizes, valType='code',
+            label=_localized['step sizes'],
+            hint=_translate("The size of the jump at each step (can change"
+                            " on each 'reversal')"))
+        self.params['step type'] = Param(
+            stepType, valType='str', allowedVals=['lin', 'log', 'db'],
+            label=_localized['step type'],
+            hint=_translate("The units of the step size (e.g. 'linear' will"
+                            " add/subtract that value each step, whereas "
+                            "'log' will ad that many log units)"))
+        self.params['N up'] = Param(
+            nUp, valType='code',
+            label=_localized['N up'],
+            hint=_translate("The number of 'incorrect' answers before the "
+                            "value goes up"))
+        self.params['N down'] = Param(
+            nDown, valType='code',
+            label=_localized['N down'],
+            hint=_translate("The number of 'correct' answers before the "
+                            "value goes down"))
+        self.params['N reversals'] = Param(
+            nReversals, valType='code',
+            label=_localized['N reversals'],
+            hint=_translate("Minimum number of times the staircase must "
+                            "change direction before ending"))
+        # these two are really just for making the dialog easier (they won't
+        # be used to generate code)
+        self.params['loopType'] = Param(
+            'staircase', valType='str',
+            allowedVals=['random', 'sequential', 'fullRandom', 'staircase',
+                         'interleaved staircases'],
+            label=_localized['loopType'],
+            hint=_translate("How should the next trial value(s) be chosen?"))
+        # NB this is added for the sake of the loop properties dialog
+        self.params['endPoints'] = Param(
+            list(endPoints), valType='num',
+            label=_localized['endPoints'],
+            hint=_translate('Where to loop from and to (see values currently'
+                            ' shown in the flow view)'))
+        self.params['isTrials'] = Param(
+            isTrials, valType='bool', updates=None, allowedUpdates=None,
+            label=_localized["Is trials"],
+            hint=_translate("Indicates that this loop generates TRIALS, "
+                            "rather than BLOCKS of trials or stimuli within"
+                            " a trial. It alters how data files are output"))
 
     def writeInitCode(self, buff):
         # not needed - initialise the staircase only when needed
@@ -934,39 +987,30 @@ class StairHandler(object):
     def writeLoopStartCode(self, buff):
         # create the staircase
         # also a 'thisName' for use in "for thisTrial in trials:"
-        self.thisName = self.exp.namespace.makeLoopIndex(self.params[
-                                                         'name'].val)
-        if self.params['N reversals'].val in ["", None, 'None']:
+        makeLoopIndex = self.exp.namespace.makeLoopIndex
+        self.thisName = makeLoopIndex(self.params['name'].val)
+        if self.params['N reversals'].val in ("", None, 'None'):
             self.params['N reversals'].val = '0'
         # write the code
-        buff.writeIndentedLines(
-            '\n#--------Prepare to start Staircase "%(name)s" --------\n' % self.params)
-        buff.writeIndentedLines(
-            "# set up handler to look after next chosen value etc\n")
-        buff.writeIndented(
-            "%(name)s = data.StairHandler(startVal=%(start value)s, extraInfo=expInfo,\n" % (self.params))
-        buff.writeIndented(
-            "    stepSizes=%(step sizes)s, stepType=%(step type)s,\n" % self.params)
-        buff.writeIndented(
-            "    nReversals=%(N reversals)s, nTrials=%(nReps)s, \n" % self.params)
-        buff.writeIndented(
-            "    nUp=%(N up)s, nDown=%(N down)s,\n" % self.params)
-        buff.writeIndented(
-            "    minVal=%(min value)s, maxVal=%(max value)s,\n" % self.params)
-        buff.writeIndented("    originPath=-1")
-        buff.write(", name='%(name)s')\n" % self.params)
-        buff.writeIndented(
-            "thisExp.addLoop(%(name)s)  # add the loop to the experiment" % self.params)
-        buff.writeIndented("level = %s = %s  # initialise some vals\n" % (
-            self.thisName, self.params['start value']))
+        code = ('\n#--------Prepare to start Staircase "%(name)s" --------\n'
+                "# set up handler to look after next chosen value etc\n"
+                "%(name)s = data.StairHandler(startVal=%(start value)s, extraInfo=expInfo,\n"
+                "    stepSizes=%(step sizes)s, stepType=%(step type)s,\n"
+                "    nReversals=%(N reversals)s, nTrials=%(nReps)s, \n"
+                "    nUp=%(N up)s, nDown=%(N down)s,\n"
+                "    minVal=%(min value)s, maxVal=%(max value)s,\n"
+                "    originPath=-1, name='%(name)s')\n"
+                "thisExp.addLoop(%(name)s)  # add the loop to the experiment")
+        buff.writeIndentedLines(code % self.params)
+        code = "level = %s = %s  # initialise some vals\n"
+        buff.writeIndented(code % (self.thisName, self.params['start value']))
         # then run the trials
         # work out a name for e.g. thisTrial in trials:
-        buff.writeIndented("\n")
-        buff.writeIndented("for %s in %s:\n" %
-                           (self.thisName, self.params['name']))
+        code = "\nfor %s in %s:\n"
+        buff.writeIndentedLines(code % (self.thisName, self.params['name']))
         buff.setIndentLevel(1, relative=True)
-        buff.writeIndented("currentLoop = %s\n" % (self.params['name']))
-        buff.writeIndented("level = %s\n" % (self.thisName))
+        buff.writeIndented("currentLoop = %s\n" % self.params['name'])
+        buff.writeIndented("level = %s\n" % self.thisName)
 
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
@@ -979,11 +1023,13 @@ class StairHandler(object):
         # save data
         if self.params['isTrials'].val == True:
             if self.exp.settings.params['Save excel file'].val:
-                buff.writeIndented(
-                    "%(name)s.saveAsExcel(filename + '.xlsx', sheetName='%(name)s')\n" % self.params)
+                code = ("%(name)s.saveAsExcel(filename + '.xlsx',"
+                        " sheetName='%(name)s')\n")
+                buff.writeIndented(code % self.params)
             if self.exp.settings.params['Save csv file'].val:
-                buff.writeIndented(
-                    "%(name)s.saveAsText(filename + '%(name)s.csv', delim=',')\n" % self.params)
+                code = ("%(name)s.saveAsText(filename + "
+                        "'%(name)s.csv', delim=',')\n")
+                buff.writeIndented(code % self.params)
 
     def getType(self):
         return 'StairHandler'
@@ -1008,68 +1054,85 @@ class MultiStairHandler(object):
         self.exp = exp
         self.order = ['name']  # make name come first
         self.params = {}
-        self.params['name'] = Param(name, valType='code', label=_localized[
-                                    'Name'], hint=_translate("Name of this loop"))
-        self.params['nReps'] = Param(nReps, valType='code',
-                                     label=_localized['nReps'], hint=_translate("(Minimum) number of trials in *each* staircase"))
-        self.params['stairType'] = Param(stairType, valType='str', allowedVals=['simple', 'QUEST', 'quest'],
-                                         label=_localized['stairType'], hint=_translate("How to select the next staircase to run"))
-        self.params['switchMethod'] = Param(switchStairs, valType='str', allowedVals=['random', 'sequential', 'fullRandom'],
-                                            label=_localized['switchMethod'], hint=_translate("How to select the next staircase to run"))
-        # these two are really just for making the dialog easier (they won't be
-        # used to generate code)
-        self.params['loopType'] = Param('staircase', valType='str',
-                                        allowedVals=[
-                                            'random', 'sequential', 'fullRandom', 'staircase', 'interleaved staircases'],
-                                        label=_localized['loopType'], hint=_translate("How should the next trial value(s) be chosen?"))  # NB this is added for the sake of the loop properties dialog
-        self.params['endPoints'] = Param(list(endPoints), valType='num',
-                                         label=_localized['endPoints'], hint=_translate('Where to loop from and to (see values currently shown in the flow view)'))
-        self.params['conditions'] = Param(list(conditions), valType='str', updates=None, allowedUpdates=None,
-                                          label=_localized['conditions'], hint=_translate("A list of dictionaries describing the differences between each staircase"))
-        self.params['conditionsFile'] = Param(conditionsFile, valType='str', updates=None, allowedUpdates=None,
-                                              label=_localized['conditions'], hint=_translate("An xlsx or csv file specifying the parameters for each condition"))
-        self.params['isTrials'] = Param(isTrials, valType='bool', updates=None, allowedUpdates=None,
-                                        hint=_translate(
-                                            "Indicates that this loop generates TRIALS, rather than BLOCKS of trials or stimuli within a trial. It alters how data files are output"),
-                                        label=_localized["Is trials"])
+        self.params['name'] = Param(
+            name, valType='code',
+            label=_localized['Name'],
+            hint=_translate("Name of this loop"))
+        self.params['nReps'] = Param(
+            nReps, valType='code',
+            label=_localized['nReps'],
+            hint=_translate("(Minimum) number of trials in *each* staircase"))
+        self.params['stairType'] = Param(
+            stairType, valType='str',
+            allowedVals=['simple', 'QUEST', 'quest'],
+            label=_localized['stairType'],
+            hint=_translate("How to select the next staircase to run"))
+        self.params['switchMethod'] = Param(
+            switchStairs, valType='str',
+            allowedVals=['random', 'sequential', 'fullRandom'],
+            label=_localized['switchMethod'],
+            hint=_translate("How to select the next staircase to run"))
+        # these two are really just for making the dialog easier (they won't
+        # be used to generate code)
+        self.params['loopType'] = Param(
+            'staircase', valType='str',
+            allowedVals=['random', 'sequential', 'fullRandom', 'staircase',
+                         'interleaved staircases'],
+            label=_localized['loopType'],
+            hint=_translate("How should the next trial value(s) be chosen?"))
+        self.params['endPoints'] = Param(
+            list(endPoints), valType='num',
+            label=_localized['endPoints'],
+            hint=_translate('Where to loop from and to (see values currently'
+                            ' shown in the flow view)'))
+        self.params['conditions'] = Param(
+            list(conditions), valType='str', updates=None,
+            allowedUpdates=None,
+            label=_localized['conditions'],
+            hint=_translate("A list of dictionaries describing the ' "
+                            "'differences between each staircase"))
+        self.params['conditionsFile'] = Param(
+            conditionsFile, valType='str', updates=None, allowedUpdates=None,
+            label=_localized['conditions'],
+            hint=_translate("An xlsx or csv file specifying the parameters' "
+                            "' for each condition"))
+        self.params['isTrials'] = Param(
+            isTrials, valType='bool', updates=None, allowedUpdates=None,
+            label=_localized["Is trials"],
+            hint=_translate("Indicates that this loop generates TRIALS, "
+                            "rather than BLOCKS of trials or stimuli within "
+                            "a trial. It alters how data files are output"))
         pass  # don't initialise at start of exp, create when needed
 
     def writeLoopStartCode(self, buff):
         # create a 'thisName' for use in "for thisTrial in trials:"
-        self.thisName = self.exp.namespace.makeLoopIndex(self.params[
-                                                         'name'].val)
+        makeLoopIndex = self.exp.namespace.makeLoopIndex
+        self.thisName = makeLoopIndex(self.params['name'].val)
         # create the MultistairHander
-        buff.writeIndentedLines(
-            "\n# set up handler to look after randomisation of trials etc\n")
-        buff.writeIndentedLines(
-            "conditions = data.importConditions(%s)" % self.params['conditionsFile'])
-        buff.writeIndented(
-            "%(name)s = data.MultiStairHandler(stairType=%(stairType)s, name='%(name)s',\n" % (self.params))
-        buff.writeIndented("    nTrials=%(nReps)s,\n" % self.params)
-        buff.writeIndented("    conditions=conditions,\n")
-        buff.writeIndented("    originPath=-1")
-        buff.write(")\n" % self.params)
-        buff.writeIndented(
-            "thisExp.addLoop(%(name)s)  # add the loop to the experiment\n" % self.params)
-        buff.writeIndented("# initialise values for first condition\n")
-        buff.writeIndented(
-            "level = %(name)s._nextIntensity  # initialise some vals\n" % (self.params))
-        buff.writeIndented(
-            "condition = %(name)s.currentStaircase.condition\n" % (self.params))
-        # start the loop
-        buff.writeIndented("\n")
-        buff.writeIndented(
-            "for level, condition in %(name)s:\n" % (self.params))
+        code = ("\n# set up handler to look after randomisation of trials etc\n"
+                "conditions = data.importConditions(%(conditionsFile)s)\n"
+                "%(name)s = data.MultiStairHandler(stairType=%(stairType)s, "
+                "name='%(name)s',\n"
+                "    nTrials=%(nReps)s,\n"
+                "    conditions=conditions,\n"
+                "    originPath=-1)\n"
+                "thisExp.addLoop(%(name)s)  # add the loop to the experiment\n"
+                "# initialise values for first condition\n"
+                "level = %(name)s._nextIntensity  # initialise some vals\n"
+                "condition = %(name)s.currentStaircase.condition\n"
+                # start the loop:
+                "\nfor level, condition in %(name)s:\n")
+        buff.writeIndentedLines(code % self.params)
+
         buff.setIndentLevel(1, relative=True)
         buff.writeIndented("currentLoop = %(name)s\n" % (self.params))
-        # create additional names (e.g. rgb=thisTrial.rgb) if user doesn't mind
-        # cluttered namespace
+        # uncluttered namespace
         if not self.exp.prefsBuilder['unclutteredNamespace']:
-            buff.writeIndented(
-                "# abbreviate parameter names if possible (e.g. rgb=condition.rgb)\n")
-            buff.writeIndented("for paramName in condition.keys():\n")
-            buff.writeIndented(
-                buff.oneIndent + "exec(paramName + '= condition[paramName]')\n")
+            code = ("# abbreviate parameter names if possible (e.g. "
+                    "rgb=condition.rgb)\n"
+                    "for paramName in condition.keys():\n"
+                    "    exec(paramName + '= condition[paramName]')\n")
+            buff.writeIndentedLines(code)
 
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
@@ -1082,11 +1145,12 @@ class MultiStairHandler(object):
         # save data
         if self.params['isTrials'].val == True:
             if self.exp.settings.params['Save excel file'].val:
-                buff.writeIndented(
-                    "%(name)s.saveAsExcel(filename + '.xlsx')\n" % self.params)
+                code = "%(name)s.saveAsExcel(filename + '.xlsx')\n"
+                buff.writeIndented(code % self.params)
             if self.exp.settings.params['Save csv file'].val:
-                buff.writeIndented(
-                    "%(name)s.saveAsText(filename + '%(name)s.csv', delim=',')\n" % self.params)
+                code = ("%(name)s.saveAsText(filename + '%(name)s.csv', "
+                        "delim=',')\n")
+                buff.writeIndented(code % self.params)
 
     def getType(self):
         return 'MultiStairHandler'
@@ -1147,8 +1211,8 @@ class LoopTerminator(object):
 
 
 class Flow(list):
-    """The flow of the experiment is a list of L{Routine}s, L{LoopInitiator}s and
-    L{LoopTerminator}s, that will define the order in which events occur
+    """The flow of the experiment is a list of L{Routine}s, L{LoopInitiator}s
+    and L{LoopTerminator}s, that will define the order in which events occur
     """
 
     def __init__(self, exp):
@@ -1174,18 +1238,20 @@ class Flow(list):
     def removeComponent(self, component, id=None):
         """Removes a Loop, LoopTerminator or Routine from the flow
 
-        For a Loop (or initiator or terminator) to be deleted we can simply remove
-        the object using normal list syntax. For a Routine there may be more than
-        one instance in the Flow, so either choose which one by specifying the id, or all
-        instances will be removed (suitable if the Routine has been deleted).
+        For a Loop (or initiator or terminator) to be deleted we can simply
+        remove the object using normal list syntax. For a Routine there may
+        be more than one instance in the Flow, so either choose which one
+        by specifying the id, or all instances will be removed (suitable if
+        the Routine has been deleted).
         """
         if component.getType() in ['LoopInitiator', 'LoopTerminator']:
             component = component.loop  # and then continue to do the next
-        if component.getType() in ['StairHandler', 'TrialHandler', 'MultiStairHandler']:
-            # we need to remove the termination points that correspond to the
-            # loop
+        handlers = ('StairHandler', 'TrialHandler', 'MultiStairHandler')
+        if component.getType() in handlers:
+            # we need to remove the loop's termination points
             toBeRemoved = []
-            for comp in self:  # cant safely change the contents of self when looping through self
+            for comp in self:
+                # bad to change the contents of self when looping through self
                 if comp.getType() in ['LoopInitiator', 'LoopTerminator']:
                     if comp.loop == component:
                         # self.remove(comp) --> skips over loop terminator if
@@ -1200,9 +1266,11 @@ class Flow(list):
                 # (with diff names) look the same to list comparison
                 toBeRemoved = []
                 for id, compInFlow in enumerate(self):
-                    if hasattr(compInFlow, 'name') and component.name == compInFlow.name:
+                    if (hasattr(compInFlow, 'name') and
+                            component.name == compInFlow.name):
                         toBeRemoved.append(id)
-                toBeRemoved.reverse()  # need to delete from the end backwards or the order changes
+                # need to delete from the end backwards or the order changes
+                toBeRemoved.reverse()
                 for id in toBeRemoved:
                     del self[id]
             else:
@@ -1211,27 +1279,29 @@ class Flow(list):
                 del self[id]
 
     def _dubiousConstantUpdates(self, component):
-        """Return a list of fields in component that are set to be constant but
-        seem intended to be dynamic. Some code fields are constant, and some
-        denoted as code by $ are constant.
+        """Return a list of fields in component that are set to be constant
+        but seem intended to be dynamic. Some code fields are constant, and
+        some denoted as code by $ are constant.
         """
         warnings = []
-        # treat expInfo as likely to be constant; also treat its keys as constant
-        # because its handy to make a short-cut in code:
+        # treat expInfo as likely to be constant; also treat its keys as
+        # constant because its handy to make a short-cut in code:
         # exec(key+'=expInfo[key]')
-        e = eval(self.exp.settings.params['Experiment info'].val)  # dict
-        expInfo = e.keys()
-        keywords = self.exp.namespace.nonUserBuilder[:] + ['expInfo'] + expInfo
-        ignore = set(keywords).difference(set(['random', 'rand']))
+        expInfo = eval(self.exp.settings.params['Experiment info'].val)
+        keywords = self.exp.namespace.nonUserBuilder[:]
+        keywords.extend(['expInfo'] + expInfo.keys())
+        reserved = set(keywords).difference({'random', 'rand'})
         for key in component.params:
             field = component.params[key]
-            if not hasattr(field, 'val') or not isinstance(field.val, basestring):
+            if (not hasattr(field, 'val') or
+                    not isinstance(field.val, basestring)):
                 continue  # continue == no problem, no warning
-            if not (field.allowedUpdates and type(field.allowedUpdates) == list and
-                    len(field.allowedUpdates) and field.updates == 'constant'):
+            if not (field.allowedUpdates and
+                    type(field.allowedUpdates) == list and
+                    len(field.allowedUpdates) and
+                    field.updates == 'constant'):
                 continue
-            # only non-empty, possibly-code, and 'constant' updating at this
-            # point
+            # now have only non-empty, possibly-code, and 'constant' updating
             if field.valType == 'str':
                 if not bool(_unescapedDollarSign_re.search(field.val)):
                     continue
@@ -1246,18 +1316,17 @@ class Flow(list):
             except SyntaxError:
                 continue
             # ignore reserved words:
-            if not set(names).difference(ignore):
+            if not set(names).difference(reserved):
                 continue
             warnings.append((field, key))
-        if warnings:
-            return warnings
-        return [(None, None)]
+        return warnings or [(None, None)]
 
     def _prescreenValues(self):
         # pre-screen and warn about some conditions in component values:
         trailingWhitespace = []
         constWarnings = []
-        for entry in self:  # NB each entry is a routine or LoopInitiator/Terminator
+        for entry in self:
+            # NB each entry is a routine or LoopInitiator/Terminator
             if type(entry) != Routine:
                 continue
             for component in entry:
@@ -1266,9 +1335,11 @@ class Flow(list):
                     field = component.params[key]
                     if not hasattr(field, 'label'):
                         continue  # no problem, no warning
-                    if field.label.lower() == 'text' or not field.valType in ['str', 'code']:
+                    if (field.label.lower() == 'text' or
+                            not field.valType in ('str', 'code')):
                         continue
-                    if type(field.val) == basestring and field.val != field.val.strip():
+                    if (type(field.val) == basestring and
+                            field.val != field.val.strip()):
                         trailingWhitespace.append(
                             (field.val, key, component, entry))
                         field.val = field.val.strip()
@@ -1282,8 +1353,9 @@ class Flow(list):
             warnings = []
             msg = '"%s", in Routine %s (%s: %s)'
             for field, key, component, routine in trailingWhitespace:
-                warnings.append(msg % (field, routine.params['name'],
-                                       component.params['name'], key.capitalize()))
+                vals = (field, routine.params['name'],
+                        component.params['name'], key.capitalize())
+                warnings.append(msg % vals)
             print('Note: Trailing white-space removed:\n ', end='')
             # non-redundant, order unknown
             print('\n  '.join(list(set(warnings))))
@@ -1291,19 +1363,21 @@ class Flow(list):
             warnings = []
             msg = '"%s", in Routine %s (%s: %s)'
             for field, key, component, routine in constWarnings:
-                warnings.append(msg % (field, routine.params['name'],
-                                       component.params['name'], key.capitalize()))
-            print(
-                'Note: Dynamic code seems intended but updating is "constant":\n ', end='')
+                vals = (field, routine.params['name'],
+                        component.params['name'], key.capitalize())
+                warnings.append(msg % vals)
+            print('Note: Dynamic code seems intended but updating '
+                  'is "constant":\n ', end='')
             # non-redundant, order unknown
             print('\n  '.join(list(set(warnings))))
 
     def writeStartCode(self, script):
         """Write the code that comes before the Window is created
         """
-        script.writeIndentedLines(
-            "\n# Start Code - component code to be run before the window creation\n")
-        for entry in self:  # NB each entry is a routine or LoopInitiator/Terminator
+        script.writeIndentedLines("\n# Start Code - component code to be "
+                                  "run before the window creation\n")
+        for entry in self:
+            # NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine = entry
             # very few components need writeStartCode:
             if hasattr(entry, 'writeStartCode'):
@@ -1313,15 +1387,17 @@ class Flow(list):
         """Write the rest of the code
         """
         # writeStartCode and writeInitCode:
-        for entry in self:  # NB each entry is a routine or LoopInitiator/Terminator
+        for entry in self:
+            # NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine = entry
             entry.writeInitCode(script)
         # create clocks (after initialising stimuli)
-        script.writeIndentedLines("\n# Create some handy timers\n")
-        script.writeIndented(
-            "globalClock = core.Clock()  # to track the time since experiment started\n")
-        script.writeIndented(
-            "routineTimer = core.CountdownTimer()  # to track time remaining of each (non-slip) routine \n")
+        code = ("\n# Create some handy timers\n"
+                "globalClock = core.Clock()  # to track the "
+                "time since experiment started\n"
+                "routineTimer = core.CountdownTimer()  # to "
+                "track time remaining of each (non-slip) routine \n")
+        script.writeIndentedLines(code)
         # run-time code
         for entry in self:
             self._currentRoutine = entry
@@ -1348,12 +1424,13 @@ class Routine(list):
         self.params = {'name': name}
         self.name = name
         self.exp = exp
-        self._clockName = None  # this is used for script-writing e.g. "t=trialClock.GetTime()"
+        self._clockName = None  # for scripts e.g. "t = trialClock.GetTime()"
         self.type = 'Routine'
         list.__init__(self, list(components))
 
     def __repr__(self):
-        return "psychopy.experiment.Routine(name='%s',exp=%s,components=%s)" % (self.name, self.exp, str(list(self)))
+        _rep = "psychopy.experiment.Routine(name='%s', exp=%s, components=%s)"
+        return _rep % (self.name, self.exp, str(list(self)))
 
     def addComponent(self, component):
         """Add a component to the end of the routine"""
@@ -1361,15 +1438,18 @@ class Routine(list):
 
     def removeComponent(self, component):
         """Remove a component from the end of the routine"""
+        name = component.params['name']
         self.remove(component)
         # check if the component was using any Static Components for updates
         for thisParamName, thisParam in component.params.items():
-            if hasattr(thisParam, 'updates') and thisParam.updates and 'during:' in thisParam.updates:
+            if (hasattr(thisParam, 'updates') and
+                    thisParam.updates and
+                    'during:' in thisParam.updates):
                 # remove the part that says 'during'
                 updates = thisParam.updates.split(': ')[1]
                 routine, static = updates.split('.')
-                self.exp.routines[routine].getComponentFromName(static).remComponentUpdate(
-                    routine, component.params['name'], thisParamName)
+                comp = self.exp.routines[routine].getComponentFromName(static)
+                comp.remComponentUpdate(routine, name, thisParamName)
 
     def getStatics(self):
         """Return a list of Static components
@@ -1383,17 +1463,15 @@ class Routine(list):
     def writeStartCode(self, buff):
         # few components will have this
         for thisCompon in self:
-            # check just in case; try to ensure backwards compatibility in
-            # _base,py
+            # check just in case; try to ensure backwards compatibility _base
             if hasattr(thisCompon, 'writeStartCode'):
                 thisCompon.writeStartCode(buff)
 
     def writeInitCode(self, buff):
-        buff.writeIndented('\n')
-        buff.writeIndented(
-            '# Initialize components for Routine "%s"\n' % (self.name))
+        code = '\n# Initialize components for Routine "%s"\n'
+        buff.writeIndentedLines(code % self.name)
         self._clockName = self.name + "Clock"
-        buff.writeIndented('%s = core.Clock()\n' % (self._clockName))
+        buff.writeIndented('%s = core.Clock()\n' % self._clockName)
         for thisCompon in self:
             thisCompon.writeInitCode(buff)
 
@@ -1401,49 +1479,48 @@ class Routine(list):
         """This defines the code for the frames of a single routine
         """
         # create the frame loop for this routine
-        buff.writeIndentedLines(
-            '\n#------Prepare to start Routine "%s"-------\n' % (self.name))
-
-        buff.writeIndented('t = 0\n')
-        buff.writeIndented('%s.reset()  # clock \n' % (self._clockName))
-        buff.writeIndented('frameN = -1\n')
+        code = ('\n#------Prepare to start Routine "%s"-------\n'
+                't = 0\n'
+                '%s.reset()  # clock\n'
+                'frameN = -1\n')
+        buff.writeIndentedLines(code % (self.name, self._clockName))
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
         if useNonSlip:
             buff.writeIndented('routineTimer.add(%f)\n' % (maxTime))
-
-        buff.writeIndentedLines(
-            "# update component parameters for each repeat\n")
+        code = "# update component parameters for each repeat\n"
+        buff.writeIndentedLines(code)
         # This is the beginning of the routine, before the loop starts
         for event in self:
             event.writeRoutineStartCode(buff)
 
-        buff.writeIndented('# keep track of which components have finished\n')
-        buff.writeIndented('%sComponents = []\n' % (self.name))
+        code = ('# keep track of which components have finished\n'
+                '%sComponents = []\n')
+        buff.writeIndentedLines(code % self.name)
+        # todo: rewrite to avoid append append ... append one by one
         for thisCompon in self:
             if 'startType' in thisCompon.params:
                 buff.writeIndented('%sComponents.append(%s)\n' %
                                    (self.name, thisCompon.params['name']))
-        buff.writeIndented(
-            "for thisComponent in %sComponents:\n" % (self.name))
-        buff.writeIndented("    if hasattr(thisComponent, 'status'):\n")
-        buff.writeIndented("        thisComponent.status = NOT_STARTED\n")
-
-        buff.writeIndentedLines(
-            '\n#-------Start Routine "%s"-------\n' % (self.name))
-        buff.writeIndented('continueRoutine = True\n')
+        code = ("for thisComponent in %sComponents:\n"
+                "    if hasattr(thisComponent, 'status'):\n"
+                "        thisComponent.status = NOT_STARTED\n"
+                '\n#-------Start Routine "%s"-------\n'
+                'continueRoutine = True\n')
+        buff.writeIndentedLines(code % (self.name, self.name))
         if useNonSlip:
-            buff.writeIndented(
-                'while continueRoutine and routineTimer.getTime() > 0:\n')
+            code = 'while continueRoutine and routineTimer.getTime() > 0:\n'
         else:
-            buff.writeIndented('while continueRoutine:\n')
-        buff.setIndentLevel(1, True)
+            code = 'while continueRoutine:\n'
+        buff.writeIndented(code)
 
+        buff.setIndentLevel(1, True)
         # on each frame
-        buff.writeIndented('# get current time\n')
-        buff.writeIndented('t = %s.getTime()\n' % self._clockName)
-        buff.writeIndented(
-            'frameN = frameN + 1  # number of completed frames (so 0 is the first frame)\n')
+        code = ('# get current time\n'
+                't = %s.getTime()\n'
+                'frameN = frameN + 1  # number of completed frames '
+                '(so 0 is the first frame)\n')
+        buff.writeIndentedLines(code % self._clockName)
 
         # write the code for each component during frame
         buff.writeIndentedLines('# update/draw components on each frame\n')
@@ -1457,51 +1534,51 @@ class Routine(list):
             event.writeFrameCode(buff)
 
         # are we done yet?
-        buff.writeIndentedLines('\n# check if all components have finished\n')
-        buff.writeIndentedLines(
-            'if not continueRoutine:  # a component has requested a forced-end of Routine\n')
-        buff.writeIndentedLines('    break\n')
-        buff.writeIndentedLines(
-            'continueRoutine = False  # will revert to True if at least one component still running\n')
-        buff.writeIndentedLines(
-            'for thisComponent in %sComponents:\n' % self.name)
-        buff.writeIndentedLines(
-            '    if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:\n')
-        buff.writeIndentedLines('        continueRoutine = True\n')
-        buff.writeIndentedLines(
+        code = (
+            '\n# check if all components have finished\n'
+            'if not continueRoutine:  # a component has requested a '
+            'forced-end of Routine\n'
+            '    break\n'
+            'continueRoutine = False  # will revert to True if at least '
+            'one component still running\n'
+            'for thisComponent in %sComponents:\n'
+            '    if hasattr(thisComponent, "status") and '
+            'thisComponent.status != FINISHED:\n'
+            '        continueRoutine = True\n'
             '        break  # at least one component has not yet finished\n')
+        buff.writeIndentedLines(code % self.name)
 
         # allow subject to quit via Esc key?
         if self.exp.settings.params['Enable Escape'].val:
-            buff.writeIndentedLines('\n# check for quit (the Esc key)')
-            buff.writeIndentedLines(
-                'if endExpNow or event.getKeys(keyList=["escape"]):\n')
-            buff.writeIndentedLines('    core.quit()\n')
+            code = ('\n# check for quit (the Esc key)'
+                    'if endExpNow or event.getKeys(keyList=["escape"]):\n'
+                    '    core.quit()\n')
+            buff.writeIndentedLines(code)
         # update screen
-        buff.writeIndentedLines('\n# refresh the screen\n')
-        buff.writeIndented(
-            "if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen\n")
-        buff.writeIndented('    win.flip()\n')
+        code = ('\n# refresh the screen\n'
+                "if continueRoutine:  # don't flip if this routine is over "
+                "or we'll get a blank screen\n"
+                '    win.flip()\n')
+        buff.writeIndentedLines(code)
 
         # that's done decrement indent to end loop
         buff.setIndentLevel(-1, True)
 
         # write the code for each component for the end of the routine
-        buff.writeIndented('\n')
-        buff.writeIndented(
-            '#-------Ending Routine "%s"-------\n' % (self.name))
-        buff.writeIndentedLines(
-            'for thisComponent in %sComponents:\n' % self.name)
-        buff.writeIndentedLines(
-            '    if hasattr(thisComponent, "setAutoDraw"):\n        thisComponent.setAutoDraw(False)\n')
+        code = ('\n#-------Ending Routine "%s"-------\n'
+                'for thisComponent in %sComponents:\n'
+                '    if hasattr(thisComponent, "setAutoDraw"):\n'
+                '        thisComponent.setAutoDraw(False)\n')
+        buff.writeIndentedLines(code % (self.name, self.name))
         for event in self:
             event.writeRoutineEndCode(buff)
 
         # reset routineTimer at the *very end* of all non-nonSlip routines
         if not useNonSlip:
-            buff.writeIndented(
-                '# the Routine "%s" was not non-slip safe, so reset the non-slip timer\n' % self.name)
-            buff.writeIndented('routineTimer.reset()\n')
+            code = ('# the Routine "%s" was not non-slip safe, so reset '
+                    'the non-slip timer\n'
+                    'routineTimer.reset()\n')
+            buff.writeIndentedLines(code % self.name)
 
     def writeExperimentEndCode(self, buff):
         """This defines the code for the frames of a single routine
@@ -1524,8 +1601,8 @@ class Routine(list):
 
     def getMaxTime(self):
         """What the last (predetermined) stimulus time to be presented. If
-        there are no components or they have code-based times then will default
-        to 10secs
+        there are no components or they have code-based times then will
+        default to 10secs
         """
         maxTime = 0
         nonSlipSafe = True  # if possible
@@ -1540,7 +1617,8 @@ class Routine(list):
                     duration = 1  # plus some minimal duration so it's visible
                 # now see if we have a end t value that beats the previous max
                 try:
-                    thisT = start + duration  # will fail if either value is not defined
+                    # will fail if either value is not defined:
+                    thisT = start + duration
                 except Exception:
                     thisT = 0
                 maxTime = max(maxTime, thisT)
@@ -1563,32 +1641,35 @@ class ExpFile(list):
         # the experiment we represent on disk (see self.loadExp)
         self.expObject = None
         self.filename = filename
-        self._clockName = None  # this is used for script-writing e.g. "t=trialClock.GetTime()"
+        self._clockName = None  # used in script "t = trialClock.GetTime()"
         self.type = 'ExpFile'
         list.__init__(self, components)
 
     def __repr__(self):
-        return "psychopy.experiment.ExpFile(name='%s',exp=%s,filename='%s')" % (self.name, self.exp, self.filename)
+        _rep = "psychopy.experiment.ExpFile(name='%s',exp=%s,filename='%s')"
+        return _rep % (self.name, self.exp, self.filename)
 
     def writeStartCode(self, buff):
         # tell each object on our flow to write its start code
-        for entry in self.flow:  # NB each entry is a routine or LoopInitiator/Terminator
+        for entry in self.flow:
+            # NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine = entry
             if hasattr(entry, 'writeStartCode'):
-                # used by microphone comp to create a .wav directory once
-                entry.writeStartCode(script)
+                entry.writeStartCode(buff)
 
     def loadExp(self):
         # fetch the file
         self.expObject = Experiment()
         self.expObject.loadFromXML(self.filename)
-        self.flow = self.expObject.flow  # extract the flow, which is the key part for us
+        # extract the flow, which is the key part for us:
+        self.flow = self.expObject.flow
 
     def writeInitCode(self, buff):
         # tell each object on our flow to write its init code
-        for entry in self.flow:  # NB each entry is a routine or LoopInitiator/Terminator
+        for entry in self.flow:
+            # NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine = entry
-            entry.writeInitCode(script)
+            entry.writeInitCode(buff)
 
     def writeMainCode(self, buff):
         """This defines the code for the frames of a single routine
@@ -1596,22 +1677,22 @@ class ExpFile(list):
         # tell each object on our flow to write its run code
         for entry in self.flow:
             self._currentRoutine = entry
-            entry.writeMainCode(script)
+            entry.writeMainCode(buff)
 
     def writeExperimentEndCode(self, buff):
         """This defines the code for the frames of a single routine
         """
         for entry in self.flow:
             self._currentRoutine = entry
-            entry.writeExperimentEndCode(script)
+            entry.writeExperimentEndCode(buff)
 
     def getType(self):
         return 'ExpFile'
 
     def getMaxTime(self):
         """What the last (predetermined) stimulus time to be presented. If
-        there are no components or they have code-based times then will default
-        to 10secs
+        there are no components or they have code-based times then will
+        default to 10secs
         """
         pass
         # todo?: currently only Routines perform this action
@@ -1620,19 +1701,22 @@ class ExpFile(list):
 class NameSpace(object):
     """class for managing variable names in builder-constructed experiments.
 
-    The aim is to help detect and avoid name-space collisions from user-entered variable names.
+    The aim is to help detect and avoid name-space collisions from
+    user-entered variable names.
     Track four groups of variables:
-        numpy =    part of numpy or numpy.random (maybe it's ok for a user to redefine these?)
+        numpy =    part of numpy or numpy.random
         psychopy = part of psychopy, such as event or data; include os here
-        builder =  used internally by the builder when constructing an experiment
+        builder =  used internally by the builder when constructing an expt
         user =     used 'externally' by a user when programming an experiment
-    Some vars, like core, are part of both psychopy and numpy, so the order of operations can matter
+    Some vars, like core, are part of both psychopy and numpy, so the order of
+    operations can matter
 
     Notes for development:
     are these all of the ways to get into the namespace?
     - import statements at top of file: numpy, psychopy, os, etc
     - a handful of things that always spring up automatically, like t and win
-    - routines: user-entered var name = routine['name'].val, plus sundry helper vars, like theseKeys
+    - routines: user-entered var name = routine['name'].val, plus sundry
+        helper vars, like theseKeys
     - flow elements: user-entered = flowElement['name'].val
     - routine & flow from either GUI or .psyexp file
     - each routine and flow element potentially has a ._clockName,
@@ -1655,29 +1739,26 @@ class NameSpace(object):
         self.keywords = keyword.kwlist + dir(__builtins__)
         # these are based on a partial test, known to be incomplete:
         self.psychopy = psychopy.__all__ + ['psychopy', 'os'] + dir(constants)
-        self.builder = ['KeyResponse', 'key_resp', 'buttons', 'continueRoutine',
-                        'expInfo', 'expName', 'thisExp', 'filename', 'logFile', 'paramName',
-                        't', 'frameN', 'currentLoop', 'dlg', '_thisDir', 'endExpNow',
+        self.builder = ['KeyResponse', 'key_resp', 'buttons',
+                        'continueRoutine', 'expInfo', 'expName', 'thisExp',
+                        'filename', 'logFile', 'paramName',
+                        't', 'frameN', 'currentLoop', 'dlg', '_thisDir',
+                        'endExpNow',
                         'globalClock', 'routineTimer', 'frameDur',
-                        'theseKeys', 'win', 'x', 'y', 'level', 'component', 'thisComponent']
+                        'theseKeys', 'win', 'x', 'y', 'level', 'component',
+                        'thisComponent']
         # user-entered, from Builder dialog or conditions file:
         self.user = []
         self.nonUserBuilder = self.numpy + self.keywords + self.psychopy
 
         # strings used as codes, separate function from display value:
-        self._localized = {
-            "one of your Components, Routines, or condition parameters":
-                _translate(
-                    "one of your Components, Routines, or condition parameters"),
-            "Builder variable": _translate("Builder variable"),
-            "Psychopy module": _translate("Psychopy module"),
-            "numpy function": _translate("numpy function"),
-            "python keyword": _translate("python keyword"),
-            " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name":
-                _translate(
-                    " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"),
-            None: ''  # not needed but possible output from isPossiblyDerivable()
-        }
+        _oneOf = "one of your Components, Routines, or condition parameters"
+        _avoid = (" Avoid `this`, `these`, `continue`, `Clock`, or "
+                  "`component` in name")
+        self._localized = {None: ''}
+        for k in (_oneOf, _avoid, "Builder variable", "Psychopy module",
+                  "numpy function", "python keyword"):
+            self._localized[k] = _translate(k)
 
     def __str__(self, numpy_count_only=True):
         vars = self.user + self.builder + self.psychopy
@@ -1688,18 +1769,20 @@ class NameSpace(object):
 
     def getDerived(self, basename):
         """ buggy
-        idea: return variations on name, based on its type, to flag name that will come to exist at run-time;
+        idea: return variations on name, based on its type, to flag name that
+        will come to exist at run-time;
         more specific than is_possibly-derivable()
         if basename is a routine, return continueBasename and basenameClock,
         if basename is a loop, return makeLoopIndex(name)
         """
         derived_names = []
         for flowElement in self.exp.flow:
-            if flowElement.getType() in ['LoopInitiator', 'LoopTerminator']:
+            if flowElement.getType() in ('LoopInitiator', 'LoopTerminator'):
                 flowElement = flowElement.loop  # we want the loop itself
                 # basename can be <type 'instance'>
                 derived_names += [self.makeLoopIndex(basename)]
-            if basename == str(flowElement.params['name']) and basename + 'Clock' not in derived_names:
+            if (basename == str(flowElement.params['name']) and
+                    basename + 'Clock' not in derived_names):
                 derived_names += [basename + 'Clock',
                                   'continue' + basename.capitalize()]
         # other derived_names?
@@ -1707,29 +1790,33 @@ class NameSpace(object):
         return derived_names
 
     def getCollisions(self):
-        """return None, or a list of names in .user that are also in one of the other spaces"""
-        duplicates = list(set(self.user).intersection(
-            set(self.builder + self.psychopy + self.numpy)))
+        """return None, or a list of names in .user that are also in
+        one of the other spaces
+        """
+        standard = set(self.builder + self.psychopy + self.numpy)
+        duplicates = list(set(self.user).intersection(standard))
         su = sorted(self.user)
-        duplicates += [var for i,
-                       var in enumerate(su) if i < len(su) - 1 and su[i + 1] == var]
-        if duplicates != []:
-            return duplicates
-        return None
+        duplicates += [var for i, var in enumerate(su)
+                       if i < len(su) - 1 and su[i + 1] == var]
+        return duplicates or None
 
     def isValid(self, name):
-        """var-name compatible? return True if string name is alphanumeric + underscore only, with non-digit first"""
+        """var-name compatible? return True if string name is
+        alphanumeric + underscore only, with non-digit first
+        """
         return bool(_valid_var_re.match(name))
 
     def isPossiblyDerivable(self, name):
-        """catch all possible derived-names, regardless of whether currently"""
+        """catch all possible derived-names, regardless of whether currently
+        """
         derivable = (name.startswith('this') or
                      name.startswith('these') or
                      name.startswith('continue') or
                      name.endswith('Clock') or
                      name.lower().find('component') > -1)
         if derivable:
-            return " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"
+            return (" Avoid `this`, `these`, `continue`, `Clock`,"
+                    " or `component` in name")
         return None
 
     def exists(self, name):
@@ -1763,7 +1850,9 @@ class NameSpace(object):
         return  # None, meaning does not exist already
 
     def add(self, name, sublist='default'):
-        """add name to namespace by appending a name or list of names to a sublist, eg, self.user"""
+        """add name to namespace by appending a name or list of names to a
+        sublist, eg, self.user
+        """
         if name is None:
             return
         if sublist == 'default':
@@ -1774,7 +1863,9 @@ class NameSpace(object):
             sublist += name
 
     def remove(self, name, sublist='default'):
-        """remove name from the specified sublist (and hence from the name-space), eg, self.user"""
+        """remove name from the specified sublist (and hence from the
+        name-space), eg, self.user
+        """
         if name is None:
             return
         if sublist == 'default':
@@ -1787,7 +1878,8 @@ class NameSpace(object):
 
     def makeValid(self, name, prefix='var'):
         """given a string, return a valid and unique variable name.
-        replace bad characters with underscore, add an integer suffix until its unique
+        replace bad characters with underscore, add an integer suffix until
+        its unique
 
         >>> makeValid('Z Z Z')
         'Z_Z_Z'
@@ -1813,7 +1905,7 @@ class NameSpace(object):
         name = _nonalphanumeric_re.sub('_', name)
 
         # try to make it unique; success depends on accuracy of self.exists():
-        i = 2  # skip _1 so that user can rename the first one to be _1 if desired
+        i = 2  # skip _1: user can rename the first one to be _1 if desired
         # maybe it already has _\d+? if so, increment from there
         if self.exists(name) and '_' in name:
             basename, count = name.rsplit('_', 1)
@@ -1829,7 +1921,9 @@ class NameSpace(object):
         return name
 
     def makeLoopIndex(self, name):
-        """return a valid, readable loop-index name: 'this' + (plural->singular).capitalize() [+ (_\d+)]"""
+        """return a valid, readable loop-index name:
+            'this' + (plural->singular).capitalize() [+ (_\d+)]
+        """
         try:
             newName = str(name)
         except Exception:
@@ -1840,14 +1934,15 @@ class NameSpace(object):
         for plural, singular in irregular.items():
             nn = re.compile(plural, re.IGNORECASE)
             newName = nn.sub(singular, newName)
-        if newName.endswith('s') and not newName.lower() in irregular.values():
+        if (newName.endswith('s') and
+                not newName.lower() in irregular.values()):
             newName = newName[:-1]  # trim last 's'
         else:  # might end in s_2, so delete that s; leave S
             match = re.match(r"^(.*)s(_\d+)$", newName)
             if match:
                 newName = match.group(1) + match.group(2)
-        newName = prefix + newName[0].capitalize() + \
-            newName[1:]  # retain CamelCase
+        # retain CamelCase:
+        newName = prefix + newName[0].capitalize() + newName[1:]
         newName = self.makeValid(newName)
         return newName
 
@@ -1863,7 +1958,8 @@ def _XMLremoveWhitespaceNodes(parent):
 
 
 def getCodeFromParamStr(val):
-    """Convert a Param.val string to its intended python code, as triggered by $
+    """Convert a Param.val string to its intended python code
+    (as triggered by special char $)
     """
     tmp = re.sub(r"^(\$)+", '', val)  # remove leading $, if any
     # remove all nonescaped $, squash $$$$$
