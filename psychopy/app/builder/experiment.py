@@ -32,35 +32,20 @@ _numpyImports = ['sin', 'cos', 'tan', 'log', 'log10', 'pi', 'average',
                  'sqrt', 'std', 'deg2rad', 'rad2deg', 'linspace', 'asarray']
 _numpyRandomImports = ['random', 'randint', 'normal', 'shuffle']
 
-# used for separation of internal vs display values:
-_localized = {
-    # strings for random, sequential, fullRandom loops:
-    'Name': _translate('Name'),
-    'nReps': _translate('nReps'),
-    'conditions': _translate('Conditions'),
-    'endPoints': _translate('endPoints'),
-    'Selected rows': _translate('Selected rows'),
-    'loopType': _translate('loopType'),
-    'random seed': _translate('random seed'),
-    'Is trials': _translate('Is trials'),
-    # strings for staircases
-    'min value': _translate('min value'),
-    'N reversals': _translate('N reversals'),
-    'start value': _translate('start value'),
-    'N up': _translate('N up'),
-    'max value': _translate('max value'),
-    'N down': _translate('N down'),
-    'step type': _translate('step type'),
-    'step sizes': _translate('step sizes'),
-    # strings for interleaved Staircases
-    'stairType': _translate('stairType'),
-    'switchMethod': _translate('switchMethod')}
+# _localized separates internal (functional) from displayed strings:
+_loKeys = ('Name', 'nReps', 'conditions', 'endPoints', 'Selected rows',
+           'loopType', 'random seed', 'Is trials',  # for loops
+           'min value', 'N reversals', 'start value', 'N up', 'max value',
+           'N down', 'step type', 'step sizes',  # staircases
+           'stairType', 'switchMethod')  # interleaved staircases
+_localized = {k: _translate(k) for k in _loKeys}
 
 
 class CodeGenerationException(Exception):
     """
     Exception thrown by a component when it is unable to generate its code.
     """
+
     def __init__(self, source, message=""):
         super(CodeGenerationException, self).__init__()
         self.source = source
@@ -788,6 +773,7 @@ class TrialHandler(object):
             hint=_translate("Select just a subset of rows from your condition"
                             " file (the first is 0 not 1!). Examples: 0, "
                             "0:5, 5:-1"))
+        # NB staircase is added for the sake of the loop properties dialog:
         self.params['loopType'] = Param(
             loopType, valType='str',
             allowedVals=['random', 'sequential', 'fullRandom',
@@ -795,7 +781,6 @@ class TrialHandler(object):
             label=_localized['loopType'],
             hint=_translate("How should the next condition value(s) be "
                             "chosen?"))
-            # NB staircase is added for the sake of the loop properties dialog
         self.params['random seed'] = Param(
             randomSeed, valType='code', updates=None, allowedUpdates=None,
             label=_localized['random seed'],
@@ -1087,15 +1072,14 @@ class MultiStairHandler(object):
             allowedVals=['random', 'sequential', 'fullRandom'],
             label=_localized['switchMethod'],
             hint=_translate("How to select the next staircase to run"))
-        # these two are really just for making the dialog easier (they won't be
-        # used to generate code)
+        # these two are really just for making the dialog easier (they won't
+        # be used to generate code)
         self.params['loopType'] = Param(
             'staircase', valType='str',
             allowedVals=['random', 'sequential', 'fullRandom', 'staircase',
                          'interleaved staircases'],
             label=_localized['loopType'],
             hint=_translate("How should the next trial value(s) be chosen?"))
-            # NB this is added for the sake of the loop properties dialog
         self.params['endPoints'] = Param(
             list(endPoints), valType='num',
             label=_localized['endPoints'],
@@ -1768,19 +1752,13 @@ class NameSpace(object):
         self.nonUserBuilder = self.numpy + self.keywords + self.psychopy
 
         # strings used as codes, separate function from display value:
-        self._localized = {
-            "one of your Components, Routines, or condition parameters":
-                _translate("one of your Components, Routines, or "
-                           "condition parameters"),
-            "Builder variable": _translate("Builder variable"),
-            "Psychopy module": _translate("Psychopy module"),
-            "numpy function": _translate("numpy function"),
-            "python keyword": _translate("python keyword"),
-            (" Avoid `this`, `these`, `continue`, `Clock`, "
-                           "or `component` in name"):
-                _translate(" Avoid `this`, `these`, `continue`, `Clock`, "
-                           "or `component` in name"),
-            None: ''}
+        _oneOf = "one of your Components, Routines, or condition parameters"
+        _avoid = (" Avoid `this`, `these`, `continue`, `Clock`, or "
+                  "`component` in name")
+        self._localized = {None: ''}
+        for k in (_oneOf, _avoid, "Builder variable", "Psychopy module",
+                  "numpy function", "python keyword"):
+            self._localized[k] = _translate(k)
 
     def __str__(self, numpy_count_only=True):
         vars = self.user + self.builder + self.psychopy
