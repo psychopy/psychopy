@@ -51,6 +51,7 @@ _loKeys = ('Name', 'nReps', 'conditions', 'endPoints', 'Selected rows',
            'N down', 'step type', 'step sizes',  # staircases
            'stairType', 'switchMethod')  # interleaved staircases
 _localized = {k: _translate(k) for k in _loKeys}
+_localized['conditions'] = _translate('Conditions')   # todo: rewrite
 
 
 class CodeGenerationException(Exception):
