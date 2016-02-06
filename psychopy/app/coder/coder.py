@@ -415,7 +415,7 @@ class UnitTestFrame(wx.Frame):
             print(command)
             self.scriptProcessID = wx.Execute(
                 command, wx.EXEC_ASYNC, self.scriptProcess)
-            #self.scriptProcessID = wx.Execute(command,
+            # self.scriptProcessID = wx.Execute(command,
             #    # wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:
             testSubset = ' ' + testSubset.replace(' ', '\ ')  # protect spaces
@@ -1336,9 +1336,12 @@ class CoderFrame(wx.Frame):
         self.paneManager.SetFlags(aui.AUI_MGR_RECTANGLE_HINT)
         self.paneManager.SetManagedWindow(self)
         # make the notebook
-        _style = (aui.AUI_NB_TOP | aui.AUI_NB_TAB_SPLIT |
-            aui.AUI_NB_SCROLL_BUTTONS | aui.AUI_NB_TAB_MOVE |
-            aui.AUI_NB_CLOSE_ON_ACTIVE_TAB | aui.AUI_NB_WINDOWLIST_BUTTON)
+        _style = (aui.AUI_NB_TOP |
+                  aui.AUI_NB_SCROLL_BUTTONS |
+                  aui.AUI_NB_TAB_SPLIT |
+                  aui.AUI_NB_TAB_MOVE |
+                  aui.AUI_NB_CLOSE_ON_ACTIVE_TAB |
+                  aui.AUI_NB_WINDOWLIST_BUTTON)
         self.notebook = aui.AuiNotebook(self, -1,
                                         size=wx.Size(600, 600),
                                         style=_style)
@@ -1404,13 +1407,14 @@ class CoderFrame(wx.Frame):
                         parent=self, background_color='WHITE',)
                     useDefaultShell = False
                 except Exception:
-                    msg = 'IPython failed as shell, using pyshell (IPython v0.12 can fail on wx)'
+                    msg = ('IPython failed as shell, using pyshell (IPython '
+                           'v0.12 can fail on wx)')
                     logging.warn(_translate(msg))
             if useDefaultShell:
                 from wx import py
                 msg = 'PyShell in PsychoPy - type some commands!'
-                self.shell = py.shell.Shell(self.shelf, -1,
-                    introText=_translate(msg) + '\n\n')
+                self.shell = py.shell.Shell(
+                    self.shelf, -1, introText=_translate(msg) + '\n\n')
             self.shelf.AddPage(self.shell, _translate('Shell'))
 
         # add help window
@@ -1469,12 +1473,16 @@ class CoderFrame(wx.Frame):
         menu.Append(wx.ID_NEW, _translate("&New\t%s") % keyCodes['new'])
         menu.Append(wx.ID_OPEN, _translate("&Open...\t%s") % keyCodes['open'])
         menu.AppendSubMenu(self.recentFilesMenu, _translate("Open &Recent"))
-        menu.Append(wx.ID_SAVE, _translate("&Save\t%s") % keyCodes['save'],
+        menu.Append(wx.ID_SAVE,
+                    _translate("&Save\t%s") % keyCodes['save'],
                     _translate("Save current file"))
-        menu.Append(wx.ID_SAVEAS, _translate("Save &as...\t%s") % keyCodes['saveAs'],
+        menu.Append(wx.ID_SAVEAS,
+                    _translate("Save &as...\t%s") % keyCodes['saveAs'],
                     _translate("Save current python file as..."))
-        menu.Append(self.IDs.filePrint, _translate("Print\t%s") % keyCodes['print'])
-        menu.Append(wx.ID_CLOSE, _translate("&Close file\t%s") % keyCodes['close'],
+        menu.Append(self.IDs.filePrint,
+                    _translate("Print\t%s") % keyCodes['print'])
+        menu.Append(wx.ID_CLOSE,
+                    _translate("&Close file\t%s") % keyCodes['close'],
                     _translate("Close current python file"))
         wx.EVT_MENU(self, wx.ID_NEW,  self.fileNew)
         wx.EVT_MENU(self, wx.ID_OPEN,  self.fileOpen)
@@ -1482,12 +1490,14 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_SAVEAS,  self.fileSaveAs)
         wx.EVT_MENU(self, wx.ID_CLOSE,  self.fileClose)
         wx.EVT_MENU(self, self.IDs.filePrint,  self.filePrint)
+        msg = "&Preferences\t%s"
         item = menu.Append(wx.ID_PREFERENCES,
-                           text=_translate("&Preferences\t%s") % keyCodes['preferences'])
+                           text=_translate(msg) % keyCodes['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
         # -------------quit
         menu.AppendSeparator()
-        menu.Append(wx.ID_EXIT, _translate("&Quit\t%s") % keyCodes['quit'],
+        menu.Append(wx.ID_EXIT,
+                    _translate("&Quit\t%s") % keyCodes['quit'],
                     _translate("Terminate the program"))
         wx.EVT_MENU(self, wx.ID_EXIT, self.quit)
 
@@ -1501,9 +1511,10 @@ class CoderFrame(wx.Frame):
         wx.EVT_MENU(self, wx.ID_COPY,  self.copy)
         menu.Append(wx.ID_PASTE, _translate("&Paste\t%s") % keyCodes['paste'])
         wx.EVT_MENU(self, wx.ID_PASTE,  self.paste)
+        hnt = "Duplicate the current line (or current selection)"
         menu.Append(wx.ID_DUPLICATE,
                     _translate("&Duplicate\t%s") % keyCodes['duplicate'],
-                    _translate("Duplicate the current line (or current selection)"))
+                    _translate(hnt))
         wx.EVT_MENU(self, wx.ID_DUPLICATE,  self.duplicateLine)
 
         menu.AppendSeparator()
@@ -1542,9 +1553,10 @@ class CoderFrame(wx.Frame):
                     _translate("Decrease indentation of current line"),
                     wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.dedent,  self.dedent)
+        hnt = "Try to indent to the correct position w.r.t  last line"
         menu.Append(self.IDs.smartIndent,
                     _translate("SmartIndent\t%s") % keyCodes['smartIndent'],
-                    _translate("Try to indent to the correct position w.r.t  last line"),
+                    _translate(hnt),
                     wx.ITEM_NORMAL)
         wx.EVT_MENU(self, self.IDs.smartIndent,  self.smartIndent)
 
@@ -1810,7 +1822,7 @@ class CoderFrame(wx.Frame):
                          key.replace('Ctrl+', ctrlKey),
                          _translate("Save current python file as..."))
         tb.Bind(wx.EVT_TOOL, self.fileSaveAs,
-                          id=self.IDs.tbFileSaveAs)
+                id=self.IDs.tbFileSaveAs)
         key = _translate("Undo [%s]") % self.app.keys['undo']
         tb.AddSimpleTool(self.IDs.tbUndo, undo_bmp,
                          key.replace('Ctrl+', ctrlKey),
@@ -1827,17 +1839,17 @@ class CoderFrame(wx.Frame):
                          _translate("Preferences"),
                          _translate("Application preferences"))
         tb.Bind(wx.EVT_TOOL, self.app.showPrefs,
-                          id=self.IDs.tbPreferences)
+                id=self.IDs.tbPreferences)
         tb.AddSimpleTool(self.IDs.tbMonitorCenter, monitors_bmp,
                          _translate("Monitor Center"),
                          _translate("Monitor settings and calibration"))
         tb.Bind(wx.EVT_TOOL, self.app.openMonitorCenter,
-                          id=self.IDs.tbMonitorCenter)
+                id=self.IDs.tbMonitorCenter)
         tb.AddSimpleTool(self.IDs.tbColorPicker, colorpicker_bmp,
                          _translate("Color Picker -> clipboard"),
                          _translate("Color Picker -> clipboard"))
         tb.Bind(wx.EVT_TOOL, self.app.colorPicker,
-                          id=self.IDs.tbColorPicker)
+                id=self.IDs.tbColorPicker)
         self.toolbar.AddSeparator()
         self.toolbar.AddSeparator()
         key = _translate("Run [%s]") % self.app.keys['runScript']

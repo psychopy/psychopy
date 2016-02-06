@@ -180,7 +180,8 @@ class RatingScaleComponent(BaseComponent):
             hint=_translate("height of tick marks (1 is upward, 0 is hidden,"
                             " -1 is downward)"),
             label=_localized['tickHeight'])
-        self.params['pos'] = Param(pos, valType='str', allowedTypes=[],
+        self.params['pos'] = Param(
+            pos, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Advanced",
             hint=_translate("x,y position on the screen"),
             label=_localized['pos'])

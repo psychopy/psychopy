@@ -22,7 +22,8 @@ _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 
 class DlgCodeComponentProperties(wx.Dialog):
     _style = (wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
-                        | wx.THICK_FRAME | wx.DIALOG_NO_PARENT)
+              | wx.THICK_FRAME | wx.DIALOG_NO_PARENT)
+
     def __init__(self, frame, title, params, order,
                  helpUrl=None, suppressTitles=True, size=wx.DefaultSize,
                  style=_style, editing=False):
@@ -171,7 +172,8 @@ class DlgCodeComponentProperties(wx.Dialog):
                 guikey = fieldName.replace(' ', '_')
                 cb_gui_el = guikey + '_codebox'
                 if guikey in self.code_gui_elements:
-                    param.val = self.code_gui_elements.get(guikey).get(cb_gui_el).GetText()
+                    gkey = self.code_gui_elements.get(guikey)
+                    param.val = gkey.get(cb_gui_el).GetText()
         return self.params
 
     def helpButtonHandler(self, event):

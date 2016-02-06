@@ -121,7 +121,7 @@ class SettingsComponent(object):
         self.params['colorSpace'] = Param(
             colorSpace, valType='str',
             hint=_translate("Needed if color is defined numerically (see "
-               "PsychoPy documentation on color spaces)"),
+                            "PsychoPy documentation on color spaces)"),
             allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
             label=_localized["colorSpace"], categ="Screen")
         self.params['Units'] = Param(
@@ -155,14 +155,14 @@ class SettingsComponent(object):
             label=_localized["Save log file"], categ='Data')
         self.params['Save wide csv file'] = Param(
             saveWideCSVFile, valType='bool', allowedTypes=[],
-             hint=_translate("Save data from loops in comma-separated-value "
-                             "(.csv) format for maximum portability"),
-             label=_localized["Save wide csv file"], categ='Data')
+            hint=_translate("Save data from loops in comma-separated-value "
+                            "(.csv) format for maximum portability"),
+            label=_localized["Save wide csv file"], categ='Data')
         self.params['Save csv file'] = Param(
             saveCSVFile, valType='bool', allowedTypes=[],
             hint=_translate("Save data from loops in comma-separated-value "
                             "(.csv) format for maximum portability"),
-             label=_localized["Save csv file"], categ='Data')
+            label=_localized["Save csv file"], categ='Data')
         self.params['Save excel file'] = Param(
             saveXLSXFile, valType='bool', allowedTypes=[],
             hint=_translate("Save data from loops in Excel (.xlsx) format"),

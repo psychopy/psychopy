@@ -508,7 +508,7 @@ class ListWidget(GlobSizer):
         for name in order:
             if name not in allNames:
                 msg = ('psychopy.dialogs.ListWidget was given a field name '
-                    '`%s` in order that was not in the dictionary')
+                       '`%s` in order that was not in the dictionary')
                 logging.error(msg % name)
                 continue
             allNames.remove(name)
@@ -522,7 +522,7 @@ class ListWidget(GlobSizer):
         row = 0
         for col, field in enumerate(self.fieldNames):
             self.Add(wx.StaticText(self.parent, -1, label=_translate(field)),
-                                   (row, col), flag=wx.ALL)
+                     (row, col), flag=wx.ALL)
         for entry in self.value:
             row += 1
             self.addEntryCtrls(row, entry)
