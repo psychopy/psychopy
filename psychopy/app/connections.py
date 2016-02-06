@@ -138,11 +138,14 @@ class Updater(object):
                     self.doUpdate()
             else:
                 # the latest version needs a full install, not autoupdate
-                msg = _translate("PsychoPy v%(latest)s is available (you are running %(running)s).\n\n")
+                msg = _translate("PsychoPy v%(latest)s is available (you are"
+                                 " running %(running)s).\n\n")
                 msg = msg % {'latest': self.latest['version'],
                              'running': self.runningVersion}
-                msg += _translate("This version is too big an update to be handled automatically.\n")
-                msg += _translate("Please fetch the latest version from www.psychopy.org and install manually.")
+                msg += _translate("This version is too big an update to be "
+                                  "handled automatically.\n")
+                msg += _translate("Please fetch the latest version from "
+                                  "www.psychopy.org and install manually.")
                 confirmDlg = dialogs.MessageDialog(
                     parent=None, message=msg, type='Warning',
                     title=_translate('PsychoPy updates'))
@@ -185,23 +188,29 @@ class SuggestUpdateDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         # info about current version
-        txt = _translate("PsychoPy v%(latest)s is available (you are running %(running)s).\n\n"
-                         "(To disable this check, see Preferences > connections > checkForUpdates)")
+        txt = _translate("PsychoPy v%(latest)s is available (you are running "
+                         "%(running)s).\n\n"
+                         "(To disable this check, see Preferences > "
+                         "connections > checkForUpdates)")
         label = txt % {'latest': latest['version'], 'running': runningVersion}
         msg1 = wx.StaticText(self, -1, style=wx.ALIGN_CENTRE, label=label)
         if latest['lastCompatible'] > runningVersion:
-            label = _translate("This version MAY require you to modify your\nscripts/exps slightly. Read the changelog carefully.")
+            label = _translate("This version MAY require you to modify your\n"
+                               "scripts/exps slightly. Read the changelog "
+                               "carefully.")
             msg2 = wx.StaticText(self, -1, style=wx.ALIGN_CENTRE, label=label)
             msg2.SetForegroundColour([200, 0, 0])
         else:
-            label = _translate("There are no known compatibility\nissues with your current version.")
+            label = _translate("There are no known compatibility\nissues "
+                               "with your current version.")
             msg2 = wx.StaticText(self, -1, style=wx.ALIGN_CENTRE, label=label)
         changelog = wxhl.HyperLinkCtrl(self, wx.ID_ANY,
                                        _translate("View complete Changelog"),
                                        URL="http://www.psychopy.org/changelog.html")
 
         if sys.platform.startswith('linux'):
-            msg = _translate("You can update PsychoPy with your package manager")
+            msg = _translate("You can update PsychoPy with your package "
+                             "manager")
             msg3 = wx.StaticText(self, -1, msg)
         else:
             msg = _translate("Should PsychoPy update itself?")
@@ -273,12 +282,13 @@ class InstallUpdateDialog(wx.Dialog):
             self, -1, "msg", style=wx.ALIGN_CENTER)
         mainSizer.Add(self.statusMessage, flag=wx.EXPAND | wx.ALL, border=5)
         # ctrls for auto-update from web
-        self.useLatestBtn = wx.RadioButton(self, -1,
-            _translate(" Auto-update (will fetch latest version)"),
-            style=wx.RB_GROUP)
+        msg = " Auto-update (will fetch latest version)"
+        self.useLatestBtn = wx.RadioButton(self, -1, _translate(msg),
+                                           style=wx.RB_GROUP)
         self.Bind(wx.EVT_RADIOBUTTON, self.onRadioSelect, self.useLatestBtn)
         self.progressBar = wx.Gauge(self, -1, 100, size=(250, 25))
-        mainSizer.Add(self.useLatestBtn, flag=wx.ALIGN_LEFT | wx.ALL, border=5)
+        mainSizer.Add(self.useLatestBtn,
+                      flag=wx.ALIGN_LEFT | wx.ALL, border=5)
         mainSizer.Add(self.progressBar, flag=wx.EXPAND | wx.ALL, border=5)
         # ctrls for updating from specific zip file
         msg = " Use zip file below (download a PsychoPy release file ending .zip)"

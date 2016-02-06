@@ -1009,22 +1009,22 @@ class BuilderFrame(wx.Frame):
         self._mgr = aui.AuiManager(self)
         self._mgr.AddPane(self.routinePanel,
                           aui.AuiPaneInfo().
-                              Name("Routines").Caption("Routines").
-                              CloseButton(False).MaximizeButton(True).
-                              CenterPane())  # 'center panes' expand
+                          Name("Routines").Caption("Routines").
+                          CloseButton(False).MaximizeButton(True).
+                          CenterPane())  # 'center panes' expand
         self._mgr.AddPane(self.componentButtons,
                           aui.AuiPaneInfo().
-                              Name("Components").Caption("Components").
-                              RightDockable(True).LeftDockable(True).
-                              CloseButton(False).
-                              Right())
+                          Name("Components").Caption("Components").
+                          RightDockable(True).LeftDockable(True).
+                          CloseButton(False).
+                          Right())
         self._mgr.AddPane(self.flowPanel,
                           aui.AuiPaneInfo().
-                              Name("Flow").Caption("Flow").
-                              BestSize((8 * self.dpi, 2 * self.dpi)).
-                              RightDockable(True).LeftDockable(True).
-                              CloseButton(False).
-                              Bottom())
+                          Name("Flow").Caption("Flow").
+                          BestSize((8 * self.dpi, 2 * self.dpi)).
+                          RightDockable(True).LeftDockable(True).
+                          CloseButton(False).
+                          Bottom())
         if self.prefs['topFlow']:
             self._mgr.GetPane('Flow').Top()
             self._mgr.GetPane('Components').Left()
@@ -1118,7 +1118,7 @@ class BuilderFrame(wx.Frame):
                          _translate("Monitor Center"),
                          _translate("Monitor settings and calibration"))
         tb.Bind(wx.EVT_TOOL, self.app.openMonitorCenter,
-                          id=self.IDs.tbMonitorCenter)
+                id=self.IDs.tbMonitorCenter)
         tb.AddSeparator()
         tb.AddSeparator()
         tb.AddSimpleTool(self.IDs.tbExpSettings, settings_bmp,
@@ -1127,10 +1127,11 @@ class BuilderFrame(wx.Frame):
         tb.Bind(wx.EVT_TOOL, self.setExperimentSettings,
                 id=self.IDs.tbExpSettings)
         tb.AddSimpleTool(self.IDs.tbCompile, compile_bmp,
-                         _translate("Compile Script [%s]") % keys['compileScript'],
+                         _translate("Compile Script [%s]") %
+                         keys['compileScript'],
                          _translate("Compile to script"))
         tb.Bind(wx.EVT_TOOL, self.compileScript,
-                          id=self.IDs.tbCompile)
+                id=self.IDs.tbCompile)
         tb.AddSimpleTool(self.IDs.tbRun, run_bmp,
                          _translate("Run [%s]") % keys['runScript'],
                          _translate("Run experiment"))
@@ -1255,18 +1256,18 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.openCoderView,  self.app.showCoder)
         menu.Append(self.IDs.toggleReadme,
                     _translate(
-            "&Toggle readme\t%s") % self.app.keys['toggleReadme'],
+                        "&Toggle readme\t%s") % self.app.keys['toggleReadme'],
                     _translate("Toggle Readme"))
         wx.EVT_MENU(self, self.IDs.toggleReadme,  self.toggleReadme)
         menu.Append(self.IDs.tbIncrFlowSize,
                     _translate(
-            "&Flow Larger\t%s") % self.app.keys['largerFlow'],
+                        "&Flow Larger\t%s") % self.app.keys['largerFlow'],
                     _translate("Larger flow items"))
         wx.EVT_MENU(self, self.IDs.tbIncrFlowSize,
                     self.flowPanel.increaseSize)
         menu.Append(self.IDs.tbDecrFlowSize,
                     _translate(
-            "&Flow Smaller\t%s") % self.app.keys['smallerFlow'],
+                        "&Flow Smaller\t%s") % self.app.keys['smallerFlow'],
                     _translate("Smaller flow items"))
         wx.EVT_MENU(self, self.IDs.tbDecrFlowSize,
                     self.flowPanel.decreaseSize)
@@ -1276,7 +1277,8 @@ class BuilderFrame(wx.Frame):
         wx.EVT_MENU(self, self.IDs.tbIncrRoutineSize,
                     self.routinePanel.increaseSize)
         menu.Append(self.IDs.tbDecrRoutineSize,
-                    _translate("&Routine Smaller\t%s") % keys['smallerRoutine'],
+                    _translate("&Routine Smaller\t%s") %
+                    keys['smallerRoutine'],
                     _translate("Smaller routine items"))
         wx.EVT_MENU(self, self.IDs.tbDecrRoutineSize,
                     self.routinePanel.decreaseSize)

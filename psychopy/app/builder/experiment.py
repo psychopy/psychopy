@@ -2,6 +2,17 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
+"""Experiment classes:
+    Experiment, Flow, Routine, Param, Loop*, *Handlers, and NameSpace
+
+The code that writes out a *_lastrun.py experiment file is (in order):
+    experiment.Experiment.writeScript() - starts things off, calls other parts
+    settings.SettingsComponent.writeStartCode()
+    experiment.Flow.writeCode()
+        which will call the .writeCode() methods from each component
+    settings.SettingsComponent.writeEndCode()
+"""
+
 from __future__ import absolute_import, print_function
 
 import re
@@ -22,6 +33,7 @@ try:
 except NameError:
     from .. import localization
 import locale
+
 # predefine some regex's; deepcopy complains if do in NameSpace.__init__()
 _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")  # detect "code wanted"
 _valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")  # filter for legal var names
@@ -39,6 +51,7 @@ _loKeys = ('Name', 'nReps', 'conditions', 'endPoints', 'Selected rows',
            'N down', 'step type', 'step sizes',  # staircases
            'stairType', 'switchMethod')  # interleaved staircases
 _localized = {k: _translate(k) for k in _loKeys}
+_localized['conditions'] = _translate('Conditions')   # todo: rewrite
 
 
 class CodeGenerationException(Exception):
@@ -53,15 +66,6 @@ class CodeGenerationException(Exception):
 
     def __str__(self):
         return str(self.source) + ": " + self.message
-
-
-"""the code that writes out an actual experiment file is (in order):
-    experiment.Experiment.writeScript() - starts things off, calls other parts
-    settings.SettingsComponent.writeStartCode()
-    experiment.Flow.writeCode()
-        which will call .writeCode() bits from each component
-    settings.SettingsComponent.writeEndCode()
-"""
 
 
 class IndentingBuffer(StringIO.StringIO):
@@ -82,8 +86,8 @@ class IndentingBuffer(StringIO.StringIO):
         self.write(self.oneIndent * self.indentLevel + text)
 
     def writeIndentedLines(self, text):
-        """As writeIndented(text) except that each line in text gets the indent level rather
-        than the first line only.
+        """As writeIndented(text) except that each line in text gets
+        the indent level rather than the first line only.
         """
         for line in text.splitlines():
             self.write(self.oneIndent * self.indentLevel + line + '\n')
@@ -91,7 +95,7 @@ class IndentingBuffer(StringIO.StringIO):
     def setIndentLevel(self, newLevel, relative=False):
         """Change the indent level for the buffer to a new value.
 
-        Set relative to True if you want to increment or decrement the current value.
+        Set relative to True to increment or decrement the current value.
         """
         if relative:
             self.indentLevel += newLevel
@@ -133,11 +137,12 @@ class Experiment(object):
         self._doc = xml.ElementTree()
         self.namespace = NameSpace(self)  # manage variable names
 
-        #  _expHandler is a hack to allow saving data from components not inside
-        # a loop. data-saving machinery relies on loops, not worth rewriting.
-        # `thisExp` will be an ExperimentHandler when used in the generated script, but
-        # its easier to use treat it as a TrialHandler during script generation
-        # to avoid effectively duplicating code just to work around any differences
+        #  _expHandler is a hack to allow saving data from components not
+        # inside a loop. data-saving machinery relies on loops, not worth
+        # rewriting. `thisExp` will be an ExperimentHandler when used in
+        # the generated script, but its easier to use treat it as a
+        # TrialHandler during script generation to avoid effectively
+        # duplicating code just to work around any differences
         # in writeRoutineEndCode
         self._expHandler = TrialHandler(exp=self, name='thisExp')
         self._expHandler.type = 'ExperimentHandler'  # true at run-time
@@ -179,25 +184,36 @@ class Experiment(object):
         else:
             localDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
 
-        script.write('#!/usr/bin/env python2\n'
-                     '# -*- coding: utf-8 -*-\n'
-                     '"""\nThis experiment was created using PsychoPy2 Experiment Builder (v%s),\n'
-                     '    on %s\n' % (self.psychopyVersion, localDateTime) +
-                     'If you publish work using this script please cite the PsychoPy publications:\n'
-                     '    Peirce, JW (2007) PsychoPy - Psychophysics software in Python.\n'
-                     '        Journal of Neuroscience Methods, 162(1-2), 8-13.\n'
-                     '    Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy.\n'
-                     '        Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008\n"""\n')
-        script.write("\nfrom __future__ import absolute_import, division\n")
-        script.write("from psychopy import locale_setup, %s\n" % ', '.join(self.psychopyLibs) +
-                     "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,\n"
-                     "                                STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)\n"
-                     "import numpy as np  # whole numpy lib is available, prepend 'np.'\n"
-                     "from numpy import %s\n" % ', '.join(_numpyImports) +
-                     "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
-                     "import os  # handy system and path functions\n" +
-                     "import sys # to get file system encoding\n")
-        script.write("\n")
+        script.write(
+            '#!/usr/bin/env python2\n'
+            '# -*- coding: utf-8 -*-\n'
+            '"""\nThis experiment was created using PsychoPy2 Experiment '
+            'Builder (v%s),\n'
+            '    on %s\n' % (self.psychopyVersion, localDateTime) +
+            'If you publish work using this script please cite the PsychoPy '
+            'publications:\n'
+            '    Peirce, JW (2007) PsychoPy - Psychophysics software in '
+            'Python.\n'
+            '        Journal of Neuroscience Methods, 162(1-2), 8-13.\n'
+            '    Peirce, JW (2009) Generating stimuli for neuroscience using '
+            'PsychoPy.\n'
+            '        Frontiers in Neuroinformatics, 2:10. doi: 10.3389/'
+            'neuro.11.010.2008\n"""\n'
+            "\nfrom __future__ import absolute_import, division\n")
+        script.write(
+            "from psychopy import locale_setup, "
+            "%s\n" % ', '.join(self.psychopyLibs) +
+            "from psychopy.constants import (NOT_STARTED, STARTED, PLAYING,"
+            " PAUSED,\n"
+            "                                STOPPED, FINISHED, PRESSED, "
+            "RELEASED, FOREVER)\n"
+            "import numpy as np  # whole numpy lib is available, "
+            "prepend 'np.'\n"
+            "from numpy import %s\n" % ', '.join(_numpyImports) +
+            "from numpy.random import %s\n" % ', '.join(_numpyRandomImports) +
+            "import os  # handy system and path functions\n" +
+            "import sys # to get file system encoding\n"
+            "\n")
         self.settings.writeStartCode(script)  # present info dlg, make logfile
         # writes any components with a writeStartCode()
         self.flow.writeStartCode(script)
@@ -220,12 +236,15 @@ class Experiment(object):
                 parent=settingsNode, param=setting, name=name)
         # store routines
         routinesNode = xml.SubElement(self.xmlRoot, 'Routines')
-        for routineName, routine in self.routines.iteritems():  # routines is a dict of routines
+        # routines is a dict of routines
+        for routineName, routine in self.routines.iteritems():
             routineNode = self._setXMLparam(
                 parent=routinesNode, param=routine, name=routineName)
-            for component in routine:  # a routine is based on a list of components
+            # a routine is based on a list of components
+            for component in routine:
                 componentNode = self._setXMLparam(
-                    parent=routineNode, param=component, name=component.params['name'].val)
+                    parent=routineNode, param=component,
+                    name=component.params['name'].val)
                 for name, param in component.params.iteritems():
                     paramNode = self._setXMLparam(
                         parent=componentNode, param=param, name=name)
@@ -263,8 +282,8 @@ class Experiment(object):
         return longName.replace('(', '').replace(')', '').replace(' ', '')
 
     def _setXMLparam(self, parent, param, name):
-        """Add a new child to a given xml node.
-        name can include spaces and parens, which will be removed to create child name
+        """Add a new child to a given xml node. name can include
+        spaces and parens, which will be removed to create child name
         """
         if hasattr(param, 'getType'):
             thisType = param.getType()
@@ -282,8 +301,9 @@ class Experiment(object):
         return thisChild
 
     def _getXMLparam(self, params, paramNode):
-        """params is the dict of params of the builder component (e.g. stimulus) into which
-        the parameters will be inserted (so the object to store the params should be created first)
+        """params is the dict of params of the builder component
+        (e.g. stimulus) into which the parameters will be inserted
+        (so the object to store the params should be created first)
         paramNode is the parameter node fetched from the xml file
         """
         name = paramNode.get('name')
@@ -299,27 +319,27 @@ class Experiment(object):
             return  # times doesn't need to update its type or 'updates' rule
         elif name == 'forceEndTrial':  # deprecated in v1.70.00
             params['forceEndRoutine'].val = bool(val)
-            return  # forceEndTrial doesn't need to update its type or 'updates' rule
+            return  # forceEndTrial doesn't need to update type or 'updates'
         elif name == 'forceEndTrialOnPress':  # deprecated in v1.70.00
             params['forceEndRoutineOnPress'].val = bool(val)
-            return  # forceEndTrial doesn't need to update its type or 'updates' rule
+            return  # forceEndTrial doesn't need to update  type or 'updates'
         elif name == 'trialList':  # deprecated in v1.70.00
             params['conditions'].val = eval(val)
-            return  # forceEndTrial doesn't need to update its type or 'updates' rule
+            return  # forceEndTrial doesn't need to update  type or 'updates'
         elif name == 'trialListFile':  # deprecated in v1.70.00
             params['conditionsFile'].val = unicode(val)
-            return  # forceEndTrial doesn't need to update its type or 'updates' rule
+            return  # forceEndTrial doesn't need to update  type or 'updates'
         elif name == 'duration':  # deprecated in v1.70.00
             params['stopType'].val = u'duration (s)'
             params['stopVal'].val = unicode(val)
             return  # times doesn't need to update its type or 'updates' rule
-        elif name == 'allowedKeys' and valType == 'str':  # changed in v1.70.00
+        elif name == 'allowedKeys' and valType == 'str':  # changed v1.70.00
             # ynq used to be allowed, now should be 'y','n','q' or
             # ['y','n','q']
             if len(val) == 0:
                 newVal = val
             elif val[0] == '$':
-                newVal = val[1:]  # they were using code (which we can resused)
+                newVal = val[1:]  # they were using code (which we can reuse)
             elif val.startswith('[') and val.endswith(']'):
                 # they were using code (slightly incorectly!)
                 newVal = val[1:-1]
@@ -336,8 +356,8 @@ class Experiment(object):
             corrAns = corrIf.replace(
                 'resp.keys==unicode(', '').replace(')', '')
             params['correctAns'].val = corrAns
-            name = 'correctAns'  # then we can fetch thte other aspects correctly below
-        elif 'olour' in name:  # colour parameter was Americanised in v1.61.00
+            name = 'correctAns'  # then we can fetch other aspects below
+        elif 'olour' in name:  # colour parameter was Americanised v1.61.00
             name = name.replace('olour', 'olor')
             params[name].val = val
         elif name == 'times':  # deprecated in v1.60.00
@@ -347,23 +367,26 @@ class Experiment(object):
             params['stopType'].val = unicode('time (s)')
             params['stopVal'].val = unicode(times[1])
             return  # times doesn't need to update its type or 'updates' rule
-        elif name in ['Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine', 'End Experiment']:
+        elif name in ('Begin Experiment', 'Begin Routine', 'Each Frame',
+                      'End Routine', 'End Experiment'):
             params[name].val = val
             params[name].valType = 'extendedCode'  # changed in 1.78.00
             return  # so that we don't update valTyp again below
         elif name == 'Saved data folder':
             # deprecated in 1.80 for more complete data filename control
-            params[name] = Param(val, valType='code', allowedTypes=[],
-                                 hint=_translate(
-                                     "Name of the folder in which to save data and log files (blank defaults to the builder pref)"),
-                                 categ='Data')
+            params[name] = Param(
+                val, valType='code', allowedTypes=[],
+                hint=_translate("Name of the folder in which to save data"
+                                " and log files (blank defaults to the "
+                                "builder pref)"),
+                categ='Data')
         elif 'val' in paramNode.keys():
             if val == 'window units':  # changed this value in 1.70.00
                 params[name].val = 'from exp settings'
-            # in v1.80.00, several RatingScale API and Param fields were changed
-            # Try to avoid a KeyError in these cases so can load the
-            # experiment,
-            elif name in ['choiceLabelsAboveLine', 'lowAnchorText', 'highAnchorText']:
+            # in v1.80.00, some RatingScale API and Param fields were changed
+            # Try to avoid a KeyError in these cases so can load the expt
+            elif name in ('choiceLabelsAboveLine', 'lowAnchorText',
+                          'highAnchorText'):
                 # not handled, just ignored; want labels=[lowAnchor,
                 # highAnchor]
                 return
@@ -379,25 +402,30 @@ class Experiment(object):
                 v = v.replace('showScale=False', 'scale=None').replace(
                     'allowSkip=False', 'skipKeys=None')
                 v = v.replace('showAnchors=False', 'labels=None')
-                # lowAnchorText highAnchorText will trigger obsolete error when
-                # run the script
+                # lowAnchorText highAnchorText will trigger obsolete error
+                # when run the script
                 params[name].val = v
             else:
                 if name in params:
                     params[name].val = val
                 else:
                     # we found an unknown parameter (probably from the future)
-                    params[name] = Param(val,
-                                         valType=paramNode.get('valType'), allowedTypes=[],
-                                         hint=_translate("This parameter is not known by this version of PsychoPy. It might be worth upgrading"))
+                    params[name] = Param(
+                        val, valType=paramNode.get('valType'),
+                        allowedTypes=[],
+                        hint=_translate(
+                            "This parameter is not known by this version "
+                            "of PsychoPy. It might be worth upgrading"))
                     params[name].allowedTypes = paramNode.get('allowedTypes')
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
                     params[name].readOnly = True
-                    logging.warn(_translate("Parameter %r is not known to this version of "
-                                            "PsychoPy but has come from your experiment file (saved by "
-                                            "a future version of PsychoPy?). This experiment may not "
-                                            "run correctly in the current version." % name))
+                    msg = ("Parameter %r is not known to this version of "
+                           "PsychoPy but has come from your experiment file "
+                           "(saved by a future version of PsychoPy?). This "
+                           "experiment may not run correctly in the current "
+                           "version." % name)
+                    logging.warn(_translate(msg))
                     logging.flush()
         # get the value type and update rate
         if 'valType' in paramNode.keys():
@@ -406,7 +434,8 @@ class Experiment(object):
             if name in ['allowedKeys'] and paramNode.get('valType') == 'str':
                 # these components were changed in v1.70.00
                 params[name].valType = 'code'
-            elif name == 'Selected rows':  # changed in 1.81.00 from 'code' to 'str' to allow string or variable
+            elif name == 'Selected rows':
+                # changed in 1.81.00 from 'code' to 'str': allow string or var
                 params[name].valType = 'str'
             # conversions based on valType
             if params[name].valType == 'bool':
@@ -432,8 +461,9 @@ class Experiment(object):
         version_f = float(self.psychopyVersion.rsplit(
             '.', 1)[0])  # drop bugfix
         if version_f < 1.63:
-            logging.warning('note: v%s was used to create %s ("%s")' % (
-                self.psychopyVersion, filename_base, root.tag))
+            msg = 'note: v%s was used to create %s ("%s")'
+            vals = (self.psychopyVersion, filename_base, root.tag)
+            logging.warning(msg % vals)
 
         # Parse document nodes
         # first make sure we're empty
@@ -455,7 +485,8 @@ class Experiment(object):
         routinesNode = root.find('Routines')
         allCompons = getAllComponents(
             self.prefsBuilder['componentsFolders'], fetchIcons=False)
-        for routineNode in routinesNode:  # get each routine node from the list of routines
+        # get each routine node from the list of routines
+        for routineNode in routinesNode:
             routine_good_name = self.namespace.makeValid(
                 routineNode.get('name'))
             if routine_good_name != routineNode.get('name'):
@@ -477,8 +508,10 @@ class Experiment(object):
                     component = allCompons['UnknownComponent'](
                         name=componentNode.get('name'),
                         parentName=routineNode.get('name'), exp=self)
-                # check for components that were absent in older versions of the builder and change the default behavior
-                # (currently only the new behavior of choices for RatingScale, HS, November 2012)
+                # check for components that were absent in older versions of
+                # the builder and change the default behavior
+                # (currently only the new behavior of choices for RatingScale,
+                # HS, November 2012)
                 # HS's modification superceded Jan 2014, removing several
                 # RatingScale options
                 if componentType == 'RatingScaleComponent':
@@ -486,8 +519,9 @@ class Experiment(object):
                             componentNode.get('lowAnchorText') or
                             componentNode.get('highAnchorText')):
                         pass
-                    # if not componentNode.get('choiceLabelsAboveLine'): #this rating scale was created using older version of psychopy
-                    #    component.params['choiceLabelsAboveLine'].val=True  #important to have .val here
+                    # if not componentNode.get('choiceLabelsAboveLine'):
+                    # #this rating scale was created using older version
+                    #    component.params['choiceLabelsAboveLine'].val=True
                 # populate the component with its various params
                 for paramNode in componentNode:
                     self._getXMLparam(params=component.params,
@@ -512,8 +546,10 @@ class Experiment(object):
                         updates = thisParam.updates.split(': ')[1]
                         routine, static = updates.split('.')
                         if routine not in self.routines:
-                            logging.warning("%s was set to update during %s Static Component, but that component no longer exists" % (
-                                thisParamName, static))
+                            msg = ("%s was set to update during %s Static "
+                                   "Component, but that component no longer "
+                                   "exists")
+                            logging.warning(msg % (thisParamName, static))
                         else:
                             self.routines[routine].getComponentFromName(static).addComponentUpdate(
                                 routine, thisComp.params['name'], thisParamName)
@@ -531,7 +567,7 @@ class Experiment(object):
                 loops[loopName] = loop
                 for paramNode in elementNode:
                     self._getXMLparam(paramNode=paramNode, params=loop.params)
-                    # for conditions convert string rep to actual list of dicts
+                    # for conditions convert string rep to list of dicts
                     if paramNode.get('name') == 'conditions':
                         param = loop.params['conditions']
                         # e.g. param.val=[{'ori':0},{'ori':3}]
@@ -563,11 +599,11 @@ class Experiment(object):
                 self.flow.append(self.routines[elementNode.get('name')])
 
         if modified_names:
-            logging.warning('duplicate variable name(s) changed in loadFromXML: %s\n' % ', '.join(
-                list(set(modified_names))))
+            msg = 'duplicate variable name(s) changed in loadFromXML: %s\n'
+            logging.warning(msg % ', '.join(list(set(modified_names))))
         if duplicate_names:
-            logging.warning('duplicate variable names: %s' %
-                            ', '.join(list(set(duplicate_names))))
+            msg = 'duplicate variable names: %s'
+            logging.warning(msg % ', '.join(list(set(duplicate_names))))
 
     def setExpName(self, name):
         self.settings.params['expName'].val = name
@@ -1550,7 +1586,7 @@ class Routine(list):
 
         # allow subject to quit via Esc key?
         if self.exp.settings.params['Enable Escape'].val:
-            code = ('\n# check for quit (the Esc key)'
+            code = ('\n# check for quit (the Esc key)\n'
                     'if endExpNow or event.getKeys(keyList=["escape"]):\n'
                     '    core.quit()\n')
             buff.writeIndentedLines(code)

@@ -19,7 +19,7 @@ _localized = {
     # section labels:
     'general': _translate('General'),
     'app': _translate('App'),
-    'builder': "Builder", # not localized
+    'builder': "Builder",  # not localized
     'coder': "Coder",  # not localized
     'connections': _translate('Connections'),
     'keyBindings': _translate('Key bindings'),
@@ -125,10 +125,11 @@ _localized.update(localization.locname)
 class PreferencesDlg(wx.Dialog):
     defaultStyle = (wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT |
                     wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
+
     def __init__(self, app, pos=wx.DefaultPosition, size=dlgSize,
                  style=defaultStyle):
         title = _translate("PsychoPy Preferences")
-        wx.Dialog.__init__( self, None, -1, title, pos, size, style)
+        wx.Dialog.__init__(self, None, -1, title, pos, size, style)
         self.app = app
         self.Center()
         self.prefsCfg = self.app.prefs.userPrefsCfg

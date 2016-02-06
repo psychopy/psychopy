@@ -172,8 +172,9 @@ class ParamCtrls(object):
                 parent, val, order=['Field', 'Default'])
         elif param.valType == 'extendedCode':
             # set viewer small, then it will increase with wx.aui control
-            _pos = wx.DefaultPosition, size=wx.Size(100, 100)
-            self.valueCtrl = CodeBox(parent, -1, pos=_pos, style=0,
+            _pos = wx.DefaultPosition
+            self.valueCtrl = CodeBox(parent, -1, pos=_pos,
+                                     size=wx.Size(100, 100), style=0,
                                      prefs=appPrefs)
             if len(param.val):
                 self.valueCtrl.AddText(unicode(param.val))
@@ -386,6 +387,7 @@ class ParamCtrls(object):
 
 class _BaseParamsDlg(wx.Dialog):
     _style = wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT | wx.TAB_TRAVERSAL
+
     def __init__(self, frame, title, params, order,
                  helpUrl=None, suppressTitles=True,
                  showAdvanced=False,

@@ -849,10 +849,10 @@ class FlowPanel(wx.ScrolledWindow):
             name += '  (' + str(loop.params['nReps'].val) + xnumTrials
             abbrev = ['',  # for flowsize == 0
                       {'random': 'rand.',
-                        'sequential': 'sequ.',
-                        'fullRandom': 'f-ran.',
-                        'staircase': 'stair.',
-                        'interleaved staircases': "int-str."},
+                       'sequential': 'sequ.',
+                       'fullRandom': 'f-ran.',
+                       'staircase': 'stair.',
+                       'interleaved staircases': "int-str."},
                       {'random': 'random',
                        'sequential': 'sequential',
                        'fullRandom': 'fullRandom',

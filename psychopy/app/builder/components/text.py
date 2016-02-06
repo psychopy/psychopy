@@ -63,21 +63,21 @@ class TextComponent(BaseVisualComponent):
         self.params['letterHeight'] = Param(
             letterHeight, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
-            hint=_translate(
-                "Specifies the height of the letter (the width is then determined by the font)"),
+            hint=_translate("Specifies the height of the letter (the width"
+                            " is then determined by the font)"),
             label=_localized['letterHeight'])
 
         self.params['wrapWidth'] = Param(
             wrapWidth, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant'],
-            hint=_translate(
-                "How wide should the text get when it wraps? (in the specified units)"),
+            hint=_translate("How wide should the text get when it wraps? (in"
+                            " the specified units)"),
             label=_localized['wrapWidth'], categ="Advanced")
         self.params['flip'] = Param(
             flip, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
-            hint=_translate(
-                "horiz = left-right reversed; vert = up-down reversed; $var = variable"),
+            hint=_translate("horiz = left-right reversed; vert = up-down"
+                            " reversed; $var = variable"),
             label=_localized['flip'], categ="Advanced")
         for prm in ('ori', 'opacity', 'colorSpace', 'units'):
             self.params[prm].categ = 'Advanced'
@@ -98,7 +98,8 @@ class TextComponent(BaseVisualComponent):
         buff.writeIndented(_name % inits)
         buff.writeIndented("    text=%(text)s,\n" % inits)
         buff.writeIndented("    font=%(font)s,\n" % inits)
-        pos = "pos=%(pos)s, height=%(letterHeight)s, wrapWidth=%(wrapWidth)s,\n"
+        pos = ("pos=%(pos)s, height=%(letterHeight)s, "
+               "wrapWidth=%(wrapWidth)s,\n")
         buff.writeIndented("    " + unitsStr + pos % inits)
         _col = ("    color=%(color)s, colorSpace=%(colorSpace)s, "
                 "opacity=%(opacity)s,\n")
@@ -109,7 +110,8 @@ class TextComponent(BaseVisualComponent):
         elif flip == 'vert':
             buff.writeIndented("    flipVert=%s," % bool(flip == 'vert'))
         elif flip:
-            msg = "flip value should be 'horiz' or 'vert' (no quotes) in component '%s'"
+            msg = ("flip value should be 'horiz' or 'vert' (no quotes)"
+                   " in component '%s'")
             raise ValueError(msg % self.params['name'].val)
         depth = -self.getPosInRoutine()
         buff.writeIndented("    depth=%.1f)\n" % (depth))
