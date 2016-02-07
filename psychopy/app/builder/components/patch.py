@@ -45,7 +45,8 @@ class PatchComponent(BaseVisualComponent):
         self.params['color'].categ = "Advanced"
         self.params['colorSpace'].categ = "Advanced"
 
-        msg = "The image to be displayed - 'sin','sqr'... or a filename (including path)"
+        msg = ("The image to be displayed - 'sin','sqr'... or a filename "
+               "(including path)")
         self.params['image'] = Param(
             image, valType='str', allowedTypes=[],
             updates='constant',
@@ -53,7 +54,8 @@ class PatchComponent(BaseVisualComponent):
             hint=_translate(msg),
             label=_localized['image'])
 
-        msg = "An image to define the alpha mask (ie shape)- gauss, circle... or a filename (including path)"
+        msg = ("An image to define the alpha mask (ie shape)- gauss, "
+               "circle... or a filename (including path)")
         self.params['mask'] = Param(
             mask, valType='str', allowedTypes=[],
             updates='constant',
@@ -77,7 +79,8 @@ class PatchComponent(BaseVisualComponent):
             hint=_translate(msg),
             label=_localized['phase'], categ="Advanced")
 
-        msg = "Resolution of the texture for standard ones such as sin, sqr etc. For most cases a value of 256 pixels will suffice"
+        msg = ("Resolution of the texture for standard ones such as sin, sqr "
+               "etc. For most cases a value of 256 pixels will suffice")
         self.params['texture resolution'] = Param(
             texRes, valType='code',
             allowedVals=['32', '64', '128', '256', '512'],
@@ -100,13 +103,18 @@ class PatchComponent(BaseVisualComponent):
             unitsStr = "units=%(units)s, " % self.params
         # replaces variable params with defaults
         inits = getInitVals(self.params)
-        buff.writeIndented("%s = visual.PatchStim(win=win, name='%s',%s\n" %
-                           (inits['name'], inits['name'], unitsStr))
-        buff.writeIndented("    tex=%(image)s, mask=%(mask)s,\n" % inits)
-        buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n" % inits)
-        buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" % inits)
-        # no newline - start optional parameters
-        buff.writeIndented("    texRes=%(texture resolution)s" % inits)
+
+        code = ("%s = visual.PatchStim(win=win, name='%s',%s\n" %
+                (inits['name'], inits['name'], unitsStr))
+
+        code += ("    tex=%(image)s, mask=%(mask)s,\n"
+                 "    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n"
+                 "    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n"
+                 # no newline - start optional parameters
+                 "    texRes=%(texture resolution)s" %
+                 inits)
+
+        buff.writeIndentedLines(code)
 
         if self.params['interpolate'].val == 'linear':
             buff.write(", interpolate=True")

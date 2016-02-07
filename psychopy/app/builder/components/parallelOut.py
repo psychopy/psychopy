@@ -47,7 +47,8 @@ class ParallelOutComponent(BaseComponent):
         if not address:
             address = addressOptions[0]
 
-        msg = "Parallel port to be used (you can change these options in preferences>general)"
+        msg = ("Parallel port to be used (you can change these options in "
+               "preferences>general)")
         self.params['address'] = Param(
             address, valType='str', allowedVals=addressOptions,
             hint=_translate(msg),
@@ -63,7 +64,8 @@ class ParallelOutComponent(BaseComponent):
             hint=_translate("Data to be sent at 'end'"),
             label=_localized['stopData'])
 
-        msg = "If the parallel port data relates to visual stimuli then sync its pulse to the screen refresh"
+        msg = ("If the parallel port data relates to visual stimuli then "
+               "sync its pulse to the screen refresh")
         self.params['syncScreen'] = Param(
             syncScreen, valType='bool',
             allowedVals=[True, False],
@@ -73,11 +75,14 @@ class ParallelOutComponent(BaseComponent):
 
     def writeInitCode(self, buff):
         if self.params['address'].val == 'LabJack U3':
-            buff.writeIndented("from psychopy.hardware import labjacks\n")
-            buff.writeIndented("%(name)s = labjacks.U3()\n" % self.params)
+            code = ("from psychopy.hardware import labjacks\n"
+                    "%(name)s = labjacks.U3()\n"
+                    % self.params)
+            buff.writeIndentedLines(code)
         else:
-            buff.writeIndented(
-                "%(name)s = parallel.ParallelPort(address=%(address)s)\n" % self.params)
+            code = ("%(name)s = parallel.ParallelPort(address=%(address)s)\n" %
+                    self.params)
+            buff.writeIndented(code)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
@@ -88,10 +93,14 @@ class ParallelOutComponent(BaseComponent):
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCode(buff)
         buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
+
         if not self.params['syncScreen'].val:
-            buff.writeIndented("%(name)s.setData(int(%(startData)s))\n" % self.params)
+            code = "%(name)s.setData(int(%(startData)s))\n" % self.params
         else:
-            buff.writeIndented("win.callOnFlip(%(name)s.setData, int(%(startData)s))\n" % self.params)
+            code = ("win.callOnFlip(%(name)s.setData, int(%(startData)s))\n" %
+                    self.params)
+
+        buff.writeIndented(code)
 
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
@@ -100,10 +109,15 @@ class ParallelOutComponent(BaseComponent):
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
             buff.writeIndented("%(name)s.status = STOPPED\n" % self.params)
+
             if not self.params['syncScreen'].val:
-                buff.writeIndented("%(name)s.setData(int(%(stopData)s))\n" % self.params)
+                code = "%(name)s.setData(int(%(stopData)s))\n" % self.params
             else:
-                buff.writeIndented("win.callOnFlip(%(name)s.setData, int(%(stopData)s))\n" % self.params)
+                code = ("win.callOnFlip(%(name)s.setData, int(%(stopData)s))\n" %
+                        self.params)
+
+            buff.writeIndented(code)
+
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
 
@@ -116,6 +130,9 @@ class ParallelOutComponent(BaseComponent):
         # aborted before our 'end'
         buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
         if not self.params['syncScreen'].val:
-            buff.writeIndented("    %(name)s.setData(int(%(stopData)s))\n" % self.params)
+            code = "    %(name)s.setData(int(%(stopData)s))\n" % self.params
         else:
-            buff.writeIndented("    win.callOnFlip(%(name)s.setData, int(%(stopData)s))\n" % self.params)
+            code = ("    win.callOnFlip(%(name)s.setData, int(%(stopData)s))\n" %
+                    self.params)
+
+        buff.writeIndented(code)

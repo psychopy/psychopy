@@ -57,12 +57,14 @@ class EyetrackerComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint=_translate("When does the component end? (blank is endless)"))
 
-        msg = "(Optional) expected start (s), purely for representing in the timeline"
+        msg = ("(Optional) expected start (s), purely for representing in the "
+               "timeline")
         self.params['startEstim'] = Param(
             startEstim, valType='code', allowedTypes=[],
             hint=_translate(msg))
 
-        msg = "(Optional) expected duration (s), purely for representing in the timeline"
+        msg = ("(Optional) expected duration (s), purely for representing in "
+               "the timeline")
         self.params['durationEstim'] = Param(
             durationEstim, valType='code', allowedTypes=[],
             hint=_translate(msg))
@@ -72,7 +74,9 @@ class EyetrackerComponent(BaseComponent):
             configFile, valType='str',
             hint=_translate("How do you want to define your start point?"))
 
-        msg = "How often should the eyetracker state (x,y,pupilsize...) be stored? On every video frame, every click or just at the end of the Routine?"
+        msg = ("How often should the eyetracker state (x,y,pupilsize...) be "
+               "stored? On every video frame, every click or just at the end "
+               "of the Routine?")
         self.params['saveState'] = Param(
             save, valType='str',
             allowedVals=['final', 'every frame', 'never'],
@@ -84,10 +88,11 @@ class EyetrackerComponent(BaseComponent):
 
         # these might move to a more general place later, when we're always
         # planning on having iohub running
-        buff.writeIndented("io_config = iohub.load(file(%('Config file')s,'r'), Loader=iohub.Loader)\n" % self.params)
-        buff.writeIndented("io = iohub.ioHubConnection(io_config)\n")
-        buff.writeIndented("eyetracker = io.getDevice('tracker')\n" % self.params)
-        buff.writeIndented("eyetracker.runSetupProcedure()\n" % self.params)
+        code = ("io_config = iohub.load(file(%('Config file')s,'r'), Loader=iohub.Loader)\n"
+                "io = iohub.ioHubConnection(io_config)\n"
+                "eyetracker = io.getDevice('tracker')\n"
+                "eyetracker.runSetupProcedure()\n")
+        buff.writeIndentedLines(code % self.params)
 
     def writeInitCode(self, buff):
         pass  # do we need anything after window creation but before run starts?
@@ -97,13 +102,15 @@ class EyetrackerComponent(BaseComponent):
         """
         # create some lists to store recorded values positions and events if we
         # need more than one
-        buff.writeIndented("# setup some python lists for storing info about the %(name)s\n" % self.params)
+        code = "# setup some python lists for storing info about the %(name)s\n" % self.params
+        buff.writeIndented(code)
         # a list of vals for each val, rather than a scalar
         if self.params['saveState'].val in ['every frame', 'on click']:
-            buff.writeIndented("%(name)s.x = []\n" % self.params)
-            buff.writeIndented("%(name)s.y = []\n" % self.params)
-            # is this common or is Jon making it up?!
-            buff.writeIndented("%(name)s.pupil = []\n" % self.params)
+            code = ("%(name)s.x = []\n"
+                    "%(name)s.y = []\n"
+                    # is this common or is Jon making it up?!
+                    "%(name)s.pupil = []\n")
+            buff.writeIndentedLines(code % self.params)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
@@ -113,10 +120,12 @@ class EyetrackerComponent(BaseComponent):
         # test for whether we're just starting to record
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCode(buff)
-        buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
-        buff.writeIndented("#clear events and start tracking\n")
-        buff.writeIndented("io.clearEvents('all')\n")
-        buff.writeIndented("%(name)s.setRecordingState(True)\n" % self.params)
+        code = ("%(name)s.status = STARTED\n"
+                "# clear events and start tracking\n"
+                "io.clearEvents('all')\n"
+                "%(name)s.setRecordingState(True)\n")
+        buff.writeIndentedLines(code % self.params)
+
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
 
@@ -124,24 +133,32 @@ class EyetrackerComponent(BaseComponent):
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.status = STOPPED\n" % self.params)
-            buff.writeIndented("%(name)s.setRecordingState(False)\n" % self.params)
+
+            code = ("%(name)s.status = STOPPED\n"
+                    "%(name)s.setRecordingState(False)\n")
+            buff.writeIndentedLines(code % self.params)
+
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
 
         # if STARTED and not STOPPED!
-        buff.writeIndented("if %(name)s.status == STARTED:  # only update if started and not stopped!\n" % (self.params))
+        code = "if %(name)s.status == STARTED:  # only update if started and not stopped!\n" % self.params
+        buff.writeIndented(code)
+
         buff.setIndentLevel(1, relative=True)  # to get out of the if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
-        buff.writeIndented("%(name)s.x, %(name)s.y = eyetracker.getPosition()\n" % (self.params))
-        buff.writeIndented("%(name)s.pupil = eyetracker.getPupilSize()\n" % (self.params))
+
+        code = ("%(name)s.x, %(name)s.y = eyetracker.getPosition()\n"
+                "%(name)s.pupil = eyetracker.getPupilSize()\n")
+        buff.writeIndentedLines(code % self.params)
 
         # actual each-frame checks
         if self.params['saveState'].val in ['every frame']:
-            buff.writeIndented("x, y = eyetracker.getPosition()\n" % (self.params))
-            buff.writeIndented("%(name)s.x.append(x)\n" % (self.params))
-            buff.writeIndented("%(name)s.y.append(y)\n" % (self.params))
-            buff.writeIndented("%(name)s.pupil.append(eyetracker.getPupilSize())\n" % (self.params))
+            code = ("x, y = eyetracker.getPosition()\n"
+                    "%(name)s.x.append(x)\n"
+                    "%(name)s.y.append(y)\n"
+                    "%(name)s.pupil.append(eyetracker.getPupilSize())\n")
+            buff.writeIndented(code % self.params)
 
         # dedent
         # 'if' statement of the time test and button check
@@ -160,10 +177,12 @@ class EyetrackerComponent(BaseComponent):
 
         # if store=='final' then update value
         if store == 'final' and currLoop != None:
-            buff.writeIndented("# get info about the %(name)s\n" % self.params)
-            buff.writeIndented("%(name)s.x, %(name)s.y = eyetracker.getPosition()\n" % self.params)
-            buff.writeIndented("x, y = %(name)s.getPos()\n" % self.params)
-            buff.writeIndented("%(name)s.pupil = eyetracker.getPupilSize()\n" % self.params)
+            code = ("# get info about the %(name)s\n"
+                    "%(name)s.x, %(name)s.y = eyetracker.getPosition()\n"
+                    "x, y = %(name)s.getPos()\n"
+                    "%(name)s.pupil = eyetracker.getPupilSize()\n")
+            buff.writeIndentedLines(code % self.params)
+
         # then push to psychopy data file if store='final','every frame'
         if store != 'never' and currLoop != None:
             buff.writeIndented("# save %(name)s data\n" % self.params)

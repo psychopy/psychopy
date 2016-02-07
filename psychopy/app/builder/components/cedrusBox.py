@@ -52,15 +52,20 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         self.url = "http://www.psychopy.org/builder/components/cedrusButtonBox.html"
         self.exp.requirePsychopyLibs(['hardware'])
 
-        msg = "What is the 'correct' response? NB, buttons are labelled 0 to 6 on a 7-button box. Enter 'None' (no quotes) if withholding a response is correct. Might be helpful to add a correctAns column and use $correctAns to compare to the key press."
+        msg = ("What is the 'correct' response? NB, buttons are labelled 0 to "
+               "6 on a 7-button box. Enter 'None' (no quotes) if withholding "
+               "a response is correct. Might be helpful to add a correctAns "
+               "column and use $correctAns to compare to the key press.")
         self.params['correctAns'].hint = _translate(msg)
 
         self.params['correctAns'].valType = 'code'
 
-        msg = 'Keys to be read (blank for any) or key numbers separated by commas'
+        msg = ('Keys to be read (blank for any) or key numbers separated by '
+               'commas')
         self.params['allowedKeys'].hint = _translate(msg)
 
-        msg = 'Device number, if you have multiple devices which one do you want (0, 1, 2...)'
+        msg = ('Device number, if you have multiple devices which one do you '
+               'want (0, 1, 2...)')
         self.params['deviceNumber'] = Param(
             deviceNumber, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
@@ -72,7 +77,8 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         #    hint="Wait for the key to be released and store the time that it was held down",
         #    label="Get release time")
 
-        msg = 'According to Cedrus the response box timer has a drift - use with caution!'
+        msg = ('According to Cedrus the response box timer has a drift - use '
+               'with caution!')
         self.params['useBoxTimer'] = Param(
             getReleaseTime, valType='bool', allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
@@ -87,22 +93,24 @@ class cedrusButtonBoxComponent(KeyboardComponent):
             buff.writeIndented("pyxid.use_response_pad_timer = True\n")
 
     def writeInitCode(self, buff):
-        buff.writeIndented("for n in range(10):  # Cedrus connection doesn't always work first time!\n")
-        buff.writeIndented("    try:\n")
-        buff.writeIndented("        devices = pyxid.get_xid_devices()\n")
-        buff.writeIndented("        core.wait(0.1)\n")
-        buff.writeIndented("        %(name)s = devices[%(deviceNumber)s]\n" % self.params)
-        buff.writeIndented("        break #once we found the device we can break the loop\n")
-        buff.writeIndented("    except Exception:\n")
-        buff.writeIndented("        pass\n")
-        buff.writeIndented("%(name)s.status = NOT_STARTED\n" % self.params)
-        buff.writeIndented("%(name)s.clock = core.Clock()\n" % self.params)
+        code = ("for n in range(10):  # Cedrus connection doesn't always work first time!\n"
+                "    try:\n"
+                "        devices = pyxid.get_xid_devices()\n"
+                "        core.wait(0.1)\n"
+                "        %(name)s = devices[%(deviceNumber)s]\n"
+                "        break #once we found the device we can break the loop\n"
+                "    except Exception:\n"
+                "        pass\n"
+                "%(name)s.status = NOT_STARTED\n"
+                "%(name)s.clock = core.Clock()\n")
+        buff.writeIndentedLines(code % self.params)
 
     def writeRoutineStartCode(self, buff):
         if (self.params['store'].val != 'nothing' or
                 self.params['storeCorrect'].val):
-            buff.writeIndentedLines("%(name)s.keys = []  # to store response values\n" % self.params +
-                                    "%(name)s.rt = []\n" % self.params)
+            code = ("%(name)s.keys = []  # to store response values\n"
+                    "%(name)s.rt = []\n")
+            buff.writeIndentedLines(code % self.params)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame.
@@ -120,16 +128,18 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         if allowedKeysIsVar:  # only insert this code if we think allowed keys is a variable
             # if it looks like a variable, check that the variable is suitable
             # to eval at run-time
-            buff.writeIndented("# AllowedKeys looks like a variable named `%s`\n" % allowedKeys)
-            buff.writeIndented("if not '%s' in locals():\n" % allowedKeys)
-            buff.writeIndented("    logging.error('AllowedKeys variable `%s` is not defined.')\n" % allowedKeys)
-            buff.writeIndented("    core.quit()\n")
-            buff.writeIndented("if not type(%s) in [list, tuple, np.ndarray]:\n" % allowedKeys)
-            buff.writeIndented("    if not isinstance(%s, basestring):\n" % allowedKeys)
-            buff.writeIndented("        logging.error('AllowedKeys variable `%s` is not string- or list-like.')\n" % allowedKeys)
-            buff.writeIndented("        core.quit()\n")
-            buff.writeIndented("    elif not ',' in %s: %s = (%s,)\n" % (allowedKeys, allowedKeys, allowedKeys))
-            buff.writeIndented("    else:  %s = eval(%s)\n" % (allowedKeys, allowedKeys))
+            code = ("# AllowedKeys looks like a variable named `%s`\n" % allowedKeys +
+                    "if not '%s' in locals():\n" % allowedKeys +
+                    "    logging.error('AllowedKeys variable `%s` is not defined.')\n" % allowedKeys +
+                    "    core.quit()\n" +
+                    "if not type(%s) in [list, tuple, np.ndarray]:\n" % allowedKeys +
+                    "    if not isinstance(%s, basestring):\n" % allowedKeys +
+                    "        logging.error('AllowedKeys variable `%s` is not string- or list-like.')\n" % allowedKeys +
+                    "        core.quit()\n" +
+                    "    elif not ',' in %s: %s = (%s,)\n" % (allowedKeys, allowedKeys, allowedKeys) +
+                    "    else:  %s = eval(%s)\n" % (allowedKeys, allowedKeys))
+            buff.writeIndentedLines(code)
+
             keyListStr = "keyList=list(%s)" % allowedKeys  # eval() at run time
 
         # now create the string that will loop-continue if
@@ -153,16 +163,21 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         # write start code
         # writes an if statement to determine whether to start
         self.writeStartTestCode(buff)
-        buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
-        buff.writeIndented("%(name)s.clock.reset()  # now t=0\n" % self.params)
+        code = ("%(name)s.status = STARTED\n"
+                "%(name)s.clock.reset()  # now t=0\n")
+        buff.writeIndentedLines(code % self.params)
+
         if self.params['discard previous'].val:
-            buff.writeIndented("# clear %(name)s responses (in a loop - the Cedrus own function doesn't work well)\n" % self.params)
-            buff.writeIndented("%(name)s.poll_for_response()\n" % self.params)
-            buff.writeIndented("while len(%(name)s.response_queue):\n" % self.params)
-            buff.writeIndented("    %(name)s.clear_response_queue()\n" % self.params)
-            buff.writeIndented("    %(name)s.poll_for_response() #often there are more resps waiting!\n" % self.params)
+            code = ("# clear %(name)s responses (in a loop - the Cedrus own function doesn't work well)\n"
+                    "%(name)s.poll_for_response()\n"
+                    "while len(%(name)s.response_queue):\n"
+                    "    %(name)s.clear_response_queue()\n"
+                    "    %(name)s.poll_for_response() #often there are more resps waiting!\n")
+            buff.writeIndentedLines(code % self.params)
+
         if useBoxTimer:
-            buff.writeIndented("%(name)s.reset_rt_timer() #set the response time clock to 0\n" % self.params)
+            code = "%(name)s.reset_rt_timer() #set the response time clock to 0\n"
+            buff.writeIndented(code % self.params)
 
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
@@ -177,55 +192,75 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         buff.setIndentLevel(1, relative=True)  # to get out of the if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
 
-        buff.writeIndented("theseKeys=[]\n" % self.params)
-        buff.writeIndented("theseRTs=[]\n" % self.params)
-        buff.writeIndented("# check for key presses\n" % self.params)
-        buff.writeIndented("%(name)s.poll_for_response()\n" % self.params)
-        buff.writeIndented("while len(%(name)s.response_queue):\n" % self.params)
-        buff.writeIndented("    evt = %(name)s.get_next_response()\n" % self.params)
+        code = ("theseKeys=[]\n"
+                "theseRTs=[]\n"
+                "# check for key presses\n"
+                "%(name)s.poll_for_response()\n"
+                "while len(%(name)s.response_queue):\n"
+                "    evt = %(name)s.get_next_response()\n")
+
+        buff.writeIndentedLines(code % self.params)
+
         if len(keyCheckStr):
-            buff.writeIndented("    if evt['key'] not in %s:\n" % keyList)
-            buff.writeIndented("        continue #we don't care about this key\n")
-        buff.writeIndented("    if evt['pressed']: #could be extended to examine releases too?\n")
-        buff.writeIndented("      theseKeys.append(evt['key'])\n")
+            code = ("    if evt['key'] not in %s:\n" % keyList +
+                    "        continue  # we don't care about this key\n")
+            buff.writeIndentedLines(code)
+
+        code = ("    if evt['pressed']:  # could be extended to examine releases too?\n"
+                "      theseKeys.append(evt['key'])\n")
+        buff.writeIndentedLines(code)
+
         if useBoxTimer:
-            buff.writeIndented("      theseRTs.append(evt['time']/1000.0) #NB psychopy times are in s not ms\n")
+            code = "      theseRTs.append(evt['time']/1000.0) #NB psychopy times are in s not ms\n"
+            buff.writeIndented(code)
         else:
-            buff.writeIndented("      theseRTs.append(%(name)s.clock.getTime())\n" % self.params)
-        buff.writeIndented("    %(name)s.poll_for_response()\n" % self.params)
-        buff.writeIndented("%(name)s.clear_response_queue() # make sure we don't process these evts again\n" % self.params)
+            code = "      theseRTs.append(%(name)s.clock.getTime())\n"
+            buff.writeIndented(code % self.params)
+
+        code = ("    %(name)s.poll_for_response()\n"
+                "%(name)s.clear_response_queue() # make sure we don't process these evts again\n")
+        buff.writeIndentedLines(code % self.params)
 
         # how do we store it?
         if store != 'nothing' or forceEnd:
             # we are going to store something
-            buff.writeIndented("if len(theseKeys) > 0:  # at least one key was pressed\n")
+            code = "if len(theseKeys) > 0:  # at least one key was pressed\n"
+            buff.writeIndented(code)
             buff.setIndentLevel(1, True)
             dedentAtEnd += 1  # indent by 1
 
         if store == 'first key':  # then see if a key has already been pressed
-            buff.writeIndented("if %(name)s.keys == []:  # then this was the first keypress\n" % self.params)
+            code = "if %(name)s.keys == []:  # then this was the first keypress\n"
+            buff.writeIndented(code % self.params)
+
             buff.setIndentLevel(1, True)
             dedentAtEnd += 1  # indent by 1
-            buff.writeIndented("%(name)s.keys = theseKeys[0]  # just the first key pressed\n" % self.params)
-            buff.writeIndented("%(name)s.rt = theseRTs[0]\n" % self.params)
+
+            code = ("%(name)s.keys = theseKeys[0]  # just the first key pressed\n"
+                    "%(name)s.rt = theseRTs[0]\n")
+            buff.writeIndentedLines(code % self.params)
         elif store == 'last key':
-            buff.writeIndented("%(name)s.keys = theseKeys[-1]  # just the last key pressed\n" % self.params)
-            buff.writeIndented("%(name)s.rt = theseRTs[-1]\n" % self.params)
+            code = ("%(name)s.keys = theseKeys[-1]  # just the last key pressed\n"
+                    "%(name)s.rt = theseRTs[-1]\n")
+            buff.writeIndentedLines(code % self.params)
         elif store == 'all keys':
-            buff.writeIndented("%(name)s.keys.extend(theseKeys)  # storing all keys\n" % self.params)
-            buff.writeIndented("%(name)s.rt.extend(theseRTs)\n" % self.params)
+            code = ("%(name)s.keys.extend(theseKeys)  # storing all keys\n"
+                    "%(name)s.rt.extend(theseRTs)\n")
+            buff.writeIndentedLines(code % self.params)
         else:
             print(store, type(store), str(store))
         if storeCorr:
-            buff.writeIndented("# was this 'correct'?\n" % self.params)
-            buff.writeIndented("if (%(name)s.keys == str(%(correctAns)s)) or (%(name)s.keys == %(correctAns)s):\n" % self.params)
-            buff.writeIndented("    %(name)s.corr = 1\n" % self.params)
-            buff.writeIndented("else:\n")
-            buff.writeIndented("    %(name)s.corr = 0\n" % self.params)
+            code = ("# was this 'correct'?\n"
+                    "if (%(name)s.keys == str(%(correctAns)s)) or (%(name)s.keys == %(correctAns)s):\n"
+                    "    %(name)s.corr = 1\n"
+                    "else:\n"
+                    "    %(name)s.corr = 0\n")
+            buff.writeIndentedLines(code % self.params)
 
         if forceEnd == True:
-            buff.writeIndented("# a response ends the routine\n" % self.params)
-            buff.writeIndented("continueRoutine = False\n")
+            code = ("# a response ends the routine\n"
+                    "continueRoutine = False\n")
+            buff.writeIndentedLines(code % self.params)
 
         buff.setIndentLevel(-(dedentAtEnd), relative=True)
 

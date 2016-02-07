@@ -89,8 +89,8 @@ class ApertureComponent(BaseVisualComponent):
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):
-            msg = "if %(name)s.status == STARTED:  # only update if being drawn\n"
-            buff.writeIndented(msg % self.params)
+            code = ("if %(name)s.status == STARTED:  # only update if being  drawn\n")
+            buff.writeIndented(code % self.params)
 
             buff.setIndentLevel(+1, relative=True)  # to enter the if block
             self.writeParamUpdates(buff, 'set every frame')

@@ -145,11 +145,12 @@ class DotsComponent(BaseVisualComponent):
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params)
         depth = -self.getPosInRoutine()
-        buff.writeIndented("%s = visual.DotStim(win=win, name='%s',%s\n" %
-                           (inits['name'], inits['name'], unitsStr))
-        buff.writeIndented("    nDots=%(nDots)s, dotSize=%(dotSize)s,\n" % (inits))
-        buff.writeIndented("    speed=%(speed)s, dir=%(dir)s, coherence=%(coherence)s,\n" % (inits))
-        buff.writeIndented("    fieldPos=%(fieldPos)s, fieldSize=%(fieldSize)s,fieldShape=%(fieldShape)s,\n" % (inits))
-        buff.writeIndented("    signalDots=%(signalDots)s, noiseDots=%(noiseDots)s,dotLife=%(dotLife)s,\n" % (inits))
-        buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s," % (inits))
-        buff.writeIndented("    depth=%.1f)\n" % (depth))
+
+        code = ("%s = visual.DotStim(win=win, name='%s',%s\n" % (inits['name'], inits['name'], unitsStr) +
+                "    nDots=%(nDots)s, dotSize=%(dotSize)s,\n" % (inits) +
+                "    speed=%(speed)s, dir=%(dir)s, coherence=%(coherence)s,\n" % (inits) +
+                "    fieldPos=%(fieldPos)s, fieldSize=%(fieldSize)s,fieldShape=%(fieldShape)s,\n" % (inits) +
+                "    signalDots=%(signalDots)s, noiseDots=%(noiseDots)s,dotLife=%(dotLife)s,\n" % (inits) +
+                "    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s," % (inits) +
+                "    depth=%.1f)\n" % (depth))
+        buff.writeIndentedLines(code)

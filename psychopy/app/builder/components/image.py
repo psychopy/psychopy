@@ -56,7 +56,8 @@ class ImageComponent(BaseVisualComponent):
             hint=_translate(msg),
             label=_localized["image"])
 
-        msg = "An image to define the alpha mask through which the image is seen - gauss, circle, None or a filename (including path)"
+        msg = ("An image to define the alpha mask through which the image is "
+               "seen - gauss, circle, None or a filename (including path)")
         self.params['mask'] = Param(
             mask, valType='str', allowedTypes=[],
             updates='constant',
@@ -102,20 +103,22 @@ class ImageComponent(BaseVisualComponent):
 
         # replace variable params with defaults
         inits = getInitVals(self.params)
-        buff.writeIndented("%s = visual.ImageStim(win=win, name='%s',%s\n" %
-                           (inits['name'], inits['name'], unitsStr))
-        buff.writeIndented("    image=%(image)s, mask=%(mask)s,\n" % inits)
-        buff.writeIndented("    ori=%(ori)s, pos=%(pos)s, size=%(size)s,\n" % inits)
-        buff.writeIndented("    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" % inits)
-        buff.writeIndented("    flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s,\n" % inits)
 
-        # no newline - start optional parameters
-        buff.writeIndented("    texRes=%(texture resolution)s" % inits)
+        code = ("%s = visual.ImageStim(win=win, name='%s',%s\n" % (inits['name'], inits['name'], unitsStr) +
+                "    image=%(image)s, mask=%(mask)s,\n" % inits +
+                "    ori=%(ori)s, pos=%(pos)s, size=%(size)s,\n" % inits +
+                "    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" % inits +
+                "    flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s,\n" % inits +
+                # no newline - start optional parameters
+                "    texRes=%(texture resolution)s" % inits)
+        buff.writeIndentedLines(code)
 
         if self.params['interpolate'].val == 'linear':
-            buff.write(", interpolate=True")
+            code = ", interpolate=True"
         else:
-            buff.write(", interpolate=False")
+            code = ", interpolate=False"
+
+        buff.write(code)
 
         depth = -self.getPosInRoutine()
         buff.write(", depth=%.1f)\n" % depth)  # finish with newline

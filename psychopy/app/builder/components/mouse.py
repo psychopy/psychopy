@@ -37,14 +37,17 @@ class MouseComponent(BaseComponent):
         self.categories = ['Inputs']
 
         # params
-        msg = "How often should the mouse state (x,y,buttons) be stored? On every video frame, every click or just at the end of the Routine?"
+        msg = ("How often should the mouse state (x,y,buttons) be stored? "
+               "On every video frame, every click or just at the end of the "
+               "Routine?")
         self.params['saveMouseState'] = Param(
             save, valType='str',
             allowedVals=['final', 'on click', 'every frame', 'never'],
             hint=_translate(msg),
             label=_localized['saveMouseState'])
 
-        msg = "Should a button press force the end of the routine (e.g end the trial)?"
+        msg = ("Should a button press force the end of the routine (e.g end "
+               "the trial)?")
         self.params['forceEndRoutineOnPress'] = Param(
             forceEndRoutineOnPress, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
@@ -60,23 +63,27 @@ class MouseComponent(BaseComponent):
             label=_localized['timeRelativeTo'])
 
     def writeInitCode(self, buff):
-        buff.writeIndented("%(name)s = event.Mouse(win=win)\n" % self.params)
-        buff.writeIndented("x, y = [None, None]\n" % self.params)
+        code = ("%(name)s = event.Mouse(win=win)\n"
+                "x, y = [None, None]\n")
+        buff.writeIndentedLines(code % self.params)
 
     def writeRoutineStartCode(self, buff):
         """Write the code that will be called at the start of the routine
         """
         # create some lists to store recorded values positions and events if we
         # need more than one
-        buff.writeIndented(
-            "# setup some python lists for storing info about the %(name)s\n" %self.params)
+        code = ("# setup some python lists for storing info about the "
+                "%(name)s\n")
+
         if self.params['saveMouseState'].val in ['every frame', 'on click']:
-            buff.writeIndented("%(name)s.x = []\n" % self.params)
-            buff.writeIndented("%(name)s.y = []\n" % self.params)
-            buff.writeIndented("%(name)s.leftButton = []\n" % self.params)
-            buff.writeIndented("%(name)s.midButton = []\n" % self.params)
-            buff.writeIndented("%(name)s.rightButton = []\n" % self.params)
-            buff.writeIndented("%(name)s.time = []\n" % self.params)
+            code += ("%(name)s.x = []\n"
+                     "%(name)s.y = []\n"
+                     "%(name)s.leftButton = []\n"
+                     "%(name)s.midButton = []\n"
+                     "%(name)s.rightButton = []\n"
+                     "%(name)s.time = []\n")
+
+        buff.writeIndentedLines(code % self.params)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
@@ -93,12 +100,16 @@ class MouseComponent(BaseComponent):
             return
 
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
+
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCode(buff)
-        buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
-        buff.writeIndented("event.mouseButtons = [0, 0, 0]  # reset mouse buttons to be 'up'\n")
+        code = ("%(name)s.status = STARTED\n"
+                "event.mouseButtons = [0, 0, 0]  # reset mouse buttons to be 'up'\n")
+        buff.writeIndentedLines(code % self.params)
+
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
+
         # test for stop (only if there was some setting for duration or stop)
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
@@ -108,7 +119,8 @@ class MouseComponent(BaseComponent):
             buff.setIndentLevel(-1, relative=True)
 
         # if STARTED and not STOPPED!
-        buff.writeIndented("if %(name)s.status == STARTED:  # only update if started and not stopped!\n" % self.params)
+        code = "if %(name)s.status == STARTED:  # only update if started and not stopped!\n" % self.params
+        buff.writeIndented(code)
         buff.setIndentLevel(1, relative=True)  # to get out of the if statement
         dedentAtEnd = 1  # keep track of how far to dedent later
 
@@ -120,28 +132,35 @@ class MouseComponent(BaseComponent):
 
         # write param checking code
         if self.params['saveMouseState'].val == 'on click' or forceEnd:
-            buff.writeIndented("buttons = %(name)s.getPressed()\n" % self.params)
-            buff.writeIndented("if sum(buttons) > 0:  # ie if any button is pressed\n")
+            code = ("buttons = %(name)s.getPressed()\n"
+                    "if sum(buttons) > 0:  # ie if any button is pressed\n")
+            buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
             dedentAtEnd += 1
         elif self.params['saveMouseState'].val == 'every frame':
-            buff.writeIndented("buttons = %(name)s.getPressed()\n" % self.params)
+            code = "buttons = %(name)s.getPressed()\n" % self.params
+            buff.writeIndented(code)
 
         # only do this if buttons were pressed
         if self.params['saveMouseState'].val in ['on click', 'every frame']:
-            buff.writeIndented("x, y = %(name)s.getPos()\n" % self.params)
-            buff.writeIndented("%(name)s.x.append(x)\n" % self.params)
-            buff.writeIndented("%(name)s.y.append(y)\n" % self.params)
-            buff.writeIndented("%(name)s.leftButton.append(buttons[0])\n" % self.params)
-            buff.writeIndented("%(name)s.midButton.append(buttons[1])\n" % self.params)
-            buff.writeIndented("%(name)s.rightButton.append(buttons[2])\n" % self.params)
-            buff.writeIndented("%s.time.append(%s.getTime())\n" %
-                               (self.params['name'], clockStr))
+            code = ("x, y = %(name)s.getPos()\n"
+                    "%(name)s.x.append(x)\n"
+                    "%(name)s.y.append(y)\n"
+                    "%(name)s.leftButton.append(buttons[0])\n"
+                    "%(name)s.midButton.append(buttons[1])\n"
+                    "%(name)s.rightButton.append(buttons[2])\n" %
+                    self.params)
+
+            code += ("%s.time.append(%s.getTime())\n" %
+                     (self.params['name'], clockStr))
+
+            buff.writeIndentedLines(code)
 
         # does the response end the trial?
         if forceEnd == True:
-            buff.writeIndented("# abort routine on response\n" % self.params)
-            buff.writeIndented("continueRoutine = False\n")
+            code = ("# abort routine on response\n"
+                    "continueRoutine = False\n")
+            buff.writeIndentedLines(code % self.params)
 
         # dedent
         # 'if' statement of the time test and button check
@@ -162,40 +181,46 @@ class MouseComponent(BaseComponent):
             currLoop = self.exp._expHandler
 
         if currLoop.type == 'StairHandler':
-            buff.writeIndented("# NB PsychoPy doesn't handle a 'correct answer' for mouse events so doesn't know how to handle mouse with StairHandler\n")
+            code = ("# NB PsychoPy doesn't handle a 'correct answer' for "
+                    "mouse events so doesn't know how to handle mouse with "
+                    "StairHandler\n")
         else:
-            buff.writeIndented("# store data for %s (%s)\n" %
-                               (currLoop.params['name'], currLoop.type))
+            code = ("# store data for %s (%s)\n" %
+                    (currLoop.params['name'], currLoop.type))
+
+        buff.writeIndented(code)
+
         if store == 'final':
             # buff.writeIndented("# get info about the %(name)s\n"
             # %(self.params))
-            buff.writeIndented("x, y = %(name)s.getPos()\n" % self.params)
-            buff.writeIndented("buttons = %(name)s.getPressed()\n" % self.params)
+            code = ("x, y = %(name)s.getPos()\n"
+                    "buttons = %(name)s.getPressed()\n" %
+                    self.params)
+
             if currLoop.type != 'StairHandler':
-                buff.writeIndented("%s.addData('%s.x', x)\n" %
-                                   (currLoop.params['name'], name))
-                buff.writeIndented("%s.addData('%s.y', y)\n" %
-                                   (currLoop.params['name'], name))
-                buff.writeIndented("%s.addData('%s.leftButton', buttons[0])\n" %
-                                   (currLoop.params['name'], name))
-                buff.writeIndented("%s.addData('%s.midButton', buttons[1])\n" %
-                                   (currLoop.params['name'], name))
-                buff.writeIndented("%s.addData('%s.rightButton', buttons[2])\n" %
-                                   (currLoop.params['name'], name))
+                code += ("%s.addData('%s.x', x)\n" % (currLoop.params['name'], name) +
+                         "%s.addData('%s.y', y)\n" % (currLoop.params['name'], name) +
+                         "%s.addData('%s.leftButton', buttons[0])\n" % (currLoop.params['name'], name) +
+                         "%s.addData('%s.midButton', buttons[1])\n" % (currLoop.params['name'], name) +
+                         "%s.addData('%s.rightButton', buttons[2])\n" % (currLoop.params['name'], name))
+
+            buff.writeIndented(code)
         elif store != 'never':
             # buff.writeIndented("# save %(name)s data\n" %(self.params))
             for property in ['x', 'y', 'leftButton', 'midButton',
                              'rightButton', 'time']:
                 if store == 'every frame' or not forceEnd:
-                    buff.writeIndented("%s.addData('%s.%s', %s.%s)\n" %
-                                       (currLoop.params['name'], name,
-                                        property, name, property))
+                    code = ("%s.addData('%s.%s', %s.%s)\n" %
+                            (currLoop.params['name'], name,
+                             property, name, property))
+                    buff.writeIndented(code)
                 else:
                     # we only had one click so don't return a list
-                    buff.writeIndented("if len(%s.%s): %s.addData('%s.%s', %s.%s[0])\n" %
-                                       (name, property,
-                                        currLoop.params['name'], name,
-                                        property, name, property))
+                    code = ("if len(%s.%s): %s.addData('%s.%s', %s.%s[0])\n" %
+                            (name, property,
+                             currLoop.params['name'], name,
+                             property, name, property))
+                    buff.writeIndented(code)
 
         if currLoop.params['name'].val == self.exp._expHandler.name:
             buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)

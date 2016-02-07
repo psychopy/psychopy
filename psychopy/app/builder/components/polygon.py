@@ -48,7 +48,8 @@ class PolygonComponent(BaseVisualComponent):
         self.order = ['nVertices']
 
         # params
-        msg = "How many vertices? 2=line, 3=triangle... (90 approximates a circle)"
+        msg = ("How many vertices? 2=line, 3=triangle... (90 approximates a "
+               "circle)")
         self.params['nVertices'] = Param(
             nVertices, valType='int',
             updates='constant',
@@ -64,7 +65,8 @@ class PolygonComponent(BaseVisualComponent):
             hint=_translate(msg),
             label=_localized['fillColorSpace'], categ='Advanced')
 
-        msg = "Fill color of this shape; Right-click to bring up a color-picker (rgb only)"
+        msg = ("Fill color of this shape; Right-click to bring up a "
+               "color-picker (rgb only)")
         self.params['fillColor'] = Param(
             fillColor, valType='str', allowedTypes=[],
             updates='constant',
@@ -80,7 +82,8 @@ class PolygonComponent(BaseVisualComponent):
             hint=_translate(msg),
             label=_localized['lineColorSpace'], categ='Advanced')
 
-        msg = "Line color of this shape; Right-click to bring up a color-picker (rgb only)"
+        msg = ("Line color of this shape; Right-click to bring up a "
+               "color-picker (rgb only)")
         self.params['lineColor'] = Param(
             lineColor, valType='str', allowedTypes=[],
             updates='constant',
@@ -88,7 +91,8 @@ class PolygonComponent(BaseVisualComponent):
             hint=_translate(msg),
             label=_localized['lineColor'], categ='Advanced')
 
-        msg = "Width of the shape's line (always in pixels - this does NOT use 'units')"
+        msg = ("Width of the shape's line (always in pixels - this does NOT "
+               "use 'units')")
         self.params['lineWidth'] = Param(
             lineWidth, valType='code', allowedTypes=[],
             updates='constant',
@@ -103,7 +107,10 @@ class PolygonComponent(BaseVisualComponent):
             hint=_translate(msg),
             label=_localized['interpolate'], categ='Advanced')
 
-        msg = "Size of this stimulus [w,h]. Note that for a line only the first value is used, for triangle and rect the [w,h] is as expected,\n but for higher-order polygons it represents the [w,h] of the ellipse that the polygon sits on!! "
+        msg = ("Size of this stimulus [w,h]. Note that for a line only the "
+               "first value is used, for triangle and rect the [w,h] is as "
+               "expected,\n but for higher-order polygons it represents the "
+               "[w,h] of the ellipse that the polygon sits on!! ")
         self.params['size'] = Param(
             size, valType='code', allowedTypes=[],
             updates='constant',
@@ -125,28 +132,33 @@ class PolygonComponent(BaseVisualComponent):
         inits = getInitVals(self.params)
         if inits['size'].val == '1.0':
             inits['size'].val = '[1.0, 1.0]'
+
         if self.params['nVertices'].val == '2':
-            buff.writeIndented("%s = visual.Line(win=win, name='%s',%s\n" %
-                               (inits['name'], inits['name'], unitsStr))
-            buff.writeIndented("    start=(-%(size)s[0]/2.0, 0), end=(+%(size)s[0]/2.0, 0),\n" % inits)
+            code = ("%s = visual.Line(win=win, name='%s',%s\n" %
+                    (inits['name'], inits['name'], unitsStr) +
+                    "    start=(-%(size)s[0]/2.0, 0), end=(+%(size)s[0]/2.0, 0),\n"
+                    % inits)
         elif self.params['nVertices'].val == '3':
-            buff.writeIndented("%s = visual.ShapeStim(win=win, name='%s',%s\n" %
-                               (inits['name'], inits['name'], unitsStr))
-            buff.writeIndented("    vertices = [[-%(size)s[0]/2.0,-%(size)s[1]/2.0], [+%(size)s[0]/2.0,-%(size)s[1]/2.0], [0,%(size)s[1]/2.0]],\n" % inits)
+            code = ("%s = visual.ShapeStim(win=win, name='%s',%s\n" %
+                    (inits['name'], inits['name'], unitsStr) +
+                    "    vertices=[[-%(size)s[0]/2.0,-%(size)s[1]/2.0], [+%(size)s[0]/2.0,-%(size)s[1]/2.0], [0,%(size)s[1]/2.0]],\n" %
+                    inits)
         elif self.params['nVertices'].val == '4':
-            buff.writeIndented("%s = visual.Rect(win=win, name='%s',%s\n" %
-                               (inits['name'], inits['name'], unitsStr))
-            buff.writeIndented("    width=%(size)s[0], height=%(size)s[1],\n" % inits)
+            code = ("%s = visual.Rect(win=win, name='%s',%s\n" %
+                    (inits['name'], inits['name'], unitsStr) +
+                    "    width=%(size)s[0], height=%(size)s[1],\n" % inits)
         else:
-            buff.writeIndented("%s = visual.Polygon(win=win, name='%s',%s\n" %
-                               (inits['name'], inits['name'], unitsStr))
-            buff.writeIndented("    edges = %s," % str(inits['nVertices'].val))
-            buff.writeIndented(" size=%(size)s,\n" % inits)
-            
-        buff.writeIndented("    ori=%(ori)s, pos=%(pos)s,\n" % inits)
-        buff.writeIndented("    lineWidth=%(lineWidth)s, lineColor=%(lineColor)s, lineColorSpace=%(lineColorSpace)s,\n" % inits)
-        buff.writeIndented("    fillColor=%(fillColor)s, fillColorSpace=%(fillColorSpace)s,\n" % inits)
-        buff.writeIndented("    opacity=%(opacity)s," % inits)
+            code = ("%s = visual.Polygon(win=win, name='%s',%s\n" %
+                    (inits['name'], inits['name'], unitsStr) +
+                    "    edges=%s," % str(inits['nVertices'].val) +
+                    " size=%(size)s,\n" % inits)
+
+        code += ("    ori=%(ori)s, pos=%(pos)s,\n"
+                 "    lineWidth=%(lineWidth)s, lineColor=%(lineColor)s, lineColorSpace=%(lineColorSpace)s,\n"
+                 "    fillColor=%(fillColor)s, fillColorSpace=%(fillColorSpace)s,\n"
+                 "    opacity=%(opacity)s," % inits)
+
+        buff.writeIndentedLines(code)
 
         depth = -self.getPosInRoutine()
         buff.write("depth=%.1f, \n" % depth)  # finish with newline

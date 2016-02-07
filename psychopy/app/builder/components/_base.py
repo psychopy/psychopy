@@ -73,13 +73,15 @@ class BaseComponent(object):
             hint=_translate("When does the component end? (blank is endless)"),
             label=_localized['stopVal'])
 
-        msg = "(Optional) expected start (s), purely for representing in the timeline"
+        msg = ("(Optional) expected start (s), purely for representing in the "
+               "timeline")
         self.params['startEstim'] = Param(
             startEstim, valType='code', allowedTypes=[],
             hint=_translate(msg),
             label=_localized['startEstim'])
 
-        msg = "(Optional) expected duration (s), purely for representing in the timeline"
+        msg = ("(Optional) expected duration (s), purely for representing in "
+               "the timeline")
         self.params['durationEstim'] = Param(
             durationEstim, valType='code', allowedTypes=[],
             hint=_translate(msg),
@@ -129,57 +131,72 @@ class BaseComponent(object):
         writeEndTestCode
         """
         if self.params['duration'].val == '':
-            buff.writeIndented("if (%(startTime)s <= t):\n" % self.params)
+            code = "if (%(startTime)s <= t):\n" % self.params
         else:
-            buff.writeIndented("if (%(startTime)s <= t < (%(startTime)s + %(duration)s)):\n" % self.params)
+            code = ("if (%(startTime)s <= t < (%(startTime)s + %(duration)s)):\n" %
+                    self.params)
+        buff.writeIndentedLines(code)
 
     def writeStartTestCode(self, buff):
         """Test whether we need to start
         """
         if self.params['startType'].val == 'time (s)':
             # if startVal is an empty string then set to be 0.0
-            if isinstance(self.params['startVal'].val, basestring) and not self.params['startVal'].val.strip():
+            if (isinstance(self.params['startVal'].val, basestring) and not
+                    self.params['startVal'].val.strip()):
                 self.params['startVal'].val = '0.0'
-            buff.writeIndented("if t >= %(startVal)s and %(name)s.status == NOT_STARTED:\n" % self.params)
+
+            code = ("if t >= %(startVal)s and %(name)s.status == NOT_STARTED:\n" %
+                    self.params)
         elif self.params['startType'].val == 'frame N':
-            buff.writeIndented("if frameN >= %(startVal)s and %(name)s.status == NOT_STARTED:\n" % self.params)
+            code = ("if frameN >= %(startVal)s and %(name)s.status == NOT_STARTED:\n" %
+                    self.params)
         elif self.params['startType'].val == 'condition':
-            buff.writeIndented("if (%(startVal)s) and %(name)s.status == NOT_STARTED:\n" % self.params)
+            code = ("if (%(startVal)s) and %(name)s.status == NOT_STARTED:\n" %
+                    self.params)
         else:
             raise "Not a known startType (%(startType)s) for %(name)s" % self.params
 
+        buff.writeIndented(code)
+
         buff.setIndentLevel(+1, relative=True)
-        buff.writeIndented("# keep track of start time/frame for later\n" % self.params)
-        buff.writeIndented("%(name)s.tStart = t  # underestimates by a little under one frame\n" % self.params)
-        buff.writeIndented("%(name)s.frameNStart = frameN  # exact frame index\n" % self.params)
+        code = ("# keep track of start time/frame for later\n"
+                "%(name)s.tStart = t  # underestimates by a little under one frame\n"
+                "%(name)s.frameNStart = frameN  # exact frame index\n")
+        buff.writeIndentedLines(code % self.params)
 
     def writeStopTestCode(self, buff):
         """Test whether we need to stop
         """
         if self.params['stopType'].val == 'time (s)':
-            frameVal = "frameRemains = %(stopVal)s - win.monitorFramePeriod * 0.75  # most of one frame period left\n" % self.params
-            buff.writeIndented(frameVal)
-            buff.writeIndented("if %(name)s.status == STARTED and t >= frameRemains:\n" % self.params)
+            code = ("frameRemains = %(stopVal)s - win.monitorFramePeriod * 0.75  # most of one frame period left\n"
+                    "if %(name)s.status == STARTED and t >= frameRemains:\n" %
+                    self.params)
         #duration in time (s)
         elif self.params['stopType'].val == 'duration (s)' and self.params['startType'].val == 'time (s)':
-            frameVal = "frameRemains = %(startVal)s + %(stopVal)s - win.monitorFramePeriod * 0.75  # most of one frame period left\n" % self.params
-            buff.writeIndented(frameVal)
-            buff.writeIndented("if %(name)s.status == STARTED and t >= frameRemains:\n" % self.params)
+            code = ("frameRemains = %(startVal)s + %(stopVal)s - win.monitorFramePeriod * 0.75  # most of one frame period left\n"
+                    "if %(name)s.status == STARTED and t >= frameRemains:\n" %
+                    self.params)
         # start at frame and end with duratio (need to use approximate)
         elif self.params['stopType'].val == 'duration (s)':
-            buff.writeIndented("if %(name)s.status == STARTED and t >= (%(name)s.tStart + %(stopVal)s):\n" % self.params)
+            code = ("if %(name)s.status == STARTED and t >= (%(name)s.tStart + %(stopVal)s):\n" %
+                    self.params)
         #duration in frames
         elif self.params['stopType'].val == 'duration (frames)':
-            buff.writeIndented("if %(name)s.status == STARTED and frameN >= (%(name)s.frameNStart + %(stopVal)s):\n" % self.params)
+            code = ("if %(name)s.status == STARTED and frameN >= (%(name)s.frameNStart + %(stopVal)s):\n" %
+                    self.params)
         # stop frame number
         elif self.params['stopType'].val == 'frame N':
-            buff.writeIndented("if %(name)s.status == STARTED and frameN >= %(stopVal)s:\n" % self.params)
+            code = ("if %(name)s.status == STARTED and frameN >= %(stopVal)s:\n" %
+                    self.params)
         # end according to a condition
         elif self.params['stopType'].val == 'condition':
-            buff.writeIndented("if %(name)s.status == STARTED and bool(%(stopVal)s):\n" % self.params)
+            code = ("if %(name)s.status == STARTED and bool(%(stopVal)s):\n" %
+                    self.params)
         else:
             raise "Didn't write any stop line for startType=%(startType)s, stopType=%(stopType)s" % self.params
 
+        buff.writeIndentedLines(code)
         buff.setIndentLevel(+1, relative=True)
 
     def writeParamUpdates(self, buff, updateType, paramNames=None):
@@ -220,6 +237,7 @@ class BaseComponent(object):
             paramCaps = 'FieldPos'
         else:
             paramCaps = paramName[0].capitalize() + paramName[1:]
+
         # then write the line
         if updateType == 'set every frame':
             loggingStr = ', log=False'
@@ -284,6 +302,7 @@ class BaseComponent(object):
             startTime = float(self.params['startVal'].val)
         else:
             startTime = None
+
         if stopType == 'time (s)' and numericStop and startTime is not None:
             duration = float(self.params['stopVal'].val) - startTime
         elif stopType == 'duration (s)' and numericStop:
@@ -317,10 +336,11 @@ class BaseComponent(object):
 class BaseVisualComponent(BaseComponent):
     """Base class for most visual stimuli
     """
-    categories = [
-        'Stimuli']  # an attribute of the class, determines the section in the components panel
+    categories = ['Stimuli'  # an attribute of the class, determines the section in the components panel
+                  ]
 
-    def __init__(self, exp, parentName, name='', units='from exp settings', color='$[1,1,1]',
+    def __init__(self, exp, parentName, name='',
+                 units='from exp settings', color='$[1,1,1]',
                  pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity=1,
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
@@ -336,13 +356,13 @@ class BaseVisualComponent(BaseComponent):
         msg = "Units of dimensions for this stimulus"
         self.params['units'] = Param(
             units, valType='str',
-            allowedVals=[
-                'from exp settings', 'deg', 'cm', 'pix', 'norm', 'height',
-                'degFlatPos', 'degFlat'],
+            allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm',
+                         'height', 'degFlatPos', 'degFlat'],
             hint=_translate(msg),
             label=_localized['units'])
 
-        msg = "Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a color-picker (rgb only)"
+        msg = ("Color of this stimulus (e.g. $[1,1,0], red ); Right-click to "
+               "bring up a color-picker (rgb only)")
         self.params['color'] = Param(
             color, valType='str', allowedTypes=[],
             updates='constant',
@@ -350,7 +370,8 @@ class BaseVisualComponent(BaseComponent):
             hint=_translate(msg),
             label=_localized['color'])
 
-        msg = "Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)"
+        msg = ("Opacity of the stimulus (1=opaque, 0=fully transparent, "
+               "0.5=translucent)")
         self.params['opacity'] = Param(
             opacity, valType='code', allowedTypes=[],
             updates='constant',
@@ -360,7 +381,8 @@ class BaseVisualComponent(BaseComponent):
 
         msg = "Choice of color space for the color (rgb, dkl, lms, hsv)"
         self.params['colorSpace'] = Param(
-            colorSpace, valType='str', allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
+            colorSpace, valType='str',
+            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
             hint=_translate(msg),
             label=_localized['colorSpace'])
@@ -373,7 +395,8 @@ class BaseVisualComponent(BaseComponent):
             hint=_translate(msg),
             label=_localized['pos'])
 
-        msg = "Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
+        msg = ("Size of this stimulus (either a single value or x,y pair, "
+               "e.g. 2.5, [1,2] ")
         self.params['size'] = Param(
             size, valType='code', allowedTypes=[],
             updates='constant',
@@ -410,7 +433,9 @@ class BaseVisualComponent(BaseComponent):
         # set parameters that need updating every frame
         # do any params need updating? (this method inherited from _base)
         if self.checkNeedToUpdate('set every frame'):
-            buff.writeIndented("if %(name)s.status == STARTED:  # only update if being drawn\n" % self.params)
+            code = ("if %(name)s.status == STARTED:  # only update if being drawn\n" %
+                    self.params)
+            buff.writeIndented(code)
             buff.setIndentLevel(+1, relative=True)  # to enter the if block
             self.writeParamUpdates(buff, 'set every frame')
             buff.setIndentLevel(-1, relative=True)  # to exit the if block
