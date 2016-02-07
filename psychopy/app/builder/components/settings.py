@@ -57,8 +57,8 @@ class SettingsComponent(object):
             filename = ("u'xxxx/%s_%s_%s' % (expInfo['participant'], expName,"
                         " expInfo['date'])")
         if filename.startswith("u'xxxx"):
-            filename = filename.replace("xxxx", self.exp.prefsBuilder[
-                                        'savedDataFolder'].strip())
+            folder = self.exp.prefsBuilder['savedDataFolder'].strip()
+            filename = filename.replace("xxxx", folder)
         else:
             print(filename[0:6])
         # params

@@ -131,8 +131,8 @@ class Experiment(object):
         self.psychopyVersion = __version__
         self.psychopyLibs = ['visual', 'core',
                              'data', 'event', 'logging', 'sound']
-        self.settings = getComponents(fetchIcons=False)[
-            'SettingsComponent'](parentName='', exp=self)
+        _settingsComp = getComponents(fetchIcons=False)['SettingsComponent']
+        self.settings = _settingsComp(parentName='', exp=self)
         # this will be the xml.dom.minidom.doc object for saving
         self._doc = xml.ElementTree()
         self.namespace = NameSpace(self)  # manage variable names
@@ -149,8 +149,8 @@ class Experiment(object):
         self._expHandler.name = self._expHandler.params['name'].val  # thisExp
 
     def requirePsychopyLibs(self, libs=()):
-        """Add a list of top-level psychopy libs that the experiment will need.
-        e.g. [visual, event]
+        """Add a list of top-level psychopy libs that the experiment
+        will need. e.g. [visual, event]
         """
         if type(libs) != list:
             libs = list(libs)
@@ -179,8 +179,8 @@ class Experiment(object):
 
         # get date info, in format preferred by current locale as set by app:
         if hasattr(locale, 'nl_langinfo'):
-            localDateTime = data.getDateStr(
-                format=locale.nl_langinfo(locale.D_T_FMT))
+            fmt = locale.nl_langinfo(locale.D_T_FMT)
+            localDateTime = data.getDateStr(format=fmt)
         else:
             localDateTime = data.getDateStr(format="%B %d, %Y, at %H:%M")
 

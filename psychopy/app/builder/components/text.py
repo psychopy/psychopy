@@ -19,7 +19,8 @@ _localized = {'text': _translate('Text'),
 
 
 class TextComponent(BaseVisualComponent):
-    """An event class for presenting text-based stimuli"""
+    """An event class for presenting text-based stimuli
+    """
     categories = ['Stimuli']
 
     def __init__(self, exp, parentName, name='text',
@@ -72,14 +73,15 @@ class TextComponent(BaseVisualComponent):
             updates='constant', allowedUpdates=['constant'],
             hint=_translate("How wide should the text get when it wraps? (in"
                             " the specified units)"),
-            label=_localized['wrapWidth'], categ="Advanced")
+            label=_localized['wrapWidth'])
         self.params['flip'] = Param(
             flip, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
-            label=_localized['flip'], categ="Advanced")
-        for prm in ('ori', 'opacity', 'colorSpace', 'units'):
+            label=_localized['flip'])
+        for prm in ('ori', 'opacity', 'colorSpace', 'units', 'wrapWidth',
+                    'flip'):
             self.params[prm].categ = 'Advanced'
 
     def writeInitCode(self, buff):
@@ -93,25 +95,26 @@ class TextComponent(BaseVisualComponent):
         inits = getInitVals(self.params)
         if self.params['wrapWidth'].val in ['', 'None', 'none']:
             inits['wrapWidth'] = 'None'
-        _name = ("%(name)s = visual.TextStim(win=win, "
-                 "ori=%(ori)s, name='%(name)s',\n")
-        buff.writeIndented(_name % inits)
-        buff.writeIndented("    text=%(text)s,\n" % inits)
-        buff.writeIndented("    font=%(font)s,\n" % inits)
-        pos = ("pos=%(pos)s, height=%(letterHeight)s, "
-               "wrapWidth=%(wrapWidth)s,\n")
-        buff.writeIndented("    " + unitsStr + pos % inits)
-        _col = ("    color=%(color)s, colorSpace=%(colorSpace)s, "
-                "opacity=%(opacity)s,\n")
-        buff.writeIndented(_col % inits)
+        code = ("%(name)s = visual.TextStim(win=win, "
+                "name='%(name)s',\n"
+                "    text=%(text)s,\n"
+                "    font=%(font)s,\n"
+                "    " + unitsStr +
+                "pos=%(pos)s, height=%(letterHeight)s, "
+                "wrapWidth=%(wrapWidth)s, ori=%(ori)s, \n"
+                "    color=%(color)s, colorSpace=%(colorSpace)s, "
+                "opacity=%(opacity)s,")
+        buff.writeIndentedLines(code % inits)
         flip = self.params['flip'].val.strip()
         if flip == 'horiz':
-            buff.writeIndented("    flipHoriz=%s," % bool(flip == 'horiz'))
+            flipStr = 'flipHoriz=True, '
         elif flip == 'vert':
-            buff.writeIndented("    flipVert=%s," % bool(flip == 'vert'))
+            flipStr = 'flipVert=True, '
         elif flip:
             msg = ("flip value should be 'horiz' or 'vert' (no quotes)"
                    " in component '%s'")
             raise ValueError(msg % self.params['name'].val)
+        else:
+            flipStr = ''
         depth = -self.getPosInRoutine()
-        buff.writeIndented("    depth=%.1f)\n" % (depth))
+        buff.writeIndented('    ' + flipStr + 'depth=%.1f)\n' % depth)
