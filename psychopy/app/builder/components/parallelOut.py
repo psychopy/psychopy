@@ -12,9 +12,10 @@ iconFile = path.join(thisFolder, 'parallelOut.png')
 tooltip = _translate('Parallel out: send signals from the parallel port')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'address': _translate('Port address'), 'startData': _translate("Start data"),
-              'stopData': _translate("Stop data"), 'syncScreen': _translate('Sync to screen')
-              }
+_localized = {'address': _translate('Port address'),
+              'startData': _translate("Start data"),
+              'stopData': _translate("Stop data"),
+              'syncScreen': _translate('Sync to screen')}
 
 
 class ParallelOutComponent(BaseComponent):
@@ -27,14 +28,17 @@ class ParallelOutComponent(BaseComponent):
                  startEstim='', durationEstim='',
                  address=None, startData="1", stopData="0",
                  syncScreen=True):
-        super(ParallelOutComponent, self).__init__(exp, parentName, name,
-                                                   startType=startType, startVal=startVal,
-                                                   stopType=stopType, stopVal=stopVal,
-                                                   startEstim=startEstim, durationEstim=durationEstim)
+        super(ParallelOutComponent, self).__init__(
+            exp, parentName, name,
+            startType=startType, startVal=startVal,
+            stopType=stopType, stopVal=stopVal,
+            startEstim=startEstim, durationEstim=durationEstim)
+
         self.type = 'ParallelOut'
         self.url = "http://www.psychopy.org/builder/components/parallelout.html"
         self.categories = ['I/O']
         self.exp.requirePsychopyLibs(['parallel'])
+
         # params
         self.order = ['address', 'startData', 'stopData']
 
@@ -42,32 +46,43 @@ class ParallelOutComponent(BaseComponent):
         addressOptions = prefs.general['parallelPorts'] + [u'LabJack U3']
         if not address:
             address = addressOptions[0]
-        self.params['address'] = Param(address, valType='str', allowedVals=addressOptions,
-                                       hint=_translate(
-                                           "Parallel port to be used (you can change these options in preferences>general)"),
-                                       label=_localized['address'])
-        self.params['startData'] = Param(startData, valType='code', allowedTypes=[],
-                                         hint=_translate(
-                                             "Data to be sent at 'start'"),
-                                         label=_localized['startData'])
-        self.params['stopData'] = Param(stopData, valType='code', allowedTypes=[],
-                                        hint=_translate(
-                                            "Data to be sent at 'end'"),
-                                        label=_localized['stopData'])
-        self.params['syncScreen'] = Param(syncScreen, valType='bool',
-                                          allowedVals=[True, False],
-                                          updates='constant', allowedUpdates=[],
-                                          hint=_translate(
-                                              "If the parallel port data relates to visual stimuli then sync its pulse to the screen refresh"),
-                                          label=_localized['syncScreen'])
+
+        msg = ("Parallel port to be used (you can change these options in "
+               "preferences>general)")
+        self.params['address'] = Param(
+            address, valType='str', allowedVals=addressOptions,
+            hint=_translate(msg),
+            label=_localized['address'])
+
+        self.params['startData'] = Param(
+            startData, valType='code', allowedTypes=[],
+            hint=_translate("Data to be sent at 'start'"),
+            label=_localized['startData'])
+
+        self.params['stopData'] = Param(
+            stopData, valType='code', allowedTypes=[],
+            hint=_translate("Data to be sent at 'end'"),
+            label=_localized['stopData'])
+
+        msg = ("If the parallel port data relates to visual stimuli then "
+               "sync its pulse to the screen refresh")
+        self.params['syncScreen'] = Param(
+            syncScreen, valType='bool',
+            allowedVals=[True, False],
+            updates='constant', allowedUpdates=[],
+            hint=_translate(msg),
+            label=_localized['syncScreen'])
 
     def writeInitCode(self, buff):
         if self.params['address'].val == 'LabJack U3':
-            buff.writeIndented("from psychopy.hardware import labjacks\n")
-            buff.writeIndented("%(name)s = labjacks.U3()\n" % (self.params))
+            code = ("from psychopy.hardware import labjacks\n"
+                    "%(name)s = labjacks.U3()\n"
+                    % self.params)
+            buff.writeIndentedLines(code)
         else:
-            buff.writeIndented(
-                "%(name)s = parallel.ParallelPort(address=%(address)s)\n" % (self.params))
+            code = ("%(name)s = parallel.ParallelPort(address=%(address)s)\n" %
+                    self.params)
+            buff.writeIndented(code)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
@@ -77,13 +92,15 @@ class ParallelOutComponent(BaseComponent):
         buff.writeIndented("# *%s* updates\n" % (self.params['name']))
         # writes an if statement to determine whether to draw etc
         self.writeStartTestCode(buff)
-        buff.writeIndented("%(name)s.status = STARTED\n" % (self.params))
+        buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
+
         if not self.params['syncScreen'].val:
-            buff.writeIndented(
-                "%(name)s.setData(int(%(startData)s))\n" % (self.params))
+            code = "%(name)s.setData(int(%(startData)s))\n" % self.params
         else:
-            buff.writeIndented(
-                "win.callOnFlip(%(name)s.setData, int(%(startData)s))\n" % (self.params))
+            code = ("win.callOnFlip(%(name)s.setData, int(%(startData)s))\n" %
+                    self.params)
+
+        buff.writeIndented(code)
 
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
@@ -91,13 +108,16 @@ class ParallelOutComponent(BaseComponent):
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.status = STOPPED\n" % (self.params))
+            buff.writeIndented("%(name)s.status = STOPPED\n" % self.params)
+
             if not self.params['syncScreen'].val:
-                buff.writeIndented(
-                    "%(name)s.setData(int(%(stopData)s))\n" % (self.params))
+                code = "%(name)s.setData(int(%(stopData)s))\n" % self.params
             else:
-                buff.writeIndented(
-                    "win.callOnFlip(%(name)s.setData, int(%(stopData)s))\n" % (self.params))
+                code = ("win.callOnFlip(%(name)s.setData, int(%(stopData)s))\n" %
+                        self.params)
+
+            buff.writeIndented(code)
+
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
 
@@ -108,10 +128,11 @@ class ParallelOutComponent(BaseComponent):
     def writeRoutineEndCode(self, buff):
         # make sure that we do switch to stopData if the routine has been
         # aborted before our 'end'
-        buff.writeIndented("if %(name)s.status == STARTED:\n" % (self.params))
+        buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
         if not self.params['syncScreen'].val:
-            buff.writeIndented(
-                "    %(name)s.setData(int(%(stopData)s))\n" % (self.params))
+            code = "    %(name)s.setData(int(%(stopData)s))\n" % self.params
         else:
-            buff.writeIndented(
-                "    win.callOnFlip(%(name)s.setData, int(%(stopData)s))\n" % (self.params))
+            code = ("    win.callOnFlip(%(name)s.setData, int(%(stopData)s))\n" %
+                    self.params)
+
+        buff.writeIndented(code)

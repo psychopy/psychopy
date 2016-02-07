@@ -15,10 +15,8 @@ from PIL import Image
 from os.path import join, dirname, abspath
 from importlib import import_module  # helps python 2.7 -> 3.x migration
 
-excludeComponents = [
-    'BaseComponent', 'BaseVisualComponent',  # these are templates, not for use
-    'EyetrackerComponent',  # this one isn't ready yet
-]
+excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # these are templates, not for use
+                     'EyetrackerComponent']  # this one isn't ready yet
 
 
 def pilToBitmap(pil, scaleFactor=1.0):
@@ -219,7 +217,8 @@ def getInitVals(params):
                       'color', 'lineColor', 'fillColor',
                       'phase', 'opacity',
                       'volume',  # sounds
-                      'coherence', 'nDots', 'fieldSize', 'dotSize', 'dotLife', 'dir', 'speed',  # dots
+                      'coherence', 'nDots', 'fieldSize', 'dotSize', 'dotLife',
+                      'dir', 'speed',  # dots
                       ]:
             inits[name].val = "1.0"
             inits[name].valType = 'code'
@@ -248,7 +247,9 @@ def getInitVals(params):
             inits[name].val = "A"
             inits[name].valType = 'str'
         else:
-            print("I don't know the appropriate default value for a '%s' parameter. Please email the mailing list about this error" % name)
+            print("I don't know the appropriate default value for a '%s' "
+                  "parameter. Please email the mailing list about this error" %
+                  name)
     return inits
 
 tooltips = {}

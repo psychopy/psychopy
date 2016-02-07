@@ -22,40 +22,55 @@ class CodeComponent(BaseComponent):
     """An event class for inserting arbitrary code into Builder experiments"""
 
     def __init__(self, exp, parentName, name='code',
-                 beginExp="", beginRoutine="", eachFrame="", endRoutine="", endExperiment=""):
+                 beginExp="", beginRoutine="", eachFrame="", endRoutine="",
+                 endExperiment=""):
         super(CodeComponent, self).__init__(exp, parentName, name)
+
         self.type = 'Code'
         self.url = "http://www.psychopy.org/builder/components/code.html"
         # params
-        self.order = ['name', 'Begin Experiment', 'Begin Routine', 'Each Frame', 'End Routine',
-                      'End Experiment']  # want a copy, else codeParamNames list gets mutated
-        self.params['Begin Experiment'] = Param(beginExp, valType='extendedCode', allowedTypes=[],
-                                                updates='constant', allowedUpdates=[],
-                                                hint=_translate(
-                                                    "Code at the start of the experiment (initialization); right-click checks syntax"),
-                                                label=_localized['Begin Experiment'])
-        self.params['Begin Routine'] = Param(beginRoutine, valType='extendedCode', allowedTypes=[],
-                                             updates='constant', allowedUpdates=[],
-                                             hint=_translate(
-                                                 "Code to be run at the start of each repeat of the Routine (e.g. each trial); right-click checks syntax"),
-                                             label=_localized['Begin Routine'])
-        self.params['Each Frame'] = Param(eachFrame, valType='extendedCode', allowedTypes=[],
-                                          updates='constant', allowedUpdates=[],
-                                          hint=_translate(
-                                              "Code to be run on every video frame during for the duration of this Routine; right-click checks syntax"),
-                                          label=_localized['Each Frame'])
-        self.params['End Routine'] = Param(endRoutine, valType='extendedCode', allowedTypes=[],
-                                           updates='constant', allowedUpdates=[],
-                                           hint=_translate(
-                                               "Code at the end of this repeat of the Routine (e.g. getting/storing responses); right-click checks syntax"),
-                                           label=_localized['End Routine'])
-        self.params['End Experiment'] = Param(endRoutine, valType='extendedCode', allowedTypes=[],
-                                              updates='constant', allowedUpdates=[],
-                                              hint=_translate(
-                                                  "Code at the end of the entire experiment (e.g. saving files, resetting computer); right-click checks syntax"),
-                                              label=_localized['End Experiment'])
+        # want a copy, else codeParamNames list gets mutated
+        self.order = ['name', 'Begin Experiment', 'Begin Routine',
+                      'Each Frame', 'End Routine', 'End Experiment']
+
+        msg = "Code at the start of the experiment (initialization); right-click checks syntax"
+        self.params['Begin Experiment'] = Param(
+            beginExp, valType='extendedCode', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint=_translate(msg),
+            label=_localized['Begin Experiment'])
+
+        msg = "Code to be run at the start of each repeat of the Routine (e.g. each trial); right-click checks syntax"
+        self.params['Begin Routine'] = Param(
+            beginRoutine, valType='extendedCode', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint=_translate(msg),
+            label=_localized['Begin Routine'])
+
+        msg = "Code to be run on every video frame during for the duration of this Routine; right-click checks syntax"
+        self.params['Each Frame'] = Param(
+            eachFrame, valType='extendedCode', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint=_translate(msg),
+            label=_localized['Each Frame'])
+
+        msg = "Code at the end of this repeat of the Routine (e.g. getting/storing responses); right-click checks syntax"
+        self.params['End Routine'] = Param(
+            endRoutine, valType='extendedCode', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint=_translate(msg),
+            label=_localized['End Routine'])
+
+        msg = "Code at the end of the entire experiment (e.g. saving files, resetting computer); right-click checks syntax"
+        self.params['End Experiment'] = Param(
+            endRoutine, valType='extendedCode', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint=_translate(msg),
+            label=_localized['End Experiment'])
+
         # these inherited params are harmless but might as well trim:
-        for p in ['startType', 'startVal', 'startEstim', 'stopVal', 'stopType', 'durationEstim']:
+        for p in ['startType', 'startVal', 'startEstim', 'stopVal', 'stopType',
+                  'durationEstim']:
             del self.params[p]
 
     def writeInitCode(self, buff):
