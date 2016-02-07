@@ -98,7 +98,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
                 "        devices = pyxid.get_xid_devices()\n"
                 "        core.wait(0.1)\n"
                 "        %(name)s = devices[%(deviceNumber)s]\n"
-                "        break #once we found the device we can break the loop\n"
+                "        break  # once we found the device we can break the loop\n"
                 "    except Exception:\n"
                 "        pass\n"
                 "%(name)s.status = NOT_STARTED\n"

@@ -61,14 +61,11 @@ class ApertureComponent(BaseVisualComponent):
         # do writing of init
         inits = getInitVals(self.params)
 
-        msg = "%(name)s = visual.Aperture(win=win, name='%(name)s',\n"
-        buff.writeIndented(msg % inits)
-
-        msg = "    " + unitsStr + "size=%(size)s, pos=%(pos)s)\n"
-        buff.writeIndented(msg % inits)
-
-        msg = "%(name)s.disable()  # disable until its actually used\n"
-        buff.writeIndented(msg % inits)
+        code = ("%(name)s = visual.Aperture(\n"
+                "    win=win, name='%(name)s',\n"
+                "    " + unitsStr + "size=%(size)s, pos=%(pos)s)\n"
+                "%(name)s.disable()  # disable until its actually used\n")
+        buff.writeIndentedLines(code % inits)
 
     def writeFrameCode(self, buff):
         """Only activate the aperture for the required frames

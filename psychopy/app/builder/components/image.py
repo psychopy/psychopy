@@ -104,7 +104,8 @@ class ImageComponent(BaseVisualComponent):
         # replace variable params with defaults
         inits = getInitVals(self.params)
 
-        code = ("%s = visual.ImageStim(win=win, name='%s',%s\n" % (inits['name'], inits['name'], unitsStr) +
+        code = ("%s = visual.ImageStim(\n" % inits['name'] +
+                "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                 "    image=%(image)s, mask=%(mask)s,\n" % inits +
                 "    ori=%(ori)s, pos=%(pos)s, size=%(size)s,\n" % inits +
                 "    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" % inits +

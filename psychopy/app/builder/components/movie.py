@@ -98,15 +98,15 @@ class MovieComponent(BaseVisualComponent):
             params = self.params
 
         if self.params['backend'].val == 'moviepy':
-            code = ("%s = visual.MovieStim3(win=win, name='%s',%s\n" %
-                    (params['name'], params['name'], unitsStr) +
+            code = ("%s = visual.MovieStim3(\n" % params['name'] +
+                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr) +
                     "    noAudio = %(No audio)s,\n" % params)
         elif self.params['backend'].val == 'avbin':
-            code = ("%s = visual.MovieStim(win=win, name='%s',%s\n" %
-                    (params['name'], params['name'], unitsStr))
+            code = ("%s = visual.MovieStim(\n" % params['name'] +
+                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr))
         else:
-            code = ("%s = visual.MovieStim2(win=win, name='%s',%s\n" %
-                    (params['name'], params['name'], unitsStr) +
+            code = ("%s = visual.MovieStim2(\n" % params['name'] +
+                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr) +
                     "    noAudio = %(No audio)s,\n" % params)
 
         code += ("    filename=%(movie)s,\n"
