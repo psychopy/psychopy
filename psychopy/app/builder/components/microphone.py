@@ -50,12 +50,14 @@ class MicrophoneComponent(BaseComponent):
         # filename should have date_time, so filename_wav should be unique
         buff.writeIndented("wavDirName = filename + '_wav'\n")
         buff.writeIndented("if not os.path.isdir(wavDirName):\n"
-                           "    os.makedirs(wavDirName)  # to hold .wav files\n")
+                           "    os.makedirs(wavDirName)  # to hold .wav "
+                           "files\n")
 
     def writeRoutineStartCode(self, buff):
         inits = getInitVals(self.params)
-        buff.writeIndented("%s = microphone.AdvAudioCapture(name='%s', saveDir=wavDirName, stereo=%s)\n" %
-                           (inits['name'], inits['name'], inits['stereo']))
+        code = ("%(name)s = microphone.AdvAudioCapture(name='%(name)s', "
+                "saveDir=wavDirName, stereo=%(stereo)s)\n")
+        buff.writeIndented(code % inits)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame"""
@@ -67,12 +69,14 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
         self.writeStartTestCode(buff)  # writes an if statement
         buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
-        buff.writeIndented("%s.record(sec=%s, block=False)  # start the recording thread\n" %
-                           (self.params['name'], duration))
+        code = "%s.record(sec=%s, block=False)  # start the recording thread\n"
+        buff.writeIndented(code % (self.params['name'], duration))
         buff.setIndentLevel(-1, relative=True)  # ends the if statement
         buff.writeIndented("\n")
         # these lines handle both normal end of rec thread, and user .stop():
-        buff.writeIndented("if %(name)s.status == STARTED and not %(name)s.recorder.running:\n" % self.params)
+        code = ("if %(name)s.status == STARTED and not "
+                "%(name)s.recorder.running:\n")
+        buff.writeIndented(code % self.params)
         buff.writeIndented("    %s.status = FINISHED\n" % self.params['name'])
 
     def writeRoutineEndCode(self, buff):
