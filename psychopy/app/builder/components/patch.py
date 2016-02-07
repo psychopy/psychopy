@@ -104,8 +104,8 @@ class PatchComponent(BaseVisualComponent):
         # replaces variable params with defaults
         inits = getInitVals(self.params)
 
-        code = ("%s = visual.PatchStim(win=win, name='%s',%s\n" %
-                (inits['name'], inits['name'], unitsStr))
+        code = ("%s = visual.PatchStim(\n" % inits['name'] +
+                "    win=win, name='%s',%s\n" % (inits['name'], unitsStr))
 
         code += ("    tex=%(image)s, mask=%(mask)s,\n"
                  "    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n"

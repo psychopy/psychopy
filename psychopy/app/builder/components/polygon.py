@@ -134,36 +134,34 @@ class PolygonComponent(BaseVisualComponent):
             inits['size'].val = '[1.0, 1.0]'
 
         if self.params['nVertices'].val == '2':
-            code = ("%s = visual.Line(win=win, name='%s',%s\n" %
-                    (inits['name'], inits['name'], unitsStr) +
-                    "    start=(-%(size)s[0]/2.0, 0), end=(+%(size)s[0]/2.0, 0),\n"
-                    % inits)
+            code = ("%s = visual.Line(\n" % inits['name'] +
+                    "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
+                    "    start=(-%(size)s[0]/2.0, 0), end=(+%(size)s[0]/2.0, 0),\n" % inits)
         elif self.params['nVertices'].val == '3':
-            code = ("%s = visual.ShapeStim(win=win, name='%s',%s\n" %
-                    (inits['name'], inits['name'], unitsStr) +
-                    "    vertices=[[-%(size)s[0]/2.0,-%(size)s[1]/2.0], [+%(size)s[0]/2.0,-%(size)s[1]/2.0], [0,%(size)s[1]/2.0]],\n" %
-                    inits)
+            code = ("%s = visual.ShapeStim(\n" % inits['name'] +
+                    "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
+                    "    vertices=[[-%(size)s[0]/2.0,-%(size)s[1]/2.0], [+%(size)s[0]/2.0,-%(size)s[1]/2.0], [0,%(size)s[1]/2.0]],\n" % inits)
         elif self.params['nVertices'].val == '4':
-            code = ("%s = visual.Rect(win=win, name='%s',%s\n" %
-                    (inits['name'], inits['name'], unitsStr) +
+            code = ("%s = visual.Rect(\n" % inits['name'] +
+                    "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                     "    width=%(size)s[0], height=%(size)s[1],\n" % inits)
         else:
-            code = ("%s = visual.Polygon(win=win, name='%s',%s\n" %
-                    (inits['name'], inits['name'], unitsStr) +
+            code = ("%s = visual.Polygon(\n" % inits['name'] +
+                    "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                     "    edges=%s," % str(inits['nVertices'].val) +
                     " size=%(size)s,\n" % inits)
 
         code += ("    ori=%(ori)s, pos=%(pos)s,\n"
                  "    lineWidth=%(lineWidth)s, lineColor=%(lineColor)s, lineColorSpace=%(lineColorSpace)s,\n"
                  "    fillColor=%(fillColor)s, fillColorSpace=%(fillColorSpace)s,\n"
-                 "    opacity=%(opacity)s," % inits)
-
-        buff.writeIndentedLines(code)
+                 "    opacity=%(opacity)s, " % inits)
 
         depth = -self.getPosInRoutine()
-        buff.write("depth=%.1f, \n" % depth)  # finish with newline
+        code += "depth=%.1f, " % depth
 
         if self.params['interpolate'].val == 'linear':
-            buff.write("interpolate=True)\n")
+            code += "interpolate=True)\n"
         else:
-            buff.write("interpolate=False)\n")
+            code += "interpolate=False)\n"
+
+        buff.writeIndentedLines(code)

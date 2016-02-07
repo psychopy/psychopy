@@ -106,7 +106,8 @@ class GratingComponent(BaseVisualComponent):
         # replaces variable params with defaults
         inits = getInitVals(self.params)
 
-        code = ("%s = visual.GratingStim(win=win, name='%s',%s\n" % (inits['name'], inits['name'], unitsStr) +
+        code = ("%s = visual.GratingStim(\n" % inits['name'] +
+                "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                 "    tex=%(tex)s, mask=%(mask)s,\n" % inits +
                 "    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n" % inits +
                 "    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" % inits +
