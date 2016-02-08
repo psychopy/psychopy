@@ -21,31 +21,33 @@ class Rect(BaseShapeStim):
 
     (New in version 1.72.00)
     """
+
     def __init__(self, win, width=.5, height=.5, **kwargs):
         """
         Rect accepts all input parameters, that `~psychopy.visual.ShapeStim` accept, except for vertices and closeShape.
         """
-        #what local vars are defined (these are the init params) for use by __repr__
+        # what local vars are defined (these are the init params) for use by
+        # __repr__
         self._initParams = dir()
         self._initParams.remove('self')
-        #kwargs isn't a parameter, but a list of params
+        # kwargs isn't a parameter, but a list of params
         self._initParams.remove('kwargs')
         self._initParams.extend(kwargs)
 
         self.__dict__['width'] = width
         self.__dict__['height'] = height
         self._calcVertices()
-        kwargs['closeShape'] = True # Make sure nobody messes around here
+        kwargs['closeShape'] = True  # Make sure nobody messes around here
         kwargs['vertices'] = self.vertices
 
         super(Rect, self).__init__(win, **kwargs)
 
     def _calcVertices(self):
         self.vertices = numpy.array([
-            (-self.width*.5,  self.height*.5),
-            ( self.width*.5,  self.height*.5),
-            ( self.width*.5, -self.height*.5),
-            (-self.width*.5, -self.height*.5)
+            (-self.width * .5,  self.height * .5),
+            (self.width * .5,  self.height * .5),
+            (self.width * .5, -self.height * .5),
+            (-self.width * .5, -self.height * .5)
         ])
 
     @attributeSetter
@@ -57,6 +59,7 @@ class Rect(BaseShapeStim):
         self.__dict__['width'] = value
         self._calcVertices()
         self.setVertices(self.vertices, log=False)
+
     def setWidth(self, width, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message

@@ -55,18 +55,21 @@ class Aperture(MinimalStim, ContainerMixin):
         2014, Jeremy Gray added .contains() option
         2015, Thomas Emmerling added ImageStim option
     """
-    def __init__(self, win, size=1, pos=(0,0), ori=0, nVert=120, shape='circle', inverted=False, units=None,
-            name=None, autoLog=None):
-        #what local vars are defined (these are the init params) for use by __repr__
+
+    def __init__(self, win, size=1, pos=(0, 0), ori=0, nVert=120, shape='circle', inverted=False, units=None,
+                 name=None, autoLog=None):
+        # what local vars are defined (these are the init params) for use by
+        # __repr__
         self._initParams = dir()
         self._initParams.remove('self')
         super(Aperture, self).__init__(name=name, autoLog=False)
 
-        #set self params
-        self.autoLog=False #set this False first and change after attribs are set
-        self.win=win
+        # set self params
+        self.autoLog = False  # set this False first and change after attribs are set
+        self.win = win
         if not win.allowStencil:
-            logging.error('Aperture has no effect in a window created without allowStencil=True')
+            logging.error(
+                'Aperture has no effect in a window created without allowStencil=True')
             core.quit()
         self.__dict__['size'] = size
         self.__dict__['pos'] = pos
@@ -74,8 +77,8 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['inverted'] = inverted
         self.__dict__['filename'] = False
 
-        #unit conversions
-        if units!=None and len(units):
+        # unit conversions
+        if units != None and len(units):
             self.units = units
         else:
             self.units = win.units
@@ -84,41 +87,45 @@ class Aperture(MinimalStim, ContainerMixin):
         if hasattr(shape, 'lower'):
             shape = shape.lower()
         if shape is None or shape == 'circle':
-            # NB: pentagon etc point upwards by setting x,y to be y,x (sin,cos):
-            vertices = [(0.5*sin(radians(theta)), 0.5*cos(radians(theta)))
+            # NB: pentagon etc point upwards by setting x,y to be y,x
+            # (sin,cos):
+            vertices = [(0.5 * sin(radians(theta)), 0.5 * cos(radians(theta)))
                         for theta in numpy.linspace(0, 360, nVert, False)]
         elif shape == 'square':
-            vertices = [[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]]
+            vertices = [[0.5, -0.5], [-0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]
         elif shape == 'triangle':
-            vertices = [[0.5,-0.5],[0,0.5],[-0.5,-0.5]]
+            vertices = [[0.5, -0.5], [0, 0.5], [-0.5, -0.5]]
         elif type(shape) in [tuple, list, numpy.ndarray] and len(shape) > 2:
             vertices = shape
         elif type(shape) in [str, unicode]:
-            #is a string - see if it points to a file
+            # is a string - see if it points to a file
             if os.path.isfile(shape):
                 self.__dict__['filename'] = shape
             else:
-                logging.error("Unrecognized shape for aperture. Expected 'circle', 'square', 'triangle', vertices, filename, or None; got %s" %(repr(shape)))
+                logging.error(
+                    "Unrecognized shape for aperture. Expected 'circle', 'square', 'triangle', vertices, filename, or None; got %s" % (repr(shape)))
 
         if self.__dict__['filename']:
             self._shape = ImageStim(win=self.win, image=self.__dict__['filename'],
-                                pos=pos, size=size,
-                                autoLog=False)
+                                    pos=pos, size=size,
+                                    autoLog=False)
         else:
             self._shape = BaseShapeStim(win=self.win, vertices=vertices,
-                                fillColor=1, lineColor=None,
-                                interpolate=False, pos=pos, size=size,
-                                autoLog=False)
+                                        fillColor=1, lineColor=None,
+                                        interpolate=False, pos=pos, size=size,
+                                        autoLog=False)
             self.vertices = self._shape.vertices
             self._needVertexUpdate = True
 
         self._needReset = True  # Default when setting attributes
-        self._reset()  #implicitly runs a self.enabled = True. Also sets self._needReset = True on every call
+        self._reset()  # implicitly runs a self.enabled = True. Also sets self._needReset = True on every call
 
         # set autoLog now that params have been initialised
-        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        self.__dict__[
+            'autoLog'] = autoLog or autoLog is None and self.win.autoLog
         if self.autoLog:
-            logging.exp("Created %s = %s" %(self.name, str(self)))
+            logging.exp("Created %s = %s" % (self.name, str(self)))
+
     def _reset(self):
         """Internal method to rebuild the shape - shouldn't be called by the user.
         You have to explicitly turn resetting off by setting self._needReset = False"""
@@ -130,7 +137,7 @@ class Aperture(MinimalStim, ContainerMixin):
             GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
 
             GL.glPushMatrix()
-            if self.__dict__['filename']==False:
+            if self.__dict__['filename'] == False:
                 self.win.setScale('pix')
 
             GL.glDisable(GL.GL_LIGHTING)
@@ -141,11 +148,12 @@ class Aperture(MinimalStim, ContainerMixin):
 
             if self.__dict__['filename']:
                 GL.glEnable(GL.GL_ALPHA_TEST)
-                GL.glAlphaFunc(GL.GL_GREATER,0)
+                GL.glAlphaFunc(GL.GL_GREATER, 0)
                 self._shape.draw()
                 GL.glDisable(GL.GL_ALPHA_TEST)
             else:
-                self._shape.draw(keepMatrix=True) #draw without push/pop matrix
+                # draw without push/pop matrix
+                self._shape.draw(keepMatrix=True)
 
             if self.inverted:
                 GL.glStencilFunc(GL.GL_EQUAL, 0, 1)
@@ -167,12 +175,14 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['size'] = size
         self._shape.size = size  # a ShapeStim
         self._reset()
+
     def setSize(self, size, needReset=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         self._needReset = needReset
         setAttribute(self, 'size', size, log)
+
     @attributeSetter
     def ori(self, ori):
         """Set the orientation of the Aperture.
@@ -185,12 +195,14 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['ori'] = ori
         self._shape.ori = ori  # a ShapeStim
         self._reset()
+
     def setOri(self, ori, needReset=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
         self._needReset = needReset
         setAttribute(self, 'ori', ori, log)
+
     @attributeSetter
     def pos(self, pos):
         """Set the pos (centre) of the Aperture. :ref:`Operations <attrib-operations>` supported.
@@ -204,12 +216,14 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['pos'] = numpy.array(pos)
         self._shape.pos = self.pos  # a ShapeStim
         self._reset()
+
     def setPos(self, pos, needReset=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         self._needReset = needReset
         setAttribute(self, 'pos', pos, log)
+
     @attributeSetter
     def inverted(self, value):
         """True / False. Set to true to invert the aperture.
@@ -220,19 +234,23 @@ class Aperture(MinimalStim, ContainerMixin):
         """
         self.__dict__['inverted'] = value
         self._reset()
+
     def invert(self):
         """Use Aperture.inverted = True instead."""
         self.inverted = True
+
     @property
     def posPix(self):
         """The position of the aperture in pixels
         """
         return self._shape.posPix
+
     @property
     def sizePix(self):
         """The size of the aperture in pixels
         """
         return self._shape.sizePix
+
     @attributeSetter
     def enabled(self, value):
         """True / False. Enable or disable the aperture.
@@ -250,11 +268,14 @@ class Aperture(MinimalStim, ContainerMixin):
             self.status = STOPPED
 
         self.__dict__['enabled'] = value
+
     def enable(self):
         """Use Aperture.enabled = True instead."""
         self.enabled = True
+
     def disable(self):
         """Use Aperture.enabled = False instead."""
         self.enabled = False
+
     def __del__(self):
         self.enabled = False

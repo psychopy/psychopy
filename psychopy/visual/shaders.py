@@ -10,8 +10,9 @@ from __future__ import absolute_import
 from ctypes import (byref, cast, c_int, c_char, c_char_p,
                     POINTER, create_string_buffer)
 import pyglet
-GL=pyglet.gl
+GL = pyglet.gl
 import sys
+
 
 def print_log(shader):
     length = c_int()
@@ -20,56 +21,56 @@ def print_log(shader):
     if length.value > 0:
         log = create_string_buffer(length.value)
         GL.glGetShaderInfoLog(shader, length, byref(length), log)
-        sys.stderr.write(log.value+'\n')
+        sys.stderr.write(log.value + '\n')
 
 
 def compileProgram(vertexSource=None, fragmentSource=None):
-        """Create and compile a vertex and fragment shader pair from their sources (strings)
-        """
+    """Create and compile a vertex and fragment shader pair from their sources (strings)
+    """
 
-        def compileShader( source, shaderType ):
-                """Compile shader source of given type (only needed by compileProgram)"""
-                shader = GL.glCreateShaderObjectARB(shaderType)
+    def compileShader(source, shaderType):
+        """Compile shader source of given type (only needed by compileProgram)"""
+        shader = GL.glCreateShaderObjectARB(shaderType)
 
-                prog = c_char_p(source)
-                length = c_int(-1)
-                GL.glShaderSourceARB(shader,
-                                  1,
-                                  cast(byref(prog), POINTER(POINTER(c_char))),
-                                  byref(length))
-                GL.glCompileShaderARB(shader)
+        prog = c_char_p(source)
+        length = c_int(-1)
+        GL.glShaderSourceARB(shader,
+                             1,
+                             cast(byref(prog), POINTER(POINTER(c_char))),
+                             byref(length))
+        GL.glCompileShaderARB(shader)
 
-                #check for errors
-                status = c_int()
-                GL.glGetShaderiv(shader, GL.GL_COMPILE_STATUS, byref(status))
-                if not status.value:
-                    print_log(shader)
-                    GL.glDeleteShader(shader)
-                    raise ValueError, 'Shader compilation failed'
-                return shader
+        # check for errors
+        status = c_int()
+        GL.glGetShaderiv(shader, GL.GL_COMPILE_STATUS, byref(status))
+        if not status.value:
+            print_log(shader)
+            GL.glDeleteShader(shader)
+            raise ValueError, 'Shader compilation failed'
+        return shader
 
-        program = GL.glCreateProgramObjectARB()
+    program = GL.glCreateProgramObjectARB()
 
-        if vertexSource:
-                vertexShader = compileShader(
-                        vertexSource, GL.GL_VERTEX_SHADER_ARB
-                )
-                GL.glAttachObjectARB(program, vertexShader)
-        if fragmentSource:
-                fragmentShader = compileShader(
-                        fragmentSource, GL.GL_FRAGMENT_SHADER_ARB
-                )
-                GL.glAttachObjectARB(program, fragmentShader)
+    if vertexSource:
+        vertexShader = compileShader(
+            vertexSource, GL.GL_VERTEX_SHADER_ARB
+        )
+        GL.glAttachObjectARB(program, vertexShader)
+    if fragmentSource:
+        fragmentShader = compileShader(
+            fragmentSource, GL.GL_FRAGMENT_SHADER_ARB
+        )
+        GL.glAttachObjectARB(program, fragmentShader)
 
-        GL.glValidateProgramARB( program )
-        GL.glLinkProgramARB(program)
+    GL.glValidateProgramARB(program)
+    GL.glLinkProgramARB(program)
 
-        if vertexShader:
-                GL.glDeleteObjectARB(vertexShader)
-        if fragmentShader:
-                GL.glDeleteObjectARB(fragmentShader)
+    if vertexShader:
+        GL.glDeleteObjectARB(vertexShader)
+    if fragmentShader:
+        GL.glDeleteObjectARB(fragmentShader)
 
-        return program
+    return program
 
 """NOTE about frag shaders using FBO. If a floating point texture is being used
 as a frame buffer (FBO object) then we should keep in the range -1:1 during frag
@@ -122,7 +123,7 @@ fragSignedColorTex_adding = '''
         gl_FragColor.a = gl_Color.a * textureFrag.a;
     }
     '''
-#the shader for pyglet fonts doesn't use multitextures - just one texture
+# the shader for pyglet fonts doesn't use multitextures - just one texture
 fragSignedColorTexFont = '''
     uniform sampler2D texture;
     uniform vec3 rgb;
@@ -170,7 +171,7 @@ fragSignedColorTexMask1D_adding = '''
         gl_FragColor.rgb = textureFrag.rgb * (gl_Color.rgb*2.0-1.0)/2.0;
     }
     '''
-#imageStim is providing its texture unsigned
+# imageStim is providing its texture unsigned
 fragImageStim = '''
     uniform sampler2D texture;
     uniform sampler2D mask;
@@ -181,7 +182,7 @@ fragImageStim = '''
         gl_FragColor.rgb = ((textureFrag.rgb*2.0-1.0)*(gl_Color.rgb*2.0-1.0)+1.0)/2.0;
     }
     '''
-    #imageStim is providing its texture unsigned
+# imageStim is providing its texture unsigned
 fragImageStim_adding = '''
     uniform sampler2D texture;
     uniform sampler2D mask;

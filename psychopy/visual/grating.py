@@ -59,6 +59,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     stretched!).
 
     """
+
     def __init__(self,
                  win,
                  tex="sin",
@@ -85,41 +86,51 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
                  autoDraw=False,
                  maskParams=None):
         """ """  # Empty docstring. All doc is in attributes
-        #what local vars are defined (these are the init params) for use by __repr__
+        # what local vars are defined (these are the init params) for use by
+        # __repr__
         self._initParams = dir()
         for unecess in ['self', 'rgb', 'dkl', 'lms']:
             self._initParams.remove(unecess)
-        #initialise parent class
-        super(GratingStim, self).__init__(win, units=units, name=name, autoLog=False)
-        self.__dict__['useShaders'] = win._haveShaders  #use shaders if available by default, this is a good thing
+        # initialise parent class
+        super(GratingStim, self).__init__(
+            win, units=units, name=name, autoLog=False)
+        # use shaders if available by default, this is a good thing
+        self.__dict__['useShaders'] = win._haveShaders
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
-        # TO DO: postpone calls to _createTexture, setColor and _calcCyclesPerStim whin initiating stimulus
+        # TO DO: postpone calls to _createTexture, setColor and
+        # _calcCyclesPerStim whin initiating stimulus
         self.__dict__['contrast'] = 1
         self.__dict__['size'] = 1
         self.__dict__['sf'] = 1
         self.__dict__['tex'] = tex
         self.__dict__['maskParams'] = maskParams
 
-        #initialise textures and masks for stimulus
+        # initialise textures and masks for stimulus
         self._texID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._texID))
         self._maskID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._maskID))
-        self.__dict__['texRes'] = texRes  #must be power of 2
+        self.__dict__['texRes'] = texRes  # must be power of 2
         self.interpolate = interpolate
 
-        #NB Pedestal isn't currently being used during rendering - this is a place-holder
+        # NB Pedestal isn't currently being used during rendering - this is a
+        # place-holder
         self.rgbPedestal = val2array(rgbPedestal, False, length=3)
-        self.__dict__['colorSpace'] = colorSpace  # No need to invoke decorator for color updating. It is done just below.
+        # No need to invoke decorator for color updating. It is done just
+        # below.
+        self.__dict__['colorSpace'] = colorSpace
         if rgb != None:
-            logging.warning("Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            logging.warning(
+                "Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
             self.setColor(rgb, colorSpace='rgb', log=False)
         elif dkl != None:
-            logging.warning("Use of dkl arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            logging.warning(
+                "Use of dkl arguments to stimuli are deprecated. Please use color and colorSpace args instead")
             self.setColor(dkl, colorSpace='dkl', log=False)
         elif lms != None:
-            logging.warning("Use of lms arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            logging.warning(
+                "Use of lms arguments to stimuli are deprecated. Please use color and colorSpace args instead")
             self.setColor(lms, colorSpace='lms', log=False)
         else:
             self.setColor(color, colorSpace=colorSpace, log=False)
@@ -127,7 +138,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         # set other parameters
         self.ori = float(ori)
         self.phase = val2array(phase, False)
-        self._origSize = None  #if an image texture is loaded this will be updated
+        self._origSize = None  # if an image texture is loaded this will be updated
         self._requestedSize = size
         self.size = val2array(size)
         self.sf = val2array(sf)
@@ -141,10 +152,10 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.autoLog = autoLog
         self.autoDraw = autoDraw
 
-        #fix scaling to window coords
+        # fix scaling to window coords
         self._calcCyclesPerStim()
 
-        #generate a displaylist ID
+        # generate a displaylist ID
         self._listID = GL.glGenLists(1)
 
         # JRG: doing self._updateList() here means MRO issues for RadialStim,
@@ -154,13 +165,14 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         # code, and have GratingStim and RadialStim inherit from it and add their
         # own _updateList stuff. Seems unnecessary.
         # Instead, simply defer the update to the first .draw(), should be fast:
-        #self._updateList()  #ie refresh display list
+        # self._updateList()  #ie refresh display list
         self._needUpdate = True
 
         # set autoLog now that params have been initialised
-        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        self.__dict__[
+            'autoLog'] = autoLog or autoLog is None and self.win.autoLog
         if self.autoLog:
-            logging.exp("Created %s = %s" %(self.name, str(self)))
+            logging.exp("Created %s = %s" % (self.name, str(self)))
 
     @attributeSetter
     def sf(self, value):
@@ -176,8 +188,8 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         if value is None:
             """Set the sf to default (e.g. to the 1.0/size of the loaded image etc)"""
             if self.units in ['pix', 'pixels'] \
-                or self._origSize is not None and self.units in ['deg', 'cm']:
-                value = 1.0 / self.size  #default to one cycle
+                    or self._origSize is not None and self.units in ['deg', 'cm']:
+                value = 1.0 / self.size  # default to one cycle
             else:
                 value = numpy.array([1.0, 1.0])
         else:
@@ -218,8 +230,8 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         power of two.
         """
         self._createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self,
-            res=self.texRes, maskParams=self.maskParams)
-        #if user requested size=None then update the size for new stim here
+                            res=self.texRes, maskParams=self.maskParams)
+        # if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
             self.size = None  # Reset size do default
         self.__dict__['tex'] = value
@@ -228,9 +240,11 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     def setSF(self, value, operation='', log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self._set('sf', value, operation, log=log)
+
     def setPhase(self, value, operation='', log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self._set('phase', value, operation, log=log)
+
     def setTex(self, value, log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
         self.tex = value
@@ -243,16 +257,17 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         again.
         """
         if win is None:
-            win=self.win
+            win = self.win
         self._selectWindow(win)
 
-        #do scaling
-        GL.glPushMatrix()#push before the list, pop after
+        # do scaling
+        GL.glPushMatrix()  # push before the list, pop after
         win.setScale('pix')
-        #the list just does the texture mapping
+        # the list just does the texture mapping
 
-        desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
-        GL.glColor4f(desiredRGB[0],desiredRGB[1],desiredRGB[2], self.opacity)
+        desiredRGB = self._getDesiredRGB(
+            self.rgb, self.colorSpace, self.contrast)
+        GL.glColor4f(desiredRGB[0], desiredRGB[1], desiredRGB[2], self.opacity)
 
         if self._needTextureUpdate:
             self.setTex(value=self.tex, log=False)
@@ -260,7 +275,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
             self._updateList()
         GL.glCallList(self._listID)
 
-        #return the view to previous state
+        # return the view to previous state
         GL.glPopMatrix()
 
     def _updateListShaders(self):
@@ -272,52 +287,57 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         rather than using the .set() command
         """
         self._needUpdate = False
-        GL.glNewList(self._listID,GL.GL_COMPILE)
-        #setup the shaderprogram
+        GL.glNewList(self._listID, GL.GL_COMPILE)
+        # setup the shaderprogram
         GL.glUseProgram(self.win._progSignedTexMask)
-        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "texture"), 0) #set the texture to be texture unit 0
-        GL.glUniform1i(GL.glGetUniformLocation(self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
-        #mask
+        # set the texture to be texture unit 0
+        GL.glUniform1i(GL.glGetUniformLocation(
+            self.win._progSignedTexMask, "texture"), 0)
+        GL.glUniform1i(GL.glGetUniformLocation(
+            self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
+        # mask
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
-        GL.glEnable(GL.GL_TEXTURE_2D)#implicitly disables 1D
+        GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
 
-        #main texture
+        # main texture
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
 
-        Ltex = -self._cycles[0]/2 - self.phase[0]+0.5
-        Rtex = +self._cycles[0]/2 - self.phase[0]+0.5
-        Ttex = +self._cycles[1]/2 - self.phase[1]+0.5
-        Btex = -self._cycles[1]/2 - self.phase[1]+0.5
-        Lmask=Bmask= 0.0; Tmask=Rmask=1.0#mask
+        Ltex = -self._cycles[0] / 2 - self.phase[0] + 0.5
+        Rtex = +self._cycles[0] / 2 - self.phase[0] + 0.5
+        Ttex = +self._cycles[1] / 2 - self.phase[1] + 0.5
+        Btex = -self._cycles[1] / 2 - self.phase[1] + 0.5
+        Lmask = Bmask = 0.0
+        Tmask = Rmask = 1.0  # mask
 
-        vertsPix = self.verticesPix #access just once because it's slower than basic property
+        # access just once because it's slower than basic property
+        vertsPix = self.verticesPix
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
         # right bottom
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Rtex, Btex)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Rmask,Bmask)
-        GL.glVertex2f(vertsPix[0,0], vertsPix[0,1])
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rtex, Btex)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Rmask, Bmask)
+        GL.glVertex2f(vertsPix[0, 0], vertsPix[0, 1])
         # left bottom
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Ltex,Btex)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Lmask,Bmask)
-        GL.glVertex2f(vertsPix[1,0], vertsPix[1,1])
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Ltex, Btex)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Lmask, Bmask)
+        GL.glVertex2f(vertsPix[1, 0], vertsPix[1, 1])
         # left top
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Ltex,Ttex)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Lmask,Tmask)
-        GL.glVertex2f(vertsPix[2,0], vertsPix[2,1])
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Ltex, Ttex)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Lmask, Tmask)
+        GL.glVertex2f(vertsPix[2, 0], vertsPix[2, 1])
         # right top
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Rtex,Ttex)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Rmask,Tmask)
-        GL.glVertex2f(vertsPix[3,0], vertsPix[3,1])
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rtex, Ttex)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Rmask, Tmask)
+        GL.glVertex2f(vertsPix[3, 0], vertsPix[3, 1])
         GL.glEnd()
 
-        #unbind the textures
+        # unbind the textures
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glDisable(GL.GL_TEXTURE_2D)#implicitly disables 1D
-        #main texture
+        GL.glDisable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
+        # main texture
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
@@ -326,7 +346,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
         GL.glEndList()
 
-    #for the sake of older graphics cards------------------------------------
+    # for the sake of older graphics cards------------------------------------
     def _updateListNoShaders(self):
         """
         The user shouldn't need this method since it gets called
@@ -337,70 +357,73 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         """
         self._needUpdate = False
 
-        GL.glNewList(self._listID,GL.GL_COMPILE)
-        GL.glColor4f(1.0,1.0,1.0,1.0)#glColor can interfere with multitextures
-        #mask
+        GL.glNewList(self._listID, GL.GL_COMPILE)
+        # glColor can interfere with multitextures
+        GL.glColor4f(1.0, 1.0, 1.0, 1.0)
+        # mask
         GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
-        GL.glEnable(GL.GL_TEXTURE_2D)#implicitly disables 1D
+        GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
 
-        #main texture
+        # main texture
         GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
 
         #depth = self.depth
-        Ltex = -self._cycles[0]/2 - self.phase[0]+0.5
-        Rtex = +self._cycles[0]/2 - self.phase[0]+0.5
-        Ttex = +self._cycles[1]/2 - self.phase[1]+0.5
-        Btex = -self._cycles[1]/2 - self.phase[1]+0.5
-        Lmask=Bmask= 0.0; Tmask=Rmask=1.0#mask
+        Ltex = -self._cycles[0] / 2 - self.phase[0] + 0.5
+        Rtex = +self._cycles[0] / 2 - self.phase[0] + 0.5
+        Ttex = +self._cycles[1] / 2 - self.phase[1] + 0.5
+        Btex = -self._cycles[1] / 2 - self.phase[1] + 0.5
+        Lmask = Bmask = 0.0
+        Tmask = Rmask = 1.0  # mask
 
-        vertsPix = self.verticesPix #access just once because it's slower than basic property
+        # access just once because it's slower than basic property
+        vertsPix = self.verticesPix
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
         # right bottom
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Rtex, Btex)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Rmask,Bmask)
-        GL.glVertex2f(vertsPix[0,0], vertsPix[0,1])
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rtex, Btex)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Rmask, Bmask)
+        GL.glVertex2f(vertsPix[0, 0], vertsPix[0, 1])
         # left bottom
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Ltex,Btex)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Lmask,Bmask)
-        GL.glVertex2f(vertsPix[1,0], vertsPix[1,1])
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Ltex, Btex)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Lmask, Bmask)
+        GL.glVertex2f(vertsPix[1, 0], vertsPix[1, 1])
         # left top
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Ltex,Ttex)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Lmask,Tmask)
-        GL.glVertex2f(vertsPix[2,0], vertsPix[2,1])
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Ltex, Ttex)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Lmask, Tmask)
+        GL.glVertex2f(vertsPix[2, 0], vertsPix[2, 1])
         # right top
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Rtex,Ttex)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Rmask,Tmask)
-        GL.glVertex2f(vertsPix[3,0], vertsPix[3,1])
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rtex, Ttex)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Rmask, Tmask)
+        GL.glVertex2f(vertsPix[3, 0], vertsPix[3, 1])
         GL.glEnd()
 
-        #disable mask
+        # disable mask
         GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
-        #main texture
+        # main texture
         GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
-        #we're done!
+        # we're done!
         GL.glEndList()
 
     def __del__(self):
         try:
             GL.glDeleteLists(self._listID, 1)
         except Exception:
-            pass #probably we don't have a _listID property
+            pass  # probably we don't have a _listID property
         try:
-            self.clearTextures()#remove textures from graphics card to prevent crash
+            self.clearTextures()  # remove textures from graphics card to prevent crash
         except Exception:
             pass
 
     def _calcCyclesPerStim(self):
         if self.units in ['norm', 'height']:
-            self._cycles = self.sf  #this is the only form of sf that is not size dependent
+            self._cycles = self.sf  # this is the only form of sf that is not size dependent
         else:
             self._cycles = self.sf * self.size

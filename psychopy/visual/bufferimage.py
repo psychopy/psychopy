@@ -75,9 +75,10 @@ class BufferImageStim(ImageStim):
     :Author:
         - 2010 Jeremy Gray, with on-going fixes
     """
+
     def __init__(self, win, buffer='back', rect=(-1, 1, 1, -1), sqPower2=False,
-        stim=(), interpolate=True, flipHoriz=False, flipVert=False, mask='None', pos=(0,0),
-        name=None, autoLog=None):
+                 stim=(), interpolate=True, flipHoriz=False, flipVert=False, mask='None', pos=(0, 0),
+                 name=None, autoLog=None):
         """
         :Parameters:
 
@@ -107,13 +108,14 @@ class BufferImageStim(ImageStim):
         """
         # depends on: window._getRegionOfFrame
 
-        #what local vars are defined (these are the init params) for use by __repr__
+        # what local vars are defined (these are the init params) for use by
+        # __repr__
         self._initParams = dir()
         self._initParams.remove('self')
 
-        self.autoLog=False #set this False first and change after attribs are set
+        self.autoLog = False  # set this False first and change after attribs are set
         _clock = core.Clock()
-        if stim: # draw all stim to the back buffer
+        if stim:  # draw all stim to the back buffer
             win.clearBuffer()
             buffer = 'back'
             if hasattr(stim, '__iter__'):
@@ -122,11 +124,14 @@ class BufferImageStim(ImageStim):
                         if stimulus.win == win:
                             stimulus.draw()
                         else:
-                            logging.warning('BufferImageStim.__init__: user requested "%s" drawn in another window' % repr(stimulus))
+                            logging.warning(
+                                'BufferImageStim.__init__: user requested "%s" drawn in another window' % repr(stimulus))
                     except AttributeError:
-                        logging.warning('BufferImageStim.__init__: "%s" failed to draw' % repr(stimulus))
+                        logging.warning(
+                            'BufferImageStim.__init__: "%s" failed to draw' % repr(stimulus))
             else:
-                raise(ValueError('Stim is not iterable in BufferImageStim. It should be a list of stimuli.'))
+                raise(ValueError(
+                    'Stim is not iterable in BufferImageStim. It should be a list of stimuli.'))
 
         # take a screenshot of the buffer using win._getRegionOfFrame():
         glversion = pyglet.gl.gl_info.get_version()
@@ -134,31 +139,36 @@ class BufferImageStim(ImageStim):
             region = win._getRegionOfFrame(buffer=buffer, rect=rect)
         else:
             if not sqPower2:
-                logging.debug('BufferImageStim.__init__: defaulting to square power-of-2 sized image (%s)' % glversion )
-            region = win._getRegionOfFrame(buffer=buffer, rect=rect, squarePower2=True)
+                logging.debug(
+                    'BufferImageStim.__init__: defaulting to square power-of-2 sized image (%s)' % glversion)
+            region = win._getRegionOfFrame(
+                buffer=buffer, rect=rect, squarePower2=True)
         if stim:
             win.clearBuffer()
 
         # turn the RGBA region into an ImageStim() object:
         if win.units in ['norm']:
-            pos *= win.size/2.
+            pos *= win.size / 2.
 
-        size = region.size/win.size/2.
+        size = region.size / win.size / 2.
         super(BufferImageStim, self).__init__(win, image=region, units='pix', mask=mask, pos=pos,
-                             size=size, interpolate=interpolate, name=name, autoLog=False)
+                                              size=size, interpolate=interpolate, name=name, autoLog=False)
         self.size = region.size
 
         # to improve drawing speed, move these out of draw:
-        self.desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
+        self.desiredRGB = self._getDesiredRGB(
+            self.rgb, self.colorSpace, self.contrast)
         self.thisScale = numpy.array([4, 4])
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
 
         # set autoLog now that params have been initialised
-        self.__dict__['autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        self.__dict__[
+            'autoLog'] = autoLog or autoLog is None and self.win.autoLog
         if self.autoLog:
-            logging.exp("Created %s = %s" %(self.name, str(self)))
-            logging.exp('BufferImageStim %s: took %.1fms to initialize' % (name, 1000 * _clock.getTime()))
+            logging.exp("Created %s = %s" % (self.name, str(self)))
+            logging.exp('BufferImageStim %s: took %.1fms to initialize' %
+                        (name, 1000 * _clock.getTime()))
 
     @attributeSetter
     def flipHoriz(self, flipHoriz):
@@ -166,22 +176,26 @@ class BufferImageStim(ImageStim):
         Note that this is relative to the original image, not relative to the current state.
         """
         self.__dict__['flipHoriz'] = flipHoriz
+
     @attributeSetter
     def flipVert(self, flipVert):
         """If set to True then the image will be flipped vertically (left-to-right).
         Note that this is relative to the original image, not relative to the current state.
         """
         self.__dict__['flipVert'] = flipVert
+
     def setFlipHoriz(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
         setAttribute(self, 'flipHoriz', newVal, log)  # call attributeSetter
+
     def setFlipVert(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
         """
         setAttribute(self, 'flipVert', newVal, log)  # call attributeSetter
+
     def draw(self, win=None):
         """
         Draws the BufferImage on the screen, similar to :class:`~psychopy.visual.ImageStim` `.draw()`.
@@ -189,17 +203,18 @@ class BufferImageStim(ImageStim):
         Limitations / bugs: not sure what happens with shaders & self._updateList()
         """
         if win is None:
-            win=self.win
+            win = self.win
         self._selectWindow(win)
 
-        GL.glPushMatrix() # preserve state
-        #GL.glLoadIdentity()
+        GL.glPushMatrix()  # preserve state
+        # GL.glLoadIdentity()
 
-        GL.glScalef(self.thisScale[0] * (1,-1)[self.flipHoriz],  # dynamic flip
-                    self.thisScale[1] * (1,-1)[self.flipVert], 1.0)
+        GL.glScalef(self.thisScale[0] * (1, -1)[self.flipHoriz],  # dynamic flip
+                    self.thisScale[1] * (1, -1)[self.flipVert], 1.0)
 
         # enable dynamic position, orientation, opacity; depth not working?
-        GL.glColor4f(self.desiredRGB[0], self.desiredRGB[1], self.desiredRGB[2], self.opacity)
+        GL.glColor4f(self.desiredRGB[0], self.desiredRGB[
+                     1], self.desiredRGB[2], self.opacity)
 
-        GL.glCallList(self._listID) # make it happen
-        GL.glPopMatrix() #return the view to previous state
+        GL.glCallList(self._listID)  # make it happen
+        GL.glPopMatrix()  # return the view to previous state

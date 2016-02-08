@@ -30,7 +30,7 @@ import numpy
 
 from . import shaders as _shaders
 
-#we need a different shader program for this (3 textures)
+# we need a different shader program for this (3 textures)
 carrierEnvelopeMaskFrag = '''
     uniform sampler2D carrier, envelope, mask;
     uniform float moddepth, offset, ori, add;
@@ -76,6 +76,7 @@ class EnvelopeGrating(GratingStim):
     stretched!).
 
     """
+
     def __init__(self,
                  win,
                  carrier="noise",
@@ -98,8 +99,9 @@ class EnvelopeGrating(GratingStim):
                  color=(1.0, 1.0, 1.0),
                  colorSpace='rgb',
                  contrast=0.5,  # contrast of carrier default this to 0.5 to avoid overmodulation - contrast and moddepth must work together, for moddepth=1 the max carrier contrast is 0.5. If moddepth < 1 higher contrasts can be accomodated
-                 moddepth=1.0, # modulation depth for envelope
-                 opacity=1.0, # not sure what this will do with an envelope stimulus.
+                 moddepth=1.0,  # modulation depth for envelope
+                 # not sure what this will do with an envelope stimulus.
+                 opacity=1.0,
                  depth=0,
                  rgbPedestal=(0.0, 0.0, 0.0),
                  interpolate=False,
@@ -108,57 +110,61 @@ class EnvelopeGrating(GratingStim):
                  autoDraw=False,
                  maskParams=None):
         """ """  # Empty docstring. All doc is in attributes
-        #what local vars are defined (these are the init params) for use by __repr__
-        assert(win._haveShaders==True),"Currently EnvelopeGratings need your graphics card to have shaders and yours does not seem to comply - sorry"
+        # what local vars are defined (these are the init params) for use by
+        # __repr__
+        assert(win._haveShaders == True), "Currently EnvelopeGratings need your graphics card to have shaders and yours does not seem to comply - sorry"
         self._initParams = dir()
         for unecess in ['self', 'rgb', 'dkl', 'lms']:
             self._initParams.remove(unecess)
-        #initialise parent class
+        # initialise parent class
         GratingStim.__init__(self, win,
-                 units=units, pos=pos, size=size, sf=sf, ori=ori, phase=phase,
-                 color=color, colorSpace=colorSpace,
-                 contrast=contrast, opacity=opacity,
-                 depth=depth, interpolate=interpolate,
-                 name=name, autoLog=autoLog, autoDraw=autoDraw,
-                 maskParams=None)
-        self.__dict__['useShaders'] = win._haveShaders  #use shaders if available by default, this is a good thing
+                             units=units, pos=pos, size=size, sf=sf, ori=ori, phase=phase,
+                             color=color, colorSpace=colorSpace,
+                             contrast=contrast, opacity=opacity,
+                             depth=depth, interpolate=interpolate,
+                             name=name, autoLog=autoLog, autoDraw=autoDraw,
+                             maskParams=None)
+        # use shaders if available by default, this is a good thing
+        self.__dict__['useShaders'] = win._haveShaders
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
-        # TO DO: postpone calls to _createTexture, setColor and _calcCyclesPerStim whin initiating stimulus
+        # TO DO: postpone calls to _createTexture, setColor and
+        # _calcCyclesPerStim whin initiating stimulus
         self.__dict__['carrier'] = carrier
         self.__dict__['envelope'] = envelope
         self.__dict__['maskParams'] = maskParams
 
-        #initialise textures and masks for stimulus
+        # initialise textures and masks for stimulus
         self._carrierID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._carrierID))
         self._envelopeID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._envelopeID))
         self.interpolate = interpolate
-        del self._texID #created by GratingStim.__init__
+        del self._texID  # created by GratingStim.__init__
 
         self.mask = mask
         self.envelope = envelope
         self.carrier = carrier
-        self.envsf=val2array(envsf)
-        self.envphase=val2array(envphase, False)
-        self.envori=float(envori)
-        self.moddepth=float(moddepth)
-        self.beat=bool(beat)
-        #print(self.CMphase)
-        self._shaderProg = _shaders.compileProgram(_shaders.vertSimple, carrierEnvelopeMaskFrag)
+        self.envsf = val2array(envsf)
+        self.envphase = val2array(envphase, False)
+        self.envori = float(envori)
+        self.moddepth = float(moddepth)
+        self.beat = bool(beat)
+        # print(self.CMphase)
+        self._shaderProg = _shaders.compileProgram(
+            _shaders.vertSimple, carrierEnvelopeMaskFrag)
 
-        self.local=numpy.ones((texRes,texRes),dtype=numpy.ubyte)
-        self.local_p=self.local.ctypes
-        #self.local=GL.GL_UNSIGNED_BYTE(self.local)
-        #fix scaling to window coords
-        #self._calcCyclesPerStim()
+        self.local = numpy.ones((texRes, texRes), dtype=numpy.ubyte)
+        self.local_p = self.local.ctypes
+        # self.local=GL.GL_UNSIGNED_BYTE(self.local)
+        # fix scaling to window coords
+        # self._calcCyclesPerStim()
         self._calcEnvCyclesPerStim()
         del self.__dict__['tex']
 
     @attributeSetter
     def envsf(self, value):
-        #AJS
+        # AJS
         """Spatial frequency of the envelope texture
 
         Should be a :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>` or None.
@@ -171,8 +177,8 @@ class EnvelopeGrating(GratingStim):
         if value is None:
             """Set the sf to default (e.g. to the 1.0/size of the loaded image etc)"""
             if self.units in ['pix', 'pixels'] \
-                or self._origSize is not None and self.units in ['deg', 'cm']:
-                value = 1.0 / self.size  #default to one cycle
+                    or self._origSize is not None and self.units in ['deg', 'cm']:
+                value = 1.0 / self.size  # default to one cycle
             else:
                 value = numpy.array([1.0, 1.0])
         else:
@@ -233,8 +239,8 @@ class EnvelopeGrating(GratingStim):
         power of two.
         """
         self._createTexture(value, id=self._carrierID, pixFormat=GL.GL_RGB, stim=self,
-            res=self.texRes)
-        #if user requested size=None then update the size for new stim here
+                            res=self.texRes)
+        # if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
             self.size = None  # Reset size do default
         self.__dict__['carrier'] = value
@@ -254,14 +260,14 @@ class EnvelopeGrating(GratingStim):
         If not then PsychoPy will upsample your stimulus to the next larger
         power of two.
         """
-        if self.useShaders==True:
+        if self.useShaders == True:
             self._createTexture(value, id=self._envelopeID, pixFormat=GL.GL_RGB, stim=self,
-                res=self.texRes)
+                                res=self.texRes)
         else:
             self._createTexture(value, id=self._envelopeID, pixFormat=GL.GL_ALPHA, stim=self,
-                res=self.texRes)
+                                res=self.texRes)
 
-        #if user requested size=None then update the size for new stim here
+        # if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
             self.size = None  # Reset size do default
         self.__dict__['envelope'] = value
@@ -276,99 +282,120 @@ class EnvelopeGrating(GratingStim):
         rather than using the .set() command
         """
 
-        #make some corrections for the envelope:: The could be done whenever the envelope variables are set using some internal variables, putting it here is safer but sometimes slower
-        envrad=(self.ori-self.envori)*numpy.pi/180.0 # correct envelope oritation to adjust for link with carrier orientation, to make it clockwise handed and convert to radians
-        rph1=numpy.cos(envrad)*self.envphase[0]+numpy.sin(envrad)*self.envphase[1] # adjust envolope phases so that any envelope drift points in the same direction as the envelope.
-        rph2=-numpy.cos(envrad)*self.envphase[1]+numpy.sin(envrad)*self.envphase[0]
+        # make some corrections for the envelope:: The could be done whenever
+        # the envelope variables are set using some internal variables, putting
+        # it here is safer but sometimes slower
+        # correct envelope oritation to adjust for link with carrier
+        # orientation, to make it clockwise handed and convert to radians
+        envrad = (self.ori - self.envori) * numpy.pi / 180.0
+        # adjust envolope phases so that any envelope drift points in the same
+        # direction as the envelope.
+        rph1 = numpy.cos(envrad) * \
+            self.envphase[0] + numpy.sin(envrad) * self.envphase[1]
+        rph2 = -numpy.cos(envrad) * \
+            self.envphase[1] + numpy.sin(envrad) * self.envphase[0]
 
         if 'avg' in self.win.blendMode:
-            addvalue=1.0
+            addvalue = 1.0
         else:
-            addvalue=0.0
+            addvalue = 0.0
 
         self._needUpdate = False
-        GL.glNewList(self._listID,GL.GL_COMPILE)
-        #setup the shaderprogram
+        GL.glNewList(self._listID, GL.GL_COMPILE)
+        # setup the shaderprogram
         GL.glUseProgram(self._shaderProg)
-        GL.glUniform1i(GL.glGetUniformLocation(self._shaderProg, "carrier"), 0) #set the carrier to be texture unit 0
-        GL.glUniform1i(GL.glGetUniformLocation(self._shaderProg, "envelope"), 1) #set the envelope to be texture unit 1
-        GL.glUniform1i(GL.glGetUniformLocation(self._shaderProg, "mask"), 2)  # mask is texture unit 2
-        GL.glUniform1f(GL.glGetUniformLocation(self._shaderProg, "moddepth"),self.moddepth)
-        GL.glUniform1f(GL.glGetUniformLocation(self._shaderProg, "ori"),envrad)
-        GL.glUniform1f(GL.glGetUniformLocation(self._shaderProg, "offset"),1.0-self.beat)   # CM envelopes use (modedepth*envelope+1.0)*carrier. If beat is True this becomes (moddepth*envelope)*carrier thus maing a second order 'beat' pattern.
-        GL.glUniform1f(GL.glGetUniformLocation(self._shaderProg, "add"),addvalue)   # CM envelopes use (modedepth*envelope+1.0)*carrier. If beat is True this becomes (moddepth*envelope)*carrier thus maing a second order 'beat' pattern.
+        # set the carrier to be texture unit 0
+        GL.glUniform1i(GL.glGetUniformLocation(self._shaderProg, "carrier"), 0)
+        # set the envelope to be texture unit 1
+        GL.glUniform1i(GL.glGetUniformLocation(
+            self._shaderProg, "envelope"), 1)
+        GL.glUniform1i(GL.glGetUniformLocation(
+            self._shaderProg, "mask"), 2)  # mask is texture unit 2
+        GL.glUniform1f(GL.glGetUniformLocation(
+            self._shaderProg, "moddepth"), self.moddepth)
+        GL.glUniform1f(GL.glGetUniformLocation(
+            self._shaderProg, "ori"), envrad)
+        # CM envelopes use (modedepth*envelope+1.0)*carrier. If beat is True
+        # this becomes (moddepth*envelope)*carrier thus maing a second order
+        # 'beat' pattern.
+        GL.glUniform1f(GL.glGetUniformLocation(
+            self._shaderProg, "offset"), 1.0 - self.beat)
+        # CM envelopes use (modedepth*envelope+1.0)*carrier. If beat is True
+        # this becomes (moddepth*envelope)*carrier thus maing a second order
+        # 'beat' pattern.
+        GL.glUniform1f(GL.glGetUniformLocation(
+            self._shaderProg, "add"), addvalue)
 
-        #mask
+        # mask
         GL.glActiveTexture(GL.GL_TEXTURE2)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
-        GL.glEnable(GL.GL_TEXTURE_2D)#implicitly disables 1D
-        #envelope
+        GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
+        # envelope
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._envelopeID)
         GL.glEnable(GL.GL_TEXTURE_2D)
 
-        #carrier
+        # carrier
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._carrierID)
         GL.glEnable(GL.GL_TEXTURE_2D)
 
-        Lcar = -self._cycles[0]/2 - self.phase[0]+0.5
-        Rcar = +self._cycles[0]/2 - self.phase[0]+0.5
-        Tcar = +self._cycles[1]/2 - self.phase[1]+0.5
-        Bcar = -self._cycles[1]/2 - self.phase[1]+0.5
+        Lcar = -self._cycles[0] / 2 - self.phase[0] + 0.5
+        Rcar = +self._cycles[0] / 2 - self.phase[0] + 0.5
+        Tcar = +self._cycles[1] / 2 - self.phase[1] + 0.5
+        Bcar = -self._cycles[1] / 2 - self.phase[1] + 0.5
 
-        Lenv = -self._envcycles[0]/2-rph1+0.5
-        Renv = +self._envcycles[0]/2-rph1+0.5
-        Tenv = +self._envcycles[1]/2-rph2+0.5
-        Benv = -self._envcycles[1]/2-rph2+0.5
-        Lmask=Bmask= 0.0; Tmask=Rmask=1.0#mask
+        Lenv = -self._envcycles[0] / 2 - rph1 + 0.5
+        Renv = +self._envcycles[0] / 2 - rph1 + 0.5
+        Tenv = +self._envcycles[1] / 2 - rph2 + 0.5
+        Benv = -self._envcycles[1] / 2 - rph2 + 0.5
+        Lmask = Bmask = 0.0
+        Tmask = Rmask = 1.0  # mask
 
-        vertsPix = self.verticesPix #access just once because it's slower than basic property
+        # access just once because it's slower than basic property
+        vertsPix = self.verticesPix
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
         # right bottom
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Rcar,Bcar)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Renv, Benv)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE2,Rmask,Bmask)
-        GL.glVertex2f(vertsPix[0,0], vertsPix[0,1])
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rcar, Bcar)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Renv, Benv)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE2, Rmask, Bmask)
+        GL.glVertex2f(vertsPix[0, 0], vertsPix[0, 1])
         # left bottom
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Lcar,Bcar)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Lenv,Benv)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE2,Lmask,Bmask)
-        GL.glVertex2f(vertsPix[1,0], vertsPix[1,1])
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Lcar, Bcar)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Lenv, Benv)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE2, Lmask, Bmask)
+        GL.glVertex2f(vertsPix[1, 0], vertsPix[1, 1])
         # left top
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Lcar,Tcar)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Lenv,Tenv)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE2,Lmask,Tmask)
-        GL.glVertex2f(vertsPix[2,0], vertsPix[2,1])
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Lcar, Tcar)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Lenv, Tenv)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE2, Lmask, Tmask)
+        GL.glVertex2f(vertsPix[2, 0], vertsPix[2, 1])
         # right top
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Rcar,Tcar)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Renv,Tenv)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE2,Rmask,Tmask)
-        GL.glVertex2f(vertsPix[3,0], vertsPix[3,1])
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rcar, Tcar)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Renv, Tenv)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE2, Rmask, Tmask)
+        GL.glVertex2f(vertsPix[3, 0], vertsPix[3, 1])
         GL.glEnd()
 
-        #unbind the textures
-        #mask
+        # unbind the textures
+        # mask
         GL.glActiveTexture(GL.GL_TEXTURE2)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
-        #envelope
+        # envelope
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
-        #main carrier
+        # main carrier
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         GL.glDisable(GL.GL_TEXTURE_2D)
-
-
-
 
         GL.glUseProgram(0)
 
         GL.glEndList()
 
-    #for the sake of older graphics cards------------------------------------
+    # for the sake of older graphics cards------------------------------------
     def _updateListNoShaders(self):
         """
         This currently combines the carrier and evelope as if they
@@ -384,78 +411,77 @@ class EnvelopeGrating(GratingStim):
         """
         self._needUpdate = False
 
-
-
-
-
-        GL.glColor4f(1.0,1.0,1.0,1.0)#glColor can interfere with multitextures
-        #mask
+        # glColor can interfere with multitextures
+        GL.glColor4f(1.0, 1.0, 1.0, 1.0)
+        # mask
         GL.glActiveTextureARB(GL.GL_TEXTURE2_ARB)
-        GL.glEnable(GL.GL_TEXTURE_2D)#implicitly disables 1D
+        GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
-        #envelope (eg a grating but can be anything)
+        # envelope (eg a grating but can be anything)
         GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
-        GL.glEnable(GL.GL_TEXTURE_2D)#implicitly disables 1D
+        GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._envelopeID)
-        #carrier (eg noise or textuture)
+        # carrier (eg noise or textuture)
         GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._carrierID)
 
         #depth = self.depth
 
-        Lcar = -self._cycles[0]/2 - self.phase[0]+0.5
-        Rcar = +self._cycles[0]/2 - self.phase[0]+0.5
-        Tcar = +self._cycles[1]/2 - self.phase[1]+0.5
-        Bcar = -self._cycles[1]/2 - self.phase[1]+0.5
+        Lcar = -self._cycles[0] / 2 - self.phase[0] + 0.5
+        Rcar = +self._cycles[0] / 2 - self.phase[0] + 0.5
+        Tcar = +self._cycles[1] / 2 - self.phase[1] + 0.5
+        Bcar = -self._cycles[1] / 2 - self.phase[1] + 0.5
 
-        Lenv = -self._envcycles[0]/2 - self.envphase[0]+0.5
-        Renv = +self._envcycles[0]/2 - self.envphase[0]+0.5
-        Tenv = +self._envcycles[1]/2 - self.envphase[1]+0.5
-        Benv = -self._envcycles[1]/2 - self.envphase[1]+0.5
+        Lenv = -self._envcycles[0] / 2 - self.envphase[0] + 0.5
+        Renv = +self._envcycles[0] / 2 - self.envphase[0] + 0.5
+        Tenv = +self._envcycles[1] / 2 - self.envphase[1] + 0.5
+        Benv = -self._envcycles[1] / 2 - self.envphase[1] + 0.5
 
-        Lmask=Bmask= 0.0; Tmask=Rmask=1.0#mask
+        Lmask = Bmask = 0.0
+        Tmask = Rmask = 1.0  # mask
 
-        vertsPix = self.verticesPix #access just once because it's slower than basic property
+        # access just once because it's slower than basic property
+        vertsPix = self.verticesPix
         GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
         # right bottom
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Rcar,Bcar)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Renv, Benv)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE2,Rmask,Bmask)
-        GL.glVertex2f(vertsPix[0,0], vertsPix[0,1])
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rcar, Bcar)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Renv, Benv)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE2, Rmask, Bmask)
+        GL.glVertex2f(vertsPix[0, 0], vertsPix[0, 1])
         # left bottom
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Lcar,Bcar)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Lenv,Benv)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE2,Lmask,Bmask)
-        GL.glVertex2f(vertsPix[1,0], vertsPix[1,1])
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Lcar, Bcar)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Lenv, Benv)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE2, Lmask, Bmask)
+        GL.glVertex2f(vertsPix[1, 0], vertsPix[1, 1])
         # left top
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Lcar,Tcar)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Lenv,Tenv)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE2,Lmask,Tmask)
-        GL.glVertex2f(vertsPix[2,0], vertsPix[2,1])
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Lcar, Tcar)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Lenv, Tenv)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE2, Lmask, Tmask)
+        GL.glVertex2f(vertsPix[2, 0], vertsPix[2, 1])
         # right top
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0,Rcar,Tcar)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1,Renv,Tenv)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE2,Rmask,Tmask)
-        GL.glVertex2f(vertsPix[3,0], vertsPix[3,1])
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rcar, Tcar)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Renv, Tenv)
+        GL.glMultiTexCoord2f(GL.GL_TEXTURE2, Rmask, Tmask)
+        GL.glVertex2f(vertsPix[3, 0], vertsPix[3, 1])
         GL.glEnd()
 
-        #disable mask
+        # disable mask
         GL.glActiveTextureARB(GL.GL_TEXTURE2_ARB)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
-        #disable mask
+        # disable mask
         GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
-        #main texture
+        # main texture
         GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
-        #we're done!
+        # we're done!
         GL.glEndList()
 
     def clearTextures(self):
@@ -468,7 +494,8 @@ class EnvelopeGrating(GratingStim):
     def _calcEnvCyclesPerStim(self):
 
         if self.units in ['norm', 'height']:
-            #self._cycles = self.sf  #this is the only form of sf that is not size dependent
+            # self._cycles = self.sf  #this is the only form of sf that is not
+            # size dependent
             self._envcycles = self.envsf
         else:
             #self._cycles = self.sf * self.size

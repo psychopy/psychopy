@@ -21,11 +21,12 @@ GL = pyglet.gl
 
 class Warper(object):
     '''Class to perform spherical, cylindrical, warpfile, or None (disabled) warps'''
+
     def __init__(self,
                  win,
                  warp=None,
-                 warpfile = None,
-                 warpGridsize = 300,
+                 warpfile=None,
+                 warpGridsize=300,
                  eyepoint=(0.5, 0.5),
                  flipHorizontal=False,
                  flipVertical=False):
@@ -118,7 +119,7 @@ class Warper(object):
         GL.glUseProgram(0)
         GL.glColorMask(True, True, True, True)
 
-        #point to color (opacity)
+        # point to color (opacity)
         if self.gl_color is not None:
             GL.glEnableClientState(GL.GL_COLOR_ARRAY)
             GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.gl_color)
@@ -131,13 +132,13 @@ class Warper(object):
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.gl_vb)
         GL.glVertexPointer(2, GL.GL_FLOAT, 0, None)
 
-        #point to texture
+        # point to texture
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.gl_tb)
         GL.glTexCoordPointer(2, GL.GL_FLOAT, 0, None)
 
-        #draw quads
-        GL.glDrawArrays (GL.GL_QUADS, 0, self.nverts)
+        # draw quads
+        GL.glDrawArrays(GL.GL_QUADS, 0, self.nverts)
 
         # cleanup
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
@@ -152,7 +153,7 @@ class Warper(object):
         self.xgrid = self.warpGridsize
         self.ygrid = self.warpGridsize
 
-    def changeProjection (self, warp, warpfile = None, eyepoint = (0.5,0.5), flipHorizontal = False, flipVertical = False):
+    def changeProjection(self, warp, warpfile=None, eyepoint=(0.5, 0.5), flipHorizontal=False, flipVertical=False):
         '''Allows changing the warp method on the fly.  Uses the same parameter definitions as constructor.'''
         self.warp = warp
         self.warpfile = warpfile
@@ -177,50 +178,52 @@ class Warper(object):
     def projectionNone(self):
         '''No warp, same projection as original PsychoPy'''
         # Vertex data
-        v0 = ( -1.0, -1.0)
-        v1 = ( -1.0,  1.0)
-        v2 = (  1.0,  1.0)
-        v3 = (  1.0, -1.0)
+        v0 = (-1.0, -1.0)
+        v1 = (-1.0,  1.0)
+        v2 = (1.0,  1.0)
+        v3 = (1.0, -1.0)
 
         # Texture coordinates
-        t0 = ( 0.0, 0.0)
-        t1 = ( 0.0, 1.0)
-        t2 = ( 1.0, 1.0)
-        t3 = ( 1.0, 0.0)
+        t0 = (0.0, 0.0)
+        t1 = (0.0, 1.0)
+        t2 = (1.0, 1.0)
+        t3 = (1.0, 0.0)
 
-        vertices = np.array( [ v0, v1, v2, v3 ], 'float32' )
-        tcoords = np.array( [ t0, t1, t2, t3 ], 'float32' )
+        vertices = np.array([v0, v1, v2, v3], 'float32')
+        tcoords = np.array([t0, t1, t2, t3], 'float32')
 
-        #draw four quads during rendering loop
+        # draw four quads during rendering loop
         self.nverts = 4
-        self.createVertexAndTextureBuffers (vertices, tcoords)
+        self.createVertexAndTextureBuffers(vertices, tcoords)
 
     def projectionSphericalOrCylindrical(self, isCylindrical=False):
         '''Correct perspective on flat screen using either a spherical or cylindrical projection.'''
-        self.nverts = (self.xgrid-1)*(self.ygrid-1)*4
+        self.nverts = (self.xgrid - 1) * (self.ygrid - 1) * 4
 
         # eye position in cm
         xEye = self.eyepoint[0] * self.mon_width_cm
         yEye = self.eyepoint[1] * self.mon_height_cm
 
-        #create vertex grid array, and texture coords
-        #times 4 for quads
-        vertices = np.zeros(((self.xgrid-1)*(self.ygrid-1)*4, 2),dtype='float32')
-        tcoords = np.zeros(((self.xgrid-1)*(self.ygrid-1)*4, 2),dtype='float32')
+        # create vertex grid array, and texture coords
+        # times 4 for quads
+        vertices = np.zeros(
+            ((self.xgrid - 1) * (self.ygrid - 1) * 4, 2), dtype='float32')
+        tcoords = np.zeros(
+            ((self.xgrid - 1) * (self.ygrid - 1) * 4, 2), dtype='float32')
 
         equalDistanceX = np.linspace(0, self.mon_width_cm, self.xgrid)
         equalDistanceY = np.linspace(0, self.mon_height_cm, self.ygrid)
 
         # vertex coordinates
-        x_c = np.linspace(-1.0,1.0,self.xgrid)
-        y_c = np.linspace(-1.0,1.0,self.ygrid)
-        x_coords, y_coords = np.meshgrid(x_c,y_c)
+        x_c = np.linspace(-1.0, 1.0, self.xgrid)
+        y_c = np.linspace(-1.0, 1.0, self.ygrid)
+        x_coords, y_coords = np.meshgrid(x_c, y_c)
 
-        x = np.zeros(((self.xgrid), (self.ygrid)),dtype='float32')
-        y = np.zeros(((self.xgrid), (self.ygrid)),dtype='float32')
+        x = np.zeros(((self.xgrid), (self.ygrid)), dtype='float32')
+        y = np.zeros(((self.xgrid), (self.ygrid)), dtype='float32')
 
-        x[:,:] = equalDistanceX - xEye
-        y[:,:] = equalDistanceY - yEye
+        x[:, :] = equalDistanceX - xEye
+        y[:, :] = equalDistanceY - yEye
         y = np.transpose(y)
 
         r = np.sqrt(np.square(x) + np.square(y) + np.square(self.dist_cm))
@@ -233,12 +236,12 @@ class Warper(object):
             tx = self.dist_cm * np.sin(azimuth)
             ty = self.dist_cm * np.sin(altitude)
         else:
-            tx = self.dist_cm * (1 + x / r)- self.dist_cm
+            tx = self.dist_cm * (1 + x / r) - self.dist_cm
             ty = self.dist_cm * (1 + y / r) - self.dist_cm
 
         # prevent div0
-        azimuth[azimuth==0] = np.finfo(np.float32).eps
-        altitude[altitude==0] = np.finfo(np.float32).eps
+        azimuth[azimuth == 0] = np.finfo(np.float32).eps
+        altitude[altitude == 0] = np.finfo(np.float32).eps
 
         # the texture coordinates (which are now lying on the sphere)
         # need to be remapped back onto the plane of the display.
@@ -248,7 +251,8 @@ class Warper(object):
             tx = tx * azimuth / np.sin(azimuth)
             ty = ty * altitude / np.sin(altitude)
         else:
-            centralAngle = np.arccos (np.cos(altitude) * np.cos(np.abs(azimuth)))
+            centralAngle = np.arccos(
+                np.cos(altitude) * np.cos(np.abs(azimuth)))
             # distance from eyepoint to texture vertex
             arcLength = centralAngle * self.dist_cm
             # remap the texture coordinate
@@ -259,39 +263,39 @@ class Warper(object):
         u_coords = tx / self.mon_width_cm + 0.5
         v_coords = ty / self.mon_height_cm + 0.5
 
-        #loop to create quads
+        # loop to create quads
         vdex = 0
-        for y in xrange(0,self.ygrid-1):
-            for x in xrange(0,self.xgrid-1):
-                index = y*(self.xgrid) + x
+        for y in xrange(0, self.ygrid - 1):
+            for x in xrange(0, self.xgrid - 1):
+                index = y * (self.xgrid) + x
 
-                vertices[vdex+0,0] = x_coords[y,x]
-                vertices[vdex+0,1] = y_coords[y,x]
-                vertices[vdex+1,0] = x_coords[y,x+1]
-                vertices[vdex+1,1] = y_coords[y,x+1]
-                vertices[vdex+2,0] = x_coords[y+1,x+1]
-                vertices[vdex+2,1] = y_coords[y+1,x+1]
-                vertices[vdex+3,0] = x_coords[y+1,x]
-                vertices[vdex+3,1] = y_coords[y+1,x]
+                vertices[vdex + 0, 0] = x_coords[y, x]
+                vertices[vdex + 0, 1] = y_coords[y, x]
+                vertices[vdex + 1, 0] = x_coords[y, x + 1]
+                vertices[vdex + 1, 1] = y_coords[y, x + 1]
+                vertices[vdex + 2, 0] = x_coords[y + 1, x + 1]
+                vertices[vdex + 2, 1] = y_coords[y + 1, x + 1]
+                vertices[vdex + 3, 0] = x_coords[y + 1, x]
+                vertices[vdex + 3, 1] = y_coords[y + 1, x]
 
-                tcoords[vdex+0,0] = u_coords[y,x]
-                tcoords[vdex+0,1] = v_coords[y,x]
-                tcoords[vdex+1,0] = u_coords[y,x+1]
-                tcoords[vdex+1,1] = v_coords[y,x+1]
-                tcoords[vdex+2,0] = u_coords[y+1,x+1]
-                tcoords[vdex+2,1] = v_coords[y+1,x+1]
-                tcoords[vdex+3,0] = u_coords[y+1,x]
-                tcoords[vdex+3,1] = v_coords[y+1,x]
+                tcoords[vdex + 0, 0] = u_coords[y, x]
+                tcoords[vdex + 0, 1] = v_coords[y, x]
+                tcoords[vdex + 1, 0] = u_coords[y, x + 1]
+                tcoords[vdex + 1, 1] = v_coords[y, x + 1]
+                tcoords[vdex + 2, 0] = u_coords[y + 1, x + 1]
+                tcoords[vdex + 2, 1] = v_coords[y + 1, x + 1]
+                tcoords[vdex + 3, 0] = u_coords[y + 1, x]
+                tcoords[vdex + 3, 1] = v_coords[y + 1, x]
 
                 vdex += 4
-        self.createVertexAndTextureBuffers (vertices, tcoords)
+        self.createVertexAndTextureBuffers(vertices, tcoords)
 
-    def projectionWarpfile (self):
+    def projectionWarpfile(self):
         ''' Use a warp definition file to create the projection.
             See: http://paulbourke.net/dome/warpingfisheye/
         '''
         try:
-            fh = open (self.warpfile)
+            fh = open(self.warpfile)
             lines = fh.readlines()
             fh.close()
             filetype = int(lines[0])
@@ -304,7 +308,7 @@ class Warper(object):
             print(error)
             return
 
-        if (cols * rows != warpdata.shape[0] or warpdata.shape[1] != 5 or filetype != 2 ):
+        if (cols * rows != warpdata.shape[0] or warpdata.shape[1] != 5 or filetype != 2):
             error = 'warpfile data incorrect: ' + self.warpfile
             logging.warning(error)
             print(error)
@@ -313,77 +317,96 @@ class Warper(object):
         self.xgrid = cols
         self.ygrid = rows
 
-        self.nverts = (self.xgrid-1)*(self.ygrid-1)*4
+        self.nverts = (self.xgrid - 1) * (self.ygrid - 1) * 4
 
         # create vertex grid array, and texture coords times 4 for quads
-        vertices = np.zeros(((self.xgrid-1)*(self.ygrid-1)*4, 2),dtype='float32')
-        tcoords = np.zeros(((self.xgrid-1)*(self.ygrid-1)*4, 2),dtype='float32')
+        vertices = np.zeros(
+            ((self.xgrid - 1) * (self.ygrid - 1) * 4, 2), dtype='float32')
+        tcoords = np.zeros(
+            ((self.xgrid - 1) * (self.ygrid - 1) * 4, 2), dtype='float32')
         # opacity is RGBA
-        opacity = np.ones(((self.xgrid-1)*(self.ygrid-1)*4,4),dtype='float32')
+        opacity = np.ones(
+            ((self.xgrid - 1) * (self.ygrid - 1) * 4, 4), dtype='float32')
 
-        #loop to create quads
+        # loop to create quads
         vdex = 0
-        for y in xrange(0,self.ygrid-1):
-            for x in xrange(0,self.xgrid-1):
-                index = y*(self.xgrid) + x
+        for y in xrange(0, self.ygrid - 1):
+            for x in xrange(0, self.xgrid - 1):
+                index = y * (self.xgrid) + x
 
-                vertices[vdex+0,0] = warpdata[index,0]          #x_coords[y,x]
-                vertices[vdex+0,1] = warpdata[index,1]          #y_coords[y,x]
-                vertices[vdex+1,0] = warpdata[index+1,0]        #x_coords[y,x+1]
-                vertices[vdex+1,1] = warpdata[index+1,1]        #y_coords[y,x+1]
-                vertices[vdex+2,0] = warpdata[index+cols+1,0]   #x_coords[y+1,x+1]
-                vertices[vdex+2,1] = warpdata[index+cols+1,1]   #y_coords[y+1,x+1]
-                vertices[vdex+3,0] = warpdata[index+cols,0]     #x_coords[y+1,x]
-                vertices[vdex+3,1] = warpdata[index+cols,1]     #y_coords[y+1,x]
+                vertices[vdex + 0, 0] = warpdata[index, 0]  # x_coords[y,x]
+                vertices[vdex + 0, 1] = warpdata[index, 1]  # y_coords[y,x]
+                # x_coords[y,x+1]
+                vertices[vdex + 1, 0] = warpdata[index + 1, 0]
+                # y_coords[y,x+1]
+                vertices[vdex + 1, 1] = warpdata[index + 1, 1]
+                vertices[vdex + 2, 0] = warpdata[index +
+                                                 cols + 1, 0]  # x_coords[y+1,x+1]
+                vertices[vdex + 2, 1] = warpdata[index +
+                                                 cols + 1, 1]  # y_coords[y+1,x+1]
+                # x_coords[y+1,x]
+                vertices[vdex + 3, 0] = warpdata[index + cols, 0]
+                # y_coords[y+1,x]
+                vertices[vdex + 3, 1] = warpdata[index + cols, 1]
 
-                tcoords[vdex+0,0] = warpdata[index,2]           # u_coords[y,x]
-                tcoords[vdex+0,1] = warpdata[index,3]           # v_coords[y,x]
-                tcoords[vdex+1,0] = warpdata[index+1,2]         # u_coords[y,x+1]
-                tcoords[vdex+1,1] = warpdata[index+1,3]         # v_coords[y,x+1]
-                tcoords[vdex+2,0] = warpdata[index+cols+1,2]    # u_coords[y+1,x+1]
-                tcoords[vdex+2,1] = warpdata[index+cols+1,3]    # v_coords[y+1,x+1]
-                tcoords[vdex+3,0] = warpdata[index+cols,2]      # u_coords[y+1,x]
-                tcoords[vdex+3,1] = warpdata[index+cols,3]      # v_coords[y+1,x]
+                # u_coords[y,x]
+                tcoords[vdex + 0, 0] = warpdata[index, 2]
+                # v_coords[y,x]
+                tcoords[vdex + 0, 1] = warpdata[index, 3]
+                tcoords[vdex + 1, 0] = warpdata[index +
+                                                1, 2]         # u_coords[y,x+1]
+                tcoords[vdex + 1, 1] = warpdata[index +
+                                                1, 3]         # v_coords[y,x+1]
+                tcoords[vdex + 2, 0] = warpdata[index +
+                                                cols + 1, 2]    # u_coords[y+1,x+1]
+                tcoords[vdex + 2, 1] = warpdata[index +
+                                                cols + 1, 3]    # v_coords[y+1,x+1]
+                tcoords[vdex + 3, 0] = warpdata[index +
+                                                cols, 2]      # u_coords[y+1,x]
+                tcoords[vdex + 3, 1] = warpdata[index +
+                                                cols, 3]      # v_coords[y+1,x]
 
-                opacity[vdex,3] = warpdata[index, 4]
-                opacity[vdex+1,3] = warpdata[index+1, 4]
-                opacity[vdex+2,3] = warpdata[index+cols+1, 4]
-                opacity[vdex+3,3] = warpdata[index+cols, 4]
+                opacity[vdex, 3] = warpdata[index, 4]
+                opacity[vdex + 1, 3] = warpdata[index + 1, 4]
+                opacity[vdex + 2, 3] = warpdata[index + cols + 1, 4]
+                opacity[vdex + 3, 3] = warpdata[index + cols, 4]
 
                 vdex += 4
-        self.createVertexAndTextureBuffers (vertices, tcoords, opacity)
+        self.createVertexAndTextureBuffers(vertices, tcoords, opacity)
 
-    def createVertexAndTextureBuffers(self, vertices, tcoords, opacity = None):
+    def createVertexAndTextureBuffers(self, vertices, tcoords, opacity=None):
         ''' Allocate hardware buffers for vertices, texture coordinates, and optionally opacity. '''
         if self.flipHorizontal:
-            vertices[:,0] = -vertices[:,0]
+            vertices[:, 0] = -vertices[:, 0]
         if self.flipVertical:
-            vertices[:,1] = -vertices[:,1]
+            vertices[:, 1] = -vertices[:, 1]
 
-        GL.glEnableClientState (GL.GL_VERTEX_ARRAY)
+        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
 
-        #vertex buffer in hardware
+        # vertex buffer in hardware
         self.gl_vb = GL.GLuint()
-        GL.glGenBuffers(1 , self.gl_vb)
+        GL.glGenBuffers(1, self.gl_vb)
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.gl_vb)
-        GL.glBufferData(GL.GL_ARRAY_BUFFER, ADT.arrayByteCount(vertices), ADT.voidDataPointer(vertices), GL.GL_STATIC_DRAW)
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, ADT.arrayByteCount(
+            vertices), ADT.voidDataPointer(vertices), GL.GL_STATIC_DRAW)
 
-        #vertex buffer tdata in hardware
+        # vertex buffer tdata in hardware
         self.gl_tb = GL.GLuint()
-        GL.glGenBuffers(1 , self.gl_tb)
+        GL.glGenBuffers(1, self.gl_tb)
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.gl_tb)
-        GL.glBufferData(GL.GL_ARRAY_BUFFER, ADT.arrayByteCount(tcoords), ADT.voidDataPointer(tcoords), GL.GL_STATIC_DRAW)
+        GL.glBufferData(GL.GL_ARRAY_BUFFER, ADT.arrayByteCount(
+            tcoords), ADT.voidDataPointer(tcoords), GL.GL_STATIC_DRAW)
 
         # opacity buffer in hardware (only for warp files)
         if opacity is not None:
             self.gl_color = GL.GLuint()
-            GL.glGenBuffers(1 , self.gl_color)
+            GL.glGenBuffers(1, self.gl_color)
             GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.gl_color)
-            #convert opacity to RGBA, one point for each corner of the quad
-            GL.glBufferData(GL.GL_ARRAY_BUFFER, ADT.arrayByteCount(opacity), ADT.voidDataPointer(opacity), GL.GL_STATIC_DRAW)
+            # convert opacity to RGBA, one point for each corner of the quad
+            GL.glBufferData(GL.GL_ARRAY_BUFFER, ADT.arrayByteCount(
+                opacity), ADT.voidDataPointer(opacity), GL.GL_STATIC_DRAW)
         else:
             self.gl_color = None
 
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-

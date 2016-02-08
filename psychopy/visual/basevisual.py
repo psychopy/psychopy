@@ -41,7 +41,7 @@ from numpy import pi
 
 from psychopy.constants import NOT_STARTED, STARTED, STOPPED
 
-reportNImageResizes = 5 #permitted number of resizes
+reportNImageResizes = 5  # permitted number of resizes
 
 """
 There are several base and mix-in visual classes for multiple inheritance:
@@ -65,19 +65,22 @@ Typically subclass BaseVisualStim to create new visual stim classes, and add
 mixin(s) as needed to add functionality.
 """
 
+
 class MinimalStim(object):
     """Non-visual methods and attributes for BaseVisualStim and RatingScale.
 
     Includes: name, autoDraw, autoLog, status, __str__
     """
+
     def __init__(self, name=None, autoLog=None):
-        self.__dict__['name'] = name if name not in (None, '') else 'unnamed %s' %self.__class__.__name__
+        self.__dict__['name'] = name if name not in (
+            None, '') else 'unnamed %s' % self.__class__.__name__
         self.status = NOT_STARTED
         self.autoLog = autoLog
         super(MinimalStim, self).__init__()
         if self.autoLog:
-            logging.warning("%s is calling MinimalStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
-                            %(self.__class__.__name__))
+            logging.warning("%s is calling MinimalStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())"
+                            % (self.__class__.__name__))
 
     def __str__(self, complete=False):
         """
@@ -89,18 +92,18 @@ class MinimalStim(object):
                 if hasattr(self, param):
                     val = getattr(self, param)
                     valStr = repr(getattr(self, param))
-                    if len(repr(valStr))>50 and not complete:
+                    if len(repr(valStr)) > 50 and not complete:
                         if val.__class__.__name__ == 'attributeSetter':
-                            valStr = "%s(...)" %val.__getattribute__.__class__.__name__
+                            valStr = "%s(...)" % val.__getattribute__.__class__.__name__
                         else:
-                            valStr = "%s(...)" %val.__class__.__name__
+                            valStr = "%s(...)" % val.__class__.__name__
                 else:
                     valStr = 'UNKNOWN'
-                paramStrings.append("%s=%s" %(param, valStr))
-            #this could be used if all params are known to exist:
+                paramStrings.append("%s=%s" % (param, valStr))
+            # this could be used if all params are known to exist:
             # paramStrings = ["%s=%s" %(param, getattr(self, param)) for param in self._initParams]
             params = ", ".join(paramStrings)
-            s = "%s(%s)" %(className, params)
+            s = "%s(%s)" % (className, params)
         else:
             s = object.__repr__(self)
         return s
@@ -129,12 +132,13 @@ class MinimalStim(object):
         toDrawDepths = self.win._toDrawDepths
         beingDrawn = (self in toDraw)
         if value == beingDrawn:
-            return #nothing to do
+            return  # nothing to do
         elif value:
-            #work out where to insert the object in the autodraw list
+            # work out where to insert the object in the autodraw list
             depthArray = numpy.array(toDrawDepths)
-            iis = numpy.where(depthArray < self.depth)[0]#all indices where true
-            if len(iis):#we featured somewhere before the end of the list
+            iis = numpy.where(depthArray < self.depth)[
+                0]  # all indices where true
+            if len(iis):  # we featured somewhere before the end of the list
                 toDraw.insert(iis[0], self)
                 toDrawDepths.insert(iis[0], self.depth)
             else:
@@ -142,9 +146,9 @@ class MinimalStim(object):
                 toDrawDepths.append(self.depth)
             self.status = STARTED
         elif value == False:
-            #remove from autodraw lists
-            toDrawDepths.pop(toDraw.index(self))  #remove from depths
-            toDraw.remove(self)  #remove from draw list
+            # remove from autodraw lists
+            toDrawDepths.pop(toDraw.index(self))  # remove from depths
+            toDraw.remove(self)  # remove from draw list
             self.status = STOPPED
 
     def setAutoDraw(self, value, log=None):
@@ -167,30 +171,38 @@ class MinimalStim(object):
         but use this method if you need to suppress the log message"""
         setAttribute(self, 'autoLog', value, log)
 
+
 class LegacyVisualMixin(object):
     """Class to hold deprecated visual methods and attributes.
 
     Intended only for use as a mixin class for BaseVisualStim, to maintain
     backwards compatibility while reducing clutter in class BaseVisualStim.
     """
-    #def __init__(self):
+    # def __init__(self):
     #    super(LegacyVisualMixin, self).__init__()
 
     def _calcSizeRendered(self):
         """DEPRECATED in 1.80.00. This functionality is now handled by _updateVertices() and verticesPix"""
         #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This functionality is now handled by _updateVertices() and verticesPix"
-        if self.units in ['norm','pix', 'height']: self._sizeRendered=copy.copy(self.size)
-        elif self.units in ['deg', 'degs']: self._sizeRendered=deg2pix(self.size, self.win.monitor)
-        elif self.units=='cm': self._sizeRendered=cm2pix(self.size, self.win.monitor)
+        if self.units in ['norm', 'pix', 'height']:
+            self._sizeRendered = copy.copy(self.size)
+        elif self.units in ['deg', 'degs']:
+            self._sizeRendered = deg2pix(self.size, self.win.monitor)
+        elif self.units == 'cm':
+            self._sizeRendered = cm2pix(self.size, self.win.monitor)
         else:
-            logging.error("Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" %self.units)
+            logging.error(
+                "Stimulus units should be 'height', 'norm', 'deg', 'cm' or 'pix', not '%s'" % self.units)
 
     def _calcPosRendered(self):
         """DEPRECATED in 1.80.00. This functionality is now handled by _updateVertices() and verticesPix"""
         #raise DeprecationWarning, "_calcSizeRendered() was deprecated in 1.80.00. This functionality is now handled by _updateVertices() and verticesPix"
-        if self.units in ['norm','pix', 'height']: self._posRendered= copy.copy(self.pos)
-        elif self.units in ['deg', 'degs']: self._posRendered=deg2pix(self.pos, self.win.monitor)
-        elif self.units=='cm': self._posRendered=cm2pix(self.pos, self.win.monitor)
+        if self.units in ['norm', 'pix', 'height']:
+            self._posRendered = copy.copy(self.pos)
+        elif self.units in ['deg', 'degs']:
+            self._posRendered = deg2pix(self.pos, self.win.monitor)
+        elif self.units == 'cm':
+            self._posRendered = cm2pix(self.pos, self.win.monitor)
 
     def _getPolyAsRendered(self):
         """DEPRECATED. Return a list of vertices as rendered; used by overlaps()
@@ -198,20 +210,24 @@ class LegacyVisualMixin(object):
         oriRadians = numpy.radians(self.ori)
         sinOri = numpy.sin(-oriRadians)
         cosOri = numpy.cos(-oriRadians)
-        x = self._verticesRendered[:,0] * cosOri - self._verticesRendered[:,1] * sinOri
-        y = self._verticesRendered[:,0] * sinOri + self._verticesRendered[:,1] * cosOri
-        return numpy.column_stack((x,y)) + self._posRendered
+        x = self._verticesRendered[:, 0] * cosOri - \
+            self._verticesRendered[:, 1] * sinOri
+        y = self._verticesRendered[:, 0] * sinOri + \
+            self._verticesRendered[:, 1] * cosOri
+        return numpy.column_stack((x, y)) + self._posRendered
 
     def setDKL(self, newDKL, operation=''):
         """DEPRECATED since v1.60.05: Please use the `color` attribute
         """
         self._set('dkl', val=newDKL, op=operation)
         self.setRGB(dkl2rgb(self.dkl, self.win.dkl_rgb))
+
     def setLMS(self, newLMS, operation=''):
         """DEPRECATED since v1.60.05: Please use the `color` attribute
         """
         self._set('lms', value=newLMS, op=operation)
         self.setRGB(lms2rgb(self.lms, self.win.lms_rgb))
+
     def setRGB(self, newRGB, operation='', log=None):
         """DEPRECATED since v1.60.05: Please use the `color` attribute
         """
@@ -219,7 +235,7 @@ class LegacyVisualMixin(object):
         self._set('rgb', newRGB, operation)
         setTexIfNoShaders(self)
         if self.__class__.__name__ == 'TextStim' and not self.useShaders:
-            self._needSetText=True
+            self._needSetText = True
 
     @attributeSetter
     def depth(self, value):
@@ -227,10 +243,11 @@ class LegacyVisualMixin(object):
         """
         self.__dict__['depth'] = value
 
+
 class ColorMixin(object):
     """Mixin class for visual stim that need color and or contrast.
     """
-    #def __init__(self):
+    # def __init__(self):
     #    super(ColorStim, self).__init__()
 
     @attributeSetter
@@ -276,7 +293,8 @@ class ColorMixin(object):
             stim.colorSpace = 'rgb255'
             stim.color = (0, 128, 255)
         """
-        self.setColor(value, log=False)  # logging already done by attributeSettter
+        self.setColor(
+            value, log=False)  # logging already done by attributeSettter
 
     @attributeSetter
     def colorSpace(self, value):
@@ -332,30 +350,36 @@ class ColorMixin(object):
         # If we don't have shaders we need to rebuild the stimulus
         if hasattr(self, 'useShaders'):
             if not self.useShaders:
-                #we'll need to update the textures for the stimulus
+                # we'll need to update the textures for the stimulus
                 #(sometime before drawing but not now)
                 if self.__class__.__name__ == 'TextStim':
                     self.text = self.text  # call attributeSetter to rebuild text
-                elif hasattr(self,'_needTextureUpdate'): #GratingStim, RadialStim, ImageStim etc
+                # GratingStim, RadialStim, ImageStim etc
+                elif hasattr(self, '_needTextureUpdate'):
                     self._needTextureUpdate = True
-                elif self.__class__.__name__ in ('ShapeStim','DotStim'):
-                    pass # They work fine without shaders?
+                elif self.__class__.__name__ in ('ShapeStim', 'DotStim'):
+                    pass  # They work fine without shaders?
                 elif self.autoLog:
-                    logging.warning('Tried to set contrast while useShaders = False but stimulus was not rebuild. Contrast might remain unchanged.')
+                    logging.warning(
+                        'Tried to set contrast while useShaders = False but stimulus was not rebuild. Contrast might remain unchanged.')
         elif self.autoLog:
-            logging.warning('Contrast was set on class where useShaders was undefined. Contrast might remain unchanged')
+            logging.warning(
+                'Contrast was set on class where useShaders was undefined. Contrast might remain unchanged')
+
     def setColor(self, color, colorSpace=None, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         and/or set colorSpace simultaneously.
         """
         # NB: the setColor helper function! Not this function itself :-)
-        setColor(self,color, colorSpace=colorSpace, operation=operation,
-                    rgbAttrib='rgb', #or 'fillRGB' etc
-                    colorAttrib='color')
+        setColor(self, color, colorSpace=colorSpace, operation=operation,
+                 rgbAttrib='rgb',  # or 'fillRGB' etc
+                 colorAttrib='color')
         if self.__class__.__name__ == 'TextStim' and not self.useShaders:
             self._needSetText = True
-        logAttrib(self, log, 'color', value='%s (%s)' %(self.color, self.colorSpace))
+        logAttrib(self, log, 'color', value='%s (%s)' %
+                  (self.color, self.colorSpace))
+
     def setContrast(self, newContrast, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
@@ -365,7 +389,8 @@ class ColorMixin(object):
     def _getDesiredRGB(self, rgb, colorSpace, contrast):
         """ Convert color to RGB while adding contrast
         Requires self.rgb, self.colorSpace and self.contrast"""
-        # Ensure that we work on 0-centered color (to make negative contrast values work)
+        # Ensure that we work on 0-centered color (to make negative contrast
+        # values work)
         if colorSpace not in ['rgb', 'dkl', 'lms', 'hsv']:
             rgb = (rgb / 255.0) * 2 - 1
 
@@ -373,31 +398,39 @@ class ColorMixin(object):
         # NB glColor will clamp it to be 0-1 (whether or not we use FBO)
         desiredRGB = (rgb * contrast + 1) / 2.0
         if not self.win.useFBO:
-            # Check that boundaries are not exceeded. If we have an FBO that can handle this
+            # Check that boundaries are not exceeded. If we have an FBO that
+            # can handle this
             if numpy.any(desiredRGB > 1.0) or numpy.any(desiredRGB < 0):
-                logging.warning('Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead' %desiredRGB) #AOH
-                desiredRGB=[0.0, 0.0, 1.0]
+                logging.warning(
+                    'Desired color %s (in RGB 0->1 units) falls outside the monitor gamut. Drawing blue instead' % desiredRGB)  # AOH
+                desiredRGB = [0.0, 0.0, 1.0]
 
         return desiredRGB
+
 
 class ContainerMixin(object):
     """Mixin class for visual stim that have verticesPix attrib and .contains() methods.
     """
+
     def __init__(self):
         super(ContainerMixin, self).__init__()
-        self._verticesBase = numpy.array([[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]]) #sqr
-        self._borderBase = numpy.array([[0.5,-0.5],[-0.5,-0.5],[-0.5,0.5],[0.5,0.5]]) #sqr
-        self._rotationMatrix = [[1.,0.],[0.,1.]] #no rotation as a default
+        self._verticesBase = numpy.array(
+            [[0.5, -0.5], [-0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]])  # sqr
+        self._borderBase = numpy.array(
+            [[0.5, -0.5], [-0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]])  # sqr
+        self._rotationMatrix = [[1., 0.], [0., 1.]]  # no rotation as a default
 
     @property
     def verticesPix(self):
         """This determines the coordinates of the vertices for the
         current stimulus in pixels, accounting for size, ori, pos and units
         """
-        #because this is a property getter we can check /on-access/ if it needs updating :-)
+        # because this is a property getter we can check /on-access/ if it
+        # needs updating :-)
         if self._needVertexUpdate:
             self._updateVertices()
         return self.__dict__['verticesPix']
+
     @property
     def _borderPix(self):
         """Allows for a dynamic border that differs from self.vertices, but gets
@@ -410,33 +443,37 @@ class ContainerMixin(object):
         if self._needVertexUpdate:
             self._updateVertices()
         return self.__dict__['_borderPix']
+
     def _updateVertices(self):
         """Sets Stim.verticesPix and ._borderPix from pos, size, ori, flipVert, flipHoriz
         """
-        #check whether stimulus needs flipping in either direction
-        flip = numpy.array([1,1])
+        # check whether stimulus needs flipping in either direction
+        flip = numpy.array([1, 1])
         if hasattr(self, 'flipHoriz'):
-            flip[0] = self.flipHoriz*(-2)+1  # True=(-1), False->(+1)
+            flip[0] = self.flipHoriz * (-2) + 1  # True=(-1), False->(+1)
         if hasattr(self, 'flipVert'):
-            flip[1] = self.flipVert*(-2)+1  # True=(-1), False->(+1)
+            flip[1] = self.flipVert * (-2) + 1  # True=(-1), False->(+1)
 
         if hasattr(self, 'vertices'):
             verts = self.vertices
         else:
             verts = self._verticesBase
         # set size and orientation, combine with position and convert to pix:
-        verts = numpy.dot(self.size*verts*flip, self._rotationMatrix)
-        verts = convertToPix(vertices=verts, pos=self.pos, win=self.win, units=self.units)
+        verts = numpy.dot(self.size * verts * flip, self._rotationMatrix)
+        verts = convertToPix(vertices=verts, pos=self.pos,
+                             win=self.win, units=self.units)
         self.__dict__['verticesPix'] = verts
 
         if hasattr(self, 'border'):
             #border = self.border
-            border = numpy.dot(self.size*self.border*flip, self._rotationMatrix)
-            border = convertToPix(vertices=border, pos=self.pos, win=self.win, units=self.units)
+            border = numpy.dot(self.size * self.border *
+                               flip, self._rotationMatrix)
+            border = convertToPix(
+                vertices=border, pos=self.pos, win=self.win, units=self.units)
             self.__dict__['_borderPix'] = border
 
         self._needVertexUpdate = False
-        self._needUpdate = True #but we presumably need to update the list
+        self._needUpdate = True  # but we presumably need to update the list
 
     def contains(self, x, y=None, units=None):
         """Returns True if a point x,y is inside the stimulus' border.
@@ -459,28 +496,29 @@ class ContainerMixin(object):
 
         See Coder demos: shapeContains.py
         """
-        #get the object in pixels
+        # get the object in pixels
         if hasattr(x, 'border'):
-            xy = x._borderPix #access only once - this is a property
-            units = 'pix' #we can forget about the units
+            xy = x._borderPix  # access only once - this is a property
+            units = 'pix'  # we can forget about the units
         elif hasattr(x, 'verticesPix'):
-            xy = x.verticesPix #access only once - this is a property (slower to access)
-            units = 'pix' #we can forget about the units
+            # access only once - this is a property (slower to access)
+            xy = x.verticesPix
+            units = 'pix'  # we can forget about the units
         elif hasattr(x, 'getPos'):
             xy = x.getPos()
             units = x.units
         elif type(x) in [list, tuple, numpy.ndarray]:
             xy = numpy.array(x)
         else:
-            xy = numpy.array((x,y))
-        #try to work out what units x,y has
+            xy = numpy.array((x, y))
+        # try to work out what units x,y has
         if units is None:
             if hasattr(xy, 'units'):
                 units = xy.units
             else:
                 units = self.units
         if units != 'pix':
-            xy = convertToPix(xy, pos=(0,0), units=units, win=self.win)
+            xy = convertToPix(xy, pos=(0, 0), units=units, win=self.win)
         # ourself in pixels
         if hasattr(self, 'border'):
             poly = self._borderPix  # e.g., outline vertices
@@ -506,16 +544,17 @@ class ContainerMixin(object):
         """
         return polygonsOverlap(self, polygon)
 
+
 class TextureMixin(object):
     """Mixin class for visual stim that have textures.
 
     Could move visual.helpers.setTexIfNoShaders() into here
     """
-    #def __init__(self):
+    # def __init__(self):
     #    super(TextureMixin, self).__init__()
 
     def _createTexture(self, tex, id, pixFormat, stim, res=128, maskParams=None,
-                      forcePOW2=True, dataType=None):
+                       forcePOW2=True, dataType=None):
         """
         :params:
             id:
@@ -538,12 +577,12 @@ class TextureMixin(object):
         """
         Create an intensity texture, ranging -1:1.0
         """
-        notSqr=False #most of the options will be creating a sqr texture
-        wasImage=False #change this if image loading works
+        notSqr = False  # most of the options will be creating a sqr texture
+        wasImage = False  # change this if image loading works
         useShaders = stim.useShaders
         interpolate = stim.interpolate
         if dataType is None:
-            if useShaders and pixFormat==GL.GL_RGB:
+            if useShaders and pixFormat == GL.GL_RGB:
                 dataType = GL.GL_FLOAT
             else:
                 dataType = GL.GL_UNSIGNED_BYTE
@@ -551,87 +590,110 @@ class TextureMixin(object):
         # Fill out unspecified portions of maskParams with default values
         if maskParams is None:
             maskParams = {}
-        allMaskParams = {'fringeWidth': 0.2, 'sd': 3}  # fringeWidth affects the proportion of the stimulus diameter that is devoted to the raised cosine.
+        # fringeWidth affects the proportion of the stimulus diameter that is
+        # devoted to the raised cosine.
+        allMaskParams = {'fringeWidth': 0.2, 'sd': 3}
         allMaskParams.update(maskParams)
 
         if type(tex) == numpy.ndarray:
-            #handle a numpy array
-            #for now this needs to be an NxN intensity array
+            # handle a numpy array
+            # for now this needs to be an NxN intensity array
             intensity = tex.astype(numpy.float32)
-            if intensity.max()>1 or intensity.min()<-1:
-                logging.error('numpy arrays used as textures should be in the range -1(black):1(white)')
-            if len(tex.shape)==3:
-                wasLum=False
-            else: wasLum = True
-            ##is it 1D?
-            if tex.shape[0]==1:
-                stim._tex1D=True
-                res=tex.shape[1]
-            elif len(tex.shape)==1 or tex.shape[1]==1:
-                stim._tex1D=True
-                res=tex.shape[0]
+            if intensity.max() > 1 or intensity.min() < -1:
+                logging.error(
+                    'numpy arrays used as textures should be in the range -1(black):1(white)')
+            if len(tex.shape) == 3:
+                wasLum = False
             else:
-                stim._tex1D=False
-                #check if it's a square power of two
+                wasLum = True
+            # is it 1D?
+            if tex.shape[0] == 1:
+                stim._tex1D = True
+                res = tex.shape[1]
+            elif len(tex.shape) == 1 or tex.shape[1] == 1:
+                stim._tex1D = True
+                res = tex.shape[0]
+            else:
+                stim._tex1D = False
+                # check if it's a square power of two
                 maxDim = max(tex.shape)
                 powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
-                if forcePOW2 and (tex.shape[0]!=powerOf2 or tex.shape[1]!=powerOf2):
-                    logging.error("Requiring a square power of two (e.g. 16x16, 256x256) texture but didn't receive one")
-                res=tex.shape[0]
+                if forcePOW2 and (tex.shape[0] != powerOf2 or tex.shape[1] != powerOf2):
+                    logging.error(
+                        "Requiring a square power of two (e.g. 16x16, 256x256) texture but didn't receive one")
+                res = tex.shape[0]
             if useShaders:
-                dataType=GL.GL_FLOAT
-        elif tex in [None,"none", "None"]:
-            res = 1 #4x4 (2x2 is SUPPOSED to be fine but generates weird colors!)
-            intensity = numpy.ones([res,res],numpy.float32)
+                dataType = GL.GL_FLOAT
+        elif tex in [None, "none", "None"]:
+            # 4x4 (2x2 is SUPPOSED to be fine but generates weird colors!)
+            res = 1
+            intensity = numpy.ones([res, res], numpy.float32)
             wasLum = True
         elif tex == "sin":
-            onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
-            intensity = numpy.sin(onePeriodY-pi/2)
+            # NB 1j*res is a special mgrid notation
+            onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2 * pi:1j * res]
+            intensity = numpy.sin(onePeriodY - pi / 2)
             wasLum = True
-        elif tex == "sqr":#square wave (symmetric duty cycle)
-            onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
-            sinusoid = numpy.sin(onePeriodY-pi/2)
-            intensity = numpy.where(sinusoid>0, 1, -1)
+        elif tex == "sqr":  # square wave (symmetric duty cycle)
+            # NB 1j*res is a special mgrid notation
+            onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2 * pi:1j * res]
+            sinusoid = numpy.sin(onePeriodY - pi / 2)
+            intensity = numpy.where(sinusoid > 0, 1, -1)
             wasLum = True
         elif tex == "saw":
-            intensity = numpy.linspace(-1.0,1.0,res,endpoint=True)*numpy.ones([res,1])
+            intensity = numpy.linspace(-1.0, 1.0, res,
+                                       endpoint=True) * numpy.ones([res, 1])
             wasLum = True
         elif tex == "tri":
-            intensity = numpy.linspace(-1.0,3.0,res,endpoint=True)#-1:3 means the middle is at +1
-            intensity[int(res/2.0+1):] = 2.0-intensity[int(res/2.0+1):]#remove from 3 to get back down to -1
-            intensity = intensity*numpy.ones([res,1])#make 2D
+            # -1:3 means the middle is at +1
+            intensity = numpy.linspace(-1.0, 3.0, res, endpoint=True)
+            # remove from 3 to get back down to -1
+            intensity[int(res / 2.0 + 1):] = 2.0 - \
+                intensity[int(res / 2.0 + 1):]
+            intensity = intensity * numpy.ones([res, 1])  # make 2D
             wasLum = True
         elif tex == "sinXsin":
-            onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:1j*res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
-            intensity = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
+            # NB 1j*res is a special mgrid notation
+            onePeriodX, onePeriodY = numpy.mgrid[
+                0:2 * pi:1j * res, 0:2 * pi:1j * res]
+            intensity = numpy.sin(onePeriodX - pi / 2) * \
+                numpy.sin(onePeriodY - pi / 2)
             wasLum = True
         elif tex == "sqrXsqr":
-            onePeriodX, onePeriodY = numpy.mgrid[0:2*pi:1j*res, 0:2*pi:1j*res]# NB 1j*res is a special mgrid notation
-            sinusoid = numpy.sin(onePeriodX-pi/2)*numpy.sin(onePeriodY-pi/2)
-            intensity = numpy.where(sinusoid>0, 1, -1)
+            # NB 1j*res is a special mgrid notation
+            onePeriodX, onePeriodY = numpy.mgrid[
+                0:2 * pi:1j * res, 0:2 * pi:1j * res]
+            sinusoid = numpy.sin(onePeriodX - pi / 2) * \
+                numpy.sin(onePeriodY - pi / 2)
+            intensity = numpy.where(sinusoid > 0, 1, -1)
             wasLum = True
         elif tex == "circle":
-            rad=makeRadialMatrix(res)
-            intensity = (rad<=1)*2-1
-            wasLum=True
+            rad = makeRadialMatrix(res)
+            intensity = (rad <= 1) * 2 - 1
+            wasLum = True
         elif tex == "gauss":
-            rad=makeRadialMatrix(res)
-            intensity = numpy.exp( -rad**2.0 / (2.0*(1.0 / allMaskParams['sd'])**2.0) )*2-1 #3sd.s by the edge of the stimulus
-            wasLum=True
+            rad = makeRadialMatrix(res)
+            # 3sd.s by the edge of the stimulus
+            intensity = numpy.exp(-rad**2.0 / (2.0 *
+                                               (1.0 / allMaskParams['sd'])**2.0)) * 2 - 1
+            wasLum = True
         elif tex == "cross":
-            X, Y = numpy.mgrid[-1:1:1j*res, -1:1:1j*res]
-            tf_neg_cross = ((X < -0.2) & (Y < -0.2)) | ((X < -0.2) & (Y > 0.2)) | ((X > 0.2) & (Y < -0.2)) | ((X > 0.2) & (Y > 0.2))
-            #tf_neg_cross == True at places where the cross is transparent, i.e. the four corners
+            X, Y = numpy.mgrid[-1:1:1j * res, -1:1:1j * res]
+            tf_neg_cross = ((X < -0.2) & (Y < -0.2)) | ((X < -0.2) & (Y > 0.2)
+                                                        ) | ((X > 0.2) & (Y < -0.2)) | ((X > 0.2) & (Y > 0.2))
+            # tf_neg_cross == True at places where the cross is transparent,
+            # i.e. the four corners
             intensity = numpy.where(tf_neg_cross, -1, 1)
             wasLum = True
-        elif tex == "radRamp":#a radial ramp
-            rad=makeRadialMatrix(res)
-            intensity = 1-2*rad
-            intensity = numpy.where(rad<-1, intensity, -1)#clip off the corners (circular)
-            wasLum=True
-        elif tex == "raisedCos": # A raised cosine
-            wasLum=True
-            hamming_len = 1000 # This affects the 'granularity' of the raised cos
+        elif tex == "radRamp":  # a radial ramp
+            rad = makeRadialMatrix(res)
+            intensity = 1 - 2 * rad
+            # clip off the corners (circular)
+            intensity = numpy.where(rad < -1, intensity, -1)
+            wasLum = True
+        elif tex == "raisedCos":  # A raised cosine
+            wasLum = True
+            hamming_len = 1000  # This affects the 'granularity' of the raised cos
 
             rad = makeRadialMatrix(res)
             intensity = numpy.zeros_like(rad)
@@ -640,16 +702,19 @@ class TextureMixin(object):
                 [numpy.logical_and(rad <= 1, rad >= 1 - allMaskParams['fringeWidth'])])[1:]
 
             # Make a raised_cos (half a hamming window):
-            raised_cos = numpy.hamming(hamming_len)[:hamming_len/2]
+            raised_cos = numpy.hamming(hamming_len)[:hamming_len / 2]
             raised_cos -= numpy.min(raised_cos)
             raised_cos /= numpy.max(raised_cos)
 
-            # Measure the distance from the edge - this is your index into the hamming window:
-            d_from_edge = numpy.abs((1 - allMaskParams['fringeWidth']) - rad[raised_cos_idx])
+            # Measure the distance from the edge - this is your index into the
+            # hamming window:
+            d_from_edge = numpy.abs(
+                (1 - allMaskParams['fringeWidth']) - rad[raised_cos_idx])
             d_from_edge /= numpy.max(d_from_edge)
-            d_from_edge *= numpy.round(hamming_len/2)
+            d_from_edge *= numpy.round(hamming_len / 2)
 
-            # This is the indices into the hamming (larger for small distances from the edge!):
+            # This is the indices into the hamming (larger for small distances
+            # from the edge!):
             portion_idx = (-1 * d_from_edge).astype(int)
 
             # Apply the raised cos to this portion:
@@ -659,7 +724,8 @@ class TextureMixin(object):
             intensity = intensity - 0.5
             intensity = intensity / numpy.max(intensity)
 
-            #Sometimes there are some remaining artifacts from this process, get rid of them:
+            # Sometimes there are some remaining artifacts from this process,
+            # get rid of them:
             artifact_idx = numpy.where(numpy.logical_and(intensity == -1,
                                                          rad < 0.99))
             intensity[artifact_idx] = 1
@@ -671,145 +737,177 @@ class TextureMixin(object):
             if type(tex) in [str, unicode, numpy.string_]:
                 # maybe tex is the name of a file:
                 if not os.path.isfile(tex):
-                    logging.error("Couldn't find image file '%s'; check path?" %(tex)); logging.flush()
+                    logging.error(
+                        "Couldn't find image file '%s'; check path?" % (tex))
+                    logging.flush()
                     raise OSError, "Couldn't find image file '%s'; check path? (tried: %s)" \
-                        % (tex, os.path.abspath(tex))#ensure we quit
+                        % (tex, os.path.abspath(tex))  # ensure we quit
                 try:
                     im = Image.open(tex)
                     im = im.transpose(Image.FLIP_TOP_BOTTOM)
                 except IOError:
-                    logging.error("Found file '%s' but failed to load as an image" %(tex)); logging.flush()
+                    logging.error(
+                        "Found file '%s' but failed to load as an image" % (tex))
+                    logging.flush()
                     raise IOError, "Found file '%s' [= %s] but it failed to load as an image" \
-                        % (tex, os.path.abspath(tex))#ensure we quit
+                        % (tex, os.path.abspath(tex))  # ensure we quit
             else:
                 # can't be a file; maybe its an image already in memory?
                 try:
-                    im = tex.copy().transpose(Image.FLIP_TOP_BOTTOM) # ? need to flip if in mem?
-                except AttributeError: # nope, not an image in memory
-                    logging.error("Couldn't make sense of requested image."); logging.flush()
-                    raise AttributeError, "Couldn't make sense of requested image."#ensure we quit
+                    im = tex.copy().transpose(Image.FLIP_TOP_BOTTOM)  # ? need to flip if in mem?
+                except AttributeError:  # nope, not an image in memory
+                    logging.error("Couldn't make sense of requested image.")
+                    logging.flush()
+                    raise AttributeError, "Couldn't make sense of requested image."  # ensure we quit
             # at this point we have a valid im
-            stim._origSize=im.size
-            wasImage=True
-            #is it 1D?
-            if im.size[0]==1 or im.size[1]==1:
+            stim._origSize = im.size
+            wasImage = True
+            # is it 1D?
+            if im.size[0] == 1 or im.size[1] == 1:
                 logging.error("Only 2D textures are supported at the moment")
             else:
                 maxDim = max(im.size)
                 powerOf2 = int(2**numpy.ceil(numpy.log2(maxDim)))
-                if im.size[0]!=powerOf2 or im.size[1]!=powerOf2:
+                if im.size[0] != powerOf2 or im.size[1] != powerOf2:
                     if not forcePOW2:
-                        notSqr=True
-                    elif glob_vars.nImageResizes<reportNImageResizes:
-                        logging.warning("Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" %(tex, powerOf2, powerOf2))
-                        glob_vars.nImageResizes+=1
-                        im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
-                    elif glob_vars.nImageResizes==reportNImageResizes:
-                        logging.warning("Multiple images have needed resizing - I'll stop bothering you!")
-                        im=im.resize([powerOf2,powerOf2],Image.BILINEAR)
-            #is it Luminance or RGB?
-            if pixFormat==GL.GL_ALPHA and im.mode!='L':#we have RGB and need Lum
+                        notSqr = True
+                    elif glob_vars.nImageResizes < reportNImageResizes:
+                        logging.warning(
+                            "Image '%s' was not a square power-of-two image. Linearly interpolating to be %ix%i" % (tex, powerOf2, powerOf2))
+                        glob_vars.nImageResizes += 1
+                        im = im.resize([powerOf2, powerOf2], Image.BILINEAR)
+                    elif glob_vars.nImageResizes == reportNImageResizes:
+                        logging.warning(
+                            "Multiple images have needed resizing - I'll stop bothering you!")
+                        im = im.resize([powerOf2, powerOf2], Image.BILINEAR)
+            # is it Luminance or RGB?
+            if pixFormat == GL.GL_ALPHA and im.mode != 'L':  # we have RGB and need Lum
                 wasLum = True
-                im = im.convert("L")#force to intensity (in case it was rgb)
-            elif im.mode=='L': #we have lum and no need to change
+                im = im.convert("L")  # force to intensity (in case it was rgb)
+            elif im.mode == 'L':  # we have lum and no need to change
                 wasLum = True
                 if useShaders:
-                    dataType=GL.GL_FLOAT
-            elif pixFormat==GL.GL_RGB: #we want RGB and might need to convert from CMYK or Lm
+                    dataType = GL.GL_FLOAT
+            elif pixFormat == GL.GL_RGB:  # we want RGB and might need to convert from CMYK or Lm
                 #texture = im.tostring("raw", "RGB", 0, -1)
                 im = im.convert("RGBA")
-                wasLum=False
-            if dataType==GL.GL_FLOAT:
-                #convert from ubyte to float
-                intensity = numpy.array(im).astype(numpy.float32)*0.0078431372549019607-1.0 # much faster to avoid division 2/255
+                wasLum = False
+            if dataType == GL.GL_FLOAT:
+                # convert from ubyte to float
+                # much faster to avoid division 2/255
+                intensity = numpy.array(im).astype(
+                    numpy.float32) * 0.0078431372549019607 - 1.0
             else:
                 intensity = numpy.array(im)
-        if pixFormat==GL.GL_RGB and wasLum and dataType==GL.GL_FLOAT: #grating stim on good machine
-            #keep as float32 -1:1
-            if sys.platform!='darwin' and stim.win.glVendor.startswith('nvidia'):
-                #nvidia under win/linux might not support 32bit float
-                internalFormat = GL.GL_RGB16F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
-            else:#we've got a mac or an ATI card and can handle 32bit float textures
-                internalFormat = GL.GL_RGB32F_ARB #could use GL_LUMINANCE32F_ARB here but check shader code?
-            data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.float32)#initialise data array as a float
-            data[:,:,0] = intensity#R
-            data[:,:,1] = intensity#G
-            data[:,:,2] = intensity#B
-        elif pixFormat==GL.GL_RGB and wasLum and dataType!=GL.GL_FLOAT and stim.useShaders:
-            #was a lum image: stick with ubyte for speed
+        if pixFormat == GL.GL_RGB and wasLum and dataType == GL.GL_FLOAT:  # grating stim on good machine
+            # keep as float32 -1:1
+            if sys.platform != 'darwin' and stim.win.glVendor.startswith('nvidia'):
+                # nvidia under win/linux might not support 32bit float
+                # could use GL_LUMINANCE32F_ARB here but check shader code?
+                internalFormat = GL.GL_RGB16F_ARB
+            else:  # we've got a mac or an ATI card and can handle 32bit float textures
+                # could use GL_LUMINANCE32F_ARB here but check shader code?
+                internalFormat = GL.GL_RGB32F_ARB
+            # initialise data array as a float
+            data = numpy.ones(
+                (intensity.shape[0], intensity.shape[1], 3), numpy.float32)
+            data[:, :, 0] = intensity  # R
+            data[:, :, 1] = intensity  # G
+            data[:, :, 2] = intensity  # B
+        elif pixFormat == GL.GL_RGB and wasLum and dataType != GL.GL_FLOAT and stim.useShaders:
+            # was a lum image: stick with ubyte for speed
             internalFormat = GL.GL_RGB
-            data = numpy.ones((intensity.shape[0],intensity.shape[1],3),numpy.ubyte)#initialise data array as a float
-            data[:,:,0] = intensity#R
-            data[:,:,1] = intensity#G
-            data[:,:,2] = intensity#B
-        elif pixFormat==GL.GL_RGB and wasLum and not stim.useShaders: #Grating on legacy hardware, or ImageStim with wasLum=True
-            #scale by rgb and convert to ubyte
+            # initialise data array as a float
+            data = numpy.ones(
+                (intensity.shape[0], intensity.shape[1], 3), numpy.ubyte)
+            data[:, :, 0] = intensity  # R
+            data[:, :, 1] = intensity  # G
+            data[:, :, 2] = intensity  # B
+        # Grating on legacy hardware, or ImageStim with wasLum=True
+        elif pixFormat == GL.GL_RGB and wasLum and not stim.useShaders:
+            # scale by rgb and convert to ubyte
             internalFormat = GL.GL_RGB
-            if stim.colorSpace in ['rgb', 'dkl', 'lms','hsv']:
-                rgb=stim.rgb
+            if stim.colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
+                rgb = stim.rgb
             else:
-                rgb=stim.rgb/127.5-1.0#colour is not a float - convert to float to do the scaling
+                # colour is not a float - convert to float to do the scaling
+                rgb = stim.rgb / 127.5 - 1.0
             # if wasImage it will also have ubyte values for the intensity
             if wasImage:
-                intensity = intensity/127.5-1.0
-            #scale by rgb
-            data = numpy.ones((intensity.shape[0],intensity.shape[1],4),numpy.float32)#initialise data array as a float
-            data[:,:,0] = intensity*rgb[0]  + stim.rgbPedestal[0]#R
-            data[:,:,1] = intensity*rgb[1]  + stim.rgbPedestal[1]#G
-            data[:,:,2] = intensity*rgb[2]  + stim.rgbPedestal[2]#B
-            data[:,:,:-1] = data[:,:,:-1]*stim.contrast
-            #convert to ubyte
+                intensity = intensity / 127.5 - 1.0
+            # scale by rgb
+            # initialise data array as a float
+            data = numpy.ones(
+                (intensity.shape[0], intensity.shape[1], 4), numpy.float32)
+            data[:, :, 0] = intensity * rgb[0] + stim.rgbPedestal[0]  # R
+            data[:, :, 1] = intensity * rgb[1] + stim.rgbPedestal[1]  # G
+            data[:, :, 2] = intensity * rgb[2] + stim.rgbPedestal[2]  # B
+            data[:, :, :-1] = data[:, :, :-1] * stim.contrast
+            # convert to ubyte
             data = float_uint8(data)
-        elif pixFormat==GL.GL_RGB and dataType==GL.GL_FLOAT: #probably a custom rgb array or rgb image
+        elif pixFormat == GL.GL_RGB and dataType == GL.GL_FLOAT:  # probably a custom rgb array or rgb image
             internalFormat = GL.GL_RGB32F_ARB
             data = intensity
-        elif pixFormat==GL.GL_RGB:# not wasLum, not useShaders  - an RGB bitmap with no shader optionsintensity.min()
+        elif pixFormat == GL.GL_RGB:  # not wasLum, not useShaders  - an RGB bitmap with no shader optionsintensity.min()
             internalFormat = GL.GL_RGB
-            data = intensity #float_uint8(intensity)
-        elif pixFormat==GL.GL_ALPHA:
+            data = intensity  # float_uint8(intensity)
+        elif pixFormat == GL.GL_ALPHA:
             internalFormat = GL.GL_ALPHA
             dataType = GL.GL_UNSIGNED_BYTE
             if wasImage:
                 data = intensity
             else:
                 data = float_uint8(intensity)
-        #check for RGBA textures
-        if len(data.shape)>2 and data.shape[2] == 4:
-            if pixFormat==GL.GL_RGB:
-                pixFormat=GL.GL_RGBA
-            if internalFormat==GL.GL_RGB:
-                internalFormat=GL.GL_RGBA
-            elif internalFormat==GL.GL_RGB32F_ARB:
-                internalFormat=GL.GL_RGBA32F_ARB
-        texture = data.ctypes#serialise
+        # check for RGBA textures
+        if len(data.shape) > 2 and data.shape[2] == 4:
+            if pixFormat == GL.GL_RGB:
+                pixFormat = GL.GL_RGBA
+            if internalFormat == GL.GL_RGB:
+                internalFormat = GL.GL_RGBA
+            elif internalFormat == GL.GL_RGB32F_ARB:
+                internalFormat = GL.GL_RGBA32F_ARB
+        texture = data.ctypes  # serialise
 
-        #bind the texture in openGL
+        # bind the texture in openGL
         GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, id)#bind that name to the target
-        GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)  # data from PIL/numpy is packed, but default for GL is 4 bytes
-        #important if using bits++ because GL_LINEAR
-        #sometimes extrapolates to pixel vals outside range
+        GL.glBindTexture(GL.GL_TEXTURE_2D, id)  # bind that name to the target
+        # makes the texture map wrap (this is actually default anyway)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+        # data from PIL/numpy is packed, but default for GL is 4 bytes
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
+        # important if using bits++ because GL_LINEAR
+        # sometimes extrapolates to pixel vals outside range
         if interpolate:
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_LINEAR)
-            if useShaders:#GL_GENERATE_MIPMAP was only available from OpenGL 1.4
-                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
-                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
+            if useShaders:  # GL_GENERATE_MIPMAP was only available from OpenGL 1.4
+                GL.glTexParameteri(
+                    GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+                GL.glTexParameteri(
+                    GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE)
                 GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                    data.shape[1],data.shape[0], 0, # [JRG] for non-square, want data.shape[1], data.shape[0]
-                    pixFormat, dataType, texture)
-            else:#use glu
-                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)
+                                # [JRG] for non-square, want data.shape[1], data.shape[0]
+                                data.shape[1], data.shape[0], 0,
+                                pixFormat, dataType, texture)
+            else:  # use glu
+                GL.glTexParameteri(
+                    GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)
                 GL.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, internalFormat,
-                    data.shape[1],data.shape[0], pixFormat, dataType, texture)    # [JRG] for non-square, want data.shape[1], data.shape[0]
+                                     data.shape[1], data.shape[0], pixFormat, dataType, texture)    # [JRG] for non-square, want data.shape[1], data.shape[0]
         else:
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_NEAREST)
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,GL.GL_NEAREST)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                            data.shape[1],data.shape[0], 0, # [JRG] for non-square, want data.shape[1], data.shape[0]
+                            # [JRG] for non-square, want data.shape[1], data.shape[0]
+                            data.shape[1], data.shape[0], 0,
                             pixFormat, dataType, texture)
-        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)#unbind our texture so that it doesn't affect other rendering
+        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE,
+                     GL.GL_MODULATE)  # ?? do we need this - think not!
+        # unbind our texture so that it doesn't affect other rendering
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         return wasLum
 
     def clearTextures(self):
@@ -836,7 +934,8 @@ class TextureMixin(object):
         else:
             dataType = None
         self._createTexture(value, id=self._maskID, pixFormat=GL.GL_ALPHA, dataType=dataType,
-            stim=self, res=self.texRes, maskParams=self.maskParams)
+                            stim=self, res=self.texRes, maskParams=self.maskParams)
+
     def setMask(self, value, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message.
@@ -869,7 +968,8 @@ class TextureMixin(object):
                 the proportion of the patch that will be blurred by the raised
                 cosine edge."""
         self.__dict__['maskParams'] = value
-        setAttribute(self, 'mask', self.mask, log=False)  # call attributeSetter without log
+        # call attributeSetter without log
+        setAttribute(self, 'mask', self.mask, log=False)
 
     @attributeSetter
     def interpolate(self, value):
@@ -879,6 +979,7 @@ class TextureMixin(object):
         otherwise some form of interpolation will be used.
         """
         self.__dict__['interpolate'] = value
+
 
 class WindowMixin(object):
     """Window-related attributes and methods.
@@ -932,7 +1033,9 @@ class WindowMixin(object):
         # Update size and position if they are defined (tested as numeric). If not, this is probably
         # during some init and they will be defined later, given the new unit.
         try:
-            self.size * self.pos  # quick and dirty way to check that both are numeric. This avoids the heavier attributeSetter calls.
+            # quick and dirty way to check that both are numeric. This avoids
+            # the heavier attributeSetter calls.
+            self.size * self.pos
             self.size = self.size
             self.pos = self.pos
         except Exception:
@@ -948,29 +1051,33 @@ class WindowMixin(object):
         or contrast)
         """
         if value == True and self.win._haveShaders == False:
-            logging.error("Shaders were requested but aren't available. Shaders need OpenGL 2.0+ drivers")
+            logging.error(
+                "Shaders were requested but aren't available. Shaders need OpenGL 2.0+ drivers")
         if value != self.useShaders:  # if there's a change...
             self.__dict__['useShaders'] = value
-            if hasattr(self,'tex'):
+            if hasattr(self, 'tex'):
                 self.tex = self.tex  # calling attributeSetter
             elif hasattr(self, 'mask'):
-                self.mask = self.mask  # calling attributeSetter (does the same as mask)
-            if hasattr(self,'_imName'):
+                # calling attributeSetter (does the same as mask)
+                self.mask = self.mask
+            if hasattr(self, '_imName'):
                 self.setIm(self._imName, log=False)
             if self.__class__.__name__ == 'TextStim':
                 self._needSetText = True
             self._needUpdate = True
+
     def setUseShaders(self, value=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message"""
         setAttribute(self, 'useShaders', value, log)  # call attributeSetter
 
     def draw(self):
-        raise NotImplementedError('Stimulus classes must override visual.BaseVisualStim.draw')
+        raise NotImplementedError(
+            'Stimulus classes must override visual.BaseVisualStim.draw')
 
     def _selectWindow(self, win):
-        #don't call switch if it's already the curr window
-        if win!=glob_vars.currWindow and win.winType=='pyglet':
+        # don't call switch if it's already the curr window
+        if win != glob_vars.currWindow and win.winType == 'pyglet':
             win.winHandle.switch_to()
             glob_vars.currWindow = win
 
@@ -985,6 +1092,7 @@ class WindowMixin(object):
         else:
             self._updateListNoShaders()
 
+
 class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
     """A template for a visual stimulus class.
 
@@ -994,16 +1102,17 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
     Methods defined here will override Minimal & Legacy, but best to avoid
     that for simplicity & clarity.
     """
+
     def __init__(self, win, units=None, name='', autoLog=None):
         self.autoLog = False  # just to start off during init, set at end
         self.win = win
         self.units = units
-        self._rotationMatrix = [[1.,0.],[0.,1.]] #no rotation as a default
+        self._rotationMatrix = [[1., 0.], [0., 1.]]  # no rotation as a default
         # self.autoLog is set at end of MinimalStim.__init__
         super(BaseVisualStim, self).__init__(name=name, autoLog=autoLog)
         if self.autoLog:
-            logging.warning("%s is calling BaseVisualStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())" \
-                            %(self.__class__.__name__))
+            logging.warning("%s is calling BaseVisualStim.__init__() with autolog=True. Set autoLog to True only at the end of __init__())"
+                            % (self.__class__.__name__))
 
     @attributeSetter
     def opacity(self, value):
@@ -1016,11 +1125,12 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         self.__dict__['opacity'] = value
 
         if not 0 <= value <= 1 and self.autoLog:
-            logging.warning('Setting opacity outside range 0.0 - 1.0 has no additional effect')
+            logging.warning(
+                'Setting opacity outside range 0.0 - 1.0 has no additional effect')
 
-        #opacity is coded by the texture, if not using shaders
+        # opacity is coded by the texture, if not using shaders
         if hasattr(self, 'useShaders') and not self.useShaders:
-            if hasattr(self,'mask'):
+            if hasattr(self, 'mask'):
                 self.mask = self.mask  # call attributeSetter
 
     @attributeSetter
@@ -1035,10 +1145,10 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
 
         """
         self.__dict__['ori'] = value
-        radians = value*0.017453292519943295
+        radians = value * 0.017453292519943295
         self._rotationMatrix = numpy.array([[numpy.cos(radians), -numpy.sin(radians)],
-                                [numpy.sin(radians), numpy.cos(radians)]])
-        self._needVertexUpdate=True #need to update update vertices
+                                            [numpy.sin(radians), numpy.cos(radians)]])
+        self._needVertexUpdate = True  # need to update update vertices
         self._needUpdate = True
 
     @attributeSetter
@@ -1060,31 +1170,38 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         looking at `stim._sizeRendered`
         """
         value = val2array(value)  # Check correct user input
-        self._requestedSize = value  #to track whether we're just using a default
+        self._requestedSize = value  # to track whether we're just using a default
         # None --> set to default
         if value is None:
             """Set the size to default (e.g. to the size of the loaded image etc)"""
-            #calculate new size
-            if self._origSize is None:  #not an image from a file
-                value = numpy.array([0.5, 0.5])  #this was PsychoPy's original default
+            # calculate new size
+            if self._origSize is None:  # not an image from a file
+                # this was PsychoPy's original default
+                value = numpy.array([0.5, 0.5])
             else:
-                #we have an image - calculate the size in `units` that matches original pixel size
+                # we have an image - calculate the size in `units` that matches
+                # original pixel size
                 if self.units == 'pix':
                     value = numpy.array(self._origSize)
                 elif self.units in ['deg', 'degFlatPos', 'degFlat']:
-                    #NB when no size has been set (assume to use orig size in pix) this should not
-                    #be corrected for flat anyway, so degFlat==degFlatPos
-                    value = pix2deg(numpy.array(self._origSize, float), self.win.monitor)
+                    # NB when no size has been set (assume to use orig size in pix) this should not
+                    # be corrected for flat anyway, so degFlat==degFlatPos
+                    value = pix2deg(numpy.array(
+                        self._origSize, float), self.win.monitor)
                 elif self.units == 'norm':
-                    value = 2 * numpy.array(self._origSize, float) / self.win.size
+                    value = 2 * \
+                        numpy.array(self._origSize, float) / self.win.size
                 elif self.units == 'height':
-                    value = numpy.array(self._origSize, float) / self.win.size[1]
+                    value = numpy.array(
+                        self._origSize, float) / self.win.size[1]
                 elif self.units == 'cm':
-                    value = pix2cm(numpy.array(self._origSize, float), self.win.monitor)
+                    value = pix2cm(numpy.array(
+                        self._origSize, float), self.win.monitor)
                 else:
-                    raise AttributeError, "Failed to create default size for ImageStim. Unsupported unit, %s" %(repr(self.units))
+                    raise AttributeError, "Failed to create default size for ImageStim. Unsupported unit, %s" % (
+                        repr(self.units))
         self.__dict__['size'] = value
-        self._needVertexUpdate=True
+        self._needVertexUpdate = True
         self._needUpdate = True
         if hasattr(self, '_calcCyclesPerStim'):
             self._calcCyclesPerStim()
@@ -1108,7 +1225,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
             posPix = posToPix(stim)
         """
         self.__dict__['pos'] = val2array(value, False, False)
-        self._needVertexUpdate=True
+        self._needVertexUpdate = True
         self._needUpdate = True
 
     def setPos(self, newPos, operation='', log=None):
@@ -1116,31 +1233,36 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         but use this method if you need to suppress the log message
         """
         setAttribute(self, 'pos', val2array(newPos, False), log, operation)
+
     def setDepth(self, newDepth, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         setAttribute(self, 'depth', newDepth, log, operation)
+
     def setSize(self, newSize, operation='', units=None, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         if units is None:
-            units=self.units#need to change this to create several units from one
+            units = self.units  # need to change this to create several units from one
         setAttribute(self, 'size', val2array(newSize, False), log, operation)
+
     def setOri(self, newOri, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         setAttribute(self, 'ori', newOri, log, operation)
+
     def setOpacity(self, newOpacity, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         setAttribute(self, 'opacity', newOpacity, log, operation)
+
     def _set(self, attrib, val, op='', log=None):
         """DEPRECATED since 1.80.04 + 1. Use setAttribute() and val2array() instead."""
-        #format the input value as float vectors
+        # format the input value as float vectors
         if type(val) in [tuple, list, numpy.ndarray]:
             val = val2array(val)
 
@@ -1148,5 +1270,5 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         setAttribute(self, attrib, val, log, op)
 
         # For DotStim
-        if attrib in ['nDots','coherence']:
-            self.coherence=round(self.coherence*self.nDots)/self.nDots
+        if attrib in ['nDots', 'coherence']:
+            self.coherence = round(self.coherence * self.nDots) / self.nDots

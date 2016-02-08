@@ -20,6 +20,7 @@ class Line(ShapeStim):
 
     (New in version 1.72.00)
     """
+
     def __init__(self, win, start=(-.5, -.5), end=(.5, .5), **kwargs):
         """
         Line accepts all input parameters, that :class:`~psychopy.visual.ShapeStim` accepts, except
@@ -28,17 +29,18 @@ class Line(ShapeStim):
         The methods `contains` and `overlaps` are inherited from `~psychopy.visual.ShapeStim`,
         but always return False (because a line is not a proper (2D) polygon).
         """
-        #what local vars are defined (these are the init params) for use by __repr__
+        # what local vars are defined (these are the init params) for use by
+        # __repr__
         self._initParams = dir()
         self._initParams.remove('self')
-        #kwargs isn't a parameter, but a list of params
+        # kwargs isn't a parameter, but a list of params
         self._initParams.remove('kwargs')
         self._initParams.extend(kwargs)
 
         self.__dict__['start'] = numpy.array(start)
         self.__dict__['end'] = numpy.array(end)
         self.__dict__['vertices'] = [start, end]
-        kwargs['closeShape'] = False # Make sure nobody messes around here
+        kwargs['closeShape'] = False  # Make sure nobody messes around here
         kwargs['vertices'] = self.vertices
         kwargs['fillColor'] = None
         super(Line, self).__init__(win, **kwargs)
@@ -46,10 +48,11 @@ class Line(ShapeStim):
     @attributeSetter
     def start(self, start):
         """tuple, list or 2x1 array.
-        
+
         Specifies the position of the start of the line. :ref:`Operations <attrib-operations>` supported."""
         self.__dict__['start'] = numpy.array(start)
         self.setVertices([self.start, self.end], log=False)
+
     def setStart(self, start, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
@@ -59,10 +62,11 @@ class Line(ShapeStim):
     @attributeSetter
     def end(self, end):
         """tuple, list or 2x1 array
-        
+
         Specifies the position of the end of the line. :ref:`Operations <attrib-operations>` supported."""
         self.__dict__['end'] = numpy.array(end)
         self.setVertices([self.start, self.end], log=False)
+
     def setEnd(self, end, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
@@ -72,5 +76,6 @@ class Line(ShapeStim):
     # Not meaningful for a line, thus deleted
     def contains(self):
         pass
+
     def overlaps(self):
         pass

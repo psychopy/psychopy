@@ -24,7 +24,7 @@ from .image import ImageStim
 from .text import TextStim
 
 from psychopy.visual import gamma  # done in window anyway
-from psychopy.visual import filters  
+from psychopy.visual import filters
 
 # need absolute imports within lazyImports
 

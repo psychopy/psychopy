@@ -57,14 +57,16 @@ Testing has only been done on Windows and Linux so far.
 # Distributed under the terms of the GNU General Public License (GPL).
 #
 # Contributed by Sol Simpson, April 2014.
-# The MovieStim class was taken and rewritten to use cv2 and vlc instead of avbin
+# The MovieStim class was taken and rewritten to use cv2 and vlc instead
+# of avbin
 
 # If True then, on each flip a new movie frame is displayed, the frame index,
 # flip time, and time since last movie frame flip will be printed
 reportNDroppedFrames = 10
 
-import os, sys
-import weakref #don't create circular references with vlc classes
+import os
+import sys
+import weakref  # don't create circular references with vlc classes
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -92,19 +94,22 @@ try:
 except OSError, msg:
     print("WARNING: MovieStim2 is not available. Is the VLC application installed?")
 except Exception:
-    if sys.maxint==9223372036854775807:
-        bits=64
+    if sys.maxint == 9223372036854775807:
+        bits = 64
     else:
-        bits=32
-    print("WARNING: MovieStim2 is not available. Failed to import vlc module. \n" + \
-        "You're using %ibit python. Is your VLC install the same?" %(bits))
+        bits = 32
+    print("WARNING: MovieStim2 is not available. Failed to import vlc module. \n" +
+          "You're using %ibit python. Is your VLC install the same?" % (bits))
 from psychopy.clock import Clock
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 
-#these are used internally by the MovieStim2 class but need to be kept separate
-#to prevent circular references with vlc's event handler
+# these are used internally by the MovieStim2 class but need to be kept separate
+# to prevent circular references with vlc's event handler
+
+
 def _audioEndCallback(event, movieInstanceRef):
     movieInstanceRef()._onEos()
+
 
 def _audioTimeCallback(event, movieInstanceRef, streamPlayer):
     """
@@ -113,7 +118,8 @@ def _audioTimeCallback(event, movieInstanceRef, streamPlayer):
     cv2.
     """
     if movieInstanceRef():
-        movieInstanceRef()._audio_stream_clock.reset(-event.u.new_time/1000.0)
+        movieInstanceRef()._audio_stream_clock.reset(-event.u.new_time / 1000.0)
+
 
 def _setPluginPathEnviron():
     """Plugins aren't in the same path as the libvlc.dylib
@@ -122,16 +128,17 @@ def _setPluginPathEnviron():
         return
     dllPath = vlc.dll._name
     from os.path import split, join
-    #try stepping back from dll path and adding 'plugins' (2 steps on OSX, 1 on win32?)
+    # try stepping back from dll path and adding 'plugins' (2 steps on OSX, 1
+    # on win32?)
     nSteps = 0
     last = dllPath
-    while nSteps<4:
+    while nSteps < 4:
         last = split(last)[0]
         pluginPath = join(last, 'plugins')
         if os.path.isdir(pluginPath):
             os.environ['VLC_PLUGIN_PATH'] = pluginPath
             break
-        nSteps+=1
+        nSteps += 1
 _setPluginPathEnviron()
 
 
@@ -145,15 +152,16 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
 
         See Movie2Stim.py for demo.
     """
+
     def __init__(self, win,
                  filename="",
                  units='pix',
                  size=None,
-                 pos=(0.0,0.0),
+                 pos=(0.0, 0.0),
                  ori=0.0,
                  flipVert=False,
                  flipHoriz=False,
-                 color=(1.0,1.0,1.0),
+                 color=(1.0, 1.0, 1.0),
                  colorSpace='rgb',
                  opacity=1.0,
                  volume=1.0,
@@ -164,8 +172,8 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                  noAudio=False,
                  vframe_callback=None,
                  fps=None,
-                 interpolate = True,
-        ):
+                 interpolate=True,
+                 ):
         """
         :Parameters:
 
@@ -188,15 +196,17 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._initParams.remove('self')
         super(MovieStim2, self).__init__(win, units=units, name=name,
                                          autoLog=False)
-        #check for pyglet
+        # check for pyglet
         if win.winType != 'pyglet':
-            logging.error('Movie stimuli can only be used with a pyglet window')
+            logging.error(
+                'Movie stimuli can only be used with a pyglet window')
             core.quit()
         self._retracerate = win._monitorFrameRate
         if self._retracerate is None:
             self._retracerate = win.getActualFrameRate()
         if self._retracerate is None:
-            logging.warning("FrameRate could not be supplied by psychopy; defaulting to 60.0")
+            logging.warning(
+                "FrameRate could not be supplied by psychopy; defaulting to 60.0")
             self._retracerate = 60.0
         self.filename = filename
         self.loop = loop
@@ -221,23 +231,23 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self.setVolume(volume)
         self.nDroppedFrames = 0
 
-        self.aspectRatio = self._video_width/float(self._video_height)
-        #size
+        self.aspectRatio = self._video_width / float(self._video_height)
+        # size
         if size is None:
             self.size = numpy.array([self._video_width, self._video_height],
-                                   float)
+                                    float)
         elif isinstance(size, (int, float, long)):
             # treat size as desired width, and calc a height
             # that maintains the aspect ratio of the video.
-            self.size = numpy.array([size, size/self.aspectRatio], float)
+            self.size = numpy.array([size, size / self.aspectRatio], float)
         else:
             self.size = val2array(size)
         self.ori = ori
         self._updateVertices()
-        #set autoLog (now that params have been initialised)
+        # set autoLog (now that params have been initialised)
         self.autoLog = autoLog
         if autoLog:
-            logging.exp("Created %s = %s" %(self.name, str(self)))
+            logging.exp("Created %s = %s" % (self.name, str(self)))
 
     def _reset(self):
         self.duration = None
@@ -263,12 +273,12 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._next_frame_displayed = False
         self._video_track_clock = Clock()
 
-        self._audio_stream_clock=Clock()
+        self._audio_stream_clock = Clock()
         self._vlc_instance = None
         self._audio_stream = None
         self._audio_stream_player = None
         self._audio_stream_started = False
-        self._audio_stream_event_manager=None
+        self._audio_stream_event_manager = None
 
     def setMovie(self, filename, log=True):
         """See `~MovieStim.loadMovie` (the functions are identical).
@@ -296,15 +306,18 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         # Create Video Stream stuff
         self._video_stream.open(filename)
         vfstime = core.getTime()
-        while not self._video_stream.isOpened() and core.getTime()-vfstime < 1.0:
-          raise RuntimeError( "Error when reading image file")
+        while not self._video_stream.isOpened() and core.getTime() - vfstime < 1.0:
+            raise RuntimeError("Error when reading image file")
 
         if not self._video_stream.isOpened():
-          raise RuntimeError( "Error when reading image file")
+            raise RuntimeError("Error when reading image file")
 
-        self._total_frame_count = self._video_stream.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
-        self._video_width = self._video_stream.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
-        self._video_height = self._video_stream.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
+        self._total_frame_count = self._video_stream.get(
+            cv2.cv.CV_CAP_PROP_FRAME_COUNT)
+        self._video_width = self._video_stream.get(
+            cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
+        self._video_height = self._video_stream.get(
+            cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
         self._format = self._video_stream.get(cv2.cv.CV_CAP_PROP_FORMAT)
         # TODO: Read depth from video source
         self._video_frame_depth = 3
@@ -313,13 +326,14 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
 
         self._video_frame_rate = cv_fps
 
-        self._inter_frame_interval = 1.0/self._video_frame_rate
+        self._inter_frame_interval = 1.0 / self._video_frame_rate
 
-        # Create a numpy array that can hold one video frame, as returned by cv2.
+        # Create a numpy array that can hold one video frame, as returned by
+        # cv2.
         self._numpy_frame = numpy.zeros((self._video_height,
-                                          self._video_width,
-                                          self._video_frame_depth),
-                                         dtype=numpy.uint8)
+                                         self._video_width,
+                                         self._video_frame_depth),
+                                        dtype=numpy.uint8)
         self.duration = self._total_frame_count * self._inter_frame_interval
         self.status = NOT_STARTED
 
@@ -337,20 +351,24 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             self._audio_stream = self._vlc_instance.media_new(self.filename)
         except NameError:
             raise ImportError('NameError: %s vs LibVLC %s' % (vlc.__version__,
-                                                       vlc.libvlc_get_version()))
+                                                              vlc.libvlc_get_version()))
         self._audio_stream_player = self._vlc_instance.media_player_new()
         self._audio_stream_player.set_media(self._audio_stream)
         self._audio_stream_event_manager = self._audio_stream_player.event_manager()
-        self._audio_stream_event_manager.event_attach(vlc.EventType.MediaPlayerTimeChanged, _audioTimeCallback, weakref.ref(self), self._audio_stream_player)
-        self._audio_stream_event_manager.event_attach(vlc.EventType.MediaPlayerEndReached, _audioEndCallback, weakref.ref(self))
+        self._audio_stream_event_manager.event_attach(
+            vlc.EventType.MediaPlayerTimeChanged, _audioTimeCallback, weakref.ref(self), self._audio_stream_player)
+        self._audio_stream_event_manager.event_attach(
+            vlc.EventType.MediaPlayerEndReached, _audioEndCallback, weakref.ref(self))
 
     def _releaseeAudioStream(self):
         if self._audio_stream_player:
             self._audio_stream_player.stop()
 
         if self._audio_stream_event_manager:
-            self._audio_stream_event_manager.event_detach(vlc.EventType.MediaPlayerTimeChanged)
-            self._audio_stream_event_manager.event_detach(vlc.EventType.MediaPlayerEndReached)
+            self._audio_stream_event_manager.event_detach(
+                vlc.EventType.MediaPlayerTimeChanged)
+            self._audio_stream_event_manager.event_detach(
+                vlc.EventType.MediaPlayerEndReached)
 
         if self._audio_stream:
             self._audio_stream.release()
@@ -385,7 +403,8 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                 # toggle audio pause
                 if self._audio_stream_player:
                     self._audio_stream_player.pause()
-                    self._audio_stream_clock.reset(-self._audio_stream_player.get_time()/1000.0)
+                    self._audio_stream_clock.reset(
+                        -self._audio_stream_player.get_time() / 1000.0)
                 if self._next_frame_sec:
                     self._video_track_clock.reset(-self._next_frame_sec)
             else:
@@ -393,8 +412,8 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                 self._video_track_clock.reset(-nt)
 
             if log and self.autoLog:
-                    self.win.logOnFlip("Set %s playing" %(self.name),
-                                       level=logging.EXP, obj=self)
+                self.win.logOnFlip("Set %s playing" % (self.name),
+                                   level=logging.EXP, obj=self)
 
             self._updateFrameTexture()
             self.win.callOnFlip(self._flipCallback)
@@ -410,10 +429,12 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             if self._audio_stream_player and self._audio_stream_player.can_pause():
                 self._audio_stream_player.pause()
             if log and self.autoLog:
-                self.win.logOnFlip("Set %s paused" %(self.name), level=logging.EXP, obj=self)
+                self.win.logOnFlip("Set %s paused" %
+                                   (self.name), level=logging.EXP, obj=self)
             return True
         if log and self.autoLog:
-            self.win.logOnFlip("Failed Set %s paused" %(self.name), level=logging.EXP, obj=self)
+            self.win.logOnFlip("Failed Set %s paused" %
+                               (self.name), level=logging.EXP, obj=self)
         return False
 
     def stop(self, log=True):
@@ -427,9 +448,8 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             self._unload()
             self._reset()
             if log and self.autoLog:
-                self.win.logOnFlip("Set %s stopped" %(self.name),
-                    level=logging.EXP,obj=self)
-
+                self.win.logOnFlip("Set %s stopped" % (self.name),
+                                   level=logging.EXP, obj=self)
 
     def seek(self, timestamp, log=True):
         """ Seek to a particular timestamp in the movie.
@@ -440,14 +460,16 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                     self.pause()
 
                 if self._audio_stream_player and self._audio_stream_player.is_seekable():
-                    self._audio_stream_player.set_time(int(timestamp*1000.0))
+                    self._audio_stream_player.set_time(int(timestamp * 1000.0))
                     self._audio_stream_clock.reset(-timestamp)
 
                 self._video_stream.set(cv2.cv.CV_CAP_PROP_POS_MSEC,
-                                        timestamp*1000.0)
+                                       timestamp * 1000.0)
                 self._video_track_clock.reset(-timestamp)
-                self._next_frame_index = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
-                self._next_frame_sec = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_MSEC)/1000.0
+                self._next_frame_index = self._video_stream.get(
+                    cv2.cv.CV_CAP_PROP_POS_FRAMES)
+                self._next_frame_sec = self._video_stream.get(
+                    cv2.cv.CV_CAP_PROP_POS_MSEC) / 1000.0
             else:
                 self.stop()
                 self.loadMovie(self.filename)
@@ -478,7 +500,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         """
         if self._audio_stream_player:
             if 0.0 <= v <= 1.0 and isinstance(v, (float,)):
-                v = int(v*100)
+                v = int(v * 100)
             else:
                 v = int(v)
             self.volume = v
@@ -506,7 +528,8 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         should be drawn.
         """
         try:
-            rt = (self._next_frame_sec - 1.0/self._retracerate) - self._video_track_clock.getTime()
+            rt = (self._next_frame_sec - 1.0 / self._retracerate) - \
+                self._video_track_clock.getTime()
             return rt
         except Exception:
             logging.warning("MovieStim2.getTimeToNextFrameDraw failed.")
@@ -555,16 +578,20 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             if self._video_stream.grab():
                 self._prev_frame_index = self._next_frame_index
                 self._prev_frame_sec = self._next_frame_sec
-                self._next_frame_index = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_FRAMES)
-                self._next_frame_sec = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_MSEC)/1000.0
-                self._video_perc_done = self._video_stream.get(cv2.cv.CV_CAP_PROP_POS_AVI_RATIO)
+                self._next_frame_index = self._video_stream.get(
+                    cv2.cv.CV_CAP_PROP_POS_FRAMES)
+                self._next_frame_sec = self._video_stream.get(
+                    cv2.cv.CV_CAP_PROP_POS_MSEC) / 1000.0
+                self._video_perc_done = self._video_stream.get(
+                    cv2.cv.CV_CAP_PROP_POS_AVI_RATIO)
                 self._next_frame_displayed = False
-                if self.getTimeToNextFrameDraw() > -self._inter_frame_interval/2.0:
+                if self.getTimeToNextFrameDraw() > -self._inter_frame_interval / 2.0:
                     return self._next_frame_sec
                 else:
                     self.nDroppedFrames += 1
                     if self.nDroppedFrames < reportNDroppedFrames:
-                        logging.warning("MovieStim2 dropping video frame index: %d"%(self._next_frame_index))
+                        logging.warning("MovieStim2 dropping video frame index: %d" % (
+                            self._next_frame_index))
                     elif self.nDroppedFrames == reportNDroppedFrames:
                         logging.warning("Multiple Movie frames have "
                                         "occurred - I'll stop bothering you "
@@ -577,49 +604,62 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         # decode frame into np array and move to opengl tex
         ret, self._numpy_frame = self._video_stream.retrieve()
         if ret:
-            useSubTex=self.useTexSubImage2D
+            useSubTex = self.useTexSubImage2D
             if self._texID is None:
                 self._texID = GL.GLuint()
                 GL.glGenTextures(1, ctypes.byref(self._texID))
-                useSubTex=False
+                useSubTex = False
 
-            #bind the texture in openGL
+            # bind the texture in openGL
             GL.glEnable(GL.GL_TEXTURE_2D)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)#bind that name to the target
-            GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT) #makes the texture map wrap (this is actually default anyway)
-            GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)  # data from PIL/numpy is packed, but default for GL is 4 bytes
-            #important if using bits++ because GL_LINEAR
-            #sometimes extrapolates to pixel vals outside range
+            # bind that name to the target
+            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+            # makes the texture map wrap (this is actually default anyway)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+            # data from PIL/numpy is packed, but default for GL is 4 bytes
+            GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
+            # important if using bits++ because GL_LINEAR
+            # sometimes extrapolates to pixel vals outside range
             if self.interpolate:
-                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
-                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+                GL.glTexParameteri(
+                    GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
+                GL.glTexParameteri(
+                    GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
                 if useSubTex is False:
                     GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, pyglet.gl.GL_RGB8,
-                        self._numpy_frame.shape[1],self._numpy_frame.shape[0], 0,
-                        GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
-                else:
-                    GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
-                        self._numpy_frame.shape[1], self._numpy_frame.shape[0],
-                        GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
-            else:
-                GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MAG_FILTER,GL.GL_NEAREST)
-                GL.glTexParameteri(GL.GL_TEXTURE_2D,GL.GL_TEXTURE_MIN_FILTER,GL.GL_NEAREST)
-                if useSubTex is False:
-                    GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB8,
-                                    self._numpy_frame.shape[1],self._numpy_frame.shape[0], 0,
+                                    self._numpy_frame.shape[
+                                        1], self._numpy_frame.shape[0], 0,
                                     GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
                 else:
                     GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
-                        self._numpy_frame.shape[1], self._numpy_frame.shape[0],
-                        GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
-            GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)#?? do we need this - think not!
+                                       self._numpy_frame.shape[
+                                           1], self._numpy_frame.shape[0],
+                                       GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
+            else:
+                GL.glTexParameteri(
+                    GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
+                GL.glTexParameteri(
+                    GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
+                if useSubTex is False:
+                    GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB8,
+                                    self._numpy_frame.shape[
+                                        1], self._numpy_frame.shape[0], 0,
+                                    GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
+                else:
+                    GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
+                                       self._numpy_frame.shape[
+                                           1], self._numpy_frame.shape[0],
+                                       GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpy_frame.ctypes)
+            GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE,
+                         GL.GL_MODULATE)  # ?? do we need this - think not!
         else:
             raise RuntimeError("Could not load video frame data.")
 
     def _getVideoAudioTimeDiff(self):
         if self._audio_stream_started is False:
             return 0
-        return self.getCurrentFrameTime()-self._getAudioStreamTime()
+        return self.getCurrentFrameTime() - self._getAudioStreamTime()
 
     def draw(self, win=None):
         """
@@ -629,7 +669,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
 
         This method should be called on every frame that the movie is meant to
         appear"""
-        if self.status==NOT_STARTED or (self.status==FINISHED and self.loop):
+        if self.status == NOT_STARTED or (self.status == FINISHED and self.loop):
             self.play()
         elif self.status == FINISHED and not self.loop:
             return
@@ -651,37 +691,38 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             self._updateFrameTexture()
             return_next_frame_index = True
 
-        #make sure that textures are on and GL_TEXTURE0 is active
+        # make sure that textures are on and GL_TEXTURE0 is active
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glColor4f(1, 1, 1, self.opacity)  # sets opacity (1,1,1 = RGB placeholder)
+        # sets opacity (1,1,1 = RGB placeholder)
+        GL.glColor4f(1, 1, 1, self.opacity)
         GL.glPushMatrix()
         self.win.setScale('pix')
-        #move to centre of stimulus and rotate
+        # move to centre of stimulus and rotate
         vertsPix = self.verticesPix
 
         array = (GL.GLfloat * 32)(
-             1,  1, #texture coords
-             vertsPix[0,0], vertsPix[0,1],    0.,  #vertex
-             0,  1,
-             vertsPix[1,0], vertsPix[1,1],    0.,
-             0, 0,
-             vertsPix[2,0], vertsPix[2,1],    0.,
-             1, 0,
-             vertsPix[3,0], vertsPix[3,1],    0.,
-             )
+            1,  1,  # texture coords
+            vertsPix[0, 0], vertsPix[0, 1],    0.,  # vertex
+            0,  1,
+            vertsPix[1, 0], vertsPix[1, 1],    0.,
+            0, 0,
+            vertsPix[2, 0], vertsPix[2, 1],    0.,
+            1, 0,
+            vertsPix[3, 0], vertsPix[3, 1],    0.,
+        )
         GL.glPushAttrib(GL.GL_ENABLE_BIT)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
-        #2D texture array, 3D vertex array
+        # 2D texture array, 3D vertex array
         GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array)
         GL.glDrawArrays(GL.GL_QUADS, 0, 4)
         GL.glPopClientAttrib()
         GL.glPopAttrib()
         GL.glPopMatrix()
-        #GL.glActiveTexture(0)
-        #GL.glDisable(GL.GL_TEXTURE_2D)
+        # GL.glActiveTexture(0)
+        # GL.glDisable(GL.GL_TEXTURE_2D)
         if return_next_frame_index:
             self.win.callOnFlip(self._flipCallback)
             return self._next_frame_index
@@ -698,13 +739,14 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             self._audio_stream_started = True
 
             self._audio_stream_player.play()
-            self._audio_stream_clock.reset(-self._audio_stream_player.get_time()/1000.0)
+            self._audio_stream_clock.reset(
+                -self._audio_stream_player.get_time() / 1000.0)
 
     def _getAudioStreamTime(self):
         return self._audio_stream_clock.getTime()
 
     def _unload(self):
-        #if self._video_stream:
+        # if self._video_stream:
         self._video_stream.release()
         #self._video_stream = None
         self._numpy_frame = None
@@ -721,8 +763,8 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             self.stop()
 
         if self.autoLog:
-            self.win.logOnFlip("Set %s finished" %(self.name),
-                level=logging.EXP,obj=self)
+            self.win.logOnFlip("Set %s finished" % (self.name),
+                               level=logging.EXP, obj=self)
 
     def __del__(self):
         self._unload()
@@ -739,5 +781,5 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             self.play(log=False)  # set to play in case stopped
         else:
             self.pause(log=False)
-        #add to drawing list and update status
+        # add to drawing list and update status
         setAttribute(self, 'autoDraw', val, log)
