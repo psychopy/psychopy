@@ -1,6 +1,8 @@
 #!/usr/bin/env python2
 
-'''Stimulus object for drawing arbitrary bitmap carriers with an arbitrary second order envelope carrier and envelope can vary independently for orienation, frequencyand phase. Also does beat stimuli. '''
+"""Stimulus object for drawing arbitrary bitmap carriers with an arbitrary
+second order envelope carrier and envelope can vary independently for
+orienation, frequencyand phase. Also does beat stimuli. """
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -54,27 +56,44 @@ class EnvelopeGrating(GratingStim):
 
     **Examples**::
 
-    env1 = EnvelopeGrating(win,ori=0, carrier='sin', envelope='sin', mask = 'gauss', sf=24, envsf=4, size=1, contrast=0.5, moddepth=1.0, envori=0, pos=[-.5,.5],interpolate=0) #gives a circular patch of high frequency carrier with a low frequency envelope
-    env2 = EnvelopeGrating(win,ori=0, carrier=noise, envelope='sin', mask = None, sf=1, envsf=4, size=1, contrast=0.5, moddepth=0.8, envori=0, pos=[-.5,-.5],interpolate=0) #If noise is some numpy array contaning random values gives a circular patch of noise with a low freqeuncy sinewave envelope
-    env4 = EnvelopeGrating(win,ori=90, carrier='sin', envelope='sin', mask = 'gauss', sf=24, envsf=4, size=1, contrast=0.5, moddepth=1.0, envori=0, pos=[.5,.5], beat=True, interpolate=0) #Setting beat will create a second order beat stimulus whic  critically contains no net energy at the carrier frequency even though it appears to be present in this case carrier and envelope are at 90 degree to each other
+    env1 = EnvelopeGrating(win,ori=0, carrier='sin', envelope='sin',
+            mask = 'gauss', sf=24, envsf=4, size=1, contrast=0.5,
+            moddepth=1.0, envori=0, pos=[-.5,.5],interpolate=0)
+            # gives a circular patch of high frequency carrier with a
+            # low frequency envelope
+    env2 = EnvelopeGrating(win,ori=0, carrier=noise, envelope='sin',
+            mask = None, sf=1, envsf=4, size=1, contrast=0.5,
+            moddepth=0.8, envori=0, pos=[-.5,-.5],interpolate=0)
+            # If noise is some numpy array contaning random values gives a
+            # circular patch of noise with a low freqeuncy sinewave envelope
+    env4 = EnvelopeGrating(win,ori=90, carrier='sin', envelope='sin',
+            mask = 'gauss', sf=24, envsf=4, size=1, contrast=0.5,
+            moddepth=1.0, envori=0, pos=[.5,.5], beat=True, interpolate=0)
+            # Setting beat will create a second order beat stimulus which
+            # critically contains no net energy at the carrier frequency
+            # even though it appears to be present in this case carrier
+            # and envelope are at 90 degree to each other
 
-    With an EnvelopeStim the carrier and envelope can have different spatial frequency phase and orienetation
-    Its postion can be shifted as a whole.
-    contrast controls the contrast of the carrier and moddepth the modulation depth of the envelope.
-    oppacity controls the transparency of the whole stimulus.
+    With an EnvelopeStim the carrier and envelope can have different spatial
+    frequency phase and orientation. Its position can be shifted as a whole.
+    contrast controls the contrast of the carrier and moddepth the modulation
+    depth of the envelope.
+    opacity controls the transparency of the whole stimulus.
 
-    Because orientation is implemented very differently for the carrier and envelope using this function
-    without a msk will produce unexpected results
+    Because orientation is implemented very differently for the carrier and
+    envelope using this function without a msk will produce unexpected results
 
     **Using EnvelopeStim with images from disk (jpg, tif, png, ...)**
 
-    Ideally texture images to be rendered should be square with 'power-of-2' dimensions
-    e.g. 16x16, 128x128. Any image that is not will be upscaled (with linear interpolation)
-    to the nearest such texture by PsychoPy. The size of the stimulus should be
-    specified in the normal way using the appropriate units (deg, pix, cm, ...). Be
-    sure to get the aspect ratio the same as the image (if you don't want it
-    stretched!).
+    Ideally texture images to be rendered should be square with 'power-of-2'
+    dimensions e.g. 16x16, 128x128. Any image that is not will be upscaled
+    (with linear interpolation) to the nearest such texture by PsychoPy.
+    The size of the stimulus should be specified in the normal way using
+    the appropriate units (deg, pix, cm, ...). Be sure to get the aspect
+    ratio the same as the image (if you don't want it stretched!).
 
+    contrast and moddepth must work together, for moddepth=1 the max carrier
+    contrast is 0.5. If moddepth < 1 higher contrasts can be accomodated.
     """
 
     def __init__(self,
@@ -98,7 +117,7 @@ class EnvelopeGrating(GratingStim):
                  lms=None,
                  color=(1.0, 1.0, 1.0),
                  colorSpace='rgb',
-                 contrast=0.5,  # contrast of carrier default this to 0.5 to avoid overmodulation - contrast and moddepth must work together, for moddepth=1 the max carrier contrast is 0.5. If moddepth < 1 higher contrasts can be accomodated
+                 contrast=0.5,  # see doc
                  moddepth=1.0,  # modulation depth for envelope
                  # not sure what this will do with an envelope stimulus.
                  opacity=1.0,
@@ -112,13 +131,16 @@ class EnvelopeGrating(GratingStim):
         """ """  # Empty docstring. All doc is in attributes
         # what local vars are defined (these are the init params) for use by
         # __repr__
-        assert(win._haveShaders == True), "Currently EnvelopeGratings need your graphics card to have shaders and yours does not seem to comply - sorry"
+        assert win._haveShaders is True, ("Currently EnvelopeGratings need "
+                                          "your graphics card to have shaders"
+                                          " and yours does not seem to.")
         self._initParams = dir()
         for unecess in ['self', 'rgb', 'dkl', 'lms']:
             self._initParams.remove(unecess)
         # initialise parent class
         GratingStim.__init__(self, win,
-                             units=units, pos=pos, size=size, sf=sf, ori=ori, phase=phase,
+                             units=units, pos=pos, size=size, sf=sf,
+                             ori=ori, phase=phase,
                              color=color, colorSpace=colorSpace,
                              contrast=contrast, opacity=opacity,
                              depth=depth, interpolate=interpolate,
@@ -167,17 +189,23 @@ class EnvelopeGrating(GratingStim):
         # AJS
         """Spatial frequency of the envelope texture
 
-        Should be a :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>` or None.
-        If `units` == 'deg' or 'cm' units are in cycles per deg or cm as appropriate.
-        If `units` == 'norm' then sf units are in cycles per stimulus (and so SF scales with stimulus size).
-        If texture is an image loaded from a file then sf=None defaults to 1/stimSize to give one cycle of the image.
+        Should be a :ref:`x,y-pair <attrib-xy>` or
+        :ref:`scalar <attrib-scalar>` or None.
+        If `units` == 'deg' or 'cm' units are in cycles per deg or cm
+        as appropriate.
+        If `units` == 'norm' then sf units are in cycles per stimulus
+        (and so SF scales with stimulus size).
+        If texture is an image loaded from a file then sf=None defaults
+        to 1/stimSize to give one cycle of the image.
         """
 
         # Recode phase to numpy array
         if value is None:
-            """Set the sf to default (e.g. to the 1.0/size of the loaded image etc)"""
-            if self.units in ['pix', 'pixels'] \
-                    or self._origSize is not None and self.units in ['deg', 'cm']:
+            # set the sf to default e.g. 1./size of the loaded image etc
+
+            if (self.units in ['pix', 'pixels'] or
+                    self._origSize is not None and
+                    self.units in ['deg', 'cm']):
                 value = 1.0 / self.size  # default to one cycle
             else:
                 value = numpy.array([1.0, 1.0])
@@ -193,7 +221,8 @@ class EnvelopeGrating(GratingStim):
     def envphase(self, value):
         """Phase of the modulation in each dimension of the texture.
 
-        Should be an :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>`
+        Should be an :ref:`x,y-pair <attrib-xy>` or
+        :ref:`scalar <attrib-scalar>`
 
         **NB** phase has modulus 1 (rather than 360 or 2*pi)
         This is a little unconventional but has the nice effect
@@ -227,19 +256,19 @@ class EnvelopeGrating(GratingStim):
 
     @attributeSetter
     def carrier(self, value):
-        """Texture to used in the stimulus as a carrier (typically a noise array)
+        """Texture to use in the stimulus as a carrier, typically noise array.
 
         This can be one of various options:
             + the name of an image file (most formats supported)
             + a numpy array (1xN or NxN) ranging -1:1
 
-        If specifying your own texture using an image or numpy array you should
-        ensure that the image has square power-of-two dimesnions (e.g. 256x256).
-        If not then PsychoPy will upsample your stimulus to the next larger
-        power of two.
+        If specifying your own texture using an image or numpy array
+        you should ensure that the image has square power-of-two
+        dimesnions (e.g. 256 x 256). If not then PsychoPy will upsample
+        your stimulus to the next larger power of two.
         """
-        self._createTexture(value, id=self._carrierID, pixFormat=GL.GL_RGB, stim=self,
-                            res=self.texRes)
+        self._createTexture(value, id=self._carrierID, pixFormat=GL.GL_RGB,
+                            stim=self, res=self.texRes)
         # if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
             self.size = None  # Reset size do default
@@ -248,23 +277,25 @@ class EnvelopeGrating(GratingStim):
 
     @attributeSetter
     def envelope(self, value):
-        """Texture to used on the stimulus as a envelope (typically a grating)
+        """Texture to use on the stimulus as a envelope, typically a grating.
 
         This can be one of various options:
             + **'sin'**,'sqr', 'saw', 'tri', None (resets to default)
             + the name of an image file (most formats supported)
             + a numpy array (1xN or NxN) ranging -1:1
 
-        If specifying your own texture using an image or numpy array you should
-        ensure that the image has square power-of-two dimesnions (e.g. 256x256).
-        If not then PsychoPy will upsample your stimulus to the next larger
-        power of two.
+        If specifying your own texture using an image or numpy array
+        you should ensure that the image has square power-of-two dimesnions
+        (e.g. 256 x 256). If not then PsychoPy will upsample your stimulus
+        to the next larger power of two.
         """
         if self.useShaders == True:
-            self._createTexture(value, id=self._envelopeID, pixFormat=GL.GL_RGB, stim=self,
+            self._createTexture(value, id=self._envelopeID,
+                                pixFormat=GL.GL_RGB, stim=self,
                                 res=self.texRes)
         else:
-            self._createTexture(value, id=self._envelopeID, pixFormat=GL.GL_ALPHA, stim=self,
+            self._createTexture(value, id=self._envelopeID,
+                                pixFormat=GL.GL_ALPHA, stim=self,
                                 res=self.texRes)
 
         # if user requested size=None then update the size for new stim here
@@ -283,13 +314,13 @@ class EnvelopeGrating(GratingStim):
         """
 
         # make some corrections for the envelope:: The could be done whenever
-        # the envelope variables are set using some internal variables, putting
-        # it here is safer but sometimes slower
-        # correct envelope oritation to adjust for link with carrier
+        # the envelope variables are set using some internal variables,
+        # putting it here is safer but sometimes slower
+        # correct envelope orientation to adjust for link with carrier
         # orientation, to make it clockwise handed and convert to radians
         envrad = (self.ori - self.envori) * numpy.pi / 180.0
-        # adjust envolope phases so that any envelope drift points in the same
-        # direction as the envelope.
+        # adjust envolope phases so that any envelope drift points
+        # in the same direction as the envelope.
         rph1 = numpy.cos(envrad) * \
             self.envphase[0] + numpy.sin(envrad) * self.envphase[1]
         rph2 = -numpy.cos(envrad) * \
@@ -305,7 +336,8 @@ class EnvelopeGrating(GratingStim):
         # setup the shaderprogram
         GL.glUseProgram(self._shaderProg)
         # set the carrier to be texture unit 0
-        GL.glUniform1i(GL.glGetUniformLocation(self._shaderProg, "carrier"), 0)
+        GL.glUniform1i(GL.glGetUniformLocation(self._shaderProg, "carrier"),
+                       0)
         # set the envelope to be texture unit 1
         GL.glUniform1i(GL.glGetUniformLocation(
             self._shaderProg, "envelope"), 1)
@@ -397,11 +429,12 @@ class EnvelopeGrating(GratingStim):
 
     # for the sake of older graphics cards------------------------------------
     def _updateListNoShaders(self):
-        """
-        This currently combines the carrier and evelope as if they
-        add so is plain wrong. Therefore there is a assertion in the init function which will
-        throw an error if the window object does not have shaders. Thus this function should never be
-        reached. If someone without shaders wishes to do second-order gratings they need a new solution.
+        """This currently combines the carrier and evelope as if they
+        add, so is plain wrong. Therefore there is an assertion in the
+        init function which will throw an error if the window object does
+        not have shaders. Thus this function should never be
+        reached. If someone without shaders wishes to do second-order
+        gratings they need a new solution.
 
         The user shouldn't need this method since it gets called
         after every call to .set() Basically it updates the OpenGL
@@ -426,7 +459,7 @@ class EnvelopeGrating(GratingStim):
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._carrierID)
 
-        #depth = self.depth
+        # depth = self.depth
 
         Lcar = -self._cycles[0] / 2 - self.phase[0] + 0.5
         Rcar = +self._cycles[0] / 2 - self.phase[0] + 0.5
@@ -443,7 +476,8 @@ class EnvelopeGrating(GratingStim):
 
         # access just once because it's slower than basic property
         vertsPix = self.verticesPix
-        GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
+        # draw a 4 sided polygon
+        GL.glBegin(GL.GL_QUADS)
         # right bottom
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rcar, Bcar)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Renv, Benv)
@@ -492,11 +526,12 @@ class EnvelopeGrating(GratingStim):
         GL.glDeleteTextures(1, self._maskID)
 
     def _calcEnvCyclesPerStim(self):
-
-        if self.units in ['norm', 'height']:
+        """
+        """
+        if self.units in ('norm', 'height'):
             # self._cycles = self.sf  #this is the only form of sf that is not
             # size dependent
             self._envcycles = self.envsf
         else:
-            #self._cycles = self.sf * self.size
+            # self._cycles = self.sf * self.size
             self._envcycles = self.envsf * self.size

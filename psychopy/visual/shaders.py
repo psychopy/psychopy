@@ -25,11 +25,13 @@ def print_log(shader):
 
 
 def compileProgram(vertexSource=None, fragmentSource=None):
-    """Create and compile a vertex and fragment shader pair from their sources (strings)
+    """Create and compile a vertex and fragment shader pair from their
+    sources (strings)
     """
 
     def compileShader(source, shaderType):
-        """Compile shader source of given type (only needed by compileProgram)"""
+        """Compile shader source of given type (only needed by compileProgram)
+        """
         shader = GL.glCreateShaderObjectARB(shaderType)
 
         prog = c_char_p(source)
@@ -72,11 +74,10 @@ def compileProgram(vertexSource=None, fragmentSource=None):
 
     return program
 
-"""NOTE about frag shaders using FBO. If a floating point texture is being used
-as a frame buffer (FBO object) then we should keep in the range -1:1 during frag
-shader. Otherwise we need to convert to 0:1. This means that some shaders
-differ for FBO use if they're performing any signed math
-
+"""NOTE about frag shaders using FBO. If a floating point texture is being
+used as a frame buffer (FBO object) then we should keep in the range -1:1
+during frag shader. Otherwise we need to convert to 0:1. This means that
+some shaders differ for FBO use if they're performing any signed math.
 """
 
 fragFBOtoFrame = '''

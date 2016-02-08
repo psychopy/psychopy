@@ -17,14 +17,16 @@ import numpy
 
 
 class Polygon(BaseShapeStim):
-    """Creates a regular polygon (triangles, pentagrams, ...) as a special case of a :class:`~psychopy.visual.ShapeStim`
+    """Creates a regular polygon (triangles, pentagrams, ...).
+     A special case of a :class:`~psychopy.visual.ShapeStim`.
 
     (New in version 1.72.00)
     """
 
     def __init__(self, win, edges=3, radius=.5, **kwargs):
-        """
-        Polygon accepts all input parameters that :class:`~psychopy.visual.ShapeStim` accepts, except for vertices and closeShape.
+        """Polygon accepts all input parameters that
+        :class:`~psychopy.visual.ShapeStim` accepts, except for
+        vertices and closeShape.
         """
         # what local vars are defined (these are the init params) for use by
         # __repr__
@@ -52,8 +54,10 @@ class Polygon(BaseShapeStim):
 
     @attributeSetter
     def edges(self, edges):
-        """Int or float. Number of edges of the polygon. Floats are rounded to int.
-        :ref:`Operations <attrib-operations>` supported."""
+        """Number of edges of the polygon. Floats are rounded to int.
+
+        :ref:`Operations <attrib-operations>` supported.
+        """
         self.__dict__['edges'] = edges
         self._calcVertices()
         self.setVertices(self.vertices, log=False)
@@ -71,12 +75,15 @@ class Polygon(BaseShapeStim):
 
         :ref:`Operations <attrib-operations>` supported.
 
-        Usually there's a setAttribute(value, log=False) method for each attribute. Use this if you want to disable logging."""
+        Usually there's a setAttribute(value, log=False) method for each
+        attribute. Use this if you want to disable logging.
+        """
         self.__dict__['radius'] = numpy.array(radius)
         self._calcVertices()
         self.setVertices(self.vertices, log=False)
 
     def setRadius(self, radius, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message"""
+        but use this method if you need to suppress the log message
+        """
         setAttribute(self, 'radius', radius, log, operation)

@@ -1,11 +1,13 @@
 #!/usr/bin/env python2
 
-'''Creates a rectangle of given width and height
-as a special case of a :class:`~psychopy.visual.ShapeStim`'''
+"""Creates a rectangle of given width and height as a special case of a
+:class:`~psychopy.visual.ShapeStim`"""
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
+
+import numpy
 
 import psychopy  # so we can get the __path__
 from psychopy import logging
@@ -13,18 +15,17 @@ from psychopy import logging
 from psychopy.visual.shape import BaseShapeStim
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 
-import numpy
-
 
 class Rect(BaseShapeStim):
-    """Creates a rectangle of given width and height as a special case of a :class:`~psychopy.visual.ShapeStim`
+    """Creates a rectangle of given width and height as a special case of a
+    :class:`~psychopy.visual.ShapeStim`
 
     (New in version 1.72.00)
     """
 
     def __init__(self, win, width=.5, height=.5, **kwargs):
-        """
-        Rect accepts all input parameters, that `~psychopy.visual.ShapeStim` accept, except for vertices and closeShape.
+        """Rect accepts all input parameters, that
+        `~psychopy.visual.ShapeStim` accept, except vertices and closeShape.
         """
         # what local vars are defined (these are the init params) for use by
         # __repr__
@@ -43,19 +44,18 @@ class Rect(BaseShapeStim):
         super(Rect, self).__init__(win, **kwargs)
 
     def _calcVertices(self):
-        self.vertices = numpy.array([
-            (-self.width * .5,  self.height * .5),
-            (self.width * .5,  self.height * .5),
-            (self.width * .5, -self.height * .5),
-            (-self.width * .5, -self.height * .5)
-        ])
+        self.vertices = numpy.array([(-self.width * .5,  self.height * .5),
+                                     (self.width * .5,  self.height * .5),
+                                     (self.width * .5, -self.height * .5),
+                                     (-self.width * .5, -self.height * .5)])
 
     @attributeSetter
     def width(self, value):
         """int or float.
         Width of the Rectangle (in its respective units, if specified).
 
-        :ref:`Operations <attrib-operations>` supported."""
+        :ref:`Operations <attrib-operations>` supported.
+        """
         self.__dict__['width'] = value
         self._calcVertices()
         self.setVertices(self.vertices, log=False)
@@ -71,7 +71,8 @@ class Rect(BaseShapeStim):
         """int or float.
         Height of the Rectangle (in its respective units, if specified).
 
-        :ref:`Operations <attrib-operations>` supported."""
+        :ref:`Operations <attrib-operations>` supported.
+        """
         self.__dict__['height'] = value
         self._calcVertices()
         self.setVertices(self.vertices, log=False)

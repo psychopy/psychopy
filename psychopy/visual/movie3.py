@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-'''
+"""
 A stimulus class for playing movies (mp4, divx, avi etc...) in PsychoPy.
 Demo using the experimental movie3 stim to play a video file. Path of video
 needs to updated to point to a video you have. movie2 does /not/ require
@@ -9,7 +9,8 @@ Movie2 does require:
 ~~~~~~~~~~~~~~~~~~~~~
 
 moviepy (which requires imageio, Decorator). These can be installed
-(including dependencies) on a standard Python install using `pip install moviepy`
+(including dependencies) on a standard Python install using
+`pip install moviepy`
 imageio will download further compiled libs (ffmpeg) as needed
 
 Current known issues:
@@ -19,7 +20,7 @@ volume control not implemented
 movie is long then audio will be huge and currently the whole thing gets
     loaded in one go. We should provide streaming audio from disk.
 
-'''
+"""
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -104,8 +105,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         if retraceRate is None:
             retraceRate = win.getActualFrameRate()
         if retraceRate is None:
-            logging.warning(
-                "FrameRate could not be supplied by psychopy; defaulting to 60.0")
+            logging.warning("FrameRate could not be supplied by psychopy; "
+                            "defaulting to 60.0")
             retraceRate = 60.0
         self._retraceInterval = 1.0 / retraceRate
         self.filename = filename
@@ -146,7 +147,9 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
 
     def setMovie(self, filename, log=True):
         """See `~MovieStim.loadMovie` (the functions are identical).
-        This form is provided for syntactic consistency with other visual stimuli.
+
+        This form is provided for syntactic consistency with other visual
+        stimuli.
         """
         self.loadMovie(filename, log=log)
 
@@ -158,7 +161,6 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             filename: string
                 The name of the file, including path if necessary
 
-
         After the file is loaded MovieStim.duration is updated with the movie
         duration (in seconds).
         """
@@ -168,9 +170,10 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         if os.path.isfile(filename):
             self._mov = VideoFileClip(filename, audio=(1 - self.noAudio))
             if (not self.noAudio) and (self._mov.audio is not None):
-                self._audioStream = sound.Sound(self._mov.audio.to_soundarray(),
-                                                sampleRate=self._mov.audio.fps)
-            else:  # make sure we set to None (in case prev clip did have auido)
+                self._audioStream = sound.Sound(
+                    self._mov.audio.to_soundarray(),
+                    sampleRate=self._mov.audio.fps)
+            else:  # make sure we set to None (in case prev clip had audio)
                 self._audioStream = None
         else:
             raise IOError("Movie file '%s' was not found" % filename)
@@ -221,10 +224,10 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         return False
 
     def stop(self, log=True):
-        """
-        Stop the current point in the movie (sound will stop, current frame
-        will not advance). Once stopped the movie cannot be restarted - it must
-        be loaded again. Use pause() if you may need to restart the movie.
+        """Stop the current point in the movie (sound will stop, current frame
+        will not advance). Once stopped the movie cannot be restarted -
+        it must be loaded again. Use pause() if you may need to restart
+        the movie.
         """
         if self.status != STOPPED:
             self.status = STOPPED
@@ -238,15 +241,17 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         pass  # to do
 
     def setFlipHoriz(self, newVal=True, log=True):
-        """If set to True then the movie will be flipped horizontally (left-to-right).
-        Note that this is relative to the original, not relative to the current state.
+        """If set to True then the movie will be flipped horizontally
+        (left-to-right). Note that this is relative to the original,
+        not relative to the current state.
         """
         self.flipHoriz = newVal
         logAttrib(self, log, 'flipHoriz')
 
     def setFlipVert(self, newVal=True, log=True):
-        """If set to True then the movie will be flipped vertically (top-to-bottom).
-        Note that this is relative to the original, not relative to the current state.
+        """If set to True then the movie will be flipped vertically
+        (top-to-bottom). Note that this is relative to the original,
+        not relative to the current state.
         """
         self.flipVert = not newVal
         logAttrib(self, log, 'flipVert')
@@ -258,9 +263,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         return self._mov.fps
 
     def getCurrentFrameTime(self):
-        """
-        Get the time that the movie file specified the current video frame as
-        having.
+        """Get the time that the movie file specified the current
+        video frame as having.
         """
         return self._nextFrameT - self._frameInterval
 
@@ -276,9 +280,10 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
         # only advance if next frame (half of next retrace rate)
         if self._nextFrameT > self.duration:
             self._onEos()
-        elif (self._numpyFrame is not None) and \
-                (self._nextFrameT > (self._videoClock.getTime() - self._retraceInterval / 2.0)):
-            return None
+        elif self._numpyFrame is not None:
+            if self._nextFrameT > (self._videoClock.getTime() -
+                                   self._retraceInterval / 2.0):
+                return None
         self._numpyFrame = self._mov.get_frame(self._nextFrameT)
         useSubTex = self.useTexSubImage2D
         if self._texID is None:
@@ -304,15 +309,16 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
             if useSubTex is False:
                 GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB8,
-                                self._numpyFrame.shape[
-                                    1], self._numpyFrame.shape[0], 0,
-                                GL.GL_RGB, GL.GL_UNSIGNED_BYTE, self._numpyFrame.ctypes)
+                                self._numpyFrame.shape[1],
+                                self._numpyFrame.shape[0], 0,
+                                GL.GL_RGB, GL.GL_UNSIGNED_BYTE,
+                                self._numpyFrame.ctypes)
             else:
                 GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
-                                   self._numpyFrame.shape[
-                                       1], self._numpyFrame.shape[0],
-                                   GL.GL_RGB, GL.GL_UNSIGNED_BYTE, self._numpyFrame.ctypes)
-
+                                   self._numpyFrame.shape[1],
+                                   self._numpyFrame.shape[0],
+                                   GL.GL_RGB, GL.GL_UNSIGNED_BYTE,
+                                   self._numpyFrame.ctypes)
         else:
             GL.glTexParameteri(
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
@@ -320,14 +326,16 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
             if useSubTex is False:
                 GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB8,
-                                self._numpyFrame.shape[
-                                    1], self._numpyFrame.shape[0], 0,
-                                GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpyFrame.ctypes)
+                                self._numpyFrame.shape[1],
+                                self._numpyFrame.shape[0], 0,
+                                GL.GL_BGR, GL.GL_UNSIGNED_BYTE,
+                                self._numpyFrame.ctypes)
             else:
                 GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
-                                   self._numpyFrame.shape[
-                                       1], self._numpyFrame.shape[0],
-                                   GL.GL_BGR, GL.GL_UNSIGNED_BYTE, self._numpyFrame.ctypes)
+                                   self._numpyFrame.shape[1],
+                                   self._numpyFrame.shape[0],
+                                   GL.GL_BGR, GL.GL_UNSIGNED_BYTE,
+                                   self._numpyFrame.ctypes)
         GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE,
                      GL.GL_MODULATE)  # ?? do we need this - think not!
 
@@ -335,22 +343,23 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             self._nextFrameT += self._frameInterval
 
     def draw(self, win=None):
+        """Draw the current frame to a particular visual.Window (or to the
+        default win for this object if not specified). The current
+        position in the movie will be determined automatically.
+
+        This method should be called on every frame that the movie is
+        meant to appear.
         """
-        Draw the current frame to a particular visual.Window (or to the
-        default win for this object if not specified). The current position in
-        the movie will be determined automatically.
 
-        This method should be called on every frame that the movie is meant to
-        appear"""
-
-        if self.status == NOT_STARTED or (self.status == FINISHED and self.loop):
+        if (self.status == NOT_STARTED or
+                (self.status == FINISHED and self.loop)):
             self.play()
         elif self.status == FINISHED and not self.loop:
             return
         if win is None:
             win = self.win
         self._selectWindow(win)
-        self._updateFrameTexture()  # will check if it's needed yet in the function
+        self._updateFrameTexture()  # will check if it's needed
 
         # scale the drawing frame and get to centre of field
         GL.glPushMatrix()  # push before drawing, pop after
@@ -419,7 +428,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
 
     def _unload(self):
         try:
-            self.clearTextures()  # remove textures from graphics card to prevent crash
+            # remove textures from graphics card to prevent crash
+            self.clearTextures()
         except Exception:
             pass
         self._mov = None
@@ -435,7 +445,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin):
             self.stop()
 
         if self.autoLog:
-            self.win.logOnFlip("Set %s finished" % (self.name),
+            self.win.logOnFlip("Set %s finished" % self.name,
                                level=logging.EXP, obj=self)
 
     def __del__(self):
