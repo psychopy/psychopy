@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
-'''Restrict a stimulus visibility area to a basic shape or list of vertices'''
+"""Restrict a stimulus visibility area to a basic shape or list of vertices.
+"""
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -35,28 +36,35 @@ from psychopy.constants import STARTED, STOPPED
 
 
 class Aperture(MinimalStim, ContainerMixin):
-    """Restrict a stimulus visibility area to a basic shape or list of vertices.
+    """Restrict a stimulus visibility area to a basic shape or
+    list of vertices.
 
-    When enabled, any drawing commands will only operate on pixels within the
-    Aperture. Once disabled, subsequent draw operations affect the whole screen
-    as usual.
+    When enabled, any drawing commands will only operate on pixels within
+    the Aperture. Once disabled, subsequent draw operations affect the whole
+    screen as usual.
 
-    If shape is 'square' or 'triangle' then that is what will be used (obviously)
-    If shape is 'circle' or `None` then a polygon with nVerts will be used (120 for a rough circle)
-    If shape is a list or numpy array (Nx2) then it will be used directly as the vertices to a :class:`~psychopy.visual.ShapeStim`
-    If shape is a filename then it will be used to load and image as a :class:`~psychopy.visual.ImageStim`.
-        Note that transparent parts in the image (e.g. in a PNG file) will not be included in the mask shape. The color of the image will be ignored.
+    If shape is 'square' or 'triangle' then that is what will be used
+    If shape is 'circle' or `None` then a polygon with nVerts will be used
+        (120 for a rough circle)
+    If shape is a list or numpy array (Nx2) then it will be used directly
+        as the vertices to a :class:`~psychopy.visual.ShapeStim`
+    If shape is a filename then it will be used to load and image as a
+        :class:`~psychopy.visual.ImageStim`. Note that transparent parts
+        in the image (e.g. in a PNG file) will not be included in the mask
+        shape. The color of the image will be ignored.
 
     See demos/stimuli/aperture.py for example usage
 
     :Author:
         2011, Yuri Spitsyn
-        2011, Jon Peirce added units options, Jeremy Gray added shape & orientation
+        2011, Jon Peirce added units options,
+              Jeremy Gray added shape & orientation
         2014, Jeremy Gray added .contains() option
         2015, Thomas Emmerling added ImageStim option
     """
 
-    def __init__(self, win, size=1, pos=(0, 0), ori=0, nVert=120, shape='circle', inverted=False, units=None,
+    def __init__(self, win, size=1, pos=(0, 0), ori=0, nVert=120,
+                 shape='circle', inverted=False, units=None,
                  name=None, autoLog=None):
         # what local vars are defined (these are the init params) for use by
         # __repr__
@@ -65,11 +73,11 @@ class Aperture(MinimalStim, ContainerMixin):
         super(Aperture, self).__init__(name=name, autoLog=False)
 
         # set self params
-        self.autoLog = False  # set this False first and change after attribs are set
+        self.autoLog = False  # change after attribs are set
         self.win = win
         if not win.allowStencil:
-            logging.error(
-                'Aperture has no effect in a window created without allowStencil=True')
+            logging.error('Aperture has no effect in a window created '
+                          'without allowStencil=True')
             core.quit()
         self.__dict__['size'] = size
         self.__dict__['pos'] = pos
@@ -102,23 +110,26 @@ class Aperture(MinimalStim, ContainerMixin):
             if os.path.isfile(shape):
                 self.__dict__['filename'] = shape
             else:
-                logging.error(
-                    "Unrecognized shape for aperture. Expected 'circle', 'square', 'triangle', vertices, filename, or None; got %s" % (repr(shape)))
+                msg = ("Unrecognized shape for aperture. Expected 'circle',"
+                       " 'square', 'triangle', vertices, filename, or None;"
+                       " got %s")
+                logging.error(msg % repr(shape))
 
         if self.__dict__['filename']:
-            self._shape = ImageStim(win=self.win, image=self.__dict__['filename'],
-                                    pos=pos, size=size,
-                                    autoLog=False)
+            self._shape = ImageStim(
+                win=self.win, image=self.__dict__['filename'],
+                pos=pos, size=size, autoLog=False)
         else:
-            self._shape = BaseShapeStim(win=self.win, vertices=vertices,
-                                        fillColor=1, lineColor=None,
-                                        interpolate=False, pos=pos, size=size,
-                                        autoLog=False)
+            self._shape = BaseShapeStim(
+                win=self.win, vertices=vertices, fillColor=1, lineColor=None,
+                interpolate=False, pos=pos, size=size, autoLog=False)
             self.vertices = self._shape.vertices
             self._needVertexUpdate = True
 
         self._needReset = True  # Default when setting attributes
-        self._reset()  # implicitly runs a self.enabled = True. Also sets self._needReset = True on every call
+        # implicitly runs a self.enabled = True. Also sets
+        # self._needReset = True on every call
+        self._reset()
 
         # set autoLog now that params have been initialised
         self.__dict__[
@@ -127,8 +138,10 @@ class Aperture(MinimalStim, ContainerMixin):
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
     def _reset(self):
-        """Internal method to rebuild the shape - shouldn't be called by the user.
-        You have to explicitly turn resetting off by setting self._needReset = False"""
+        """Internal method to rebuild the shape - shouldn't be called by
+        the user. You have to explicitly turn resetting off by setting
+        self._needReset = False
+        """
         if not self._needReset:
             self._needReset = True
         else:
@@ -167,11 +180,14 @@ class Aperture(MinimalStim, ContainerMixin):
     def size(self, size):
         """Set the size (diameter) of the Aperture.
 
-        This essentially controls a :class:`.ShapeStim` so see documentation for ShapeStim.size.
+        This essentially controls a :class:`.ShapeStim` so see
+        documentation for ShapeStim.size.
 
-        :ref:`Operations <attrib-operations>` supported here as well as ShapeStim.
+        :ref:`Operations <attrib-operations>` supported here as
+        well as ShapeStim.
 
-        Use setSize() if you want to control 0logging and resetting."""
+        Use setSize() if you want to control 0logging and resetting.
+        """
         self.__dict__['size'] = size
         self._shape.size = size  # a ShapeStim
         self._reset()
@@ -187,11 +203,14 @@ class Aperture(MinimalStim, ContainerMixin):
     def ori(self, ori):
         """Set the orientation of the Aperture.
 
-        This essentially controls a :class:`.ShapeStim` so see documentation for ShapeStim.ori.
+        This essentially controls a :class:`.ShapeStim` so see
+        documentation for ShapeStim.ori.
 
-        :ref:`Operations <attrib-operations>` supported here as well as ShapeStim.
+        :ref:`Operations <attrib-operations>` supported here as
+        well as ShapeStim.
 
-        Use setOri() if you want to control logging and resetting."""
+        Use setOri() if you want to control logging and resetting.
+        """
         self.__dict__['ori'] = ori
         self._shape.ori = ori  # a ShapeStim
         self._reset()
@@ -205,11 +224,14 @@ class Aperture(MinimalStim, ContainerMixin):
 
     @attributeSetter
     def pos(self, pos):
-        """Set the pos (centre) of the Aperture. :ref:`Operations <attrib-operations>` supported.
+        """Set the pos (centre) of the Aperture.
+        :ref:`Operations <attrib-operations>` supported.
 
-        This essentially controls a :class:`.ShapeStim` so see documentation for ShapeStim.pos.
+        This essentially controls a :class:`.ShapeStim` so see
+        documentation for ShapeStim.pos.
 
-        :ref:`Operations <attrib-operations>` supported here as well as ShapeStim.
+        :ref:`Operations <attrib-operations>` supported here as
+        well as ShapeStim.
 
         Use setPos() if you want to control logging and resetting.
         """
@@ -236,7 +258,8 @@ class Aperture(MinimalStim, ContainerMixin):
         self._reset()
 
     def invert(self):
-        """Use Aperture.inverted = True instead."""
+        """Use Aperture.inverted = True instead.
+        """
         self.inverted = True
 
     @property
@@ -270,11 +293,13 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['enabled'] = value
 
     def enable(self):
-        """Use Aperture.enabled = True instead."""
+        """Use Aperture.enabled = True instead.
+        """
         self.enabled = True
 
     def disable(self):
-        """Use Aperture.enabled = False instead."""
+        """Use Aperture.enabled = False instead.
+        """
         self.enabled = False
 
     def __del__(self):

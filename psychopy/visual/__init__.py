@@ -4,13 +4,13 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-'''Container for all visual-related functions and classes'''
+"""Container for all visual-related functions and classes"""
 
 from psychopy import logging
 
 # needed for backwards-compatibility
-from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED, STOPPED,
-                                FINISHED, PRESSED, RELEASED, FOREVER)
+from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
+                                STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
 
 # window, should always be loaded first
 from .window import Window, getMsPerFrame, openWindows
@@ -30,7 +30,7 @@ from psychopy.visual import filters
 
 lazyImports = """
 # stimuli derived from object or MinimalStim
-from psychopy.visual.aperture import Aperture  # uses BaseShapeStim or ImageStim
+from psychopy.visual.aperture import Aperture  # uses BaseShapeStim, ImageStim
 from psychopy.visual.custommouse import CustomMouse
 from psychopy.visual.elementarray import ElementArrayStim
 from psychopy.visual.ratingscale import RatingScale
