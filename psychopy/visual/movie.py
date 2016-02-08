@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
-'''A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy.'''
+"""A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy.
+"""
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -48,13 +49,12 @@ from psychopy import makeMovies
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 
 if sys.platform == 'win32' and not haveAvbin:
-    logging.error("""avbin.dll failed to load.
-                     Try importing psychopy.visual as the first library
-                     (before anything that uses scipy)
-                     and make sure that avbin is installed.""")
+    logging.error("avbin.dll failed to load. "
+                  "Try importing psychopy.visual as the first library "
+                  "(before anything that uses scipy) "
+                  "and make sure that avbin is installed.")
 
 import numpy
-
 try:
     from pyglet import media
     havePygletMedia = True
@@ -71,7 +71,8 @@ class MovieStim(BaseVisualStim, ContainerMixin):
 
         mov = visual.MovieStim(myWin, 'testMovie.mp4', flipVert=False)
         print(mov.duration)
-        print(mov.format.width, mov.format.height) #give the original size of the movie in pixels
+        # give the original size of the movie in pixels:
+        print(mov.format.width, mov.format.height)
 
         mov.draw() #draw the current frame (automagically determined)
 
@@ -98,17 +99,18 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         :Parameters:
 
             filename :
-                a string giving the relative or absolute path to the movie. Can be any movie that
-                AVbin can read (e.g. mpeg, DivX)
+                a string giving the relative or absolute path to the movie.
+                Can be any movie that AVbin can read (e.g. mpeg, DivX)
             flipVert : True or *False*
                 If True then the movie will be top-bottom flipped
             flipHoriz : True or *False*
                 If True then the movie will be right-left flipped
             volume :
-                The nominal level is 1.0, and 0.0 is silence, see pyglet.media.Player
+                The nominal level is 1.0, and 0.0 is silence,
+                see pyglet.media.Player
             loop : bool, optional
-                Whether to start the movie over from the beginning if draw is
-                called and the movie is done.
+                Whether to start the movie over from the beginning
+                if draw is called and the movie is done.
 
         """
         # what local vars are defined (these are the init params) for use by
@@ -118,29 +120,32 @@ class MovieStim(BaseVisualStim, ContainerMixin):
 
         super(MovieStim, self).__init__(
             win, units=units, name=name, autoLog=False)
-        self._verticesBase *= numpy.array([[-1, 1]])  # or the movie is flipped
+        self._verticesBase *= numpy.array([[-1, 1]])  # unflip
 
         if not havePygletMedia:
-            raise ImportError("""pyglet.media is needed for MovieStim and could not be imported.
-                This can occur for various reasons;
-                    - psychopy.visual was imported too late (after a lib that uses scipy)
-                    - no audio output is enabled (no audio card or no speakers attached)
-                    - avbin is not installed
-            """)
+            msg = ("pyglet.media is needed for MovieStim and could not be"
+                   " imported.\nThis can occur for various reasons;"
+                   "    - psychopy.visual was imported too late (after a lib"
+                   " that uses scipy)"
+                   "    - no audio output is enabled (no audio card or no "
+                   "speakers attached)"
+                   "    - avbin is not installed")
+            raise ImportError(msg)
         self._movie = None  # the actual pyglet media object
         self._player = pyglet.media.ManagedSoundPlayer()
         self._player.volume = volume
         try:
             self._player_default_on_eos = self._player.on_eos
         except Exception:
-            self._player_default_on_eos = self._player._on_eos  # from pyglet 1.1.4?
+            # pyglet 1.1.4?
+            self._player_default_on_eos = self._player._on_eos
 
         self.filename = filename
         self.duration = None
         self.loop = loop
         if loop and pyglet.version >= '1.2':
-            logging.error(
-                "looping of movies is not currently supported for pyglet>=1.2 only for version 1.1.4")
+            logging.error("looping of movies is not currently supported "
+                          "for pyglet >= 1.2 (only for version 1.1.4)")
         self.loadMovie(self.filename)
         self.format = self._movie.video_format
         self.pos = numpy.asarray(pos, float)
@@ -152,29 +157,29 @@ class MovieStim(BaseVisualStim, ContainerMixin):
 
         # size
         if size is None:
-            self.size = numpy.array([self.format.width,
-                                     self.format.height], float)
+            self.size = numpy.array([self.format.width, self.format.height],
+                                    float)
         else:
             self.size = val2array(size)
 
         self.ori = ori
         self._updateVertices()
 
-        # check for pyglet
         if win.winType != 'pyglet':
-            logging.error(
-                'Movie stimuli can only be used with a pyglet window')
+            logging.error('Movie stimuli can only be used with a '
+                          'pyglet window')
             core.quit()
 
         # set autoLog now that params have been initialised
-        self.__dict__[
-            'autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        wantLog = autoLog is None and self.win.autoLog
+        self.__dict__['autoLog'] = autoLog or wantLog
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
     def setMovie(self, filename, log=None):
         """See `~MovieStim.loadMovie` (the functions are identical).
-        This form is provided for syntactic consistency with other visual stimuli.
+        This form is provided for syntactic consistency with other visual
+        stimuli.
         """
         self.loadMovie(filename, log=log)
 
@@ -200,10 +205,11 @@ class MovieStim(BaseVisualStim, ContainerMixin):
             estr = str(e)
             msg = ''
             if "avbin" in estr.lower():
-                msg = "\n         It seems that avbin was not installed correctly." \
-                      "\n         Please fetch/install it from http://code.google.com/p/avbin/."
-            raise IOError("Caught exception '%s' while loading file '%s'.%s"
-                          % (estr, filename, msg))
+                msg = ("\nIt seems that avbin was not installed correctly."
+                       "\nPlease fetch/install it from "
+                       "http://code.google.com/p/avbin/.")
+            emsg = "Caught exception '%s' while loading file '%s'.%s"
+            raise IOError(emsg % (estr, filename, msg))
         self._player.queue(self._movie)
         self.duration = self._movie.duration
         while self._player.source != self._movie:
@@ -214,74 +220,82 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         logAttrib(self, log, 'movie', filename)
 
     def pause(self, log=None):
-        """Pause the current point in the movie (sound will stop, current frame
-        will not advance).  If play() is called again both will restart.
+        """Pause the current point in the movie (sound will stop, current
+        frame will not advance). If play() is called again both will restart.
         """
         self._player.pause()
         self._player._on_eos = self._player_default_on_eos
         self.status = PAUSED
         if log or log is None and self.autoLog:
-            self.win.logOnFlip("Set %s paused" % (self.name),
+            self.win.logOnFlip("Set %s paused" % self.name,
                                level=logging.EXP, obj=self)
 
     def stop(self, log=None):
-        """Stop the current point in the movie (sound will stop, current frame
-        will not advance). Once stopped the movie cannot be restarted - it must
-        be loaded again. Use pause() if you may need to restart the movie.
+        """Stop the current point in the movie.
+
+        The sound will stop, current frame will not advance. Once stopped
+        the movie cannot be restarted - it must be loaded again.
+        Use pause() if you may need to restart the movie.
         """
         self._player.stop()
         self._player._on_eos = self._player_default_on_eos
         self.status = STOPPED
         if log or log is None and self.autoLog:
-            self.win.logOnFlip("Set %s stopped" % (self.name),
+            self.win.logOnFlip("Set %s stopped" % self.name,
                                level=logging.EXP, obj=self)
 
     def play(self, log=None):
-        """Continue a paused movie from current position
+        """Continue a paused movie from current position.
         """
         self._player.play()
         self._player._on_eos = self._onEos
         self.status = PLAYING
         if log or log is None and self.autoLog:
-            self.win.logOnFlip("Set %s playing" % (self.name),
+            self.win.logOnFlip("Set %s playing" % self.name,
                                level=logging.EXP, obj=self)
 
     def seek(self, timestamp, log=None):
-        """ Seek to a particular timestamp in the movie.
-        NB this does not seem very robust as at version 1.62 and may cause crashes!
+        """Seek to a particular timestamp in the movie.
+
+        NB this does not seem very robust as at version 1.62, may crash!
         """
         self._player.seek(float(timestamp))
         logAttrib(self, log, 'seek', timestamp)
 
     def setFlipHoriz(self, newVal=True, log=None):
-        """If set to True then the movie will be flipped horizontally (left-to-right).
-        Note that this is relative to the original, not relative to the current state.
+        """If set to True then the movie will be flipped horizontally
+        (left-to-right). Note that this is relative to the original,
+        not relative to the current state.
         """
         self.flipHoriz = newVal
         logAttrib(self, log, 'flipHoriz')
         self._needVertexUpdate = True
 
     def setFlipVert(self, newVal=True, log=None):
-        """If set to True then the movie will be flipped vertically (top-to-bottom).
-        Note that this is relative to the original, not relative to the current state.
+        """If set to True then the movie will be flipped vertically
+        (top-to-bottom). Note that this is relative to the original,
+        not relative to the current state.
         """
         self.flipVert = newVal
         logAttrib(self, log, 'flipVert')
         self._needVertexUpdate = True
 
     def draw(self, win=None):
-        """Draw the current frame to a particular visual.Window (or to the
-        default win for this object if not specified). The current position in
-        the movie will be determined automatically.
+        """Draw the current frame to a particular visual.Window.
 
-        This method should be called on every frame that the movie is meant to
-        appear"""
+        Draw to the default win for this object if not specified.
+        The current position in the movie will be determined automatically.
+
+        This method should be called on every frame that the movie is
+        meant to appear.
+        """
 
         if self.status == PLAYING and not self._player.playing:
             self.status = FINISHED
-        if self.status == NOT_STARTED or (self.status == FINISHED and self.loop):
+        _done = bool(self.status == FINISHED)
+        if self.status == NOT_STARTED or (_done and self.loop):
             self.play()
-        elif self.status == FINISHED and not self.loop:
+        elif _done and not self.loop:
             return
 
         if win is None:
@@ -291,7 +305,8 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         # make sure that textures are on and GL_TEXTURE0 is active
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
-        if pyglet.version >= '1.2':  # for pyglet 1.1.4 this was done via media.dispatch_events
+        if pyglet.version >= '1.2':
+            # for pyglet 1.1.4 this was done via media.dispatch_events
             self._player.update_texture()
         frameTexture = self._player.get_texture()
         if frameTexture is None:
@@ -327,7 +342,8 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         GL.glPopMatrix()
 
     def setContrast(self):
-        """Not yet implemented for MovieStim"""
+        """Not yet implemented for MovieStim.
+        """
         pass
 
     def _onEos(self):
@@ -339,7 +355,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
             self.status = FINISHED
             self._player._on_eos = self._player_default_on_eos
         if self.autoLog:
-            self.win.logOnFlip("Set %s finished" % (self.name),
+            self.win.logOnFlip("Set %s finished" % self.name,
                                level=logging.EXP, obj=self)
 
     def setAutoDraw(self, val, log=None):

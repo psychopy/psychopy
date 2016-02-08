@@ -1,7 +1,7 @@
+"""Various useful functions for creating filters and textures
+(e.g. for PatchStim)
 """
-Various useful functions for creating filters and textures (e.g. for PatchStim)
 
-"""
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -44,32 +44,37 @@ def makeGrating(res,
         a square numpy array of size resXres
 
     """
-    tiny = 0.0000000000001  # to prevent the sinusoid ever being exactly at zero (for sqr wave)
+    # to prevent the sinusoid ever being exactly at zero (for sqr wave):
+    tiny = 0.0000000000001
     ori *= (-numpy.pi / 180)
     phase *= (numpy.pi / 180)
-    xrange, yrange = numpy.mgrid[0.0: cycles * 2.0 * numpy.pi: cycles * 2.0 * numpy.pi / res,
-                                 0.0: cycles * 2.0 * numpy.pi: cycles * 2.0 * numpy.pi / res]
+    cyclesTwoPi = cycles * 2.0 * numpy.pi
+    xrange, yrange = numpy.mgrid[0.0: cyclesTwoPi: cyclesTwoPi / res,
+                                 0.0: cyclesTwoPi: cyclesTwoPi / res]
 
+    sin, cos = numpy.sin, numpy.cos
     if gratType is "none":
         res = 2
         intensity = numpy.ones((res, res), float)
     elif gratType is "sin":
         intensity = contr * \
-            (numpy.sin(xrange * numpy.sin(ori) + yrange * numpy.cos(ori) + phase))
+            (sin(xrange * sin(ori) + yrange * cos(ori) + phase))
     elif gratType is "ramp":
-        intensity = contr * (xrange * numpy.cos(ori) +
-                             yrange * numpy.sin(ori)) / (2 * numpy.pi)
+        intensity = contr * (xrange * cos(ori) +
+                             yrange * sin(ori)) / (2 * numpy.pi)
     elif gratType is "sqr":  # square wave (symmetric duty cycle)
-        intensity = numpy.where(numpy.sin(
-            xrange * numpy.sin(ori) + yrange * numpy.cos(ori) + phase + tiny) >= 0, 1, -1)
+        intensity = numpy.where(
+            sin(xrange * sin(ori) + yrange * cos(ori) + phase + tiny) >= 0, 1, -1)
     elif gratType is "sinXsin":
-        intensity = numpy.sin(xrange) * numpy.sin(yrange)
-    else:  # might be a filename of an image
+        intensity = sin(xrange) * sin(yrange)
+    else:
+        # might be a filename of an image
         try:
             im = Image.open(gratType)
         except Exception:
             logging.error("couldn't find tex...", gratType)
             return
+        # todo: opened it, now what?
     return intensity
 
 
@@ -90,15 +95,14 @@ def maskMatrix(matrix, shape='circle', radius=1.0, center=(0.0, 0.0)):
              corner, [-1,-1] is bottom-left)
     """
     # NB makeMask now returns a value -1:1
-    alphaMask = makeMask(
-        matrix.shape[0], shape, radius, center=(0.0, 0.0), range=[0, 1])
+    alphaMask = makeMask(matrix.shape[0], shape, radius,
+                         center=(0.0, 0.0), range=[0, 1])
     return matrix * alphaMask
 
 
 def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0, 0.0),
              range=(-1, 1), fringeWidth=0.2):
-    """
-    Returns a matrix to be used as an alpha mask (circle,gauss,ramp)
+    """Returns a matrix to be used as an alpha mask (circle,gauss,ramp).
 
     :Parameters:
             matrixSize: integer
@@ -111,8 +115,8 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0, 0.0),
                 [1,1] will extend just to the edge of the matrix). Radius can
                 asymmetric, e.g. [1.0,2.0] will be wider than it is tall.
             center:  2x1 tuple or list (default=[0.0,0.0])
-                the centre of the mask in the matrix ([1,1] is top-right corner,
-                [-1,-1] is bottom-left)
+                the centre of the mask in the matrix ([1,1] is top-right
+                corner, [-1,-1] is bottom-left)
             fringeWidth: float (0-1)
                 The proportion of the raisedCosine that is being blurred.
             range: 2x1 tuple or list (default=[-1,1])
@@ -128,9 +132,8 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0, 0.0),
         outArray = makeGauss(rad, mean=0.0, sd=0.33333)
     elif shape == 'raisedCosine':
         hamming_len = 1000  # This affects the 'granularity' of the raised cos
-        fringe_proportion = fringeWidth  # This one affects the proportion of the
-        # stimulus diameter that is devoted to the
-        # raised cosine.
+        fringe_proportion = fringeWidth  # This one affects the proportion of
+        # the stimulus diameter that is devoted to the raised cosine.
 
         rad = makeRadialMatrix(matrixSize, center, radius)
         outArray = numpy.zeros_like(rad)
@@ -149,8 +152,8 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0, 0.0),
         d_from_edge /= numpy.max(d_from_edge)
         d_from_edge *= numpy.round(hamming_len / 2)
 
-        # This is the indices into the hamming (larger for small distances from
-        # the edge!):
+        # This is the indices into the hamming (larger for small distances
+        # from the edge!):
         portion_idx = (-1 * d_from_edge).astype(int)
 
         # Apply the raised cos to this portion:
@@ -166,7 +169,6 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0, 0.0),
         outArray[artifact_idx] = 0
 
     else:
-
         raise ValueError('Unknown value for shape argument %s' % shape)
     mag = range[1] - range[0]
     offset = range[0]
@@ -219,14 +221,16 @@ def makeGauss(x, mean=0.0, sd=1.0, gain=1.0, base=0.0):
 
 
 def getRMScontrast(matrix):
-    """Returns the RMS contrast (the sample standard deviation) of a array"""
+    """Returns the RMS contrast (the sample standard deviation) of a array
+    """
     matrix = matrix.flat
     RMScontrast = (sum((matrix - numpy.mean(matrix))**2) / len(matrix))**0.5
     return RMScontrast
 
 
 def conv2d(smaller, larger):
-    """convolve a pair of 2d numpy matrices
+    """Convolve a pair of 2d numpy matrices.
+
     Uses fourier transform method, so faster if larger matrix
     has dimensions of size 2**n
 
@@ -253,7 +257,7 @@ def imifft(X):
 
 
 def butter2d_lp(size, cutoff, n=3):
-    """Create lowpass 2D Butterworth filter
+    """Create lowpass 2D Butterworth filter.
 
        :Parameters:
            size : tuple
@@ -287,7 +291,7 @@ def butter2d_lp(size, cutoff, n=3):
 
 
 def butter2d_bp(size, cutin, cutoff, n):
-    """Bandpass Butterworth filter in two dimensions
+    """Bandpass Butterworth filter in two dimensions.
 
     :Parameters:
         size : tuple
@@ -310,7 +314,7 @@ def butter2d_bp(size, cutin, cutoff, n):
 
 
 def butter2d_hp(size, cutoff, n=3):
-    """Highpass Butterworth filter in two dimensions
+    """Highpass Butterworth filter in two dimensions.
 
     :Parameters:
         size : tuple

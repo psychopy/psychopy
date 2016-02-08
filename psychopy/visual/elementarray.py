@@ -1,8 +1,8 @@
 #!/usr/bin/env python2
 
-'''This stimulus class defines a field of elements whose behaviour can be
+"""This stimulus class defines a field of elements whose behaviour can be
 independently controlled. Suitable for creating 'global form' stimuli or more
-detailed random dot stimuli.'''
+detailed random dot stimuli."""
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -34,14 +34,14 @@ import numpy
 
 
 class ElementArrayStim(MinimalStim, TextureMixin):
-    """
-    This stimulus class defines a field of elements whose behaviour can be independently
-    controlled. Suitable for creating 'global form' stimuli or more detailed random dot
-    stimuli.
+    """This stimulus class defines a field of elements whose behaviour can
+    be independently controlled. Suitable for creating 'global form' stimuli
+    or more detailed random dot stimuli.
 
-    This stimulus can draw thousands of elements without dropping a frame, but in order
-    to achieve this performance, uses several OpenGL extensions only available on modern
-    graphics cards (supporting OpenGL2.0). See the ElementArray demo.
+    This stimulus can draw thousands of elements without dropping a frame,
+    but in order to achieve this performance, uses several OpenGL extensions
+    only available on modern graphics cards (supporting OpenGL2.0).
+    See the ElementArray demo.
     """
 
     def __init__(self,
@@ -77,8 +77,9 @@ class ElementArrayStim(MinimalStim, TextureMixin):
                 a :class:`~psychopy.visual.Window` object (required)
 
             units : **None**, 'height', 'norm', 'cm', 'deg' or 'pix'
-                If None then the current units of the :class:`~psychopy.visual.Window`
-                will be used. See :ref:`units` for explanation of other options.
+                If None then the current units of the
+                :class:`~psychopy.visual.Window` will be used.
+                See :ref:`units` for explanation of other options.
 
             nElements :
                 number of elements in the array.
@@ -115,13 +116,14 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         if self.win.winType != 'pyglet':
             raise TypeError('ElementArrayStim requires a pyglet context')
         if not self.win._haveShaders:
-            raise Exception(
-                "ElementArrayStim requires shaders support and floating point textures")
+            raise Exception("ElementArrayStim requires shaders support"
+                            " and floating point textures")
 
         self.colorSpace = colorSpace
         if rgbs != None:
-            logging.warning(
-                "Use of the rgb argument to ElementArrayStim is deprecated. Please use colors and colorSpace args instead")
+            msg = ("Use of the rgb argument to ElementArrayStim is deprecated"
+                   ". Please use colors and colorSpace args instead")
+            logging.warning(msg)
             self.setColors(rgbs, colorSpace='rgb', log=False)
         else:
             self.setColors(colors, colorSpace=colorSpace, log=False)
@@ -151,8 +153,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self._updateVertices()
 
         # set autoLog now that params have been initialised
-        self.__dict__[
-            'autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        wantLog = autoLog is None and self.win.autoLog
+        self.__dict__['autoLog'] = autoLog or wantLog
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
@@ -166,22 +168,24 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         """Helper function to change input to Nx2 arrays
         'scalar': int/float, 1x1 and 2x1.
         'Nx1': vector of values for each element.
-        'Nx2': x-y pair for each element"""
+        'Nx2': x-y pair for each element
+        """
 
         # Make into an array if not already
         value = numpy.array(value, dtype=float)
 
         # Check shape and transform if not appropriate
+        valShpElem = value.shape in [(self.nElements,), (self.nElements, 1)]
         if 'scalar' in acceptedInput and value.shape in [(), (1,), (2,)]:
             value = numpy.resize(value, [self.nElements, 2])
-        elif 'Nx1' in acceptedInput and value.shape in [(self.nElements,), (self.nElements, 1)]:
+        elif 'Nx1' in acceptedInput and valShpElem:
             value.shape = (self.nElements, 1)  # set to be 2D
             value = value.repeat(2, 1)  # repeat once on dim 1
         elif 'Nx2' in acceptedInput and value.shape == (self.nElements, 2):
             pass  # all is good
         else:
-            raise ValueError(
-                'New value should be one of these: ' + str(acceptedInput))
+            msg = 'New value should be one of these: '
+            raise ValueError(msg + str(acceptedInput))
 
         return value
 
@@ -194,54 +198,55 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         value = numpy.array(value, dtype=float)
 
         # Check shape and transform if not appropriate
+        valShpElem = value.shape in [(self.nElements,), (self.nElements, 1)]
         if 'scalar' in acceptedInput and value.shape in [(), (1,)]:
             value = value.repeat(self.nElements)
-        elif 'Nx1' in acceptedInput and value.shape in [(self.nElements,), (self.nElements, 1)]:
+        elif 'Nx1' in acceptedInput and valShpElem:
             pass  # all is good
         else:
-            raise ValueError(
-                'New value should be one of these: ' + str(acceptedInput))
+            msg = 'New value should be one of these: '
+            raise ValueError(msg + str(acceptedInput))
 
         return value
 
     @attributeSetter
     def xys(self, value):
-        """The xy positions of the elements centres, relative to the field centre
-        Values should be:
+        """The xy positions of the elements centres, relative to the
+        field centre. Values should be:
 
             - None
             - an array/list of Nx2 coordinates.
 
-        If value is None then the xy positions will be generated automatically, based
-        on the fieldSize and fieldPos. In this case opacity will also be overridden
-        by this function (it is used to make elements outside the field invisible).
+        If value is None then the xy positions will be generated
+        automatically, based on the fieldSize and fieldPos. In this
+        case opacity will also be overridden by this function (it is
+        used to make elements outside the field invisible).
 
         :ref:`operations <attrib-operations>` are supported.
         """
         if value is None:
-            if self.fieldShape in ['sqr', 'square']:
-                self.__dict__['xys'] = numpy.random.rand(
-                    self.nElements, 2) * self.fieldSize - self.fieldSize / 2  # initialise a random array of X,Y
+            fsz = self.fieldSize
+            rand = numpy.random.rand
+            if self.fieldShape in ('sqr', 'square'):
+                # initialise a random array of X,Y
+                self.__dict__['xys'] = rand(self.nElements, 2) * fsz - fsz / 2
                 # gone outside the square
-                self.__dict__['xys'][:, 0] = (
-                    (self.xys[:, 0] + self.fieldSize[0] / 2) % self.fieldSize[0]) - self.fieldSize[0] / 2
-                self.__dict__['xys'][:, 1] = (
-                    (self.xys[:, 1] + self.fieldSize[1] / 2) % self.fieldSize[1]) - self.fieldSize[1] / 2
+                xxx = (self.xys[:, 0] + fsz[0] / 2) % fsz[0]
+                yyy = (self.xys[:, 1] + fsz[1] / 2) % fsz[1]
+                self.__dict__['xys'][:, 0] = xxx - fsz[0] / 2
+                self.__dict__['xys'][:, 1] = yyy - fsz[1] / 2
             elif self.fieldShape is 'circle':
                 # take twice as many elements as we need (and cull the ones
                 # outside the circle)
                 # initialise a random array of X,Y
-                xys = numpy.random.rand(
-                    self.nElements * 2, 2) * self.fieldSize - self.fieldSize / 2
+                xys = rand(self.nElements * 2, 2) * fsz - fsz / 2
                 # gone outside the square
-                xys[:, 0] = ((xys[:, 0] + self.fieldSize[0] / 2) %
-                             self.fieldSize[0]) - self.fieldSize[0] / 2
-                xys[:, 1] = ((xys[:, 1] + self.fieldSize[1] / 2) %
-                             self.fieldSize[1]) - self.fieldSize[1] / 2
-                # use a circular envelope and flips dot to opposite edge if they fall
-                # beyond radius.
+                xys[:, 0] = ((xys[:, 0] + fsz[0] / 2) % fsz[0]) - fsz[0] / 2
+                xys[:, 1] = ((xys[:, 1] + fsz[1] / 2) % fsz[1]) - fsz[1] / 2
+                # use a circular envelope and flips dot to opposite edge
+                # if they fall beyond radius.
                 # NB always circular - uses fieldSize in X only
-                normxy = xys / (self.fieldSize / 2.0)
+                normxy = xys / (fsz / 2.0)
                 dotDist = numpy.sqrt((normxy[:, 0]**2.0 + normxy[:, 1]**2.0))
                 self.__dict__['xys'] = xys[dotDist < 1.0, :][0:self.nElements]
         else:
@@ -252,9 +257,9 @@ class ElementArrayStim(MinimalStim, TextureMixin):
 
     def setXYs(self, value=None, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message"""
-        setAttribute(self, 'xys', value, log,
-                     operation)  # call attributeSetter
+        but use this method if you need to suppress the log message.
+        """
+        setAttribute(self, 'xys', value, log, operation)
 
     @attributeSetter
     def fieldShape(self, value):
@@ -264,14 +269,15 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         if self._xysAsNone:
             self.xys = None  # call attributeSetter
         else:
-            logging.warning('Tried to set FieldShape but XYs were given explicitly. \
-            This won\'t have any effect.')
+            logging.warning("Tried to set FieldShape but XYs were given "
+                            "explicitly. This won't have any effect.")
 
     @attributeSetter
     def oris(self, value):
         """(Nx1 or a single value) The orientations of the elements. Oris
         are in degrees, and can be greater than 360 and smaller than 0.
-        An ori of 0 is vertical, and increasing ori values are increasingly clockwise.
+        An ori of 0 is vertical, and increasing ori values are increasingly
+        clockwise.
 
         :ref:`operations <attrib-operations>` are supported.
         """
@@ -280,7 +286,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
 
     def setOris(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
+        but use this method if you need to suppress the log message.
+        """
 
         # call attributeSetter
         setAttribute(self, 'oris', value, log, operation)
@@ -304,9 +311,10 @@ class ElementArrayStim(MinimalStim, TextureMixin):
 
     def setSfs(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
-        value = self._makeNx2(
-            value)  # in the case of Nx1 list/array, setAttribute would fail if not this
+        but use this method if you need to suppress the log message.
+        """
+        # in the case of Nx1 list/array, setAttribute would fail if not this:
+        value = self._makeNx2(value)
         # call attributeSetter
         setAttribute(self, 'sfs', value, log, operation)
 
@@ -322,7 +330,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
 
     def setOpacities(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
+        but use this method if you need to suppress the log message.
+        """
         setAttribute(self, 'opacities', value, log,
                      operation)  # call attributeSetter
 
@@ -342,9 +351,10 @@ class ElementArrayStim(MinimalStim, TextureMixin):
 
     def setSizes(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
-        value = self._makeNx2(
-            value)  # in the case of Nx1 list/array, setAttribute would fail if not this
+        but use this method if you need to suppress the log message.
+        """
+        # in the case of Nx1 list/array, setAttribute would fail if not this:
+        value = self._makeNx2(value)
         # call attributeSetter
         setAttribute(self, 'sizes', value, log, operation)
 
@@ -363,14 +373,15 @@ class ElementArrayStim(MinimalStim, TextureMixin):
 
     def setPhases(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
-        value = self._makeNx2(
-            value)  # in the case of Nx1 list/array, setAttribute would fail if not this
+        but use this method if you need to suppress the log message.
+        """
+        # in the case of Nx1 list/array, setAttribute would fail if not this:
+        value = self._makeNx2(value)
         setAttribute(self, 'phases', value, log,
                      operation)  # call attributeSetter
 
     def setRgbs(self, value, operation=''):
-        """DEPRECATED (as of v1.74.00). Please use setColors() instead
+        """DEPRECATED (as of v1.74.00). Please use setColors() instead.
         """
         self.setColors(value, operation)
 
@@ -380,13 +391,14 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         Should be Nx1 (different intensities), Nx3 (different colors) or
         1x3 (for a single color).
 
-        See other stimuli (e.g. :ref:`GratingStim.color`) for more info on the
-        color attribute which essentially works the same on all PsychoPy stimuli.
-        Remember that they describe just this case but here you can provide a
-        list of colors - one color for each element.
+        See other stimuli (e.g. :ref:`GratingStim.color`) for more info
+        on the color attribute which essentially works the same on all
+        PsychoPy stimuli. Remember that they describe just this case but
+        here you can provide a list of colors - one color for each element.
 
-        Use ``setColors()`` if you want to set colors and colorSpace simultaneously
-        or use operations on colors."""
+        Use ``setColors()`` if you want to set colors and colorSpace
+        simultaneously or use operations on colors.
+        """
         self.setColors(color)
 
     @attributeSetter
@@ -395,30 +407,32 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         ('rgb','dkl','lms'...) but note that for this stimulus you cannot
         currently use text-based colors (e.g. names or hex values).
 
-        Keeping this exception in mind, see :ref:`colorspaces` for more info."""
+        Keeping this exception in mind, see :ref:`colorspaces` for more info.
+        """
         self.__dict__['colorSpace'] = colorSpace
 
     def setColors(self, color, colorSpace=None, operation='', log=None):
         """See ``color`` for more info on the color parameter  and
-        ``colorSpace`` for more info in the colorSpace parameter."""
+        ``colorSpace`` for more info in the colorSpace parameter.
+        """
         setColor(self, color, colorSpace=colorSpace, operation=operation,
                  rgbAttrib='rgbs',  # or 'fillRGB' etc
                  colorAttrib='colors',
                  colorSpaceAttrib='colorSpace')
-        logAttrib(self, log, 'colors', value='%s (%s)' %
-                  (self.colors, self.colorSpace))
+        logAttrib(self, log, 'colors', value='%s (%s)' % (self.colors,
+                                                          self.colorSpace))
 
         # check shape
-        if self.rgbs.shape in [(), (1,), (3,)]:
+        if self.rgbs.shape in ((), (1,), (3,)):
             self.rgbs = numpy.resize(self.rgbs, [self.nElements, 3])
-        elif self.rgbs.shape in [(self.nElements,), (self.nElements, 1)]:
+        elif self.rgbs.shape in ((self.nElements,), (self.nElements, 1)):
             self.rgbs.shape = (self.nElements, 1)  # set to be 2D
             self.rgbs = self.rgbs.repeat(3, 1)  # repeat once on dim 1
         elif self.rgbs.shape == (self.nElements, 3):
             pass  # all is good
         else:
-            raise ValueError(
-                "New value for setRgbs should be either Nx1, Nx3 or a single value")
+            raise ValueError("New value for setRgbs should be either "
+                             "Nx1, Nx3 or a single value")
         self._needColorUpdate = True
 
     @attributeSetter
@@ -435,9 +449,9 @@ class ElementArrayStim(MinimalStim, TextureMixin):
 
     def setContrs(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
-        setAttribute(self, 'contrs', value, log,
-                     operation)  # call attributeSetter
+        but use this method if you need to suppress the log message.
+        """
+        setAttribute(self, 'contrs', value, log, operation)
 
     @attributeSetter
     def fieldPos(self, value):
@@ -450,14 +464,15 @@ class ElementArrayStim(MinimalStim, TextureMixin):
 
     def setFieldPos(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
-        setAttribute(self, 'fieldPos', value, log,
-                     operation)  # call attributeSetter
+        but use this method if you need to suppress the log message.
+        """
+        setAttribute(self, 'fieldPos', value, log, operation)
 
     def setPos(self, newPos=None, operation='', units=None, log=None):
-        """Obselete - users should use setFieldPos or instead of setPos."""
-        logging.error(
-            "User called ElementArrayStim.setPos(pos). Use ElementArrayStim.setFieldPos(pos) instead.")
+        """Obselete - users should use setFieldPos or instead of setPos.
+        """
+        logging.error("User called ElementArrayStim.setPos(pos). "
+                      "Use ElementArrayStim.setFieldPos(pos) instead.")
 
     @attributeSetter
     def fieldSize(self, value):
@@ -465,16 +480,17 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         The size of the array of elements. This will be overridden by
         setting explicit xy positions for the elements.
 
-        :ref:`Operations <attrib-operations>` are supported."""
+        :ref:`Operations <attrib-operations>` are supported.
+        """
         self.__dict__['fieldSize'] = val2array(value, False)
         # to reflect new settings, overriding individual xys
         self.setXYs(log=False)
 
     def setFieldSize(self, value, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
-        setAttribute(self, 'fieldSize', value, log,
-                     operation)  # call attributeSetter
+        but use this method if you need to suppress the log message.
+        """
+        setAttribute(self, 'fieldSize', value, log, operation)
 
     def draw(self, win=None):
         """
@@ -502,18 +518,19 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         # GL.glLoadIdentity()
         self.win.setScale('pix')
 
-        GL.glColorPointer(4, GL.GL_DOUBLE, 0, self._RGBAs.ctypes.data_as(
-            ctypes.POINTER(ctypes.c_double)))
-        GL.glVertexPointer(3, GL.GL_DOUBLE, 0, self.verticesPix.ctypes.data_as(
-            ctypes.POINTER(ctypes.c_double)))
+        cpcd = ctypes.POINTER(ctypes.c_double)
+        GL.glColorPointer(4, GL.GL_DOUBLE, 0,
+                          self._RGBAs.ctypes.data_as(cpcd))
+        GL.glVertexPointer(3, GL.GL_DOUBLE, 0,
+                           self.verticesPix.ctypes.data_as(cpcd))
 
         # setup the shaderprogram
-        GL.glUseProgram(self.win._progSignedTexMask)
+        _prog = self.win._progSignedTexMask
+        GL.glUseProgram(_prog)
         # set the texture to be texture unit 0
-        GL.glUniform1i(GL.glGetUniformLocation(
-            self.win._progSignedTexMask, "texture"), 0)
-        GL.glUniform1i(GL.glGetUniformLocation(
-            self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
+        GL.glUniform1i(GL.glGetUniformLocation(_prog, "texture"), 0)
+        # mask is texture unit 1
+        GL.glUniform1i(GL.glGetUniformLocation(_prog, "mask"), 1)
 
         # bind textures
         GL.glActiveTexture(GL.GL_TEXTURE1)
@@ -553,11 +570,12 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         GL.glPopMatrix()
 
     def _updateVertices(self):
-        """Sets Stim.verticesPix from fieldPos and
+        """Sets Stim.verticesPix from fieldPos.
         """
 
-        # Handle the orientation, size and location of each element in native units
-        #
+        # Handle the orientation, size and location of
+        # each element in native units
+
         radians = 0.017453292519943295
 
         # so we can do matrix rotation of coords we need shape=[n*4,3]
@@ -580,41 +598,45 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         verts[2::4, 1] = +wy + hy
         verts[3::4, 1] = -wy + hy
 
-        positions = self.xys + self.fieldPos  # set of positions across elements
+        # set of positions across elements
+        positions = self.xys + self.fieldPos
 
         # depth
         verts[:, 2] = self.depths + self.fieldDepth
         # rotate, translate, scale by units
         if positions.shape[0] * 4 == verts.shape[0]:
             positions = positions.repeat(4, 0)
-        verts[:, :2] = convertToPix(
-            vertices=verts[:, :2], pos=positions, units=self.units, win=self.win)
+        verts[:, :2] = convertToPix(vertices=verts[:, :2], pos=positions,
+                                    units=self.units, win=self.win)
         verts = verts.reshape([self.nElements, 4, 3])
 
-        # assign to self attribute
-        self.__dict__['verticesPix'] = numpy.require(
-            verts, requirements=['C'])  # make sure it's contiguous
+        # assign to self attribute; make sure it's contiguous
+        self.__dict__['verticesPix'] = numpy.require(verts,
+                                                     requirements=['C'])
         self._needVertexUpdate = False
 
-    #----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     def updateElementColors(self):
-        """Create a new array of self._RGBAs based on self.rgbs. Not needed by the
-        user (simple call setColors())
+        """Create a new array of self._RGBAs based on self.rgbs.
 
-        For element arrays the self.rgbs values correspond to one element so
-        this function also converts them to be one for each vertex of each element
+        Not needed by the user (simple call setColors())
+
+        For element arrays the self.rgbs values correspond to one
+        element so this function also converts them to be one for
+        each vertex of each element.
         """
         N = self.nElements
         self._RGBAs = numpy.zeros([N, 4], 'd')
-        if self.colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:  # these spaces are 0-centred
+        if self.colorSpace in ('rgb', 'dkl', 'lms', 'hsv'):
+            # these spaces are 0-centred
             self._RGBAs[:, 0:3] = self.rgbs[:, :] * \
                 self.contrs[:].reshape([N, 1]).repeat(3, 1) / 2 + 0.5
         else:
             self._RGBAs[:, 0:3] = self.rgbs * \
                 self.contrs[:].reshape([N, 1]).repeat(3, 1) / 255.0
         self._RGBAs[:, -1] = self.opacities.reshape([N, ])
-        self._RGBAs = self._RGBAs.reshape([N, 1, 4]).repeat(
-            4, 1)  # repeat for the 4 vertices in the grid
+        # repeat for the 4 vertices in the grid
+        self._RGBAs = self._RGBAs.reshape([N, 1, 4]).repeat(4, 1)
 
         self._needColorUpdate = False
 
@@ -622,8 +644,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         """Create a new array of self._maskCoords"""
 
         N = self.nElements
-        self._maskCoords = numpy.array(
-            [[1, 0], [0, 0], [0, 1], [1, 1]], 'd').reshape([1, 4, 2])
+        self._maskCoords = numpy.array([[1, 0], [0, 0], [0, 1], [1, 1]],
+                                       'd').reshape([1, 4, 2])
         self._maskCoords = self._maskCoords.repeat(N, 0)
 
         # for the main texture
@@ -643,7 +665,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
             B = -self.sfs[:, 1] * self.sizes[:, 1] / \
                 2 - self.phases[:, 1] + 0.5
 
-        # self._texCoords=numpy.array([[1,1],[1,0],[0,0],[0,1]],'d').reshape([1,4,2])
+        # self._texCoords=numpy.array([[1,1],[1,0],[0,0],[0,1]],
+        #           'd').reshape([1,4,2])
         self._texCoords = numpy.concatenate([[R, B], [L, B], [L, T], [R, T]]) \
             .transpose().reshape([N, 4, 2]).astype('d')
         self._texCoords = numpy.ascontiguousarray(self._texCoords)
@@ -653,31 +676,38 @@ class ElementArrayStim(MinimalStim, TextureMixin):
     def elementTex(self, value):
         """The texture, to be used by all elements (e.g. 'sin', 'sqr',.. ,
         'myTexture.tif', numpy.ones([48,48])). Avoid this
-        during time-critical points in your script. Uploading new textures to the
-        graphics card can be time-consuming."""
+        during time-critical points in your script. Uploading new textures
+        to the graphics card can be time-consuming.
+        """
         self.__dict__['tex'] = value
         self._createTexture(value, id=self._texID, pixFormat=GL.GL_RGB,
-                            stim=self, res=self.texRes, maskParams=self.maskParams)
+                            stim=self, res=self.texRes,
+                            maskParams=self.maskParams)
 
     def setTex(self, value, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
+        but use this method if you need to suppress the log message.
+        """
         setAttribute(self, 'elementTex', value, log)
 
     @attributeSetter
     def depth(self, value):
         """(Nx1) list/array of ints.
-        The depths of the elements, relative the overall depth of the field (fieldDepth).
+        The depths of the elements, relative the overall depth
+        of the field (fieldDepth).
 
-        :ref:`operations <attrib-operations>` are supported."""
+        :ref:`operations <attrib-operations>` are supported.
+        """
         self.__dict__['depth'] = value
         self._updateVertices()
 
     @attributeSetter
     def fieldDepth(self, value):
-        """Int. The depth of the field (will be added to the depths of the elements).
+        """Int. The depth of the field (will be added to the depths
+        of the elements).
 
-        :ref:`operations <attrib-operations>` are supported."""
+        :ref:`operations <attrib-operations>` are supported.
+        """
         self.__dict__['fieldDepth'] = value
         self._updateVertices()
 
@@ -686,8 +716,10 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         """The mask, to be used by all elements (e.g. 'circle', 'gauss',... ,
         'myTexture.tif', numpy.ones([48,48])).
 
-        This is just a synonym for ElementArrayStim.mask. See doc there."""
+        This is just a synonym for ElementArrayStim.mask. See doc there.
+        """
         self.mask = value
 
     def __del__(self):
-        self.clearTextures()  # remove textures from graphics card to prevent crash
+        # remove textures from graphics card to prevent crash
+        self.clearTextures()

@@ -1,7 +1,8 @@
 #!/usr/bin/env python2
 
-'''Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in either dimension
-One of the main stimuli for PsychoPy'''
+"""Stimulus object for drawing arbitrary bitmaps that can repeat (cycle)
+in either dimension. One of the main stimuli for PsychoPy.
+"""
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -28,7 +29,8 @@ import numpy
 
 
 class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
-    """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle) in either dimension.
+    """Stimulus object for drawing arbitrary bitmaps that can repeat (cycle)
+    in either dimension.
 
     One of the main stimuli for PsychoPy.
 
@@ -39,25 +41,26 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
     **Examples**::
 
-        myGrat = GratingStim(tex='sin', mask='circle') #gives a circular patch of grating
-        myGabor = GratingStim(tex='sin', mask='gauss') #gives a 'Gabor'
+        myGrat = GratingStim(tex='sin', mask='circle')  # circular grating
+        myGabor = GratingStim(tex='sin', mask='gauss')  # gives a 'Gabor'
 
-    A GratingStim can be rotated scaled and shifted in position, its texture can
-    be drifted in X and/or Y and it can have a spatial frequency in X and/or Y
-    (for an image file that simply draws multiple copies in the patch).
+    A GratingStim can be rotated scaled and shifted in position,
+    its texture can be drifted in X and/or Y and it can have a spatial
+    frequency in X and/or Y (for an image file that simply draws multiple
+    copies in the patch).
 
-    Also since transparency can be controlled two GratingStims can combine e.g.
-    to form a plaid.
+    Also since transparency can be controlled two GratingStims can
+    combine e.g. to form a plaid.
 
     **Using GratingStim with images from disk (jpg, tif, png, ...)**
 
-    Ideally texture images to be rendered should be square with 'power-of-2' dimensions
-    e.g. 16x16, 128x128. Any image that is not will be upscaled (with linear interpolation)
-    to the nearest such texture by PsychoPy. The size of the stimulus should be
-    specified in the normal way using the appropriate units (deg, pix, cm, ...). Be
+    Ideally texture images to be rendered should be square with
+    'power-of-2' dimensions e.g. 16 x 16, 128 x 128. Any image that is
+    not will be upscaled (with linear interpolation) to the nearest such
+    texture by PsychoPy. The size of the stimulus should be specified in
+    the normal way using the appropriate units (deg, pix, cm, ...). Be
     sure to get the aspect ratio the same as the image (if you don't want it
     stretched!).
-
     """
 
     def __init__(self,
@@ -92,8 +95,8 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         for unecess in ['self', 'rgb', 'dkl', 'lms']:
             self._initParams.remove(unecess)
         # initialise parent class
-        super(GratingStim, self).__init__(
-            win, units=units, name=name, autoLog=False)
+        super(GratingStim, self).__init__(win, units=units, name=name,
+                                          autoLog=False)
         # use shaders if available by default, this is a good thing
         self.__dict__['useShaders'] = win._haveShaders
         # UGLY HACK: Some parameters depend on each other for processing.
@@ -121,16 +124,16 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         # below.
         self.__dict__['colorSpace'] = colorSpace
         if rgb != None:
-            logging.warning(
-                "Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            logging.warning("Use of rgb arguments to stimuli are deprecated."
+                            " Please use color and colorSpace args instead")
             self.setColor(rgb, colorSpace='rgb', log=False)
         elif dkl != None:
-            logging.warning(
-                "Use of dkl arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            logging.warning("Use of dkl arguments to stimuli are deprecated."
+                            " Please use color and colorSpace args instead")
             self.setColor(dkl, colorSpace='dkl', log=False)
         elif lms != None:
-            logging.warning(
-                "Use of lms arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            logging.warning("Use of lms arguments to stimuli are deprecated."
+                            " Please use color and colorSpace args instead")
             self.setColor(lms, colorSpace='lms', log=False)
         else:
             self.setColor(color, colorSpace=colorSpace, log=False)
@@ -138,7 +141,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         # set other parameters
         self.ori = float(ori)
         self.phase = val2array(phase, False)
-        self._origSize = None  # if an image texture is loaded this will be updated
+        self._origSize = None  # updated if an image texture is loaded
         self._requestedSize = size
         self.size = val2array(size)
         self.sf = val2array(sf)
@@ -161,16 +164,17 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         # JRG: doing self._updateList() here means MRO issues for RadialStim,
         # which inherits from GratingStim but has its own _updateList code.
         # So don't want to do the update here (= ALSO the init of RadialStim).
-        # Could potentially define a BaseGrating class without updateListShaders
-        # code, and have GratingStim and RadialStim inherit from it and add their
-        # own _updateList stuff. Seems unnecessary.
-        # Instead, simply defer the update to the first .draw(), should be fast:
-        # self._updateList()  #ie refresh display list
+        # Could potentially define a BaseGrating class without
+        # updateListShaders code, and have GratingStim and RadialStim
+        # inherit from it and add their own _updateList stuff.
+        # Seems unnecessary. Instead, simply defer the update to the
+        # first .draw(), should be fast:
+        # self._updateList()  # ie refresh display list
         self._needUpdate = True
 
         # set autoLog now that params have been initialised
-        self.__dict__[
-            'autoLog'] = autoLog or autoLog is None and self.win.autoLog
+        wantLog = autoLog is None and self.win.autoLog
+        self.__dict__['autoLog'] = autoLog or wantLog
         if self.autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
@@ -178,17 +182,22 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     def sf(self, value):
         """Spatial frequency of the grating texture
 
-        Should be a :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>` or None.
-        If `units` == 'deg' or 'cm' units are in cycles per deg or cm as appropriate.
-        If `units` == 'norm' then sf units are in cycles per stimulus (and so SF scales with stimulus size).
-        If texture is an image loaded from a file then sf=None defaults to 1/stimSize to give one cycle of the image.
+        Should be a :ref:`x,y-pair <attrib-xy>` or
+        :ref:`scalar <attrib-scalar>` or None.
+        If `units` == 'deg' or 'cm' units are in
+            cycles per deg or cm as appropriate.
+        If `units` == 'norm' then sf units are in cycles per stimulus
+            (and so SF scales with stimulus size).
+        If texture is an image loaded from a file then sf=None
+            defaults to 1/stimSize to give one cycle of the image.
         """
 
         # Recode phase to numpy array
         if value is None:
-            """Set the sf to default (e.g. to the 1.0/size of the loaded image etc)"""
-            if self.units in ['pix', 'pixels'] \
-                    or self._origSize is not None and self.units in ['deg', 'cm']:
+            # Set the sf to default (e.g. to the 1.0/size of the loaded image
+            if (self.units in ('pix', 'pixels') or
+                    self._origSize is not None and
+                    self.units in ('deg', 'cm')):
                 value = 1.0 / self.size  # default to one cycle
             else:
                 value = numpy.array([1.0, 1.0])
@@ -204,7 +213,8 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     def phase(self, value):
         """Phase of the stimulus in each dimension of the texture.
 
-        Should be an :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>`
+        Should be an :ref:`x,y-pair <attrib-xy>` or
+        :ref:`scalar <attrib-scalar>`
 
         **NB** phase has modulus 1 (rather than 360 or 2*pi)
         This is a little unconventional but has the nice effect
@@ -224,12 +234,13 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
             + the name of an image file (most formats supported)
             + a numpy array (1xN or NxN) ranging -1:1
 
-        If specifying your own texture using an image or numpy array you should
-        ensure that the image has square power-of-two dimesnions (e.g. 256x256).
-        If not then PsychoPy will upsample your stimulus to the next larger
-        power of two.
+        If specifying your own texture using an image or numpy array
+        you should ensure that the image has square power-of-two dimesnions
+        (e.g. 256 x 256). If not then PsychoPy will upsample your stimulus
+        to the next larger power of two.
         """
-        self._createTexture(value, id=self._texID, pixFormat=GL.GL_RGB, stim=self,
+        self._createTexture(value, id=self._texID,
+                            pixFormat=GL.GL_RGB, stim=self,
                             res=self.texRes, maskParams=self.maskParams)
         # if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
@@ -238,20 +249,22 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self._needTextureUpdate = False
 
     def setSF(self, value, operation='', log=None):
-        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead
+        """
         self._set('sf', value, operation, log=log)
 
     def setPhase(self, value, operation='', log=None):
-        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead
+        """
         self._set('phase', value, operation, log=log)
 
     def setTex(self, value, log=None):
-        """DEPRECATED. Use 'stim.parameter = value' syntax instead"""
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead
+        """
         self.tex = value
 
     def draw(self, win=None):
-        """
-        Draw the stimulus in its relevant window. You must call
+        """Draw the stimulus in its relevant window. You must call
         this method after every MyWin.flip() if you want the
         stimulus to appear on that frame and then update the screen
         again.
@@ -265,9 +278,10 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         win.setScale('pix')
         # the list just does the texture mapping
 
-        desiredRGB = self._getDesiredRGB(
-            self.rgb, self.colorSpace, self.contrast)
-        GL.glColor4f(desiredRGB[0], desiredRGB[1], desiredRGB[2], self.opacity)
+        desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace,
+                                         self.contrast)
+        GL.glColor4f(desiredRGB[0], desiredRGB[1], desiredRGB[2],
+                     self.opacity)
 
         if self._needTextureUpdate:
             self.setTex(value=self.tex, log=False)
@@ -279,8 +293,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         GL.glPopMatrix()
 
     def _updateListShaders(self):
-        """
-        The user shouldn't need this method since it gets called
+        """The user shouldn't need this method since it gets called
         after every call to .set() Basically it updates the OpenGL
         representation of your stimulus if some parameter of the
         stimulus changes. Call it if you change a property manually
@@ -289,12 +302,12 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self._needUpdate = False
         GL.glNewList(self._listID, GL.GL_COMPILE)
         # setup the shaderprogram
-        GL.glUseProgram(self.win._progSignedTexMask)
+        _prog = self.win._progSignedTexMask
+        GL.glUseProgram(_prog)
         # set the texture to be texture unit 0
-        GL.glUniform1i(GL.glGetUniformLocation(
-            self.win._progSignedTexMask, "texture"), 0)
-        GL.glUniform1i(GL.glGetUniformLocation(
-            self.win._progSignedTexMask, "mask"), 1)  # mask is texture unit 1
+        GL.glUniform1i(GL.glGetUniformLocation(_prog, "texture"), 0)
+        # mask is texture unit 1
+        GL.glUniform1i(GL.glGetUniformLocation(_prog, "mask"), 1)
         # mask
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
@@ -314,7 +327,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
         # access just once because it's slower than basic property
         vertsPix = self.verticesPix
-        GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
+        GL.glBegin(GL.GL_QUADS)  # draw a 4 sided polygon
         # right bottom
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rtex, Btex)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Rmask, Bmask)
@@ -348,8 +361,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
     # for the sake of older graphics cards------------------------------------
     def _updateListNoShaders(self):
-        """
-        The user shouldn't need this method since it gets called
+        """The user shouldn't need this method since it gets called
         after every call to .set() Basically it updates the OpenGL
         representation of your stimulus if some parameter of the
         stimulus changes. Call it if you change a property manually
@@ -380,7 +392,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
         # access just once because it's slower than basic property
         vertsPix = self.verticesPix
-        GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
+        GL.glBegin(GL.GL_QUADS)  # draw a 4 sided polygon
         # right bottom
         GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rtex, Btex)
         GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Rmask, Bmask)
@@ -418,12 +430,14 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         except Exception:
             pass  # probably we don't have a _listID property
         try:
-            self.clearTextures()  # remove textures from graphics card to prevent crash
+            # remove textures from graphics card to prevent crash
+            self.clearTextures()
         except Exception:
             pass
 
     def _calcCyclesPerStim(self):
-        if self.units in ['norm', 'height']:
-            self._cycles = self.sf  # this is the only form of sf that is not size dependent
+        if self.units in ('norm', 'height'):
+            # this is the only form of sf that is not size dependent
+            self._cycles = self.sf
         else:
             self._cycles = self.sf * self.size

@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
-'''Stimulus object for drawing radial stimuli, like an annulus, a rotating wedge,
-    a checkerboard etc...'''
+"""Stimulus class for drawing radial stimuli.
+"""
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -105,8 +105,7 @@ class RadialStim(GratingStim):
         self.interpolate = interpolate
         self.rgbPedestal = val2array(rgbPedestal, False, length=3)
 
-        # these are defined by the GratingStim but will just cause confusion
-        # here!
+        # these are defined for GratingStim but can only cause confusion here
         self.setSF = None
         self.setPhase = None
 
@@ -245,11 +244,10 @@ class RadialStim(GratingStim):
         setAttribute(self, 'mask', value, log)
 
     def _setRadialAtribute(self, attr, value):
-        """ Internal helper function to reduce redundancy
+        """Internal helper function to reduce redundancy
         """
 
-        self.__dict__[
-            attr] = value  # dict to avoid recursing the attributeSetter
+        self.__dict__[attr] = value  # avoid recursing the attributeSetter
         self._updateTextureCoords()
         self._needUpdate = True
 
@@ -452,7 +450,7 @@ class RadialStim(GratingStim):
         These will be multiplied by the size and rotation matrix before
         rendering.
         """
-        #triangles = [trisX100, verticesX3, xyX2]
+        # triangles = [trisX100, verticesX3, xyX2]
         vertsBase = numpy.zeros([self.angularRes, 3, 2])
         # x position of 1st outer vertex
         vertsBase[:, 1, 0] = numpy.sin(self._angles)
@@ -467,7 +465,8 @@ class RadialStim(GratingStim):
         self._verticesBase = vertsBase.reshape(self._nVisible, 2)
 
     def _updateTextureCoords(self):
-        # calculate texture coordinates if angularCycles or Phase change
+        """calculate texture coordinates if angularCycles or Phase change
+        """
         self._textureCoords = numpy.zeros([self.angularRes, 3, 2])
         self._textureCoords[:, 0, 0] = (self._angles + self._triangleWidth / 2) * \
             self.angularCycles / \
@@ -486,7 +485,8 @@ class RadialStim(GratingStim):
             self._visible, :, :].reshape(self._nVisible, 2)
 
     def _updateMaskCoords(self):
-        # calculate mask coords
+        """calculate mask coords
+        """
         self._maskCoords = numpy.zeros(
             [self.angularRes, 3]) + self.maskRadialPhase
         # all outer points have mask value of 1
@@ -494,8 +494,7 @@ class RadialStim(GratingStim):
         self._visibleMask = self._maskCoords[self._visible, :]
 
     def _updateListShaders(self):
-        """
-        The user shouldn't need this method since it gets called
+        """The user shouldn't need this method since it gets called
         after every call to .set() Basically it updates the OpenGL
         representation of your stimulus if some parameter of the
         stimulus changes. Call it if you change a property manually
@@ -553,8 +552,7 @@ class RadialStim(GratingStim):
         GL.glEndList()
 
     def _updateListNoShaders(self):
-        """
-        The user shouldn't need this method since it gets called
+        """The user shouldn't need this method since it gets called
         after every call to .set() Basically it updates the OpenGL
         representation of your stimulus if some parameter of the
         stimulus changes. Call it if you change a property manually
@@ -603,6 +601,8 @@ class RadialStim(GratingStim):
         GL.glEndList()
 
     def __del__(self):
+        """Remove textures from graphics card to prevent crash
+        """
         if not self.useShaders:
             GL.glDeleteLists(self._listID, 1)
-        self.clearTextures()  # remove textures from graphics card to prevent crash
+        self.clearTextures()

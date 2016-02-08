@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
-'''Helper functions shared by the visual classes'''
+"""Helper functions shared by the visual classes
+"""
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -20,7 +21,7 @@ from psychopy.tools.attributetools import setAttribute
 import numpy
 
 reportNImageResizes = 5  # stop raising warning after this
-global _nImageResizes
+#global _nImageResizes
 _nImageResizes = 0
 
 try:
@@ -37,9 +38,9 @@ except Exception:
 def pointInPolygon(x, y, poly):
     """Determine if a point is inside a polygon; returns True if inside.
 
-    (`x`, `y`) is the point to test. `poly` is a list of 3 or more vertices as
-    (x,y) pairs. If given an object, such as a `ShapeStim`, will try to use its
-    vertices and position as the polygon.
+    (`x`, `y`) is the point to test. `poly` is a list of 3 or more vertices
+    as (x,y) pairs. If given an object, such as a `ShapeStim`, will try to
+    use its vertices and position as the polygon.
 
     Same as the `.contains()` method elsewhere.
     """
@@ -64,7 +65,7 @@ def pointInPolygon(x, y, poly):
                 pass
 
     # fall through to pure python:
-    # as adapted from http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
+    # adapted from http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
     # via http://www.ariel.com.au/a/python-point-int-poly.html
 
     inside = False
@@ -122,9 +123,10 @@ def polygonsOverlap(poly1, poly2):
 
 
 def setTexIfNoShaders(obj):
-    """Useful decorator for classes that need to update Texture after other properties
-    This doesn't actually perform the update, but sets a flag so the update occurs
-    at draw time (in case multiple changes all need updates only do it once)
+    """Useful decorator for classes that need to update Texture after
+    other properties. This doesn't actually perform the update, but sets
+    a flag so the update occurs at draw time (in case multiple changes all
+    need updates only do it once).
     """
     if hasattr(obj, 'useShaders') and not obj.useShaders:
         # we aren't using shaders
@@ -140,16 +142,18 @@ def setColor(obj, color, colorSpace=None, operation='',
     """Provides the workings needed by setColor, and can perform this for
     any arbitrary color type (e.g. fillColor,lineColor etc).
 
-    OBS: log argument is deprecated - has no effect now. Logging should be done
-    when setColor() is called.
+    OBS: log argument is deprecated - has no effect now.
+    Logging should be done when setColor() is called.
     """
 
     # how this works:
     # rather than using obj.rgb=rgb this function uses setattr(obj,'rgb',rgb)
     # color represents the color in the native space
-    # colorAttrib is the name that color will be assigned using setattr(obj,colorAttrib,color)
+    # colorAttrib is the name that color will be assigned using
+    #   setattr(obj,colorAttrib,color)
     # rgb is calculated from converting color
-    # rgbAttrib is the attribute name that rgb is stored under, e.g. lineRGB for obj.lineRGB
+    # rgbAttrib is the attribute name that rgb is stored under,
+    #   e.g. lineRGB for obj.lineRGB
     # colorSpace and takes name from colorAttrib+space e.g.
     # obj.lineRGBSpace=colorSpace
 
@@ -163,28 +167,29 @@ def setColor(obj, color, colorSpace=None, operation='',
             raise TypeError('Cannot do operations on named or hex color')
         if color.lower() in colors.colors255.keys():
             # set rgb, color and colorSpace
-            setattr(obj, rgbAttrib, numpy.array(
-                colors.colors255[color.lower()], float))
+            setattr(obj, rgbAttrib,
+                    numpy.array(colors.colors255[color.lower()], float))
             obj.__dict__[colorSpaceAttrib] = 'named'  # e.g. 3rSpace='named'
             obj.__dict__[colorAttrib] = color  # e.g. obj.color='red'
             setTexIfNoShaders(obj)
             return
         elif color[0] == '#' or color[0:2] == '0x':
-            setattr(obj, rgbAttrib, numpy.array(
-                colors.hex2rgb255(color)))  # e.g. obj.rgb=[0,0,0]
-            obj.__dict__[colorSpaceAttrib] = 'hex'  # e.g. obj.colorSpace='hex'
-            obj.__dict__[colorAttrib] = color  # e.g. Qr='#000000'
+            # e.g. obj.rgb=[0,0,0]
+            setattr(obj, rgbAttrib, numpy.array(colors.hex2rgb255(color)))
+            obj.__dict__[colorSpaceAttrib] = 'hex'  # eg obj.colorSpace='hex'
+            obj.__dict__[colorAttrib] = color  # eg Qr='#000000'
             setTexIfNoShaders(obj)
             return
-        # we got a string, but it isn't in the list of named colors and doesn't
-        # work as a hex
         else:
+            # we got a string, but it isn't in the list of named colors and
+            # doesn't work as a hex
             raise AttributeError(
                 "PsychoPy can't interpret the color string '%s'" % color)
 
-    # If it wasn't a string, do check and conversion of scalars, sequences and
-    # other stuff.
+
     else:
+        # If it wasn't a string, do check and conversion of scalars,
+        # sequences and other stuff.
         color = val2array(color, length=3)  # enforces length 1 or 3
 
         if color is None:
@@ -197,21 +202,26 @@ def setColor(obj, color, colorSpace=None, operation='',
     # check if colorSpace is given and use obj.colorSpace if not
     if colorSpace is None:
         colorSpace = getattr(obj, colorSpaceAttrib)
-        # using previous color space - if we got this far in the _stColor function
-        # then we haven't been given a color name - we don't know what color
-        # space to use.
+        # using previous color space - if we got this far in the
+        # _stColor function then we haven't been given a color name -
+        # we don't know what color space to use.
         if colorSpace in ('named', 'hex'):
-            logging.error(
-                "If you setColor with a numeric color value then you need to specify a color space, e.g. setColor([1,1,-1],'rgb'), unless you used a numeric value previously in which case PsychoPy will reuse that color space.)")
+            logging.error("If you setColor with a numeric color value then"
+                          " you need to specify a color space, e.g. "
+                          "setColor([1,1,-1],'rgb'), unless you used a "
+                          "numeric value previously in which case PsychoPy "
+                          "will reuse that color space.)")
             return
     # check whether combining sensible colorSpaces (e.g. can't add things to
     # hex or named colors)
     if operation != '' and getattr(obj, colorSpaceAttrib) in ['named', 'hex']:
-        raise AttributeError("setColor() cannot combine ('%s') colors within 'named' or 'hex' color spaces"
-                             % (operation))
+        msg = ("setColor() cannot combine ('%s') colors "
+               "within 'named' or 'hex' color spaces")
+        raise AttributeError(msg % operation)
     elif operation != '' and colorSpace != getattr(obj, colorSpaceAttrib):
-        raise AttributeError("setColor cannot combine ('%s') colors from different colorSpaces (%s,%s)"
-                             % (operation, obj.colorSpace, colorSpace))
+        msg = ("setColor cannot combine ('%s') colors"
+               " from different colorSpaces (%s,%s)")
+        raise AttributeError(msg % (operation, obj.colorSpace, colorSpace))
     else:  # OK to update current color
         if colorSpace == 'named':
             # operations don't make sense for named
@@ -227,8 +237,8 @@ def setColor(obj, color, colorSpace=None, operation='',
             win = obj.win  # obj is probably a Stimulus
         else:
             win = None
-            logging.error(
-                "_setColor() is being applied to something that has no known Window object")
+            logging.error("_setColor() is being applied to something"
+                          " that has no known Window object")
     # convert new obj.color to rgb space
     newColor = getattr(obj, colorAttrib)
     if colorSpace in ['rgb', 'rgb255']:
@@ -244,8 +254,11 @@ def setColor(obj, color, colorSpace=None, operation='',
         if numpy.all(win.lms_rgb == numpy.ones([3, 3])):
             lms_rgb = None
         elif win.monitor.getPsychopyVersion() < '1.76.00':
-            logging.error("The LMS calibration for this monitor was carried out before version 1.76.00." +
-                          " We would STRONGLY recommend that you repeat the color calibration before using this color space (contact Jon for further info)")
+            logging.error("The LMS calibration for this monitor was carried"
+                          " out before version 1.76.00."
+                          " We would STRONGLY recommend that you repeat the "
+                          "color calibration before using this color space "
+                          "(contact Jon for further info).")
             lms_rgb = win.lms_rgb
         else:
             lms_rgb = win.lms_rgb
@@ -259,18 +272,19 @@ def setColor(obj, color, colorSpace=None, operation='',
     # if needed, set the texture too
     setTexIfNoShaders(obj)
 
-# for groupFlipVert:
-immutables = set([int, float, str, tuple, long, bool,
-                  numpy.float64, numpy.float, numpy.int, numpy.long])
+# set for groupFlipVert:
+immutables = {int, float, str, tuple, long, bool,
+              numpy.float64, numpy.float, numpy.int, numpy.long}
 
 
 def groupFlipVert(flipList, yReflect=0):
     """Reverses the vertical mirroring of all items in list ``flipList``.
 
-    Reverses the .flipVert status, vertical (y) positions, and angular rotation
-    (.ori). Flipping preserves the relations among the group's visual elements.
-    The parameter ``yReflect`` is the y-value of an imaginary horizontal line
-    around which to reflect the items; default = 0 (screen center).
+    Reverses the .flipVert status, vertical (y) positions, and angular
+    rotation (.ori). Flipping preserves the relations among the group's
+    visual elements. The parameter ``yReflect`` is the y-value of an
+    imaginary horizontal line around which to reflect the items;
+    default = 0 (screen center).
 
     Typical usage is to call once prior to any display; call again to un-flip.
     Can be called with a list of all stim to be presented in a given routine.
@@ -288,8 +302,8 @@ def groupFlipVert(flipList, yReflect=0):
                 for i in range(len(item)):
                     item[i][1] = 2 * yReflect - item[i][1]
             else:
-                raise ValueError('Cannot vert-flip elements in "%s", type=%s' %
-                                 (str(item), type(item[0])))
+                msg = 'Cannot vert-flip elements in "%s", type=%s'
+                raise ValueError(msg % (str(item), type(item[0])))
         elif type(item) in immutables:
             raise ValueError('Cannot change immutable item "%s"' % str(item))
         if hasattr(item, 'setPos'):
@@ -307,6 +321,7 @@ def groupFlipVert(flipList, yReflect=0):
                 v = [[item.vertices[i][0], -1 * item.vertices[i][1]]
                      for i in range(len(item.vertices))]
             item.setVertices(v)
-        if hasattr(item, 'setOri') and item.ori:  # non-zero orientation angle
+        if hasattr(item, 'setOri') and item.ori:
+            # non-zero orientation angle
             item.setOri(-1, '*')
             item._needVertexUpdate = True
