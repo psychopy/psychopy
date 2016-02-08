@@ -32,7 +32,8 @@ _localized = {'expName': _translate("Experiment name"),
 
 
 class SettingsComponent(object):
-    """This component stores general info about how to run the experiment"""
+    """This component stores general info about how to run the experiment
+    """
 
     def __init__(self, parentName, exp, expName='', fullScr=True,
                  winSize=(1024, 768), screen=1, monitor='testMonitor',
@@ -367,7 +368,7 @@ class SettingsComponent(object):
         if self.params['Save log file'].val:
             buff.writeIndented("logging.flush()\n")
         code = ("# make sure everything is closed down\n"
-                "thisExp.abort() # or data files will save again on exit\n"
+                "thisExp.abort()  # or data files will save again on exit\n"
                 "win.close()\n"
                 "core.quit()\n")
         buff.writeIndentedLines(code)

@@ -103,23 +103,20 @@ class ImageComponent(BaseVisualComponent):
 
         # replace variable params with defaults
         inits = getInitVals(self.params)
-
         code = ("%s = visual.ImageStim(\n" % inits['name'] +
                 "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                 "    image=%(image)s, mask=%(mask)s,\n" % inits +
                 "    ori=%(ori)s, pos=%(pos)s, size=%(size)s,\n" % inits +
-                "    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" % inits +
+                "    color=%(color)s, colorSpace=%(colorSpace)s, " % inits +
+                "opacity=%(opacity)s,\n" % inits +
                 "    flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s,\n" % inits +
                 # no newline - start optional parameters
                 "    texRes=%(texture resolution)s" % inits)
-        buff.writeIndentedLines(code)
 
         if self.params['interpolate'].val == 'linear':
-            code = ", interpolate=True"
+            code += ", interpolate=True"
         else:
-            code = ", interpolate=False"
-
-        buff.write(code)
-
+            code += ", interpolate=False"
         depth = -self.getPosInRoutine()
-        buff.write(", depth=%.1f)\n" % depth)  # finish with newline
+        code += ", depth=%.1f)\n" % depth
+        buff.writeIndentedLines(code)

@@ -79,5 +79,5 @@ class SoundComponent(BaseComponent):
             buff.setIndentLevel(-1, relative=True)
 
     def writeRoutineEndCode(self, buff):
-        code = "%s.stop() #ensure sound has stopped at end of routine\n"
+        code = "%s.stop()  # ensure sound has stopped at end of routine\n"
         buff.writeIndented(code % self.params['name'])

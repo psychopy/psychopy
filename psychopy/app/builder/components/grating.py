@@ -105,22 +105,20 @@ class GratingComponent(BaseVisualComponent):
 
         # replaces variable params with defaults
         inits = getInitVals(self.params)
-
         code = ("%s = visual.GratingStim(\n" % inits['name'] +
                 "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                 "    tex=%(tex)s, mask=%(mask)s,\n" % inits +
-                "    ori=%(ori)s, pos=%(pos)s, size=%(size)s, sf=%(sf)s, phase=%(phase)s,\n" % inits +
-                "    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" % inits +
+                "    ori=%(ori)s, pos=%(pos)s, size=%(size)s, " % inits +
+                "sf=%(sf)s, phase=%(phase)s,\n" % inits +
+                "    color=%(color)s, colorSpace=%(colorSpace)s, " % inits +
+                "opacity=%(opacity)s,\n"  +
                 # no newline - start optional parameters
                 "    texRes=%(texture resolution)s" % inits)
-        buff.writeIndentedLines(code)
 
         if self.params['interpolate'].val == 'linear':
-            code = ", interpolate=True"
+            code += ", interpolate=True"
         else:
-            code = ", interpolate=False"
-
-        buff.write(code)
-
+            code += ", interpolate=False"
         depth = -self.getPosInRoutine()
-        buff.write(", depth=%.1f)\n" % depth)  # finish with newline
+        code += ", depth=%.1f)\n" % depth
+        buff.writeIndentedLines(code)
