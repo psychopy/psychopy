@@ -1,7 +1,8 @@
 #!/usr/bin/env python2
 
-'''A simple stimulus for loading images from a file and presenting at exactly
-the resolution and color in the file (subject to gamma correction if set).'''
+"""A simple stimulus for loading images from a file and presenting at exactly
+the resolution and color in the file (subject to gamma correction if set).
+"""
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -37,15 +38,16 @@ import numpy
 
 
 class SimpleImageStim(MinimalStim, WindowMixin):
-    """A simple stimulus for loading images from a file and presenting at exactly
-    the resolution and color in the file (subject to gamma correction if set).
+    """A simple stimulus for loading images from a file and presenting at
+    exactly the resolution and color in the file (subject to gamma correction
+    if set).
 
     Unlike the ImageStim, this type of stimulus cannot be rescaled, rotated or
-    masked (although flipping horizontally or vertically is possible). Drawing will
-    also tend to be marginally slower, because the image isn't preloaded to the
-    graphics card. The slight advantage, however is that the stimulus will always be in its
-    original aspect ratio, with no interplotation or other transformation, and
-    it is slightly faster to load into PsychoPy.
+    masked (although flipping horizontally or vertically is possible). Drawing
+    will also tend to be marginally slower, because the image isn't preloaded
+    to the graphics card. The slight advantage, however is that the stimulus
+    will always be in its original aspect ratio, with no interplotation or
+    other transformation, and it is slightly faster to load into PsychoPy.
     """
 
     def __init__(self,
@@ -73,18 +75,22 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         self.pos = pos  # call attributeSetter
         self.image = image  # call attributeSetter
         # check image size against window size
-        if (self.size[0] > self.win.size[0]) or (self.size[1] > self.win.size[1]):
-            logging.warning("Image size (%s, %s)  was larger than window size (%s, %s). Will draw black screen." % (
-                self.size[0], self.size[1], self.win.size[0], self.win.size[1]))
+        if (self.size[0] > self.win.size[0] or
+                self.size[1] > self.win.size[1]):
+            msg = ("Image size (%s, %s)  was larger than window size "
+                   "(%s, %s). Will draw black screen.")
+            logging.warning(msg % (self.size[0], self.size[1],
+                                   self.win.size[0], self.win.size[1]))
 
         # check position with size, warn if stimuli not fully drawn
-        if ((self.pos[0] + (self.size[0] / 2.0) > self.win.size[0] / 2.0) or (self.pos[0] - (self.size[0] / 2.0) < -self.win.size[0] / 2.0)):
-            logging.warning(
-                "The image does not completely fit inside the window in the X direction.")
-
-        if ((self.pos[1] + (self.size[1] / 2.0) > self.win.size[1] / 2.0) or (self.pos[1] - (self.size[1] / 2.0) < -self.win.size[1] / 2.0)):
-            logging.warning(
-                "The image does not completely fit inside the window in the Y direction.")
+        if (self.pos[0] + self.size[0] / 2. > self.win.size[0] / 2. or
+                self.pos[0] - self.size[0] / 2. < -self.win.size[0] / 2.):
+            logging.warning("The image does not completely fit inside "
+                            "the window in the X direction.")
+        if (self.pos[1] + self.size[1] / 2. > self.win.size[1] / 2. or
+                self.pos[1] - self.size[1] / 2. < -self.win.size[1] / 2.):
+            logging.warning("The image does not completely fit inside "
+                            "the window in the Y direction.")
 
         # flip if necessary
         # initially it is false, then so the flip according to arg above
@@ -104,8 +110,10 @@ class SimpleImageStim(MinimalStim, WindowMixin):
 
     @attributeSetter
     def flipHoriz(self, value):
-        """True/False. If set to True then the image will be flipped horiztonally (left-to-right).
-        Note that this is relative to the original image, not relative to the current state."""
+        """True/False. If set to True then the image will be flipped
+        horizontally (left-to-right).  Note that this is relative to the
+        original image, not relative to the current state.
+        """
         if value != self.flipHoriz:  # We need to make the flip
             # Numpy and pyglet disagree about ori so ud<=>lr
             self.imArray = numpy.flipud(self.imArray)
@@ -119,8 +127,9 @@ class SimpleImageStim(MinimalStim, WindowMixin):
 
     @attributeSetter
     def flipVert(self, value):
-        """True/False. If set to True then the image will be flipped vertically (top-to-bottom).
-        Note that this is relative to the original image, not relative to the current state.
+        """True/False. If set to True then the image will be flipped
+        vertically (top-to-bottom). Note that this is relative to the
+        original image, not relative to the current state.
         """
         if value != self.flipVert:  # We need to make the flip
             # Numpy and pyglet disagree about ori so ud<=>lr
@@ -130,7 +139,8 @@ class SimpleImageStim(MinimalStim, WindowMixin):
 
     def setFlipVert(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
+        but use this method if you need to suppress the log message.
+        """
         setAttribute(self, 'flipVert', newVal, log)
 
     def _updateImageStr(self):
@@ -169,22 +179,21 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
-        # move to centre of stimulus
-        GL.glRasterPos2f(self.win.size[0] / 2.0 - self.size[0] / 2.0 + self._posRendered[0],
-                         self.win.size[1] / 2.0 - self.size[1] / 2.0 + self._posRendered[1])
+        # move to center of stimulus
+        x, y = self._posRendered[:2]
+        GL.glRasterPos2f(self.win.size[0] / 2. - self.size[0] / 2. + x,
+                         self.win.size[1] / 2. - self.size[1] / 2. + y)
 
-        #GL.glDrawPixelsub(GL.GL_RGB, self.imArr)
+        # GL.glDrawPixelsub(GL.GL_RGB, self.imArr)
         GL.glDrawPixels(self.size[0], self.size[1],
-                        self.internalFormat, self.dataType,
-                        self._imStr)
+                        self.internalFormat, self.dataType, self._imStr)
         # return to 3D mode (go and pop the projection matrix)
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glPopMatrix()
         GL.glMatrixMode(GL.GL_MODELVIEW)
 
     def _set(self, attrib, val, op='', log=True):
-        """
-        Deprecated. Use methods specific to the parameter you want to set
+        """Deprecated. Use methods specific to the parameter you want to set.
 
         e.g. ::
 
@@ -209,32 +218,37 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         relative to the window center. Stimuli can be positioned off-screen,
         beyond the window!
 
-        :ref:`operations <attrib-operations>` are supported."""
+        :ref:`operations <attrib-operations>` are supported.
+        """
         self.__dict__['pos'] = val2array(value, withNone=False)
         self._calcPosRendered()
 
     def setPos(self, newPos, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
+        but use this method if you need to suppress the log message.
+        """
         setAttribute(self, 'pos', newPos, log, operation)
 
     @attributeSetter
     def depth(self, value):
-        """DEPRECATED. Depth is now controlled simply by drawing order."""
+        """DEPRECATED. Depth is now controlled simply by drawing order.
+        """
         self.__dict__['depth'] = value
 
     def setDepth(self, newDepth, operation='', log=None):
-        """DEPRECATED. Depth is now controlled simply by drawing order."""
+        """DEPRECATED. Depth is now controlled simply by drawing order.
+        """
         setAttribute(self, 'depth', log, operation)
 
     def _calcPosRendered(self):
         """Calculate the pos of the stimulus in pixels"""
-        self._posRendered = convertToPix(pos=self.pos, vertices=numpy.array([
-                                         0, 0]), units=self.units, win=self.win)
+        self._posRendered = convertToPix(pos=self.pos,
+                                         vertices=numpy.array([0, 0]),
+                                         units=self.units, win=self.win)
 
     @attributeSetter
     def image(self, filename):
-        """String. Filename, including relative or absolute path. The image
+        """Filename, including relative or absolute path. The image
         can be any format that the Python Imaging Library can import
         (almost any). Can also be an image already loaded by PIL.
         """
@@ -246,17 +260,17 @@ class SimpleImageStim(MinimalStim, WindowMixin):
                 im = Image.open(self.filename)
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)
             else:
-                logging.error("couldn't find image...%s" % (filename))
+                logging.error("couldn't find image...%s" % filename)
                 core.quit()
                 raise  # so thatensure we quit
         else:
             # not a string - have we been passed an image?
             try:
                 im = filename.copy().transpose(Image.FLIP_TOP_BOTTOM)
-            except AttributeError:  # ...but apparently not
-                logging.error("couldn't find image...%s" % (filename))
+            except AttributeError:  # apparently not an image
+                logging.error("couldn't find image...%s" % filename)
                 core.quit()
-                raise  # ensure we quit
+                raise Exception  # ensure we quit
             self.filename = repr(filename)  # '<Image.Image image ...>'
 
         self.size = im.size
@@ -272,5 +286,6 @@ class SimpleImageStim(MinimalStim, WindowMixin):
 
     def setImage(self, filename=None, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
+        but use this method if you need to suppress the log message.
+        """
         setAttribute(self, 'image', filename, log)

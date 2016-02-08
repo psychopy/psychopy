@@ -60,7 +60,8 @@ defaultWrapWidth = {'cm': 15.0,
 
 
 class TextStim(BaseVisualStim, ColorMixin):
-    """Class of text stimuli to be displayed in a :class:`~psychopy.visual.Window`
+    """Class of text stimuli to be displayed in a
+    :class:`~psychopy.visual.Window`
     """
 
     def __init__(self, win,
@@ -88,16 +89,18 @@ class TextStim(BaseVisualStim, ColorMixin):
                  name=None,
                  autoLog=None):
         """
-        **Performance OBS:** in general, TextStim is slower than many other visual
-        stimuli, i.e. it takes longer to change some attributes. In general, it's
-        the attributes that affect the shapes of the letters:
-        ``text``, ``height``, ``font``, ``bold`` etc. These make the next .draw()
-        slower because that sets the text again. You can make the draw()
-        quick by calling re-setting the text (``myTextStim.text = myTextStim.text``)
-        when you've changed the parameters.
+        **Performance OBS:** in general, TextStim is slower than many other
+        visual stimuli, i.e. it takes longer to change some attributes.
+        In general, it's the attributes that affect the shapes of the letters:
+        ``text``, ``height``, ``font``, ``bold`` etc.
+        These make the next .draw() slower because that sets the text again.
+        You can make the draw() quick by calling re-setting the text
+        (``myTextStim.text = myTextStim.text``) when you've changed the
+        parameters.
 
         In general, other attributes which merely affect the presentation of
-        unchanged shapes are as fast as usual. This includes ``pos``, ``opacity`` etc.
+        unchanged shapes are as fast as usual. This includes ``pos``,
+        ``opacity`` etc.
         """
 
         # what local vars are defined (these are the init params) for use by
@@ -129,15 +132,17 @@ class TextStim(BaseVisualStim, ColorMixin):
 
         # generate the texture and list holders
         self._listID = GL.glGenLists(1)
-        if not self.win.winType == "pyglet":  # pygame text needs a surface to render to
+        # pygame text needs a surface to render to:
+        if not self.win.winType == "pyglet":
             self._texID = GL.GLuint()
             GL.glGenTextures(1, ctypes.byref(self._texID))
 
         # Color stuff
         self.colorSpace = colorSpace
         if rgb != None:
-            logging.warning(
-                "Use of rgb arguments to stimuli are deprecated. Please use color and colorSpace args instead")
+            msg = ("Use of rgb arguments to stimuli are deprecated. Please "
+                   "use color and colorSpace args instead")
+            logging.warning(msg)
             self.setColor(rgb, colorSpace='rgb', log=False)
         else:
             self.setColor(color, log=False)
@@ -166,9 +171,10 @@ class TextStim(BaseVisualStim, ColorMixin):
 
     @attributeSetter
     def height(self, height):
-        """Float/int or None (set default).
-        The height of the letters (including the entire box that surrounds the letters
-        in the font). The width of the letters is then defined by the font.
+        """The height of the letters (Float/int or None = set default).
+
+        Height includes the entire box that surrounds the letters
+        in the font. The width of the letters is then defined by the font.
 
         :ref:`Operations <attrib-operations>` supported."""
         # height in pix (needs to be done after units which is done during
@@ -177,11 +183,13 @@ class TextStim(BaseVisualStim, ColorMixin):
             if self.units in defaultLetterHeight:
                 height = defaultLetterHeight[self.units]
             else:
-                raise AttributeError, "TextStim does now know a default letter height for units %s" % (
-                    repr(self.units))
+                msg = ("TextStim does now know a default letter height "
+                       "for units %s")
+                raise AttributeError, msg % repr(self.units)
         self.__dict__['height'] = height
-        self._heightPix = convertToPix(pos=numpy.array([0, 0]), vertices=numpy.array(
-            [0, self.height]), units=self.units, win=self.win)[1]
+        self._heightPix = convertToPix(pos=numpy.array([0, 0]),
+                                       vertices=numpy.array([0, self.height]),
+                                       units=self.units, win=self.win)[1]
 
         # need to update the font to reflect the change
         self.setFont(self.font, log=False)
@@ -193,12 +201,14 @@ class TextStim(BaseVisualStim, ColorMixin):
 
     @attributeSetter
     def font(self, font):
-        """String. Set the font to be used for text rendering.
-        font should be a string specifying the name of the font (in system resources)."""
+        """String. Set the font to be used for text rendering. font should
+        be a string specifying the name of the font (in system resources).
+        """
         self.__dict__['font'] = None  # until we find one
         if self.win.winType == "pyglet":
-            self._font = pyglet.font.load(
-                font, int(self._heightPix), dpi=72, italic=self.italic, bold=self.bold)
+            self._font = pyglet.font.load(font, int(self._heightPix),
+                                          dpi=72, italic=self.italic,
+                                          bold=self.bold)
             self.__dict__['font'] = font
         else:
             if font is None or len(font) == 0:
@@ -218,8 +228,9 @@ class TextStim(BaseVisualStim, ColorMixin):
                     # trhen check if we were successful
                     if self.font is None and font != "":
                         # we didn't find a ttf filename
-                        logging.warning(
-                            "Found %s but it doesn't end .ttf. Using default font." % fontFilenames[0])
+                        msg = ("Found %s but it doesn't end .ttf. "
+                               "Using default font.")
+                        logging.warning(msg % fontFilenames[0])
                         self.__dict__['font'] = pygame.font.get_default_font()
 
             if self.font is not None and os.path.isfile(self.font):
@@ -227,23 +238,28 @@ class TextStim(BaseVisualStim, ColorMixin):
                     self._heightPix), italic=self.italic, bold=self.bold)
             else:
                 try:
-                    self._font = pygame.font.SysFont(self.font, int(
-                        self._heightPix), italic=self.italic, bold=self.bold)
+                    self._font = pygame.font.SysFont(
+                        self.font, int(self._heightPix), italic=self.italic,
+                        bold=self.bold)
                     self.__dict__['font'] = font
                     logging.info('using sysFont ' + str(font))
                 except Exception:
                     self.__dict__['font'] = pygame.font.get_default_font()
-                    logging.error("Couldn't find font %s on the system. Using %s instead!\n \
-                              Font names should be written as concatenated names all in lower case.\n \
-                              e.g. 'arial', 'monotypecorsiva', 'rockwellextra'..." % (font, self.font))
-                    self._font = pygame.font.SysFont(self.font, int(
-                        self._heightPix), italic=self.italic, bold=self.bold)
+                    msg = ("Couldn't find font %s on the system. Using %s "
+                           "instead! Font names should be written as "
+                           "concatenated names all in lower case.\ne.g. "
+                           "'arial', 'monotypecorsiva', 'rockwellextra', ...")
+                    logging.error(msg % (font, self.font))
+                    self._font = pygame.font.SysFont(
+                        self.font, int(self._heightPix), italic=self.italic,
+                        bold=self.bold)
         # re-render text after a font change
         self._needSetText = True
 
     def setFont(self, font, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
+        but use this method if you need to suppress the log message.
+        """
         setAttribute(self, 'font', font, log)
 
     @attributeSetter
@@ -251,8 +267,8 @@ class TextStim(BaseVisualStim, ColorMixin):
         """The text to be rendered. Use \\\\n to make new lines.
 
         Issues: May be slow, and pyglet has a memory leak when setting text.
-        For these reasons, check and only update the text if it has changed. So
-        scripts can safely set the text on every frame, and not need to check.
+        For these reasons, check and only update the text if it has changed.
+        So scripts can safely set the text on every frame, no need to check.
         """
         if text == self.text:
             return
@@ -266,30 +282,34 @@ class TextStim(BaseVisualStim, ColorMixin):
 
     def setText(self, text=None, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
+        but use this method if you need to suppress the log message.
+        """
         setAttribute(self, 'text', text, log)
 
     def _setTextShaders(self, value=None):
         """Set the text to be rendered using the current font
         """
         if self.win.winType == "pyglet":
-            self._pygletTextObj = pyglet.font.Text(self._font, self.text,
-                                                   halign=self.alignHoriz, valign=self.alignVert,
-                                                   color=(1.0, 1.0, 1.0,
-                                                          self.opacity),
-                                                   width=self._wrapWidthPix)  # width of the frame
-#            self._pygletTextObj = pyglet.text.Label(self.text,self.font, int(self._heightPix),
-#                                                       anchor_x=self.alignHoriz, anchor_y=self.alignVert,#the point we rotate around
-#                                                       halign=self.alignHoriz,
-#                                                       color = (int(127.5*self.rgb[0]+127.5),
-#                                                            int(127.5*self.rgb[1]+127.5),
-#                                                            int(127.5*self.rgb[2]+127.5),
-#                                                            int(255*self.opacity)),
-# multiline=True, width=self._wrapWidthPix)#width of the frame
-            self.width, self._fontHeightPix = self._pygletTextObj.width, self._pygletTextObj.height
+            self._pygletTextObj = pyglet.font.Text(
+                self._font, self.text,
+                halign=self.alignHoriz, valign=self.alignVert,
+                color=(1.0, 1.0, 1.0, self.opacity),
+                width=self._wrapWidthPix)  # width of the frame
+            # self._pygletTextObj = pyglet.text.Label(
+            #       self.text,self.font, int(self._heightPix),
+            #      anchor_x=self.alignHoriz,
+            #      anchor_y=self.alignVert,  # the point we rotate around
+            #      halign=self.alignHoriz,
+            #      color = (int(127.5*self.rgb[0]+127.5),
+            #               int(127.5*self.rgb[1]+127.5),
+            #               int(127.5*self.rgb[2]+127.5),
+            #                int(255*self.opacity)),
+            # multiline=True, width=self._wrapWidthPix)#width of the frame
+            self.width = self._pygletTextObj.width
+            self._fontHeightPix = self._pygletTextObj.height
         else:
-            self._surf = self._font.render(
-                value, self.antialias, [255, 255, 255])
+            self._surf = self._font.render(value, self.antialias,
+                                           [255, 255, 255])
             self.width, self._fontHeightPix = self._surf.get_size()
 
             if self.antialias:
@@ -300,21 +320,22 @@ class TextStim(BaseVisualStim, ColorMixin):
             GL.glEnable(GL.GL_TEXTURE_2D)
             # bind that name to the target
             GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-            GL.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, 4, self.width, self._fontHeightPix,
-                                 GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring(self._surf, "RGBA", 1))
+            GL.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, 4, self.width,
+                                 self._fontHeightPix,
+                                 GL.GL_RGBA, GL.GL_UNSIGNED_BYTE,
+                                 pygame.image.tostring(self._surf, "RGBA", 1))
             # linear smoothing if texture is stretched?
-            GL.glTexParameteri(
-                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, smoothing)
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER,
+                               smoothing)
             # but nearest pixel value if it's compressed?
-            GL.glTexParameteri(
-                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, smoothing)
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER,
+                               smoothing)
 
         self._needSetText = False
         self._needUpdate = True
 
     def _updateListShaders(self):
-        """
-        This is only used with pygame text - pyglet handles all from the draw()
+        """Only used with pygame text - pyglet handles all from the draw()
         """
         if self._needSetText:
             self.setText(log=False)
@@ -374,7 +395,8 @@ class TextStim(BaseVisualStim, ColorMixin):
             GL.glEnable(GL.GL_TEXTURE_2D)
             self._pygletTextObj.draw()
         else:
-            GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
+            # draw a 4 sided polygon
+            GL.glBegin(GL.GL_QUADS)
             # right bottom
             GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rtex, Btex)
             GL.glVertex3f(right, bottom, 0)
@@ -399,17 +421,18 @@ class TextStim(BaseVisualStim, ColorMixin):
     def _setTextNoShaders(self, value=None):
         """Set the text to be rendered using the current font
         """
-        desiredRGB = self._getDesiredRGB(
-            self.rgb, self.colorSpace, self.contrast)
-
+        desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace,
+                                         self.contrast)
         if self.win.winType == "pyglet":
-            self._pygletTextObj = pyglet.font.Text(self._font, self.text,
-                                                   halign=self.alignHoriz, valign=self.alignVert,
-                                                   color=(desiredRGB[0], desiredRGB[
-                                                          1], desiredRGB[2], self.opacity),
-                                                   width=self._wrapWidthPix,  # width of the frame
-                                                   )
-            self.width, self._fontHeightPix = self._pygletTextObj.width, self._pygletTextObj.height
+            self._pygletTextObj = pyglet.font.Text(
+                self._font, self.text,
+                halign=self.alignHoriz, valign=self.alignVert,
+                color=(desiredRGB[0], desiredRGB[1], desiredRGB[2],
+                       self.opacity),
+                width=self._wrapWidthPix)  # width of the frame
+
+            self.width = self._pygletTextObj.width
+            self._fontHeightPix = self._pygletTextObj.height
         else:
             self._surf = self._font.render(value, self.antialias,
                                            [desiredRGB[0] * 255,
@@ -426,13 +449,14 @@ class TextStim(BaseVisualStim, ColorMixin):
             GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA,
                             self.width, self._fontHeightPix, 0,
-                            GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pygame.image.tostring(self._surf, "RGBA", 1))
+                            GL.GL_RGBA, GL.GL_UNSIGNED_BYTE,
+                            pygame.image.tostring(self._surf, "RGBA", 1))
             # linear smoothing if texture is stretched?
-            GL.glTexParameteri(
-                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, smoothing)
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER,
+                               smoothing)
             # but nearest pixel value if it's compressed?
-            GL.glTexParameteri(
-                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, smoothing)
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER,
+                               smoothing)
         self._needUpdate = True
 
     def _updateListNoShaders(self):
@@ -448,7 +472,7 @@ class TextStim(BaseVisualStim, ColorMixin):
         GL.glNewList(self._listID, GL.GL_COMPILE)
 
         # coords:
-        if self.alignHoriz in ['center', 'centre']:
+        if self.alignHoriz in ('center', 'centre'):
             left = -self.width / 2.0
             right = self.width / 2.0
         elif self.alignHoriz == 'right':
@@ -458,7 +482,7 @@ class TextStim(BaseVisualStim, ColorMixin):
             left = 0.0
             right = self.width
         # how much to move bottom
-        if self.alignVert in ['center', 'centre']:
+        if self.alignVert in ('center', 'centre'):
             bottom = -self._fontHeightPix / 2.0
             top = self._fontHeightPix / 2.0
         elif self.alignVert == 'top':
@@ -490,7 +514,8 @@ class TextStim(BaseVisualStim, ColorMixin):
         if self.win.winType == "pyglet":
             self._pygletTextObj.draw()
         else:
-            GL.glBegin(GL.GL_QUADS)                  # draw a 4 sided polygon
+            # draw a 4 sided polygon
+            GL.glBegin(GL.GL_QUADS)
             # right bottom
             GL.glMultiTexCoord2fARB(GL.GL_TEXTURE0_ARB, Rtex, Btex)
             GL.glVertex2f(right, bottom)
@@ -511,28 +536,33 @@ class TextStim(BaseVisualStim, ColorMixin):
 
     @attributeSetter
     def flipHoriz(self, value):
-        """If set to True then the text will be flipped horiztonally (left-to-right).
-        Note that this is relative to the original, not relative to the current state."""
+        """If set to True then the text will be flipped left-to-right.  The
+        flip is relative to the original, not relative to the current state.
+        """
         self.__dict__['flipHoriz'] = value
 
     def setFlipHoriz(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
+        but use this method if you need to suppress the log message.
+        """
         setAttribute(self, 'flipHoriz', newVal, log)
 
     @attributeSetter
     def flipVert(self, value):
-        """If set to True then the text will be flipped vertically (top-to-bottom).
-        Note that this is relative to the original, not relative to the current state."""
+        """If set to True then the text will be flipped top-to-bottom.  The
+        flip is relative to the original, not relative to the current state.
+        """
         self.__dict__['flipVert'] = value
 
     def setFlipVert(self, newVal=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message"""
+        but use this method if you need to suppress the log message
+        """
         setAttribute(self, 'flipVert', newVal, log)
 
     def setFlip(self, direction, log=None):
-        """(used by Builder to simplify the dialog)"""
+        """(used by Builder to simplify the dialog)
+        """
         if direction == 'vert':
             self.setFlipVert(True, log=log)
         elif direction == 'horiz':
@@ -540,48 +570,53 @@ class TextStim(BaseVisualStim, ColorMixin):
 
     @attributeSetter
     def antialias(self, value):
-        """True/False.
-       Allow (or not) antialiasing the text. OBS: sets text, slow."""
+        """Allow antialiasing the text (True or False). Sets text, slow.
+       """
         self.__dict__['antialias'] = value
         self._needSetText = True
 
     @attributeSetter
     def bold(self, value):
-        """True/False.
-        Make the text bold (better to use a bold font name)."""
+        """Make the text bold (True, False). Better to use a bold font name).
+        """
         self.__dict__['bold'] = value
         self.font = self.font  # call attributeSetter
 
     @attributeSetter
     def italic(self, value):
         """True/False.
-        Make the text italic (better to use a italic font name)."""
+        Make the text italic (better to use a italic font name).
+        """
         self.__dict__['italic'] = value
         self.font = self.font  # call attributeSetter
 
     @attributeSetter
     def alignVert(self, value):
-        """The vertical alignment ('top', 'bottom' or 'center')"""
+        """The vertical alignment ('top', 'bottom' or 'center')
+        """
         self.__dict__['alignVert'] = value
         self._needSetText = True
 
     @attributeSetter
     def alignHoriz(self, value):
-        """The horizontal alignment ('left', 'right' or 'center')"""
+        """The horizontal alignment ('left', 'right' or 'center')
+        """
         self.__dict__['alignHoriz'] = value
         self._needSetText = True
 
     @attributeSetter
     def fontFiles(self, fontFiles):
-        """A list of additional files if the font is not in the standard system
-        location (include the full path). OBS: fonts are added every time this
-        value is set. Previous aren't deleted.
+        """A list of additional files if the font is not in the standard
+        system location (include the full path).
+
+        OBS: fonts are added every time this value is set. Previous are
+        not deleted.
 
         E.g.::
 
             stim.fontFiles = ['SpringRage.ttf']  # load file(s)
             stim.font = 'SpringRage'  # set to font
-            """
+        """
         self.__dict__['fontFiles'] += fontFiles
         for thisFont in fontFiles:
             pyglet.font.add_file(thisFont)
@@ -591,28 +626,33 @@ class TextStim(BaseVisualStim, ColorMixin):
         """Int/float or None (set default).
         The width the text should run before wrapping.
 
-        :ref:`Operations <attrib-operations>` supported."""
+        :ref:`Operations <attrib-operations>` supported.
+        """
         if wrapWidth is None:
             if self.units in defaultWrapWidth:
                 wrapWidth = defaultWrapWidth[self.units]
             else:
-                raise AttributeError, "TextStim does now know a default wrap width for units %s" % (
-                    repr(self.units))
+                msg = "TextStim does now know a default wrap width for units %s"
+                raise AttributeError, msg % repr(self.units)
         self.__dict__['wrapWidth'] = wrapWidth
-        self._wrapWidthPix = convertToPix(pos=numpy.array([0, 0]), vertices=numpy.array(
-            [self.wrapWidth, 0]), units=self.units, win=self.win)[0]
+        verts = numpy.array([self.wrapWidth, 0])
+        self._wrapWidthPix = convertToPix(pos=numpy.array([0, 0]),
+                                          vertices=verts,
+                                          units=self.units, win=self.win)[0]
         self._needSetText = True
 
     @property
     def boundingBox(self):
-        """(read only) attribute representing the bounding box of the text (w,h).
-        This differs from `width` in that the width represents the width of the
-        margins, which might differ from the width of the text within them
+        """(read only) attribute representing the bounding box of the text
+        (w,h). This differs from `width` in that the width represents the
+        width of the margins, which might differ from the width of the text
+        within them.
 
         NOTE: currently always returns the size in pixels
         (this will change to return in stimulus units)
         """
-        return (self._pygletTextObj._layout.content_width, self._pygletTextObj._layout.content_height)
+        return (self._pygletTextObj._layout.content_width,
+                self._pygletTextObj._layout.content_height)
 
     @property
     def posPix(self):
@@ -622,8 +662,10 @@ class TextStim(BaseVisualStim, ColorMixin):
         # because this is a property getter we can check /on-access/ if it
         # needs updating :-)
         if self._needVertexUpdate:
-            self.__dict__['posPix'] = convertToPix(
-                vertices=[0, 0], pos=self.pos, units=self.units, win=self.win)
+            self.__dict__['posPix'] = convertToPix(vertices=[0, 0],
+                                                   pos=self.pos,
+                                                   units=self.units,
+                                                   win=self.win)
         self._needVertexUpdate = False
         return self.__dict__['posPix']
 
@@ -663,11 +705,13 @@ class TextStim(BaseVisualStim, ColorMixin):
 
             # self.win._progSignedTex)
             GL.glUseProgram(self.win._progSignedTexFont)
-#            GL.glUniform3iv(GL.glGetUniformLocation(self.win._progSignedTexFont, "rgb"), 1,
-# desiredRGB.ctypes.data_as(ctypes.POINTER(ctypes.c_float))) #set the
-# texture to be texture unit 0
+            # GL.glUniform3iv(GL.glGetUniformLocation(
+            #       self.win._progSignedTexFont, "rgb"), 1,
+            #       desiredRGB.ctypes.data_as(ctypes.POINTER(ctypes.c_float)))
+            #  #set the texture to be texture unit 0
             GL.glUniform3f(GL.glGetUniformLocation(
-                self.win._progSignedTexFont, "rgb"), desiredRGB[0], desiredRGB[1], desiredRGB[2])
+                self.win._progSignedTexFont, "rgb"),
+                desiredRGB[0], desiredRGB[1], desiredRGB[2])
 
         else:  # color is set in texture, so set glColor to white
             GL.glColor4f(1, 1, 1, 1)
@@ -705,6 +749,5 @@ class TextStim(BaseVisualStim, ColorMixin):
             # disable shader (but command isn't available pre-OpenGL2.0)
             GL.glUseProgram(0)
 
-        # GL.glEnable(GL.GL_DEPTH_TEST)                   # Enables Depth
-        # Testing
+        # GL.glEnable(GL.GL_DEPTH_TEST)  # Enables Depth Testing
         GL.glPopMatrix()
