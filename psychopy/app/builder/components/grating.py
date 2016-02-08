@@ -111,7 +111,7 @@ class GratingComponent(BaseVisualComponent):
                 "    ori=%(ori)s, pos=%(pos)s, size=%(size)s, " % inits +
                 "sf=%(sf)s, phase=%(phase)s,\n" % inits +
                 "    color=%(color)s, colorSpace=%(colorSpace)s, " % inits +
-                "opacity=%(opacity)s,\n"  +
+                "opacity=%(opacity)s,\n" % inits +
                 # no newline - start optional parameters
                 "    texRes=%(texture resolution)s" % inits)
 
