@@ -3,7 +3,8 @@
 
 """Language localization for PsychoPy.
 
-Sets the locale value as a wx languageID (int) and initializes gettext translation _translate():
+Sets the locale value as a wx languageID (int) and initializes gettext
+translation _translate():
     from psychopy.app import localization
 """
 
@@ -75,7 +76,8 @@ sysAvail = [str(l) for l in codeFromWxId.values()  # installed language packs
 
 
 def getID(lang=None):
-    """Get wx ID of language to use for translations: `lang`, pref, or system default.
+    """Get wx ID of language to use for translations:
+        `lang`, pref, or system default.
 
     `lang` is a 5 char `language_REGION`, eg ja_JP
     """
@@ -89,8 +91,7 @@ def getID(lang=None):
         if not val:
             val = codeFromWxId[wx.LANGUAGE_DEFAULT]
     try:
-        # out-dated: [can't set wx.Locale here because no app yet] now there is an app
-        # here just determine the value to be used when it can be set
+        # todo: try to set wx.Locale here to language
         language = wxIdFromCode[val]
     except KeyError:
         logging.error('locale %s not known to wx.Locale, using default' % val)
@@ -125,14 +126,14 @@ except IOError:
     trans = gettext.NullTranslations()
 trans.install(unicode=True)
 
-# to avoid a crash, PsychoPy app uses a nonstandard name _translate instead of _
-# seems like a var in a dependency is named _, clobbering _ as global
-# translation:
+# PsychoPy app uses a nonstandard name _translate (instead of _)
+# A dependency overwrites _ somewhere, clobbering use of _ as global:
 __builtins__['_translate'] = _
 del(__builtins__['_'])  # idea: force psychopy code to use _translate
 
 
 #__builtins__['_'] = wx.GetTranslation
 # this seems to have no effect, needs more investigation:
-#path = os.path.join(os.path.dirname(__file__), '..', 'locale', lang, 'LC_MESSAGE') + os.sep
+# path = os.path.join(os.path.dirname(__file__), '..', 'locale',
+#        lang, 'LC_MESSAGE') + os.sep
 # wxlocale.AddCatalogLookupPathPrefix(path)

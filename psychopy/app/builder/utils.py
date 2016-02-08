@@ -27,9 +27,9 @@ class FileDropTarget(wx.FileDropTarget):
     def OnDropFiles(self, x, y, filenames):
         logging.debug(
             'PsychoPyBuilder: received dropped files: %s' % filenames)
-        for filename in filenames:
-            if filename.endswith('.psyexp') or filename.lower().endswith('.py'):
-                self.builder.fileOpen(filename=filename)
+        for fname in filenames:
+            if fname.endswith('.psyexp') or fname.lower().endswith('.py'):
+                self.builder.fileOpen(filename=fname)
             else:
                 logging.warning(
                     'dropped file ignored: did not end in .psyexp or .py')
@@ -59,9 +59,10 @@ class WindowFrozen(object):
             self.ctrl.Freeze()
         return self.ctrl
 
-    def __exit__(self, exc_type, exc_val, exc_tb):  # ended the with... statement
+    def __exit__(self, exc_type, exc_val, exc_tb):
         # Thaw should not be called if platform is win32.
         if sys.platform == 'win32':
             return
-        if self.ctrl is not None and self.ctrl.IsFrozen():  # check it hasn't been deleted
+        # check it hasn't been deleted
+        if self.ctrl is not None and self.ctrl.IsFrozen():
             self.ctrl.Thaw()

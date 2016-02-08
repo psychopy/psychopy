@@ -22,29 +22,35 @@ class SoundComponent(BaseComponent):
                  startType='time (s)', startVal='0.0',
                  stopType='duration (s)', stopVal='1.0',
                  startEstim='', durationEstim=''):
-        super(SoundComponent, self).__init__(exp, parentName, name,
-                                             startType=startType, startVal=startVal,
-                                             stopType=stopType, stopVal=stopVal,
-                                             startEstim=startEstim, durationEstim=durationEstim)
+        super(SoundComponent, self).__init__(
+            exp, parentName, name,
+            startType=startType, startVal=startVal,
+            stopType=stopType, stopVal=stopVal,
+            startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'Sound'
         self.url = "http://www.psychopy.org/builder/components/sound.html"
         self.exp.requirePsychopyLibs(['sound'])
         # params
         self.params['stopType'].allowedVals = ['duration (s)']
-        self.params['stopType'].hint = _translate(
-            'The maximum duration of a sound in seconds')
-        self.params['stopVal'].hint = _translate(
-            "When does the component end? (blank to use the duration of the media)")
-        self.params['sound'] = Param(sound, valType='str', allowedTypes=[],
-                                     updates='constant', allowedUpdates=['constant', 'set every repeat'],
-                                     hint=_translate(
-                                         "A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) or a filename"),
-                                     label=_localized['sound'])
-        self.params['volume'] = Param(volume, valType='code', allowedTypes=[],
-                                      updates='constant', allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-                                      hint=_translate(
-                                          "The volume (in range 0 to 1)"),
-                                      label=_localized["volume"])
+        self.params['stopType'].hint = _translate('The maximum duration of a'
+                                                  ' sound in seconds')
+        hnt = ("When does the component end? (blank to use the duration "
+               "of the media)")
+        self.params['stopVal'].hint = _translate(hnt)
+
+        hnt = ("A sound can be a note name (e.g. A or Bf), a number to "
+               "specify Hz (e.g. 440) or a filename")
+        self.params['sound'] = Param(
+            sound, valType='str', allowedTypes=[], updates='constant',
+            allowedUpdates=['constant', 'set every repeat'],
+            hint=_translate(hnt),
+            label=_localized['sound'])
+        _allowed = ['constant', 'set every repeat', 'set every frame']
+        self.params['volume'] = Param(
+            volume, valType='code', allowedTypes=[], updates='constant',
+            allowedUpdates=_allowed[:],  # use a copy
+            hint=_translate("The volume (in range 0 to 1)"),
+            label=_localized["volume"])
 
     def writeInitCode(self, buff):
         # replaces variable params with sensible defaults
@@ -61,17 +67,17 @@ class SoundComponent(BaseComponent):
         # do this EVERY frame, even before/after playing?
         self.writeParamUpdates(buff, 'frame')
         self.writeStartTestCode(buff)
-        buff.writeIndented(
-            "%s.play()  # start the sound (it finishes automatically)\n" % (self.params['name']))
+        code = "%s.play()  # start the sound (it finishes automatically)\n"
+        buff.writeIndented(code % self.params['name'])
         # because of the 'if' statement of the time test
         buff.setIndentLevel(-1, relative=True)
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             self.writeStopTestCode(buff)
-            buff.writeIndented(
-                "%s.stop()  # stop the sound (if longer than duration)\n" % (self.params['name']))
+            code = "%s.stop()  # stop the sound (if longer than duration)\n"
+            buff.writeIndented(code % self.params['name'])
             # because of the 'if' statement of the time test
             buff.setIndentLevel(-1, relative=True)
 
     def writeRoutineEndCode(self, buff):
-        buff.writeIndented(
-            "%s.stop() #ensure sound has stopped at end of routine\n" % (self.params['name']))
+        code = "%s.stop()  # ensure sound has stopped at end of routine\n"
+        buff.writeIndented(code % self.params['name'])

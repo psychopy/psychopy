@@ -223,7 +223,8 @@ def getRoot(command, terminator=None):
     '.'. The terminator and anything after the terminator will be
     dropped."""
     command = command.split('\n')[-1]
-    # if command.startswith(sys.ps2): #remove epsilon (... )  # removed by jwp - only works for interactive window
+    # if command.startswith(sys.ps2): #remove epsilon (... )
+    #  removed by jwp - only works for interactive window
     #command = command[len(sys.ps2):]
     command = command.lstrip()
     command = rtrimTerminus(command, terminator)

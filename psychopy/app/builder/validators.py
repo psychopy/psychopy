@@ -6,8 +6,8 @@ import wx
 
 class NameValidator(wx.PyValidator):
     """
-    Component name validator for _BaseParamsDlg class. It depends on accesss to
-    an experiment namespace. Validation checks if it is a valid Python
+    Component name validator for _BaseParamsDlg class. It depends on accesss
+    to an experiment namespace. Validation checks if it is a valid Python
     identifier and if it does not clash with existing names.
 
     @see: _BaseParamsDlg
@@ -52,11 +52,14 @@ class NameValidator(wx.PyValidator):
             used = namespace.exists(newName)
             same_as_old_name = bool(newName == parent.params['name'].val)
             if used and not same_as_old_name:
-                return _translate("That name is in use (it's a %s). Try another name.") % used, False
+                msg = "That name is in use (it's a %s). Try another name."
+                return _translate(msg) % used, False
             elif not namespace.isValid(newName):  # valid as a var name
-                return _translate("Name must be alpha-numeric or _, no spaces"), False
+                msg = "Name must be alpha-numeric or _, no spaces"
+                return _translate(msg), False
             # warn but allow, chances are good that its actually ok
             elif namespace.isPossiblyDerivable(newName):
-                return _translate(namespace.isPossiblyDerivable(newName)), True
+                msg = namespace.isPossiblyDerivable(newName)
+                return _translate(msg), True
             else:
                 return "", True

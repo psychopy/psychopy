@@ -29,40 +29,63 @@ _unescapedDollarSign_re = re.compile(r"^\$|[^\\]\$")
 _localized = {
     # strings for all allowedVals (from all components) go here:
     # interpolation
-    'linear': _translate('linear'), 'nearest': _translate('nearest'),
-    'rgb': 'rgb', 'dkl': 'dkl', 'lms': 'lms', 'hsv': 'hsv',  # not translated
-    'last key': _translate('last key'), 'first key': _translate('first key'),
-    'all keys': _translate('all keys'), 'nothing': _translate('nothing'),
-    'last button': _translate('last button'), 'first button': _translate('first button'),
+    'linear': _translate('linear'),
+    'nearest': _translate('nearest'),
+    # color spaces not translated:
+    'rgb': 'rgb', 'dkl': 'dkl', 'lms': 'lms', 'hsv': 'hsv',
+    'last key': _translate('last key'),
+    'first key': _translate('first key'),
+    'all keys': _translate('all keys'),
+    'nothing': _translate('nothing'),
+    'last button': _translate('last button'),
+    'first button': _translate('first button'),
     'all buttons': _translate('all buttons'),
-    'final': _translate('final'), 'on click': _translate('on click'), 'every frame': _translate('every frame'),
+    'final': _translate('final'),
+    'on click': _translate('on click'),
+    'every frame': _translate('every frame'),
     'never': _translate('never'),
-    'from exp settings': _translate('from exp settings'), 'from prefs': _translate('from preferences'),
-    'circle': _translate('circle'), 'square': _translate('square'),  # dots
+    'from exp settings': _translate('from exp settings'),
+    'from prefs': _translate('from preferences'),
+    'circle': _translate('circle'),
+    'square': _translate('square'),  # dots
     # dots
-    'direction': _translate('direction'), 'position': _translate('position'), 'walk': _translate('walk'),
+    'direction': _translate('direction'),
+    'position': _translate('position'),
+    'walk': _translate('walk'),
     # dots
-    'same': _translate('same'), 'different': _translate('different'),
+    'same': _translate('same'),
+    'different': _translate('different'),
     'experiment': _translate('Experiment'),
     # startType & stopType:
-    'time (s)': _translate('time (s)'), 'frame N': _translate('frame N'), 'condition': _translate('condition'),
-    'duration (s)': _translate('duration (s)'), 'duration (frames)': _translate('duration (frames)'),
-    # not translated:
-    'pix': 'pix', 'deg': 'deg', 'cm': 'cm', 'norm': 'norm', 'height': 'height',
-    '32': '32', '64': '64', '128': '128', '256': '256', '512': '512',  # tex resolution
+    'time (s)': _translate('time (s)'),
+    'frame N': _translate('frame N'),
+    'condition': _translate('condition'),
+    'duration (s)': _translate('duration (s)'),
+    'duration (frames)': _translate('duration (frames)'),
+    # units not translated:
+    'pix': 'pix', 'deg': 'deg', 'cm': 'cm',
+    'norm': 'norm', 'height': 'height',
+    # tex resolution:
+    '32': '32', '64': '64', '128': '128', '256': '256', '512': '512',
     'routine': 'Routine',
     # strings for allowedUpdates:
     'constant': _translate('constant'),
     'set every repeat': _translate('set every repeat'),
     'set every frame': _translate('set every frame'),
     # strings for allowedVals in settings:
-    'add': _translate('add'), 'avg': _translate('average'),  # blend mode
+    'add': _translate('add'),
+    'avg': _translate('average'),  # blend mode
     'use prefs': _translate('use preferences'),
     # logging level:
-    'debug': _translate('debug'), 'info': _translate('info'), 'exp': _translate('exp'),
-    'data': _translate('data'), 'warning': _translate('warning'), 'error': _translate('error'),
+    'debug': _translate('debug'),
+    'info': _translate('info'),
+    'exp': _translate('exp'),
+    'data': _translate('data'),
+    'warning': _translate('warning'),
+    'error': _translate('error'),
     # Experiment info dialog:
-    'Field': _translate('Field'), 'Default': _translate('Default'),
+    'Field': _translate('Field'),
+    'Default': _translate('Default'),
 }
 
 
@@ -85,12 +108,14 @@ class ParamCtrls(object):
             if ctrls.typeCtrl: sizer.Add(ctrls.typeCtrl, (currRow,2) )
             if ctrls.updateCtrl: sizer.Add(ctrls.updateCtrl, (currRow,3))
 
-        If browse is True then a browseCtrl will be added (you need to bind events yourself)
-        If noCtrls is True then no actual wx widgets are made, but attribute names are created
+        If browse is True then a browseCtrl will be added (you need to
+        bind events yourself). If noCtrls is True then no actual wx widgets
+        are made, but attribute names are created
 
-        `fieldName`'s value is always in en_US, and never for display, whereas `label`
-        is only for display and can be translated or tweaked (e.g., add '$').
-        Component._localized.keys() are `fieldName`s, and .values() are `label`s.
+        `fieldName`'s value is always in en_US, and never for display,
+        whereas `label` is only for display and can be translated or
+        tweaked (e.g., add '$'). Component._localized.keys() are
+        `fieldName`s, and .values() are `label`s.
         """
         super(ParamCtrls, self).__init__()
         self.param = param
@@ -110,20 +135,21 @@ class ParamCtrls(object):
                     tryForExp.parent
 
         # param has the fields:
-        # val, valType, allowedVals=[],allowedTypes=[], hint="", updates=None, allowedUpdates=None
-        # we need the following
-        self.nameCtrl = self.valueCtrl = self.typeCtrl = self.updateCtrl = None
-        self.browseCtrl = None
+        #   val, valType, allowedVals=[],allowedTypes=[],
+        #   hint="", updates=None, allowedUpdates=None
+        # we need the following:
+        self.nameCtrl = self.valueCtrl = self.typeCtrl = None
+        self.updateCtrl = self.browseCtrl = None
         if noCtrls:
             return  # we don't need to do any more
 
         if type(param.val) == numpy.ndarray:
             initial = param.val.tolist()  # convert numpy arrays to lists
-        # labelLength = wx.Size(self.dpi*2,self.dpi*2/3)#was 8*until v0.91.4
-        if param.valType == 'code' and fieldName not in ['name', 'Experiment info']:
+        _nonCode = ('name', 'Experiment info')
+        if param.valType == 'code' and fieldName not in _nonCode:
             label += ' $'
-        self.nameCtrl = wx.StaticText(
-            parent, -1, label, size=None, style=wx.ALIGN_RIGHT)
+        self.nameCtrl = wx.StaticText(parent, -1, label, size=None,
+                                      style=wx.ALIGN_RIGHT)
 
         if fieldName in ['text', 'customize_everything']:
             # for text input we need a bigger (multiline) box
@@ -131,12 +157,10 @@ class ParamCtrls(object):
                 sx, sy = 300, 400
             else:
                 sx, sy = 100, 100
-            self.valueCtrl = CodeBox(parent, -1,
-                                     # set the viewer to be small, then it will
-                                     # increase with wx.aui control
-                                     pos=wx.DefaultPosition, size=wx.Size(
-                                         sx, sy),
-                                     style=0, prefs=appPrefs)
+            # set viewer small, then it will increase with wx.aui control
+            self.valueCtrl = CodeBox(parent, -1, pos=wx.DefaultPosition,
+                                     size=wx.Size(sx, sy), style=0,
+                                     prefs=appPrefs)
             if len(param.val):
                 self.valueCtrl.AddText(unicode(param.val))
             if fieldName == 'text':
@@ -147,22 +171,21 @@ class ParamCtrls(object):
             self.valueCtrl = dialogs.ListWidget(
                 parent, val, order=['Field', 'Default'])
         elif param.valType == 'extendedCode':
-            self.valueCtrl = CodeBox(parent, -1,
-                                     # set the viewer to be small, then it will
-                                     # increase with wx.aui control
-                                     pos=wx.DefaultPosition, size=wx.Size(
-                                         100, 100),
-                                     style=0, prefs=appPrefs)
+            # set viewer small, then it will increase with wx.aui control
+            _pos = wx.DefaultPosition
+            self.valueCtrl = CodeBox(parent, -1, pos=_pos,
+                                     size=wx.Size(100, 100), style=0,
+                                     prefs=appPrefs)
             if len(param.val):
                 self.valueCtrl.AddText(unicode(param.val))
-            # code input fields one day change these to wx.stc fields?
+            # code input fields: one day change these to wx.stc fields?
             # self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
             #    style=wx.TE_MULTILINE,
             #    size=wx.Size(self.valueWidth*2,160))
         elif param.valType == 'bool':
             # only True or False - use a checkbox
-            self.valueCtrl = wx.CheckBox(
-                parent, size=wx.Size(self.valueWidth, -1))
+            self.valueCtrl = wx.CheckBox(parent,
+                                         size=wx.Size(self.valueWidth, -1))
             self.valueCtrl.SetValue(param.val)
         elif len(param.allowedVals) > 1:
             # there are limited options - use a Choice control
@@ -174,8 +197,8 @@ class ParamCtrls(object):
                     choiceLabels.append(_localized[val])
                 except KeyError:
                     choiceLabels.append(val)
-            self.valueCtrl = wx.Choice(
-                parent, choices=choiceLabels, size=wx.Size(self.valueWidth, -1))
+            self.valueCtrl = wx.Choice(parent, choices=choiceLabels,
+                                       size=wx.Size(self.valueWidth, -1))
             # stash original non-localized choices:
             self.valueCtrl._choices = copy.copy(param.allowedVals)
             # set display to the localized version of the currently selected
@@ -183,18 +206,25 @@ class ParamCtrls(object):
             try:
                 index = param.allowedVals.index(param.val)
             except Exception:
-                logging.warn("%r was given as parameter %r but it isn't in "
-                             "the list of allowed values %s. Reverting to use %r for this Component" % (param.val, fieldName, param.allowedVals, param.allowedVals[0]))
+                msg = ("%r was given as parameter %r but it isn't "
+                       "in the list of allowed values %s. "
+                       "Reverting to use %r for this Component")
+                vals = (param.val, fieldName,
+                        param.allowedVals,
+                        param.allowedVals[0])
+                logging.warn(msg % vals)
                 logging.flush()
                 index = 0
             self.valueCtrl.SetSelection(index)
         else:
             # create the full set of ctrls
             val = unicode(param.val)
-            self.valueCtrl = wx.TextCtrl(
-                parent, -1, val, size=wx.Size(self.valueWidth, -1))
-            # focus seems to get reset elsewhere, try "git grep -n SetFocus"
-            if fieldName in ['allowedKeys', 'image', 'movie', 'scaleDescription', 'sound', 'Begin Routine']:
+            self.valueCtrl = wx.TextCtrl(parent, -1, val,
+                                         size=wx.Size(self.valueWidth, -1))
+            # set focus for these fields; seems to get reset elsewhere (?)
+            focusFields = ('allowedKeys', 'image', 'movie', 'sound',
+                           'scaleDescription', 'Begin Routine')
+            if fieldName in focusFields:
                 self.valueCtrl.SetFocus()
         self.valueCtrl.SetToolTipString(param.hint)
         if len(param.allowedVals) == 1 or param.readOnly:
@@ -215,9 +245,7 @@ class ParamCtrls(object):
                 self.typeCtrl.Disable()  # visible but can't be changed
 
         # create update control
-        if param.allowedUpdates is None or len(param.allowedUpdates) == 0:
-            pass
-        else:
+        if param.allowedUpdates is not None and len(param.allowedUpdates):
             # updates = display-only version of allowed updates
             updateLabels = [_localized[upd] for upd in param.allowedUpdates]
             # allowedUpdates = extend version of allowed updates that includes
@@ -225,10 +253,12 @@ class ParamCtrls(object):
             allowedUpdates = copy.copy(param.allowedUpdates)
             for routineName, routine in self.exp.routines.items():
                 for static in routine.getStatics():
-                    updateLabels.append(_translate("set during: %(routineName)s.%(staticName)s") % {
-                                        'routineName': routineName, 'staticName': static.params['name']})
-                    allowedUpdates.append("set during: %(routineName)s.%(staticName)s" % {
-                                          'routineName': routineName, 'staticName': static.params['name']})
+                    txt = "set during: %(routineName)s.%(staticName)s"
+                    msg = _translate(txt)
+                    vals = {'routineName': routineName,
+                            'staticName': static.params['name']}
+                    updateLabels.append(msg % vals)
+                    allowedUpdates.append(msg % vals)
             self.updateCtrl = wx.Choice(parent, choices=updateLabels)
             # stash non-localized choices to allow retrieval by index:
             self.updateCtrl._choices = copy.copy(allowedUpdates)
@@ -245,10 +275,10 @@ class ParamCtrls(object):
             self.browseCtrl = wx.Button(parent, -1, _translate("Browse..."))
 
     def _getCtrlValue(self, ctrl):
-        """Retrieve the current value form the control (whatever type of ctrl it
-        is, e.g. checkbox.GetValue, choice.GetSelection)
-        Different types of control have different methods for retrieving value.
-        This function checks them all and returns the value or None.
+        """Retrieve the current value form the control (whatever type of ctrl
+        it is, e.g. checkbox.GetValue, choice.GetSelection)
+        Different types of control have different methods for retrieving
+        value. This function checks them all and returns the value or None.
 
         .. note::
             Don't use GetStringSelection() here to avoid that translated value
@@ -272,14 +302,14 @@ class ParamCtrls(object):
         elif hasattr(ctrl, 'GetLabel'):  # for wx.StaticText
             return ctrl.GetLabel()
         else:
-            print("failed to retrieve the value for %s" % (ctrl))
+            print("failed to retrieve the value for %s" % ctrl)
             return None
 
     def _setCtrlValue(self, ctrl, newVal):
         """Set the current value of the control (whatever type of ctrl it
         is, e.g. checkbox.SetValue, choice.SetSelection)
-        Different types of control have different methods for retrieving value.
-        This function checks them all and returns the value or None.
+        Different types of control have different methods for retrieving
+        value. This function checks them all and returns the value or None.
 
         .. note::
             Don't use SetStringSelection() here to avoid using translated
@@ -334,7 +364,9 @@ class ParamCtrls(object):
 
     def expInfoToListWidget(self, expInfoStr):
         """Takes a string describing a dictionary and turns it into a format
-        that the ListWidget can receive (list of dicts of Field:'', Default:'')
+        that the ListWidget can receive.
+
+        returns: list of dicts of {Field:'', Default:''}
         """
         expInfo = eval(expInfoStr)
         listOfDicts = []
@@ -343,8 +375,8 @@ class ParamCtrls(object):
         return listOfDicts
 
     def expInfoFromListWidget(self, listOfDicts):
-        """Creates a string representation of a dict from a list of field/default
-        values.
+        """Creates a string representation of a dict from a list of
+        field / default values.
         """
         expInfo = {}
         for field in listOfDicts:
@@ -354,12 +386,13 @@ class ParamCtrls(object):
 
 
 class _BaseParamsDlg(wx.Dialog):
+    _style = wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT | wx.TAB_TRAVERSAL
 
     def __init__(self, frame, title, params, order,
                  helpUrl=None, suppressTitles=True,
                  showAdvanced=False,
                  size=wx.DefaultSize,
-                 style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT | wx.TAB_TRAVERSAL, editing=False):
+                 style=_style, editing=False):
 
         # translate title
         if ' Properties' in title:  # Components and Loops
