@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-'''A class representing a window for displaying one or more stimuli'''
+"""A class representing a window for displaying one or more stimuli"""
 
 # Part of the PsychoPy library
 # Copyright (C) 2015 Jonathan Peirce
@@ -21,12 +21,13 @@ pyglet.options['debug_gl'] = False
 GL = pyglet.gl
 import ctypes
 
-#try to find avbin (we'll overload pyglet's load_library tool and then add some paths)
+# try to find avbin (we'll overload pyglet's load_library tool and then
+# add some paths)
 haveAvbin = False
 
-#on windows try to load avbin now (other libs can interfere)
+# on windows try to load avbin now (other libs can interfere)
 if sys.platform == 'win32':
-    #make sure we also check in SysWOW64 if on 64-bit windows
+    # make sure we also check in SysWOW64 if on 64-bit windows
     if 'C:\\Windows\\SysWOW64' not in os.environ['PATH']:
         os.environ['PATH'] += ';C:\\Windows\\SysWOW64'
 
@@ -42,11 +43,14 @@ if sys.platform == 'win32':
         # AttributeError if using avbin5 from pyglet 1.2?
         haveAvbin = False
     except AttributeError:
-        # avbin is not found, causing exception in pyglet 1.2?? (running psychopy 1.81 standalone on windows 7):
+        # avbin is not found, causing exception in pyglet 1.2??
+        # (running psychopy 1.81 standalone on windows 7):
         #
-        # File "C:\Program Files (x86)\PsychoPy2\lib\site-packages\pyglet\media\avbin.py", line 158, in <module>
+        # File "C:\Program Files (x86)\PsychoPy2\lib\site-packages\
+        #           pyglet\media\avbin.py", line 158, in <module>
         # av.avbin_get_version.restype = ctypes.c_int
-        # AttributeError: 'NoneType' object has no attribute 'avbin_get_version'
+        # AttributeError: 'NoneType' object has no attribute
+        # 'avbin_get_version'
         haveAvbin = False
 
 import psychopy  # so we can get the __path__
@@ -69,10 +73,10 @@ except ImportError:
     import Image
 
 if sys.platform == 'win32' and not haveAvbin:
-    logging.error("""avbin.dll failed to load.
-                     Try importing psychopy.visual as the first library
-                     (before anything that uses scipy)
-                     and make sure that avbin is installed.""")
+    logging.error(
+        """avbin.dll failed to load. Try importing psychopy.visual
+        as the first library (before anything that uses scipy)
+        and make sure that avbin is installed.""".replace('    ', ' '))
 
 import numpy
 
@@ -81,7 +85,7 @@ from psychopy.core import rush
 reportNDroppedFrames = 5  # stop raising warning after this
 
 from psychopy.visual.gamma import getGammaRamp, setGammaRamp, setGamma
-#import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
+# import pyglet.gl, pyglet.window, pyglet.image, pyglet.font, pyglet.event
 from . import shaders as _shaders
 try:
     from pyglet import media
@@ -101,20 +105,23 @@ global IOHUB_ACTIVE
 IOHUB_ACTIVE = False
 
 
-#keep track of windows that have been opened
-#Use a list of weak references so that we don't stop the window being deleted
+# keep track of windows that have been opened
+# Use a list of weak references so that we don't stop the window being deleted
 class OpenWinList(list):
+
     def append(self, item):
         list.append(self, weakref.ref(item))
+
     def remove(self, item):
         for ref in self:
             obj = ref()
-            if obj is None or item==obj:
+            if obj is None or item == obj:
                 list.remove(self, ref)
 openWindows = OpenWinList()
 
 # can provide a default window for mouse
 psychopy.event.visualOpenWindows = openWindows
+
 
 class Window(object):
     """Used to set up a context in which to draw objects,
@@ -124,16 +131,17 @@ class Window(object):
     to specify which screen to use (if more than one is available, duh!) and
     allows movies to be rendered.
 
-    Pygame may still work for you but it's officially deprecated in this project
-    (we won't be fixing pygame-specific bugs).
+    Pygame may still work for you but it's officially deprecated in this
+    project (we won't be fixing pygame-specific bugs).
 
     """
+
     def __init__(self,
                  size=(800, 600),
                  pos=None,
                  color=(0, 0, 0),
                  colorSpace='rgb',
-                 rgb = None,
+                 rgb=None,
                  dkl=None,
                  lms=None,
                  fullscr=None,
@@ -142,7 +150,7 @@ class Window(object):
                  bitsMode=None,
                  winType=None,
                  units=None,
-                 gamma = None,
+                 gamma=None,
                  blendMode='avg',
                  screen=0,
                  viewScale=None,
@@ -197,10 +205,11 @@ class Window(object):
                 After a call to flip() should we wait for the blank before
                 the script continues
             bitsMode :
-                DEPRECATED in 1.80.02. Use BitsSharp class from pycrsltd instead.
+                DEPRECATED in 1.80.02. Use BitsSharp class from pycrsltd
+                instead.
             checkTiming: True of False
-                Whether to calculate frame duration on initialization. Estimated
-                duration is saved in [Window].monitorFramePeriod.
+                Whether to calculate frame duration on initialization.
+                Estimated duration is saved in [Window].monitorFramePeriod.
             allowStencil : True or *False*
                 When set to True, this allows operations that use
                 the OpenGL stencil buffer
@@ -218,15 +227,17 @@ class Window(object):
                 will take precedence over preferences.
 
         """
-        #what local vars are defined (these are the init params) for use by __repr__
+        # what local vars are defined (these are the init params) for use by
+        # __repr__
         self._initParams = dir()
-        self._closed=False
+        self._closed = False
         for unecess in ['self', 'checkTiming', 'rgb', 'dkl', ]:
             self._initParams.remove(unecess)
 
         # Check autoLog value
         if not autoLog in (True, False):
-            raise ValueError('autoLog must be either True or False for visual.Window')
+            raise ValueError(
+                'autoLog must be either True or False for visual.Window')
 
         self.autoLog = False  # to suppress log msg during init
         self.name = name
@@ -247,14 +258,13 @@ class Window(object):
         elif isinstance(monitor, basestring):
             self.monitor = monitors.Monitor(monitor, autoLog=autoLog)
         elif hasattr(monitor, 'keys'):
-            #convert into a monitor object
-            self.monitor = monitors.Monitor('temp',
-                                            currentCalib=monitor,
+            # convert into a monitor object
+            self.monitor = monitors.Monitor('temp', currentCalib=monitor,
                                             verbose=False, autoLog=autoLog)
         else:
             self.monitor = monitor
 
-        #otherwise monitor will just be a dict
+        # otherwise monitor will just be a dict
         self.scrWidthCM = self.monitor.getWidth()
         self.scrDistCM = self.monitor.getDistance()
 
@@ -283,14 +293,15 @@ class Window(object):
         self.viewPos = val2array(viewPos, withScalar=False)
         self.viewOri = float(viewOri)
         if self.viewOri is not 0. and self.viewPos is not None:
-            raise NotImplementedError("Window: viewPos & viewOri are currently incompatible")
+            msg = "Window: viewPos & viewOri are currently incompatible"
+            raise NotImplementedError(msg)
         self.stereo = stereo  # use quad buffer if requested (and if possible)
 
-        #load color conversion matrices
+        # load color conversion matrices
         self.dkl_rgb = self.monitor.getDKL_RGB()
         self.lms_rgb = self.monitor.getLMS_RGB()
 
-        #set screen color
+        # set screen color
         self.__dict__['colorSpace'] = colorSpace
         if rgb is not None:
             logging.warning("Use of rgb arguments to stimuli are deprecated. "
@@ -310,17 +321,17 @@ class Window(object):
         self.setColor(color, colorSpace=colorSpace, log=False)
 
         self.allowStencil = allowStencil
-        #check whether FBOs are supported
+        # check whether FBOs are supported
         if blendMode == 'add' and not self.useFBO:
-            logging.warning('User requested a blendmode of "add" but ' +\
+            logging.warning('User requested a blendmode of "add" but '
                             'window requires useFBO=True')
             # resort to the simpler blending without float rendering
             self.__dict__['blendMode'] = 'avg'
         else:
             self.__dict__['blendMode'] = blendMode
-            #then set up gl context and then call self.setBlendMode
+            # then set up gl context and then call self.setBlendMode
 
-        #setup context and openGL()
+        # setup context and openGL()
         if winType is None:  # choose the default windowing
             winType = prefs.general['winType']
         self.winType = winType
@@ -329,22 +340,24 @@ class Window(object):
         self.blendMode = self.blendMode
 
         # gamma
-        self.bits = None #this may change in a few lines time!
+        self.bits = None  # this may change in a few lines time!
         self.__dict__['gamma'] = gamma
         self._setupGamma(gamma)
 
-        # setup bits++ if needed. NB The new preferred method is for this to be
-        # handled by the bits class instead. (we pass the Window to bits not passing
-        # bits to the window)
+        # setup bits++ if needed. NB The new preferred method is for this
+        # to be handled by the bits class instead. (we pass the Window to
+        # bits not passing bits to the window)
         if bitsMode is not None:
-            logging.warn("Use of Window(bitsMode=******) is deprecated. See the Coder>Demos>Hardware demo for new methods")
+            logging.warn("Use of Window(bitsMode=******) is deprecated. See "
+                         "the Coder>Demos>Hardware demo for new methods")
             self.bitsMode = bitsMode  # could be [None, 'fast', 'slow']
-            logging.warn("calling Window(...,bitsMode='fast') is deprecated. XXX provide further info")
+            logging.warn("calling Window(...,bitsMode='fast') is deprecated."
+                         " XXX provide further info")
             from psychopy.hardware.crs.bits import BitsPlusPlus
             self.bits = self.interface = BitsPlusPlus(self)
             self.haveBits = True
             if hasattr(self.monitor, 'lineariseLums'):
-                #rather than a gamma value we could use bits++ and provide a
+                # rather than a gamma value we could use bits++ and provide a
                 # complete linearised lookup table using
                 # monitor.lineariseLums(lumLevels)
                 self.__dict__['gamma'] = None
@@ -354,7 +367,7 @@ class Window(object):
         self.movieFrames = []  # list of captured frames (Image objects)
 
         self.recordFrameIntervals = False
-        # Allows us to omit the long timegap that follows each time turn it off
+        # Be able to omit the long timegap that follows each time turn it off
         self.recordFrameIntervalsJustTurnedOn = False
         self.nDroppedFrames = 0
         self.frameIntervals = []
@@ -365,26 +378,27 @@ class Window(object):
 
         self.lastFrameT = core.getTime()
         self.waitBlanking = waitBlanking
-        self._refreshThreshold = 1/1.0  # initial val needed by flip()
+        self._refreshThreshold = 1 / 1.0  # initial val needed by flip()
 
         # over several frames with no drawing
-        self._monitorFrameRate=None
-        self.monitorFramePeriod=0.0 #for testing  when to stop drawing a stim
+        self._monitorFrameRate = None
+        # for testing when to stop drawing a stim:
+        self.monitorFramePeriod = 0.0
         if checkTiming:
             self._monitorFrameRate = self.getActualFrameRate()
         if self._monitorFrameRate is not None:
-            self.monitorFramePeriod=1.0/self._monitorFrameRate
-            self._refreshThreshold = (1.0/self._monitorFrameRate)*1.2
+            self.monitorFramePeriod = 1.0 / self._monitorFrameRate
+            self._refreshThreshold = (1.0 / self._monitorFrameRate) * 1.2
         else:
-            self._refreshThreshold = (1.0/60)*1.2  # guess its a flat panel
+            self._refreshThreshold = (1.0 / 60) * 1.2  # maybe a flat panel?
         openWindows.append(self)
 
         self.autoLog = autoLog
         if self.autoLog:
-            logging.exp("Created %s = %s" %(self.name, str(self)))
+            logging.exp("Created %s = %s" % (self.name, str(self)))
 
     def __del__(self):
-        if self._closed==False:
+        if self._closed == False:
             self.close()
 
     def __enter__(self):
@@ -399,21 +413,25 @@ class Window(object):
         paramStrings = []
         for param in self._initParams:
             if hasattr(self, param):
-                paramStrings.append("%s=%s" %(param, repr(getattr(self, param))))
+                paramStrings.append("%s=%s" %
+                                    (param, repr(getattr(self, param))))
             else:
-                paramStrings.append("%s=UNKNOWN" %(param))
-        # paramStrings = ["%s=%s" %(param, getattr(self, param)) for param in self._initParams]
+                paramStrings.append("%s=UNKNOWN" % (param))
+        # paramStrings = ["%s=%s" %(param, getattr(self, param))
+        #                 for param in self._initParams]
         params = ", ".join(paramStrings)
-        s = "%s(%s)" %(className, params)
+        s = "%s(%s)" % (className, params)
         return s
 
     @attributeSetter
     def units(self, value):
-        """*None*, 'height' (of the window), 'norm' (normalised), 'deg', 'cm', 'pix'
-        Defines the default units of stimuli initialized in the window. I.e. if you
-        change units, already initialized stimuli won't change their units.
+        """*None*, 'height' (of the window), 'norm', 'deg', 'cm', 'pix'
+        Defines the default units of stimuli initialized in the window.
+        I.e. if you change units, already initialized stimuli won't change
+        their units.
 
-        Can be overridden by each stimulus, if units is specified on initialization.
+        Can be overridden by each stimulus, if units is specified on
+        initialization.
         See :ref:`units` for explanation of options."""
         self.__dict__['units'] = value
 
@@ -423,7 +441,9 @@ class Window(object):
     @attributeSetter
     def waitBlanking(self, value):
         """*None*, True or False.
-        After a call to flip() should we wait for the blank before the script continues"""
+        After a call to flip() should we wait for the blank before the
+        script continues
+        """
         self.__dict__['waitBlanking'] = value
 
     @attributeSetter
@@ -440,13 +460,15 @@ class Window(object):
             Window.saveFrameIntervals()
         """
         # was off, and now turning it on
-        self.recordFrameIntervalsJustTurnedOn = not self.recordFrameIntervals and value
+        self.recordFrameIntervalsJustTurnedOn = bool(
+            not self.recordFrameIntervals and value)
         self.__dict__['recordFrameIntervals'] = value
         self.frameClock.reset()
 
     def setRecordFrameIntervals(self, value=True, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
+        but use this method if you need to suppress the log message.
+        """
         setAttribute(self, 'recordFrameIntervals', value, log)
 
     def saveFrameIntervals(self, fileName=None, clear=True):
@@ -472,7 +494,7 @@ class Window(object):
             self.frameClock.reset()
 
     def onResize(self, width, height):
-        '''A default resize event handler.
+        """A default resize event handler.
 
         This default handler updates the GL viewport to cover the entire
         window and sets the ``GL_PROJECTION`` matrix to be orthogonal in
@@ -482,9 +504,9 @@ class Window(object):
 
         Override this event handler with your own to create another
         projection, for example in perspective.
-        '''
-        #this has to be external so that pyglet can use it too without circular
-        #referencing
+        """
+        # this has to be external so that pyglet can use it too without
+        # circular referencing
         _onResize(width, height)
 
     def logOnFlip(self, msg, level, obj=None):
@@ -511,8 +533,8 @@ class Window(object):
 
             pingMyDevice(portToPing, channel=2, level=0)
 
-        then you could call callOnFlip() to have the function call synchronized
-        with the frame flip like this::
+        then you could call callOnFlip() to have the function call
+        synchronized with the frame flip like this::
 
             win.callOnFlip(pingMyDevice, portToPing, channel=2, level=0)
 
@@ -528,7 +550,8 @@ class Window(object):
         psychopy kb event integration.
         """
         wins = pyglet.window.get_platform().get_default_display().get_windows()
-        for win in wins: win.dispatch_events()
+        for win in wins:
+            win.dispatch_events()
 
     def flip(self, clearBuffer=True):
         """Flip the front and back buffers after drawing everything for your
@@ -546,7 +569,7 @@ class Window(object):
         if self.useFBO:
             if flipThisFrame:
                 self._prepareFBOrender()
-                #need blit the frambuffer object to the actual back buffer
+                # need blit the frambuffer object to the actual back buffer
 
                 # unbind the framebuffer as the render target
                 GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
@@ -557,7 +580,8 @@ class Window(object):
                 if self.bits != None:
                     self.bits._prepareFBOrender()
 
-                # before flipping need to copy the renderBuffer to the frameBuffer
+                # before flipping need to copy the renderBuffer to the
+                # frameBuffer
                 GL.glActiveTexture(GL.GL_TEXTURE0)
                 GL.glEnable(GL.GL_TEXTURE_2D)
                 GL.glBindTexture(GL.GL_TEXTURE_2D, self.frameTexture)
@@ -569,11 +593,11 @@ class Window(object):
                 GL.glEnable(GL.GL_BLEND)
                 self._finishFBOrender()
 
-        #call this before flip() whether FBO was used or not
+        # call this before flip() whether FBO was used or not
         self._afterFBOrender()
 
         if self.winType == "pyglet":
-            #make sure this is current context
+            # make sure this is current context
             if glob_vars.currWindow != self:
                 self.winHandle.switch_to()
                 glob_vars.currWindow = self
@@ -603,11 +627,12 @@ class Window(object):
 
         if self.useFBO:
             if flipThisFrame:
-                #set rendering back to the framebuffer object
-                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
+                # set rendering back to the framebuffer object
+                GL.glBindFramebufferEXT(
+                    GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
                 GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
                 GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-                #set to no active rendering texture
+                # set to no active rendering texture
                 GL.glActiveTexture(GL.GL_TEXTURE0)
                 GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
                 if stencilOn:
@@ -618,17 +643,19 @@ class Window(object):
         GL.glLoadIdentity()
         if self.viewScale is not None:
             GL.glScalef(self.viewScale[0], self.viewScale[1], 1)
-            abs_scale_x, abs_scale_y = abs(self.viewScale[0]), abs(self.viewScale[1])
+            abs_scale_x = abs(self.viewScale[0])
+            abs_scale_y = abs(self.viewScale[1])
         else:
             abs_scale_x, abs_scale_y = 1, 1
 
         if self.viewPos is not None:
-            norm_rf_pos_x = self.viewPos[0]/abs_scale_x
-            norm_rf_pos_y = self.viewPos[1]/abs_scale_y
+            norm_rf_pos_x = self.viewPos[0] / abs_scale_x
+            norm_rf_pos_y = self.viewPos[1] / abs_scale_y
             GL.glTranslatef(norm_rf_pos_x, norm_rf_pos_y, 0.0)
 
         if self.viewOri:  # float
-            # the logic below for flip is partially correct, but does not handle a nonzero viewPos
+            # the logic below for flip is partially correct, but does not
+            # handle a nonzero viewPos
             flip = 1
             if self.viewScale is not None:
                 _f = self.viewScale[0] * self.viewScale[1]
@@ -636,10 +663,10 @@ class Window(object):
                     flip = -1
             GL.glRotatef(flip * self.viewOri, 0.0, 0.0, -1.0)
 
-        #reset returned buffer for next frame
+        # reset returned buffer for next frame
         self._endOfFlip(clearBuffer)
 
-        #waitBlanking
+        # waitBlanking
         if self.waitBlanking and flipThisFrame:
             GL.glBegin(GL.GL_POINTS)
             GL.glColor4f(0, 0, 0, 0)
@@ -651,7 +678,7 @@ class Window(object):
             GL.glEnd()
             GL.glFinish()
 
-        #get timestamp
+        # get timestamp
         now = logging.defaultClock.getTime()
 
         # run other functions immediately after flip completes
@@ -671,23 +698,24 @@ class Window(object):
                 if deltaT > self._refreshThreshold:
                     self.nDroppedFrames += 1
                     if self.nDroppedFrames < reportNDroppedFrames:
-                        logging.warning('t of last frame was %.2fms (=1/%i)' %
-                                        (deltaT*1000, 1/deltaT), t=now)
+                        txt = 't of last frame was %.2fms (=1/%i)'
+                        msg = txt % (deltaT * 1000, 1 / deltaT)
+                        logging.warning(msg, t=now)
                     elif self.nDroppedFrames == reportNDroppedFrames:
                         logging.warning("Multiple dropped frames have "
                                         "occurred - I'll stop bothering you "
                                         "about them!")
 
-        #log events
+        # log events
         for logEntry in self._toLog:
-            #{'msg':msg,'level':level,'obj':copy.copy(obj)}
+            # {'msg':msg, 'level':level, 'obj':copy.copy(obj)}
             logging.log(msg=logEntry['msg'],
                         level=logEntry['level'],
                         t=now,
                         obj=logEntry['obj'])
         del self._toLog[:]
 
-        #keep the system awake (prevent screen-saver or sleep)
+        # keep the system awake (prevent screen-saver or sleep)
         platform_specific.sendStayAwake()
 
         #    If self.waitBlanking is True, then return the time that
@@ -734,7 +762,7 @@ class Window(object):
             myStim2.draw()
             # Show this for 2 frames (30 ms at 60Hz)
             myWin.multiFlip(flips=2)
-            # Show blank screen for 3 frames (because buffer was cleared above)
+            # Show blank screen for 3 frames (buffer was cleared above)
             myWin.multiFlip(flips=3)
 
         :Notes:
@@ -758,8 +786,8 @@ class Window(object):
             logging.warning("Call to Window.multiFlip() with flips > 1 is "
                             "unnecessary because Window.waitBlanking=False")
 
-        #Do the flipping with last flip as special case
-        for _ in range(flips-1):
+        # Do the flipping with last flip as special case
+        for _ in range(flips - 1):
             self.flip(clearBuffer=False)
         self.flip(clearBuffer=clearBuffer)
 
@@ -770,8 +798,8 @@ class Window(object):
         graphics card that supports quad buffering (e,g nVidia Quadro series)
 
         PsychoPy always draws to the back buffers, so 'left' will use
-        GL_BACK_LEFT This then needs to be flipped once both eye's buffers have
-        been  rendered.
+        GL_BACK_LEFT This then needs to be flipped once both eye's buffers
+        have been rendered.
 
         Typical usage::
 
@@ -800,37 +828,38 @@ class Window(object):
         from the back buffer without actually taking the time to flip the
         window.
         """
-        #reset returned buffer for next frame
+        # reset returned buffer for next frame
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
     def getMovieFrame(self, buffer='front'):
-        """
-        Capture the current Window as an image. Saves to stack for saveMovieFrames().
+        """Capture the current Window as an image.
+
+        Saves to stack for saveMovieFrames().
         As of v1.81.00 this also returns the frame as a PIL image
 
         This can be done at any time (usually after a .flip() command).
 
-        Frames are stored in memory until a .saveMovieFrames(filename) command
-        is issued. You can issue getMovieFrame() as often
+        Frames are stored in memory until a .saveMovieFrames(filename)
+        command is issued. You can issue getMovieFrame() as often
         as you like and then save them all in one go when finished.
 
         The back buffer will return the frame that hasn't yet been 'flipped'
         to be visible on screen but has the advantage that the mouse and any
         other overlapping windows won't get in the way.
 
-        The default front buffer is to be called immediately after a win.flip()
-        and gives a complete copy of the screen at the window's coordinates.
+        The default front buffer is to be called immediately after a
+        win.flip() and gives a complete copy of the screen at the window's
+        coordinates.
         """
         im = self._getFrame(buffer=buffer)
         self.movieFrames.append(im)
         return im
 
     def _getFrame(self, buffer='front'):
+        """Return the current Window as an image.
         """
-        Return the current Window as an image.
-        """
-        #GL.glLoadIdentity()
-        #do the reading of the pixels
+        # GL.glLoadIdentity()
+        # do the reading of the pixels
         if buffer == 'back':
             GL.glReadBuffer(GL.GL_BACK)
         else:
@@ -838,8 +867,8 @@ class Window(object):
             if self.useFBO:
                 GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
 
-        #fetch the data with glReadPixels
-        #pyglet.gl stores the data in a ctypes buffer
+        # fetch the data with glReadPixels
+        # pyglet.gl stores the data in a ctypes buffer
         bufferDat = (GL.GLubyte * (4 * self.size[0] * self.size[1]))()
         GL.glReadPixels(0, 0, self.size[0], self.size[1],
                         GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
@@ -857,9 +886,9 @@ class Window(object):
 
     def saveMovieFrames(self, fileName, mpgCodec='mpeg1video',
                         fps=30, clearFrames=True):
-        """
-        Writes any captured frames to disk. Will write any format
-        that is understood by PIL (tif, jpg, bmp, png...)
+        """Writes any captured frames to disk.
+
+        Will write any format that is understood by PIL (tif, jpg, png, ...)
 
         :parameters:
 
@@ -870,14 +899,14 @@ class Window(object):
                 animated GIF image is created (although you will get higher
                 quality GIF by saving PNG files and then combining them in
                 dedicated image manipulation software, such as GIMP). On
-                Windows and Linux `.mpeg` files can be created if `pymedia` is
-                installed. On OS X `.mov` files can be created if the
+                Windows and Linux `.mpeg` files can be created if `pymedia`
+                is installed. On OS X `.mov` files can be created if the
                 pyobjc-frameworks-QTKit is installed.
 
                 Unfortunately the libs used for movie generation can be flaky
                 and poor quality. As for animated GIFs, better results can be
-                achieved by saving as individual .png frames and then combining
-                them into a movie using software like ffmpeg.
+                achieved by saving as individual .png frames and then
+                combining them into a movie using software like ffmpeg.
 
             mpgCodec: the code to be used **by pymedia** if the filename ends
                 in .mpg
@@ -920,35 +949,32 @@ class Window(object):
                               'instead though.')
             makeMovies.makeMPEG(fileName, self.movieFrames, codec=mpgCodec)
         elif fileExt in ['.mov', '.MOV']:
-            raise NotImplementedError("Support for Quicktime movies has been "
-                                      "removed (at least for now). You need "
-                                      "to export your frames as images "
-                                      "(e.g. png files) and combine them "
-                                      "yourself (e.g. with ffmpeg)")
+            msg = ("Support for Quicktime movies has been removed (at least "
+                   "for now). You need to export your frames as images (e.g. "
+                   "png files) and combine them yourself (e.g. with ffmpeg)")
+            raise NotImplementedError(msg)
         elif len(self.movieFrames) == 1:
             self.movieFrames[0].save(fileName)
         else:
-            frame_name_format = "%s%%0%dd%s" % \
-                (fileRoot,
-                 numpy.ceil(numpy.log10(len(self.movieFrames) + 1)),
-                 fileExt)
+            frmc = numpy.ceil(numpy.log10(len(self.movieFrames) + 1))
+            frame_name_format = "%s%%0%dd%s" % (fileRoot, frmc, fileExt)
             for frameN, thisFrame in enumerate(self.movieFrames):
-                thisFileName = frame_name_format % (frameN+1,)
+                thisFileName = frame_name_format % (frameN + 1,)
                 thisFrame.save(thisFileName)
         if clearFrames:
             self.movieFrames = []
 
-    def _getRegionOfFrame(self, rect=[-1, 1, 1, -1],
-                          buffer='front', power2=False, squarePower2=False):
-        """
-        Capture a rectangle (Left Top Right Bottom, norm units) of the window
-        as an RBGA image.
+    def _getRegionOfFrame(self, rect=(-1, 1, 1, -1), buffer='front',
+                          power2=False, squarePower2=False):
+        """Capture a rectangle of the window as an RBGA image.
+
+        The rectangle = (Left Top Right Bottom) in norm units.
 
         power2 can be useful with older OpenGL versions to avoid interpolation
-        in PatchStim. If power2 or squarePower2, it will expand rect dimensions
-        up to next power of two. squarePower2 uses the max dimensions. You need
-        to check what your hardware & OpenGL supports, and call
-        _getRegionOfFrame as appropriate.
+        in PatchStim. If power2 or squarePower2, it will expand rect
+        dimensions up to next power of two. squarePower2 uses the max
+        dimensions. You need to check what your hardware & OpenGL supports,
+        and call _getRegionOfFrame as appropriate.
         """
         # Ideally: rewrite using GL frame buffer object; glReadPixels == slow
 
@@ -956,8 +982,10 @@ class Window(object):
         imType = 'RGBA'  # not tested with anything else
 
         # box corners in pix
-        box = [(rect[0]/2. + 0.5)*x, (rect[1]/-2. + 0.5)*y,  # Left Top
-               (rect[2]/2. + 0.5)*x, (rect[3]/-2. + 0.5)*y]  # Right Bottom
+        box = [(rect[0] / 2. + 0.5) * x,  # Left
+               (rect[1] / -2. + 0.5) * y,  # Top
+               (rect[2] / 2. + 0.5) * x,  # Right
+               (rect[3] / -2. + 0.5) * y]  # Bottom
         box = map(int, box)
 
         horz = box[2] - box[0]
@@ -968,47 +996,52 @@ class Window(object):
         else:
             GL.glReadBuffer(GL.GL_FRONT)
 
-        #http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
+        # http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
         bufferDat = (GL.GLubyte * (4 * horz * vert))()
         GL.glReadPixels(box[0], box[1], horz, vert,
                         GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
         # not right
-        #GL.glGetTexImage(GL.GL_TEXTURE_1D, 0,
+        # GL.glGetTexImage(GL.GL_TEXTURE_1D, 0,
         #                 GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
         try:
-            im = Image.fromstring(mode='RGBA', size=(horz, vert), data=bufferDat)
+            im = Image.fromstring(mode='RGBA', size=(horz, vert),
+                                  data=bufferDat)
         except Exception:
-            im = Image.frombytes(mode='RGBA', size=(horz, vert), data=bufferDat)
+            im = Image.frombytes(mode='RGBA', size=(horz, vert),
+                                 data=bufferDat)
         region = im.transpose(Image.FLIP_TOP_BOTTOM)
 
         if power2 or squarePower2:  # use to avoid interpolation in PatchStim
             if squarePower2:
                 maxsize = max(region.size)
-                xPowerOf2 = yPowerOf2 = int(2**numpy.ceil(numpy.log2(maxsize)))
+                xPowerOf2 = int(2**numpy.ceil(numpy.log2(maxsize)))
+                yPowerOf2 = xPowerOf2
             else:
                 xPowerOf2 = int(2**numpy.ceil(numpy.log2(region.size[0])))
                 yPowerOf2 = int(2**numpy.ceil(numpy.log2(region.size[1])))
             imP2 = Image.new(imType, (xPowerOf2, yPowerOf2))
             # paste centered
-            imP2.paste(region, (int(xPowerOf2/2. - region.size[0]/2.),
-                                int(yPowerOf2/2. - region.size[1]/2)))
+            imP2.paste(region, (int(xPowerOf2 / 2. - region.size[0] / 2.),
+                                int(yPowerOf2 / 2. - region.size[1] / 2)))
             region = imP2
 
         return region
 
     def close(self):
-        """Close the window (and reset the Bits++ if necess)."""
-        self._closed=True
+        """Close the window (and reset the Bits++ if necess).
+        """
+        self._closed = True
 
         try:
             openWindows.remove(self)
         except Exception:
             pass
-        if (not self.useNativeGamma) and self.origGammaRamp is not None:
+        if not self.useNativeGamma and self.origGammaRamp is not None:
             setGammaRamp(self.winHandle, self.origGammaRamp)
         try:
             self.mouseVisible = True
-        except Exception: #can cause unimportant "'NoneType' object is not callable"
+        except Exception:
+            # can cause unimportant "'NoneType' object is not callable"
             pass
         if self.winType == 'pyglet':
             _hw_handle = None
@@ -1018,15 +1051,17 @@ class Window(object):
             except Exception:
                 pass
             # If iohub is running, inform it to stop looking for this win id
-            # when filtering kb and mouse events (if the filter is enabled of course)
+            # when filtering kb and mouse events (if the filter is enabled of
+            # course)
             try:
                 if IOHUB_ACTIVE and _hw_handle:
                     from psychopy.iohub.client import ioHubConnection
-                    ioHubConnection.ACTIVE_CONNECTION.unregisterPygletWindowHandles(_hw_handle)
+                    conn = ioHubConnection.ACTIVE_CONNECTION
+                    conn.unregisterPygletWindowHandles(_hw_handle)
             except Exception:
                 pass
         else:
-            #pygame.quit()
+            # pygame.quit()
             pygame.display.quit()
 
         try:
@@ -1042,7 +1077,7 @@ class Window(object):
     def fps(self):
         """Report the frames per second since the last call to this function
         (or since the window was created if this is first call)"""
-        fps = self.frames/(self.frameClock.getTime())
+        fps = self.frames / (self.frameClock.getTime())
         self.frameClock.reset()
         self.frames = 0
         return fps
@@ -1050,23 +1085,26 @@ class Window(object):
     @attributeSetter
     def blendMode(self, blendMode):
         self.__dict__['blendMode'] = blendMode
-        if blendMode=='avg':
+        if blendMode == 'avg':
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
             if hasattr(self, '_shaders'):
                 self._progSignedTex = self._shaders['signedTex']
                 self._progSignedTexMask = self._shaders['signedTexMask']
                 self._progSignedTexMask1D = self._shaders['signedTexMask1D']
                 self._progImageStim = self._shaders['imageStim']
-        elif blendMode=='add':
+        elif blendMode == 'add':
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE)
             if hasattr(self, '_shaders'):
                 self._progSignedTex = self._shaders['signedTex_adding']
                 self._progSignedTexMask = self._shaders['signedTexMask_adding']
-                self._progSignedTexMask1D = self._shaders['signedTexMask1D_adding']
+                tmp = self._shaders['signedTexMask1D_adding']
+                self._progSignedTexMask1D = tmp
                 self._progImageStim = self._shaders['imageStim_adding']
+
     def setBlendMode(self, blendMode, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
+        but use this method if you need to suppress the log message.
+        """
         setAttribute(self, 'blendMode', blendMode, log)
 
     @attributeSetter
@@ -1083,29 +1121,35 @@ class Window(object):
         That'll show up on first flip.
 
         See other stimuli (e.g. :ref:`GratingStim.color`) for more info on the
-        color attribute which essentially works the same on all PsychoPy stimuli.
+        color attribute which essentially works the same on all PsychoPy
+        stimuli.
 
         See :ref:`colorspaces` for further information about the ways to
-        specify colors and their various implications."""
+        specify colors and their various implications.
+        """
         self.setColor(color)
+
     @attributeSetter
     def colorSpace(self, colorSpace):
-        """string
+        """string. (Documentation for colorSpace is in the stimuli.)
 
-        See the documentation for colorSpace in the stimuli, e.g. :ref:`GratingStim.colorSpace`.
+        e.g. :ref:`GratingStim.colorSpace`.
 
         Usually used in conjunction with ``color`` like this::
 
-            win.colorSpace = 'rgb255'  # changes colorSpace but not the value of win.color
-            win.color = [0, 0, 255]  # clear blue in rgb255
+            win.colorSpace = 'rgb255'  # changes colorSpace but not
+                                       # the value of win.color
+            win.color = [0, 0, 255]    # clear blue in rgb255
 
         See :ref:`colorspaces` for further information about the ways to
-        specify colors and their various implications."""
+        specify colors and their various implications.
+        """
         self.__dict__['colorSpace'] = colorSpace
 
     def setColor(self, color, colorSpace=None, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you want to set color and colorSpace simultaneously.
+        but use this method if you want to set color and colorSpace
+        simultaneously.
         See `Window.color` for documentation on colors.
         """
         # Set color
@@ -1120,8 +1164,9 @@ class Window(object):
         # rgb255 and named are not...
         elif type(self.colorSpace) is str:
             desiredRGB = (self.rgb) / 255.0
-        else:  # some array/numeric stuff
-            raise ValueError('invalid value "%s" for Window.colorSpace' %colorSpace)
+        else:  # some array / numeric stuff
+            msg = 'invalid value "%s" for Window.colorSpace'
+            raise ValueError(msg % colorSpace)
 
         # if it is None then this will be done during window setup
         if self.winHandle is not None:
@@ -1137,9 +1182,9 @@ class Window(object):
         if self.winType == 'pyglet' and glob_vars.currWindow != self:
             self.winHandle.switch_to()
             glob_vars.currWindow = self
-        GL.glClearColor((self.rgb[0]+1.0)/2.0,
-                        (self.rgb[1]+1.0)/2.0,
-                        (self.rgb[2]+1.0)/2.0,
+        GL.glClearColor((self.rgb[0] + 1.0) / 2.0,
+                        (self.rgb[1] + 1.0) / 2.0,
+                        (self.rgb[2] + 1.0) / 2.0,
                         1.0)
 
     def _setupGamma(self, gammaVal):
@@ -1159,12 +1204,12 @@ class Window(object):
         else:
             self.__dict__['gamma'] = None  # gamma wasn't set anywhere
             self.useNativeGamma = True
-        #then try setting it
+        # then try setting it
         if self.useNativeGamma:
             if self.autoLog:
                 logging.info('Using gamma table of operating system')
         else:
-            #try to retrieve previous so we can reset later
+            # try to retrieve previous so we can reset later
             try:
                 self.origGammaRamp = getGammaRamp(self.winHandle)
             except Exception:
@@ -1176,13 +1221,20 @@ class Window(object):
 
     @attributeSetter
     def gamma(self, gamma):
-        """Set the monitor gamma for linearization (don't use this if using a Bits++ or Bits#)
-        Overrides monitor settings"""
+        """Set the monitor gamma for linearization
+
+        (don't use this if using a Bits++ or Bits#)
+        Overrides monitor settings.
+        """
 
         self._checkGamma(gamma)
 
         if self.bits is not None:
-            raise DeprecationError, "Do not use try to set the gamma of a window with Bits++/Bits# enabled. It was ambiguous what should happen. Use the setGamma() function of the bits box instead"
+            msg = ("Do not use try to set the gamma of a window with "
+                   "Bits++/Bits# enabled. It was ambiguous what should "
+                   "happen. Use the setGamma() function of the bits box "
+                   "instead")
+            raise DeprecationError, msg
         elif self.winType == 'pygame':
             pygame.display.set_gamma(self.gamma[0],
                                      self.gamma[1],
@@ -1192,20 +1244,23 @@ class Window(object):
 
     def setGamma(self, gamma, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message."""
+        but use this method if you need to suppress the log message.
+        """
         setAttribute(self, 'gamma', gamma, log)
+
     @attributeSetter
     def gammaRamp(self, newRamp):
         if self.winType == 'pyglet':
             self.winHandle.setGammaRamp(self.winHandle, newRamp)
-        else: #pyglet
-            self.winHandle.set_gamma_ramp(newRamp[:,0], newRamp[:,1], newRamp[:,2])
+        else:  # pyglet
+            self.winHandle.set_gamma_ramp(
+                newRamp[:, 0], newRamp[:, 1], newRamp[:, 2])
 
     def _checkGamma(self, gamma=None):
         if gamma is None:
             gamma = self.gamma
         if isinstance(gamma, (float, int)):
-            self.__dict__['gamma'] = [gamma]*3
+            self.__dict__['gamma'] = [gamma] * 3
         elif hasattr(gamma, '__iter__'):
             self.__dict__['gamma'] = gamma
         else:
@@ -1219,46 +1274,43 @@ class Window(object):
         if units == "norm":
             thisScale = numpy.array([1.0, 1.0])
         elif units == "height":
-            thisScale = numpy.array([2.0*self.size[1]/self.size[0], 2.0])
+            thisScale = numpy.array([2.0 * self.size[1] / self.size[0], 2.0])
         elif units in ["pix", "pixels"]:
-            thisScale = 2.0/numpy.array(self.size)
+            thisScale = 2.0 / numpy.array(self.size)
         elif units == "cm":
-            #windowPerCM = windowPerPIX / CMperPIX
-            #            = (window/winPIX) / (scrCm/scrPIX)
-            if ((self.scrWidthCM in [0, None]) or
-                    (self.scrWidthPIX in [0, None])):
-                logging.error('you didnt give me the width of the screen '
-                              '(pixels and cm). Check settings in '
-                              'MonitorCentre.')
+            # windowPerCM = windowPerPIX / CMperPIX
+            #             = (window/winPIX) / (scrCm/scrPIX)
+            if self.scrWidthCM in [0, None] or self.scrWidthPIX in [0, None]:
+                logging.error('you didnt give the width of the screen (pixels'
+                              ' and cm). Check settings in MonitorCentre.')
                 core.wait(1.0)
                 core.quit()
-            thisScale = ((numpy.array([2.0, 2.0])/self.size) /
-                         (float(self.scrWidthCM)/float(self.scrWidthPIX)))
+            thisScale = ((numpy.array([2.0, 2.0]) / self.size) /
+                         (float(self.scrWidthCM) / float(self.scrWidthPIX)))
         elif units in ["deg", "degs"]:
             #windowPerDeg = winPerCM*CMperDEG
             #               = winPerCM              * tan(pi/180) * distance
             if ((self.scrWidthCM in [0, None]) or
                     (self.scrWidthPIX in [0, None])):
-                logging.error('you didnt give me the width of the screen '
-                              '(pixels and cm). Check settings in '
-                              'MonitorCentre.')
+                logging.error('you didnt give the width of the screen (pixels'
+                              ' and cm). Check settings in MonitorCentre.')
                 core.wait(1.0)
                 core.quit()
-            cmScale = ((numpy.array([2.0, 2.0])/self.size) /
-                       (float(self.scrWidthCM)/float(self.scrWidthPIX)))
+            cmScale = ((numpy.array([2.0, 2.0]) / self.size) /
+                       (float(self.scrWidthCM) / float(self.scrWidthPIX)))
             thisScale = cmScale * 0.017455 * self.scrDistCM
         elif units == "stroke_font":
-            thisScale = numpy.array([2*font.letterWidth, 2*font.letterWidth] /
-                                    self.size/38.0)
-        #actually set the scale as appropriate
+            lw = 2 * font.letterWidth
+            thisScale = numpy.array([lw, lw] / self.size / 38.0)
+        # actually set the scale as appropriate
         # allows undoing of a previous scaling procedure
-        thisScale = thisScale/numpy.asarray(prevScale)
+        thisScale = thisScale / numpy.asarray(prevScale)
         GL.glScalef(thisScale[0], thisScale[1], 1.0)
-        return thisScale  # just in case the user wants to know?!
+        return thisScale
 
     def _checkMatchingSizes(self, requested, actual):
-        """Checks whether the requested and actual screen sizes differ. If not
-        then a warning is output and the window size is set to actual
+        """Checks whether the requested and actual screen sizes differ.
+        If not then a warning is output and the window size is set to actual
         """
         if list(requested) != list(actual):
             logging.warning("User requested fullscreen with size %s, "
@@ -1277,8 +1329,8 @@ class Window(object):
         config = GL.Config(depth_size=8, double_buffer=True,
                            stencil_size=stencil_size, stereo=self.stereo,
                            vsync=vsync)
-        allScrs = \
-            pyglet.window.get_platform().get_default_display().get_screens()
+        defDisp = pyglet.window.get_platform().get_default_display()
+        allScrs = defDisp.get_screens()
         # Screen (from Exp Settings) is 1-indexed,
         # so the second screen is Screen 1
         if len(allScrs) < int(self.screen) + 1:
@@ -1289,7 +1341,7 @@ class Window(object):
             thisScreen = allScrs[self.screen]
             if self.autoLog:
                 logging.info('configured pyglet screen %i' % self.screen)
-        #if fullscreen check screen size
+        # if fullscreen check screen size
         if self._isFullScr:
             self._checkMatchingSizes(self.size, [thisScreen.width,
                                                  thisScreen.height])
@@ -1306,34 +1358,40 @@ class Window(object):
                                               config=config,
                                               screen=thisScreen,
                                               style=style)
-        if sys.platform =='win32':
+        if sys.platform == 'win32':
             # pyHook window hwnd maps to:
             # pyglet 1.14 -> window._hwnd
             # pyglet 1.2a -> window._view_hwnd
             if pyglet.version > "1.2":
-                self._hw_handle=self.winHandle._view_hwnd
+                self._hw_handle = self.winHandle._view_hwnd
             else:
-                self._hw_handle=self.winHandle._hwnd
-        elif sys.platform =='darwin':
+                self._hw_handle = self.winHandle._hwnd
+        elif sys.platform == 'darwin':
             try:
-                self._hw_handle=self.winHandle._window.value #python 32bit (1.4. or 1.2 pyglet)
+                # python 32bit (1.4. or 1.2 pyglet)
+                self._hw_handle = self.winHandle._window.value
             except Exception:
-                self._hw_handle= self.winHandle._nswindow.windowNumber()#pyglet 1.2 with 64bit python?
-        elif sys.platform =='linux2':
-            self._hw_handle=self.winHandle._window
+                # pyglet 1.2 with 64bit python?
+                self._hw_handle = self.winHandle._nswindow.windowNumber()
+        elif sys.platform == 'linux2':
+            self._hw_handle = self.winHandle._window
 
-        #provide warning if stereo buffers are requested but unavailable
+        # provide warning if stereo buffers are requested but unavailable
         if self.stereo and not GL.gl_info.have_extension('GL_STEREO'):
             logging.warning('A stereo window was requested but the graphics '
                             'card does not appear to support GL_STEREO')
-        if self.useFBO: #check for necessary extensions
+        if self.useFBO:  # check for necessary extensions
             if not GL.gl_info.have_extension('GL_EXT_framebuffer_object'):
-                logging.warn("Trying to use a framebuffer pbject but GL_EXT_framebuffer_object is not supported. Disabling")
-                self.useFBO=False
+                msg = ("Trying to use a framebuffer object but "
+                       "GL_EXT_framebuffer_object is not supported. Disabled")
+                logging.warn(msg)
+                self.useFBO = False
             if not GL.gl_info.have_extension('GL_ARB_texture_float'):
-                logging.warn("Trying to use a framebuffer pbject but GL_ARB_texture_float is not supported. Disabling")
-                self.useFBO=False
-        #add these methods to the pyglet window
+                msg = ("Trying to use a framebuffer object but "
+                       "GL_ARB_texture_float is not supported. Disabling")
+                logging.warn(msg)
+                self.useFBO = False
+        # add these methods to the pyglet window
         self.winHandle.setGamma = setGamma
         self.winHandle.setGammaRamp = setGammaRamp
         self.winHandle.getGammaRamp = getGammaRamp
@@ -1347,15 +1405,15 @@ class Window(object):
             # make mouse invisible. Could go further and make it 'exclusive'
             # (but need to alter x,y handling then)
             self.winHandle.set_mouse_visible(False)
-        self.winHandle.on_resize = _onResize #avoid circular reference with self
+        self.winHandle.on_resize = _onResize  # avoid circular reference
         if not self.pos:
             # work out where the centre should be
-            self.pos = [(thisScreen.width-self.size[0])/2,
-                        (thisScreen.height-self.size[1])/2]
+            self.pos = [(thisScreen.width - self.size[0]) / 2,
+                        (thisScreen.height - self.size[1]) / 2]
         if not self._isFullScr:
             # add the necessary amount for second screen
-            self.winHandle.set_location(self.pos[0]+thisScreen.x,
-                                        self.pos[1]+thisScreen.y)
+            self.winHandle.set_location(self.pos[0] + thisScreen.x,
+                                        self.pos[1] + thisScreen.y)
 
         try:  # to load an icon for the window
             iconFile = os.path.join(psychopy.prefs.paths['resources'],
@@ -1375,18 +1433,19 @@ class Window(object):
         if IOHUB_ACTIVE:
             from psychopy.iohub.client import ioHubConnection
             if ioHubConnection.ACTIVE_CONNECTION:
-                winhwnds=[]
+                winhwnds = []
                 for w in openWindows:
                     winhwnds.append(w()._hw_handle)
                 if self._hw_handle not in winhwnds:
                     winhwnds.append(self._hw_handle)
-                ioHubConnection.ACTIVE_CONNECTION.registerPygletWindowHandles(*winhwnds)
+                conn = ioHubConnection.ACTIVE_CONNECTION
+                conn.registerPygletWindowHandles(*winhwnds)
 
     def _setupPygame(self):
-        #we have to do an explicit import of pyglet.gl from pyglet
+        # we have to do an explicit import of pyglet.gl from pyglet
         # (only when using pygame backend)
-        #Not clear why it's needed but otherwise drawing is corrupt. Using a
-        #pyglet Window presumably gets around the problem
+        # Not clear why it's needed but otherwise drawing is corrupt. Using a
+        # pyglet Window presumably gets around the problem
         import pyglet.gl as GL
 
         self.winType = "pygame"
@@ -1407,12 +1466,12 @@ class Window(object):
         winSettings = pygame.OPENGL | pygame.DOUBLEBUF
         if self._isFullScr:
             winSettings = winSettings | pygame.FULLSCREEN
-            #check screen size if full screen
+            # check screen size if full screen
             scrInfo = pygame.display.Info()
             self._checkMatchingSizes(self.size, [scrInfo.current_w,
                                                  scrInfo.current_h])
         elif not self.pos:
-            #centre video
+            # centre video
             os.environ['SDL_VIDEO_CENTERED'] = "1"
         else:
             os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (self.pos[0],
@@ -1440,18 +1499,18 @@ class Window(object):
                                 'is not installed or not fully working')
                 self.winType = 'pyglet'
 
-        #setup the context
+        # setup the context
         if self.winType == "pygame":
             self._setupPygame()
         elif self.winType == "pyglet":
             self._setupPyglet()
-        #check whether shaders are supported
+        # check whether shaders are supported
         # also will need to check for ARB_float extension,
         # but that should be done after context is created
         self._haveShaders = (self.winType == 'pyglet' and
                              pyglet.gl.gl_info.get_version() >= '2.0')
 
-        #setup screen color
+        # setup screen color
         self.color = self.color  # call attributeSetter
         GL.glClearDepth(1.0)
 
@@ -1465,54 +1524,66 @@ class Window(object):
         GL.glLoadIdentity()
 
         GL.glDisable(GL.GL_DEPTH_TEST)
-        #GL.glEnable(GL.GL_DEPTH_TEST)  # Enables Depth Testing
-        #GL.glDepthFunc(GL.GL_LESS)  # The Type Of Depth Test To Do
+        # GL.glEnable(GL.GL_DEPTH_TEST)  # Enables Depth Testing
+        # GL.glDepthFunc(GL.GL_LESS)  # The Type Of Depth Test To Do
         GL.glEnable(GL.GL_BLEND)
 
         GL.glShadeModel(GL.GL_SMOOTH)  # Color Shading (FLAT or SMOOTH)
         GL.glEnable(GL.GL_POINT_SMOOTH)
 
-        #check for GL_ARB_texture_float
+        # check for GL_ARB_texture_float
         # (which is needed for shaders to be useful)
-        #this needs to be done AFTER the context has been created
+        # this needs to be done AFTER the context has been created
         if not GL.gl_info.have_extension('GL_ARB_texture_float'):
             self._haveShaders = False
 
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
-        #identify gfx card vendor
+        # identify gfx card vendor
         self.glVendor = GL.gl_info.get_vendor().lower()
 
         if pyglet.version < "1.2" and sys.platform == 'darwin':
             platform_specific.syncSwapBuffers(1)
 
-        requestedFBO=self.useFBO
-        if self._haveShaders: #do this after setting up FrameBufferObject
+        requestedFBO = self.useFBO
+        if self._haveShaders:  # do this after setting up FrameBufferObject
             self._setupShaders()
         else:
-            self.useFBO=False
+            self.useFBO = False
         if self.useFBO:
-            success=self._setupFrameBuffer()
+            success = self._setupFrameBuffer()
             if not success:
-                self.useFBO=False
+                self.useFBO = False
         if requestedFBO and not self.useFBO:
-            logging.warning("Framebuffer object (FBO) not supported on this graphics card")
+            logging.warning("Framebuffer object (FBO) not supported on "
+                            "this graphics card")
         if self.blendMode == 'add' and not self.useFBO:
-            logging.warning("Framebuffer object (FBO) is required for blendMode='add'. "
-                "Reverting to blendMode='avg'")
-            self.blendMode='avg'
+            logging.warning("Framebuffer object (FBO) is required for "
+                            "blendMode='add'. Reverting to blendMode='avg'")
+            self.blendMode = 'avg'
+
     def _setupShaders(self):
-        self._progSignedTexFont = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexFont)
-        self._progFBOtoFrame = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragFBOtoFrame)
+        self._progSignedTexFont = _shaders.compileProgram(
+            _shaders.vertSimple, _shaders.fragSignedColorTexFont)
+        self._progFBOtoFrame = _shaders.compileProgram(
+            _shaders.vertSimple, _shaders.fragFBOtoFrame)
         self._shaders = {}
-        self._shaders['signedTex'] = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex)
-        self._shaders['signedTexMask'] = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask)
-        self._shaders['signedTexMask1D'] = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask1D)
-        self._shaders['signedTex_adding'] = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTex_adding)
-        self._shaders['signedTexMask_adding'] = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask_adding)
-        self._shaders['signedTexMask1D_adding'] = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragSignedColorTexMask1D_adding)
-        self._shaders['imageStim'] = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragImageStim)
-        self._shaders['imageStim_adding'] = _shaders.compileProgram(_shaders.vertSimple, _shaders.fragImageStim_adding)
+        self._shaders['signedTex'] = _shaders.compileProgram(
+            _shaders.vertSimple, _shaders.fragSignedColorTex)
+        self._shaders['signedTexMask'] = _shaders.compileProgram(
+            _shaders.vertSimple, _shaders.fragSignedColorTexMask)
+        self._shaders['signedTexMask1D'] = _shaders.compileProgram(
+            _shaders.vertSimple, _shaders.fragSignedColorTexMask1D)
+        self._shaders['signedTex_adding'] = _shaders.compileProgram(
+            _shaders.vertSimple, _shaders.fragSignedColorTex_adding)
+        self._shaders['signedTexMask_adding'] = _shaders.compileProgram(
+            _shaders.vertSimple, _shaders.fragSignedColorTexMask_adding)
+        self._shaders['signedTexMask1D_adding'] = _shaders.compileProgram(
+            _shaders.vertSimple, _shaders.fragSignedColorTexMask1D_adding)
+        self._shaders['imageStim'] = _shaders.compileProgram(
+            _shaders.vertSimple, _shaders.fragImageStim)
+        self._shaders['imageStim_adding'] = _shaders.compileProgram(
+            _shaders.vertSimple, _shaders.fragImageStim_adding)
 
     def _setupFrameBuffer(self):
         # Setup framebuffer
@@ -1533,32 +1604,38 @@ class Window(object):
         GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA32F_ARB,
                         int(self.size[0]), int(self.size[1]), 0,
                         GL.GL_RGBA, GL.GL_FLOAT, None)
-        #attach texture to the frame buffer
+        # attach texture to the frame buffer
         GL.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT,
                                      GL.GL_COLOR_ATTACHMENT0_EXT,
                                      GL.GL_TEXTURE_2D, self.frameTexture, 0)
 
-        #add a stencil buffer
+        # add a stencil buffer
         self._stencilTexture = GL.GLuint()
-        GL.glGenRenderbuffersEXT(1, ctypes.byref(self._stencilTexture)) #like glGenTextures
+        GL.glGenRenderbuffersEXT(1, ctypes.byref(
+            self._stencilTexture))  # like glGenTextures
         GL.glBindRenderbufferEXT(GL.GL_RENDERBUFFER_EXT, self._stencilTexture)
-        GL.glRenderbufferStorageEXT(GL.GL_RENDERBUFFER_EXT, GL.GL_DEPTH24_STENCIL8_EXT,
+        GL.glRenderbufferStorageEXT(GL.GL_RENDERBUFFER_EXT,
+                                    GL.GL_DEPTH24_STENCIL8_EXT,
                                     int(self.size[0]), int(self.size[1]))
         GL.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT,
                                         GL.GL_STENCIL_ATTACHMENT_EXT,
-                                        GL.GL_RENDERBUFFER_EXT, self._stencilTexture)
+                                        GL.GL_RENDERBUFFER_EXT,
+                                        self._stencilTexture)
 
         status = GL.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT)
         if status != GL.GL_FRAMEBUFFER_COMPLETE_EXT:
             logging.error("Error in framebuffer activation")
-            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)#UNBIND THE FRAME BUFFER OBJECT THAT WE HAD CREATED
+            # UNBIND THE FRAME BUFFER OBJECT THAT WE HAD CREATED
+            GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0)
             return False
         GL.glDisable(GL.GL_TEXTURE_2D)
-        #clear the buffers (otherwise the texture memory can contain junk from other app)
+        # clear the buffers (otherwise the texture memory can contain
+        # junk from other app)
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
         GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
         GL.glClear(GL.GL_DEPTH_BUFFER_BIT)
         return True
+
     @attributeSetter
     def mouseVisible(self, visibility):
         """Sets the visibility of the mouse cursor.
@@ -1576,6 +1653,7 @@ class Window(object):
         elif self.winType == 'pyglet':
             self.winHandle.set_mouse_visible(visibility)
         self.__dict__['mouseVisible'] = visibility
+
     def setMouseVisible(self, visibility, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message."""
@@ -1615,34 +1693,33 @@ class Window(object):
             raise ValueError('nIdentical must be equal to or '
                              'less than nMaxFrames')
         recordFrmIntsOrig = self.recordFrameIntervals
-        #run warm-ups
+        # run warm-ups
         self.recordFrameIntervals = False
         for frameN in range(nWarmUpFrames):
             self.flip()
-        #run test frames
+        # run test frames
         self.recordFrameIntervals = True
         for frameN in range(nMaxFrames):
             self.flip()
             if (len(self.frameIntervals) >= nIdentical and
                     (numpy.std(self.frameIntervals[-nIdentical:]) <
-                     (threshold/1000.0))):
-                rate = 1.0/numpy.mean(self.frameIntervals[-nIdentical:])
+                     (threshold / 1000.0))):
+                rate = 1.0 / numpy.mean(self.frameIntervals[-nIdentical:])
                 if self.screen is None:
                     scrStr = ""
                 else:
                     scrStr = " (%i)" % self.screen
                 if self.autoLog:
-                    logging.debug('Screen%s actual frame rate measured at %.2f' %
-                              (scrStr, rate))
+                    msg = 'Screen%s actual frame rate measured at %.2f'
+                    logging.debug(msg % (scrStr, rate))
                 self.recordFrameIntervals = recordFrmIntsOrig
                 self.frameIntervals = []
                 return rate
-        #if we got here we reached end of maxFrames with no consistent value
-        logging.warning("Couldn't measure a consistent frame rate.\n"
-                        "  - Is your graphics card set to sync to "
-                        "vertical blank?\n"
-                        "  - Are you running other processes on your "
-                        "computer?\n")
+        # if we got here we reached end of maxFrames with no consistent value
+        msg = ("Couldn't measure a consistent frame rate.\n"
+               "  - Is your graphics card set to sync to vertical blank?\n"
+               "  - Are you running other processes on your computer?\n")
+        logging.warning(msg)
         return None
 
     def getMsPerFrame(self, nFrames=60, showVisual=False, msg='', msDelay=0.):
@@ -1656,9 +1733,9 @@ class Window(object):
         e.g., msg='(testing refresh rate...)'; setting msg implies
         showVisual == False.
 
-        To simulate refresh rate under cpu load, you can specify a time to wait
-        within the loop prior to doing the win.flip(). If 0 < msDelay < 100,
-        wait for that long in ms.
+        To simulate refresh rate under cpu load, you can specify a time to
+        wait within the loop prior to doing the win.flip().
+        If 0 < msDelay < 100, wait for that long in ms.
 
         Returns timing stats (in ms) of:
 
@@ -1679,13 +1756,15 @@ class Window(object):
             showVisual = False
             showText = True
             myMsg = TextStim(self, text=msg, italic=True,
-                             color=(.7, .6, .5), colorSpace='rgb', height=0.1, autoLog=False)
+                             color=(.7, .6, .5), colorSpace='rgb',
+                             height=0.1, autoLog=False)
         else:
             showText = False
         if showVisual:
             x, y = self.size
             myStim = GratingStim(self, tex='sin', mask='gauss',
-                                 size=[.6*y/float(x), .6], sf=3.0, opacity=.2,
+                                 size=[.6 * y / float(x), .6], sf=3.0,
+                                 opacity=.2,
                                  autoLog=False)
         clockt = []  # clock times
         # end of drawing time, in clock time units,
@@ -1694,7 +1773,7 @@ class Window(object):
 
         if msDelay > 0 and msDelay < 100:
             doWait = True
-            delayTime = msDelay/1000.  # sec
+            delayTime = msDelay / 1000.  # sec
         else:
             doWait = False
 
@@ -1709,10 +1788,10 @@ class Window(object):
         for i in range(nFrames):  # ... and go for real this time
             clockt.append(core.getTime())
             if showVisual:
-                myStim.setPhase(1.0/nFrames, '+', log=False)
-                myStim.setSF(3./nFrames, '+', log=False)
-                myStim.setOri(12./nFrames, '+', log=False)
-                myStim.setOpacity(.9/nFrames, '+', log=False)
+                myStim.setPhase(1.0 / nFrames, '+', log=False)
+                myStim.setSF(3. / nFrames, '+', log=False)
+                myStim.setOri(12. / nFrames, '+', log=False)
+                myStim.setOpacity(.9 / nFrames, '+', log=False)
                 myStim.draw()
             elif showText:
                 myMsg.draw()
@@ -1724,7 +1803,8 @@ class Window(object):
 
         self.units = winUnitsSaved  # restore
 
-        frameTimes = [(clockt[i] - clockt[i-1]) for i in range(1, len(clockt))]
+        frameTimes = [(clockt[i] - clockt[i - 1])
+                      for i in range(1, len(clockt))]
         drawTimes = [(drawt[i] - clockt[i]) for
                      i in range(len(clockt))]  # == drawing only
         freeTimes = [frameTimes[i] - drawTimes[i] for
@@ -1735,7 +1815,7 @@ class Window(object):
         frameTimes.sort()
         # median-most slice
         msPFmed = 1000. * float(numpy.average(
-            frameTimes[(nFrames-num2avg)/2:(nFrames+num2avg)/2]))
+            frameTimes[(nFrames - num2avg) / 2:(nFrames + num2avg) / 2]))
         msPFavg = 1000. * float(numpy.average(frameTimes))
         msPFstd = 1000. * float(numpy.std(frameTimes))
         msdrawAvg = 1000. * float(numpy.average(drawTimes))
@@ -1745,12 +1825,16 @@ class Window(object):
         return msPFavg, msPFstd, msPFmed  # msdrawAvg, msdrawSD, msfree
 
     def _startOfFlip(self):
-        """Custom hardware classes may want to prevent flipping from occurring and
-        can override this method as needed. Return True to indicate hardware flip."""
+        """Custom hardware classes may want to prevent flipping from
+        occurring and can override this method as needed. Return True to
+        indicate hardware flip.
+        """
         return True
 
     def _renderFBO(self):
-        '''Perform a warp operation (in this case a copy operation without any warping)'''
+        """Perform a warp operation
+        (in this case a copy operation without any warping)
+        """
         GL.glBegin(GL.GL_QUADS)
         GL.glTexCoord2f(0.0, 0.0)
         GL.glVertex2f(-1.0, -1.0)
@@ -1772,9 +1856,11 @@ class Window(object):
         pass
 
     def _endOfFlip(self, clearBuffer):
-        """Override end of flip with custom color channel masking if required"""
+        """Override end of flip with custom color channel masking if required
+        """
         if clearBuffer:
             GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+
 
 def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """
@@ -1787,8 +1873,9 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     Records time for each refresh (frame) for n frames (at least 60), while
     displaying an optional visual. The visual is just eye-candy to show that
     something is happening when assessing many frames. You can also give it
-    text to display instead of a visual, e.g., msg='(testing refresh rate...)';
-    setting msg implies showVisual == False. To simulate refresh rate under
+    text to display instead of a visual, e.g.,
+    msg='(testing refresh rate...)'; setting msg implies showVisual == False.
+    To simulate refresh rate under
     cpu load, you can specify a time to wait within the loop prior to
     doing the win.flip(). If 0 < msDelay < 100, wait for that long in ms.
 
@@ -1803,24 +1890,26 @@ def getMsPerFrame(myWin, nFrames=60, showVisual=False, msg='', msDelay=0.):
     """
     return myWin.getMsPerFrame(nFrames=60, showVisual=showVisual, msg='',
                                msDelay=0.)
+
+
 def _onResize(width, height):
-        '''A default resize event handler.
+    """A default resize event handler.
 
-        This default handler updates the GL viewport to cover the entire
-        window and sets the ``GL_PROJECTION`` matrix to be orthogonal in
-        window space.  The bottom-left corner is (0, 0) and the top-right
-        corner is the width and height of the :class:`~psychopy.visual.Window`
-        in pixels.
+    This default handler updates the GL viewport to cover the entire
+    window and sets the ``GL_PROJECTION`` matrix to be orthogonal in
+    window space.  The bottom-left corner is (0, 0) and the top-right
+    corner is the width and height of the :class:`~psychopy.visual.Window`
+    in pixels.
 
-        Override this event handler with your own to create another
-        projection, for example in perspective.
-        '''
-        if height == 0:
-            height = 1
-        GL.glViewport(0, 0, width, height)
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
-        GL.glOrtho(-1, 1, -1, 1, -1, 1)
-        #GL.gluPerspective(90, 1.0*width/height, 0.1, 100.0)
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
+    Override this event handler with your own to create another
+    projection, for example in perspective.
+    """
+    if height == 0:
+        height = 1
+    GL.glViewport(0, 0, width, height)
+    GL.glMatrixMode(GL.GL_PROJECTION)
+    GL.glLoadIdentity()
+    GL.glOrtho(-1, 1, -1, 1, -1, 1)
+    #GL.gluPerspective(90, 1.0*width/height, 0.1, 100.0)
+    GL.glMatrixMode(GL.GL_MODELVIEW)
+    GL.glLoadIdentity()
